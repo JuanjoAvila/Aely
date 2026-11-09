@@ -500,6 +500,31 @@ function fixedPaymentChargeOwner(s,x,e,y,m,today){
    si además bloqueaba el enlace a mano, el cargo real no había forma de confirmarlo (INC-1810-04,
    YouTube Premium, rechazo de beta 4.26.145). */
 function fixedPaymentEvidence(st){ return !!(st&&(st.proof||st.bankTx||st.expense)); }
+/* «Marcado a mano» (SPEC §2.6.3): lo pagó sin cargo del banco (efectivo, Bizum, una tarjeta sin
+   conectar). Sin esto el recibo se quedaba para siempre en «Para revisar» y sumando en lo que queda
+   por pagar (auditoría 9/11, P0-1). Es su palabra de ESE mes, no una prueba: no casa cargos ni toca
+   el saldo leído, y un cargo real que llegue después manda. Mes a mes ({año*12+mes: día}) para que
+   el aviso de «hace meses que no se cobra» sepa que esos meses sí se pagaron. */
+const FIXED_A_MANO_MESES=14;
+// La lectura (`fixedMarcadoAMano`) vive en 07, junto a `isPaidIn` y `fixedPagadoFuera`.
+/* day=null desmarca ese mes. Lo de hace más de un año se poda al escribir: nadie lo lee ya.
+   Marcar o desmarcar NO mueve el saldo que se ve (la regla de `conSaldoMostrado`): la base se
+   desplaza justo lo que cambia lo pintado. Desde ahí ese recibo no se resta del banco (no lo va a
+   cobrar); si el banco ya lo había cobrado de verdad, la siguiente lectura o sync lo corrige. */
+function fixedMarcarAMano(s,id,y,m,day){
+  const ym=y*12+m; let changed=false;
+  const fixed=(s.fixed||[]).map(function(e){
+    if(e.id!==id) return e;
+    const p={};
+    Object.keys(e.pagadoAMano||{}).forEach(function(k){ if(Number(k)>ym-FIXED_A_MANO_MESES&&Number(k)!==ym) p[k]=e.pagadoAMano[k]; });
+    if(day!=null) p[ym]=day;
+    const n=Object.assign({},e);
+    if(Object.keys(p).length) n.pagadoAMano=p; else delete n.pagadoAMano;
+    if(goalSyncEqual(n,e)) return e;
+    changed=true; return n;
+  });
+  return changed?conSaldoMostrado(s,Object.assign({},s,{fixed:fixed})):s;
+}
 /* FIN28: parecido sin referencia solo pide una decisión al enlazar A MANO. Se consulta el
    pago que acredita OTRO recibo; nunca entra en identidad, elegibilidad ni pruebas guardadas. */
 function fixedPaymentManualLinkWarnings(s,x,e,y,m,today){
@@ -802,7 +827,8 @@ function paymentEvidenceUI(s,y,m,today){
   };
   (s.fixed||[]).forEach(function(f){
     var st=fixedPaymentState(s,f,y,m,today),p=st.proof,tx=st.bankTx;
-    confirmed["fixed_"+f.id]=!!(p||tx||st.expense);
+    // Marcado a mano también está confirmado: lo dijo él, no el calendario.
+    confirmed["fixed_"+f.id]=!!(p||tx||st.expense)||fixedMarcadoAMano(f,y,m)!=null;
     if(st.expense){ add(st.expense,"fixed",f);return; }
     var identity=p?p.identity:tx?fixedPaymentIdentity(tx.ent,tx):null;
     if(!identity) return;
@@ -932,10 +958,13 @@ function planChargesMonth(s,m,y,today){
     var a=occAmountIn(e,m,y);
     if(!(a>0)||!occursIn(e,m,y)) return;
     var status=fixedPaymentState(s,e,y,m,today);
+    // Un cargo del banco manda sobre la marca a mano; sin él, la marca lo da por pagado ese día.
+    var aMano=fixedPaymentEvidence(status)?null:fixedMarcadoAMano(e,y,m);
+    if(aMano!=null) status=Object.assign({},status,{paid:true,day:aMano,overdue:false,paidBank:null,paidAmount:null});
     if(!status.paid&&fixedPausedIn(e,y,m)) return;
     var rep=repartoDelMes(s,e,y,m,today), deben=rep?rep.filter(function(x){ return !repartoDescuentaDe(s,x,e); }):[];
     var hecho=(e.repartoCobrado&&e.repartoCobrado[y*12+m])||[];
-    r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue,
+    r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,aMano:aMano!=null,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue,
       // Lo que cobra el banco (entero en un compartido): con eso se mira si llega (SPEC §6).
       bankAmt:fixedCargoBanco(e,m,y),
       teDeben:deben.length?{n:deben.length,pagados:deben.filter(function(x){ return hecho.indexOf(x.id)>=0; }).length}:null});
@@ -1904,6 +1933,8 @@ function pendingWalkEvents(state, y, m, today){
     if(!(a>0)||!occursIn(e,m,y)||fixedPausedIn(e,y,m)) return;
     const b=accOf(e);
     if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
+    // Pagado por otro lado: este banco ya no lo va a cobrar (misma regla que el saldo y los totales).
+    if(fixedPagadoFuera(state,e,y,m,today)) return;
     const st=fixedPaymentState(state,e,y,m,today);
     if(st.paid&&reciboEnElSaldo(state,e,y,m,today,leido[b],st.day)) return;
     // El banco cobra el recibo entero aunque lo compartas: lo de los demás llega después (SPEC §6).
@@ -5543,6 +5574,11 @@ function billsHeroTotal(state, totals){
   const serv=(state.fixed||[]).reduce(function(a,e){ return a+fixedMonthlyOf(e); },0);
   const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
   return serv+cuotas+desc;
+}
+/* Cuántos suman en esa cifra: recibos y cuotas. La nómina, los traspasos y los puntuales no entran
+   en ella, y contarlos decía «De 18 recibos» con 16 detrás (auditoría 9/11, P1-4). */
+function billsCountHero(state){
+  return (state.fixed||[]).length+(state.debts||[]).filter(debtActive).length;
 }
 function billsCountAll(state, curMonth, curYear){
   const one=(state.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,curYear,curMonth); }).length;

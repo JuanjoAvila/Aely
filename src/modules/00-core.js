@@ -4780,6 +4780,21 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
         if(has(left,"paymentProofs")||has(right,"paymentProofs"))merged.paymentProofs=has(left,"paymentProofs")&&goalSyncEqual(proofs,a)?left.paymentProofs:has(right,"paymentProofs")&&goalSyncEqual(proofs,c)?right.paymentProofs:proofs;
         return;
       }
+      /* «Lo pagué de otra forma» (`pagadoAMano`, {año*12+mes: día}) se mezcla mes a mes, como las
+         pruebas de pago: dos móviles que marcan meses distintos conservan las dos marcas, y la
+         primera lectura sin base no tira la marca local (revisión de dinero 9/11, C3). */
+      if(kind==="fixed"&&group[0]==="pagadoAMano"&&[old,left,right].every(function(o){return !has(o,"pagadoAMano")||o.pagadoAMano&&typeof o.pagadoAMano==="object"&&!Array.isArray(o.pagadoAMano);})){
+        const before=old&&old.pagadoAMano||{},a=left.pagadoAMano||{},c=right.pagadoAMano||{},out={};
+        new Set([...Object.keys(before),...Object.keys(a),...Object.keys(c)]).forEach(function(month){
+          const equal=function(x,y){return has(x,month)===has(y,month)&&(!has(x,month)||x[month]===y[month]);};
+          let source=c;
+          if(equal(c,before))source=a;
+          else if(!equal(a,before)&&!equal(a,c)&&fields.indexOf("pagadoAMano")<0)fields.push("pagadoAMano");
+          if(has(source,month))Object.defineProperty(out,month,{value:source[month],enumerable:true,writable:true,configurable:true});
+        });
+        if(Object.keys(out).length)merged.pagadoAMano=goalSyncEqual(out,a)&&has(left,"pagadoAMano")?left.pagadoAMano:goalSyncEqual(out,c)&&has(right,"pagadoAMano")?right.pagadoAMano:out;
+        return;
+      }
       /* «Ya me lo ha pagado» (tanda 5): dos móviles que marcan a personas distintas suman las dos
          marcas; quitarla en uno la quita si el otro no la tocó (rev. t5, R3). Mes a mes, id a id. */
       if(kind==="fixed"&&group[0]==="repartoCobrado"&&[old,left,right].every(function(o){return !has(o,"repartoCobrado")||o.repartoCobrado&&typeof o.repartoCobrado==="object"&&!Array.isArray(o.repartoCobrado);})){

@@ -109,7 +109,11 @@
             "16. Gestionar → «+» → hasta «¿Cuándo se cobra?» y tira de la hoja hacia abajo desde el centro. BIEN: sigue al dedo; poco y vuelve a su sitio, mucho y se cierra bajando. MAL: no se mueve o la lista de días se estira.",
             "17. Toca un recibo de «Pendiente». BIEN: «Ya está pagado» es un botón verde del tamaño de «Editar» y «Pausar», en la misma fila. MAL: ocupa todo el ancho.",
             "18. Plan → Recibos: un recibo cuyo cargo ya salió en el banco, aunque el banco lo llame de otra forma. BIEN: está en «Ya pagados» con el importe y el día del cargo, sin hacer nada. MAL: sigue en «Pendiente» o en «Para revisar».",
-            "19. Dos recibos del mismo importe y día, o un recibo devuelto por el banco. BIEN: ninguno se da por pagado solo. MAL: se marca el que no es, o un cargo paga dos recibos."
+            "19. Dos recibos del mismo importe y día, o un recibo devuelto por el banco. BIEN: ninguno se da por pagado solo. MAL: se marca el que no es, o un cargo paga dos recibos.",
+            "20. Plan → Recibos → un recibo de «Para revisar» que pagaste en efectivo o por Bizum → «Ya está pagado» → «Lo pagué de otra forma». BIEN: pasa a «Ya pagados» con «marcado a mano», «Queda por pagar» baja ese importe y sale «Deshacer», que lo devuelve como estaba. Ábrelo otra vez → «Desmarcar». BIEN: vuelve a su sitio y te dice a cuál. MAL: no está el botón, sigue en «Para revisar» o la cifra no cambia.",
+            "21. Plan → Recibos → «Ya pagados» → toca un recibo saltado («este mes no»). BIEN: el aviso dice dónde cae de verdad (Pendiente o Para revisar) y trae «Deshacer», que lo vuelve a dejar saltado. MAL: dice «vuelve a Pendiente» y aparece en otro sitio, o no se puede deshacer.",
+            "22. Si tienes un recibo del día 31: en los meses de 30 días (o en febrero) sale el último día del mes, en la lista y en su ficha. MAL: sale «31 NOV».",
+            "23. Gestionar: «De N recibos» cuenta solo recibos y cuotas de deuda. MAL: cuenta también la nómina o los traspasos."
           ],
           "en": [
             "1. Plan → Bills. Scroll slowly to the bottom and back up. RIGHT: nothing passes under the clock and icons at the top (the title, Bills/Debts/Goals and the card hide under a strip the colour of the background); in light theme there is no grey strip on the left edge. WRONG: text or buttons show under the clock, or a grey shadow sticks to the left edge.",
@@ -130,7 +134,11 @@
             "16. Manage → \"+\" → up to \"When is it charged?\" and pull the sheet down from the middle. RIGHT: it follows your finger; a little and it goes back, a lot and it closes downwards. WRONG: it doesn't move, or the list of days stretches.",
             "17. Tap a bill in \"Pending\". RIGHT: \"It's paid\" is a green button the size of \"Edit\" and \"Pause\", in the same row. WRONG: it takes the full width.",
             "18. Plan → Bills: a bill whose charge is already in the bank, even if the bank names it differently. RIGHT: it is in \"Already paid\" with the amount and day of the charge, without doing anything. WRONG: it stays in \"Pending\" or \"To review\".",
-            "19. Two bills with the same amount and day, or a bill the bank returned. RIGHT: neither is marked paid on its own. WRONG: the wrong one is marked, or one charge pays two bills."
+            "19. Two bills with the same amount and day, or a bill the bank returned. RIGHT: neither is marked paid on its own. WRONG: the wrong one is marked, or one charge pays two bills.",
+            "20. Plan → Bills → a bill in \"To review\" that you paid in cash or by Bizum → \"It's paid\" → \"I paid it another way\". RIGHT: it moves to \"Already paid\" with \"marked by hand\", \"Still to pay\" drops by that amount and \"Undo\" appears, which puts it back as it was. Open it again → \"Unmark\". RIGHT: it goes back to its place and tells you which. WRONG: no button, it stays in \"To review\" or the figure doesn't change.",
+            "21. Plan → Bills → \"Already paid\" → tap a skipped bill (\"not this month\"). RIGHT: the notice says where it really lands (Pending or To review) and has \"Undo\", which skips it again. WRONG: it says \"is back in Pending\" and shows up elsewhere, or it can't be undone.",
+            "22. If you have a bill on the 31st: in 30-day months (or February) it shows the last day of the month, in the list and in its details. WRONG: it shows \"31 NOV\".",
+            "23. Manage: \"From N bills\" counts only bills and debt payments. WRONG: it also counts salary or transfers."
           ],
           "ca": [
             "1. Pla → Rebuts. Baixa a poc a poc fins a baix i torna a dalt. BÉ: res passa per sota de l'hora i les icones de dalt (el títol, Rebuts/Deutes/Metes i la targeta s'amaguen sota una franja del color del fons); en tema clar no hi ha cap franja grisa a la vora esquerra. MALAMENT: es veu text o botons sota l'hora, o una ombra grisa enganxada a la vora esquerra.",
@@ -151,7 +159,11 @@
             "16. Gestionar → «+» → fins a «Quan es cobra?» i estira el full cap avall des del mig. BÉ: segueix el dit; poc i torna al seu lloc, molt i es tanca baixant. MALAMENT: no es mou o la llista de dies s'estira.",
             "17. Toca un rebut de «Pendent». BÉ: «Ja està pagat» és un botó verd de la mida d'«Editar» i «Pausar», a la mateixa fila. MALAMENT: ocupa tota l'amplada.",
             "18. Pla → Rebuts: un rebut el càrrec del qual ja ha sortit al banc, encara que el banc l'anomeni d'una altra manera. BÉ: és a «Ja pagats» amb l'import i el dia del càrrec, sense fer res. MALAMENT: continua a «Pendent» o a «Per revisar».",
-            "19. Dos rebuts del mateix import i dia, o un rebut que el banc ha retornat. BÉ: cap no es dona per pagat sol. MALAMENT: es marca el que no és, o un càrrec paga dos rebuts."
+            "19. Dos rebuts del mateix import i dia, o un rebut que el banc ha retornat. BÉ: cap no es dona per pagat sol. MALAMENT: es marca el que no és, o un càrrec paga dos rebuts.",
+            "20. Pla → Rebuts → un rebut de «Per revisar» que vas pagar en efectiu o per Bizum → «Ja està pagat» → «Ho vaig pagar d'una altra manera». BÉ: passa a «Ja pagats» amb «marcat a mà», «Queda per pagar» baixa aquest import i surt «Desfer», que el torna com estava. Obre'l un altre cop → «Desmarcar». BÉ: torna al seu lloc i et diu a quin. MALAMENT: no hi ha el botó, continua a «Per revisar» o la xifra no canvia.",
+            "21. Pla → Rebuts → «Ja pagats» → toca un rebut saltat («aquest mes no»). BÉ: l'avís diu on cau de debò (Pendent o Per revisar) i porta «Desfer», que el torna a deixar saltat. MALAMENT: diu «torna a Pendent» i apareix en un altre lloc, o no es pot desfer.",
+            "22. Si tens un rebut del dia 31: als mesos de 30 dies (o al febrer) surt l'últim dia del mes, a la llista i a la fitxa. MALAMENT: surt «31 NOV».",
+            "23. Gestionar: «De N rebuts» compta només rebuts i quotes de deute. MALAMENT: també compta la nòmina o els traspassos."
           ]
         }
       }
