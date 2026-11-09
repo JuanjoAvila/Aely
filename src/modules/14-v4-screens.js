@@ -420,7 +420,7 @@ function planRecibosAvisos(s, pack, proof, y, m, today){
   /* «Cobró distinto» de un recibo aún sin pagar (P1-11): el banco trae un adeudo parecido con otro
      nombre. No se da por pagado: se pregunta (`fixedPaymentCobroDistinto` pone las vallas). */
   pack.pendingBills.forEach(function(x){
-    const f=reciboDe(x.id), cargo=f&&fixedPaymentCobroDistinto(s,f,y,m,today);
+    const f=reciboDe(x.id), cargo=f&&fixedPaymentCobroDistinto(s,f,y,m,today,true);
     if(cargo) out[x.id]={rv:"cand",cobrado:Number(cargo.amount),previsto:f.bankAmount>0?Number(f.bankAmount):occAmountIn(f,m,y),cargo:cargo};
   });
   // Mes a mes y no recibo a recibo: el índice de gastos se rehace al cambiar de mes y con veinte

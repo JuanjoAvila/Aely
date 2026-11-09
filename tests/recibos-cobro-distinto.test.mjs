@@ -116,3 +116,13 @@ test("el suyo con nombre, devuelto, pausado o marcado a mano: no se pregunta",()
   const aMano=Object.assign({},luz,{pagadoAMano:{[Y*12+M]:8}});
   assert.equal(cand(estado({fixed:[aMano]}),aMano),null,"marcado a mano");
 });
+
+test("revisión del 9/11: rival al céntimo con su día a +5, compra con tarjeta que dice «RECIBO» y umbral del 1 %",()=>{
+  const seguro={id:"seg",name:"Seguro",amount:54.71,freq:"mes",day:13,account:"sabadell"};
+  assert.equal(cand(estado({fixed:[luz,seguro]})),null,"el cargo puede ser el adelantado de otro recibo al céntimo");
+  assert.equal(cand(estado({bankTx:[tx({card:true,merchant:"RECIBO TIENDA SINTETICA",concept:""})],expenses:[fila({merchant:"RECIBO TIENDA SINTETICA"})]})),null,"tarjeta solo en el extracto");
+  const alq={id:"alq",name:"Alquiler",amount:850,freq:"mes",day:8,account:"sabadell"};
+  const conAlq=(amount)=>estado({fixed:[alq],bankTx:[tx({amount,merchant:"INMOBILIARIA SINTETICA",concept:"RECIBO"})],expenses:[fila({amount,merchant:"INMOBILIARIA SINTETICA"})]});
+  assert.equal(cand(conAlq(849.6),alq).id,"e-b-luz","40 céntimos en 850: se pregunta");
+  assert.equal(cand(conAlq(860),alq),null,"10 € en 850 ya no se parece (antes ±17 €)");
+});
