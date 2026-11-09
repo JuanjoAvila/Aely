@@ -156,6 +156,27 @@ test("Deshacer tras devolver un saltado con su saldo compensado deja la cuenta c
   expect(await saldoVisto(page)).toEqual(visto);
 });
 
+test("Deshacer tras devolver un saltado avisa si la fila cambió entretanto", async ({ page }) => {
+  const YM = 2026 * 12 + 10;
+  const recibos = await abrePlan(page, { fixed: [recibo("com", "Comunidad", 75, 3, { pausedFrom: YM, pausedUntil: YM + 1,
+    manualPauseBalance: { schema: 1, origin: "manual-v1", ym: YM, accountId: "bank", ent: "sabadell" } }), recibo("luz", "Luz", 50, 25)] });
+  const pagados = recibos.getByTestId("plan-paid");
+  await pagados.locator(".pr6-paid-h").click();
+  await pagados.locator('[data-pausado="1"][data-recibo="fixed_com"]').click();
+  await expect(recibos.getByTestId("plan-review").locator('[data-recibo="fixed_com"]')).toHaveCount(1);
+  // Entretanto la fila cambia por otro camino (aquí, pausándola otra vez desde su ficha; en la vida
+  // real suele ser una sync): el Deshacer ya no puede reponer la foto y lo tiene que decir.
+  await recibos.getByTestId("plan-review").locator('[data-recibo="fixed_com"]').click();
+  const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
+  await ficha.locator('[data-act="pausar"]').click();
+  await ficha.locator('[data-pausa="h2"]').click();
+  await expect(ficha).toHaveCount(0);
+  const tras = await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed[0].pausedUntil);
+  await recibos.getByTestId("plan-deshacer").getByRole("button", { name: "Deshacer" }).click();
+  await expect(page.getByText("No se pudo deshacer: ha cambiado mientras tanto")).toBeVisible();
+  expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed[0].pausedUntil)).toBe(tras);
+});
+
 test("la marca a mano se mezcla mes a mes entre dos móviles", async ({ page }) => {
   await abrePlan(page, { fixed: [] });
   const r = await page.evaluate(() => {

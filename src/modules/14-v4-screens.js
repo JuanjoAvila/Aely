@@ -612,6 +612,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
   const deshacerT=useRef(0);
+  const vivo=useRef(state); vivo.current=state;
   useEffect(function(){ return function(){ clearTimeout(deshacerT.current); }; },[]);
   const month=totals.curMonth, today=totals.today, year=totals.curYear;
   const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, today);
@@ -701,12 +702,16 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       foto={antes:fila(s),despues:fila(n),cuentas:cuentas};
       return n;
     });
+    const intacto=function(s){
+      if(!foto||!foto.antes) return false;
+      const e=(s.fixed||[]).find(function(o){ return o.id===f.id; });
+      return !!e&&goalSyncEqual(e,foto.despues)&&foto.cuentas.every(function(c){ const a=(s.accounts||[]).find(function(x){ return x.id===c.id; }); return a&&a.value===c.despues; });
+    };
     avisarDeshacer(tf(donde==="review"?"pr6_revisar_toast":donde==="paid"?"pr6_a_pagados_toast":"pr6_vuelve_toast",{name:f.name}),function(){
+      // Una sync que cambió la fila o la cuenta entretanto: no se pisa, y se dice (no callar el fallo).
+      if(!intacto(vivo.current)){ if(showToast) showToast(t("pr6_undo_cambio")); return; }
       set(function(s){
-        if(!foto||!foto.antes) return s;
-        const e=(s.fixed||[]).find(function(o){ return o.id===f.id; });
-        const intactas=foto.cuentas.every(function(c){ const a=(s.accounts||[]).find(function(x){ return x.id===c.id; }); return a&&a.value===c.despues; });
-        if(!e||!goalSyncEqual(e,foto.despues)||!intactas) return s;
+        if(!intacto(s)) return s;
         return Object.assign({},s,{
           fixed:s.fixed.map(function(o){ return o.id===f.id?foto.antes:o; }),
           accounts:foto.cuentas.length?s.accounts.map(function(a){ const c=foto.cuentas.find(function(x){ return x.id===a.id; }); return c?Object.assign({},a,{value:c.antes}):a; }):s.accounts});
