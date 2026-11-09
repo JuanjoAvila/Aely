@@ -126,3 +126,12 @@ test("revisión del 9/11: rival al céntimo con su día a +5, compra con tarjeta
   assert.equal(cand(conAlq(849.6),alq).id,"e-b-luz","40 céntimos en 850: se pregunta");
   assert.equal(cand(conAlq(860),alq),null,"10 € en 850 ya no se parece (antes ±17 €)");
 });
+
+test("revisión del 9/11, ronda 2: un recibo de otro banco que ya se paga con ese cargo por su nombre no se lo cede",()=>{
+  const endesa={id:"end",name:"Endesa",amount:54.71,freq:"mes",day:8,account:"revolut"};
+  const s=estado({fixed:[luz,endesa],bankTx:[tx({merchant:"ENDESA ENERGIA SAU",concept:"RECIBO"})],expenses:[fila({merchant:"ENDESA ENERGIA SAU"})]});
+  assert.equal(c.fixedPaymentState(s,endesa,Y,M,HOY).paid,true,"Endesa ya está pagada con ese cargo");
+  assert.equal(cand(s),null,"la Luz no pregunta por él");
+  const sinEndesa=estado({bankTx:[tx({merchant:"ENDESA ENERGIA SAU",concept:"RECIBO"})],expenses:[fila({merchant:"ENDESA ENERGIA SAU"})]});
+  assert.equal(cand(sinEndesa).id,"e-b-luz","sin ese recibo, sí se pregunta");
+});

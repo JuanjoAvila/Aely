@@ -19919,6 +19919,14 @@ function fixedPaymentCobroDistinto(s,e,y,m,today,sinPagar){
   }
   if(!mes.rivales) mes.rivales=fixedPaymentContenders(s,y,m);
   var rivales=mes.rivales.filter(function(c){ return !(c.kind==="fixed"&&c.id===e.id)&&c.bank===bank; });
+  /* Un recibo de OTRO banco también se queda un cargo de Gastos que lleva su nombre entero y su
+     importe al céntimo (`fixedPaymentState` → `fixedPaymentExpenseRows`): Endesa, en Revolut, ya
+     pagada con «ENDESA ENERGIA SAU» de Sabadell, se proponía a la Luz y «Sí, es este» la devolvía a
+     Pendiente (revisión del 9/11, ronda 2). Se pregunta con la misma búsqueda del motor. Cuotas y
+     puntuales no tienen ese camino: los paga su marca en la fila (`debtId`, `reciboId`), que ya
+     descarta `fixedExpenseEligible`. */
+  var ym=y+"-"+String(m).padStart(2,"0");
+  var otrosBancos=mes.rivales.filter(function(c){ return c.kind==="fixed"&&c.id!==e.id&&c.bank!==bank&&recNorm(c.name).length>=4; });
   var idx=fixedPaymentFilasBanco(s);
   var cands=pre.filter(function(x){
     var amount=Number(x.amount),cents=Math.round(amount*100),d=recDay(x.date),identity=fixedPaymentIdentity(bank,x);
@@ -19937,7 +19945,7 @@ function fixedPaymentCobroDistinto(s,e,y,m,today,sinPagar){
     if(rivales.some(function(c){
       return recNameMatch(c.name,txLike.merchant)||Math.round(Number(c.amount)*100)===cents||fixedPaymentRivalPorImporte(s,c,txLike)||
         fixedPaymentImporteParecido(Number(c.amount),amount)&&c.day!=null&&Math.abs(d-c.day)<=2*CUOTA_DIAS;
-    })) return false;
+    })||otrosBancos.some(function(c){ return fixedPaymentExpenseRows(s,recNorm(c.name),ym,c.amount).indexOf(x)>=0; })) return false;
     return fixedExpenseEligible(s,x,e,y,m,today);
   });
   return cands.length===1?cands[0]:null;
