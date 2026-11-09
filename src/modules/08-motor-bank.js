@@ -506,11 +506,11 @@ function fixedPaymentEvidence(st){ return !!(st&&(st.proof||st.bankTx||st.expens
    el saldo leído, y un cargo real que llegue después manda. Mes a mes ({año*12+mes: día}) para que
    el aviso de «hace meses que no se cobra» sepa que esos meses sí se pagaron. */
 const FIXED_A_MANO_MESES=14;
-function fixedMarcadoAMano(e,y,m){
-  const p=e&&e.pagadoAMano, d=p&&typeof p==="object"?Number(p[y*12+m]):NaN;
-  return d>=1&&d<=31?d:null;
-}
-// day=null desmarca ese mes. Lo de hace más de un año se poda al escribir: nadie lo lee ya.
+// La lectura (`fixedMarcadoAMano`) vive en 07, junto a `isPaidIn` y `fixedPagadoFuera`.
+/* day=null desmarca ese mes. Lo de hace más de un año se poda al escribir: nadie lo lee ya.
+   Marcar o desmarcar NO mueve el saldo que se ve (la regla de `conSaldoMostrado`): la base se
+   desplaza justo lo que cambia lo pintado. Desde ahí ese recibo no se resta del banco (no lo va a
+   cobrar); si el banco ya lo había cobrado de verdad, la siguiente lectura o sync lo corrige. */
 function fixedMarcarAMano(s,id,y,m,day){
   const ym=y*12+m; let changed=false;
   const fixed=(s.fixed||[]).map(function(e){
@@ -523,7 +523,7 @@ function fixedMarcarAMano(s,id,y,m,day){
     if(goalSyncEqual(n,e)) return e;
     changed=true; return n;
   });
-  return changed?Object.assign({},s,{fixed:fixed}):s;
+  return changed?conSaldoMostrado(s,Object.assign({},s,{fixed:fixed})):s;
 }
 /* FIN28: parecido sin referencia solo pide una decisión al enlazar A MANO. Se consulta el
    pago que acredita OTRO recibo; nunca entra en identidad, elegibilidad ni pruebas guardadas. */
@@ -1933,10 +1933,10 @@ function pendingWalkEvents(state, y, m, today){
     if(!(a>0)||!occursIn(e,m,y)||fixedPausedIn(e,y,m)) return;
     const b=accOf(e);
     if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
+    // Pagado por otro lado: este banco ya no lo va a cobrar (misma regla que el saldo y los totales).
+    if(fixedPagadoFuera(state,e,y,m,today)) return;
     const st=fixedPaymentState(state,e,y,m,today);
     if(st.paid&&reciboEnElSaldo(state,e,y,m,today,leido[b],st.day)) return;
-    // Pagado por otro lado: este banco ya no lo va a cobrar, no se resta de lo que le queda.
-    if(!fixedPaymentEvidence(st)&&fixedMarcadoAMano(e,y,m)!=null) return;
     // El banco cobra el recibo entero aunque lo compartas: lo de los demás llega después (SPEC §6).
     const banco=fixedCargoBanco(e,m,y);
     evs.push(st.paid?{bank:b, day:hoy(dayIn(e,m,y)), amt:-banco, sinRestar:true}:{bank:b, day:hoy(dayIn(e,m,y)), amt:-banco});
@@ -1955,15 +1955,7 @@ function pendingWalkEvents(state, y, m, today){
     if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today)) return;
     const dd=flowDay(f,y,m), tag={kind:f.kind,id:f.id,name:f.name};
     if(f.kind==="income") evs.push(Object.assign({bank:f.to||"sabadell", day:dd||99, amt:f.amount},tag));
-    else if(f.kind==="transfer"){
-      const from=f.from||"sabadell";
-      evs.push(Object.assign({bank:from, day:dd||0, amt:-f.amount},tag));
-      /* Lo que sale de un banco tuyo entra en el otro: restaba en Sabadell y Revolut no lo sumaba,
-         así que «¿Te llega?» de Revolut avisaba de un hueco que el traspaso tapa (auditoría 9/11,
-         P1-12; fila 75 del BACKLOG). Solo si el destino es una cuenta tuya; sin día, al final. */
-      const to=f.to;
-      if(to&&to!==from&&(state.accounts||[]).some(function(a){ return a&&a.ent===to; })) evs.push(Object.assign({bank:to, day:dd||99, amt:Number(f.amount)||0},tag));
-    }
+    else if(f.kind==="transfer") evs.push(Object.assign({bank:f.from||"sabadell", day:dd||0, amt:-f.amount},tag));
   });
   return evs;
 }

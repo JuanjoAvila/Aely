@@ -2501,7 +2501,8 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
+    // Lo pagado de otra forma no queda pendiente en ningún banco (`fixedPagadoFuera`, la regla de «¿Te llega?»).
+    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });
     // Por banco cuenta lo que sale del banco: en un compartido, el importe entero (`fixedCargoBanco`,
     // la regla del recorrido de «¿Te llega?»). Los totales del mes siguen con tu parte. Sin esto el
     // previsto a fin de mes de la ficha de cuenta y del asistente salía 88 € por encima (rev. t5, R2).
@@ -2510,7 +2511,7 @@ function App(){
       const b=accOf(e), extra=fixedCargoBanco(e,curMonth,curYear)-occAmountIn(e,curMonth,curYear);
       if(!(Math.abs(extra)>0.0001)) return;
       chargesByBank[b]=(chargesByBank[b]||0)+extra;
-      if(!isPaidIn(e,curMonth,today,curYear,state)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
+      if(!isPaidIn(e,curMonth,today,curYear,state)&&!fixedPagadoFuera(state,e,curYear,curMonth,today)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
     });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
@@ -2847,7 +2848,7 @@ function App(){
     (state.fixed||[]).forEach(function(e){
       // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
       if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
-      if(isPaidIn(e,cm,totals.today,cy,state)) return;
+      if(isPaidIn(e,cm,totals.today,cy,state)||fixedPagadoFuera(state,e,cy,cm,totals.today)) return;
       const d=dayIn(e,cm,cy); const amt=occAmountIn(e,cm,cy)||0;
       if(d==null||!(amt>0)) return;
       const c={id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d};
@@ -2897,7 +2898,7 @@ function App(){
       (state.fixed||[]).forEach(function(e){
         if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
         const d=dayIn(e,cm,cy); if(d==null) return;
-        if(isPaidIn(e,cm,today,cy,state)) return;
+        if(isPaidIn(e,cm,today,cy,state)||fixedPagadoFuera(state,e,cy,cm,today)) return;
         const amt=occAmountIn(e,cm,cy)||0;
         if(!(amt>0)) return;
         const daysLeft=d-today;

@@ -685,13 +685,32 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   };
   /* Un toque devuelve al mes un recibo saltado (SPEC §2.5), pero con «Deshacer»: era fácil
      tocarlo sin querer al repasar «Ya pagados» y la cifra de arriba subía sin más (P1-6). */
+  /* El Deshacer repone la FOTO de antes (la fila del recibo y el `value` de las cuentas que movió),
+     no vuelve a pausar: reanudar borra `manualPauseBalance` y repone la base de la cuenta, y pausar
+     otra vez compensaba desde el saldo ya bajado, así que la cuenta se quedaba 75 € por debajo
+     (revisión de dinero 9/11, B1). Solo si nadie ha tocado esa fila ni esas cuentas entretanto. */
   const devolverAlMes=function(f){
-    const cur=year*12+month, antes={from:Number(f.pausedFrom)||0,until:Number(f.pausedUntil)||0};
+    const cur=year*12+month;
     const quita=function(s){ const e=(s.fixed||[]).find(function(o){ return o.id===f.id; }); return e?fixedPausa(s,e.id,cur+1,Number(e.pausedUntil)||0):s; };
     const donde=pr6DondeQueda(quita(state),"fixed_"+f.id,year,month,today);
-    set(quita);
+    let foto=null;
+    set(function(s){
+      const n=quita(s), fila=function(x){ return (x.fixed||[]).find(function(o){ return o.id===f.id; })||null; };
+      const cuentas=[];
+      (n.accounts||[]).forEach(function(a,i){ const b=(s.accounts||[])[i]; if(b&&b.id===a.id&&b.value!==a.value) cuentas.push({id:a.id,antes:b.value,despues:a.value}); });
+      foto={antes:fila(s),despues:fila(n),cuentas:cuentas};
+      return n;
+    });
     avisarDeshacer(tf(donde==="review"?"pr6_revisar_toast":donde==="paid"?"pr6_a_pagados_toast":"pr6_vuelve_toast",{name:f.name}),function(){
-      set(function(s){ const e=(s.fixed||[]).find(function(o){ return o.id===f.id; }); return e&&!fixedEnPausa(s,e,year,month,today)?fixedPausa(s,e.id,antes.from,antes.until):s; });
+      set(function(s){
+        if(!foto||!foto.antes) return s;
+        const e=(s.fixed||[]).find(function(o){ return o.id===f.id; });
+        const intactas=foto.cuentas.every(function(c){ const a=(s.accounts||[]).find(function(x){ return x.id===c.id; }); return a&&a.value===c.despues; });
+        if(!e||!goalSyncEqual(e,foto.despues)||!intactas) return s;
+        return Object.assign({},s,{
+          fixed:s.fixed.map(function(o){ return o.id===f.id?foto.antes:o; }),
+          accounts:foto.cuentas.length?s.accounts.map(function(a){ const c=foto.cuentas.find(function(x){ return x.id===a.id; }); return c?Object.assign({},a,{value:c.antes}):a; }):s.accounts});
+      });
     });
   };
   const llega=useMemo(function(){ return planRecibosLlega(totals,pack); },[totals.minByBank,totals.minDayByBank,totals.bankBal,pack]);
@@ -1363,8 +1382,7 @@ function LlegaSheet({state, set, totals, pack, onClose}){
   const flujoRow=function(e){
     const nombre=e.name||t(e.kind==="income"?"fj_income":"fj_transfer");
     const lbl=e.day>0&&e.day<99?tf("pr6_dia_n",{name:nombre,d:e.day}):nombre;
-    // Un traspaso resta en el banco del que sale y suma en el que entra (P1-12).
-    if(e.kind!=="income") return fila("f_"+e.id,lbl,(e.amt<0?"− ":"+ ")+eur(Math.abs(e.amt)));
+    if(e.kind!=="income") return fila("f_"+e.id,lbl,"− "+eur(Math.abs(e.amt)));
     return React.createElement("button",{type:"button",className:"pr6-ll-row pr6-ll-in",key:"f_"+e.id,"data-testid":"llega-flow","data-flow":e.id,onClick:function(){ setFlujo(e.id); }},
       React.createElement("span",null,lbl),
       React.createElement("span",{className:"num pos"},"+ "+eur(e.amt)),
@@ -1743,7 +1761,9 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   };
   const aunNo=function(){
     const prueba=reciboDesenlazar(state,f,fila,y,m,today);
-    set(function(s){ const u=reciboDesenlazar(s,f,fila,y,m,today); return u?u.state:s; });
+    /* Una marca a mano vieja que quedó debajo del cargo no vuelve a salir al rechazarlo: «Aún no se
+       ha cobrado» quiere decir eso, que no está pagado (revisión de dinero 9/11). */
+    set(function(s){ const u=reciboDesenlazar(s,f,fila,y,m,today); return u?fixedMarcarAMano(u.state,f.id,y,m,null):s; });
     if(prueba&&prueba.e&&cloud.enabled()) cloud.setExpenseRecibo(prueba.e).catch(function(){});
     /* El aviso dice dónde queda de verdad: con una marca de pago que el banco ya dejó (`paidYm`)
        el recibo no vuelve a pendiente, pasa a «Para revisar» (revisión 28/10/2026). */

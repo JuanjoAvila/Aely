@@ -799,6 +799,19 @@ const isPaidIn=(e,m,t,y,s)=>{
   const p=s&&fixedPaymentProof(s,e,year,m,t);
   return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) || e.wait!==ym&&d!=null&&d<=t;
 };
+/* «Lo pagué de otra forma» (SPEC §2.6.3) sin cargo del banco detrás: ese banco ya NO lo va a cobrar.
+   Una sola regla para todo lo que resta recibos de un banco (saldo de la cuenta, pendiente y
+   previsto de `totals`, «¿Te llega?», avisos de la víspera): si cada sitio lo leía a su manera, el
+   previsto a fin de mes decía otra cosa que «¿Te llega?» y una cuenta manual perdía el importe el
+   día del recibo (revisión de dinero 9/11, C1). Un cargo real manda sobre la marca. */
+// Día del mes en que se marcó pagado a mano (`fixed.pagadoAMano`, {año*12+mes: día}), o null.
+function fixedMarcadoAMano(e,y,m){
+  const p=e&&e.pagadoAMano, d=p&&typeof p==="object"?Number(p[y*12+m]):NaN;
+  return d>=1&&d<=31?d:null;
+}
+function fixedPagadoFuera(s,e,y,m,t){
+  return !!s&&fixedMarcadoAMano(e,y,m)!=null&&!fixedPaymentEvidence(fixedPaymentState(s,e,y,m,t==null?new Date(y,m,0).getDate():t));
+}
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
@@ -854,7 +867,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m,y); });
+  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s)) && !fixedPagadoFuera(s,e,y,m,t)) net -= occAmountIn(e,m,y); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });
