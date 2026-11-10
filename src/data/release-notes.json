@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.222",
+    "d": "2026-11-10",
+    "t": {
+      "es": "Tus recibos: la prueba gratis cobra el día en que acaba",
+      "en": "Your bills: a free trial charges on the day it ends",
+      "ca": "Els teus rebuts: la prova gratuïta cobra el dia que s'acaba"
+    },
+    "items": {
+      "es": [
+        "Si la prueba gratis de un recibo acaba este mes, el primer cobro cuenta el día en que acaba: ya no sale como «No ha llegado» ni avisa la víspera antes de tiempo.",
+        "Al año, una deuda suma también el pago final si cae dentro, y un recibo en pausa que ya se cobró este mes sigue contando."
+      ],
+      "en": [
+        "If a bill's free trial ends this month, the first charge counts on the day it ends: it no longer shows as “Hasn't arrived” or warns you too early.",
+        "Per year, a debt also adds its final payment if it falls within it, and a paused bill that was already charged this month still counts."
+      ],
+      "ca": [
+        "Si la prova gratuïta d'un rebut s'acaba aquest mes, el primer cobrament compta el dia que s'acaba: ja no surt com a «No ha arribat» ni avisa la vigília abans d'hora.",
+        "A l'any, un deute també suma el pagament final si hi cau a dins, i un rebut en pausa que ja s'ha cobrat aquest mes continua comptant."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.221",
     "d": "2026-11-10",
     "t": {

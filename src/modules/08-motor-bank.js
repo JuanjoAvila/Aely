@@ -5693,12 +5693,14 @@ function billsPausado(e, curMonth, curYear){
    calendario quita su media por cada mes pausado: la semana, que no va por meses, un anual sin mes
    asignado (no se sabe cuándo cae) y un recibo sin frecuencia, que la media cuenta como mensual.
    Sin eso, esos dos últimos seguían sumando el año entero estando en pausa (revisión 219). */
-function billsAnualDe(e, curMonth, curYear){
+function billsAnualDe(e, curMonth, curYear, state){
   let x=fixedMonthlyOf(e)*12;
   const sinCalendario=e.freq==="semana"||!chargeMonths(e).length;
   for(let i=0;i<12;i++){
     const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
-    if(fixedSinCobroIn(e,y,m)) x-=sinCalendario?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
+    // Si este mes se cobró igual (banco o marca a mano), es un pago de verdad y se queda, como en la
+    // vista del mes (`fixedEnPausa`); los meses que vienen aún no pueden estar pagados (revisión 221, P2-3).
+    if(fixedSinCobroIn(e,y,m)&&!(i===0&&state&&!fixedEnPausa(state,e,y,m,billsHoyDe(y,m)))) x-=sinCalendario?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
   }
   return Math.round(Math.max(0,x)*100)/100;
 }
@@ -5717,12 +5719,19 @@ function billsCuotasEnAno(d, curMonth, curYear){
   const a=debtAmort(d);
   return a>0?Math.min(12,Math.max(0,Math.ceil(debtBalance(d)/a-1e-9))):12;
 }
-// Lo que se paga de una deuda en esos doce meses: cada cuota con lo que se le descuenta ese mes.
+// Día de referencia para mirar si un mes ya está pagado: hoy si es el mes en curso; si no, su último día.
+function billsHoyDe(y, m){
+  const now=new Date();
+  return now.getFullYear()===y&&now.getMonth()+1===m?now.getDate():new Date(y,m,0).getDate();
+}
+/* Lo que se paga de una deuda en esos doce meses: cada cuota con lo que se le descuenta ese mes, y
+   el pago final (`balloon`) si cae dentro (revisión 221, P2-2: un coche con tres cuotas y 4.000 € al
+   final sumaba 600 € al año). */
 function billsCuotaAnualDe(state, d, curMonth, curYear){
   let x=0;
   for(let i=0;i<billsCuotasEnAno(d,curMonth,curYear);i++){
     const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
-    x+=(Number(d.monthly)||0)+billsDescuentoSin(state,d,function(e){ return fixedSinCobroIn(e,y,m); });
+    x+=(Number(d.monthly)||0)+debtBalloonIn(d,y,m)+billsDescuentoSin(state,d,function(e){ return fixedSinCobroIn(e,y,m); });
   }
   return Math.round(x*100)/100;
 }
@@ -5750,7 +5759,7 @@ function billsCountAll(state, curMonth, curYear){
 function billsGroupRows(state, group, curMonth, curYear){
   if(group==="serv"){
     return (state.fixed||[]).slice().sort(function(a,b){ return fixedMonthlyOf(b)-fixedMonthlyOf(a); })
-      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),anual:billsAnualDe(e,curMonth,curYear),bank:accOf(e),paused:billsPausado(e,curMonth,curYear)}; });
+      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),anual:billsAnualDe(e,curMonth,curYear,state),bank:accOf(e),paused:billsPausado(e,curMonth,curYear)}; });
   }
   if(group==="debt"){
     return (state.debts||[]).filter(debtActive)

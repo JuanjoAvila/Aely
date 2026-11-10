@@ -167,3 +167,26 @@ test("P2-5: lo que se descuenta a una deuda desde un recibo pausado no suma, al 
   assert.equal(cent(serv.reduce((a,r)=>a+(r.paused?0:r.monthly),0)+fila.monthly),cent(c.billsHeroTotal(s,null,HM,HY)));
   assert.equal(cent(serv[0].anual),cent(22*10));
 });
+
+test("revisión 221, P2-2: al año la deuda suma el pago final si cae en los doce meses",()=>{
+  // Oráculo a mano: tres cuotas de 200 y 4.000 al final (en la tercera) = 4.600.
+  const coche={id:"c",name:"Coche",monthly:200,value:4600,months:3,balloon:4000,asOf:H0};
+  assert.equal(cent(c.billsCuotaAnualDe({fixed:[]},coche,HM,HY)),460000);
+  // Con el final a quince meses, fuera del año: doce cuotas, sin el final.
+  const lejos=Object.assign({},coche,{months:15,value:7000});
+  assert.equal(cent(c.billsCuotaAnualDe({fixed:[]},lejos,HM,HY)),240000);
+  assert.equal(cent(c.billsGroupRows({fixed:[],debts:[coche]},"debt",HM,HY)[0].anual),460000);
+});
+
+test("revisión 221, P2-3: un mes en pausa que ya se pagó de verdad no se resta del año",()=>{
+  // Pagado este mes a mano y pausado desde este mes hasta dentro de dos: solo falta el del mes que viene.
+  const e={id:"a",name:"Alquiler",amount:850,freq:"mes",day:1,account:"sabadell",pausedFrom:HYM,pausedUntil:HYM+2,paidYm:HYM,paidDay:1};
+  const s={accounts:[{id:"sb",ent:"sabadell",role:"fijos",value:900}],fixed:[e],debts:[],expenses:[],bankTx:[],oneoffs:[],flows:[]};
+  assert.equal(cent(c.billsAnualDe(e,HM,HY,s)),cent(850*11));
+  assert.equal(cent(c.billsGroupRows(s,"serv",HM,HY)[0].anual),cent(850*11));
+  // Sin pagar, faltan los dos.
+  const sin=Object.assign({},e,{paidYm:undefined,paidDay:undefined});
+  assert.equal(cent(c.billsAnualDe(sin,HM,HY,Object.assign({},s,{fixed:[sin]}))),cent(850*10));
+  // Sin estado (llamada antigua), como antes.
+  assert.equal(cent(c.billsAnualDe(e,HM,HY)),cent(850*10));
+});

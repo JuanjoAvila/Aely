@@ -790,6 +790,12 @@ function dayIn(e,m,y){
   let d=o&&cleanDay(o.day)?cleanDay(o.day):e&&e.schedule&&e.schedule.length?((e.schedule.find(x=>x.m===m)||{}).day||null):(e&&e.day)||null;
   // Un día imposible (32, «x») se deja tal cual: no es un 31 y no se convierte en uno válido.
   if(cleanDay(d)===Number(d)&&m>=1&&m<=12){ const fin=new Date(y||new Date().getFullYear(),m,0).getDate(); if(d>fin) d=fin; }
+  /* El mes en que acaba la prueba gratis el primer cobro llega el día en que acaba, no antes: con el
+     día de siempre salía «No ha llegado» y el aviso de la víspera días antes de cobrar, y «¿Te
+     llega?» lo restaba de más pronto (revisión de la 221, P1-1). Como el prototipo (`r.day = r.trial.day`).
+     Sin año (calendario, medias) no cambia nada. */
+  const pk=y&&/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(e&&e.pruebaHasta||""));
+  if(pk&&+pk[1]===y&&+pk[2]===m&&cleanDay(d)!=null&&+pk[3]>d) d=+pk[3];
   return d;
 }
 // día simple (objetos sin schedule: deudas)

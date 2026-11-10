@@ -82,6 +82,25 @@ test("prueba gratis: el mes en que acaba cuenta; una fecha pasada o rota no quit
   assert.equal(Math.round(c.billsAnualDe(tri,M,Y)*100),6000);
 });
 
+/* Revisión de la 221, P1-1: el mes en que acaba la prueba, con el recibo el día 5 y la prueba hasta el 20,
+   no puede salir «No ha llegado» el 18 ni restarse antes en «¿Te llega?»: cobra el 20 (como el prototipo). */
+test("el mes en que acaba la prueba, el primer cobro es el día en que acaba",()=>{
+  const e=r("t",5,{pruebaHasta:"2026-10-20"});
+  const s=estado([e]);
+  assert.equal(c.dayIn(e,10,2026),20);
+  assert.equal(c.dayIn(e,11,2026),5,"el mes siguiente, su día de siempre");
+  assert.equal(c.dayIn(e,10),5,"sin año (calendario), sin cambio");
+  assert.equal(c.dayIn(r("t",25,{pruebaHasta:"2026-10-20"}),10,2026),25,"un día posterior se queda");
+  const {pack,v}=vista(s);
+  assert.deepEqual(ids(v.review),[]);
+  assert.deepEqual([...v.due.map(x=>[x.id,x.day])],[["fixed_t",20]]);
+  assert.equal(pack.pendingBills[0].overdue,false);
+  assert.deepEqual([...c.pendingWalkEvents(s,Y,M,HOY)].filter(x=>x.amt<0).map(x=>[x.day,x.amt]),[[20,-10]]);
+  // El 19 avisa «Mañana empieza a cobrar» como siempre.
+  const p19=c.planChargesMonth(s,M,Y,19),pr19=c.paymentEvidenceUI(s,Y,M,19);
+  assert.deepEqual(ids(c.planRecibosVista(p19,pr19,19,c.planRecibosAvisos(s,p19,pr19,Y,M,19),{}).review),["fixed_t:trial"]);
+});
+
 test("pagado igual en un mes de prueba: es un pago de verdad y se queda en Ya pagados, como con la pausa",()=>{
   const e=r("t",5,{pruebaHasta:"2026-12-05",paidYm:CUR,paidDay:5});
   const s=estado([e]);
