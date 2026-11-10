@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.226",
+    "d": "2026-11-10",
+    "t": {
+      "es": "Recibos: un cargo ya no paga dos recibos a la vez",
+      "en": "Bills: one charge no longer pays two bills at once",
+      "ca": "Rebuts: un càrrec ja no paga dos rebuts alhora"
+    },
+    "items": {
+      "es": [
+        "Si dos recibos del mismo importe acaban la prueba gratis el mismo mes, un cargo del banco sin su nombre ya no se da por pagado en los dos."
+      ],
+      "en": [
+        "If two bills for the same amount end their free trial in the same month, a bank charge without their name is no longer counted as paid for both."
+      ],
+      "ca": [
+        "Si dos rebuts del mateix import acaben la prova gratuïta el mateix mes, un càrrec del banc sense el seu nom ja no es dona per pagat en tots dos."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.225",
     "d": "2026-11-10",
     "t": {
