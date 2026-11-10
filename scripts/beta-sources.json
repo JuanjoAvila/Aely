@@ -73698,6 +73698,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -76855,6 +76859,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -79497,6 +79505,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "recibosSolapes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -83238,6 +83250,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -129858,6 +129874,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
       },
       {
@@ -134586,6 +134606,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcarAMano"
       },
       {
@@ -136253,6 +136277,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -140898,6 +140926,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
       },
       {
@@ -145469,6 +145501,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoClaves"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
       },
       {
         "file": "src/modules/08-motor-bank.js",

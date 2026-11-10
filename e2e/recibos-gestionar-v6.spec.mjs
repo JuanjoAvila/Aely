@@ -209,3 +209,92 @@ test("sin solapes inventados y con «Lo que entra» y «¿Me lo puedo permitir?�
   await page.goBack();
   await expect(page.locator('[data-bills-manage]')).toHaveAttribute("data-screen", "bills-home");
 });
+
+test("un recibo en pausa se ve atenuado y no suma en «Se te van», ni al mes ni al año (P2-9)", async ({ page }) => {
+  // Comunidad pausada de octubre a diciembre; Gimnasio pagado en octubre y pausado desde noviembre:
+  // los dos dicen «pausado hasta…» y ninguno entra en la cifra. Sin ellos queda lo del primer test.
+  const hub = await abreGestionar(page, { fixed: fixed.concat([
+    recibo("com", "Comunidad", 75, 5, { pausedFrom: YM, pausedUntil: YM + 2 })]).map((r) =>
+    r.id === "gym" ? Object.assign({}, r, { pausedFrom: YM + 1, pausedUntil: YM + 3 }) : r) });
+  await expect(fila(hub, "com")).toHaveClass(/pr6-mg-off/);
+  await expect(fila(hub, "com").locator(".sub")).toHaveText("pausado hasta dic");
+  await expect(fila(hub, "com").locator(".am")).toHaveText("75,00 €");
+  await expect(fila(hub, "gym").locator(".sub")).toHaveText("pausado hasta ene");
+  await expect(fila(hub, "alq")).not.toHaveClass(/pr6-mg-off/);
+  // 1.011,05 − 39,90 del gimnasio = 971,15; la comunidad no estaba.
+  await expect(sec(hub, "serv").locator('[data-mg-sum="serv"]')).toHaveText("971,15 €/mes");
+  await expect(hub.locator("[data-bills-total]")).toHaveText("1.882,00 €");
+  await expect(hub.locator("[data-bills-desglose]")).toHaveText("recibos 971,15 € + cuotas 910,85 €");
+  const motor = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return billsHeroTotal(s, null); });
+  expect(cent(motor)).toBe(188200);
+  await hub.locator("[data-bills-hero]").click();
+  await expect(hub.locator("[data-bills-total]")).toHaveText("22.584,00 €");
+  await expect(sec(hub, "serv").locator('[data-mg-sum="serv"]')).toHaveText("11.653,80 €/año");
+});
+
+test("la barra de abajo se ve encima de Tus recibos, no tapa la última fila y cada pestaña lo cierra (N8)", async ({ page }) => {
+  const hub = await abreGestionar(page);
+  const nav = page.locator(".botnav");
+  await expect(nav).toHaveCount(1);
+  await expect(nav).toBeInViewport();
+  await expect(nav).not.toHaveClass(/botnav-hidden/);
+  // Por encima de verdad: lo que hay en el centro de la pestaña Gastos es la pestaña, no la lista.
+  const encima = () => page.evaluate(() => {
+    const b = document.querySelector('.botnav-tab[data-tour="gastos"]').getBoundingClientRect();
+    const el = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2);
+    return !!(el && el.closest(".botnav"));
+  });
+  await expect.poll(encima).toBe(true);
+  // Sin desenfoque ni transform: encima del scroller raíz cortaban la ola de Android.
+  const st = await nav.evaluate((el) => { const s = getComputedStyle(el); return { bf: s.backdropFilter, tr: s.transform, wc: s.willChange }; });
+  expect(st).toEqual({ bf: "none", tr: "none", wc: "auto" });
+  // Al fondo del todo, lo último de la lista queda por encima de la barra.
+  // Lo último es «¿Me lo puedo permitir?» (se monta un fotograma después que lo de arriba).
+  const ultimo = page.locator("[data-bills-manage] [data-bills-afford]");
+  await expect(ultimo).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => {
+    const p = document.querySelector("[data-bills-manage]"); p.scrollTop = p.scrollHeight;
+    const ult = p.querySelector("[data-bills-afford]").getBoundingClientRect();
+    return Math.round(document.querySelector(".botnav").getBoundingClientRect().top - ult.bottom);
+  })).toBeGreaterThanOrEqual(0);
+
+  // Otra pestaña: se cierra Tus recibos y se llega a ella; la barra vuelve a su sitio.
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
+  await expect(page.locator(".app-shell > .botnav")).toHaveCount(1);
+  await expect(page.locator("html")).not.toHaveClass(/bills-open/);
+
+  // Plan otra vez (la suya): se cierra deslizando y deja Plan › Recibos.
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const recibos = page.locator('.page-live .v4-screen > [data-seg="recibos"]');
+  await recibos.getByTestId("plan-todos").click();
+  await expect(hub).toBeVisible();
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
+  await expect(recibos).toBeVisible();
+
+  // ← y el atrás del sistema también la devuelven a `.app-shell`.
+  await recibos.getByTestId("plan-todos").click();
+  await expect(hub).toBeVisible();
+  await expect(page.locator("body > .botnav")).toHaveCount(1);
+  await hub.locator(".settings-push-h .back").click();
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(page.locator(".app-shell > .botnav")).toHaveCount(1);
+  await recibos.getByTestId("plan-todos").click();
+  await expect(hub).toBeVisible();
+  await page.goBack();
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(page.locator(".app-shell > .botnav")).toHaveCount(1);
+  await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
+  // Y el borde (atrás nativo de Android): la pantalla acompaña al dedo con la barra quieta encima.
+  await recibos.getByTestId("plan-todos").click();
+  await expect(hub).toBeVisible();
+  const borde = (phase, progress) => page.evaluate(([f, p]) => { const e = new Event("mcNativeEdgeBack"); e.phase = f; e.progress = p; window.dispatchEvent(e); }, [phase, progress]);
+  await borde("start", 0); await borde("progress", .5);
+  await expect(page.locator("body > .botnav")).toBeInViewport();
+  await borde("invoke", 1);
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(page.locator(".app-shell > .botnav")).toHaveCount(1);
+});

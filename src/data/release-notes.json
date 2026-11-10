@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.218",
+    "d": "2026-11-10",
+    "t": {
+      "es": "Tus recibos: lo pausado no suma y la barra de abajo siempre a mano",
+      "en": "Your bills: paused bills don't count and the bottom bar is always at hand",
+      "ca": "Els teus rebuts: el que està pausat no suma i la barra de baix sempre a mà"
+    },
+    "items": {
+      "es": [
+        "En «Tus recibos», un recibo en pausa ya no cuenta en «Se te van cada mes» ni en lo que se te va al año. Sigue en la lista, más apagado y con «pausado hasta …», para que lo encuentres y lo reanudes cuando quieras.",
+        "La barra de abajo (Inicio, Gastos, +, Plan y Cartera) se queda a la vista en «Tus recibos». Tocar una pestaña te lleva a ella, y la última fila de la lista ya no queda tapada."
+      ],
+      "en": [
+        "In “Your bills”, a paused bill no longer counts in “Goes out every month” or in what goes out per year. It stays in the list, greyed out with “paused until …”, so you can find it and resume it whenever you like.",
+        "The bottom bar (Home, Spending, +, Plan and Portfolio) stays visible in “Your bills”. Tapping a tab takes you there, and the last row of the list is no longer hidden behind it."
+      ],
+      "ca": [
+        "A «Els teus rebuts», un rebut en pausa ja no compta a «Se't van cada mes» ni al que se't va a l'any. Continua a la llista, més apagat i amb «pausat fins a …», perquè el trobis i el reprenguis quan vulguis.",
+        "La barra de baix (Inici, Despeses, +, Pla i Cartera) es queda a la vista a «Els teus rebuts». Tocar una pestanya t'hi porta, i l'última fila de la llista ja no queda tapada."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.217",
     "d": "2026-11-10",
     "t": {
@@ -179,7 +203,9 @@
             "26. Con dos servicios de música o de series sale un aviso («… incluyen música», «N plataformas de series…»): toca su ×. BIEN: se pliega suave y no vuelve al entrar otra vez. Toca una persona, un recibo y una cuota. BIEN: la persona abre su ficha, el recibo su edición y la cuota te lleva a su tarjeta en Deudas. MAL: el aviso vuelve o alguna fila no hace nada.",
             "27. Entra y sal de «Tus recibos» con «←», con el atrás del móvil y deslizando desde el borde. BIEN: entra y sale de lado, suave, y vuelves a Recibos donde estabas. MAL: parpadea, se queda en blanco o te saca de Plan.",
             "28. Plan → toca el ojo junto al título. BIEN: todas las cifras de dinero de la app pasan a «•••• €» (Inicio, Gastos, Cartera, Recibos, «Te llega», «Te deben», «Tus recibos»); cuántos recibos hay sí se ve. Cierra la app y ábrela: sigue igual. Vuelve a tocar el ojo. BIEN: vuelven todas las cifras. MAL: se ve alguna cifra con el ojo puesto, o al volver a abrir la app cambia solo.",
-            "29. Cierra la app del todo y ábrela. Plan → Recibos: abre «Te llega» y ciérrala, luego «Todos ›» y vuelve, y después pasa a Deudas. BIEN: la primera vez cada una se abre suave, sin parón. MAL: un tirón o un instante congelado al abrir alguna."
+            "29. Cierra la app del todo y ábrela. Plan → Recibos: abre «Te llega» y ciérrala, luego «Todos ›» y vuelve, y después pasa a Deudas. BIEN: la primera vez cada una se abre suave, sin parón. MAL: un tirón o un instante congelado al abrir alguna.",
+            "30. Toca un recibo de «Por pagar» → «Pausar» → «Hasta …» y entra en «Todos ›». BIEN: en «Tus recibos» ese recibo sigue en la lista, más apagado y con «pausado hasta …», y la cifra de arriba ya no lo cuenta, ni al mes ni al tocarla para verla al año; sigue siendo la suma de Recibos y Cuotas. Tócalo → «pausado hasta … · Reanudar». BIEN: se ve normal otra vez y vuelve a sumar. MAL: la cifra lo sigue contando, no cuadra con las secciones o el recibo desaparece de la lista.",
+            "31. En «Tus recibos» baja hasta el final. BIEN: la barra de abajo (Inicio, Gastos, +, Plan, Cartera) está siempre a la vista y la última fila queda entera por encima. Toca Gastos. BIEN: llegas a Gastos sin que «Tus recibos» se quede encima. Vuelve a «Todos ›» y toca Plan. BIEN: «Tus recibos» se va deslizando y quedas en Recibos. Sal también con «←», con el atrás del móvil y desde el borde. BIEN: la barra se queda quieta y la ola al tirar de la lista arriba y abajo sigue saliendo. MAL: la barra desaparece o parpadea, tapa la última fila, una pestaña no responde o la ola deja de salir."
           ],
           "en": [
             "1. Plan → Bills. Scroll slowly to the bottom and back up. RIGHT: nothing passes under the clock and icons at the top (the title, Bills/Debts/Goals and the card hide under a strip the colour of the background); in light theme there is no grey strip on the left edge. WRONG: text or buttons show under the clock, or a grey shadow sticks to the left edge.",
@@ -210,7 +236,9 @@
             "26. With two music or streaming services a notice appears (“… include music”, “N streaming services…”): tap its ×. RIGHT: it folds away smoothly and doesn't come back when you return. Tap a person, a bill and an instalment. RIGHT: the person opens their card, the bill its editor and the instalment takes you to its card in Debts. WRONG: the notice comes back, or a row does nothing.",
             "27. Go in and out of “Your bills” with “←”, with the phone's back and swiping from the edge. RIGHT: it slides in and out smoothly and you land back in Bills where you were. WRONG: it flickers, goes blank or takes you out of Plan.",
             "28. Plan → tap the eye next to the title. RIGHT: every money figure in the app turns into “•••• €” (Home, Spending, Wallet, Bills, “You're covered”, “Owed to you”, “Your bills”); how many bills there are still shows. Close the app and open it: it stays the same. Tap the eye again. RIGHT: all the figures come back. WRONG: a figure shows with the eye on, or reopening the app changes it by itself.",
-            "29. Close the app completely and open it. Plan → Bills: open “You're covered” and close it, then “All ›” and back, then switch to Debts. RIGHT: the first time each one opens smoothly, without stalling. WRONG: a jerk or a frozen instant when opening any of them."
+            "29. Close the app completely and open it. Plan → Bills: open “You're covered” and close it, then “All ›” and back, then switch to Debts. RIGHT: the first time each one opens smoothly, without stalling. WRONG: a jerk or a frozen instant when opening any of them.",
+            "30. Tap a bill in \"To pay\" → \"Pause\" → \"Until …\" and go into \"All ›\". RIGHT: in “Your bills” that bill is still in the list, greyed out with “paused until …”, and the top figure no longer counts it, neither per month nor when you tap it to see the year; it is still the sum of Bills and Instalments. Tap it → “paused until … · Resume”. RIGHT: it looks normal again and counts again. WRONG: the figure still counts it, it does not match the sections or the bill disappears from the list.",
+            "31. In “Your bills”, scroll to the very end. RIGHT: the bottom bar (Home, Spending, +, Plan, Portfolio) is always visible and the last row sits fully above it. Tap Spending. RIGHT: you land in Spending without “Your bills” staying on top. Go back to \"All ›\" and tap Plan. RIGHT: “Your bills” slides away and you are back in Bills. Also leave with “←”, with the phone's back and from the edge. RIGHT: the bar stays still and the stretch when you pull the list at the top and bottom still shows. WRONG: the bar vanishes or flickers, covers the last row, a tab does not respond or the stretch stops showing."
           ],
           "ca": [
             "1. Pla → Rebuts. Baixa a poc a poc fins a baix i torna a dalt. BÉ: res passa per sota de l'hora i les icones de dalt (el títol, Rebuts/Deutes/Metes i la targeta s'amaguen sota una franja del color del fons); en tema clar no hi ha cap franja grisa a la vora esquerra. MALAMENT: es veu text o botons sota l'hora, o una ombra grisa enganxada a la vora esquerra.",
@@ -241,7 +269,9 @@
             "26. Amb dos serveis de música o de sèries surt un avís («… inclouen música», «N plataformes de sèries…»): toca la seva ×. BÉ: es plega suau i no torna en entrar-hi un altre cop. Toca una persona, un rebut i una quota. BÉ: la persona obre la seva fitxa, el rebut la seva edició i la quota et porta a la seva targeta a Deutes. MALAMENT: l'avís torna o alguna fila no fa res.",
             "27. Entra i surt d'«Els teus rebuts» amb «←», amb l'enrere del mòbil i lliscant des de la vora. BÉ: entra i surt de costat, suau, i tornes a Rebuts on eres. MALAMENT: parpelleja, es queda en blanc o et treu de Pla.",
             "28. Pla → toca l'ull al costat del títol. BÉ: totes les xifres de diners de l'app passen a «•••• €» (Inici, Despeses, Cartera, Rebuts, «T'arriba», «Et deuen», «Els teus rebuts»); quants rebuts hi ha sí que es veu. Tanca l'app i obre-la: continua igual. Torna a tocar l'ull. BÉ: tornen totes les xifres. MALAMENT: es veu alguna xifra amb l'ull posat, o en tornar a obrir l'app canvia sol.",
-            "29. Tanca l'app del tot i obre-la. Pla → Rebuts: obre «T'arriba» i tanca-la, després «Tots ›» i torna, i després passa a Deutes. BÉ: la primera vegada cadascuna s'obre suau, sense aturades. MALAMENT: una estrebada o un instant congelat en obrir-ne alguna."
+            "29. Tanca l'app del tot i obre-la. Pla → Rebuts: obre «T'arriba» i tanca-la, després «Tots ›» i torna, i després passa a Deutes. BÉ: la primera vegada cadascuna s'obre suau, sense aturades. MALAMENT: una estrebada o un instant congelat en obrir-ne alguna.",
+            "30. Toca un rebut de «Per pagar» → «Pausar» → «Fins a …» i entra a «Tots ›». BÉ: a «Els teus rebuts» aquest rebut continua a la llista, més apagat i amb «pausat fins a …», i la xifra de dalt ja no el compta, ni al mes ni en tocar-la per veure-la a l'any; continua sent la suma de Rebuts i Quotes. Toca'l → «pausat fins a … · Reprendre». BÉ: es veu normal un altre cop i torna a sumar. MALAMENT: la xifra el continua comptant, no quadra amb les seccions o el rebut desapareix de la llista.",
+            "31. A «Els teus rebuts» baixa fins al final. BÉ: la barra de baix (Inici, Despeses, +, Pla, Cartera) és sempre a la vista i l'última fila queda sencera per sobre. Toca Despeses. BÉ: arribes a Despeses sense que «Els teus rebuts» es quedi a sobre. Torna a «Tots ›» i toca Pla. BÉ: «Els teus rebuts» se'n va lliscant i quedes a Rebuts. Surt també amb «←», amb l'enrere del mòbil i des de la vora. BÉ: la barra es queda quieta i l'onada en estirar la llista amunt i avall continua sortint. MALAMENT: la barra desapareix o parpelleja, tapa l'última fila, una pestanya no respon o l'onada deixa de sortir."
           ]
         }
       }

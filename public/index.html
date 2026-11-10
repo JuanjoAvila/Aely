@@ -745,6 +745,14 @@
      de la barra — la app entera («cuando hago scroll veo la lista detrás de la barra un
      segundo»). Mismo sólido que `scroll-host-on`: la barra debe verse IGUAL con o sin blur. */
   .app-shell.nav-sin-blur .botnav{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg-2);}
+  /* Con Tus recibos abierto la barra cuelga de <body> para pasarle por encima (N8, 10/11/2026: el
+     prototipo la deja a la vista). Encima de un scroller raíz va como en el host nativo: sin
+     desenfoque, sin will-change y sin transform, que cortaban la ola de Android (labs 5/8). Las
+     hojas (80) y los avisos siguen por encima; Tus recibos (72) por debajo. */
+  .botnav.botnav-bills{position:fixed;z-index:73;max-width:520px;margin:0 auto;
+    backdrop-filter:none;-webkit-backdrop-filter:none;will-change:auto;transform:none;background:var(--bg-2);transition:none;}
+  /* Escondida por un scroll de Plan que se quedó a medias: aquí se ve igual (App la destapa al abrir). */
+  .botnav.botnav-bills.botnav-hidden{transform:none;pointer-events:auto;}
   .botnav-row{position:relative;display:flex;align-items:center;}
   .botnav-ind{position:absolute;top:-9px;left:0;width:20%;height:3px;display:flex;justify-content:center;
     transition:transform .32s var(--spring),opacity .2s;pointer-events:none;}
@@ -1840,7 +1848,9 @@
   /* Ganar a `.settings-push` en la promoción de capa: con transform none, will-change también
      anclaba la hija fixed al scroll del padre (19/10). El cierre/retorno ponen su transición
      inline; al limpiarla, no volver a animar la matriz identidad hacia none. */
-  .settings-push.v4-bills-push{will-change:auto;transition:none;}
+  /* Abajo, el alto de la barra (73 px + zona segura, ver `.botnav-bills`) además del aire de siempre:
+     la última fila tiene que poder quedar por encima de la barra y del «+», no debajo (N8). */
+  .settings-push.v4-bills-push{will-change:auto;transition:none;padding-bottom:calc(97px + var(--safe-bottom));}
   /* Un único candidato a scroller raíz (INC-2709-03, 19/10). Chromium solo convierte en raíz
      implícita —la única que recibe la ola nativa de Android— un `fixed` a pantalla completa que
      desplace, y SOLO si no hay otro igual: con dos, ninguno. Plan y Ajustes quedaban debajo
@@ -25350,14 +25360,24 @@ function fixedAddPreview(it){
   const total=ms.reduce(function(a,m){ return a+occAmountIn(it,m); },0);
   return tf("gb_preview_each",{each:eur(occAmountIn(it,ms[0])),months:ms.map(function(m){ return monthShort(m-1); }).join(", "),total:eur(total),x:x});
 }
-function billsHeroTotal(state, totals){
+/* ¿Está en pausa un recibo para «Se te van cada mes» de Tus recibos? Lo mismo que enseña la fila
+   («pausado hasta feb»): pausa con vuelta por delante, aunque empiece el mes que viene porque este
+   ya se pagó. Decisión del dueño (10/11/2026, P2-9): un pausado NO suma en esa cifra, ni al mes ni
+   al año; se sigue viendo en la lista, atenuado. Lo que queda por pagar ESTE mes no usa esto, sino
+   `fixedPausedIn` del mes concreto (un pagado que se pausa desde el que viene sigue pagado). */
+function billsPausado(e, curMonth, curYear){
+  return Number(e&&e.pausedUntil)>curYear*12+curMonth;
+}
+function billsHeroTotal(state, totals, curMonth, curYear){
   /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). Más
      lo que se paga de una deuda dentro de un recibo compartido («Lo descuento»): es tuyo y ni la
      cuota ni tu parte del recibo lo cuentan. Se suma aquí y no en `totals` para no mover la cifra
-     que publica el Hogar (13), que es otra conversación. */
+     que publica el Hogar (13), que es otra conversación. Sin los pausados (`billsPausado`). */
+  if(curMonth==null||curYear==null){ const d=new Date(); curMonth=d.getMonth()+1; curYear=d.getFullYear(); }
   const desc=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?deudaDescuentoBase(state,d):0); },0);
-  if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual+desc;
-  const serv=(state.fixed||[]).reduce(function(a,e){ return a+fixedMonthlyOf(e); },0);
+  const pausado=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?fixedMonthlyOf(e):0); },0);
+  if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual-pausado+desc;
+  const serv=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?0:fixedMonthlyOf(e)); },0);
   const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
   return serv+cuotas+desc;
 }
@@ -25371,7 +25391,7 @@ function billsCountAll(state, curMonth, curYear){
 function billsGroupRows(state, group, curMonth, curYear){
   if(group==="serv"){
     return (state.fixed||[]).slice().sort(function(a,b){ return fixedMonthlyOf(b)-fixedMonthlyOf(a); })
-      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),bank:accOf(e)}; });
+      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),bank:accOf(e),paused:billsPausado(e,curMonth,curYear)}; });
   }
   if(group==="debt"){
     return (state.debts||[]).filter(debtActive)
@@ -25420,7 +25440,7 @@ function recibosSolapes(state){
   return out;
 }
 function billsGroupMonthly(state, group, curMonth, curYear){
-  return billsGroupRows(state,group,curMonth,curYear).reduce(function(a,r){ return a+Math.abs(Number(r.monthly)||0); },0);
+  return billsGroupRows(state,group,curMonth,curYear).reduce(function(a,r){ return a+(r.paused?0:Math.abs(Number(r.monthly)||0)); },0);
 }
 function fixedPaymentDerivedDay(s,status){
   const proof=status.proof;
@@ -29880,7 +29900,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="dfe87af7ce789b34b0f079431e2ddf18ef334843ed7382c41b1951adbb281087";
+var _rnSha="f6961aaf6623200fbe3ba27267ff000d7fac78ae8437586e0f6abfc08417653d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32619,8 +32639,8 @@ function pr6Motivo(x){
 function pr6Mes(ym){ const s=monthShort((ym-1)%12); return CURLANG==="en"?s:s.toLowerCase(); }
 // «pausado hasta feb» en Todos y en la edición (SPEC §2.6.1); "" si no hay pausa por delante.
 function pr6PausaTxt(r,cur){
-  const u=r&&r.kind==="fixed"&&r.item?Number(r.item.pausedUntil):0;
-  return u>cur?tf("pr6_pausado_hasta",{m:pr6Mes(u)}):"";
+  // La misma regla que deja fuera de la cifra (`billsPausado`): lo atenuado es lo que no suma.
+  return r&&r.kind==="fixed"&&r.item&&billsPausado(r.item,(cur-1)%12+1,Math.floor((cur-1)/12))?tf("pr6_pausado_hasta",{m:pr6Mes(Number(r.item.pausedUntil))}):"";
 }
 function pr6Chev(){
   return React.createElement("svg",{className:"pr6-chev",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
@@ -33727,11 +33747,28 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   // seguían desplazables debajo el host de Plan (y Ajustes si se entró desde ahí): dos o tres
   // candidatos → ninguno raíz → sin ola. Lo de debajo deja de desplazar mientras esto está
   // abierto; `overflow:hidden` conserva su scrollTop para la vuelta.
+  /* La barra de abajo se queda a la vista, como en el prototipo (N8, decisión del dueño 10/11/2026).
+     Vive dentro de `.app-shell`, que con temporada es su propio contexto de apilamiento (z 1): por
+     mucho z-index que lleve no puede pasar por encima de esto, que cuelga de <body>. App la saca a
+     <body> mientras dura `mc-bills-open`; sigue sin transform ni desenfoque, así que no corta la ola.
+     Tocar una pestaña la cierra: sin eso se quedaba encima de la pestaña nueva. */
+  const closeTabRef=React.useRef(null);
   React.useEffect(function(){
     if(!open) return undefined;
     var h=document.documentElement;
     h.classList.add("bills-open");
-    return function(){ h.classList.remove("bills-open"); };
+    try{ window.dispatchEvent(new CustomEvent("mc-bills-open",{detail:true})); }catch(e){}
+    // En captura, antes que el cambio de pestaña: la activa (Plan) cierra deslizando, otra de golpe.
+    var onTab=function(ev){
+      var b=ev.target&&ev.target.closest&&ev.target.closest(".botnav-tab");
+      if(b&&closeTabRef.current) closeTabRef.current(b.classList.contains("active"));
+    };
+    document.addEventListener("click", onTab, true);
+    return function(){
+      h.classList.remove("bills-open");
+      document.removeEventListener("click", onTab, true);
+      try{ window.dispatchEvent(new CustomEvent("mc-bills-open",{detail:false})); }catch(e){}
+    };
   },[open]);
   React.useEffect(function(){
     if(!open){
@@ -33758,6 +33795,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     sub.close();
   },[view, detail, addStep, pasos]);
   popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep||pasos||persona;
+  // Con la misma pestaña (Plan) se cierra deslizando, como el ‹; con otra, de golpe: la pestaña nueva ya entra.
+  closeTabRef.current=function(anim){ editOnly.current=false; if(anim) pageSwipe.close(); else onClose(); };
   /* «Editar» desde la ficha de Recibos (v6): entra directo en la edición de ESE recibo y, al
      cerrarla, vuelve a Recibos en vez de dejarte en Todos, que nadie había pedido abrir. */
   const editOnly=React.useRef(false);
@@ -33850,7 +33889,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   /* Tus recibos (SPEC §3, prototipo del 26/10): secciones planas en vez de los grupos de la v4.1
      que abrían otra pantalla. Las filas salen de `billsGroupRows` y cada sección suma su
      `monthly`, la misma cuenta que `billsHeroTotal`: la cifra de arriba ES la suma de Recibos y
-     Cuotas, no otra fórmula que pueda descuadrarse. El banco filtra también la cifra; buscar no. */
+     Cuotas, no otra fórmula que pueda descuadrarse. El banco filtra también la cifra; buscar no.
+     Un pausado (`r.paused`) se queda en la lista, atenuado y con «pausado hasta X», pero no suma
+     (P2-9, decisión del dueño 10/11/2026): sumarlo prometía un gasto que ese mes no llega. */
   const mg=open?(function(){
     const pasa=function(r){ return !banco||r.bank===banco; };
     const de=function(g){ return billsGroupRows(state,g,cm,cy); };
@@ -33861,7 +33902,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     const filtradas={}, suma={};
     Object.keys(todas).forEach(function(g){
       filtradas[g]=todas[g].filter(pasa);
-      suma[g]=filtradas[g].reduce(function(a,r){ return a+Math.round(Math.abs(Number(r.monthly)||0)*100); },0)/100;
+      suma[g]=filtradas[g].reduce(function(a,r){ return a+(r.paused?0:Math.round(Math.abs(Number(r.monthly)||0)*100)); },0)/100;
     });
     return {todas:todas,filas:filtradas,suma:suma,bancos:bancos.length>1?bancos:[]};
   })():null;
@@ -36376,6 +36417,10 @@ function receiptEveProducer(state,totals,now){
     return eve;
   };
 }
+/* Monta la barra de abajo donde le toca: en su sitio o, con Tus recibos encima (N8), en <body>. */
+function BarraFuera({fuera, children}){
+  return fuera?ReactDOM.createPortal(children, document.body):children;
+}
 function App(){
   const [state,setStateRaw]=useState(loadState);
   useEffect(function(){ mcScheduleIdle(mcCalentarGlifos,6000); },[]);
@@ -38166,6 +38211,18 @@ function App(){
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);
   const [drawerOpen,setDrawerOpen]=useState(false);
+  /* Tus recibos abierto (Plan › Recibos › Todos): la barra de abajo se le pinta encima, colgada de
+     <body> (ver `mc-bills-open` en 14-v4-screens.js), y entra siempre a la vista (N8, 10/11/2026). */
+  const [billsOpen,setBillsOpen]=useState(false);
+  useEffect(function(){
+    var on=function(ev){
+      var v=!!ev.detail;
+      if(v) revealNav();
+      setBillsOpen(v);
+    };
+    window.addEventListener("mc-bills-open", on);
+    return function(){ window.removeEventListener("mc-bills-open", on); };
+  },[]);
   // v4: Ajustes es push a pantalla completa (SPEC §9). drawerMounted = primera apertura.
   const [drawerMounted,setDrawerMounted]=useState(false);
   const [apuntarOpen,setApuntarOpen]=useState(false);
@@ -40509,7 +40566,10 @@ function App(){
       React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
-      React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
+      // Una sola barra: dentro de `.app-shell` siempre, salvo con Tus recibos abierto, que va a <body>
+      // para pasarle por encima (`billsOpen`). Cambiar de padre la remonta; es idéntica, no se nota.
+      React.createElement(BarraFuera,{fuera:billsOpen},
+      React.createElement("nav",{className:"botnav"+(billsOpen?" botnav-bills":"")+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?(billsOpen?"":" botnav-hidden"):""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},
@@ -40528,7 +40588,7 @@ function App(){
           React.createElement("button",{className:"botnav-tab"+(tab===3&&!drawerOpen&&!profileOpen?" active":""),"data-tour":"cartera",onTouchStart:function(){ prepMountTab(3); },onClick:function(){ setDrawerOpen(false); setProfileOpen(false); goTab(3); }},
             React.createElement(I.invest,null), t("tab_cartera"))
         )
-      )
+      ))
     ),
     React.createElement(AskHost,null),
     cloud.enabled() && sharedOpen && React.createElement(SharedPanel,{state:state,set:set,uid:uid,totals:totals,showToast:showToast,

@@ -1222,8 +1222,8 @@ function pr6Motivo(x){
 function pr6Mes(ym){ const s=monthShort((ym-1)%12); return CURLANG==="en"?s:s.toLowerCase(); }
 // «pausado hasta feb» en Todos y en la edición (SPEC §2.6.1); "" si no hay pausa por delante.
 function pr6PausaTxt(r,cur){
-  const u=r&&r.kind==="fixed"&&r.item?Number(r.item.pausedUntil):0;
-  return u>cur?tf("pr6_pausado_hasta",{m:pr6Mes(u)}):"";
+  // La misma regla que deja fuera de la cifra (`billsPausado`): lo atenuado es lo que no suma.
+  return r&&r.kind==="fixed"&&r.item&&billsPausado(r.item,(cur-1)%12+1,Math.floor((cur-1)/12))?tf("pr6_pausado_hasta",{m:pr6Mes(Number(r.item.pausedUntil))}):"";
 }
 function pr6Chev(){
   return React.createElement("svg",{className:"pr6-chev",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
@@ -2330,11 +2330,28 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   // seguían desplazables debajo el host de Plan (y Ajustes si se entró desde ahí): dos o tres
   // candidatos → ninguno raíz → sin ola. Lo de debajo deja de desplazar mientras esto está
   // abierto; `overflow:hidden` conserva su scrollTop para la vuelta.
+  /* La barra de abajo se queda a la vista, como en el prototipo (N8, decisión del dueño 10/11/2026).
+     Vive dentro de `.app-shell`, que con temporada es su propio contexto de apilamiento (z 1): por
+     mucho z-index que lleve no puede pasar por encima de esto, que cuelga de <body>. App la saca a
+     <body> mientras dura `mc-bills-open`; sigue sin transform ni desenfoque, así que no corta la ola.
+     Tocar una pestaña la cierra: sin eso se quedaba encima de la pestaña nueva. */
+  const closeTabRef=React.useRef(null);
   React.useEffect(function(){
     if(!open) return undefined;
     var h=document.documentElement;
     h.classList.add("bills-open");
-    return function(){ h.classList.remove("bills-open"); };
+    try{ window.dispatchEvent(new CustomEvent("mc-bills-open",{detail:true})); }catch(e){}
+    // En captura, antes que el cambio de pestaña: la activa (Plan) cierra deslizando, otra de golpe.
+    var onTab=function(ev){
+      var b=ev.target&&ev.target.closest&&ev.target.closest(".botnav-tab");
+      if(b&&closeTabRef.current) closeTabRef.current(b.classList.contains("active"));
+    };
+    document.addEventListener("click", onTab, true);
+    return function(){
+      h.classList.remove("bills-open");
+      document.removeEventListener("click", onTab, true);
+      try{ window.dispatchEvent(new CustomEvent("mc-bills-open",{detail:false})); }catch(e){}
+    };
   },[open]);
   React.useEffect(function(){
     if(!open){
@@ -2361,6 +2378,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     sub.close();
   },[view, detail, addStep, pasos]);
   popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep||pasos||persona;
+  // Con la misma pestaña (Plan) se cierra deslizando, como el ‹; con otra, de golpe: la pestaña nueva ya entra.
+  closeTabRef.current=function(anim){ editOnly.current=false; if(anim) pageSwipe.close(); else onClose(); };
   /* «Editar» desde la ficha de Recibos (v6): entra directo en la edición de ESE recibo y, al
      cerrarla, vuelve a Recibos en vez de dejarte en Todos, que nadie había pedido abrir. */
   const editOnly=React.useRef(false);
@@ -2453,7 +2472,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   /* Tus recibos (SPEC §3, prototipo del 26/10): secciones planas en vez de los grupos de la v4.1
      que abrían otra pantalla. Las filas salen de `billsGroupRows` y cada sección suma su
      `monthly`, la misma cuenta que `billsHeroTotal`: la cifra de arriba ES la suma de Recibos y
-     Cuotas, no otra fórmula que pueda descuadrarse. El banco filtra también la cifra; buscar no. */
+     Cuotas, no otra fórmula que pueda descuadrarse. El banco filtra también la cifra; buscar no.
+     Un pausado (`r.paused`) se queda en la lista, atenuado y con «pausado hasta X», pero no suma
+     (P2-9, decisión del dueño 10/11/2026): sumarlo prometía un gasto que ese mes no llega. */
   const mg=open?(function(){
     const pasa=function(r){ return !banco||r.bank===banco; };
     const de=function(g){ return billsGroupRows(state,g,cm,cy); };
@@ -2464,7 +2485,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     const filtradas={}, suma={};
     Object.keys(todas).forEach(function(g){
       filtradas[g]=todas[g].filter(pasa);
-      suma[g]=filtradas[g].reduce(function(a,r){ return a+Math.round(Math.abs(Number(r.monthly)||0)*100); },0)/100;
+      suma[g]=filtradas[g].reduce(function(a,r){ return a+(r.paused?0:Math.round(Math.abs(Number(r.monthly)||0)*100)); },0)/100;
     });
     return {todas:todas,filas:filtradas,suma:suma,bancos:bancos.length>1?bancos:[]};
   })():null;

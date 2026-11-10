@@ -5670,14 +5670,24 @@ function fixedAddPreview(it){
   const total=ms.reduce(function(a,m){ return a+occAmountIn(it,m); },0);
   return tf("gb_preview_each",{each:eur(occAmountIn(it,ms[0])),months:ms.map(function(m){ return monthShort(m-1); }).join(", "),total:eur(total),x:x});
 }
-function billsHeroTotal(state, totals){
+/* ¿Está en pausa un recibo para «Se te van cada mes» de Tus recibos? Lo mismo que enseña la fila
+   («pausado hasta feb»): pausa con vuelta por delante, aunque empiece el mes que viene porque este
+   ya se pagó. Decisión del dueño (10/11/2026, P2-9): un pausado NO suma en esa cifra, ni al mes ni
+   al año; se sigue viendo en la lista, atenuado. Lo que queda por pagar ESTE mes no usa esto, sino
+   `fixedPausedIn` del mes concreto (un pagado que se pausa desde el que viene sigue pagado). */
+function billsPausado(e, curMonth, curYear){
+  return Number(e&&e.pausedUntil)>curYear*12+curMonth;
+}
+function billsHeroTotal(state, totals, curMonth, curYear){
   /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). Más
      lo que se paga de una deuda dentro de un recibo compartido («Lo descuento»): es tuyo y ni la
      cuota ni tu parte del recibo lo cuentan. Se suma aquí y no en `totals` para no mover la cifra
-     que publica el Hogar (13), que es otra conversación. */
+     que publica el Hogar (13), que es otra conversación. Sin los pausados (`billsPausado`). */
+  if(curMonth==null||curYear==null){ const d=new Date(); curMonth=d.getMonth()+1; curYear=d.getFullYear(); }
   const desc=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?deudaDescuentoBase(state,d):0); },0);
-  if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual+desc;
-  const serv=(state.fixed||[]).reduce(function(a,e){ return a+fixedMonthlyOf(e); },0);
+  const pausado=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?fixedMonthlyOf(e):0); },0);
+  if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual-pausado+desc;
+  const serv=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?0:fixedMonthlyOf(e)); },0);
   const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
   return serv+cuotas+desc;
 }
@@ -5691,7 +5701,7 @@ function billsCountAll(state, curMonth, curYear){
 function billsGroupRows(state, group, curMonth, curYear){
   if(group==="serv"){
     return (state.fixed||[]).slice().sort(function(a,b){ return fixedMonthlyOf(b)-fixedMonthlyOf(a); })
-      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),bank:accOf(e)}; });
+      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),bank:accOf(e),paused:billsPausado(e,curMonth,curYear)}; });
   }
   if(group==="debt"){
     return (state.debts||[]).filter(debtActive)
@@ -5740,7 +5750,7 @@ function recibosSolapes(state){
   return out;
 }
 function billsGroupMonthly(state, group, curMonth, curYear){
-  return billsGroupRows(state,group,curMonth,curYear).reduce(function(a,r){ return a+Math.abs(Number(r.monthly)||0); },0);
+  return billsGroupRows(state,group,curMonth,curYear).reduce(function(a,r){ return a+(r.paused?0:Math.abs(Number(r.monthly)||0)); },0);
 }
 function fixedPaymentDerivedDay(s,status){
   const proof=status.proof;

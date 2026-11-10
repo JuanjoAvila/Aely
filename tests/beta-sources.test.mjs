@@ -6358,10 +6358,10 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
   const source=f=>nl(read(f)),old=f=>nl(sourceBeta212(f));
   assert.equal(before[0].v,"4.26.212");
   const notes=JSON.parse(source("src/data/release-notes.json"));
-  assert.equal(notes[0].v,"4.26.217");assert.deepEqual(notes[0].tandas,[],"la 217 (Recibos D1 y D2) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[1].v,"4.26.216");assert.deepEqual(notes[1].tandas,[],"la 216 (auditoría de Recibos) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[2].v,"4.26.215");assert.deepEqual(notes[2].tandas,[],"la 215 (Deudas) no lleva tanda propia");assert.equal(notes[3].v,"4.26.214");assert.deepEqual(notes[3].tandas,[],"la 214 no lleva tanda propia: la zona Recibos sigue en la 213");const n213=notes[4];assert.equal(n213.v,"4.26.213");assert.equal(notes.length,before.length+5);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.equal(notes[0].v,"4.26.218");assert.deepEqual(notes[0].tandas,[],"la 218 (Tus recibos: el pausado no suma y la barra se ve) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[1].v,"4.26.217");assert.deepEqual(notes[1].tandas,[],"la 217 (Recibos D1 y D2) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[2].v,"4.26.216");assert.deepEqual(notes[2].tandas,[],"la 216 (auditoría de Recibos) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[3].v,"4.26.215");assert.deepEqual(notes[3].tandas,[],"la 215 (Deudas) no lleva tanda propia");assert.equal(notes[4].v,"4.26.214");assert.deepEqual(notes[4].tandas,[],"la 214 no lleva tanda propia: la zona Recibos sigue en la 213");const n213=notes[5];assert.equal(n213.v,"4.26.213");assert.equal(notes.length,before.length+6);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   // Todo lo anterior intacto salvo las siete tandas retiradas, que dejan la propiedad como lista vacía.
   const esperado=before.map(n=>{const out=structuredClone(n);if(retiradas[n.v])out.tandas=(n.tandas||[]).filter(g=>!retiradas[n.v].includes(g.id));return out;});
-  assert.deepEqual(notes.slice(5),esperado);
+  assert.deepEqual(notes.slice(6),esperado);
   for(const [v,ids] of Object.entries(retiradas)){
     const vieja=before.find(n=>n.v===v),ahora=notes.find(n=>n.v===v);
     assert.ok(Array.isArray(ahora.tandas),v+": la propiedad tandas sigue ahí");
@@ -6380,8 +6380,8 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     // Auditoría de la 216 (claude/recibos-d2): fuera el resumen del mes cerrado (solo sale del 1 al 7) y «Ya está pagado» en
     // su fila se funde en el 4; 16-17 «Ya pagados» con el cargo del banco (el 16, con «cobró distinto» de D1 en «Para revisar»); 18-20 dinero; 21-22 la portada como el prototipo
     // («Por pagar», sin el nombre repetido); 23-27 «Tus recibos» (también el filtro de banco en avisos y Personas);
-    // 28 el ojo (SPEC §8) y 29 abrir la zona sin tirón.
-    assert.equal(steps.length,29,lang+": veintinueve pasos");
+    // 28 el ojo (SPEC §8) y 29 abrir la zona sin tirón. 4.26.218: 30 el pausado no suma en «Tus recibos» (P2-9) y 31 la barra de abajo a la vista (N8).
+    assert.equal(steps.length,31,lang+": treinta y un pasos");
     assert.ok(steps.every((s,i)=>s.startsWith((i+1)+". ")),lang+": pasos numerados");
     for(const step of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(step)&&/BIEN|RIGHT|BÉ/.test(step),lang+": cada paso dice qué es MAL y qué es BIEN");
   }
@@ -6471,6 +6471,8 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
   // Auditoría de la 216, lo visual (claude/recibos-d2): el ojo vive en `eur`/`eur0`/`eurParts`, la tecla de borrar de
   // `NumPad` va dibujada y Plan maqueta sus capas premontadas en un hueco libre; eso mueve estas cuatro huellas web.
   Object.assign(expectedMoves,{"inicio-tarjeta-ciclo-limpia":["web"],"vibracion-suave-ronda-3":["web"],"renombrar-lista-al-momento":["web"],"informe-mes-limite-del-mes":["web"]});
+  // 4.26.218 (N8): la barra de abajo se monta con `BarraFuera` y lleva `botnav-bills` con Tus recibos abierto: mueve la huella del indicador.
+  Object.assign(expectedMoves,{"inc-0810-nav-indicator":["web"]});
   const moved={};
   for(const [key,scope] of Object.entries(integrated)){
     if(key===archiveId)continue;
@@ -6490,7 +6492,7 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     assert.notEqual(mutated.web,current.web,nueva+" reabre la tanda web");}
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
-  const g0=built[4].tandas[0];
+  const g0=built[5].tandas[0];
   assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   for(const id of vivas)assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web,id+": su huella llega al panel");

@@ -155,7 +155,8 @@ test('native wave: hoja por pasos de un recibo cancela y vuelve de lado sin move
 test('native wave: simulador conserva geometría y vuelve un nivel',async({page},info)=>{
   await page.setViewportSize({width:393,height:500});await begin(page,info);await record(page,info,async capture=>{
     await manage(page);await page.locator(hub+' .v4-bills-afford').tap();await expect(page.locator(child)).toBeVisible();await settle(page);const before=await capture('afford-open');
-    await swipe(page,365,440,0,-270);const bottom=await capture('afford-scrolled');expect(bottom.child.scroll).toBeGreaterThan(0);expect(bottom.child.overscroll).toBe('auto');expect(bottom.child.transform).toBe('none');
+    // A 500 px de alto la barra de abajo ocupa desde y≈427 (se queda a la vista en Tus recibos, N8): el dedo empieza sobre la lista.
+    await swipe(page,365,400,0,-270);const bottom=await capture('afford-scrolled');expect(bottom.child.scroll).toBeGreaterThan(0);expect(bottom.child.overscroll).toBe('auto');expect(bottom.child.transform).toBe('none');
     await swipe(page,365,130,0,270,'touchCancel');await page.goBack();await expect(page.locator(child)).toHaveCount(0);await settle(page);const after=await capture('afford-return');expect(after.plan.scroll).toBe(before.plan.scroll);expect(after.hub.scroll).toBe(before.hub.scroll);
   });
 });

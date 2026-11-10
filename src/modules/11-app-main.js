@@ -49,6 +49,10 @@ function receiptEveProducer(state,totals,now){
     return eve;
   };
 }
+/* Monta la barra de abajo donde le toca: en su sitio o, con Tus recibos encima (N8), en <body>. */
+function BarraFuera({fuera, children}){
+  return fuera?ReactDOM.createPortal(children, document.body):children;
+}
 function App(){
   const [state,setStateRaw]=useState(loadState);
   useEffect(function(){ mcScheduleIdle(mcCalentarGlifos,6000); },[]);
@@ -1839,6 +1843,18 @@ function App(){
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);
   const [drawerOpen,setDrawerOpen]=useState(false);
+  /* Tus recibos abierto (Plan › Recibos › Todos): la barra de abajo se le pinta encima, colgada de
+     <body> (ver `mc-bills-open` en 14-v4-screens.js), y entra siempre a la vista (N8, 10/11/2026). */
+  const [billsOpen,setBillsOpen]=useState(false);
+  useEffect(function(){
+    var on=function(ev){
+      var v=!!ev.detail;
+      if(v) revealNav();
+      setBillsOpen(v);
+    };
+    window.addEventListener("mc-bills-open", on);
+    return function(){ window.removeEventListener("mc-bills-open", on); };
+  },[]);
   // v4: Ajustes es push a pantalla completa (SPEC §9). drawerMounted = primera apertura.
   const [drawerMounted,setDrawerMounted]=useState(false);
   const [apuntarOpen,setApuntarOpen]=useState(false);
@@ -4182,7 +4198,10 @@ function App(){
       React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
-      React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
+      // Una sola barra: dentro de `.app-shell` siempre, salvo con Tus recibos abierto, que va a <body>
+      // para pasarle por encima (`billsOpen`). Cambiar de padre la remonta; es idéntica, no se nota.
+      React.createElement(BarraFuera,{fuera:billsOpen},
+      React.createElement("nav",{className:"botnav"+(billsOpen?" botnav-bills":"")+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?(billsOpen?"":" botnav-hidden"):""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},
@@ -4201,7 +4220,7 @@ function App(){
           React.createElement("button",{className:"botnav-tab"+(tab===3&&!drawerOpen&&!profileOpen?" active":""),"data-tour":"cartera",onTouchStart:function(){ prepMountTab(3); },onClick:function(){ setDrawerOpen(false); setProfileOpen(false); goTab(3); }},
             React.createElement(I.invest,null), t("tab_cartera"))
         )
-      )
+      ))
     ),
     React.createElement(AskHost,null),
     cloud.enabled() && sharedOpen && React.createElement(SharedPanel,{state:state,set:set,uid:uid,totals:totals,showToast:showToast,
