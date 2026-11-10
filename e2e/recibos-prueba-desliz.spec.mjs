@@ -63,7 +63,8 @@ test("prueba gratis y permanencia: avisan solo con fecha y por prioridad; la pru
   // En la fila, corto (a 360 px la frase entera partía en dos renglones); entera en la ficha y para el lector.
   await expect(review.locator('[data-review="trial"] .pr6-why')).toHaveText("Cobra mañana");
   await expect(review.locator('[data-review="trial"]')).toHaveAttribute("aria-label", /Mañana empieza a cobrar/);
-  await expect(review.locator('[data-review="perm"]')).toContainText("Fin de permanencia: nov 2026");
+  await expect(review.locator('[data-review="perm"] .pr6-why')).toHaveText("Permanencia: nov 2026");
+  await expect(review.locator('[data-review="perm"]')).toHaveAttribute("aria-label", /Fin de permanencia: nov 2026/);
   // Sin fecha, ningún aviso. La prueba que acaba en diciembre no cobra en octubre: ni aviso ni fila.
   await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_agua"]')).toHaveCount(1);
   await expect(recibos.locator('[data-recibo="fixed_gym"]')).toHaveCount(0);
@@ -73,6 +74,10 @@ test("prueba gratis y permanencia: avisan solo con fecha y por prioridad; la pru
   // Prueba: «Me lo quedo» quita la fecha y el recibo vuelve a «Por pagar».
   await review.locator('[data-review="trial"]').click();
   await expect(ficha(page).getByTestId("recibo-nota")).toHaveText("Mañana empieza a cobrar");
+  // Recibo del 25 con la prueba hasta el 19: la ficha dice el 19, lo mismo que el aviso (auditoría 222, P1-1;
+  // antes «Se cobra el 25» debajo de «Cobra mañana»).
+  await expect(ficha(page)).toContainText("Se cobra el 19");
+  await expect(ficha(page)).not.toContainText("Se cobra el 25");
   await expect(ficha(page).getByTestId("recibo-par").locator("button")).toHaveText(["Me lo quedo", "Ya no lo tengo"]);
   await expect(ficha(page).locator('[data-act="pagado"]')).toHaveCount(0);
   await expect(ficha(page).getByTestId("recibo-baja")).toHaveText("Cómo darte de baja en Netflix");
@@ -261,4 +266,18 @@ test("a 360 px el aviso de la prueba gratis cabe en un renglón", async ({ page 
   await expect(why).toHaveText("Cobra mañana");
   const [alto, linea] = await why.evaluate((el) => [el.getBoundingClientRect().height, parseFloat(getComputedStyle(el).lineHeight)]);
   expect(alto).toBeLessThan(linea * 1.5);
+});
+
+test("a 360 px: la permanencia en una línea y las dos píldoras del mismo ancho (auditoría 222, P2-7 y P2-8)", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  // Con alguien que te debe, para que salgan las dos píldoras («Te llega» y «Te deben»).
+  const fixed = datos().map((r) => r.id !== "agua" ? r : Object.assign({}, r, { bankAmount: 34.95, reparto: [{ id: "pe_pareja", n: "Pareja", via: "bizum", amt: 14.95 }] }));
+  const recibos = await abrePlan(page, fixed);
+  const why = recibos.getByTestId("plan-review").locator('[data-review="perm"] .pr6-why');
+  await expect(why).toHaveText("Permanencia: nov 2026");
+  const alto = await why.evaluate((e) => [e.getBoundingClientRect().height, parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.4]);
+  expect(alto[0]).toBeLessThan(alto[1] * 1.5);
+  const anchos = await recibos.locator(".pr6-pills .pr6-pill").evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().width)));
+  expect(anchos.length).toBe(2);
+  expect(Math.abs(anchos[0] - anchos[1])).toBeLessThanOrEqual(1);
 });

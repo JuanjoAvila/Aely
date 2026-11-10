@@ -31,10 +31,12 @@ test("la prueba avisa solo hoy o mañana; la permanencia, este mes o el que vien
     r("vista",27,{permHasta:CUR+1,revisado:{perm:CUR+1}}), r("otraVista",27,{permHasta:CUR+1,revisado:{perm:CUR}}),
     r("nada",28)]);
   const {v}=vista(s);
-  assert.deepEqual(ids(v.review),["fixed_hoy:trial","fixed_manana:trial","fixed_perm0:perm","fixed_perm1:perm","fixed_otraVista:perm"]);
+  // «vieja» acabó el 1: ese día tocaba su primer cobro (prototipo, `r.day = r.trial.day`) y el banco no
+  // trae nada, así que ya no es aviso de prueba sino «No ha llegado» (auditoría de la 222, P1-1).
+  assert.deepEqual(ids(v.review),["fixed_hoy:trial","fixed_manana:trial","fixed_vieja:late","fixed_perm0:perm","fixed_perm1:perm","fixed_otraVista:perm"]);
   assert.equal(c.pr6Motivo(v.review[0]),"Hoy empieza a cobrar");
   assert.equal(c.pr6Motivo(v.review[1]),"Mañana empieza a cobrar");
-  assert.equal(c.pr6Motivo(v.review[3]),"Fin de permanencia: nov 2026");
+  assert.equal(c.pr6Motivo(v.review[4]),"Fin de permanencia: nov 2026");
 });
 
 test("la permanencia solo avisa, y la prueba que acaba este mes cobra este mes: lo que queda por pagar no cambia",()=>{
@@ -90,7 +92,7 @@ test("el mes en que acaba la prueba, el primer cobro es el día en que acaba",()
   assert.equal(c.dayIn(e,10,2026),20);
   assert.equal(c.dayIn(e,11,2026),5,"el mes siguiente, su día de siempre");
   assert.equal(c.dayIn(e,10),5,"sin año (calendario), sin cambio");
-  assert.equal(c.dayIn(r("t",25,{pruebaHasta:"2026-10-20"}),10,2026),25,"un día posterior se queda");
+  assert.equal(c.dayIn(r("t",25,{pruebaHasta:"2026-10-20"}),10,2026),20,"un día posterior también: cobra el día en que acaba");
   const {pack,v}=vista(s);
   assert.deepEqual(ids(v.review),[]);
   assert.deepEqual([...v.due.map(x=>[x.id,x.day])],[["fixed_t",20]]);
@@ -99,6 +101,27 @@ test("el mes en que acaba la prueba, el primer cobro es el día en que acaba",()
   // El 19 avisa «Mañana empieza a cobrar» como siempre.
   const p19=c.planChargesMonth(s,M,Y,19),pr19=c.paymentEvidenceUI(s,Y,M,19);
   assert.deepEqual(ids(c.planRecibosVista(p19,pr19,19,c.planRecibosAvisos(s,p19,pr19,Y,M,19),{}).review),["fixed_t:trial"]);
+});
+
+/* Auditoría de la 222, P1-1: el aviso decía «Cobra mañana» y la ficha «Se cobra el 25» del mismo recibo,
+   porque el día solo se movía si la prueba acababa DESPUÉS de su día de siempre. Oráculo a mano: recibo
+   del 25 con la prueba hasta el 19, mirado el 18 → el aviso, la ficha, «¿Te llega?», Inicio y la
+   víspera dicen todos el 19; el 22 (19 + 2 días de margen + 1) ya es «No ha llegado». */
+test("la prueba que acaba antes de su día: aviso, ficha, ¿Te llega? e Inicio dicen el mismo día",()=>{
+  const e=r("n",25,{pruebaHasta:"2026-10-19"});
+  const s=estado([e]);
+  assert.equal(c.dayIn(e,10,2026),19);
+  assert.equal(c.dayIn(e,11,2026),25,"el mes siguiente, su día de siempre");
+  const {pack,v}=vista(s);
+  assert.deepEqual(ids(v.review),["fixed_n:trial"]);
+  assert.equal(v.review[0].dias,1);
+  assert.deepEqual(JSON.parse(JSON.stringify(pack.pendingBills.map(x=>[x.id,x.day,x.overdue]))),[["fixed_n",19,false]]);
+  assert.equal(c.fixedPaymentState(s,e,Y,M,HOY).day,19,"Inicio (próximos) lee este día");
+  assert.deepEqual([...c.pendingWalkEvents(s,Y,M,HOY)].filter(x=>x.amt<0).map(x=>[x.day,x.amt]),[[19,-10]]);
+  // El 21 aún dentro del margen; el 22, «No ha llegado».
+  const en=d=>{ const p=c.planChargesMonth(s,M,Y,d),pr=c.paymentEvidenceUI(s,Y,M,d); return ids(c.planRecibosVista(p,pr,d,c.planRecibosAvisos(s,p,pr,Y,M,d),{}).review); };
+  assert.deepEqual(en(21),[]);
+  assert.deepEqual(en(22),["fixed_n:late"]);
 });
 
 test("pagado igual en un mes de prueba: es un pago de verdad y se queda en Ya pagados, como con la pausa",()=>{

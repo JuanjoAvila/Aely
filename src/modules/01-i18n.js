@@ -4410,7 +4410,7 @@ Object.assign(LANG.ca,{
 // Recibos: prueba gratis, permanencia y filas que se deslizan (decisión del dueño, 10/11/2026).
 Object.assign(LANG.es,{
   pr6_prueba_hoy:"Hoy empieza a cobrar", pr6_prueba_manana:"Mañana empieza a cobrar", pr6_perm_fin:"Fin de permanencia: {x}",
-  pr6_prueba_hoy_fila:"Cobra hoy", pr6_prueba_manana_fila:"Cobra mañana",
+  pr6_prueba_hoy_fila:"Cobra hoy", pr6_prueba_manana_fila:"Cobra mañana", pr6_perm_fila:"Permanencia: {x}",
   pr6_me_lo_quedo:"Me lo quedo", pr6_ya_mirado:"Ya lo he mirado", pr6_te_lo_quedas:"{name}: te lo quedas",
   pr6_desliza_manana:"Mañana", pr6_desliza_pagado:"Pagado",
   rp7_prueba:"Prueba gratis", rp7_perm:"Permanencia", rp7_no:"No", rp7_hasta_dia:"hasta el {x}", rp7_hasta:"hasta {x}",
@@ -4419,7 +4419,7 @@ Object.assign(LANG.es,{
 });
 Object.assign(LANG.en,{
   pr6_prueba_hoy:"Starts charging today", pr6_prueba_manana:"Starts charging tomorrow", pr6_perm_fin:"Commitment ends: {x}",
-  pr6_prueba_hoy_fila:"Charges today", pr6_prueba_manana_fila:"Charges tomorrow",
+  pr6_prueba_hoy_fila:"Charges today", pr6_prueba_manana_fila:"Charges tomorrow", pr6_perm_fila:"Term ends {x}",
   pr6_me_lo_quedo:"I'll keep it", pr6_ya_mirado:"I've checked it", pr6_te_lo_quedas:"{name}: you're keeping it",
   pr6_desliza_manana:"Tomorrow", pr6_desliza_pagado:"Paid",
   rp7_prueba:"Free trial", rp7_perm:"Minimum term", rp7_no:"No", rp7_hasta_dia:"until {x}", rp7_hasta:"until {x}",
@@ -4428,7 +4428,7 @@ Object.assign(LANG.en,{
 });
 Object.assign(LANG.ca,{
   pr6_prueba_hoy:"Avui comença a cobrar", pr6_prueba_manana:"Demà comença a cobrar", pr6_perm_fin:"Fi de permanència: {x}",
-  pr6_prueba_hoy_fila:"Cobra avui", pr6_prueba_manana_fila:"Cobra demà",
+  pr6_prueba_hoy_fila:"Cobra avui", pr6_prueba_manana_fila:"Cobra demà", pr6_perm_fila:"Permanència: {x}",
   pr6_me_lo_quedo:"M'ho quedo", pr6_ya_mirado:"Ja ho he mirat", pr6_te_lo_quedas:"{name}: te'l quedes",
   pr6_desliza_manana:"Demà", pr6_desliza_pagado:"Pagat",
   rp7_prueba:"Prova gratuïta", rp7_perm:"Permanència", rp7_no:"No", rp7_hasta_dia:"fins al {x}", rp7_hasta:"fins a {x}",

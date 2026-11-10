@@ -48,7 +48,7 @@ try{
   const effectCtx={state,locked:false,useEffect:fn=>fn(),
     dashboardBudgetStats:s=>logic.dashboardBudgetStats(s),monthBudgetStats:s=>logic.monthBudgetStats(s),
     localStorage:{getItem:k=>flags.get(k),setItem:(k,v)=>flags.set(k,v)},
-    tf:(key,vars)=>({key,vars}),eur0:n=>n,showToast:msg=>toasts.push(msg),
+    tf:(key,vars)=>({key,vars}),eur0:n=>n,showToast:msg=>toasts.push(typeof msg==="function"?msg():msg),  // el aviso llega como función (el ojo lo reformatea, 4.26.223)
     natPlugin:()=>({showNotification:msg=>{notifications.push(msg);return Promise.resolve();}}),
   };
   vm.runInNewContext(main.slice(effectStart,effectEnd),effectCtx);

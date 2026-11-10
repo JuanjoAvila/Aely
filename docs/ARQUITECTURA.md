@@ -263,7 +263,8 @@ prueba no se cobran (decisión del dueño del 10/11, como el prototipo): `fixedS
 pausa o prueba, y lo leen lo que queda por pagar (`planChargesMonth`), el recorrido de «¿Te
 llega?», `totals`, los avisos de la víspera y el año (`billsAnualDe`); «Se te van cada mes»
 (`billsPausado`) y Pausar (`fixedPausa`) siguen leyendo solo la pausa. El mes en que acaba, `dayIn`
-devuelve el día de fin de la prueba si es posterior al del recibo: el primer cobro llega ese día. Cada una es un grupo propio en la mezcla de tres vías, y
+devuelve el día de fin de la prueba (antes o después del día del recibo, como el prototipo): el
+primer cobro llega ese día, y aviso, ficha, víspera, Inicio y «¿Te llega?» dicen el mismo. Cada una es un grupo propio en la mezcla de tres vías, y
 un cliente anterior las ignora y las conserva.
 La excepción es una lectura manual **nueva y
 trazable** anterior al día de un recibo vencido e impagado: una única cuenta de recibos de ese

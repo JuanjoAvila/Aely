@@ -757,8 +757,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const avisoQuitar=React.createElement(React.Fragment,null,
     undoFicha&&React.createElement(BillUndoToast,{onUndo:function(){ if(fichaUndo.undo(undoFicha)!==false) setUndoFicha(null); }}),
     avisoFicha&&React.createElement(BillUndoToast,{notice:avisoFicha}));
-  const [llegaOpen,setLlegaOpen]=useState(false);
-  const [debenOpen,setDebenOpen]=useState(false);
+  // Las hojas de «¿Te llega?» y «Te deben» guardan su abierto/cerrado en `Pr6HojaHost`: abrirlas no repinta Recibos.
+  const llegaHost=useRef(null), debenHost=useRef(null);
   const paidRef=useRef(null);
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
@@ -981,15 +981,16 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))));
     return withDayPrompt(x,!sig&&/^fixed_/.test(String(x.id))?desliza(x,"cargo",fila):fila);
   };
-  // «No ha llegado» se repetía en cada fila y la sección ya dice que hay que revisarlo: en la fila
-  // solo va lo que la distingue (cuándo tocaba). El lector de pantalla sí oye el motivo entero.
-  /* La prueba gratis, corta en la fila: «Mañana empieza a cobrar» partía en dos renglones a 360 px
-     con un importe de tres cifras. El regalo y «Para revisar» ya dicen que es una prueba; la ficha
-     y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
+  /* «No ha llegado» en la fila, como la SPEC (§2.3) y el prototipo: «tocaba hace 8 días» obligaba a
+     hacer la cuenta y la fecha ya va en la ficha (auditorías de la 218 y la 222, P2-1).
+     La prueba gratis y la permanencia, cortas en la fila: «Mañana empieza a cobrar» y «Fin de
+     permanencia: dic 2026» partían en dos renglones a 360 px (auditorías de la 221 y la 222). El icono
+     y «Para revisar» ya dicen qué es; la ficha y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
   const motivoFila=function(x){
     if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
     if(x.rv==="trial") return t(x.dias===0?"pr6_prueba_hoy_fila":"pr6_prueba_manana_fila");
-    return (x.rv==="late"&&cuando(x))||pr6Motivo(x);
+    if(x.rv==="perm") return tf("pr6_perm_fila",{x:pr6MesAno(x.permYm)});
+    return pr6Motivo(x);
   };
   const revRow=function(x){
     const cobro=x.rv==="diff"||x.rv==="up"||x.rv==="cand";
@@ -1099,14 +1100,14 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
         llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
-          onClick:function(){ setLlegaOpen(true); }},
+          onClick:function(){ if(llegaHost.current) llegaHost.current(true); }},
           llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
           llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}),
           // Sin la flecha no se ve que la píldora se abre.
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))),
         debenTotal>0.005&&React.createElement("button",{type:"button",className:"pr6-pill","data-testid":"plan-deben","aria-haspopup":"dialog",
-          onClick:function(){ setDebenOpen(true); }},
+          onClick:function(){ if(debenHost.current) debenHost.current(true); }},
           tf("pr6_te_deben",{x:eur(debenTotal)}),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
@@ -1136,7 +1137,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       importar,
        manage,avisoQuitar);
   }
-  const verCerrado=!!cerrado&&cerrado.ym!==cerradoNo;
+  /* Sin cifra del mes cerrado la tarjeta solo decía «— en recibos · sin datos de octubre»: ruido. La
+     SPEC §2.1 pide líneas con dato real, así que no sale (auditorías de la 218 y la 222, P2-7). Si lo
+     que falta es el mes de antes sí sale, con el porqué (rechazo de la beta 206). */
+  const verCerrado=!!cerrado&&cerrado.cent!=null&&cerrado.ym!==cerradoNo;
   const lineasCerrado=cerrado?pr6LineasCerrado(cerrado):[];
   return React.createElement(React.Fragment,null,
     // Se pliega (no desaparece) al descartarlo y al pasar al mes siguiente, donde no sale (SPEC §2.1).
@@ -1207,8 +1211,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("div",{className:"pr6-sec-h"},React.createElement("span",null,t("v4_aun_entrara"))),
       pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); }))),
     importar,
-    llegaOpen&&React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:function(){ setLlegaOpen(false); }}),
-    debenOpen&&React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:function(){ setDebenOpen(false); }}),
+    React.createElement(Pr6HojaHost,{hostRef:llegaHost,render:function(cerrar){ return React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:cerrar}); }}),
+    React.createElement(Pr6HojaHost,{hostRef:debenHost,render:function(cerrar){ return React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:cerrar}); }}),
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, deshacer.msg),
       React.createElement("button",{type:"button",onClick:deshacerYa}, t("f_undo"))),
@@ -1222,6 +1226,16 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       onEdit:function(id){ cerrarFicha(); setManageEdit(id); setManageOpen(true); }}),
     manage,avisoQuitar
   );
+}
+/* Una hoja de Recibos que se abre y se cierra sola. Con el abierto en `PlanRecibos`, abrir «¿Te llega?»
+   repintaba todas las filas (cada una con su gesto de deslizar desde la 221) en el mismo fotograma en que
+   la hoja empieza a subir: a 6× de CPU, un fotograma de 100 ms (auditoría de la 222, P2-6). Aquí solo se
+   pinta la hoja; si Recibos cambia con ella abierta, le llega lo nuevo por `render`. */
+function Pr6HojaHost({hostRef, render}){
+  const [open,setOpen]=useState(false);
+  useEffect(function(){ hostRef.current=setOpen; return function(){ hostRef.current=null; }; },[hostRef]);
+  const cerrar=useCallback(function(){ setOpen(false); },[]);
+  return open?render(cerrar):null;
 }
 /* Textos del resumen del mes cerrado. El mes con mayúscula al principio («Septiembre cerrado»);
    en catalán, con su artículo («més que l'agost», «més que el setembre»). */
@@ -1241,10 +1255,10 @@ function pr6MesCon(m){
 function pr6TituloCerrado(c){ return tf("pr6c_titulo",{mes:pr6Cap(monthLong(c.m-1))}); }
 /* La cifra y la comparación van en DOS renglones, cada uno de una línea a 393 px. La comparación
    SIEMPRE sale (rechazo de la beta 206, 1/11/2026: «salía pero no salía el vs»): con la diferencia
-   o, si no se puede comparar, con el porqué en una línea. Lo que no se acredita no lleva cifra:
-   nunca una más baja que la real. */
+   o, si no se puede comparar, con el porqué en una línea. Un mes cerrado sin cifra no pinta la
+   tarjeta (`verCerrado`): nunca una más baja que la real. */
 function pr6LineaCerrado(c){
-  return c.cent==null?tf("pr6c_total",{x:"—"}):tf("pr6c_total",{x:eur(c.cent/100)});
+  return tf("pr6c_total",{x:eur(c.cent/100)});
 }
 function pr6VsCerrado(c){
   const p=c.prev||{y:c.m===1?c.y-1:c.y,m:c.m===1?12:c.m-1,cent:null};
@@ -1252,7 +1266,6 @@ function pr6VsCerrado(c){
   // En catalán la preposición va pegada al mes: «d'agost», «de setembre», «a l'agost», «al setembre».
   const ca=function(m,de){ const n=monthLong(m-1), v=/^[aeiouàèéíòóú]/i.test(n); return CURLANG!=="ca"?n:de?(v?"d'":"de ")+n:(v?"a l'":"al ")+n; };
   if(!c.prev) return tf("pr6c_vs_sin_recibos",{mes:mes,largo:ca(p.m,false)});
-  if(c.cent==null) return tf("pr6c_vs_sin_datos",{mes:mes,largo:ca(c.m,true)});
   if(p.cent==null) return tf("pr6c_vs_sin_datos",{mes:mes,largo:ca(p.m,true)});
   const d=c.cent-p.cent;
   return d===0?tf("pr6c_igual",{mes:mes}):tf("pr6c_vs",{d:(d>0?"+":"−")+eur(Math.abs(d)/100),mes:mes});

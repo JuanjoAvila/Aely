@@ -988,12 +988,13 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Mitades iguales si
-     caben; si no (360 px con la letra al 110 %), la segunda baja entera a su renglón en vez de
+  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Las dos miden lo mismo
+     (SPEC §2.2): parten de la mitad y, si una no cabe en ella (360 px, letra al 110 %), las dos bajan
+     a su renglón enteras en vez de quedar una ancha y otra estrecha (auditoría de la 222, P2-8) o de
      perder la flecha o cortar la cifra (auditoría 4.26.218). En estrecho se aprieta el relleno. */
   .pr6-pills{display:flex;flex-wrap:wrap;gap:8px;container:pr6pildoras / inline-size;}
   @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill{padding:0 10px;gap:6px;} }
-  .pr6-pill{flex:1 1 0;min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
+  .pr6-pill{flex:1 1 calc(50% - 4px);min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
   .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
   /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */
@@ -10566,7 +10567,7 @@ Object.assign(LANG.es,{
 // Recibos: prueba gratis, permanencia y filas que se deslizan (decisión del dueño, 10/11/2026).
 Object.assign(LANG.es,{
   pr6_prueba_hoy:"Hoy empieza a cobrar", pr6_prueba_manana:"Mañana empieza a cobrar", pr6_perm_fin:"Fin de permanencia: {x}",
-  pr6_prueba_hoy_fila:"Cobra hoy", pr6_prueba_manana_fila:"Cobra mañana",
+  pr6_prueba_hoy_fila:"Cobra hoy", pr6_prueba_manana_fila:"Cobra mañana", pr6_perm_fila:"Permanencia: {x}",
   pr6_me_lo_quedo:"Me lo quedo", pr6_ya_mirado:"Ya lo he mirado", pr6_te_lo_quedas:"{name}: te lo quedas",
   pr6_desliza_manana:"Mañana", pr6_desliza_pagado:"Pagado",
   rp7_prueba:"Prueba gratis", rp7_perm:"Permanencia", rp7_no:"No", rp7_hasta_dia:"hasta el {x}", rp7_hasta:"hasta {x}",
@@ -19649,12 +19650,12 @@ function dayIn(e,m,y){
   let d=o&&cleanDay(o.day)?cleanDay(o.day):e&&e.schedule&&e.schedule.length?((e.schedule.find(x=>x.m===m)||{}).day||null):(e&&e.day)||null;
   // Un día imposible (32, «x») se deja tal cual: no es un 31 y no se convierte en uno válido.
   if(cleanDay(d)===Number(d)&&m>=1&&m<=12){ const fin=new Date(y||new Date().getFullYear(),m,0).getDate(); if(d>fin) d=fin; }
-  /* El mes en que acaba la prueba gratis el primer cobro llega el día en que acaba, no antes: con el
-     día de siempre salía «No ha llegado» y el aviso de la víspera días antes de cobrar, y «¿Te
-     llega?» lo restaba de más pronto (revisión de la 221, P1-1). Como el prototipo (`r.day = r.trial.day`).
-     Sin año (calendario, medias) no cambia nada. */
+  /* El mes en que acaba la prueba gratis el primer cobro llega el día en que acaba, antes o después
+     de su día de siempre, como el prototipo (`r.day = r.trial.day`). Solo hacia delante (revisión de
+     la 221) el aviso decía «Cobra mañana» y la ficha «Se cobra el 15» del mismo recibo (auditoría de
+     la 222, P1-1). Sin año (calendario, medias) no cambia nada. */
   const pk=y&&/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(e&&e.pruebaHasta||""));
-  if(pk&&+pk[1]===y&&+pk[2]===m&&cleanDay(d)!=null&&+pk[3]>d) d=+pk[3];
+  if(pk&&+pk[1]===y&&+pk[2]===m&&cleanDay(d)!=null&&cleanDay(pk[3])!=null) d=+pk[3];
   return d;
 }
 // día simple (objetos sin schedule: deudas)
@@ -30023,7 +30024,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="27914aff522a5403effb36f0bb565c26607db1a35fee3767a2541bdfbe26b145";
+var _rnSha="f2acf5fa7f8dff8d9d22c089824ccf18389afb0e4c568b3ee73b1d54510f1749";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32297,8 +32298,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const avisoQuitar=React.createElement(React.Fragment,null,
     undoFicha&&React.createElement(BillUndoToast,{onUndo:function(){ if(fichaUndo.undo(undoFicha)!==false) setUndoFicha(null); }}),
     avisoFicha&&React.createElement(BillUndoToast,{notice:avisoFicha}));
-  const [llegaOpen,setLlegaOpen]=useState(false);
-  const [debenOpen,setDebenOpen]=useState(false);
+  // Las hojas de «¿Te llega?» y «Te deben» guardan su abierto/cerrado en `Pr6HojaHost`: abrirlas no repinta Recibos.
+  const llegaHost=useRef(null), debenHost=useRef(null);
   const paidRef=useRef(null);
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
@@ -32521,15 +32522,16 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))));
     return withDayPrompt(x,!sig&&/^fixed_/.test(String(x.id))?desliza(x,"cargo",fila):fila);
   };
-  // «No ha llegado» se repetía en cada fila y la sección ya dice que hay que revisarlo: en la fila
-  // solo va lo que la distingue (cuándo tocaba). El lector de pantalla sí oye el motivo entero.
-  /* La prueba gratis, corta en la fila: «Mañana empieza a cobrar» partía en dos renglones a 360 px
-     con un importe de tres cifras. El regalo y «Para revisar» ya dicen que es una prueba; la ficha
-     y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
+  /* «No ha llegado» en la fila, como la SPEC (§2.3) y el prototipo: «tocaba hace 8 días» obligaba a
+     hacer la cuenta y la fecha ya va en la ficha (auditorías de la 218 y la 222, P2-1).
+     La prueba gratis y la permanencia, cortas en la fila: «Mañana empieza a cobrar» y «Fin de
+     permanencia: dic 2026» partían en dos renglones a 360 px (auditorías de la 221 y la 222). El icono
+     y «Para revisar» ya dicen qué es; la ficha y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
   const motivoFila=function(x){
     if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
     if(x.rv==="trial") return t(x.dias===0?"pr6_prueba_hoy_fila":"pr6_prueba_manana_fila");
-    return (x.rv==="late"&&cuando(x))||pr6Motivo(x);
+    if(x.rv==="perm") return tf("pr6_perm_fila",{x:pr6MesAno(x.permYm)});
+    return pr6Motivo(x);
   };
   const revRow=function(x){
     const cobro=x.rv==="diff"||x.rv==="up"||x.rv==="cand";
@@ -32639,14 +32641,14 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
         llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
-          onClick:function(){ setLlegaOpen(true); }},
+          onClick:function(){ if(llegaHost.current) llegaHost.current(true); }},
           llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
           llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}),
           // Sin la flecha no se ve que la píldora se abre.
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))),
         debenTotal>0.005&&React.createElement("button",{type:"button",className:"pr6-pill","data-testid":"plan-deben","aria-haspopup":"dialog",
-          onClick:function(){ setDebenOpen(true); }},
+          onClick:function(){ if(debenHost.current) debenHost.current(true); }},
           tf("pr6_te_deben",{x:eur(debenTotal)}),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
@@ -32676,7 +32678,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       importar,
        manage,avisoQuitar);
   }
-  const verCerrado=!!cerrado&&cerrado.ym!==cerradoNo;
+  /* Sin cifra del mes cerrado la tarjeta solo decía «— en recibos · sin datos de octubre»: ruido. La
+     SPEC §2.1 pide líneas con dato real, así que no sale (auditorías de la 218 y la 222, P2-7). Si lo
+     que falta es el mes de antes sí sale, con el porqué (rechazo de la beta 206). */
+  const verCerrado=!!cerrado&&cerrado.cent!=null&&cerrado.ym!==cerradoNo;
   const lineasCerrado=cerrado?pr6LineasCerrado(cerrado):[];
   return React.createElement(React.Fragment,null,
     // Se pliega (no desaparece) al descartarlo y al pasar al mes siguiente, donde no sale (SPEC §2.1).
@@ -32747,8 +32752,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("div",{className:"pr6-sec-h"},React.createElement("span",null,t("v4_aun_entrara"))),
       pack.incomePending.map(function(x){ return planRecibosFlowRow(x,month); }))),
     importar,
-    llegaOpen&&React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:function(){ setLlegaOpen(false); }}),
-    debenOpen&&React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:function(){ setDebenOpen(false); }}),
+    React.createElement(Pr6HojaHost,{hostRef:llegaHost,render:function(cerrar){ return React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:cerrar}); }}),
+    React.createElement(Pr6HojaHost,{hostRef:debenHost,render:function(cerrar){ return React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:cerrar}); }}),
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, deshacer.msg),
       React.createElement("button",{type:"button",onClick:deshacerYa}, t("f_undo"))),
@@ -32762,6 +32767,16 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       onEdit:function(id){ cerrarFicha(); setManageEdit(id); setManageOpen(true); }}),
     manage,avisoQuitar
   );
+}
+/* Una hoja de Recibos que se abre y se cierra sola. Con el abierto en `PlanRecibos`, abrir «¿Te llega?»
+   repintaba todas las filas (cada una con su gesto de deslizar desde la 221) en el mismo fotograma en que
+   la hoja empieza a subir: a 6× de CPU, un fotograma de 100 ms (auditoría de la 222, P2-6). Aquí solo se
+   pinta la hoja; si Recibos cambia con ella abierta, le llega lo nuevo por `render`. */
+function Pr6HojaHost({hostRef, render}){
+  const [open,setOpen]=useState(false);
+  useEffect(function(){ hostRef.current=setOpen; return function(){ hostRef.current=null; }; },[hostRef]);
+  const cerrar=useCallback(function(){ setOpen(false); },[]);
+  return open?render(cerrar):null;
 }
 /* Textos del resumen del mes cerrado. El mes con mayúscula al principio («Septiembre cerrado»);
    en catalán, con su artículo («més que l'agost», «més que el setembre»). */
@@ -32781,10 +32796,10 @@ function pr6MesCon(m){
 function pr6TituloCerrado(c){ return tf("pr6c_titulo",{mes:pr6Cap(monthLong(c.m-1))}); }
 /* La cifra y la comparación van en DOS renglones, cada uno de una línea a 393 px. La comparación
    SIEMPRE sale (rechazo de la beta 206, 1/11/2026: «salía pero no salía el vs»): con la diferencia
-   o, si no se puede comparar, con el porqué en una línea. Lo que no se acredita no lleva cifra:
-   nunca una más baja que la real. */
+   o, si no se puede comparar, con el porqué en una línea. Un mes cerrado sin cifra no pinta la
+   tarjeta (`verCerrado`): nunca una más baja que la real. */
 function pr6LineaCerrado(c){
-  return c.cent==null?tf("pr6c_total",{x:"—"}):tf("pr6c_total",{x:eur(c.cent/100)});
+  return tf("pr6c_total",{x:eur(c.cent/100)});
 }
 function pr6VsCerrado(c){
   const p=c.prev||{y:c.m===1?c.y-1:c.y,m:c.m===1?12:c.m-1,cent:null};
@@ -32792,7 +32807,6 @@ function pr6VsCerrado(c){
   // En catalán la preposición va pegada al mes: «d'agost», «de setembre», «a l'agost», «al setembre».
   const ca=function(m,de){ const n=monthLong(m-1), v=/^[aeiouàèéíòóú]/i.test(n); return CURLANG!=="ca"?n:de?(v?"d'":"de ")+n:(v?"a l'":"al ")+n; };
   if(!c.prev) return tf("pr6c_vs_sin_recibos",{mes:mes,largo:ca(p.m,false)});
-  if(c.cent==null) return tf("pr6c_vs_sin_datos",{mes:mes,largo:ca(c.m,true)});
   if(p.cent==null) return tf("pr6c_vs_sin_datos",{mes:mes,largo:ca(p.m,true)});
   const d=c.cent-p.cent;
   return d===0?tf("pr6c_igual",{mes:mes}):tf("pr6c_vs",{d:(d>0?"+":"−")+eur(Math.abs(d)/100),mes:mes});
@@ -37186,12 +37200,14 @@ function App(){
      avisos seguidos se pisaban: el temporizador del PRIMERO borraba el SEGUNDO a mitad. Los largos
      (un resumen de sincronización) duran algo más para que dé tiempo a leerlos. */
   const toastTimer=useRef(0);
-  const showToast=(m)=>{ setToast(m); if(toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current=setTimeout(()=>{ toastTimer.current=0; setToast(null); }, String(m||"").length>60 ? 4000 : 2200);
+  /* Un aviso con cifras puede llegar como función: se vuelve a formatear en cada pintado y el ojo
+     esconde también la cifra del que ya está en pantalla (auditoría de la 222, P2-13). */
+  const showToast=(m)=>{ setToast(typeof m==="function"?{f:m}:m); if(toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current=setTimeout(()=>{ toastTimer.current=0; setToast(null); }, String((typeof m==="function"?m():m)||"").length>60 ? 4000 : 2200);
     // Telemetría: TODO error que ve el usuario en pantalla viaja a app_events. Antes solo se
     // subían los crashes/errores no capturados — los fallos "domados" (✕/⚠ en un toast, como el
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
-    try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
+    try{ const s=String((typeof m==="function"?m():m)||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
   useEffect(function(){
     const warning=function(event){
@@ -39731,10 +39747,10 @@ function App(){
       try{ seen=localStorage.getItem(k)==="1"; localStorage.setItem(k,"1"); }catch(e){}
       if(seen||fired) return;
       fired=true;
-      const msg=tf("bn_"+th,{x:eur0(spent),b:eur0(bud),p:Math.round(pct)});
+      const msg=function(){ return tf("bn_"+th,{x:eur0(spent),b:eur0(bud),p:Math.round(pct)}); };
       showToast(msg);
       const nat=natPlugin();
-      if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
+      if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg()}).catch(function(){}); }catch(e){} }
     });
   },[state.onboarded,locked,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
@@ -40919,7 +40935,7 @@ function App(){
     modeChangeWarning,
     React.createElement(Onboarding,{set:set, onCloud:(cloud.enabled()?onCloudClick:null), onSignup:(cloud.enabled()?onSignupClick:null)}),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
-    toast && React.createElement("div",{className:"toast"},toast)
+    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast)
   );
 
   return React.createElement("div",{className:"app v4"+(mcSandbox()?" sandbox":"")},
@@ -40970,7 +40986,7 @@ function App(){
       (upd.otaReady&&!upd.otaDownloaded)?t("upd_downloading"):t("upd_ready")),
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
-    toast && React.createElement("div",{className:"toast"},toast),
+    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast),
     syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{

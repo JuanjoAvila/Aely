@@ -57,9 +57,10 @@ test("para revisar: no ha llegado y cuotas sin cargo del banco, tres a la vista"
   await expect(review.locator(".v4-charge")).toHaveCount(5);
   await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(3);
   await expect(review.locator('[data-review="late"]')).toHaveCount(4);
-  // La fila no repite «No ha llegado»: dice cuándo tocaba (el motivo entero va en el aria-label).
-  await expect(review.locator('[data-review="late"]').first()).not.toContainText("No ha llegado");
-  await expect(review.locator('[data-review="late"]').first()).toContainText("tocaba hace");
+  // La fila dice «No ha llegado», como la SPEC §2.3 y el prototipo (antes «tocaba hace N días»;
+  // auditoría de la 222, P2-1). La fecha va en la ficha.
+  await expect(review.locator('[data-review="late"]').first()).toContainText("No ha llegado");
+  await expect(review.locator('[data-review="late"]').first()).not.toContainText("tocaba hace");
   await expect(review.locator('[data-review="unconf"]')).toContainText("Préstamo sintético");
   await expect(review.locator(".pr6-sec-h, .pr6-n").first()).toContainText("5");
   // Lo vencido sigue sumando en lo que queda por pagar; la cuota pagada por calendario no.

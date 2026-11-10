@@ -988,12 +988,13 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Mitades iguales si
-     caben; si no (360 px con la letra al 110 %), la segunda baja entera a su renglón en vez de
+  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Las dos miden lo mismo
+     (SPEC §2.2): parten de la mitad y, si una no cabe en ella (360 px, letra al 110 %), las dos bajan
+     a su renglón enteras en vez de quedar una ancha y otra estrecha (auditoría de la 222, P2-8) o de
      perder la flecha o cortar la cifra (auditoría 4.26.218). En estrecho se aprieta el relleno. */
   .pr6-pills{display:flex;flex-wrap:wrap;gap:8px;container:pr6pildoras / inline-size;}
   @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill{padding:0 10px;gap:6px;} }
-  .pr6-pill{flex:1 1 0;min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
+  .pr6-pill{flex:1 1 calc(50% - 4px);min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
   .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
   /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */

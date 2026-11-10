@@ -130,6 +130,16 @@ test("mes cerrado (rechazo 206): sin foto y con un recibo de septiembre sin prue
   await expect(recibos.getByTestId("plan-cerrado-vs")).toHaveText("vs. sep: sin datos de septiembre");
 });
 
+test("mes cerrado sin cifra (auditoría 222, P2-7): octubre sin foto y con un recibo sin prueba, la tarjeta no sale", async ({ page }) => {
+  // Octubre no se abrió (sin foto) y el gimnasio no tiene cargo: no se puede decir cuánto se fue en recibos.
+  // Antes salía «— en recibos · vs. sep: sin datos de octubre», una tarjeta sin un solo dato.
+  await abrePlan(page, "2026-09-30T20:00:00+02:00", { accounts: cuenta, fixed, bankTx });
+  await conFoto(page, SEP);
+  const recibos = await otroDia(page, "2026-11-03T12:00:00+01:00");
+  await expect(recibos.getByTestId("plan-summary")).toBeVisible();
+  await expect(recibos.getByTestId("plan-cerrado")).toHaveCount(0);
+});
+
 test("mes cerrado (revisión t6-vs): todos dados de alta en octubre, la comparación dice que septiembre no tenía recibos", async ({ page }) => {
   const nuevos = fixed.map((f) => Object.assign({}, f, { createdYm: OCT }));
   await abrePlan(page, "2026-10-31T20:00:00+01:00", { accounts: cuenta, fixed: nuevos, bankTx });

@@ -159,6 +159,25 @@ test("el ojo: esconde todas las cifras de dinero, deja los conteos y se recuerda
   expect((await cifras()).length).toBeGreaterThan(0);
 });
 
+test("el ojo esconde también la cifra de un aviso que ya está en pantalla (auditoría 222, P2-13)", async ({ page }) => {
+  // Presupuesto de 100 € con 150 € gastados: al abrir sale «Presupuesto del mes agotado: 150 € de 100 €».
+  const gasto = { id: "g1", date: "2026-11-05T10:00:00.000Z", merchant: "Super sintetico", amount: 150, category: "super", source: "manual", ent: "sabadell" };
+  test.info().annotations.push({ type: "own-clock" });
+  await page.setViewportSize({ width: 412, height: 915 });
+  await page.clock.install({ time: new Date("2026-11-09T12:00:00+01:00") });
+  await page.route("**/*", (x) => new URL(x.request().url()).hostname === "127.0.0.1" ? x.continue() : x.abort());
+  await seedLoggedInDashboard(page, { __seedOnce: true, lastBackup: "2026-11-09", budget: 100,
+    accounts: [{ id: "s", ent: "sabadell", role: "fijos", value: 1830.45 }], fixed, debts: [mama], oneoffs: [], flows: [], bankTx: [], expenses: [gasto], settings });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const toast = page.locator(".toast").filter({ hasText: "agotado" });
+  await expect(toast).toContainText("€ de");
+  expect(await toast.innerText()).toMatch(/\d\s?€ de \d/);
+  await page.locator('.page-live [data-testid="ojo-importes"]').click();
+  await expect(toast).toContainText("•••• € de •••• €");
+});
+
 test("alta: cada sugerencia lleva su dibujo, no el emoji de la categoría", async ({ page }) => {
   const rec = await abrePlan(page);
   await rec.getByTestId("plan-todos").click();

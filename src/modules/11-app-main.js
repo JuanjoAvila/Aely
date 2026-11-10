@@ -449,12 +449,14 @@ function App(){
      avisos seguidos se pisaban: el temporizador del PRIMERO borraba el SEGUNDO a mitad. Los largos
      (un resumen de sincronización) duran algo más para que dé tiempo a leerlos. */
   const toastTimer=useRef(0);
-  const showToast=(m)=>{ setToast(m); if(toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current=setTimeout(()=>{ toastTimer.current=0; setToast(null); }, String(m||"").length>60 ? 4000 : 2200);
+  /* Un aviso con cifras puede llegar como función: se vuelve a formatear en cada pintado y el ojo
+     esconde también la cifra del que ya está en pantalla (auditoría de la 222, P2-13). */
+  const showToast=(m)=>{ setToast(typeof m==="function"?{f:m}:m); if(toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current=setTimeout(()=>{ toastTimer.current=0; setToast(null); }, String((typeof m==="function"?m():m)||"").length>60 ? 4000 : 2200);
     // Telemetría: TODO error que ve el usuario en pantalla viaja a app_events. Antes solo se
     // subían los crashes/errores no capturados — los fallos "domados" (✕/⚠ en un toast, como el
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
-    try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
+    try{ const s=String((typeof m==="function"?m():m)||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
   useEffect(function(){
     const warning=function(event){
@@ -2994,10 +2996,10 @@ function App(){
       try{ seen=localStorage.getItem(k)==="1"; localStorage.setItem(k,"1"); }catch(e){}
       if(seen||fired) return;
       fired=true;
-      const msg=tf("bn_"+th,{x:eur0(spent),b:eur0(bud),p:Math.round(pct)});
+      const msg=function(){ return tf("bn_"+th,{x:eur0(spent),b:eur0(bud),p:Math.round(pct)}); };
       showToast(msg);
       const nat=natPlugin();
-      if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
+      if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg()}).catch(function(){}); }catch(e){} }
     });
   },[state.onboarded,locked,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
@@ -4182,7 +4184,7 @@ function App(){
     modeChangeWarning,
     React.createElement(Onboarding,{set:set, onCloud:(cloud.enabled()?onCloudClick:null), onSignup:(cloud.enabled()?onSignupClick:null)}),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
-    toast && React.createElement("div",{className:"toast"},toast)
+    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast)
   );
 
   return React.createElement("div",{className:"app v4"+(mcSandbox()?" sandbox":"")},
@@ -4233,7 +4235,7 @@ function App(){
       (upd.otaReady&&!upd.otaDownloaded)?t("upd_downloading"):t("upd_ready")),
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
-    toast && React.createElement("div",{className:"toast"},toast),
+    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast),
     syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{
