@@ -189,17 +189,41 @@ test("mes de fin de la prueba: el adeudo sin nombre casa en su día de siempre y
   assert.equal(nov(25),true);assert.equal(nov(19),false,"en noviembre el 19 queda a seis días");
 });
 
-test("al revés: la prueba acaba después de su día y el banco cobra en su día de siempre",()=>{
+/* Revisión de la 224, P2-B: si la prueba acaba DESPUÉS de su día de siempre (día 5, prueba hasta el 20), su
+   día de siempre cae dentro de la prueba: un adeudo sin nombre ahí no es su pago. La ventana es la de la 223,
+   16..24 alrededor del fin; con su nombre casa igual. Y la prueba guardada cuenta desde el mismo día. */
+test("al revés: la prueba acaba después de su día; lo que cobra en plena prueba sin nombre no es su pago",()=>{
   const e=r("v",5,{pruebaHasta:"2026-10-20"});
   assert.equal(c.dayIn(e,10,2026),20);
-  const s=Object.assign(estado([e]),{bankTx:[adeudo(5)]});
-  // Mirado el 7: el cargo del 5 ya está en el banco, aunque la prueba acabe el 20.
-  assert.equal(c.fixedPaymentState(s,e,Y,M,7).paid,true);
-  // La ventana va del 1 (5−4) al 24 (20+4).
-  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(24)]}),e,Y,M,26).paid,true,"a cuatro del fin");
-  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(25)]}),e,Y,M,26).paid,false,"a cinco del fin");
-  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(5,{date:"2026-11-05"})]}),e,Y,11,7).paid,true,"en noviembre, su día de siempre");
-  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(20,{date:"2026-11-20"})]}),e,Y,11,22).paid,false,"en noviembre el 20 ya no es suyo");
+  const pagado=(dia,hoy,ex)=>c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(dia,ex)]}),e,Y,M,hoy).paid;
+  assert.equal(pagado(5,7),false,"el 5, en plena prueba, sin nombre");
+  assert.equal(pagado(5,22),false,"tampoco pasado el fin");
+  assert.equal(pagado(5,7,{merchant:"Recibo v"}),true,"con su nombre, sí");
+  assert.equal(pagado(16,21),true,"a cuatro antes del fin");assert.equal(pagado(15,21),false,"a cinco");
+  assert.equal(pagado(24,26),true);assert.equal(pagado(25,26),false);
+  // El emparejado y la prueba guardada empiezan a contar el mismo día: el fin de la prueba.
+  const k=c.fixedPaymentContender(e,Y,M);
+  assert.deepEqual([k.day,k.dMin,k.dMax],[20,20,20]);
+  const k2=c.fixedPaymentContender(r("n",25,{pruebaHasta:"2026-10-19"}),Y,M);
+  assert.deepEqual([k2.day,k2.dMin,k2.dMax],[19,19,25]);
+  // En noviembre, su día de siempre.
+  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(5,{date:"2026-11-05"})]}),e,Y,11,7).paid,true);
+});
+
+/* Revisión de la 224, P2-A: lo ensanchado del mes de fin de la prueba es de segunda. Dos recibos de 10 € en el
+   mismo banco, «a» sin prueba del día 26 y «b» del 25 con prueba hasta el 19, mirado el 28: el cargo del 26 es
+   de «a» (su ventana de siempre, 22..30), aunque caiga en la ancha de «b» (15..29). En la 224 los dos se
+   quedaban sin pagar; en la 223, «a» casaba. */
+test("la ventana ancha de la prueba no le quita su cargo a otro recibo sin prueba del mismo importe",()=>{
+  const a=r("a",26),b=r("b",25,{pruebaHasta:"2026-10-19"});
+  const st=(bankTx,f)=>c.fixedPaymentState(Object.assign(estado([a,b]),{bankTx}),f,Y,M,28);
+  const dos=[adeudo(26),adeudo(19)];
+  assert.equal(st(dos,a).paid,true,"«a» con el del 26");assert.equal(st(dos,a).day,26);
+  assert.equal(st(dos,b).paid,true,"«b» con el del 19");assert.equal(st(dos,b).day,19);
+  assert.equal(st([adeudo(26)],a).paid,true,"«b» sin cargo aún: «a» sigue pagado");
+  assert.equal(st([adeudo(26)],b).paid,false,"y el del 26 no es de «b»");
+  // Solo, sin otro recibo que lo reclame, el de su día de siempre sigue siendo de «b».
+  assert.equal(c.fixedPaymentState(Object.assign(estado([b]),{bankTx:[adeudo(25)]}),b,Y,M,28).paid,true);
 });
 
 test("cobró distinto el mes de fin de la prueba: también se pregunta si llega en su día de siempre",()=>{

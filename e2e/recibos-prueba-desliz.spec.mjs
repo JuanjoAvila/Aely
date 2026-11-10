@@ -235,7 +235,7 @@ for (const caso of [
     if (caso.lista === "plan-due") {
       // «¿Cuál es el cargo?» es un paso dentro de la ficha: atrás vuelve a la ficha y otro atrás la cierra.
       await page.goBack();
-      await expect(ficha(page).locator(".pr6-track")).not.toHaveClass(/pick/);
+      await expect(ficha(page).locator(".pr6-track")).not.toHaveClass(/\bpick\b/);
       await page.goBack();
       await expect(ficha(page)).toHaveCount(0);
     } else {
@@ -298,6 +298,66 @@ test("deslizar una fila no rompe cambiar de pestaña hacia la derecha ni el scro
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await expect.poll(() => pestana(page)).toBe("gastos");
   await expect(ficha(page)).toHaveCount(0);
+  await cdp.detach();
+});
+
+/* Revisión de la 224, P2-C: lo que NACE en la cifra (la zona que agarra la fila) sigue siendo un toque o un
+   scroll si no es un desliz a la izquierda: el toque abre la ficha y el vertical hace scroll sin mover la fila. */
+test("desde la cifra: un toque abre la ficha y un arrastre vertical hace scroll", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
+  const fixed = datos();
+  for (let i = 0; i < 10; i++) fixed.push(recibo("r" + i, "Recibo " + (i + 1), 10 + i, 20 + (i % 8)));
+  const recibos = await abrePlan(page, fixed);
+  const cdp = await page.context().newCDPSession(page);
+  await recibos.getByTestId("plan-due").getByRole("button", { name: /Ver los/ }).click();
+  await page.waitForTimeout(500);
+  const fila = recibos.getByTestId("plan-due").locator('[data-recibo="fixed_agua"]');
+  await fila.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await page.waitForTimeout(250);
+
+  // Un toque en la cifra: abre su ficha, no el paso del cargo. Con la página quieta: un toque sobre una
+  // lista aún deslizándose solo la frena, en un móvil de verdad también.
+  const quieta = () => page.waitForFunction(() => {
+    const pg = document.querySelector(".page-live .page") || document.querySelector(".page"), v = pg && pg.scrollTop, q = window.__pgQuieta;
+    window.__pgQuieta = { v, n: q && q.v === v ? q.n + 1 : 0 };
+    return window.__pgQuieta.n >= 10;
+  }, null, { polling: "raf" });
+  await quieta();
+  await fila.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await quieta();
+  // Y con la barra de abajo ya en su sitio, que mueve la lista: la caja, quieta.
+  await page.waitForTimeout(500);
+  const c = await fila.locator(".am").boundingBox();
+  const tx = Math.round(c.x + c.width / 2), ty = Math.round(c.y + c.height / 2);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: tx, y: ty }] });
+  await page.waitForTimeout(60);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(ficha(page)).toBeVisible();
+  await expect(ficha(page).locator(".pr6-track")).not.toHaveClass(/\bpick\b/);
+  expect(await fila.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+  await page.goBack();
+  await expect(ficha(page)).toHaveCount(0);
+  await page.waitForTimeout(400);
+
+  // Vertical desde la cifra: scroll, la tarjeta quieta, ni ficha ni cambio de pestaña.
+  await fila.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await page.waitForTimeout(250);
+  const antes = await fila.evaluate((el) => el.closest(".page").scrollTop);
+  const b = await fila.locator(".am").boundingBox();
+  const x = Math.round(b.x + b.width / 2), y0 = Math.round(b.y + b.height / 2);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: y0 }] });
+  let movida = 0;
+  for (let i = 1; i <= 90; i++) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x - Math.round(i / 6), y: y0 - i * 2 }] });
+    await new Promise((r) => setTimeout(r, 8));
+    if (i % 15 === 0) movida = Math.max(movida, Math.abs(await fila.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41)));
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  expect(movida).toBe(0);
+  await expect.poll(() => fila.evaluate((el) => el.closest(".page").scrollTop)).toBeGreaterThan(antes + 40);
+  await expect(ficha(page)).toHaveCount(0);
+  expect(await pestana(page)).toBe("plan");
+
   await cdp.detach();
 });
 

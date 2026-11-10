@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.225",
+    "d": "2026-11-10",
+    "t": {
+      "es": "Recibos: dos recibos del mismo importe ya no se pisan",
+      "en": "Bills: two bills for the same amount no longer clash",
+      "ca": "Rebuts: dos rebuts del mateix import ja no es trepitgen"
+    },
+    "items": {
+      "es": [
+        "Si una prueba gratis acaba este mes y otro recibo cuesta lo mismo en el mismo banco, cada cargo se reconoce para el suyo.",
+        "Lo que el banco cobra mientras la prueba gratis sigue en marcha ya no cuenta como pagado, salvo que lleve el nombre del recibo."
+      ],
+      "en": [
+        "If a free trial ends this month and another bill costs the same at the same bank, each charge is recognised for its own bill.",
+        "What the bank charges while the free trial is still running no longer counts as paid, unless it carries the bill's name."
+      ],
+      "ca": [
+        "Si una prova gratuïta s'acaba aquest mes i un altre rebut costa el mateix al mateix banc, cada càrrec es reconeix per al seu.",
+        "El que el banc cobra mentre la prova gratuïta continua en marxa ja no compta com a pagat, tret que porti el nom del rebut."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.224",
     "d": "2026-11-10",
     "t": {
