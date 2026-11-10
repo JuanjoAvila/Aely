@@ -73702,7 +73702,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -73719,6 +73727,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -76867,7 +76879,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -76884,6 +76904,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -79520,7 +79544,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -79537,6 +79569,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -83266,6 +83302,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -97156,6 +97196,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -129914,6 +129958,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
       },
       {
@@ -129923,6 +129975,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -133020,6 +133076,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -134654,7 +134714,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -134683,6 +134751,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -136336,6 +136408,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -136345,6 +136425,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -140986,6 +141070,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
       },
       {
@@ -140995,6 +141087,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -145568,6 +145664,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -145577,6 +145681,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",

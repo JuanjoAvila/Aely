@@ -1857,7 +1857,7 @@ for(const lang of ["es","en","ca"])test(`beta200: la nota nueva del botón de fi
   expect(pack).toEqual({tandas:10,items:60});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(2);
+  expect(items.length).toBe(3);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));

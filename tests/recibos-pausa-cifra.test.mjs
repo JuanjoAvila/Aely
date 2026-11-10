@@ -23,7 +23,9 @@ const oraculo=e=>{
   for(let i=0;i<12;i++){
     const m=(M-1+i)%12+1, y=Y+Math.floor((M-1+i)/12), ym=y*12+m;
     const pausa=Number(e.pausedUntil)>0&&ym>=(Number(e.pausedFrom)||0)&&ym<Number(e.pausedUntil);
-    if(!pausa&&c.chargeMonths(e).indexOf(m)>=0) a+=c.occAmountIn(e,m);
+    // Sin calendario (anual sin mes, sin frecuencia) se paga su parte cada mes: el anual, la doceava.
+    if(!c.chargeMonths(e).length){ if(!pausa) a+=e.freq==="año"||e.freq==="anual"?e.amount/12:e.amount; }
+    else if(!pausa&&c.chargeMonths(e).indexOf(m)>=0) a+=c.occAmountIn(e,m);
   }
   return a;
 };
@@ -64,6 +66,8 @@ const casos=[
   {name:"anual de marzo pausado hasta abril: no se paga",e:{amount:600,freq:"anual",months:[3],pausedFrom:YM,pausedUntil:2027*12+4},anual:0},
   {name:"anual repartido en dos meses, pausado uno",e:{amount:600,freq:"año",months:[3,11],pausedFrom:YM+1,pausedUntil:YM+2},anual:300},
   {name:"con calendario propio, pausado el mes de un cobro",e:{amount:172.05,freq:"semestral",schedule:[{m:3,amt:172.05},{m:11,amt:166.94}],pausedFrom:YM+1,pausedUntil:YM+2},anual:172.05},
+  {name:"anual sin mes asignado pausado seis meses: quita la mitad, no nada",e:{amount:600,freq:"año",pausedFrom:YM,pausedUntil:YM+6},anual:300},
+  {name:"sin frecuencia (cuenta como mensual) pausado dos meses",e:{amount:50,pausedFrom:YM,pausedUntil:YM+2},anual:500},
   {name:"sin pausa: la media ×12",e:{amount:93.33,freq:"trimestral"},anual:93.33*4},
 ];
 for(const k of casos) test(`P2-b ${k.name}`,()=>{
@@ -101,4 +105,65 @@ test("P2-a: el simulador parte de `billsHeroTotal`, no de `totals.fijosMensual`"
   const sim=src.slice(src.indexOf("function AffordSim("),src.indexOf("\nfunction ",src.indexOf("function AffordSim(")+1));
   assert.match(sim,/billsHeroTotal\(state,totals,totals\.curMonth,totals\.curYear\)/);
   assert.doesNotMatch(sim,/\(totals\.fijosMensual\|\|0\)/,"ni en el margen ni en «tus fijos pasarían de»");
+});
+
+/* Cuotas y «Lo descuento» (revisión 219). Las deudas se miran contra el reloj de verdad (`debtActive`
+   y el saldo leen hoy), así que estos casos usan el mes actual y no octubre de 2026. */
+const hoy=new Date(), HM=hoy.getMonth()+1, HY=hoy.getFullYear(), HYM=HY*12+HM, H0=HYM-1;
+// Oráculo de una deuda: mes a mes, la cuota mientras se cobra y, encima, lo que se le descuenta
+// de cada recibo que ese mes no está en pausa.
+const oraculoDeuda=(s,d,cuotas)=>{
+  let a=0;
+  for(let i=0;i<cuotas;i++){
+    const m=(HM-1+i)%12+1, y=HY+Math.floor((HM-1+i)/12), ym=y*12+m;
+    a+=d.monthly;
+    for(const e of s.fixed){
+      const pausa=Number(e.pausedUntil)>0&&ym>=(Number(e.pausedFrom)||0)&&ym<Number(e.pausedUntil);
+      if(!pausa) for(const x of e.reparto||[]) if(x.via==="debt"&&x.debtId===d.id) a+=x.amt;
+    }
+  }
+  return a;
+};
+
+test("P2-1: al año una financiación cuenta solo las cuotas que le quedan",()=>{
+  const d={id:"m",name:"Móvil",monthly:200,value:600,months:3,asOf:H0};
+  const s={fixed:[],debts:[d]};
+  assert.equal(c.billsCuotasEnAno(d,HM,HY),3);
+  const fila=c.billsGroupRows(s,"debt",HM,HY)[0];
+  assert.equal(cent(fila.monthly),20000);
+  assert.equal(cent(fila.anual),cent(oraculoDeuda(s,d,3)));
+  assert.equal(cent(fila.anual),60000);
+  // Una que acaba de empezar con 24 cuotas: las doce.
+  assert.equal(cent(c.billsCuotaAnualDe({fixed:[]},{id:"x",monthly:100,value:2400,months:24,asOf:H0},HM,HY)),120000);
+});
+
+test("P2-1: una deuda sin plazo acaba cuando su saldo llega a cero",()=>{
+  const d={id:"p",name:"Préstamo",monthly:200,value:500,asOf:H0};
+  assert.equal(c.billsCuotasEnAno(d,HM,HY),3,"500 € a 200 € al mes: tres cuotas");
+  assert.equal(cent(c.billsCuotaAnualDe({fixed:[]},d,HM,HY)),60000);
+  assert.equal(c.billsCuotasEnAno({id:"h",monthly:660.85,value:120000,asOf:H0},HM,HY),12);
+});
+
+test("P2-5: lo que se descuenta a una deuda desde un recibo pausado no suma, al mes ni en los meses de la pausa",()=>{
+  const mama={id:"mama",name:"Mamá",monthly:197,amort:250,value:5000,asOf:H0};
+  const pepe={id:"pepe",name:"Pepephone",amount:22,freq:"mes",bankAmount:85,reparto:[
+    {id:"pf",n:"Familia",via:"debt",debtId:"mama",amt:53},{id:"pp",n:"Pareja",via:"bizum",amt:10}],pausedFrom:HYM,pausedUntil:HYM+2};
+  const s={fixed:[pepe],debts:[mama]};
+  const fila=c.billsGroupRows(s,"debt",HM,HY)[0];
+  // Sin la pausa serían 197 + 53; con el recibo pausado este mes, solo la cuota.
+  assert.equal(cent(fila.monthly),19700);
+  assert.equal(cent(fila.descuento),0);
+  assert.equal(cent(c.billsHeroTotal(s,null,HM,HY)),19700);
+  const fijosMensual=c.fixedMonthlyOf(pepe)+197;
+  assert.equal(cent(c.billsHeroTotal(s,{fijosMensual},HM,HY)),19700,"la rama del simulador igual");
+  // Al año: doce cuotas y diez meses de descuento (los dos de la pausa, fuera).
+  assert.equal(cent(fila.anual),cent(oraculoDeuda(s,mama,12)));
+  assert.equal(cent(fila.anual),cent(197*12+53*10));
+  // Sin pausa, el descuento vuelve dentro de la cuota.
+  const libre=Object.assign({},pepe,{pausedFrom:undefined,pausedUntil:undefined});
+  assert.equal(cent(c.billsGroupRows({fixed:[libre],debts:[mama]},"debt",HM,HY)[0].monthly),25000);
+  // Y mes, año y secciones cuadran: cabecera = recibos + cuotas, al mes y al año.
+  const serv=c.billsGroupRows(s,"serv",HM,HY);
+  assert.equal(cent(serv.reduce((a,r)=>a+(r.paused?0:r.monthly),0)+fila.monthly),cent(c.billsHeroTotal(s,null,HM,HY)));
+  assert.equal(cent(serv[0].anual),cent(22*10));
 });

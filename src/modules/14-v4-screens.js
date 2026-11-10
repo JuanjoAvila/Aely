@@ -2492,7 +2492,6 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     });
     return {todas:todas,filas:filtradas,suma:suma,bancos:bancos.length>1?bancos:[]};
   })():null;
-  const k12=anual?12:1;
   /* La cifra va directa, sin contar: al cambiar de mes a año o de banco pasaba casi un segundo por
      cifras que no existen (1.987,95 €, 277,65 €…) y cada paso repintaba la pantalla entera
      (auditoría 216, N4). El cambio lo marca el fundido de `.pr6-mg-sum .pr6-big`. */
@@ -2593,7 +2592,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       // línea se partía en dos a 412 px (auditoría 216, P2-1).
       return {d1:cleanDay(e.day)||"—",d2:t("mg_dia"),
         sub:from.length?tf("mg_mas",{a:cycleMoney(r.cash),b:cycleMoney(r.descuento),from:pr6Lista(from)}):entOf(r.bank).label,
-        amt:eur(Math.abs(Number(r.monthly)||0)*k12)};
+        amt:eur(anual?r.anual:Math.abs(Number(r.monthly)||0))};
     }
     if(r.kind==="oneoff") return {d1:cleanDay(e.day)||"—",d2:monthShort((Number(e.month)||cm)-1),
       sub:[e.category&&CAT[e.category]?pr6CatDe(catName(e.category),e.name):"",entOf(r.bank).label].filter(Boolean).join(" · "),amt:eur(Math.abs(Number(r.monthly)||0))};

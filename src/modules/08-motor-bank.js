@@ -5688,15 +5688,42 @@ function billsPausado(e, curMonth, curYear){
    los cobros que caen dentro de la pausa. Antes un pausado salía del año entero: un alquiler
    pausado solo este mes quitaba doce alquileres, y un anual pausado hasta enero no contaba aunque
    se cobre en marzo (revisión 218, P2-b). Se resta con el calendario de siempre (sin `soloMes`),
-   el mismo que sale en la media, para que sin pausa sea exactamente la media ×12. La semana no va
-   por meses: cada mes pausado quita su media. */
+   el mismo que sale en la media, para que sin pausa sea exactamente la media ×12. Lo que no tiene
+   calendario quita su media por cada mes pausado: la semana, que no va por meses, un anual sin mes
+   asignado (no se sabe cuándo cae) y un recibo sin frecuencia, que la media cuenta como mensual.
+   Sin eso, esos dos últimos seguían sumando el año entero estando en pausa (revisión 219). */
 function billsAnualDe(e, curMonth, curYear){
   let x=fixedMonthlyOf(e)*12;
+  const sinCalendario=e.freq==="semana"||!chargeMonths(e).length;
   for(let i=0;i<12;i++){
     const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
-    if(fixedPausedIn(e,y,m)) x-=e.freq==="semana"?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
+    if(fixedPausedIn(e,y,m)) x-=sinCalendario?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
   }
   return Math.round(Math.max(0,x)*100)/100;
+}
+/* «Lo descuento» de una deuda sin lo que viene de recibos en pausa (`enPausa(e)`): el recibo pausado
+   no suma en «Se te van» y su parte dentro de la cuota tampoco (revisión 219, P2-5). Es
+   `deudaDescuentoBase` sobre los recibos que no están en pausa, no otra cuenta. */
+function billsDescuentoSin(state, d, enPausa){
+  return deudaDescuentoBase(Object.assign({},state,{fixed:(state.fixed||[]).filter(function(e){ return !enPausa(e); })}),d);
+}
+/* Cuotas de una deuda que caen en los doce meses que empiezan en este: una financiación acaba con su
+   plazo y una sin plazo cuando su saldo llega a cero. Al año contaba ×12 aunque quedasen tres
+   (revisión 219, P2-1). */
+function billsCuotasEnAno(d, curMonth, curYear){
+  const cur=curYear*12+curMonth-1, anchor=(typeof d.asOf==="number")?d.asOf:cur;
+  if(d.months!=null) return Math.min(12,Math.max(0,anchor+d.months-cur));
+  const a=debtAmort(d);
+  return a>0?Math.min(12,Math.max(0,Math.ceil(debtBalance(d)/a-1e-9))):12;
+}
+// Lo que se paga de una deuda en esos doce meses: cada cuota con lo que se le descuenta ese mes.
+function billsCuotaAnualDe(state, d, curMonth, curYear){
+  let x=0;
+  for(let i=0;i<billsCuotasEnAno(d,curMonth,curYear);i++){
+    const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
+    x+=(Number(d.monthly)||0)+billsDescuentoSin(state,d,function(e){ return fixedPausedIn(e,y,m); });
+  }
+  return Math.round(x*100)/100;
 }
 function billsHeroTotal(state, totals, curMonth, curYear){
   /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). Más
@@ -5704,7 +5731,8 @@ function billsHeroTotal(state, totals, curMonth, curYear){
      cuota ni tu parte del recibo lo cuentan. Se suma aquí y no en `totals` para no mover la cifra
      que publica el Hogar (13), que es otra conversación. Sin los pausados (`billsPausado`). */
   if(curMonth==null||curYear==null){ const d=new Date(); curMonth=d.getMonth()+1; curYear=d.getFullYear(); }
-  const desc=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?deudaDescuentoBase(state,d):0); },0);
+  const enPausa=function(e){ return billsPausado(e,curMonth,curYear); };
+  const desc=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?billsDescuentoSin(state,d,enPausa):0); },0);
   const pausado=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?fixedMonthlyOf(e):0); },0);
   if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual-pausado+desc;
   const serv=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?0:fixedMonthlyOf(e)); },0);
@@ -5725,8 +5753,8 @@ function billsGroupRows(state, group, curMonth, curYear){
   }
   if(group==="debt"){
     return (state.debts||[]).filter(debtActive)
-      .map(function(d){ const desc=deudaDescuentoBase(state,d);
-        return {kind:"debt",id:d.id,item:d,name:d.name,monthly:desc>0?Math.round(((d.monthly||0)+desc)*100)/100:d.monthly||0,cash:d.monthly||0,descuento:desc,bank:d.account||"sabadell",locked:true}; });
+      .map(function(d){ const desc=billsDescuentoSin(state,d,function(e){ return billsPausado(e,curMonth,curYear); });
+        return {kind:"debt",id:d.id,item:d,name:d.name,monthly:desc>0?Math.round(((d.monthly||0)+desc)*100)/100:d.monthly||0,anual:billsCuotaAnualDe(state,d,curMonth,curYear),cash:d.monthly||0,descuento:desc,bank:d.account||"sabadell",locked:true}; });
   }
   if(group==="in"){
     return (state.flows||[]).filter(function(f){ return !flowOncePast(f,curYear,curMonth); })

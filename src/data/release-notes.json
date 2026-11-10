@@ -10,14 +10,17 @@
     "items": {
       "es": [
         "Al ver lo que se te va al año en «Tus recibos», un recibo en pausa deja de contar solo lo que se cobraría durante la pausa: pausar el alquiler un mes ya no lo quita del año entero, y un seguro anual pausado hasta enero sigue contando si se cobra en marzo.",
+        "Al año, una deuda que acaba antes cuenta solo las cuotas que le quedan, y lo que se descuenta de un recibo en pausa tampoco suma mientras dura la pausa.",
         "«¿Me lo puedo permitir?» a plazos parte de la misma cifra de fijos que ves arriba en «Tus recibos», sin lo que está en pausa."
       ],
       "en": [
         "When you look at what goes out per year in “Your bills”, a paused bill only stops counting what would be charged during the pause: pausing the rent for one month no longer removes it from the whole year, and a yearly insurance paused until January still counts if it is charged in March.",
+        "Per year, a debt that ends sooner only counts the instalments it has left, and what is discounted from a paused bill does not count either while the pause lasts.",
         "“Can I afford it?” in instalments starts from the same fixed costs you see at the top of “Your bills”, without what is paused."
       ],
       "ca": [
         "En veure el que se't va a l'any a «Els teus rebuts», un rebut en pausa deixa de comptar només el que es cobraria durant la pausa: pausar el lloguer un mes ja no el treu de l'any sencer, i una assegurança anual pausada fins al gener continua comptant si es cobra al març.",
+        "A l'any, un deute que s'acaba abans només compta les quotes que li queden, i el que es descompta d'un rebut en pausa tampoc no suma mentre dura la pausa.",
         "«M'ho puc permetre?» a terminis parteix de la mateixa xifra de fixos que veus a dalt a «Els teus rebuts», sense el que està en pausa."
       ]
     },
