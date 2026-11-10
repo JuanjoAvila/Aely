@@ -210,26 +210,51 @@ test("sin solapes inventados y con «Lo que entra» y «¿Me lo puedo permitir?�
   await expect(page.locator('[data-bills-manage]')).toHaveAttribute("data-screen", "bills-home");
 });
 
-test("un recibo en pausa se ve atenuado y no suma en «Se te van», ni al mes ni al año (P2-9)", async ({ page }) => {
-  // Comunidad pausada de octubre a diciembre; Gimnasio pagado en octubre y pausado desde noviembre:
-  // los dos dicen «pausado hasta…» y ninguno entra en la cifra. Sin ellos queda lo del primer test.
+test("un recibo en pausa no suma este mes; al año solo faltan los cobros de la pausa, y el simulador parte de la misma cifra (P2-9)", async ({ page }) => {
+  // Comunidad pausada octubre y noviembre; Gimnasio pagado en octubre y pausado noviembre y diciembre;
+  // Agua (trimestral de ene/abr/jul/oct) pausada solo octubre; un seguro anual de marzo pausado hasta
+  // enero. Los cuatro dicen «pausado hasta…» y ninguno entra en la cifra del mes.
   const hub = await abreGestionar(page, { fixed: fixed.concat([
-    recibo("com", "Comunidad", 75, 5, { pausedFrom: YM, pausedUntil: YM + 2 })]).map((r) =>
-    r.id === "gym" ? Object.assign({}, r, { pausedFrom: YM + 1, pausedUntil: YM + 3 }) : r) });
+    recibo("com", "Comunidad", 75, 5, { pausedFrom: YM, pausedUntil: YM + 2 }),
+    recibo("sh", "Seguro de hogar", 600, 10, { freq: "año", months: [3], pausedFrom: YM, pausedUntil: YM + 3 })]).map((r) =>
+    r.id === "gym" ? Object.assign({}, r, { pausedFrom: YM + 1, pausedUntil: YM + 3 })
+      : r.id === "agua" ? Object.assign({}, r, { pausedFrom: YM, pausedUntil: YM + 1 }) : r) });
   await expect(fila(hub, "com")).toHaveClass(/pr6-mg-off/);
   await expect(fila(hub, "com").locator(".sub")).toHaveText("pausado hasta dic");
   await expect(fila(hub, "com").locator(".am")).toHaveText("75,00 €");
   await expect(fila(hub, "gym").locator(".sub")).toHaveText("pausado hasta ene");
+  await expect(fila(hub, "sh").locator(".sub")).toHaveText("pausado hasta ene");
+  await expect(fila(hub, "agua").locator(".sub")).toHaveText("pausado hasta nov");
   await expect(fila(hub, "alq")).not.toHaveClass(/pr6-mg-off/);
-  // 1.011,05 − 39,90 del gimnasio = 971,15; la comunidad no estaba.
-  await expect(sec(hub, "serv").locator('[data-mg-sum="serv"]')).toHaveText("971,15 €/mes");
-  await expect(hub.locator("[data-bills-total]")).toHaveText("1.882,00 €");
-  await expect(hub.locator("[data-bills-desglose]")).toHaveText("recibos 971,15 € + cuotas 910,85 €");
+  // 1.011,05 − 39,90 del gimnasio − 10 del agua = 961,15; la comunidad y el seguro no estaban.
+  await expect(sec(hub, "serv").locator('[data-mg-sum="serv"]')).toHaveText("961,15 €/mes");
+  await expect(hub.locator("[data-bills-total]")).toHaveText("1.872,00 €");
+  await expect(hub.locator("[data-bills-desglose]")).toHaveText("recibos 961,15 € + cuotas 910,85 €");
   const motor = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return billsHeroTotal(s, null); });
-  expect(cent(motor)).toBe(188200);
+  expect(cent(motor)).toBe(187200);
+  // Al año (oct 2026 – sep 2027) solo faltan los cobros que caen en la pausa: comunidad 900 − 150,
+  // gimnasio 478,80 − 79,80, agua 120 − 30 (el de octubre) y el seguro entero (se cobra en marzo).
+  // Recibos: 11.533,80 de los que no se pausan + 750 + 399 + 90 + 600 = 13.372,80; cuotas 10.930,20.
   await hub.locator("[data-bills-hero]").click();
-  await expect(hub.locator("[data-bills-total]")).toHaveText("22.584,00 €");
-  await expect(sec(hub, "serv").locator('[data-mg-sum="serv"]')).toHaveText("11.653,80 €/año");
+  await expect(hub.locator("[data-bills-total]")).toHaveText("24.303,00 €");
+  await expect(sec(hub, "serv").locator('[data-mg-sum="serv"]')).toHaveText("13.372,80 €/año");
+  await expect(hub.locator("[data-bills-desglose]")).toHaveText("recibos 13.372,80 € + cuotas 10.930,20 €");
+  await expect(fila(hub, "com").locator(".am")).toHaveText("750,00 €");
+  await expect(fila(hub, "agua").locator(".am")).toHaveText("90,00 €");
+  await expect(fila(hub, "sh").locator(".am")).toHaveText("600,00 €");
+  const anual = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey());
+    return ["serv", "debt"].reduce((a, g) => a + billsGroupRows(s, g, 10, 2026).reduce((b, r) => b + (r.anual != null ? r.anual : r.monthly * 12), 0), 0); });
+  expect(cent(anual)).toBe(2430300);
+  await hub.locator("[data-bills-hero]").click();
+  await expect(hub.locator("[data-bills-total]")).toHaveText("1.872,00 €");
+
+  // «¿Me lo puedo permitir?» a plazos: los fijos parten de la cifra de arriba, no de la que contaba los pausados.
+  await hub.locator("[data-bills-afford]").click();
+  const sim = page.locator('[data-bills-manage] [data-testid="afford-sim"]');
+  await expect(sim).toBeVisible();
+  await sim.getByRole("button", { name: "A plazos" }).click();
+  await sim.getByPlaceholder("Importe €").fill("1200");
+  await expect(sim).toContainText(/Tus fijos pasarían de 1\.?872 € a 1\.?972 €\/mes/);
 });
 
 test("la barra de abajo se ve encima de Tus recibos, no tapa la última fila y cada pestaña lo cierra (N8)", async ({ page }) => {

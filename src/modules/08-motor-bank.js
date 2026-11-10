@@ -5473,7 +5473,11 @@ function AffordSim({state, totals, set}){
   const verdictTxt = verdict==="no"?t("af_no"):(verdict==="floor"?tf("af_floor_break",{x:eur0(floor)}):(verdict==="tight"?t("af_tight"):t("af_yes")));
   // ¿Te cabe la cuota CADA MES? margen libre = nómina − fijos − presupuesto variable.
   const incomeM=(state.flows||[]).reduce(function(a,f){ return a+((f&&f.kind==="income"&&!f.once)?(f.amount||0):0); },0);
-  const freeM=incomeM-(totals.fijosMensual||0)-(state.budget||0);
+  /* Lo fijo de cada mes es la cifra de «Se te van cada mes» de Tus recibos, desde donde se abre esto
+     (`billsHeroTotal`): con `totals.fijosMensual` un pausado seguía contando y, a un toque de
+     distancia, salían dos cifras de lo mismo (revisión 218, P2-a). */
+  const fijosM=billsHeroTotal(state,totals,totals.curMonth,totals.curYear);
+  const freeM=incomeM-fijosM-(state.budget||0);
   const quotaVerdict = !fin||quota<=0 ? null
     : incomeM<=0 ? "none"
     : quota>freeM ? "no" : (quota>freeM*0.5 ? "tight" : "ok");
@@ -5523,7 +5527,7 @@ function AffordSim({state, totals, set}){
     ),
     fin && amt>0 && quota>0 && React.createElement("div",{style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)",border:"1px solid var(--line)"}},
       React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--text)",fontWeight:700}}, "📅 "+tf("af_fin_quota",{x:eur(quota),n:nM,d:endLbl})),
-      React.createElement("div",{className:"hint",style:{marginTop:6}}, tf("af_fin_fixed",{a:eur0(totals.fijosMensual||0),b:eur0((totals.fijosMensual||0)+quota)})),
+      React.createElement("div",{className:"hint",style:{marginTop:6}}, tf("af_fin_fixed",{a:eur0(fijosM),b:eur0(fijosM+quota)})),
       quotaVerdict==="ok" && React.createElement("div",{className:"hint",style:{marginTop:6,color:"var(--mint)"}}, tf("af_fin_margin_ok",{x:eur0(freeM-quota)})),
       quotaVerdict==="tight" && React.createElement("div",{className:"hint",style:{marginTop:6,color:"var(--tan)"}}, tf("af_fin_margin_tight",{x:eur0(freeM)})),
       quotaVerdict==="no" && React.createElement("div",{className:"hint",style:{marginTop:6,color:"var(--coral)"}}, tf("af_fin_margin_no",{x:eur0(Math.max(0,freeM))})),
@@ -5672,11 +5676,27 @@ function fixedAddPreview(it){
 }
 /* ¿Está en pausa un recibo para «Se te van cada mes» de Tus recibos? Lo mismo que enseña la fila
    («pausado hasta feb»): pausa con vuelta por delante, aunque empiece el mes que viene porque este
-   ya se pagó. Decisión del dueño (10/11/2026, P2-9): un pausado NO suma en esa cifra, ni al mes ni
-   al año; se sigue viendo en la lista, atenuado. Lo que queda por pagar ESTE mes no usa esto, sino
-   `fixedPausedIn` del mes concreto (un pagado que se pausa desde el que viene sigue pagado). */
+   ya se pagó. Decisión del dueño (10/11/2026, P2-9): un pausado NO suma en esa cifra al mes (al año
+   solo faltan los cobros de la pausa: `billsAnualDe`); se sigue viendo en la lista, atenuado. Lo que queda por pagar ESTE mes no usa esto, sino
+   `fixedPausedIn` del mes concreto (un pagado que se pausa desde el que viene sigue pagado).
+   Es `fixedPausedIn` de este mes o del siguiente, no otra regla: solo mirar `pausedUntil` dejaba
+   fuera ya un recibo con la pausa programada para dentro de varios meses (revisión 218, P2-c). */
 function billsPausado(e, curMonth, curYear){
-  return Number(e&&e.pausedUntil)>curYear*12+curMonth;
+  return fixedPausedIn(e,curYear,curMonth)||fixedPausedIn(e,curYear+(curMonth===12?1:0),curMonth%12+1);
+}
+/* Lo que se paga de verdad de un recibo en los doce meses que empiezan en este: su media ×12 menos
+   los cobros que caen dentro de la pausa. Antes un pausado salía del año entero: un alquiler
+   pausado solo este mes quitaba doce alquileres, y un anual pausado hasta enero no contaba aunque
+   se cobre en marzo (revisión 218, P2-b). Se resta con el calendario de siempre (sin `soloMes`),
+   el mismo que sale en la media, para que sin pausa sea exactamente la media ×12. La semana no va
+   por meses: cada mes pausado quita su media. */
+function billsAnualDe(e, curMonth, curYear){
+  let x=fixedMonthlyOf(e)*12;
+  for(let i=0;i<12;i++){
+    const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
+    if(fixedPausedIn(e,y,m)) x-=e.freq==="semana"?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
+  }
+  return Math.round(Math.max(0,x)*100)/100;
 }
 function billsHeroTotal(state, totals, curMonth, curYear){
   /* Misma cifra que Plan › Recibos / totals.fijosMensual (los dos suman `fixedMonthlyOf`). Más
@@ -5701,7 +5721,7 @@ function billsCountAll(state, curMonth, curYear){
 function billsGroupRows(state, group, curMonth, curYear){
   if(group==="serv"){
     return (state.fixed||[]).slice().sort(function(a,b){ return fixedMonthlyOf(b)-fixedMonthlyOf(a); })
-      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),bank:accOf(e),paused:billsPausado(e,curMonth,curYear)}; });
+      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),anual:billsAnualDe(e,curMonth,curYear),bank:accOf(e),paused:billsPausado(e,curMonth,curYear)}; });
   }
   if(group==="debt"){
     return (state.debts||[]).filter(debtActive)

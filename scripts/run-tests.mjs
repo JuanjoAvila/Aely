@@ -266,6 +266,7 @@ const steps = [
   ["fin27-balance-reanchor", ["node", "tests/fin27-balance-reanchor.test.mjs"]],
   ["recibos-bajas-y-union", ["node", "tests/recibos-bajas-y-union.test.mjs"]],
   ["recibos-meses-a-mano", ["node", "tests/recibos-meses-a-mano.test.mjs"]],
+  ["recibos-pausa-cifra", ["node", "--test", "tests/recibos-pausa-cifra.test.mjs"]],
   ["fin25-charge-months", ["node", "--test", "--test-concurrency=1", "tests/fin25-charge-months.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],

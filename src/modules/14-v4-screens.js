@@ -2474,7 +2474,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
      `monthly`, la misma cuenta que `billsHeroTotal`: la cifra de arriba ES la suma de Recibos y
      Cuotas, no otra fórmula que pueda descuadrarse. El banco filtra también la cifra; buscar no.
      Un pausado (`r.paused`) se queda en la lista, atenuado y con «pausado hasta X», pero no suma
-     (P2-9, decisión del dueño 10/11/2026): sumarlo prometía un gasto que ese mes no llega. */
+     (P2-9, decisión del dueño 10/11/2026): sumarlo prometía un gasto que ese mes no llega.
+     Al año cada fila pone lo suyo de los próximos doce meses (`r.anual`, sin los cobros de la
+     pausa) y la cifra sigue siendo la suma de las secciones, que suman eso mismo (P2-b). */
   const mg=open?(function(){
     const pasa=function(r){ return !banco||r.bank===banco; };
     const de=function(g){ return billsGroupRows(state,g,cm,cy); };
@@ -2483,9 +2485,10 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     const bancos=[];
     ["serv","debt","once","in"].forEach(function(g){ todas[g].forEach(function(r){ if(r.bank&&bancos.indexOf(r.bank)<0) bancos.push(r.bank); }); });
     const filtradas={}, suma={};
+    const cuanto=function(r){ const m=Math.abs(Number(r.monthly)||0); return anual?(r.anual!=null?r.anual:m*12):(r.paused?0:m); };
     Object.keys(todas).forEach(function(g){
       filtradas[g]=todas[g].filter(pasa);
-      suma[g]=filtradas[g].reduce(function(a,r){ return a+(r.paused?0:Math.round(Math.abs(Number(r.monthly)||0)*100)); },0)/100;
+      suma[g]=filtradas[g].reduce(function(a,r){ return a+Math.round(cuanto(r)*100); },0)/100;
     });
     return {todas:todas,filas:filtradas,suma:suma,bancos:bancos.length>1?bancos:[]};
   })():null;
@@ -2493,7 +2496,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   /* La cifra va directa, sin contar: al cambiar de mes a año o de banco pasaba casi un segundo por
      cifras que no existen (1.987,95 €, 277,65 €…) y cada paso repintaba la pantalla entera
      (auditoría 216, N4). El cambio lo marca el fundido de `.pr6-mg-sum .pr6-big`. */
-  const hero=mg?Math.round((mg.suma.serv+mg.suma.debt)*k12*100)/100:0;
+  const hero=mg?Math.round((mg.suma.serv+mg.suma.debt)*100)/100:0;
   /* Lo que queda por debajo de la primera pantalla se monta un fotograma después: abrir Tus recibos
      maquetaba ~500 nodos de golpe y, con la CPU a ×6, ese fotograma pasaba de 120 ms (P1-13). La
      pantalla entra de lado, así que lo de abajo llega antes de que se vea. */
@@ -2582,7 +2585,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       const pausa=pr6PausaTxt(r,cy*12+cm);
       return {d1:nx.day||"—",d2:sch||anualF?monthShort(nx.m-1):t("mg_dia"),paused:!!pausa,
         sub:pausa||[e.category&&CAT[e.category]?pr6CatDe(catName(e.category),e.name):"",entOf(r.bank).label,fr,repartoVigente(e)?t("mg_compartido"):""].filter(Boolean).join(" · "),
-        amt:amt(anual?Math.abs(Number(r.monthly)||0)*12:nx.amt,e.variable)};
+        amt:amt(anual?r.anual:nx.amt,e.variable)};
     }
     if(r.kind==="debt"){
       const from=r.descuento>0?deudaDescuentoDe(state,e):[];
@@ -2634,7 +2637,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         onClick:function(){ setAbiertos(function(o){ return Object.assign({},o,{[id]:!o[id]}); }); }},
         abierto?t("v4_ver_menos"):tf("pr6_ver_los",{n:rows.length}), pr6Chev()));
   };
-  const porMes=function(x){ return tf(anual?"mg_por_ano":"mg_por_mes",{x:eur(x*k12)}); };
+  const porMes=function(x){ return tf(anual?"mg_por_ano":"mg_por_mes",{x:eur(x)}); };
   const secciones=[
     seccion("serv",t("mg_recibos"),porMes(mg.suma.serv),{act:"bill-add",label:t("mg_add_recibo"),go:function(){ startAdd("fixed"); }}),
     seccion("debt",gbTxt("gb_g_debt"),porMes(mg.suma.debt),null),
@@ -2728,7 +2731,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
           React.createElement("path",{d:"M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"}))),
       React.createElement("span",{className:"serif num pr6-big v4-bills-hero-amt","data-bills-total":"1",key:anual+"|"+(banco||"")}, eur(hero)),
       mg.suma.debt>0&&mg.suma.serv>0&&React.createElement("span",{className:"pr6-count num","data-bills-desglose":"1"},
-        tf("mg_desglose",{a:eur(mg.suma.serv*k12),b:eur(mg.suma.debt*k12)}))),
+        tf("mg_desglose",{a:eur(mg.suma.serv),b:eur(mg.suma.debt)}))),
     React.createElement("label",{className:"pr6-mg-q"},
       React.createElement("svg",{width:18,height:18,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
         React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
