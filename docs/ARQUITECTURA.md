@@ -258,7 +258,11 @@ La prueba gratis (`pruebaHasta`, "AAAA-MM-DD": el día en que empieza a cobrar) 
 (`permHasta`, año*12+mes en que acaba) también viajan en el recibo dentro de `app_state`. Son
 opcionales, las teclea él en «Más opciones» y solo dan un aviso en «Para revisar» (la prueba hoy o
 mañana; la permanencia este mes o el siguiente, hasta «Ya lo he mirado», que guarda esa fecha en
-`revisado.perm`). No mueven ninguna cifra. Cada una es un grupo propio en la mezcla de tres vías, y
+`revisado.perm`). La permanencia no mueve ninguna cifra. Los meses de antes del mes en que acaba la
+prueba no se cobran (decisión del dueño del 10/11, como el prototipo): `fixedSinCobroIn` (07) es
+pausa o prueba, y lo leen lo que queda por pagar (`planChargesMonth`), el recorrido de «¿Te
+llega?», `totals`, los avisos de la víspera y el año (`billsAnualDe`); «Se te van cada mes»
+(`billsPausado`) y Pausar (`fixedPausa`) siguen leyendo solo la pausa. Cada una es un grupo propio en la mezcla de tres vías, y
 un cliente anterior las ignora y las conserva.
 La excepción es una lectura manual **nueva y
 trazable** anterior al día de un recibo vencido e impagado: una única cuenta de recibos de ese

@@ -276,7 +276,7 @@ function fixedPaymentCobroDistintoMes(s,y,m,today){
   return hit;
 }
 function fixedPaymentCobroDistinto(s,e,y,m,today,sinPagar){
-  if(!e||!occursIn(e,m,y)||fixedPausedIn(e,y,m)||fixedMarcadoAMano(e,y,m)!=null) return null;
+  if(!e||!occursIn(e,m,y)||fixedSinCobroIn(e,y,m)||fixedMarcadoAMano(e,y,m)!=null) return null;
   var day=cleanDay(dayIn(e,m,y)),target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y),bank=accOf(e);
   if(day==null||day>today||!(target>0)) return null;
   var mes=fixedPaymentCobroDistintoMes(s,y,m,today),tc=Math.round(target*100);
@@ -657,12 +657,12 @@ function fixedPaymentManualLinkWarnings(s,x,e,y,m,today){
   // Orden de presentación estable: no adjudica cargos ni elige una identidad entre BOOK iguales.
   return warnings.sort(function(a,b){ var A=a.date+"|"+a.receiptId,B=b.date+"|"+b.receiptId;return A<B?-1:A>B?1:0; });
 }
-/* Un recibo en pausa no cuenta en el mes… salvo que esté pagado: si el banco lo cobró igual,
+/* Un recibo en pausa (o en prueba gratis: `fixedSinCobroIn`) no cuenta en el mes… salvo que esté pagado: si el banco lo cobró igual,
    es un pago de verdad y se enseña y se descuenta como cualquier otro. Así «Pausar» con el
    recibo ya pagado tampoco lo saca del mes (SPEC §2.6.1). Solo lee el estado del pago si hay
    pausa en ese mes: un recibo sin pausa no paga nada por esta comprobación. */
 function fixedEnPausa(s,e,y,m,today){
-  return fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;
+  return fixedSinCobroIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;
 }
 function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var x=(s.expenses||[]).find(function(r){ return r.id===expenseId; });
@@ -1057,7 +1057,7 @@ function planChargesMonth(s,m,y,today){
     // Un cargo del banco manda sobre la marca a mano; sin él, la marca lo da por pagado ese día.
     var aMano=fixedPaymentEvidence(status)?null:fixedMarcadoAMano(e,y,m);
     if(aMano!=null) status=Object.assign({},status,{paid:true,day:aMano,overdue:false,paidBank:null,paidAmount:null});
-    if(!status.paid&&fixedPausedIn(e,y,m)) return;
+    if(!status.paid&&fixedSinCobroIn(e,y,m)) return;
     var rep=repartoDelMes(s,e,y,m,today), deben=rep?rep.filter(function(x){ return !repartoDescuentaDe(s,x,e); }):[];
     var hecho=(e.repartoCobrado&&e.repartoCobrado[y*12+m])||[];
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,aMano:aMano!=null,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue,
@@ -1161,7 +1161,7 @@ function repartoDelMes(s,e,y,m,today){
   const o=fixedSoloMes(e,y,m);
   const r=o&&o.amt!=null?repartoLista(o.reparto,o.amt,e.bankAmount):repartoVigente(e);
   if(!r) return null;
-  if(fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid) return null;
+  if(fixedSinCobroIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid) return null;
   return r;
 }
 /* La deuda de la que se descuenta una parte. Solo en un recibo de todos los meses (la cuota es la
@@ -2035,7 +2035,7 @@ function pendingWalkEvents(state, y, m, today){
   const hoy=function(d){ return d!=null&&d>0&&d<today?today:(d||0); };
   (state.fixed||[]).forEach(function(e){
     const a=occAmountIn(e,m,y);
-    if(!(a>0)||!occursIn(e,m,y)||fixedPausedIn(e,y,m)) return;
+    if(!(a>0)||!occursIn(e,m,y)||fixedSinCobroIn(e,y,m)) return;
     const b=accOf(e);
     if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
     // Pagado por otro lado: este banco ya no lo va a cobrar (misma regla que el saldo y los totales).
@@ -5685,7 +5685,8 @@ function billsPausado(e, curMonth, curYear){
   return fixedPausedIn(e,curYear,curMonth)||fixedPausedIn(e,curYear+(curMonth===12?1:0),curMonth%12+1);
 }
 /* Lo que se paga de verdad de un recibo en los doce meses que empiezan en este: su media ×12 menos
-   los cobros que caen dentro de la pausa. Antes un pausado salía del año entero: un alquiler
+   los cobros que caen dentro de la pausa o antes del mes en que acaba la prueba gratis
+   (`fixedSinCobroIn`): esos meses no se cobran. Antes un pausado salía del año entero: un alquiler
    pausado solo este mes quitaba doce alquileres, y un anual pausado hasta enero no contaba aunque
    se cobre en marzo (revisión 218, P2-b). Se resta con el calendario de siempre (sin `soloMes`),
    el mismo que sale en la media, para que sin pausa sea exactamente la media ×12. Lo que no tiene
@@ -5697,7 +5698,7 @@ function billsAnualDe(e, curMonth, curYear){
   const sinCalendario=e.freq==="semana"||!chargeMonths(e).length;
   for(let i=0;i<12;i++){
     const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
-    if(fixedPausedIn(e,y,m)) x-=sinCalendario?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
+    if(fixedSinCobroIn(e,y,m)) x-=sinCalendario?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
   }
   return Math.round(Math.max(0,x)*100)/100;
 }
@@ -5721,7 +5722,7 @@ function billsCuotaAnualDe(state, d, curMonth, curYear){
   let x=0;
   for(let i=0;i<billsCuotasEnAno(d,curMonth,curYear);i++){
     const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
-    x+=(Number(d.monthly)||0)+billsDescuentoSin(state,d,function(e){ return fixedPausedIn(e,y,m); });
+    x+=(Number(d.monthly)||0)+billsDescuentoSin(state,d,function(e){ return fixedSinCobroIn(e,y,m); });
   }
   return Math.round(x*100)/100;
 }

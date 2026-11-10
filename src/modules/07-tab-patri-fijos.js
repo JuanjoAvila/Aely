@@ -744,6 +744,20 @@ function fixedPausedIn(e,y,m){
   const ym=y*12+m;
   return ym>=(Number(e.pausedFrom)||0)&&ym<u;
 }
+/* Prueba gratis (decisión del dueño del 10/11/2026: «como el diseño»). `pruebaHasta` ("AAAA-MM-DD")
+   es el día en que empieza a cobrar: los meses de antes no se cobran y el prototipo los saca del
+   mes (`fromNext`); el mes en que acaba sí cuenta, porque ese día cobra. Opcional, como la pausa. */
+function fixedEnPruebaIn(e,y,m){
+  const k=/^(\d{4})-(\d{2})-\d{2}$/.exec(String(e&&e.pruebaHasta||""));
+  return !!k&&y*12+m<Number(k[1])*12+Number(k[2]);
+}
+/* Ese mes no se cobra: pausa o prueba gratis. Es lo que miran lo que queda por pagar, el recorrido
+   de «¿Te llega?», los avisos y el año (`billsAnualDe`), para que cuadren entre sí. «Se te van cada
+   mes» (`billsPausado`) y Pausar/Reanudar (`fixedPausa`) siguen leyendo solo la pausa: un recibo en
+   prueba cuesta eso al mes en cuanto empieza a cobrar, como en el prototipo, y no es una pausa. */
+function fixedSinCobroIn(e,y,m){
+  return fixedPausedIn(e,y,m)||fixedEnPruebaIn(e,y,m);
+}
 /* «Solo este mes» (Plan › Recibos v6, tanda 4). `soloMes` = {[año*12+mes]: {amt?, day?}}: lo que
    ese mes concreto se cobra distinto sin tocar el recibo. «Desde ahora» lo usa también para dejar
    los meses ya pagados con las cifras con que se pagaron. Sin año (`y`) no aplica: los meses de

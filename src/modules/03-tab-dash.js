@@ -297,7 +297,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       const amount=occAmountIn(f,cm,tt.curYear);
       if(!(amount>0) || !occursIn(f,cm,tt.curYear)) return;
       const status=fixedPaymentState(state,f,tt.curYear,cm,today);
-      if(status.paid||fixedPausedIn(f,tt.curYear,cm)) return;
+      if(status.paid||fixedSinCobroIn(f,tt.curYear,cm)) return;
       const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
       (status.overdue?overdue:rows).push(row);
     });

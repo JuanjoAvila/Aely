@@ -142781,7 +142781,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .pr6-ll-act{",
+        "from": "  .pr6-deben-h{",
         "to": "\n"
       },
       {
@@ -142791,12 +142791,12 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .pe-deben-cta.pr6-cta{",
+        "from": "  .pr6-deben-tot{",
         "to": "\n"
       },
       {
         "file": "src/shell.html",
-        "from": "  .pe-deben-cta.pr6-btn{",
+        "from": "  .pe-deben-ok{",
         "to": "\n"
       },
       {

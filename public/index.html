@@ -10566,6 +10566,7 @@ Object.assign(LANG.es,{
 // Recibos: prueba gratis, permanencia y filas que se deslizan (decisión del dueño, 10/11/2026).
 Object.assign(LANG.es,{
   pr6_prueba_hoy:"Hoy empieza a cobrar", pr6_prueba_manana:"Mañana empieza a cobrar", pr6_perm_fin:"Fin de permanencia: {x}",
+  pr6_prueba_hoy_fila:"Cobra hoy", pr6_prueba_manana_fila:"Cobra mañana",
   pr6_me_lo_quedo:"Me lo quedo", pr6_ya_mirado:"Ya lo he mirado", pr6_te_lo_quedas:"{name}: te lo quedas",
   pr6_desliza_manana:"Mañana", pr6_desliza_pagado:"Pagado",
   rp7_prueba:"Prueba gratis", rp7_perm:"Permanencia", rp7_no:"No", rp7_hasta_dia:"hasta el {x}", rp7_hasta:"hasta {x}",
@@ -13472,7 +13473,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       const amount=occAmountIn(f,cm,tt.curYear);
       if(!(amount>0) || !occursIn(f,cm,tt.curYear)) return;
       const status=fixedPaymentState(state,f,tt.curYear,cm,today);
-      if(status.paid||fixedPausedIn(f,tt.curYear,cm)) return;
+      if(status.paid||fixedSinCobroIn(f,tt.curYear,cm)) return;
       const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
       (status.overdue?overdue:rows).push(row);
     });
@@ -19602,6 +19603,20 @@ function fixedPausedIn(e,y,m){
   const ym=y*12+m;
   return ym>=(Number(e.pausedFrom)||0)&&ym<u;
 }
+/* Prueba gratis (decisión del dueño del 10/11/2026: «como el diseño»). `pruebaHasta` ("AAAA-MM-DD")
+   es el día en que empieza a cobrar: los meses de antes no se cobran y el prototipo los saca del
+   mes (`fromNext`); el mes en que acaba sí cuenta, porque ese día cobra. Opcional, como la pausa. */
+function fixedEnPruebaIn(e,y,m){
+  const k=/^(\d{4})-(\d{2})-\d{2}$/.exec(String(e&&e.pruebaHasta||""));
+  return !!k&&y*12+m<Number(k[1])*12+Number(k[2]);
+}
+/* Ese mes no se cobra: pausa o prueba gratis. Es lo que miran lo que queda por pagar, el recorrido
+   de «¿Te llega?», los avisos y el año (`billsAnualDe`), para que cuadren entre sí. «Se te van cada
+   mes» (`billsPausado`) y Pausar/Reanudar (`fixedPausa`) siguen leyendo solo la pausa: un recibo en
+   prueba cuesta eso al mes en cuanto empieza a cobrar, como en el prototipo, y no es una pausa. */
+function fixedSinCobroIn(e,y,m){
+  return fixedPausedIn(e,y,m)||fixedEnPruebaIn(e,y,m);
+}
 /* «Solo este mes» (Plan › Recibos v6, tanda 4). `soloMes` = {[año*12+mes]: {amt?, day?}}: lo que
    ese mes concreto se cobra distinto sin tocar el recibo. «Desde ahora» lo usa también para dejar
    los meses ya pagados con las cifras con que se pagaron. Sin año (`y`) no aplica: los meses de
@@ -20010,7 +20025,7 @@ function fixedPaymentCobroDistintoMes(s,y,m,today){
   return hit;
 }
 function fixedPaymentCobroDistinto(s,e,y,m,today,sinPagar){
-  if(!e||!occursIn(e,m,y)||fixedPausedIn(e,y,m)||fixedMarcadoAMano(e,y,m)!=null) return null;
+  if(!e||!occursIn(e,m,y)||fixedSinCobroIn(e,y,m)||fixedMarcadoAMano(e,y,m)!=null) return null;
   var day=cleanDay(dayIn(e,m,y)),target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y),bank=accOf(e);
   if(day==null||day>today||!(target>0)) return null;
   var mes=fixedPaymentCobroDistintoMes(s,y,m,today),tc=Math.round(target*100);
@@ -20391,12 +20406,12 @@ function fixedPaymentManualLinkWarnings(s,x,e,y,m,today){
   // Orden de presentación estable: no adjudica cargos ni elige una identidad entre BOOK iguales.
   return warnings.sort(function(a,b){ var A=a.date+"|"+a.receiptId,B=b.date+"|"+b.receiptId;return A<B?-1:A>B?1:0; });
 }
-/* Un recibo en pausa no cuenta en el mes… salvo que esté pagado: si el banco lo cobró igual,
+/* Un recibo en pausa (o en prueba gratis: `fixedSinCobroIn`) no cuenta en el mes… salvo que esté pagado: si el banco lo cobró igual,
    es un pago de verdad y se enseña y se descuenta como cualquier otro. Así «Pausar» con el
    recibo ya pagado tampoco lo saca del mes (SPEC §2.6.1). Solo lee el estado del pago si hay
    pausa en ese mes: un recibo sin pausa no paga nada por esta comprobación. */
 function fixedEnPausa(s,e,y,m,today){
-  return fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;
+  return fixedSinCobroIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;
 }
 function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var x=(s.expenses||[]).find(function(r){ return r.id===expenseId; });
@@ -20791,7 +20806,7 @@ function planChargesMonth(s,m,y,today){
     // Un cargo del banco manda sobre la marca a mano; sin él, la marca lo da por pagado ese día.
     var aMano=fixedPaymentEvidence(status)?null:fixedMarcadoAMano(e,y,m);
     if(aMano!=null) status=Object.assign({},status,{paid:true,day:aMano,overdue:false,paidBank:null,paidAmount:null});
-    if(!status.paid&&fixedPausedIn(e,y,m)) return;
+    if(!status.paid&&fixedSinCobroIn(e,y,m)) return;
     var rep=repartoDelMes(s,e,y,m,today), deben=rep?rep.filter(function(x){ return !repartoDescuentaDe(s,x,e); }):[];
     var hecho=(e.repartoCobrado&&e.repartoCobrado[y*12+m])||[];
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,aMano:aMano!=null,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue,
@@ -20895,7 +20910,7 @@ function repartoDelMes(s,e,y,m,today){
   const o=fixedSoloMes(e,y,m);
   const r=o&&o.amt!=null?repartoLista(o.reparto,o.amt,e.bankAmount):repartoVigente(e);
   if(!r) return null;
-  if(fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid) return null;
+  if(fixedSinCobroIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid) return null;
   return r;
 }
 /* La deuda de la que se descuenta una parte. Solo en un recibo de todos los meses (la cuota es la
@@ -21769,7 +21784,7 @@ function pendingWalkEvents(state, y, m, today){
   const hoy=function(d){ return d!=null&&d>0&&d<today?today:(d||0); };
   (state.fixed||[]).forEach(function(e){
     const a=occAmountIn(e,m,y);
-    if(!(a>0)||!occursIn(e,m,y)||fixedPausedIn(e,y,m)) return;
+    if(!(a>0)||!occursIn(e,m,y)||fixedSinCobroIn(e,y,m)) return;
     const b=accOf(e);
     if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
     // Pagado por otro lado: este banco ya no lo va a cobrar (misma regla que el saldo y los totales).
@@ -25419,7 +25434,8 @@ function billsPausado(e, curMonth, curYear){
   return fixedPausedIn(e,curYear,curMonth)||fixedPausedIn(e,curYear+(curMonth===12?1:0),curMonth%12+1);
 }
 /* Lo que se paga de verdad de un recibo en los doce meses que empiezan en este: su media ×12 menos
-   los cobros que caen dentro de la pausa. Antes un pausado salía del año entero: un alquiler
+   los cobros que caen dentro de la pausa o antes del mes en que acaba la prueba gratis
+   (`fixedSinCobroIn`): esos meses no se cobran. Antes un pausado salía del año entero: un alquiler
    pausado solo este mes quitaba doce alquileres, y un anual pausado hasta enero no contaba aunque
    se cobre en marzo (revisión 218, P2-b). Se resta con el calendario de siempre (sin `soloMes`),
    el mismo que sale en la media, para que sin pausa sea exactamente la media ×12. Lo que no tiene
@@ -25431,7 +25447,7 @@ function billsAnualDe(e, curMonth, curYear){
   const sinCalendario=e.freq==="semana"||!chargeMonths(e).length;
   for(let i=0;i<12;i++){
     const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
-    if(fixedPausedIn(e,y,m)) x-=sinCalendario?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
+    if(fixedSinCobroIn(e,y,m)) x-=sinCalendario?fixedMonthlyOf(e):(occursIn(e,m)?occAmountIn(e,m):0);
   }
   return Math.round(Math.max(0,x)*100)/100;
 }
@@ -25455,7 +25471,7 @@ function billsCuotaAnualDe(state, d, curMonth, curYear){
   let x=0;
   for(let i=0;i<billsCuotasEnAno(d,curMonth,curYear);i++){
     const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
-    x+=(Number(d.monthly)||0)+billsDescuentoSin(state,d,function(e){ return fixedPausedIn(e,y,m); });
+    x+=(Number(d.monthly)||0)+billsDescuentoSin(state,d,function(e){ return fixedSinCobroIn(e,y,m); });
   }
   return Math.round(x*100)/100;
 }
@@ -29992,7 +30008,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="5f558229eaf69148868eaf5e0921c148365900425dc14b053d215604a6c27dd0";
+var _rnSha="eea7fdbd41a7e2c9a8b754b194074365ad3611857e51faaab497a3a044641f6d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -31924,8 +31940,9 @@ function pr6MesesConBanco(s){
 }
 /* Prueba gratis y permanencia (decisión del dueño del 10/11/2026, SPEC §2.3, §2.6.2 y §7): dos
    fechas opcionales del recibo. `pruebaHasta` = "AAAA-MM-DD", el día en que empieza a cobrar;
-   `permHasta` = año*12+mes en que acaba la permanencia. Solo avisan: lo que suma el mes lo sigue
-   diciendo el recibo (si este mes no se cobra, para eso está Pausar). Un cliente viejo las ignora. */
+   `permHasta` = año*12+mes en que acaba la permanencia. La permanencia solo avisa; los meses de
+   prueba no se cobran y salen de lo que queda por pagar (`fixedSinCobroIn`, 07), pero no de «Se te
+   van cada mes», como el prototipo. Un cliente viejo las ignora. */
 function pr6PruebaDias(f,y,m,today){
   const k=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(f&&f.pruebaHasta||""));
   return k?Math.round((Date.UTC(+k[1],+k[2]-1,+k[3])-Date.UTC(y,m-1,today))/864e5):null;
@@ -31980,7 +31997,7 @@ function planRecibosAvisos(s, pack, proof, y, m, today){
     const p=atras(k), clave="|"+p.y+"-"+String(p.m).padStart(2,"0");
     vivos.forEach(function(c){
       const f=c.f;
-      if(!occursIn(f,p.m,p.y)||!(occAmountIn(f,p.m,p.y)>0)||fixedPausedIn(f,p.y,p.m)) return;
+      if(!occursIn(f,p.m,p.y)||!(occAmountIn(f,p.m,p.y)>0)||fixedSinCobroIn(f,p.y,p.m)) return;
       if(fixedMarcadoAMano(f,p.y,p.m)!=null||fixedPaymentEvidence(fixedPaymentState(s,f,p.y,p.m,p.fin))){ c.last=p.ym; c.done=true; return; }
       // Sin movimientos de ese banco ese mes no se sabe si se cobró: ahí se deja de contar.
       if(!meses.has(accOf(f)+clave)){ c.done=true; return; }
@@ -32322,9 +32339,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const importables=useMemo(function(){ return vacio?pr6Importables(state):[]; },[vacio,state.expenses,state.fixed]);
   const v=useMemo(function(){ return planRecibosVista(pack,proof,today,avisos,pospuesto); },[pack,proof,today,avisos,pospuesto]);
   // Pausados este mes: no suman ni salen como pendientes, pero se ven tachados en «Ya pagados»
-  // para poder devolverlos al mes con un toque (SPEC §2.5).
+  // para poder devolverlos al mes con un toque (SPEC §2.5). Solo la pausa: el que está en prueba
+  // gratis no se cobra este mes y no hay nada que devolver; el prototipo ni lo enseña (`fromNext`).
   const pausados=useMemo(function(){
-    return (state.fixed||[]).filter(function(f){ return occursIn(f,month,year)&&occAmountIn(f,month,year)>0&&fixedEnPausa(state,f,year,month,today); });
+    return (state.fixed||[]).filter(function(f){ return occursIn(f,month,year)&&occAmountIn(f,month,year)>0&&fixedPausedIn(f,year,month)&&fixedEnPausa(state,f,year,month,today); });
   },[pack,state.fixed,year,month,today]);
   // Un solo aviso con «Deshacer» para todo lo que se hace de un toque en Recibos.
   const avisarDeshacer=function(msg,undo){
@@ -32490,8 +32508,12 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   };
   // «No ha llegado» se repetía en cada fila y la sección ya dice que hay que revisarlo: en la fila
   // solo va lo que la distingue (cuándo tocaba). El lector de pantalla sí oye el motivo entero.
+  /* La prueba gratis, corta en la fila: «Mañana empieza a cobrar» partía en dos renglones a 360 px
+     con un importe de tres cifras. El regalo y «Para revisar» ya dicen que es una prueba; la ficha
+     y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
   const motivoFila=function(x){
     if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
+    if(x.rv==="trial") return t(x.dias===0?"pr6_prueba_hoy_fila":"pr6_prueba_manana_fila");
     return (x.rv==="late"&&cuando(x))||pr6Motivo(x);
   };
   const revRow=function(x){
@@ -39565,7 +39587,7 @@ function App(){
     const eveOf=receiptEveProducer(state,totals);
     (state.fixed||[]).forEach(function(e){
       // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
-      if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
+      if(!occursIn(e,cm,cy)||fixedSinCobroIn(e,cy,cm)) return;
       if(isPaidIn(e,cm,totals.today,cy,state)||fixedPagadoFuera(state,e,cy,cm,totals.today)) return;
       const d=dayIn(e,cm,cy); const amt=occAmountIn(e,cm,cy)||0;
       if(d==null||!(amt>0)) return;
@@ -39614,7 +39636,7 @@ function App(){
       const now=new Date();
       if(totals.curYear!==now.getFullYear()||totals.curMonth!==now.getMonth()+1||totals.today!==now.getDate()) return;
       (state.fixed||[]).forEach(function(e){
-        if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
+        if(!occursIn(e,cm,cy)||fixedSinCobroIn(e,cy,cm)) return;
         const d=dayIn(e,cm,cy); if(d==null) return;
         if(isPaidIn(e,cm,today,cy,state)||fixedPagadoFuera(state,e,cy,cm,today)) return;
         const amt=occAmountIn(e,cm,cy)||0;

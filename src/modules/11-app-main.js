@@ -2865,7 +2865,7 @@ function App(){
     const eveOf=receiptEveProducer(state,totals);
     (state.fixed||[]).forEach(function(e){
       // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
-      if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
+      if(!occursIn(e,cm,cy)||fixedSinCobroIn(e,cy,cm)) return;
       if(isPaidIn(e,cm,totals.today,cy,state)||fixedPagadoFuera(state,e,cy,cm,totals.today)) return;
       const d=dayIn(e,cm,cy); const amt=occAmountIn(e,cm,cy)||0;
       if(d==null||!(amt>0)) return;
@@ -2914,7 +2914,7 @@ function App(){
       const now=new Date();
       if(totals.curYear!==now.getFullYear()||totals.curMonth!==now.getMonth()+1||totals.today!==now.getDate()) return;
       (state.fixed||[]).forEach(function(e){
-        if(!occursIn(e,cm,cy)||fixedPausedIn(e,cy,cm)) return;
+        if(!occursIn(e,cm,cy)||fixedSinCobroIn(e,cy,cm)) return;
         const d=dayIn(e,cm,cy); if(d==null) return;
         if(isPaidIn(e,cm,today,cy,state)||fixedPagadoFuera(state,e,cy,cm,today)) return;
         const amt=occAmountIn(e,cm,cy)||0;

@@ -3,7 +3,9 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 /* Plan › Recibos: prueba gratis, permanencia y filas que se deslizan (decisión del dueño del
    10/11/2026; docs/design/plan-recibos/SPEC.md §2.3, §2.4, §2.6.2, §7 y §10).
-   - Las dos fechas son opcionales y solo avisan: sin fecha no sale nada y la cifra de arriba no se mueve.
+   - Las dos fechas son opcionales: sin fecha no sale nada. La permanencia solo avisa; la prueba gratis,
+     como el prototipo, saca el recibo de lo que queda por pagar mientras no cobra (el mes en que
+     acaba sí cuenta) y en «Se te van cada mes» sigue sumando.
    - Deslizar a la izquierda una fila de «Para revisar» la deja para mañana (con Deshacer) y una de
      «Por pagar» abre «¿Cuál es el cargo?». El gesto es de verdad (toques por CDP, sin el splash
      delante y con la pestaña quieta) y se comprueba que ATERRIZA en la fila; además, que no rompe
@@ -22,7 +24,7 @@ function datos() {
     recibo("nfx", "Netflix", 12.99, 25, { pruebaHasta: "2026-10-19" }),       // empieza a cobrar mañana
     recibo("fibra", "Fibra", 30, 22, { permHasta: YM + 1 }),                  // fin de permanencia: nov
     recibo("agua", "Agua", 20, 26),                                           // sin fechas: nada
-    recibo("gym", "Gimnasio", 40, 28, { pruebaHasta: "2026-12-01", permHasta: YM + 6 }), // lejos: nada
+    recibo("gym", "Gimnasio", 40, 28, { pruebaHasta: "2026-12-01", permHasta: YM + 6 }), // en prueba hasta dic: fuera de octubre
   ];
 }
 
@@ -50,7 +52,7 @@ async function abrePlan(page, fixed) {
   return page.locator('.page-live .v4-screen > [data-seg="recibos"]');
 }
 
-test("prueba gratis y permanencia: avisan solo con fecha, por prioridad y sin tocar la cifra", async ({ page }) => {
+test("prueba gratis y permanencia: avisan solo con fecha y por prioridad; la prueba lejos sale del mes", async ({ page }) => {
   const recibos = await abrePlan(page);
   const review = recibos.getByTestId("plan-review");
   await expect(review.locator(".v4-charge")).toHaveCount(3);
@@ -58,13 +60,15 @@ test("prueba gratis y permanencia: avisan solo con fecha, por prioridad y sin to
   await expect(review.locator(".v4-charge").nth(0)).toHaveAttribute("data-review", "trial");
   await expect(review.locator(".v4-charge").nth(1)).toHaveAttribute("data-review", "late");
   await expect(review.locator(".v4-charge").nth(2)).toHaveAttribute("data-review", "perm");
-  await expect(review.locator('[data-review="trial"]')).toContainText("Mañana empieza a cobrar");
+  // En la fila, corto (a 360 px la frase entera partía en dos renglones); entera en la ficha y para el lector.
+  await expect(review.locator('[data-review="trial"] .pr6-why')).toHaveText("Cobra mañana");
+  await expect(review.locator('[data-review="trial"]')).toHaveAttribute("aria-label", /Mañana empieza a cobrar/);
   await expect(review.locator('[data-review="perm"]')).toContainText("Fin de permanencia: nov 2026");
-  // Sin fecha, o con fechas lejos, ningún aviso.
+  // Sin fecha, ningún aviso. La prueba que acaba en diciembre no cobra en octubre: ni aviso ni fila.
   await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_agua"]')).toHaveCount(1);
-  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_gym"]')).toHaveCount(1);
-  // Solo avisan: lo que queda por pagar es lo de siempre (los cinco recibos están pendientes).
-  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(55 + 12.99 + 30 + 20 + 40)));
+  await expect(recibos.locator('[data-recibo="fixed_gym"]')).toHaveCount(0);
+  // Lo que queda por pagar: los cuatro que cobran este mes (Netflix empieza mañana, cobra en octubre).
+  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(55 + 12.99 + 30 + 20)));
 
   // Prueba: «Me lo quedo» quita la fecha y el recibo vuelve a «Por pagar».
   await review.locator('[data-review="trial"]').click();
@@ -85,7 +89,19 @@ test("prueba gratis y permanencia: avisan solo con fecha, por prioridad y sin to
   await expect(ficha(page)).toHaveCount(0);
   await expect.poll(async () => (await guardado(page, "fibra")).revisado).toEqual({ perm: YM + 1 });
   await expect(review.locator('[data-recibo="fixed_fibra"]')).toHaveCount(0);
-  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(55 + 12.99 + 30 + 20 + 40)));
+  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(55 + 12.99 + 30 + 20)));
+
+  // «Tus recibos»: al mes el gimnasio suma entero (es lo que costará, como en el prototipo); al año
+  // faltan octubre y noviembre, que no cobra. Cabecera, fila y motor dicen lo mismo.
+  await recibos.getByTestId("plan-todos").click();
+  const hub = page.locator('[data-bills-manage] [data-screen="bills-home"]');
+  await expect(hub).toBeVisible();
+  await expect(hub.locator("[data-bills-total]")).toHaveText(await page.evaluate(() => eur(55 + 12.99 + 30 + 20 + 40)));
+  await expect(hub.locator('[data-bill-id="gym"] .am')).toHaveText(await page.evaluate(() => eur(40)));
+  await hub.locator("[data-bills-hero]").click();
+  await expect(hub.locator("[data-bills-hero] .v4-micro")).toHaveText("SE TE VAN AL AÑO");
+  await expect(hub.locator('[data-bill-id="gym"] .am')).toHaveText(await page.evaluate(() => eur(400)));
+  await expect(hub.locator("[data-bills-total]")).toHaveText(await page.evaluate(() => eur((55 + 12.99 + 30 + 20) * 12 + 400)));
 });
 
 test("más opciones: se ponen, se guardan y se quitan la prueba gratis y la permanencia", async ({ page }) => {
@@ -115,11 +131,15 @@ test("más opciones: se ponen, se guardan y se quitan la prueba gratis y la perm
   await expect(hoja(page)).toHaveCount(0);
   await expect.poll(async () => { const f = await guardado(page, "agua"); return [f.pruebaHasta, f.permHasta, f.amount, f.day]; })
     .toEqual(["2026-11-18", 2027 * 12 + 9, 20, 26]);
-  // Lejos todavía: ni un aviso.
-  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_agua"]')).toHaveCount(1);
+  // Empieza a cobrar en noviembre: en octubre no se cobra, sale de «Por pagar» y de la cifra, sin aviso.
+  await expect(recibos.locator('[data-recibo="fixed_agua"]')).toHaveCount(0);
+  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(55 + 12.99 + 30)));
 
-  // Al volver a editar, Más opciones ya está abierto con lo que tiene; «Sin prueba» la quita.
-  await editarAgua();
+  // Al volver a editar (desde «Tus recibos»: este mes ya no está en la portada), Más opciones ya está
+  // abierto con lo que tiene; «Sin prueba» la quita y vuelve a «Por pagar».
+  await recibos.getByTestId("plan-todos").click();
+  await page.locator('[data-bills-manage] [data-screen="bills-home"] [data-bill-id="agua"]').click();
+  await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
   await expect(p4.locator('[data-act="mas-opciones"]')).toHaveAttribute("aria-expanded", "true");
   await expect(p4.locator('[data-rp7-valor="prueba"]')).toHaveText("hasta el 18 nov");
   await p4.locator('[data-rp7="prueba"] .rp7-row').click();
@@ -127,6 +147,10 @@ test("más opciones: se ponen, se guardan y se quitan la prueba gratis y la perm
   await hoja(page).locator(".rp4-cta").click();
   await expect(hoja(page)).toHaveCount(0);
   await expect.poll(async () => { const f = await guardado(page, "agua"); return ["pruebaHasta" in f, f.permHasta]; }).toEqual([false, 2027 * 12 + 9]);
+  await page.goBack();
+  await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
+  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_agua"]')).toHaveCount(1);
+  await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(55 + 12.99 + 30 + 20)));
 });
 
 /* Arrastre horizontal real. Devuelve el desplazamiento de la tarjeta a mitad de gesto: si es 0, el
@@ -227,4 +251,14 @@ test("deslizar una fila no rompe cambiar de pestaña hacia la derecha ni el scro
   await expect.poll(() => pestana(page)).toBe("gastos");
   await expect(ficha(page)).toHaveCount(0);
   await cdp.detach();
+});
+
+// A 360 px, con un importe de cuatro cifras, el aviso de la prueba cabe en un renglón (antes partía en dos).
+test("a 360 px el aviso de la prueba gratis cabe en un renglón", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  const recibos = await abrePlan(page, [recibo("yt", "YouTube Premium", 1112.99, 25, { pruebaHasta: "2026-10-19" })]);
+  const why = recibos.getByTestId("plan-review").locator('[data-review="trial"] .pr6-why');
+  await expect(why).toHaveText("Cobra mañana");
+  const [alto, linea] = await why.evaluate((el) => [el.getBoundingClientRect().height, parseFloat(getComputedStyle(el).lineHeight)]);
+  expect(alto).toBeLessThan(linea * 1.5);
 });

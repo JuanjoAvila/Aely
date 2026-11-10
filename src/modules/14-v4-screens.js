@@ -415,8 +415,9 @@ function pr6MesesConBanco(s){
 }
 /* Prueba gratis y permanencia (decisión del dueño del 10/11/2026, SPEC §2.3, §2.6.2 y §7): dos
    fechas opcionales del recibo. `pruebaHasta` = "AAAA-MM-DD", el día en que empieza a cobrar;
-   `permHasta` = año*12+mes en que acaba la permanencia. Solo avisan: lo que suma el mes lo sigue
-   diciendo el recibo (si este mes no se cobra, para eso está Pausar). Un cliente viejo las ignora. */
+   `permHasta` = año*12+mes en que acaba la permanencia. La permanencia solo avisa; los meses de
+   prueba no se cobran y salen de lo que queda por pagar (`fixedSinCobroIn`, 07), pero no de «Se te
+   van cada mes», como el prototipo. Un cliente viejo las ignora. */
 function pr6PruebaDias(f,y,m,today){
   const k=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(f&&f.pruebaHasta||""));
   return k?Math.round((Date.UTC(+k[1],+k[2]-1,+k[3])-Date.UTC(y,m-1,today))/864e5):null;
@@ -471,7 +472,7 @@ function planRecibosAvisos(s, pack, proof, y, m, today){
     const p=atras(k), clave="|"+p.y+"-"+String(p.m).padStart(2,"0");
     vivos.forEach(function(c){
       const f=c.f;
-      if(!occursIn(f,p.m,p.y)||!(occAmountIn(f,p.m,p.y)>0)||fixedPausedIn(f,p.y,p.m)) return;
+      if(!occursIn(f,p.m,p.y)||!(occAmountIn(f,p.m,p.y)>0)||fixedSinCobroIn(f,p.y,p.m)) return;
       if(fixedMarcadoAMano(f,p.y,p.m)!=null||fixedPaymentEvidence(fixedPaymentState(s,f,p.y,p.m,p.fin))){ c.last=p.ym; c.done=true; return; }
       // Sin movimientos de ese banco ese mes no se sabe si se cobró: ahí se deja de contar.
       if(!meses.has(accOf(f)+clave)){ c.done=true; return; }
@@ -813,9 +814,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const importables=useMemo(function(){ return vacio?pr6Importables(state):[]; },[vacio,state.expenses,state.fixed]);
   const v=useMemo(function(){ return planRecibosVista(pack,proof,today,avisos,pospuesto); },[pack,proof,today,avisos,pospuesto]);
   // Pausados este mes: no suman ni salen como pendientes, pero se ven tachados en «Ya pagados»
-  // para poder devolverlos al mes con un toque (SPEC §2.5).
+  // para poder devolverlos al mes con un toque (SPEC §2.5). Solo la pausa: el que está en prueba
+  // gratis no se cobra este mes y no hay nada que devolver; el prototipo ni lo enseña (`fromNext`).
   const pausados=useMemo(function(){
-    return (state.fixed||[]).filter(function(f){ return occursIn(f,month,year)&&occAmountIn(f,month,year)>0&&fixedEnPausa(state,f,year,month,today); });
+    return (state.fixed||[]).filter(function(f){ return occursIn(f,month,year)&&occAmountIn(f,month,year)>0&&fixedPausedIn(f,year,month)&&fixedEnPausa(state,f,year,month,today); });
   },[pack,state.fixed,year,month,today]);
   // Un solo aviso con «Deshacer» para todo lo que se hace de un toque en Recibos.
   const avisarDeshacer=function(msg,undo){
@@ -981,8 +983,12 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   };
   // «No ha llegado» se repetía en cada fila y la sección ya dice que hay que revisarlo: en la fila
   // solo va lo que la distingue (cuándo tocaba). El lector de pantalla sí oye el motivo entero.
+  /* La prueba gratis, corta en la fila: «Mañana empieza a cobrar» partía en dos renglones a 360 px
+     con un importe de tres cifras. El regalo y «Para revisar» ya dicen que es una prueba; la ficha
+     y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
   const motivoFila=function(x){
     if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
+    if(x.rv==="trial") return t(x.dias===0?"pr6_prueba_hoy_fila":"pr6_prueba_manana_fila");
     return (x.rv==="late"&&cuando(x))||pr6Motivo(x);
   };
   const revRow=function(x){

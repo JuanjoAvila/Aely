@@ -1,3 +1,39 @@
+## [4.26.221] — 2026-11-10 · Candidata de beta, solo web: Tus recibos — prueba gratis fuera del mes, permanencia, filas que se deslizan y «Te deben» como el prototipo
+
+- **Qué lleva (sobre la 4.26.220, sin servir).** Dos ramas sobre la beta 4.26.218 (9a9f2bc54): G (`claude/recibos-g`, e353b824e), lo que quedaba de la auditoría visual de Recibos; H (`claude/recibos-h`, 6bf0a238b), prueba gratis, permanencia y filas deslizables (decisión del dueño del 10/11; SPEC §2.3, §2.4, §2.6.2, §7, §10; cierra P1-B y P1-C de audit-recibos-218). Encima, la decisión del dueño de hoy sobre la prueba gratis («como el diseño») y un pulido de H a 360 px. La 4.26.220 se conserva como entrada propia (no se llegó a servir). Sin APK nueva (sigue la 4.26.206 / code64), `tandas:[]`; los pasos van del 33 al 39 de `recibos-zona-pulida` (213).
+- **Integración (por qué así).** G y H no tocaban `CHANGELOG`, `src/data/release-notes.json` ni el registro: los únicos choques fueron `public/*`, regenerado con `build-app`. 01, 14, shell, `run-tests` y `relevant-tests` se mezclaron solos; comprobado que el contenido de las dos está (`fj_income_tag`, `pe-deben`, `pruebaHasta`, `usePr6Desliz`, `recibos-prueba-permanencia` en `steps`, `recibos-prueba-desliz` en `E2E_MAP`).
+
+### Prueba gratis fuera del mes (decisión del dueño, 10/11/2026: «como el diseño»)
+
+- **Qué dice el diseño.** El prototipo (`prototipo-plan.dc.html`) marca `fromNext` a un recibo cuya prueba acaba en un mes posterior: no está en «Queda por pagar» ni en «Por pagar» de ese mes, y el mes en que acaba sí cuenta (cobra ese día). En «Se te van cada mes» (`servMonth`) lo sigue sumando entero. H solo ponía el aviso y dejaba sumar el mes («para eso está Pausar»).
+- **Cómo.** `fixedEnPruebaIn(e,y,m)` (07): mes anterior al de `pruebaHasta`. `fixedSinCobroIn` = `fixedPausedIn` || prueba, y lo leen los mismos sitios que ya saltaban un mes en pausa: `planChargesMonth` (lo que queda por pagar, «Por pagar», «Nov ›»), `fixedEnPausa` (de ahí `totals`, `monthNetForAccount` y el reparto), `pendingWalkEvents` («¿Te llega?»), `fixedPaymentCobroDistinto`, los avisos de la víspera de `alertCalendar` y su intercambio con el nativo, Inicio › Próximos cargos, el «fantasma» y el año (`billsAnualDe`, también la cuota con descuento mes a mes de `billsCuotaAnualDe`). Así mes, «¿Te llega?», año y secciones cuadran por construcción, como con la pausa.
+- **Lo que NO cambia, a propósito.** `billsPausado` (`Se te van cada mes`, la fila atenuada «pausado hasta …», el simulador vía `billsHeroTotal`) y `fixedPausa` (Pausar/Reanudar y su `manualPauseBalance`) siguen leyendo solo la pausa: el prototipo cuenta la prueba al mes y no es una pausa. Tampoco sale tachado con «este mes no» en «Ya pagados» (eso es para devolver al mes un saltado; aquí no hay nada que devolver).
+- **Al año (no lo dice la SPEC: elegido lo conservador con el dinero).** El prototipo pinta ×12 sin mirar ni pausas ni pruebas; la app cuenta al año lo que de verdad se cobra en los doce meses que empiezan en este (P2-b de la 218), así que los meses de prueba faltan igual que los de una pausa. Pagado igual en un mes de prueba (marca a mano o cargo del banco) cuenta como cualquier pago, como con la pausa.
+- **Límite conocido.** El mes en que acaba la prueba cuenta el recibo en su día de siempre; si ese día es anterior al fin de la prueba, el recibo puede salir como «No ha llegado» entre los dos días. El prototipo mueve el día al de fin de prueba; aquí no se toca `dayIn` (demasiadas lecturas) y queda en el BACKLOG.
+
+### H — prueba gratis, permanencia y deslizar (`claude/recibos-h`)
+
+- `pruebaHasta` ("AAAA-MM-DD", el día en que empieza a cobrar) y `permHasta` (año*12+mes), opcionales en el recibo, en «Más opciones» del alta/edición.
+- `planRecibosAvisos`: `trial` (hoy o mañana, prioridad 0) y `perm` (fin este mes o el siguiente, sin `revisado.perm` de esa fecha, prioridad 3).
+- Ficha: «Me lo quedo» / «Ya lo he mirado» con «Ya no lo tengo»; enlace de baja cuando se conoce.
+- `PR6_POSPONIBLE`, lista única para el botón y el gesto. `usePr6Desliz`: listener delegado, rAF sin estado, umbral 90 px, máximo 170, vibración al cruzar, franja de borde de 24 px. Deslizar en «Para revisar» = «te lo recuerdo mañana» con Deshacer; en «Por pagar», la ficha en «¿Cuál es el cargo?» (`ReciboFicha` acepta `pasoInicial`).
+- Mezcla entre móviles: cada fecha es un grupo propio en `mergePlanThreeWay`.
+- **Pulido a 360 px.** «Mañana empieza a cobrar» partía en dos renglones en la fila (146 px de columna con un importe de tres cifras). La fila dice «Cobra mañana» / «Cobra hoy» (`pr6_prueba_*_fila`, es/en/ca); la ficha y el `aria-label` siguen con la frase entera (`pr6Motivo`). La permanencia («Fin de permanencia: nov 2026») también parte a 360 px con un importe de tres cifras: no se ha tocado (H no lo marcó y acortarlo pierde el mes).
+
+### G — lo visual que quedaba de la auditoría (`claude/recibos-g`)
+
+- `fj_income_tag` restaurada (se borró en 5cb8496a9 y se pintaba la clave cruda); `i18n-keys` amplía la detección a ternarios y `||`, lo que destapó `v4_sync_brokers_ok`, restaurada.
+- «Te deben» como el prototipo: total arriba, «pendiente» al lado de cada cifra, botón de contorno, y quien ya pagó al final (el orden se fija al abrir la hoja).
+- El buscador de Tus recibos acepta punto o coma (4.99 = 4,99); atrás pliega antes el teclado de «¿Y si gasto…?» (`useBackClose`); las píldoras pasan de renglón en vez de esconder la flecha. Lupa en el selector de cargo, «Pausado» con mayúscula, frecuencia en minúscula en inglés y sin el hueco del pliegue cerrado en las hojas `pr6-ll`.
+
+### Registro, panel y pruebas
+
+- Panel `recibos-zona-pulida` (213, es/en/ca): pasos 33-39. 33 la prueba que acaba el mes que viene sale de «Por pagar» y de la cifra y sigue en «Se te van cada mes» (el «la cifra no cambia» de H ya no vale para ese caso); 34 la prueba de mañana, «Cobra mañana» en un renglón y «Me lo quedo»; 35 la permanencia; 36-38 los gestos; 39 «Te deben», buscar con punto y el atrás del teclado (G). Numerados seguidos, ninguno pisa a los 32 anteriores.
+- `scripts/beta-sources.json`: el scope `recibo-anual-mes` vigilaba tres reglas de CSS que G cambió (`.pr6-ll-act{`, `.pe-deben-cta.pr6-cta{`, `.pe-deben-cta.pr6-btn{`): pasan a `.pr6-deben-h{`, `.pr6-deben-tot{` y `.pe-deben-ok{`, y Catálogo213 las reancla igual que hizo con `fixedPagadoFuera`.
+- auth-disposal(-fit): sha del registro 8416ac87….
+- Catálogo213 (221 delante, 39 pasos, rótulos nuevos `rp7_prueba`, `pr6_me_lo_quedo`, `pr6_ya_mirado`, `pr6_prueba_manana_fila`, `pr6_deben_pend`), revisar-beta (catálogo con la 221, 67 en el panel, 318 versiones, tres puntos en la nota).
+- `tests/recibos-prueba-permanencia`: la prueba que acaba en otro mes fuera de lo que queda por pagar, de «Nov ›» y de «¿Te llega?», dentro de `billsHeroTotal`, y al año sin sus meses (oráculo a mano: 10 €/mes hasta el 5 de enero = 90 €); el mes en que acaba y las fechas pasadas o rotas no quitan nada; diciembre → enero; un trimestral; pagado igual en un mes de prueba. e2e `recibos-prueba-desliz`: el gimnasio en prueba hasta diciembre no sale en octubre, «Tus recibos» lo cuenta al mes (40 €) y al año 400 €, cabecera = suma de filas; editar la prueba a noviembre lo saca de «Por pagar» y quitarla lo devuelve; a 360 px «Cobra mañana» en un renglón con 1.112,99 €.
+
 ## [4.26.220] — 2026-11-10 · Candidata de beta, solo web: Tus recibos — al año, las cuotas que quedan y el descuento de un pausado
 
 - **Qué lleva (sobre la 4.26.219, sin servir).** La segunda ronda de la revisión independiente de la 219 (GO con P2). Va en versión propia porque la 219 ya estaba cerrada con su número y el código no puede cambiar sin subirlo (docs-frescura). Sin APK nueva (sigue la 4.26.206 / code64), `tandas:[]`; los pasos 30 y 32 de `recibos-zona-pulida` (213) ya lo cubren.
