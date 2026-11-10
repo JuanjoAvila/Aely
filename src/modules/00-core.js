@@ -5092,6 +5092,7 @@ const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFracti
 const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"});
 // Moneda de visualización. Todos los importes de la app están en € (base); DISP los convierte
 // a la moneda elegida (k = factor sobre €, sym = símbolo). Se fija en App según ajustes + fx.
+// `DISP.oculto` (el ojo, SPEC Plan Recibos §8) lo fija App desde `settings.ocultarImportes` en cada render.
 let DISP = { sym:"€", k:1 };
 // Símbolos de las monedas de visualización (Ajustes → Dinero). Todas contra € vía fxRates (BCE).
 // TRY (lira turca) añadida 2026-08-05: crucero — sin ella el selector no ofrecía la divisa real
@@ -5099,5 +5100,7 @@ let DISP = { sym:"€", k:1 };
 const CUR_SYM = { EUR:"€", USD:"$", GBP:"£", CHF:"CHF", JPY:"¥", CAD:"C$", AUD:"A$", CNY:"CN¥", MXN:"MX$", SEK:"kr", NOK:"kr", DKK:"kr", PLN:"zł", BRL:"R$", INR:"₹", TRY:"₺" };
 // Monedas ofrecidas en el selector y la comparativa (deben venir en el fetch del BCE / frankfurter).
 const CUR_LIST = ["EUR","USD","GBP","CHF","TRY","JPY","CAD","AUD","CNY","MXN","SEK","NOK","DKK","PLN","BRL","INR","CZK","HKD","HUF","IDR","ILS","ISK","KRW","MYR","NZD","PHP","RON","SGD","THB","ZAR"];
-const eur  = (n)=> NF.format((n||0)*DISP.k)+" "+DISP.sym;
-const eur0 = (n)=> NF0.format(Math.round((n||0)*DISP.k))+" "+DISP.sym;
+/* El ojo vive en los formateadores para que no se escape ninguna cifra (SPEC §8). También en los
+   avisos del móvil, que se leen con la pantalla bloqueada: con el ojo puesto, nada de importes. */
+const eur  = (n)=> DISP.oculto ? "•••• "+DISP.sym : NF.format((n||0)*DISP.k)+" "+DISP.sym;
+const eur0 = (n)=> DISP.oculto ? "•••• "+DISP.sym : NF0.format(Math.round((n||0)*DISP.k))+" "+DISP.sym;

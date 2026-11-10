@@ -1923,6 +1923,35 @@ function useEdgePageClose(open,onClose,on,ref,opts){
   return {close:close};
 }
 
+/* PRIMERA VEZ DE UN GLIFO DE OTRA FUENTE (P1-13, trazas del 9/11 con la CPU a ×6). Un emoji o
+   un símbolo que Manrope no tiene obliga al navegador a buscar otra fuente del sistema, y esa
+   búsqueda se guarda por TAMAÑO y PESO: los iconos de categoría de Apuntar (19 px, 700) costaban
+   ~120 ms la primera vez aunque los mismos emojis ya salieran en Gastos con otro tamaño. Se pagan
+   una vez en un hueco libre, con las mismas clases que la hoja, fuera de la pantalla. No toca el
+   bloqueo de hojas (`mcSheetLock`): medido, quitarlo no movía nada. */
+function mcCalentarGlifos(){
+  try{
+    const d=document.createElement("div");
+    d.setAttribute("aria-hidden","true");
+    d.style.cssText="position:fixed;left:-9999px;top:0;width:300px;visibility:hidden;pointer-events:none;contain:strict;height:200px;";
+    const cat=document.createElement("span"), ic=document.createElement("span");
+    cat.className="v4-ficha-cat"; ic.className="v4-ficha-cat-icon";
+    ic.textContent=CATEGORIES.map(function(c){ return c.icon; }).join("");
+    cat.appendChild(ic); d.appendChild(cat);
+    document.body.appendChild(d);
+    void d.offsetHeight;
+    mcScheduleIdle(function(){ if(d.parentNode) d.parentNode.removeChild(d); });
+  }catch(e){}
+}
+/* Capas premontadas con `content-visibility:hidden` (segmentos de Plan): se montan en un hueco
+   libre, pero su PRIMERA maquetación —texto, emojis, fuentes— se quedaba para el toque que las
+   enseña (Recibos→Deudas, 133 ms a ×6). Se maqueta una vez aquí, aún con alto 0, y vuelve a
+   `hidden`, que conserva lo maquetado: al enseñarla solo queda pintarla. */
+function mcCalentarCapa(el){
+  if(!el||!el.style||el.style.contentVisibility!=="hidden") return;
+  try{ el.style.contentVisibility="visible"; void el.offsetHeight; }catch(e){}
+  el.style.contentVisibility="hidden";
+}
 let _mcSheetLocks=0, _mcSheetPrevOverflow="";
 function mcSheetLock(){
   if(_mcSheetLocks===0){
@@ -2046,7 +2075,9 @@ function useSheetSwipe(open, onClose, opts){
       el.classList.add("dragging");
       el.style.transform="translate3d(0,"+resist+"px,0)";
     }
-    if(e.cancelable) e.preventDefault();
+    // Sin preventDefault: React escucha touchmove como pasivo, así que no paraba nada y solo dejaba
+    // «Unable to preventDefault inside passive event listener» en la consola (P2-11). Lo que
+    // impide el scroll mientras se arrastra la hoja es su `touch-action`.
   };
   const runClose=function(done,fromDrag){
     if(closing.current) return;
@@ -2441,7 +2472,11 @@ function NumPad({value, onChange}){
         onPointerUp:isDel?stopHold:undefined,
         onPointerCancel:isDel?stopHold:undefined,
         onPointerLeave:isDel?stopHold:undefined
-      }, k);
+      // «⌫» no está en Manrope: la primera vez el navegador buscaba otra fuente del sistema solo
+      // para esa tecla y ese fotograma duraba 100 ms con la CPU a ×6 al abrir «¿Te llega?» o
+      // Apuntar (trazas del 9/11, P1-13). Dibujada, cuesta lo que cualquier otra tecla.
+      }, isDel?React.createElement("svg",{width:24,height:24,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},
+        React.createElement("path",{d:"M21 5H9l-6 7 6 7h12zM18 9l-6 6M12 9l6 6"})):k);
     })
   );
 }

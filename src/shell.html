@@ -1149,7 +1149,8 @@
   .rp4-sug{display:flex;align-items:center;gap:10px;height:48px;padding:0 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface);color:var(--text);
     font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:border-color .2s ease,background .2s ease;}
   .rp4-sug.on{border-color:var(--mint);background:var(--surface-2);}
-  .rp4-sug-i{font-size:18px;line-height:1;}
+  .rp4-sug-i{display:flex;flex:none;color:var(--muted);}
+  .rp4-sug.on .rp4-sug-i{color:var(--mint-bright);}
   .rp4-amt{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px;}
   /* El nombre, en un renglón y centrado: uno largo ocupaba dos, alineados a la izquierda, y empujaba
      «¿Cuánto es?» por debajo de la barra de progreso (auditoría 9/11). */
@@ -1281,6 +1282,10 @@
   .pr6-sum-h{display:flex;align-items:center;gap:2px;}
   /* A 360 px «QUEDA POR PAGAR EN NOVIE…» perdía el mes: mejor en dos renglones que cortado. */
   .pr6-sum-h .v4-micro{flex:1;min-width:0;line-height:1.45;}
+  /* A 360 px «QUEDA POR PAGAR EN NOVIEMBRE» se iba a dos renglones (N7): más prieta cabe en uno;
+     con la letra muy grande sigue pudiendo bajar antes que cortar el mes. */
+  .pr6-sum{container:pr6tarjeta / inline-size;}
+  @container pr6tarjeta (max-width:20.5em){ .pr6-sum-h .v4-micro{font-size:11.5px;letter-spacing:1px;} }
   .pr6-mes-nav{flex:none;min-width:44px;min-height:44px;margin:-12px -10px -12px 0;padding:0 10px;border:0;background:transparent;color:var(--mint-bright);
     font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
   .pr6-cz{display:grid;grid-template-rows:1fr;transition:grid-template-rows .38s var(--ease),opacity .25s ease;}
@@ -1382,6 +1387,7 @@
   html[data-theme="light"] .profile-handle,
   html[data-theme="light"] .profile-row .pr-edit,
   html[data-theme="light"] .af-safe,
+  html[data-theme="light"] .af-verdict.ok,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
   html[data-theme="light"] .v4-pill,
@@ -1513,6 +1519,12 @@
      a la franja por la que se desliza entre pestañas y los e2e de gestos perderían su sitio. */
   .gx-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0;min-height:44px;}
   .gx-titulo .v4-title{margin:0;min-width:0;}
+  .v4-plan-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 14px;}
+  .v4-plan-cab .v4-title{margin:0;min-width:0;}
+  .v4-ojo{flex:none;width:44px;height:44px;margin-right:-8px;display:flex;align-items:center;justify-content:center;border:0;border-radius:22px;
+    background:transparent;color:var(--muted);cursor:pointer;transition:color .2s var(--ease),background .2s var(--ease);}
+  .v4-ojo.on{color:var(--mint-bright);background:var(--surface);}
+  .v4-ojo:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .gx-secciones{display:flex;gap:8px;flex:0 0 auto;}
   .gx-sec{position:relative;width:44px;height:44px;border-radius:22px;padding:0;display:flex;align-items:center;justify-content:center;
     border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;
@@ -1865,12 +1877,16 @@
   .pr6-mg-sum{width:100%;padding:18px;gap:10px;text-align:left;color:inherit;font:inherit;cursor:pointer;}
   .pr6-mg-lbl{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;}
   .pr6-mg-lbl svg{flex:none;color:var(--mint-bright);}
-  .pr6-mg-sum .pr6-big{font-size:clamp(36px,11vw,44px);margin-top:0;}
+  .pr6-mg-sum .pr6-big{font-size:clamp(36px,11vw,44px);margin-top:0;animation:v4fade .28s var(--ease) both;}
   .pr6-mg-q{display:flex;align-items:center;gap:12px;height:56px;margin-top:20px;padding:0 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line-soft);color:var(--muted);}
   .pr6-mg-q:focus-within{border-color:var(--mint);}
   .pr6-mg-qi{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--text);font:500 16px 'Manrope',sans-serif;outline:none;}
   .pr6-mg-qi::-webkit-search-cancel-button{display:none;}
   .pr6-mg-chips{margin:12px 0 0;padding-bottom:2px;}
+  /* Como el prototipo: el banco elegido, relleno de menta; los demás, solo con borde (N9). */
+  .pr6-mg-chips .v4-chip{background:transparent;color:var(--text);}
+  .pr6-mg-chips .v4-chip.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  html[data-theme="light"] .pr6-mg-chips .v4-chip.on{background:var(--mint-ink);border-color:var(--mint-ink);color:var(--on-mint);}
   .pr6-mg-sec{margin-top:24px;}
   .pr6-mg-st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
   .pr6-mg-ss{font-size:13px;font-weight:500;color:var(--muted);}
@@ -1891,7 +1907,8 @@
   .pr6-mg-pe:first-child{border-top:0;}
   .pr6-mg-pe .pe-ava{width:34px;height:34px;background:var(--surface-2);border:0;color:var(--mint-bright);font-size:14px;}
   .pr6-mg-pe .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;font-size:15px;font-weight:700;}
-  .pr6-mg-pe .sub{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* Hasta dos renglones: en uno se cortaba justo antes de «se descuenta de Mamá» (N2). */
+  .pr6-mg-pe .sub{font-size:12px;font-weight:500;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;}
   .pr6-mg-go{flex:none;color:var(--muted);}
   .pr6-mg-pe:focus-visible,.pr6-mg-sum:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .pr6-mg-nada{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 0 8px;color:var(--muted);font-size:15px;text-align:center;}
@@ -2173,6 +2190,7 @@
   .af-info{margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--bg-2);border:1px solid var(--line-soft);}
   .af-safe{font-weight:700;font-size:13px;color:var(--mint);}
   .af-verdict{font-weight:800;font-size:14px;}
+  .af-verdict.ok{color:var(--mint);} .af-verdict.justo{color:var(--tan);} .af-verdict.no{color:var(--coral);}
   .af-low{font-size:12.5px;color:var(--text);margin-top:5px;}
   .af-delta{font-size:11.5px;color:var(--muted);margin-top:3px;}
   .liqrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:2px 0;}
@@ -2329,7 +2347,10 @@
   /* El editor mensual conserva su cifra compacta; el ritmo que estrenó aquí ya es el común. */
   .v4-budget-sheet .v4-ob-stepper .serif{font-size:clamp(36px,11vw,42px);letter-spacing:-1px;min-width:4.1ch;}
   .v4-card-list{display:flex;flex-direction:column;gap:0;}
-  html[data-theme="light"] .chip.active{color:#fff;}
+  /* En claro el chip elegido va relleno, como en oscuro, pero con `--mint-ink`: el blanco sobre el
+     tinte del 12 % no se leía (banco de «¿Y si gasto…?», auditoría 216, N1) y sobre `--mint`
+     se queda en 3,6:1. */
+  html[data-theme="light"] .chip.active{background:var(--mint-ink);border-color:var(--mint-ink);color:var(--on-mint);}
   .v4-set-profile{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:20px;padding:16px;margin-top:4px;box-shadow:var(--shadow);}
   .v4-set-av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);flex:0 0 auto;}
   .v4-set-sec{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted-2);margin:18px 4px 6px;}

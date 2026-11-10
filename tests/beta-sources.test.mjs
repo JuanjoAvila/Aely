@@ -6377,16 +6377,17 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     assert.equal(n213.items[lang].length,4,lang+": cuatro puntos familiares");
     for(const text of [n213.t[lang],...n213.items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
     const steps=n213.tandas[0].items[lang];
-    // Pasos 16 y 17 (tirar la hoja hacia abajo, «Ya está pagado» en su fila) y 18-19 («Ya pagados» con el cargo del banco), vídeo y queja del 8/11.
-    // Auditoría del 9/11, en una sola lista sin pasos repetidos: 20-22 dinero («Lo pagué de otra forma», saltado con Deshacer, día 31);
-    // 23-24 la portada como el prototipo (el nombre largo de «¿Cuánto es?» va dentro del 9); 25-29 «Tus recibos» según la SPEC §3.
+    // Auditoría de la 216 (claude/recibos-d2): fuera el resumen del mes cerrado (solo sale del 1 al 7) y «Ya está pagado» en
+    // su fila se funde en el 4; 16-17 «Ya pagados» con el cargo del banco; 18-20 dinero; 21-22 la portada como el prototipo
+    // («Por pagar», sin el nombre repetido); 23-27 «Tus recibos» (también el filtro de banco en avisos y Personas);
+    // 28 el ojo (SPEC §8) y 29 abrir la zona sin tirón.
     assert.equal(steps.length,29,lang+": veintinueve pasos");
     assert.ok(steps.every((s,i)=>s.startsWith((i+1)+". ")),lang+": pasos numerados");
     for(const step of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(step)&&/BIEN|RIGHT|BÉ/.test(step),lang+": cada paso dice qué es MAL y qué es BIEN");
   }
   // Los rótulos que cita el guion existen en 01-i18n.js, en su idioma.
   const i18n=source("src/modules/01-i18n.js");
-  for(const [lang,rows] of [["es",[["pr6_todos","Todos"],["mg_todas","Todas"],["gb_search","Buscar un recibo"],["mg_anadir","Añadir"],["pr6_ya_pagado_btn","Ya está pagado"],["rp5_mas","Más opciones"],["rp4_split","En varios pagos"],["rp4_once","Solo una vez"],["gb_freq_y","Una vez al año"],["gb_removed","Recibo quitado"],["pr6_ya_no","Ya no lo tengo"],["pr6_ya_me_lo_ha_pagado","Ya me lo ha pagado"],["pr6_si_gasto","¿Y si gasto…?"],["gb_afford","¿Me lo puedo permitir?"]]],["en",[["pr6_todos","All"],["mg_todas","All"],["gb_search","Search a bill"],["mg_anadir","Add"],["pr6_ya_pagado_btn","It's paid"],["rp5_mas","More options"],["rp4_split","In several payments"],["rp4_once","Just once"],["gb_freq_y","Once a year"],["gb_removed","Bill removed"],["pr6_ya_no","I don't have it anymore"],["pr6_ya_me_lo_ha_pagado","They've paid me"],["pr6_si_gasto","What if I spend…?"],["gb_afford","Can I afford it?"]]],["ca",[["pr6_todos","Tots"],["mg_todas","Tots"],["gb_search","Cerca un rebut"],["mg_anadir","Afegir"],["pr6_ya_pagado_btn","Ja està pagat"],["rp5_mas","Més opcions"],["rp4_split","En diversos pagaments"],["rp4_once","Només una vegada"],["gb_freq_y","Un cop l'any"],["gb_removed","Rebut tret"],["pr6_ya_no","Ja no el tinc"],["pr6_ya_me_lo_ha_pagado","Ja m'ho ha pagat"],["pr6_si_gasto","I si gasto…?"],["gb_afford","M'ho puc permetre?"]]]]){
+  for(const [lang,rows] of [["es",[["pr6_todos","Todos"],["mg_todas","Todas"],["gb_search","Buscar un recibo"],["mg_anadir","Añadir"],["pr6_ya_pagado_btn","Ya está pagado"],["rp5_mas","Más opciones"],["rp4_split","En varios pagos"],["rp4_once","Solo una vez"],["gb_freq_y","Una vez al año"],["gb_removed","Recibo quitado"],["pr6_ya_no","Ya no lo tengo"],["pr6_ya_me_lo_ha_pagado","Ya me lo ha pagado"],["pr6_si_gasto","¿Y si gasto…?"],["gb_afford","¿Me lo puedo permitir?"],["pr6_por_pagar","Por pagar"]]],["en",[["pr6_todos","All"],["mg_todas","All"],["gb_search","Search a bill"],["mg_anadir","Add"],["pr6_ya_pagado_btn","It's paid"],["rp5_mas","More options"],["rp4_split","In several payments"],["rp4_once","Just once"],["gb_freq_y","Once a year"],["gb_removed","Bill removed"],["pr6_ya_no","I don't have it anymore"],["pr6_ya_me_lo_ha_pagado","They've paid me"],["pr6_si_gasto","What if I spend…?"],["gb_afford","Can I afford it?"],["pr6_por_pagar","To pay"]]],["ca",[["pr6_todos","Tots"],["mg_todas","Tots"],["gb_search","Cerca un rebut"],["mg_anadir","Afegir"],["pr6_ya_pagado_btn","Ja està pagat"],["rp5_mas","Més opcions"],["rp4_split","En diversos pagaments"],["rp4_once","Només una vegada"],["gb_freq_y","Un cop l'any"],["gb_removed","Rebut tret"],["pr6_ya_no","Ja no el tinc"],["pr6_ya_me_lo_ha_pagado","Ja m'ho ha pagat"],["pr6_si_gasto","I si gasto…?"],["gb_afford","M'ho puc permetre?"],["pr6_por_pagar","Per pagar"]]]]){
     for(const [k,x] of rows){
       assert.ok(i18n.includes(k+":\""+x+"\""),lang+": el rótulo «"+x+"» existe en 01-i18n.js");
       assert.ok(n213.tandas[0].items[lang].some(s=>s.includes(x)),lang+": el guion cita «"+x+"»");
@@ -6467,6 +6468,9 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
   // INC1810 (4.26.215): «Baja la deuda al mes» sigue a la cuota también con el texto a medias
   // (`DebtEditSheet`), y eso mueve las cuatro huellas de Deudas que leen ese editor.
   Object.assign(expectedMoves,{"deudas-aviso-plazo":["web"],"deudas-guardar-motivo":["web"],"deudas-metas-hoja-sin-parpadeo":["web"],"deudas-plazo-cuota-cuadran":["web"]});
+  // Auditoría de la 216, lo visual (claude/recibos-d2): el ojo vive en `eur`/`eur0`/`eurParts`, la tecla de borrar de
+  // `NumPad` va dibujada y Plan maqueta sus capas premontadas en un hueco libre; eso mueve estas cuatro huellas web.
+  Object.assign(expectedMoves,{"inicio-tarjeta-ciclo-limpia":["web"],"vibracion-suave-ronda-3":["web"],"renombrar-lista-al-momento":["web"],"informe-mes-limite-del-mes":["web"]});
   const moved={};
   for(const [key,scope] of Object.entries(integrated)){
     if(key===archiveId)continue;
@@ -12782,7 +12786,7 @@ test("META91 vigila el lector de importes, los avisos, el estado y los céntimos
     ["src/modules/09-tab-debts-goals.js",'if(!goals.length && !rules.length && !adding) return null;','if(!goals.length && !rules.length) return null;'],
     ["src/modules/09-tab-debts-goals.js",'(goals.length>0 || adding) && (adding','goals.length>0 && (adding'],
     ["src/modules/09-tab-debts-goals.js",'if(!sent.seen){ setSent(Object.assign({},sent,{seen:true}));','if(!sent.seen){ setSent(null);'],
-    ["src/modules/00-core.js",'const eur  = (n)=> NF.format((n||0)*DISP.k)+" "+DISP.sym;','const eur  = (n)=> NF.format(0)+" "+DISP.sym;'],
+    ["src/modules/00-core.js",'const eur  = (n)=> DISP.oculto ? "•••• "+DISP.sym : NF.format((n||0)*DISP.k)+" "+DISP.sym;','const eur  = (n)=> DISP.oculto ? "•••• "+DISP.sym : NF.format(0)+" "+DISP.sym;'],
     // Transporte mensual en App (revisión del coordinador, 4/10): aportar con el pull fallido,
     // saltarse el pull al volver, no repasar al volver o no asentar tras el pull del arranque.
     ["src/modules/11-app-main.js",'return pull.then(function(ok){ if(ok) set(function(s){ return applyReservaMensual(s); }); });','return pull.then(function(ok){ set(function(s){ return applyReservaMensual(s); }); });'],

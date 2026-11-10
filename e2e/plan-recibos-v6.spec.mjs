@@ -117,7 +117,7 @@ test("ficha: enlazar el cargo lo pasa a «Ya pagados»; «No es este recibo» lo
   await expect(ficha.getByText("¿Con cuál se pagó?")).toBeVisible();
   await ficha.locator('[data-act="aun-no"]').click();
   await expect(ficha).toHaveCount(0);
-  await expect(page.locator(".toast")).toHaveText("Luz vuelve a Pendiente");
+  await expect(page.locator(".toast")).toHaveText("Luz vuelve a Por pagar");
   await expect(due.locator(".v4-charge").filter({ hasText: "Luz" })).toHaveCount(1);
   await expect(paid.locator(".v4-paid").filter({ hasText: "Luz" })).toHaveCount(0);
 });

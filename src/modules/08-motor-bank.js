@@ -5420,7 +5420,8 @@ function AffordSim({state, totals, set}){
       React.createElement("div",{className:"muted",style:{fontSize:11.5,marginTop:3}}, tf("af_eom",{x:eur(base.end)}))
     ),
     amt>0 && React.createElement("div",{className:"af-result "+verdict,style:{marginTop:10}},
-      React.createElement("div",{className:"af-verdict"}, verdictTxt),
+      // El tono lo da el color (antes un emoji delante: 🟠 🔴 ✅; P2-8).
+      React.createElement("div",{className:"af-verdict "+(verdict==="no"?"no":verdict==="yes"?"ok":"justo")}, verdictTxt),
       React.createElement("div",{className:"af-low"}, lowTxt),
       React.createElement("div",{className:"af-delta num"}, tf("af_from_to",{a:eur(base.min),b:eur(sim.min)}))
     ),

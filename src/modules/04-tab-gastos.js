@@ -1566,7 +1566,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
-  const l10nKey=CURLANG+"|"+DISP.sym;
+  // El ojo también: las filas memorizadas (`MovRow`) solo se repintan si cambia esta clave.
+  const l10nKey=CURLANG+"|"+DISP.sym+"|"+(DISP.oculto?1:0);
 
   /* Meses de la lista (para la fila de meses) y dónde empieza cada uno. Una pasada por cambio de
      lista; `gastosDia` va por caché de hora, sin un `Date` por fila. */
@@ -2111,7 +2112,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       !heavyOk ? null
       : novelSubs.length
         ? React.createElement("div",{className:"gx-subs-lista"},
-            novelSubs.map(function(sp){ return React.createElement(GxSubTarjeta,{key:sp.key,sp:sp,vuelve:!!subsBaja&&subsBaja[sp.key]!=null,onOpen:abreSub}); }))
+            novelSubs.map(function(sp){ return React.createElement(GxSubTarjeta,{key:sp.key,sp:sp,vuelve:!!subsBaja&&subsBaja[sp.key]!=null,onOpen:abreSub,l10n:l10nKey}); }))
         : React.createElement("div",{className:"gx-vacio"},
             React.createElement("div",{className:"gx-vacio-ic","aria-hidden":true},"✓"),
             React.createElement("div",{className:"gx-vacio-t serif"},t("gv5_subs_ok_t")),

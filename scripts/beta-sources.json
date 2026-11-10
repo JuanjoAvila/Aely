@@ -150530,11 +150530,11 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "NF0"
+        "data": "DISP"
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "DISP"
+        "data": "NF0"
       },
       {
         "file": "src/modules/08-motor-bank.js",
