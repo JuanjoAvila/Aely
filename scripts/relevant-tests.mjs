@@ -97,6 +97,10 @@ export const E2E_MAP = [
   // «Ya pagados» con el cargo del banco que no lleva el nombre del recibo (queja 8/11/2026).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-ya-pagados-banco.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-ya-pagados-banco.spec.mjs"] },
+  // «Cobró distinto» sin el nombre del recibo: se pregunta, no se paga solo (auditoría 9/11, P1-11).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
   // Portada como el prototipo: «Ya pagados» en una línea con la letra al 110 %, tres en «Para revisar»,
   // «Todos ›», «¿Y si gasto…?» y «¿Cuánto es?» sin aplastarse (auditoría 9/11). Lo que se mide es CSS.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },

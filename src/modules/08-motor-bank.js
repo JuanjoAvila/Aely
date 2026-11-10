@@ -234,6 +234,102 @@ function fixedPaymentRivalPorImporte(s,c,tx){
   }
   return recAmtClose(Number(c.amount),amount)&&(c.day==null||d!=null&&Math.abs(d-c.day)<=CUOTA_DIAS);
 }
+/* «COBRÓ DISTINTO» SIN SU NOMBRE (auditoría 9/11, P1-11). La luz de 54,26 € llega como «IBERDROLA
+   CLIENTES SAU» por 54,71 € el mismo día: sin nombre y sin el céntimo exacto el motor no la casa
+   (bien: por importe sin nombre se exige el céntimo) y el recibo se quedaba en «tocaba ayer» con el
+   cargo ya en el banco. Aquí NO se paga nada: se busca el cargo para preguntárselo en «Para
+   revisar» (SPEC §2.3) y solo él lo confirma o dice «No es este recibo». Por eso las vallas son las
+   del camino por importe más las de la ficha de Gastos, y un único candidato:
+   · recibo sin pagar, sin marca a mano ni pausa, con su día ya llegado;
+   · ningún cargo del mes lleva su nombre (ese sería el suyo, aunque cobre otra cifra);
+   · fila de Gastos del banco del recibo, contabilizada, a ±`CUOTA_DIAS`, con el importe parecido
+     (`fixedPaymentImporteParecido`) pero no exacto (exacto ya lo casa `fixedPaymentPorImporte`);
+   · un adeudo (su texto o el del extracto con la misma identidad), libre (`fixedExpenseEligible`:
+     ni cuota, ni meta, ni traspaso, ni ingreso, ni repetido, ni borrado, ni de otro recibo), sin
+     marca de otro, sin veto y sin devolución detrás;
+   · nadie más lo puede reclamar: ni otro recibo, ni una cuota, ni un puntual del mismo banco.
+   → la fila de Gastos, o null. Solo lectura. */
+/* Cuánto puede bailar el importe para PREGUNTAR. La SPEC (§2.3) fija 0,50 € para «cobró distinto»;
+   `recAmtClose` (0,50 € o el 2 %) daba ±17 € en un alquiler de 850 y proponía cargos que no son
+   (revisión del 9/11). El 1 % deja la luz que baila (54,26 → 54,71) y corta lo que no se parece. */
+const RECIBO_DISTINTO_PCT=0.01;
+function fixedPaymentImporteParecido(a,b){ return Math.abs(a-b)<=Math.max(0.5,RECIBO_DISTINTO_PCT*Math.max(Math.abs(a),Math.abs(b))); }
+/* Lo que no depende del recibo se calcula UNA vez por estado y mes (revisión del 9/11: por recibo
+   costaba cinco veces lo que ya había, 60 → 380 `fixedPaymentState`). Primero las filas baratas;
+   quién usa cada cargo y quién puede reclamarlo, solo si algún recibo tiene candidato. */
+function fixedPaymentCobroDistintoMes(s,y,m,today){
+  var cache=fixedPaymentCobroDistintoMes.cache||(fixedPaymentCobroDistintoMes.cache=new WeakMap()),key=y+"-"+m+"-"+today,hit=cache.get(s);
+  if(hit&&hit.key===key) return hit;
+  var ym=y+"-"+String(m).padStart(2,"0"),todas=[],baratas=[],txId=new Map(),txMes=[];
+  fixedPaymentExpenses(s,ym).identity.forEach(function(list){ list.forEach(function(x){ todas.push(x); }); });
+  todas.forEach(function(x){
+    var d=recDay(x&&x.date);
+    if(x&&(x.source==="ob"||x.source==="ob-hist")&&!x.obPending&&String(x.status||"").toUpperCase()==="BOOK"&&!x.reciboId&&Number(x.amount)>0&&d!=null&&d<=today) baratas.push(x);
+  });
+  (s.bankTx||[]).forEach(function(tx){
+    if(!tx||String(tx.date||"").slice(0,7)!==ym) return;
+    txMes.push(tx);
+    [fixedPaymentIdentity(tx.ent,tx),tx.id!=null&&String(tx.id)!==""?tx.ent+"|#"+tx.id:null].forEach(function(k){ if(!k) return; var l=txId.get(k);if(l) l.push(tx);else txId.set(k,[tx]); });
+  });
+  hit={key:key,todas:todas,baratas:baratas,txId:txId,txMes:txMes,usados:null,rivales:null};
+  cache.set(s,hit);
+  return hit;
+}
+function fixedPaymentCobroDistinto(s,e,y,m,today,sinPagar){
+  if(!e||!occursIn(e,m,y)||fixedPausedIn(e,y,m)||fixedMarcadoAMano(e,y,m)!=null) return null;
+  var day=cleanDay(dayIn(e,m,y)),target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y),bank=accOf(e);
+  if(day==null||day>today||!(target>0)) return null;
+  var mes=fixedPaymentCobroDistintoMes(s,y,m,today),tc=Math.round(target*100);
+  var pre=mes.baratas.filter(function(x){
+    var amount=Number(x.amount),d=recDay(x.date);
+    return expenseBankOf(x)===bank&&Math.round(amount*100)!==tc&&fixedPaymentImporteParecido(target,amount)&&Math.abs(d-day)<=CUOTA_DIAS;
+  });
+  if(!pre.length||!fixedPaymentUnique(s,e)||fixedPaymentStoredProof(s,e,y,m)) return null;
+  var conNombre=function(texto){ return recNameMatch(e.name,texto); };
+  if(mes.txMes.some(function(tx){ return tx.ent===bank&&Number(tx.amount)>0&&conNombre(tx.merchant); })) return null;
+  if(mes.todas.some(function(x){ return x&&expenseBankOf(x)===bank&&Number(x.amount)>0&&conNombre(x.obName!=null?x.obName:x.merchant); })) return null;
+  // `sinPagar`: quien llama ya sabe que está en Pendiente (`planRecibosAvisos`); su estado ya se leyó.
+  if(!sinPagar&&fixedPaymentState(s,e,y,m,today).paid) return null;
+  /* Cargos que ya son de otro recibo por su prueba guardada (también la BOOK del mes siguiente). Lo
+     que el motor casa solo, por nombre o al céntimo, lo para la comprobación de rivales de abajo;
+     así no se lee el estado de cada recibo (era lo caro). */
+  if(!mes.usados){
+    mes.usados=new Map();
+    (s.fixed||[]).forEach(function(o){ var q=fixedPaymentStoredProof(s,o,y,m); if(q&&q.identity) mes.usados.set(q.identity,o.id); });
+  }
+  if(!mes.rivales) mes.rivales=fixedPaymentContenders(s,y,m);
+  var rivales=mes.rivales.filter(function(c){ return !(c.kind==="fixed"&&c.id===e.id)&&c.bank===bank; });
+  /* Un recibo de OTRO banco también se queda un cargo de Gastos que lleva su nombre entero y su
+     importe al céntimo (`fixedPaymentState` → `fixedPaymentExpenseRows`): Endesa, en Revolut, ya
+     pagada con «ENDESA ENERGIA SAU» de Sabadell, se proponía a la Luz y «Sí, es este» la devolvía a
+     Pendiente (revisión del 9/11, ronda 2). Se pregunta con la misma búsqueda del motor. Cuotas y
+     puntuales no tienen ese camino: los paga su marca en la fila (`debtId`, `reciboId`), que ya
+     descarta `fixedExpenseEligible`. */
+  var ym=y+"-"+String(m).padStart(2,"0");
+  var otrosBancos=mes.rivales.filter(function(c){ return c.kind==="fixed"&&c.id!==e.id&&c.bank!==bank&&recNorm(c.name).length>=4; });
+  var idx=fixedPaymentFilasBanco(s);
+  var cands=pre.filter(function(x){
+    var amount=Number(x.amount),cents=Math.round(amount*100),d=recDay(x.date),identity=fixedPaymentIdentity(bank,x);
+    var duenyo=mes.usados.get(identity);
+    if(duenyo!=null&&duenyo!==e.id||reciboVetado(s,e.id,reciboNoIdentidad(x),x.id)) return false;
+    var txs=(mes.txId.get(identity)||[]).concat(x.extId!=null&&String(x.extId)!==""?(mes.txId.get(bank+"|#"+x.extId)||[]).filter(function(tx){ return tx.ent===bank; }):[]);
+    // Una compra con tarjeta no es un recibo aunque el comercio diga «RECIBO…»: la fila de Gastos no
+    // lleva `card` (el importador no lo copia), el extracto sí.
+    if(x.card||txs.some(function(tx){ return tx.card; })) return false;
+    if(!fixedPaymentAdeudo(x)&&!txs.some(fixedPaymentAdeudo)) return false;
+    var dia=Date.parse(String(x.date).slice(0,10)+"T00:00:00Z")/864e5;
+    if((idx.devoluciones.get(bank+"|"+cents)||[]).some(function(f){ var lag=f-dia; return lag>=0&&lag<=RECIBO_DEVUELTO_DIAS; })) return false;
+    var txLike={ent:bank,date:String(x.date).slice(0,10),amount:amount,merchant:x.obName!=null?x.obName:x.merchant};
+    /* Un rival al céntimo cuenta en todo el mes: el cargo adelantado de OTRO recibo con su día a +5
+       se proponía para este (revisión del 9/11). El parecido, al doble de la ventana de casar. */
+    if(rivales.some(function(c){
+      return recNameMatch(c.name,txLike.merchant)||Math.round(Number(c.amount)*100)===cents||fixedPaymentRivalPorImporte(s,c,txLike)||
+        fixedPaymentImporteParecido(Number(c.amount),amount)&&c.day!=null&&Math.abs(d-c.day)<=2*CUOTA_DIAS;
+    })||otrosBancos.some(function(c){ return fixedPaymentExpenseRows(s,recNorm(c.name),ym,c.amount).indexOf(x)>=0; })) return false;
+    return fixedExpenseEligible(s,x,e,y,m,today);
+  });
+  return cands.length===1?cands[0]:null;
+}
 /* Las filas del banco de Gastos por referencia e identidad, y los abonos por céntimos (del
    extracto y de Gastos: el otro móvil puede no tener extracto). Las fechas de Gastos, en el día
    de la casa: una devolución guardada a medianoche de Madrid es del día siguiente en UTC. */

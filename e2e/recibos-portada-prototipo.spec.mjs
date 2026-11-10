@@ -31,7 +31,7 @@ async function abre(page, vp, overrides) {
     flows: [{ id: "tr", kind: "transfer", name: "A Revolut", amount: 200, from: "sabadell", to: "revolut", day: 15 }, { id: "nom", kind: "income", name: "Nómina", amount: 1850, to: "sabadell", day: 28 }],
     bankTx: [{ id: "b-alq", ent: "sabadell", date: "2026-11-01", amount: 998, merchant: "ALQUILER SINTETICO", concept: "RECIBO ALQUILER", status: "BOOK" },
       { id: "b-luz", ent: "sabadell", date: "2026-11-08", amount: 54.71, merchant: "IBERDROLA CLIENTES SAU", concept: "RECIBO LUZ", status: "BOOK" }],
-    // La luz se cobró 45 céntimos más que lo previsto (se enlaza a mano): así salía «Previsto» y la fila se partía.
+    // La luz se cobró 45 céntimos más que lo previsto (él confirma el cargo): así salía «Previsto» y la fila se partía.
     expenses: [cargo("alq", "2026-11-01", 998, "ALQUILER SINTETICO"), cargo("luz", "2026-11-08", 54.71, "IBERDROLA CLIENTES SAU")], settings }, overrides || {}));
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -54,10 +54,12 @@ const renglones = (loc) => loc.evaluate((e) => {
 for (const vp of [{ width: 412, height: 915 }, { width: 360, height: 780 }]) {
   test("«Ya pagados» en una línea a " + vp.width + " px, también con la letra al 110 %", async ({ page }) => {
     const recibos = await abre(page, vp);
-    await recibos.locator('[data-recibo="fixed_luz"]').first().click();
+    // Con otro nombre y 45 céntimos de más sale en «Para revisar» y se confirma desde la ficha (P1-11).
+    const review = recibos.getByTestId("plan-review");
+    await review.getByRole("button", { name: /Ver los/ }).click();
+    await review.locator('[data-recibo="fixed_luz"]').click();
     const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
-    await ficha.locator('[data-act="pagado"]').click();
-    await ficha.getByTestId("recibo-cargos").locator(".pr6-cand").filter({ hasText: "IBERDROLA" }).click();
+    await ficha.locator('[data-act="es-este"]').click();
     await expect(ficha).toHaveCount(0);
     const paid = recibos.getByTestId("plan-paid"), h = paid.locator(".pr6-paid-h");
     // La fila dice lo que se cobró de verdad; la cabecera, solo la suma.
@@ -89,9 +91,10 @@ for (const vp of [{ width: 412, height: 915 }, { width: 360, height: 780 }]) {
 test("portada: tres en «Para revisar», «Todos ›» abre la gestión y Pendiente en tres líneas", async ({ page }) => {
   const recibos = await abre(page, { width: 360, height: 780 });
   const review = recibos.getByTestId("plan-review");
-  await expect(review.locator(".v4-charge")).toHaveCount(4);
+  // Cuatro sin cargo y la luz, que cobró distinto con otro nombre (P1-11).
+  await expect(review.locator(".v4-charge")).toHaveCount(5);
   await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(3);
-  await expect(review.getByRole("button", { name: /Ver los 4/ })).toBeVisible();
+  await expect(review.getByRole("button", { name: /Ver los 5/ })).toBeVisible();
 
   const due = recibos.getByTestId("plan-due");
   const basuras = due.locator('[data-recibo="fixed_bas"]');
