@@ -127,6 +127,14 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
+  // Recibos como el prototipo (auditoría 216): «Por pagar», chips y filtros de Tus recibos, el ojo
+  // (formateadores de 00/01 y su clave en 11), la tecla de borrar dibujada (02) y el tema claro.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-prototipo.spec.mjs"] },
   // «¿Cuál es el cargo?» con el cargo pendiente o de mañana: se lista aparte (beta 4.26.210).
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },

@@ -32,7 +32,7 @@ for(const kind of ['debt','receipt'])check('R1 explicit '+kind+' mismatched, mis
 });
 for(const lang of ['es','en','ca']){
   vm.runInNewContext('CURLANG='+JSON.stringify(lang),c);
-  const txt={es:['Pendiente','No cuenta en lo pendiente.','Por confirmar · 1','Todo pagado, salvo 1 cargo por confirmar.','Todo pagado, salvo 2 cargos por confirmar.'],en:['Pending','Not counted as pending.','To confirm · 1','Everything paid, except 1 charge awaiting confirmation.','Everything paid, except 2 charges awaiting confirmation.'],ca:['Pendent','No compta en el pendent.','Per confirmar · 1','Tot pagat, excepte 1 càrrec per confirmar.','Tot pagat, excepte 2 càrrecs per confirmar.']}[lang];
+  const txt={es:['Por pagar','No cuenta en lo pendiente.','Por confirmar · 1','Todo pagado, salvo 1 cargo por confirmar.','Todo pagado, salvo 2 cargos por confirmar.'],en:['To pay','Not counted as pending.','To confirm · 1','Everything paid, except 1 charge awaiting confirmation.','Everything paid, except 2 charges awaiting confirmation.'],ca:['Per pagar','No compta en el pendent.','Per confirmar · 1','Tot pagat, excepte 1 càrrec per confirmar.','Tot pagat, excepte 2 càrrecs per confirmar.']}[lang];
   check('A1 overdue receipt retains unconfirmed status '+lang,()=>{
     // Modo normal = PlanRecibos (v6): el recibo vencido sin cargo NO se da por pagado ni por pendiente,
     // vive en «Para revisar» con su estado explícito (antes PlanBills pintaba el banco en la fila).

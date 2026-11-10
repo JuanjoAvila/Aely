@@ -30,7 +30,8 @@ async function abreLlega(page, recibos) {
   await expect(hoja).toBeVisible();
   return hoja;
 }
-const teclea = async (zona, teclas) => { for (const k of teclas) await zona.locator(".v4-keys button", { hasText: new RegExp("^" + (k === "⌫" ? "⌫" : k) + "$") }).click(); };
+// «⌫» es un icono (sin glifo de otra fuente): se busca por su etiqueta.
+const teclea = async (zona, teclas) => { for (const k of teclas) await (k === "⌫" ? zona.locator('.v4-keys button[aria-label="Borrar"]') : zona.locator(".v4-keys button", { hasText: new RegExp("^" + k + "$") })).click(); };
 const saldoVisto = (page) => page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return s.accounts.map((a) => +saldoCuentaMostrada(a, i).toFixed(2)); });
 const nominaGuardada = (page) => page.evaluate(() => mcLoadRaw(mcStateKey()).flows.find((f) => f.id === "nom"));
 

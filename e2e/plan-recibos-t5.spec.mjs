@@ -46,7 +46,7 @@ test("tu parte en Plan, la cuota con lo que se descuenta y lo que sale del banco
   await expect(total(recibos)).toHaveText("327,00 €");
   await expect(fila(recibos, "fixed_pepe")).toContainText("22,00 €");
   await expect(fila(recibos, "fixed_yt")).toContainText("te han pagado 0 de 5");
-  await expect(fila(recibos, "debt_mama")).toContainText("pagas 197,00 € + 53,00 € de Pepephone");
+  await expect(fila(recibos, "debt_mama")).toContainText("pagas 197 € + 53 € de Pepephone");
   await expect(fila(recibos, "debt_mama")).toContainText("250,00 €");
   // «¿Te llega?» cuenta lo que cobra el banco: 85 + 30 + 50 + 197 = 362 → quedan 2.638.
   await recibos.getByTestId("plan-llega").click();
@@ -221,7 +221,7 @@ test("B1: añadir a alguien a un recibo ya pagado este mes no borra su «Te debe
   await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
   await expect(total(recibos)).toHaveText("300,00 €");
   await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
-  await expect(fila(recibos, "debt_mama")).toContainText("pagas 197,00 € + 53,00 € de Pepephone");
+  await expect(fila(recibos, "debt_mama")).toContainText("pagas 197 € + 53 € de Pepephone");
   await expect(fila(recibos, "debt_mama")).toContainText("250,00 €");
   const s = await guardado(page);
   expect(s.fixed.find((f) => f.id === "pepe").soloMes[YM].reparto.map((x) => x.id)).toEqual(["pe_pareja", "pe_fam"]);
@@ -337,7 +337,7 @@ test("R2-1: «Lo descuento» en un compartido de antes deja ajustar la parte: Ma
   await expect(page.locator('[data-bills-manage][data-screen="bills-home"]')).toHaveCount(1);
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
-  await expect(fila(recibos, "debt_mama")).toContainText("pagas 197,00 € + 53,00 € de Pepephone");
+  await expect(fila(recibos, "debt_mama")).toContainText("pagas 197 € + 53 € de Pepephone");
   await expect(fila(recibos, "debt_mama")).toContainText("250,00 €");
   await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
 });

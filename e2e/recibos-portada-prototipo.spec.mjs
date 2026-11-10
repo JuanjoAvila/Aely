@@ -88,7 +88,7 @@ for (const vp of [{ width: 412, height: 915 }, { width: 360, height: 780 }]) {
   });
 }
 
-test("portada: tres en «Para revisar», «Todos ›» abre la gestión y Pendiente en tres líneas", async ({ page }) => {
+test("portada: tres en «Para revisar», «Todos ›» abre la gestión y «Por pagar» en tres líneas", async ({ page }) => {
   const recibos = await abre(page, { width: 360, height: 780 });
   const review = recibos.getByTestId("plan-review");
   // Cuatro sin cargo y la luz, que cobró distinto con otro nombre (P1-11).

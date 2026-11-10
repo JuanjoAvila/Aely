@@ -94,7 +94,7 @@ test("cabecera, tarjeta con desglose y secciones con sus cifras: la de arriba es
 
   // Cuotas de deuda, con lo que se descuenta de un recibo compartido.
   const debt = sec(hub, "debt");
-  await expect(fila(hub, "mama").locator(".sub")).toHaveText("Sabadell · 197,00 € + 53,00 € de Pepephone");
+  await expect(fila(hub, "mama").locator(".sub")).toHaveText("197 € + 53 € de Pepephone");
   await expect(fila(hub, "mama").locator(".am")).toHaveText("250,00 €");
   await expect(debt.locator('[data-act]')).toHaveCount(0);
 
@@ -110,7 +110,7 @@ test("cabecera, tarjeta con desglose y secciones con sus cifras: la de arriba es
   await expect(pe.locator('[data-act="persona-add"]')).toHaveText("Añadir");
   await expect(pe.locator('[data-persona="pe_pareja"]')).toContainText("P");
   await expect(pe.locator('[data-persona="pe_pareja"] .sub')).toHaveText("Pepephone y YouTube Premium · 14,99 € al mes");
-  await expect(pe.locator('[data-persona="pe_fam"] .sub')).toHaveText("Pepephone · 53,00 € al mes · se descuenta de Mamá");
+  await expect(pe.locator('[data-persona="pe_fam"] .sub')).toHaveText("Pepephone · 53 € al mes · se descuenta de Mamá");
 
   // Al año: tocar la tarjeta lo multiplica todo por doce, también secciones y filas.
   await hub.locator("[data-bills-hero]").click();

@@ -36,9 +36,9 @@ for(const kind of ['debt','receipt'])for(const missing of [false,true])test('R1 
   await unchangedRound2(page);
 });
 const round2Text={
-  es:{due:'Pendiente',outside:'No cuenta en lo pendiente.',pending:'Por confirmar · 1',one:'Todo pagado, salvo 1 cargo por confirmar.',many:'Todo pagado, salvo 2 cargos por confirmar.'},
-  en:{due:'Pending',outside:'Not counted as pending.',pending:'To confirm · 1',one:'Everything paid, except 1 charge awaiting confirmation.',many:'Everything paid, except 2 charges awaiting confirmation.'},
-  ca:{due:'Pendent',outside:'No compta en el pendent.',pending:'Per confirmar · 1',one:'Tot pagat, excepte 1 càrrec per confirmar.',many:'Tot pagat, excepte 2 càrrecs per confirmar.'}
+  es:{due:'Por pagar',outside:'No cuenta en lo pendiente.',pending:'Por confirmar · 1',one:'Todo pagado, salvo 1 cargo por confirmar.',many:'Todo pagado, salvo 2 cargos por confirmar.'},
+  en:{due:'To pay',outside:'Not counted as pending.',pending:'To confirm · 1',one:'Everything paid, except 1 charge awaiting confirmation.',many:'Everything paid, except 2 charges awaiting confirmation.'},
+  ca:{due:'Per pagar',outside:'No compta en el pendent.',pending:'Per confirmar · 1',one:'Tot pagat, excepte 1 càrrec per confirmar.',many:'Tot pagat, excepte 2 càrrecs per confirmar.'}
 };
 for(const lang of ['es','en','ca']){
   test('A3 simple title and grouped transfers '+lang,async({page})=>{

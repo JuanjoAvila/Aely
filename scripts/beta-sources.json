@@ -119367,6 +119367,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentCobroDistinto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "quitarPagoDelExtracto"
       },
       {
@@ -119387,7 +119391,11 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentAdeudo"
+        "function": "fixedPaymentCobroDistintoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentImporteParecido"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -119395,11 +119403,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "data": "FIXED_A_MANO_MESES"
+        "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DISTINTO_PCT"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -122259,6 +122275,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentCobroDistinto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "quitarPagoDelExtracto"
       },
       {
@@ -122279,7 +122299,11 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentAdeudo"
+        "function": "fixedPaymentCobroDistintoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentImporteParecido"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -122287,11 +122311,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "data": "FIXED_A_MANO_MESES"
+        "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DISTINTO_PCT"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -125234,6 +125266,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentCobroDistinto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "quitarPagoDelExtracto"
       },
       {
@@ -125254,7 +125290,11 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentAdeudo"
+        "function": "fixedPaymentCobroDistintoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentImporteParecido"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -125262,11 +125302,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "data": "FIXED_A_MANO_MESES"
+        "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FIXED_A_MANO_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DISTINTO_PCT"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -126555,6 +126603,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedMarcarAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoClaves"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -134538,6 +134590,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoClaves"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "deudaDescuentoDe"
       },
       {
@@ -140822,6 +140878,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoClaves"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "deudaDescuentoDe"
       },
       {
@@ -145408,6 +145468,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoClaves"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -147821,6 +147885,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoClaves"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -149738,6 +149806,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoClaves"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoPon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "repartoAdmite"
       },
       {
@@ -150010,10 +150086,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "reciboNoPon"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseKey"
       },
       {
@@ -150051,6 +150123,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoTope"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -150227,10 +150303,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "obOrdinalOf"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "reciboNoTope"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -150530,11 +150602,11 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "NF0"
+        "data": "DISP"
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "DISP"
+        "data": "NF0"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -150681,6 +150753,10 @@
         "data": "_pdCache"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_MAX"
+      },
+      {
         "file": "src/modules/00-core.js",
         "data": "_mcDivisaCols"
       },
@@ -150759,10 +150835,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "data": "RECIBO_NO_MAX"
       },
       {
         "file": "src/modules/08-motor-bank.js",

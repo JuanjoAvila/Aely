@@ -46,12 +46,12 @@ test("cobró distinto: se pregunta en «Para revisar» y «Sí, es este» lo pas
   await expect(recibos.getByTestId("plan-review").locator('[data-recibo="fixed_luz"]')).toHaveAttribute("data-review","cand");
 });
 
-test("cobró distinto: «No es este recibo» lo deja en Pendiente y Deshacer lo vuelve a preguntar", async ({page}) => {
+test("cobró distinto: «No es este recibo» lo deja en Por pagar y Deshacer lo vuelve a preguntar", async ({page}) => {
   const recibos=await abreRecibos(page);
   await recibos.getByTestId("plan-review").locator('[data-recibo="fixed_luz"]').click();
   await page.locator('[data-sheet="recibo"] [data-act="no-es-cargo"]').click();
   const deshacer=page.getByTestId("plan-deshacer");
-  await expect(deshacer).toContainText("Luz vuelve a Pendiente");
+  await expect(deshacer).toContainText("Luz vuelve a Por pagar");
   await expect(recibos.getByTestId("plan-review")).toHaveCount(0);
   await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_luz"]')).toHaveCount(1);
   await deshacer.locator("button").click();

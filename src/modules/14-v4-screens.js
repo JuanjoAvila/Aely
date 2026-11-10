@@ -149,6 +149,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
      Al ponerse siempre, sobra la regla especial de `.track.dragging` que había en shell.html. */
   const oculto={height:0,overflow:"hidden",contentVisibility:"hidden",pointerEvents:"none"};
   const segElRef=useRef({});
+  // Cada capa premontada se maqueta una vez en un hueco libre (ver `mcCalentarCapa`).
+  const calentadas=useRef({});
+  useEffect(function(){
+    Object.keys(segMounted).forEach(function(id){
+      if(calentadas.current[id]||id===seg) return;
+      calentadas.current[id]=true;
+      mcScheduleIdle(function(){ if(segElRef.current[id]) mcCalentarCapa(segElRef.current[id]); },4000);
+    });
+  },[segMounted]);
   const capa=function(id,hijo){
     if(!segMounted[id]) return null;
     return React.createElement("div",{key:id,"data-seg":id,ref:function(el){ segElRef.current[id]=el; },style:seg===id?null:oculto,"aria-hidden":seg!==id}, hijo);
@@ -237,7 +246,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     // Fondo bajo la barra de estado: al bajar, el título, los botones y la tarjeta pasaban por
     // debajo de la hora y los iconos (vídeo del dueño, 7/11). El mismo que la cabecera de Gastos.
     React.createElement("div",{className:"v4-plan-techo","aria-hidden":"true"}),
-    React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
+    React.createElement("div",{className:"v4-plan-cab"},
+      React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
+      React.createElement(OjoImportes,{state:state,set:set})),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
         React.createElement("div",{className:stCls}, coverHead),
@@ -261,6 +272,20 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast})),
     debtDayRequest&&React.createElement(Debts,{state:state,set:set,showToast:showToast,editorOnly:true,editDayRequest:debtDayRequest,onEditDayClose:function(){setDebtDayRequest(null);}})
   );
+}
+
+/* El ojo (SPEC Plan Recibos §8): esconde TODAS las cifras de dinero de la app («•••• €») desde los
+   formateadores; los conteos se siguen viendo. La SPEC deja al dueño elegir dónde va: de momento en
+   la cabecera de Plan, que es donde se diseñó. Se guarda en `settings` para que dure y viaje. */
+function OjoImportes({state, set}){
+  const oculto=!!(state.settings&&state.settings.ocultarImportes);
+  return React.createElement("button",{type:"button",className:"v4-ojo"+(oculto?" on":""),"data-testid":"ojo-importes",
+    "aria-pressed":oculto?"true":"false","aria-label":t(oculto?"pr6_ojo_ver":"pr6_ojo_ocultar"),
+    onClick:function(){ mcTickHaptic(); set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings||{},{ocultarImportes:!oculto})}); }); }},
+    React.createElement("svg",{width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},
+      React.createElement("path",{d:"M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"}),
+      React.createElement("circle",{cx:12,cy:12,r:3}),
+      oculto&&React.createElement("path",{d:"M4 4l16 16"})));
 }
 
 /* Recibos en modo SENCILLO: la portada compacta que ya funcionaba. El rediseño v6 (`PlanRecibos`)
@@ -764,16 +789,18 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       ? tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))})+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
       : (x.descuento?pr6PagasMas(x):t("fj_debt_tag")+" · "+entOf(x.bank).label);
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
-    return (f&&f.category&&CAT[f.category]?catName(f.category)+" · ":"")+entOf(x.bank).label
+    const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
+    return (cat?cat+" · ":"")+entOf(x.bank).label
       +(x.teDeben?" · "+pr6TeHanPagado(x.teDeben):"");
   };
   /* En la fila, «categoría · banco» en un renglón: si no cabe se acorta la categoría y el banco se
      queda («Impuestos y multas · Sabadell» partía la fila en cuatro a 360 px). */
   const subNode=function(x){
     const f=!x.teDeben&&/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
-    if(!(f&&f.category&&CAT[f.category])) return React.createElement("span",{className:"sub"}, subOf(x));
+    const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
+    if(!cat) return React.createElement("span",{className:"sub"}, subOf(x));
     return React.createElement("span",{className:"sub pr6-sub-cat"},
-      React.createElement("span",{className:"pr6-cat"}, catName(f.category)),
+      React.createElement("span",{className:"pr6-cat"}, cat),
       React.createElement("span",{className:"pr6-bk"}, "· "+entOf(x.bank).label));
   };
   // Días que faltan; en la vista del mes siguiente, contados de calendario hasta ese día.
@@ -999,11 +1026,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
       lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
-    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?pr6EnMes(sigM):t("v4_pendiente")},
+    React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?pr6EnMes(sigM):t("pr6_por_pagar")},
       React.createElement("div",{className:"pr6-sec-h v4-section-h"},
-        // «Pendiente» y no «Por pagar»: la petición del dueño del 26/10/2026 (la otra palabra
-        // necesitaba una línea de ayuda debajo para entenderse) sigue en pie con el rediseño.
-        React.createElement("span",null, sig?pr6Cap(pr6EnMes(sigM)):t("v4_pendiente")),
+        /* «Por pagar», como la SPEC (§2.4) y el prototipo. El «Pendiente» del 26/10 fue cosa nuestra al
+           quitar la línea de ayuda de la pantalla vieja, no una petición suya (b4621988f). */
+        React.createElement("span",null, sig?pr6Cap(pr6EnMes(sigM)):t("pr6_por_pagar")),
         React.createElement("button",{type:"button",className:"link pr6-todos","data-testid":"plan-todos",onClick:openManage}, t("pr6_todos"),
           React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"})))),
@@ -1058,6 +1085,12 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
    en catalán, con su artículo («més que l'agost», «més que el setembre»). */
 const PR6_CERRADO_DIAS=7;
 function pr6Cap(s){ s=String(s||""); return s.charAt(0).toUpperCase()+s.slice(1); }
+/* La categoría de un recibo solo si dice algo que el nombre no dice: «Luz / Luz · Sabadell» repetía
+   lo mismo dos veces (auditoría 216, N5). */
+function pr6CatDe(c,name){
+  const norm=function(x){ return String(x||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); };
+  return c&&norm(c)!==norm(name)?c:"";
+}
 function pr6MesCon(m){
   const n=monthLong(m-1);
   if(CURLANG!=="ca") return n;
@@ -1217,7 +1250,7 @@ function pr6TeHanPagado(d){
 }
 /* Personas y compartidos (Plan › Recibos v6, tanda 5; SPEC §5-§6). El modelo vive en 08
    (`repartoVigente`, `teDebenMes`, `deudaDescuentoMes`…); aquí solo se pinta y se escribe con él. */
-function pr6PagasMas(x){ return tf("pr6_pagas_mas",{a:eur(x.bankAmt),b:eur(x.descuento.amt),from:x.descuento.from.join(", ")}); }
+function pr6PagasMas(x){ return tf("pr6_pagas_mas",{a:cycleMoney(x.bankAmt),b:cycleMoney(x.descuento.amt),from:x.descuento.from.join(", ")}); }
 function pr6Inicial(n){ const c=String(n||"").trim().charAt(0); return c?c.toUpperCase():"·"; }
 const PE_VIAS=[["bizum","pe_bizum"],["transfer","pe_transfer"],["debt","pe_debt"]];
 function peViaTxt(state,p){
@@ -2436,10 +2469,19 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     return {todas:todas,filas:filtradas,suma:suma,bancos:bancos.length>1?bancos:[]};
   })():null;
   const k12=anual?12:1;
-  // Cerrado, la misma cifra sin filtros (`billsHeroTotal`): al abrir sale ya en su valor y no
-  // cuenta desde 0 (quien tocaba enseguida se quedaba con una cifra a medias, beta 4.26.150).
-  const hero=mg?Math.round((mg.suma.serv+mg.suma.debt)*k12*100)/100:billsHeroTotal(state,totals);
-  const shownHero=useCountUp(hero,!!open);
+  /* La cifra va directa, sin contar: al cambiar de mes a año o de banco pasaba casi un segundo por
+     cifras que no existen (1.987,95 €, 277,65 €…) y cada paso repintaba la pantalla entera
+     (auditoría 216, N4). El cambio lo marca el fundido de `.pr6-mg-sum .pr6-big`. */
+  const hero=mg?Math.round((mg.suma.serv+mg.suma.debt)*k12*100)/100:0;
+  /* Lo que queda por debajo de la primera pantalla se monta un fotograma después: abrir Tus recibos
+     maquetaba ~500 nodos de golpe y, con la CPU a ×6, ese fotograma pasaba de 120 ms (P1-13). La
+     pantalla entra de lado, así que lo de abajo llega antes de que se vea. */
+  const [resto,setResto]=React.useState(false);
+  React.useEffect(function(){
+    if(!open){ setResto(false); return undefined; }
+    let id=requestAnimationFrame(function(){ id=requestAnimationFrame(function(){ setResto(true); }); });
+    return function(){ cancelAnimationFrame(id); };
+  },[open]);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
   if(!banks.length) banks.push("sabadell");
@@ -2518,17 +2560,19 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         :(e.freq&&e.freq!=="mes"&&e.freq!=="mensual"?lower(gbTxt((RP4_FREQS.find(function(f){ return f[0]===e.freq; })||[0,"gb_freq_y"])[1])):"");
       const pausa=pr6PausaTxt(r,cy*12+cm);
       return {d1:nx.day||"—",d2:sch||anualF?monthShort(nx.m-1):t("mg_dia"),paused:!!pausa,
-        sub:pausa||[e.category&&CAT[e.category]?catName(e.category):"",entOf(r.bank).label,fr,repartoVigente(e)?t("mg_compartido"):""].filter(Boolean).join(" · "),
+        sub:pausa||[e.category&&CAT[e.category]?pr6CatDe(catName(e.category),e.name):"",entOf(r.bank).label,fr,repartoVigente(e)?t("mg_compartido"):""].filter(Boolean).join(" · "),
         amt:amt(anual?Math.abs(Number(r.monthly)||0)*12:nx.amt,e.variable)};
     }
     if(r.kind==="debt"){
       const from=r.descuento>0?deudaDescuentoDe(state,e):[];
+      // «Mamá · 197 € + 53 € de Pepephone» (SPEC §3): con lo que pone otro, el banco sobra y la
+      // línea se partía en dos a 412 px (auditoría 216, P2-1).
       return {d1:cleanDay(e.day)||"—",d2:t("mg_dia"),
-        sub:entOf(r.bank).label+(from.length?" · "+tf("mg_mas",{a:eur(r.cash),b:eur(r.descuento),from:pr6Lista(from)}):""),
+        sub:from.length?tf("mg_mas",{a:cycleMoney(r.cash),b:cycleMoney(r.descuento),from:pr6Lista(from)}):entOf(r.bank).label,
         amt:eur(Math.abs(Number(r.monthly)||0)*k12)};
     }
     if(r.kind==="oneoff") return {d1:cleanDay(e.day)||"—",d2:monthShort((Number(e.month)||cm)-1),
-      sub:[e.category&&CAT[e.category]?catName(e.category):"",entOf(r.bank).label].filter(Boolean).join(" · "),amt:eur(Math.abs(Number(r.monthly)||0))};
+      sub:[e.category&&CAT[e.category]?pr6CatDe(catName(e.category),e.name):"",entOf(r.bank).label].filter(Boolean).join(" · "),amt:eur(Math.abs(Number(r.monthly)||0))};
     return {d1:cleanDay(e.day)||"—",d2:t("mg_dia"),income:r.income,
       sub:t(r.income?"fj_income_tag":"fj_transfer_tag")+" · "+entOf(r.bank).label,
       amt:(r.income?"+":"")+eur(Math.abs(Number(r.monthly)||0))};
@@ -2583,7 +2627,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
      como el resumen del mes cerrado, para que no vuelva en el otro móvil; si cambia qué recibos
      se solapan, la clave cambia y el aviso vuelve. */
   const solapesNo=(state.settings&&state.settings.recSolapesNo)||[];
-  const solapes=qq?[]:recibosSolapes(state).filter(function(o){ return solapesNo.indexOf(o.key)<0; });
+  /* Con un banco elegido, solo los solapes y las personas de ese banco: «Spotify y YouTube» seguía
+     con Revolut aunque YouTube se cobra en Sabadell (auditoría 216, N3). */
+  const bancoDe={}; mg.todas.serv.forEach(function(r){ bancoDe[r.id]=r.bank; });
+  const enBanco=function(id){ return !banco||bancoDe[id]===banco; };
+  const solapes=qq?[]:recibosSolapes(state).filter(function(o){
+    return solapesNo.indexOf(o.key)<0&&o.key.split(":")[1].split(",").every(enBanco);
+  });
   const quitarSolape=function(o){
     setSolapeSale(o.key);
     setTimeout(function(){
@@ -2613,6 +2663,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
                 React.createElement("path",{d:"M6 6l12 12M18 6L6 18"})))))));
   };
   // Personas (SPEC §3/§6): con quién compartes recibos; tocar abre su ficha, «Añadir» una nueva.
+  const personasVer=personas.map(function(p){ return banco?Object.assign({},p,{recibos:p.recibos.filter(function(r){ return enBanco(r.id); })}):p; })
+    .filter(function(p){ return p.recibos.length>0; });
   const personasEl=!qq&&(state.fixed||[]).length>0&&React.createElement("section",{className:"pr6-sec pr6-mg-sec","data-mg-sec":"people","aria-label":gbTxt("pe_title")},
     React.createElement("div",{className:"pr6-sec-h"},
       React.createElement("span",{className:"pr6-mg-st"},
@@ -2620,11 +2672,11 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         React.createElement("span",{className:"pr6-mg-ss"}, t("mg_personas_sub"))),
       React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":"persona-add","aria-label":gbTxt("pe_add"),
         onClick:function(){ openerRef.current=document.activeElement; setPersona({}); }}, plus,t("mg_anadir"))),
-    personas.length>0&&React.createElement("div",{className:"pr6-mg-pl","data-testid":"pe-lista"},
-      personas.map(function(p){
+    personasVer.length>0&&React.createElement("div",{className:"pr6-mg-pl","data-testid":"pe-lista"},
+      personasVer.map(function(p){
         const total=p.recibos.reduce(function(a,r){ return a+Math.round(r.amt*100); },0)/100;
         const d=p.via==="debt"&&(state.debts||[]).find(function(o){ return o.id===p.debtId; });
-        const sub=tf("mg_persona_sub",{list:pr6Lista(p.recibos.map(function(r){ return r.name; })),x:eur(total)})+(d?" · "+tf("mg_se_descuenta",{x:d.name}):"");
+        const sub=tf("mg_persona_sub",{list:pr6Lista(p.recibos.map(function(r){ return r.name; })),x:cycleMoney(total)})+(d?" · "+tf("mg_se_descuenta",{x:d.name}):"");
         return React.createElement("button",{type:"button",className:"pr6-mg-pe",key:p.id,"data-persona":p.id,"aria-label":p.n+" · "+sub,
           onClick:function(){ openerRef.current=document.activeElement; setPersona({pid:p.id}); }},
           React.createElement("span",{className:"pe-ava","aria-hidden":"true"}, pr6Inicial(p.n)),
@@ -2653,7 +2705,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       React.createElement("span",{className:"v4-micro pr6-mg-lbl"}, anual?t("mg_al_ano"):gbTxt("gb_hero_label"),
         React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},
           React.createElement("path",{d:"M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"}))),
-      React.createElement("span",{className:"serif num pr6-big v4-bills-hero-amt","data-bills-total":"1"}, eur(shownHero)),
+      React.createElement("span",{className:"serif num pr6-big v4-bills-hero-amt","data-bills-total":"1",key:anual+"|"+(banco||"")}, eur(hero)),
       mg.suma.debt>0&&mg.suma.serv>0&&React.createElement("span",{className:"pr6-count num","data-bills-desglose":"1"},
         tf("mg_desglose",{a:eur(mg.suma.serv*k12),b:eur(mg.suma.debt*k12)}))),
     React.createElement("label",{className:"pr6-mg-q"},
@@ -2667,16 +2719,16 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         return React.createElement("button",{type:"button",role:"radio","aria-checked":on?"true":"false",className:"v4-chip"+(on?" on":""),key:b||"todas","data-mg-bank":b||"todas",
           onClick:function(){ setBanco(b); }}, b?entOf(b).label:t("mg_todas"));
       })),
-    secciones.slice(0,3),
-    solapes.map(solapeEl),
-    personasEl,
-    secciones.slice(3),
+    secciones.slice(0,resto||qq?3:1),
+    (resto||qq)&&solapes.map(solapeEl),
+    (resto||qq)&&personasEl,
+    (resto||qq)&&secciones.slice(3),
     nadaQ&&React.createElement("div",{className:"pr6-mg-nada","data-bills-noresults":"1"},
       React.createElement("span",null, tf("mg_nada",{q:q.trim()})),
       React.createElement("button",{type:"button",className:"pr6-cta","data-act":"bill-add-q",onClick:function(){ startAdd("fixed",q.trim().charAt(0).toUpperCase()+q.trim().slice(1)); }},
         plus,tf("mg_anadir_q",{q:q.trim()}))),
     // «¿Me lo puedo permitir?» no está en el prototipo pero vive aquí (fila 99 del BACKLOG): conserva su puerta.
-    !qq&&React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
+    !qq&&resto&&React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
       React.createElement("div",{className:"v4-bills-afford-t"}, gbTxt("gb_afford")),
       React.createElement("div",{className:"v4-bills-afford-s"}, gbTxt("gb_afford_sub")))
   );
@@ -2879,6 +2931,14 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
    mes ya pagado. «Solo una vez» es un cargo puntual (`oneoffs`) y «En varios pagos», `schedule`. */
 const RP4_SUG=[["luz","luz"],["agua","agua"],["gas","gas"],["internet","recibos"],["movil","recibos"],["alquiler","hogar"],
   ["seguro","recibos"],["gimnasio","salud"],["netflix","ocio"],["spotify","ocio"],["hacienda","tasas"],["comunidad","hogar"]];
+/* Icono propio de cada sugerencia, de trazo como el resto de Recibos (el prototipo): el emoji de la
+   categoría no casaba con el servicio (Gimnasio 💊, Netflix y Spotify 🎭, Internet y Móvil 🧾; P2-4). */
+const RP4_ICO={luz:"M13 2L4 14h7l-1 8 9-12h-7l1-8z",agua:"M12 3c-3 4.5-6 7.6-6 11a6 6 0 0012 0c0-3.4-3-6.5-6-11z",
+  gas:"M12 3c1 3 4 5 4 9.5a4 4 0 01-8 0c0-2 1-3.2 2-4 0 2 .8 3 2 3 0-3-1.2-5.5 0-8.5z",internet:"M2 9a15 15 0 0120 0M5 12.5a10 10 0 0114 0M8.5 16a5 5 0 017 0M12 19.5h.01",
+  movil:"M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2zM11 18h2",alquiler:"M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z",
+  seguro:"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z",gimnasio:"M6 7v10M3 10v4M18 7v10M21 10v4M6 12h12",netflix:"M4 5h16v11H4zM8 20h8M12 16v4",
+  spotify:"M9 18V5l11-2v13M9 18a3 3 0 11-6 0 3 3 0 016 0zM20 16a3 3 0 11-6 0 3 3 0 016 0z",hacienda:"M3 10l9-6 9 6M5 10v8M9.7 10v8M14.3 10v8M19 10v8M3 21h18",
+  comunidad:"M4 21V5a1 1 0 011-1h8a1 1 0 011 1v16M14 9h5a1 1 0 011 1v11M2 21h20M8 8h2M8 12h2M8 16h2"};
 const RP4_FREQS=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
 function rp4Raw(n){
   if(!(Number(n)>0)) return "";
@@ -3335,7 +3395,9 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
           upd(p); setTecleado(false); toca("name"); if(p.mode) toca("when");
           clearTimeout(espera.current); espera.current=setTimeout(function(){ ir(1); },180);
         }},
-          React.createElement("span",{className:"rp4-sug-i","aria-hidden":"true"}, (CAT[u[1]]||{}).icon||"🧾"), label);
+          React.createElement("span",{className:"rp4-sug-i","aria-hidden":"true"},
+            React.createElement("svg",{width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round"},
+              React.createElement("path",{d:RP4_ICO[u[0]]}))), label);
       }))
   ]);
   // 2 · Importe. El primer número que tecleas sustituye al que había.

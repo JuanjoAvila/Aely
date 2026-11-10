@@ -51,6 +51,7 @@ function receiptEveProducer(state,totals,now){
 }
 function App(){
   const [state,setStateRaw]=useState(loadState);
+  useEffect(function(){ mcScheduleIdle(mcCalentarGlifos,6000); },[]);
   const [modeChangePending,setModeChangePending]=useState(false);
   useEffect(function(){
     let timer=null;
@@ -469,6 +470,7 @@ function App(){
     const r=fxRateOf(c,state);
     if(c!=="EUR" && r>0){ DISP.sym=CUR_SYM[c]||c; DISP.k=1/r; }
     else { DISP.sym="€"; DISP.k=1; }
+    DISP.oculto=!!(state.settings&&state.settings.ocultarImportes);
   })();
   const savedLang=(state.settings&&state.settings.lang)||"es";
   const [langLoaded,setLangLoaded]=useState(0);
