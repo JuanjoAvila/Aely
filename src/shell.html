@@ -1027,6 +1027,15 @@
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
   .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
+  /* Filas que se deslizan (SPEC §2.3-2.4, §10): debajo, quieto, lo que va a pasar; aparece a medida que
+     la tarjeta se aparta. Solo durante el gesto se recorta y se sube a su capa: en reposo no cuesta nada. */
+  .pr6-sw{position:relative;border-radius:20px;}
+  .pr6-sw.is-sw{overflow:hidden;}
+  .pr6-sw.is-sw > .v4-charge{will-change:transform;}
+  .pr6-sw > .v4-charge{position:relative;}
+  .pr6-sw-bg{position:absolute;inset:0;border-radius:20px;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:22px;
+    background:var(--surface-2);color:var(--text);font-size:14px;font-weight:800;opacity:0;pointer-events:none;}
+  .pr6-sw[data-desliza="cargo"] .pr6-sw-bg{background:var(--mint);color:var(--on-mint);}
   .pr6-fold{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-8px;transition:grid-template-rows .35s var(--ease),opacity .25s ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
   .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;}
@@ -1225,6 +1234,21 @@
   .pe-recibos{display:flex;flex-direction:column;gap:8px;}
   .rp5-mas{display:flex;flex-direction:column;}
   .rp5-in{display:flex;flex-direction:column;gap:12px;padding-top:4px;}
+  /* Prueba gratis y Permanencia (SPEC §7): una línea «etiqueta · valor ⌄» que se despliega. */
+  .rp7-x{display:flex;flex-direction:column;border-top:1px solid var(--line-soft);}
+  .rp7-row{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 2px;border:0;background:transparent;color:var(--text);font:inherit;cursor:pointer;}
+  .rp7-row[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
+  .rp7-k{flex:1;min-width:0;text-align:left;font-size:15px;font-weight:700;}
+  .rp7-v{flex:none;font-size:15px;font-weight:700;}
+  .rp7-row .pr6-chev{color:var(--muted);}
+  .rp7-in{gap:12px;}
+  .rp7-x > .pr6-fold{margin-top:0;}
+  .pr6-fold.open > .rp7-in{padding:4px 0 12px;}
+  .rp7-chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .rp7-chip{height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--line-soft);background:transparent;color:var(--text);font:inherit;font-size:14px;font-weight:700;cursor:pointer;
+    transition:background .2s ease,color .2s ease,border-color .2s ease;}
+  .rp7-chip.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .rp7-fecha{flex:1;min-width:0;font-size:15px;}
   .rp5-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
   .rp5-ava{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;padding:4px 0;border:0;background:transparent;color:var(--text);font:inherit;cursor:pointer;}
   .rp5-ava:disabled{opacity:.35;cursor:default;}

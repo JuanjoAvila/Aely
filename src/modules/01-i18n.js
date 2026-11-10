@@ -4407,6 +4407,31 @@ Object.assign(LANG.ca,{
   rp5_supera:"Les parts superen l'import: no et queda part", rp5_descuento_mensual:"«Ho descompto» només en rebuts de cada mes",
   rp5_rehacer:"Aquestes parts ja no quadraven: revisa-les i desa", pe_viejo_ajustar:"A {name} ajustaràs les parts abans de desar"
 });
+// Recibos: prueba gratis, permanencia y filas que se deslizan (decisión del dueño, 10/11/2026).
+Object.assign(LANG.es,{
+  pr6_prueba_hoy:"Hoy empieza a cobrar", pr6_prueba_manana:"Mañana empieza a cobrar", pr6_perm_fin:"Fin de permanencia: {x}",
+  pr6_me_lo_quedo:"Me lo quedo", pr6_ya_mirado:"Ya lo he mirado", pr6_te_lo_quedas:"{name}: te lo quedas",
+  pr6_desliza_manana:"Mañana", pr6_desliza_pagado:"Pagado",
+  rp7_prueba:"Prueba gratis", rp7_perm:"Permanencia", rp7_no:"No", rp7_hasta_dia:"hasta el {x}", rp7_hasta:"hasta {x}",
+  rp7_empieza:"empieza a cobrar el {x}", rp7_sin_prueba:"Sin prueba", rp7_un_mes:"Un mes", rp7_sin_perm:"Sin permanencia", rp7_un_ano:"Un año",
+  rp7_mes_menos:"Un mes antes", rp7_mes_mas:"Un mes después"
+});
+Object.assign(LANG.en,{
+  pr6_prueba_hoy:"Starts charging today", pr6_prueba_manana:"Starts charging tomorrow", pr6_perm_fin:"Commitment ends: {x}",
+  pr6_me_lo_quedo:"I'll keep it", pr6_ya_mirado:"I've checked it", pr6_te_lo_quedas:"{name}: you're keeping it",
+  pr6_desliza_manana:"Tomorrow", pr6_desliza_pagado:"Paid",
+  rp7_prueba:"Free trial", rp7_perm:"Minimum term", rp7_no:"No", rp7_hasta_dia:"until {x}", rp7_hasta:"until {x}",
+  rp7_empieza:"starts charging on {x}", rp7_sin_prueba:"No trial", rp7_un_mes:"One month", rp7_sin_perm:"No minimum term", rp7_un_ano:"One year",
+  rp7_mes_menos:"One month earlier", rp7_mes_mas:"One month later"
+});
+Object.assign(LANG.ca,{
+  pr6_prueba_hoy:"Avui comença a cobrar", pr6_prueba_manana:"Demà comença a cobrar", pr6_perm_fin:"Fi de permanència: {x}",
+  pr6_me_lo_quedo:"M'ho quedo", pr6_ya_mirado:"Ja ho he mirat", pr6_te_lo_quedas:"{name}: te'l quedes",
+  pr6_desliza_manana:"Demà", pr6_desliza_pagado:"Pagat",
+  rp7_prueba:"Prova gratuïta", rp7_perm:"Permanència", rp7_no:"No", rp7_hasta_dia:"fins al {x}", rp7_hasta:"fins a {x}",
+  rp7_empieza:"comença a cobrar el {x}", rp7_sin_prueba:"Sense prova", rp7_un_mes:"Un mes", rp7_sin_perm:"Sense permanència", rp7_un_ano:"Un any",
+  rp7_mes_menos:"Un mes abans", rp7_mes_mas:"Un mes després"
+});
 // Tus recibos (Gestionar) según la SPEC §3 del rediseño de Recibos: secciones planas, mes/año y solapes.
 Object.assign(LANG.es,{
   mg_al_ano:"SE TE VAN AL AÑO", mg_desglose:"recibos {a} + cuotas {b}", mg_por_mes:"{x}/mes", mg_por_ano:"{x}/año",

@@ -254,6 +254,12 @@ cobra igualmente es un pago y se ve. Pausar conserva normalmente el saldo mostra
 (`conSaldoMostrado`), como los vínculos de pago. Reanudar deshace esa misma compensación de
 base, también al mover una pausa vigente a un intervalo futuro o terminado: las exclusiones
 legadas vuelven a su base anterior, sin descontar el recibo por segunda vez.
+La prueba gratis (`pruebaHasta`, "AAAA-MM-DD": el día en que empieza a cobrar) y la permanencia
+(`permHasta`, año*12+mes en que acaba) también viajan en el recibo dentro de `app_state`. Son
+opcionales, las teclea él en «Más opciones» y solo dan un aviso en «Para revisar» (la prueba hoy o
+mañana; la permanencia este mes o el siguiente, hasta «Ya lo he mirado», que guarda esa fecha en
+`revisado.perm`). No mueven ninguna cifra. Cada una es un grupo propio en la mezcla de tres vías, y
+un cliente anterior las ignora y las conserva.
 La excepción es una lectura manual **nueva y
 trazable** anterior al día de un recibo vencido e impagado: una única cuenta de recibos de ese
 banco puede retirar o restaurar esa proyección manteniendo su base leída. No se infiere nada
