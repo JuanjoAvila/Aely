@@ -73730,6 +73730,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
       },
       {
@@ -73771,14 +73779,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedEnPausa"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "billsHoyDe"
       }
     ],
     "unidades": true
@@ -76915,6 +76915,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
       },
       {
@@ -76956,10 +76960,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "billsHoyDe"
       }
     ],
     "unidades": true
@@ -79584,6 +79584,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
       },
       {
@@ -79625,14 +79633,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedEnPausa"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "billsHoyDe"
       }
     ],
     "unidades": true
@@ -129998,6 +129998,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
       },
       {
@@ -130027,10 +130031,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentEvidence"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "billsHoyDe"
       }
     ],
     "unidades": true
@@ -134778,6 +134778,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
       },
       {
@@ -134815,10 +134819,6 @@
       {
         "file": "src/modules/07-tab-patri-fijos.js",
         "function": "fixedMarcadoAMano"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "billsHoyDe"
       }
     ],
     "unidades": true
@@ -136456,6 +136456,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
       },
       {
@@ -136481,10 +136485,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "billsHoyDe"
       }
     ],
     "unidades": true
@@ -141122,6 +141122,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
       },
       {
@@ -141143,10 +141147,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "billsHoyDe"
       }
     ],
     "unidades": true
@@ -145720,6 +145720,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
       },
       {
@@ -145749,10 +145753,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "billsHoyDe"
       }
     ],
     "unidades": true
