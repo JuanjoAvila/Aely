@@ -226,6 +226,21 @@ test("la ventana ancha de la prueba no le quita su cargo a otro recibo sin prueb
   assert.equal(c.fixedPaymentState(Object.assign(estado([b]),{bankTx:[adeudo(25)]}),b,Y,M,28).paid,true);
 });
 
+/* Revisión de la 225, P1: dos recibos de 10 € en Sabadell que acaban la prueba el mismo mes, «a» del 25 con prueba
+   hasta el 19 (ventana 15..29) y «b» del 26 con prueba hasta el 10 (6..30). Un adeudo sin nombre el 25 cae en lo
+   ensanchado de los dos: en la 225 pagaba los dos (un cargo, dos recibos); es un empate y no es de ninguno.
+   Con su nombre, sí es del suyo. */
+test("dos recibos en su mes de fin de prueba: un cargo sin nombre no paga los dos",()=>{
+  const a=r("a",25,{pruebaHasta:"2026-10-19"}),b=r("b",26,{pruebaHasta:"2026-10-10"});
+  const st=(bankTx,f)=>c.fixedPaymentState(Object.assign(estado([a,b]),{bankTx}),f,Y,M,28).paid;
+  assert.equal(st([adeudo(25)],a),false);assert.equal(st([adeudo(25)],b),false);
+  // En la ventana estrecha de uno solo (el 19 de «a»: 15..23; «b», 6..14) sigue siendo de ese.
+  assert.equal(st([adeudo(19)],a),true,"el 19 es de «a»");
+  assert.equal(st([adeudo(19)],b),false,"y no de «b»");
+  assert.equal(st([adeudo(25,{merchant:"Recibo a"})],a),true,"con su nombre, de «a»");
+  assert.equal(st([adeudo(25,{merchant:"Recibo a"})],b),false);
+});
+
 test("cobró distinto el mes de fin de la prueba: también se pregunta si llega en su día de siempre",()=>{
   const e=r("d",25,{pruebaHasta:"2026-10-19"});
   const con=(dia)=>{

@@ -19984,9 +19984,11 @@ function fixedPaymentPorImporte(s,c,tx){
   /* Fuera de su ventana de siempre (lo ensanchado del mes de fin de la prueba) el cargo es suyo solo si
      no lo casa otro en la SUYA: dos suscripciones de 10 € en el mismo banco, la sin prueba cobrando el
      26, se quedaban las dos sin pagar (revisión de la 224, P2-A; en la 223 la del 26 casaba). Como
-     rival (`fixedPaymentRivalPorImporte`) cuenta la ventana de siempre, no la ancha. */
+     rival (`fixedPaymentRivalPorImporte`) cuenta la ventana de siempre, no la ancha. Y si el otro también
+     está en su mes de fin de prueba, su ventana ancha también lo veta: con dos así, un cargo sin nombre del
+     25 pagaba los dos (revisión de la 225, P1); ahora no es de ninguno, como cualquier empate. */
   if(Math.abs(d-c.day)>CUOTA_DIAS&&fixedPaymentContenders(s,+ds.slice(0,4),+ds.slice(5,7)).some(function(o){
-    return !(o.kind==="fixed"&&o.id===c.id)&&o.bank===tx.ent&&o.day!=null&&Math.abs(d-o.day)<=CUOTA_DIAS&&Math.round(Number(o.amount)*100)===Math.round(amount*100);
+    return !(o.kind==="fixed"&&o.id===c.id)&&o.bank===tx.ent&&o.day!=null&&(Math.abs(d-o.day)<=CUOTA_DIAS||o.dMax!==o.dMin&&d>=o.dMin-CUOTA_DIAS&&d<=o.dMax+CUOTA_DIAS)&&Math.round(Number(o.amount)*100)===Math.round(amount*100);
   })) return false;
   var idx=fixedPaymentFilasBanco(s),dia=Date.parse(ds+"T00:00:00Z")/864e5,cents=Math.round(amount*100);
   var filas=(tx.id!=null&&String(tx.id)!==""?idx.ref.get(tx.ent+"|"+tx.id)||[]:[]).concat(idx.identity.get(fixedPaymentIdentity(tx.ent,tx))||[]);
@@ -30045,7 +30047,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="57e1a356aa0d8302ba4273cdccaa98ed7a0cf1cf8ff1cd14c36182fe24893b96";
+var _rnSha="4ea3110e5e96924a9c5950a5b1c72f4542283db8f0bf811ec91792fcd9290645";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
