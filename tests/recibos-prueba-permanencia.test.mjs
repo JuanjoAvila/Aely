@@ -158,3 +158,57 @@ test("se mezclan entre móviles: cada fecha va por su cuenta y no arrastra el im
   assert.equal(quitada.conflicts.length,0);
   assert.ok(!("pruebaHasta" in quitada.rows[0]));
 });
+
+/* Revisión de la 223, P2-1: el mes en que acaba la prueba, un adeudo SIN el nombre del recibo en su día
+   de siempre no casaba (la ventana de ±4 días iba solo alrededor del fin de la prueba) y el recibo
+   seguía en Pendiente: «¿Te llega?» lo restaba dos veces. Oráculo contado a mano: recibo del 25 de
+   10 €, prueba hasta el 19, mirado el 27 → la ventana va del 15 (19−4) al 29 (25+4). */
+const adeudo=(dia,p)=>Object.assign({id:"ref-"+dia,ent:"sabadell",date:"2026-10-"+String(dia).padStart(2,"0"),amount:10,merchant:"ACREEDOR SINTETICO SL",concept:"ADEUDO RECIBO SEPA",status:"BOOK"},p);
+test("mes de fin de la prueba: el adeudo sin nombre casa en su día de siempre y en el de fin, no fuera",()=>{
+  const e=r("n",25,{pruebaHasta:"2026-10-19"});
+  const pagado=(dia,hoy,ex)=>c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(dia,ex)]}),e,Y,M,hoy||27).paid;
+  const s=Object.assign(estado([e]),{bankTx:[adeudo(25)]});
+  const st=c.fixedPaymentState(s,e,Y,M,27);
+  assert.equal(st.paid,true,"cobrado el 25, su día de siempre");
+  assert.equal(st.day,25,"el día del cargo");
+  const pack=c.planChargesMonth(s,M,Y,27),pr=c.paymentEvidenceUI(s,Y,M,27);
+  assert.deepEqual(JSON.parse(JSON.stringify(pack.paidBills.map(x=>x.id))),["fixed_n"]);
+  assert.equal(pack.pendingBillsTotal,0,"ya no queda por pagar");
+  assert.deepEqual(ids(c.planRecibosVista(pack,pr,27,c.planRecibosAvisos(s,pack,pr,Y,M,27),{}).review),[],"ni «No ha llegado»");
+  // «¿Te llega?»: pagado, el saldo ya lo lleva; no se resta otra vez.
+  assert.deepEqual([...c.pendingWalkEvents(s,Y,M,27)].filter(x=>x.amt<0&&!x.sinRestar).map(x=>[x.day,x.amt]),[],"«¿Te llega?» no lo resta otra vez");
+  // Bordes de la ventana: del 15 al 29.
+  assert.equal(pagado(19),true,"el día en que acaba la prueba");
+  assert.equal(pagado(15),true);assert.equal(pagado(14),false,"cinco días antes del fin");
+  assert.equal(pagado(29,30),true);assert.equal(pagado(30,30),false,"cinco días después de su día");
+  // Sigue exigiendo el céntimo exacto y que sea un adeudo.
+  assert.equal(pagado(25,27,{amount:10.01}),false);
+  assert.equal(pagado(25,27,{concept:"TRANSFERENCIA"}),false);
+  // El mes siguiente, la ventana de siempre: solo alrededor del 25.
+  const nov=(dia)=>c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(dia,{date:"2026-11-"+String(dia).padStart(2,"0")})]}),e,Y,11,30).paid;
+  assert.equal(nov(25),true);assert.equal(nov(19),false,"en noviembre el 19 queda a seis días");
+});
+
+test("al revés: la prueba acaba después de su día y el banco cobra en su día de siempre",()=>{
+  const e=r("v",5,{pruebaHasta:"2026-10-20"});
+  assert.equal(c.dayIn(e,10,2026),20);
+  const s=Object.assign(estado([e]),{bankTx:[adeudo(5)]});
+  // Mirado el 7: el cargo del 5 ya está en el banco, aunque la prueba acabe el 20.
+  assert.equal(c.fixedPaymentState(s,e,Y,M,7).paid,true);
+  // La ventana va del 1 (5−4) al 24 (20+4).
+  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(24)]}),e,Y,M,26).paid,true,"a cuatro del fin");
+  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(25)]}),e,Y,M,26).paid,false,"a cinco del fin");
+  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(5,{date:"2026-11-05"})]}),e,Y,11,7).paid,true,"en noviembre, su día de siempre");
+  assert.equal(c.fixedPaymentState(Object.assign(estado([e]),{bankTx:[adeudo(20,{date:"2026-11-20"})]}),e,Y,11,22).paid,false,"en noviembre el 20 ya no es suyo");
+});
+
+test("cobró distinto el mes de fin de la prueba: también se pregunta si llega en su día de siempre",()=>{
+  const e=r("d",25,{pruebaHasta:"2026-10-19"});
+  const con=(dia)=>{
+    const t=adeudo(dia,{id:"b"+dia,amount:10.06});
+    return Object.assign(estado([e]),{bankTx:[t],expenses:[{id:"e"+dia,extId:t.id,ent:"sabadell",date:t.date+"T12:00:00.000Z",amount:10.06,merchant:t.merchant,obName:t.merchant,source:"ob",status:"BOOK",category:"otros"}]});
+  };
+  const x=c.fixedPaymentCobroDistinto(con(25),e,Y,M,27);
+  assert.equal(x&&x.id,"e25","en su día de siempre");
+  assert.equal(c.fixedPaymentCobroDistinto(con(14),e,Y,M,27),null,"cinco días antes del fin, no");
+});

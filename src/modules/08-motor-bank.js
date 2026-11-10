@@ -179,8 +179,18 @@ function fixedPaymentContenders(s,y,m){
     return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount,day:cleanDay(o.day)};
   }));
 }
+/* EL MES EN QUE ACABA LA PRUEBA GRATIS el recibo tiene DOS días posibles (revisión de la 223, P2-1):
+   `dayIn` pone el de fin de la prueba (el prototipo cobra ahí), pero hay bancos que cobran el primer
+   recibo en su día de siempre. Con la ventana solo alrededor del fin, un adeudo sin el nombre del
+   recibo en su día de siempre (prueba hasta el 19, recibo del 25) no casaba: «No ha llegado», seguía
+   en Pendiente y «¿Te llega?», que ya ve el saldo con el cargo restado, lo restaba dos veces. Ese mes
+   el contendiente lleva los dos (`dMin`/`dMax`) y la ventana va de `dMin`−4 a `dMax`+4, en los dos
+   sentidos; el resto de meses `dMin`=`dMax`=`day`. Va en línea a propósito: una función nueva aquí
+   entraría en el cierre de lectores de casi todo el registro de beta sin cambiar nada de lo que vigila. */
 function fixedPaymentContender(f,y,m){
-  return {id:f.id,kind:"fixed",name:f.name,category:f.category,bank:accOf(f),amount:f.bankAmount>0?f.bankAmount:occAmountIn(f,m,y),day:cleanDay(dayIn(f,m,y))};
+  var day=cleanDay(dayIn(f,m,y)),hab=f.pruebaHasta?cleanDay(dayIn(Object.assign({},f,{pruebaHasta:null}),m,y)):null;
+  if(day==null||hab==null) hab=day;
+  return {id:f.id,kind:"fixed",name:f.name,category:f.category,bank:accOf(f),amount:f.bankAmount>0?f.bankAmount:occAmountIn(f,m,y),day:day,dMin:day==null?null:Math.min(day,hab),dMax:day==null?null:Math.max(day,hab)};
 }
 /* EL CARGO DEL RECIBO SIN SU NOMBRE (queja del 8/11/2026: «Ya pagados» no se enlazaba con lo que
    le cobra el banco). Sabadell manda como comercio el acreedor SEPA o el concepto del adeudo, que
@@ -209,7 +219,7 @@ function fixedPaymentAdeudo(tx){
 }
 function fixedPaymentPorImporte(s,c,tx){
   var ds=String(tx&&tx.date||"").slice(0,10),d=recDay(ds),amount=Number(tx&&tx.amount);
-  if(!c||c.day==null||d==null||!tx||tx.ent!==c.bank||!(amount>0)||Math.round(Number(c.amount)*100)!==Math.round(amount*100)||Math.abs(d-c.day)>CUOTA_DIAS) return false;
+  if(!c||c.day==null||d==null||!tx||tx.ent!==c.bank||!(amount>0)||Math.round(Number(c.amount)*100)!==Math.round(amount*100)||!(d>=(c.dMin!=null?c.dMin:c.day)-CUOTA_DIAS&&d<=(c.dMax!=null?c.dMax:c.day)+CUOTA_DIAS)) return false;
   if(!fixedPaymentAdeudo(tx)) return false;
   var idx=fixedPaymentFilasBanco(s),dia=Date.parse(ds+"T00:00:00Z")/864e5,cents=Math.round(amount*100);
   var filas=(tx.id!=null&&String(tx.id)!==""?idx.ref.get(tx.ent+"|"+tx.id)||[]:[]).concat(idx.identity.get(fixedPaymentIdentity(tx.ent,tx))||[]);
@@ -232,7 +242,7 @@ function fixedPaymentRivalPorImporte(s,c,tx){
     var ak=cuotaAliasKey({merchant:tx.merchant,ent:tx.ent}),cc=cuotaCargoCercano(c.debt,ms);
     if(ak&&s.cuotaAlias&&s.cuotaAlias[ak]===c.debt.id&&recAmtClose(cc.importe,amount)&&cc.dias<=CUOTA_ALIAS_DIAS) return true;
   }
-  return recAmtClose(Number(c.amount),amount)&&(c.day==null||d!=null&&Math.abs(d-c.day)<=CUOTA_DIAS);
+  return recAmtClose(Number(c.amount),amount)&&(c.day==null||d!=null&&d>=(c.dMin!=null?c.dMin:c.day)-CUOTA_DIAS&&d<=(c.dMax!=null?c.dMax:c.day)+CUOTA_DIAS);
 }
 /* «COBRÓ DISTINTO» SIN SU NOMBRE (auditoría 9/11, P1-11). La luz de 54,26 € llega como «IBERDROLA
    CLIENTES SAU» por 54,71 € el mismo día: sin nombre y sin el céntimo exacto el motor no la casa
@@ -277,12 +287,12 @@ function fixedPaymentCobroDistintoMes(s,y,m,today){
 }
 function fixedPaymentCobroDistinto(s,e,y,m,today,sinPagar){
   if(!e||!occursIn(e,m,y)||fixedSinCobroIn(e,y,m)||fixedMarcadoAMano(e,y,m)!=null) return null;
-  var day=cleanDay(dayIn(e,m,y)),target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y),bank=accOf(e);
-  if(day==null||day>today||!(target>0)) return null;
+  var self=fixedPaymentContender(e,y,m),target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y),bank=accOf(e);
+  if(self.day==null||self.dMin>today||!(target>0)) return null;
   var mes=fixedPaymentCobroDistintoMes(s,y,m,today),tc=Math.round(target*100);
   var pre=mes.baratas.filter(function(x){
     var amount=Number(x.amount),d=recDay(x.date);
-    return expenseBankOf(x)===bank&&Math.round(amount*100)!==tc&&fixedPaymentImporteParecido(target,amount)&&Math.abs(d-day)<=CUOTA_DIAS;
+    return expenseBankOf(x)===bank&&Math.round(amount*100)!==tc&&fixedPaymentImporteParecido(target,amount)&&d>=(self.dMin!=null?self.dMin:self.day)-CUOTA_DIAS&&d<=(self.dMax!=null?self.dMax:self.day)+CUOTA_DIAS;
   });
   if(!pre.length||!fixedPaymentUnique(s,e)||fixedPaymentStoredProof(s,e,y,m)) return null;
   var conNombre=function(texto){ return recNameMatch(e.name,texto); };
@@ -324,7 +334,7 @@ function fixedPaymentCobroDistinto(s,e,y,m,today,sinPagar){
        se proponía para este (revisión del 9/11). El parecido, al doble de la ventana de casar. */
     if(rivales.some(function(c){
       return recNameMatch(c.name,txLike.merchant)||Math.round(Number(c.amount)*100)===cents||fixedPaymentRivalPorImporte(s,c,txLike)||
-        fixedPaymentImporteParecido(Number(c.amount),amount)&&c.day!=null&&Math.abs(d-c.day)<=2*CUOTA_DIAS;
+        fixedPaymentImporteParecido(Number(c.amount),amount)&&c.day!=null&&d>=(c.dMin!=null?c.dMin:c.day)-2*CUOTA_DIAS&&d<=(c.dMax!=null?c.dMax:c.day)+2*CUOTA_DIAS;
     })||otrosBancos.some(function(c){ return fixedPaymentExpenseRows(s,recNorm(c.name),ym,c.amount).indexOf(x)>=0; })) return false;
     return fixedExpenseEligible(s,x,e,y,m,today);
   });
@@ -791,7 +801,7 @@ function fixedPaymentState(s,e,y,m,today){
   if(!matches.length&&!delMes.some(function(tx){ return recNameMatch(e.name,tx.merchant); })){
     var self=Object.assign(fixedPaymentContender(e,y,m),{amount:target});
     // Antes de su día no: un cargo parecido de antes no adelanta el pago ni el saldo previsto.
-    matches=self.day!=null&&self.day<=today?delMes.filter(function(tx){ return fixedPaymentPorImporte(s,self,tx); }):[];
+    matches=self.day!=null&&self.dMin<=today?delMes.filter(function(tx){ return fixedPaymentPorImporte(s,self,tx); }):[];
   }
   var paidDay=fixedPaymentPersistedDay(s,e,y,m,today),persisted=paidDay!=null;
   var tx=matches.length===1?matches[0]:null;

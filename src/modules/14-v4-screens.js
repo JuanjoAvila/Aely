@@ -648,8 +648,22 @@ function pr6FrescuraTxt(ms, now){
      los 8 px (|dx| > 1,2·|dy|, como la SPEC). Hacia la derecha sigue siendo cambiar de pestaña, y en
      vertical, scroll, la ola y el tirón de sección: ahí no se toca nada. Reclamado, se corta la
      propagación para que el carrusel de pestañas y el tirón de Plan no lo vean.
-   - Los 24 px de cada borde son del atrás de Android: un dedo que nace ahí no mueve la fila. */
-const PR6_DESLIZ_UMBRAL=90, PR6_DESLIZ_MAX=170, PR6_DESLIZ_BORDE=24;
+   - Los 24 px de cada borde son del atrás de Android: un dedo que nace ahí no mueve la fila.
+   - Y solo se agarra por la CIFRA (decisión del dueño probando la beta, 10/11/2026): con toda la fila
+     reclamando el desliz a la izquierda, ir a Cartera deslizando desde Recibos era una lotería según
+     dónde cayera el dedo. Desde el nombre, la fecha o el icono el gesto es del carrusel, como en
+     cualquier otra pantalla. La zona es el importe con margen y nunca menos de los 96 px de la derecha
+     de la fila (una cifra corta, «9 €», sería una diana), y de alto la fila entera, que pasa de 44 px. */
+const PR6_DESLIZ_UMBRAL=90, PR6_DESLIZ_MAX=170, PR6_DESLIZ_BORDE=24, PR6_DESLIZ_ZONA=96, PR6_DESLIZ_MARGEN=12;
+function pr6EnLaCifra(w, x, y){
+  const row=w.querySelector(".v4-charge"), am=row&&row.querySelector(".am");
+  if(!am) return false;
+  const r=row.getBoundingClientRect(), a=am.getBoundingClientRect();
+  const izq=Math.min(a.left-PR6_DESLIZ_MARGEN, r.right-PR6_DESLIZ_ZONA);
+  const medio=(a.top+a.bottom)/2, alto=Math.max(22, a.height/2+PR6_DESLIZ_MARGEN);
+  const arriba=Math.min(r.top, medio-alto), abajo=Math.max(r.bottom, medio+alto);
+  return x>=izq&&x<=r.right&&y>=arriba&&y<=abajo;
+}
 function usePr6Desliz(ref, onCommit, on){
   const cb=useRef(onCommit); cb.current=onCommit;
   useEffect(function(){
@@ -682,6 +696,7 @@ function usePr6Desliz(ref, onCommit, on){
       if(!w||!root.contains(w)) return;
       const t=e.touches[0], ancho=window.innerWidth||360;
       if(t.clientX<PR6_DESLIZ_BORDE||t.clientX>ancho-PR6_DESLIZ_BORDE) return;
+      if(!pr6EnLaCifra(w,t.clientX,t.clientY)) return;
       g={w:w,x:t.clientX,y:t.clientY,eje:null,v:0,zum:false,row:null,bg:null};
     };
     const move=function(e){

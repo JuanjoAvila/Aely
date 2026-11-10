@@ -159,12 +159,14 @@ test("más opciones: se ponen, se guardan y se quitan la prueba gratis y la perm
 });
 
 /* Arrastre horizontal real. Devuelve el desplazamiento de la tarjeta a mitad de gesto: si es 0, el
-   dedo no aterrizó en la fila y la prueba no vale (se falla, no se da por buena). */
-async function desliza(page, cdp, loc, dx, { pasos = 12, dy = 0 } = {}) {
+   dedo no aterrizó en la fila y la prueba no vale (se falla, no se da por buena).
+   El dedo nace en la cifra (la única zona que agarra la fila, decisión del dueño del 10/11/2026) o,
+   con `desde: "nombre"`, en el nombre del recibo. */
+async function desliza(page, cdp, loc, dx, { pasos = 12, dy = 0, desde = "cifra" } = {}) {
   await loc.evaluate((el) => el.scrollIntoView({ block: "center" }));
   await page.waitForTimeout(250);
-  const b = await loc.boundingBox();
-  const x0 = Math.round(b.x + b.width - 50), y0 = Math.round(b.y + b.height / 2);
+  const b = await loc.locator(desde === "nombre" ? ".pr6-nm" : ".am").boundingBox();
+  const x0 = Math.round(desde === "nombre" ? b.x + 12 : b.x + b.width / 2), y0 = Math.round(b.y + b.height / 2);
   const frame = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y: y0 }] });
   let medio = 0;
@@ -209,6 +211,47 @@ test("deslizar a la izquierda: «Para revisar» se deja para mañana y «Por pag
   expect(await pestana(page)).toBe("plan");
   await cdp.detach();
 });
+
+/* Queja del dueño probando la beta (10/11/2026): ir a Cartera deslizando desde Recibos se quedaba en
+   la fila si el dedo caía encima. Desde el nombre, el gesto es del carrusel y la tarjeta ni se mueve;
+   desde la cifra, es de la fila y la pestaña no cambia. En las dos listas. */
+for (const caso of [
+  { lista: "plan-due", id: "fixed_agua", efecto: async (page, recibos) => { await expect(ficha(page).locator(".pr6-pick-t")).toHaveText("¿Cuál es el cargo?"); } },
+  { lista: "plan-review", id: "fixed_luz", efecto: async (page, recibos) => {
+    await expect(page.getByTestId("plan-deshacer")).toContainText("Luz: te lo recuerdo mañana");
+    await expect(recibos.getByTestId("plan-review").locator('[data-recibo="fixed_luz"]')).toHaveCount(0);
+  } },
+]) {
+  test(`${caso.lista}: desde el nombre cambia de pestaña; desde la cifra mueve la fila`, async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
+    const recibos = await abrePlan(page);
+    const cdp = await page.context().newCDPSession(page);
+    const fila = recibos.getByTestId(caso.lista).locator(`[data-recibo="${caso.id}"]`);
+
+    // Desde la cifra: la tarjeta sigue al dedo, actúa y la pestaña no se mueve.
+    expect(await desliza(page, cdp, fila, -150)).toBeLessThan(-90);
+    await caso.efecto(page, recibos);
+    expect(await pestana(page)).toBe("plan");
+    if (caso.lista === "plan-due") {
+      // «¿Cuál es el cargo?» es un paso dentro de la ficha: atrás vuelve a la ficha y otro atrás la cierra.
+      await page.goBack();
+      await expect(ficha(page).locator(".pr6-track")).not.toHaveClass(/pick/);
+      await page.goBack();
+      await expect(ficha(page)).toHaveCount(0);
+    } else {
+      await page.getByTestId("plan-deshacer").getByRole("button").click();
+      await expect(fila).toHaveCount(1);
+    }
+    await page.waitForTimeout(500);
+
+    // Desde el nombre: la tarjeta no se mueve y el carrusel pasa a Cartera.
+    expect(await desliza(page, cdp, fila, -220, { desde: "nombre", pasos: 14 })).toBe(0);
+    await expect.poll(() => pestana(page)).toBe("cartera");
+    await expect(ficha(page)).toHaveCount(0);
+    expect(await fila.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+    await cdp.detach();
+  });
+}
 
 test("deslizar una fila no rompe cambiar de pestaña hacia la derecha ni el scroll vertical", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
