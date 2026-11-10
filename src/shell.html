@@ -1770,7 +1770,7 @@
   .v4-sheet-handle{width:40px;height:5px;border-radius:4px;background:var(--line);margin:6px auto 14px;position:relative;flex:0 0 auto;cursor:grab;}
   .v4-sheet-handle::before{content:"";position:absolute;inset:-16px -48px;}
   .v4-sheet.dragging{transition:none;}
-  html.sheet-open .app-shell{
+  html.sheet-shell-off .app-shell{
     pointer-events:none !important;
   }
   .v4-exp-name{width:100%;border:none;background:transparent;color:var(--text);font-size:16px;font-weight:700;text-align:center;padding:2px 8px 6px;outline:none;}
@@ -1981,7 +1981,9 @@
      capa (y la de la barra de abajo, que va encima) y en su móvil la barra y el fondo salían en
      blanco uno o dos fotogramas al abrir cualquier ficha (vídeo del 7/11). La página ya no recibe
      toques con una hoja abierta (`.app-shell` sin pointer-events y el velo encima). */
-  html.sheet-open .page{overscroll-behavior:none;touch-action:none;}
+  html.sheet-open .page{overscroll-behavior:none;}
+  /* Aparte y solo con `sheet-shell-off` (ver `mcSheetLock`): `touch-action` se hereda. */
+  html.sheet-shell-off .page{touch-action:none;}
   .v4-apuntar-amt{text-align:center;font-size:34px;font-weight:550;letter-spacing:-1px;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
   .v4-input{width:100%;background:var(--sur);border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px;font-size:15px;color:var(--text);margin-bottom:10px;}
   .v4-input:focus{border-color:var(--mint);outline:none;}

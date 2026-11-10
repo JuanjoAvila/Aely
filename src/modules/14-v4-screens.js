@@ -158,6 +158,49 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       mcScheduleIdle(function(){ if(segElRef.current[id]) mcCalentarCapa(segElRef.current[id]); },4000);
     });
   },[segMounted]);
+  /* Lo que se abre desde Recibos se ensaya en seco (`mcEnsayar`) la primera vez que Recibos está a
+     la vista, de uno en uno y en huecos libres: «¿Te llega?», Tus recibos y la hoja de editar. Así
+     el primer toque en cada uno cuesta lo que los siguientes. Con algo ya abierto encima espera. */
+  const ensayados=useRef(0), ensayoDatos=useRef(null);
+  ensayoDatos.current={state:state,totals:totals,pack:charges};
+  useEffect(function(){
+    const el=segElRef.current.recibos;
+    if(simple||seg!=="recibos"||ensayados.current>=3||!el||typeof IntersectionObserver!=="function") return undefined;
+    let vivo=true, tm=0, esperas=0;
+    const nada=function(){};
+    const cola=[
+      function(d){ return React.createElement(LlegaSheet,{state:d.state,set:nada,totals:d.totals,pack:d.pack,onClose:nada,ensayo:true}); },
+      function(d){ return React.createElement(BillsManagePush,{open:true,onClose:nada,state:d.state,set:nada,totals:d.totals,simple:false,ensayo:true}); },
+      function(d){
+        const r=billsGroupRows(d.state,"serv",d.totals.curMonth,d.totals.curYear).find(function(x){ return x.kind==="fixed"; });
+        const bancos=Array.from(new Set((d.state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
+        return r?React.createElement(ReciboPasos,{mode:"edit",row:r,state:d.state,set:nada,totals:d.totals,banks:bancos.length?bancos:["sabadell"],
+          onClose:nada,onSaved:nada,onRemove:nada,onEditOther:nada,ensayo:true}):null;
+      }
+    ];
+    const sigue=function(dl){
+      if(!vivo||ensayados.current>=cola.length) return;
+      const h=document.documentElement.classList, d=ensayoDatos.current;
+      if(h.contains("sheet-open")||h.contains("bills-open")){ tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },2000); return; }
+      // Con algo moviéndose (un scroll, una animación) el hueco entre fotogramas es de pocos ms: se
+      // espera a que pare, que cada ensayo ocupa el hilo lo que la primera apertura de verdad.
+      if(dl&&!dl.didTimeout&&typeof dl.timeRemaining==="function"&&dl.timeRemaining()<8&&esperas<10){
+        esperas++; tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },150); return;
+      }
+      esperas=0;
+      // Sin recibos no hay nada de esto que abrir.
+      if(!(d.state.fixed||[]).length) return;
+      try{ const e=cola[ensayados.current++](d); if(e) mcEnsayar(e); }catch(err){}
+      if(ensayados.current<cola.length) tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },120);
+    };
+    const io=new IntersectionObserver(function(es){
+      if(!es.some(function(x){ return x.isIntersecting; })) return;
+      io.disconnect();
+      tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },700);
+    });
+    io.observe(el);
+    return function(){ vivo=false; io.disconnect(); clearTimeout(tm); };
+  },[seg,simple]);
   const capa=function(id,hijo){
     if(!segMounted[id]) return null;
     return React.createElement("div",{key:id,"data-seg":id,ref:function(el){ segElRef.current[id]=el; },style:seg===id?null:oculto,"aria-hidden":seg!==id}, hijo);
@@ -1441,7 +1484,7 @@ function peViaTxt(state,p){
    se descuenta de una deuda no sale aquí. Lo recibido se marca a mano: todavía no hay forma fiable
    de casar un Bizum con una persona (el nombre del banco no es el que tú le pones). */
 function TeDebenSheet({state, set, totals, deben, onClose}){
-  const swipe=useSheetSwipe(true,onClose);
+  const swipe=useSheetSwipe(true,onClose,{soloVelo:true});
   useBackClose(true,swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
   useEffect(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); },[]);
@@ -1605,9 +1648,10 @@ function PersonaSheet({pid, draft, mensual:draftMensual, sinBorrar, state, set, 
 /* Hoja «¿Te llega?» (SPEC §4): un bloque por banco con recibos pendientes, el recorrido resumido
    (tienes hoy · recibos que faltan · entradas antes del último recibo) y, si no llega, UN aviso
    con cuánto pasar y antes de qué día. Sin botón de actualizar ni sugerencias (descartados). */
-function LlegaSheet({state, set, totals, pack, onClose}){
-  const swipe=useSheetSwipe(true,onClose);
-  useBackClose(true,swipe.close);
+function LlegaSheet({state, set, totals, pack, onClose, ensayo}){
+  // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
+  const swipe=useSheetSwipe(!ensayo,onClose,{soloVelo:true});
+  useBackClose(!ensayo,swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
   useEffect(function(){ if(titleRef.current) titleRef.current.focus({preventScroll:true}); },[]);
   const today=totals.today;
@@ -1912,7 +1956,7 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
     document.body);
 }
 function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onEdit, onRemove, aviso, onPosponer, onDeshacer, pasoInicial}){
-  const swipe=useSheetSwipe(true,onClose);
+  const swipe=useSheetSwipe(true,onClose,{soloVelo:true});
   useBackClose(true,swipe.close);
   // Deslizar una fila de «Por pagar» abre directamente en «¿Cuál es el cargo?» (SPEC §2.4).
   const [paso,setPaso]=useState(pasoInicial===1?1:0);           // 0 ficha · 1 «¿Cuál es el cargo?»
@@ -2498,7 +2542,9 @@ function BillUndoToast({onUndo,notice}){
     React.createElement("span",null,notice||gbTxt("gb_removed")),
     onUndo&&React.createElement("button",{type:"button",onClick:onUndo},t("f_undo")||"Deshacer"));
 }
-function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow, onGoDebts}){
+function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow, onGoDebts, ensayo}){
+  // En el ensayo en seco (`mcEnsayar`) se pinta igual, pero no toca <html>, el foco ni el Atrás.
+  const vivo=!!open&&!ensayo;
   const [stack,setStack]=React.useState(["hub"]);
   const [q,setQ]=React.useState("");
   // Tus recibos (SPEC §3): cifras al año, banco elegido en los chips, secciones desplegadas y el aviso que se va.
@@ -2537,8 +2583,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const openerRef=React.useRef(null);
   const hadSheetRef=React.useRef(false);
   const view=stack[stack.length-1];
-  const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep&&!pasos&&!persona,rootRef,{plainScroll:true});
-  const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); },view!=="hub"&&!detail&&!addStep&&!pasos&&!persona,subRef,{plainScroll:true});
+  const pageSwipe=useEdgePageClose(vivo,onClose,view==="hub"&&!detail&&!addStep&&!pasos&&!persona,rootRef,{plainScroll:true});
+  const sub=useEdgePageClose(vivo,function(){ setStack(["hub"]); },view!=="hub"&&!detail&&!addStep&&!pasos&&!persona,subRef,{plainScroll:true});
   const cm=totals.curMonth, cy=totals.curYear;
   // Ola nativa (INC-2709-03, 19/10): Android solo la pinta en el scroller RAÍZ, y Chromium
   // promociona un `fixed` a pantalla completa como raíz implícita SOLO si es el único candidato
@@ -2553,7 +2599,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
      Tocar una pestaña la cierra: sin eso se quedaba encima de la pestaña nueva. */
   const closeTabRef=React.useRef(null);
   React.useEffect(function(){
-    if(!open) return undefined;
+    if(!vivo) return undefined;
     var h=document.documentElement;
     h.classList.add("bills-open");
     try{ window.dispatchEvent(new CustomEvent("mc-bills-open",{detail:true})); }catch(e){}
@@ -2568,7 +2614,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       document.removeEventListener("click", onTab, true);
       try{ window.dispatchEvent(new CustomEvent("mc-bills-open",{detail:false})); }catch(e){}
     };
-  },[open]);
+  },[vivo]);
   React.useEffect(function(){
     if(!open){
       editOnly.current=false;
@@ -2628,15 +2674,15 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     if(!simple&&(r.kind==="fixed"&&!planSyncConflict(state,"fixed",r.id)||r.kind==="oneoff")){ setPasos({mode:"edit",row:r,n:Date.now()}); return; }
     setDetail(r);
   };
-  useBackClose(!!open, pop);
+  useBackClose(vivo, pop);
   // El hub conserva su entrada y la pantalla hija añade otra. Antes toda la pila compartía
   // una sola: el primer Atrás volvía al hub, pero el segundo ya sacaba de Plan (QA 2026-09-16).
-  useBackClose(!!open && view==="afford", pop);
+  useBackClose(vivo && view==="afford", pop);
   // Dialog a11y: foco inicial/restore SOLO al abrir/cerrar el hub (deps=[open]).
   // Si remonta al cambiar detail/addStep, el cleanup restaura foco y el rAF roba el h1
   // detrás de la ficha (Claude BAJA + Codex 2100Z).
   React.useEffect(function(){
-    if(!open) return undefined;
+    if(!vivo) return undefined;
     prevFocus.current=document.activeElement;
     var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
     var onKey=function(e){
@@ -2666,7 +2712,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       var el=prevFocus.current;
       if(el&&typeof el.focus==="function") try{ el.focus(); }catch(err){}
     };
-  },[open]);
+  },[vivo]);
   // Al cerrar ficha/alta: devolver foco al control que las abrió (Codex 2100Z).
   React.useEffect(function(){
     var sheet=!!(detail||addStep||pasos);
@@ -2693,11 +2739,18 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
      (P2-9, decisión del dueño 10/11/2026): sumarlo prometía un gasto que ese mes no llega.
      Al año cada fila pone lo suyo de los próximos doce meses (`r.anual`, sin los cobros de la
      pausa) y la cifra sigue siendo la suma de las secciones, que suman eso mismo (P2-b). */
-  const mg=open?(function(){
-    const pasa=function(r){ return !banco||r.bank===banco; };
+  /* Las filas se calculan una vez por estado: desplegar una sección, abrir una hoja encima o montar
+     el resto de la pantalla repintan esto con el MISMO `state`, y cada repintado volvía a recorrer
+     todos los recibos, cuotas y traspasos (la mitad de lo que tardaba este componente al abrir
+     «Editar», perfil a ×6 del 10/11/2026). */
+  const todas=React.useMemo(function(){
+    if(!open) return null;
     const de=function(g){ return billsGroupRows(state,g,cm,cy); };
-    const todas={serv:de("serv").sort(function(a,b){ return (cleanDay(a.item.day)||32)-(cleanDay(b.item.day)||32); }),
+    return {serv:de("serv").sort(function(a,b){ return (cleanDay(a.item.day)||32)-(cleanDay(b.item.day)||32); }),
       debt:de("debt").sort(function(a,b){ return (cleanDay(a.item.day)||32)-(cleanDay(b.item.day)||32); }),once:de("prox"),"in":de("in")};
+  },[open,state,cm,cy]);
+  const mg=todas?(function(){
+    const pasa=function(r){ return !banco||r.bank===banco; };
     const bancos=[];
     ["serv","debt","once","in"].forEach(function(g){ todas[g].forEach(function(r){ if(r.bank&&bancos.indexOf(r.bank)<0) bancos.push(r.bank); }); });
     const filtradas={}, suma={};
@@ -2715,7 +2768,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   /* Lo que queda por debajo de la primera pantalla se monta un fotograma después: abrir Tus recibos
      maquetaba ~500 nodos de golpe y, con la CPU a ×6, ese fotograma pasaba de 120 ms (P1-13). La
      pantalla entra de lado, así que lo de abajo llega antes de que se vea. */
-  const [resto,setResto]=React.useState(false);
+  const [resto,setResto]=React.useState(!!ensayo);
   React.useEffect(function(){
     if(!open){ setResto(false); return undefined; }
     let id=requestAnimationFrame(function(){ id=requestAnimationFrame(function(){ setResto(true); }); });
@@ -3320,7 +3373,7 @@ function usePasosCarril(trackRef, scrollRef, paso){
     return function(){ clearTimeout(t); fin(); };
   },[paso]);
 }
-function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove}){
+function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove, ensayo}){
   const edit=mode==="edit";
   const y=totals.curYear, m=totals.curMonth, today=totals.today, cur=y*12+m;
   const kind=edit?row.kind:(once?"oneoff":"fixed");
@@ -3353,6 +3406,17 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
       prueba:typeof it.pruebaHasta==="string"?it.pruebaHasta:null,perm:Number(it.permHasta)>0?Number(it.permHasta):null};
   },[]);
   const [paso,setPaso]=useState(edit?4:0);
+  /* Al abrir solo nace el paso que se ve. Los otros cuatro (teclado, 31 días, meses, bancos) están
+     plegados fuera de la vista, pero se creaban y maquetaban con la hoja, en el fotograma en que
+     empieza a subir: 434 cajas que maquetar, ahora 174 (trazas a ×6 del 10/11/2026). Llegan cuando
+     ya ha subido, o en el mismo toque que cambia de paso. En el ensayo en seco van todos: es su
+     primera vez. */
+  const [otros,setOtros]=useState(!!ensayo);
+  useEffect(function(){
+    let vivo=true;
+    const id=setTimeout(function(){ mcScheduleIdle(function(){ if(vivo) setOtros(true); },600); },560);
+    return function(){ vivo=false; clearTimeout(id); };
+  },[]);
   // Por dónde se ha llegado a cada paso: Atrás deshace ESE camino. Con «Visto en tu banco» (del
   // nombre al resumen) o al tocar una línea del resumen, volver iba por pasos que nadie había
   // abierto (beta 4.26.200: «al darle al de 2.050 hace cosas raras»).
@@ -3399,7 +3463,8 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   const savedRef=useRef(false);
   const titleRef=useRef(null), sideRef=useRef(null);
   const onCloseRef=useRef(onClose); onCloseRef.current=onClose;
-  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); },{nativeScroll:true});
+  // `ensayo`: montaje en seco de `mcEnsayar`, sin candado, gesto de borde ni entrada de Atrás.
+  const swipe=useSheetSwipe(!ensayo,function(){ onCloseRef.current&&onCloseRef.current(); },{nativeScroll:true,soloVelo:true});
   const sheetRef=swipe.sheetRef;
   const pasoRef=useRef(paso); pasoRef.current=paso;
   const upd=function(p){ setF(function(o){ return Object.assign({},o,p); }); };
@@ -3417,7 +3482,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
     else if(r.length&&r[r.length-1]===n) r.pop(); else r.push(p);
     if(n===1) setFresh(!!f.amount);
     if(n===4) setResumido(true);
-    pasoRef.current=n; setPaso(n);
+    pasoRef.current=n; setOtros(true); setPaso(n);
   };
   const padRef=useRef(padFor); padRef.current=padFor;
   // Con un teclado abierto, Atrás (botón, gesto o sistema) cierra solo el teclado (rev. t5, uso 2).
@@ -3429,12 +3494,12 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
     const r=rastro.current;
     // En el primer paso atrás cierra, y la hoja baja como subió (sin animar desaparecía de golpe).
     if(!r.length){ swipe.close(); return false; }
-    const n=r.pop(); pasoRef.current=n; setPaso(n); return true;
+    const n=r.pop(); pasoRef.current=n; setOtros(true); setPaso(n); return true;
   },[]);
   const atrasRef=useRef(atras); atrasRef.current=atras;
-  useBackClose(true,function(){ atrasRef.current(); },paso);
+  useBackClose(!ensayo,function(){ atrasRef.current(); },paso);
   // Tercer argumento verdadero y distinto en cada paso: con el paso 0 a secas el gesto quedaba apagado.
-  const side=useEdgePageClose(true,atras,"p"+paso,sideRef,{plainScroll:true,hoja:swipe.close,soloPaso:function(){ return rastro.current.length>0; }});
+  const side=useEdgePageClose(!ensayo,atras,"p"+paso,sideRef,{plainScroll:true,hoja:swipe.close,soloPaso:function(){ return rastro.current.length>0; }});
   // El paso de llegada se ve desde arriba: el carril cambia de contenido, no de sitio.
   const bodyRef=useRef(null), trackRef=useRef(null);
   usePasosCarril(trackRef,bodyRef,paso);
@@ -3608,7 +3673,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
     return React.createElement("section",{key:i,className:"pr6-step rp4-step"+(paso===i?" on":""),"data-rp4-paso":i,
       "aria-hidden":paso===i?null:"true",inert:paso===i?undefined:""},
       React.createElement("h2",{className:"rp4-h",tabIndex:-1,ref:paso===i?titleRef:null,id:paso===i?"rp4-title":undefined}, t(titulos[i])),
-      kids);
+      paso===i||otros?kids:null);
   };
   // 1 · Nombre
   const sugs=RP4_SUG.filter(function(u){ const l=recNorm(t("rp4_s_"+u[0])); return !tecleado||!qn||l.indexOf(qn)>=0; });
