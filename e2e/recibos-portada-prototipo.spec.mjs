@@ -112,11 +112,22 @@ test("portada: tres en «Para revisar», «Todos ›» abre la gestión y «Por 
   await expect(recibos.getByTestId("plan-income").locator(".pr6-row")).toContainText("Sabadell");
   await expect(recibos.getByTestId("plan-income")).not.toContainText("entra)");
 
-  // Las píldoras no se salen a 360 px.
-  for (const id of ["plan-llega", "plan-deben"]) {
-    const [cw, sw] = await recibos.getByTestId(id).evaluate((e) => [e.clientWidth, e.scrollWidth]);
-    expect(sw).toBeLessThanOrEqual(cw + 1);
-  }
+  // Las píldoras no se salen a 360 px, ni con la letra al 110 %, y no pierden la flecha
+  // (auditoría 4.26.218: «Te deben 34,95 €» se quedaba sin ella y tocando el borde).
+  const pildoras = async () => {
+    for (const id of ["plan-llega", "plan-deben"]) {
+      const p = await recibos.getByTestId(id).evaluate((e) => {
+        const g = e.querySelector(".pr6-pill-go"), b = e.getBoundingClientRect(), gb = g.getBoundingClientRect();
+        return { cw: e.clientWidth, sw: e.scrollWidth, go: getComputedStyle(g).display, dentro: gb.width > 0 && gb.right <= b.right - 4 };
+      });
+      expect(p.sw, id).toBeLessThanOrEqual(p.cw + 1);
+      expect(p.go, id + ": la flecha").not.toBe("none");
+      expect(p.dentro, id + ": la flecha dentro").toBe(true);
+    }
+  };
+  await pildoras();
+  await recibos.locator(".pr6-pills").evaluate((e) => e.querySelectorAll(".pr6-pill").forEach((p) => { p.style.fontSize = "15.4px"; }));
+  await pildoras();
   const todos = due.getByTestId("plan-todos");
   await expect(todos).toHaveText("Todos");
   await todos.click();
@@ -140,6 +151,14 @@ test("«¿Y si gasto…?»: con tres bancos el importe no se aplasta y «900,00 
   for (const c of await zona.locator(".chip").all()) expect((await c.boundingBox()).height).toBeGreaterThanOrEqual(44);
   await zona.locator('.chip[data-bank="revolut"]').click();
   await expect(page.getByTestId("llega-gasto-txt")).toContainText("No llega");
+  // Atrás con el teclado abierto lo pliega a él; el segundo atrás ya cierra la hoja.
+  await expect(amt).toHaveAttribute("aria-expanded", "true");
+  await page.goBack();
+  await expect(amt).toHaveAttribute("aria-expanded", "false");
+  await expect(page.getByTestId("llega-sheet")).toBeVisible();
+  await expect(amt).toHaveText("900,00 €");
+  await page.goBack();
+  await expect(page.getByTestId("llega-sheet")).toHaveCount(0);
 });
 
 test("«¿Cuánto es?» con un nombre largo: el nombre en un renglón y el título a la vista", async ({ page }) => {

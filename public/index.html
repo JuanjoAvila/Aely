@@ -988,10 +988,12 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  .pr6-pills{display:flex;gap:8px;container:pr6pildoras / inline-size;}
-  /* A 360 px «Te deben 10,00 €» y su flecha se salían de la píldora: sin la flecha el texto cabe entero. */
-  @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill-go{display:none;} }
-  .pr6-pill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
+  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Mitades iguales si
+     caben; si no (360 px con la letra al 110 %), la segunda baja entera a su renglón en vez de
+     perder la flecha o cortar la cifra (auditoría 4.26.218). En estrecho se aprieta el relleno. */
+  .pr6-pills{display:flex;flex-wrap:wrap;gap:8px;container:pr6pildoras / inline-size;}
+  @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill{padding:0 10px;gap:6px;} }
+  .pr6-pill{flex:1 1 0;min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
   .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
   /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */
@@ -1216,12 +1218,14 @@
   .pe-ava{width:38px;height:38px;flex:none;border-radius:19px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--text);transition:background .2s ease,color .2s ease,border-color .2s ease;}
   .pe-link{border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;}
-  .pe-deben.ok .pr6-ll-a{color:var(--muted);}
-  .pr6-ll-act{display:flex;justify-content:flex-end;margin-top:2px;}
-  /* «Ya me lo ha pagado»: compacto a la derecha, mismo mint, sin ancho completo (beta 4.26.209). */
-  .pe-deben-cta{width:auto;max-width:100%;height:36px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;flex:none;}
-  .pe-deben-cta.pr6-cta{height:36px;}
-  .pe-deben-cta.pr6-btn{border-color:var(--line-soft);font-size:12px;font-weight:700;}
+  /* «Te deben» como el prototipo (auditoría 4.26.218): botón de contorno con «pendiente» al lado
+     de la cifra; cinco mint rellenos gritaban más que el propio total. Quien ya pagó, apagado. */
+  .pr6-deben-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+  .pr6-deben-tot{font-size:24px;font-weight:600;white-space:nowrap;}
+  .pe-deben .pr6-ll-r{max-width:55%;}
+  .pe-deben.ok .pr6-ll-n,.pe-deben.ok .pr6-ll-a{color:var(--muted);}
+  .pe-deben-cta{border-color:var(--line-soft);}
+  .pe-deben-ok{border:0;background:transparent;padding:4px 0;font:inherit;font-size:11.5px;font-weight:700;color:var(--mint);cursor:pointer;text-align:right;}
   .pe-recibos{display:flex;flex-direction:column;gap:8px;}
   .rp5-mas{display:flex;flex-direction:column;}
   .rp5-in{display:flex;flex-direction:column;gap:12px;padding-top:4px;}
@@ -1245,6 +1249,10 @@
   button.pr6-pill{border:0;font-family:inherit;text-align:left;cursor:pointer;}
   .pr6-pill-go{flex:none;margin-left:auto;color:var(--muted);}
   .v4-sheet.pr6-ll,.v4-sheet.pr6-nd{display:flex;flex-direction:column;gap:16px;}
+  /* Un pliegue cerrado sigue siendo hijo de la columna y se llevaba su hueco: en la ficha de una
+     persona con Bizum quedaba un vacío entre los chips y «Sus recibos» (auditoría 4.26.218). */
+  .v4-sheet.pr6-ll>.pr6-fold{margin-top:-16px;}
+  .v4-sheet.pr6-ll>.pr6-fold.open>.pr6-fold-in{padding-top:16px;}
   .pr6-ll-t{margin:0;font-size:24px;font-weight:600;outline:none;}
   .pr6-ll-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface-2);}
   .pr6-ll-h{display:flex;align-items:center;gap:12px;}
@@ -1892,6 +1900,7 @@
   .pr6-mg-q:focus-within{border-color:var(--mint);}
   .pr6-mg-qi{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--text);font:500 16px 'Manrope',sans-serif;outline:none;}
   .pr6-mg-qi::-webkit-search-cancel-button{display:none;}
+  .pr6-mg-q.pr6-pick-q{margin-top:0;height:52px;background:var(--bg);}
   .pr6-mg-chips{margin:12px 0 0;padding-bottom:2px;}
   /* Como el prototipo: el banco elegido, relleno de menta; los demás, solo con borde (N9). */
   .pr6-mg-chips .v4-chip{background:transparent;color:var(--text);}
@@ -8285,7 +8294,7 @@ const LANG = {
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
     v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
-    v4_sync_broker_ok:"📈 {b} al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
+    v4_sync_broker_ok:"📈 {b} al día", v4_sync_brokers_ok:"📈 Brókers al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
     ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
     cal_today:"Hoy", cal_prev:"Mes anterior", cal_next:"Mes siguiente",
     bk_issue:"⚠ {bank} necesita tu permiso otra vez", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
@@ -8872,7 +8881,7 @@ Object.assign(LANG.es,{
   af_fin_name_ph:"¿Qué es? (ej. iPhone)", af_fin_create:"Crear la deuda · {x}/mes", af_fin_created:"Deuda creada · la verás en Plan → Deudas",
   af_fin_hint:"Cuota estimada al 0%. Si lleva intereses, crea la deuda y ponle la TAE en Plan → Deudas.",
   fj_debt_tag:"cuota de deuda", fj_fixed_tag:"gasto fijo",
-  fj_transfer_tag:"transferencia",
+  fj_income_tag:"ingreso", fj_transfer_tag:"transferencia",
   fj_permonth:"{x}/mes", fj_edit:"Editar", fj_save:"Guardar", fj_fixed:"Recibo",
   fj_day:"día", 
   ask_ok:"Aceptar", ask_all:"Todo · {x}",
@@ -10519,7 +10528,7 @@ Object.assign(LANG.es, {
 Object.assign(LANG.es,{
   pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya te ha pagado su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
   pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
-  pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_te_lo_ha_pagado:"Te lo ha pagado",
+  pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_te_lo_ha_pagado:"Te lo ha pagado", pr6_deben_pend:"pendiente",
   pe_title:"Personas", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
   pe_como_paga:"¿Cómo te paga?", pe_bizum:"Bizum", pe_transfer:"Transferencia", pe_debt:"Lo descuento", pe_descuenta_de:"Su parte se descuenta de",
   pe_recibos:"Sus recibos", pe_que_recibos:"¿Qué recibos comparte?", pe_sin_recibos:"Ningún recibo se puede compartir", pe_borrar:"Borrar", pe_seguro:"¿Seguro? Sale de todos sus recibos",
@@ -29948,7 +29957,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="4f0a1faa0bee7f92d5269290467b16230289223132feb1bd3c0b076006e43ed6";
+var _rnSha="f3e5d69239716cbca3c51df14e4a3988625dd0429399f0d22458136f051ee469";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32735,28 +32744,44 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
   const y=totals.curYear, m=totals.curMonth, today=totals.today;
   const todos=deben.length>0&&deben.every(function(p){ return p.pagado; });
   const marcar=function(p){ set(function(s){ return repartoMarcarCobrado(s,p.id,y,m,today,!p.pagado); }); };
+  const queda=deben.reduce(function(a,p){ return p.pagado?a:a+Math.round(p.amt*100); },0)/100;
+  // Quien ya ha pagado va al final (SPEC §5, prototipo). El orden se fija al ABRIR: si la fila se
+  // fuera abajo al tocar «Ya me lo ha pagado», el «Deshacer» ya no estaría bajo el dedo.
+  const orden=useRef(null);
+  if(!orden.current) orden.current=deben.filter(function(p){ return !p.pagado; }).concat(deben.filter(function(p){ return p.pagado; })).map(function(p){ return p.id; });
+  const filas=deben.slice().sort(function(a,b){
+    const ia=orden.current.indexOf(a.id), ib=orden.current.indexOf(b.id);
+    return (ia<0?1e9:ia)-(ib<0?1e9:ib);
+  });
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
       React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
         React.createElement("div",Object.assign({className:"v4-sheet pr6-ll","data-testid":"deben-sheet",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
           ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
           React.createElement("div",{className:"v4-sheet-handle"}),
-          React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, t("pr6_te_deben_t")),
+          React.createElement("div",{className:"pr6-deben-h"},
+            React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, t("pr6_te_deben_t")),
+            queda>0&&React.createElement("span",{className:"serif num pr6-deben-tot","data-testid":"deben-total"}, eur(queda))),
           React.createElement("div",{className:"pr6-fold"+(todos?" open":"")},
             React.createElement("div",Object.assign({className:"pr6-fold-in"},todos?null:{"aria-hidden":"true",inert:""}),
               React.createElement("div",{className:"pr6-empty","data-testid":"deben-todos"}, t("pr6_te_han_pagado_todos")))),
-          deben.map(function(p){
+          filas.map(function(p){
+            // Sin dato de cuándo llegó el dinero, el «✓» dice solo por dónde (no se inventa fecha).
+            const via=p.via==="bizum"||p.via==="transfer"?peViaTxt(state,p):t("pr6_te_lo_ha_pagado");
             return React.createElement("div",{className:"pr6-ll-b pe-deben"+(p.pagado?" ok":""),key:p.id,"data-testid":"deben-persona","data-persona":p.id},
               React.createElement("div",{className:"pr6-ll-h"},
                 React.createElement("span",{className:"pe-ava","aria-hidden":"true"}, pr6Inicial(p.n)),
                 React.createElement("button",{type:"button",className:"pr6-ficha-t pe-link","data-act":"persona",onClick:function(){ setPersona(p.id); }},
                   React.createElement("span",{className:"pr6-ll-n"}, p.n),
                   React.createElement("span",{className:"pr6-ficha-s"}, p.items.map(function(i){ return i.name+" "+eur(i.amt); }).join(" + "))),
-                React.createElement("span",{className:"serif num pr6-ll-a","data-testid":"deben-cifra"}, eur(p.amt))),
-              React.createElement("div",{className:"pr6-ll-act"},
-                React.createElement("button",{type:"button",className:(p.pagado?"pr6-btn ":"pr6-cta ")+"pe-deben-cta","data-act":"deben-pagado","aria-pressed":p.pagado?"true":"false",
-                  onClick:function(){ marcar(p); }},
-                  p.pagado?"✓ "+t("pr6_te_lo_ha_pagado")+" · "+t("f_undo"):t("pr6_ya_me_lo_ha_pagado"))));
+                React.createElement("span",{className:"pr6-ll-r"},
+                  React.createElement("span",{className:"serif num pr6-ll-a","data-testid":"deben-cifra"}, eur(p.amt)),
+                  p.pagado
+                    ?React.createElement("button",{type:"button",className:"pe-deben-ok","data-act":"deben-pagado","aria-pressed":"true",onClick:function(){ marcar(p); }},
+                      "✓ "+via+" · "+t("f_undo"))
+                    :React.createElement("span",{className:"pr6-ll-l","data-testid":"deben-estado"}, t("pr6_deben_pend")))),
+              !p.pagado&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide pe-deben-cta","data-act":"deben-pagado","aria-pressed":"false",
+                onClick:function(){ marcar(p); }}, t("pr6_ya_me_lo_ha_pagado")));
           }))),
       persona!=null&&React.createElement(PersonaSheet,{key:persona,pid:persona,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); }})),
     document.body);
@@ -32885,6 +32910,8 @@ function LlegaSheet({state, set, totals, pack, onClose}){
   const conSaldo=base.filter(function(b){ return b.known; });
   const [raw,setRaw]=useState("");
   const [teclado,setTeclado]=useState(false);
+  // Atrás con el teclado abierto lo pliega a él, no la hoja entera (auditoría 4.26.218).
+  useBackClose(teclado,function(){ setTeclado(false); });
   /* El teclado (plegado) se monta cuando la hoja ya ha subido, no con ella: sus teclas se maquetaban
      en el mismo fotograma de la entrada y con la CPU a ×6 ese fotograma duraba 200 ms (auditoría
      9/11). Si se toca el importe antes, nace en ese momento. */
@@ -33542,8 +33569,12 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
       React.createElement("span",{className:"pr6-ficha-t"},
         React.createElement("span",{className:"serif pr6-pick-t"}, rechazo?t("pr6_con_cual"):t("pr6_cual_cargo")),
         React.createElement("span",{className:"pr6-ficha-s"}, row.name+" · "+eur(Math.abs(row.amount))))),
-    React.createElement("input",{className:"pr6-search",type:"search",value:q,placeholder:t("pr6_buscar_cargo"),"aria-label":t("pr6_buscar_cargo"),
-      onChange:function(e){ setQ(e.target.value); }}),
+    // Con la lupa, como el buscador de Tus recibos y el prototipo: sin ella parecía un campo de texto más.
+    React.createElement("label",{className:"pr6-mg-q pr6-pick-q"},
+      React.createElement("svg",{width:18,height:18,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+        React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
+      React.createElement("input",{className:"pr6-mg-qi",type:"search",value:q,placeholder:t("pr6_buscar_cargo"),"aria-label":t("pr6_buscar_cargo"),
+        onChange:function(e){ setQ(e.target.value); }})),
     !qq&&!cands.length&&recientes.length>0&&React.createElement("div",{className:"pr6-lbl"}, tf("pr6_otros_cargos",{bank:entOf(bank).label})),
     React.createElement("div",{className:"pr6-cands","data-testid":"recibo-cargos"}, lista.map(cargoRow)),
     !qq&&porConfirmar.length>0&&React.createElement("div",{className:"pr6-cands","data-testid":"recibo-cargos-pend"}, porConfirmar.map(pendRow)),
@@ -34027,8 +34058,10 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     if(!qq) return true;
     if(sinTilde(r.name).indexOf(qq)>=0) return true;
     if(!/^[\d.,]+$/.test(qq)) return false;
-    const a=Math.abs(Number(r.monthly)||0).toFixed(2), qn=qq.replace(/\./g,"");
-    return a.indexOf(qn.replace(",","."))===0||a.replace(".",",").indexOf(qn)===0;
+    // «4.99» y «4,99» son lo mismo para quien busca (el teclado del móvil pone uno u otro), y
+    // «1.250» es mil doscientos cincuenta: se prueban las dos lecturas del separador.
+    const a=Math.abs(Number(r.monthly)||0).toFixed(2);
+    return a.indexOf(qq.replace(/\./g,"").replace(",","."))===0||a.indexOf(qq.replace(/,/g,""))===0;
   };
   const lower=function(x){ return CURLANG==="en"?x:String(x).toLowerCase(); };
   const amt=function(x,variable){ return (variable?"≈ ":"")+eur(x); };
@@ -34044,8 +34077,10 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     const e=r.item||{};
     if(r.kind==="fixed"){
       const nx=proximo(e), sch=hasSchedule(e), anualF=e.freq==="año"||e.freq==="anual";
+      // `lower` respeta el inglés por los meses; la frecuencia va a mitad de frase y en inglés salía
+      // «Sabadell · Once a year» (auditoría 4.26.218).
       const fr=sch?pr6Lista(e.schedule.slice().sort(function(a,b){ return a.m-b.m; }).map(function(x){ return (cleanDay(x.day)||"—")+" "+lower(monthShort(x.m-1)); }))
-        :(e.freq&&e.freq!=="mes"&&e.freq!=="mensual"?lower(gbTxt((RP4_FREQS.find(function(f){ return f[0]===e.freq; })||[0,"gb_freq_y"])[1])):"");
+        :(e.freq&&e.freq!=="mes"&&e.freq!=="mensual"?gbTxt((RP4_FREQS.find(function(f){ return f[0]===e.freq; })||[0,"gb_freq_y"])[1]).toLowerCase():"");
       const pausa=pr6PausaTxt(r,cy*12+cm);
       return {d1:nx.day||"—",d2:sch||anualF?monthShort(nx.m-1):t("mg_dia"),paused:!!pausa,
         sub:pausa||[e.category&&CAT[e.category]?pr6CatDe(catName(e.category),e.name):"",entOf(r.bank).label,fr,repartoVigente(e)?t("mg_compartido"):""].filter(Boolean).join(" · "),
@@ -34403,7 +34438,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
       (reviewError||reviewCommit.error)&&React.createElement("div",{role:"alert",className:"hint"},t(reviewError||reviewCommit.error)),
       review&&React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:reviewCommit.pending,onClick:saveReview},t("db_savechanges")),
       !review&&pausaEdit&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-act":"bill-resume",style:{marginTop:16},
-        onClick:function(){ set(function(s){ return fixedPausa(s,row.id,0,0); }); }}, pausaEdit+" · "+t("pr6_reanudar")),
+        onClick:function(){ set(function(s){ return fixedPausa(s,row.id,0,0); }); }}, pr6Cap(pausaEdit)+" · "+t("pr6_reanudar")),
       !review&&!locked && row.kind!=="debt" && React.createElement("button",{type:"button",className:"v4-ficha-quitar","data-act":"bill-remove",style:{width:"100%",marginTop:16},
         onClick:function(){ onRemove(row); }}, gbTxt("gb_del")),
       locked && React.createElement("div",{className:"hint",style:{marginTop:16}}, gbTxt("gb_locked"))
@@ -34839,9 +34874,9 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   const amtTxt=amt>0?(f.variable?"≈ ":"")+eur(amt):"—";
   const cuandoTxt=f.mode==="once"?((f.once.day||"—")+" "+rp4MesTxt(onceM,onceY,y))
     :f.mode==="split"?(pr?pr.sched.map(function(x){ return (x.day||"—")+" "+monthShort(x.m-1); }).join(" · "):"—")
-    :(cleanDay(f.day)?f.day+" · "+lower(freqTxt(f.freq)):"—");
+    :(cleanDay(f.day)?f.day+" · "+freqTxt(f.freq).toLowerCase():"—");
   const subTxt=[f.category&&CAT[f.category]?catName(f.category):"",bankLabel(f.account),
-    f.mode==="once"?t("rp4_una_vez"):f.mode==="split"?"":lower(freqTxt(f.freq))].filter(Boolean).join(" · ");
+    f.mode==="once"?t("rp4_una_vez"):f.mode==="split"?"":freqTxt(f.freq).toLowerCase()].filter(Boolean).join(" · ");
   const panel=function(i,kids){
     return React.createElement("section",{key:i,className:"pr6-step rp4-step"+(paso===i?" on":""),"data-rp4-paso":i,
       "aria-hidden":paso===i?null:"true",inert:paso===i?undefined:""},
@@ -35102,7 +35137,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
       })),
     conScope&&scope==="mes"&&amt>0&&React.createElement("div",{key:"scx",className:"hint","data-testid":"rp4-scope-mes"}, tf("rp4_mes_cobra",{x:eur(amt)})),
     pausa&&React.createElement("button",{type:"button",key:"pa",className:"pr6-btn pr6-btn-wide","data-act":"bill-resume",
-      onClick:function(){ set(function(s){ return fixedPausa(s,row.id,0,0); }); }}, pausa+" · "+t("pr6_reanudar")),
+      onClick:function(){ set(function(s){ return fixedPausa(s,row.id,0,0); }); }}, pr6Cap(pausa)+" · "+t("pr6_reanudar")),
     edit&&gone&&baja&&React.createElement("a",{key:"bj",className:"pr6-baja",href:baja.url,target:"_blank",rel:"noopener noreferrer"}, tf("rp4_baja_antes",{name:baja.name})),
     edit&&React.createElement("button",{type:"button",key:"x",className:"pr6-btn pr6-btn-wide"+(gone?" pr6-seguro":""),"data-act":"bill-remove",
       onClick:function(){ if(!gone){ setGone(true); return; } onRemove(row); }}, gone?t("pr6_seguro_borrar"):t("pr6_ya_no"))

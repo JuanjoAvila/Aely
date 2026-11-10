@@ -988,10 +988,12 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  .pr6-pills{display:flex;gap:8px;container:pr6pildoras / inline-size;}
-  /* A 360 px «Te deben 10,00 €» y su flecha se salían de la píldora: sin la flecha el texto cabe entero. */
-  @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill-go{display:none;} }
-  .pr6-pill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
+  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Mitades iguales si
+     caben; si no (360 px con la letra al 110 %), la segunda baja entera a su renglón en vez de
+     perder la flecha o cortar la cifra (auditoría 4.26.218). En estrecho se aprieta el relleno. */
+  .pr6-pills{display:flex;flex-wrap:wrap;gap:8px;container:pr6pildoras / inline-size;}
+  @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill{padding:0 10px;gap:6px;} }
+  .pr6-pill{flex:1 1 0;min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
   .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
   /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */
@@ -1216,12 +1218,14 @@
   .pe-ava{width:38px;height:38px;flex:none;border-radius:19px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--text);transition:background .2s ease,color .2s ease,border-color .2s ease;}
   .pe-link{border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;}
-  .pe-deben.ok .pr6-ll-a{color:var(--muted);}
-  .pr6-ll-act{display:flex;justify-content:flex-end;margin-top:2px;}
-  /* «Ya me lo ha pagado»: compacto a la derecha, mismo mint, sin ancho completo (beta 4.26.209). */
-  .pe-deben-cta{width:auto;max-width:100%;height:36px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;flex:none;}
-  .pe-deben-cta.pr6-cta{height:36px;}
-  .pe-deben-cta.pr6-btn{border-color:var(--line-soft);font-size:12px;font-weight:700;}
+  /* «Te deben» como el prototipo (auditoría 4.26.218): botón de contorno con «pendiente» al lado
+     de la cifra; cinco mint rellenos gritaban más que el propio total. Quien ya pagó, apagado. */
+  .pr6-deben-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+  .pr6-deben-tot{font-size:24px;font-weight:600;white-space:nowrap;}
+  .pe-deben .pr6-ll-r{max-width:55%;}
+  .pe-deben.ok .pr6-ll-n,.pe-deben.ok .pr6-ll-a{color:var(--muted);}
+  .pe-deben-cta{border-color:var(--line-soft);}
+  .pe-deben-ok{border:0;background:transparent;padding:4px 0;font:inherit;font-size:11.5px;font-weight:700;color:var(--mint);cursor:pointer;text-align:right;}
   .pe-recibos{display:flex;flex-direction:column;gap:8px;}
   .rp5-mas{display:flex;flex-direction:column;}
   .rp5-in{display:flex;flex-direction:column;gap:12px;padding-top:4px;}
@@ -1245,6 +1249,10 @@
   button.pr6-pill{border:0;font-family:inherit;text-align:left;cursor:pointer;}
   .pr6-pill-go{flex:none;margin-left:auto;color:var(--muted);}
   .v4-sheet.pr6-ll,.v4-sheet.pr6-nd{display:flex;flex-direction:column;gap:16px;}
+  /* Un pliegue cerrado sigue siendo hijo de la columna y se llevaba su hueco: en la ficha de una
+     persona con Bizum quedaba un vacío entre los chips y «Sus recibos» (auditoría 4.26.218). */
+  .v4-sheet.pr6-ll>.pr6-fold{margin-top:-16px;}
+  .v4-sheet.pr6-ll>.pr6-fold.open>.pr6-fold-in{padding-top:16px;}
   .pr6-ll-t{margin:0;font-size:24px;font-weight:600;outline:none;}
   .pr6-ll-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface-2);}
   .pr6-ll-h{display:flex;align-items:center;gap:12px;}
@@ -1892,6 +1900,7 @@
   .pr6-mg-q:focus-within{border-color:var(--mint);}
   .pr6-mg-qi{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--text);font:500 16px 'Manrope',sans-serif;outline:none;}
   .pr6-mg-qi::-webkit-search-cancel-button{display:none;}
+  .pr6-mg-q.pr6-pick-q{margin-top:0;height:52px;background:var(--bg);}
   .pr6-mg-chips{margin:12px 0 0;padding-bottom:2px;}
   /* Como el prototipo: el banco elegido, relleno de menta; los demás, solo con borde (N9). */
   .pr6-mg-chips .v4-chip{background:transparent;color:var(--text);}

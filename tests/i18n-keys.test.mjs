@@ -55,8 +55,44 @@ function usedKeys() {
     // literal es solo un prefijo y comprobarlo daría un falso positivo eterno.
     for (const m of src.matchAll(/\bt\(\s*"([A-Za-z0-9_]+)"\s*(?=\))/g)) if (!used.has(m[1])) used.set(m[1], f);
     for (const m of src.matchAll(/\btf\(\s*"([A-Za-z0-9_]+)"\s*(?=[,)])/g)) if (!used.has(m[1])) used.set(m[1], f);
+    for (const k of branchKeys(src)) if (!used.has(k)) used.set(k, f);
   }
   return used;
+}
+
+/** Claves que van como RAMA ENTERA de una expresión: `t(c?"a":"b")`, `tf(x||"a",…)`. El regex de
+ *  arriba solo ve el literal pelado, y así se coló «fj_income_tag» en Tus recibos (borrada en una
+ *  limpieza, usada dentro de un ternario): la clave cruda en pantalla sin que saltara nada
+ *  (auditoría 4.26.218). Se aísla el PRIMER argumento con paréntesis equilibrados y se toma cada
+ *  literal que no esté pegado a un `+` (sería un prefijo dinámico) ni sea operando de una
+ *  comparación (`k==="income"`). */
+function branchKeys(src) {
+  const out = [];
+  for (const m of src.matchAll(/\btf?\(/g)) {
+    let i = m.index + m[0].length, depth = 0, arg = "";
+    for (; i < src.length; i++) {
+      const c = src[i];
+      if (c === '"' || c === "'" || c === "`") {
+        let j = i + 1;
+        while (j < src.length && src[j] !== c) j += src[j] === "\\" ? 2 : 1;
+        arg += src.slice(i, j + 1); i = j; continue;
+      }
+      if (c === "(" || c === "[" || c === "{") depth++;
+      else if (c === ")" || c === "]" || c === "}") { if (!depth) break; depth--; }
+      else if (c === "," && !depth) break;
+      arg += c;
+    }
+    if (!/[?|]/.test(arg)) continue; // literal pelado o variable: ya lo cubre (o no aplica) lo de arriba
+    for (const lm of arg.matchAll(/"([a-z][A-Za-z0-9_]*)"/g)) {
+      const before = arg.slice(0, lm.index).trimEnd().slice(-1);
+      const after = arg.slice(lm.index + lm[0].length).trimStart()[0] || "";
+      if (before && !"?:(|".includes(before)) continue;
+      if ("+=!.[".includes(after) && after) continue;
+      if (!lm[1].includes("_")) continue; // las claves llevan prefijo_; «income», «es»… son valores
+      out.push(lm[1]);
+    }
+  }
+  return out;
 }
 
 let failed = 0;

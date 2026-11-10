@@ -82,8 +82,17 @@ test("Te deben: por persona, «Ya me lo ha pagado» y la familia (lo descuento) 
   const pareja = sheet.locator('[data-persona="pe_pareja"]');
   await expect(pareja).toContainText("Pepephone 10,00 € + YouTube Premium 5,00 €");
   await expect(pareja.getByTestId("deben-cifra")).toHaveText("15,00 €");
+  // Como el prototipo: el total arriba y, por persona, «pendiente» y un botón de contorno.
+  await expect(sheet.getByTestId("deben-total")).toHaveText("35,00 €");
+  await expect(pareja.getByTestId("deben-estado")).toHaveText("pendiente");
+  const fondo = await pareja.locator('[data-act="deben-pagado"]').evaluate((e) => getComputedStyle(e).backgroundColor);
+  expect(fondo, "el botón no va relleno").toBe("rgba(0, 0, 0, 0)");
   await pareja.locator('[data-act="deben-pagado"]').click();
   await expect(pareja.locator('[data-act="deben-pagado"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(pareja.locator('[data-act="deben-pagado"]')).toHaveText("✓ Bizum · Deshacer");
+  await expect(sheet.getByTestId("deben-total")).toHaveText("20,00 €");
+  // Marcar no la mueve bajo el dedo: sigue la primera hasta volver a abrir.
+  await expect(sheet.getByTestId("deben-persona").first()).toHaveAttribute("data-persona", "pe_pareja");
   await expect(pill).toHaveText("Te deben 20,00 €");
   let s = await guardado(page);
   expect(s.fixed.find((f) => f.id === "pepe").repartoCobrado).toEqual({ [YM]: ["pe_pareja"] });
@@ -98,6 +107,11 @@ test("Te deben: por persona, «Ya me lo ha pagado» y la familia (lo descuento) 
   await expect(fila(recibos, "fixed_yt")).toContainText("te han pagado 4 de 5");
   // Ninguna cifra de Plan se mueve por cobrar a los demás: lo tuyo sigue siendo lo tuyo.
   await expect(total(recibos)).toHaveText("327,00 €");
+  // Al volver a abrir, quien ya pagó baja al final y solo Dani queda con su botón.
+  await pill.click();
+  await expect(sheet.getByTestId("deben-persona").first()).toHaveAttribute("data-persona", "pe_dani");
+  await expect(sheet.locator('[data-act="deben-pagado"][aria-pressed="false"]')).toHaveCount(1);
+  await expect(sheet.getByTestId("deben-total")).toHaveText("5,00 €");
 });
 
 test("añadir un recibo compartido: + Otra, a partes iguales, parte tecleada y tu parte", async ({ page }) => {

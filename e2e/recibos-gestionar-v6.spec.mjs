@@ -159,6 +159,12 @@ test("buscador, chips de banco, ✕ de los avisos y la puerta a una persona, a u
   await q.fill("660");
   await expect(hub.locator(".pr6-row")).toHaveCount(1);
   await expect(fila(hub, "hipo")).toBeVisible();
+  // El importe con punto o con coma, como lo ponga el teclado del móvil (auditoría 4.26.218).
+  for (const x of ["39.9", "39,9"]) {
+    await q.fill(x);
+    await expect(hub.locator(".pr6-row")).toHaveCount(1);
+    await expect(fila(hub, "gym")).toBeVisible();
+  }
   await q.fill("piscina");
   await expect(hub.locator("[data-bills-noresults]")).toContainText("Nada con «piscina»");
   await hub.locator('[data-act="bill-add-q"]').click();
@@ -201,6 +207,8 @@ test("sin solapes inventados y con «Lo que entra» y «¿Me lo puedo permitir?�
   const ent = sec(hub, "in");
   await expect(ent).toContainText("Nómina");
   await expect(fila(hub, "nom").locator(".am")).toHaveText("+1.800,00 €");
+  // Ni la clave cruda «fj_income_tag» ni «(entra)»: lo que es y de qué banco.
+  await expect(fila(hub, "nom").locator(".sub")).toHaveText("ingreso · Sabadell");
   await expect(ent.locator('[data-act="bill-add-flow"]')).toHaveCount(1);
   // Lo que entra no suma a lo que se va.
   await expect(hub.locator("[data-bills-total]")).toHaveText("57,98 €");
