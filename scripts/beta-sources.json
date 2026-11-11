@@ -1637,6 +1637,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "flowAbonaEn"
       },
       {
@@ -11237,7 +11241,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -11254,6 +11258,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -14209,6 +14217,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/00-core.js",
@@ -17774,7 +17786,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -17783,6 +17795,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -17799,10 +17815,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "nfIngles"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -17847,10 +17859,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -38295,6 +38303,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -66577,11 +66589,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsGroupRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -66601,6 +66621,26 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMonthlyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -66608,8 +66648,24 @@
         "function": "fixedPaymentFilasBanco"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedChargeMonths"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoBase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/00-core.js",
@@ -66622,6 +66678,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -71813,11 +71873,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsGroupRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -71837,6 +71905,26 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMonthlyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -71844,8 +71932,24 @@
         "function": "fixedPaymentFilasBanco"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedChargeMonths"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoBase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/00-core.js",
@@ -71858,6 +71962,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -80973,7 +81081,11 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "billsGroupRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -81001,6 +81113,30 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMonthlyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -81016,8 +81152,24 @@
         "function": "cuotaAliasKey"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedChargeMonths"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoBase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/00-core.js",
@@ -81052,16 +81204,16 @@
         "data": "RECIBO_DEVUELTO_DIAS"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_ADEUDO_RE"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -86544,6 +86696,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -98346,10 +98502,6 @@
         "function": "fixedMonthlyOf"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -101716,6 +101868,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "billsGroupRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -101740,11 +101900,51 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMonthlyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedChargeMonths"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoBase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/00-core.js",
@@ -101757,6 +101957,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -115147,10 +115351,6 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -115189,10 +115389,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -115793,7 +115989,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -115821,6 +116017,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -115834,10 +116034,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaAliasKey"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
       },
       {
         "file": "src/modules/00-core.js",
@@ -115878,10 +116074,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -117564,6 +117756,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -119289,6 +119485,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -120879,6 +121079,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -122300,7 +122504,11 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "billsGroupRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -122328,11 +122536,51 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMonthlyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedChargeMonths"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoBase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/00-core.js",
@@ -122345,6 +122593,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -123832,6 +124084,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -126851,6 +127107,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -129906,7 +130166,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -129934,6 +130194,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -129947,10 +130211,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaAliasKey"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
       },
       {
         "file": "src/modules/00-core.js",
@@ -129991,10 +130251,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -134620,7 +134876,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -134649,6 +134905,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -136295,6 +136555,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138008,7 +138272,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138049,6 +138313,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138529,7 +138797,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138557,6 +138825,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -138570,10 +138842,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaAliasKey"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "accInject"
       },
       {
         "file": "src/modules/00-core.js",
@@ -138614,10 +138882,6 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -140020,7 +140284,11 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "billsGroupRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -140048,11 +140316,47 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMonthlyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedChargeMonths"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/00-core.js",
@@ -140065,6 +140369,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -147400,6 +147708,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -151636,6 +151948,11 @@
       },
       {
         "file": "src/shell.html",
+        "from": "  html.sheet-shell-off .page{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
         "from": "  .settings-push:not(.open):not(.dragging):not(.mc-page-dragging),",
         "to": "}"
       },
@@ -151663,6 +151980,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "eur0"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsGroupRows"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -151878,7 +152199,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentEvidence"
+        "function": "fixedEstadoMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -151947,6 +152268,22 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "planCoverState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsAnualDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsPausado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsDescuentoSin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotaAnualDe"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -152071,6 +152408,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
       },
       {
         "file": "src/modules/00-core.js",
@@ -152243,6 +152584,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cargoDeReciboFirmeCalc"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsHoyDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
       },
       {
         "file": "src/modules/08-motor-bank.js",

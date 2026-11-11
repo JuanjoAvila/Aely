@@ -18,14 +18,15 @@ function entFromAspsp(name){
    (`totals`, 11) y el recorrido (`pendingWalkEvents`); si una suma y otra no, la cifra
    salta al pasar el día (por eso se retiró el primer intento, 9/11/2026).
    · Solo abona en un banco con cuenta de recibos: es donde el saldo sigue al calendario.
-   · La cuenta de gasto diario con recarga mensual ya recibe ese dinero por `inject`.
+   · Una cuenta de gasto diario, con recarga o sin ella, tampoco: la llegada entra como
+     movimiento y ya la cuenta el saldo; abonarla aquí la sumaba dos veces (revisión 227).
    · `trasAbonoDesde` (aaaammdd, se sella al cargar) es el día en que esta regla llegó a la
      cartera: lo de ese día o antes no abona, o el saldo de una cuenta a mano subiría de golpe
      por un traspaso que quizá ya llevaba dentro. Sin sello no abona nada (lo de siempre). */
 function flowAbonaEn(s,f,y,m){
   if(!s||!f||f.kind!=="transfer"||!f.to||f.to===(f.from||"sabadell")||s.trasAbonoDesde==null) return null;
   const cs=(s.accounts||[]).filter(function(a){ return a&&a.ent===f.to; });
-  if(!cs.some(accFixed)||cs.some(function(a){ return a.spendFrom&&accInject(a)>0; })) return null;
+  if(!cs.some(accFixed)||cs.some(function(a){ return a.spendFrom; })) return null;
   return y*10000+m*100+(flowDay(f,y,m)||99)>Number(s.trasAbonoDesde) ? f.to : null;
 }
 function sellarAbonoTraspasos(s){

@@ -97,6 +97,8 @@ caso("la cuenta de gasto diario no abona por aquí (ni con recarga mensual ni si
   assert.equal(c.flowAbonaEn(diaria,TRAS,y,m),null);
   const recarga=estado(); recarga.accounts[1]={id:"rev",ent:"revolut",role:"ambos",spendFrom:true,inject:200,value:217};
   assert.equal(c.flowAbonaEn(recarga,TRAS,y,m),null);
+  const ambos=estado(); ambos.accounts[1]={id:"rev",ent:"revolut",role:"ambos",spendFrom:true,value:217};
+  assert.equal(c.flowAbonaEn(ambos,TRAS,y,m),null,"ambos sin recarga: la llegada ya entra como movimiento");
   assert.equal(c.flowAbonaEn(estado(),TRAS,y,m),"revolut");
   assert.equal(c.flowAbonaEn(estado(),Object.assign({},TRAS,{to:"sabadell"}),y,m),null);
   assert.equal(c.flowAbonaEn(estado(),Object.assign({},TRAS,{kind:"income"}),y,m),null);
