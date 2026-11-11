@@ -1952,17 +1952,49 @@ function mcCalentarCapa(el){
   try{ el.style.contentVisibility="visible"; void el.offsetHeight; }catch(e){}
   el.style.contentVisibility="hidden";
 }
-let _mcSheetLocks=0, _mcSheetPrevOverflow="";
-function mcSheetLock(){
+/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos). El velo
+   ya se queda todos los toques, así que no hace falta apagar la app de detrás con `sheet-shell-off`:
+   sus dos reglas (`pointer-events` en `.app-shell` y `touch-action` en `.page`) son propiedades que
+   se HEREDAN, y cambiarlas recalcula el estilo de la pantalla entera (~700 nodos en Recibos) en el
+   mismo fotograma en que la hoja empieza a subir, y otra vez al cerrarla: a 6× de CPU, 20 ms de 80
+   (medido con traza, 10/11/2026). Las demás hojas siguen como estaban. */
+/* ENSAYO EN SECO (10/11/2026). La PRIMERA vez que se abre una hoja cuesta el doble o el triple que
+   las siguientes: el motor compila su código en ese momento, y cada fuente a un tamaño y un peso
+   que aún no han salido se prepara ahí mismo (con la CPU a ×6: «¿Te llega?» 83 ms la primera vez y
+   33 después; «Editar» un recibo, 133 y 67). Aquí se monta, se maqueta y se desmonta dentro de la
+   MISMA tarea y en un hueco libre: no llega a pintarse y nada puede verla ni tocarla. Va en una
+   raíz de React aparte y con `ensayo` en las props de quien se ensaya, que es quien deja sin poner
+   su candado, su entrada de Atrás y sus clases en <html> (una marca global la leería también la
+   app si le tocara repintar justo dentro de este `flushSync`). */
+function mcEnsayar(el){
+  let host=null, root=null;
+  try{
+    host=document.createElement("div");
+    host.setAttribute("aria-hidden","true");
+    document.body.appendChild(host);
+    root=ReactDOM.createRoot(host,{identifierPrefix:"ens"});
+    ReactDOM.flushSync(function(){ root.render(el); });
+    void document.body.offsetHeight;
+  }catch(e){}
+  try{ if(root) root.unmount(); }catch(e){}
+  if(host&&host.parentNode) host.parentNode.removeChild(host);
+}
+let _mcSheetLocks=0, _mcSheetDuros=0, _mcSheetPrevOverflow="";
+function mcSheetLock(soloVelo){
   if(_mcSheetLocks===0){
     _mcSheetPrevOverflow=document.body.style.overflow;
     document.documentElement.classList.add("sheet-open");
   }
   _mcSheetLocks++;
+  if(!soloVelo&&_mcSheetDuros++===0) document.documentElement.classList.add("sheet-shell-off");
   document.body.style.overflow="hidden";
 }
-function mcSheetUnlock(){
+function mcSheetUnlock(soloVelo){
   _mcSheetLocks=Math.max(0,_mcSheetLocks-1);
+  if(!soloVelo){
+    _mcSheetDuros=Math.max(0,_mcSheetDuros-1);
+    if(_mcSheetDuros===0) document.documentElement.classList.remove("sheet-shell-off");
+  }
   if(_mcSheetLocks===0){
     document.body.style.overflow=_mcSheetPrevOverflow;
     document.documentElement.classList.remove("sheet-open");
@@ -1983,7 +2015,7 @@ function useSheetSwipe(open, onClose, opts){
   useLayoutEffect(function(){
     if(!open) return undefined;
     closing.current=false;
-    mcSheetLock(); lockHeld.current=true;
+    mcSheetLock(opts.soloVelo); lockHeld.current=true;
     const block=function(e){
       const sheet=sheetRef.current;
       /* Las hojas hijas son portales hermanos en body, no descendientes del `sheetRef` padre.
@@ -1999,7 +2031,7 @@ function useSheetSwipe(open, onClose, opts){
       /* Hay hojas anidadas (Modificar > Todas las categorías). Solo la última devuelve el
          scroll: si la hija lo soltaba, la lista se movía detrás durante su salida animada. */
       if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
-      if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
+      if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(opts.soloVelo); }
     };
   },[open]);
   /* React escucha touchmove en pasivo: su preventDefault no frena al scroller, y al tirar de la
@@ -2096,7 +2128,7 @@ function useSheetSwipe(open, onClose, opts){
     const ms=fromDrag?(opts.closeMs||300):420;
     // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
-    if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
+    if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(opts.soloVelo); }
     const ease=fromDrag?(opts.closeEase||"cubic-bezier(.32,.72,0,1)"):"cubic-bezier(.3,0,.2,1)";
     // `sheetup` sigue mandando sobre el transform inline mientras la entrada no ha terminado:
     // cerrar a medias devolvía la hoja hacia arriba y luego saltaba abajo (1/11/2026).
