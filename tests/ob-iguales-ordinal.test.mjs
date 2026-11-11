@@ -431,7 +431,9 @@ t("importObExpenses con 20.000 gastos guardados: el coste no se dispara frente a
   const tv = minimo(vs), tn = minimo(ns);
   assert.equal(tn.n, tv.n, "mismas filas importadas");
   console.log(`    importObExpenses con 20.000 gastos y 150 apuntes (${tn.n} entran): antes ${tv.ms.toFixed(1)} ms · ahora ${tn.ms.toFixed(1)} ms`);
-  assert.ok(tn.ms < Math.max(tv.ms * 1.5, tv.ms + 15), "se dispara: algo recorre el histórico por apunte");
+  // Umbral 2×: con el mínimo de 7 el runner de CI seguía dando 1,57-1,61× (4.26.228, dos pasadas) con el MISMO código que en
+  // local da 1,2×; la proporción depende de la CPU. El mutante que recorre el histórico por apunte da ~4×: 2× lo sigue cazando.
+  assert.ok(tn.ms < Math.max(tv.ms * 2, tv.ms + 15), "se dispara: algo recorre el histórico por apunte");
 });
 
 /* ── 12. «Importar histórico» tras tres meses de uso (revisión de la entrega 1, punto 1) ──────
