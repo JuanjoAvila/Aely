@@ -3460,30 +3460,61 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   const rastro=useRef([]);
   // Ya se ha visto el resumen: desde un paso, el botón vuelve a él en vez de seguir uno a uno.
   const [resumido,setResumido]=useState(edit);
-  const espera=useRef(0), verT=useRef(0);
-  useEffect(function(){ return function(){ clearTimeout(espera.current); clearTimeout(verT.current); }; },[]);
-  // Lo siguiente que hay que elegir, a la vista y sin salto: después de que el plegable se abra.
+  const espera=useRef(0), sigue=useRef(null);
+  const suelta=function(){ if(sigue.current) sigue.current(); };
+  useEffect(function(){ return function(){ clearTimeout(espera.current); suelta(); }; },[]);
+  // Lo siguiente que hay que elegir, a la vista y sin salto: la hoja ACOMPAÑA al plegable fotograma a
+  // fotograma mientras crece o se cierra, como «¿Te llega?» en la 228. Antes esperaba 380 ms a que
+  // terminara de abrirse y luego se deslizaba aparte: se abría, se paraba y daba un segundo empujón; y al
+  // cerrar, el hueco desaparecía antes de tiempo y la hoja caía de golpe (vídeo del 11/11, «Más opciones»).
   const diasRef=useRef(null), mesesRef=useRef(null), pagosRef=useRef(null);
   const masRef=useRef(null), masBtnRef=useRef(null), extraRefs={prueba:useRef(null),perm:useRef(null)}, extraBtnRefs={prueba:useRef(null),perm:useRef(null)};
+  const acompana=function(body,paso,ms,fin){
+    suelta();
+    let raf=0;
+    const hasta=performance.now()+(mcReduced()?0:ms), t0=performance.now();
+    const corta=function(){
+      cancelAnimationFrame(raf); raf=0;
+      body.removeEventListener("touchstart",corta); body.removeEventListener("wheel",corta);
+      if(sigue.current===corta) sigue.current=null;
+      if(fin) fin();
+    };
+    const vuelta=function(){
+      const ahora=performance.now();
+      paso(Math.min(1,(ahora-t0)/Math.max(1,hasta-t0)));
+      if(ahora<hasta) raf=requestAnimationFrame(vuelta); else corta();
+    };
+    // Un dedo en la hoja manda: deja de acompañar y no pelea con quien desliza.
+    body.addEventListener("touchstart",corta,{passive:true}); body.addEventListener("wheel",corta,{passive:true});
+    sigue.current=corta;
+    raf=requestAnimationFrame(vuelta);
+  };
   const mostrar=function(ref,conTitulo){
-    clearTimeout(verT.current);
-    verT.current=setTimeout(function(){
-      const el=ref.current;
-      if(!el) return;
+    const el=ref.current, body=el&&el.closest(".rp4-body");
+    if(!body) return;
+    acompana(body,function(){
       /* A la vista lo que hay que elegir SIN que el título del paso se salga por arriba: con «nearest» a secas
          «¿Cuándo se cobra?» quedaba cortado a media altura contra el borde del cuerpo (revisión 7/11). */
-      try{
-        const body=el.closest(".rp4-body"), st=el.closest(".rp4-step"), h=st&&st.querySelector(".rp4-h");
-        if(!body||!h){ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); return; }
-        const b=body.getBoundingClientRect(), e=el.getBoundingClientRect(), th=h.getBoundingClientRect();
-        let d=e.bottom>b.bottom-12?e.bottom-b.bottom+12:(e.top<b.top?e.top-b.top-8:0);
-        // Solo con «titulo»: en «En varios pagos» el título no se corta; al elegir meses/días lo que se elige manda.
-        // Con un ref en su lugar, lo que no se sale por arriba es esa fila: la que se ha tocado para abrir.
-        const tope=conTitulo&&conTitulo.current?conTitulo.current.getBoundingClientRect():th;
-        if(d>0&&conTitulo) d=Math.min(d,Math.max(tope.top-b.top-8,0));
-        if(d!==0) body.scrollBy({top:d,behavior:mcReduced()?"auto":"smooth"});
-      }catch(e){}
-    },380);
+      const st=el.closest(".rp4-step"), h=st&&st.querySelector(".rp4-h");
+      const b=body.getBoundingClientRect(), e=el.getBoundingClientRect();
+      let d=e.bottom>b.bottom-12?e.bottom-b.bottom+12:(e.top<b.top?e.top-b.top-8:0);
+      // Solo con «titulo»: en «En varios pagos» el título no se corta; al elegir meses/días lo que se elige manda.
+      // Con un ref en su lugar, lo que no se sale por arriba es esa fila: la que se ha tocado para abrir.
+      const tope=conTitulo&&conTitulo.current?conTitulo.current:h;
+      if(d>0&&conTitulo&&tope) d=Math.min(d,Math.max(tope.getBoundingClientRect().top-b.top-8,0));
+      if(Math.abs(d)>0.5) body.scrollTop+=d;
+    },650);
+  };
+  /* Al plegar, el hueco se iba en las primeras décimas y el navegador recolocaba la hoja de golpe para no
+     dejar hueco debajo. Se reserva el alto mientras la hoja baja con la misma curva del plegable. */
+  const ocultar=function(ref){
+    const el=ref.current, body=el&&el.closest(".rp4-body"), track=body&&body.firstElementChild;
+    if(!track) return;
+    const alto=body.scrollHeight, desde=body.scrollTop, vista=body.clientHeight;
+    const hasta=Math.max(0,Math.min(desde,alto-el.getBoundingClientRect().height-vista));
+    if(desde-hasta<1) return;
+    track.style.minHeight=alto+"px";
+    acompana(body,function(p){ body.scrollTop=desde-(desde-hasta)*(1-Math.pow(1-p,3)); },350,function(){ track.style.minHeight=""; });
   };
   const [f,setF]=useState(inicial);
   const [fresh,setFresh]=useState(false);
@@ -3509,7 +3540,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   const pasoRef=useRef(paso); pasoRef.current=paso;
   const upd=function(p){ setF(function(o){ return Object.assign({},o,p); }); };
   const ir=function(n){
-    clearTimeout(espera.current); clearTimeout(verT.current);
+    clearTimeout(espera.current); suelta();
     setPadFor(null); setGone(false);
     const p=pasoRef.current, r=rastro.current;
     if(n===p) return;
@@ -3528,7 +3559,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   // Con un teclado abierto, Atrás (botón, gesto o sistema) cierra solo el teclado (rev. t5, uso 2).
   useBackClose(padFor!=null,function(){ setPadFor(null); });
   const atras=React.useCallback(function(){
-    clearTimeout(espera.current); clearTimeout(verT.current);
+    clearTimeout(espera.current); suelta();
     if(padRef.current!=null){ setPadFor(null); return true; }
     setPadFor(null); setGone(false);
     const r=rastro.current;
@@ -3917,7 +3948,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
     const open=extra===key;
     return React.createElement("div",{key:key,className:"rp7-x","data-rp7":key},
       // Lo desplegado quedaba bajo «Guardar» y había que subir la hoja a mano (auditoría 226, P1-1).
-      React.createElement("button",{type:"button",ref:extraBtnRefs[key],className:"rp7-row","aria-expanded":open?"true":"false",onClick:function(){ setExtra(open?null:key); if(!open) mostrar(extraRefs[key],extraBtnRefs[key]); }},
+      React.createElement("button",{type:"button",ref:extraBtnRefs[key],className:"rp7-row","aria-expanded":open?"true":"false",onClick:function(){ setExtra(open?null:key); if(open) ocultar(extraRefs[key]); else mostrar(extraRefs[key],extraBtnRefs[key]); }},
         React.createElement("span",{className:"rp7-k"}, label),
         React.createElement("span",{className:"rp7-v num"+(on?"":" rp4-dim"),"data-rp7-valor":key}, val),
         pr6Chev()),
@@ -3942,7 +3973,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
         React.createElement("span",{className:"num rp4-dia-v rp7-fecha","data-rp7-fecha":"perm"}, f.perm?tf("rp7_hasta",{x:pr6MesAno(f.perm)}):"—"),
         React.createElement(RpPaso,{label:t("rp7_mes_mas"),dir:1,onStep:permPaso}))])];
   const repUI=kind==="fixed"&&f.mode!=="once"&&React.createElement("div",{key:"mas",className:"rp5-mas"},
-    React.createElement("button",{type:"button",ref:masBtnRef,className:"pr6-more","aria-expanded":mas?"true":"false","data-act":"mas-opciones",onClick:function(){ setMas(function(o){ return !o; }); if(!mas) mostrar(masRef,masBtnRef); }},
+    React.createElement("button",{type:"button",ref:masBtnRef,className:"pr6-more","aria-expanded":mas?"true":"false","data-act":"mas-opciones",onClick:function(){ setMas(function(o){ return !o; }); if(mas) ocultar(masRef); else mostrar(masRef,masBtnRef); }},
       t("rp5_mas"), pr6Chev()),
     React.createElement("div",{className:"pr6-fold"+(mas?" open":"")},
       React.createElement("div",Object.assign({className:"pr6-fold-in rp5-in",ref:masRef},mas?null:{"aria-hidden":"true",inert:""}),

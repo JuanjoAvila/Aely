@@ -98,3 +98,47 @@ test("Tus recibos encuentra un compartido por lo que cobra el banco («29,94»)"
   await q.fill("4,99");
   await expect(page.locator("[data-bills-manage]")).toContainText("YouTube Premium");
 });
+
+/* Vídeo del 11/11: al tocar «Más opciones» el pliegue se abría, la hoja se quedaba quieta y ~0,4 s después
+   daba un segundo empujón hacia arriba; al cerrarlo caía de golpe en dos o tres fotogramas. La hoja tiene
+   que acompañar al pliegue: un solo movimiento al abrir y una bajada repartida al cerrar. */
+test("Más opciones: la hoja acompaña al pliegue al abrir y al cerrar, sin pausa ni caída de golpe", async ({ page }) => {
+  test.info().annotations.push({ type: "own-clock" });
+  await page.setViewportSize({ width: 412, height: 915 });
+  await page.route("**/*", (x) => new URL(x.request().url()).hostname === "127.0.0.1" ? x.continue() : x.abort());
+  const reparto = [["pe_pol", "Pol"], ["pe_alex", "Alex"], ["pe_gis", "Gis"], ["pe_iya", "Iyari"], ["pe_car", "Carlos"], ["pe_mam", "Mamá"]]
+    .map(([id, n]) => ({ id, n, via: "bizum", amt: 1 }));
+  await seedLoggedInDashboard(page, { __seedOnce: true, lastBackup: "2026-11-10", settings, debts: [], flows: [], oneoffs: [], expenses: [], bankTx: [],
+    fixed: [r("bas", "Basuras", 90, 14), r("pepe", "Pepephone", 22, 20, { bankAmount: 28, reparto })],
+    accounts: [{ id: "s", ent: "sabadell", role: "fijos", value: 1800 }] });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  const recibos = await aPlan(page);
+  await recibos.locator('[data-recibo="fixed_bas"]').first().click();
+  await page.locator('.v4-sheet[data-sheet="recibo"] [data-act="editar"]').click();
+  await expect(page.locator(H)).toHaveAttribute("data-modo", "edit");
+  await expect(page.locator(H + ' [data-rp4-paso="4"] [data-act="mas-opciones"]')).toHaveAttribute("aria-expanded", "false");
+  await page.waitForTimeout(600);
+  // Clic crudo y una muestra por fotograma: scroll del cuerpo y alto de lo que se puede desplazar.
+  const graba = () => page.evaluate((H) => new Promise((ok) => {
+    const body = document.querySelector(H + " .rp4-body"), btn = document.querySelector(H + ' [data-rp4-paso="4"] [data-act="mas-opciones"]');
+    const out = [], t0 = performance.now();
+    btn.click();
+    const f = () => { out.push({ st: body.scrollTop, sh: body.scrollHeight });
+      if (performance.now() - t0 < 1100) requestAnimationFrame(f); else ok(out); };
+    requestAnimationFrame(f);
+  }), H);
+  const abrir = await graba();
+  const fin = abrir[abrir.length - 1];
+  expect(fin.st).toBeGreaterThan(20);
+  // Cuando el pliegue ya ha crecido del todo, la hoja ya ha llegado: nada de empujón posterior.
+  const crecido = abrir.findIndex((x) => x.sh >= fin.sh - 1);
+  expect(abrir[crecido].st, JSON.stringify(abrir.map((x) => Math.round(x.st)))).toBeGreaterThan(fin.st * 0.8);
+  const cerrar = await graba();
+  expect(cerrar[cerrar.length - 1].st).toBeLessThan(1);
+  // Ningún fotograma se lleva más de la mitad de la bajada.
+  const saltos = cerrar.slice(1).map((x, i) => cerrar[i].st - x.st);
+  expect(Math.max(...saltos), JSON.stringify(cerrar.map((x) => Math.round(x.st)))).toBeLessThan(fin.st * 0.5);
+});
