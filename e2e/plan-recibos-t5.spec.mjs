@@ -114,6 +114,50 @@ test("Te deben: por persona, «Ya me lo ha pagado» y la familia (lo descuento) 
   await expect(sheet.getByTestId("deben-total")).toHaveText("5,00 €");
 });
 
+/* Lo que te pasan casa solo cuando el banco trae su nombre (11/11/2026): Bruno paga exacto y sale
+   pagado con el día; Nora se equivoca y paga 3,70 de 5, y se ve lo que falta. El total de arriba
+   baja a lo que falta, y nada de esto toca lo que pagas tú. Nombres y cifras inventados. */
+test("Te deben: un ingreso con su nombre la paga sola, y un pago a medias enseña lo que falta", async ({ page }) => {
+  const ing = (id, merchant, amount, date) => ({ id, merchant, amount: -amount, date, category: "ingreso", ent: "sabadell", source: "ob", noCard: true });
+  const video = recibo("video", "Vídeo", 5, 22, { bankAmount: 25, reparto: [["pe_nora", "Nora"], ["pe_bruno", "Bruno"], ["pe_iris", "Iris"], ["pe_otto", "Otto"]]
+    .map((x) => ({ id: x[0], n: x[1], via: "transfer", amt: 5, auto: true })) });
+  const recibos = await abrePlan(page, { fixed: [video, luz], expenses: [
+    ing("in_bruno", "TRANSFERENCIA BRUNO EJEMPLO", 5, "2026-10-11T09:00:00"),
+    ing("in_nora", "TRANSFERENCIA NORA EJEMPLO", 3.7, "2026-10-03T09:00:00"),
+    // De otra persona, aunque el importe cuadre, y una devolución con su nombre: no casan.
+    ing("in_otro", "TRANSFERENCIA IRENE EJEMPLO", 5, "2026-10-05T09:00:00"),
+    ing("in_dev", "DEVOLUCION BIZUM OTTO", 5, "2026-10-06T09:00:00")] });
+  const pill = recibos.getByTestId("plan-deben");
+  // 20 − 5 de Bruno − 3,70 de Nora.
+  await expect(pill).toHaveText("Te deben 11,30 €");
+  await expect(fila(recibos, "fixed_video")).toContainText("te han pagado 1 de 4");
+  await pill.click();
+  const sheet = page.getByTestId("deben-sheet");
+  await expect(sheet.getByTestId("deben-total")).toHaveText("11,30 €");
+  const bruno = sheet.locator('[data-persona="pe_bruno"]'), nora = sheet.locator('[data-persona="pe_nora"]');
+  await expect(bruno.locator('[data-act="deben-pagado"]')).toHaveText("✓ Transferencia el 11 · Deshacer");
+  await expect(sheet.getByTestId("deben-persona").last()).toHaveAttribute("data-persona", "pe_bruno");
+  await expect(nora.getByTestId("deben-cifra")).toHaveText("5,00 €");
+  await expect(nora.getByTestId("deben-estado")).toHaveText("pagó 3,70 € · falta 1,30 €");
+  for (const id of ["pe_iris", "pe_otto"]) await expect(sheet.locator('[data-persona="' + id + '"]').getByTestId("deben-estado")).toHaveText("pendiente");
+  // Darlo por pagado salda lo que falta; deshacerlo vuelve al pago a medias y no veta nada.
+  await nora.locator('[data-act="deben-pagado"]').click();
+  await expect(sheet.getByTestId("deben-total")).toHaveText("10,00 €");
+  await nora.locator('[data-act="deben-pagado"]').click();
+  await expect(nora.getByTestId("deben-estado")).toHaveText("pagó 3,70 € · falta 1,30 €");
+  await expect(nora.locator('[data-act="deben-pagado"]')).toHaveText("Dar por pagado");
+  // Deshacer lo que casó solo: ESE ingreso no era suyo y deja de contar para Bruno.
+  await bruno.locator('[data-act="deben-pagado"]').click();
+  await expect(bruno.getByTestId("deben-estado")).toHaveText("pendiente");
+  await expect(sheet.getByTestId("deben-total")).toHaveText("16,30 €");
+  const s = await guardado(page);
+  expect(s.fixed.find((f) => f.id === "video").repartoCobrado).toEqual({ [YM]: ["!pe_bruno:in_bruno"] });
+  await page.goBack();
+  await expect(pill).toHaveText("Te deben 16,30 €");
+  // Tu parte no se mueve por cobrar a los demás: Vídeo 5 + Luz 50.
+  await expect(total(recibos)).toHaveText("55,00 €");
+});
+
 test("añadir un recibo compartido: + Otra, a partes iguales, parte tecleada y tu parte", async ({ page }) => {
   const recibos = await abrePlan(page, { fixed: [luz] });
   await abreTodos(page, recibos);

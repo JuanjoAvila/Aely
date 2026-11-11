@@ -4376,7 +4376,7 @@ Object.assign(LANG.ca, {
 Object.assign(LANG.es,{
   pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya te ha pagado su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
   pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
-  pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_te_lo_ha_pagado:"Te lo ha pagado", pr6_deben_pend:"pendiente",
+  pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_deben_saldar:"Dar por pagado", pr6_deben_parcial:"pagó {a} · falta {b}", pr6_deben_via_dia:"{via} el {d}", pr6_te_lo_ha_pagado:"Te lo ha pagado", pr6_deben_pend:"pendiente",
   pe_title:"Personas", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
   pe_como_paga:"¿Cómo te paga?", pe_bizum:"Bizum", pe_transfer:"Transferencia", pe_debt:"Lo descuento", pe_descuenta_de:"Su parte se descuenta de",
   pe_recibos:"Sus recibos", pe_que_recibos:"¿Qué recibos comparte?", pe_sin_recibos:"Ningún recibo se puede compartir", pe_borrar:"Borrar", kp_borrar:"Borrar", pe_seguro:"¿Seguro? Sale de todos sus recibos",
@@ -4388,7 +4388,7 @@ Object.assign(LANG.es,{
 Object.assign(LANG.en,{
   pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_su_parte_ok:"their share is paid", pr6_su_parte_falta:"their share is pending", pr6_tu_parte:"Your share {x}",
   pr6_te_deben:"You're owed {x}", pr6_te_deben_t:"You're owed", pr6_te_han_pagado_todos:"Everyone has paid you",
-  pr6_ya_me_lo_ha_pagado:"They've paid me", pr6_te_lo_ha_pagado:"Paid you", pr6_deben_pend:"pending",
+  pr6_ya_me_lo_ha_pagado:"They've paid me", pr6_deben_saldar:"Mark as paid", pr6_deben_parcial:"paid {a} · {b} left", pr6_deben_via_dia:"{via}, day {d}", pr6_te_lo_ha_pagado:"Paid you", pr6_deben_pend:"pending",
   pe_title:"People", pe_add:"Add a person", pe_nueva:"New person", pe_nombre:"Name",
   pe_como_paga:"How do they pay you?", pe_bizum:"Bizum", pe_transfer:"Bank transfer", pe_debt:"I deduct it", pe_descuenta_de:"Their share is deducted from",
   pe_recibos:"Their bills", pe_que_recibos:"Which bills do they share?", pe_sin_recibos:"No bill can be shared", pe_borrar:"Delete", kp_borrar:"Delete", pe_seguro:"Sure? They leave all their bills",
@@ -4400,7 +4400,7 @@ Object.assign(LANG.en,{
 Object.assign(LANG.ca,{
   pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_su_parte_ok:"ja t'ha pagat la seva part", pr6_su_parte_falta:"falta la seva part", pr6_tu_parte:"La teva part {x}",
   pr6_te_deben:"Et deuen {x}", pr6_te_deben_t:"Et deuen", pr6_te_han_pagado_todos:"T'han pagat tots",
-  pr6_ya_me_lo_ha_pagado:"Ja m'ho ha pagat", pr6_te_lo_ha_pagado:"T'ho ha pagat", pr6_deben_pend:"pendent",
+  pr6_ya_me_lo_ha_pagado:"Ja m'ho ha pagat", pr6_deben_saldar:"Dona-ho per pagat", pr6_deben_parcial:"ha pagat {a} · falta {b}", pr6_deben_via_dia:"{via} el dia {d}", pr6_te_lo_ha_pagado:"T'ho ha pagat", pr6_deben_pend:"pendent",
   pe_title:"Persones", pe_add:"Afegir una persona", pe_nueva:"Persona nova", pe_nombre:"Nom",
   pe_como_paga:"Com et paga?", pe_bizum:"Bizum", pe_transfer:"Transferència", pe_debt:"Ho descompto", pe_descuenta_de:"La seva part es descompta de",
   pe_recibos:"Els seus rebuts", pe_que_recibos:"Quins rebuts comparteix?", pe_sin_recibos:"Cap rebut es pot compartir", pe_borrar:"Esborrar", kp_borrar:"Esborrar", pe_seguro:"Segur? Surt de tots els seus rebuts",

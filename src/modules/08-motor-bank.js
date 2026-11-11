@@ -1111,18 +1111,19 @@ function fixedEstadoMes(s,e,y,m,today){
 }
 function planChargesMonth(s,m,y,today){
   s=s||{};
-  var r=[];
+  var r=[], debenMes=null;
   (s.fixed||[]).forEach(function(e){
     var a=occAmountIn(e,m,y);
     if(!(a>0)||!occursIn(e,m,y)) return;
     var status=fixedEstadoMes(s,e,y,m,today), aMano=status.aMano?status.day:null;
     if(!status.paid&&fixedSinCobroIn(e,y,m)) return;
     var rep=repartoDelMes(s,e,y,m,today), deben=rep?rep.filter(function(x){ return !repartoDescuentaDe(s,x,e); }):[];
-    var hecho=(e.repartoCobrado&&e.repartoCobrado[y*12+m])||[];
+    // Quien ya pagó, a mano o con un ingreso suyo: lo mismo que dice la hoja «Te deben».
+    if(deben.length&&!debenMes) debenMes=teDebenMes(s,y,m,today);
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,aMano:aMano!=null,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue,
       // Lo que cobra el banco (entero en un compartido): con eso se mira si llega (SPEC §6).
       bankAmt:fixedCargoBanco(e,m,y),
-      teDeben:deben.length?{n:deben.length,pagados:deben.filter(function(x){ return hecho.indexOf(x.id)>=0; }).length}:null});
+      teDeben:deben.length?{n:deben.length,pagados:deben.filter(function(x){ return debenMes.some(function(p){ return p.id===x.id&&p.pagado; }); }).length}:null});
   });
   (s.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
@@ -1392,23 +1393,116 @@ function teDebenMes(s,y,m,today){
     r.forEach(function(x){
       if(repartoDescuentaDe(s,x,e)) return;
       let p=by[x.id];
-      if(!p){ p=by[x.id]={id:x.id,n:x.n,via:x.via,c:0,items:[],pagado:true}; out.push(p); }
-      p.c+=Math.round(x.amt*100);
+      if(!p){ p=by[x.id]={id:x.id,n:x.n,via:x.via,c:0,partes:[],items:[],aMano:true,veto:{}}; out.push(p); }
+      const c=Math.round(x.amt*100);
+      p.c+=c; p.partes.push(c);
       p.items.push({id:e.id,name:e.name,amt:x.amt});
-      if(hecho.indexOf(x.id)<0) p.pagado=false;
+      if(hecho.indexOf(x.id)<0) p.aMano=false;
+      const pre="!"+x.id+":";
+      hecho.forEach(function(h){ if(typeof h==="string"&&h.indexOf(pre)===0) p.veto[h.slice(pre.length)]=1; });
     });
   });
-  return out.map(function(p){ return {id:p.id,n:p.n,via:p.via,amt:p.c/100,items:p.items,pagado:p.pagado}; });
+  const rec=out.length?teDebenRecibido(s,y,m,out):{};
+  return out.map(function(p){
+    // `falta` es lo que entra en el total: con un pago a medias baja a lo que queda, nunca dos veces.
+    const g=rec[p.id]||null, got=g?Math.min(g.c,p.c):0, auto=got>=p.c;
+    const o={id:p.id,n:p.n,via:p.via,amt:p.c/100,items:p.items,pagado:p.aMano||auto,aMano:p.aMano,auto:auto,recibido:got/100,falta:(p.aMano||auto?0:p.c-got)/100,ingresos:g?g.ids:[]};
+    if(g){ o.dia=g.dia; o.viaRec=g.via; }
+    return o;
+  });
 }
-function repartoMarcarCobrado(s,pid,y,m,today,on){
-  const ym=y*12+m;
+/* LO QUE YA TE HAN PASADO (petición del dueño, 11/11/2026). Hasta ahora «Te deben» solo se
+   marcaba a mano: una transferencia de 5 € de quien debía 5 € seguía «pendiente», y un pago de
+   menos («se equivocó, estaría bien verlo reflejado») no se veía por ningún lado.
+   Un INGRESO del mes casa con una persona si el texto del banco lleva su nombre entero (cada
+   palabra de cómo la llamas tú, sin tildes: «Íria» casa con «TRANSFERENCIA IRIA …», venga del
+   extracto o del aviso del móvil) y el importe es razonable. Lo que NO es dinero suyo, aunque lleve
+   su nombre (revisión de dinero, NO-GO 11/11/2026):
+   - tu propio dinero: un traspaso entre tus bancos (la salida del mismo importe en otro banco, ±2
+     días) o un concepto a nombre del titular (dos palabras del perfil que no son de la persona, o
+     «yo mismo / cuenta propia», la misma regla de las aportaciones en 02): una persona con tu
+     nombre de pila casaba con la transferencia que te haces tú desde otro banco;
+   - devoluciones, abonos y anulaciones (un Bizum tuyo rechazado vuelve con su nombre), y lo que ya
+     está atado a un recibo, una deuda o una meta (el mismo dinero no se usa dos veces);
+   - una fecha que no se entiende (no se da por «este mes»).
+   Importe: cada ingreso, al menos la mitad de la parte MÁS PEQUEÑA de sus recibos (quien debe
+   5 + 10 puede pagarlos por separado), y la suma como mucho lo que debe más un céntimo por parte
+   (8,34 por un tercio de 25); lo que pase de lo debido no cuenta. Por debajo (el café de 2 €) o por
+   encima (la cena de 40 €) es otra cosa y se queda para marcarlo a mano. Un ingreso que nombra a dos
+   personas no casa con ninguna. El aviso del móvil y la fila del banco del mismo ingreso (mismo
+   importe, ±3 días) cuentan una vez; dos pagos de verdad iguales cuentan dos. Solo se lee: ningún
+   gasto ni ingreso cambia, así que el total del mes no se mueve. */
+const DEBEN_PALABRAS_NO={de:1,del:1,la:1,las:1,el:1,los:1,da:1,do:1,dos:1,van:1,von:1};
+const DEBEN_NO_ES_PAGO=/ (devolucion|devoluciones|devuelto|devuelta|abono|reembolso|retrocesion|anulacion|anulado|anulada|refund) | bizum a /;
+const DEBEN_PROPIO=/ (yo mismo|mismo titular|cuenta propia) /;
+function debenNombre(n){
+  const w=recNorm(n).split(" ").filter(function(x){ return x.length>=2&&!DEBEN_PALABRAS_NO[x]; });
+  return w.some(function(x){ return x.length>=3; })?w:null;
+}
+function debenDia(ms){ return Math.floor((ms-new Date(ms).getTimezoneOffset()*6e4)/864e5); }
+function teDebenRecibido(s,y,m,personas){
+  const nombres=personas.map(function(p){ return {p:p,w:debenNombre(p.n)}; }).filter(function(x){ return x.w; });
+  if(!nombres.length) return {};
+  const titular=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
+  const deleted=expenseDeletedSet(s), cand={};
+  (s.expenses||[]).forEach(function(e){
+    if(!e||e.id==null||!e.date||!(Number(e.amount)<0)||e.possibleDup||e.category==="traspaso"||e.reciboId||e.debtId||e.goalId) return;
+    if((e.cur||e.currency)&&String(e.cur||e.currency).toUpperCase()!=="EUR") return;
+    const ms=_pdMs(String(e.date).trim());
+    if(!isFinite(ms)) return;
+    const d=new Date(ms);
+    if(d.getFullYear()!==y||d.getMonth()+1!==m||expenseIsTombstoned(e,deleted)) return;
+    const txt=" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ";
+    if(DEBEN_NO_ES_PAGO.test(txt)||DEBEN_PROPIO.test(txt)) return;
+    const quien=nombres.filter(function(x){ return x.w.every(function(w){ return txt.indexOf(" "+w+" ")>=0; }); });
+    if(quien.length!==1) return;
+    const suyas=quien[0].w;
+    if(titular.filter(function(w){ return suyas.indexOf(w)<0&&txt.indexOf(" "+w+" ")>=0; }).length>=2) return;
+    const pid=quien[0].p.id;
+    (cand[pid]=cand[pid]||[]).push({id:String(e.id),c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),via:/ bizum /.test(txt)?"bizum":"transfer"});
+  });
+  const pids=Object.keys(cand);
+  if(!pids.length) return {};
+  // La otra pata de un traspaso tuyo: una transferencia o traspaso del mismo importe que SALE de
+  // otro banco tuyo, ±2 días. Un café de 5 € con tarjeta en otro banco no lo es: sin esa condición,
+  // cualquier compra del mismo importe dejaba sin casar el pago de una persona.
+  const salidas={};
+  pids.forEach(function(pid){ cand[pid].forEach(function(x){ salidas[x.c]=salidas[x.c]||[]; }); });
+  (s.expenses||[]).forEach(function(e){
+    if(!e||!(Number(e.amount)>0)) return;
+    const c=Math.round(Number(e.amount)*100);
+    if(!salidas[c]||e.category!=="traspaso"&&!/ (transferencia|transferencias|transfer|traspaso|traspasos|transf) /.test(" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ")) return;
+    const ms=_pdMs(String(e.date||"").trim());
+    if(isFinite(ms)&&!expenseIsTombstoned(e,deleted)) salidas[c].push({d:debenDia(ms),ent:expenseBankOf(e)});
+  });
+  const out={};
+  personas.forEach(function(p){
+    const lista=(cand[p.id]||[]).sort(function(a,b){ return a.ms-b.ms; }), ok=[];
+    const minParte=Math.min.apply(null,p.partes), tope=p.c+p.partes.length;
+    let c=0;
+    lista.forEach(function(x){
+      if(p.veto[x.id]||x.c*2<minParte||c+x.c>tope) return;
+      if(salidas[x.c].some(function(o){ return o.ent!==x.ent&&Math.abs(o.d-x.d)<=2; })) return;
+      if(ok.some(function(v){ return v.c===x.c&&v.banco!==x.banco&&Math.abs(v.ms-x.ms)<=3*864e5; })) return;
+      ok.push(x); c+=x.c;
+    });
+    if(c>0){ const ult=ok[ok.length-1]; out[p.id]={c:c,dia:ult.dia,via:ult.via,ids:ok.map(function(x){ return x.id; })}; }
+  });
+  return out;
+}
+/* Marcar o desmarcar a mano. `vetar`: al deshacer lo que casó SOLO, se apunta «!persona:ingreso»
+   por cada ingreso que lo pagaba: esos ingresos dejan de contar para esa persona (eran otra cosa),
+   y uno que llegue después sí casa. Deshacer una marca a mano no veta nada. Va en la misma lista
+   que las marcas, así viaja y se mezcla igual entre móviles, y un cliente viejo no lo lee. */
+function repartoMarcarCobrado(s,pid,y,m,today,on,vetar){
+  const ym=y*12+m, nuevos=on?[pid]:(vetar||[]).map(function(id){ return "!"+pid+":"+id; });
   let cambia=false;
   const fixed=(s.fixed||[]).map(function(e){
     const r=repartoDelMes(s,e,y,m,today);
     if(!r||!r.some(function(x){ return x.id===pid&&!repartoDescuentaDe(s,x,e); })) return e;
-    const prev=(e.repartoCobrado&&e.repartoCobrado[ym])||[], tiene=prev.indexOf(pid)>=0;
-    if(!!on===tiene) return e;
-    const lista=on?prev.concat([pid]):prev.filter(function(id){ return id!==pid; });
+    const prev=(e.repartoCobrado&&e.repartoCobrado[ym])||[];
+    const lista=prev.filter(function(id){ return id!==pid&&nuevos.indexOf(id)<0; }).concat(nuevos);
+    if(lista.length===prev.length&&lista.every(function(id){ return prev.indexOf(id)>=0; })) return e;
     // Un año atrás basta: «Te deben» solo mira este mes.
     const rc={};
     Object.keys(e.repartoCobrado||{}).forEach(function(k){ if(Number(k)>ym-13&&Number(k)!==ym) rc[k]=e.repartoCobrado[k]; });
