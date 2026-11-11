@@ -1246,7 +1246,8 @@
   .rp7-k{flex:1;min-width:0;text-align:left;font-size:15px;font-weight:700;}
   .rp7-v{flex:none;font-size:15px;font-weight:700;}
   .rp7-row .pr6-chev{color:var(--muted);}
-  .rp7-in{gap:12px;}
+  /* El relleno se va con el pliegue, no de golpe al empezar a cerrarlo: era un bote (como «¿Te llega?», 228). */
+  .rp7-in{gap:12px;transition:padding .35s var(--ease);}
   .rp7-x > .pr6-fold{margin-top:0;}
   .pr6-fold.open > .rp7-in{padding:4px 0 12px;}
   .rp7-chips{display:flex;gap:8px;flex-wrap:wrap;}
