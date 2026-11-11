@@ -423,7 +423,12 @@ Personas y recibos compartidos (Plan › Recibos v6 tanda 5) se construyen encim
 `amount` = tu parte y `bankAmount` = lo que cobra el banco. Lo nuevo es `reparto` en el recibo,
 `[{id, n, via, debtId?, amt, auto?}]` (via `bizum`/`transfer`/`debt`), con cada parte ya resuelta
 en euros (las vacías se reparten a partes iguales al guardar, el céntimo que sobra es tuyo), y
-`repartoCobrado = {año*12+mes: [ids]}` para «Ya me lo ha pagado». No hay lista de personas
+`repartoCobrado = {año*12+mes: [ids]}` para «Ya me lo ha pagado» (un `"!id"` en esa lista veta
+el casado automático de esa persona ese mes: lo apunta «Deshacer» sobre algo que casó solo). Lo
+recibido también se lee de los ingresos del mes (`teDebenRecibido`, 08): casa si el texto del banco
+lleva el nombre entero de la persona y el importe está entre la mitad y lo que debe; un pago a
+medias deja `falta` (lo único que suma el total de «Te deben»). Solo se lee: no cambia ningún
+gasto ni ingreso. No hay lista de personas
 aparte: viven en las partes de los recibos (`personasDe`), dentro de `state.fixed`. El reparto
 solo vale (`repartoVigente`, 08) si cuadra al céntimo, tu parte + partes = `bankAmount`, y en un
 recibo de cada vez (sin `schedule` ni anual repartido); si no cuadra se ignora entero: ni «Te

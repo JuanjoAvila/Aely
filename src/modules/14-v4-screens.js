@@ -934,9 +934,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     });
   };
   const llega=useMemo(function(){ return planRecibosLlega(totals,pack); },[totals.minByBank,totals.minDayByBank,totals.bankBal,pack]);
-  // «Te deben» (SPEC §5): lo que te deben de sus partes este mes y aún no te han pagado.
-  const deben=useMemo(function(){ return teDebenMes(state,year,month,today); },[pack,state.fixed,state.debts,year,month,today]);
-  const debenTotal=deben.reduce(function(a,p){ return p.pagado?a:a+Math.round(p.amt*100); },0)/100;
+  // «Te deben» (SPEC §5): lo que te deben de sus partes este mes y aún no te han pagado. Lee los
+  // ingresos del mes (`teDebenRecibido`), así que depende también de gastos y borrados.
+  const deben=useMemo(function(){ return teDebenMes(state,year,month,today); },
+    [pack,state.fixed,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,year,month,today]);
+  const debenTotal=deben.reduce(function(a,p){ return a+Math.round(p.falta*100); },0)/100;
   useBackClose(!!paidOpen, function(){ setPaidOpen(false); });
   const openManage=function(){ setManageEdit(null); setManageOpen(true); };
   const abrir=function(x){
@@ -1484,8 +1486,9 @@ function peViaTxt(state,p){
   return t("pe_debt")+(d?" · "+d.name:"");
 }
 /* Hoja «Te deben» (SPEC §5): por persona, sus partes de este mes y «Ya me lo ha pagado». Lo que
-   se descuenta de una deuda no sale aquí. Lo recibido se marca a mano: todavía no hay forma fiable
-   de casar un Bizum con una persona (el nombre del banco no es el que tú le pones). */
+   se descuenta de una deuda no sale aquí. Lo recibido casa solo cuando el banco trae su nombre
+   (`teDebenRecibido`); si no, se marca a mano. Un pago a medias enseña lo que pagó y lo que falta,
+   y el total de arriba es solo lo que falta: «Dar por pagado» lo salda, o se deja como está. */
 function TeDebenSheet({state, set, totals, deben, onClose}){
   const swipe=useSheetSwipe(true,onClose,{soloVelo:true});
   useBackClose(true,swipe.close);
@@ -1494,8 +1497,9 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
   const [persona,setPersona]=useState(null);
   const y=totals.curYear, m=totals.curMonth, today=totals.today;
   const todos=deben.length>0&&deben.every(function(p){ return p.pagado; });
-  const marcar=function(p){ set(function(s){ return repartoMarcarCobrado(s,p.id,y,m,today,!p.pagado); }); };
-  const queda=deben.reduce(function(a,p){ return p.pagado?a:a+Math.round(p.amt*100); },0)/100;
+  // Deshacer lo que casó solo apunta que ese ingreso no era suyo; si no, volvería a casar.
+  const marcar=function(p){ set(function(s){ return repartoMarcarCobrado(s,p.id,y,m,today,!p.pagado,p.pagado&&p.auto); }); };
+  const queda=deben.reduce(function(a,p){ return a+Math.round(p.falta*100); },0)/100;
   // Quien ya ha pagado va al final (SPEC §5, prototipo). El orden se fija al ABRIR: si la fila se
   // fuera abajo al tocar «Ya me lo ha pagado», el «Deshacer» ya no estaría bajo el dedo.
   const orden=useRef(null);
@@ -1517,8 +1521,11 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
             React.createElement("div",Object.assign({className:"pr6-fold-in"},todos?null:{"aria-hidden":"true",inert:""}),
               React.createElement("div",{className:"pr6-empty","data-testid":"deben-todos"}, t("pr6_te_han_pagado_todos")))),
           filas.map(function(p){
-            // Sin dato de cuándo llegó el dinero, el «✓» dice solo por dónde (no se inventa fecha).
-            const via=p.via==="bizum"||p.via==="transfer"?peViaTxt(state,p):t("pr6_te_lo_ha_pagado");
+            // Con el ingreso que lo pagó, por dónde y qué día («Bizum el 6», SPEC §5); marcado a mano no
+            // hay fecha que dar y se dice solo por dónde (no se inventa).
+            const via=p.auto&&!p.aMano?tf("pr6_deben_via_dia",{via:t(p.viaRec==="bizum"?"pe_bizum":"pe_transfer"),d:p.dia})
+              :p.via==="bizum"||p.via==="transfer"?peViaTxt(state,p):t("pr6_te_lo_ha_pagado");
+            const parcial=!p.pagado&&p.recibido>0;
             return React.createElement("div",{className:"pr6-ll-b pe-deben"+(p.pagado?" ok":""),key:p.id,"data-testid":"deben-persona","data-persona":p.id},
               React.createElement("div",{className:"pr6-ll-h"},
                 React.createElement("span",{className:"pe-ava","aria-hidden":"true"}, pr6Inicial(p.n)),
@@ -1530,9 +1537,10 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
                   p.pagado
                     ?React.createElement("button",{type:"button",className:"pe-deben-ok","data-act":"deben-pagado","aria-pressed":"true",onClick:function(){ marcar(p); }},
                       "✓ "+via+" · "+t("f_undo"))
-                    :React.createElement("span",{className:"pr6-ll-l","data-testid":"deben-estado"}, t("pr6_deben_pend")))),
+                    :React.createElement("span",{className:"pr6-ll-l","data-testid":"deben-estado"},
+                      parcial?tf("pr6_deben_parcial",{a:eur(p.recibido),b:eur(p.falta)}):t("pr6_deben_pend")))),
               !p.pagado&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide pe-deben-cta","data-act":"deben-pagado","aria-pressed":"false",
-                onClick:function(){ marcar(p); }}, t("pr6_ya_me_lo_ha_pagado")));
+                onClick:function(){ marcar(p); }}, t(parcial?"pr6_deben_saldar":"pr6_ya_me_lo_ha_pagado")));
           }))),
       persona!=null&&React.createElement(PersonaSheet,{key:persona,pid:persona,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); }})),
     document.body);

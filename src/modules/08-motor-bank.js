@@ -1111,18 +1111,19 @@ function fixedEstadoMes(s,e,y,m,today){
 }
 function planChargesMonth(s,m,y,today){
   s=s||{};
-  var r=[];
+  var r=[], debenMes=null;
   (s.fixed||[]).forEach(function(e){
     var a=occAmountIn(e,m,y);
     if(!(a>0)||!occursIn(e,m,y)) return;
     var status=fixedEstadoMes(s,e,y,m,today), aMano=status.aMano?status.day:null;
     if(!status.paid&&fixedSinCobroIn(e,y,m)) return;
     var rep=repartoDelMes(s,e,y,m,today), deben=rep?rep.filter(function(x){ return !repartoDescuentaDe(s,x,e); }):[];
-    var hecho=(e.repartoCobrado&&e.repartoCobrado[y*12+m])||[];
+    // Quien ya pagó, a mano o con un ingreso suyo: lo mismo que dice la hoja «Te deben».
+    if(deben.length&&!debenMes) debenMes=teDebenMes(s,y,m,today);
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,aMano:aMano!=null,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue,
       // Lo que cobra el banco (entero en un compartido): con eso se mira si llega (SPEC §6).
       bankAmt:fixedCargoBanco(e,m,y),
-      teDeben:deben.length?{n:deben.length,pagados:deben.filter(function(x){ return hecho.indexOf(x.id)>=0; }).length}:null});
+      teDeben:deben.length?{n:deben.length,pagados:deben.filter(function(x){ return debenMes.some(function(p){ return p.id===x.id&&p.pagado; }); }).length}:null});
   });
   (s.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
@@ -1392,23 +1393,79 @@ function teDebenMes(s,y,m,today){
     r.forEach(function(x){
       if(repartoDescuentaDe(s,x,e)) return;
       let p=by[x.id];
-      if(!p){ p=by[x.id]={id:x.id,n:x.n,via:x.via,c:0,items:[],pagado:true}; out.push(p); }
+      if(!p){ p=by[x.id]={id:x.id,n:x.n,via:x.via,c:0,items:[],aMano:true,veto:false}; out.push(p); }
       p.c+=Math.round(x.amt*100);
       p.items.push({id:e.id,name:e.name,amt:x.amt});
-      if(hecho.indexOf(x.id)<0) p.pagado=false;
+      if(hecho.indexOf(x.id)<0) p.aMano=false;
+      if(hecho.indexOf("!"+x.id)>=0) p.veto=true;
     });
   });
-  return out.map(function(p){ return {id:p.id,n:p.n,via:p.via,amt:p.c/100,items:p.items,pagado:p.pagado}; });
+  const rec=out.length?teDebenRecibido(s,y,m,out):{};
+  return out.map(function(p){
+    // `falta` es lo que entra en el total: con un pago a medias baja a lo que queda, nunca dos veces.
+    const g=!p.veto&&rec[p.id]||null, got=g?g.c:0, auto=got>=p.c;
+    const o={id:p.id,n:p.n,via:p.via,amt:p.c/100,items:p.items,pagado:p.aMano||auto,aMano:p.aMano,auto:auto,recibido:got/100,falta:(p.aMano||auto?0:p.c-got)/100};
+    if(g){ o.dia=g.dia; o.viaRec=g.via; }
+    return o;
+  });
 }
-function repartoMarcarCobrado(s,pid,y,m,today,on){
-  const ym=y*12+m;
+/* LO QUE YA TE HAN PASADO (petición del dueño, 11/11/2026). Hasta ahora «Te deben» solo se
+   marcaba a mano: una transferencia de 5 € de quien debía 5 € seguía «pendiente», y una de 4,33 €
+   de quien debía 5 € no se veía por ningún lado («se equivocó, estaría bien verlo reflejado»).
+   Un INGRESO del mes casa con una persona si el texto del banco lleva su nombre entero (cada
+   palabra de cómo la llamas tú, sin tildes: «Álex» casa con «TRANSFERENCIA ALEX DEL …», venga del
+   extracto o del aviso del móvil) y el importe es razonable: entre la mitad y lo que debe. Por
+   debajo de la mitad (el café de 2 € que te pasa otro día) o por encima (la cena de 40 €) es otra
+   cosa y se queda para marcarlo a mano. Un ingreso que nombra a dos personas no casa con ninguna,
+   y uno solo nunca paga a dos. El aviso y el extracto del mismo ingreso pueden convivir hasta que
+   se juntan: el mismo importe de la misma persona en tres días se cuenta una vez. Solo se lee:
+   ningún gasto ni ingreso cambia, así que el total del mes no se mueve. */
+const DEBEN_PALABRAS_NO={de:1,del:1,la:1,las:1,el:1,los:1,da:1,do:1,dos:1,van:1,von:1};
+function debenNombre(n){
+  const w=recNorm(n).split(" ").filter(function(x){ return x.length>=2&&!DEBEN_PALABRAS_NO[x]; });
+  return w.some(function(x){ return x.length>=3; })?w:null;
+}
+function teDebenRecibido(s,y,m,personas){
+  const nombres=personas.map(function(p){ return {p:p,w:debenNombre(p.n)}; }).filter(function(x){ return x.w; });
+  if(!nombres.length) return {};
+  const deleted=expenseDeletedSet(s), cand={};
+  (s.expenses||[]).forEach(function(e){
+    // Un traspaso entre tus bancos no es dinero de nadie, aunque el concepto lleve un nombre.
+    if(!e||!e.date||!(Number(e.amount)<0)||e.possibleDup||e.category==="traspaso"||expenseIsTombstoned(e,deleted)) return;
+    if((e.cur||e.currency)&&String(e.cur||e.currency).toUpperCase()!=="EUR") return;
+    const ms=dateMs(e.date), d=new Date(ms);
+    if(d.getFullYear()!==y||d.getMonth()+1!==m) return;
+    const txt=" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ";
+    const quien=nombres.filter(function(x){ return x.w.every(function(w){ return txt.indexOf(" "+w+" ")>=0; }); });
+    if(quien.length!==1) return;
+    const pid=quien[0].p.id;
+    (cand[pid]=cand[pid]||[]).push({c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),via:/ bizum /.test(txt)?"bizum":"transfer"});
+  });
+  const out={};
+  personas.forEach(function(p){
+    const lista=(cand[p.id]||[]).sort(function(a,b){ return a.ms-b.ms; }), vistos=[];
+    let c=0, ult=null;
+    lista.forEach(function(x){
+      if(x.c*2<p.c||c+x.c>p.c) return;
+      if(vistos.some(function(v){ return v.c===x.c&&Math.abs(v.ms-x.ms)<=3*864e5; })) return;
+      vistos.push(x); c+=x.c; ult=x;
+    });
+    if(c>0) out[p.id]={c:c,dia:ult.dia,via:ult.via};
+  });
+  return out;
+}
+/* Marcar o desmarcar a mano. `veto`: al deshacer lo que casó solo, se apunta «!id» en el mes para
+   que ese ingreso deje de contar (era otra cosa); marcar otra vez lo quita. Va en la misma lista
+   que las marcas, así viaja y se mezcla igual entre móviles, y un cliente viejo no lo lee. */
+function repartoMarcarCobrado(s,pid,y,m,today,on,veto){
+  const ym=y*12+m, no="!"+pid;
   let cambia=false;
   const fixed=(s.fixed||[]).map(function(e){
     const r=repartoDelMes(s,e,y,m,today);
     if(!r||!r.some(function(x){ return x.id===pid&&!repartoDescuentaDe(s,x,e); })) return e;
-    const prev=(e.repartoCobrado&&e.repartoCobrado[ym])||[], tiene=prev.indexOf(pid)>=0;
-    if(!!on===tiene) return e;
-    const lista=on?prev.concat([pid]):prev.filter(function(id){ return id!==pid; });
+    const prev=(e.repartoCobrado&&e.repartoCobrado[ym])||[];
+    const lista=prev.filter(function(id){ return id!==pid&&id!==no; }).concat(on?[pid]:veto?[no]:[]);
+    if(lista.length===prev.length&&lista.every(function(id){ return prev.indexOf(id)>=0; })) return e;
     // Un año atrás basta: «Te deben» solo mira este mes.
     const rc={};
     Object.keys(e.repartoCobrado||{}).forEach(function(k){ if(Number(k)>ym-13&&Number(k)!==ym) rc[k]=e.repartoCobrado[k]; });

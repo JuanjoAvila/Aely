@@ -114,6 +114,46 @@ test("Te deben: por persona, «Ya me lo ha pagado» y la familia (lo descuento) 
   await expect(sheet.getByTestId("deben-total")).toHaveText("5,00 €");
 });
 
+/* Lo que te pasan casa solo cuando el banco trae su nombre (11/11/2026): Álex paga exacto y sale
+   pagado con el día; Dani se equivoca y paga 4,33 de 5, y se ve lo que falta. El total de arriba
+   baja a lo que falta, y nada de esto toca lo que pagas tú. */
+test("Te deben: un ingreso con su nombre la paga sola, y un pago a medias enseña lo que falta", async ({ page }) => {
+  const ing = (id, merchant, amount, date) => ({ id, merchant, amount: -amount, date, category: "ingreso", ent: "sabadell", source: "ob:sabadell", noCard: true });
+  const recibos = await abrePlan(page, { fixed: [pepe, yt, luz], debts: [mama], expenses: [
+    ing("in_alex", "TRANSFERENCIA ALEX DEL PINO", 5, "2026-10-11T09:00:00"),
+    ing("in_dani", "TRANSFERENCIA DANI ROCA", 4.33, "2026-10-03T09:00:00"),
+    // De otra persona, aunque el importe cuadre: no casa con nadie.
+    ing("in_otro", "TRANSFERENCIA MARTINA SOL", 5, "2026-10-05T09:00:00")] });
+  const pill = recibos.getByTestId("plan-deben");
+  // 35 − 5 de Álex − 4,33 de Dani.
+  await expect(pill).toHaveText("Te deben 25,67 €");
+  await expect(fila(recibos, "fixed_yt")).toContainText("te han pagado 1 de 5");
+  await pill.click();
+  const sheet = page.getByTestId("deben-sheet");
+  await expect(sheet.getByTestId("deben-total")).toHaveText("25,67 €");
+  const alex = sheet.locator('[data-persona="pe_alex"]'), dani = sheet.locator('[data-persona="pe_dani"]');
+  await expect(alex.locator('[data-act="deben-pagado"]')).toHaveText("✓ Transferencia el 11 · Deshacer");
+  await expect(sheet.getByTestId("deben-persona").last()).toHaveAttribute("data-persona", "pe_alex");
+  await expect(dani.getByTestId("deben-cifra")).toHaveText("5,00 €");
+  await expect(dani.getByTestId("deben-estado")).toHaveText("pagó 4,33 € · falta 0,67 €");
+  await expect(sheet.locator('[data-persona="pe_marta"]').getByTestId("deben-estado")).toHaveText("pendiente");
+  // Darlo por pagado salda lo que falta; deshacerlo vuelve al pago a medias.
+  await dani.locator('[data-act="deben-pagado"]').click();
+  await expect(sheet.getByTestId("deben-total")).toHaveText("25,00 €");
+  await dani.locator('[data-act="deben-pagado"]').click();
+  await expect(dani.getByTestId("deben-estado")).toHaveText("pagó 4,33 € · falta 0,67 €");
+  await expect(dani.locator('[data-act="deben-pagado"]')).toHaveText("Dar por pagado");
+  // Deshacer lo que casó solo: ese ingreso no era suyo y deja de contar este mes.
+  await alex.locator('[data-act="deben-pagado"]').click();
+  await expect(alex.getByTestId("deben-estado")).toHaveText("pendiente");
+  await expect(sheet.getByTestId("deben-total")).toHaveText("30,67 €");
+  const s = await guardado(page);
+  expect(s.fixed.find((f) => f.id === "yt").repartoCobrado).toEqual({ [YM]: ["!pe_alex"] });
+  await page.goBack();
+  await expect(pill).toHaveText("Te deben 30,67 €");
+  await expect(total(recibos)).toHaveText("327,00 €");
+});
+
 test("añadir un recibo compartido: + Otra, a partes iguales, parte tecleada y tu parte", async ({ page }) => {
   const recibos = await abrePlan(page, { fixed: [luz] });
   await abreTodos(page, recibos);
