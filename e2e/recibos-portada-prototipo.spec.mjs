@@ -138,7 +138,7 @@ test("«¿Y si gasto…?»: con tres bancos el importe no se aplasta y «900,00 
   const recibos = await abre(page, { width: 393, height: 727 });
   await recibos.getByTestId("plan-llega").click();
   const zona = page.getByTestId("llega-gasto");
-  await expect(zona.locator(".chip")).toHaveCount(3);
+  await expect(zona.locator(".chip[data-bank]")).toHaveCount(3);
   await page.getByTestId("llega-gasto-amt").click();
   for (const k of ["9", "0", "0"]) await zona.locator('.v4-keys button[aria-label="' + k + '"]').click();
   const amt = page.getByTestId("llega-gasto-amt");
@@ -148,7 +148,7 @@ test("«¿Y si gasto…?»: con tres bancos el importe no se aplasta y «900,00 
   const [cw, sw] = await amt.evaluate((e) => [e.clientWidth, e.scrollWidth]);
   expect(sw).toBeLessThanOrEqual(cw + 1);
   // Cada banco sigue entero y tocable.
-  for (const c of await zona.locator(".chip").all()) expect((await c.boundingBox()).height).toBeGreaterThanOrEqual(44);
+  for (const c of await zona.locator(".chip[data-bank]").all()) expect((await c.boundingBox()).height).toBeGreaterThanOrEqual(44);
   await zona.locator('.chip[data-bank="revolut"]').click();
   await expect(page.getByTestId("llega-gasto-txt")).toContainText("No llega");
   // Atrás con el teclado abierto lo pliega a él; el segundo atrás ya cierra la hoja.

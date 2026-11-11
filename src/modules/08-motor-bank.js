@@ -1126,7 +1126,7 @@ function planChargesMonth(s,m,y,today){
       teDeben:deben.length?{n:deben.length,pagados:deben.filter(function(x){ return debenMes.some(function(p){ return p.id===x.id&&p.pagado; }); }).length}:null});
   });
   (s.debts||[]).forEach(function(d){
-    if(!debtActive(d)) return;
+    if(!debtActiveIn(d,y,m)) return;
     var b=d.account||"sabadell";
     // Sin day: pendiente con día desconocido. NO usar debtChargeDay/isDebtPaidThisMonth
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
@@ -2173,9 +2173,9 @@ function applyBankBalances(s, links){
 }
 
 /* Eventos PENDIENTES del mes que recorre `minWalk` (cargos −, entradas +), con su banco y su día.
-   Es la ÚNICA lista: la usan `totals` (11: `minByBank` → píldora, «¿Te llega?», mínimo diario y
-   `safeLiq`) y el simulador «¿Me lo puedo permitir?» (`bankPendingEvents`), así que no pueden dar
-   veredictos opuestos sobre el mismo dinero (revisión t3, R3-1).
+   Es la ÚNICA lista: la usa `totals` (11: `minByBank` → píldora, «¿Te llega?» con su «¿Y si
+   gasto…?», mínimo diario y `safeLiq`), así que no pueden dar veredictos opuestos sobre el mismo
+   dinero (revisión t3, R3-1). `bankPendingEvents` es esa lista de un solo banco.
    Un recibo sale del recorrido solo si está pagado (`fixedPaymentState`, la regla con la que Plan
    lo pinta) Y ese pago ya está en el saldo con el que se recorre (`reciboEnElSaldo`). Si no, es
    un cargo; si su día ya pasó, de HOY (decisión del dueño 28/10/2026, B1). Pausados, fuera.
@@ -2275,7 +2275,7 @@ function reciboEnElSaldo(state, e, y, m, today, leidoMs, dia){
   const d=Number(dia)>0?Number(dia):1;
   return leidoMs>=new Date(y,m-1,d+1).getTime();
 }
-// Los de un solo banco, para el simulador «¿me lo puedo permitir?».
+// Los de un solo banco: la vista con la que las pruebas comprueban el recorrido de cada cuenta.
 function bankPendingEvents(state, bank, y, m, today){
   return pendingWalkEvents(state,y,m,today).filter(function(ev){ return ev.bank===bank; });
 }
@@ -5629,111 +5629,102 @@ function MonthPicker({selected, onToggle}){
   );
 }
 
-/* "¿Me lo puedo permitir?" — simula una compra hipotética y dice cómo afecta al punto
-   más bajo del mes de ese banco (reusa el motor minWalk). Distintivo: mira el FUTURO. */
-function AffordSim({state, totals, set}){
+/* «A plazos» y el colchón de cada cuenta, dentro de «¿Te llega?» › «¿Y si gasto…?» (LlegaSheet). Era la
+   tarjeta «¿Me lo puedo permitir?» de Tus recibos; el dueño la quitó por repetir lo que ya dice la hoja
+   (11/11/2026), pero estas dos cosas la hoja no las tenía y se quedan aquí.
+   El punto más bajo de cada banco llega ya hecho (`bancos`, de `planRecibosBancos` con lo que sale este
+   mes restado: el importe, o solo la entrada si va a plazos). No se recorre el mes otra vez: con su
+   propio recorrido salían dos cifras del mismo dinero en la misma hoja. */
+/* La deuda que crea «A plazos»: la 1.ª cuota cae el mes que viene, el mismo día de hoy, como dice la
+   hoja («este mes solo sale la entrada»). Con el ancla en este mes y el día de hoy, `debtPaidCount` la
+   daba por pagada al nacer: 1.100 € de 1.200 el día de la compra, una cuota en «Ya pagados» sin ningún
+   cobro y el final un mes antes de lo que decía la hoja (revisión de dinero 229, P1-1). Con el ancla en
+   el mes siguiente no hay nada pagado hasta entonces. `meses` ya viene validado (2-120); si no, null. */
+function deudaAPlazos(amt, dw, meses, bank, day, name){
+  const financed=+((amt-dw).toFixed(2));
+  if(!(meses>=2&&meses<=120)||!(financed>0)) return null;
+  const quota=+((financed/meses).toFixed(2));
+  const it={ id:uid(), ent:"familia", name:String(name||"").trim()||t("db_newdebt"), value:financed, original:financed,
+    monthly:quota, amort:quota, months:meses, asOf:ymNow()+1, account:bank, day:day, note:t("db_addedmanual") };
+  it.startMonth=it.asOf;
+  it.startDay=netWorthDay(); // La compra nace hoy; el día de cargo no es su fecha de alta.
+  if(dw>0) it.downPayment=dw;
+  return it;
+}
+function AffordSim({state, set, totals, bancos, bank, amt, dw, meses, plazos}){
   const accounts=(state.accounts||[]);
-  const defBank=(accounts.find(function(a){return a.ent==="sabadell";})?"sabadell":(accounts[0]&&accounts[0].ent))||"sabadell";
-  const [amount,setAmount]=useState("");
-  const [day,setDay]=useState(String(totals.today||new Date().getDate()));
-  const [bank,setBank]=useState(defBank);
-  // Modo «a plazos» (petición 2026-07-18): además del contado, simula financiarlo — cuota,
-  // cómo suben tus fijos y si te cabe cada mes; y puede crear la deuda de un toque.
-  const [mode,setMode]=useState("cash");     // cash | fin
-  const [months,setMonths]=useState("12");
-  const [down,setDown]=useState("");
-  const [finName,setFinName]=useState("");
-  const [finDone,setFinDone]=useState(false);
-  const acc=accounts.find(function(a){return a.ent===bank;});
-  const floor=(acc&&acc.floor>0)?acc.floor:0;          // colchón mínimo opcional de esta cuenta
-  const setFloor=function(v){ const n=parseFloat(String(v).replace(',','.')); set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(a){ return a.ent===bank?Object.assign({},a,{floor:(isNaN(n)||n<=0)?undefined:n}):a; })}); }); };
-  const amt=parseFloat(String(amount).replace(',','.'))||0;
-  const dd=Math.max(1,Math.min(31,parseInt(day)||totals.today||1));
-  const start=(totals.bankBal&&totals.bankBal[bank])||0;
-  const evs=bankPendingEvents(state, bank, totals.curYear, totals.curMonth, totals.today);
-  const base=minWalk(start, evs);
-  // A plazos: este mes solo sale la ENTRADA (la 1ª cuota llega el mes que viene); al contado, todo.
-  const fin=mode==="fin";
-  const nM=Math.max(1,Math.min(120,parseInt(months)||12));
-  const dw=fin ? Math.min(amt, Math.max(0,parseFloat(String(down).replace(',','.'))||0)) : 0;
-  const quota=fin ? +(((amt-dw)/nM).toFixed(2)) : 0;
-  const hitNow=fin ? dw : amt;
-  const sim=minWalk(start, hitNow>0?evs.concat([{day:dd, amt:-hitNow}]):evs);
-  const BUFFER=50;
-  const breaksFloor = floor>0 && sim.min < floor;
-  const verdict = amt<=0 ? null : (sim.min<-0.005 ? "no" : (breaksFloor ? "floor" : (sim.min<BUFFER ? "tight" : "yes")));
-  const lowTxt = sim.minDay ? tf("af_low",{x:eur(sim.min),d:sim.minDay}) : tf("af_low_noday",{x:eur(sim.min)});
-  const verdictTxt = verdict==="no"?t("af_no"):(verdict==="floor"?tf("af_floor_break",{x:eur0(floor)}):(verdict==="tight"?t("af_tight"):t("af_yes")));
+  // La deuda recién creada, para poder deshacerla; cambiar la compra la olvida (la deuda se queda).
+  const [hecha,setHecha]=useState(null);
+  useEffect(function(){ setHecha(null); },[amt,dw,meses,bank,plazos]);
+  const floorOf=function(ent){ const a=accounts.find(function(x){ return x.ent===ent; }); return (a&&a.floor>0)?a.floor:0; };
+  /* Con el lector de importes de la casa: `replace(',','.')` dejaba «1.000,50» en 1 €. Vacío o 0 quitan el
+     colchón; lo que no es un importe no toca nada (revisión 229, P2-4). */
+  const setFloor=function(ent,v){
+    const txt=String(v).trim(), n=txt===""?0:reservaImporteDe(txt);
+    if(n==null) return;
+    set(function(s){ return Object.assign({},s,{accounts:(s.accounts||[]).map(function(a){ return a.ent===ent?Object.assign({},a,{floor:n>0?n:undefined}):a; })}); });
+  };
+  const editFloor=function(ent){
+    askText({title:tf("af_floor",{bank:entOf(ent).label}), ph:t("af_floor_ph"), value:floorOf(ent)||"", ok:t("save")})
+      .then(function(raw){ if(raw==null) return; setFloor(ent,raw); });
+  };
+  // `meses` llega validado (2-120) o null: sin un plazo válido no hay cuota ni se puede crear (revisión 229, P2-2).
+  const nM=meses;
+  const quota=plazos&&nM ? +(((amt-dw)/nM).toFixed(2)) : 0;
   // ¿Te cabe la cuota CADA MES? margen libre = nómina − fijos − presupuesto variable.
   const incomeM=(state.flows||[]).reduce(function(a,f){ return a+((f&&f.kind==="income"&&!f.once)?(f.amount||0):0); },0);
-  /* Lo fijo de cada mes es la cifra de «Se te van cada mes» de Tus recibos, desde donde se abre esto
-     (`billsHeroTotal`): con `totals.fijosMensual` un pausado seguía contando y, a un toque de
-     distancia, salían dos cifras de lo mismo (revisión 218, P2-a). */
+  /* Lo fijo de cada mes es la cifra de «Se te van cada mes» de Tus recibos (`billsHeroTotal`): con
+     `totals.fijosMensual` un pausado seguía contando y salían dos cifras de lo mismo (revisión 218, P2-a). */
   const fijosM=billsHeroTotal(state,totals,totals.curMonth,totals.curYear);
   const freeM=incomeM-fijosM-(state.budget||0);
-  const quotaVerdict = !fin||quota<=0 ? null
+  const quotaVerdict = !plazos||quota<=0 ? null
     : incomeM<=0 ? "none"
     : quota>freeM ? "no" : (quota>freeM*0.5 ? "tight" : "ok");
-  const endLbl=(function(){ const d0=new Date(); d0.setDate(1); d0.setMonth(d0.getMonth()+nM); return monthLong(d0.getMonth())+" "+d0.getFullYear(); })();
-  const createDebt=function(){
+  // La última cuota: la primera cae el mes que viene (`deudaAPlazos`), así que la n-ésima es hoy + n meses.
+  const endLbl=nM?(function(){ const d0=new Date(); d0.setDate(1); d0.setMonth(d0.getMonth()+nM); return monthShort(d0.getMonth())+" "+d0.getFullYear(); })():"";
+  const createDebt=function(name){
     if(!(quota>0)) return;
-    const financed=+((amt-dw).toFixed(2));
-    const it={ id:uid(), ent:"familia", name:finName.trim()||t("db_newdebt"), value:financed, original:financed,
-      monthly:quota, amort:quota, months:nM, asOf:ymNow(), account:bank, day:dd, note:t("db_addedmanual") };
-    it.startMonth=it.asOf;
-    it.startDay=netWorthDay(); // La compra nace hoy; el día de cargo no es su fecha de alta.
-    if(dw>0) it.downPayment=dw;
+    const it=deudaAPlazos(amt,dw,nM,bank,totals.today,name);
+    if(!it) return;
     set(function(s){ return Object.assign({},s,{debts:(s.debts||[]).concat([it])}); });
-    setFinDone(true);
+    setHecha(it.id);
   };
-  /* Vive en su propia pantalla («¿Me lo puedo permitir?» de Recibos) y se ve ya abierto: era un
-     desplegable cerrado que repetía el título de la página y había que volver a tocar (beta 4.26.200). */
-  return React.createElement("div",{className:"card","data-testid":"afford-sim"},React.createElement("div",{className:"card-body"},
-    React.createElement("div",{style:{display:"flex",gap:6,marginBottom:8}},
-      [["cash","af_mode_cash"],["fin","af_mode_fin"]].map(function(mm){
-        return React.createElement("button",{key:mm[0],className:"chip"+(mode===mm[0]?" on":""),style:mode===mm[0]?{background:"var(--mint)",color:"#06120C",borderColor:"var(--mint)"}:null,
-          onClick:function(){ setMode(mm[0]); setFinDone(false); }}, t(mm[1]));
-      })),
-    React.createElement("div",{className:"af-row"},
-      React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:t("af_amount"),value:amount,onChange:function(e){ setAmount(e.target.value); setFinDone(false); }}),
-      React.createElement("input",{className:"af-in num",inputMode:"numeric",style:{flex:"0 0 30%"},placeholder:t("af_day"),value:day,onChange:function(e){ setDay(e.target.value); }})
-    ),
-    fin && React.createElement("div",{className:"af-row",style:{marginTop:8}},
-      React.createElement("input",{className:"af-in num",inputMode:"numeric",placeholder:t("af_fin_months"),value:months,onChange:function(e){ setMonths(e.target.value); setFinDone(false); }}),
-      React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:t("af_fin_down"),value:down,onChange:function(e){ setDown(e.target.value); setFinDone(false); }})
-    ),
-    accounts.length>1 && React.createElement("select",{className:"af-in",style:{marginTop:8},value:bank,onChange:function(e){ setBank(e.target.value); }},
-      accounts.map(function(a){ return React.createElement("option",{key:a.id,value:a.ent}, entOf(a.ent).label); })),
-    React.createElement("div",{className:"af-floor"},
-      React.createElement("span",{className:"muted"}, tf("af_floor",{bank:entOf(bank).label})),
-      React.createElement("input",{key:"floor-"+bank,className:"af-in num",style:{flex:"0 0 38%",textAlign:"right"},inputMode:"decimal",placeholder:t("af_floor_ph"),defaultValue:floor||"",onBlur:function(e){ setFloor(e.target.value); }})),
-    (floor>0 && base.min<floor) && React.createElement("div",{className:"af-below"}, tf("af_below",{x:eur0(floor),y:eur(base.min)})),
-    React.createElement("div",{className:"af-info"},
-      React.createElement("div",{className:"af-safe"}, tf("af_safe",{x:eur(Math.max(0, base.min-Math.max(0,floor)))})),
-      React.createElement("div",{className:"muted",style:{fontSize:11.5,marginTop:3}}, tf("af_eom",{x:eur(base.end)}))
-    ),
-    amt>0 && React.createElement("div",{className:"af-result "+verdict,style:{marginTop:10}},
-      // El tono lo da el color (antes un emoji delante: 🟠 🔴 ✅; P2-8).
-      React.createElement("div",{className:"af-verdict "+(verdict==="no"?"no":verdict==="yes"?"ok":"justo")}, verdictTxt),
-      React.createElement("div",{className:"af-low"}, lowTxt),
-      React.createElement("div",{className:"af-delta num"}, tf("af_from_to",{a:eur(base.min),b:eur(sim.min)}))
-    ),
-    fin && amt>0 && quota>0 && React.createElement("div",{style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)",border:"1px solid var(--line)"}},
-      React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--text)",fontWeight:700}}, "📅 "+tf("af_fin_quota",{x:eur(quota),n:nM,d:endLbl})),
-      React.createElement("div",{className:"hint",style:{marginTop:6}}, tf("af_fin_fixed",{a:eur0(fijosM),b:eur0(fijosM+quota)})),
-      quotaVerdict==="ok" && React.createElement("div",{className:"hint",style:{marginTop:6,color:"var(--mint)"}}, tf("af_fin_margin_ok",{x:eur0(freeM-quota)})),
-      quotaVerdict==="tight" && React.createElement("div",{className:"hint",style:{marginTop:6,color:"var(--tan)"}}, tf("af_fin_margin_tight",{x:eur0(freeM)})),
-      quotaVerdict==="no" && React.createElement("div",{className:"hint",style:{marginTop:6,color:"var(--coral)"}}, tf("af_fin_margin_no",{x:eur0(Math.max(0,freeM))})),
-      quotaVerdict==="none" && React.createElement("div",{className:"hint",style:{marginTop:6}}, t("af_fin_margin_none")),
-      finDone
-        ? React.createElement("div",{className:"hint",style:{marginTop:8,color:"var(--mint)",fontWeight:700}}, t("af_fin_created"))
-        : React.createElement(React.Fragment,null,
-            React.createElement("input",{className:"af-in",style:{marginTop:8},placeholder:t("af_fin_name_ph"),value:finName,onChange:function(e){ setFinName(e.target.value); }}),
-            React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},onClick:createDebt}, tf("af_fin_create",{x:eur(quota)}))
-          ),
-      React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("af_fin_hint"))
-    )
-  ));
+  // El nombre se pide al crear: cancelar la pregunta no crea nada.
+  const crear=function(){
+    askText({title:t("pr6_plazos_que"), ph:t("db_newdebt"), ok:t("pr6_crear_deuda"), mode:"text"})
+      .then(function(raw){ if(raw==null) return; createDebt(raw); });
+  };
+  /* Deshacer quita SOLO la deuda que se acaba de crear, por su id, con el borrado de deudas de siempre
+     (`planSyncDeleteDebt`): deja la lápida para que otro móvil no la resucite y no toca nada si ya no
+     está o ya tiene cuotas enlazadas en Gastos (revisión 229, P2-1). */
+  const deshacer=function(){
+    const id=hecha; setHecha(null);
+    set(function(s){ return planSyncDeleteDebt(s,id); });
+  };
+  const fila=function(k,lbl,val,cls){ return React.createElement("div",{className:"pr6-ll-row",key:k},React.createElement("span",null,lbl),React.createElement("span",{className:"num"+(cls?" "+cls:"")},val)); };
+  const conSaldo=(bancos||[]).filter(function(b){ return b.known; });
+  const verTxt={ok:tf("af_fin_margin_ok",{x:eur0(freeM-quota)}), tight:tf("af_fin_margin_tight",{x:eur0(freeM)}), no:tf("af_fin_margin_no",{x:eur0(Math.max(0,freeM))}), none:t("af_fin_margin_none")};
+  const abre=amt>0, abrePlazos=abre&&plazos&&amt-dw>0.005;
+  return React.createElement("div",{className:"pr6-ll-af","data-sin-teclado":"","data-testid":"afford-sim"},
+    React.createElement("div",{className:"pr6-fold"+(abrePlazos?" open":"")},
+      React.createElement("div",Object.assign({className:"pr6-fold-in pr6-ll-plz","data-testid":"llega-plazos"},abrePlazos?null:{"aria-hidden":"true",inert:""}),
+        nM?fila("cuota",tf("pr6_cuota_hasta",{d:endLbl}),tf("pr6_al_mes",{x:eur(quota)})):fila("cuota",t("pr6_meses_min"),"—"),
+        quotaVerdict&&React.createElement("span",{className:"pr6-ll-wt"+(quotaVerdict==="ok"?" ok":quotaVerdict==="no"?" no":""),"data-verdict":quotaVerdict}, verTxt[quotaVerdict]),
+        hecha
+          ? React.createElement("div",{className:"pr6-ll-row","data-testid":"plazos-creada"},
+              React.createElement("span",null, t("af_fin_created")),
+              React.createElement("button",{type:"button",className:"pr6-btn pr6-ll-undo","data-act":"plazos-deshacer",onClick:deshacer}, t("f_undo")))
+          : React.createElement("button",{type:"button",className:"pr6-cta","data-act":"plazos-crear",disabled:!(abrePlazos&&quota>0),onClick:crear}, tf("af_fin_create",{x:eur(quota)})))),
+    React.createElement("div",{className:"pr6-fold"+(abre&&conSaldo.length?" open":"")},
+      React.createElement("div",Object.assign({className:"pr6-fold-in pr6-ll-col","data-testid":"llega-colchon"},abre?null:{"aria-hidden":"true",inert:""}),
+        React.createElement("span",{className:"pr6-lbl"}, t("pr6_colchon")),
+        conSaldo.map(function(b){
+          // Lo que queda por encima del colchón mínimo de esa cuenta en su punto más bajo (sin colchón, el mínimo tal cual).
+          const floor=floorOf(b.bank), left=b.min-floor, neg=left<-0.005;
+          return React.createElement("button",{type:"button",className:"pr6-ll-row pr6-ll-in",key:b.bank,"data-bank":b.bank,onClick:function(){ editFloor(b.bank); }},
+            React.createElement("span",null, floor>0?tf("pr6_colchon_de",{bank:entOf(b.bank).label,x:eur0(floor)}):entOf(b.bank).label),
+            React.createElement("span",{className:"num "+(neg?"neg":"pos")}, (neg?"− ":"")+eur(Math.abs(left))));
+        }))));
 }
 
 /* ============================================================
@@ -5935,11 +5926,11 @@ function billsHeroTotal(state, totals, curMonth, curYear){
      que publica el Hogar (13), que es otra conversación. Sin los pausados (`billsPausado`). */
   if(curMonth==null||curYear==null){ const d=new Date(); curMonth=d.getMonth()+1; curYear=d.getFullYear(); }
   const enPausa=function(e){ return billsPausado(e,curMonth,curYear); };
-  const desc=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?billsDescuentoSin(state,d,enPausa):0); },0);
+  const desc=(state.debts||[]).reduce(function(a,d){ return a+(debtActiveIn(d,curYear,curMonth)?billsDescuentoSin(state,d,enPausa):0); },0);
   const pausado=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?fixedMonthlyOf(e):0); },0);
   if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual-pausado+desc;
   const serv=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?0:fixedMonthlyOf(e)); },0);
-  const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
+  const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActiveIn(d,curYear,curMonth)?(d.monthly||0):0); },0);
   return serv+cuotas+desc;
 }
 function billsCountAll(state, curMonth, curYear){

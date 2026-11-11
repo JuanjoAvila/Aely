@@ -1,15 +1,15 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* Plan › Recibos: prueba gratis, permanencia y filas que se deslizan (decisión del dueño del
+/* Plan › Recibos: prueba gratis, permanencia y gestos sobre las filas (decisión del dueño del
    10/11/2026; docs/design/plan-recibos/SPEC.md §2.3, §2.4, §2.6.2, §7 y §10).
    - Las dos fechas son opcionales: sin fecha no sale nada. La permanencia solo avisa; la prueba gratis,
      como el prototipo, saca el recibo de lo que queda por pagar mientras no cobra (el mes en que
      acaba sí cuenta) y en «Se te van cada mes» sigue sumando.
-   - Deslizar a la izquierda una fila de «Para revisar» la deja para mañana (con Deshacer) y una de
-     «Por pagar» abre «¿Cuál es el cargo?». El gesto es de verdad (toques por CDP, sin el splash
-     delante y con la pestaña quieta) y se comprueba que ATERRIZA en la fila; además, que no rompe
-     cambiar de pestaña hacia la derecha ni el scroll vertical. */
+   - Las filas ya no se deslizan (11/11/2026, el dueño: con una mano deslizaba desde el importe y no le
+     dejaba pasar de pestaña): un desliz horizontal sobre cualquier parte de una fila cambia de pestaña,
+     como en el resto de la app, y no marca ni pospone nada. Posponer y «¿Cuál es el cargo?» siguen en
+     la ficha. El gesto es de verdad (toques por CDP, sin el splash delante y con la pestaña quieta). */
 const YM = 2026 * 12 + 10;
 const settings = { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell"] };
 const recibo = (id, name, amount, day, extra) => Object.assign({ id, name, amount, freq: "mes", day, account: "sabadell" }, extra);
@@ -160,102 +160,44 @@ test("más opciones: se ponen, se guardan y se quitan la prueba gratis y la perm
   await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText(await page.evaluate(() => eur(55 + 12.99 + 30 + 20)));
 });
 
-/* Arrastre horizontal real. Devuelve el desplazamiento de la tarjeta a mitad de gesto: si es 0, el
-   dedo no aterrizó en la fila y la prueba no vale (se falla, no se da por buena).
-   El dedo nace en la cifra (la única zona que agarra la fila, decisión del dueño del 10/11/2026) o,
-   con `desde: "nombre"`, en el nombre del recibo. */
-async function desliza(page, cdp, loc, dx, { pasos = 12, dy = 0, desde = "cifra" } = {}) {
+/* Arrastre horizontal real por CDP, con el dedo naciendo en la cifra (`.am`) o en el nombre de la fila. */
+async function desliza(page, cdp, loc, dx, { pasos = 14, desde = "cifra" } = {}) {
   await loc.evaluate((el) => el.scrollIntoView({ block: "center" }));
   await page.waitForTimeout(250);
   const b = await loc.locator(desde === "nombre" ? ".pr6-nm" : ".am").boundingBox();
   const x0 = Math.round(desde === "nombre" ? b.x + 12 : b.x + b.width / 2), y0 = Math.round(b.y + b.height / 2);
-  const frame = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  let movida = 0;
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y: y0 }] });
-  let medio = 0;
   for (let i = 1; i <= pasos; i++) {
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 + (dx * i) / pasos, y: y0 + (dy * i) / pasos }] });
-    await frame();
-    if (i === Math.ceil(pasos * 0.75)) medio = await loc.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 + (dx * i) / pasos, y: y0 }] });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    movida = Math.max(movida, Math.abs(await loc.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41)));
   }
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-  return medio;
+  return movida;
 }
 
-test("deslizar a la izquierda: «Para revisar» se deja para mañana y «Por pagar» abre ¿Cuál es el cargo?", async ({ page, browserName }) => {
-  test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
-  const recibos = await abrePlan(page);
-  const cdp = await page.context().newCDPSession(page);
-  const review = recibos.getByTestId("plan-review");
-
-  // Corto: la tarjeta sigue al dedo y vuelve; no pasa nada ni se abre la ficha.
-  const luz = review.locator('[data-recibo="fixed_luz"]');
-  expect(await desliza(page, cdp, luz, -50)).toBeLessThan(-20);
-  await expect.poll(() => luz.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
-  await expect(ficha(page)).toHaveCount(0);
-  await expect(review.locator('[data-recibo="fixed_luz"]')).toHaveCount(1);
-
-  // Largo (> 90 px): se pospone, con Deshacer, y la pestaña no se mueve.
-  expect(await desliza(page, cdp, luz, -150)).toBeLessThan(-90);
-  await expect(review.locator('[data-recibo="fixed_luz"]')).toHaveCount(0);
-  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_luz"]')).toHaveCount(1);
-  await expect(page.getByTestId("plan-deshacer")).toContainText("Luz: te lo recuerdo mañana");
-  await expect(ficha(page)).toHaveCount(0);
-  expect(await pestana(page)).toBe("plan");
-  await page.getByTestId("plan-deshacer").getByRole("button").click();
-  await expect(review.locator('[data-recibo="fixed_luz"]')).toHaveCount(1);
-
-  // «Por pagar»: abre la ficha directamente en «¿Cuál es el cargo?».
-  const agua = recibos.getByTestId("plan-due").locator('[data-recibo="fixed_agua"]');
-  expect(await desliza(page, cdp, agua, -150)).toBeLessThan(-90);
-  await expect(ficha(page)).toBeVisible();
-  await expect(ficha(page).locator(".pr6-track")).toHaveClass(/\bpick\b/);
-  await expect(ficha(page).locator(".pr6-pick-t")).toHaveText("¿Cuál es el cargo?");
-  expect(await pestana(page)).toBe("plan");
-  await cdp.detach();
-});
-
-/* Queja del dueño probando la beta (10/11/2026): ir a Cartera deslizando desde Recibos se quedaba en
-   la fila si el dedo caía encima. Desde el nombre, el gesto es del carrusel y la tarjeta ni se mueve;
-   desde la cifra, es de la fila y la pestaña no cambia. En las dos listas. */
-for (const caso of [
-  { lista: "plan-due", id: "fixed_agua", efecto: async (page, recibos) => { await expect(ficha(page).locator(".pr6-pick-t")).toHaveText("¿Cuál es el cargo?"); } },
-  { lista: "plan-review", id: "fixed_luz", efecto: async (page, recibos) => {
-    await expect(page.getByTestId("plan-deshacer")).toContainText("Luz: te lo recuerdo mañana");
-    await expect(recibos.getByTestId("plan-review").locator('[data-recibo="fixed_luz"]')).toHaveCount(0);
-  } },
-]) {
-  test(`${caso.lista}: desde el nombre cambia de pestaña; desde la cifra mueve la fila`, async ({ page, browserName }) => {
+/* Petición del dueño (11/11/2026): «con una mano deslizo desde el precio y no me deja pasar de pestaña».
+   En las dos listas, empezando sobre el importe o sobre el nombre: la fila no se mueve, la pestaña pasa
+   a Cartera y no se pospone, no se abre la ficha ni cambia nada guardado. */
+for (const caso of [{ lista: "plan-due", id: "fixed_agua" }, { lista: "plan-review", id: "fixed_luz" }]) for (const desde of ["cifra", "nombre"]) {
+  test(`${caso.lista}: un desliz horizontal desde ${desde === "cifra" ? "el importe" : "el nombre"} cambia de pestaña y no marca nada`, async ({ page, browserName }) => {
     test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
     const recibos = await abrePlan(page);
     const cdp = await page.context().newCDPSession(page);
+    const antes = await page.evaluate(() => JSON.stringify(mcLoadRaw(mcStateKey()).fixed));
     const fila = recibos.getByTestId(caso.lista).locator(`[data-recibo="${caso.id}"]`);
-
-    // Desde la cifra: la tarjeta sigue al dedo, actúa y la pestaña no se mueve.
-    expect(await desliza(page, cdp, fila, -150)).toBeLessThan(-90);
-    await caso.efecto(page, recibos);
-    expect(await pestana(page)).toBe("plan");
-    if (caso.lista === "plan-due") {
-      // «¿Cuál es el cargo?» es un paso dentro de la ficha: atrás vuelve a la ficha y otro atrás la cierra.
-      await page.goBack();
-      await expect(ficha(page).locator(".pr6-track")).not.toHaveClass(/\bpick\b/);
-      await page.goBack();
-      await expect(ficha(page)).toHaveCount(0);
-    } else {
-      await page.getByTestId("plan-deshacer").getByRole("button").click();
-      await expect(fila).toHaveCount(1);
-    }
-    await page.waitForTimeout(500);
-
-    // Desde el nombre: la tarjeta no se mueve y el carrusel pasa a Cartera.
-    expect(await desliza(page, cdp, fila, -220, { desde: "nombre", pasos: 14 })).toBe(0);
+    expect(await desliza(page, cdp, fila, -220, { desde })).toBe(0);
     await expect.poll(() => pestana(page)).toBe("cartera");
     await expect(ficha(page)).toHaveCount(0);
-    expect(await fila.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+    await expect(page.getByTestId("plan-deshacer")).toHaveCount(0);
+    await expect(recibos.getByTestId(caso.lista).locator(`[data-recibo="${caso.id}"]`)).toHaveCount(1);
+    expect(await page.evaluate(() => JSON.stringify(mcLoadRaw(mcStateKey()).fixed))).toBe(antes);
     await cdp.detach();
   });
 }
 
-test("deslizar una fila no rompe cambiar de pestaña hacia la derecha ni el scroll vertical", async ({ page, browserName }) => {
+test("sobre una fila, hacia la derecha cambia de pestaña y en vertical es scroll", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
   const fixed = datos();
   for (let i = 0; i < 10; i++) fixed.push(recibo("r" + i, "Recibo " + (i + 1), 10 + i, 20 + (i % 8)));
@@ -303,8 +245,8 @@ test("deslizar una fila no rompe cambiar de pestaña hacia la derecha ni el scro
   await cdp.detach();
 });
 
-/* Revisión de la 224, P2-C: lo que NACE en la cifra (la zona que agarra la fila) sigue siendo un toque o un
-   scroll si no es un desliz a la izquierda: el toque abre la ficha y el vertical hace scroll sin mover la fila. */
+/* Revisión de la 224, P2-C: lo que nace en la cifra es un toque o un scroll como en el resto de la fila: el
+   toque abre la ficha y el vertical hace scroll sin mover la fila. */
 test("desde la cifra: un toque abre la ficha y un arrastre vertical hace scroll", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
   const fixed = datos();

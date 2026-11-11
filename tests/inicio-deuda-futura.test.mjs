@@ -32,11 +32,12 @@ function manualDebt(form,source=html){
   fn({name:"Alta sintética",value:"600,03",monthly:"50,01",months:"12",day:"16",account:"sabadell",down:"",balloon:"",paid:"",...form},update=>{state=update(state);},()=>{},()=>{},()=>{});
   assert.equal(state.debts.length,1);return state.debts[0];
 }
+// La compra a plazos de «¿Y si gasto…?» (`deudaAPlazos`, 4.26.229), con el reloj simulado de `c`: su 1.ª cuota
+// cae el mes que viene (revisión de dinero 229, P1-1), así que el mes de la compra no paga ninguna.
 function affordDebt(source=html){
-  let state={debts:[]},done=false;
-  const fn=vm.runInContext("(function(quota,amt,dw,nM,bank,dd,finName,set,setFinDone){"+callbackBody(source,"const createDebt=function(){")+"})",c);
-  fn(50.01,700.03,100,12,"sabadell",16,"Compra sintética",update=>{state=update(state);},v=>{done=v;});
-  assert.equal(done,true);assert.equal(state.debts.length,1);return state.debts[0];
+  const fn=vm.runInContext("(function(amt,dw,meses,bank,day,name){"+callbackBody(source,"function deudaAPlazos(amt, dw, meses, bank, day, name){")+"})",c);
+  const d=fn(700.03,100,12,"sabadell",16,"Compra sintética");
+  assert.ok(d);return d;
 }
 test("revision1: alta09 guarda inicio después de convertir cuotas pagadas",()=>atOctober(()=>{
   for(const [paid,day,month] of [[0,16,9],[3,16,7],[3,28,7],[3,30,6]]){
@@ -51,13 +52,14 @@ test("revision1: alta09 guarda inicio después de convertir cuotas pagadas",()=>
 }));
 test("revision1: alta08 AffordCard guarda inicio y conserva entrada y cuota",()=>atOctober(()=>{
   const d=affordDebt();
-  assert.equal(d.asOf,2026*12+9);assert.equal(d.startMonth,d.asOf);
-  assert.equal(cents(d.value),60003);assert.equal(cents(d.downPayment),10000);assert.equal(cents(d.monthly),5001);
+  assert.equal(d.asOf,2026*12+10,"la 1.ª cuota, en noviembre");assert.equal(d.startMonth,d.asOf);
+  assert.equal(cents(d.value),60003);assert.equal(cents(d.downPayment),10000);assert.equal(cents(d.monthly),5000);
+  assert.equal(c.debtPaidCount(d),0,"nada pagado el mes de la compra");assert.equal(cents(c.debtBalance(d)),60003);
   assert.equal(cents(c.netWorthDebtPolicy({debts:[d]},"2026-10-28").at("2026-09-30")),0);
   assert.equal(cents(c.netWorthDebtPolicy({debts:[d]},"2026-10-28").at("2026-10-01")),0,"la compra nueva se creó el día 28");
 }));
 test("revision1: mutaciones de altas mueren por importes históricos",()=>atOctober(()=>{
-  for(const [line,writer] of [["if(months>0) it.startMonth=it.asOf;",manualDebt.bind(null,{})],["    it.startMonth=it.asOf;",affordDebt]]){
+  for(const [line,writer] of [["if(months>0) it.startMonth=it.asOf;",manualDebt.bind(null,{})],["  it.startMonth=it.asOf;",affordDebt]]){
     assert.equal(html.split(line).length,2,"punto único fuera del oráculo");
     const mutantSource=html.replace(line,"").replace("if(months>0&&paid===0) it.startDay=netWorthDay();","").replace("it.startDay=netWorthDay();","");
     const correct=writer(html),mutant=writer(mutantSource);
@@ -240,8 +242,10 @@ function atFIN12Time(iso,fn){
 for(const origin of ["manual","compra"])test("FIN12 día: alta real "+origin+" no aparece días antes dentro del mismo mes",()=>atFIN12Time("2026-10-10T12:00:00Z",()=>{
   const d=origin==="manual"?manualDebt({value:"600,12",monthly:"50,01",day:"16"}):affordDebt();
   const state=fixture([d]),saved=JSON.stringify(state),principal=origin==="manual"?60012:60003;
-  const series=c.netWorthSeries(state,{today:"2026-10-20",liquid:5000.13,invested:0,debtTotal:(principal-5001)/100});
-  const expected=[["2026-09-30",500013],["2026-10-01",500013],["2026-10-09",500013],["2026-10-10",500013-principal],["2026-10-11",500013-principal],["2026-10-16",500013-principal+5001],["2026-10-20",500013-principal+5001]];
+  // La compra a plazos no paga cuota el mes en que nace: la del día 16 es la de noviembre.
+  const cuota=origin==="manual"?5001:0;
+  const series=c.netWorthSeries(state,{today:"2026-10-20",liquid:5000.13,invested:0,debtTotal:(principal-cuota)/100});
+  const expected=[["2026-09-30",500013],["2026-10-01",500013],["2026-10-09",500013],["2026-10-10",500013-principal],["2026-10-11",500013-principal],["2026-10-16",500013-principal+cuota],["2026-10-20",500013-principal+cuota]];
   for(const [day,value]of expected)assert.equal(cents(series.find(p=>p.day===day).value),value,origin+" "+day);
   assert.equal(d.startDay,"2026-10-10");assert.equal(JSON.stringify(state),saved,"consultar no cambia filas originales");
 }));
@@ -274,7 +278,11 @@ for(const [name,from,to]of [["sin frontera diaria","if(day<startDay) return 0;",
   const check=m=>{assert.equal(money(m,d,"2026-10-09"),0);assert.equal(money(m,d,"2026-10-10"),60012);};check(c);assert.throws(()=>check(loadPureLogic(html.replace(from,to))),assert.AssertionError);
 });
 test("FIN12 día mutación monetaria: cada origen conserva el día además del mes",()=>atFIN12Time("2026-10-10T12:00:00Z",()=>{
-  for(const [line,writer,principal]of [["if(months>0&&paid===0) it.startDay=netWorthDay();",source=>manualDebt({value:"600,12"},source),60012],["    it.startDay=netWorthDay();",affordDebt,60003]]){
-    assert.equal(html.split(line).length,2);const correct=writer(html),mutant=writer(html.replace(line,""));assert.equal(money(c,correct,"2026-10-09"),0);assert.equal(money(c,mutant,"2026-10-09"),principal);
+  for(const [line,writer,principal]of [["if(months>0&&paid===0) it.startDay=netWorthDay();",source=>manualDebt({value:"600,12"},source),60012],["  it.startDay=netWorthDay();",affordDebt,60003]]){
+    assert.equal(html.split(line).length,2);const correct=writer(html),mutant=writer(html.replace(line,""));
+    // El alta de Deudas ancla en este mes: sin el día, la deuda aparece desde el 1. La compra a plazos ancla en
+    // el mes que viene: sin el día, no aparecería hasta noviembre aunque se compró el 10.
+    if(writer===affordDebt){assert.equal(money(c,correct,"2026-10-09"),0);assert.equal(money(c,correct,"2026-10-10"),principal);assert.equal(money(c,mutant,"2026-10-10"),0);continue;}
+    assert.equal(money(c,correct,"2026-10-09"),0);assert.equal(money(c,mutant,"2026-10-09"),principal);
   }
 }));

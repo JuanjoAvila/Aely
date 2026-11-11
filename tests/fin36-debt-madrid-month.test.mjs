@@ -27,12 +27,9 @@ function manual(c,changes={},source=html){
   add({name:"FIN36 sintética",value:"1000",monthly:"100",months:"10",day:"5",paid:"0",account:"sabadell",down:"",balloon:"",...changes},update=>{state=update(state);},()=>{},()=>{},()=>{});
   assert.equal(state.debts.length,1);return state.debts[0];
 }
-function purchase(c,day=5,source=html){
-  let state={debts:[]};
-  const add=vm.runInContext("(function(quota,amt,dw,nM,bank,dd,finName,set,setFinDone){"+body(source,"const createDebt=function(){")+"})",c);
-  add(100,1000,0,10,"sabadell",day,"Compra FIN36",update=>{state=update(state);},()=>{});
-  assert.equal(state.debts.length,1);return state.debts[0];
-}
+// La compra a plazos de «¿Y si gasto…?» (`deudaAPlazos`, 4.26.229): su 1.ª cuota cae el mes que viene, así
+// que al nacer no hay cuota del mes aunque su día ya haya pasado (revisión de dinero 229, P1-1).
+function purchase(c,day=5){ return c.deudaAPlazos(1000,0,10,"sabadell",day,"Compra FIN36"); }
 function equal(actual,expected,label){assert.equal(actual,expected,label);checks++;}
 const cases=[
   {iso:"2026-09-30T22:30:00Z",today:"2026-10-01",before:"2026-09-30",month:2026*12+9},
@@ -45,14 +42,14 @@ try{
   for(const sample of cases)for(const tz of ["Europe/Madrid","UTC","America/Los_Angeles","Asia/Tokyo"]){
     const c=context(sample.iso,tz);
     for(const origin of ["manual","compra"])for(const day of [5,1]){
-      const d=origin==="manual"?manual(c,{day:String(day)}):purchase(c,day),expected=day===1?90000:100000;
+      const compra=origin==="compra",d=compra?purchase(c,day):manual(c,{day:String(day)}),expected=!compra&&day===1?90000:100000;
       const label=sample.today+" "+tz+" "+origin+" cargo"+day;
       equal(cents(c.debtBalance(d)),expected,label+": saldo sin cuota fantasma");
-      equal(c.debtPaidCount(d),day===1?1:0,label+": pagos de calendario");
+      equal(c.debtPaidCount(d),!compra&&day===1?1:0,label+": pagos de calendario");
       const p=c.netWorthDebtPolicy({debts:[d]},sample.today);
       equal(cents(p.current),expected,label+": motor de Inicio sin current suministrado");
-      equal(d.asOf,sample.month,label+": ancla mensual Madrid");
-      equal(d.startMonth,sample.month,label+": mes de origen Madrid");
+      equal(d.asOf,sample.month+(compra?1:0),label+": ancla mensual Madrid");
+      equal(d.startMonth,sample.month+(compra?1:0),label+": mes de origen Madrid");
       equal(d.startDay,sample.today,label+": día de nacimiento Madrid");
       equal(cents(p.at(sample.before)),0,label+": deuda ausente antes del nacimiento");
       const state={accounts:[{id:"cash",ent:"efectivo",value:5000,role:"fijos"}],expenses:[],investments:[],assets:[],debts:[d],accountBalanceHistory:{"acc:cash":[{day:sample.before,value:5000}]}};

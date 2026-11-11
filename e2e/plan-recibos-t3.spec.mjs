@@ -60,7 +60,7 @@ test("recorrido con la nómina a mitad de mes: lo más justo es el día 15, ante
   await expect(gasto.getByTestId("llega-gasto-txt")).toHaveText("Llega · te quedan 175,00 €");
   await expect(sab.getByTestId("llega-cifra")).toHaveText("lo más justo, el 15175,00 €");
   // Con un solo banco con saldo no hay chips que elegir.
-  await expect(gasto.locator(".chip")).toHaveCount(0);
+  await expect(gasto.locator(".chip[data-bank]")).toHaveCount(0);
 });
 
 test("la nómina llega tarde: falta, se dice cuánto pasar y antes de qué día", async ({ page }) => {
@@ -106,7 +106,7 @@ test("banco sin saldo enseña «—» y no entra en la píldora; el que se lee d
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
   await expect(sab.getByTestId("llega-fresco")).toHaveText("saldo de hace 2 h");
   // «¿Y si gasto…?» solo ofrece bancos con saldo.
-  await expect(hoja.getByTestId("llega-gasto").locator(".chip")).toHaveCount(0);
+  await expect(hoja.getByTestId("llega-gasto").locator(".chip[data-bank]")).toHaveCount(0);
 });
 
 test("editar la nómina desde la hoja: el primer número sustituye, el día se mueve y el saldo no", async ({ page }) => {
@@ -243,4 +243,84 @@ test("editar solo el importe de una nómina «último laborable» conserva la re
   await expect(nd).toHaveCount(0);
   const f = await nominaGuardada(page);
   expect([f.amount, f.when, f.day]).toEqual([900, "last", undefined]);
+});
+
+/* «A plazos» y el colchón de cada cuenta viven en «¿Y si gasto…?» desde que salió «¿Me lo puedo
+   permitir?» de Tus recibos (11/11/2026). A plazos este mes solo sale la entrada; la cuota se
+   compara con lo libre (nómina − «Se te van cada mes»); crear la deuda pregunta el nombre (cancelar
+   no crea nada) y se puede deshacer. El colchón: una línea por banco con lo que queda sobre su mínimo. */
+test("¿Y si gasto…? a plazos crea la deuda (cancelable y deshacible) y enseña el colchón de cada cuenta", async ({ page }) => {
+  const recibos = await abrePlan(page, {
+    accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 500 }, { id: "rev", ent: "revolut", value: 300, floor: 100 }],
+    fixed: [recibo("luz", "Luz", 300, 15), recibo("nfx", "Netflix", 15, 20, "revolut")],
+    flows: [nomina(20)], budget: 0,
+  });
+  const hoja = await abreLlega(page, recibos);
+  const gasto = hoja.getByTestId("llega-gasto");
+  await gasto.locator('.chip[data-bank="sabadell"]').click();
+  await hoja.getByTestId("llega-gasto-amt").click();
+  await teclea(gasto, ["1", "2", "0", "0"]);
+  // De una vez: sale todo hoy del Sabadell (500 − 300 de la Luz − 1.200).
+  await expect(gasto.getByTestId("llega-gasto-txt")).toHaveText("No llega · faltan 1.000,00 €");
+  const colchon = gasto.getByTestId("llega-colchon");
+  await expect(colchon.locator('[data-bank="sabadell"]')).toHaveText("Sabadell− 1.000,00 €");
+  await expect(colchon.locator('[data-bank="revolut"]')).toHaveText("Revolut · mín. 100 €185,00 €");
+  await expect(gasto.getByTestId("llega-plazos")).toHaveAttribute("aria-hidden", "true");
+
+  // A plazos sin entrada: este mes no sale nada; 1.200 / 12 = 100 al mes, con 1.000 − 315 libres.
+  await gasto.locator('[data-modo="plazos"]').click();
+  await expect(gasto.getByTestId("llega-gasto-txt")).toHaveText("Llega · te quedan 200,00 €");
+  const plazos = gasto.getByTestId("llega-plazos");
+  await expect(plazos).not.toHaveAttribute("aria-hidden", "true");
+  await expect(plazos.locator(".pr6-ll-row").first()).toContainText("100,00 €/mes");
+  await expect(plazos.locator("[data-verdict]")).toHaveAttribute("data-verdict", "ok");
+  // Meses y entrada con el mismo teclado: la primera tecla sustituye lo que había.
+  // Un plazo de menos de dos meses no vale: no se pinta otro y no deja crear.
+  await gasto.locator('[data-campo="meses"]').click();
+  await teclea(gasto, ["1"]);
+  await expect(gasto.locator('[data-campo="meses"]')).toHaveText("1 meses");
+  await expect(plazos.locator(".pr6-ll-row").first()).toHaveText("De 2 a 120 meses—");
+  await expect(plazos.locator('[data-act="plazos-crear"]')).toBeDisabled();
+  await teclea(gasto, ["⌫", "2", "4"]);
+  await expect(gasto.locator('[data-campo="meses"]')).toHaveText("24 meses");
+  await gasto.locator('[data-campo="entrada"]').click();
+  await teclea(gasto, ["2", "0", "0"]);
+  await expect(gasto.locator('[data-campo="entrada"]')).toHaveText("Entrada 200,00 €");
+  await expect(gasto.getByTestId("llega-gasto-txt")).toHaveText("Llega · te quedan 0,00 €");
+  await expect(colchon.locator('[data-bank="sabadell"]')).toHaveText("Sabadell0,00 €");
+  await expect(plazos.locator(".pr6-ll-row").first()).toContainText("41,67 €/mes");
+
+  // Crear: cancelar la pregunta no crea nada.
+  const deudas = () => page.evaluate(() => mcLoadRaw(mcStateKey()).debts || []);
+  await plazos.locator('[data-act="plazos-crear"]').click();
+  const ask = page.locator(".askback [role=dialog]");
+  await expect(ask).toBeVisible();
+  await ask.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await expect(ask).toHaveCount(0);
+  await expect(hoja).toBeVisible();
+  expect(await deudas()).toEqual([]);
+  // Crear de verdad: la deuda nace con lo financiado, la cuota, los meses, la entrada y su banco.
+  await plazos.locator('[data-act="plazos-crear"]').click();
+  await ask.locator("input").fill("Portátil");
+  await ask.getByRole("button", { name: "Crear la deuda", exact: true }).click();
+  await expect(plazos.getByTestId("plazos-creada")).toBeVisible();
+  await expect.poll(async () => (await deudas()).map((d) => [d.name, d.value, d.monthly, d.months, d.downPayment, d.account, d.day]))
+    .toEqual([["Portátil", 1000, 41.67, 24, 200, "sabadell", 10]]);
+  // Nace sin cuotas pagadas: debe los 1.000, quedan las 24, la última en octubre de 2028 (lo que dice la hoja) y Recibos no la cobra este mes.
+  expect(await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), d = s.debts[0], p = planChargesMonth(s, 10, 2026, 10);
+    return [debtPaidCount(d), debtBalance(d), debtLeft(d), debtActive(d), d.asOf + d.months - 1 - (2026 * 12 + 9), p.paidBills.concat(p.pendingBills).filter((x) => String(x.id).indexOf(d.id) >= 0).length]; }))
+    .toEqual([0, 1000, 24, false, 24, 0]);
+  await expect(plazos.locator(".pr6-ll-row").first()).toContainText("hasta Oct 2028");
+  // Deshacer quita esa deuda y nada más.
+  await plazos.locator('[data-act="plazos-deshacer"]').click();
+  await expect.poll(deudas).toEqual([]);
+  await expect(plazos.locator('[data-act="plazos-crear"]')).toBeVisible();
+
+  // El colchón se cambia tocando su línea.
+  await colchon.locator('[data-bank="revolut"]').click();
+  await expect(ask).toBeVisible();
+  await ask.locator("input").fill("250");
+  await ask.getByRole("button", { name: "Guardar", exact: true }).click();
+  await expect(colchon.locator('[data-bank="revolut"]')).toHaveText("Revolut · mín. 250 €35,00 €");
+  await expect.poll(() => page.evaluate(() => mcLoadRaw(mcStateKey()).accounts.find((a) => a.ent === "revolut").floor)).toBe(250);
 });

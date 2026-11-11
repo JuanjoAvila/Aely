@@ -1,5 +1,64 @@
 [
   {
+    "v": "4.26.229",
+    "d": "2026-11-11",
+    "t": {
+      "es": "Tus recibos más ordenados y avisos de recibo repetido",
+      "en": "Tidier Your bills and repeated-bill warnings",
+      "ca": "Els teus rebuts més endreçats i avisos de rebut repetit"
+    },
+    "items": {
+      "es": [
+        "Tus recibos enseña tres por sección y «Ver los N» para el resto, también en Personas; las filas de «Por pagar» ocupan menos y ya no se deslizan: deslizar sobre cualquier recibo cambia de pestaña, como en el resto de la app.",
+        "Al dar de alta un recibo que ya tienes, la app te avisa y te deja ir a ese.",
+        "«Más opciones» se abre y se cierra con un movimiento suave, y cerrar Tus recibos deslizando rápido ya no enseña de golpe otra pantalla.",
+        "«¿Me lo puedo permitir?» sale de Tus recibos, y lo suyo pasa a «¿Y si gasto…?» en «Te llega»: probar una compra a plazos, apuntar la deuda de un toque y ver lo que te queda en cada cuenta."
+      ],
+      "en": [
+        "Your bills shows three per section and \"See all\" for the rest, People included; rows in \"To pay\" take less space and no longer slide: swiping over any bill changes tab, like everywhere else in the app.",
+        "When you add a bill you already have, the app warns you and lets you go to that one.",
+        "\"More options\" opens and closes smoothly, and closing Your bills with a quick swipe no longer flashes another screen.",
+        "\"Can I afford it?\" leaves Your bills and its tools move to \"What if I spend…?\" in \"You're covered\": try a purchase in instalments, add the debt in one tap and see what's left in each account."
+      ],
+      "ca": [
+        "Els teus rebuts mostra tres per secció i «Veure'ls tots» per a la resta, també a Persones; les files de «Per pagar» ocupen menys i ja no llisquen: lliscar sobre qualsevol rebut canvia de pestanya, com a la resta de l'app.",
+        "En donar d'alta un rebut que ja tens, l'app t'avisa i et deixa anar a aquest.",
+        "«Més opcions» s'obre i es tanca amb un moviment suau, i tancar Els teus rebuts lliscant de pressa ja no mostra de cop una altra pantalla.",
+        "«M'ho puc permetre?» surt d'Els teus rebuts, i el que feia passa a «I si gasto…?» a «T'arriba»: provar una compra a terminis, apuntar el deute d'un toc i veure el que et queda a cada compte."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibos-retoques-229",
+        "t": {
+          "es": "Recibos: Tus recibos, «Más opciones» y recibos repetidos",
+          "en": "Bills: Your bills, \"More options\" and repeated bills",
+          "ca": "Rebuts: Els teus rebuts, «Més opcions» i rebuts repetits"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → «Todos ›». BIEN: cada sección (Recibos, Cuotas de deuda, De una sola vez, Personas) enseña tres y «Ver los N»; al tocarlo se despliega suave y «Ver menos» la pliega dejando a la vista el principio de la sección; ya no está «¿Me lo puedo permitir?». Busca un recibo que esté plegado. BIEN: sale. MAL: salen más de tres sin desplegar, el pliegue salta o lo plegado no se encuentra. Luego Recibos → «¿Te llega?» → «¿Y si gasto…?» → escribe 1200 → «A plazos» → toca «12 meses» y pon 24 → toca «Entrada» y pon 200. BIEN: sale la cuota al mes y si te cabe, y en «Colchón tras el gasto» una línea por banco con lo que te queda; «Crear la deuda» pide el nombre (Cancelar no crea nada), la deuda sale en Deudas y «Deshacer» la quita. MAL: el teclado se mueve bajo el dedo, falta algún banco en el colchón o la deuda no aparece o no se quita.",
+            "2. En «Tus recibos», ciérralo deslizando rápido a la derecha y, sin parar, desliza otra vez a la derecha para ir a Gastos. BIEN: pasa de Plan a Gastos limpio. MAL: asoma Cartera o media pantalla de otra pestaña un instante.",
+            "3. Abre un recibo → Editar → «Más opciones», y luego otra vez. BIEN: la hoja sube a la vez que se abre, en un solo movimiento, y al cerrar baja suave. MAL: se para y luego da un empujón, o al cerrar cae de golpe.",
+            "4. «Todos ›» → «+ Añadir» de Recibos → toca la sugerencia de un recibo que ya tengas (por ejemplo «Luz» si ya tienes uno de luz). BIEN: sale «Ya tienes «…»» con su importe y día y «Ver ese», que abre el que ya tienes; puedes seguir y guardar igual. Prueba con uno de otra categoría (gas si tienes luz). BIEN: no avisa. Mira «Por pagar» en Recibos. BIEN: debajo del nombre, una sola línea «categoría · banco · cuándo». MAL: no avisa con el repetido, avisa con otra categoría o el subtítulo ocupa dos líneas. Con una mano, desliza en horizontal empezando sobre el importe de una fila de «Por pagar» y luego de «Para revisar». BIEN: pasa de pestaña como en el resto de la app y el recibo sigue igual; «Recuérdamelo mañana» y «¿Cuál es el cargo?» siguen en su ficha. MAL: la fila se mueve, se marca, se pospone o se abre algo en vez de cambiar de pestaña."
+          ],
+          "en": [
+            "1. Plan → Bills → \"All ›\". RIGHT: each section (Bills, Debt instalments, One-off, People) shows three and \"See all\"; tapping it unfolds smoothly and \"See less\" folds it back leaving the start of the section in view; \"Can I afford it?\" is gone. Search for a bill that's folded away. RIGHT: it shows. WRONG: more than three show without unfolding, the fold jumps or a folded bill can't be found. Then Bills → \"Will it cover?\" → \"What if I spend…?\" → type 1200 → \"In instalments\" → tap \"12 months\" and enter 24 → tap \"Down payment\" and enter 200. RIGHT: the monthly instalment shows and whether it fits, and under \"Cushion after spending\" one line per bank with what's left; \"Create the debt\" asks for the name (Cancel creates nothing), the debt shows in Debts and \"Undo\" removes it. WRONG: the keypad moves under your finger, a bank is missing from the cushion or the debt doesn't show up or isn't removed.",
+            "2. In \"Your bills\", close it with a quick swipe to the right and, without stopping, swipe right again to go to Spending. RIGHT: it goes from Plan to Spending cleanly. WRONG: Portfolio or half of another tab flashes for a moment.",
+            "3. Open a bill → Edit → \"More options\", and then again. RIGHT: the sheet rises while it opens, in one motion, and goes down smoothly when it closes. WRONG: it stops and then gives a push, or drops at once when closing.",
+            "4. \"All ›\" → \"+ Add\" in Bills → tap the suggestion for a bill you already have (for example \"Electricity\" if you already have one). RIGHT: \"You already have “…”\" shows with its amount and day and \"See it\", which opens the one you have; you can still carry on and save. Try one from another category (gas if you have electricity). RIGHT: no warning. Look at \"To pay\" in Bills. RIGHT: under the name, a single line \"category · bank · when\". WRONG: no warning for the repeat, a warning for another category or the subtitle takes two lines. With one hand, swipe sideways starting on the amount of a row in \"To pay\" and then in \"To review\". RIGHT: it changes tab like everywhere else in the app and the bill stays as it was; \"Remind me tomorrow\" and \"Which charge is it?\" are still in its card. WRONG: the row moves, gets marked, gets postponed or something opens instead of changing tab."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → «Tots ›». BÉ: cada secció (Rebuts, Quotes de deute, D'una sola vegada, Persones) mostra tres i «Veure'ls tots»; en tocar-lo es desplega suau i «Veure menys» la plega deixant a la vista el principi de la secció; ja no hi ha «M'ho puc permetre?». Cerca un rebut que estigui plegat. BÉ: surt. MALAMENT: en surten més de tres sense desplegar, el plec salta o el plegat no es troba. Després Rebuts → «T'arriba?» → «I si gasto…?» → escriu 1200 → «A terminis» → toca «12 mesos» i posa 24 → toca «Entrada» i posa 200. BÉ: surt la quota al mes i si t'hi cap, i a «Coixí després de la despesa» una línia per banc amb el que et queda; «Crear el deute» demana el nom (Cancel·la no crea res), el deute surt a Deutes i «Desfer» el treu. MALAMENT: el teclat es mou sota el dit, falta algun banc al coixí o el deute no apareix o no es treu.",
+            "2. A «Els teus rebuts», tanca'l lliscant de pressa cap a la dreta i, sense parar, torna a lliscar cap a la dreta per anar a Despeses. BÉ: passa del Pla a Despeses net. MALAMENT: treu el cap Cartera o mitja pantalla d'una altra pestanya un instant.",
+            "3. Obre un rebut → Editar → «Més opcions», i després un altre cop. BÉ: el full puja alhora que s'obre, en un sol moviment, i en tancar baixa suau. MALAMENT: s'atura i després fa una empenta, o en tancar cau de cop.",
+            "4. «Tots ›» → «+ Afegir» de Rebuts → toca el suggeriment d'un rebut que ja tinguis (per exemple «Llum» si ja en tens un de llum). BÉ: surt «Ja tens «…»» amb el seu import i dia i «Veure’l», que obre el que ja tens; pots continuar i desar igualment. Prova'n un d'una altra categoria (gas si tens llum). BÉ: no avisa. Mira «Per pagar» a Rebuts. BÉ: sota el nom, una sola línia «categoria · banc · quan». MALAMENT: no avisa amb el repetit, avisa amb una altra categoria o el subtítol ocupa dues línies. Amb una mà, llisca en horitzontal començant sobre l'import d'una fila de «Per pagar» i després de «Per revisar». BÉ: canvia de pestanya com a la resta de l'app i el rebut continua igual; «Recorda-m'ho demà» i «Quin és el càrrec?» continuen a la seva fitxa. MALAMENT: la fila es mou, es marca, s'ajorna o s'obre alguna cosa en lloc de canviar de pestanya."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.228",
     "d": "2026-11-11",
     "t": {
@@ -414,132 +473,7 @@
         "Les importacions del banc van més ràpid quan tens molt historial."
       ]
     },
-    "tandas": [
-      {
-        "id": "recibos-zona-pulida",
-        "t": {
-          "es": "Plan › Recibos: toda la zona, sin parpadeos",
-          "en": "Plan › Bills: the whole area, with no flicker",
-          "ca": "Pla › Rebuts: tota la zona, sense parpelleigs"
-        },
-        "items": {
-          "es": [
-            "1. Cierra la app del todo y ábrela. Plan → Recibos: abre «Te llega» y ciérrala, luego «Todos ›» y vuelve, y después pasa a Deudas. BIEN: la primera vez cada una se abre suave, sin parón. MAL: un tirón o un instante congelado al abrir alguna.",
-            "2. Plan → Recibos. Baja despacio hasta abajo y vuelve arriba. BIEN: nada pasa por debajo de la hora y los iconos de arriba (título, Recibos/Deudas/Metas y la tarjeta se esconden bajo una franja del color del fondo); en tema claro no hay franja gris en el borde izquierdo. MAL: se ve texto o botones bajo la hora, o una sombra gris pegada al borde izquierdo.",
-            "3. Plan → Recibos. BIEN: arriba «QUEDA POR PAGAR EN …» en una sola línea; «Para revisar» enseña hasta tres y lo que no ha llegado dice «No ha llegado»; debajo, «Por pagar», cada recibo con su nombre, «categoría · banco» y debajo cuándo («hoy», «en 3 días»); si el recibo se llama como su categoría (Luz, Agua), debajo sale solo el banco; arriba a la derecha «Todos ›», que abre tus recibos. Traspasos y lo que aún entrará van cada uno en su tarjeta, con el mismo aspecto que «Por pagar», y la entrada dice solo el banco. MAL: pone «Pendiente» o «tocaba hace N días», una sola fila en «Para revisar», el banco cortado, el nombre repetido o «ingreso (entra)».",
-            "4. Plan → Recibos → «Ver los N» en «Para revisar» y en «Por pagar», y después «Ver menos». BIEN: se abren y cierran deslizando, sin saltos ni filas cortadas. MAL: la lista salta de golpe o una fila queda tapada por la barra de abajo.",
-            "5. Si tienes un recibo del día 31. BIEN: en los meses de 30 días (o en febrero) sale el último día del mes, en la lista y en su ficha. MAL: sale «31 NOV».",
-            "6. Plan → Recibos → toca «Dic ›» en la tarjeta y luego «‹ Nov». BIEN: la tarjeta y la lista entran de lado con un fundido, sin quedarse la pantalla vacía ni un instante; en diciembre salen todos los recibos y cuotas de ese mes, ninguno como pagado. MAL: la pantalla parpadea, se queda en blanco o el atrás del móvil te saca de Plan.",
-            "7. En Recibos haz scroll arriba y abajo sobre las filas. Luego pon el dedo sobre el nombre de un recibo de «Por pagar» o de «Para revisar» y desliza a la izquierda: vas a Cartera. Vuelve a Plan, desliza hacia la derecha desde una fila: vas a Gastos. Vuelve a Plan. BIEN: el scroll y el cambio de pestaña van como siempre aunque empieces encima de una fila, la ola al tirar de la lista sigue saliendo y ninguna fila se mueve de lado. MAL: una fila se desplaza o se abre, la pestaña no cambia o la ola no sale.",
-            "8. En «Para revisar», pon el dedo sobre el importe de un recibo (no una cuota ni uno «De una sola vez») y desliza a la izquierda un cuarto de la fila o más. BIEN: vibra al pasar ese punto, pasa a «Por pagar» con «…: te lo recuerdo mañana» y «Deshacer», que la devuelve; un desliz corto la deja en su sitio sin abrir nada. Haz lo mismo en un recibo de «Por pagar». BIEN: se abre su ficha directamente en «¿Cuál es el cargo?». MAL: no vibra, en «Para revisar» se abre la ficha o no hay «Deshacer», o en «Por pagar» no pasa nada o se abre en otro paso.",
-            "9. Toca un recibo de «Por pagar». BIEN: la hoja sube con el fondo oscureciéndose suave; la barra de abajo y los botones Recibos/Deudas/Metas no desaparecen ni parpadean; «Ya está pagado» es un botón verde del tamaño de «Editar» y «Pausar», en la misma fila. Toca «Pausar» y otra vez «Pausar». BIEN: las opciones se abren y cierran deslizando. Cierra la hoja hacia abajo. BIEN: el fondo se aclara suave y la pantalla responde al primer toque. MAL: cualquier parpadeo, un velo que se queda o «Ya está pagado» a todo el ancho.",
-            "10. En esa ficha toca «Ya está pagado». BIEN: pasa a «¿Cuál es el cargo?» deslizando, sin quedarse la hoja vacía ni saltar de alto de golpe; «‹» vuelve igual. MAL: la hoja se ve vacía un momento o cambia de tamaño a saltos.",
-            "11. Plan → Recibos, si tienes un recibo cuyo cargo ya salió en el banco con otro nombre. BIEN: si cobró lo mismo al céntimo, está en «Ya pagados» sin hacer nada; si cobró un poco distinto, sale en «Para revisar» con «Esperabas …» y, al tocarlo, enseña el cargo: «Sí, es este» lo pasa a «Ya pagados» y «No es este recibo» lo deja en «Por pagar», los dos con Deshacer. MAL: se da por pagado solo con otra cifra, o se queda en «Por pagar» sin preguntar.",
-            "12. Plan → Recibos → un recibo de «Para revisar» que dice «No ha llegado» (no una cuota) y que pagaste en efectivo o por Bizum → «Ya está pagado» → «Lo pagué de otra forma». BIEN: pasa a «Ya pagados» con «marcado a mano», «Queda por pagar» baja ese importe y sale «Deshacer», que lo devuelve como estaba. Ábrelo otra vez → «Desmarcar». BIEN: vuelve a su sitio y te dice a cuál. MAL: no está el botón, sigue en «Para revisar» o la cifra no cambia.",
-            "13. Plan → Recibos → toca un recibo de «Para revisar» (no una cuota) → Editar. BIEN: «Editar recibo» sube entero de una vez. Toca «Más opciones» dos veces. BIEN: se abre y se cierra deslizando, y la hoja y «Guardar» no se ponen en blanco ni un instante. Toca «Nombre», luego «Listo ✓»; repite con «Día». BIEN: el paso nuevo entra deslizando junto al anterior, sin que la hoja se vea vacía en medio. MAL: la hoja o «Guardar» desaparecen un momento, o un instante con la hoja vacía o solo con el botón.",
-            "14. Plan → Recibos → «Ya pagados» → un recibo pagado (no una cuota) → Editar → cambia solo el nombre → Guardar. BIEN: sigue en «Ya pagados» con el mismo importe y día, y «Queda por pagar» no se mueve. Si en «Ya pagados» hay un recibo saltado (tachado, «este mes no»), tócalo. BIEN: el aviso dice dónde cae de verdad («Por pagar» o «Para revisar») y trae «Deshacer», que lo vuelve a dejar saltado y tachado. MAL: vuelve a pendiente o cambia la cifra; el saltado no sale tachado, el aviso dice un sitio y aparece en otro, o no se puede deshacer.",
-            "15. Pon la letra del móvil más grande (Ajustes del móvil → Pantalla → Tamaño de fuente) y abre Plan → Recibos. BIEN: «✓ Ya pagados · N», el importe y «Ver» (o una flecha) en una sola línea; al tocar se despliega y pone «Ocultar» (o la flecha se da la vuelta). MAL: se parte en dos líneas, sale «Previsto» o se corta el importe. Luego déjala como estaba.",
-            "16. Recibos → «Te llega» → toca «¿Y si gasto…?» y teclea 900. BIEN: el teclado sale entero y la hoja sube en un solo movimiento, sin bajar antes ni dar un segundo empujón; «900,00 €» se lee en una línea y, con tres bancos, los bancos bajan a su renglón sin aplastar el importe; en tema claro el banco elegido se lee bien (letra blanca sobre verde oscuro). Con el teclado abierto, haz atrás del móvil. BIEN: primero se cierra el teclado y con otro atrás la hoja. MAL: la hoja baja un poco antes de subir o da dos empujones, el importe se corta o se parte, el teclado queda tapado, va a saltos, el banco elegido no se lee o atrás cierra la hoja de golpe.",
-            "17. Plan → Recibos → «Te llega», con un traspaso previsto de un banco tuyo a otro que aún no se ha hecho este mes. BIEN: el banco que lo envía lo resta, el que lo recibe lo suma y su cifra sube. MAL: el banco que lo recibe no lo cuenta o el total cambia.",
-            "18. Recibos → «Te deben» (si alguien te debe algo). BIEN: arriba el total que te deben y cada persona con lo suyo y «pendiente»; «Ya me lo ha pagado» es un botón de contorno a todo el ancho y, al tocarlo, sale «✓ Bizum · Deshacer» (o por dónde te pagó) y «Queda por pagar» no se mueve; al volver a abrirla, quien ya te pagó sale al final. MAL: no está el total, cambia lo que te queda por pagar o un pagado sale arriba.",
-            "19. Recibos → «Te deben», si alguien que te debe te ha pagado este mes por transferencia o Bizum con su nombre en el concepto. BIEN: quien pagó lo justo sale «✓ Transferencia el … · Deshacer» sin que hagas nada; quien pagó de menos sale «pagó … · falta …» con «Dar por pagado», y el total de arriba cuenta solo lo que falta. Toca «Dar por pagado» y luego otra vez. BIEN: lo salda y después vuelve a lo que faltaba. MAL: alguien sale pagado por el ingreso de otra persona, por un traspaso entre tus cuentas o por una devolución, el total cuenta algo dos veces o «Dar por pagado» no lo salda.",
-            "20. Plan → Recibos → «Todos ›». BIEN: arriba «← Tus recibos», la tarjeta «SE TE VAN CADA MES» con «recibos … + cuotas …», el buscador y un chip por banco; debajo Recibos, Cuotas de deuda, De una sola vez y Personas, cada recibo con su día a la izquierda. Una cuota con parte de otro recibo va en una línea («197 € + 53 € de …») y en Personas se lee entero «se descuenta de …». La cifra grande es la suma de Recibos y Cuotas. MAL: falta alguna sección, un día sale vacío, una línea se corta o la cifra no cuadra.",
-            "21. Toca la tarjeta de arriba y luego otra vez. BIEN: pasa a «SE TE VAN AL AÑO» y cambian al año la tarjeta, las secciones y las filas; la cifra cambia de una vez, con un fundido, sin ir contando; al volver, todo como estaba. MAL: solo cambia una parte, salta de golpe o la cifra pasa por otras antes de quedarse.",
-            "22. Toca un chip de banco y luego «Todas»; escribe un nombre en «Buscar un recibo», después algo que no exista y después un importe con punto (4.99) y con coma (4,99). BIEN: el chip elegido se rellena de verde; solo quedan los de ese banco, también en los avisos de servicios repetidos y en Personas, y la cifra los sigue; al buscar salen solo los que casan, el importe con punto y con coma encuentra el mismo recibo y, sin resultados, «Añadir «…» como recibo» abre el alta con el nombre puesto. MAL: queda algún recibo, aviso o persona de otro banco, el alta sale sin nombre o con punto no encuentra nada.",
-            "23. Con dos servicios de música o de series sale un aviso («… incluyen música», «N plataformas de series…»): toca su ×. BIEN: se pliega suave y no vuelve al entrar otra vez. Toca una persona, un recibo y una cuota. BIEN: la persona abre su ficha, el recibo su edición y la cuota te lleva a su tarjeta en Deudas. MAL: el aviso vuelve o alguna fila no hace nada.",
-            "24. En «Tus recibos» baja hasta el final. BIEN: la barra de abajo (Inicio, Gastos, +, Plan, Cartera) está siempre a la vista y la última fila queda entera por encima. Toca Gastos. BIEN: llegas a Gastos sin que «Tus recibos» se quede encima. Vuelve a «Todos ›» y toca Plan. BIEN: «Tus recibos» se va deslizando y quedas en Recibos. Entra otra vez y sal con «←», con el atrás del móvil y deslizando desde el borde. BIEN: sale de lado, suave, vuelves a Recibos donde estabas, la barra se queda quieta y la ola al tirar de la lista arriba y abajo sigue saliendo. MAL: parpadea, se queda en blanco o te saca de Plan; la barra desaparece, tapa la última fila, una pestaña no responde o la ola deja de salir.",
-            "25. «Todos ›» → «+ Añadir» de Recibos y haz atrás del móvil. BIEN: la hoja baja. Vuelve a «+ Añadir». BIEN: cada sugerencia lleva su propio dibujo (una pesa en Gimnasio, una pantalla en Netflix, una nota en Spotify). Escribe un nombre largo → Siguiente. BIEN: «¿Cuánto es?» se ve entero arriba, el nombre va centrado en una línea (con «…» si no cabe) y el teclado entero a la vista. Pon el importe → Siguiente. En «¿Cuándo se cobra?» toca «En varios pagos», luego «Solo una vez» y otra vez «En varios pagos». BIEN: el «‹» y la barra de progreso siguen siempre arriba a la vista, «Siguiente» no parpadea y el contenido se recoloca deslizando. MAL: atrás no baja la hoja, un dibujo que no pega con el nombre, el título medio tapado o el nombre en dos líneas; el «‹» se va por arriba, «Siguiente» desaparece un instante, o la hoja da un salto al cambiar.",
-            "26. En «¿Cuándo se cobra?» haz el gesto atrás del móvil desde el borde, despacio. BIEN: la hoja no se mueve de lado ni deja ver la lista de detrás; al soltar vuelve al paso anterior deslizando por dentro. Vuelve con «Siguiente» y tira de la hoja hacia abajo desde el centro, solo un poco. BIEN: sigue al dedo y vuelve a su sitio. MAL: la hoja se desplaza de lado con el dedo, se ven dos pasos a la vez, no se mueve al tirar o la lista de días se estira.",
-            "27. Mismo alta: «Cada mes» → «Una vez al año». BIEN: aparece la cuadrícula de los doce meses y los días esperan a que elijas mes; al elegir mes y día, «Siguiente» se enciende con un fundido. Guarda y vuelve a abrir el recibo. BIEN: el mes guardado sale marcado. MAL: solo días, el botón parpadea o el mes no sale marcado.",
-            "28. «Todos ›» → el recibo que acabas de crear → «Ya no lo tengo» → confirma. BIEN: sale «Recibo quitado» con «Deshacer»; al pulsarlo vuelve igual que estaba. Después quítalo otra vez: era de prueba. MAL: no hay «Deshacer» o no vuelve.",
-            "29. Toca un recibo de «Por pagar» → «Pausar» → «Hasta …» y entra en «Todos ›». BIEN: en «Tus recibos» ese recibo sigue en la lista, más apagado y con «pausado hasta …», y la cifra de arriba ya no lo cuenta este mes; sigue siendo la suma de Recibos y Cuotas. Toca la cifra para verla al año. BIEN: solo falta lo que se cobraría durante la pausa (pausado un mes, falta un mes, no el año entero) y la fila del recibo dice lo que pagas de él en el año. MAL: la cifra del mes lo sigue contando, al año desaparece entero, no cuadra con las secciones o el recibo desaparece de la lista.",
-            "30. Con ese recibo en pausa, en «Tus recibos» baja hasta «¿Me lo puedo permitir?» y toca el importe. BIEN: el teclado sale suave y la respuesta va sin emojis, en verde, ámbar o rojo. Toca «A plazos» y escribe un importe. BIEN: «Tus fijos pasarían de …» empieza en la misma cifra que «Se te van cada mes» (redondeada al euro). Después toca el recibo pausado → «pausado hasta … · Reanudar». BIEN: se ve normal otra vez y vuelve a sumar. MAL: va a saltos, la respuesta lleva emojis, «Tus fijos pasarían de …» empieza en una cifra más alta (con el pausado dentro) o al reanudar no vuelve a sumar.",
-            "31. Plan → Recibos → un recibo de «Por pagar» (no una cuota ni uno «De una sola vez») → Editar → «Más opciones» → «Prueba gratis» → «Un mes» → Guardar. BIEN: como empieza a cobrar el mes que viene, sale de «Por pagar» y «Queda por pagar» baja su importe. En «Todos ›» sigue en la lista y «Se te van cada mes» lo cuenta entero; al año falta lo de los meses gratis. MAL: sigue en «Por pagar», la cifra no baja, o en «Tus recibos» desaparece o deja de contar al mes.",
-            "32. «Todos ›» → ese recibo: toca «Prueba gratis», mantén pulsado − hasta mañana (si te pasas, +) y Guarda. BIEN: sale arriba en «Para revisar» con «Cobra mañana» en una sola línea, y «Queda por pagar» lo vuelve a contar (cobra este mes). Ábrelo. BIEN: arriba «Se cobra el» con el día de mañana, el mismo que el aviso, y debajo «Mañana empieza a cobrar» con «Me lo quedo» y «Ya no lo tengo». Toca «Me lo quedo». BIEN: vuelve a «Por pagar» y la cifra no cambia. MAL: no sale en «Para revisar», el aviso ocupa dos líneas, la ficha dice otro día o la cifra cambia al quedártelo.",
-            "33. Otro recibo (no una cuota) → Editar → «Más opciones» → «Permanencia» → «Un año», baja con − hasta el mes que viene y Guarda. BIEN: sale en «Para revisar» con «Permanencia: …» en una sola línea y la cifra no cambia; al abrirlo dice «Fin de permanencia: …». Toca «Ya lo he mirado». BIEN: deja de salir. MAL: no sale, el aviso ocupa dos líneas, la cifra cambia o vuelve a salir.",
-            "34. Plan → toca el ojo junto al título. BIEN: todas las cifras de dinero de la app pasan a «•••• €» (Inicio, Gastos, Cartera, Recibos, «Te llega», «Te deben», «Tus recibos»); cuántos recibos hay sí se ve. Cierra la app y ábrela: sigue igual. Vuelve a tocar el ojo. BIEN: vuelven todas las cifras. MAL: se ve alguna cifra con el ojo puesto, o al volver a abrir la app cambia solo.",
-            "35. Gastos → «Suscripciones». BIEN: un cobro que ya es un recibo de Plan (aunque el banco lo cobre con otro nombre) no sale por revisar, el globito no lo cuenta y la cifra de arriba no lo suma; tus otras suscripciones siguen saliendo. Luego Recibos → «Todos ›» → «+ Añadir»: en «Visto en tu banco» tampoco sale. MAL: sale por revisar (o en «Visto en tu banco») un recibo que ya tienes, la cifra lo sigue sumando o ha desaparecido una suscripción que no es recibo.",
-            "36. Ajustes → Idioma → English. BIEN: las cifras salen como «1,234.56 €»; al volver a Español, «1.234,56 €». MAL: en inglés las cifras siguen con coma."
-          ],
-          "en": [
-            "1. Close the app completely and open it. Plan → Bills: open “You're covered” and close it, then “All ›” and back, then switch to Debts. RIGHT: the first time each one opens smoothly, without stalling. WRONG: a jerk or a frozen instant when opening any of them.",
-            "2. Plan → Bills. Scroll slowly to the bottom and back up. RIGHT: nothing passes under the clock and icons at the top (the title, Bills/Debts/Goals and the card hide under a strip the colour of the background); in light theme there is no grey strip on the left edge. WRONG: text or buttons show under the clock, or a grey shadow sticks to the left edge.",
-            "3. Plan → Bills. RIGHT: \"STILL TO PAY IN …\" on a single line at the top; \"To review\" shows up to three and what hasn't arrived says \"Hasn't arrived\"; below, \"To pay\", each bill with its name, \"category · bank\" and below it when (\"today\", \"in 3 days\"); if a bill is named like its category (Electricity, Water), only the bank shows below; top right \"All ›\" opens your bills. Transfers and what's still coming in each have their own card, looking like \"To pay\", and income shows only the bank. WRONG: it says \"Pending\" or \"due N days ago\", a single row in \"To review\", the bank cut off, the name repeated, or \"income (in)\".",
-            "4. Plan → Bills → \"See all {n}\" in \"To review\" and in \"To pay\", then \"See less\". RIGHT: they open and close sliding, with no jumps or cut-off rows. WRONG: the list jumps, or a row is hidden under the bottom bar.",
-            "5. If you have a bill on the 31st. RIGHT: in 30-day months (or February) it shows the last day of the month, in the list and in its details. WRONG: it shows \"31 NOV\".",
-            "6. Plan → Bills → tap \"Dec ›\" on the card, then \"‹ Nov\". RIGHT: the card and the list slide in with a fade, the screen is never empty, not even for an instant; December shows every bill and instalment of that month, none as paid. WRONG: the screen flickers, goes blank, or the phone's back takes you out of Plan.",
-            "7. In Bills scroll up and down over the rows. Then put your finger on the name of a bill in “To pay” or “To review” and swipe left: you go to Portfolio. Go back to Plan and swipe right from a row: you go to Spending. Go back to Plan. RIGHT: scrolling and changing tab work as always even if you start on a row, the stretch when you pull the list still shows and no row moves sideways. WRONG: a row slides or opens, the tab does not change or the stretch does not show.",
-            "8. In “To review”, put your finger on the amount of a bill (not an instalment or a “One-off”) and swipe left a quarter of the row or more. RIGHT: it vibrates as it crosses that point, moves to “To pay” with “…: I'll remind you tomorrow” and “Undo”, which brings it back; a short swipe leaves it in place without opening anything. Do the same on a bill in “To pay”. RIGHT: its sheet opens straight on “Which charge is it?”. WRONG: no vibration, in “To review” the bill opens or there is no “Undo”, or in “To pay” nothing happens or it opens on another step.",
-            "9. Tap a bill in \"To pay\". RIGHT: the sheet rises as the background darkens smoothly; the bottom bar and the Bills/Debts/Goals buttons do not vanish or flicker; \"It's paid\" is a green button the size of \"Edit\" and \"Pause\", in the same row. Tap \"Pause\" and \"Pause\" again. RIGHT: the options open and close sliding. Swipe the sheet down. RIGHT: the background lightens smoothly and the screen responds on the first tap. WRONG: any flicker, a veil that stays, or \"It's paid\" taking the full width.",
-            "10. In that sheet tap \"It's paid\". RIGHT: it slides to \"Which charge is it?\" without the sheet going empty or jumping in height; \"‹\" comes back the same way. WRONG: the sheet looks empty for a moment or changes size in jumps.",
-            "11. Plan → Bills, if you have a bill whose charge is already in the bank under another name. RIGHT: if it charged the same to the cent, it is in \"Already paid\" without doing anything; if it charged a little differently, it shows in \"To review\" with \"You expected …\" and, when tapped, shows the charge: \"Yes, it is\" moves it to \"Already paid\" and \"Not this bill\" leaves it in \"To pay\", both with Undo. WRONG: it is marked paid on its own with another amount, or it stays in \"To pay\" without asking.",
-            "12. Plan → Bills → a bill in \"To review\" that says \"Hasn't arrived\" (not an instalment) and that you paid in cash or by Bizum → \"It's paid\" → \"I paid it another way\". RIGHT: it moves to \"Already paid\" with \"marked by hand\", \"Still to pay\" drops by that amount and \"Undo\" appears, which puts it back as it was. Open it again → \"Unmark\". RIGHT: it goes back to its place and tells you which. WRONG: no button, it stays in \"To review\" or the figure doesn't change.",
-            "13. Plan → Bills → tap a bill in \"To review\" (not an instalment) → Edit. RIGHT: \"Edit bill\" rises in one go. Tap \"More options\" twice. RIGHT: it opens and closes sliding, and the sheet and \"Save\" never go blank, not even for an instant. Tap \"Name\", then \"Done\"; repeat with \"Day\". RIGHT: the new step slides in next to the previous one, with no empty sheet in between. WRONG: the sheet or \"Save\" disappear for a moment, or an instant with an empty sheet or with only the button.",
-            "14. Plan → Bills → \"Already paid\" → a paid bill (not an instalment) → Edit → change only the name → Save. RIGHT: it stays in \"Already paid\" with the same amount and day, and \"Still to pay\" does not move. If \"Already paid\" has a skipped bill (struck through, \"not this month\"), tap it. RIGHT: the notice says where it really lands (\"To pay\" or \"To review\") and has \"Undo\", which skips it and strikes it through again. WRONG: it goes back to pending or the figure changes; the skipped bill isn't struck through, the notice names one place and it shows up in another, or it can't be undone.",
-            "15. Make the phone's text bigger (phone Settings → Display → Font size) and open Plan → Bills. RIGHT: \"✓ Already paid · N\", the amount and \"Show\" (or an arrow) on a single line; tapping it unfolds and says \"Hide\" (or the arrow turns around). WRONG: it splits into two lines, says \"Expected\" or the amount is cut. Then put it back as it was.",
-            "16. Bills → \"You're covered\" → tap \"What if I spend…?\" and type 900. RIGHT: the keyboard shows in full and the sheet moves up in one motion, without dipping first or a second push; \"900.00 €\" reads on one line and, with three banks, the banks drop to their own row without squashing the amount; in the light theme the chosen bank is easy to read (white on dark green). With the keypad open, press the phone's back. RIGHT: the keypad closes first and another back closes the sheet. WRONG: the sheet dips before rising or moves in two pushes, the amount is cut or split, the keyboard is covered, it moves in jerks, the chosen bank can't be read or back closes the whole sheet at once.",
-            "17. Plan → Bills → \"You're covered\", with a planned transfer from one of your banks to another that hasn't happened yet this month. RIGHT: the bank that sends it subtracts it, the one that receives it adds it and its amount goes up. WRONG: the receiving bank doesn't count it or the total changes.",
-            "18. Bills → “You're owed” (if someone owes you something). RIGHT: the total you're owed at the top and each person with their share and “pending”; “They've paid me” is an outlined full-width button and, when tapped, shows “✓ Bizum · Undo” (or however they paid you) and “Still to pay” does not move; when you open it again, whoever has paid you is at the bottom. WRONG: no total, what you have left to pay changes or someone who paid is at the top.",
-            "19. Bills → \"You're owed\", if someone who owes you paid you this month by transfer or Bizum with their name in the description. RIGHT: whoever paid the exact amount shows \"✓ Bank transfer, day … · Undo\" without you doing anything; whoever paid short shows \"paid … · … left\" with \"Mark as paid\", and the total at the top counts only what's left. Tap \"Mark as paid\" and then again. RIGHT: it settles it and then goes back to what was left. WRONG: someone shows as paid from another person's payment, a transfer between your own accounts or a refund, the total counts something twice or \"Mark as paid\" doesn't settle it.",
-            "20. Plan → Bills → \"All ›\". RIGHT: at the top “← Your bills”, the “GOES OUT EVERY MONTH” card with “bills … + instalments …”, the search box and one chip per bank; below, Bills, Debt instalments, One-off and People, each bill with its day on the left. An instalment with part of another bill fits on one line (“197 € + 53 € from …”) and under People “deducted from …” reads in full. The big figure is Bills plus Instalments. WRONG: a section is missing, a day is blank, a line is cut or the figure does not add up.",
-            "21. Tap the top card, then again. RIGHT: it switches to “GOES OUT EVERY YEAR” and the card, the sections and the rows all change to the year; the figure changes in one go, with a fade, without counting up; tapping back, everything is as before. WRONG: only part of it changes, it jumps abruptly or the figure runs through other numbers first.",
-            "22. Tap a bank chip and then “All”; type a name in “Search a bill”, then something that doesn't exist and then an amount with a dot (4.99) and with a comma (4,99). RIGHT: the chosen chip fills in green; only that bank's bills remain, also in the repeated-service notices and under People, and the figure follows; searching shows only the matches, the amount with a dot and with a comma finds the same bill and, with no results, “Add “…” as a bill” opens the new bill with the name filled in. WRONG: a bill, notice or person from another bank stays, the new bill has no name or the dot finds nothing.",
-            "23. With two music or streaming services a notice appears (“… include music”, “N streaming services…”): tap its ×. RIGHT: it folds away smoothly and doesn't come back when you return. Tap a person, a bill and an instalment. RIGHT: the person opens their card, the bill its editor and the instalment takes you to its card in Debts. WRONG: the notice comes back, or a row does nothing.",
-            "24. In “Your bills”, scroll to the very end. RIGHT: the bottom bar (Home, Spending, +, Plan, Portfolio) is always visible and the last row sits fully above it. Tap Spending. RIGHT: you land in Spending without “Your bills” staying on top. Go back to \"All ›\" and tap Plan. RIGHT: “Your bills” slides away and you are back in Bills. Go in again and leave with “←”, with the phone's back and swiping from the edge. RIGHT: it slides out smoothly, you land back in Bills where you were, the bar stays still and the stretch when you pull the list at the top and bottom still shows. WRONG: it flickers, goes blank or takes you out of Plan; the bar vanishes, covers the last row, a tab does not respond or the stretch stops showing.",
-            "25. \"All ›\" → \"+ Add\" in Bills and press the phone's back. RIGHT: the sheet lowers. Open \"+ Add\" again. RIGHT: each suggestion has its own drawing (a dumbbell for Gym, a screen for Netflix, a note for Spotify). Type a long name → Next. RIGHT: \"How much is it?\" shows in full at the top, the name is centred on one line (with \"…\" if it doesn't fit) and the whole keypad is in view. Enter the amount → Next. At \"When is it charged?\" tap \"In several payments\", then \"Just once\", then \"In several payments\" again. RIGHT: the \"‹\" and the progress bar always stay at the top in view, \"Next\" does not flicker and the content rearranges sliding. WRONG: back doesn't lower the sheet, a drawing that doesn't match the name, the title half hidden or the name on two lines; the \"‹\" goes off the top, \"Next\" disappears for an instant, or the sheet jumps on change.",
-            "26. At “When is it charged?” do the phone's back gesture from the edge, slowly. RIGHT: the sheet doesn't move sideways or show the list behind it; when you let go it goes back to the previous step, sliding inside. Go forward with “Next” and pull the sheet down from the middle, just a little. RIGHT: it follows your finger and goes back into place. WRONG: the sheet slides sideways with your finger, two steps show at once, it doesn't move when pulled or the list of days stretches.",
-            "27. Same new bill: \"Every month\" → \"Once a year\". RIGHT: the twelve-month grid appears and the days wait until you pick a month; once month and day are picked, \"Next\" lights up with a fade. Save and open the bill again. RIGHT: the saved month is selected. WRONG: only days, the button flickers, or the month is not selected.",
-            "28. “All ›” → the bill you just created → “I don't have it anymore” → confirm. RIGHT: “Bill removed” shows with “Undo”; pressing it brings it back as it was. Then remove it again: it was only a test. WRONG: no “Undo”, or it does not come back.",
-            "29. Tap a bill in \"To pay\" → \"Pause\" → \"Until …\" and go into \"All ›\". RIGHT: in “Your bills” that bill is still in the list, greyed out with “paused until …”, and the top figure no longer counts it this month; it is still the sum of Bills and Instalments. Tap the figure to see the year. RIGHT: only what would be charged during the pause is missing (paused one month, one month missing, not the whole year) and the bill's row shows what you pay for it in the year. WRONG: the monthly figure still counts it, the whole year disappears, it does not match the sections or the bill disappears from the list.",
-            "30. With that bill paused, in “Your bills” scroll down to “Can I afford it?” and tap the amount. RIGHT: the keypad comes up smoothly and the answer has no emojis, in green, amber or red. Tap “In instalments” and type an amount. RIGHT: “Your fixed costs would go from …” starts at the same figure as “Goes out every month” (rounded to the euro). Then tap the paused bill → “paused until … · Resume”. RIGHT: it looks normal again and counts again. WRONG: it moves in jerks, the answer has emojis, “Your fixed costs would go from …” starts at a higher figure (with the paused bill included) or after resuming it doesn't count again.",
-            "31. Plan → Bills → a bill in “To pay” (not an instalment or a “One-off”) → Edit → “More options” → “Free trial” → “One month” → Save. RIGHT: since it starts charging next month, it leaves “To pay” and “Still to pay” drops by its amount. In “All ›” it is still in the list and “Goes out every month” counts it in full; per year the free months are missing. WRONG: it stays in “To pay”, the figure does not drop, or in “Your bills” it disappears or stops counting per month.",
-            "32. “All ›” → that bill: tap “Free trial”, hold down − until tomorrow (if you go past it, +) and Save. RIGHT: it shows at the top in “To review” with “Charges tomorrow” on one line, and “Still to pay” counts it again (it charges this month). Open it. RIGHT: at the top “Charged on the” with tomorrow's day, the same as the notice, and below “Starts charging tomorrow” with “I'll keep it” and “I don't have it anymore”. Tap “I'll keep it”. RIGHT: it goes back to “To pay” and the figure does not change. WRONG: it is not in “To review”, the notice takes two lines, the sheet says another day or the figure changes when you keep it.",
-            "33. Another bill (not an instalment) → Edit → “More options” → “Minimum term” → “One year”, go down with − to next month and Save. RIGHT: it shows in “To review” with “Term ends …” on one line and the figure does not change; when opened it says “Commitment ends: …”. Tap “I've checked it”. RIGHT: it stops showing. WRONG: it does not show, the notice takes two lines, the figure changes or it shows again.",
-            "34. Plan → tap the eye next to the title. RIGHT: every money figure in the app turns into “•••• €” (Home, Spending, Portfolio, Bills, “You're covered”, “You're owed”, “Your bills”); how many bills there are still shows. Close the app and open it: it stays the same. Tap the eye again. RIGHT: all the figures come back. WRONG: a figure shows with the eye on, or reopening the app changes it by itself.",
-            "35. Spending → \"Subscriptions\". RIGHT: a charge that's already a bill in Plan (even if the bank uses another name) doesn't show up to review, the badge doesn't count it and the amount at the top doesn't add it; your other subscriptions still show. Then Bills → \"All ›\" → \"+ Add\": it doesn't show in \"Seen in your bank\" either. WRONG: a bill you already have shows up to review (or in \"Seen in your bank\"), the amount still adds it or a subscription that isn't a bill has disappeared.",
-            "36. Settings → Language → English. RIGHT: amounts show as \"1,234.56 €\"; back in Español, \"1.234,56 €\". WRONG: in English amounts still use a comma."
-          ],
-          "ca": [
-            "1. Tanca l'app del tot i obre-la. Pla → Rebuts: obre «T'arriba» i tanca-la, després «Tots ›» i torna, i després passa a Deutes. BÉ: la primera vegada cadascuna s'obre suau, sense aturades. MALAMENT: una estrebada o un instant congelat en obrir-ne alguna.",
-            "2. Pla → Rebuts. Baixa a poc a poc fins a baix i torna a dalt. BÉ: res passa per sota de l'hora i les icones de dalt (el títol, Rebuts/Deutes/Metes i la targeta s'amaguen sota una franja del color del fons); en tema clar no hi ha cap franja grisa a la vora esquerra. MALAMENT: es veu text o botons sota l'hora, o una ombra grisa enganxada a la vora esquerra.",
-            "3. Pla → Rebuts. BÉ: a dalt «QUEDA PER PAGAR AL …» en una sola línia; «Per revisar» mostra fins a tres i el que no ha arribat diu «No ha arribat»; a sota, «Per pagar», cada rebut amb el seu nom, «categoria · banc» i a sota quan («avui», «d'aquí a 3 dies»); si el rebut es diu com la seva categoria (Llum, Aigua), a sota surt només el banc; a dalt a la dreta «Tots ›», que obre els teus rebuts. Traspassos i el que encara entrarà van cadascun a la seva targeta, amb el mateix aspecte que «Per pagar», i l'entrada diu només el banc. MALAMENT: posa «Pendent» o «tocava fa N dies», una sola fila a «Per revisar», el banc tallat, el nom repetit o «ingrés (entra)».",
-            "4. Pla → Rebuts → «Veure'ls tots (N)» a «Per revisar» i a «Per pagar», i després «Veure menys». BÉ: s'obren i es tanquen lliscant, sense salts ni files tallades. MALAMENT: la llista salta de cop o una fila queda tapada per la barra de baix.",
-            "5. Si tens un rebut del dia 31. BÉ: als mesos de 30 dies (o al febrer) surt l'últim dia del mes, a la llista i a la fitxa. MALAMENT: surt «31 NOV».",
-            "6. Pla → Rebuts → toca «Des ›» a la targeta i després «‹ Nov». BÉ: la targeta i la llista entren de costat amb un fos, sense que la pantalla quedi buida ni un instant; al desembre surten tots els rebuts i quotes d'aquest mes, cap com a pagat. MALAMENT: la pantalla parpelleja, es queda en blanc o l'enrere del mòbil et treu de Pla.",
-            "7. A Rebuts fes scroll amunt i avall sobre les files. Després posa el dit sobre el nom d'un rebut de «Per pagar» o de «Per revisar» i llisca cap a l'esquerra: vas a Cartera. Torna a Pla i llisca cap a la dreta des d'una fila: vas a Despeses. Torna a Pla. BÉ: l'scroll i el canvi de pestanya van com sempre encara que comencis sobre una fila, l'onada en estirar la llista continua sortint i cap fila es mou de costat. MALAMENT: una fila es desplaça o s'obre, la pestanya no canvia o l'onada no surt.",
-            "8. A «Per revisar», posa el dit sobre l'import d'un rebut (no una quota ni un «D'una sola vegada») i llisca cap a l'esquerra un quart de la fila o més. BÉ: vibra en passar aquest punt, passa a «Per pagar» amb «…: t'ho recordo demà» i «Desfer», que la torna; un lliscament curt la deixa al seu lloc sense obrir res. Fes el mateix en un rebut de «Per pagar». BÉ: s'obre la seva fitxa directament a «Quin és el càrrec?». MALAMENT: no vibra, a «Per revisar» s'obre la fitxa o no hi ha «Desfer», o a «Per pagar» no passa res o s'obre en un altre pas.",
-            "9. Toca un rebut de «Per pagar». BÉ: el full puja amb el fons enfosquint-se suau; la barra de baix i els botons Rebuts/Deutes/Metes no desapareixen ni parpellegen; «Ja està pagat» és un botó verd de la mida d'«Editar» i «Pausar», a la mateixa fila. Toca «Pausar» i un altre cop «Pausar». BÉ: les opcions s'obren i es tanquen lliscant. Tanca el full cap avall. BÉ: el fons s'aclareix suau i la pantalla respon al primer toc. MALAMENT: qualsevol parpelleig, un vel que es queda o «Ja està pagat» a tota l'amplada.",
-            "10. En aquesta fitxa toca «Ja està pagat». BÉ: passa a «Quin és el càrrec?» lliscant, sense que el full quedi buit ni salti d'alçada de cop; «‹» torna igual. MALAMENT: el full es veu buit un moment o canvia de mida a salts.",
-            "11. Pla → Rebuts, si tens un rebut el càrrec del qual ja ha sortit al banc amb un altre nom. BÉ: si ha cobrat el mateix al cèntim, és a «Ja pagats» sense fer res; si ha cobrat una mica diferent, surt a «Per revisar» amb «Esperaves …» i, en tocar-lo, ensenya el càrrec: «Sí, és aquest» el passa a «Ja pagats» i «No és aquest rebut» el deixa a «Per pagar», tots dos amb Desfer. MALAMENT: es dona per pagat sol amb una altra xifra, o es queda a «Per pagar» sense preguntar.",
-            "12. Pla → Rebuts → un rebut de «Per revisar» que diu «No ha arribat» (no una quota) i que vas pagar en efectiu o per Bizum → «Ja està pagat» → «Ho vaig pagar d'una altra manera». BÉ: passa a «Ja pagats» amb «marcat a mà», «Queda per pagar» baixa aquest import i surt «Desfer», que el torna com estava. Obre'l un altre cop → «Desmarcar». BÉ: torna al seu lloc i et diu a quin. MALAMENT: no hi ha el botó, continua a «Per revisar» o la xifra no canvia.",
-            "13. Pla → Rebuts → toca un rebut de «Per revisar» (no una quota) → Editar. BÉ: «Edita el rebut» puja sencer d'una vegada. Toca «Més opcions» dues vegades. BÉ: s'obre i es tanca lliscant, i el full i «Desa» no es posen en blanc ni un instant. Toca «Nom», després «Fet ✓»; repeteix amb «Dia». BÉ: el pas nou entra lliscant al costat de l'anterior, sense que el full es vegi buit entremig. MALAMENT: el full o «Desa» desapareixen un moment, o un instant amb el full buit o només amb el botó.",
-            "14. Pla → Rebuts → «Ja pagats» → un rebut pagat (no una quota) → Editar → canvia només el nom → Desa. BÉ: continua a «Ja pagats» amb el mateix import i dia, i «Queda per pagar» no es mou. Si a «Ja pagats» hi ha un rebut saltat (ratllat, «aquest mes no»), toca'l. BÉ: l'avís diu on cau de debò («Per pagar» o «Per revisar») i porta «Desfer», que el torna a deixar saltat i ratllat. MALAMENT: torna a pendent o canvia la xifra; el saltat no surt ratllat, l'avís diu un lloc i apareix en un altre, o no es pot desfer.",
-            "15. Posa la lletra del mòbil més gran (Configuració del mòbil → Pantalla → Mida de la lletra) i obre Pla → Rebuts. BÉ: «✓ Ja pagats · N», l'import i «Veure» (o una fletxa) en una sola línia; en tocar-ho es desplega i posa «Amagar» (o la fletxa es gira). MALAMENT: es parteix en dues línies, surt «Previst» o es talla l'import. Després deixa-la com estava.",
-            "16. Rebuts → «T'arriba» → toca «I si gasto…?» i tecleja 900. BÉ: el teclat surt sencer i el full puja en un sol moviment, sense baixar abans ni fer una segona empenta; «900,00 €» es llegeix en una línia i, amb tres bancs, els bancs baixen a la seva fila sense aixafar l'import; amb el tema clar el banc triat es llegeix bé (lletra blanca sobre verd fosc). Amb el teclat obert, fes enrere del mòbil. BÉ: primer es tanca el teclat i amb un altre enrere el full. MALAMENT: el full baixa una mica abans de pujar o fa dues empentes, l'import es talla o es parteix, el teclat queda tapat, va a salts, el banc triat no es llegeix o enrere tanca el full de cop.",
-            "17. Pla → Rebuts → «T'arriba», amb un traspàs previst d'un banc teu a un altre que encara no s'ha fet aquest mes. BÉ: el banc que l'envia el resta, el que el rep el suma i la seva xifra puja. MALAMENT: el banc que el rep no el compta o el total canvia.",
-            "18. Rebuts → «Et deuen» (si algú et deu alguna cosa). BÉ: a dalt el total que et deuen i cada persona amb el seu i «pendent»; «Ja m'ho ha pagat» és un botó de contorn a tota l'amplada i, en tocar-lo, surt «✓ Bizum · Desfer» (o per on t'ha pagat) i «Queda per pagar» no es mou; en tornar-la a obrir, qui ja t'ha pagat surt al final. MALAMENT: no hi ha el total, canvia el que et queda per pagar o algú que ha pagat surt a dalt.",
-            "19. Rebuts → «Et deuen», si algú que et deu t'ha pagat aquest mes per transferència o Bizum amb el seu nom al concepte. BÉ: qui ha pagat el just surt «✓ Transferència el dia … · Desfer» sense que facis res; qui ha pagat de menys surt «ha pagat … · falta …» amb «Dona-ho per pagat», i el total de dalt compta només el que falta. Toca «Dona-ho per pagat» i després un altre cop. BÉ: el salda i després torna al que faltava. MALAMENT: algú surt pagat per l'ingrés d'una altra persona, per un traspàs entre els teus comptes o per una devolució, el total compta alguna cosa dues vegades o «Dona-ho per pagat» no el salda.",
-            "20. Pla → Rebuts → «Tots ›». BÉ: a dalt «← Els teus rebuts», la targeta «SE'T VAN CADA MES» amb «rebuts … + quotes …», el cercador i un xip per banc; a sota Rebuts, Quotes de deute, D'una sola vegada i Persones, cada rebut amb el seu dia a l'esquerra. Una quota amb part d'un altre rebut va en una línia («197 € + 53 € de …») i a Persones es llegeix sencer «es descompta de …». La xifra gran és la suma de Rebuts i Quotes. MALAMENT: falta alguna secció, un dia surt buit, una línia es talla o la xifra no quadra.",
-            "21. Toca la targeta de dalt i després un altre cop. BÉ: passa a «SE'T VAN A L'ANY» i canvien a l'any la targeta, les seccions i les files; la xifra canvia d'un cop, amb un fos, sense anar comptant; en tornar, tot com estava. MALAMENT: només canvia una part, salta de cop o la xifra passa per altres abans de quedar-se.",
-            "22. Toca un xip de banc i després «Tots»; escriu un nom a «Cerca un rebut», després una cosa que no existeixi i després un import amb punt (4.99) i amb coma (4,99). BÉ: el xip triat s'omple de verd; només queden els d'aquell banc, també als avisos de serveis repetits i a Persones, i la xifra els segueix; en cercar surten només els que coincideixen, l'import amb punt i amb coma troba el mateix rebut i, sense resultats, «Afegir «…» com a rebut» obre l'alta amb el nom posat. MALAMENT: queda algun rebut, avís o persona d'un altre banc, l'alta surt sense nom o amb punt no troba res.",
-            "23. Amb dos serveis de música o de sèries surt un avís («… inclouen música», «N plataformes de sèries…»): toca la seva ×. BÉ: es plega suau i no torna en entrar-hi un altre cop. Toca una persona, un rebut i una quota. BÉ: la persona obre la seva fitxa, el rebut la seva edició i la quota et porta a la seva targeta a Deutes. MALAMENT: l'avís torna o alguna fila no fa res.",
-            "24. A «Els teus rebuts» baixa fins al final. BÉ: la barra de baix (Inici, Despeses, +, Pla, Cartera) és sempre a la vista i l'última fila queda sencera per sobre. Toca Despeses. BÉ: arribes a Despeses sense que «Els teus rebuts» es quedi a sobre. Torna a «Tots ›» i toca Pla. BÉ: «Els teus rebuts» se'n va lliscant i quedes a Rebuts. Torna-hi a entrar i surt amb «←», amb l'enrere del mòbil i lliscant des de la vora. BÉ: surt de costat, suau, tornes a Rebuts on eres, la barra es queda quieta i l'onada en estirar la llista amunt i avall continua sortint. MALAMENT: parpelleja, es queda en blanc o et treu de Pla; la barra desapareix, tapa l'última fila, una pestanya no respon o l'onada deixa de sortir.",
-            "25. «Tots ›» → «+ Afegir» de Rebuts i fes enrere del mòbil. BÉ: el full baixa. Torna a «+ Afegir». BÉ: cada suggeriment porta el seu dibuix (una pesa a Gimnàs, una pantalla a Netflix, una nota a Spotify). Escriu un nom llarg → Següent. BÉ: «Quant és?» es veu sencer a dalt, el nom va centrat en una línia (amb «…» si no hi cap) i el teclat sencer a la vista. Posa l'import → Següent. A «Quan es cobra?» toca «En diversos pagaments», després «Només una vegada» i un altre cop «En diversos pagaments». BÉ: el «‹» i la barra de progrés sempre queden a dalt a la vista, «Següent» no parpelleja i el contingut es recol·loca lliscant. MALAMENT: enrere no abaixa el full, un dibuix que no lliga amb el nom, el títol mig tapat o el nom en dues línies; el «‹» se'n va per dalt, «Següent» desapareix un instant, o el full fa un salt en canviar.",
-            "26. A «Quan es cobra?» fes el gest enrere del mòbil des de la vora, a poc a poc. BÉ: el full no es mou de costat ni deixa veure la llista del darrere; en deixar-lo anar torna al pas anterior lliscant per dins. Torna amb «Següent» i estira el full cap avall des del mig, només una mica. BÉ: segueix el dit i torna al seu lloc. MALAMENT: el full es desplaça de costat amb el dit, es veuen dos passos alhora, no es mou en estirar o la llista de dies s'estira.",
-            "27. Mateixa alta: «Cada mes» → «Un cop l'any». BÉ: apareix la graella dels dotze mesos i els dies esperen que triïs mes; en triar mes i dia, «Següent» s'encén amb un fos. Desa i torna a obrir el rebut. BÉ: el mes desat surt marcat. MALAMENT: només dies, el botó parpelleja o el mes no surt marcat.",
-            "28. «Tots ›» → el rebut que acabes de crear → «Ja no el tinc» → confirma. BÉ: surt «Rebut tret» amb «Desfer»; en prémer-lo torna igual que estava. Després treu-lo un altre cop: era de prova. MALAMENT: no hi ha «Desfer» o no torna.",
-            "29. Toca un rebut de «Per pagar» → «Pausar» → «Fins a …» i entra a «Tots ›». BÉ: a «Els teus rebuts» aquest rebut continua a la llista, més apagat i amb «pausat fins a …», i la xifra de dalt ja no el compta aquest mes; continua sent la suma de Rebuts i Quotes. Toca la xifra per veure-la a l'any. BÉ: només hi falta el que es cobraria durant la pausa (pausat un mes, falta un mes, no l'any sencer) i la fila del rebut diu el que en pagues a l'any. MALAMENT: la xifra del mes el continua comptant, a l'any desapareix sencer, no quadra amb les seccions o el rebut desapareix de la llista.",
-            "30. Amb aquest rebut en pausa, a «Els teus rebuts» baixa fins a «M'ho puc permetre?» i toca l'import. BÉ: el teclat surt suau i la resposta va sense emojis, en verd, ambre o vermell. Toca «A terminis» i escriu un import. BÉ: «Els teus fixes passarien de …» comença a la mateixa xifra que «Se't van cada mes» (arrodonida a l'euro). Després toca el rebut pausat → «pausat fins a … · Reprendre». BÉ: es veu normal un altre cop i torna a sumar. MALAMENT: va a salts, la resposta porta emojis, «Els teus fixes passarien de …» comença en una xifra més alta (amb el pausat a dins) o en reprendre no torna a sumar.",
-            "31. Pla → Rebuts → un rebut de «Per pagar» (no una quota ni un «D'una sola vegada») → Editar → «Més opcions» → «Prova gratuïta» → «Un mes» → Desa. BÉ: com que comença a cobrar el mes que ve, surt de «Per pagar» i «Queda per pagar» baixa el seu import. A «Tots ›» continua a la llista i «Se't van cada mes» el compta sencer; a l'any hi falten els mesos gratuïts. MALAMENT: continua a «Per pagar», la xifra no baixa, o a «Els teus rebuts» desapareix o deixa de comptar al mes.",
-            "32. «Tots ›» → aquest rebut: toca «Prova gratuïta», mantén premut − fins a demà (si et passes, +) i Desa. BÉ: surt a dalt a «Per revisar» amb «Cobra demà» en una sola línia, i «Queda per pagar» el torna a comptar (cobra aquest mes). Obre'l. BÉ: a dalt «Es cobra el» amb el dia de demà, el mateix que l'avís, i a sota «Demà comença a cobrar» amb «M'ho quedo» i «Ja no el tinc». Toca «M'ho quedo». BÉ: torna a «Per pagar» i la xifra no canvia. MALAMENT: no surt a «Per revisar», l'avís ocupa dues línies, la fitxa diu un altre dia o la xifra canvia en quedar-te'l.",
-            "33. Un altre rebut (no una quota) → Editar → «Més opcions» → «Permanència» → «Un any», baixa amb − fins al mes que ve i Desa. BÉ: surt a «Per revisar» amb «Permanència: …» en una sola línia i la xifra no canvia; en obrir-lo diu «Fi de permanència: …». Toca «Ja ho he mirat». BÉ: deixa de sortir. MALAMENT: no surt, l'avís ocupa dues línies, la xifra canvia o torna a sortir.",
-            "34. Pla → toca l'ull al costat del títol. BÉ: totes les xifres de diners de l'app passen a «•••• €» (Inici, Despeses, Cartera, Rebuts, «T'arriba», «Et deuen», «Els teus rebuts»); quants rebuts hi ha sí que es veu. Tanca l'app i obre-la: continua igual. Torna a tocar l'ull. BÉ: tornen totes les xifres. MALAMENT: es veu alguna xifra amb l'ull posat, o en tornar a obrir l'app canvia sol.",
-            "35. Despeses → «Subscripcions». BÉ: un cobrament que ja és un rebut del Pla (encara que el banc el cobri amb un altre nom) no surt per revisar, la bombolla no el compta i la xifra de dalt no el suma; les altres subscripcions continuen sortint. Després Rebuts → «Tots ›» → «+ Afegir»: a «Vist al teu banc» tampoc surt. MALAMENT: surt per revisar (o a «Vist al teu banc») un rebut que ja tens, la xifra el continua sumant o ha desaparegut una subscripció que no és un rebut.",
-            "36. Configuració → Idioma → English. BÉ: les xifres surten com «1,234.56 €»; en tornar a Català, «1.234,56 €». MALAMENT: en anglès les xifres continuen amb coma."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.212",
@@ -569,74 +503,7 @@
         "Despeses: en un ingrés del banc pots marcar «És un traspàs entre els meus comptes», i la cerca de la parella va més ràpida."
       ]
     },
-    "tandas": [
-      {
-        "id": "deuda-tae-con-descuento",
-        "t": {
-          "es": "Deudas: interés en una deuda con descuento",
-          "en": "Debts: interest on a debt with a deduction",
-          "ca": "Deutes: interès en un deute amb descompte"
-        },
-        "items": {
-          "es": [
-            "1. Con una deuda sin intereses cuyo recibo compartido te descuentas («Lo descuento»), ve a Deudas, ábrela para editarla, escribe una TAE mayor que 0 y toca Guardar cambios. BIEN: no se guarda y sale «Primero quita el descuento del recibo compartido para poner una TAE positiva», con lo que escribiste aún en pantalla. MAL: se guarda la TAE y la cuota queda rara.",
-            "2. En Plan → Recibos quita el descuento de ese recibo y vuelve a poner la TAE en la deuda. BIEN: ahora se guarda. MAL: sigue rechazándola."
-          ],
-          "en": [
-            "1. With a debt that has no interest and whose shared bill you deduct (“I deduct it”), go to Debts, open it to edit, type an APR above 0 and tap Save changes. RIGHT: it is not saved and “First remove the discount from the shared bill to set a positive APR” appears, with what you typed still on screen. WRONG: the APR is saved and the instalment looks odd.",
-            "2. In Plan → Bills remove the deduction from that bill and set the APR on the debt again. RIGHT: now it saves. WRONG: it is still refused."
-          ],
-          "ca": [
-            "1. Amb un deute sense interessos el rebut compartit del qual descomptes («Ho descompto»), ves a Deutes, obre’l per editar-lo, escriu una TAE superior a 0 i toca Desar canvis. BÉ: no es desa i surt «Primer treu el descompte del rebut compartit per posar una TAE positiva», amb el que has escrit encara a la pantalla. MALAMENT: es desa la TAE i la quota queda estranya.",
-            "2. A Pla → Rebuts treu el descompte d’aquest rebut i torna a posar la TAE al deute. BÉ: ara es desa. MALAMENT: continua rebutjant-la."
-          ]
-        }
-      },
-      {
-        "id": "recibo-cargo-pendiente",
-        "t": {
-          "es": "Plan › Recibos: cargo aún sin confirmar",
-          "en": "Plan › Bills: charge not yet confirmed",
-          "ca": "Pla › Rebuts: càrrec encara sense confirmar"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos, abre un recibo del banco cuyo cargo acaba de llegar a Gastos como pendiente (compra con tarjeta que el banco aún no ha confirmado) y toca «¿Cuál es el cargo?». BIEN: ese cargo sale en una lista aparte con «Pendiente del banco · podrás elegirlo al confirmarse», sin botón para elegirlo, y los cargos que el banco ya confirmó se eligen como siempre. MAL: dice que no hay cargos del banco este mes, te deja elegir el pendiente o no deja elegir uno confirmado."
-          ],
-          "en": [
-            "1. Plan → Bills, open a bank bill whose charge has just reached Spending as pending (a card purchase the bank has not confirmed yet) and tap “Which charge is it?”. RIGHT: that charge shows in a separate list with “Pending at the bank · you can pick it once confirmed”, with no button to pick it, and charges the bank has already confirmed can be picked as usual. WRONG: it says there are no charges from the bank this month, lets you pick the pending one or won't let you pick a confirmed one."
-          ],
-          "ca": [
-            "1. Pla → Rebuts, obre un rebut del banc el càrrec del qual acaba d’arribar a Despeses com a pendent (compra amb targeta que el banc encara no ha confirmat) i toca «Quin és el càrrec?». BÉ: aquest càrrec surt en una llista a part amb «Pendent del banc · el podràs triar quan es confirmi», sense botó per triar-lo, i els càrrecs que el banc ja ha confirmat es trien com sempre. MALAMENT: diu que no hi ha càrrecs del banc aquest mes, et deixa triar el pendent o no deixa triar-ne un de confirmat."
-          ]
-        }
-      },
-      {
-        "id": "traspaso-ingreso-manual",
-        "t": {
-          "es": "Gastos: marcar un ingreso como traspaso",
-          "en": "Spending: mark an income as a transfer",
-          "ca": "Despeses: marcar un ingrés com a traspàs"
-        },
-        "items": {
-          "es": [
-            "1. Gastos, abre la ficha de un ingreso del banco que en realidad es dinero tuyo de otra cuenta. BIEN: hay un botón «Es un traspaso entre mis cuentas». MAL: no aparece.",
-            "2. Tócalo. Si hay una salida igual en otro banco tuyo, sale la opción «Marcar también la salida de …» sin marcar; márcala o no. BIEN: sale «Entrada marcada como traspaso», la entrada deja de contar como ingreso y, si marcaste la salida, deja de contar como gasto. MAL: no cambia nada o cambian más movimientos de los que elegiste.",
-            "3. Vuelve a abrir esa ficha y toca «Contar como ingreso». BIEN: solo esa entrada vuelve a contar como ingreso; la salida no cambia. Cierra y abre la app y mira Gastos. BIEN: todo sigue como lo dejaste y las fichas se abren sin ir lentas. MAL: cambia también la salida, se pierde lo que marcaste o va lenta."
-          ],
-          "en": [
-            "1. Spending, open the details of a bank income that is really your own money from another account. RIGHT: there is a “This is a transfer between my accounts” button. WRONG: it does not appear.",
-            "2. Tap it. If there is a matching outgoing payment at another bank of yours, the option “Also mark the outgoing …” appears unticked; tick it or not. RIGHT: “Incoming transaction marked as a transfer” appears, the incoming stops counting as income and, if you ticked the outgoing, it stops counting as spending. WRONG: nothing changes or more transactions change than you chose.",
-            "3. Open that sheet again and tap “Count as income”. RIGHT: only that incoming transaction counts as income again; the outgoing one does not change. Close and reopen the app and look at Spending. RIGHT: everything is as you left it and sheets open without getting slow. WRONG: the outgoing one changes too, what you marked is lost or it is slow."
-          ],
-          "ca": [
-            "1. Despeses, obre la fitxa d’un ingrés del banc que en realitat són diners teus d’un altre compte. BÉ: hi ha un botó «És un traspàs entre els meus comptes». MALAMENT: no apareix.",
-            "2. Toca’l. Si hi ha una sortida igual en un altre banc teu, surt l’opció «Marcar també la sortida de …» sense marcar; marca-la o no. BÉ: surt «Entrada marcada com a traspàs», l’entrada deixa de comptar com a ingrés i, si has marcat la sortida, deixa de comptar com a despesa. MALAMENT: no canvia res o canvien més moviments dels que has triat.",
-            "3. Torna a obrir aquesta fitxa i toca «Comptar com a ingrés». BÉ: només aquesta entrada torna a comptar com a ingrés; la sortida no canvia. Tanca i obre l’app i mira Despeses. BÉ: tot continua com ho vas deixar i les fitxes s’obren sense anar lentes. MALAMENT: canvia també la sortida, es perd el que has marcat o va lenta."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.211",
@@ -687,36 +554,7 @@
         "Canviar el banc, marcar un duplicat o treure un rebut des de la fitxa d’una despesa ara espera que es desi de debò: sense connexió es queda en «Sense confirmar» fins que torni la xarxa."
       ]
     },
-    "tandas": [
-      {
-        "id": "traspaso-propio-confirmado",
-        "t": {
-          "es": "Gastos: «¿Lo enviaste a otra cuenta tuya?»",
-          "en": "Spending: “Did you send this to another account of yours?”",
-          "ca": "Despeses: «Ho vas enviar a un altre compte teu?»"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → abre una salida de un banco que tenga una entrada del mismo importe en otro banco tuyo, dentro de dos días (si ninguna enseña «¿Lo enviaste a otra cuenta tuya?», no hay nada que probar). BIEN: arriba de la ficha sale la pregunta con «Sí, es mi dinero» y «No, es un pago». Ciérrala sin contestar (Atrás o fuera de la ficha). BIEN: el gasto sigue igual y al reabrirla vuelve a preguntar. MAL: no sale en una salida que tiene su entrada, sale en un gasto cualquiera o se decide solo.",
-            "2. En una salida así, toca «No, es un pago». BIEN: avisa «Guardado. No volveremos a preguntarte por esta salida.», el gasto sigue contando y la pregunta no vuelve a salir. MAL: cambia de categoría o vuelve a preguntar.",
-            "3. En otra salida con su entrada, toca «Sí, es mi dinero». BIEN: avisa «Traspaso confirmado. Ya no cuenta como gasto.», sale de los gastos del mes y ni los saldos ni la entrada cambian. MAL: sigue sumando como gasto o cambia algún saldo.",
-            "4. Sin conexión (modo avión), abre otra salida con su entrada y contesta; luego, en la ficha de un gasto de banco, cambia el banco, marca duplicado o quita el recibo. BIEN: queda «Sin confirmar», nada cambia hasta tener red y, con red, puedes volver a contestar. MAL: dice que está confirmado o se aplica sin red."
-          ],
-          "en": [
-            "1. Spending → open an outgoing payment from a bank that has an incoming amount of the same size at another bank of yours, within two days (if none shows “Did you send this to another account of yours?”, there is nothing to test). RIGHT: the question shows at the top of the details with “Yes, it is my money” and “No, it is a payment”. Close it without answering (Back or outside the sheet). RIGHT: the expense stays as it was and the question comes back when you reopen it. WRONG: it does not show on a payment that has its incoming one, it shows on any random expense or it decides by itself.",
-            "2. On such a payment, tap “No, it is a payment”. RIGHT: it says “Saved. We will not ask about this outgoing payment again.”, the expense keeps counting and the question does not come back. WRONG: it changes category or asks again.",
-            "3. On another payment with its incoming one, tap “Yes, it is my money”. RIGHT: it says “Transfer confirmed. It no longer counts as spending.”, it leaves the month’s spending and neither the balances nor the incoming one change. WRONG: it still counts as spending or a balance changes.",
-            "4. With no connection (airplane mode), open another payment with its incoming one and answer; then, on a bank expense’s details, change the bank, mark it as a duplicate or remove the bill. RIGHT: it stays “Unconfirmed”, nothing changes until you are online and, once online, you can answer again. WRONG: it says confirmed or it is applied while offline."
-          ],
-          "ca": [
-            "1. Despeses → obre una sortida d’un banc que tingui una entrada del mateix import en un altre banc teu, dins de dos dies (si cap ensenya «Ho vas enviar a un altre compte teu?», no hi ha res a provar). BÉ: a dalt de la fitxa surt la pregunta amb «Sí, són els meus diners» i «No, és un pagament». Tanca-la sense contestar (Enrere o fora de la fitxa). BÉ: la despesa continua igual i en reobrir-la torna a preguntar. MALAMENT: no surt en una sortida que té la seva entrada, surt en una despesa qualsevol o es decideix sola.",
-            "2. En una sortida així, toca «No, és un pagament». BÉ: avisa «Desat. No tornarem a preguntar-te per aquesta sortida.», la despesa continua comptant i la pregunta no torna a sortir. MALAMENT: canvia de categoria o torna a preguntar.",
-            "3. En una altra sortida amb la seva entrada, toca «Sí, són els meus diners». BÉ: avisa «Traspàs confirmat. Ja no compta com a despesa.», surt de les despeses del mes i ni els saldos ni l’entrada canvien. MALAMENT: continua sumant com a despesa o canvia algun saldo.",
-            "4. Sense connexió (mode avió), obre una altra sortida amb la seva entrada i contesta; després, a la fitxa d’una despesa de banc, canvia el banc, marca duplicat o treu el rebut. BÉ: queda «Sense confirmar», no canvia res fins que hi hagi xarxa i, amb xarxa, pots tornar a contestar. MALAMENT: diu que està confirmat o s’aplica sense xarxa."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.209",
@@ -740,42 +578,7 @@
         "En anar a un deute des de Rebuts, el primer ja no queda tallat a dalt."
       ]
     },
-    "tandas": [
-      {
-        "id": "deuda-lo-descuento",
-        "t": {
-          "es": "Deudas: «Lo descuento» y lo que baja la deuda cada mes",
-          "en": "Debts: “I deduct it” and how much the debt goes down each month",
-          "ca": "Deutes: «Ho descompto» i el que baixa el deute cada mes"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Deudas → toca tu préstamo sin interés → Editar deuda. BIEN: sale el campo «Baja la deuda al mes (€)», que solo aparece en las deudas sin interés. Cambia solo el plazo. BIEN: «Baja la deuda al mes (€)» se recalcula al teclear y se guarda sin avisos. MAL: no aparece el campo, aparece en una deuda con interés o dice que el plazo y la cuota no encajan.",
-            "2. Mismo sitio: escribe en «Baja la deuda al mes (€)» lo que baja de verdad (por ejemplo 250) y pulsa Guardar cambios. BIEN: pide confirmar el plazo nuevo y, al aceptar, el pendiente de la tarjeta queda igual. MAL: el pendiente cambia o no pide confirmar.",
-            "3. Tu caso (el descuento ya estaba puesto): Plan → Deudas → tarjeta del préstamo de tu madre. Bajo «pagas 250 € + 53 € de …» sale «No cuadra · Ajustar». Tócalo: «¿Cuánto le pasas al mes?» con 197 → Aceptar; después «¿Le pasas 197 € y la deuda baja esto?» con 250 → «Ajustar la deuda». BIEN: queda «pagas 197 € + 53 €», el pendiente igual que antes y el botón desaparece. MAL: no sale el botón, cambia el pendiente o sigue «250 € + 53 €».",
-            "4. Otra deuda sin interés (si no tienes, «No lo puedo probar»): Plan → Recibos → Todos → Personas → Añadir, «Lo descuento» de esa deuda en un recibo mensual → Guardar. BIEN: si la cuota no cuadra, sale la misma pregunta; elige «Dejarla como está» y el recibo queda compartido y la deuda igual que antes. MAL: se guarda sin preguntar, la tarjeta suma de más o la deuda cambia.",
-            "5. Plan → Deudas → una deuda sin bajada aparte → Editar deuda: cambia la cuota a 197. BIEN: «Baja la deuda al mes (€)» pasa a 197 sola; escribe 250 y guarda: queda cuota 197 y la deuda baja 250. MAL: se guarda bajando 197.",
-            "6. Plan → Recibos → abre un recibo compartido → Editar → Más opciones. BIEN: la parte de cada persona lleva un lápiz ✎ y al tocarla se puede teclear. MAL: sin lápiz o no se puede teclear."
-          ],
-          "en": [
-            "1. Plan → Debts → tap your interest-free loan → Edit debt. RIGHT: the “Debt goes down per month (€)” field shows, and it only appears on interest-free debts. Change only the term. RIGHT: “Debt goes down per month (€)” recalculates as you type and it saves with no warnings. WRONG: the field is missing, it shows on a debt with interest or it says the term and the instalment do not match.",
-            "2. Same place: type in “Debt goes down per month (€)” what really goes down (for example 250) and press Save changes. RIGHT: it asks you to confirm the new term and, once accepted, the card’s balance stays the same. WRONG: the balance changes or it does not ask to confirm.",
-            "3. Your case (the deduction was already set): Plan → Debts → your mother’s loan card. Under “you pay 250 € + 53 € of …” it shows “Doesn’t add up · Adjust”. Tap it: “How much do you send each month?” with 197 → Accept; then “You send 197 € and the debt goes down by this?” with 250 → “Adjust the debt”. RIGHT: it ends up “you pay 197 € + 53 €”, the balance as before and the button disappears. WRONG: the button does not show, the balance changes or it still says “250 € + 53 €”.",
-            "4. Another interest-free debt (if you have none, «No lo puedo probar»): Plan → Bills → All → People → Add, “I deduct it” from that debt in a monthly bill → Save. RIGHT: if the instalment does not add up, the same question shows; choose “Leave it as is” and the bill stays shared and the debt as before. WRONG: it saves without asking, the card adds up too much or the debt changes.",
-            "5. Plan → Debts → a debt with no separate decrease → Edit debt: change the instalment to 197. RIGHT: “Debt goes down per month (€)” becomes 197 by itself; type 250 and save: the instalment stays 197 and the debt goes down 250. WRONG: it saves going down 197.",
-            "6. Plan → Bills → open a shared bill → Edit → More options. RIGHT: each person’s share has a pencil ✎ and tapping it lets you type. WRONG: no pencil or you cannot type."
-          ],
-          "ca": [
-            "1. Pla → Deutes → toca el teu préstec sense interès → Edita el deute. BÉ: surt el camp «Baixa el deute al mes (€)», que només apareix en els deutes sense interès. Canvia només el termini. BÉ: «Baixa el deute al mes (€)» es recalcula en teclejar i es desa sense avisos. MALAMENT: no apareix el camp, apareix en un deute amb interès o diu que el termini i la quota no encaixen.",
-            "2. Mateix lloc: escriu a «Baixa el deute al mes (€)» el que baixa de debò (per exemple 250) i prem Desa els canvis. BÉ: demana confirmar el termini nou i, en acceptar, el pendent de la targeta queda igual. MALAMENT: el pendent canvia o no demana confirmar.",
-            "3. El teu cas (el descompte ja estava posat): Pla → Deutes → targeta del préstec de la teva mare. Sota «pagues 250 € + 53 € de …» surt «No quadra · Ajustar». Toca-ho: «Quant li passes cada mes?» amb 197 → Accepta; després «Li passes 197 € i el deute baixa això?» amb 250 → «Ajustar el deute». BÉ: queda «pagues 197 € + 53 €», el pendent igual que abans i el botó desapareix. MALAMENT: no surt el botó, canvia el pendent o continua «250 € + 53 €».",
-            "4. Un altre deute sense interès (si no en tens, «No lo puedo probar»): Pla → Rebuts → Tots → Persones → Afegeix, «Ho descompto» d’aquest deute en un rebut mensual → Desa. BÉ: si la quota no quadra, surt la mateixa pregunta; tria «Deixar-lo com està» i el rebut queda compartit i el deute igual que abans. MALAMENT: es desa sense preguntar, la targeta suma de més o el deute canvia.",
-            "5. Pla → Deutes → un deute sense baixada a part → Edita el deute: canvia la quota a 197. BÉ: «Baixa el deute al mes (€)» passa a 197 sol; escriu 250 i desa: queda quota 197 i el deute baixa 250. MALAMENT: es desa baixant 197.",
-            "6. Pla → Rebuts → obre un rebut compartit → Edita → Més opcions. BÉ: la part de cada persona porta un llapis ✎ i en tocar-la es pot teclejar. MALAMENT: sense llapis o no es pot teclejar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.208",
@@ -796,30 +599,7 @@
         "Trade Republic: si la teva aportació mensual a la inversió arriba com a transferència, la confirmes un cop des de la seva fitxa i l’app reconeix les següents del mateix pla, sense comprar participacions de més."
       ]
     },
-    "tandas": [
-      {
-        "id": "tr-inversion-mensual",
-        "t": {
-          "es": "Gastos: confirmar la inversión mensual de Trade Republic",
-          "en": "Spending: confirm the Trade Republic monthly investment",
-          "ca": "Despeses: confirmar la inversió mensual de Trade Republic"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → abre una transferencia de Trade Republic de los días 1 al 5 del mes (si ninguna enseña «¿Es tu aportación mensual?», no hay nada que probar). BIEN: arriba de la ficha sale «¿Es tu aportación mensual?» con el botón «Inversión mensual»; al tocarlo pregunta y, al pulsar «Confirmar inversión», avisa «Aportación confirmada.», el movimiento pasa a Inversión y la posición de ese fondo en Cartera no cambia. MAL: sale en algo que no es tu aportación, el movimiento cambia sin que lo confirmes, o la posición del fondo sube de más.",
-            "2. Mismo sitio: abre una transferencia de Trade Republic de los días 1 al 5 que NO sea tu aportación (por ejemplo, un envío a otra persona). BIEN: si sale «¿Es tu aportación mensual?», no cambia nada hasta que tú confirmes, y al cancelar el movimiento sigue como estaba. MAL: pasa a Inversión sin que lo confirmes. Apunta cuántas transferencias que no eran aportaciones te han preguntado."
-          ],
-          "en": [
-            "1. Spending → open a Trade Republic transfer from the 1st to the 5th of the month (if none shows “Is this your monthly contribution?”, there is nothing to test). RIGHT: at the top of the details, “Is this your monthly contribution?” appears with the “Monthly investment” button; tapping it asks, and when you press “Confirm investment” it says “Contribution confirmed.”, the entry becomes Investment and that fund’s position in Portfolio does not change. WRONG: it shows on something that is not your contribution, the entry changes without you confirming, or the fund position goes up by extra.",
-            "2. Same place: open a Trade Republic transfer from the 1st to the 5th that is NOT your contribution (for example, a payment to another person). RIGHT: if “Is this your monthly contribution?” shows, nothing changes until you confirm, and if you cancel the entry stays as it was. WRONG: it becomes Investment without you confirming. Note how many transfers that were not contributions asked you."
-          ],
-          "ca": [
-            "1. Despeses → obre una transferència de Trade Republic dels dies 1 al 5 del mes (si cap mostra «És la teva aportació mensual?», no hi ha res a provar). BÉ: a dalt de la fitxa surt «És la teva aportació mensual?» amb el botó «Inversió mensual»; en tocar-lo pregunta i, en prémer «Confirmar inversió», avisa «Aportació confirmada.», el moviment passa a Inversió i la posició d’aquest fons a Cartera no canvia. MALAMENT: surt en alguna cosa que no és la teva aportació, el moviment canvia sense que ho confirmis, o la posició del fons puja de més.",
-            "2. El mateix lloc: obre una transferència de Trade Republic dels dies 1 al 5 que NO sigui la teva aportació (per exemple, un enviament a una altra persona). BÉ: si surt «És la teva aportació mensual?», no canvia res fins que tu confirmis, i en cancel·lar el moviment queda com estava. MALAMENT: passa a Inversió sense que ho confirmis. Apunta quantes transferències que no eren aportacions t’han preguntat."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.207",
@@ -864,47 +644,7 @@
         "Les quotes de deute sense dia de cobrament mostren «Sense dia de cobrament · posa-hi dia», a Pla i a Deutes."
       ]
     },
-    "tandas": [
-      {
-        "id": "pro03-aviso-te-llega",
-        "t": {
-          "es": "Avisos: ¿te llega para el recibo de mañana?",
-          "en": "Reminders: will it cover tomorrow’s bill?",
-          "ca": "Avisos: t’arriba per al rebut de demà?"
-        },
-        "items": {
-          "es": [
-            "1. Instala la app nueva si te lo pide. Si mañana se te cobra un recibo o una cuota, mira hoy el aviso de la víspera (también sale con la app cerrada); si mañana no se cobra nada, «No lo puedo probar». BIEN: dice cuánto se cobra y «Mínimo previsto este mes en tu banco: X», con la misma cifra que Plan › Recibos › «¿Te llega?» (si es negativa, es lo que falta); si el banco no tiene una lectura reciente, sale el aviso de siempre, sin cifra. MAL: una cifra que no cuadra con «¿Te llega?», un aviso de algo que ya pagaste o ningún aviso."
-          ],
-          "en": [
-            "1. Install the new app if it asks you to. If a bill or loan payment is charged tomorrow, look today at the reminder the day before (it also shows with the app closed); if nothing is charged tomorrow, «No lo puedo probar». RIGHT: it says how much is charged and “Lowest projected balance this month at your bank: X”, the same figure as Plan › Bills › “Will it cover?” (if negative, that is what is missing); if the bank has no recent reading, you get the usual reminder, with no figure. WRONG: a figure that does not match “Will it cover?”, a reminder for something you already paid, or no reminder."
-          ],
-          "ca": [
-            "1. Instal·la l’app nova si t’ho demana. Si demà se’t cobra un rebut o una quota, mira avui l’avís de la vigília (també surt amb l’app tancada); si demà no es cobra res, «No lo puedo probar». BÉ: diu quant es cobra i «Saldo mínim previst aquest mes al teu banc: X», amb la mateixa xifra que Pla › Rebuts › «T'arriba?» (si és negativa, és el que falta); si el banc no té una lectura recent, surt l’avís de sempre, sense xifra. MALAMENT: una xifra que no quadra amb «T'arriba?», un avís d’alguna cosa que ja has pagat o cap avís."
-          ]
-        },
-        "apk": 64
-      },
-      {
-        "id": "deuda-ponle-dia",
-        "t": {
-          "es": "Plan y Deudas: poner día a una cuota",
-          "en": "Plan and Debts: set a day on a loan payment",
-          "ca": "Pla i Deutes: posar dia a una quota"
-        },
-        "items": {
-          "es": [
-            "1. Plan › Recibos o Plan › Deudas: busca una cuota de deuda que diga «Sin día de cobro · ponle día» (si ninguna lo dice, no hay nada que probar). Tócalo, elige un día y guarda. BIEN: se abre la edición con el día listo para escribir, al guardar el aviso desaparece y la cuota sale en su día en Plan. MAL: el aviso sale en una cuota que ya tiene día, no abre la edición o guardar no deja el día puesto."
-          ],
-          "en": [
-            "1. Plan › Bills or Plan › Debts: look for a loan payment that says “No payment day · set a day” (if none does, there is nothing to test). Tap it, pick a day and save. RIGHT: the editor opens with the day ready to type, the notice goes away once saved and the payment shows on its day in Plan. WRONG: the notice shows on a payment that already has a day, it does not open the editor, or saving does not set the day."
-          ],
-          "ca": [
-            "1. Pla › Rebuts o Pla › Deutes: busca una quota de deute que digui «Sense dia de cobrament · posa-hi dia» (si cap ho diu, no hi ha res a provar). Toca-ho, tria un dia i desa. BÉ: s’obre l’edició amb el dia a punt per escriure, en desar l’avís desapareix i la quota surt al seu dia a Pla. MALAMENT: l’avís surt en una quota que ja té dia, no obre l’edició o desar no deixa el dia posat."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.205",
@@ -1012,27 +752,7 @@
         "La targeta del mes tancat i la seva imatge fan servir el límit que tenies aquell mes, i ho diuen si no es va desar."
       ]
     },
-    "tandas": [
-      {
-        "id": "informe-mes-limite-del-mes",
-        "t": {
-          "es": "Inicio: tarjeta del mes cerrado con su límite",
-          "en": "Home: closed-month card with its limit",
-          "ca": "Inici: targeta del mes tancat amb el seu límit"
-        },
-        "items": {
-          "es": [
-            "1. Solo del 1 al 5 de cada mes (si hoy no sale la tarjeta, «No lo puedo probar»): Inicio → tarjeta «Así acabó …» del mes que acaba de cerrar. BIEN: debajo del gasto pone «de X € de presupuesto» con el límite que tenías ese mes, o «Límite de este mes no guardado» si no se guardó; nunca el de ahora. Toca «Crear imagen del informe». BIEN: la imagen dice lo mismo que la tarjeta. MAL: sale el límite actual, un porcentaje sin límite de ese mes, o la imagen enseña otro límite u otro porcentaje."
-          ],
-          "en": [
-            "1. Only from the 1st to the 5th of each month (if the card isn't there today, «No lo puedo probar»): Home → “How … ended” card for the month that just closed. RIGHT: under the spending it says “of X € budget” with the limit you had that month, or “This month's limit was not saved” if it was not saved; never today's. Tap “Create report image”. RIGHT: the image says the same as the card. WRONG: today's limit shows, a percentage appears without that month's limit, or the image shows another limit or another percentage."
-          ],
-          "ca": [
-            "1. Només de l'1 al 5 de cada mes (si avui no surt la targeta, «No lo puedo probar»): Inici → targeta «Així va acabar …» del mes que s'acaba de tancar. BÉ: sota la despesa diu «de X € de pressupost» amb el límit que tenies aquell mes, o «Límit d'aquest mes no desat» si no es va desar; mai el d'ara. Toca «Crear imatge de l'informe». BÉ: la imatge diu el mateix que la targeta. MALAMENT: surt el límit actual, un percentatge sense límit d'aquell mes, o la imatge ensenya un altre límit o un altre percentatge."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.201",

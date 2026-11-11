@@ -1030,15 +1030,6 @@
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
   .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
-  /* Filas que se deslizan (SPEC §2.3-2.4, §10): debajo, quieto, lo que va a pasar; aparece a medida que
-     la tarjeta se aparta. Solo durante el gesto se recorta y se sube a su capa: en reposo no cuesta nada. */
-  .pr6-sw{position:relative;border-radius:20px;}
-  .pr6-sw.is-sw{overflow:hidden;}
-  .pr6-sw.is-sw > .v4-charge{will-change:transform;}
-  .pr6-sw > .v4-charge{position:relative;}
-  .pr6-sw-bg{position:absolute;inset:0;border-radius:20px;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:22px;
-    background:var(--surface-2);color:var(--text);font-size:14px;font-weight:800;opacity:0;pointer-events:none;}
-  .pr6-sw[data-desliza="cargo"] .pr6-sw-bg{background:var(--mint);color:var(--on-mint);}
   .pr6-fold{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-8px;transition:grid-template-rows .35s var(--ease),opacity .25s ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
   .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;}
@@ -1311,6 +1302,22 @@
   .pr6-ll-wt.ok{color:var(--mint-bright);}
   .pr6-ll-wi .pr6-fold{margin-top:-10px;}
   .pr6-ll-wi .pr6-fold .v4-keys{margin:10px 0 0;}
+  /* «De una vez / A plazos» y lo que sale debajo (meses, entrada, cuota, colchón por cuenta): pliegues
+     como el resto de la hoja; el hueco de arriba va dentro y se pliega con ellos. */
+  .pr6-ll-modo{display:flex;gap:6px;}
+  .pr6-ll-modo .chip{flex:1;height:38px;border-radius:12px;font-size:13.5px;font-weight:700;}
+  .pr6-ll-plf{flex-direction:row;gap:6px;}
+  .pr6-ll-plf,.pr6-ll-plz,.pr6-ll-col{padding-top:0;transition:padding-top .35s var(--ease);}
+  .pr6-ll-wi .pr6-fold.open>.pr6-ll-plf,.pr6-ll-wi .pr6-fold.open>.pr6-ll-plz,.pr6-ll-wi .pr6-fold.open>.pr6-ll-col{padding-top:10px;}
+  .pr6-ll-cmp{flex:1 1 0;min-width:0;height:42px;font-size:15px;}
+  .pr6-ll-af{display:flex;flex-direction:column;margin-top:-10px;}
+  .pr6-ll-af .pr6-fold{margin-top:0;}
+  .pr6-ll-plz,.pr6-ll-col{gap:6px;font-size:14px;}
+  .pr6-ll-plz .pr6-cta{margin-top:4px;}
+  .pr6-ll-wt.no{color:var(--coral);}
+  .pr6-ll-row .num.neg{color:var(--coral);}
+  .pr6-ll-undo{flex:0 0 auto;height:36px;padding:0 14px;}
+  .pr6-ll-col .pr6-lbl{margin-bottom:0;}
   .pr6-nd-v{display:flex;justify-content:center;}
   .pr6-nd-v .serif{font-size:44px;font-weight:600;line-height:1;padding:6px 14px;border-radius:16px;transition:background .2s ease;}
   .pr6-nd-v .serif.sel{background:var(--surface-2);}
@@ -1431,8 +1438,6 @@
   html[data-theme="light"] .pr6-ll-row .num.pos,
   html[data-theme="light"] .profile-handle,
   html[data-theme="light"] .profile-row .pr-edit,
-  html[data-theme="light"] .af-safe,
-  html[data-theme="light"] .af-verdict.ok,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
   html[data-theme="light"] .v4-pill,
@@ -2233,18 +2238,6 @@
   .v4-investments-full .curbtn,.v4-investments-full .v4-link-mini{min-height:44px;}
   .v4-investments-full .v4-field-label{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:10px;}
   .v4-investments-full .v4-field-label .af-in{display:block;min-height:44px;margin-top:5px;color:var(--text);font-weight:500;}
-  .af-result{border-radius:12px;padding:11px 13px;border:1px solid var(--line-soft);background:var(--bg-2);}
-  .af-result.yes{border-color:rgba(95,208,138,.45);background:rgba(95,208,138,.08);}
-  .af-result.tight,.af-result.floor{border-color:rgba(242,193,78,.5);background:rgba(242,193,78,.08);}
-  .af-result.no{border-color:rgba(226,112,95,.5);background:rgba(226,112,95,.08);}
-  .af-floor{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:12.5px;}
-  .af-below{margin-top:8px;font-size:12px;font-weight:600;color:#E2A05F;}
-  .af-info{margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--bg-2);border:1px solid var(--line-soft);}
-  .af-safe{font-weight:700;font-size:13px;color:var(--mint);}
-  .af-verdict{font-weight:800;font-size:14px;}
-  .af-verdict.ok{color:var(--mint);} .af-verdict.justo{color:var(--tan);} .af-verdict.no{color:var(--coral);}
-  .af-low{font-size:12.5px;color:var(--text);margin-top:5px;}
-  .af-delta{font-size:11.5px;color:var(--muted);margin-top:3px;}
   .liqrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:2px 0;}
   .liqrow.strong{font-weight:800;font-size:15px;border-top:1px solid var(--line-soft);margin-top:5px;padding-top:7px;}
   .alarmbox{background:rgba(226,112,95,.12);border:1px solid rgba(226,112,95,.45);color:var(--coral);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.45;}

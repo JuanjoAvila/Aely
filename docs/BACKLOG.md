@@ -27,6 +27,18 @@ hecho**. Cada cierre se comprobó contra `CHANGELOG.md`, `git log origin/beta`, 
 
 ## Pendiente
 
+### Siguiente ronda (tras producción de la 229, pedido del dueño 11/11/2026)
+
+| ID | Qué falta y por qué | Depende de |
+|---|---|---|
+| Auditoría de ciberseguridad | A fondo: cliente, CSP, Supabase (RLS y grants), Edge Functions, tokens de ingest, APK, secretos y dependencias de `public/vendor/`. | producción de la 229 |
+| Auditoría de diseño | Con la skill Impeccable: toda la app contra el sistema de diseño y el prototipo de Recibos. | producción de la 229 |
+| Auditoría de rendimiento | Toda la app a CPU ×6: fotogramas >32 ms por pantalla y gesto, tamaño del bundle y escrituras. | producción de la 229 |
+| Auditoría de funciones, textos y botones | Lo redundante, huérfano, roto o con textos largos, en los tres idiomas. | producción de la 229 |
+| Te deben: remates P2 de la revisión de dinero de la 228 | Un hermano con los dos apellidos del titular no casa; una transferencia a un tercero ±2 días tapa un Bizum legítimo; dos fuentes no-banco del mismo ingreso cuentan doble (con tope en lo debido). | — |
+| Pruebas: `ob-iguales-ordinal` y `sync-memoria` | El umbral de rendimiento quedó en 2× (CI daba 1,6× con el mismo código); revisar si se puede volver a 1,5× con otra medida. Filtro estricto de `sync-memoria`. | — |
+
+
 ### P0 · con la próxima producción
 
 | ID | Qué falta y por qué | Depende de |

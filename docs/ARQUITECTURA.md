@@ -355,10 +355,12 @@ ni lectura bancaria programada. Se conserva el límite del calendario de mes act
 no inventa previsión del siguiente mes ni corrige aquí el hueco del primer día de mes.
 
 «¿Te llega?» lee el recorrido día a día de `totals` (11), que pasa por
-`minWalk` (08), la misma función del simulador «¿Me lo puedo permitir?». A igualdad de día primero
+`minWalk` (08). A igualdad de día primero
 salen los cargos y luego entran las entradas. Los eventos salen de `pendingWalkEvents` (08), la
-única lista: la usan `totals` (píldora, hoja, mínimo diario, `safeLiq` del widget) y el simulador
-«¿Me lo puedo permitir?» (`bankPendingEvents` = esa lista filtrada por banco). Un recibo sale del
+única lista: la usa `totals` (píldora, hoja, mínimo diario, `safeLiq` del widget); `bankPendingEvents`
+es esa lista filtrada por banco. «¿Y si gasto…?» no recorre nada por su cuenta: resta el gasto (o, a
+plazos, solo la entrada) del mínimo de su banco con `planRecibosBancos`, y `AffordSim` (08) saca de
+ahí el colchón de cada cuenta y la cuota. Un recibo sale del
 recorrido si Plan lo pinta pagado (`fixedPaymentState`) Y ese pago ya está en el saldo
 (`reciboEnElSaldo`): siempre si movió el saldo mostrado (`paidYm` o cargo enlazado con día); con
 cualquier otra prueba, solo si el saldo se leyó desde fuera el DÍA SIGUIENTE al pago o después (la

@@ -684,110 +684,6 @@ function pr6FrescuraTxt(ms, now){
   if(d<7) return tf("pr6_fresh_d",{n:d});
   return tf("pr6_fresh_fecha",{x:a.toLocaleDateString(loc(),{day:"numeric",month:"short"})});
 }
-/* FILAS QUE SE DESLIZAN (decisión del dueño del 10/11/2026, SPEC §2.3, §2.4 y §10). Hacia la
-   izquierda: en «Para revisar» = te lo recuerdo mañana; en «Por pagar» = «¿Cuál es el cargo?».
-   Los botones de la ficha siguen ahí: el gesto es un atajo, no la única puerta.
-   - El dedo se escucha UNA vez en el contenedor (delegado), y el arrastre se pinta a mano en la fila
-     con un rAF: ni un setState por frame ni la lista entera re-renderizando a 120 Hz.
-   - Convivencia con los otros gestos que oyen el mismo dedo desde más arriba (este listener va
-     primero porque está más abajo en el DOM): solo se reclama un desliz HACIA LA IZQUIERDA claro a
-     los 8 px (|dx| > 1,2·|dy|, como la SPEC). Hacia la derecha sigue siendo cambiar de pestaña, y en
-     vertical, scroll, la ola y el tirón de sección: ahí no se toca nada. Reclamado, se corta la
-     propagación para que el carrusel de pestañas y el tirón de Plan no lo vean.
-   - Los 24 px de cada borde son del atrás de Android: un dedo que nace ahí no mueve la fila.
-   - Y solo se agarra por la CIFRA (decisión del dueño probando la beta, 10/11/2026): con toda la fila
-     reclamando el desliz a la izquierda, ir a Cartera deslizando desde Recibos era una lotería según
-     dónde cayera el dedo. Desde el nombre, la fecha o el icono el gesto es del carrusel, como en
-     cualquier otra pantalla. La zona es el importe con margen y nunca menos de los 96 px de la derecha
-     de la fila (una cifra corta, «9 €», sería una diana), y de alto la fila entera, que pasa de 44 px. */
-const PR6_DESLIZ_UMBRAL=90, PR6_DESLIZ_MAX=170, PR6_DESLIZ_BORDE=24, PR6_DESLIZ_ZONA=96, PR6_DESLIZ_MARGEN=12;
-function pr6EnLaCifra(w, x, y){
-  const row=w.querySelector(".v4-charge"), am=row&&row.querySelector(".am");
-  if(!am) return false;
-  const r=row.getBoundingClientRect(), a=am.getBoundingClientRect();
-  const izq=Math.min(a.left-PR6_DESLIZ_MARGEN, r.right-PR6_DESLIZ_ZONA);
-  const medio=(a.top+a.bottom)/2, alto=Math.max(22, a.height/2+PR6_DESLIZ_MARGEN);
-  const arriba=Math.min(r.top, medio-alto), abajo=Math.max(r.bottom, medio+alto);
-  return x>=izq&&x<=r.right&&y>=arriba&&y<=abajo;
-}
-function usePr6Desliz(ref, onCommit, on){
-  const cb=useRef(onCommit); cb.current=onCommit;
-  useEffect(function(){
-    const root=ref.current;
-    if(!on||!root) return undefined;
-    let g=null, raf=0, tapa=0;
-    const pinta=function(){
-      raf=0;
-      if(!g||!g.row) return;
-      g.row.style.transform=g.v?"translate3d("+(-g.v)+"px,0,0)":"";
-      g.bg.style.opacity=String(Math.min(1,g.v/PR6_DESLIZ_UMBRAL));
-    };
-    // Vuelve a su sitio siempre (como el prototipo) y, si pasó del umbral, actúa justo después.
-    const suelta=function(vale){
-      const d=g; g=null;
-      if(raf){ cancelAnimationFrame(raf); raf=0; }
-      if(!d||!d.row) return;
-      tapa=Date.now()+400;
-      const row=d.row, bg=d.bg, w=d.w, quieto=mcReduced();
-      row.style.transition=quieto?"":"transform .3s cubic-bezier(.22,.61,.36,1)";
-      bg.style.transition=quieto?"":"opacity .3s ease";
-      row.style.transform=""; bg.style.opacity="";
-      setTimeout(function(){ row.style.transition=""; bg.style.transition=""; w.classList.remove("is-sw"); },quieto?0:320);
-      if(vale) setTimeout(function(){ cb.current(w.getAttribute("data-desliza"),w.getAttribute("data-desliza-id")); },quieto?0:120);
-    };
-    const start=function(e){
-      if(g) suelta(false);
-      if(!e.touches||e.touches.length!==1||document.documentElement.classList.contains("sheet-open")) return;
-      const w=e.target&&e.target.closest?e.target.closest("[data-desliza]"):null;
-      if(!w||!root.contains(w)) return;
-      const t=e.touches[0], ancho=window.innerWidth||360;
-      if(t.clientX<PR6_DESLIZ_BORDE||t.clientX>ancho-PR6_DESLIZ_BORDE) return;
-      if(!pr6EnLaCifra(w,t.clientX,t.clientY)) return;
-      g={w:w,x:t.clientX,y:t.clientY,eje:null,v:0,zum:false,row:null,bg:null};
-    };
-    const move=function(e){
-      if(!g) return;
-      const t=e.touches&&e.touches[0];
-      if(!t||e.touches.length!==1){ if(g.eje) suelta(false); else g=null; return; }
-      const dx=g.x-t.clientX, dy=t.clientY-g.y;   // dx > 0: hacia la izquierda
-      if(!g.eje){
-        if(Math.abs(dx)<8&&Math.abs(dy)<8) return;
-        if(!(dx>0&&Math.abs(dx)>Math.abs(dy)*1.2)){ g=null; return; }
-        g.row=g.w.querySelector(".v4-charge"); g.bg=g.w.querySelector(".pr6-sw-bg");
-        if(!g.row||!g.bg){ g=null; return; }
-        g.eje="x";
-        g.w.classList.add("is-sw");
-        g.row.style.transition="none";
-      }
-      e.stopPropagation();
-      if(e.cancelable) e.preventDefault();
-      const v=Math.max(0,Math.min(PR6_DESLIZ_MAX,dx));
-      // Un toque al cruzar el umbral; volver por debajo lo rearma.
-      if(v>=PR6_DESLIZ_UMBRAL){ if(!g.zum){ g.zum=true; mcTickHaptic(); } } else g.zum=false;
-      g.v=v;
-      if(!raf) raf=requestAnimationFrame(pinta);
-    };
-    const end=function(){ if(g&&g.eje) suelta(g.v>=PR6_DESLIZ_UMBRAL); else g=null; };
-    // El sistema se lleva el dedo: no cuenta.
-    const cancel=function(){ if(g&&g.eje) suelta(false); else g=null; };
-    // El soltar de un desliz no es un toque: no abre la ficha.
-    const click=function(e){ if(Date.now()<tapa){ tapa=0; e.stopPropagation(); e.preventDefault(); } };
-    root.addEventListener("touchstart",start,{passive:true});
-    root.addEventListener("touchmove",move,{passive:false});
-    root.addEventListener("touchend",end,{passive:true});
-    root.addEventListener("touchcancel",cancel,{passive:true});
-    root.addEventListener("click",click,true);
-    return function(){
-      if(g&&g.eje) suelta(false);
-      if(raf) cancelAnimationFrame(raf);
-      root.removeEventListener("touchstart",start);
-      root.removeEventListener("touchmove",move);
-      root.removeEventListener("touchend",end);
-      root.removeEventListener("touchcancel",cancel);
-      root.removeEventListener("click",click,true);
-    };
-  },[on]);
-}
 function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
@@ -999,17 +895,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     const d=x.kind==="debt"&&(state.debts||[]).find(function(d){return "debt_"+d.id===x.id;});
     return React.createElement(React.Fragment,{key:x.id},row,React.createElement(DebtDayPrompt,{debt:d,onOpen:onEditDebtDay}));
   };
-  /* Fila que se desliza (`usePr6Desliz`): el fondo con lo que va a pasar está debajo, quieto, y la
-     tarjeta se aparta. Las deudas no se deslizan (SPEC §2.4) y en la vista del mes que viene no hay
-     cargo que buscar ni nada que posponer. */
-  const desliza=function(x,kind,row){
-    return React.createElement("div",{className:"pr6-sw",key:x.id,"data-desliza":kind,"data-desliza-id":x.id},
-      React.createElement("span",{className:"pr6-sw-bg","aria-hidden":"true"},
-        React.createElement("svg",{width:17,height:17,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
-          React.createElement("path",{d:kind==="manana"?PR6_ICO.late:"M5 12.5l4.5 4.5L19 7.5"})),
-        t(kind==="manana"?"pr6_desliza_manana":"pr6_desliza_pagado")),
-      row);
-  };
   const dueRow=function(x){
     const n=diasHasta(x);
     // El nombre se corta con elipsis en la fila; el lector de pantalla lee la frase entera
@@ -1029,7 +914,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           x.day!=null&&React.createElement("span",{className:"pr6-bk pr6-when"+(n!=null&&n<=1?" soon":"")}, "· "+cuando(x)))),
       // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
       React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))));
-    return withDayPrompt(x,!sig&&/^fixed_/.test(String(x.id))?desliza(x,"cargo",fila):fila);
+    return withDayPrompt(x,fila);
   };
   /* «No ha llegado» en la fila, como la SPEC (§2.3) y el prototipo: «tocaba hace 8 días» obligaba a
      hacer la cuenta y la fecha ya va en la ficha (auditorías de la 218 y la 222, P2-1).
@@ -1054,8 +939,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"sub pr6-why"}, motivoFila(x))),
       // Lo cobrado de más o de menos se enseña tal cual lo cobró el banco.
       React.createElement("span",{className:"am num"}, eur(cobro?x.cobrado:Math.abs(x.amount))));
-    // Se pospone lo mismo que deja posponer la ficha («Recuérdamelo mañana»).
-    return withDayPrompt(x,!/^(debt|balloon)_/.test(String(x.id))&&PR6_POSPONIBLE[x.rv]?desliza(x,"manana",fila):fila);
+    return withDayPrompt(x,fila);
   };
   const pausadoRow=function(f){
     return React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow pr6-skip",key:"p_"+f.id,"data-recibo":"fixed_"+f.id,"data-pausado":"1",
@@ -1102,10 +986,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       {duration:320,easing:"cubic-bezier(.22,.61,.36,1)"});
     return function(){ a.cancel(); };
   },[vista]);
-  usePr6Desliz(vistasRef,function(kind,id){
-    if(kind==="manana"){ const x=v.review.find(function(o){ return o.id===id; }); if(x) posponer(x); }
-    else if(kind==="cargo"&&pack.pendingBills.some(function(o){ return o.id===id; })) setFicha({id:id,paso:1});
-  },!vacio);
   const cambiarVista=function(){ irVista(sig?"mes":"sig"); };
   /* El mes siguiente es una capa más: el atrás (también el de la APK) vuelve primero al mes en
      curso. Y al salir de Recibos (otro segmento u otra pestaña) se vuelve al mes en curso: Plan
@@ -1258,7 +1138,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       onClose:function(){ setFicha(null); },onGoDebts:onGoDebts}),
     ficha&&fichaRow&&fichaRow.kind!=="debt"&&fichaRow.kind!=="balloon"&&React.createElement(ReciboFicha,{key:ficha.id,row:fichaRow,state:state,set:set,totals:totals,evidence:proof,showToast:showToast,
       aviso:v.review.find(function(x){ return x.id===ficha.id; })||null,
-      onPosponer:posponer, onDeshacer:avisarDeshacer, pasoInicial:ficha.paso,
+      onPosponer:posponer, onDeshacer:avisarDeshacer,
       onClose:cerrarFicha,
       onRemove:function(id){ setAvisoFicha(null); quitarReciboPreguntando(fichaUndo,id); },
       onEdit:function(id){ cerrarFicha(); setManageEdit(id); setManageOpen(true); }}),
@@ -1406,7 +1286,7 @@ const PR6_ICO={
   perm:"M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z",
   unconf:"M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3M12 17h.01M12 21a9 9 0 100-18 9 9 0 000 18z"
 };
-// Avisos que se pueden dejar para mañana (botón de la ficha y deslizar la fila). «Pagado sin cargo
+// Avisos que se pueden dejar para mañana (botón «Recuérdamelo mañana» de la ficha). «Pagado sin cargo
 // del banco» no: ahí lo que falta es decir cómo se pagó, y mañana seguiría igual.
 const PR6_POSPONIBLE={late:1,diff:1,up:1,ghost:1,cand:1,trial:1,perm:1};
 function pr6Motivo(x){
@@ -1681,15 +1561,19 @@ function LlegaSheet({state, set, totals, pack, onClose, ensayo}){
      `scrollIntoView` suave daba un segundo empujón cuando todo parecía quieto y él lo vio «en dos
      tiempos en vez de 1» (vídeo 11/11). Ahora el fondo de la zona se queda pegado al borde de la hoja
      mientras el teclado crece, y todo llega a su sitio en el mismo movimiento. Un dedo encima lo
-     suelta: no se pelea con quien ya está desplazando o tecleando. */
+     suelta: no se pelea con quien ya está desplazando. Las teclas no lo sueltan: lo que aparece al
+     teclear la primera cifra (el resultado, el colchón, la cuota a plazos) crece por encima del
+     teclado y, acompañado, el teclado no se mueve bajo el dedo que sigue escribiendo. */
   const zonaRef=useRef(null);
+  const [plazos,setPlazos]=useState(false);
+  const amt=parseNumPadRaw(raw);
   useEffect(function(){
     if(!teclado) return undefined;
     const el=zonaRef.current, hoja=el&&el.closest(".v4-sheet");
     if(!hoja) return undefined;
     let raf=0;
     const fin=performance.now()+(mcReduced()?0:450);
-    const suelta=function(){ cancelAnimationFrame(raf); raf=0; };
+    const suelta=function(e){ if(e&&e.target&&e.target.closest&&e.target.closest(".v4-keys")) return; cancelAnimationFrame(raf); raf=0; };
     const paso=function(){
       const sobra=el.getBoundingClientRect().bottom-hoja.getBoundingClientRect().bottom;
       if(sobra>0.5) hoja.scrollTop+=sobra;
@@ -1699,17 +1583,34 @@ function LlegaSheet({state, set, totals, pack, onClose, ensayo}){
     hoja.addEventListener("touchstart",suelta,{passive:true});
     hoja.addEventListener("wheel",suelta,{passive:true});
     return function(){ suelta(); hoja.removeEventListener("touchstart",suelta); hoja.removeEventListener("wheel",suelta); };
-  },[teclado]);
+  },[teclado,amt>0,plazos]);
   // Por defecto el banco principal si tiene saldo: quien teclea sin mirar los chips piensa en él.
   const [gBank,setGBank]=useState(function(){
     const main=conSaldo.find(function(b){ return b.bank===totals.mainBank; });
     return main?main.bank:conSaldo.length?conSaldo[0].bank:null;
   });
   const [flujo,setFlujo]=useState(null);
-  const amt=parseNumPadRaw(raw);
-  const gasto=amt>0&&gBank?{bank:gBank,amt:amt}:null;
+  /* «A plazos» (lo que hacía «¿Me lo puedo permitir?», decisión del dueño 11/11/2026): este mes solo
+     sale la entrada; la cuota empieza el que viene. El mismo teclado escribe el importe, los meses o
+     la entrada: el campo que se toca es el que recibe las teclas, y su primera tecla lo sustituye. */
+  const [campo,setCampo]=useState("amt");
+  const [rawMeses,setRawMeses]=useState("12");
+  const [rawDown,setRawDown]=useState("");
+  const fresco=useRef(false);
+  // Solo un plazo entero de 2 a 120 vale: con 0 o vacío se pintaba «12 meses» sin serlo (revisión 229, P2-2).
+  const meses=/^\d+$/.test(rawMeses)&&+rawMeses>=2&&+rawMeses<=120?+rawMeses:null;
+  const dw=plazos?Math.min(amt,parseNumPadRaw(rawDown)):0;
+  const sale=plazos?dw:amt;
+  const gasto=sale>0&&gBank?{bank:gBank,amt:sale}:null;
   const bancos=gasto?planRecibosBancos(totals,pack,gasto):base;
-  const elegido=gasto&&bancos.find(function(b){ return b.bank===gBank&&b.known; });
+  const elegido=amt>0&&gBank&&bancos.find(function(b){ return b.bank===gBank&&b.known; });
+  const tocaCampo=function(c){
+    if(teclado&&campo===c){ setTeclado(false); return; }
+    if(c!==campo){ fresco.current=c!=="amt"; setCampo(c); }
+    setTeclado(true);
+  };
+  const modo=function(p){ setPlazos(p); if(!p&&campo!=="amt"){ fresco.current=false; setCampo("amt"); } };
+  const teclas={amt:[raw,setRaw],meses:[rawMeses,setRawMeses],entrada:[rawDown,setRawDown]}[campo];
   const now=Date.now();
   const justo=function(b){
     if(b.min<-0.005) return t("pr6_te_faltan");
@@ -1763,22 +1664,35 @@ function LlegaSheet({state, set, totals, pack, onClose, ensayo}){
           React.createElement("h2",{className:"serif pr6-ll-t",id:titleId,ref:titleRef,tabIndex:-1}, t("pr6_llega_t")),
           bancos.map(bloque),
           conSaldo.length>0&&React.createElement("div",{className:"pr6-ll-wi","data-testid":"llega-gasto",ref:zonaRef,
-            onClick:function(e){ if(!teclado&&!(e.target.closest&&e.target.closest(".chip"))) setTeclado(true); }},
+            onClick:function(e){ if(!teclado&&!(e.target.closest&&e.target.closest(".chip,[data-sin-teclado]"))) setTeclado(true); }},
             React.createElement("span",{className:"pr6-ll-n"}, t("pr6_si_gasto")),
             React.createElement("div",{className:"pr6-ll-wr"},
-              React.createElement("button",{type:"button",className:"serif num pr6-ll-amt"+(teclado?" on":"")+(raw?"":" ph"),"aria-expanded":teclado?"true":"false","data-testid":"llega-gasto-amt",
-                onClick:function(){ setTeclado(function(o){ return !o; }); }}, raw?eur(amt):t("pr6_importe")),
+              React.createElement("button",{type:"button",className:"serif num pr6-ll-amt"+(teclado&&campo==="amt"?" on":"")+(raw?"":" ph"),"aria-expanded":teclado&&campo==="amt"?"true":"false","data-testid":"llega-gasto-amt",
+                onClick:function(){ tocaCampo("amt"); }}, raw?eur(amt):t("pr6_importe")),
               // Los bancos van juntos: si no caben al lado del importe bajan enteros a su renglón y el
               // importe no se aplasta (a 393 px con tres bancos medía 47 px y «900,00 €» se partía).
               conSaldo.length>1&&React.createElement("div",{className:"pr6-ll-bks"}, conSaldo.map(function(b){
                 const on=b.bank===gBank;
                 return React.createElement("button",{type:"button",key:b.bank,className:"chip"+(on?" active":""),"aria-pressed":on?"true":"false","data-bank":b.bank,onClick:function(){ setGBank(b.bank); }}, entOf(b.bank).label);
               }))),
+            React.createElement("div",{className:"pr6-ll-modo","data-testid":"llega-modo"},
+              [[false,"pr6_de_una_vez"],[true,"pr6_a_plazos"]].map(function(mm){
+                const on=plazos===mm[0];
+                return React.createElement("button",{type:"button",key:mm[1],className:"chip"+(on?" active":""),"aria-pressed":on?"true":"false","data-modo":mm[0]?"plazos":"una",onClick:function(){ modo(mm[0]); }}, t(mm[1]));
+              })),
+            React.createElement("div",{className:"pr6-fold"+(plazos?" open":"")},
+              React.createElement("div",Object.assign({className:"pr6-fold-in pr6-ll-plf"},plazos?null:{"aria-hidden":"true",inert:""}),
+                React.createElement("button",{type:"button",className:"num pr6-ll-amt pr6-ll-cmp"+(teclado&&campo==="meses"?" on":"")+(rawMeses?"":" ph"),"data-campo":"meses",onClick:function(){ tocaCampo("meses"); }}, rawMeses?tf("pr6_meses_n",{n:rawMeses}):t("pr6_meses")),
+                React.createElement("button",{type:"button",className:"num pr6-ll-amt pr6-ll-cmp"+(teclado&&campo==="entrada"?" on":"")+(dw>0?"":" ph"),"data-campo":"entrada",onClick:function(){ tocaCampo("entrada"); }}, dw>0?tf("pr6_entrada_x",{x:eur(dw)}):t("pr6_entrada")))),
             elegido&&React.createElement("span",{className:"pr6-ll-wt"+(elegido.min<-0.005?"":" ok"),"data-testid":"llega-gasto-txt"},
               elegido.min<-0.005?tf("pr6_no_llega",{x:eur(-elegido.min)}):tf("pr6_si_llega",{x:eur(elegido.min)})),
+            React.createElement(AffordSim,{state:state,set:set,totals:totals,bancos:bancos,bank:gBank,amt:amt,dw:dw,meses:meses,plazos:plazos}),
             React.createElement("div",{className:"pr6-fold"+(teclado?" open":"")},
               React.createElement("div",Object.assign({className:"pr6-fold-in"},teclado?null:{"aria-hidden":"true",inert:""}),
-                (tecladoListo||teclado)&&React.createElement(NumPad,{value:raw,onChange:setRaw})))))),
+                (tecladoListo||teclado)&&React.createElement(NumPad,{value:teclas[0],onChange:function(fn){
+                  const desde=fresco.current; fresco.current=false;
+                  teclas[1](function(r){ const b=desde?"":r; return typeof fn==="function"?fn(b):fn; });
+                }})))))),
       flujo!=null&&React.createElement(NominaSheet,{key:flujo,flowId:flujo,state:state,set:set,totals:totals,onClose:function(){ setFlujo(null); }})),
     document.body);
 }
@@ -1978,11 +1892,10 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
             React.createElement("button",{type:"button",className:"pr6-btn","data-act":"ver-deuda",onClick:verDeuda}, t("pr6_ver_deuda")))))),
     document.body);
 }
-function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onEdit, onRemove, aviso, onPosponer, onDeshacer, pasoInicial}){
+function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onEdit, onRemove, aviso, onPosponer, onDeshacer}){
   const swipe=useSheetSwipe(true,onClose,{soloVelo:true});
   useBackClose(true,swipe.close);
-  // Deslizar una fila de «Por pagar» abre directamente en «¿Cuál es el cargo?» (SPEC §2.4).
-  const [paso,setPaso]=useState(pasoInicial===1?1:0);           // 0 ficha · 1 «¿Cuál es el cargo?»
+  const [paso,setPaso]=useState(0);           // 0 ficha · 1 «¿Cuál es el cargo?»
   const trackRef=useRef(null);
   usePasosCarril(trackRef,swipe.sheetRef,paso);
   const [pausa,setPausa]=useState(false);
@@ -3037,7 +2950,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       React.createElement("button",{type:"button",className:"pr6-cta","data-act":"bill-add-q",onClick:function(){ startAdd("fixed",q.trim().charAt(0).toUpperCase()+q.trim().slice(1)); }},
         plus,tf("mg_anadir_q",{q:q.trim()})))
     /* Sin «¿Me lo puedo permitir?» al final: repetía «¿Y si gasto…?» de «¿Te llega?» y el
-       prototipo no la lleva (petición del dueño, 11/11/2026). */
+       prototipo no la lleva (petición del dueño, 11/11/2026). Lo que no repetía, «a plazos» y el
+       colchón de cada cuenta, vive ahora dentro de «¿Y si gasto…?» (`AffordSim`). */
   );
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
