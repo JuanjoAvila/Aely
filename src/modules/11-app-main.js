@@ -978,6 +978,9 @@ function App(){
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
+          // Sello de los traspasos que abonan (`flowAbonaEn`, 08): el de la nube, que es de donde
+          // vienen los saldos; si la subió un móvil sin actualizar, sigue el de aquí (ya en `baseObj`).
+          baseObj=sellarAbonoTraspasos(baseObj);
           // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
           baseObj=trMonthlyInvalidatePull(prev,baseObj);
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
@@ -2537,18 +2540,24 @@ function App(){
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
-    const incomeInByBank={}, transferOutByBank={};
+    const incomeInByBank={}, transferOutByBank={}, transferInByBank={};
     let pendingIncome=0, pendingTransferOut=0;
+    // Lo que un traspaso pendiente dejará en el banco que lo recibe (`flowAbonaEn`, 08): la suma
+    // de los bancos no cambia por mover dinero entre ellos; cada banco, sí.
+    (state.flows||[]).forEach(f=>{
+      const to=flowOccursIn(f,curMonth,curYear)?flowAbonaEn(state,f,curYear,curMonth):null;
+      if(to&&!flowLlegoIn(state,f,curYear,curMonth,today)) transferInByBank[to]=(transferInByBank[to]||0)+(f.amount||0);
+    });
     (state.flows||[]).forEach(f=>{
       if(!flowOccursIn(f,curMonth,curYear) || flowPaidIn(state,f,curYear,curMonth,today)) return;
       const amt=f.amount||0;
       if(f.kind==="income"){ const b=f.to||"sabadell"; incomeInByBank[b]=(incomeInByBank[b]||0)+amt; pendingIncome+=amt; }
       else if(f.kind==="transfer"){ const b=f.from||"sabadell"; transferOutByBank[b]=(transferOutByBank[b]||0)+amt; pendingTransferOut+=amt; }
     });
-    // disponible proyectado a fin de mes por banco = saldo + ingresos pend − transfers pend − fijos pend
-    const allBanks={}; [bankBal,incomeInByBank,transferOutByBank,pendingByBank].forEach(o=>Object.keys(o).forEach(b=>allBanks[b]=1));
+    // disponible proyectado a fin de mes por banco = saldo + ingresos pend + traspasos que llegan − traspasos que salen − fijos pend
+    const allBanks={}; [bankBal,incomeInByBank,transferOutByBank,transferInByBank,pendingByBank].forEach(o=>Object.keys(o).forEach(b=>allBanks[b]=1));
     const projectedByBank={};
-    Object.keys(allBanks).forEach(b=>{ projectedByBank[b]=(bankBal[b]||0)+(incomeInByBank[b]||0)-(transferOutByBank[b]||0)-(pendingByBank[b]||0); });
+    Object.keys(allBanks).forEach(b=>{ projectedByBank[b]=(bankBal[b]||0)+(incomeInByBank[b]||0)+(transferInByBank[b]||0)-(transferOutByBank[b]||0)-(pendingByBank[b]||0); });
     // --- SIMULACIÓN INTRA-MES: recorre el resto del mes por día y busca el saldo MÍNIMO.
     // Importa el ORDEN: si los fijos se cobran antes de que entre la nómina, puedes quedarte
     // en negativo a mitad de mes aunque a fin de mes cuadres. Sin día: cargos al principio
@@ -2579,7 +2588,7 @@ function App(){
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
-    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,transferInByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -2587,7 +2596,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
-     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
+     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){

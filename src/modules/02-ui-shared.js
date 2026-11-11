@@ -1184,7 +1184,7 @@ function settingsDeps(settings, keys){
    sería una cifra vieja. Se declaran todos los que leen ellas y su cierre de llamadas, y el
    guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
    `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`). */
-const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared"];
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trasAbonoDesde"];
 const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
@@ -2417,12 +2417,9 @@ function applyNumPadKey(raw, ch, sep){
   return raw==="0"?ch:(raw+ch);
 }
 function numPadDecSep(){
-  // El teclado tenía la coma clavada. En inglés (en-GB) el decimal es punto; el parseo
-  // de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
-  try{
-    const ch=(1.1).toLocaleString(loc()).charAt(1);
-    return (ch==="."||ch===",")?ch:",";
-  }catch(e){ return ","; }
+  // El teclado tenía la coma clavada. En inglés el decimal es punto, como en las cifras que se
+  // pintan (`numDecSep`, 00); el parseo de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
+  return numDecSep();
 }
 function parseNumPadRaw(raw){
   // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.

@@ -8114,8 +8114,19 @@ function bankConnectOnce(aspsp_name, country){
 // Punto de miles también con cuatro cifras: el español de Intl no lo pone hasta las cinco, y la
 // app decía «1426,23 €» junto a «193.993,44 €» y al «1.912 €» del widget nativo (capturas del
 // dueño, 26/10/2026). Un motor sin `"always"` lo toma como `true`: vuelve a lo de antes, sin romper.
-const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"});
-const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"});
+// Con la app en inglés las cifras van en formato inglés, «1,234.56 €» (auditoría de Recibos, P2-10:
+// antes salían «1.234,56 €» junto a textos en inglés). El símbolo se queda detrás: su sitio es
+// maquetación (las cifras grandes parten entero, decimales y símbolo) y lo comparten 30 monedas.
+// En español y en catalán no cambia nada: los dos siguen con el formato de siempre.
+// `CURLANG` nace en 01-i18n; antes de eso (y en los tests que cargan solo esto), español.
+const NF_ES=[new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"}), new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"})];
+const NF_EN=[new Intl.NumberFormat('en-GB',{maximumFractionDigits:0,useGrouping:"always"}), new Intl.NumberFormat('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"})];
+const nfIngles=function(){ try{ return CURLANG==="en"; }catch(e){ return false; } };
+const NF  = {format:function(n){ return (nfIngles()?NF_EN:NF_ES)[1].format(n); }};
+const NF0 = {format:function(n){ return (nfIngles()?NF_EN:NF_ES)[0].format(n); }};
+// Separador decimal de lo que pinta `NF`: lo usan las cifras partidas (`eurParts`) y los
+// importes que se precargan en un campo, para que se lean igual que el resto de la pantalla.
+const numDecSep=function(){ return nfIngles()?".":","; };
 // Moneda de visualización. Todos los importes de la app están en € (base); DISP los convierte
 // a la moneda elegida (k = factor sobre €, sym = símbolo). Se fija en App según ajustes + fx.
 // `DISP.oculto` (el ojo, SPEC Plan Recibos §8) lo fija App desde `settings.ocultarImportes` en cada render.
@@ -8130,7 +8141,7 @@ const CUR_LIST = ["EUR","USD","GBP","CHF","TRY","JPY","CAD","AUD","CNY","MXN","S
    avisos del móvil, que se leen con la pantalla bloqueada: con el ojo puesto, nada de importes. */
 const eur  = (n)=> DISP.oculto ? "•••• "+DISP.sym : NF.format((n||0)*DISP.k)+" "+DISP.sym;
 const eur0 = (n)=> DISP.oculto ? "•••• "+DISP.sym : NF0.format(Math.round((n||0)*DISP.k))+" "+DISP.sym;
-function eurParts(n){ if(DISP.oculto) return {sign:"", ent:"••••", dec:"••", sym:DISP.sym}; const s=NF.format(Math.abs((n||0)*DISP.k)); const p=s.split(','); return {sign:n<0?"-":"", ent:p[0], dec:p[1], sym:DISP.sym}; }
+function eurParts(n){ if(DISP.oculto) return {sign:"", ent:"••••", dec:"••", sep:numDecSep(), sym:DISP.sym}; const sep=numDecSep(), s=NF.format(Math.abs((n||0)*DISP.k)); const p=s.split(sep); return {sign:n<0?"-":"", ent:p[0], dec:p[1], sep:sep, sym:DISP.sym}; }
 /* ============================================================
    i18n — idiomas (ES/EN/CA). t(clave) traduce; si falta, cae al español.
    Fase 1: navegación, Ajustes y onboarding. El resto se irá traduciendo.
@@ -10409,7 +10420,9 @@ function loadState(){
     if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored || saved.trasAbonoDesde==null;
+    // Antes de cerrar meses: el sello decide qué traspasos abonan en su destino (`flowAbonaEn`, 08).
+    if(saved.trasAbonoDesde==null) saved.trasAbonoDesde=sellarAbonoTraspasos({}).trasAbonoDesde;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));
@@ -10419,7 +10432,7 @@ function loadState(){
     return s;
   }
   // Sin estado guardado = usuario nuevo → arranca VACÍO y verá el onboarding (no hereda la cartera de ejemplo).
-  const init = buildEmpty();
+  const init = sellarAbonoTraspasos(buildEmpty());
   mcSaveRaw(mcStateKey(), init);
   applyTheme(init.settings&&init.settings.theme);
   applyA11y(init);
@@ -11785,7 +11798,7 @@ function settingsDeps(settings, keys){
    sería una cifra vieja. Se declaran todos los que leen ellas y su cierre de llamadas, y el
    guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
    `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`). */
-const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared"];
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trasAbonoDesde"];
 const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
@@ -13018,12 +13031,9 @@ function applyNumPadKey(raw, ch, sep){
   return raw==="0"?ch:(raw+ch);
 }
 function numPadDecSep(){
-  // El teclado tenía la coma clavada. En inglés (en-GB) el decimal es punto; el parseo
-  // de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
-  try{
-    const ch=(1.1).toLocaleString(loc()).charAt(1);
-    return (ch==="."||ch===",")?ch:",";
-  }catch(e){ return ","; }
+  // El teclado tenía la coma clavada. En inglés el decimal es punto, como en las cifras que se
+  // pintan (`numDecSep`, 00); el parseo de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
+  return numDecSep();
 }
 function parseNumPadRaw(raw){
   // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.
@@ -13349,7 +13359,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
     ),
     active&&React.createElement("span",{className:"v42-net-date","data-testid":"inicio-net-date"},dateLabels[touch]),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
-      p?p.sign+p.ent:"—", p&&React.createElement("span",null,","+(p.dec||"00")+" "+p.sym)),
+      p?p.sign+p.ent:"—", p&&React.createElement("span",null,p.sep+(p.dec||"00")+" "+p.sym)),
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
     valid&&series.length<2&&React.createElement("div",{className:"hint"},t(series.fresh?"v4_hist_empty":"v42_net_missing")),
     valid&&points.length>1&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta","data-verdict":verdict,style:{color:verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--muted)"}},
@@ -14021,7 +14031,7 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
   useBackClose(open, swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
   const [amt,setAmt]=useState({k:null, v:""});
-  if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",",")});
+  if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",numDecSep())});
   useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
   if(!open) return null;
   const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0];
@@ -14800,7 +14810,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       return true;
     }).sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
     if(cands[0]){
-      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:String(Math.abs(cands[0].amount)).replace('.',','), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
+      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:String(Math.abs(cands[0].amount)).replace('.',numDecSep()), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
       if(clearFocus) clearFocus();
       return;
     }
@@ -14810,7 +14820,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // pareja 2026-07-10, punto 8). Si en 12s no aparece, abrimos el más reciente como antes.
     const tm=setTimeout(function(){
       const e=(state.expenses||[]).slice().sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); })[0];
-      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
+      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
       if(clearFocus) clearFocus();
     }, 12000);
     return function(){ clearTimeout(tm); };
@@ -14834,7 +14844,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        vaciar el estado de edición era justo lo contrario. Ahora se deja sincronizado con lo
        guardado, que es lo que ese comentario prometía. */
     const sincroniza=function(e){
-      setEditExp({ id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','),
+      setEditExp({ id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()),
         income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10) });
     };
     const origDay=String(orig.date||"").slice(0,10);
@@ -15174,7 +15184,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const chips=[{v:100,label:"100 €"},{v:200,label:"200 €"},{v:300,label:"300 €"}];
     if(cur>0) chips.push({v:0,label:t("g_cat_budget_clear")});
     askText({ title:tf("g_cat_budget_title",{cat:catName(id)}), sub:t("g_cat_budget_sub"),
-      ph:cur>0?String(cur).replace(".",","):"200", ok:t("save"), chips:chips })
+      ph:cur>0?String(cur).replace(".",numDecSep()):"200", ok:t("save"), chips:chips })
       .then(function(raw){
         if(raw==null) return;
         const amt=parseAmt(raw);
@@ -15354,7 +15364,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -16306,7 +16316,7 @@ const GX_DIGITOS=["0","1","2","3","4","5","6","7","8","9"];
 function GxCifra({n}){
   const ok=typeof n==="number"&&isFinite(n);
   if(!ok) return React.createElement("div",{className:"gx-num num"},React.createElement("span",{"data-testid":"gastos-cifra"},"—"));
-  const p=eurParts(n), ent=p.ent, dec=","+p.dec;
+  const p=eurParts(n), ent=p.ent, dec=p.sep+p.dec;
   const celdas=function(txt, base){
     const out=[];
     for(let i=0;i<txt.length;i++){
@@ -18994,7 +19004,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const pareceConjunta=sharePct==null&&(accountLooksJoint(a._holder||a.name)||/conjunt|compartid|joint|shared/i.test(a.name||""));
   const pedirParte=function(){
     askText({ title:t("ac_share_title"), sub:t("ac_share_sub"), ph:"50", ok:t("ac_share_ok"),
-      value:sharePct==null?"":String(sharePct).replace(".",","),
+      value:sharePct==null?"":String(sharePct).replace(".",numDecSep()),
       chips:[{v:50,label:"50 %"},{v:100,label:"100 %"}] })
       .then(function(raw){
         if(raw==null) return;   // null = canceló
@@ -19740,7 +19750,8 @@ function debtBalance(d){ if(!d || d.value==null) return 0; let b=d.value - debtA
 function debtActive(d){ if(!d || !d.monthly) return false; const bal=debtBalance(d); if(d.months!=null){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return (ymNow()-anchor) < d.months && bal>0.005; } return bal>0.005; }
 // cuotas que quedan de una financiación (null si no tiene plazo)
 function debtLeft(d){ if(!d || d.months==null) return null; return Math.max(0, d.months - debtPaidCount(d)); }
-// Movimientos netos de un banco en un mes (m 1-12): +ingresos −fijos −cuotas −puntuales −transfers.
+// Movimientos netos de un banco en un mes (m 1-12): +ingresos −fijos −cuotas −puntuales −traspasos
+// que salen +traspasos que le llegan de otro banco tuyo (`flowAbonaEn`, 08).
 // todayLim null = mes cerrado (cuentan todos); número = solo los YA ocurridos (día <= todayLim, regla isPaidIn).
 function monthNetForAccount(s, ent, y, m, t){
   const closed=(t==null);
@@ -19750,7 +19761,16 @@ function monthNetForAccount(s, ent, y, m, t){
   (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s)) && !fixedPagadoFuera(s,e,y,m,t)) net -= occAmountIn(e,m,y); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
-  (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });
+  // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.
+  (s.flows||[]).forEach(function(f){
+    if(!flowOccursIn(f,m,y)) return;
+    const pd=flowDay(f,y,m), bd=flowConfirmedDay(f,y,m), dd=bd!=null?bd:pd;
+    if(f.kind==="income"){ if((f.to||"sabadell")===ent && hit(dd)) net += (f.amount||0); }
+    else if(f.kind==="transfer"){
+      if((f.from||"sabadell")===ent && hit(pd)) net -= (f.amount||0);
+      if(flowAbonaEn(s,f,y,m)===ent && hit(dd)) net += (f.amount||0);
+    }
+  });
   return net;
 }
 
@@ -19767,11 +19787,34 @@ function entFromAspsp(name){
   }
   return null;
 }
+/* Banco propio que RECIBE un traspaso previsto, o null si ese dinero sale de tus cuentas.
+   Antes el traspaso restaba en el origen y no sumaba en ningún sitio: «¿Te llega?» decía que
+   faltaba dinero en el banco al que se lo ibas a mandar (auditoría de Recibos, P1-12).
+   Es la ÚNICA regla: la leen el saldo (`monthNetForAccount`, 07), el previsto a fin de mes
+   (`totals`, 11) y el recorrido (`pendingWalkEvents`); si una suma y otra no, la cifra
+   salta al pasar el día (por eso se retiró el primer intento, 9/11/2026).
+   · Solo abona en un banco con cuenta de recibos: es donde el saldo sigue al calendario.
+   · La cuenta de gasto diario con recarga mensual ya recibe ese dinero por `inject`.
+   · `trasAbonoDesde` (aaaammdd, se sella al cargar) es el día en que esta regla llegó a la
+     cartera: lo de ese día o antes no abona, o el saldo de una cuenta a mano subiría de golpe
+     por un traspaso que quizá ya llevaba dentro. Sin sello no abona nada (lo de siempre). */
+function flowAbonaEn(s,f,y,m){
+  if(!s||!f||f.kind!=="transfer"||!f.to||f.to===(f.from||"sabadell")||s.trasAbonoDesde==null) return null;
+  const cs=(s.accounts||[]).filter(function(a){ return a&&a.ent===f.to; });
+  if(!cs.some(accFixed)||cs.some(function(a){ return a.spendFrom&&accInject(a)>0; })) return null;
+  return y*10000+m*100+(flowDay(f,y,m)||99)>Number(s.trasAbonoDesde) ? f.to : null;
+}
+function sellarAbonoTraspasos(s){
+  if(!s||s.trasAbonoDesde!=null) return s;
+  const n=new Date();
+  return Object.assign({},s,{trasAbonoDesde:n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate()});
+}
 /* Un ingreso previsto puede entrar antes de su día editable. El saldo del banco ya lo incluye:
    volver a proyectarlo sumaría la misma nómina dos veces (feedback 27/9). Solo adelantamos el
    estado con UN abono confirmado en ese banco y mes; otro ingreso similar queda pendiente. */
 function flowEarlyBankMatches(s,f,y,m,today){
-  if(!f||f.kind!=="income"||!(Number(f.amount)>0)) return [];
+  // Un traspaso a otro banco tuyo es, para el que lo recibe, una entrada más (`flowAbonaEn`).
+  if(!f||!(Number(f.amount)>0)||(f.kind!=="income"&&!flowAbonaEn(s,f,y,m))) return [];
   const planned=flowDay(f,y,m);
   if(planned==null) return [];
   const bank=f.to||"sabadell", ym=y+"-"+String(m).padStart(2,"0"), amount=Number(f.amount);
@@ -19804,7 +19847,13 @@ function flowConfirmedDay(f,y,m){
     && f.paidBank===(f.to||"sabadell") && f.paidAmount===Number(f.amount)
     ? f.paidDay : null;
 }
+/* Un traspaso tiene dos patas. La que SALE va por calendario (el extracto del destino no dice
+   si el origen es una cuenta a mano que aún no lo ha restado); la que LLEGA puede adelantarse
+   si el banco que recibe ya la trae, igual que una nómina (`flowLlegoIn`). */
 function flowPaidIn(s,f,y,m,today){
+  return f&&f.kind==="transfer" ? flowPaid(f,y,m,today) : flowLlegoIn(s,f,y,m,today);
+}
+function flowLlegoIn(s,f,y,m,today){
   const confirmed=flowConfirmedDay(f,y,m);
   return flowPaid(f,y,m,today) || confirmed!=null&&confirmed<=today
     || flowBankPaid(s,f,y,m,today);
@@ -21840,6 +21889,13 @@ function pendingWalkEvents(state, y, m, today){
     const dd=flowDay(f,y,m), tag={kind:f.kind,id:f.id,name:f.name};
     if(f.kind==="income") evs.push(Object.assign({bank:f.to||"sabadell", day:dd||99, amt:f.amount},tag));
     else if(f.kind==="transfer") evs.push(Object.assign({bank:f.from||"sabadell", day:dd||0, amt:-f.amount},tag));
+  });
+  // Lo que un traspaso deja en el banco que lo recibe (`flowAbonaEn`). Sin día, al final,
+  // como las entradas: prudente. Si ese banco ya lo trae en su extracto, está en su saldo.
+  (state.flows||[]).forEach(function(f){
+    const to=flowOccursIn(f,m,y)?flowAbonaEn(state,f,y,m):null;
+    if(!to||flowLlegoIn(state,f,y,m,today)) return;
+    evs.push({bank:to, day:flowDay(f,y,m)||99, amt:f.amount, kind:"transfer", id:f.id, name:f.name});
   });
   return evs;
 }
@@ -26496,7 +26552,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const amortize=(d)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
-      ph:"0,00 €", ok:"💸 "+t("db_amortize"),
+      ph:NF.format(0)+" €", ok:"💸 "+t("db_amortize"),
       // atajos: los importes redondos que quepan + «todo» para liquidarla de un toque
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
         .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}])
@@ -26811,7 +26867,7 @@ function SavingsPlanCard({state, set, totals, showToast}){
   const [drafts,setDrafts]=useState(null);   // null = cerrado; array = editando
   const AP_ENTS=Object.keys(ENT).filter(function(k){ return k!=="familia"; });
   const start=function(){
-    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",","):"",ent:a.ent||"myinvestor"}; }));
+    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",numDecSep()):"",ent:a.ent||"myinvestor"}; }));
   };
   const setD=function(id,k,v){ setDrafts(function(ds){ return ds.map(function(d){ return d.id===id?Object.assign({},d,{[k]:v}):d; }); }); };
   const add=function(){ setDrafts(function(ds){ return ds.concat([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]); }); };
@@ -30047,7 +30103,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="8c090ba7e2a8c37ea668c9e3b944f488b2ff1e47d282e4becb229ee7f74ff219";
+var _rnSha="223acad952a7b4751005627fbe3e752eff36fd6fbdb1bcefad67685f4feae9d8";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -31209,7 +31265,7 @@ function Shared({state, set, uid:userId, totals, showToast, meEmail}){
           ? React.createElement("div",{className:"add-form",style:{marginTop:10}},
               React.createElement("input",{className:"af-in",placeholder:t("sh_exp_ph"),value:eForm.desc,onChange:function(e){ setEForm(Object.assign({},eForm,{desc:e.target.value})); }}),
               React.createElement("div",{className:"af-row"},
-                React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:"0,00 €",value:eForm.amount,onChange:function(e){ setEForm(Object.assign({},eForm,{amount:e.target.value})); }}),
+                React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:NF.format(0)+" €",value:eForm.amount,onChange:function(e){ setEForm(Object.assign({},eForm,{amount:e.target.value})); }}),
                 React.createElement("select",{className:"af-in",value:eForm.payer,onChange:function(e){ setEForm(Object.assign({},eForm,{payer:e.target.value})); }}, open.people.map(function(p){ return React.createElement("option",{key:p,value:p},p); }))),
               React.createElement("div",{className:"mlabel",style:{textAlign:"left",margin:"8px 0 4px"}}, t("sh_split")),
               React.createElement("div",{className:"sh-parts"}, open.people.map(function(p){ const on=eForm.parts.indexOf(p)>=0; return React.createElement("button",{key:p,type:"button",className:"sh-part"+(on?" on":""),onClick:function(){ toggleParts(p); }}, p); })),
@@ -33223,7 +33279,8 @@ function LlegaSheet({state, set, totals, pack, onClose}){
   const flujoRow=function(e){
     const nombre=e.name||t(e.kind==="income"?"fj_income":"fj_transfer");
     const lbl=e.day>0&&e.day<99?tf("pr6_dia_n",{name:nombre,d:e.day}):nombre;
-    if(e.kind!=="income") return fila("f_"+e.id,lbl,"− "+eur(Math.abs(e.amt)));
+    // Un traspaso sale de un banco y entra en otro tuyo: cada bloque enseña su lado.
+    if(e.kind!=="income") return fila("f_"+e.id,lbl,(e.amt>0?"+ ":"− ")+eur(Math.abs(e.amt)));
     return React.createElement("button",{type:"button",className:"pr6-ll-row pr6-ll-in",key:"f_"+e.id,"data-testid":"llega-flow","data-flow":e.id,onClick:function(){ setFlujo(e.id); }},
       React.createElement("span",null,lbl),
       React.createElement("span",{className:"num pos"},"+ "+eur(e.amt)),
@@ -34758,7 +34815,7 @@ function rp4Cent(n){ return Math.round((Number(n)||0)*100); }
    preguntar o no quiere tocarla: el recibo se guarda igual y la deuda se queda como estaba.
    En euros como el campo, no con eur(), que pasa a la moneda de visualización (revisión d139d). */
 function descuentoBajaPregunta(q){
-  return askText({title:tf("rp6_desc_q",{x:NF.format(q.paga)+" €"}),sub:q.name,value:rp4Raw(q.baja),ph:"0,00 €",
+  return askText({title:tf("rp6_desc_q",{x:NF.format(q.paga)+" €"}),sub:q.name,value:rp4Raw(q.baja),ph:NF.format(0)+" €",
     ok:t("rp6_desc_ok"),cancel:t("rp6_desc_no")}).then(function(raw){
     const baja=raw==null?0:parseNumPadRaw(raw);
     return baja>0?{id:q.id,paga:q.paga,baja:baja}:null;
@@ -34777,7 +34834,7 @@ function conDescuentoFijado(fixes,s){ return (fixes||[]).reduce(function(o,f){ r
 function descuentoAjustarGuardado(state,set,d){
   const q=descuentoDescuadreGuardado(state,d);
   if(!q) return;
-  askText({title:t("rp6_pasas_q"),sub:q.name,value:rp4Raw(q.paga),ph:"0,00 €",ok:t("ask_ok")}).then(function(raw){
+  askText({title:t("rp6_pasas_q"),sub:q.name,value:rp4Raw(q.paga),ph:NF.format(0)+" €",ok:t("ask_ok")}).then(function(raw){
     const paga=raw==null?0:parseNumPadRaw(raw);
     if(!(paga>0)) return;
     descuentoBajaPregunta({id:q.id,name:q.name,paga:paga,baja:Math.round((paga+q.descuento)*100)/100}).then(function(f){
@@ -35685,7 +35742,7 @@ function CarteraHeroAmt({target}){
   useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const ph=eurParts(useCountUp(target, carteraOn));
   return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym));
+    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},ph.sep+ph.dec+" "+ph.sym));
 }
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
@@ -37767,6 +37824,9 @@ function App(){
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
+          // Sello de los traspasos que abonan (`flowAbonaEn`, 08): el de la nube, que es de donde
+          // vienen los saldos; si la subió un móvil sin actualizar, sigue el de aquí (ya en `baseObj`).
+          baseObj=sellarAbonoTraspasos(baseObj);
           // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
           baseObj=trMonthlyInvalidatePull(prev,baseObj);
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
@@ -39326,18 +39386,24 @@ function App(){
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
-    const incomeInByBank={}, transferOutByBank={};
+    const incomeInByBank={}, transferOutByBank={}, transferInByBank={};
     let pendingIncome=0, pendingTransferOut=0;
+    // Lo que un traspaso pendiente dejará en el banco que lo recibe (`flowAbonaEn`, 08): la suma
+    // de los bancos no cambia por mover dinero entre ellos; cada banco, sí.
+    (state.flows||[]).forEach(f=>{
+      const to=flowOccursIn(f,curMonth,curYear)?flowAbonaEn(state,f,curYear,curMonth):null;
+      if(to&&!flowLlegoIn(state,f,curYear,curMonth,today)) transferInByBank[to]=(transferInByBank[to]||0)+(f.amount||0);
+    });
     (state.flows||[]).forEach(f=>{
       if(!flowOccursIn(f,curMonth,curYear) || flowPaidIn(state,f,curYear,curMonth,today)) return;
       const amt=f.amount||0;
       if(f.kind==="income"){ const b=f.to||"sabadell"; incomeInByBank[b]=(incomeInByBank[b]||0)+amt; pendingIncome+=amt; }
       else if(f.kind==="transfer"){ const b=f.from||"sabadell"; transferOutByBank[b]=(transferOutByBank[b]||0)+amt; pendingTransferOut+=amt; }
     });
-    // disponible proyectado a fin de mes por banco = saldo + ingresos pend − transfers pend − fijos pend
-    const allBanks={}; [bankBal,incomeInByBank,transferOutByBank,pendingByBank].forEach(o=>Object.keys(o).forEach(b=>allBanks[b]=1));
+    // disponible proyectado a fin de mes por banco = saldo + ingresos pend + traspasos que llegan − traspasos que salen − fijos pend
+    const allBanks={}; [bankBal,incomeInByBank,transferOutByBank,transferInByBank,pendingByBank].forEach(o=>Object.keys(o).forEach(b=>allBanks[b]=1));
     const projectedByBank={};
-    Object.keys(allBanks).forEach(b=>{ projectedByBank[b]=(bankBal[b]||0)+(incomeInByBank[b]||0)-(transferOutByBank[b]||0)-(pendingByBank[b]||0); });
+    Object.keys(allBanks).forEach(b=>{ projectedByBank[b]=(bankBal[b]||0)+(incomeInByBank[b]||0)+(transferInByBank[b]||0)-(transferOutByBank[b]||0)-(pendingByBank[b]||0); });
     // --- SIMULACIÓN INTRA-MES: recorre el resto del mes por día y busca el saldo MÍNIMO.
     // Importa el ORDEN: si los fijos se cobran antes de que entre la nómina, puedes quedarte
     // en negativo a mitad de mes aunque a fin de mes cuadres. Sin día: cargos al principio
@@ -39368,7 +39434,7 @@ function App(){
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
-    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,transferInByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -39376,7 +39442,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
-     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
+     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){

@@ -130,13 +130,15 @@ const texts={
   ca:{action:"És una retirada d'efectiu",neutral:"Traspàs: no compta com a despesa.",pending:"Confirmant la retirada…",limit:"no suma diners a Efectiu"}
 };
 const stored=page=>page.evaluate(()=>({expenses:JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]"),state:JSON.parse(localStorage.getItem("micartera_v3")||"{}"),writes:window.__withdrawalFixture.writes}));
+// En inglés las cifras van en formato inglés («1,000.50 €»): la misma cifra, con los separadores cambiados.
+const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):txt;
 for(const lang of ["es","en","ca"])test(`cancelar, ACK, recarga y móvil B conservan la retirada (${lang})`,async({page,browser})=>{
   const sheet=await open(page,lang),txt=texts[lang];
   const action=sheet.getByTestId("exp-withdrawal");
   await expect(action).toHaveText(txt.action);
   const before=await stored(page);
   // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
-  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("80,00 €");
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText(cifra(lang,"80,00 €"));
   await action.click();await page.locator('.askback .btn-ghost').click();
   expect((await stored(page)).writes).toBe(0);
   await expect(sheet.getByTestId("exp-cat-otros")).toHaveAttribute("aria-pressed","true");
@@ -150,7 +152,7 @@ for(const lang of ["es","en","ca"])test(`cancelar, ACK, recarga y móvil B conse
   expect(after.writes).toBe(1);expect(after.expenses).toHaveLength(1);
   expect(after.expenses[0]).toMatchObject({...expense,category:"traspaso"});
   expect(after.state.accounts).toEqual(before.state.accounts);
-  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("0,00 €");
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText(cifra(lang,"0,00 €"));
   await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText(txt.limit);
   await page.reload();await dismissNews(page);await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();

@@ -134,7 +134,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const pareceConjunta=sharePct==null&&(accountLooksJoint(a._holder||a.name)||/conjunt|compartid|joint|shared/i.test(a.name||""));
   const pedirParte=function(){
     askText({ title:t("ac_share_title"), sub:t("ac_share_sub"), ph:"50", ok:t("ac_share_ok"),
-      value:sharePct==null?"":String(sharePct).replace(".",","),
+      value:sharePct==null?"":String(sharePct).replace(".",numDecSep()),
       chips:[{v:50,label:"50 %"},{v:100,label:"100 %"}] })
       .then(function(raw){
         if(raw==null) return;   // null = canceló
@@ -880,7 +880,8 @@ function debtBalance(d){ if(!d || d.value==null) return 0; let b=d.value - debtA
 function debtActive(d){ if(!d || !d.monthly) return false; const bal=debtBalance(d); if(d.months!=null){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return (ymNow()-anchor) < d.months && bal>0.005; } return bal>0.005; }
 // cuotas que quedan de una financiación (null si no tiene plazo)
 function debtLeft(d){ if(!d || d.months==null) return null; return Math.max(0, d.months - debtPaidCount(d)); }
-// Movimientos netos de un banco en un mes (m 1-12): +ingresos −fijos −cuotas −puntuales −transfers.
+// Movimientos netos de un banco en un mes (m 1-12): +ingresos −fijos −cuotas −puntuales −traspasos
+// que salen +traspasos que le llegan de otro banco tuyo (`flowAbonaEn`, 08).
 // todayLim null = mes cerrado (cuentan todos); número = solo los YA ocurridos (día <= todayLim, regla isPaidIn).
 function monthNetForAccount(s, ent, y, m, t){
   const closed=(t==null);
@@ -890,7 +891,16 @@ function monthNetForAccount(s, ent, y, m, t){
   (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s)) && !fixedPagadoFuera(s,e,y,m,t)) net -= occAmountIn(e,m,y); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
-  (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });
+  // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.
+  (s.flows||[]).forEach(function(f){
+    if(!flowOccursIn(f,m,y)) return;
+    const pd=flowDay(f,y,m), bd=flowConfirmedDay(f,y,m), dd=bd!=null?bd:pd;
+    if(f.kind==="income"){ if((f.to||"sabadell")===ent && hit(dd)) net += (f.amount||0); }
+    else if(f.kind==="transfer"){
+      if((f.from||"sabadell")===ent && hit(pd)) net -= (f.amount||0);
+      if(flowAbonaEn(s,f,y,m)===ent && hit(dd)) net += (f.amount||0);
+    }
+  });
   return net;
 }
 

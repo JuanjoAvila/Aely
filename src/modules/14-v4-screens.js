@@ -1659,7 +1659,8 @@ function LlegaSheet({state, set, totals, pack, onClose}){
   const flujoRow=function(e){
     const nombre=e.name||t(e.kind==="income"?"fj_income":"fj_transfer");
     const lbl=e.day>0&&e.day<99?tf("pr6_dia_n",{name:nombre,d:e.day}):nombre;
-    if(e.kind!=="income") return fila("f_"+e.id,lbl,"− "+eur(Math.abs(e.amt)));
+    // Un traspaso sale de un banco y entra en otro tuyo: cada bloque enseña su lado.
+    if(e.kind!=="income") return fila("f_"+e.id,lbl,(e.amt>0?"+ ":"− ")+eur(Math.abs(e.amt)));
     return React.createElement("button",{type:"button",className:"pr6-ll-row pr6-ll-in",key:"f_"+e.id,"data-testid":"llega-flow","data-flow":e.id,onClick:function(){ setFlujo(e.id); }},
       React.createElement("span",null,lbl),
       React.createElement("span",{className:"num pos"},"+ "+eur(e.amt)),
@@ -3194,7 +3195,7 @@ function rp4Cent(n){ return Math.round((Number(n)||0)*100); }
    preguntar o no quiere tocarla: el recibo se guarda igual y la deuda se queda como estaba.
    En euros como el campo, no con eur(), que pasa a la moneda de visualización (revisión d139d). */
 function descuentoBajaPregunta(q){
-  return askText({title:tf("rp6_desc_q",{x:NF.format(q.paga)+" €"}),sub:q.name,value:rp4Raw(q.baja),ph:"0,00 €",
+  return askText({title:tf("rp6_desc_q",{x:NF.format(q.paga)+" €"}),sub:q.name,value:rp4Raw(q.baja),ph:NF.format(0)+" €",
     ok:t("rp6_desc_ok"),cancel:t("rp6_desc_no")}).then(function(raw){
     const baja=raw==null?0:parseNumPadRaw(raw);
     return baja>0?{id:q.id,paga:q.paga,baja:baja}:null;
@@ -3213,7 +3214,7 @@ function conDescuentoFijado(fixes,s){ return (fixes||[]).reduce(function(o,f){ r
 function descuentoAjustarGuardado(state,set,d){
   const q=descuentoDescuadreGuardado(state,d);
   if(!q) return;
-  askText({title:t("rp6_pasas_q"),sub:q.name,value:rp4Raw(q.paga),ph:"0,00 €",ok:t("ask_ok")}).then(function(raw){
+  askText({title:t("rp6_pasas_q"),sub:q.name,value:rp4Raw(q.paga),ph:NF.format(0)+" €",ok:t("ask_ok")}).then(function(raw){
     const paga=raw==null?0:parseNumPadRaw(raw);
     if(!(paga>0)) return;
     descuentoBajaPregunta({id:q.id,name:q.name,paga:paga,baja:Math.round((paga+q.descuento)*100)/100}).then(function(f){
@@ -4121,7 +4122,7 @@ function CarteraHeroAmt({target}){
   useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const ph=eurParts(useCountUp(target, carteraOn));
   return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym));
+    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},ph.sep+ph.dec+" "+ph.sym));
 }
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){

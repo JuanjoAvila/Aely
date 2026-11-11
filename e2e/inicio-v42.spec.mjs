@@ -278,7 +278,7 @@ async function ownGoodsState(page){
 for(const lang of ["es","en","ca"])test("RONDA3 bien legado conserva gráfica y declara su valor constante "+lang,async({page})=>{
   await openGoodsHistory(page,{assets:[{id:"legacy-home",name:"Piso sintético",value:200000}],settings:{lang,autoPrices:false,budgetCycle:false}});
   const hero=page.getByTestId("inicio-net-current");
-  await expect(hero.locator(".v4-hero-amt")).toContainText("205.000,00 €");
+  await expect(hero.locator(".v4-hero-amt")).toContainText(lang==="en"?"205,000.00 €":"205.000,00 €");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
   expect(await wholeGoodsLine(hero)).toHaveLength(35);
   // Nada de texto fijo bajo la gráfica; el detalle vive en la «i», en dos líneas (13/10).

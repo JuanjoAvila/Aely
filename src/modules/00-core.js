@@ -5088,8 +5088,19 @@ function bankConnectOnce(aspsp_name, country){
 // Punto de miles también con cuatro cifras: el español de Intl no lo pone hasta las cinco, y la
 // app decía «1426,23 €» junto a «193.993,44 €» y al «1.912 €» del widget nativo (capturas del
 // dueño, 26/10/2026). Un motor sin `"always"` lo toma como `true`: vuelve a lo de antes, sin romper.
-const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"});
-const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"});
+// Con la app en inglés las cifras van en formato inglés, «1,234.56 €» (auditoría de Recibos, P2-10:
+// antes salían «1.234,56 €» junto a textos en inglés). El símbolo se queda detrás: su sitio es
+// maquetación (las cifras grandes parten entero, decimales y símbolo) y lo comparten 30 monedas.
+// En español y en catalán no cambia nada: los dos siguen con el formato de siempre.
+// `CURLANG` nace en 01-i18n; antes de eso (y en los tests que cargan solo esto), español.
+const NF_ES=[new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"}), new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"})];
+const NF_EN=[new Intl.NumberFormat('en-GB',{maximumFractionDigits:0,useGrouping:"always"}), new Intl.NumberFormat('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"})];
+const nfIngles=function(){ try{ return CURLANG==="en"; }catch(e){ return false; } };
+const NF  = {format:function(n){ return (nfIngles()?NF_EN:NF_ES)[1].format(n); }};
+const NF0 = {format:function(n){ return (nfIngles()?NF_EN:NF_ES)[0].format(n); }};
+// Separador decimal de lo que pinta `NF`: lo usan las cifras partidas (`eurParts`) y los
+// importes que se precargan en un campo, para que se lean igual que el resto de la pantalla.
+const numDecSep=function(){ return nfIngles()?".":","; };
 // Moneda de visualización. Todos los importes de la app están en € (base); DISP los convierte
 // a la moneda elegida (k = factor sobre €, sym = símbolo). Se fija en App según ajustes + fx.
 // `DISP.oculto` (el ojo, SPEC Plan Recibos §8) lo fija App desde `settings.ocultarImportes` en cada render.

@@ -1,4 +1,4 @@
-function eurParts(n){ if(DISP.oculto) return {sign:"", ent:"••••", dec:"••", sym:DISP.sym}; const s=NF.format(Math.abs((n||0)*DISP.k)); const p=s.split(','); return {sign:n<0?"-":"", ent:p[0], dec:p[1], sym:DISP.sym}; }
+function eurParts(n){ if(DISP.oculto) return {sign:"", ent:"••••", dec:"••", sep:numDecSep(), sym:DISP.sym}; const sep=numDecSep(), s=NF.format(Math.abs((n||0)*DISP.k)); const p=s.split(sep); return {sign:n<0?"-":"", ent:p[0], dec:p[1], sep:sep, sym:DISP.sym}; }
 /* ============================================================
    i18n — idiomas (ES/EN/CA). t(clave) traduce; si falta, cae al español.
    Fase 1: navegación, Ajustes y onboarding. El resto se irá traduciendo.
@@ -4022,7 +4022,9 @@ function loadState(){
     if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored || saved.trasAbonoDesde==null;
+    // Antes de cerrar meses: el sello decide qué traspasos abonan en su destino (`flowAbonaEn`, 08).
+    if(saved.trasAbonoDesde==null) saved.trasAbonoDesde=sellarAbonoTraspasos({}).trasAbonoDesde;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));
@@ -4032,7 +4034,7 @@ function loadState(){
     return s;
   }
   // Sin estado guardado = usuario nuevo → arranca VACÍO y verá el onboarding (no hereda la cartera de ejemplo).
-  const init = buildEmpty();
+  const init = sellarAbonoTraspasos(buildEmpty());
   mcSaveRaw(mcStateKey(), init);
   applyTheme(init.settings&&init.settings.theme);
   applyA11y(init);

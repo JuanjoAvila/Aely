@@ -591,7 +591,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const amortize=(d)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
-      ph:"0,00 €", ok:"💸 "+t("db_amortize"),
+      ph:NF.format(0)+" €", ok:"💸 "+t("db_amortize"),
       // atajos: los importes redondos que quepan + «todo» para liquidarla de un toque
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
         .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}])
@@ -906,7 +906,7 @@ function SavingsPlanCard({state, set, totals, showToast}){
   const [drafts,setDrafts]=useState(null);   // null = cerrado; array = editando
   const AP_ENTS=Object.keys(ENT).filter(function(k){ return k!=="familia"; });
   const start=function(){
-    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",","):"",ent:a.ent||"myinvestor"}; }));
+    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",numDecSep()):"",ent:a.ent||"myinvestor"}; }));
   };
   const setD=function(id,k,v){ setDrafts(function(ds){ return ds.map(function(d){ return d.id===id?Object.assign({},d,{[k]:v}):d; }); }); };
   const add=function(){ setDrafts(function(ds){ return ds.concat([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]); }); };

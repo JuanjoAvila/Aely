@@ -277,6 +277,8 @@ const steps = [
   ["onboarding", ["node", "tests/onboarding.test.mjs"]],
   ["expense-bank", ["node", "tests/expense-bank.test.mjs"]],
   ["saldo-por-banco", ["node", "tests/saldo-por-banco.test.mjs"]],
+  ["traspaso-abona-destino", ["node", "tests/traspaso-abona-destino.test.mjs"]],
+  ["cifras-por-idioma", ["node", "tests/cifras-por-idioma.test.mjs"]],
   ["rol-cuenta-sin-salto", ["node", "tests/rol-cuenta-sin-salto.test.mjs"]],
   ["ota-bases-espejo", ["node", "tests/ota-bases-espejo.test.mjs"]],
   ["hist-dia-local", ["node", "tests/hist-dia-local.test.mjs"]],

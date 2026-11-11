@@ -171,7 +171,7 @@ test("M18","importe variable exacto de la ocurrencia",()=>{
 const texts={
   // El mínimo pertenece al mes del banco; el importe de mañana no determina esa suficiencia.
   es:{enough:"Recibo sintético: mañana se cobran 42,37 €. Mínimo previsto este mes en Sabadell: 57,63 €.",short:"Recibo sintético: mañana se cobran 42,37 €. Mínimo previsto este mes en Sabadell: -0,01 €.",unknown:"Recibo sintético: mañana se cobran 42,37 €. Si algo no cuadra, aún estás a tiempo."},
-  en:{enough:"Recibo sintético: 42,37 € will be charged tomorrow. Lowest projected balance this month at Sabadell: 57,63 €.",short:"Recibo sintético: 42,37 € will be charged tomorrow. Lowest projected balance this month at Sabadell: -0,01 €.",unknown:"Recibo sintético: 42,37 € will be charged tomorrow. If something's off, there's still time."},
+  en:{enough:"Recibo sintético: 42.37 € will be charged tomorrow. Lowest projected balance this month at Sabadell: 57.63 €.",short:"Recibo sintético: 42.37 € will be charged tomorrow. Lowest projected balance this month at Sabadell: -0.01 €.",unknown:"Recibo sintético: 42.37 € will be charged tomorrow. If something's off, there's still time."},
   ca:{enough:"Recibo sintético: demà es cobren 42,37 €. Saldo mínim previst aquest mes a Sabadell: 57,63 €.",short:"Recibo sintético: demà es cobren 42,37 €. Saldo mínim previst aquest mes a Sabadell: -0,01 €.",unknown:"Recibo sintético: demà es cobren 42,37 €. Si alguna cosa no quadra, encara ets a temps."}
 };
 test("M19","nueve textos exactos, una línea",()=>{
@@ -250,7 +250,7 @@ test("D11","respuesta del puente después de medianoche",async()=>{
 test("R01","el recibo de mañana cabe pero el mínimo mensual es negativo",()=>{
   const expected={
     es:"Recibo sintético: mañana se cobran 40,00 €. Mínimo previsto este mes en ING: -10,00 €.",
-    en:"Recibo sintético: 40,00 € will be charged tomorrow. Lowest projected balance this month at ING: -10,00 €.",
+    en:"Recibo sintético: 40.00 € will be charged tomorrow. Lowest projected balance this month at ING: -10.00 €.",
     ca:"Recibo sintético: demà es cobren 40,00 €. Saldo mínim previst aquest mes a ING: -10,00 €."
   };
   const s=fixture();s.accounts[0].ent="ing";s.accounts[0].value=50;s.fixed[0].account="ing";s.fixed[0].amount=40;
