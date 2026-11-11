@@ -223,7 +223,7 @@ test("añadir: «Visto en tu banco» rellena todo y el duplicado lleva a editar 
   await paso(page, 0).locator('[data-rp4="name"]').fill("Lu");
   await expect(paso(page, 0).locator('[data-rp4="dup"]')).toHaveCount(0);
   await paso(page, 0).locator('[data-rp4="name"]').fill("Luz");
-  await expect(paso(page, 0).locator('[data-rp4="dup"]')).toContainText("Ya tienes Luz");
+  await expect(paso(page, 0).locator('[data-rp4="dup"]')).toContainText("Ya tienes «Luz»");
   await paso(page, 0).locator('[data-rp4="dup"]').click();
   await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
   await expect(hoja(page)).toHaveAttribute("data-paso", "4");

@@ -71,11 +71,11 @@ test("cabecera, tarjeta con desglose y secciones con sus cifras: la de arriba es
   const motor = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return billsHeroTotal(s, null); });
   expect(cent(motor)).toBe(cent(total));
 
-  // Recibos: cuatro a la vista por día, casilla «N DÍA», «categoría · banco», y «Ver los 10».
+  // Recibos: tres a la vista por día (el dueño, 11/11/2026; la SPEC decía cuatro), casilla «N DÍA», «categoría · banco», y «Ver los 10».
   const serv = sec(hub, "serv");
   await expect(serv.locator(".pr6-sec-h")).toContainText("Recibos");
   await expect(serv.locator('[data-act="bill-add"]')).toHaveText("Añadir");
-  await expect(serv.locator(":scope > .pr6-row")).toHaveCount(4);
+  await expect(serv.locator(":scope > .pr6-row")).toHaveCount(3);
   await expect(serv.locator(":scope > .pr6-row").first()).toHaveAttribute("data-bill-id", "alq");
   await expect(fila(hub, "alq").locator(".dt")).toHaveText("1DÍA");
   await expect(fila(hub, "alq").locator(".sub")).toHaveText("Hogar · Sabadell");
@@ -197,7 +197,7 @@ test("buscador, chips de banco, ✕ de los avisos y la puerta a una persona, a u
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
 });
 
-test("sin solapes inventados y con «Lo que entra» y «¿Me lo puedo permitir?» todavía a mano", async ({ page }) => {
+test("sin solapes inventados, con «Lo que entra» y sin «¿Me lo puedo permitir?»", async ({ page }) => {
   const hub = await abreGestionar(page, {
     fixed: [recibo("prime", "Amazon Prime", 4.99, 5), recibo("net", "Netflix", 12.99, 8), recibo("mov", "Movistar fibra", 40, 9)],
     flows: [{ id: "nom", name: "Nómina", kind: "income", amount: 1800, day: 28, to: "sabadell" }], debts: [], oneoffs: []
@@ -212,13 +212,11 @@ test("sin solapes inventados y con «Lo que entra» y «¿Me lo puedo permitir?�
   await expect(ent.locator('[data-act="bill-add-flow"]')).toHaveCount(1);
   // Lo que entra no suma a lo que se va.
   await expect(hub.locator("[data-bills-total]")).toHaveText("57,98 €");
-  await hub.locator("[data-bills-afford]").click();
-  await expect(page.locator('[data-bills-manage]')).toHaveAttribute("data-screen", "bills-afford");
-  await page.goBack();
-  await expect(page.locator('[data-bills-manage]')).toHaveAttribute("data-screen", "bills-home");
+  // Repetía «¿Y si gasto…?» de «¿Te llega?» y el prototipo no la lleva (11/11/2026).
+  await expect(page.locator("[data-bills-afford]")).toHaveCount(0);
 });
 
-test("un recibo en pausa no suma este mes; al año solo faltan los cobros de la pausa, y el simulador parte de la misma cifra (P2-9)", async ({ page }) => {
+test("un recibo en pausa no suma este mes; al año solo faltan los cobros de la pausa (P2-9)", async ({ page }) => {
   // Comunidad pausada octubre y noviembre; Gimnasio pagado en octubre y pausado noviembre y diciembre;
   // Agua (trimestral de ene/abr/jul/oct) pausada solo octubre; un seguro anual de marzo pausado hasta
   // enero. Los cuatro dicen «pausado hasta…» y ninguno entra en la cifra del mes.
@@ -255,14 +253,6 @@ test("un recibo en pausa no suma este mes; al año solo faltan los cobros de la 
   expect(cent(anual)).toBe(2430300);
   await hub.locator("[data-bills-hero]").click();
   await expect(hub.locator("[data-bills-total]")).toHaveText("1.872,00 €");
-
-  // «¿Me lo puedo permitir?» a plazos: los fijos parten de la cifra de arriba, no de la que contaba los pausados.
-  await hub.locator("[data-bills-afford]").click();
-  const sim = page.locator('[data-bills-manage] [data-testid="afford-sim"]');
-  await expect(sim).toBeVisible();
-  await sim.getByRole("button", { name: "A plazos" }).click();
-  await sim.getByPlaceholder("Importe €").fill("1200");
-  await expect(sim).toContainText(/Tus fijos pasarían de 1\.?872 € a 1\.?972 €\/mes/);
 });
 
 test("la barra de abajo se ve encima de Tus recibos, no tapa la última fila y cada pestaña lo cierra (N8)", async ({ page }) => {
@@ -282,12 +272,12 @@ test("la barra de abajo se ve encima de Tus recibos, no tapa la última fila y c
   const st = await nav.evaluate((el) => { const s = getComputedStyle(el); return { bf: s.backdropFilter, tr: s.transform, wc: s.willChange }; });
   expect(st).toEqual({ bf: "none", tr: "none", wc: "auto" });
   // Al fondo del todo, lo último de la lista queda por encima de la barra.
-  // Lo último es «¿Me lo puedo permitir?» (se monta un fotograma después que lo de arriba).
-  const ultimo = page.locator("[data-bills-manage] [data-bills-afford]");
-  await expect(ultimo).toHaveCount(1);
+  // Lo último es la última sección (se monta un fotograma después que lo de arriba).
+  const ultimo = page.locator("[data-bills-manage] .v4-bills-hub > [data-mg-sec]").last();
+  await expect(ultimo).toHaveAttribute("data-mg-sec", "people");
   await expect.poll(() => page.evaluate(() => {
     const p = document.querySelector("[data-bills-manage]"); p.scrollTop = p.scrollHeight;
-    const ult = p.querySelector("[data-bills-afford]").getBoundingClientRect();
+    const secs = p.querySelectorAll(".v4-bills-hub > [data-mg-sec]"), ult = secs[secs.length - 1].getBoundingClientRect();
     return Math.round(document.querySelector(".botnav").getBoundingClientRect().top - ult.bottom);
   })).toBeGreaterThanOrEqual(0);
 

@@ -89,7 +89,7 @@ for (const vp of [{ width: 412, height: 915 }, { width: 360, height: 780 }]) {
   });
 }
 
-test("portada: tres en «Para revisar», «Todos ›» abre la gestión y «Por pagar» en tres líneas", async ({ page }) => {
+test("portada: tres en «Para revisar», «Todos ›» abre la gestión y «Por pagar» en dos líneas", async ({ page }) => {
   const recibos = await abre(page, { width: 360, height: 780 });
   const review = recibos.getByTestId("plan-review");
   // Cuatro sin cargo y la luz, que cobró distinto con otro nombre (P1-11).
@@ -99,11 +99,10 @@ test("portada: tres en «Para revisar», «Todos ›» abre la gestión y «Por 
 
   const due = recibos.getByTestId("plan-due");
   const basuras = due.locator('[data-recibo="fixed_bas"]');
-  // «categoría · banco» en su renglón (la categoría se acorta si no cabe; el banco, no) y «cuándo» debajo.
-  await expect(basuras.locator(".pr6-bk")).toHaveText("· Sabadell");
+  // «categoría · banco · cuándo» en UN renglón (11/11/2026): lo de delante se acorta si no cabe; cuándo, no.
+  await expect(basuras.locator(".pr6-cat")).toHaveText("Impuestos y multas · Sabadell");
+  await expect(basuras.locator(".sub .pr6-when")).toHaveText("· en 5 días");
   expect(await renglones(basuras.locator(".sub"))).toBeLessThan(1.5);
-  expect(await renglones(basuras.locator(".pr6-when"))).toBeLessThan(1.5);
-  await expect(basuras.locator(".nm > .pr6-when")).toHaveText("en 5 días");
   // Con una sola persona no sale «te han pagado 0 de 1».
   await expect(due.locator('[data-recibo="fixed_pepe"] .sub')).toContainText("falta su parte");
   await expect(due).not.toContainText("de 1");

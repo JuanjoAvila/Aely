@@ -43,7 +43,7 @@ test("portada: «Por pagar», la categoría no repite el nombre y el saltado sal
   const due = rec.getByTestId("plan-due");
   await expect(due.locator(".pr6-sec-h > span").first()).toHaveText("Por pagar");
   // «Luz» con categoría «Luz»: debajo solo el banco, no «Luz · Sabadell».
-  const luz = due.locator('[data-recibo="fixed_luz"] .sub');
+  const luz = due.locator('[data-recibo="fixed_luz"] .sub .pr6-cat');
   await expect(luz).toHaveText("Sabadell");
   // Una cuota con parte de otro recibo, en euros enteros como la SPEC.
   await expect(due.locator('[data-recibo="debt_mama"] .sub')).toContainText("pagas 197 € + 53 € de Pepephone");

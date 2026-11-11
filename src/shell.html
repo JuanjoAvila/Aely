@@ -1899,8 +1899,6 @@
   /* El contenido de estas hijas también entrega sus bordes al navegador. La promoción de
      capa solo hace falta durante el arrastre/salida; no mantener una textura en reposo. */
   .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"],.v4-sheet[data-sheet="recibo-pasos"]{will-change:auto;}
-  /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
-     al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */
   .v4-bills-hub{max-width:520px;min-height:calc(100% + 1px);margin:0 auto;animation:v4BillsIn .28s cubic-bezier(.32,.72,0,1) both;}
   @keyframes v4BillsIn{from{opacity:.35;transform:translate3d(16px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
@@ -1908,10 +1906,6 @@
   .v4-bills-search:focus{border-color:var(--mint);outline:none;}
   .v4-bills-add{flex:0 0 46px;width:46px;height:46px;border-radius:14px;border:0;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:#06120C;font-size:24px;font-weight:800;}
   .v4-bills-row{width:100%;text-align:left;}
-  .v4-bills-afford,.v4-bills-recon{width:100%;margin-top:12px;padding:14px 16px;border-radius:18px;border:1px solid rgba(230,195,106,.35);background:rgba(230,195,106,.08);text-align:left;color:var(--text);}
-  .v4-bills-afford-t{font-size:14.5px;font-weight:800;}
-  .v4-bills-afford-s{margin-top:3px;font-size:12.5px;color:var(--muted);line-height:1.4;}
-  .v4-bills-afford-body{margin-top:8px;}
   .v4-bills-banks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
   .v4-bills-bank{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 10px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:12.5px;font-weight:700;}
   .v4-bills-bank.on{border-color:var(--mint);background:rgba(95,208,138,.1);}
@@ -1943,7 +1937,9 @@
   .pr6-mg-sec .pr6-row .dt .d{font-size:19px;font-weight:600;line-height:1;}
   .pr6-mg-sec .pr6-row .dt .m{font-size:10px;font-weight:800;text-transform:uppercase;}
   .pr6-mg-sec .pr6-row .nm{min-width:0;flex:1;font-size:15px;}
-  .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);}
+  /* Un renglón y con elipsis, como en la portada: «Hogar · Sabadell · cada tres meses · compartido»
+     partía la fila en dos a 412 px (11/11/2026). La frase entera va en el aria-label. */
+  .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .pr6-mg-sec .pr6-row .am{font-size:17px;}
   .pr6-mg-sec .pr6-row .am.pos{color:var(--mint-bright);}
   .pr6-mg-sec .pr6-row.pr6-mg-off{opacity:.5;}
@@ -1953,6 +1949,12 @@
   .pr6-mg-pl{background:var(--surface);border:1px solid var(--line-soft);border-radius:18px;overflow:hidden;}
   .pr6-mg-pe{width:100%;display:flex;align-items:center;gap:12px;min-height:58px;padding:10px 16px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .pr6-mg-pe:first-child{border-top:0;}
+  /* Las personas plegadas siguen dentro de la tarjeta: sin hueco y con su raya, y «Ver los N» como
+     una fila más del mismo bloque. */
+  .pr6-mg-pl .pr6-fold{margin-top:0;}
+  .pr6-mg-pl .pr6-fold-in,.pr6-mg-pl .pr6-fold.open .pr6-fold-in{gap:0;padding-top:0;}
+  .pr6-mg-pl .pr6-fold-in .pr6-mg-pe:first-child{border-top:1px solid var(--line-soft);}
+  .pr6-mg-pl .pr6-more{width:100%;justify-content:center;border-top:1px solid var(--line-soft);}
   .pr6-mg-pe .pe-ava{width:34px;height:34px;background:var(--surface-2);border:0;color:var(--mint-bright);font-size:14px;}
   .pr6-mg-pe .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;font-size:15px;font-weight:700;}
   /* Hasta dos renglones: en uno se cortaba justo antes de «se descuenta de Mamá» (N2). */

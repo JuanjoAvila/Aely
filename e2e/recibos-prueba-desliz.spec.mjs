@@ -143,6 +143,8 @@ test("más opciones: se ponen, se guardan y se quitan la prueba gratis y la perm
   // Al volver a editar (desde «Tus recibos»: este mes ya no está en la portada), Más opciones ya está
   // abierto con lo que tiene; «Sin prueba» la quita y vuelve a «Por pagar».
   await recibos.getByTestId("plan-todos").click();
+  // Tus recibos enseña tres por sección (11/11/2026): el agua está en «Ver los N».
+  await page.locator('[data-bills-manage] [data-mg-more="serv"]').click();
   await page.locator('[data-bills-manage] [data-screen="bills-home"] [data-bill-id="agua"]').click();
   await expect(hoja(page)).toHaveAttribute("data-modo", "edit");
   await expect(p4.locator('[data-act="mas-opciones"]')).toHaveAttribute("aria-expanded", "true");
@@ -306,7 +308,8 @@ test("deslizar una fila no rompe cambiar de pestaña hacia la derecha ni el scro
 test("desde la cifra: un toque abre la ficha y un arrastre vertical hace scroll", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
   const fixed = datos();
-  for (let i = 0; i < 10; i++) fixed.push(recibo("r" + i, "Recibo " + (i + 1), 10 + i, 20 + (i % 8)));
+  // Con filas de dos renglones (11/11/2026) hacen falta más para que, centrada el agua, quede lista que bajar.
+  for (let i = 0; i < 16; i++) fixed.push(recibo("r" + i, "Recibo " + (i + 1), 10 + i, 20 + (i % 8)));
   const recibos = await abrePlan(page, fixed);
   const cdp = await page.context().newCDPSession(page);
   await recibos.getByTestId("plan-due").getByRole("button", { name: /Ver los/ }).click();

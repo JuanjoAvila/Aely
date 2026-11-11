@@ -377,14 +377,3 @@ test("«¿Y si gasto…?»: elegir otro banco no abre el teclado", async ({ page
   await expect(page.getByTestId("llega-gasto-amt")).toHaveAttribute("aria-expanded", "false");
 });
 
-test("«¿Me lo puedo permitir?» se abre ya desplegado", async ({ page }) => {
-  const recibos = await abre(page);
-  await recibos.getByTestId("plan-due").getByTestId("plan-todos").click();
-  await page.locator(".v4-bills-afford").click();
-  const sim = page.getByTestId("afford-sim");
-  await expect(sim).toBeVisible();
-  const importe = sim.getByPlaceholder("Importe €");
-  await expect(importe).toBeInViewport();
-  await importe.fill("5000");
-  await expect(sim.locator(".af-verdict")).toBeVisible();
-});

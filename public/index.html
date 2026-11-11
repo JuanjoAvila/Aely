@@ -1899,8 +1899,6 @@
   /* El contenido de estas hijas también entrega sus bordes al navegador. La promoción de
      capa solo hace falta durante el arrastre/salida; no mantener una textura en reposo. */
   .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"],.v4-sheet[data-sheet="recibo-pasos"]{will-change:auto;}
-  /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
-     al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */
   .v4-bills-hub{max-width:520px;min-height:calc(100% + 1px);margin:0 auto;animation:v4BillsIn .28s cubic-bezier(.32,.72,0,1) both;}
   @keyframes v4BillsIn{from{opacity:.35;transform:translate3d(16px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
@@ -1908,10 +1906,6 @@
   .v4-bills-search:focus{border-color:var(--mint);outline:none;}
   .v4-bills-add{flex:0 0 46px;width:46px;height:46px;border-radius:14px;border:0;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:#06120C;font-size:24px;font-weight:800;}
   .v4-bills-row{width:100%;text-align:left;}
-  .v4-bills-afford,.v4-bills-recon{width:100%;margin-top:12px;padding:14px 16px;border-radius:18px;border:1px solid rgba(230,195,106,.35);background:rgba(230,195,106,.08);text-align:left;color:var(--text);}
-  .v4-bills-afford-t{font-size:14.5px;font-weight:800;}
-  .v4-bills-afford-s{margin-top:3px;font-size:12.5px;color:var(--muted);line-height:1.4;}
-  .v4-bills-afford-body{margin-top:8px;}
   .v4-bills-banks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
   .v4-bills-bank{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 10px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:12.5px;font-weight:700;}
   .v4-bills-bank.on{border-color:var(--mint);background:rgba(95,208,138,.1);}
@@ -1943,7 +1937,9 @@
   .pr6-mg-sec .pr6-row .dt .d{font-size:19px;font-weight:600;line-height:1;}
   .pr6-mg-sec .pr6-row .dt .m{font-size:10px;font-weight:800;text-transform:uppercase;}
   .pr6-mg-sec .pr6-row .nm{min-width:0;flex:1;font-size:15px;}
-  .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);}
+  /* Un renglón y con elipsis, como en la portada: «Hogar · Sabadell · cada tres meses · compartido»
+     partía la fila en dos a 412 px (11/11/2026). La frase entera va en el aria-label. */
+  .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .pr6-mg-sec .pr6-row .am{font-size:17px;}
   .pr6-mg-sec .pr6-row .am.pos{color:var(--mint-bright);}
   .pr6-mg-sec .pr6-row.pr6-mg-off{opacity:.5;}
@@ -1953,6 +1949,12 @@
   .pr6-mg-pl{background:var(--surface);border:1px solid var(--line-soft);border-radius:18px;overflow:hidden;}
   .pr6-mg-pe{width:100%;display:flex;align-items:center;gap:12px;min-height:58px;padding:10px 16px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .pr6-mg-pe:first-child{border-top:0;}
+  /* Las personas plegadas siguen dentro de la tarjeta: sin hueco y con su raya, y «Ver los N» como
+     una fila más del mismo bloque. */
+  .pr6-mg-pl .pr6-fold{margin-top:0;}
+  .pr6-mg-pl .pr6-fold-in,.pr6-mg-pl .pr6-fold.open .pr6-fold-in{gap:0;padding-top:0;}
+  .pr6-mg-pl .pr6-fold-in .pr6-mg-pe:first-child{border-top:1px solid var(--line-soft);}
+  .pr6-mg-pl .pr6-more{width:100%;justify-content:center;border-top:1px solid var(--line-soft);}
   .pr6-mg-pe .pe-ava{width:34px;height:34px;background:var(--surface-2);border:0;color:var(--mint-bright);font-size:14px;}
   .pr6-mg-pe .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;font-size:15px;font-weight:700;}
   /* Hasta dos renglones: en uno se cortaba justo antes de «se descuenta de Mamá» (N2). */
@@ -8320,7 +8322,7 @@ const LANG = {
     pr6_imp_t:"{n} de {m} son recibos", pr6_imp_quitar:"Quitar todos", pr6_imp_marcar:"Marcar todos", pr6_imp_add:"Añadir {n} recibos", pr6_imp_add1:"Añadir 1 recibo", pr6_imp_ninguno:"Ninguno",
     pr6_imp_toast:"{n} recibos añadidos", pr6_imp_toast1:"1 recibo añadido",
     // Plan › Recibos v6, tanda 4: añadir y editar por pasos (SPEC §7).
-    rp4_t_name:"¿Qué recibo es?", rp4_name_ph:"Netflix, luz, alquiler…", rp4_visto:"Visto en tu banco", rp4_dia:"día", rp4_dup:"Ya tienes {name}",
+    rp4_t_name:"¿Qué recibo es?", rp4_name_ph:"Netflix, luz, alquiler…", rp4_visto:"Visto en tu banco", rp4_dia:"día", rp4_dup:"Ya tienes «{name}»", rp4_dup_dia:"{x} el día {d}", rp4_dup_ver:"Ver ese", pr6_cuota:"cuota",
     rp4_t_amount:"¿Cuánto es?", rp4_variable:"Cambia cada mes", rp4_t_when:"¿Cuándo se cobra?", rp4_once:"Solo una vez", rp4_split:"En varios pagos",
     rp4_pago:"Pago {n}", rp4_otro_pago:"Otro pago", rp4_quitar_pago:"Quitar este pago", rp4_dia_menos:"Un día antes", rp4_dia_mas:"Un día después", rp4_dia_n:"día {d}",
     rp4_importe_pago:"Importe del pago {n}", rp4_t_account:"¿De qué cuenta sale?", rp4_t_sum:"¿Todo bien?", rp4_t_edit:"Editar recibo",
@@ -8645,7 +8647,7 @@ Object.assign(LANG.es,{
   gb_preview_nomonth:"Serán {x} al mes repartidos ({total} al año). Falta elegir en qué mes se cobra.",
   gb_preview_m:"Serán {x} cada mes.", 
   gb_afford:"¿Me lo puedo permitir?",
-  gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.", gb_del:"Quitar este recibo", gb_removed:"Recibo quitado", gb_undo_changed:"No se ha deshecho nada porque hay cambios posteriores.", gb_undo_partial:"Hay cambios posteriores que no se han deshecho.", gb_remove_changed:"No se ha podido quitar el recibo. Revisa los cambios e inténtalo de nuevo.", gb_undo_sync_error:"Cambio guardado; no se ha podido sincronizar la marca del cargo.",
+  gb_del:"Quitar este recibo", gb_removed:"Recibo quitado", gb_undo_changed:"No se ha deshecho nada porque hay cambios posteriores.", gb_undo_partial:"Hay cambios posteriores que no se han deshecho.", gb_remove_changed:"No se ha podido quitar el recibo. Revisa los cambios e inténtalo de nuevo.", gb_undo_sync_error:"Cambio guardado; no se ha podido sincronizar la marca del cargo.",
   gb_bill_locked_amt:"Este recibo cambia de importe según el mes: cámbialo en cada mes.",
   gb_when_day:"Un día concreto", gb_save_ok:"Guardado", gb_saved_fixed:"Recibo añadido", gb_saved_oneoff:"Cargo puntual añadido", gb_saved_income:"Ingreso añadido", gb_saved_transfer:"Traspaso añadido", gb_next:"Siguiente", gb_recon:"¿Cuadran con el banco?", gb_flow_income:"Lo que cobras", gb_flow_move:"Paso entre tus cuentas", gb_month:"Mes", gb_year:"Año", gb_add_btn:"Añadir",
 });
@@ -30285,7 +30287,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b93a07c026b29c0109f4c26794e01ceeedeffadf8fdc7ab84e01771e59a1912d";
+var _rnSha="5d216c9532a794cdeaed6d0cf5bdd3fd2bb9246e3b7b64a9e0a57039d3bf2c0f";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32757,11 +32759,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     });
     return out;
   },[pack,state.debts,state.expenses,year,month,today]);
-  // El desplegable se ve entero: mueve la página lo justo, sin escribir scrollTop a mano (INC-0710-01).
-  const verPlegado=function(el){
-    if(!el) return;
-    setTimeout(function(){ try{ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); }catch(e){} },380);
-  };
+  const verPlegado=pr6VerPlegado;
   const conflictOf=function(x){
     const match=String(x.id).match(/^(fixed|debt|balloon)_(.*)$/),kind=match&&match[1]!=="fixed"?"debts":"fixed";
     const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
@@ -32772,21 +32770,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
        delante de «cuota de deuda ·» la línea se iba a tres renglones (auditoría 9/11, P2-1). */
     if(x.kind==="debt"||x.kind==="balloon") return enlaces[x.id]
       ? tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))})+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
-      : (x.descuento?pr6PagasMas(x):t("fj_debt_tag")+" · "+entOf(x.bank).label);
+      : (x.descuento?pr6PagasMas(x):t("pr6_cuota")+" · "+entOf(x.bank).label);
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
     const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
     return (cat?cat+" · ":"")+entOf(x.bank).label
       +(x.teDeben?" · "+pr6TeHanPagado(x.teDeben):"");
-  };
-  /* En la fila, «categoría · banco» en un renglón: si no cabe se acorta la categoría y el banco se
-     queda («Impuestos y multas · Sabadell» partía la fila en cuatro a 360 px). */
-  const subNode=function(x){
-    const f=!x.teDeben&&/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
-    const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
-    if(!cat) return React.createElement("span",{className:"sub"}, subOf(x));
-    return React.createElement("span",{className:"sub pr6-sub-cat"},
-      React.createElement("span",{className:"pr6-cat"}, cat),
-      React.createElement("span",{className:"pr6-bk"}, "· "+entOf(x.bank).label));
   };
   // Días que faltan; en la vista del mes siguiente, contados de calendario hasta ese día.
   const diasHasta=function(x){
@@ -32803,7 +32791,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     return n===-1?t("pr6_tocaba_ayer"):tf("pr6_tocaba",{n:-n});
   };
   const esVariable=function(x){ const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; }); return !!(f&&f.variable); };
-  // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
   const plegado=function(open){ return open?null:{"aria-hidden":"true",inert:""}; };
   /* En la vista del mes siguiente la ficha no vale: enseña el estado de ESTE mes (pagado, cargo…).
      Un recibo o puntual abre su edición; una cuota, Deudas, como siempre. */
@@ -32838,10 +32825,12 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        /* Tres líneas, como el prototipo (SPEC §2.4): «categoría · banco» y, debajo, cuándo. Con las dos
-           en una se partían a media frase («· en / 3 días») a 360 px; a la vista solo hay tres filas. */
-        subNode(x),
-        x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x))),
+        /* Un renglón: «categoría · banco · en 14 días». Con tres (nombre, banco y cuándo sueltos) cada
+           fila medía 93 px a 412 y una cuota llegaba a cuatro («las tarjetas son enormes», 11/11/2026).
+           Lo que no cabe se acorta por delante; cuándo se queda entero, que es lo que se mira. */
+        React.createElement("span",{className:"sub pr6-sub-cat"},
+          React.createElement("span",{className:"pr6-cat"}, subOf(x)),
+          x.day!=null&&React.createElement("span",{className:"pr6-bk pr6-when"+(n!=null&&n<=1?" soon":"")}, "· "+cuando(x)))),
       // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
       React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))));
     return withDayPrompt(x,!sig&&/^fixed_/.test(String(x.id))?desliza(x,"cargo",fila):fila);
@@ -32893,18 +32882,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           x.day!=null&&React.createElement(React.Fragment,null,React.createElement("span",{className:"d"},x.day)," ",React.createElement("span",{className:"m"},monthShort(month-1)),how?" · ":""),
           how)),
       React.createElement("span",{className:"am num"}, planChargeAmount(x))));
-  };
-  // Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4).
-  const lista=function(items,render,open,setOpen,id){
-    const rest=items.slice(3);
-    return React.createElement(React.Fragment,null,
-      items.slice(0,3).map(render),
-      rest.length>0&&React.createElement("div",{className:"pr6-fold"+(open?" open":""),id:id},
-        React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(open)), rest.map(render))),
-      rest.length>0&&React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
-        onClick:function(e){ const sec=e.currentTarget.parentNode; setOpen(function(o){ if(o) verPlegado(sec); return !o; }); }},
-        open?t("v4_ver_menos"):tf("pr6_ver_los",{n:items.length}),
-        pr6Chev()));
   };
   const nPend=pack.pendingBills.length, nBills=nPend+pack.paidBills.length+pausados.length;
   const countLine=nPend>0
@@ -33036,7 +33013,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),
-      lista(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
+      pr6Tres(v.review,revRow,revOpen,setRevOpen,"pr6-rev-more")),
     React.createElement("section",{className:"pr6-sec","data-testid":"plan-due","data-vista":vista,"aria-label":sig?pr6EnMes(sigM):t("pr6_por_pagar")},
       React.createElement("div",{className:"pr6-sec-h v4-section-h"},
         /* «Por pagar», como la SPEC (§2.4) y el prototipo. El «Pendiente» del 26/10 fue cosa nuestra al
@@ -33048,10 +33025,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       sig
         ? (sigN===0
           ? React.createElement("div",{className:"pr6-empty"}, tf("pr6_nada_sig",{month:monthLong(sigM-1)}))
-          : lista(sigPack.pendingBills,dueRow,dueOpen,setDueOpen,"pr6-due-more"))
+          : pr6Tres(sigPack.pendingBills,dueRow,dueOpen,setDueOpen,"pr6-due-more"))
         : (v.due.length===0
           ? React.createElement("div",{className:"pr6-empty"}, t("pr6_nada"))
-          : lista(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
+          : pr6Tres(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
     !sig&&(v.paid.length>0||pausados.length>0)&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
         onClick:function(){ setPaidOpen(function(o){ if(!o) verPlegado(paidRef.current); return !o; }); }},
@@ -33257,6 +33234,27 @@ function pr6PausaTxt(r,cur){
 function pr6Chev(){
   return React.createElement("svg",{className:"pr6-chev",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
     React.createElement("path",{d:"M6 9l6 6 6-6"}));
+}
+// El desplegable se ve entero: mueve la página lo justo, sin escribir scrollTop a mano (INC-0710-01).
+function pr6VerPlegado(el){
+  if(!el) return;
+  setTimeout(function(){ try{ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); }catch(e){} },380);
+}
+/* Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4). Es la
+   misma lista en la portada de Recibos y en Tus recibos, donde el SPEC decía cuatro y el dueño pidió
+   tres (11/11/2026): seis personas seguidas llenaban la pantalla. Al plegar, la sección vuelve a
+   verse desde su principio. `more` añade atributos al botón (los e2e lo buscan por sección). */
+function pr6Tres(items,render,open,setOpen,id,more){
+  const rest=items.slice(3);
+  return React.createElement(React.Fragment,null,
+    items.slice(0,3).map(render),
+    rest.length>0&&React.createElement("div",{className:"pr6-fold"+(open?" open":""),id:id},
+      // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
+      React.createElement("div",Object.assign({className:"pr6-fold-in"},open?null:{"aria-hidden":"true",inert:""}), rest.map(render))),
+    rest.length>0&&React.createElement("button",Object.assign({type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
+      onClick:function(e){ const sec=e.currentTarget.parentNode; setOpen(function(o){ if(o) pr6VerPlegado(sec); return !o; }); }},more),
+      open?t("v4_ver_menos"):tf("pr6_ver_los",{n:items.length}),
+      pr6Chev()));
 }
 /* Traspasos y entradas con la misma tarjeta que Pendiente: sueltos, con otra alineación y otro
    tamaño, parecían de otra pantalla. La entrada ya lleva «+» en verde: «ingreso (entra)» sobraba. */
@@ -34375,7 +34373,6 @@ function BillUndoToast({onUndo,notice}){
 function BillsManagePush({open, onClose, state, set, totals, simple, editId, addNow, onGoDebts, ensayo}){
   // En el ensayo en seco (`mcEnsayar`) se pinta igual, pero no toca <html>, el foco ni el Atrás.
   const vivo=!!open&&!ensayo;
-  const [stack,setStack]=React.useState(["hub"]);
   const [q,setQ]=React.useState("");
   // Tus recibos (SPEC §3): cifras al año, banco elegido en los chips, secciones desplegadas y el aviso que se va.
   const [anual,setAnual]=React.useState(false);
@@ -34404,7 +34401,6 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     setSavedBill({msg:t(key||"gb_undo_changed")});
   });
   const rootRef=React.useRef(null);
-  const subRef=React.useRef(null);
   const titleRef=React.useRef(null);
   const prevFocus=React.useRef(null);
   const popRef=React.useRef(null);
@@ -34412,9 +34408,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const addStepRef=React.useRef(null);
   const openerRef=React.useRef(null);
   const hadSheetRef=React.useRef(false);
-  const view=stack[stack.length-1];
-  const pageSwipe=useEdgePageClose(vivo,onClose,view==="hub"&&!detail&&!addStep&&!pasos&&!persona,rootRef,{plainScroll:true});
-  const sub=useEdgePageClose(vivo,function(){ setStack(["hub"]); },view!=="hub"&&!detail&&!addStep&&!pasos&&!persona,subRef,{plainScroll:true});
+  const pageSwipe=useEdgePageClose(vivo,onClose,!detail&&!addStep&&!pasos&&!persona,rootRef,{plainScroll:true});
   const cm=totals.curMonth, cy=totals.curYear;
   // Ola nativa (INC-2709-03, 19/10): Android solo la pinta en el scroller RAÍZ, y Chromium
   // promociona un `fixed` a pantalla completa como raíz implícita SOLO si es el único candidato
@@ -34448,7 +34442,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   React.useEffect(function(){
     if(!open){
       editOnly.current=false;
-      setStack(["hub"]); setQ(""); setAnual(false); setBanco(null); setAbiertos({}); setSolapeSale(null); setDetail(null); setAddStep(null); setPasos(null); setPersona(null);
+      setQ(""); setAnual(false); setBanco(null); setAbiertos({}); setSolapeSale(null); setDetail(null); setAddStep(null); setPasos(null); setPersona(null);
       if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
       setUndoBill(null);
       setSavedBill(null);
@@ -34466,9 +34460,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     if(detail){ setDetail(null); return; }
     if(addStep){ setAddStep(null); return; }
     if(pasos){ setPasos(null); return; }
-    if(view==="hub"){ pageSwipe.close(); return; }
-    sub.close();
-  },[view, detail, addStep, pasos]);
+    pageSwipe.close();
+  },[detail, addStep, pasos]);
   popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep||pasos||persona;
   // Con la misma pestaña (Plan) se cierra deslizando, como el ‹; con otra, de golpe: la pestaña nueva ya entra.
   closeTabRef.current=function(anim){ editOnly.current=false; if(anim) pageSwipe.close(); else onClose(); };
@@ -34505,9 +34498,6 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     setDetail(r);
   };
   useBackClose(vivo, pop);
-  // El hub conserva su entrada y la pantalla hija añade otra. Antes toda la pila compartía
-  // una sola: el primer Atrás volvía al hub, pero el segundo ya sacaba de Plan (QA 2026-09-16).
-  useBackClose(vivo && view==="afford", pop);
   // Dialog a11y: foco inicial/restore SOLO al abrir/cerrar el hub (deps=[open]).
   // Si remonta al cambiar detail/addStep, el cleanup restaura foco y el rAF roba el h1
   // detrás de la ficha (Claude BAJA + Codex 2100Z).
@@ -34615,7 +34605,6 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   });
   const bankList=billBanks.length?billBanks.map(function(a){ return a.ent; }):banks;
   const personas=personasDe(state);
-  const push=function(v){ setStack(function(s){ return s.concat([v]); }); };
   const openDetail=function(row){
     openerRef.current=document.activeElement;
     setSavedBill(null);
@@ -34730,22 +34719,19 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   };
   const plus=React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},
     React.createElement("path",{d:"M12 5v14M5 12h14"}));
+  // `pr6Tres` pliega con un booleano; aquí cada sección guarda el suyo en `abiertos`.
+  const abrirSec=function(id){ return function(fn){ setAbiertos(function(o){ return Object.assign({},o,{[id]:fn(!!o[id])}); }); }; };
   const seccion=function(id,titulo,derecha,add){
     const rows=mg.filas[id].filter(casa);
     if(!rows.length&&(qq||id!=="serv")) return null;
-    const abierto=!!qq||!!abiertos[id], resto=qq?[]:rows.slice(4);
     return React.createElement("section",{className:"pr6-sec pr6-mg-sec",key:id,"data-mg-sec":id,"aria-label":titulo},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",{className:"pr6-mg-st"},
           React.createElement("span",null,titulo),
           React.createElement("span",{className:"pr6-mg-ss num","data-mg-sum":id}, derecha)),
         add&&React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":add.act,"aria-label":add.label,onClick:add.go}, plus,t("mg_anadir"))),
-      (qq?rows:rows.slice(0,4)).map(filaEl),
-      resto.length>0&&React.createElement("div",{className:"pr6-fold"+(abierto?" open":""),id:"mg-mas-"+id},
-        React.createElement("div",Object.assign({className:"pr6-fold-in"},abierto?null:{"aria-hidden":"true",inert:""}), resto.map(filaEl))),
-      resto.length>0&&React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":abierto?"true":"false","aria-controls":"mg-mas-"+id,"data-mg-more":id,
-        onClick:function(){ setAbiertos(function(o){ return Object.assign({},o,{[id]:!o[id]}); }); }},
-        abierto?t("v4_ver_menos"):tf("pr6_ver_los",{n:rows.length}), pr6Chev()));
+      // Buscando, todas las que casan: plegadas no se encontrarían.
+      qq?rows.map(filaEl):pr6Tres(rows,filaEl,!!abiertos[id],abrirSec(id),"mg-mas-"+id,{"data-mg-more":id}));
   };
   const porMes=function(x){ return tf(anual?"mg_por_ano":"mg_por_mes",{x:eur(x)}); };
   const secciones=[
@@ -34807,7 +34793,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":"persona-add","aria-label":gbTxt("pe_add"),
         onClick:function(){ openerRef.current=document.activeElement; setPersona({}); }}, plus,t("mg_anadir"))),
     personasVer.length>0&&React.createElement("div",{className:"pr6-mg-pl","data-testid":"pe-lista"},
-      personasVer.map(function(p){
+      pr6Tres(personasVer,function(p){
         const total=p.recibos.reduce(function(a,r){ return a+Math.round(r.amt*100); },0)/100;
         const d=p.via==="debt"&&(state.debts||[]).find(function(o){ return o.id===p.debtId; });
         const sub=tf("mg_persona_sub",{list:pr6Lista(p.recibos.map(function(r){ return r.name; })),x:cycleMoney(total)})+(d?" · "+tf("mg_se_descuenta",{x:d.name}):"");
@@ -34819,20 +34805,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
             React.createElement("span",{className:"sub"}, sub)),
           React.createElement("svg",{className:"pr6-mg-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"})));
-      })));
-  const head=function(title,active,mg){
-    // La pantalla padre queda pintada debajo mientras la hija acompaña al dedo. Solo el título
-    // activo recibe el foco y etiqueta el diálogo; así no duplicamos IDs ni tabulamos por detrás.
-    // La cabecera grande del prototipo es la de Tus recibos; la de «¿Me lo puedo permitir?» sigue
-    // la de siempre, que no parte el título en dos líneas.
-    return React.createElement("div",{className:"settings-push-h"+(mg?" pr6-mg-h":"")},
+      },!!abiertos.people,abrirSec("people"),"mg-mas-people",{"data-mg-more":"people"})));
+  const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home"},
+    React.createElement("div",{className:"settings-push-h pr6-mg-h"},
       React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pop},
         React.createElement("svg",{width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},
           React.createElement("path",{d:"M19 12H5M11 6l-6 6 6 6"}))),
-      React.createElement("h1",{id:active&&"bills-manage-title",tabIndex:-1,ref:active?titleRef:null}, title));
-  };
-  const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home",inert:view!=="hub"?"":undefined},
-    head(gbTxt("gb_title"),view==="hub",true),
+      React.createElement("h1",{id:"bills-manage-title",tabIndex:-1,ref:titleRef}, gbTxt("gb_title"))),
     // Tocar la tarjeta pasa de lo de cada mes a lo del año (y vuelta), también en filas y secciones.
     React.createElement("button",{type:"button",className:"v4-card v4-card-hero pr6-sum pr6-mg-sum","data-bills-hero":"1","aria-pressed":anual?"true":"false",
       onClick:function(){ setAnual(function(a){ return !a; }); }},
@@ -34860,23 +34839,15 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     nadaQ&&React.createElement("div",{className:"pr6-mg-nada","data-bills-noresults":"1"},
       React.createElement("span",null, tf("mg_nada",{q:q.trim()})),
       React.createElement("button",{type:"button",className:"pr6-cta","data-act":"bill-add-q",onClick:function(){ startAdd("fixed",q.trim().charAt(0).toUpperCase()+q.trim().slice(1)); }},
-        plus,tf("mg_anadir_q",{q:q.trim()}))),
-    // «¿Me lo puedo permitir?» no está en el prototipo pero vive aquí (fila 99 del BACKLOG): conserva su puerta.
-    !qq&&resto&&React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
-      React.createElement("div",{className:"v4-bills-afford-t"}, gbTxt("gb_afford")),
-      React.createElement("div",{className:"v4-bills-afford-s"}, gbTxt("gb_afford_sub")))
+        plus,tf("mg_anadir_q",{q:q.trim()})))
+    /* Sin «¿Me lo puedo permitir?» al final: repetía «¿Y si gasto…?» de «¿Te llega?» y el
+       prototipo no la lleva (petición del dueño, 11/11/2026). */
   );
-  const affordView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-afford"},
-    head(gbTxt("gb_afford"),view==="afford"),
-    React.createElement("div",{className:"v4-bills-afford-body"},
-      React.createElement(AffordSim,{state:state,totals:totals,set:set})));
-  const screenAttr=view==="afford"?"bills-afford":"bills-home";
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
-      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,"data-covered":view!=="hub"?"1":null,
+      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":"bills-home",
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
-        hub,
-        view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, affordView)),
+        hub),
       persona && React.createElement(PersonaSheet,{key:persona.pid||"nueva",pid:persona.pid,state:state,set:set,totals:totals,onClose:function(){ setPersona(null); },
         onCompartidoViejo:function(id,p){ const r=billsGroupRows(state,"serv",cm,cy).find(function(x){ return x.id===id; }); if(r) setPasos({mode:"edit",row:r,conPersona:p,n:Date.now()}); }}),
       detail && (detail.kind==="fixed"&&planSyncConflict(state,"fixed",detail.id)&&!reviewBill?React.createElement(PlanConflictSheet,{
@@ -35161,6 +35132,39 @@ function rp4VistoEnBanco(state, max){
     return {name:String(g.name||"").trim(), amount:g.amount, day:recDay(e.date), bank:expenseBankOf(e), cat:g.cat&&CAT[g.cat]&&!CAT_NEUTRAS[g.cat]?g.cat:"", seguido:g.span===g.months, ultimo:Number(g.ult[0].amount)||0};
   }).filter(function(d){ return d.name; });
 }
+/* ¿Ya tienes este recibo? (SPEC §7: aviso de duplicado). Solo informa, no impide guardar.
+   - Mismo nombre, o el tecleado es el principio de uno que ya está («Lu» no, «Luz» sí).
+   - Nombres que casan con `recNameMatch`, la regla de siempre, pero sin palabras de relleno: dos
+     comercializadoras «… Energía» no son el mismo recibo.
+   - Misma categoría e importe parecido (`recAmtClose`), cuando ya se sabe el importe, solo en
+     luz, agua y gas, que se tienen una vez por casa: en ocio o telefonía dos de 12,99 € son dos
+     servicios distintos.
+   Con categorías distintas NUNCA avisa: la luz y el gas de la misma compañía, el mismo día y por lo
+   mismo son dos recibos (corrección del dueño, 11/11/2026). La categoría es la elegida o, si no
+   hay, la que dice el nombre («Octopus gas» es gas aunque Octopus venda luz) o la que se deduce de
+   él (`autoCategory`), así «GC RE OCTOPUS ENERGY» es luz. El día no cuenta nunca: muchos recibos
+   se cobran el mismo. */
+const RP4_DUP_RELLENO=/^(energia|energy|electrica|electricidad|factura|recibo|cuota|pago|servicio|servicios|suministro|suministros|comercializadora|espana|spain|iberica|seguro|seguros)$/;
+const RP4_DUP_CASA={luz:/\b(luz|llum|electricity)\b/,agua:/\b(agua|aigua|water)\b/,gas:/\bgas\b/};
+function rp4Duplicado(fixed, name, category, amount){
+  const qn=recNorm(name);
+  if(qn.length<3) return null;
+  const catDe=function(n,c){
+    const nn=recNorm(n), dice=Object.keys(RP4_DUP_CASA).filter(function(k){ return RP4_DUP_CASA[k].test(nn); });
+    const x=c||(dice.length===1?dice[0]:autoCategory(n));
+    return x&&x!=="otros"&&CAT[x]?x:"";
+  };
+  const sin=function(n){ return recNorm(n).split(" ").filter(function(w){ return !RP4_DUP_RELLENO.test(w); }).join(" "); };
+  const qc=catDe(name,category), qs=sin(name);
+  return (fixed||[]).find(function(e){
+    if(!e||!e.name) return false;
+    const n=recNorm(e.name), ec=catDe(e.name,e.category);
+    if(qc&&ec&&qc!==ec) return false;
+    if(n===qn||n.indexOf(qn)===0) return true;
+    if(qs&&recNameMatch(qs,sin(e.name))) return true;
+    return !!(qc&&qc===ec&&RP4_DUP_CASA[qc]&&amount>0&&recAmtClose(amount,Number(e.amount)||0));
+  })||null;
+}
 /* − / + que acelera al mantener pulsado (SPEC §7.3). El teclado (detail 0) da un paso por toque. */
 function RpPaso({label, onStep, dir}){
   const h=useRef(null);
@@ -35436,7 +35440,8 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   // Visto en tu banco y duplicado: solo al dar de alta (en edición ya sabes qué recibo es).
   const visto=React.useMemo(function(){ return edit?[]:rp4VistoEnBanco(state); },[state.expenses,state.fixed]);
   const qn=recNorm(f.name);
-  const dup=!edit&&tecleado&&qn.length>=3?(state.fixed||[]).find(function(e){ const n=recNorm(e.name); return n===qn||n.indexOf(qn)===0; })||null:null;
+  // También con el nombre de una sugerencia o del buscador: «Gas» tocado avisa igual que tecleado.
+  const dup=!edit&&kind==="fixed"?rp4Duplicado(state.fixed,f.name,f.category,f.mode==="split"?0:amt):null;
   // Lo que se ve en el resumen sale del mismo recibo que se guardaría.
   const borrador=function(){
     const base={name:String(f.name).trim(),amount:amt,account:f.account};
@@ -35551,16 +35556,23 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
       React.createElement("h2",{className:"rp4-h",tabIndex:-1,ref:paso===i?titleRef:null,id:paso===i?"rp4-title":undefined}, t(titulos[i])),
       paso===i||otros?kids:null);
   };
+  /* «Ya tienes «Gas» · 45 € el día 5 · Ver ese», en el nombre y otra vez en el resumen: tocando una
+     sugerencia se salta al importe y el aviso del primer paso no llegaba a verse. */
+  const dupEl=function(key){
+    const d=cleanDay(dup&&dup.day);
+    return React.createElement("div",{key:key,className:"pr6-fold"+(dup?" open":"")},
+      React.createElement("div",Object.assign({className:"pr6-fold-in"},dup?null:{"aria-hidden":"true",inert:""}),
+        dup&&React.createElement("button",{type:"button",className:"rp4-dup","data-rp4":"dup",onClick:function(){ onEditOther(dup.id); }},
+          React.createElement("span",{className:"rp4-dup-t"}, tf("rp4_dup",{name:dup.name}),
+            React.createElement("span",{className:"rp4-dim num"}," · "+(d?tf("rp4_dup_dia",{x:eur(Number(dup.amount)||0),d:d}):eur(Number(dup.amount)||0)))),
+          React.createElement("span",{className:"rp4-dup-go"}, t("rp4_dup_ver")))));
+  };
   // 1 · Nombre
   const sugs=RP4_SUG.filter(function(u){ const l=recNorm(t("rp4_s_"+u[0])); return !tecleado||!qn||l.indexOf(qn)>=0; });
   const p0=panel(0,[
     React.createElement("input",{key:"in",className:"pr6-search rp4-name","data-rp4":"name",value:f.name,placeholder:t("rp4_name_ph"),"aria-label":t("rp4_r_name"),
       onChange:function(e){ upd({name:e.target.value,category:""}); setTecleado(true); toca("name"); }}),
-    React.createElement("div",{key:"dup",className:"pr6-fold"+(dup?" open":"")},
-      React.createElement("div",Object.assign({className:"pr6-fold-in"},dup?null:{"aria-hidden":"true",inert:""}),
-        dup&&React.createElement("button",{type:"button",className:"rp4-dup","data-rp4":"dup",onClick:function(){ onEditOther(dup.id); }},
-          React.createElement("span",{className:"rp4-dup-t"}, tf("rp4_dup",{name:dup.name}), React.createElement("span",{className:"rp4-dim"}," · "+eur(fixedMonthlyOf(dup)))),
-          React.createElement("span",{className:"rp4-dup-go"}, t("pr6_editar"))))),
+    dupEl("dup"),
     !edit&&!qn&&visto.length>0&&React.createElement("div",{key:"vb",className:"rp4-visto","data-testid":"rp4-visto"},
       React.createElement("div",{className:"pr6-lbl"}, t("rp4_visto")),
       visto.map(function(d,i){
@@ -35833,6 +35845,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
         React.createElement("span",{className:"pr6-ficha-n"}, f.name||"—"),
         React.createElement("span",{className:"pr6-ficha-s"}, subTxt)),
       React.createElement("span",{className:"serif num pr6-ficha-a","data-rp4":"sum-amt"}, amtTxt)),
+    dupEl("dup"),
     React.createElement("div",{key:"r",className:"rp4-rows"},
       filas.map(function(r){
         // Un compartido de antes no dice de quién es el resto: su importe espera a que lo digas.
