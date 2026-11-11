@@ -1671,15 +1671,29 @@ function LlegaSheet({state, set, totals, pack, onClose, ensayo}){
   useEffect(function(){ const id=setTimeout(function(){ setTecladoListo(true); },520); return function(){ clearTimeout(id); }; },[]);
   /* Con tres o cuatro bancos el «¿Y si gasto…?» queda al fondo y el teclado se abría por debajo
      de lo que se ve: «se ve la zona pero al tocar no hace nada» (beta 4.26.200). Se toca en
-     cualquier punto de la zona y el teclado sube a la vista, suave, cuando termina de abrirse. */
+     cualquier punto de la zona y el teclado sube a la vista.
+     Se acompaña fotograma a fotograma mientras se abre, no al acabar: antes, a los 380 ms, un
+     `scrollIntoView` suave daba un segundo empujón cuando todo parecía quieto y él lo vio «en dos
+     tiempos en vez de 1» (vídeo 11/11). Ahora el fondo de la zona se queda pegado al borde de la hoja
+     mientras el teclado crece, y todo llega a su sitio en el mismo movimiento. Un dedo encima lo
+     suelta: no se pelea con quien ya está desplazando o tecleando. */
   const zonaRef=useRef(null);
   useEffect(function(){
     if(!teclado) return undefined;
-    const id=setTimeout(function(){
-      const el=zonaRef.current;
-      if(el) try{ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); }catch(e){}
-    },380);
-    return function(){ clearTimeout(id); };
+    const el=zonaRef.current, hoja=el&&el.closest(".v4-sheet");
+    if(!hoja) return undefined;
+    let raf=0;
+    const fin=performance.now()+(mcReduced()?0:450);
+    const suelta=function(){ cancelAnimationFrame(raf); raf=0; };
+    const paso=function(){
+      const sobra=el.getBoundingClientRect().bottom-hoja.getBoundingClientRect().bottom;
+      if(sobra>0.5) hoja.scrollTop+=sobra;
+      raf=performance.now()<fin?requestAnimationFrame(paso):0;
+    };
+    raf=requestAnimationFrame(paso);
+    hoja.addEventListener("touchstart",suelta,{passive:true});
+    hoja.addEventListener("wheel",suelta,{passive:true});
+    return function(){ suelta(); hoja.removeEventListener("touchstart",suelta); hoja.removeEventListener("wheel",suelta); };
   },[teclado]);
   // Por defecto el banco principal si tiene saldo: quien teclea sin mirar los chips piensa en él.
   const [gBank,setGBank]=useState(function(){
