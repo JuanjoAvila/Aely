@@ -3487,6 +3487,38 @@ function cargoDeReciboFirmeCalc(e, s, f){
   const hoy=y===now.getFullYear()&&m===now.getMonth()+1 ? now.getDate() : new Date(y,m,0).getDate();
   return reciboPagadoCon(fixedPaymentState(s,f,y,m,hoy))===fixedPaymentIdentity(expenseBankOf(e), e);
 }
+/* ¿ESTE COBRO QUE SE REPITE YA ES UN RECIBO? (beta 4.26.227, 11/11/2026). Gastos proponía como
+   suscripción «por revisar» el agua que ya estaba en Recibos con su cargo del mes enlazado: el
+   recibo se llama como lo llamó él y el banco cobra con el nombre del acreedor, así que comparar
+   nombres no bastaba, y quitar del detector solo las filas marcadas dejaba los meses de antes
+   formando el grupo igual. «Pasar a Recibos» habría creado el recibo dos veces. No hay regla nueva:
+   es recibo el comercio de una fila marcada con un recibo vivo (`cargoDeRecibo`), el de la fila con
+   la que el motor da por pagado un recibo este mes o los dos de antes (`paymentEvidenceUI`, lo mismo
+   que Recibos enseña en «Ya pagados», con su ventana de días y el importe del banco), y el que
+   comparte nombre con un recibo (`recNameMatch`, la regla de «Visto en tu banco»).
+   → Set de `catKey` de comercios que ya son recibo. */
+function subsDeRecibos(s, nowMs){
+  const keys=new Set(), add=function(x){
+    if(!x) return;
+    [x.merchant,x.obName].forEach(function(n){ const k=catKey(n); if(k) keys.add(k); });
+  };
+  (s.expenses||[]).forEach(function(x){ if(x&&x.reciboId&&cargoDeRecibo(x,s)) add(x); });
+  if(!(s.fixed||[]).length&&!(s.oneoffs||[]).length) return keys;
+  const now=new Date(nowMs!=null?nowMs:Date.now()), ids=new Set();
+  // Tres meses: los que mira `detectSubscriptions` para dar una suscripción por activa.
+  for(let i=0;i<3;i++){
+    const d=new Date(now.getFullYear(), now.getMonth()-i, 1), y=d.getFullYear(), m=d.getMonth()+1;
+    paymentEvidenceUI(s,y,m,i===0?now.getDate():new Date(y,m,0).getDate()).byExpense.forEach(function(rel,id){
+      if(rel&&rel.kind==="fixed") ids.add(id);
+    });
+  }
+  if(ids.size) (s.expenses||[]).forEach(function(x){ if(x&&ids.has(x.id)) add(x); });
+  return keys;
+}
+function subEsRecibo(s, sp, keys){
+  if(keys&&keys.has(sp.key)) return true;
+  return (s.fixed||[]).some(function(f){ return catKey(f.name)===sp.key||recNameMatch(f.name,sp.name); });
+}
 // Identidad del cargo con el que el motor da por pagado un recibo; null si no es con ninguno.
 function reciboPagadoCon(st){
   return st.bankTx ? fixedPaymentIdentity(st.bankTx.ent, st.bankTx) : st.proof ? st.proof.identity : st.expense ? fixedPaymentIdentity(expenseBankOf(st.expense), st.expense) : null;

@@ -198,3 +198,21 @@ test("atrás cierra la ficha y se queda en Suscripciones", async ({ page }) => {
   await expect(ficha(page)).toHaveCount(0);
   await expect(gastosRoot(page)).toHaveAttribute("data-secc", "subs");
 });
+
+/* Lo que ya es un recibo no sale «por revisar» (11/11/2026): el recibo «Agua» se cobra con el nombre
+   del acreedor y su cargo de septiembre ya está enlazado; los meses de antes, sin marca, formaban la
+   suscripción igual y «Pasar a Recibos» lo habría duplicado. Ni tarjeta, ni globito, ni cifra. */
+test("un cobro que ya es un recibo de Plan no sale en la bandeja ni suma en la cifra", async ({ page }) => {
+  const aguas = ["2026-06-10", "2026-07-10", "2026-08-10", "2026-09-10"].map((d, i) =>
+    cargo("ag" + i, d, 41.2, "AIGUES SINTETIQUES SA", { ent: "sabadell", category: "hogar", ...(i === 3 ? { reciboId: "agua" } : {}) }));
+  await abre(page, {
+    accounts: base.accounts.concat([{ id: "sb", ent: "sabadell", name: "Recibos", value: 900, role: "fijos" }]),
+    fixed: [{ id: "agua", name: "Agua", amount: 41.2, freq: "mes", day: 8, account: "sabadell" }],
+    expenses: netflix.concat(aguas),
+  });
+  await expect(globo(page)).toHaveText("1");
+  await gastosSeccion(page, "subs");
+  await expect(tarjetas(page).locator(".gx-sub-nm")).toHaveText(["Netflix"]);
+  await expect(gastosCifra(page)).toHaveText("12,99 €");
+  await expect(gastosEstado(page)).toHaveText("al mes · 1 por revisar");
+});

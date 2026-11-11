@@ -255,6 +255,7 @@ const steps = [
   ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["fixed-payment-state", ["node", "tests/fixed-payment-state.test.mjs"]],
   ["recibos-ya-pagados-banco", ["node", "--test", "tests/recibos-ya-pagados-banco.test.mjs"]],
+  ["gastos-subs-ya-recibo", ["node", "--test", "tests/gastos-subs-ya-recibo.test.mjs"]],
   ["recibos-cobro-distinto", ["node", "--test", "tests/recibos-cobro-distinto.test.mjs"]],
   ["recibos-prueba-permanencia", ["node", "--test", "tests/recibos-prueba-permanencia.test.mjs"]],
   ["recibos-renombrar", ["node", "tests/recibos-renombrar.test.mjs"]],
