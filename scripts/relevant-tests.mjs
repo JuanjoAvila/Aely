@@ -162,6 +162,12 @@ export const E2E_MAP = [
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
+  // Auditoría 226: los pliegues de «Más opciones» (14), Inicio con lo marcado a mano (03 y 08) y
+  // buscar por lo que cobra el banco (14).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-auditoria-226.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-auditoria-226.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/recibos-auditoria-226.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-auditoria-226.spec.mjs"] },
   // Tanda 3: hoja «¿Te llega?». El recorrido es `minWalk` (08) con `pendingWalkEvents` (08, con la
   // pausa y el día de 07) y lo alimenta `totals` (11); la
   // nómina se edita con `patchFlowById` (08) y la hoja tiene su CSS en el shell.

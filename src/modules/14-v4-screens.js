@@ -552,7 +552,10 @@ function planRecibosVista(pack, proof, today, avisos, pospuesto){
   const prio={trial:0,ghost:1,late:1,unconf:2,diff:2,up:2,cand:2,perm:3};
   review.sort(function(a,b){ return (prio[a.rv]-prio[b.rv])||byDay(a,b); });
   const week=pack.pendingBills.filter(function(x){ return x.day!=null&&x.day-today>=0&&x.day-today<=6; }).length;
-  const paidTotal=paid.reduce(function(sum,x){ return sum+Math.abs(x.amount); },0);
+  // Lo que se cobró de verdad: la fila ya decía «Cargo 54,71 € · Previsto 54,26 €» y la suma iba con
+  // lo previsto (auditoría 226, P2-8). La diferencia se suma a tu parte; sin cargo del banco
+  // (marcado a mano) cuenta lo previsto.
+  const paidTotal=Math.round(paid.reduce(function(sum,x){ return sum+Math.abs(x.amount)+(planChargeChanged(x)?x.paidAmount-x.plannedBankAmount:0); },0)*100)/100;
   return {review:review, due:due, paid:paid, week:week, paidTotal:paidTotal, paidChanged:paid.some(planChargeChanged)};
 }
 /* En qué sección cae un recibo con el estado de después: el aviso dice dónde queda de verdad, no
@@ -2094,7 +2097,8 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
       React.createElement("span",{className:"pr6-cand-a num"}, eur(Number(x.amount))));
   };
   // Cabecera y estado del pago.
-  const sub=dayF!=null?tf("pr6_se_cobra",{d:dayF,bank:entOf(bank).label}):entOf(bank).label;
+  // En catalán, «l'1» y «l'11»: el artículo se apostrofa ante vocal (auditoría 226).
+  const sub=dayF!=null?tf(dayF===1||dayF===11?"pr6_se_cobra_v":"pr6_se_cobra",{d:dayF,bank:entOf(bank).label}):entOf(bank).label;
   const pagoBanco=confirmado&&st?st.paidBank||bank:null;
   const pagoTxt=confirmado?(fila?reciboCargoTexto(fila):st&&st.bankTx?String(st.bankTx.merchant||""):st&&st.proof&&st.proof.merchant?String(st.proof.merchant):""):"";
   const pagoDia=confirmado?(st&&st.day!=null?st.day:row.day):null;
@@ -2781,8 +2785,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
     if(!/^[\d.,]+$/.test(qq)) return false;
     // «4.99» y «4,99» son lo mismo para quien busca (el teclado del móvil pone uno u otro), y
     // «1.250» es mil doscientos cincuenta: se prueban las dos lecturas del separador.
-    const a=Math.abs(Number(r.monthly)||0).toFixed(2);
-    return a.indexOf(qq.replace(/\./g,"").replace(",","."))===0||a.indexOf(qq.replace(/,/g,""))===0;
+    // También por lo que cobra el banco: en un compartido es lo que sale en el extracto, no tu parte
+    // («29,94» no encontraba el YouTube de 4,99 €; auditoría 226).
+    return [r.monthly,r.item&&r.item.bankAmount,r.cash].some(function(v){
+      if(!(Math.abs(Number(v))>0)) return false;
+      const a=Math.abs(Number(v)).toFixed(2);
+      return a.indexOf(qq.replace(/\./g,"").replace(",","."))===0||a.indexOf(qq.replace(/,/g,""))===0;
+    });
   };
   const lower=function(x){ return CURLANG==="en"?x:String(x).toLowerCase(); };
   const amt=function(x,variable){ return (variable?"≈ ":"")+eur(x); };
@@ -3364,6 +3373,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   useEffect(function(){ return function(){ clearTimeout(espera.current); clearTimeout(verT.current); }; },[]);
   // Lo siguiente que hay que elegir, a la vista y sin salto: después de que el plegable se abra.
   const diasRef=useRef(null), mesesRef=useRef(null), pagosRef=useRef(null);
+  const masRef=useRef(null), masBtnRef=useRef(null), extraRefs={prueba:useRef(null),perm:useRef(null)}, extraBtnRefs={prueba:useRef(null),perm:useRef(null)};
   const mostrar=function(ref,conTitulo){
     clearTimeout(verT.current);
     verT.current=setTimeout(function(){
@@ -3377,7 +3387,9 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
         const b=body.getBoundingClientRect(), e=el.getBoundingClientRect(), th=h.getBoundingClientRect();
         let d=e.bottom>b.bottom-12?e.bottom-b.bottom+12:(e.top<b.top?e.top-b.top-8:0);
         // Solo con «titulo»: en «En varios pagos» el título no se corta; al elegir meses/días lo que se elige manda.
-        if(d>0&&conTitulo) d=Math.min(d,Math.max(th.top-b.top-8,0));
+        // Con un ref en su lugar, lo que no se sale por arriba es esa fila: la que se ha tocado para abrir.
+        const tope=conTitulo&&conTitulo.current?conTitulo.current.getBoundingClientRect():th;
+        if(d>0&&conTitulo) d=Math.min(d,Math.max(tope.top-b.top-8,0));
         if(d!==0) body.scrollBy({top:d,behavior:mcReduced()?"auto":"smooth"});
       }catch(e){}
     },380);
@@ -3812,12 +3824,13 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   const extraFila=function(key,label,val,on,cuerpo){
     const open=extra===key;
     return React.createElement("div",{key:key,className:"rp7-x","data-rp7":key},
-      React.createElement("button",{type:"button",className:"rp7-row","aria-expanded":open?"true":"false",onClick:function(){ setExtra(open?null:key); }},
+      // Lo desplegado quedaba bajo «Guardar» y había que subir la hoja a mano (auditoría 226, P1-1).
+      React.createElement("button",{type:"button",ref:extraBtnRefs[key],className:"rp7-row","aria-expanded":open?"true":"false",onClick:function(){ setExtra(open?null:key); if(!open) mostrar(extraRefs[key],extraBtnRefs[key]); }},
         React.createElement("span",{className:"rp7-k"}, label),
         React.createElement("span",{className:"rp7-v num"+(on?"":" rp4-dim"),"data-rp7-valor":key}, val),
         pr6Chev()),
       React.createElement("div",{className:"pr6-fold"+(open?" open":"")},
-        React.createElement("div",Object.assign({className:"pr6-fold-in rp7-in"},open?null:{"aria-hidden":"true",inert:""}), cuerpo)));
+        React.createElement("div",Object.assign({className:"pr6-fold-in rp7-in",ref:extraRefs[key]},open?null:{"aria-hidden":"true",inert:""}), cuerpo)));
   };
   const extrasUI=[
     extraFila("prueba",t("rp7_prueba"),f.prueba?tf("rp7_hasta_dia",{x:diaMes(f.prueba)}):t("rp7_no"),!!f.prueba,[
@@ -3837,10 +3850,10 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
         React.createElement("span",{className:"num rp4-dia-v rp7-fecha","data-rp7-fecha":"perm"}, f.perm?tf("rp7_hasta",{x:pr6MesAno(f.perm)}):"—"),
         React.createElement(RpPaso,{label:t("rp7_mes_mas"),dir:1,onStep:permPaso}))])];
   const repUI=kind==="fixed"&&f.mode!=="once"&&React.createElement("div",{key:"mas",className:"rp5-mas"},
-    React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":mas?"true":"false","data-act":"mas-opciones",onClick:function(){ setMas(function(o){ return !o; }); }},
+    React.createElement("button",{type:"button",ref:masBtnRef,className:"pr6-more","aria-expanded":mas?"true":"false","data-act":"mas-opciones",onClick:function(){ setMas(function(o){ return !o; }); if(!mas) mostrar(masRef,masBtnRef); }},
       t("rp5_mas"), pr6Chev()),
     React.createElement("div",{className:"pr6-fold"+(mas?" open":"")},
-      React.createElement("div",Object.assign({className:"pr6-fold-in rp5-in"},mas?null:{"aria-hidden":"true",inert:""}),
+      React.createElement("div",Object.assign({className:"pr6-fold-in rp5-in",ref:masRef},mas?null:{"aria-hidden":"true",inert:""}),
         React.createElement("div",{className:"pr6-lbl"}, t("rp5_con_alguien")),
         !admite?React.createElement("div",{className:"hint"}, t("rp5_no_admite"))
           :React.createElement("div",{className:"rp5-grid","data-testid":"rp5-grid"},

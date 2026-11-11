@@ -70,7 +70,10 @@ const vistoEl = (st, iso, y, m, fin) => {
   const pack = c.planChargesMonth(st, m, y, fin), proof = c.paymentEvidenceUI(st, y, m, fin);
   const avisos = c.planRecibosAvisos(st, pack, proof, y, m, fin), v = c.planRecibosVista(pack, proof, fin, avisos, {});
   const distinto = v.review.filter((x) => x.rv === "diff" || x.rv === "up").reduce((t, x) => t + cent(Math.abs(x.amount)), 0);
-  return { cent: cent(v.paidTotal) + distinto, late: v.review.filter((x) => x.rv === "late").length, foto: c.planRecibosConFoto(st, y, m, fin, pack, proof) };
+  // «Ya pagados» suma lo que cobró el banco (auditoría 226, P2-8); el resumen del mes cerrado cuenta lo
+  // previsto y la diferencia la dice aparte («cambia», «sube»): se le quita para comparar lo mismo.
+  const cobradoDeMas = v.paid.filter(c.planChargeChanged).reduce((t, x) => t + cent(x.paidAmount) - cent(x.plannedBankAmount), 0);
+  return { cent: cent(v.paidTotal) - cobradoDeMas + distinto, cobradoDeMas, late: v.review.filter((x) => x.rv === "late").length, foto: c.planRecibosConFoto(st, y, m, fin, pack, proof) };
 };
 const bSep = vistoEl(s, "2026-09-30T21:00:00+02:00", 2026, 9, 30); s = bSep.foto;
 const bOct = vistoEl(s, "2026-10-31T21:00:00+01:00", 2026, 10, 31); s = bOct.foto;
@@ -85,6 +88,7 @@ assert.equal(r.y, 2026); assert.equal(r.m, 10); assert.equal(r.ym, 2026 * 12 + 1
 assert.equal(r.cent, A_OCT, "en recibos (A)");
 same(r.prev, { y: 2026, m: 9, cent: A_SEP }, "septiembre (A)");
 assert.equal(bOct.cent, r.cent, "octubre (B) = resumen");
+assert.equal(bOct.cobradoDeMas, 5830 - 5000 + 1399 - 1299, "«Ya pagados» de octubre lleva lo cobrado: Luz +8,30 y Netflix +1,00");
 assert.equal(bSep.cent, r.prev.cent, "septiembre (B) = resumen");
 // «No llegó» es solo lo pendiente con el banco al día: el Gimnasio. El puntual sin cargo no.
 assert.equal(r.noLlegaron, 1, "solo el Gimnasio");
