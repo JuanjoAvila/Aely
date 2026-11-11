@@ -3,15 +3,18 @@
 // el nombre del acreedor; el detector, que solo comparaba nombres, lo sacaba en la bandeja y
 // «Pasar a Recibos» habría creado el recibo otra vez. La regla es la del motor de pagos
 // (`cargoDeRecibo`, `paymentEvidenceUI`) más el nombre exacto; compartir una palabra no basta
-// (NO-GO de la revisión de dinero del 11/11: escondía suscripciones reales). Datos inventados.
+// (NO-GO de la revisión de dinero del 11/11: escondía suscripciones reales). «Visto en tu banco»
+// (Recibos) conserva su regla de nombre de siempre y añade solo la exclusión por enlace. Datos inventados.
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import vm from "node:vm";
 import { test } from "node:test";
 import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
 const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 const order=JSON.parse(read("src/build-order.json"));
 const c=loadPureLogic(read("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>order.map(f=>read("src/modules/"+f)).join("\n")));
+vm.runInNewContext(read("src/modules/14-v4-screens.js"),c);
 const AHORA=new Date("2026-09-30T12:00:00+02:00").getTime();
 c.Date=class extends Date { constructor(...a){ super(...(a.length?a:[AHORA])); } static now(){ return AHORA; } };
 
@@ -65,4 +68,15 @@ test("compartir una palabra con un recibo NO la esconde: siguen saliendo y conta
   const s=estado({fixed:[rec("g1","Google One",1.99),rec("am","Amazon Prime",4.99),rec("ca","Casa",300)],
     expenses:serie("yt","GOOGLE *YOUTUBEPREMIUM",13.99).concat(serie("mu","AMAZON MUSIC",10.99),serie("cl","CASA DEL LIBRO CLUB",7.5))});
   assert.deepEqual(porRevisar(s),["AMAZON MUSIC","CASA DEL LIBRO CLUB","GOOGLE *YOUTUBEPREMIUM"]);
+});
+
+const vistos=s=>[...c.rp4VistoEnBanco(s,0).map(x=>x.name)].sort();
+test("«Visto en tu banco»: un cargo enlazado con otro nombre no sale; su regla de nombre sigue igual",()=>{
+  assert.deepEqual(vistos(estado({expenses:antes.concat(control)})),["AIGUES SINTETIQUES SA","STREAMING SINTETICO"],"premisa: sin enlace sale");
+  assert.deepEqual(vistos(estado({expenses:antes.concat(fila("a9","2026-09-10",{reciboId:"agua"}),control)})),["STREAMING SINTETICO"],"marcado");
+  const sinMarca=estado({expenses:antes.concat(fila("a9","2026-09-10",{concept:"ADEUDO RECIBO SEPA"}),control),
+    bankTx:[{id:"t9",ent:"sabadell",date:"2026-09-10",amount:41.20,merchant:"AIGUES SINTETIQUES SA",concept:"ADEUDO RECIBO SEPA",status:"BOOK"}]});
+  assert.deepEqual(vistos(sinMarca),["STREAMING SINTETICO"],"pagado por el motor");
+  // Aquí compartir palabra sí esconde, como antes de este arreglo (solo propone recibos nuevos).
+  assert.deepEqual(vistos(estado({fixed:[Object.assign({},agua,{name:"Aigues",amount:60})],expenses:antes.concat(control)})),["STREAMING SINTETICO"]);
 });
