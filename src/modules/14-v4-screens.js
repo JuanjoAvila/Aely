@@ -1497,8 +1497,9 @@ function TeDebenSheet({state, set, totals, deben, onClose}){
   const [persona,setPersona]=useState(null);
   const y=totals.curYear, m=totals.curMonth, today=totals.today;
   const todos=deben.length>0&&deben.every(function(p){ return p.pagado; });
-  // Deshacer lo que casó solo apunta que ese ingreso no era suyo; si no, volvería a casar.
-  const marcar=function(p){ set(function(s){ return repartoMarcarCobrado(s,p.id,y,m,today,!p.pagado,p.pagado&&p.auto); }); };
+  // Deshacer lo que casó SOLO veta esos ingresos para esa persona (no eran suyos; si no, volverían
+  // a casar). Deshacer una marca a mano solo quita la marca.
+  const marcar=function(p){ set(function(s){ return repartoMarcarCobrado(s,p.id,y,m,today,!p.pagado,p.pagado&&!p.aMano&&p.auto?p.ingresos:null); }); };
   const queda=deben.reduce(function(a,p){ return a+Math.round(p.falta*100); },0)/100;
   // Quien ya ha pagado va al final (SPEC §5, prototipo). El orden se fija al ABRIR: si la fila se
   // fuera abajo al tocar «Ya me lo ha pagado», el «Deshacer» ya no estaría bajo el dedo.
