@@ -3316,13 +3316,13 @@ function rp4PlanInicial(total, name, cm){
    detector de Gastos) y que aún no son un recibo. Solo filas del banco: lo apuntado a mano no se
    ha «visto» en ningún banco. */
 function rp4VistoEnBanco(state, max){
+  const fx=state.fixed||[];
   const ex=(state.expenses||[]).filter(function(x){
     return x&&esFilaDeBanco(x)&&!x.debtId&&!x.possibleDup&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso";
   });
-  const subs=detectSubscriptions(ex), recibos=subs.length?subsDeRecibos(state):null;
-  return subs.filter(function(g){
+  return detectSubscriptions(ex).filter(function(g){
     if(!g.active||!(g.amount>0)||!g.ult.length) return false;
-    return !subEsRecibo(state,g,recibos);
+    return !fx.some(function(f){ return recNameMatch(f.name,g.name)||recNameMatch(g.name,f.name); });
   }).slice(0,max===0?Infinity:(max||3)).map(function(g){
     const e=g.ult[0].e;
     // `seguido`: cobrado todos los meses de su primer a su último cobro (`span`), sin huecos.

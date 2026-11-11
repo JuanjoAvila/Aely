@@ -15239,19 +15239,21 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // llegue uno posterior, y si llega vuelve con aviso (darla de baja no es descartarla para siempre).
   /* Lo que ya es un recibo no se propone (`subsDeRecibos`/`subEsRecibo`, 08): antes solo se
      comparaba el nombre del recibo con el del comercio, y el agua de Recibos salía «por revisar»
-     con su cargo ya enlazado (11/11/2026). Se calcula solo si hay alguna candidata, y con las
-     porciones que lee el motor de pagos: `state` cambia en cada `set()`. */
+     con su cargo ya enlazado (11/11/2026). El motor va en su propio memo, con las porciones que
+     lee (`state` cambia en cada `set()`), y solo si hay alguna candidata: descartar o dar de baja
+     una no lo vuelve a pasar. */
+  const subsRecibos=useMemo(function(){
+    return (subs||[]).some(function(sp){ return sp.active; })?subsDeRecibos(state):null;
+  },[subs,state.fixed,state.oneoffs,state.expenses,state.bankTx,state.reciboNo,state.reciboBorrado,state.accounts,state.debts,state.deleted,madridDay]);
   const novelSubs=useMemo(function(){
     const dismissed=state.subsDismissed||[], baja=state.subsBaja||{};
-    const vivas=(subs||[]).filter(function(sp){
+    return (subs||[]).filter(function(sp){
       if(!sp.active) return false;
       if(dismissed.indexOf(sp.key)!==-1) return false;
-      return !(baja[sp.key]!=null && !(sp.lastMs>baja[sp.key]));
+      if(baja[sp.key]!=null && !(sp.lastMs>baja[sp.key])) return false;
+      return !subEsRecibo(state,sp,subsRecibos);
     });
-    if(!vivas.length) return vivas;
-    const recibos=subsDeRecibos(state);
-    return vivas.filter(function(sp){ return !subEsRecibo(state,sp,recibos); });
-  },[subs,state.subsDismissed,state.subsBaja,state.fixed,state.oneoffs,state.expenses,state.bankTx,state.reciboNo,state.reciboBorrado,state.accounts,state.debts,state.deleted,madridDay]);
+  },[subs,state.subsDismissed,state.subsBaja,state.fixed,subsRecibos]);
   const [subFicha,setSubFicha]=useState(null);
   const [subInfo,setSubInfo]=useState(false);
   // Cambiar de sección cierra las fichas (SPEC §2.2): salir de Gastos también vuelve a Movimientos.
@@ -23312,9 +23314,10 @@ function cargoDeReciboFirmeCalc(e, s, f){
    formando el grupo igual. «Pasar a Recibos» habría creado el recibo dos veces. No hay regla nueva:
    es recibo el comercio de una fila marcada con un recibo vivo (`cargoDeRecibo`), el de la fila con
    la que el motor da por pagado un recibo este mes o los dos de antes (`paymentEvidenceUI`, lo mismo
-   que Recibos enseña en «Ya pagados», con su ventana de días y el importe del banco), y el que
-   comparte nombre con un recibo (`recNameMatch`, la regla de «Visto en tu banco»).
-   → Set de `catKey` de comercios que ya son recibo. */
+   que Recibos enseña en «Ya pagados», con su ventana de días y el importe del banco), y el que se
+   llama exactamente como un recibo. Compartir una palabra NO basta (`recNameMatch`): «Google One»
+   escondía «GOOGLE *YOUTUBEPREMIUM» y «Casa» a «CASA DEL LIBRO CLUB», y las sacaba de la cifra
+   (revisión de dinero del 11/11). → Set de `catKey` de comercios que ya son recibo. */
 function subsDeRecibos(s, nowMs){
   const keys=new Set(), add=function(x){
     if(!x) return;
@@ -23335,7 +23338,7 @@ function subsDeRecibos(s, nowMs){
 }
 function subEsRecibo(s, sp, keys){
   if(keys&&keys.has(sp.key)) return true;
-  return (s.fixed||[]).some(function(f){ return catKey(f.name)===sp.key||recNameMatch(f.name,sp.name); });
+  return (s.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
 }
 // Identidad del cargo con el que el motor da por pagado un recibo; null si no es con ninguno.
 function reciboPagadoCon(st){
@@ -30184,7 +30187,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="e1ee76766001b144c88a7bf15d88bf6b8bab5294f3f8fff38fe47259dc9cc807";
+var _rnSha="fb472c233a4037f40f4216803d2f3e1b6f57e58540a3e2557f1f53d9bb7bbc96";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -35017,13 +35020,13 @@ function rp4PlanInicial(total, name, cm){
    detector de Gastos) y que aún no son un recibo. Solo filas del banco: lo apuntado a mano no se
    ha «visto» en ningún banco. */
 function rp4VistoEnBanco(state, max){
+  const fx=state.fixed||[];
   const ex=(state.expenses||[]).filter(function(x){
     return x&&esFilaDeBanco(x)&&!x.debtId&&!x.possibleDup&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso";
   });
-  const subs=detectSubscriptions(ex), recibos=subs.length?subsDeRecibos(state):null;
-  return subs.filter(function(g){
+  return detectSubscriptions(ex).filter(function(g){
     if(!g.active||!(g.amount>0)||!g.ult.length) return false;
-    return !subEsRecibo(state,g,recibos);
+    return !fx.some(function(f){ return recNameMatch(f.name,g.name)||recNameMatch(g.name,f.name); });
   }).slice(0,max===0?Infinity:(max||3)).map(function(g){
     const e=g.ult[0].e;
     // `seguido`: cobrado todos los meses de su primer a su último cobro (`span`), sin huecos.

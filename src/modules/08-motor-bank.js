@@ -3494,9 +3494,10 @@ function cargoDeReciboFirmeCalc(e, s, f){
    formando el grupo igual. «Pasar a Recibos» habría creado el recibo dos veces. No hay regla nueva:
    es recibo el comercio de una fila marcada con un recibo vivo (`cargoDeRecibo`), el de la fila con
    la que el motor da por pagado un recibo este mes o los dos de antes (`paymentEvidenceUI`, lo mismo
-   que Recibos enseña en «Ya pagados», con su ventana de días y el importe del banco), y el que
-   comparte nombre con un recibo (`recNameMatch`, la regla de «Visto en tu banco»).
-   → Set de `catKey` de comercios que ya son recibo. */
+   que Recibos enseña en «Ya pagados», con su ventana de días y el importe del banco), y el que se
+   llama exactamente como un recibo. Compartir una palabra NO basta (`recNameMatch`): «Google One»
+   escondía «GOOGLE *YOUTUBEPREMIUM» y «Casa» a «CASA DEL LIBRO CLUB», y las sacaba de la cifra
+   (revisión de dinero del 11/11). → Set de `catKey` de comercios que ya son recibo. */
 function subsDeRecibos(s, nowMs){
   const keys=new Set(), add=function(x){
     if(!x) return;
@@ -3517,7 +3518,7 @@ function subsDeRecibos(s, nowMs){
 }
 function subEsRecibo(s, sp, keys){
   if(keys&&keys.has(sp.key)) return true;
-  return (s.fixed||[]).some(function(f){ return catKey(f.name)===sp.key||recNameMatch(f.name,sp.name); });
+  return (s.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
 }
 // Identidad del cargo con el que el motor da por pagado un recibo; null si no es con ninguno.
 function reciboPagadoCon(st){
