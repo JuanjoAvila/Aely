@@ -229,7 +229,7 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
   useBackClose(open, swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
   const [amt,setAmt]=useState({k:null, v:""});
-  if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",",")});
+  if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",numDecSep())});
   useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
   if(!open) return null;
   const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0];
@@ -1008,7 +1008,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       return true;
     }).sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
     if(cands[0]){
-      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:String(Math.abs(cands[0].amount)).replace('.',','), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
+      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:String(Math.abs(cands[0].amount)).replace('.',numDecSep()), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
       if(clearFocus) clearFocus();
       return;
     }
@@ -1018,7 +1018,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // pareja 2026-07-10, punto 8). Si en 12s no aparece, abrimos el más reciente como antes.
     const tm=setTimeout(function(){
       const e=(state.expenses||[]).slice().sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); })[0];
-      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
+      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
       if(clearFocus) clearFocus();
     }, 12000);
     return function(){ clearTimeout(tm); };
@@ -1042,7 +1042,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        vaciar el estado de edición era justo lo contrario. Ahora se deja sincronizado con lo
        guardado, que es lo que ese comentario prometía. */
     const sincroniza=function(e){
-      setEditExp({ id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','),
+      setEditExp({ id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()),
         income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10) });
     };
     const origDay=String(orig.date||"").slice(0,10);
@@ -1382,7 +1382,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const chips=[{v:100,label:"100 €"},{v:200,label:"200 €"},{v:300,label:"300 €"}];
     if(cur>0) chips.push({v:0,label:t("g_cat_budget_clear")});
     askText({ title:tf("g_cat_budget_title",{cat:catName(id)}), sub:t("g_cat_budget_sub"),
-      ph:cur>0?String(cur).replace(".",","):"200", ok:t("save"), chips:chips })
+      ph:cur>0?String(cur).replace(".",numDecSep()):"200", ok:t("save"), chips:chips })
       .then(function(raw){
         if(raw==null) return;
         const amt=parseAmt(raw);
@@ -1562,7 +1562,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -2514,7 +2514,7 @@ const GX_DIGITOS=["0","1","2","3","4","5","6","7","8","9"];
 function GxCifra({n}){
   const ok=typeof n==="number"&&isFinite(n);
   if(!ok) return React.createElement("div",{className:"gx-num num"},React.createElement("span",{"data-testid":"gastos-cifra"},"—"));
-  const p=eurParts(n), ent=p.ent, dec=","+p.dec;
+  const p=eurParts(n), ent=p.ent, dec=p.sep+p.dec;
   const celdas=function(txt, base){
     const out=[];
     for(let i=0;i<txt.length;i++){

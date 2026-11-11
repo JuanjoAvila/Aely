@@ -178,3 +178,45 @@ test("la marca a mano se mezcla mes a mes entre dos móviles", async ({ page }) 
   expect(r).toEqual({ viejo: { mark: { 24322: 18 }, conflicts: 0 }, dosMeses: { mark: { 24321: 5, 24322: 18 }, conflicts: 0 },
     sinBase: { mark: { 24322: 18 }, conflicts: 0 } });
 });
+
+test("¿Te llega?: un traspaso entre bancos propios resta en el que sale y suma en el que llega", async ({ page }) => {
+  // Hecho a mano. Sabadell 3.000 → −200 (día 15) → −50 (Luz, día 25) = 2.750.
+  // Revolut 20 → +200 (día 15) → −31,99 (Netflix, día 20) = 188,01. Suma: 2.938,01, con traspaso o sin él.
+  const recibos = await abrePlan(page, {
+    accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 3000 }, { id: "rev", ent: "revolut", role: "fijos", value: 20 }],
+    fixed: [recibo("luz", "Luz", 50, 25), recibo("nfx", "Netflix", 31.99, 20, { account: "revolut" })],
+    flows: [{ id: "tr", kind: "transfer", name: "A Revolut", amount: 200, day: 15, from: "sabadell", to: "revolut" }],
+    trasAbonoDesde: 20261101
+  }, "2026-11-09T12:00:00+01:00");
+  const banco = (ent) => page.getByTestId("llega-sheet").locator('[data-testid="llega-banco"][data-bank="' + ent + '"]');
+  // Saldo pintado y fin del recorrido de cada banco, leídos del estado guardado con el motor de la app.
+  const cifras = (dia) => page.evaluate((d) => {
+    const s = mcLoadRaw(mcStateKey()), r = {};
+    ["sabadell", "revolut"].forEach((b) => {
+      const hoy = s.accounts.find((a) => a.ent === b).value + monthNetForAccount(s, b, 2026, 11, d);
+      r[b] = [Math.round(hoy * 100), Math.round(minWalk(hoy, bankPendingEvents(s, b, 2026, 11, d)).end * 100)];
+    });
+    return r;
+  }, dia);
+  await recibos.getByTestId("plan-llega").click();
+  await expect(banco("revolut")).toContainText("+ 200,00 €");
+  await expect(banco("revolut")).toContainText("Tienes hoy");
+  await expect(banco("revolut").getByTestId("llega-cifra")).toContainText("20,00 €");
+  await expect(banco("sabadell")).toContainText("− 200,00 €");
+  await expect(banco("sabadell").getByTestId("llega-cifra")).toContainText("2.750,00 €");
+  expect(await cifras(9)).toEqual({ sabadell: [300000, 275000], revolut: [2000, 18801] });
+  // Pasado el día 15 el dinero ya está en Revolut y a fin de mes queda lo mismo: nada salta.
+  await page.clock.setSystemTime(new Date("2026-11-16T12:00:00+01:00"));
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await page.locator('.page-live .v4-screen > [data-seg="recibos"]').getByTestId("plan-llega").click();
+  await expect(banco("revolut")).toContainText("220,00 €");
+  await expect(banco("revolut").getByTestId("llega-cifra")).toContainText("188,01 €");
+  await expect(banco("revolut")).not.toContainText("+ 200,00 €");
+  await expect(banco("sabadell")).toContainText("2.800,00 €");
+  await expect(banco("sabadell").getByTestId("llega-cifra")).toContainText("2.750,00 €");
+  expect(await cifras(16)).toEqual({ sabadell: [280000, 275000], revolut: [22000, 18801] });
+});

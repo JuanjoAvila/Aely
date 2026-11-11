@@ -19,6 +19,8 @@ async function investments(page){
   await page.getByRole("button",{name:/Ver todas tus inversiones|See all your investments|Veure totes les inversions/}).click();
   return page.locator("[data-inv-screen]");
 }
+// En inglés las cifras van en formato inglés («1,000.50 €»): la misma cifra, con los separadores cambiados.
+const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):txt;
 for(const [lang,notice,unconverted] of [["es","Total incompleto","Sin conversión"],["en","Incomplete total","Not converted"],["ca","Total incomplet","Sense conversió"]]){
   test(`FIN-06 ${lang}: original visible, totales parciales y sin ganancia falsa`,async({page})=>{
     await start(page,{settings:{autoPrices:false,lang,theme:"green",currency:"EUR"}});
@@ -26,7 +28,7 @@ for(const [lang,notice,unconverted] of [["es","Total incompleto","Sin conversió
     await expect(page.locator(".cartera-hero-amt")).toContainText(/1[.,]?100/);
     await expect(page.locator('[data-fx-incomplete]').first()).toContainText(notice);
     const account=page.locator('[data-ob-key="unknown"]');
-    await expect(account).toContainText(`700,00 XYZ · ${unconverted}`);
+    await expect(account).toContainText(`${cifra(lang,"700,00")} XYZ · ${unconverted}`);
     // La pestaña entra deslizando: medir con la fila quieta y las dos cajas en el MISMO frame.
     // Antes la cuenta del hero desde 0 hacía de espera sin querer; sin ella se medía a mitad de
     // camino y cada caja salía de un frame distinto (rojo de la beta 4.26.153).
@@ -35,7 +37,7 @@ for(const [lang,notice,unconverted] of [["es","Total incompleto","Sin conversió
     const boxes=await account.evaluate(el=>{const n=el.querySelector(".nm").getBoundingClientRect(),a=el.querySelector(".am").getBoundingClientRect();return {nameRight:n.right,amountLeft:a.left};});
     expect(boxes.nameRight).toBeLessThanOrEqual(boxes.amountLeft+1);
     await account.click();
-    await expect(page.locator(".v4-account-amount")).toContainText(`700,00 XYZ · ${unconverted}`);
+    await expect(page.locator(".v4-account-amount")).toContainText(`${cifra(lang,"700,00")} XYZ · ${unconverted}`);
     expect(await page.locator(".v4-account-amount").evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
     const roles=page.locator(".v4-ficha-op");
     await expect(roles).toHaveCount(3);
@@ -49,7 +51,7 @@ for(const [lang,notice,unconverted] of [["es","Total incompleto","Sin conversió
     await expect(screen.locator("[data-inv-hero] [data-act=inv-edit]")).toHaveCount(0);
     const broker=screen.locator('[data-inv-broker="revolut"]');await broker.locator("button").first().click();
     const row=screen.locator('[data-inv-position="foreign"]');
-    await expect(row).toContainText(`500,00 XYZ · ${unconverted}`);
+    await expect(row).toContainText(`${cifra(lang,"500,00")} XYZ · ${unconverted}`);
     await expect(row.locator(".rvsub")).toHaveCount(0);
     await expect.poll(()=>page.evaluate(()=>{
       const s=JSON.parse(localStorage.getItem("micartera_v3"));

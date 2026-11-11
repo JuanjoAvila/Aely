@@ -20,7 +20,9 @@ function heroRe(amount, sym) {
   const miles = raw.replace(/^(\d+)(,)/, function (_, ent, comma) {
     return ent.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + comma;
   });
-  return new RegExp((amount < 0 ? "-" : "") + "(?:" + miles.replace(/\./g, "\\.") + "|" + raw + ") " + sym);
+  // En inglés la misma cifra va como «2,500.00» (el formato exacto de cada idioma lo fija tests/cifras-por-idioma).
+  const ingles = miles.replace(/[.,]/g, function (c) { return c === "." ? "," : "."; });
+  return new RegExp((amount < 0 ? "-" : "") + "(?:" + miles.replace(/\./g, "\\.") + "|" + raw + "|" + ingles.replace(/\./g, "\\.") + ") " + sym);
 }
 
 async function actual(page, amount, sym = "€", points = false) {

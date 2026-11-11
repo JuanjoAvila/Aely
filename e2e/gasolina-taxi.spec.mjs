@@ -16,6 +16,8 @@ async function entry(page,merchant,category,amount){
   for(const digit of String(amount)) await sheet.locator(".v4-keys").getByRole("button",{name:digit,exact:true}).click();
   await sheet.locator(".v4-cta").click(); await expect(sheet).toHaveCount(0);
 }
+// En inglés las cifras van en formato inglés («1,000.50 €»): la misma cifra, con los separadores cambiados.
+const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):txt;
 for(const lang of ["es","en","ca"]){
   test(lang+": altas, selector y clasificación conservadora en DOM",async({page})=>{
     await installFixtureClock(page);
@@ -65,7 +67,7 @@ for(const lang of ["es","en","ca"]){
     await seedLoggedInDashboard(page,{accounts,settings:settings(lang),expenses,budget:500,categoryBudgets:{gasolina:100,taxi:50,transporte:90},__seedOnce:true});
     await open(page); await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
-    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("60,00 €");
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText(cifra(lang,"60,00 €"));
     await gastosSeccion(page,"cats");
     for(const [cat,spent,limit] of [["gasolina",30,100],["taxi",10,50],["transporte",7,90]]){
       const row=page.locator('.v4-gastos-cat[data-cat="'+cat+'"]');

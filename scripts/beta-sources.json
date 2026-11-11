@@ -1637,6 +1637,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -1658,6 +1674,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -3335,6 +3359,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -4872,6 +4904,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -7444,6 +7484,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -8988,6 +9036,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -9693,6 +9749,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "auditoria": {
@@ -11161,6 +11229,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentEvidence"
       },
       {
@@ -11174,6 +11250,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -11198,6 +11278,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -14099,6 +14187,18 @@
         "data": "ownTransferRecent"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -14111,12 +14211,28 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -15537,6 +15653,10 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -15555,6 +15675,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -17039,6 +17167,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -17642,6 +17778,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -17651,6 +17795,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -17681,12 +17833,24 @@
         "function": "catKey"
       },
       {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_DIAS"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -19276,6 +19440,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -19288,12 +19456,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -20175,6 +20355,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseSourcePatch"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -21824,6 +22016,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -23533,6 +23737,14 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -23551,6 +23763,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -25851,6 +26071,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -25863,12 +26087,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -27671,6 +27907,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -27683,12 +27923,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -28667,6 +28919,10 @@
         "function": "fixedPaymentPersistedDay"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -28713,6 +28969,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -30619,6 +30883,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ]
   },
@@ -32110,6 +32386,18 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -32128,6 +32416,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -33635,6 +33931,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -34977,7 +35281,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -34986,6 +35298,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -36463,6 +36783,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -37970,6 +38298,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -37991,6 +38335,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -39293,7 +39645,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -39302,6 +39662,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -41159,6 +41527,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -41170,12 +41546,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -42653,6 +43041,18 @@
         "function": "fixedPaymentPersistedDay"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -42687,6 +43087,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -44985,12 +45393,40 @@
         "function": "fixedPaymentContender"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -45107,6 +45543,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -46609,6 +47057,18 @@
         "function": "fixedPaymentPersistedDay"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -46643,6 +47103,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -48116,6 +48584,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -48133,6 +48617,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -50163,6 +50655,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -50171,7 +50667,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -50180,6 +50684,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -51371,6 +51883,10 @@
         "function": "fixedPaymentPersistedDay"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -51381,6 +51897,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -51401,6 +51921,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -53695,6 +54223,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -53706,12 +54242,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -54287,6 +54835,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "edge": [
@@ -55592,6 +56152,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -55610,6 +56174,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -55687,6 +56259,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -57240,6 +57824,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -57252,12 +57840,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -58658,6 +59258,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -58676,6 +59280,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -58865,6 +59477,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -59985,6 +60609,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -60003,6 +60631,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -61224,6 +61860,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -61242,6 +61882,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -61312,6 +61960,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -62536,6 +63196,14 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -62554,6 +63222,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -63566,6 +64242,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -64799,6 +65487,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "native": [
@@ -65885,11 +66589,35 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -67527,6 +68255,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -67539,12 +68271,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -68641,6 +69385,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -68659,6 +69407,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -69947,6 +70703,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -69965,6 +70725,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -71057,11 +71825,35 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -72336,6 +73128,14 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -72354,6 +73154,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -73713,6 +74521,10 @@
         "function": "billsCuotaAnualDe"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -73747,6 +74559,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -75488,6 +76308,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -75496,7 +76324,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -75505,6 +76341,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -76911,6 +77755,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "catOf"
       },
       {
@@ -76928,6 +77776,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -78226,6 +79082,14 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -78244,6 +79108,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -79567,6 +80439,10 @@
         "function": "billsCuotaAnualDe"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -79601,6 +80477,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -80101,7 +80985,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -80120,6 +81016,10 @@
         "function": "cuotaAliasKey"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "isAtmWithdrawal"
       },
@@ -80136,6 +81036,14 @@
         "function": "catKey"
       },
       {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_DIAS"
       },
@@ -80150,6 +81058,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -81121,12 +82033,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -81224,6 +82148,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NOTE_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -83329,6 +84265,18 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -83340,12 +84288,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -85587,6 +86547,18 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -85596,6 +86568,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -85608,6 +86584,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -87160,6 +88144,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -87172,12 +88160,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -88464,6 +89464,14 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -88482,6 +89490,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -89467,12 +90483,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -89701,6 +90729,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -90668,12 +91712,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -91902,6 +92958,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -91920,6 +92980,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -93585,6 +94653,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -93597,12 +94669,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -94746,6 +95830,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -94764,6 +95852,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -95940,6 +97036,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -95958,6 +97058,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -97203,6 +98311,18 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -97226,6 +98346,10 @@
         "function": "fixedMonthlyOf"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -97236,6 +98360,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedChargeMonths"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -98864,6 +99996,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -98876,12 +100012,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -100563,6 +101711,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -100572,7 +101724,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -100581,6 +101745,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -102166,6 +103338,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -102178,12 +103354,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -103764,6 +104952,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -103776,12 +104968,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -105358,6 +106562,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -105370,12 +106578,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -106746,6 +107966,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -108516,6 +109744,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -108528,12 +109760,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -110151,6 +111395,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "sellarAbonoTraspasos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -110159,7 +111407,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -110168,6 +111424,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -111751,6 +113015,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -111763,12 +113031,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -113412,6 +114692,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -113424,12 +114708,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -113832,6 +115128,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -113841,6 +115145,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -113881,6 +115189,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -114493,7 +115805,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -114512,6 +115836,10 @@
         "function": "cuotaAliasKey"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "isAtmWithdrawal"
       },
@@ -114528,6 +115856,14 @@
         "function": "catKey"
       },
       {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_DIAS"
       },
@@ -114542,6 +115878,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -116222,6 +117562,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -116231,7 +117575,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -116240,6 +117596,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -117920,6 +119284,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -117929,7 +119297,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -117938,6 +119318,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -119499,7 +120887,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -119516,6 +120916,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -120904,7 +122312,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -120913,6 +122333,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -122411,6 +123839,18 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentCobroDistintoMes"
       },
       {
@@ -122424,6 +123864,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -125390,6 +126838,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -125399,6 +126855,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -125415,6 +126875,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -126733,12 +128201,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -127864,6 +129344,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -127882,6 +129366,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -128426,7 +129918,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -128445,6 +129949,10 @@
         "function": "cuotaAliasKey"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "isAtmWithdrawal"
       },
@@ -128461,6 +129969,14 @@
         "function": "catKey"
       },
       {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_DIAS"
       },
@@ -128475,6 +129991,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -129989,6 +131509,10 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -130003,6 +131527,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -131541,6 +133073,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obConfirmedReadCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       }
     ],
     "unidades": true
@@ -133092,7 +134636,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -133109,6 +134665,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -134734,6 +136298,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsPausado"
       },
       {
@@ -134777,6 +136349,10 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "billsHoyDe"
       },
@@ -134791,6 +136367,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -136452,7 +138036,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -136469,6 +138065,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -136937,7 +138541,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -136956,6 +138572,10 @@
         "function": "cuotaAliasKey"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "isAtmWithdrawal"
       },
@@ -136972,6 +138592,14 @@
         "function": "catKey"
       },
       {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_DIAS"
       },
@@ -136986,6 +138614,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138400,7 +140032,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138409,6 +140053,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -141113,6 +142765,10 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
@@ -141127,6 +142783,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -142751,6 +144415,10 @@
         "data": "INCOME_OWN_TRANSFER_COLS"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -142763,12 +144431,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -144145,12 +145825,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -145716,7 +147408,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -145733,6 +147437,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -148144,12 +149856,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -149705,6 +151429,10 @@
         "data": "MANUAL_BALANCE_TYPED"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
@@ -149717,12 +151445,24 @@
         "function": "fixedPaymentRivalPorImporte"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -150482,11 +152222,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "flowConfirmedDay"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "flowBankPaid"
+        "function": "flowLlegoIn"
       },
       {
         "file": "src/modules/00-core.js",
@@ -150686,7 +152422,11 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "flowEarlyBankTx"
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowBankPaid"
       },
       {
         "file": "src/modules/00-core.js",
@@ -150782,7 +152522,7 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "flowEarlyBankMatches"
+        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -150805,6 +152545,10 @@
         "function": "obAbsorbedStorageKey"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankMatches"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "obConfirmedRead"
       },
@@ -150815,6 +152559,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "obAbsorbedDisk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
       },
       {
         "file": "src/modules/00-core.js",
@@ -150955,6 +152703,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "expenseConfirmedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -151267,6 +153023,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mcBetaLog"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
       },
       {
         "file": "src/modules/00-core.js",

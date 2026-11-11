@@ -49,7 +49,7 @@ test('G control civil month closure',async({page})=>{
  await toggle(page);const back=await snap(page,'cycle-restored-after-closure');expect(back.amount).toBe('0,01 €');expect(back.ring).toBe('99%');
 });
 for(const lang of ['es','en','ca'])test('G positive cent display '+lang,async({page})=>{
- await boot(page,profile(profiles[0],lang));await toggle(page);const b=await snap(page,'causal-rounded-zero');expect(cents(b.stats.remaining)).toBe(1);expect(b.amount).toBe('0,01 €');expect(parseFloat(b.stroke)).toBeGreaterThan(0);
+ await boot(page,profile(profiles[0],lang));await toggle(page);const b=await snap(page,'causal-rounded-zero');expect(cents(b.stats.remaining)).toBe(1);expect(b.amount).toBe(lang==='en'?'0.01 €':'0,01 €');expect(parseFloat(b.stroke)).toBeGreaterThan(0);
  // Queda un céntimo: se ha usado el 99,99 %, que no se redondea a 100 hasta llegar al límite.
  expect(b.ring).toBe('99%');
  // Y con un solo céntimo USADO (vista de ciclo) se lee «<1 %», no «0 %».

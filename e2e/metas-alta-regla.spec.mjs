@@ -16,11 +16,11 @@ const textos={
     sinIngreso:"Ahora mismo no hay ningún ingreso detectado para repartir. Las reglas esperan al siguiente.",
     pendiente:/^Hay un ingreso del \d{1,2}\/\d{1,2} pendiente de repartir: confírmalo en el aviso de arriba\.$/,apply:"Aplicar reparto"},
   en:{metas:"Goals",title:"Reserve money from your income",add:"+ Add rule",save:"Save rule",cancel:"Cancel",
-    miles:"1,200",mixto:"1,200.50",filaMiles:/1\.200\s€ every month/,filaMixto:/1\.200,50\s€ every month/,ambiguo:"1.200",
+    miles:"1,200",mixto:"1,200.50",filaMiles:/1,200\s€ every month/,filaMixto:/1,200\.50\s€ every month/,ambiguo:"1.200",
     errImporte:"Enter an amount above 0, for example 1200 or 1200.50.",errPct:"The percentage must be above 0 and no more than 100.",
     repartido:/^The income from \d{1,2}\/\d{1,2} has already been split\. Rules you add now don't change that split: they apply to the next one detected\.$/,
     errMeta:"Choose a goal that is still active.",sinPlan:"These rules have no amount to split. Check the rules and their goals.",
-    borrar:"Delete rule",guardarMetas:"Save changes",editar:"Edit goals",eliminar:"Delete goal",aviso:/Income detected: 2\.100\s€/,pctTipo:"% of monthly budget",mesOk:(x)=>new RegExp("^This month: "+x+"\\s€ deducted from the budget and added to the goal\\.$"),
+    borrar:"Delete rule",guardarMetas:"Save changes",editar:"Edit goals",eliminar:"Delete goal",aviso:/Income detected: 2,100\s€/,pctTipo:"% of monthly budget",mesOk:(x)=>new RegExp("^This month: "+x+"\\s€ deducted from the budget and added to the goal\\.$"),
     sinIngreso:"There's no detected income to split right now. Your rules are waiting for the next one.",
     pendiente:/^There's income from \d{1,2}\/\d{1,2} waiting to be split: confirm it in the notice above\.$/,apply:"Apply split"},
   ca:{metas:"Metes",title:"Reservar diners dels teus ingressos",add:"+ Afegir regla",save:"Desar regla",cancel:"Cancel·la",
@@ -195,8 +195,8 @@ for(const lang of Object.keys(textos)){
     await expect(aviso).toContainText("Regla A");
     // La mensual no entra en el reparto del ingreso: cobrarla aquí sería descontarla dos veces.
     await expect(aviso).not.toContainText("Con centimos");
-    // El dinero se pinta con formato español en los tres idiomas (así es la app hoy).
-    await expect(fila(page,"Con centimos").locator("[data-reserva-mensual]")).toHaveText(t.mesOk("1\\.200,50"));
+    // El dinero se pinta con el formato del idioma: en inglés, «1,200.50».
+    await expect(fila(page,"Con centimos").locator("[data-reserva-mensual]")).toHaveText(t.mesOk(lang==="en"?"1,200\\.50":"1\\.200,50"));
     await page.getByRole("button",{name:t.apply,exact:true}).click();
     await expect(page.getByRole("button",{name:t.apply,exact:true})).toHaveCount(0);
     await expect(page.locator("[data-reserva-estado]")).toHaveAttribute("data-reserva-estado","repartido");

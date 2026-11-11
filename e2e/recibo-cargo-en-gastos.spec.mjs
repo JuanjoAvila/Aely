@@ -59,6 +59,8 @@ async function abre(page, lang, otro) {
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
+// En inglés las cifras van en formato inglés («1,000.50 €»): la misma cifra, con los separadores cambiados.
+const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):txt;
 for (const lang of ["es", "en", "ca"]) {
   test(lang + ": al actualizar, el adeudo sale en Gastos con su recibo, el recibo queda pagado y el gastado no lo cuenta", async ({ page }) => {
     await abre(page, lang);
@@ -67,7 +69,7 @@ for (const lang of ["es", "en", "ca"]) {
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await expect(fila(page, "Compra de control")).toHaveCount(1);
     await expect(fila(page, "COMUNIDAD DE PROPIETARIOS")).toHaveCount(0);
-    expect(await gastado(page)).toContain("20,00");
+    expect(await gastado(page)).toContain(cifra(lang, "20,00"));
 
     await page.locator('.botnav-tab[data-tour="cartera"]').click();
     await page.getByRole("button", { name: textos.sync }).click();
@@ -98,7 +100,7 @@ for (const lang of ["es", "en", "ca"]) {
     expect(cifras.neto).toBe(-80);
     // El saldo que queda tras sincronizar es el que dice el banco, no el banco más el recibo.
     expect(cifras.saldo).toBeCloseTo(1900, 2);
-    expect(await gastado(page)).toContain("23,40");
+    expect(await gastado(page)).toContain(cifra(lang, "23,40"));
 
     // La ficha dice a qué recibo corresponde y deja corregirlo.
     // Lo que solo se parece a un recibo sigue sin contar, como cuando se tiraba, pero pregunta…

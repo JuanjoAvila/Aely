@@ -11,11 +11,34 @@ function entFromAspsp(name){
   }
   return null;
 }
+/* Banco propio que RECIBE un traspaso previsto, o null si ese dinero sale de tus cuentas.
+   Antes el traspaso restaba en el origen y no sumaba en ningún sitio: «¿Te llega?» decía que
+   faltaba dinero en el banco al que se lo ibas a mandar (auditoría de Recibos, P1-12).
+   Es la ÚNICA regla: la leen el saldo (`monthNetForAccount`, 07), el previsto a fin de mes
+   (`totals`, 11) y el recorrido (`pendingWalkEvents`); si una suma y otra no, la cifra
+   salta al pasar el día (por eso se retiró el primer intento, 9/11/2026).
+   · Solo abona en un banco con cuenta de recibos: es donde el saldo sigue al calendario.
+   · La cuenta de gasto diario con recarga mensual ya recibe ese dinero por `inject`.
+   · `trasAbonoDesde` (aaaammdd, se sella al cargar) es el día en que esta regla llegó a la
+     cartera: lo de ese día o antes no abona, o el saldo de una cuenta a mano subiría de golpe
+     por un traspaso que quizá ya llevaba dentro. Sin sello no abona nada (lo de siempre). */
+function flowAbonaEn(s,f,y,m){
+  if(!s||!f||f.kind!=="transfer"||!f.to||f.to===(f.from||"sabadell")||s.trasAbonoDesde==null) return null;
+  const cs=(s.accounts||[]).filter(function(a){ return a&&a.ent===f.to; });
+  if(!cs.some(accFixed)||cs.some(function(a){ return a.spendFrom&&accInject(a)>0; })) return null;
+  return y*10000+m*100+(flowDay(f,y,m)||99)>Number(s.trasAbonoDesde) ? f.to : null;
+}
+function sellarAbonoTraspasos(s){
+  if(!s||s.trasAbonoDesde!=null) return s;
+  const n=new Date();
+  return Object.assign({},s,{trasAbonoDesde:n.getFullYear()*10000+(n.getMonth()+1)*100+n.getDate()});
+}
 /* Un ingreso previsto puede entrar antes de su día editable. El saldo del banco ya lo incluye:
    volver a proyectarlo sumaría la misma nómina dos veces (feedback 27/9). Solo adelantamos el
    estado con UN abono confirmado en ese banco y mes; otro ingreso similar queda pendiente. */
 function flowEarlyBankMatches(s,f,y,m,today){
-  if(!f||f.kind!=="income"||!(Number(f.amount)>0)) return [];
+  // Un traspaso a otro banco tuyo es, para el que lo recibe, una entrada más (`flowAbonaEn`).
+  if(!f||!(Number(f.amount)>0)||(f.kind!=="income"&&!flowAbonaEn(s,f,y,m))) return [];
   const planned=flowDay(f,y,m);
   if(planned==null) return [];
   const bank=f.to||"sabadell", ym=y+"-"+String(m).padStart(2,"0"), amount=Number(f.amount);
@@ -48,7 +71,13 @@ function flowConfirmedDay(f,y,m){
     && f.paidBank===(f.to||"sabadell") && f.paidAmount===Number(f.amount)
     ? f.paidDay : null;
 }
+/* Un traspaso tiene dos patas. La que SALE va por calendario (el extracto del destino no dice
+   si el origen es una cuenta a mano que aún no lo ha restado); la que LLEGA puede adelantarse
+   si el banco que recibe ya la trae, igual que una nómina (`flowLlegoIn`). */
 function flowPaidIn(s,f,y,m,today){
+  return f&&f.kind==="transfer" ? flowPaid(f,y,m,today) : flowLlegoIn(s,f,y,m,today);
+}
+function flowLlegoIn(s,f,y,m,today){
   const confirmed=flowConfirmedDay(f,y,m);
   return flowPaid(f,y,m,today) || confirmed!=null&&confirmed<=today
     || flowBankPaid(s,f,y,m,today);
@@ -2084,6 +2113,13 @@ function pendingWalkEvents(state, y, m, today){
     const dd=flowDay(f,y,m), tag={kind:f.kind,id:f.id,name:f.name};
     if(f.kind==="income") evs.push(Object.assign({bank:f.to||"sabadell", day:dd||99, amt:f.amount},tag));
     else if(f.kind==="transfer") evs.push(Object.assign({bank:f.from||"sabadell", day:dd||0, amt:-f.amount},tag));
+  });
+  // Lo que un traspaso deja en el banco que lo recibe (`flowAbonaEn`). Sin día, al final,
+  // como las entradas: prudente. Si ese banco ya lo trae en su extracto, está en su saldo.
+  (state.flows||[]).forEach(function(f){
+    const to=flowOccursIn(f,m,y)?flowAbonaEn(state,f,y,m):null;
+    if(!to||flowLlegoIn(state,f,y,m,today)) return;
+    evs.push({bank:to, day:flowDay(f,y,m)||99, amt:f.amount, kind:"transfer", id:f.id, name:f.name});
   });
   return evs;
 }
