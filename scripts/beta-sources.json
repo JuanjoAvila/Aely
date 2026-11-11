@@ -1641,6 +1641,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "flowAbonaEn"
       },
       {
@@ -1672,12 +1676,24 @@
         "function": "cuotaAliasKey"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "isAtmWithdrawal"
       },
       {
         "file": "src/modules/00-core.js",
         "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -1702,6 +1718,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
@@ -11245,6 +11273,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -11265,6 +11297,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -11278,6 +11314,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -11302,6 +11346,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -14223,6 +14279,10 @@
         "function": "fixedEstadoMes"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "nfIngles"
       },
@@ -14237,6 +14297,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -14257,6 +14329,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
@@ -17790,6 +17874,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "flowAbonaEn"
       },
       {
@@ -17818,6 +17906,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -17831,6 +17923,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -17859,6 +17959,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -19450,6 +19562,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -23754,6 +23874,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -26084,6 +26212,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -27917,6 +28053,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -38310,6 +38454,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "flowAbonaEn"
       },
       {
@@ -38341,12 +38489,24 @@
         "function": "cuotaAliasKey"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "isAtmWithdrawal"
       },
       {
         "file": "src/modules/00-core.js",
         "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -38371,6 +38531,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
@@ -45407,6 +45579,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -57841,6 +58021,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -66605,6 +66793,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
       },
       {
@@ -66649,6 +66841,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedChargeMonths"
       },
       {
@@ -66666,6 +66862,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -66690,6 +66894,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       }
     ],
     "unidades": true
@@ -68317,6 +68533,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -71889,6 +72113,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentRivalPorImporte"
       },
       {
@@ -71933,6 +72161,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedChargeMonths"
       },
       {
@@ -71950,6 +72182,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -71974,6 +72214,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       }
     ],
     "unidades": true
@@ -76421,6 +76673,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -81089,6 +81349,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -81137,6 +81401,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -81170,6 +81438,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "billsCuotasEnAno"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -81206,6 +81482,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -86731,6 +87019,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentEvidence"
       },
       {
@@ -86740,6 +87032,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -86760,6 +87064,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
@@ -88302,6 +88618,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -94814,6 +95138,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -100153,6 +100485,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -101868,11 +102208,23 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsGroupRows"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -101920,6 +102272,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -101947,6 +102303,14 @@
         "function": "billsCuotasEnAno"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
+      },
+      {
         "file": "src/modules/00-core.js",
         "data": "NF_EN"
       },
@@ -101961,6 +102325,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -103544,6 +103920,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -105161,6 +105545,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -106768,6 +107160,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -109950,6 +110350,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -113224,6 +113632,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -114901,6 +115317,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -115993,6 +116417,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -116021,6 +116449,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -116034,6 +116466,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -116066,6 +116506,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -117759,6 +118211,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedEstadoMes"
       },
       {
@@ -117787,11 +118247,27 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -117812,6 +118288,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       }
     ],
     "unidades": true
@@ -119485,6 +119973,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedEstadoMes"
       },
       {
@@ -119513,11 +120009,27 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -119538,6 +120050,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       }
     ],
     "unidades": true
@@ -121107,6 +121631,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentCobroDistintoMes"
       },
       {
@@ -121120,6 +121648,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -121136,6 +121672,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "FIXED_A_MANO_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -122536,6 +123084,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedMonthlyOf"
       },
       {
@@ -122568,6 +123120,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedChargeMonths"
       },
       {
@@ -122593,6 +123153,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -124107,6 +124679,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentCobroDistintoMes"
       },
       {
@@ -124120,6 +124696,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -124136,6 +124720,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "FIXED_A_MANO_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -127122,6 +127718,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentCobroDistintoMes"
       },
       {
@@ -127135,6 +127735,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -127151,6 +127759,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "FIXED_A_MANO_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -130170,6 +130790,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -130198,6 +130822,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -130211,6 +130839,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -130243,6 +130879,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -131727,6 +132375,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -134908,6 +135560,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentEvidence"
       },
       {
@@ -134927,6 +135583,14 @@
         "function": "fixedPaymentFilasBanco"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
+      },
+      {
         "file": "src/modules/00-core.js",
         "data": "NF_EN"
       },
@@ -134937,6 +135601,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -136558,6 +137234,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedEstadoMes"
       },
       {
@@ -136618,6 +137298,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsHoyDe"
       },
       {
@@ -136639,6 +137327,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NF_ES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138272,7 +138972,15 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138320,6 +139028,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "billsHoyDe"
       },
       {
@@ -138345,6 +139061,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_SOLAPES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -138801,6 +139529,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -138829,6 +139561,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -138842,6 +139578,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/00-core.js",
@@ -138874,6 +139618,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -140292,6 +141048,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -140340,6 +141100,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -140365,6 +141133,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NF_ES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -144728,6 +145508,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -147712,6 +148500,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -147744,6 +148536,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentAdeudo"
       },
       {
@@ -147765,6 +148565,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "FIXED_A_MANO_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -151746,6 +152558,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContender"
       },
       {
@@ -152322,6 +153142,10 @@
         "function": "manualBalanceModel"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "catOf"
       },
@@ -152608,6 +153432,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -153072,6 +153904,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
       },
       {
         "file": "src/modules/00-core.js",

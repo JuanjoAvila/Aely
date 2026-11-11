@@ -12,8 +12,8 @@ const recibo = (id, name, amount, day, extra) => Object.assign({ id, name, amoun
 const mama = { id: "mama", name: "Mamá", monthly: 197, amort: 250, value: 5000, account: "sabadell", day: 20, asOf: YM - 1 };
 const pepe = recibo("pepe", "Pepephone", 22, 20, { bankAmount: 85, reparto: [
   { id: "pe_pareja", n: "Pareja", via: "bizum", amt: 10 }, { id: "pe_fam", n: "Familia", via: "debt", debtId: "mama", amt: 53 }] });
-const yt = recibo("yt", "YouTube Premium", 5, 22, { bankAmount: 30, reparto: [["pe_pareja", "Pareja", "bizum"], ["pe_dani", "Dani", "transfer"], ["pe_marta", "Marta", "transfer"],
-  ["pe_alex", "Álex", "transfer"], ["pe_lucia", "Lucía", "transfer"]].map((x) => ({ id: x[0], n: x[1], via: x[2], amt: 5, auto: true })) });
+const yt = recibo("yt", "YouTube Premium", 5, 22, { bankAmount: 30, reparto: [["pe_pareja", "Pareja", "bizum"], ["pe_nico", "Nico", "transfer"], ["pe_greta", "Greta", "transfer"],
+  ["pe_oscar", "Óscar", "transfer"], ["pe_iria", "Iria", "transfer"]].map((x) => ({ id: x[0], n: x[1], via: x[2], amt: 5, auto: true })) });
 const luz = recibo("luz", "Luz", 50, 19);
 
 async function abrePlan(page, overrides) {
@@ -97,19 +97,19 @@ test("Te deben: por persona, «Ya me lo ha pagado» y la familia (lo descuento) 
   let s = await guardado(page);
   expect(s.fixed.find((f) => f.id === "pepe").repartoCobrado).toEqual({ [YM]: ["pe_pareja"] });
   expect(s.fixed.find((f) => f.id === "yt").repartoCobrado).toEqual({ [YM]: ["pe_pareja"] });
-  for (const id of ["pe_dani", "pe_marta", "pe_alex", "pe_lucia"]) await sheet.locator('[data-persona="' + id + '"] [data-act="deben-pagado"]').click();
+  for (const id of ["pe_nico", "pe_greta", "pe_oscar", "pe_iria"]) await sheet.locator('[data-persona="' + id + '"] [data-act="deben-pagado"]').click();
   await expect(sheet.getByTestId("deben-todos")).toBeVisible();
   await expect(pill).toHaveCount(0);
   // Deshacer una marca la devuelve a lo que debe.
-  await sheet.locator('[data-persona="pe_dani"] [data-act="deben-pagado"]').click();
+  await sheet.locator('[data-persona="pe_nico"] [data-act="deben-pagado"]').click();
   await expect(pill).toHaveText("Te deben 5,00 €");
   await page.goBack();
   await expect(fila(recibos, "fixed_yt")).toContainText("te han pagado 4 de 5");
   // Ninguna cifra de Plan se mueve por cobrar a los demás: lo tuyo sigue siendo lo tuyo.
   await expect(total(recibos)).toHaveText("327,00 €");
-  // Al volver a abrir, quien ya pagó baja al final y solo Dani queda con su botón.
+  // Al volver a abrir, quien ya pagó baja al final y solo Nico queda con su botón.
   await pill.click();
-  await expect(sheet.getByTestId("deben-persona").first()).toHaveAttribute("data-persona", "pe_dani");
+  await expect(sheet.getByTestId("deben-persona").first()).toHaveAttribute("data-persona", "pe_nico");
   await expect(sheet.locator('[data-act="deben-pagado"][aria-pressed="false"]')).toHaveCount(1);
   await expect(sheet.getByTestId("deben-total")).toHaveText("5,00 €");
 });

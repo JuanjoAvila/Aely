@@ -6358,10 +6358,29 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
   const source=f=>nl(read(f)),old=f=>nl(sourceBeta212(f));
   assert.equal(before[0].v,"4.26.212");
   const notes=JSON.parse(source("src/data/release-notes.json"));
-  assert.equal(notes[0].v,"4.26.227");assert.deepEqual(notes[0].tandas,[],"la 227 (Recibos más fluido, el traspaso entre tus bancos suma en el que lo recibe y cifras en inglés) no lleva tanda propia: su paso va en la de la 213");assert.equal(notes[1].v,"4.26.226");assert.deepEqual(notes[1].tandas,[],"la 226 (un cargo sin nombre no paga dos recibos que acaban la prueba el mismo mes) no lleva tanda propia");assert.equal(notes[2].v,"4.26.225");assert.deepEqual(notes[2].tandas,[],"la 225 (remates de la revisión de la 224: lo ensanchado de la prueba no le quita el cargo a otro recibo y no se ensancha hacia atrás) no lleva tanda propia");assert.equal(notes[3].v,"4.26.224");assert.deepEqual(notes[3].tandas,[],"la 224 (el desliz de la fila solo desde la cifra y el cargo del mes de fin de la prueba en su día de siempre) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[4].v,"4.26.223");assert.deepEqual(notes[4].tandas,[],"la 223 (auditoría de la 222: el día de la prueba gratis en aviso y ficha, «No ha llegado», el ojo con el aviso, el mes cerrado sin datos y el panel de 36 pasos) no lleva tanda propia");assert.equal(notes[5].v,"4.26.222");assert.deepEqual(notes[5].tandas,[],"la 222 (remates de la revisión de la 221: el día del primer cobro tras la prueba, el pago final y lo ya pagado al año) no lleva tanda propia");assert.equal(notes[6].v,"4.26.221");assert.deepEqual(notes[6].tandas,[],"la 221 (Recibos G y H: «Te deben», buscar con punto, prueba gratis, permanencia y deslizar) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[7].v,"4.26.220");assert.deepEqual(notes[7].tandas,[],"la 220 (segunda ronda de la revisión de la 219: cuotas al año y descuento de un pausado) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[8].v,"4.26.219");assert.deepEqual(notes[8].tandas,[],"la 219 (remates de la revisión de la 218: el año con pausas y el simulador) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[9].v,"4.26.218");assert.deepEqual(notes[9].tandas,[],"la 218 (Tus recibos: el pausado no suma y la barra se ve) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[10].v,"4.26.217");assert.deepEqual(notes[10].tandas,[],"la 217 (Recibos D1 y D2) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[11].v,"4.26.216");assert.deepEqual(notes[11].tandas,[],"la 216 (auditoría de Recibos) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[12].v,"4.26.215");assert.deepEqual(notes[12].tandas,[],"la 215 (Deudas) no lleva tanda propia");assert.equal(notes[13].v,"4.26.214");assert.deepEqual(notes[13].tandas,[],"la 214 no lleva tanda propia: la zona Recibos sigue en la 213");const n213=notes[14];assert.equal(n213.v,"4.26.213");assert.equal(notes.length,before.length+15);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.equal(notes[0].v,"4.26.228");assert.deepEqual(notes[0].tandas,[],"la 228 (recorte del guion sin pasos repetidos, «Te deben» con lo que te llega, el teclado de «Te llega» y Gastos sin lo que ya es recibo) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[1].v,"4.26.227");assert.deepEqual(notes[1].tandas,[],"la 227 (Recibos más fluido, el traspaso entre tus bancos suma en el que lo recibe y cifras en inglés) no lleva tanda propia: su paso va en la de la 213");assert.equal(notes[2].v,"4.26.226");assert.deepEqual(notes[2].tandas,[],"la 226 (un cargo sin nombre no paga dos recibos que acaban la prueba el mismo mes) no lleva tanda propia");assert.equal(notes[3].v,"4.26.225");assert.deepEqual(notes[3].tandas,[],"la 225 (remates de la revisión de la 224: lo ensanchado de la prueba no le quita el cargo a otro recibo y no se ensancha hacia atrás) no lleva tanda propia");assert.equal(notes[4].v,"4.26.224");assert.deepEqual(notes[4].tandas,[],"la 224 (el desliz de la fila solo desde la cifra y el cargo del mes de fin de la prueba en su día de siempre) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[5].v,"4.26.223");assert.deepEqual(notes[5].tandas,[],"la 223 (auditoría de la 222: el día de la prueba gratis en aviso y ficha, «No ha llegado», el ojo con el aviso, el mes cerrado sin datos y el panel de 36 pasos) no lleva tanda propia");assert.equal(notes[6].v,"4.26.222");assert.deepEqual(notes[6].tandas,[],"la 222 (remates de la revisión de la 221: el día del primer cobro tras la prueba, el pago final y lo ya pagado al año) no lleva tanda propia");assert.equal(notes[7].v,"4.26.221");assert.deepEqual(notes[7].tandas,[],"la 221 (Recibos G y H: «Te deben», buscar con punto, prueba gratis, permanencia y deslizar) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[8].v,"4.26.220");assert.deepEqual(notes[8].tandas,[],"la 220 (segunda ronda de la revisión de la 219: cuotas al año y descuento de un pausado) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[9].v,"4.26.219");assert.deepEqual(notes[9].tandas,[],"la 219 (remates de la revisión de la 218: el año con pausas y el simulador) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[10].v,"4.26.218");assert.deepEqual(notes[10].tandas,[],"la 218 (Tus recibos: el pausado no suma y la barra se ve) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[11].v,"4.26.217");assert.deepEqual(notes[11].tandas,[],"la 217 (Recibos D1 y D2) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[12].v,"4.26.216");assert.deepEqual(notes[12].tandas,[],"la 216 (auditoría de Recibos) no lleva tanda propia: sus pasos van en la de la 213");assert.equal(notes[13].v,"4.26.215");assert.deepEqual(notes[13].tandas,[],"la 215 (Deudas) no lleva tanda propia");assert.equal(notes[14].v,"4.26.214");assert.deepEqual(notes[14].tandas,[],"la 214 no lleva tanda propia: la zona Recibos sigue en la 213");const n213=notes[15];assert.equal(n213.v,"4.26.213");assert.equal(notes.length,before.length+16);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
   // Todo lo anterior intacto salvo las siete tandas retiradas, que dejan la propiedad como lista vacía.
-  const esperado=before.map(n=>{const out=structuredClone(n);if(retiradas[n.v])out.tandas=(n.tandas||[]).filter(g=>!retiradas[n.v].includes(g.id));return out;});
-  assert.deepEqual(notes.slice(15),esperado);
+  // 4.26.228 (petición del dueño antes de probar la ronda: «que no hayan pruebas duplicadas porfa que sean pruebas reales»): seis tandas
+  // reabiertas por la 227 reescriben SOLO sus pasos (fundidos los de la misma pantalla, fuera lo que pedía esperar días); id, título y
+  // claves, intactos. deuda-tae-con-descuento, tr-inversion-mensual y deuda-ponle-dia no se tocan: las dos primeras no se movieron.
+  const reescritas={"recibo-cargo-pendiente":1,"traspaso-ingreso-manual":3,"traspaso-propio-confirmado":4,"deuda-lo-descuento":6,"pro03-aviso-te-llega":1,"informe-mes-limite-del-mes":1};
+  const ahoraDe=id=>notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  const esperado=before.map(n=>{const out=structuredClone(n);if(retiradas[n.v])out.tandas=(n.tandas||[]).filter(g=>!retiradas[n.v].includes(g.id));
+    if(out.tandas)out.tandas=out.tandas.map(g=>reescritas[g.id]?{...g,items:ahoraDe(g.id).items}:g);return out;});
+  assert.deepEqual(notes.slice(16),esperado);
+  for(const [id,n] of Object.entries(reescritas)){
+    const vieja=before.flatMap(x=>x.tandas||[]).find(g=>g.id===id),g=ahoraDe(id);
+    assert.deepEqual(Object.keys(g),Object.keys(vieja),id+": mismas claves");assert.deepEqual(g.t,vieja.t,id+": mismo título");
+    for(const lang of ["es","en","ca"]){
+      const steps=g.items[lang];
+      assert.equal(steps.length,n,id+" "+lang+": pasos");
+      assert.ok(steps.length<vieja.items[lang].length||id==="pro03-aviso-te-llega",id+": no crece");
+      assert.ok(steps.every((x,i)=>x.startsWith((i+1)+". ")),id+" "+lang+": numerados");
+      for(const x of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(x)&&/BIEN|RIGHT|BÉ/.test(x),id+" "+lang+": BIEN y MAL");
+    }
+  }
+  assert.ok(ahoraDe("recibo-cargo-pendiente").items.es[0].includes("Pendiente del banco · podrás elegirlo al confirmarse"),"el cargo pendiente sigue citando su rótulo");
+  assert.ok(ahoraDe("informe-mes-limite-del-mes").items.es[0].includes("del 1 al 5"),"el informe dice cuándo sale la tarjeta");
   for(const [v,ids] of Object.entries(retiradas)){
     const vieja=before.find(n=>n.v===v),ahora=notes.find(n=>n.v===v);
     assert.ok(Array.isArray(ahora.tandas),v+": la propiedad tandas sigue ahí");
@@ -6389,7 +6408,12 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     // 4.26.224 (petición del dueño): la fila solo se desliza desde la cifra; 33-34 piden el dedo sobre el importe y el 35
     // suma deslizar desde el nombre (vas a Cartera). Siguen 36.
     // 4.26.227 (L): el 37, un traspaso previsto entre dos bancos tuyos y las cifras con la app en inglés.
-    assert.equal(steps.length,37,lang+": treinta y siete pasos");
+    // 4.26.228 (recorte sin repetidos, en recorrido): 34. «Deudas entra suave» del 35 ya era el 26 (ahora el 1); el atrás con teclado
+    // y buscar con punto (36) van con el 13 y el 23; «¿Me lo puedo permitir?» (13) con el simulador del 29; se funden 33+34, 6+7, 11+17
+    // y 9+14; el 37 se parte (traspaso junto a «Te llega», idioma al final).
+    // 4.26.228 también: el 19, «Te deben» con lo que casa solo y el pago a medias, y el 35, Gastos › Suscripciones sin lo que ya es
+    // recibo; el teclado de una vez de «Te llega» afina el 16 (es el mismo gesto). 36.
+    assert.equal(steps.length,36,lang+": treinta y seis pasos");
     assert.ok(steps.every((s,i)=>s.startsWith((i+1)+". ")),lang+": pasos numerados");
     for(const step of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(step)&&/BIEN|RIGHT|BÉ/.test(step),lang+": cada paso dice qué es MAL y qué es BIEN");
   }
@@ -6503,7 +6527,7 @@ test("Catálogo213 funde la zona Recibos en una tanda, retira las siete viejas c
     assert.notEqual(mutated.web,current.web,nueva+" reabre la tanda web");}
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
-  const g0=built[14].tandas[0];
+  const g0=built[15].tandas[0];
   assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   for(const id of vivas)assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web,id+": su huella llega al panel");
