@@ -2466,7 +2466,8 @@ function NumPad({value, onChange}){
       const isDel=k==="⌫";
       return React.createElement("button",{
         key:k, type:"button",
-        "aria-label":isDel?"Borrar":k,
+        // Lo lee el lector de pantalla: en inglés y catalán decía «Borrar» (auditoría 226).
+        "aria-label":isDel?t("kp_borrar"):k,
         onClick:isDel?undefined:function(){ tap(k); },
         onPointerDown:isDel?startHold:undefined,
         onPointerUp:isDel?stopHold:undefined,

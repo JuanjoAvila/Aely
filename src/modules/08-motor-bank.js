@@ -1070,16 +1070,22 @@ function expensePaymentRelationUI(s,e){
 function withdrawalConfirmedUI(e){
   return !!e&&e.category==="traspaso"&&Number.isFinite(e.withdrawalConfirmedAt)&&e.withdrawalConfirmedAt>0;
 }
+/* El estado de pago de un recibo en un mes, tal y como lo enseñan Recibos e Inicio. Un cargo del
+   banco manda sobre la marca a mano; sin él, la marca lo da por pagado ese día. Inicio leía solo
+   `fixedPaymentState` y dejaba en «Cargos vencidos» lo que Recibos daba por pagado a mano
+   (auditoría 226, P1-2): una sola función para las dos pantallas. */
+function fixedEstadoMes(s,e,y,m,today){
+  var status=fixedPaymentState(s,e,y,m,today);
+  var aMano=fixedPaymentEvidence(status)?null:fixedMarcadoAMano(e,y,m);
+  return aMano!=null?Object.assign({},status,{paid:true,day:aMano,overdue:false,paidBank:null,paidAmount:null,aMano:true}):status;
+}
 function planChargesMonth(s,m,y,today){
   s=s||{};
   var r=[];
   (s.fixed||[]).forEach(function(e){
     var a=occAmountIn(e,m,y);
     if(!(a>0)||!occursIn(e,m,y)) return;
-    var status=fixedPaymentState(s,e,y,m,today);
-    // Un cargo del banco manda sobre la marca a mano; sin él, la marca lo da por pagado ese día.
-    var aMano=fixedPaymentEvidence(status)?null:fixedMarcadoAMano(e,y,m);
-    if(aMano!=null) status=Object.assign({},status,{paid:true,day:aMano,overdue:false,paidBank:null,paidAmount:null});
+    var status=fixedEstadoMes(s,e,y,m,today), aMano=status.aMano?status.day:null;
     if(!status.paid&&fixedSinCobroIn(e,y,m)) return;
     var rep=repartoDelMes(s,e,y,m,today), deben=rep?rep.filter(function(x){ return !repartoDescuentaDe(s,x,e); }):[];
     var hecho=(e.repartoCobrado&&e.repartoCobrado[y*12+m])||[];

@@ -135,3 +135,30 @@ test("revisión del 9/11, ronda 2: un recibo de otro banco que ya se paga con es
   const sinEndesa=estado({bankTx:[tx({merchant:"ENDESA ENERGIA SAU",concept:"RECIBO"})],expenses:[fila({merchant:"ENDESA ENERGIA SAU"})]});
   assert.equal(cand(sinEndesa).id,"e-b-luz","sin ese recibo, sí se pregunta");
 });
+
+// Auditoría 226, P2-8: «Ya pagados» suma lo que cobró el banco, no lo previsto. Oráculo por dos
+// vías: la suma de los cargos del banco enlazados, y lo previsto más la diferencia de cada fila.
+test("«Ya pagados» suma lo cobrado (54,71 €), no lo previsto; marcado a mano sin cargo cuenta lo previsto",()=>{
+  const gym={id:"gym",name:"Gimnasio",amount:30,freq:"mes",day:3,account:"sabadell"};
+  const s=estado({fixed:[luz,gym]}),x=cand(s,s.fixed[0]);
+  let n=c.linkFixedPayment(s,x.id,"luz",Y,M,HOY,{identity:c.fixedPaymentIdentity("sabadell",x),model:c.fixedPaymentModel(luz,M),paidYm:null,paidDay:null});
+  n=c.fixedMarcarAMano(n,"gym",Y,M,4);
+  const {pack,v}=vista(n);
+  assert.deepEqual(ids(v.paid).sort(),["fixed_gym","fixed_luz"]);
+  const banco=n.bankTx.filter(t=>t.id==="b-luz").reduce((a,t)=>a+Math.round(t.amount*100),0);
+  assert.equal(Math.round(v.paidTotal*100),banco+3000,"cargo del banco + lo previsto del marcado a mano");
+  const otraVia=v.paid.reduce((a,r)=>a+Math.round(r.amount*100)+(r.paidAmount>0?Math.round(r.paidAmount*100)-Math.round(r.plannedBankAmount*100):0),0);
+  assert.equal(Math.round(v.paidTotal*100),otraVia);
+  assert.equal(pack.pendingBillsTotal,0,"lo que queda por pagar no cambia por esto");
+});
+
+// Auditoría 226, P1-2: Inicio y Recibos leen el mismo estado: lo marcado a mano no está vencido.
+test("marcado «Lo pagué de otra forma»: el estado del mes que lee Inicio es el de Recibos",()=>{
+  const spo={id:"spo",name:"Spotify",amount:10.99,freq:"mes",day:2,account:"revolut"};
+  const s=estado({fixed:[spo],bankTx:[],expenses:[]});
+  assert.equal(c.fixedEstadoMes(s,spo,Y,M,HOY).overdue,true,"sin marca, vencido");
+  const n=c.fixedMarcarAMano(s,"spo",Y,M,HOY),f=n.fixed[0],st=c.fixedEstadoMes(n,f,Y,M,HOY);
+  assert.equal(st.paid,true);assert.equal(st.overdue,false);assert.equal(st.day,HOY);
+  const fila=c.planChargesMonth(n,M,Y,HOY).paidBills.find(r=>r.id==="fixed_spo");
+  assert.ok(fila&&fila.aMano&&fila.day===st.day,"Recibos lo da por pagado el mismo día");
+});
