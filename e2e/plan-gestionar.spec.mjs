@@ -187,7 +187,8 @@ test("Gestionar abre «Tus recibos», sin la app vieja y sin segunda puerta al b
   await expect(hub(page).locator(".v4-embed-legacy")).toHaveCount(0);
   // Piezas que solo pinta `<Fijos>`: su resumen y su «el que más pesa».
   await expect(page.locator(".liqbox, .culpa")).toHaveCount(0);
-  await expect(hub(page).locator(".v4-bills-afford")).toContainText("¿Me lo puedo permitir?");
+  // Sin «¿Me lo puedo permitir?» al final: repetía «¿Y si gasto…?» de «¿Te llega?» (11/11/2026).
+  await expect(page.locator("[data-bills-afford]")).toHaveCount(0);
   // La comparación con el banco vive en Mis bancos: aquí no se duplica.
   await expect(hub(page).locator(".v4-bills-recon")).toHaveCount(0);
   // Precondiciones de la ola nativa de Android: el push es el scroller físico, sin textura
@@ -281,13 +282,9 @@ for (const lang of ["es", "en", "ca"]) {
   });
 }
 
-test("atrás de Android quita UNA pantalla cada vez", async ({ page }) => {
+test("atrás de Android cierra Tus recibos y deja Plan", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
-  await hub(page).locator(".v4-bills-afford").click();
-  await expect(titulo(page)).toHaveText("¿Me lo puedo permitir?");
-
-  await page.goBack();
   await expect(titulo(page)).toHaveText("Tus recibos");
 
   await page.goBack();
@@ -331,49 +328,6 @@ test("Gestionar también vuelve arrastrando desde el centro de toda la pantalla"
   expect(moved).toBeGreaterThan(180);
   await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
   await expect(pantalla).toHaveCount(0,{timeout:1600});
-});
-
-test("¿Me lo puedo permitir? acompaña el atrás nativo y deja Tus recibos debajo", async ({ page }) => {
-  await appLista(page);
-  await abreTusRecibos(page);
-  await hub(page).locator(".v4-bills-afford").click();
-  const hija=hub(page).locator(":scope > .v4-bills-push");
-  await expect(hija).toBeVisible();
-  await expect(hub(page).locator(':scope > [data-screen="bills-home"]')).toHaveAttribute("inert","");
-  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.45; window.dispatchEvent(e); });
-  const pos=await hija.evaluate((el)=>({x:new DOMMatrix(getComputedStyle(el).transform).m41,w:innerWidth}));
-  expect(pos.x).toBeGreaterThan(pos.w*.4);
-  expect(pos.x).toBeLessThan(pos.w*.5);
-  await expect(hub(page).locator('[data-screen="bills-home"]')).toBeVisible();
-  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
-  await expect(hija).toHaveCount(0,{timeout:1600});
-  await expect(titulo(page)).toHaveText("Tus recibos");
-
-  // El hook vive mientras Gestionar siga abierto: volver a entrar tiene que rearmar busy.
-  await hub(page).locator(".v4-bills-afford").click();
-  await hub(page).locator(".settings-push-h .back").last().evaluate((el)=>el.click());
-  await expect(titulo(page)).toHaveText("Tus recibos");
-});
-
-test("¿Me lo puedo permitir? vuelve arrastrando desde el centro", async ({ page, browserName }) => {
-  test.skip(browserName!=="chromium", "El gesto táctil real usa CDP");
-  await appLista(page);
-  await abreTusRecibos(page);
-  await hub(page).locator(".v4-bills-afford").click();
-  const hija=hub(page).locator(":scope > .v4-bills-push");
-  await expect(hija).toBeVisible();
-  const cdp=await page.context().newCDPSession(page);
-  await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:150,y:250}]});
-  await cdp.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:340,y:250}]});
-  expect(await hija.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41)).toBeGreaterThan(180);
-  await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
-  await expect(hija).toHaveCount(0,{timeout:1600});
-  await expect(titulo(page)).toHaveText("Tus recibos");
-
-  await hub(page).locator(".v4-bills-afford").click();
-  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.55; window.dispatchEvent(e); });
-  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
-  await expect(titulo(page)).toHaveText("Tus recibos");
 });
 
 // Es una hoja inferior: con el dedo a medio camino no sale de lado enseñando el fondo; al soltar

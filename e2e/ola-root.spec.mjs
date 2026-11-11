@@ -15,7 +15,7 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, installFixtureClock, dismissNews } from "./fixtures.mjs";
 
-const hub = "[data-bills-manage]", child = hub + " > .settings-push", plan = ".page.page-scroll-host";
+const hub = "[data-bills-manage]", plan = ".page.page-scroll-host";
 
 function candidates(page) {
   return page.evaluate(() => {
@@ -39,7 +39,7 @@ function candidates(page) {
       let recorta = false;
       for (let a = cbOf(el); a; a = cbOf(a)) { const s = getComputedStyle(a); if (s.overflow !== "visible" || s.clipPath !== "none") { recorta = true; break; } }
       if (recorta) continue;
-      out.push(el.matches("[data-bills-manage]") ? "hub" : el.matches("[data-bills-manage] > .settings-push") ? "child" : el.matches(".page-scroll-host") ? "plan" : String(el.className));
+      out.push(el.matches("[data-bills-manage]") ? "hub" : el.matches(".page-scroll-host") ? "plan" : String(el.className));
     }
     return out;
   });
@@ -47,7 +47,7 @@ function candidates(page) {
 // El `mc-page-enter` anima opacidad: hasta que acaba, Chromium tampoco la promociona.
 const quieto = (page) => page.waitForFunction(() => !document.getAnimations().some((a) => a.playState === "running" && /mcPageEnter|v4BillsIn/.test(a.animationName || "")));
 
-test("Gestionar plan y su categoría son el ÚNICO candidato a scroller raíz, como Plan", async ({ page }, info) => {
+test("Gestionar plan es el ÚNICO candidato a scroller raíz, como Plan", async ({ page }, info) => {
   const origin = new URL(info.project.use.baseURL).origin;
   await page.route("**/*", (r) => (new URL(r.request().url()).origin === origin ? r.continue() : r.abort("blockedbyclient")));
   await installFixtureClock(page);
@@ -69,15 +69,6 @@ test("Gestionar plan y su categoría son el ÚNICO candidato a scroller raíz, c
   const planTop = await page.evaluate((s) => { const p = document.querySelector(s); p.scrollTop = 40; return p.scrollTop; }, plan);
   expect(planTop).toBeGreaterThan(0);
   await expect.poll(() => candidates(page), { message: "Gestionar: Plan debajo no puede seguir compitiendo" }).toEqual(["hub"]);
-
-  // Desde la v6 (SPEC §3) la única pantalla hija de Tus recibos es «¿Me lo puedo permitir?».
-  await page.locator(hub + ' .v4-bills-afford').tap();
-  await expect(page.locator(child)).toBeVisible(); await quieto(page);
-  await expect.poll(() => candidates(page), { message: "pantalla hija: ni Plan ni el hub" }).toEqual(["child"]);
-
-  await page.keyboard.press("Escape");
-  await expect(page.locator(child)).toHaveCount(0); await quieto(page);
-  await expect.poll(() => candidates(page), { message: "volver al hub le devuelve el scroll" }).toEqual(["hub"]);
 
   await page.keyboard.press("Escape");
   await expect(page.locator(hub)).toHaveCount(0);

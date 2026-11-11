@@ -124,26 +124,3 @@ test("«Ya está pagado» va en la fila de acciones con su tamaño, no ocupa la 
   expect(Math.abs(p.y - e.y)).toBeLessThan(2);
 });
 
-test("abrir el teclado en «¿Me lo puedo permitir?» no recoloca toda la app en cada paso", async ({ page }) => {
-  await abrePlan(page);
-  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
-  await page.locator(hub + " .v4-bills-afford").click();
-  const importe = page.locator('[data-testid="afford-sim"] input').first();
-  await expect(importe).toBeVisible();
-  await page.waitForTimeout(500);
-  // Salir del host de scroll (lo que hacía cada paso del teclado) pone esta clase en <html> y
-  // re-renderiza App entera: es el trabajo que hacía ir a tirones al teclado.
-  await page.evaluate(() => {
-    window.__recolocadas = 0;
-    // Entra y sale en la misma tarea: se cuenta por el valor anterior de cada cambio, no por el final.
-    new MutationObserver((rs) => { rs.forEach((r) => { if ((r.oldValue || "").indexOf("scroll-host-swipe") >= 0) window.__recolocadas++; }); })
-      .observe(document.documentElement, { attributes: true, attributeOldValue: true, attributeFilter: ["class"] });
-  });
-  await importe.focus();
-  const { width, height } = page.viewportSize();
-  for (let h = height; h >= height - 300; h -= 50) await page.setViewportSize({ width, height: h });
-  await page.waitForTimeout(300);
-  expect(await page.evaluate(() => window.__recolocadas)).toBe(0);
-  await expect(page.locator(".page-scroll-host")).toHaveCount(1);
-  await page.setViewportSize({ width, height });
-});

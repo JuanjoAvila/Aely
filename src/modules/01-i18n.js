@@ -171,7 +171,7 @@ const LANG = {
     pr6_imp_t:"{n} de {m} son recibos", pr6_imp_quitar:"Quitar todos", pr6_imp_marcar:"Marcar todos", pr6_imp_add:"Añadir {n} recibos", pr6_imp_add1:"Añadir 1 recibo", pr6_imp_ninguno:"Ninguno",
     pr6_imp_toast:"{n} recibos añadidos", pr6_imp_toast1:"1 recibo añadido",
     // Plan › Recibos v6, tanda 4: añadir y editar por pasos (SPEC §7).
-    rp4_t_name:"¿Qué recibo es?", rp4_name_ph:"Netflix, luz, alquiler…", rp4_visto:"Visto en tu banco", rp4_dia:"día", rp4_dup:"Ya tienes {name}",
+    rp4_t_name:"¿Qué recibo es?", rp4_name_ph:"Netflix, luz, alquiler…", rp4_visto:"Visto en tu banco", rp4_dia:"día", rp4_dup:"Ya tienes «{name}»", rp4_dup_dia:"{x} el día {d}", rp4_dup_ver:"Ver ese", pr6_cuota:"cuota",
     rp4_t_amount:"¿Cuánto es?", rp4_variable:"Cambia cada mes", rp4_t_when:"¿Cuándo se cobra?", rp4_once:"Solo una vez", rp4_split:"En varios pagos",
     rp4_pago:"Pago {n}", rp4_otro_pago:"Otro pago", rp4_quitar_pago:"Quitar este pago", rp4_dia_menos:"Un día antes", rp4_dia_mas:"Un día después", rp4_dia_n:"día {d}",
     rp4_importe_pago:"Importe del pago {n}", rp4_t_account:"¿De qué cuenta sale?", rp4_t_sum:"¿Todo bien?", rp4_t_edit:"Editar recibo",
@@ -511,7 +511,7 @@ const LANG = {
     pr6_imp_t:"{n} of {m} are bills", pr6_imp_quitar:"Clear all", pr6_imp_marcar:"Select all", pr6_imp_add:"Add {n} bills", pr6_imp_add1:"Add 1 bill", pr6_imp_ninguno:"None",
     pr6_imp_toast:"{n} bills added", pr6_imp_toast1:"1 bill added",
     // Plan › Bills v6, batch 4: add and edit step by step (SPEC §7).
-    rp4_t_name:"Which bill is it?", rp4_name_ph:"Netflix, electricity, rent…", rp4_visto:"Seen in your bank", rp4_dia:"day", rp4_dup:"You already have {name}",
+    rp4_t_name:"Which bill is it?", rp4_name_ph:"Netflix, electricity, rent…", rp4_visto:"Seen in your bank", rp4_dia:"day", rp4_dup:"You already have “{name}”", rp4_dup_dia:"{x} on day {d}", rp4_dup_ver:"See it", pr6_cuota:"instalment",
     rp4_t_amount:"How much is it?", rp4_variable:"Changes every month", rp4_t_when:"When is it charged?", rp4_once:"Just once", rp4_split:"In several payments",
     rp4_pago:"Payment {n}", rp4_otro_pago:"Another payment", rp4_quitar_pago:"Remove this payment", rp4_dia_menos:"One day earlier", rp4_dia_mas:"One day later", rp4_dia_n:"day {d}",
     rp4_importe_pago:"Amount of payment {n}", rp4_t_account:"Which account pays it?", rp4_t_sum:"All good?", rp4_t_edit:"Edit bill",
@@ -838,7 +838,7 @@ const LANG = {
     pr6_imp_t:"{n} de {m} són rebuts", pr6_imp_quitar:"Treu-los tots", pr6_imp_marcar:"Marca'ls tots", pr6_imp_add:"Afegeix {n} rebuts", pr6_imp_add1:"Afegeix 1 rebut", pr6_imp_ninguno:"Cap",
     pr6_imp_toast:"{n} rebuts afegits", pr6_imp_toast1:"1 rebut afegit",
     // Pla › Rebuts v6, tanda 4: afegir i editar per passos (SPEC §7).
-    rp4_t_name:"Quin rebut és?", rp4_name_ph:"Netflix, llum, lloguer…", rp4_visto:"Vist al teu banc", rp4_dia:"dia", rp4_dup:"Ja tens {name}",
+    rp4_t_name:"Quin rebut és?", rp4_name_ph:"Netflix, llum, lloguer…", rp4_visto:"Vist al teu banc", rp4_dia:"dia", rp4_dup:"Ja tens «{name}»", rp4_dup_dia:"{x} el dia {d}", rp4_dup_ver:"Veure’l", pr6_cuota:"quota",
     rp4_t_amount:"Quant és?", rp4_variable:"Canvia cada mes", rp4_t_when:"Quan es cobra?", rp4_once:"Només una vegada", rp4_split:"En diversos pagaments",
     rp4_pago:"Pagament {n}", rp4_otro_pago:"Un altre pagament", rp4_quitar_pago:"Treu aquest pagament", rp4_dia_menos:"Un dia abans", rp4_dia_mas:"Un dia després", rp4_dia_n:"dia {d}",
     rp4_importe_pago:"Import del pagament {n}", rp4_t_account:"De quin compte surt?", rp4_t_sum:"Tot bé?", rp4_t_edit:"Edita el rebut",
@@ -1262,7 +1262,7 @@ Object.assign(LANG.es,{
   gb_preview_nomonth:"Serán {x} al mes repartidos ({total} al año). Falta elegir en qué mes se cobra.",
   gb_preview_m:"Serán {x} cada mes.", 
   gb_afford:"¿Me lo puedo permitir?",
-  gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.", gb_del:"Quitar este recibo", gb_removed:"Recibo quitado", gb_undo_changed:"No se ha deshecho nada porque hay cambios posteriores.", gb_undo_partial:"Hay cambios posteriores que no se han deshecho.", gb_remove_changed:"No se ha podido quitar el recibo. Revisa los cambios e inténtalo de nuevo.", gb_undo_sync_error:"Cambio guardado; no se ha podido sincronizar la marca del cargo.",
+  gb_del:"Quitar este recibo", gb_removed:"Recibo quitado", gb_undo_changed:"No se ha deshecho nada porque hay cambios posteriores.", gb_undo_partial:"Hay cambios posteriores que no se han deshecho.", gb_remove_changed:"No se ha podido quitar el recibo. Revisa los cambios e inténtalo de nuevo.", gb_undo_sync_error:"Cambio guardado; no se ha podido sincronizar la marca del cargo.",
   gb_bill_locked_amt:"Este recibo cambia de importe según el mes: cámbialo en cada mes.",
   gb_when_day:"Un día concreto", gb_save_ok:"Guardado", gb_saved_fixed:"Recibo añadido", gb_saved_oneoff:"Cargo puntual añadido", gb_saved_income:"Ingreso añadido", gb_saved_transfer:"Traspaso añadido", gb_next:"Siguiente", gb_recon:"¿Cuadran con el banco?", gb_flow_income:"Lo que cobras", gb_flow_move:"Paso entre tus cuentas", gb_month:"Mes", gb_year:"Año", gb_add_btn:"Añadir",
 });
@@ -1284,7 +1284,7 @@ Object.assign(LANG.en,{
   gb_preview_each:"{each} will be charged in {months} ({total} a year): {x} a month spread out.",
   gb_preview_nomonth:"That's {x} a month spread out ({total} a year). Pick the month it's charged in.", gb_preview_m:"That's {x} every month.", 
   
-  gb_afford:"Can I afford it?", gb_afford_sub:"Give me an amount and a day and I'll tell you if it fits this month.",
+  gb_afford:"Can I afford it?",
   gb_del:"Remove this bill", gb_removed:"Bill removed", gb_undo_changed:"Nothing was undone because there are later changes.", gb_undo_partial:"There are later changes that have not been undone.", gb_remove_changed:"The bill could not be removed. Review the changes and try again.", gb_undo_sync_error:"Change saved; the payment label could not be synced.",
   gb_bill_locked_amt:"This bill's amount changes by month: change it in each month.",
   gb_when_day:"A chosen day", gb_save_ok:"Saved", gb_saved_fixed:"Bill added", gb_saved_oneoff:"One-off charge added", gb_saved_income:"Income added", gb_saved_transfer:"Transfer added", gb_next:"Next", gb_recon:"Do they match the bank?", gb_flow_income:"What you get paid", gb_flow_move:"Move between your accounts", gb_month:"Month", gb_year:"Year", gb_add_btn:"Add",
@@ -1307,7 +1307,7 @@ Object.assign(LANG.ca,{
   gb_preview_each:"Es cobraran {each} a {months} ({total} l'any): {x} al mes repartits.",
   gb_preview_nomonth:"Seran {x} al mes repartits ({total} l'any). Falta triar en quin mes es cobra.", gb_preview_m:"Seran {x} cada mes.", 
   
-  gb_afford:"M'ho puc permetre?", gb_afford_sub:"Digue'm un import i un dia i et dic si t'hi cap aquest mes.", gb_del:"Treu aquest rebut",
+  gb_afford:"M'ho puc permetre?", gb_del:"Treu aquest rebut",
   gb_removed:"Rebut tret", gb_undo_changed:"No s’ha desfet res perquè hi ha canvis posteriors.", gb_undo_partial:"Hi ha canvis posteriors que no s’han desfet.", gb_remove_changed:"No s’ha pogut treure el rebut. Revisa els canvis i torna-ho a provar.", gb_undo_sync_error:"Canvi desat; no s’ha pogut sincronitzar la marca del càrrec.", gb_bill_locked_amt:"L'import d'aquest rebut canvia segons el mes: canvia'l a cada mes.",
   gb_when_day:"Un dia concret", gb_save_ok:"Desat", gb_saved_fixed:"Rebut afegit", gb_saved_oneoff:"Càrrec puntual afegit", gb_saved_income:"Ingrés afegit", gb_saved_transfer:"Traspàs afegit", gb_next:"Següent", gb_recon:"Quadren amb el banc?", gb_flow_income:"El que cobres", gb_flow_move:"Pas entre els teus comptes", gb_month:"Mes", gb_year:"Any", gb_add_btn:"Afegeix",
 });

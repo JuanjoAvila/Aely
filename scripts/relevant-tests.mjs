@@ -106,6 +106,12 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
+  // Tus recibos de tres en tres, sin «¿Me lo puedo permitir?», el aviso de duplicado y filas compactas (11/11/2026).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
   // Prueba gratis, permanencia y filas que se deslizan (decisión del dueño, 10/11/2026): el gesto
   // convive con el carrusel de pestañas (11) y el tirón de sección (02), así que van también ahí.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
