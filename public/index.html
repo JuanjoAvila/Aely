@@ -30284,7 +30284,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="57b75ec0e72e813fcf583650e7a9c0dfe4ae21b4c64a23067f41edbeb2b55994";
+var _rnSha="085b1f9865563a2f4b533d00461639f90a435c79b311800291f47e835af81c89";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -34539,7 +34539,10 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       cancelAnimationFrame(id);
       document.removeEventListener("keydown", onKey);
       var el=prevFocus.current;
-      if(el&&typeof el.focus==="function") try{ el.focus(); }catch(err){}
+      /* Sin desplazar (vídeo del dueño, 11/11): «Todos» vive en Plan, y si al cerrar con un
+         desliz rápido el dedo ya iba hacia otra pestaña, el foco a pelo hacía que el navegador
+         desplazara `.viewport` de lado para enseñarlo y asomaba Cartera a medio carrusel. */
+      if(el&&typeof el.focus==="function") try{ el.focus({preventScroll:true}); }catch(err){}
     };
   },[vivo]);
   // Al cerrar ficha/alta: devolver foco al control que las abrió (Codex 2100Z).

@@ -2738,7 +2738,10 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       cancelAnimationFrame(id);
       document.removeEventListener("keydown", onKey);
       var el=prevFocus.current;
-      if(el&&typeof el.focus==="function") try{ el.focus(); }catch(err){}
+      /* Sin desplazar (vídeo del dueño, 11/11): «Todos» vive en Plan, y si al cerrar con un
+         desliz rápido el dedo ya iba hacia otra pestaña, el foco a pelo hacía que el navegador
+         desplazara `.viewport` de lado para enseñarlo y asomaba Cartera a medio carrusel. */
+      if(el&&typeof el.focus==="function") try{ el.focus({preventScroll:true}); }catch(err){}
     };
   },[vivo]);
   // Al cerrar ficha/alta: devolver foco al control que las abrió (Codex 2100Z).
