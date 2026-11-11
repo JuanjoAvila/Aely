@@ -118,6 +118,11 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
+  // Cerrar Tus recibos de un desliz y seguir hacia otra pestaña sin que el carrusel se desplace de
+  // lado (vídeo del dueño, 11/11): el foco que vuelve a «Todos» y el gesto de pestañas.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
