@@ -1289,6 +1289,9 @@
   .pr6-ll-b .pr6-fold{margin-top:-10px;}
   .pr6-ll-det{gap:6px;font-size:14px;}
   .pr6-ll-b .pr6-fold.open .pr6-ll-det{padding-top:10px;}
+  /* El hueco de arriba del detalle se pliega con él: si se iba de golpe, al abrir el teclado la hoja
+     daba un bote hacia abajo de 10 px por banco antes de subir (vídeo 11/11, «en dos tiempos»). */
+  .v4-sheet.pr6-ll .pr6-ll-det{transition:padding-top .35s var(--ease);}
   .pr6-ll-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
   .pr6-ll-row>span:first-child{flex:1;min-width:0;color:var(--muted);}
   .pr6-ll-row .num{font-weight:700;white-space:nowrap;}
