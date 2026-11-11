@@ -3334,8 +3334,12 @@ function rp4VistoEnBanco(state, max){
   const ex=(state.expenses||[]).filter(function(x){
     return x&&esFilaDeBanco(x)&&!x.debtId&&!x.possibleDup&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso";
   });
-  return detectSubscriptions(ex).filter(function(g){
+  // Un cobro ya enlazado a un recibo con otro nombre tampoco se propone (`subsDeRecibos`, 08): el
+  // agua salía aquí con su cargo del mes ya en «Ya pagados» (11/11/2026).
+  const subs=detectSubscriptions(ex), enlazados=subs.length?subsDeRecibos(state):null;
+  return subs.filter(function(g){
     if(!g.active||!(g.amount>0)||!g.ult.length) return false;
+    if(enlazados&&enlazados.has(g.key)) return false;
     return !fx.some(function(f){ return recNameMatch(f.name,g.name)||recNameMatch(g.name,f.name); });
   }).slice(0,max===0?Infinity:(max||3)).map(function(g){
     const e=g.ult[0].e;

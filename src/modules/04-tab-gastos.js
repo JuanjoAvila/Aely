@@ -1399,15 +1399,23 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // cuenta el globito del icono y las enseña su sección (antes se filtraban al pintar).
   // «Ya la he dado de baja» (SPEC §6.4) guarda la fecha de su último cobro: se esconde mientras no
   // llegue uno posterior, y si llega vuelve con aviso (darla de baja no es descartarla para siempre).
+  /* Lo que ya es un recibo no se propone (`subsDeRecibos`/`subEsRecibo`, 08): antes solo se
+     comparaba el nombre del recibo con el del comercio, y el agua de Recibos salía «por revisar»
+     con su cargo ya enlazado (11/11/2026). El motor va en su propio memo, con las porciones que
+     lee (`state` cambia en cada `set()`), y solo si hay alguna candidata: descartar o dar de baja
+     una no lo vuelve a pasar. */
+  const subsRecibos=useMemo(function(){
+    return (subs||[]).some(function(sp){ return sp.active; })?subsDeRecibos(state):null;
+  },[subs,state.fixed,state.oneoffs,state.expenses,state.bankTx,state.reciboNo,state.reciboBorrado,state.accounts,state.debts,state.deleted,madridDay]);
   const novelSubs=useMemo(function(){
     const dismissed=state.subsDismissed||[], baja=state.subsBaja||{};
     return (subs||[]).filter(function(sp){
       if(!sp.active) return false;
       if(dismissed.indexOf(sp.key)!==-1) return false;
       if(baja[sp.key]!=null && !(sp.lastMs>baja[sp.key])) return false;
-      return !(state.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
+      return !subEsRecibo(state,sp,subsRecibos);
     });
-  },[subs,state.subsDismissed,state.subsBaja,state.fixed]);
+  },[subs,state.subsDismissed,state.subsBaja,state.fixed,subsRecibos]);
   const [subFicha,setSubFicha]=useState(null);
   const [subInfo,setSubInfo]=useState(false);
   // Cambiar de sección cierra las fichas (SPEC §2.2): salir de Gastos también vuelve a Movimientos.
