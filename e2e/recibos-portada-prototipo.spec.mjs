@@ -66,7 +66,8 @@ for (const vp of [{ width: 412, height: 915 }, { width: 360, height: 780 }]) {
     await expect(paid.locator('[data-recibo="fixed_luz"]')).toContainText("54,71");
     await expect(h).toContainText("Ya pagados");
     await expect(h).toContainText("· 2");
-    await expect(h).toContainText("1.052,26 €");
+    // La suma lleva lo que cobró el banco (54,71), no lo previsto (54,26): auditoría 226, P2-8.
+    await expect(h).toContainText("1.052,71 €");
     await expect(h).not.toContainText("Previsto");
     for (const grande of [false, true]) {
       if (grande) await letraGrande(page);

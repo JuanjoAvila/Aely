@@ -159,10 +159,10 @@ test("mes cerrado (revisión): lo marcado a mano como pagado no es «no llegó»
 });
 
 test("mes cerrado: cuadra con lo que se vio el último día de octubre", async ({ page }) => {
-  // «Ya pagados» 50 (la luz, que cobró 50,40: lo dice su fila, la cabecera solo suma) + Netflix en «Para revisar» con su
-  // previsión de 12,99 = los 62,99 del resumen; el Gimnasio, «No ha llegado».
+  // «Ya pagados» 50,40 (lo que cobró la luz; previsto 50, auditoría 226 P2-8) + Netflix en «Para revisar» con su
+  // previsión de 12,99. El resumen cuenta lo previsto, 62,99, y la diferencia de la luz la dice aparte.
   const recibos = await abrePlan(page, "2026-10-31T20:00:00+01:00", { accounts: cuenta, fixed, bankTx });
-  await expect(recibos.getByTestId("plan-paid").locator(".pr6-paid-amt")).toHaveText(await eurDe(page, 50));
+  await expect(recibos.getByTestId("plan-paid").locator(".pr6-paid-amt")).toHaveText(await eurDe(page, 50.4));
   const review = recibos.getByTestId("plan-review");
   await expect(review.locator('[data-review="diff"]')).toContainText("Netflix");
   await expect(review.locator('[data-review="diff"]')).toContainText("Esperabas " + await eurDe(page, 12.99));
