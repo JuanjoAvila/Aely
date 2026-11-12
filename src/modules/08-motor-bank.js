@@ -51,6 +51,8 @@ function flowEarlyBankMatches(s,f,y,m,today){
     if(String(tx.status||"").toUpperCase()!=="BOOK") return false;
     const day=recDay(tx.date);
     if(day==null||day>today||day>=planned||planned-day>7) return false;
+    // «No es este» desde Plan también lo aparta del extracto: si no, la volvía a dar por llegada.
+    if(reciboVetado(s,flowVetoId(f),fixedPaymentIdentity(tx.ent,tx))) return false;
     const actual=-Number(tx.amount);
     return recNameMatch(f.name,tx.merchant) ? recAmtClose(amount,actual) : Math.abs(amount-actual)<=0.01;
   });
@@ -107,8 +109,9 @@ function reconcileEarlyIncomeAnchors(s,y,m,today){
     if(!flowOccursIn(f,m,y)) return f;
     if(flowConfirmedDay(f,y,m)!=null){
       // Un segundo abono compatible vuelve ambigua la atribución inicial; no se borra por
-      // ausencia de feed, que puede ser parcial o fallar en otro móvil.
-      if(flowEarlyBankMatches(s,f,y,m,today).length<2) return f;
+      // ausencia de feed, que puede ser parcial o fallar en otro móvil. Si la sacó un movimiento
+      // que él eligió en Plan (`flowEnlazar`), ya no es ambigua: lo dijo él.
+      if(flowFilaEnlazada(s,f,y,m,today)||flowEarlyBankMatches(s,f,y,m,today).length<2) return f;
       const n=Object.assign({},f);
       delete n.paidYm; delete n.paidDay; delete n.paidBank; delete n.paidAmount;
       return n;
@@ -120,6 +123,228 @@ function reconcileEarlyIncomeAnchors(s,y,m,today){
   });
   if(flows.every(function(f,i){ return f===(s.flows||[])[i]; })) return s;
   return keepShownAcrossFlows(s,flows);
+}
+/* LO QUE ENTRA, CON EL CICLO DE UN RECIBO (petición del dueño, 12/11/2026: «la tarjeta de nómina y
+   traspasos, que también se enlacen con Gastos como el resto de recibos… sale en "Lo que aún
+   entrará" y luego se pierde, no se contabiliza»). Hasta ahora una entrada prevista pasaba a hecha
+   con solo pasar su día, sin decir con qué movimiento: desaparecía de Plan aunque no hubiera
+   llegado nada. Ahora, como un recibo, llega cuando hay un movimiento de Gastos que la acredita
+   —el que él eligió (`llegadas[ym].expenseId`) o el único que se ve sin dudas—, o cuando dice «Lo
+   recibí de otra forma» (`llegadas[ym].mano`, el día). Sin eso sigue en «Lo que aún entrará»
+   aunque haya pasado su día, como un recibo sigue en «No ha llegado».
+   ⚠ Es PRESENTACIÓN. El saldo, «¿Te llega?» y los totales siguen con su regla de siempre
+   (`flowLlegoIn`: calendario, o el abono del extracto del banco que lo recibe si llega antes).
+   Lo único que escribe dinero es lo mismo que ya escribía el extracto: si el movimiento elegido es
+   ese abono, del banco que lo recibe y ANTES de su día, se ancla igual (`paidYm/paidDay`, con
+   `keepShownAcrossFlows`) para que el saldo, que ya lo trae, no lo sume otra vez el día previsto.
+   «Lo recibí de otra forma» no mueve nada: en una cuenta a mano no se sabe si entró en ella o
+   fuera, y lo prudente es no cambiar lo que el saldo ya hacía.
+   «No es este» se guarda en `reciboNo` con la clave `flow:<id>`, que ya viaja y se une por hora. */
+const FLOW_LLEGADA_MESES=14;
+function flowVetoId(f){ return "flow:"+(f&&f.id); }
+function flowLlegadaGuardada(f,y,m){ const l=f&&f.llegadas&&f.llegadas[y*12+m]; return l&&typeof l==="object"?l:null; }
+function flowLlegadaFila(f,y,m){ const l=flowLlegadaGuardada(f,y,m); return l&&l.expenseId!=null?l:null; }
+function flowLlegadaAMano(f,y,m){ const l=flowLlegadaGuardada(f,y,m), d=l&&l.expenseId==null?Number(l.mano):NaN; return d>=1&&d<=31?d:null; }
+// Banco donde ENTRA el dinero (nómina: `to`; traspaso: el tuyo que lo recibe) y donde SALE (traspaso).
+function flowBancoEntra(f){ return f.kind==="income"?(f.to||"sabadell"):f.kind==="transfer"?(f.to||null):null; }
+function flowBancoSale(f){ return f.kind==="transfer"?(f.from||"sabadell"):null; }
+function flowLlegadasCon(ll,ym,v){
+  const out={};
+  Object.keys(ll||{}).forEach(function(k){ if(Number(k)>ym-FLOW_LLEGADA_MESES&&Number(k)!==ym) out[k]=ll[k]; });
+  if(v) out[ym]=v;
+  return out;
+}
+// Un movimiento que ya es de otra cosa (recibo, cuota, meta), repetido, pendiente o borrado no acredita nada.
+function flowFilaLibre(x,deleted){
+  if(!x||!x.id||x.possibleDup||x.obPending||x.reciboId||x.debtId||metaDeGasto(x)) return false;
+  if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
+  if((x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
+  return isFinite(Number(x.amount))&&Number(x.amount)!==0&&!expenseIsTombstoned(x,deleted);
+}
+/* Banco y sentido: a una nómina solo la acredita un ingreso del banco donde entra (un traspaso
+   entre tus cuentas no es una nómina); a un traspaso, lo que llega al banco que lo recibe o lo que
+   sale del que lo manda. */
+function flowFilaEncaja(f,x){
+  const a=Number(x.amount), b=expenseBankOf(x);
+  if(f.kind==="income") return a<0&&b===flowBancoEntra(f)&&x.category!=="traspaso";
+  if(f.kind==="transfer") return a<0&&!!f.to&&b===f.to||a>0&&b===flowBancoSale(f);
+  return false;
+}
+/* Lo que se puede elegir a mano en «¿Cuál es el ingreso?»: del mes, hasta hoy, que encaje y que no
+   haya elegido ya él para OTRA entrada. Un movimiento del que dijo «No es este» sigue en la lista:
+   elegirlo luego lo deshace (lo último que dice manda, como en los recibos). */
+function flowFilasElegibles(s,f,y,m,today){
+  const ym=y+"-"+String(m).padStart(2,"0"), usadas=new Set(), deleted=expenseDeletedSet(s), out=[];
+  (s.flows||[]).forEach(function(o){ if(o&&o!==f&&o.id!==f.id){ const l=flowLlegadaFila(o,y,m); if(l) usadas.add(l.expenseId); } });
+  fixedPaymentExpenses(s,ym).identity.forEach(function(list){ list.forEach(function(x){
+    const d=recDay(x.date);
+    if(d!=null&&d<=today&&!usadas.has(x.id)&&flowFilaLibre(x,deleted)&&flowFilaEncaja(f,x)) out.push(x);
+  }); });
+  return out;
+}
+function flowFilaVetada(s,f,x){
+  return reciboVetado(s,flowVetoId(f),reciboNoIdentidad(x),x.id)||reciboVetado(s,flowVetoId(f),fixedPaymentIdentity(expenseBankOf(x),x));
+}
+/* El casado solo, estricto como el del extracto (`flowEarlyBankMatches`): con el nombre, importe
+   parecido (`recAmtClose`); sin él, al céntimo. Desde 7 días antes de su día. */
+function flowFilaCasa(s,f,x,y,m){
+  const planned=flowDay(f,y,m), d=recDay(x.date), amt=Math.abs(Number(x.amount)), want=Number(f.amount);
+  if(!(want>0)||planned!=null&&d<planned-7||flowFilaVetada(s,f,x)) return false;
+  return recNameMatch(f.name,x.obName!=null?x.obName:x.merchant)||recNameMatch(f.name,x.merchant)
+    ? recAmtClose(want,amt) : Math.round(want*100)===Math.round(amt*100);
+}
+/* Uno y sin dudas: si casan dos movimientos, o el mismo casa con otra entrada que aún no ha llegado
+   (dos nóminas iguales en el mismo banco), no se elige ninguno y se le pregunta a él. En un traspaso
+   manda la pata que LLEGA; la que sale solo si no hay ninguna que llegue. */
+/* Un ingreso que nombra a alguien con quien compartes un recibo es, antes que nada, su parte («Te
+   deben», `teDebenRecibido`): el motor no se lo da a una entrada. Si él lo enlaza a mano, manda él
+   y «Te deben» deja de contarlo (revisión de dinero del 12/11/2026: un movimiento, una cosa). */
+function flowNombraPersona(s,x){
+  const txt=" "+recNorm([x.merchant,x.obName,x.concept,x.note].join(" "))+" ";
+  // Como en `teDebenRecibido`: dos palabras del titular que no son de la persona = es dinero tuyo.
+  const titular=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
+  return personasDe(s).some(function(p){ const w=p.via!=="debt"&&debenNombre(p.n); return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })
+    &&titular.filter(function(k){ return w.indexOf(k)<0&&txt.indexOf(" "+k+" ")>=0; }).length<2; });
+}
+function flowFilaAuto(s,f,y,m,today){
+  const pool=flowFilasElegibles(s,f,y,m,today).filter(function(x){ return flowFilaCasa(s,f,x,y,m)&&!flowNombraPersona(s,x); });
+  const llega=pool.filter(function(x){ return Number(x.amount)<0; });
+  const c=f.kind==="transfer"&&llega.length?llega:pool;
+  if(c.length!==1) return null;
+  const x=c[0];
+  return (s.flows||[]).some(function(o){
+    return o&&o!==f&&o.id!==f.id&&Number(o.amount)>0&&flowOccursIn(o,m,y)&&!flowLlegadaGuardada(o,y,m)&&flowFilaEncaja(o,x)&&flowFilaCasa(s,o,x,y,m);
+  })?null:x;
+}
+/* El movimiento que él enlazó, si aún vale: si se borró, cambió de banco o es de otro mes, el enlace
+   ya no acredita nada (y el ancla que salió de él tampoco, ver `reconcileEarlyIncomeAnchors`). */
+function flowFilaEnlazada(s,f,y,m,today){
+  const l=flowLlegadaFila(f,y,m), ym=y+"-"+String(m).padStart(2,"0");
+  if(!l) return null;
+  const x=(fixedPaymentExpenses(s,ym).id.get(l.expenseId)||[]).filter(function(r){ return String(r.date||"").slice(0,7)===ym; });
+  return x.length===1&&recDay(x[0].date)<=today&&flowFilaLibre(x[0],expenseDeletedSet(s))&&flowFilaEncaja(f,x[0])?x[0]:null;
+}
+/* ¿Ha llegado este mes, y con qué? Lo leen Plan (secciones y ficha) e Inicio. Nunca escribe.
+   LA VISTA SIGUE AL DINERO (revisión del 12/11/2026): si el saldo ya la cuenta por calendario
+   (`flowLlegoIn`), está en «Ya ha entrado» aunque no haya movimiento («sin movimiento», y se le
+   puede enlazar el suyo); decir «aún entrará» de algo que el saldo ya suma eran dos cifras para el
+   mismo dinero. Lo que él enlaza o marca a mano antes de su día se enseña como llegado aunque el
+   saldo aún lo espere: es lo que dijo él.
+   → {llego, day, expense?, bank?, amount?, aMano?, auto?, extracto?, sinMov?, overdue?} */
+function flowEstadoMes(s,f,y,m,today){
+  const planned=flowDay(f,y,m);
+  /* Lo que la acredita (el movimiento enlazado, la marca a mano o el que casa solo) se enseña siempre,
+     pero «ha llegado» lo decide el dinero (`flowLlegoIn`, re-revisión del 12/11/2026): un movimiento
+     de otra cifra o un «de otra forma» antes de su día no anclan el saldo, y mientras «¿Te llega?» la
+     siga esperando, sigue en «Lo que aún entrará» con lo que llegó a la vista. */
+  const cuenta=flowLlegoIn(s,f,y,m,today);
+  const fila=function(x,auto){ return {llego:cuenta,day:cuenta?recDay(x.date):planned,expense:x,bank:expenseBankOf(x),amount:Math.abs(Number(x.amount)),auto:auto}; };
+  const enlazada=flowFilaEnlazada(s,f,y,m,today);
+  if(enlazada) return fila(enlazada,false);
+  const mano=flowLlegadaAMano(f,y,m);
+  if(mano!=null&&mano<=today) return {llego:cuenta,day:cuenta?mano:planned,aMano:true};
+  const x=flowFilaAuto(s,f,y,m,today);
+  if(x) return fila(x,true);
+  // El abono del extracto sin fila en Gastos (aún no importada): llega igual, como hoy.
+  const cd=flowConfirmedDay(f,y,m), tx=cd==null?flowEarlyBankTx(s,f,y,m,today):null;
+  if(cd!=null&&cd<=today||tx) return {llego:true,day:cd!=null?cd:recDay(tx.date),bank:flowBancoEntra(f),amount:Number(f.amount),extracto:true};
+  if(cuenta) return {llego:true,day:planned,sinMov:true};
+  return {llego:false,day:planned,overdue:planned!=null&&planned<today};
+}
+/* «¿Cuál es el ingreso?»: enlaza ese movimiento a la entrada de ese mes. → estado nuevo (o el mismo
+   si no se puede). Levanta el «No es este» que hubiera sobre ESE movimiento. Si es el abono del
+   extracto del banco que lo recibe y llegó antes de su día, ancla como lo haría el extracto. */
+function flowEnlazar(s,flowId,expenseId,y,m,today,ahora){
+  const f=(s.flows||[]).find(function(o){ return o&&o.id===flowId; });
+  const x=(s.expenses||[]).find(function(r){ return r&&r.id===expenseId; });
+  if(!f||!x||!flowOccursIn(f,m,y)||!flowFilasElegibles(s,f,y,m,today).some(function(r){ return r.id===x.id; })) return s;
+  const ym=y*12+m, d=recDay(x.date), bank=expenseBankOf(x), planned=flowDay(f,y,m);
+  const n=Object.assign({},f,{llegadas:flowLlegadasCon(f.llegadas,ym,{expenseId:x.id,identity:fixedPaymentIdentity(bank,x),date:String(x.date).slice(0,10),bank:bank,amount:Math.abs(Number(x.amount))})});
+  const entra=f.kind==="income"?(f.to||"sabadell"):flowAbonaEn(s,f,y,m);
+  /* Las mismas vallas que el extracto (`flowEarlyBankMatches`): importe parecido, como mucho 7 días
+     antes y una sola cuenta de recibos en ese banco. Un movimiento de otra cifra (un adelanto de 150 €,
+     media nómina en dos transferencias) se enseña enlazado pero NO ancla: anclarlo daba la nómina
+     entera por sumada y el previsto perdía la diferencia (revisión de dinero del 12/11/2026). */
+  if(entra&&esFilaDeBanco(x)&&Number(x.amount)<0&&bank===entra&&planned!=null&&d<planned&&planned-d<=7
+    &&recAmtClose(Number(f.amount),Math.abs(Number(x.amount)))
+    &&(s.accounts||[]).filter(function(a){ return a.ent===entra&&accFixed(a); }).length<=1)
+    Object.assign(n,{paidYm:ym,paidDay:d,paidBank:f.to||"sabadell",paidAmount:Number(f.amount)});
+  const vid=flowVetoId(f), claves=reciboNoDe(s,vid,reciboNoIdentidad(x),x.id);
+  const llano=vid+"|"+fixedPaymentIdentity(bank,x);
+  if((s.reciboNo||[]).indexOf(llano)>=0&&claves.indexOf(llano)<0) claves.push(llano);
+  const base=claves.length?Object.assign({},s,reciboNoPon(s,claves,false,ahora||Date.now())):s;
+  return keepShownAcrossFlows(base,(base.flows||[]).map(function(o){ return o===f?n:o; }));
+}
+/* «No es este»: quita el enlace del mes y aparta ese movimiento (o el abono del extracto) de esta
+   entrada para siempre, en los dos móviles. Si el ancla del saldo salió de él, se quita también:
+   lo que dice él es que la entrada aún no ha llegado. → estado nuevo o el mismo. */
+function flowDesenlazar(s,flowId,y,m,today,ahora){
+  const f=(s.flows||[]).find(function(o){ return o&&o.id===flowId; });
+  if(!f) return s;
+  const st=flowEstadoMes(s,f,y,m,today), ym=y*12+m, vid=flowVetoId(f);
+  if(st.aMano||st.sinMov||!(st.expense||st.extracto)) return s;
+  const n=Object.assign({},f), ll=flowLlegadasCon(f.llegadas,ym,null);
+  if(Object.keys(ll).length) n.llegadas=ll; else delete n.llegadas;
+  const claves=st.expense?reciboNoClaves(vid,reciboNoIdentidad(st.expense),st.expense.id):[];
+  const pon=function(k){ if(claves.indexOf(k)<0) claves.push(k); };
+  if(st.expense) pon(vid+"|"+fixedPaymentIdentity(st.bank,st.expense));
+  /* El extracto lleva su propio texto del comercio (la fila de Gastos puede estar renombrada): se veta
+     también con la identidad del extracto, que es la que mira `flowEarlyBankMatches`. */
+  const banco=st.expense?st.bank:flowBancoEntra(f), fecha=st.expense?String(st.expense.date).slice(0,10):null;
+  const cent=st.expense?Math.round(Number(st.expense.amount)*100):null;
+  (s.bankTx||[]).forEach(function(tx){
+    if(!tx||tx.ent!==banco||String(tx.date||"").slice(0,7)!==y+"-"+String(m).padStart(2,"0")) return;
+    if(st.expense?String(tx.date).slice(0,10)===fecha&&Math.round(Number(tx.amount)*100)===cent:Number(tx.amount)<0&&recDay(tx.date)===st.day)
+      pon(vid+"|"+fixedPaymentIdentity(tx.ent,tx));
+  });
+  if(f.paidYm===ym&&f.paidDay===st.day){ delete n.paidYm; delete n.paidDay; delete n.paidBank; delete n.paidAmount; }
+  const base=claves.length?Object.assign({},s,reciboNoPon(s,claves,true,ahora||Date.now())):s;
+  return keepShownAcrossFlows(base,(base.flows||[]).map(function(o){ return o===f?n:o; }));
+}
+/* «Lo recibí de otra forma» (día) y su «Desmarcar» (null). Solo presentación: ver arriba. */
+function flowMarcarAMano(s,flowId,y,m,day){
+  const ym=y*12+m; let cambia=false;
+  const flows=(s.flows||[]).map(function(f){
+    if(!f||f.id!==flowId) return f;
+    const prev=flowLlegadaGuardada(f,y,m);
+    if(day==null&&!(prev&&prev.expenseId==null)) return f;
+    const ll=flowLlegadasCon(f.llegadas,ym,day!=null?{mano:day}:null), n=Object.assign({},f);
+    if(Object.keys(ll).length) n.llegadas=ll; else delete n.llegadas;
+    cambia=true; return n;
+  });
+  return cambia?Object.assign({},s,{flows:flows}):s;
+}
+/* Deshacer un enlace NO es «No es este» (revisión de dinero del 12/11/2026): vetar al deshacer
+   dejaba el abono apartado para siempre, el extracto ya no anclaba y la nómina se contaba dos
+   veces. Se guarda la foto de lo que el enlace toca (la llegada del mes, el ancla y los vetos de
+   esta entrada) y Deshacer la repone tal cual, con el saldo que se ve quieto. */
+function flowFoto(s,flowId,y,m){
+  const f=(s.flows||[]).find(function(o){ return o&&o.id===flowId; });
+  if(!f) return null;
+  const pre=flowVetoId(f)+"|";
+  return {llegada:flowLlegadaGuardada(f,y,m),paid:{paidYm:f.paidYm,paidDay:f.paidDay,paidBank:f.paidBank,paidAmount:f.paidAmount},
+    vetos:(s.reciboNo||[]).filter(function(k){ return k.indexOf(pre)===0; })};
+}
+/* `tras` es la foto justo después de enlazar: el ancla solo se repone si sigue siendo la que dejó el
+   enlace (una sincronización pudo traer otra, y esa no se pisa). Los vetos, solo los de ESE mes:
+   los de otros meses no los tocó el enlace (re-revisión del 12/11/2026). */
+function flowDeshacer(s,flowId,y,m,foto,tras,ahora){
+  const f=(s.flows||[]).find(function(o){ return o&&o.id===flowId; });
+  if(!f||!foto) return s;
+  const ym=y*12+m, n=Object.assign({},f), ll=flowLlegadasCon(f.llegadas,ym,foto.llegada||null);
+  if(Object.keys(ll).length) n.llegadas=ll; else delete n.llegadas;
+  const ks=["paidYm","paidDay","paidBank","paidAmount"];
+  if(!tras||ks.every(function(k){ return f[k]===tras.paid[k]; }))
+    ks.forEach(function(k){ if(foto.paid[k]===undefined) delete n[k]; else n[k]=foto.paid[k]; });
+  const mes='"'+y+"-"+String(m).padStart(2,"0")+"-";
+  const delMes=function(k){ return k.indexOf(pre)===0&&k.indexOf(mes)>=0; };
+  const pre=flowVetoId(f)+"|", ya=(s.reciboNo||[]).filter(delMes);
+  foto=Object.assign({},foto,{vetos:foto.vetos.filter(delMes)});
+  const quitar=ya.filter(function(k){ return foto.vetos.indexOf(k)<0; }), poner=foto.vetos.filter(function(k){ return ya.indexOf(k)<0; });
+  let base=s;
+  if(quitar.length) base=Object.assign({},base,reciboNoPon(base,quitar,false,ahora||Date.now()));
+  if(poner.length) base=Object.assign({},base,reciboNoPon(base,poner,true,ahora||Date.now()));
+  return keepShownAcrossFlows(base,(base.flows||[]).map(function(o){ return o===f?n:o; }));
 }
 /* UNA sola fuente de cargos del mes para Plan / Pregúntame / segmented (audit Claude 17/9).
    Recibos = fixed + deudas (+ balloon) + oneoffs. Traspasos e ingresos van aparte y NUNCA
@@ -1147,17 +1372,18 @@ function planChargesMonth(s,m,y,today){
     var p=d!=null&&d<=today;
     r.push({id:"oneoff_"+o.id,name:o.name||o.merchant||"",amount:a,day:d,bank:o.account||"sabadell",paid:p,kind:"oneoff"});
   });
+  /* Entradas y traspasos con el ciclo de un recibo (`flowEstadoMes`): «paid» = ha llegado con un
+     movimiento o lo marcó él, no que haya pasado su día. Solo lo pintan Plan e Inicio; ningún total
+     de dinero lee esta lista (los del saldo van por `flowLlegoIn`). */
   (s.flows||[]).forEach(function(f){
     if(!flowOccursIn(f,m,y)) return;
-    var d=flowDay(f,y,m);
-    var p=flowPaidIn(s,f,y,m,today);
     var a=+(f.amount||0);
-    if(!(a>0)) return;
-    if(f.kind==="income"){
-      r.push({id:"flow_"+f.id,name:f.name||t("fj_income"),amount:-a,day:d,bank:f.to||"sabadell",paid:p,kind:"income"});
-    } else if(f.kind==="transfer"){
-      r.push({id:"flow_"+f.id,name:f.name||t("fj_transfer"),amount:a,day:d,bank:f.from||"sabadell",paid:p,kind:"transfer",to:f.to||null});
-    }
+    if(!(a>0)||f.kind!=="income"&&f.kind!=="transfer") return;
+    var st=flowEstadoMes(s,f,y,m,today);
+    var x={id:"flow_"+f.id,name:f.name||t(f.kind==="income"?"fj_income":"fj_transfer"),day:st.day,paid:st.llego,overdue:!!st.overdue,
+      aMano:!!st.aMano,sinMov:!!st.sinMov,paidBank:st.bank||null,paidAmount:st.amount>0?st.amount:null,expenseId:st.expense?st.expense.id:null,kind:f.kind};
+    if(f.kind==="income") r.push(Object.assign(x,{amount:-a,bank:f.to||"sabadell"}));
+    else r.push(Object.assign(x,{amount:a,bank:f.from||"sabadell",to:f.to||null}));
   });
   r.sort(function(a,b){ return ((a.day==null?99:a.day)-(b.day==null?99:b.day))||(Math.abs(b.amount)-Math.abs(a.amount)); });
   var b=function(x){ return x.amount>0&&x.kind!=="transfer"; };
@@ -1170,11 +1396,13 @@ function planChargesMonth(s,m,y,today){
   var qt=qb.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
   var tp=r.filter(function(x){ return x.kind==="transfer"&&!x.paid; });
   var ip=r.filter(function(x){ return x.kind==="income"&&!x.paid; });
+  // «Ya ha entrado»: lo que ya llegó (o se movió) este mes, el equivalente a «Ya pagados».
+  var fd=r.filter(function(x){ return (x.kind==="income"||x.kind==="transfer")&&x.paid; });
   return {
     pendingBills:pb, paidBills:qb,
     pendingBillsTotal:pt, paidBillsTotal:qt,
     pendingByBank:by,
-    transfersPending:tp, incomePending:ip
+    transfersPending:tp, incomePending:ip, flowsDone:fd
   };
 }
 /* PERSONAS Y RECIBOS COMPARTIDOS (Plan › Recibos v6, tanda 5; SPEC §5-§6).
@@ -1445,8 +1673,11 @@ function teDebenRecibido(s,y,m,personas){
   if(!nombres.length) return {};
   const titular=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
   const deleted=expenseDeletedSet(s), cand={};
+  // Lo que él enlazó a una entrada (nómina, traspaso) ya es de ella: el mismo dinero no paga dos cosas.
+  const deEntrada=new Set();
+  (s.flows||[]).forEach(function(f){ const l=flowLlegadaFila(f,y,m); if(l) deEntrada.add(String(l.expenseId)); });
   (s.expenses||[]).forEach(function(e){
-    if(!e||e.id==null||!e.date||!(Number(e.amount)<0)||e.possibleDup||e.category==="traspaso"||e.reciboId||e.debtId||e.goalId) return;
+    if(!e||e.id==null||!e.date||!(Number(e.amount)<0)||e.possibleDup||e.category==="traspaso"||e.reciboId||e.debtId||e.goalId||deEntrada.has(String(e.id))) return;
     if((e.cur||e.currency)&&String(e.cur||e.currency).toUpperCase()!=="EUR") return;
     const ms=_pdMs(String(e.date).trim());
     if(!isFinite(ms)) return;

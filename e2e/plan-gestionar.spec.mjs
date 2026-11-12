@@ -119,9 +119,8 @@ const hub = (page) => page.locator("[data-bills-manage]");
 // Las hijas permanecen encima del hub para que el gesto enseñe su destino; la última es la activa.
 const titulo = (page) => hub(page).locator(".settings-push-h h1").last();
 const ficha = (page) => page.locator('.v4-sheet[data-sheet="bill"]');
-const alta = (page) => page.locator('.v4-sheet[data-sheet="bill-add"]');
-// Recibos y cargos de una sola vez se añaden y editan en la hoja por pasos (Plan › Recibos v6,
-// tanda 4); la ficha y el alta de antes siguen para lo que entra y para el modo sencillo.
+// Recibos, cargos de una sola vez y, desde el 12/11/2026, lo que entra se añaden y editan en la hoja
+// por pasos (Plan › Recibos v6, tanda 4); la ficha y el alta de antes siguen para el modo sencillo.
 const pasos = (page) => page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
 const pasoN = (page, n) => pasos(page).locator('[data-rp4-paso="' + n + '"]');
 async function guardaPasos(page) {
@@ -275,9 +274,11 @@ for (const lang of ["es", "en", "ca"]) {
     expect(txt).not.toMatch(/fij[oa]s?\b|flujo|concilia|modelad|traspaso|\bfixed\b|reconcil|\bfixes\b|\bflux\b|traspàs/i);
     if (lang !== "es") expect(txt).not.toMatch(/Tus recibos|Servicios y suministros|Cargos de una sola vez/);
     // La ficha de «lo que entra» también ofrece el tipo de día: antes reaparecía «Un día fijo»
-    // al profundizar aunque el hub estuviera limpio (revisión cruzada Cursor 2026-09-17).
+    // al profundizar aunque el hub estuviera limpio (revisión cruzada Cursor 2026-09-17). Desde el
+    // 12/11/2026 es la hoja por pasos de un recibo.
     await seccion(page, "in").locator(".v4-bills-row").first().click();
-    const detailTxt = await ficha(page).innerText();
+    await expect(pasos(page)).toHaveAttribute("data-modo", "edit");
+    const detailTxt = await pasos(page).innerText();
     expect(detailTxt).not.toMatch(/fij[oa]s?\b|flujo|concilia|modelad|traspaso|\bfixed\b|reconcil|\bfixes\b|\bflux\b|traspàs/i);
   });
 }
@@ -368,9 +369,10 @@ test("renombrar no aplana el importe por mes, los meses ni el día hábil", asyn
   await fila(page, "Agua").click();
   await renombra(page, "Agua del pueblo");
 
+  // Lo que entra se edita en la misma hoja por pasos (12/11/2026): el día por regla se conserva.
   await fila(page, "Nómina").click();
-  await expect(ficha(page).locator(".v4-ficha-op.on")).toContainText("Último día hábil");
-  await ficha(page).locator("input.v4-bills-search").first().fill("Nómina de papá");
+  await expect(pasoN(page, 4).locator('[data-rp4-fila="2"]')).toContainText("Último día hábil");
+  await renombra(page, "Nómina de papá");
 
   await expect.poll(async () => {
     const s = await estado(page);
@@ -564,8 +566,9 @@ test("editar un recibo: dos toques en Guardar escriben una sola vez y la hoja sa
   expect(((await estado(page)).fixed||[]).filter((x)=>x.id==="luz")).toHaveLength(1);
 });
 
+// La ficha de antes de lo que entra queda para el modo sencillo (fuera de él es la hoja por pasos, 12/11/2026).
 test("Listo confirma a la vista, guarda una sola vez y después cierra", async ({ page }) => {
-  await appLista(page);
+  await appLista(page, { settings: { simpleMode: true } });
   await abreTusRecibos(page);
   await fila(page, "Nómina").click();
 
@@ -592,7 +595,7 @@ test("Listo confirma a la vista, guarda una sola vez y después cierra", async (
 });
 
 test("el cierre pendiente de un guardado no cierra la ficha siguiente", async ({ page }) => {
-  await appLista(page, { flows: flows.concat([{ id: "extra", name: "Extra", amount: 100, kind: "income", to: "sabadell", day: 5 }]) });
+  await appLista(page, { settings: { simpleMode: true }, flows: flows.concat([{ id: "extra", name: "Extra", amount: 100, kind: "income", to: "sabadell", day: 5 }]) });
   await abreTusRecibos(page);
   await fila(page, "Nómina").click();
   const hoja=ficha(page);
@@ -609,11 +612,10 @@ test("el cierre pendiente de un guardado no cierra la ficha siguiente", async ({
 test("Reducir animaciones cierra la ficha sin esperar la transición", async ({ page }) => {
   await appLista(page, { settings: { reduceMotion: true } });
   await abreTusRecibos(page);
+  // Lo que entra y un recibo, en la misma hoja por pasos.
   await fila(page, "Nómina").click();
-  const hoja=ficha(page);
-  await hoja.locator(".settings-push-h .back").click();
-  await expect(hoja).toHaveCount(0,{timeout:250});
-  // La hoja por pasos de un recibo, igual.
+  await pasos(page).locator('[data-act="back"]').click();
+  await expect(pasos(page)).toHaveCount(0,{timeout:250});
   await fila(page, "Luz").click();
   await pasos(page).locator('[data-act="back"]').click();
   await expect(pasos(page)).toHaveCount(0,{timeout:250});
@@ -741,21 +743,23 @@ test("la ola nativa vuelve por el mes del cargo único y por la clase del ingres
   await expect(pasos(page)).toHaveCount(0);
   expect(((await estado(page)).oneoffs||[]).filter((o)=>o.name==="Dentista")).toHaveLength(0);
 
+  // Lo que entra, en la misma hoja por pasos (12/11/2026): atrás deshace paso a paso sin crear nada.
   await hub(page).locator('[data-act="bill-add-flow"]').click();
-  await alta(page).locator("input.v4-bills-search").fill("Nómina prueba");
-  await alta(page).locator(".v4-cta").click();
-  await alta(page).getByRole("button",{name:"9",exact:true}).click();
-  await alta(page).locator(".v4-cta").click();
-  await alta(page).locator(".v4-cta").click();
-  await expect(alta(page)).toHaveAttribute("data-step","when");
+  await pasoN(page, 0).locator('[data-rp4="name"]').fill("Nómina prueba");
+  await pasos(page).locator(".rp4-cta").click();
+  await pasoN(page, 1).locator(".v4-keys").getByRole("button",{name:"9",exact:true}).click();
+  await pasos(page).locator(".rp4-cta").click();
+  await pasoN(page, 2).locator('[data-rp4-dia="5"]').click();
+  await pasos(page).locator(".rp4-cta").click();
+  await expect(pasos(page)).toHaveAttribute("data-paso","3");
   await back();
-  await expect(alta(page)).toHaveAttribute("data-step","freq");
+  await expect(pasos(page)).toHaveAttribute("data-paso","2");
   await back();
-  await expect(alta(page)).toHaveAttribute("data-step","amount");
+  await expect(pasos(page)).toHaveAttribute("data-paso","1");
   await back();
-  await expect(alta(page)).toHaveAttribute("data-step","what");
+  await expect(pasos(page)).toHaveAttribute("data-paso","0");
   await back();
-  await expect(alta(page)).toHaveCount(0);
+  await expect(pasos(page)).toHaveCount(0);
   expect(((await estado(page)).flows||[]).filter((f)=>f.name==="Nómina prueba")).toHaveLength(0);
 });
 
@@ -793,20 +797,12 @@ for (const caso of [
     await appLista(page, { settings:{lang:caso.lang} });
     await abreTusRecibos(page);
     await hub(page).locator(`[data-act="${caso.add}"]`).click();
-    if(caso.kind==="flow"){
-      await alta(page).locator("input.v4-bills-search").fill(caso.name);
-      await alta(page).locator('[data-act="next"]').click();
-      for(const k of String(caso.amount)) await alta(page).getByRole("button",{name:k,exact:true}).click();
-      await alta(page).locator('[data-act="next"]').click();
-      await alta(page).locator('[data-act="next"]').click();
-      await alta(page).locator('[data-act="confirm"]').click();
-      await expect(alta(page)).toHaveCount(0);
-    } else {
+    {
       await pasoN(page, 0).locator('[data-rp4="name"]').fill(caso.name);
       await pasos(page).locator('[data-act="next"]').click();
       for(const k of String(caso.amount)) await pasoN(page, 1).locator(".v4-keys").getByRole("button",{name:k,exact:true}).click();
       await pasos(page).locator('[data-act="next"]').click();
-      if(caso.kind==="fixed") await pasoN(page, 2).locator('[data-rp4-dia="10"]').click();
+      if(caso.kind!=="oneoff") await pasoN(page, 2).locator('[data-rp4-dia="10"]').click();
       else await pasoN(page, 2).getByRole("button",{name:caso.lang==="en"?"One day later":"Un día después"}).click();
       await pasos(page).locator('[data-act="next"]').click();
       await pasoN(page, 3).locator(".pr6-cand").first().click();

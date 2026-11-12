@@ -1,6 +1,6 @@
 /* UX08: cadena real de scroll y posición al volver. Las fichas que se miden son las de «lo que
-   entra» (la ficha de siempre); recibos y puntuales se editan en la hoja por pasos (tanda 4), que
-   comparte los mismos ganchos de gesto. El alta sí es la hoja por pasos. La ola dibujada por
+   entra» en modo sencillo (la ficha de siempre); fuera de él, recibos, puntuales y, desde el
+   12/11/2026, lo que entra se editan en la hoja por pasos (tanda 4), que comparte los mismos ganchos de gesto. El alta sí es la hoja por pasos. La ola dibujada por
    Android se acepta en el dispositivo; estos oráculos solo establecen sus condiciones web. */
 import {test,expect} from '@playwright/test';
 import crypto from 'node:crypto';
@@ -18,11 +18,11 @@ async function swipe(page,x,y,dx,dy,end='touchEnd'){
   for(let i=1;i<=12;i++){await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*i/12,y:y+dy*i/12}]});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));}
   await c.send('Input.dispatchTouchEvent',{type:end,touchPoints:[]});await c.detach();await settle(page);
 }
-async function begin(page,info,many=false){
+async function begin(page,info,many=false,simple=false){
   const origin=new URL(info.project.use.baseURL).origin;
   await page.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort('blockedbyclient'));
   await installFixtureClock(page);
-  await seedLoggedInDashboard(page,{accounts:[{id:'sab',ent:'sabadell',name:'Cuenta sintética',value:2000,role:'fijos'}],fixed:Array.from({length:32},(_,i)=>({id:'wave-'+i,name:'Recibo sintético '+String(i+1).padStart(2,'0'),amount:(1234+i)/100,freq:'mes',account:'sabadell',day:27})),debts:Array.from({length:many?14:1},(_,i)=>({id:'debt-'+i,name:'Cuota sintética '+i,monthly:50,value:1000,anchor:1000,account:'sabadell',day:27})),flows:Array.from({length:many?14:1},(_,i)=>({id:'income-'+i,name:'Ingreso sintético '+i,amount:1800,kind:'income',to:'sabadell',when:'last'})),oneoffs:Array.from({length:many?14:1},(_,i)=>({id:'once-'+i,name:'Puntual sintético '+i,amount:25,month:9,year:2026,account:'sabadell'})),settings:{autoPrices:false,theme:'green',lang:'es'}});
+  await seedLoggedInDashboard(page,{accounts:[{id:'sab',ent:'sabadell',name:'Cuenta sintética',value:2000,role:'fijos'}],fixed:Array.from({length:32},(_,i)=>({id:'wave-'+i,name:'Recibo sintético '+String(i+1).padStart(2,'0'),amount:(1234+i)/100,freq:'mes',account:'sabadell',day:27})),debts:Array.from({length:many?14:1},(_,i)=>({id:'debt-'+i,name:'Cuota sintética '+i,monthly:50,value:1000,anchor:1000,account:'sabadell',day:27})),flows:Array.from({length:many?14:1},(_,i)=>({id:'income-'+i,name:'Ingreso sintético '+i,amount:1800,kind:'income',to:'sabadell',when:'last'})),oneoffs:Array.from({length:many?14:1},(_,i)=>({id:'once-'+i,name:'Puntual sintético '+i,amount:25,month:9,year:2026,account:'sabadell'})),settings:{autoPrices:false,theme:'green',lang:'es',simpleMode:simple}});
   const response=await page.goto('/'),htmlSHA=crypto.createHash('sha256').update(await response.body()).digest('hex');
   if(process.env.WAVE_EXPECTED_HTML)expect(htmlSHA).toBe(process.env.WAVE_EXPECTED_HTML);
   await info.attach('served.json',{body:JSON.stringify({htmlSHA,CPU6:false,trace:false}),contentType:'application/json'});
@@ -34,7 +34,13 @@ async function begin(page,info,many=false){
 async function record(page,info,run){const before=await raw(page);const phases=[];const capture=async name=>{const s=await snap(page);phases.push({name,...s});return s;};try{await run(capture);}finally{const after=await raw(page);await info.attach('observations.json',{body:JSON.stringify({phases,events:await page.evaluate(()=>window.__waveEvents),before,after,financialExact:JSON.stringify(before)===JSON.stringify(after)},null,2),contentType:'application/json'});expect(after).toEqual(before);}}
 // Tus recibos v6 (SPEC §3): las filas viven en secciones del propio hub; se centra la fila antes de tocarla.
 async function filaDe(page,sec,i=0){const r=page.locator(hub+' [data-mg-sec="'+sec+'"] .v4-bills-row').nth(i);await r.evaluate(e=>e.scrollIntoView({block:'center'}));await settle(page);await r.tap();}
-async function manage(page){await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({hasText: /^(Gestionar|Todos)\b/}).tap();await expect(page.locator(hub)).toBeVisible();await settle(page);}
+async function manage(page){
+  // En modo sencillo Tus recibos se abre desde Ajustes (§5bis.2): es donde sigue la ficha de siempre.
+  if(await page.evaluate(()=>!!(JSON.parse(localStorage.getItem('micartera_v3')||'{}').settings||{}).simpleMode)){
+    await page.evaluate(()=>window.dispatchEvent(new CustomEvent('mc-open-settings')));
+    const b=page.getByRole('button',{name:/Cambiar mis recibos/i});await expect(b).toBeVisible({timeout:15000});await b.evaluate(el=>{el.scrollIntoView({block:'center'});el.click();});
+  } else await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({hasText: /^(Gestionar|Todos)\b/}).tap();
+  await expect(page.locator(hub)).toBeVisible();await settle(page);}
 
 test('native wave: Tus recibos conserva un solo dueño del scroll en ambos bordes',async({page},info)=>{
   await begin(page,info);await record(page,info,async capture=>{
@@ -63,7 +69,7 @@ test('close jump: volver conserva scroll y anclas de Plan desde Gestionar despla
   });
 });
 test('native wave: ficha permite el gesto vertical en el borde superior del contenido',async({page},info)=>{
-  await begin(page,info);await record(page,info,async capture=>{
+  await begin(page,info,false,true);await record(page,info,async capture=>{
     await manage(page);await filaDe(page,'in');await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);await capture('sheet-open');
     await swipe(page,300,400,0,100,'touchCancel');await capture('sheet-after-cancel');
     const c=await page.context().newCDPSession(page);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:300,y:400}]});await c.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:300,y:450}]});await page.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));
@@ -84,7 +90,7 @@ test('native wave: ficha permite el gesto vertical en el borde superior del cont
   });
 });
 test('close jump: ficha desplazada vuelve al mismo sitio de Tus recibos y Plan',async({page},info)=>{
-  await begin(page,info,true);await record(page,info,async capture=>{
+  await begin(page,info,true,true);await record(page,info,async capture=>{
     await manage(page);await page.locator(hub+' [data-mg-sec="in"]').evaluate(e=>e.scrollIntoView({block:'center'}));await settle(page);const before=await capture('hub-before-detail');
     // Elegir una fila realmente visible sin desplazamiento de Playwright al enfocarla.
     const idx=await page.locator(hub+' [data-mg-sec="in"] .v4-bills-row').evaluateAll(els=>els.findIndex(e=>{const r=e.getBoundingClientRect();return r.top>180&&r.bottom<600;}));expect(idx).toBeGreaterThanOrEqual(0);
@@ -95,7 +101,7 @@ test('close jump: ficha desplazada vuelve al mismo sitio de Tus recibos y Plan',
   });
 });
 test('close jump: cancelar un segundo toque no devuelve la ficha que ya está saliendo',async({page},info)=>{
-  await begin(page,info);await record(page,info,async capture=>{
+  await begin(page,info,false,true);await record(page,info,async capture=>{
     await manage(page);await filaDe(page,'in');await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
     await swipe(page,300,600,0,-350);const before=await capture('scrolled-before-close');expect(before.sheet.scroll).toBeGreaterThan(0);
     await page.evaluate(()=>{window.__exitFrames=[];function frame(){const s=document.querySelector('[data-sheet="bill"]'),p=document.querySelector('.page-scroll-host'),a=document.querySelector('.v4-screen > [data-seg="recibos"]');window.__exitFrames.push({t:performance.now(),y:s?.getBoundingClientRect().y,scroll:s?.scrollTop,transform:s?.style.transform,plan:p.scrollTop,anchor:a.getBoundingClientRect().y});if(s)requestAnimationFrame(frame);}requestAnimationFrame(frame);});
@@ -129,7 +135,7 @@ test('native wave: alta desplazable conserva el formulario, los bordes y el regr
   });
 });
 test('native wave: cancelar Atrás lateral de la ficha limpia la capa al reposar',async({page},info)=>{
-  await begin(page,info);await record(page,info,async capture=>{
+  await begin(page,info,false,true);await record(page,info,async capture=>{
     await manage(page);await filaDe(page,'in');await expect(page.locator('[data-sheet="bill"]')).toBeVisible();await settle(page);
     const back=page.locator('.v4-sheet-back').filter({has:page.locator('[data-sheet="bill"]')});
     await swipe(page,160,400,65,0,'touchCancel');
