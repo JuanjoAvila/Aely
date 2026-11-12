@@ -364,7 +364,11 @@ test("marca sin prueba sigue visible para confirmar y no añade nómina a los re
   await expect(recibos).not.toContainText(/Ya pagados?/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).toContainText("Luz");
-  await expect(recibos).not.toContainText("Nómina");
+  // La nómina no es un recibo: ni en Por pagar ni en Para revisar. Sin movimiento que la acredite sigue en
+  // «Lo que aún entrará», atrasada (12/11/2026: antes desaparecía con solo pasar su día).
+  await expect(recibos.getByTestId("plan-due")).not.toContainText("Nómina");
+  await expect(recibos.getByTestId("plan-review")).not.toContainText("Nómina");
+  await expect(recibos.getByTestId("plan-income")).toContainText("Nómina");
 });
 
 test("Pregúntame abre Deudas en el segmented compacto", async ({ page }) => {

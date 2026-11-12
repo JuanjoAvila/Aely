@@ -87,7 +87,11 @@ console.log("plan-charges");
   assert.equal(p.pendingBills.length, 3, "luz+coche+itv pendientes el día 10");
   assert.equal(p.pendingBillsTotal, 290);
   assert.equal(p.transfersPending.length, 1);
-  assert.equal(p.incomePending.length, 0, "nómina día 1 ya pagada");
+  // Desde el 12/11/2026 una entrada no se da por llegada solo por pasar su día (como un recibo): sin
+  // movimiento que la acredite sigue en «Lo que aún entrará», marcada como atrasada.
+  assert.equal(p.incomePending.length, 1, "nómina del día 1 sin movimiento: aún no ha entrado");
+  assert.equal(p.incomePending[0].overdue, true);
+  assert.equal(p.flowsDone.length, 0);
   assert.ok(p.pendingBills.every((x) => x.kind !== "transfer" && x.kind !== "income"));
   const s = c.pendingBillsSummary(base(), 9, 2026, 10);
   assert.equal(s.count, p.pendingBills.length);
@@ -138,7 +142,9 @@ console.log("plan-charges");
   assert.equal(p.pendingBills.length, 1,"un fijo vencido sin evidencia bancaria no se presenta como pagado");
   assert.equal(p.pendingBills[0].overdue,true);
   assert.equal(p.paidBills.length, 2,"cuotas y puntuales conservan su proyección fuera de INC-3009-01");
-  assert.equal(p.transfersPending.length, 0);
+  // El traspaso del 25 sin movimiento detrás sigue a la vista, atrasado, como un recibo (12/11/2026).
+  assert.equal(p.transfersPending.length, 1);
+  assert.equal(p.transfersPending[0].overdue, true);
 }
 
 {
