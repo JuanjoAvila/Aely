@@ -1865,7 +1865,12 @@
   .v4-ficha-adjust-row .chev{color:var(--muted-2);font-size:17px;}
   .v4-ficha-adjust-open{padding:9px 0 3px;}
   .v4-ficha-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;
-    padding-top:8px;border-top:1px solid var(--line-soft);}
+    padding-top:8px;border-top:1px solid var(--line-soft);position:relative;}
+  /* Aviso que flota sobre el pie: fuera del flujo para que su llegada no mueva la ficha. */
+  .v4-ficha-aviso{position:absolute;left:0;right:0;bottom:calc(100% + 8px);z-index:2;display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:14px;background:var(--sur);border:1px solid var(--line);
+    box-shadow:0 6px 18px rgba(0,0,0,.28);color:var(--muted);font-size:12px;line-height:1.35;}
+  .v4-ficha-aviso .btn{flex:0 0 auto;min-height:36px;padding:0 12px;}
   .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
   .v4-ficha-saved{color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.2;}
   .v4-ficha-done{min-height:44px;padding:0 16px;border-radius:14px;background:var(--mint);color:var(--on-mint);font-size:13px;font-weight:850;white-space:nowrap;}
