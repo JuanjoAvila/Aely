@@ -225,15 +225,21 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
      (scroll nativo `smooth`, sin trabajo por frame nuestro) hasta dejar la tarjeta centrada en
      lo que se ve entre el borde de arriba y la barra inferior. La barra se descuenta SIEMPRE,
      aunque esté escondida: al subir reaparece y la taparía. */
-  const irADeuda=function(debtId){
+  /* `listo`: se llega por debajo de algo que se va a ir (Tus recibos). Deudas se pone en su sitio tapada, sin
+     entrar deslizando ni scroll suave, y `listo` avisa cuando la tarjeta ya está donde se va a ver; entonces
+     se va lo de encima y el único movimiento es ese, el de «Atrás». Antes Tus recibos salía, a los 320 ms
+     cambiaba la sección deslizando y a la vez se desplazaba la página: tres movimientos seguidos en medio
+     segundo, «muy violento, rapidísimo pero no suave» (dueño, 12/11). */
+  const irADeuda=function(debtId,listo){
     setSegMounted(function(m){ return m.deudas?m:Object.assign({},m,{deudas:true}); });
-    if(seg!=="deudas"&&entradaRef) entradaRef.current="down";
+    if(seg!=="deudas"&&entradaRef&&!listo) entradaRef.current="down";
     setSeg("deudas");
-    setFocoDeuda(debtId!=null?{id:String(debtId),ts:Date.now()}:null);
+    setFocoDeuda(debtId!=null?{id:String(debtId),ts:Date.now(),listo:listo||null}:null);
+    if(debtId==null&&listo) listo();
   };
   useEffect(function(){
     if(!focoDeuda||seg!=="deudas"||!segMounted.deudas) return undefined;
-    const id=focoDeuda.id;
+    const id=focoDeuda.id, listo=focoDeuda.listo;
     let raf=0, n=0, antes=null, cancel=false;
     // Posición en la página por `offsetTop` y no por `getBoundingClientRect`: la sección entra con
     // un `translateY` y las tarjetas con `.rise`, y un rect medido a mitad de animación apuntaría
@@ -255,7 +261,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       if(y==null||antes==null||Math.abs(y-antes)>0.5){
         antes=y;
         if(++n<60) raf=requestAnimationFrame(paso);
-        else setFocoDeuda(null);
+        else { setFocoDeuda(null); if(listo) listo(); }
         return;
       }
       const pr=pg.getBoundingClientRect();
@@ -275,11 +281,13 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       // Si la página aún entra por el carrusel (venías de Gastos), se coloca sin deslizar: llega ya
       // en su sitio y el movimiento es solo el del carrusel, no dos a la vez.
       const enSitio=Math.abs(pr.left)<2;
-      try{ pg.scrollTo({top:dest,behavior:(enSitio&&!mcReduced())?"smooth":"auto"}); }catch(e){ pg.scrollTop=dest; }
-      // El resalte NO se cancela al limpiar el efecto (este mismo `setFocoDeuda(null)` lo limpia).
-      card.classList.add("v4-foco");
-      setTimeout(function(){ card.classList.remove("v4-foco"); }, 1700);
+      try{ pg.scrollTo({top:dest,behavior:(enSitio&&!listo&&!mcReduced())?"smooth":"auto"}); }catch(e){ pg.scrollTop=dest; }
+      // El resalte NO se cancela al limpiar el efecto (este mismo `setFocoDeuda(null)` lo limpia). Tapada,
+      // espera a que se destape: si no, la mitad del resalte se pintaba debajo sin que nadie lo viera.
+      const resalta=function(){ card.classList.add("v4-foco"); setTimeout(function(){ card.classList.remove("v4-foco"); }, 1700); };
+      if(listo) setTimeout(resalta,mcReduced()?0:420); else resalta();
       setFocoDeuda(null);
+      if(listo) listo();
     };
     raf=requestAnimationFrame(paso);
     return function(){ cancel=true; if(raf) cancelAnimationFrame(raf); };
@@ -851,7 +859,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     });
     return out;
   },[pack,state.debts,state.expenses,year,month,today]);
-  const verPlegado=pr6VerPlegado;
   const conflictOf=function(x){
     const match=String(x.id).match(/^(fixed|debt|balloon)_(.*)$/),kind=match&&match[1]!=="fixed"?"debts":"fixed";
     const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
@@ -1107,7 +1114,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           : pr6Tres(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
     !sig&&(v.paid.length>0||pausados.length>0)&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
-        onClick:function(){ setPaidOpen(function(o){ if(!o) verPlegado(paidRef.current); return !o; }); }},
+        onClick:function(){ setPaidOpen(function(o){ return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},
           React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
@@ -1311,15 +1318,11 @@ function pr6Chev(){
   return React.createElement("svg",{className:"pr6-chev",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
     React.createElement("path",{d:"M6 9l6 6 6-6"}));
 }
-// El desplegable se ve entero: mueve la página lo justo, sin escribir scrollTop a mano (INC-0710-01).
-function pr6VerPlegado(el){
-  if(!el) return;
-  setTimeout(function(){ try{ el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); }catch(e){} },380);
-}
 /* Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4). Es la
    misma lista en la portada de Recibos y en Tus recibos, donde el SPEC decía cuatro y el dueño pidió
-   tres (11/11/2026): seis personas seguidas llenaban la pantalla. Al plegar, la sección vuelve a
-   verse desde su principio. `more` añade atributos al botón (los e2e lo buscan por sección). */
+   tres (11/11/2026): seis personas seguidas llenaban la pantalla. Ni al abrir ni al plegar se mueve la
+   página: antes «Ver menos» la desplazaba sola hasta el principio de la sección y al dueño le resultaba
+   incómodo que se moviera sin tocarla (12/11). `more` añade atributos al botón (los e2e lo buscan). */
 function pr6Tres(items,render,open,setOpen,id,more){
   const rest=items.slice(3);
   return React.createElement(React.Fragment,null,
@@ -1328,7 +1331,7 @@ function pr6Tres(items,render,open,setOpen,id,more){
       // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
       React.createElement("div",Object.assign({className:"pr6-fold-in"},open?null:{"aria-hidden":"true",inert:""}), rest.map(render))),
     rest.length>0&&React.createElement("button",Object.assign({type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
-      onClick:function(e){ const sec=e.currentTarget.parentNode; setOpen(function(o){ if(o) pr6VerPlegado(sec); return !o; }); }},more),
+      onClick:function(){ setOpen(function(o){ return !o; }); }},more),
       open?t("v4_ver_menos"):tf("pr6_ver_los",{n:items.length}),
       pr6Chev()));
 }
@@ -1559,24 +1562,48 @@ function LlegaSheet({state, set, totals, pack, onClose, ensayo}){
      cualquier punto de la zona y el teclado sube a la vista.
      Se acompaña fotograma a fotograma mientras se abre, no al acabar: antes, a los 380 ms, un
      `scrollIntoView` suave daba un segundo empujón cuando todo parecía quieto y él lo vio «en dos
-     tiempos en vez de 1» (vídeo 11/11). Ahora el fondo de la zona se queda pegado al borde de la hoja
-     mientras el teclado crece, y todo llega a su sitio en el mismo movimiento. Un dedo encima lo
+     tiempos en vez de 1» (vídeo 11/11). Ahora todo llega a su sitio en el mismo movimiento que el
+     teclado (cómo, al abrirse, en el efecto de abajo). Un dedo encima lo
      suelta: no se pelea con quien ya está desplazando. Las teclas no lo sueltan: lo que aparece al
      teclear la primera cifra (el resultado, el colchón, la cuota a plazos) crece por encima del
-     teclado y, acompañado, el teclado no se mueve bajo el dedo que sigue escribiendo. */
+     teclado y, con su fondo pegado al borde de la hoja, el teclado no se mueve bajo el dedo. */
   const zonaRef=useRef(null);
   const [plazos,setPlazos]=useState(false);
   const amt=parseNumPadRaw(raw);
+  const tecladoAntes=useRef(false);
   useEffect(function(){
+    const abre=teclado&&!tecladoAntes.current; tecladoAntes.current=teclado;
     if(!teclado) return undefined;
     const el=zonaRef.current, hoja=el&&el.closest(".v4-sheet");
     if(!hoja) return undefined;
     let raf=0;
-    const fin=performance.now()+(mcReduced()?0:450);
+    const t0=performance.now(), fin=t0+(mcReduced()?0:450);
     const suelta=function(e){ if(e&&e.target&&e.target.closest&&e.target.closest(".v4-keys")) return; cancelAnimationFrame(raf); raf=0; };
+    /* Al ABRIRSE, el importe va de donde está a donde acabará con la curva y el tiempo del teclado, en un
+       solo gesto. Pegar el fondo de la zona al borde fotograma a fotograma lo hacía a tirones según de
+       dónde viniera: de una vez, la hoja crecía primero, se paraba y luego desplazaba (34, 32, 16, 12,
+       11, 14, 19 px por fotograma a ×6); y con lo de debajo ya tapado saltaba 116 px en el primero. Con «A
+       plazos» la hoja ya estaba a tope y por eso «Entrada» iba fluido y el importe no (dueño, 12/11).
+       Dónde acabará se sabe ya: el teclado plegado está maquetado a su alto (lo que falta es su alto menos
+       lo que mide ya el pliegue, la rejilla de fuera: el de dentro va por detrás mientras crece). */
+    const imp=el.querySelector(".pr6-ll-amt"), tec=el.querySelector(".v4-keys");
+    const tecIn=tec&&tec.closest(".pr6-fold-in");
+    const a0=abre&&imp&&tecIn&&!mcReduced()?imp.getBoundingClientRect().top:null;
     const paso=function(){
-      const sobra=el.getBoundingClientRect().bottom-hoja.getBoundingClientRect().bottom;
-      if(sobra>0.5) hoja.scrollTop+=sobra;
+      const ms=performance.now()-t0;
+      if(a0!=null&&ms<350){
+        // Al final la hoja queda al tope de su scroll: bajo la zona solo su relleno (`tras`), no más.
+        const zr=el.getBoundingClientRect(), ir=imp.getBoundingClientRect().top, ti=tecIn.parentNode.getBoundingClientRect(), hr=hoja.getBoundingClientRect();
+        const tras=hr.top+hoja.clientTop-hoja.scrollTop+hoja.scrollHeight-zr.bottom;
+        const af=hr.top+hoja.clientTop+hoja.clientHeight-tras-(zr.bottom+Math.max(0,tecIn.scrollHeight-ti.height)-ir);
+        if(af<a0){
+          const quiero=a0+(af-a0)*mcCurvaCasa(ms/350), d=ir-quiero;
+          if(d>0.5||(d<-0.5&&hoja.scrollTop>0)) hoja.scrollTop+=d;
+        }
+      } else {
+        const sobra=el.getBoundingClientRect().bottom-hoja.getBoundingClientRect().bottom;
+        if(sobra>0.5) hoja.scrollTop+=sobra;
+      }
       raf=performance.now()<fin?requestAnimationFrame(paso):0;
     };
     raf=requestAnimationFrame(paso);
@@ -2811,7 +2838,12 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   };
   const tocarFila=function(r){
     // Una cuota se cambia en Deudas (SPEC §3): se cierra esto y se llega a su tarjeta.
-    if(r.kind==="debt"&&onGoDebts&&!simple){ const id=r.id; pageSwipe.close(); setTimeout(function(){ onGoDebts(id); },320); return; }
+    // Deudas se coloca debajo y, ya en su sitio, Tus recibos se va como con «Atrás» (ver `irADeuda`).
+    // Si Deudas no llegara a avisar (otra navegación a medias), Tus recibos se va igual.
+    if(r.kind==="debt"&&onGoDebts&&!simple){
+      let ido=false; const vete=function(){ if(!ido){ ido=true; pageSwipe.close(); } };
+      onGoDebts(r.id,vete); setTimeout(vete,900); return;
+    }
     openDetail(Object.assign({},r,r.kind==="debt"?{locked:!simple}:null));
   };
   const filaEl=function(r){
@@ -3387,7 +3419,8 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
   // terminara de abrirse y luego se deslizaba aparte: se abría, se paraba y daba un segundo empujón; y al
   // cerrar, el hueco desaparecía antes de tiempo y la hoja caía de golpe (vídeo del 11/11, «Más opciones»).
   const diasRef=useRef(null), mesesRef=useRef(null), pagosRef=useRef(null);
-  const masRef=useRef(null), masBtnRef=useRef(null), extraRefs={prueba:useRef(null),perm:useRef(null)}, extraBtnRefs={prueba:useRef(null),perm:useRef(null)};
+  // Al abrir «Más opciones», si no cabe entero, basta con ver con quién lo pagas: sin que la hoja corra 600 px sola.
+  const masRef=useRef(null), masBtnRef=useRef(null), masHastaRef=useRef(null), extraRefs={prueba:useRef(null),perm:useRef(null)}, extraBtnRefs={prueba:useRef(null),perm:useRef(null)};
   const acompana=function(body,paso,ms,fin){
     suelta();
     let raf=0;
@@ -3400,7 +3433,7 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
     };
     const vuelta=function(){
       const ahora=performance.now();
-      paso(Math.min(1,(ahora-t0)/Math.max(1,hasta-t0)));
+      paso(Math.min(1,(ahora-t0)/Math.max(1,hasta-t0)),ahora-t0);
       if(ahora<hasta) raf=requestAnimationFrame(vuelta); else corta();
     };
     // Un dedo en la hoja manda: deja de acompañar y no pelea con quien desliza.
@@ -3408,21 +3441,34 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
     sigue.current=corta;
     raf=requestAnimationFrame(vuelta);
   };
-  const mostrar=function(ref,conTitulo){
+  /* El destino se sabe desde el primer fotograma: el pliegue crece, pero lo de dentro ya está maquetado a
+     su alto. La hoja va hacia él con la curva y el tiempo del pliegue. Antes perseguía el borde del pliegue
+     fotograma a fotograma: con «Más opciones» (seis caras y una fila por persona, ~600 px) la hoja corría
+     ~250 px en cuatro fotogramas hasta dejar el botón arriba, parte del «sale como un flash raro» (vídeo
+     del 12/11; la otra parte, la hoja transparente, era el toque: ver `useSheetSwipe`). `hasta`: lo que basta ver
+     cuando todo lo desplegado no cabe. */
+  const mostrar=function(ref,conTitulo,hasta){
     const el=ref.current, body=el&&el.closest(".rp4-body");
     if(!body) return;
-    acompana(body,function(){
+    const desde=body.scrollTop;
+    acompana(body,function(p,ms){
       /* A la vista lo que hay que elegir SIN que el título del paso se salga por arriba: con «nearest» a secas
          «¿Cuándo se cobra?» quedaba cortado a media altura contra el borde del cuerpo (revisión 7/11). */
-      const st=el.closest(".rp4-step"), h=st&&st.querySelector(".rp4-h");
+      const st=el.closest(".rp4-step"), h=st&&st.querySelector(".rp4-h"), n=hasta&&hasta.current;
       const b=body.getBoundingClientRect(), e=el.getBoundingClientRect();
-      let d=e.bottom>b.bottom-12?e.bottom-b.bottom+12:(e.top<b.top?e.top-b.top-8:0);
+      const falta=function(abajo){ return abajo>b.bottom-12?abajo-b.bottom+12:(e.top<b.top?e.top-b.top-8:0); };
+      let d=falta(e.top+el.scrollHeight);
       // Solo con «titulo»: en «En varios pagos» el título no se corta; al elegir meses/días lo que se elige manda.
       // Con un ref en su lugar, lo que no se sale por arriba es esa fila: la que se ha tocado para abrir.
       const tope=conTitulo&&conTitulo.current?conTitulo.current:h;
-      if(d>0&&conTitulo&&tope) d=Math.min(d,Math.max(tope.getBoundingClientRect().top-b.top-8,0));
-      if(Math.abs(d)>0.5) body.scrollTop+=d;
-    },650);
+      const techo=conTitulo&&tope?Math.max(tope.getBoundingClientRect().top-b.top-8,0):Infinity;
+      // Si todo no cabe sin que se vaya arriba lo tocado, basta con `hasta`: lo demás, a mano.
+      if(n&&d>techo) d=falta(n.getBoundingClientRect().bottom);
+      if(d>0) d=Math.min(d,techo);
+      // Los .35 s del pliegue (`.pr6-fold`); lo que sobra de vuelta recoge el relleno que aún crecía.
+      const y=desde+(body.scrollTop+d-desde)*mcCurvaCasa(mcReduced()?1:ms/350);
+      if(Math.abs(y-body.scrollTop)>0.5) body.scrollTop=y;
+    },450);
   };
   /* Al plegar, el hueco se iba en las primeras décimas y el navegador recolocaba la hoja de golpe para no
      dejar hueco debajo. Se reserva el alto mientras la hoja baja con la misma curva del plegable. */
@@ -3900,13 +3946,13 @@ function ReciboPasos({mode, row, once, nombre, conPersona, state, set, totals, b
         React.createElement("span",{className:"num rp4-dia-v rp7-fecha","data-rp7-fecha":"perm"}, f.perm?tf("rp7_hasta",{x:pr6MesAno(f.perm)}):"—"),
         React.createElement(RpPaso,{label:t("rp7_mes_mas"),dir:1,onStep:permPaso}))])];
   const repUI=kind==="fixed"&&f.mode!=="once"&&React.createElement("div",{key:"mas",className:"rp5-mas"},
-    React.createElement("button",{type:"button",ref:masBtnRef,className:"pr6-more","aria-expanded":mas?"true":"false","data-act":"mas-opciones",onClick:function(){ setMas(function(o){ return !o; }); if(mas) ocultar(masRef); else mostrar(masRef,masBtnRef); }},
+    React.createElement("button",{type:"button",ref:masBtnRef,className:"pr6-more","aria-expanded":mas?"true":"false","data-act":"mas-opciones",onClick:function(){ setMas(function(o){ return !o; }); if(mas) ocultar(masRef); else mostrar(masRef,masBtnRef,masHastaRef); }},
       t("rp5_mas"), pr6Chev()),
     React.createElement("div",{className:"pr6-fold"+(mas?" open":"")},
       React.createElement("div",Object.assign({className:"pr6-fold-in rp5-in",ref:masRef},mas?null:{"aria-hidden":"true",inert:""}),
         React.createElement("div",{className:"pr6-lbl"}, t("rp5_con_alguien")),
-        !admite?React.createElement("div",{className:"hint"}, t("rp5_no_admite"))
-          :React.createElement("div",{className:"rp5-grid","data-testid":"rp5-grid"},
+        !admite?React.createElement("div",{className:"hint",ref:masHastaRef}, t("rp5_no_admite"))
+          :React.createElement("div",{className:"rp5-grid","data-testid":"rp5-grid",ref:masHastaRef},
             conocidas.map(function(q){
               const on=enReparto(q.id);
               return React.createElement("button",{type:"button",key:q.id,className:"rp5-ava"+(on?" on":""),"aria-pressed":on?"true":"false","data-persona":q.id,

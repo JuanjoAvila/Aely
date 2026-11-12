@@ -561,6 +561,16 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
 function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
 }
+/* La curva de la casa (`--ease`, cubic-bezier(.22,.61,.36,1)) en JS: lo que se desplaza acompañando a un
+   pliegue va con su MISMA curva y su mismo tiempo. Con otra (la cúbica a secas) el scroll iba por
+   delante o por detrás del pliegue y se veían dos movimientos (Recibos, 12/11). p en [0,1]. */
+function mcCurvaCasa(p){
+  if(p<=0) return 0; if(p>=1) return 1;
+  const bx=function(t){ return 3*t*(1-t)*(1-t)*.22+3*t*t*(1-t)*.36+t*t*t; };
+  let lo=0, hi=1, t=p;
+  for(let i=0;i<24;i++){ if(bx(t)<p) lo=t; else hi=t; t=(lo+hi)/2; }
+  return 3*t*(1-t)*(1-t)*.61+3*t*t*(1-t)+t*t*t;
+}
 
 /* UX16 ronda 4: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada»,
    «dura un montón»). Ahora las elige él con el ajustador de Ajustes (solo en beta) y se quedan
@@ -2166,7 +2176,12 @@ function useSheetSwipe(open, onClose, opts){
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
-    if(!dragging.current && dy.current<=0){ armed.current=false; axis.current=null; scrollHost.current=null; return; }
+    /* Un toque (sin arrastre hacia abajo) no tiene nada que devolver a su sitio. Antes también pasaba por
+       el «vuelve arriba» de abajo y escribía `translate3d(0,0,0)`: cada toque en un botón de la hoja la
+       subía a una capa nueva durante 280 ms. En su WebView a 120 Hz esa capa nacía sin pintar mientras
+       el contenido cambiaba de alto, y la hoja entera se veía transparente 4-5 fotogramas: el «flash
+       raro» al plegar «Más opciones» (vídeo del 12/11, Tus recibos asomando por detrás). */
+    if(dy.current<=0){ dragging.current=false; armed.current=false; axis.current=null; scrollHost.current=null; return; }
     dragging.current=false; armed.current=false; axis.current=null;
     const dist=dy.current; dy.current=0; scrollHost.current=null;
     const el=sheetRef.current;
