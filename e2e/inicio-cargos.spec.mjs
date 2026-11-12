@@ -364,7 +364,9 @@ for(const lang of ["es","en","ca"]){
     await expect(aviso).toHaveCount(1);
     await expect(page.getByTestId("mov-rename-pending")).toHaveCount(1);
     const despues=await concept.boundingBox();
-    expect(despues.y).toBe(antes.y);
+    // Medio píxel de margen: con la máquina cargada la hoja aún remata su entrada (0,01 px) al tomar `antes`;
+    // lo que se vigila es el salto de ~60 px del aviso metido en el cuerpo (vídeo 12/11), no el subpíxel.
+    expect(despues.y).toBeCloseTo(antes.y,0);
     // Fuera del flujo, encima del pie.
     expect(await aviso.evaluate(el=>getComputedStyle(el).position)).toBe("absolute");
     const pie=await page.locator('.v4-exp-sheet .v4-ficha-foot').boundingBox(), caja=await aviso.boundingBox();
