@@ -431,7 +431,17 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     });
     return function(){ heavyIdleGen.current++; unsub(); };
   },[]);
-  const expensesDef=useDeferredValue(state.expenses);
+  /* LA LISTA Y SUS LÁPIDAS SE DIFIEREN JUNTAS (vídeo del 12/11/2026). Al confirmarse un renombre,
+     el mismo `set` cambia el nombre de la fila y pone la lápida del nombre viejo. Con solo los
+     gastos diferidos, el render urgente juntaba la fila VIEJA con la lápida NUEVA: la fila de
+     1.550 € desaparecía un frame al cerrar la ficha y volvía con el render diferido. */
+  const lapidasNow=useMemo(function(){ return {expenses:state.expenses,deleted:state.deleted,
+    obAbsorbedPending:state.obAbsorbedPending,obAbsorbedConfirmed:state.obAbsorbedConfirmed,_historyOwner:state._historyOwner}; },
+    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+  const lapidasDef=useDeferredValue(lapidasNow);
+  const expensesDef=lapidasDef.expenses;
+  // `state` con la porción diferida: lo que se pinta de la lista sale siempre de UNA foto.
+  const stateDef=Object.assign({},state,lapidasDef);
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
@@ -951,20 +961,46 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     clearTimeout(renameTimer.current);
     renameTimer.current=setTimeout(function(){ if(retryRef.current) retryRef.current(); },ms+20);
   };
+  /* Un renombre sin ACK a los RENAME_AVISO_MS se marca `slow` y solo entonces sale el aviso
+     (ver `renameAvisoVisible`). Se mira antes de escribir: `set()` sella el estado aunque el
+     updater no cambie nada, y eso reescribiría el histórico por una marca que ya está. */
+  const renameAvisoTimers=useRef({}), renameAckVisto=useRef({});
+  const programaAvisoLento=function(e,pending,owner){
+    const k=e.id+"|"+pending.at;
+    if(pending.slow||renameAvisoTimers.current[k])return;
+    renameAvisoTimers.current[k]=setTimeout(function(){
+      delete renameAvisoTimers.current[k];
+      const fresh=renameState.current;
+      const sigue=fresh._historyOwner===owner&&(fresh.expenses||[]).some(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&x.renamePending.at===pending.at&&!x.renamePending.slow;});
+      if(sigue)set(function(s){return s._historyOwner===owner?expenseRenameSlow(s,e,pending):s;});
+    },typeof navigator!=="undefined"&&navigator.onLine===false?0:Math.max(0,RENAME_AVISO_MS-(Date.now()-pending.at))); // sin red: ya se sabe
+  };
   const retryRenames=function(volvioRed){
     if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
     const s=renameState.current, owner=s._historyOwner,deleted=expenseDeletedSet(s);
     (s.expenses||[]).forEach(function(e){
       const pending=e.renamePending;
+      if(pending&&!pending.quarantined&&!expenseIsTombstoned(e,deleted))programaAvisoLento(e,pending,owner);
       if(!pending||pending.quarantined||expenseIsTombstoned(e,deleted)||editCola.current.pend.some(function(p){return p.rename&&p.id===e.id&&p.rename.at===pending.at;}))return;
       const job={id:e.id,rename:pending,current:function(){
         const fresh=renameState.current;if(fresh._historyOwner!==owner)return null;
-        return (fresh.expenses||[]).find(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&!x.renamePending.quarantined&&x.renamePending.at===pending.at&&!expenseIsTombstoned(x,expenseDeletedSet(fresh));});
-      },ack:function(orig,ack){set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(orig,failures,quarantined,red){
+        const x=(fresh.expenses||[]).find(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&!x.renamePending.quarantined&&x.renamePending.at===pending.at&&!expenseIsTombstoned(x,expenseDeletedSet(fresh));});
+        /* El ACK anterior aún no ha llegado al estado (React lo pinta después), pero la nube ya
+           tiene ese nombre: sin esto la intención siguiente salía con el nombre viejo, la nube
+           respondía «rename identity changed» y contaba un rechazo falso → aviso con conexión. */
+        const ya=x&&renameAckVisto.current[x.id];
+        if(ya&&x.merchant===ya.merchant)delete renameAckVisto.current[x.id];
+        return ya&&x.merchant===ya.from?Object.assign({},x,{merchant:ya.merchant}):x;
+      },ack:function(orig,ack){renameAckVisto.current[orig.id]={from:orig.merchant,merchant:ack.comercio};set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(orig,failures,quarantined,red){
         const fresh=renameState.current,active=fresh._historyOwner===owner&&(fresh.expenses||[]).some(function(x){return x.id===orig.id&&x.date===orig.date&&x.amount===orig.amount&&x.renamePending&&x.renamePending.at===pending.at&&!x.renamePending.quarantined;});
         if(!active)return;
         if(!quarantined)renameEspera(job,red);
-        if(red)return; // sin red: ni cuenta ni toca el estado
+        // Sin red no cuenta como fallo; solo adelanta el aviso, que entonces dice la verdad.
+        if(red){
+          const yaLento=(fresh.expenses||[]).some(function(x){return x.id===orig.id&&x.renamePending&&x.renamePending.at===pending.at&&x.renamePending.slow;});
+          if(!yaLento)set(function(s){return s._historyOwner===owner?expenseRenameSlow(s,orig,pending):s;});
+          return;
+        }
         set(function(s){return s._historyOwner===owner?expenseRenameFailure(s,orig,pending,failures):s;});
         if(quarantined)showToast(t("g_rename_paused"));
       }};
@@ -996,7 +1032,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     document.addEventListener("visibilitychange",alVerse);
     return function(){ window.removeEventListener("online",alVolver); document.removeEventListener("visibilitychange",alVerse); };
   },[state.expenses]);
-  useEffect(function(){ return function(){ clearTimeout(renameTimer.current); }; },[]);
+  useEffect(function(){ return function(){ clearTimeout(renameTimer.current);
+    Object.keys(renameAvisoTimers.current).forEach(function(k){ clearTimeout(renameAvisoTimers.current[k]); }); }; },[]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -1097,9 +1134,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Las ventanas de mes son de Madrid: el memo también debe caducar al cambiar el día ALLÍ, que
   // en un dispositivo de otra zona no coincide con `todayKey`.
   const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
-  const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
-    :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
-    [expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled,todayKey]);
+  const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(stateDef,null,expensesDef)
+    :lastPaydayOf(expensesDef,null,expenseDeletedSet(lapidasDef)),
+    [lapidasDef,state.flows,cycleEnabled,todayKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
@@ -1112,8 +1149,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      ciclo. Lista de más viejo a más nuevo, como la de meses. */
   const ciclos=useMemo(function(){
     if(preset!=="cycle" || !cycle) return null;
-    const delSet=expenseDeletedSet(state);
-    const busca=function(ms){ return cycleEnabled?budgetPaydayOf(state,ms,expensesDef):lastPaydayOf(expensesDef,ms,delSet); };
+    const delSet=expenseDeletedSet(lapidasDef);
+    const busca=function(ms){ return cycleEnabled?budgetPaydayOf(stateDef,ms,expensesDef):lastPaydayOf(expensesDef,ms,delSet); };
     const out=[{start:cycle.start, inc:cycle.inc, from:cycle.start.getTime(), to:null}];
     for(let i=0;i<GX_CICLOS_MAX;i++){
       const sig=out[out.length-1], prev=busca(sig.from-1);
@@ -1121,7 +1158,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       out.push({start:prev.start, inc:prev.inc, from:prev.start.getTime(), to:sig.from-1});
     }
     return out.reverse();
-  },[preset,cycle,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled]);
+  },[preset,cycle,lapidasDef,state.flows,cycleEnabled]);
   // El ciclo pasado elegido (null = el en curso, también si el elegido ya no existe).
   const cicloPas=ciclos&&cicloSel!=null?ciclos.find(function(c){ return c.to!=null&&c.from===cicloSel; })||null:null;
   const cicloPasRef=useRef(cicloPas); cicloPasRef.current=cicloPas;
@@ -1189,7 +1226,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     for(let i=0;i<src.length;i++){
       const e=src[i];
       // La lápida puede venir de otro dispositivo sin retirar aún esta fila local.
-      if(e.autoGemelo||expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
+      if(e.autoGemelo||expenseIsTombstoned(e,expenseDeletedSet(lapidasDef))) continue;
       const ms=dateMs(e.date);
       if(!inBounds(ms,bounds)) continue;
       if(fil){
@@ -1197,12 +1234,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(catOf(e.category||"otros").id!==fil.id) continue;
         // Los cargos de las filas grises (recibos, cuotas, metas, inversiones) no se enseñan con
         // filtro (SPEC §4.4): no suman a la categoría. Siguen en Movimientos sin filtro (los recibos, sueltos).
-        if(grisDeGasto(e, expenseBucket(e, state))) continue;
+        if(grisDeGasto(e, expenseBucket(e, stateDef))) continue;
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
       if(bankSet && !bankSet.has(gastosBancoFiltro(e))) continue;
-      if(bkSet && !bkSet.has(expenseBucket(e, state))) continue;
+      if(bkSet && !bkSet.has(expenseBucket(e, stateDef))) continue;
       if(needle){
         // El concepto también se busca: si tu padre busca «alquiler» tiene que salir el bizum
         // cuyo mensaje lo dice, aunque el título sea solo el nombre de la persona (2026-07-24).
@@ -1213,10 +1250,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       }
       out.push(e);
     }
-    return sortExpensesForDisplay(out,state);
+    return sortExpensesForDisplay(out,stateDef);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,bounds,sel,bankSel,bucketSel,q,catFil,preset,madridDay,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
+  },[lapidasDef,bounds,sel,bankSel,bucketSel,q,catFil,preset,madridDay,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -1280,7 +1317,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Un ciclo pasado es como un mes cerrado: sin límite (no hay foto del límite de entonces).
   const budgetApplies=preset==="months"||preset==="cycle"&&!cicloPas;
   const monthSummary=useMemo(function(){
-    const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    const bs=monthBudgetStats(stateDef,null,null,null,selectedPeriod);
     /* La cifra grande sigue su modo (Balance o Gastos), pero el margen contra el límite es el de
        Inicio (`dashboardBudgetStats`, modo "mes") y el del widget (`against` de ingest): en el mes
        natural, gasto menos ingresos sin la nómina; en Mi ciclo, el neto. Cada pantalla con su
@@ -1300,15 +1337,15 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[lapidasDef,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   /* Sumas por día para la cifra viva. Mismas porciones del estado que la cabecera (las lee
      `expenseCountsBudget`); NO depende de la búsqueda ni de los filtros: la cifra es la del
      presupuesto, igual que antes la tarjeta («buscar no redefine el límite»). */
   const cifra=useMemo(function(){
     const months=preset==="months";
     const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
-    return gastosCifraDias(state, expensesDef, months?{cycle:null}:selectedPeriod, months?-Infinity:bounds.from, to, months);
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,bounds,todayKey,madridDay]);
+    return gastosCifraDias(stateDef, expensesDef, months?{cycle:null}:selectedPeriod, months?-Infinity:bounds.from, to, months);
+  },[lapidasDef,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,bounds,todayKey,madridDay]);
   /* Lo mismo para el filtro de categoría: sus sumas por día con la regla del desglose. En «meses»
      se acumula por mes sobre el histórico entero (para comparar con la misma categoría el mes
      anterior); en Mi ciclo / Rango / Todo, dentro de la ventana. Solo existe con filtro puesto. */
@@ -1317,8 +1354,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     if(!catFilId) return null;
     const months=preset==="months";
     const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
-    return gastosCifraDias(state, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaCat(catFilId));
-  },[catFilId,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,preset,bounds,todayKey,madridDay]);
+    return gastosCifraDias(stateDef, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaCat(catFilId));
+  },[catFilId,lapidasDef,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,preset,bounds,todayKey,madridDay]);
   /* Las sumas de LO QUE SE VE con los filtros de la hoja (tanda 6: categorías, bancos o «Qué
      contar»): las mismas filas que la lista (`filtered`, misma referencia de cada gasto; si además
      hay búsqueda, también la cuenta) y, de ellas, las que la tarjeta no marca como «no cuenta» —
@@ -1331,7 +1368,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     if(!filtraVista) return null;
     const months=preset==="months";
     const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
-    return gastosCifraDias(state, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaVista(filtered, bucketSel));
+    return gastosCifraDias(stateDef, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaVista(filtered, bucketSel));
   },[filtraVista,filtered,bucketSel,expensesDef,preset,bounds]);
   /* Categorías enseña el mes elegido en su fila de meses (SPEC §5). El límite y la barra del
      presupuesto solo en el mes en curso (o Mi ciclo): no hay foto del límite de un mes pasado, y
@@ -1343,7 +1380,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
-    const rows0=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,catsPeriod);
+    const rows0=categorySpentByMonth(stateDef,null,null,catsPeriod);
     // Una categoría que ya no existe (id viejo o raro) se PINTA como «Otros» (catOf); agrupar por
     // el id crudo enseñaba dos filas «Otros» (90 € y 15 €, captura de la tanda 2, 24/10). Se suma
     // en la que se ve, así el total sigue cuadrando con la cifra de arriba.
@@ -1359,7 +1396,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       return String(a.id).localeCompare(String(b.id));
     });
     return catsBudget?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,catsPeriod,catsBudget,todayKey,madridDay]);
+  },[lapidasDef,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,catsPeriod,catsBudget,todayKey,madridDay]);
   /* Las categorías de la hoja de Filtros: las de MÁS GASTO del periodo que se ve, sacadas de este
      mismo desglose (no de otra cuenta): así las cinco de la hoja son las cinco primeras de
      Categorías. Sin las que no han gastado nada (las de límite a 0). */
@@ -2677,7 +2714,7 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       // Renombrado en vuelo: la lista enseña ya el nombre nuevo, igual que la ficha, sin tocar
       // `merchant` (eso solo cambia con el ack del servidor). En cuarentena vuelve al guardado.
       React.createElement("div",{className:"nm-title"}, shownName||"—",
-        pendingName?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
+        pendingName&&renameAvisoVisible(e.renamePending)?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
       React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
@@ -3035,7 +3072,6 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
@@ -3154,7 +3190,14 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const pendingSourceStatus=sourceActionStatus&&sourceActionStatus.id===exp.id?sourceActionStatus:
     ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"?ownTransferStatus:
     incomeTransferStatus&&incomeTransferStatus.status!=="done"?incomeTransferStatus:null;
+  /* El aviso de nombre pendiente flota sobre el pie, no dentro del cuerpo: metido entre los
+     chips empujaba toda la ficha ~60 px al aparecer (vídeo del 12/11/2026). Y solo sale si la
+     subida tarda o la nube la rechazó (`renameAvisoVisible`), no en el segundo normal de vuelo. */
+  const renameAviso=renameAvisoVisible(exp.renamePending)&&React.createElement("div",{className:"v4-ficha-aviso",role:"status","data-testid":"expense-rename-pending"},
+    React.createElement("span",null,t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")),
+    React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry")));
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
+    renameAviso,
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
     React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),

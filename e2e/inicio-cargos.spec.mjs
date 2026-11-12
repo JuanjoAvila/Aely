@@ -345,6 +345,31 @@ for(const lang of ["es","en","ca"]){
     await rows.filter({hasText:base.merchant}).click();
     await expect(page.getByTestId("expense-rename-pending")).toHaveCount(1);
   });
+  /* Vídeo del 12/11/2026 (OnePlus, beta 4.26.230): al tocar «Listo» tras renombrar salía al
+     instante «pendiente… al volver la conexión» con el móvil conectado, y el aviso empujaba la
+     ficha hacia abajo. En vuelo no hay aviso; si tarda, flota sobre el pie sin mover nada. */
+  test(lang+": renombrar en vuelo no avisa; si tarda, el aviso flota sin mover la ficha",async({page})=>{
+    const base={id:"cargo-vuelo",date:"2026-09-25T12:00:00.000Z",merchant:"PROVEEDOR SINTETICO SA",amount:42,ent:"trade_republic",category:"otros",source:"ob"};
+    await open(page,lang,{__cloudDelays:{expenses:600000},expenses:[base]});
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:base.merchant}).click();
+    const concept=page.locator('.v4-exp-sheet input.v4-ficha-concept');
+    await concept.fill("Nombre nuevo");await concept.press("Tab");
+    await page.waitForFunction(()=>loadState().expenses[0].renamePending&&loadState().expenses[0].renamePending.merchant==="Nombre nuevo");
+    await expect(page.getByTestId("expense-rename-pending")).toHaveCount(0);
+    await expect(page.getByTestId("mov-rename-pending")).toHaveCount(0);
+    const antes=await concept.boundingBox();
+    await page.clock.runFor(6000);
+    const aviso=page.getByTestId("expense-rename-pending");
+    await expect(aviso).toHaveCount(1);
+    await expect(page.getByTestId("mov-rename-pending")).toHaveCount(1);
+    const despues=await concept.boundingBox();
+    expect(despues.y).toBe(antes.y);
+    // Fuera del flujo, encima del pie.
+    expect(await aviso.evaluate(el=>getComputedStyle(el).position)).toBe("absolute");
+    const pie=await page.locator('.v4-exp-sheet .v4-ficha-foot').boundingBox(), caja=await aviso.boundingBox();
+    expect(caja.y+caja.height).toBeLessThanOrEqual(pie.y+1);
+  });
   test(lang+": tras el ack del renombrado la lista muestra el nombre guardado sin marca",async({page})=>{
     await open(page,lang,{expenses:[{id:"cargo-ack",date:"2026-09-25T12:00:00.000Z",merchant:"Nombre confirmado",amount:42,ent:"trade_republic",category:"otros",source:"ob"}]});
     await page.locator('.botnav-tab[data-tour="gastos"]').click();

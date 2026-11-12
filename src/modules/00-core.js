@@ -3062,6 +3062,21 @@ function expenseRenameFailure(s,orig,intent,failures){
   });
   return changed?Object.assign({},s,{expenses:rows}):s;
 }
+/* AVISO DE NOMBRE PENDIENTE SOLO SI DE VERDAD TARDA (12/11/2026). El borrador nace al tocar
+   «Listo» y la nube suele confirmarlo en un segundo; aun así la ficha pintaba al instante
+   «pendiente… al volver la conexión» con el móvil conectado, y el aviso empujaba la hoja justo
+   antes de cerrarse (vídeo del OnePlus, beta 4.26.230). La marca `slow` la pone Gastos si a los
+   RENAME_AVISO_MS sigue sin ACK; un rechazo del servidor (`failures`) se enseña en el acto. */
+const RENAME_AVISO_MS=5000;
+function renameAvisoVisible(p){ return !!p&&!!(p.quarantined||p.slow||(p.failures||0)>0); }
+function expenseRenameSlow(s,orig,intent){
+  let changed=false;
+  const rows=(s.expenses||[]).map(function(e){
+    if(e.id!==orig.id||e.date!==orig.date||e.amount!==orig.amount||!e.renamePending||e.renamePending.at!==intent.at||e.renamePending.slow)return e;
+    changed=true;return Object.assign({},e,{renamePending:Object.assign({},e.renamePending,{slow:true})});
+  });
+  return changed?Object.assign({},s,{expenses:rows}):s;
+}
 function expenseRenameAck(s,orig,intent,ack){
   if(!ack||ack.comercio!==intent.merchant||Number(ack.importe)!==orig.amount||Date.parse(ack.fecha)!==Date.parse(orig.date)||(isExpenseUuid(orig.id)&&ack.id!==orig.id))return s;
   let before,after;const deleted=expenseDeletedSet(s);

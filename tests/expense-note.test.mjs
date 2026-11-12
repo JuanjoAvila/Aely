@@ -171,6 +171,25 @@ t('FIN04 R2 renombrado pendiente, ACK exacto, tardío y reintento',()=>renameWit
 t('FIN04 R3 fallo permanente libera cola con aviso único',()=>queueWitness(loadPureLogicFromFile()));
 t('FIN04 R3 contador durable e intención más reciente',()=>durableQueueWitness(loadPureLogicFromFile()));
 t('FIN04 R3 sin red queda pendiente, no apartado, y espera su turno',()=>networkQueueWitness(loadPureLogicFromFile()));
+// Vídeo del 12/11/2026: con conexión, el aviso «pendiente… al volver la conexión» salía en el
+// mismo toque de «Listo». En vuelo no se avisa; sí si tarda (`slow`), si la nube lo rechaza o si
+// quedó apartado. Y la marca no toca el nombre confirmado ni otra intención más nueva.
+t('renombrado en vuelo sin aviso; lento, rechazado o apartado con aviso',()=>{
+  const c=loadPureLogicFromFile();
+  assert.equal(c.renameAvisoVisible({merchant:'N',at:10}),false,'en vuelo');
+  assert.equal(c.renameAvisoVisible(null),false);
+  assert.equal(c.renameAvisoVisible({merchant:'N',at:10,slow:true}),true,'tarda');
+  assert.equal(c.renameAvisoVisible({merchant:'N',at:10,failures:1}),true,'rechazo del servidor');
+  assert.equal(c.renameAvisoVisible({merchant:'N',at:10,failures:3,quarantined:true}),true,'apartado');
+  const orig={id:'a',date:'2026-10-30',amount:1550,merchant:'Viejo',renamePending:{merchant:'N',at:10}};
+  const s={expenses:[orig]};
+  const lento=c.expenseRenameSlow(s,orig,orig.renamePending);
+  assert.deepEqual(JSON.parse(JSON.stringify(lento.expenses[0].renamePending)),{merchant:'N',at:10,slow:true});
+  assert.equal(lento.expenses[0].merchant,'Viejo','la marca no confirma el nombre');
+  assert.equal(c.expenseRenameSlow(lento,orig,orig.renamePending),lento,'ya marcado: mismo estado, sin reescritura');
+  const nueva={expenses:[{...orig,renamePending:{merchant:'Otro',at:11}}]};
+  assert.equal(c.expenseRenameSlow(nueva,orig,orig.renamePending),nueva,'no marca una intención más nueva');
+});
 for(const [name,from,to,witness] of [
   ['red cuenta como rechazo','if(renameFalloDeRed(err)){','if(false){',networkQueueWitness],
   ['espera ignorada','if(p.waitUntil>Date.now())return;','',networkQueueWitness],

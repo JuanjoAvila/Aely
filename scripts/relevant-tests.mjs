@@ -302,6 +302,8 @@ export const E2E_MAP = [
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/own-transfer-confirm.spec.mjs",
     "e2e/gastos-transfer-rename-offline.spec.mjs",
+    // Renombrar y cerrar la ficha: la fila no desaparece ni un frame (vídeo 12/11/2026).
+    "e2e/gastos-renombrar-sin-parpadeo.spec.mjs",
     "e2e/fin28-manual-link-warning.spec.mjs",
     // Tocar una deuda (Recibos o la fila gris de Gastos) lleva a su tarjeta, a la vista y deslizando.
     "e2e/deudas-ir-suave.spec.mjs",
