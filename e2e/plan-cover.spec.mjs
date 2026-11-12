@@ -362,13 +362,15 @@ test("marca sin prueba sigue visible para confirmar y no añade nómina a los re
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
   // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
   await expect(recibos).not.toContainText(/Ya pagados?/i);
-  await expect(recibos.locator('.v4-paid')).toHaveCount(0);
+  // Ningún recibo pagado: las filas de «Ya ha entrado» se parecen, pero no son recibos (12/11/2026).
+  await expect(recibos.locator('.v4-paid[data-recibo]')).toHaveCount(0);
   await expect(recibos).toContainText("Luz");
-  // La nómina no es un recibo: ni en Por pagar ni en Para revisar. Sin movimiento que la acredite sigue en
-  // «Lo que aún entrará», atrasada (12/11/2026: antes desaparecía con solo pasar su día).
+  // La nómina no es un recibo: ni en Por pagar ni en Para revisar. Pasado su día el saldo ya la cuenta, así
+  // que está en «Ya ha entrado», sin movimiento (12/11/2026: antes desaparecía sin dejar rastro).
   await expect(recibos.getByTestId("plan-due")).not.toContainText("Nómina");
   await expect(recibos.getByTestId("plan-review")).not.toContainText("Nómina");
-  await expect(recibos.getByTestId("plan-income")).toContainText("Nómina");
+  await expect(recibos.getByTestId("plan-income")).toHaveCount(0);
+  await expect(recibos.getByTestId("plan-entrado")).toContainText("Nómina");
 });
 
 test("Pregúntame abre Deudas en el segmented compacto", async ({ page }) => {

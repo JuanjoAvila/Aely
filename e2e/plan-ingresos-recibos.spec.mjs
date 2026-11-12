@@ -48,37 +48,39 @@ test("lo que llega pasa a «Ya ha entrado» con su movimiento, y «No es este» 
   await ficha.locator('[data-act="aun-no"]').click();
   await expect(ficha).toHaveCount(0);
   await expect(recibos.getByTestId("plan-income").locator('[data-flujo="flow_nom"]')).toContainText("Sabadell");
-  await expect(recibos.getByTestId("plan-entrado")).toHaveCount(0);
+  await expect(recibos.getByTestId("plan-entrado").locator('[data-flujo="flow_nom"]')).toHaveCount(0);
   // El rechazo viaja con el estado: el motor no lo vuelve a elegir.
   await expect.poll(() => page.evaluate(() => (loadState().reciboNo || []).some((k) => k.indexOf("flow:nom|") === 0))).toBe(true);
 });
 
-test("lo que no llega sigue a la vista; se elige su movimiento a mano o «Lo moví de otra forma»", async ({ page }) => {
+test("pasado su día sin movimiento está en «Ya ha entrado»; se le enlaza el suyo, Deshacer no veta y «Lo moví de otra forma»", async ({ page }) => {
   const recibos = await abre(page);
-  const tr = recibos.getByTestId("plan-transfers").locator('[data-flujo="flow_tr"]');
-  await expect(tr).toContainText("de Sabadell a Revolut");
-  await expect(tr).toContainText("tocaba");
+  // La vista sigue al dinero: el traspaso del 15 ya lo cuenta el saldo, así que no está en «aún».
+  await expect(recibos.getByTestId("plan-transfers")).toHaveCount(0);
+  const ent = recibos.getByTestId("plan-entrado");
+  await ent.locator(".pr6-paid-h").click();
+  const tr = ent.locator('[data-flujo="flow_tr"]');
+  await expect(tr).toContainText("sin movimiento del banco");
   await tr.click();
   const ficha = page.locator('.v4-sheet[data-sheet="flujo"]');
-  await expect(ficha.getByTestId("flujo-nota")).toContainText("Tocaba el 15");
-  await ficha.locator('[data-act="llego"]').click();
+  await expect(ficha.getByTestId("flujo-sin-mov")).toBeVisible();
+  await ficha.locator('[data-act="elegir"]').click();
   await expect(ficha.locator(".pr6-pick-t")).toHaveText("¿Cuál es el movimiento?");
   await ficha.locator('[data-cargo="rev"]').click();
   await expect(ficha).toHaveCount(0);
-  const ent = recibos.getByTestId("plan-entrado");
-  await ent.locator(".pr6-paid-h").click();
-  await expect(ent.locator('[data-flujo="flow_tr"]')).toContainText("movimiento de Revolut");
+  await expect(tr).toContainText("movimiento de Revolut");
   // El traspaso no suma a lo que ha entrado: no es dinero nuevo.
   await expect(ent.getByTestId("plan-entrado-total")).toHaveText("+1.850,00 €");
-  await expect(recibos.getByTestId("plan-transfers")).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => loadState().flows.find((f) => f.id === "tr").llegadas[2026 * 12 + 11].expenseId)).toBe("rev");
 
-  // Deshacer con el aviso y marcarlo «de otra forma».
+  // Deshacer repone lo de antes y NO aparta el movimiento (eso es «No es este»).
   await page.getByTestId("plan-deshacer").getByRole("button").click();
-  await recibos.getByTestId("plan-transfers").locator('[data-flujo="flow_tr"]').click();
-  await ficha.locator('[data-act="llego"]').click();
+  await expect(tr).toContainText("sin movimiento del banco");
+  await expect.poll(() => page.evaluate(() => (loadState().reciboNo || []).filter((k) => k.indexOf("flow:tr|") === 0).length)).toBe(0);
+  await tr.click();
+  await ficha.locator('[data-act="elegir"]').click();
   await ficha.locator('[data-act="a-mano"]').click();
-  await expect(ent.locator('[data-flujo="flow_tr"]')).toContainText("marcado a mano");
+  await expect(tr).toContainText("marcado a mano");
 });
 
 test("el alta y la edición de lo que entra son la hoja por pasos de un recibo", async ({ page }) => {
@@ -93,6 +95,13 @@ test("el alta y la edición de lo que entra son la hoja por pasos de un recibo",
   for (const k of ["9", "0", "0"]) await hoja.locator('[data-rp4-paso="1"]').getByRole("button", { name: k, exact: true }).click();
   await hoja.locator(".rp4-cta").click();
   await hoja.locator('[data-rp4-paso="2"] [data-rp4-regla="last"]').click();
+  // Cada 3 meses sin ningún mes no se puede guardar: se proyectaría todos los meses.
+  await hoja.locator('[data-rp4-paso="2"] [data-rp4-freq="trimestral"]').click();
+  const meses = hoja.locator('[data-rp4-paso="2"] .month-picker .mchip.on');
+  while (await meses.count()) await meses.first().click();
+  await expect(hoja.locator(".rp4-cta")).toHaveAttribute("aria-disabled", "true");
+  await hoja.locator('[data-rp4-paso="2"] [data-rp4-freq="mes"]').click();
+  await expect(hoja.locator(".rp4-cta")).toHaveAttribute("aria-disabled", "false");
   await hoja.locator(".rp4-cta").click();
   await hoja.locator('[data-rp4-paso="3"] [data-rp4-banco="revolut"]').click();
   await expect(hoja).toHaveAttribute("data-paso", "4");

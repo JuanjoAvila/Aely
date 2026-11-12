@@ -312,7 +312,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
       if(!flowOccursIn(f,cm,tt.curYear)) return;
-      if(flowPaidIn(state,f,tt.curYear,cm,today)) return;
+      // La misma regla que Plan (`flowEstadoMes`): lo que allí ya ha entrado aquí no sale como próximo.
+      if(flowEstadoMes(state,f,tt.curYear,cm,today).llego) return;
       const day=flowDay(f,tt.curYear,cm)||1;
       rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });

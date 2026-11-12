@@ -988,7 +988,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       React.createElement("span",{className:"am num"+(x.kind==="income"?" pos":"")}, flowAmt(x)));
   };
   const entRow=function(x){
-    const how=x.aMano?t("pr6_a_mano_sub"):x.paidBank?tf("fl_mov_de",{bank:entOf(x.paidBank).label}):"";
+    const how=x.aMano?t("pr6_a_mano_sub"):x.sinMov?t("fl_sin_mov").toLowerCase():x.paidBank?tf("fl_mov_de",{bank:entOf(x.paidBank).label}):"";
     return React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow",key:x.id,"data-flujo":x.id,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
       React.createElement("span",{className:"nm"},
@@ -2393,9 +2393,10 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
       if(prueba===antes||!flowEstadoMes(prueba,prueba.flows.find(function(o){ return o.id===f.id; }),y,m,today).llego){
         if(showToast) showToast(t("pr6_link_fail")); swipe.close(); return;
       }
-      const tras=llegadaDe(prueba);
+      // Deshacer repone la foto de antes (llegada, ancla y vetos), no veta: eso es «No es este».
+      const tras=llegadaDe(prueba), foto=flowFoto(antes,f.id,y,m);
       set(enlaza);
-      avisa(tf("fl_entrado_toast",{name:row.name}),function(){ set(function(s){ return llegadaDe(s)===tras?flowDesenlazar(s,f.id,y,m,today):s; }); });
+      avisa(tf("fl_entrado_toast",{name:row.name}),function(){ set(function(s){ return llegadaDe(s)===tras?flowDeshacer(s,f.id,y,m,foto):s; }); });
       swipe.close();
     },260);
   };
@@ -2428,12 +2429,14 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
   };
   const sub=tr?tf("fl_de_a",{from:entOf(sale).label,to:f.to?entOf(f.to).label:"—"}):tf("pr6_entra_en",{bank:entOf(bank).label});
   const late=!st.llego&&st.overdue&&dayF!=null;
-  const movBanco=st.llego&&!st.aMano?(st.bank||bank):null;
+  const movBanco=st.llego&&!st.aMano&&!st.sinMov?(st.bank||bank):null;
   const movTxt=st.expense?reciboCargoTexto(st.expense):"";
   const botones=[];
   if(!st.llego) botones.push(React.createElement("button",{type:"button",key:"ll",className:"pr6-btn pr6-btn-main","data-act":"llego",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_llego_btn")));
   if(st.llego&&st.aMano) botones.push(React.createElement("button",{type:"button",key:"dm",className:"pr6-btn","data-act":"desmarcar",onClick:desmarcar},t("pr6_desmarcar")));
-  if(st.llego&&!st.aMano) botones.push(React.createElement("button",{type:"button",key:"no",className:"pr6-btn","data-act":"no-es",onClick:function(){ setRechazo(true); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_no_es")));
+  // Sin movimiento (el saldo ya la cuenta por su día): se le puede enlazar el suyo.
+  if(st.sinMov) botones.push(React.createElement("button",{type:"button",key:"el",className:"pr6-btn pr6-btn-main","data-act":"elegir",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_elegir")));
+  if(st.llego&&!st.aMano&&!st.sinMov) botones.push(React.createElement("button",{type:"button",key:"no",className:"pr6-btn","data-act":"no-es",onClick:function(){ setRechazo(true); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_no_es")));
   botones.push(React.createElement("button",{type:"button",key:"ed",className:"pr6-btn","data-act":"editar",onClick:function(){ onEdit(f.id); }},t("pr6_editar")));
   const fichaPanel=React.createElement("div",{className:"pr6-step"+(paso===0?" on":""),"aria-hidden":paso===0?null:"true",inert:paso===0?undefined:""},
     React.createElement("div",{className:"pr6-ficha-h"},
@@ -2445,6 +2448,10 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
         React.createElement("span",{className:"pr6-ficha-s"}, sub)),
       React.createElement("span",{className:"serif num pr6-ficha-a"+(tr?"":" pos"),"data-testid":"flujo-importe"}, (tr?"":"+")+eur(target))),
     late&&React.createElement("div",{className:"pr6-nota","data-testid":"flujo-nota"}, tf("pr6_nota_late",{d:dayF})),
+    st.sinMov&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-sin-mov"},
+      React.createElement("span",{className:"pr6-cand-t"},
+        React.createElement("span",{className:"pr6-cand-n"}, t("fl_sin_mov")),
+        React.createElement("span",{className:"pr6-cand-s"}, (st.day!=null?st.day+" "+monthShort(m-1)+" · ":"")+entOf(bank).label))),
     st.llego&&st.aMano&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-a-mano"},
       React.createElement("span",{className:"pr6-cand-t"},
         React.createElement("span",{className:"pr6-cand-n"}, t("pr6_a_mano")),
@@ -3736,7 +3743,9 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
     amt>0,
     f.mode==="once"?cleanDay(f.once.day)!=null&&f.once.day<=onceDias&&f.once.ym>=cur&&(edit&&!tocado.when||rp4OnceOk(f.once,cur,today))
       :f.mode==="split"?!!(pr&&pr.ok)
-      :(cleanDay(f.day)!=null||esFlujo&&!!f.when)&&(f.freq!=="año"||f.months.length>0),
+      :(cleanDay(f.day)!=null||esFlujo&&!!f.when)&&(f.freq!=="año"||f.months.length>0)
+        // Una entrada no mensual sin meses se proyectaría cada mes (`flowMonths` no mira la frecuencia).
+        &&(!esFlujo||f.freq==="mes"||f.months.length>0),
     !!f.account&&(!esFlujo||f.fk!=="transfer"||!!f.to&&f.to!==f.account),
     true];
   /* ¿Lo pagas con alguien? (tanda 5). Las personas que ya están en otros recibos y las creadas en
