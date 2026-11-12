@@ -119,3 +119,54 @@ test("el alta y la edición de lo que entra son la hoja por pasos de un recibo",
   await expect(hoja.locator('[data-rp4-paso="4"]')).toContainText("Va a");
   await expect(hoja.locator('[data-rp4-paso="4"]')).toContainText("Revolut");
 });
+
+/* Su prueba de la 230 (12/11/2026), con datos inventados: el traspaso del día 1 hecho el 30 del mes
+   anterior sale con ESE movimiento y su fecha («30 oct»), su selector no enseña el agua ni una compra
+   con tarjeta (solo tras «Más movimientos»), y en «Ya ha entrado» el total es la suma de lo que se ve
+   en las filas: una entrada pagada a medias enseña lo que trajo el banco. */
+test("230: el adelanto del 30 se enlaza solo, el selector de un traspaso no mezcla bancos y el total cuadra con las filas", async ({ page }) => {
+  test.info().annotations.push({ type: "own-clock" });
+  await page.setViewportSize({ width: 412, height: 915 });
+  await page.clock.install({ time: new Date("2026-11-12T12:00:00+01:00") });
+  await page.route("**/*", (x) => new URL(x.request().url()).hostname === "127.0.0.1" ? x.continue() : x.abort());
+  await seedLoggedInDashboard(page, { __seedOnce: true, lastBackup: "2026-11-12",
+    accounts: [{ id: "s", ent: "sabadell", role: "fijos", value: 1500 }, { id: "t", ent: "trade_republic", role: "fijos", value: 300 }],
+    fixed: [{ id: "yt", name: "Vídeo", amount: 10, bankAmount: 15, freq: "mes", day: 2, account: "sabadell", reparto: [{ id: "pe_nora", n: "Nora", via: "transfer", amt: 5 }] }],
+    debts: [], oneoffs: [], bankTx: [],
+    flows: [{ id: "atr", kind: "transfer", name: "A Trade Republic", amount: 1200, from: "sabadell", to: "trade_republic", day: 1 },
+      { id: "ynora", kind: "income", name: "Vídeo Nora", amount: 5, to: "sabadell", day: 3 },
+      { id: "extra", kind: "income", name: "Clases", amount: 20, to: "sabadell", day: 5 }],
+    expenses: [Object.assign(mov("llega", "trade_republic", "2026-10-30", -1200, "Traspaso recibido"), { category: "traspaso" }),
+      Object.assign(mov("sale", "sabadell", "2026-10-30", 1200, "Leo Sastre Ruano"), { concept: "TRANSFERENCIA A LEO SASTRE RUANO" }),
+      mov("agua", "sabadell", "2026-11-10", 81.29, "AGUA EJEMPLO"),
+      mov("nora", "sabadell", "2026-11-03", -3.8, "TRANSFERENCIA NORA EJEMPLO")],
+    settings: Object.assign({}, settings, { profile: { fullName: "Leo Sastre Ruano" } }) });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const recibos = page.locator('.page-live .v4-screen > [data-seg="recibos"]');
+  const ent = recibos.getByTestId("plan-entrado");
+  await ent.locator(".pr6-paid-h").click();
+  const tr = ent.locator('[data-flujo="flow_atr"]');
+  await expect(tr).toContainText(/30 oct/i);
+  await expect(tr).toContainText("movimiento de Trade Republic");
+  const nora = ent.locator('[data-flujo="flow_ynora"]');
+  await expect(nora.getByTestId("plan-entrado-importe")).toHaveText("+3,80 €");
+  await expect(nora).toContainText("llegó 3,80 € de 5,00 €");
+  // El total es la suma de las cifras de las filas de ingresos (3,80 + 20 sin movimiento).
+  await expect(ent.getByTestId("plan-entrado-total")).toHaveText("+23,80 €");
+
+  // El selector del traspaso: las dos patas de 1.200, y nada más a la vista.
+  await tr.click();
+  const ficha = page.locator('.v4-sheet[data-sheet="flujo"]');
+  await expect(ficha.getByTestId("flujo-mov")).toContainText(/30 oct/i);
+  await ficha.locator('[data-act="no-es"]').click();
+  const movs = ficha.getByTestId("flujo-movs");
+  await expect(movs.locator('[data-cargo="sale"]')).toBeVisible();
+  await expect(movs.locator('[data-cargo="agua"]')).toHaveCount(0);
+  await expect(ficha.locator(".pr6-lbl")).toHaveCount(0);
+  await ficha.locator('[data-act="mas-movs"]').click();
+  await expect(movs.locator('[data-cargo="agua"]')).toBeVisible();
+});
