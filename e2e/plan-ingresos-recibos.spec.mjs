@@ -16,7 +16,9 @@ async function abre(page, extra) {
   await page.route("**/*", (x) => new URL(x.request().url()).hostname === "127.0.0.1" ? x.continue() : x.abort());
   await seedLoggedInDashboard(page, Object.assign({ __seedOnce: true, lastBackup: "2026-11-26",
     accounts: [{ id: "s", ent: "sabadell", role: "fijos", value: 1500 }, { id: "rv", ent: "revolut", role: "fijos", value: 300 }],
-    fixed: [{ id: "luz", name: "Luz", amount: 50, freq: "mes", day: 28, account: "sabadell" }], debts: [], oneoffs: [], bankTx: [],
+    fixed: [{ id: "luz", name: "Luz", amount: 50, freq: "mes", day: 28, account: "sabadell" }], debts: [], oneoffs: [],
+    // El extracto trae el abono del 25: el saldo ya cuenta la nómina (la vista sigue al dinero).
+    bankTx: [{ id: "b-nomina", ent: "sabadell", date: "2026-11-25", amount: -1850, merchant: "EMPRESA SINTETICA SL", status: "BOOK" }],
     flows: [{ id: "nom", kind: "income", name: "Nómina", amount: 1850, to: "sabadell", day: 28 },
       { id: "tr", kind: "transfer", name: "A Revolut", amount: 200, from: "sabadell", to: "revolut", day: 15 }],
     // La nómina llegó el 25 (antes de su día); el traspaso del 15 no tiene movimiento exacto.

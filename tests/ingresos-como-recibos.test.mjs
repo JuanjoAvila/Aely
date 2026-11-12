@@ -96,6 +96,7 @@ function suite(c){
     const a={id:"a",kind:"income",name:"Nómina",amount:1000,to:"sabadell",day:28}, b=Object.assign({},a,{id:"b"});
     const s=estado({flows:[a,b],expenses:[fila("e1","sabadell","2026-11-27",-1000,"EMPRESA")]});
     assert.equal(pack(s,dia(27)).incomePending.length,2);
+    assert.ok(pack(s,27).incomePending.every(x=>x.expenseId==null),"ninguna se apunta el abono");
     const n=c.flowEnlazar(s,"a","e1",Y,M,27,1), p=pack(n,27);
     assert.equal(p.flowsDone.map(x=>x.id).join(),"flow_a"); assert.equal(p.incomePending.map(x=>x.id).join(),"flow_b");
     assert.equal(c.flowEnlazar(n,"b","e1",Y,M,27,1),n);
@@ -105,6 +106,7 @@ function suite(c){
     dia(26);
     const no=c.flowDesenlazar(s,"nom",Y,M,26,1), vetos=(no.reciboNo||[]).filter(k=>k.indexOf("flow:nom|")===0);
     assert.equal(pack(no,26).incomePending.length,1);
+    assert.equal(pack(no,26).incomePending[0].expenseId,null,"y no lo vuelve a coger solo");
     assert.ok(vetos.length>0); assert.equal(new Set(vetos).size,vetos.length,"sin claves repetidas");
     const si=c.flowEnlazar(no,"nom","e1",Y,M,26,2);
     assert.equal(pack(si,26).flowsDone.length,1);
@@ -119,13 +121,17 @@ function suite(c){
     assert.equal(mostrado(no,"sabadell"),antes);
     assert.equal(entrada(no,26),2000,"vuelve a esperarse el día 28");
   });
-  caso("«Lo recibí de otra forma»: pasa a «Ya ha entrado» y el dinero sigue igual",()=>{
+  // La vista sigue al dinero también aquí: marcada antes de su día, el saldo aún la espera, así que
+  // sigue en «Lo que aún entrará» con la marca a la vista; pasa a «Ya ha entrado» cuando el saldo la cuenta.
+  caso("«Lo recibí de otra forma» antes de su día: marcada pero aún por entrar, y el dinero igual",()=>{
     const s=estado(), n=c.flowMarcarAMano(s,"nom",Y,M,dia(20));
     const p=pack(n,20);
-    assert.equal(p.flowsDone.length,1); assert.equal(p.flowsDone[0].aMano,true);
+    assert.equal(p.flowsDone.length,0); assert.equal(p.incomePending.length,1); assert.equal(p.incomePending[0].aMano,true);
     assert.equal(mostrado(n,"sabadell"),mostrado(s,"sabadell"));
     assert.equal(entrada(n,20),2000); assert.equal(c.monthNetForAccount(n,"sabadell",Y,M,20),0);
-    assert.equal(pack(c.flowMarcarAMano(n,"nom",Y,M,null),20).incomePending.length,1);
+    const d28=pack(n,dia(28));
+    assert.equal(d28.flowsDone.length,1); assert.equal(d28.flowsDone[0].aMano,true);
+    assert.equal(pack(c.flowMarcarAMano(n,"nom",Y,M,null),28).flowsDone[0].sinMov,true);
   });
   caso("otro banco o un movimiento ya de un recibo no acreditan la nómina",()=>{
     const s=estado({expenses:[fila("r","revolut","2026-11-27",-2000,"EMPRESA"),fila("x","sabadell","2026-11-27",-2000,"EMPRESA",{reciboId:"luz"})]});
@@ -135,8 +141,8 @@ function suite(c){
     const tx={id:"t1",ent:"sabadell",date:"2026-11-25",amount:-2000,merchant:"EMPRESA",status:"BOOK"};
     const s=estado({expenses:[fila("e1","sabadell","2026-11-25",-2000,"EMPRESA")]});
     dia(26);
-    const foto=c.flowFoto(s,"nom",Y,M), n=c.flowEnlazar(s,"nom","e1",Y,M,26,1), antes=mostrado(n,"sabadell");
-    const d=c.flowDeshacer(n,"nom",Y,M,foto,2);
+    const foto=c.flowFoto(s,"nom",Y,M), n=c.flowEnlazar(s,"nom","e1",Y,M,26,1), antes=mostrado(n,"sabadell"), tras=c.flowFoto(n,"nom",Y,M);
+    const d=c.flowDeshacer(n,"nom",Y,M,foto,tras,2);
     assert.equal(d.flows[0].llegadas,undefined); assert.equal(d.flows[0].paidYm,undefined);
     assert.ok(!(d.reciboNo||[]).some(k=>k.indexOf("flow:nom|")===0),"deshacer no es «No es este»");
     assert.equal(mostrado(d,"sabadell"),antes);
@@ -144,14 +150,32 @@ function suite(c){
     assert.equal(r.flows[0].paidDay,25,"con el extracto delante se ancla igual que si no se hubiera tocado");
     // Y si antes había un veto (rechazó y eligió otro), deshacer lo devuelve tal cual.
     const no=c.flowDesenlazar(s,"nom",Y,M,26,3), f2=c.flowFoto(no,"nom",Y,M);
-    const otra=c.flowDeshacer(c.flowEnlazar(no,"nom","e1",Y,M,26,4),"nom",Y,M,f2,5);
+    const en=c.flowEnlazar(no,"nom","e1",Y,M,26,4);
+    const otra=c.flowDeshacer(en,"nom",Y,M,f2,c.flowFoto(en,"nom",Y,M),5);
     assert.equal(JSON.stringify((otra.reciboNo||[]).slice().sort()),JSON.stringify((no.reciboNo||[]).slice().sort()));
+  });
+  caso("Deshacer no pisa el ancla que trajo una sincronización ni los vetos de otros meses",()=>{
+    const s=estado({expenses:[fila("e1","sabadell","2026-11-25",-2000,"EMPRESA")]});
+    dia(26);
+    const foto=c.flowFoto(s,"nom",Y,M), n=c.flowEnlazar(s,"nom","e1",Y,M,26,1), tras=c.flowFoto(n,"nom",Y,M);
+    // Entretanto, otro móvil ancla otro día y aparta un movimiento de octubre.
+    const oct='flow:nom|'+JSON.stringify(["sabadell","2026-10-25",-2000,"EMPRESA"]);
+    const sync=Object.assign({},n,{flows:[Object.assign({},n.flows[0],{paidDay:24})]},c.reciboNoPon(n,[oct],true,5));
+    const d=c.flowDeshacer(sync,"nom",Y,M,foto,tras,6);
+    assert.equal(d.flows[0].paidDay,24,"el ancla de la sincronización se queda");
+    assert.ok(d.reciboNo.indexOf(oct)>=0,"el veto de octubre se queda");
+    assert.equal(d.flows[0].llegadas,undefined,"y el enlace de noviembre sí se deshace");
   });
   caso("un movimiento de otra cifra o de hace más de 7 días se enlaza pero NO ancla el saldo",()=>{
     dia(21);
     const corto=estado({expenses:[fila("a1","sabadell","2026-11-20",-150,"ADELANTO NOMINA")]});
     const n=c.flowEnlazar(corto,"nom","a1",Y,M,21,1);
     assert.equal(n.flows[0].llegadas[Y*12+M].expenseId,"a1"); assert.equal(n.flows[0].paidYm,undefined);
+    // Mientras el saldo la espera, sigue en «aún entrará» con lo que llegó a la vista (re-revisión 12/11).
+    const p=pack(n,21);
+    assert.equal(p.flowsDone.length,0); assert.equal(p.incomePending[0].expenseId,"a1"); assert.equal(p.incomePending[0].paidAmount,150);
+    assert.equal(pack(n,dia(28)).flowsDone[0].expenseId,"a1","el día que el saldo la cuenta, entra con su movimiento");
+    dia(21);
     assert.equal(n.accounts[0].value,1000,"la cuenta no se toca"); assert.equal(entrada(n,21),2000,"el 28 se siguen esperando los 2.000");
     const dos=estado({expenses:[fila("b1","sabadell","2026-11-25",-1500,"EMPRESA"),fila("b2","sabadell","2026-11-25",-500,"EMPRESA")]});
     dia(26);
@@ -167,7 +191,8 @@ function suite(c){
     dia(19);
     const deb=c.teDebenMes(s,Y,M,19);
     assert.equal(deb[0].pagado,true,"es la parte de Marta");
-    assert.equal(pack(s,19).incomePending.length,1,"el motor no se la da también a la entrada");
+    assert.equal(pack(s,19).incomePending.length,1);
+    assert.equal(pack(s,19).incomePending[0].expenseId,null,"el motor no se la da también a la entrada");
     const n=c.flowEnlazar(s,"biz","i1",Y,M,19,1);
     assert.equal(pack(n,19).flowsDone[0].expenseId,"i1","a mano manda él");
     assert.equal(c.teDebenMes(n,Y,M,19)[0].pagado,false,"y entonces no paga a Marta");
@@ -177,7 +202,7 @@ function suite(c){
 
 const reales=suite(cargar());
 assert.deepEqual(reales,[],"el motor de verdad pasa todos los casos");
-console.log("ingresos-como-recibos: 13 casos OK");
+console.log("ingresos-como-recibos: 14 casos OK");
 
 // Mutantes: cada uno rompe una regla de dinero o de enlace del motor.
 const MUTANTES=[
@@ -186,9 +211,12 @@ const MUTANTES=[
   ["enlazar un adelanto no ancla",'Object.assign(n,{paidYm:ym,paidDay:d,','Object.assign({},{paidYm:ym,paidDay:d,'],
   ["enlazar ancla también lo que llega tarde",'bank===entra&&planned!=null&&d<planned','bank===entra&&planned!=null'],
   ["el veto no aparta el movimiento",'||flowFilaVetada(s,f,x)) return false;',') return false;'],
-  ["Plan deja de enseñar lo que él enlazó o marcó a mano",'paid:st.llego,','paid:flowPaidIn(s,f,y,m,today),'],
-  ["la vista no sigue al dinero pasado su día",'  if(flowLlegoIn(s,f,y,m,today)) return {llego:true,day:planned,sinMov:true};',''],
-  ["deshacer veta como «No es este»",'function flowDeshacer(s,flowId,y,m,foto,ahora){','function flowDeshacer(s,flowId,y,m,foto,ahora){ return flowDesenlazar(s,flowId,y,m,31,ahora);'],
+  ["un enlace que no ancla da la entrada por llegada",'llego:cuenta,day:cuenta?recDay(x.date):planned','llego:true,day:recDay(x.date)'],
+  ["la marca a mano da la entrada por llegada antes de que la cuente el saldo",'llego:cuenta,day:cuenta?mano:planned','llego:true,day:mano'],
+  ["deshacer pisa el ancla de una sincronización",'if(!tras||ks.every(','if(true||ks.every('],
+  ["deshacer toca vetos de otros meses",'k.indexOf(pre)===0&&k.indexOf(mes)>=0','k.indexOf(pre)===0'],
+  ["la vista no sigue al dinero pasado su día",'  if(cuenta) return {llego:true,day:planned,sinMov:true};',''],
+  ["deshacer veta como «No es este»",'function flowDeshacer(s,flowId,y,m,foto,tras,ahora){','function flowDeshacer(s,flowId,y,m,foto,tras,ahora){ return flowDesenlazar(s,flowId,y,m,31,ahora);'],
   ["deshacer no repone los vetos de antes",'  if(poner.length) base=',' if(false) base='],
   ["enlazar ancla un importe que no se parece",'\n    &&recAmtClose(Number(f.amount),Math.abs(Number(x.amount)))',''],
   ["enlazar ancla un adelanto de más de 7 días",'d<planned&&planned-d<=7','d<planned'],

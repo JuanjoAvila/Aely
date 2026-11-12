@@ -970,7 +970,13 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      con el movimiento que lo acredita en vez de desaparecer. */
   const flowsDone=pack.flowsDone||[];
   const flowSub=function(x){
-    return x.kind==="transfer"?tf("fl_de_a",{from:entOf(x.bank).label,to:x.to?entOf(x.to).label:"—"}):entOf(x.bank).label;
+    const base=x.kind==="transfer"?tf("fl_de_a",{from:entOf(x.bank).label,to:x.to?entOf(x.to).label:"—"}):entOf(x.bank).label;
+    // Aún no la cuenta el saldo, pero ya hay algo enlazado o marcado: se ve en la fila.
+    if(x.paid) return base;
+    if(x.aMano) return base+" · "+t("pr6_a_mano_sub");
+    if(x.expenseId&&x.paidAmount>0) return base+" · "+(Math.round(x.paidAmount*100)!==Math.round(Math.abs(x.amount)*100)
+      ?tf("fl_llego_parcial",{x:eur(x.paidAmount),y:eur(Math.abs(x.amount))}):tf("fl_mov_de",{bank:entOf(x.paidBank).label}));
+    return base;
   };
   const flowAmt=function(x){ return (x.kind==="income"?"+":"")+eur(Math.abs(x.amount)); };
   const flowRow=function(x){
@@ -2390,20 +2396,22 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
       const antes=state;
       const enlaza=function(s){ const u=rechazo?flowDesenlazar(s,f.id,y,m,today):s; return flowEnlazar(u,f.id,x.id,y,m,today); };
       const prueba=enlaza(antes);
-      if(prueba===antes||!flowEstadoMes(prueba,prueba.flows.find(function(o){ return o.id===f.id; }),y,m,today).llego){
+      const tras0=flowEstadoMes(prueba,prueba.flows.find(function(o){ return o.id===f.id; }),y,m,today);
+      if(prueba===antes||!(tras0.expense&&tras0.expense.id===x.id)){
         if(showToast) showToast(t("pr6_link_fail")); swipe.close(); return;
       }
       // Deshacer repone la foto de antes (llegada, ancla y vetos), no veta: eso es «No es este».
-      const tras=llegadaDe(prueba), foto=flowFoto(antes,f.id,y,m);
+      const tras=llegadaDe(prueba), foto=flowFoto(antes,f.id,y,m), fotoTras=flowFoto(prueba,f.id,y,m);
       set(enlaza);
-      avisa(tf("fl_entrado_toast",{name:row.name}),function(){ set(function(s){ return llegadaDe(s)===tras?flowDeshacer(s,f.id,y,m,foto):s; }); });
+      avisa(tf(tras0.llego?"fl_entrado_toast":"fl_enlazado_toast",{name:row.name}),function(){ set(function(s){ return llegadaDe(s)===tras?flowDeshacer(s,f.id,y,m,foto,fotoTras):s; }); });
       swipe.close();
     },260);
   };
   const aMano=function(){
+    const n=flowMarcarAMano(state,f.id,y,m,today), cuenta=flowEstadoMes(n,(n.flows||[]).find(function(o){ return o.id===f.id; }),y,m,today).llego;
     set(function(s){ return flowMarcarAMano(s,f.id,y,m,today); });
     mcTickHaptic();
-    avisa(tf("fl_entrado_toast",{name:row.name}),function(){ set(function(s){ return flowMarcarAMano(s,f.id,y,m,null); }); });
+    avisa(tf(cuenta?"fl_entrado_toast":"fl_enlazado_toast",{name:row.name}),function(){ set(function(s){ return flowMarcarAMano(s,f.id,y,m,null); }); });
     swipe.close();
   };
   const desmarcar=function(){
@@ -2429,14 +2437,15 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
   };
   const sub=tr?tf("fl_de_a",{from:entOf(sale).label,to:f.to?entOf(f.to).label:"—"}):tf("pr6_entra_en",{bank:entOf(bank).label});
   const late=!st.llego&&st.overdue&&dayF!=null;
-  const movBanco=st.llego&&!st.aMano&&!st.sinMov?(st.bank||bank):null;
+  const movBanco=!st.aMano&&(st.expense||st.extracto)?(st.bank||bank):null;
   const movTxt=st.expense?reciboCargoTexto(st.expense):"";
   const botones=[];
-  if(!st.llego) botones.push(React.createElement("button",{type:"button",key:"ll",className:"pr6-btn pr6-btn-main","data-act":"llego",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_llego_btn")));
-  if(st.llego&&st.aMano) botones.push(React.createElement("button",{type:"button",key:"dm",className:"pr6-btn","data-act":"desmarcar",onClick:desmarcar},t("pr6_desmarcar")));
+  const prueba=st.aMano||st.expense||st.extracto;
+  if(!st.llego&&!prueba) botones.push(React.createElement("button",{type:"button",key:"ll",className:"pr6-btn pr6-btn-main","data-act":"llego",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_llego_btn")));
+  if(st.aMano) botones.push(React.createElement("button",{type:"button",key:"dm",className:"pr6-btn","data-act":"desmarcar",onClick:desmarcar},t("pr6_desmarcar")));
   // Sin movimiento (el saldo ya la cuenta por su día): se le puede enlazar el suyo.
   if(st.sinMov) botones.push(React.createElement("button",{type:"button",key:"el",className:"pr6-btn pr6-btn-main","data-act":"elegir",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_elegir")));
-  if(st.llego&&!st.aMano&&!st.sinMov) botones.push(React.createElement("button",{type:"button",key:"no",className:"pr6-btn","data-act":"no-es",onClick:function(){ setRechazo(true); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_no_es")));
+  if(!st.aMano&&(st.expense||st.extracto)) botones.push(React.createElement("button",{type:"button",key:"no",className:"pr6-btn","data-act":"no-es",onClick:function(){ setRechazo(true); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_no_es")));
   botones.push(React.createElement("button",{type:"button",key:"ed",className:"pr6-btn","data-act":"editar",onClick:function(){ onEdit(f.id); }},t("pr6_editar")));
   const fichaPanel=React.createElement("div",{className:"pr6-step"+(paso===0?" on":""),"aria-hidden":paso===0?null:"true",inert:paso===0?undefined:""},
     React.createElement("div",{className:"pr6-ficha-h"},
@@ -2448,14 +2457,16 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
         React.createElement("span",{className:"pr6-ficha-s"}, sub)),
       React.createElement("span",{className:"serif num pr6-ficha-a"+(tr?"":" pos"),"data-testid":"flujo-importe"}, (tr?"":"+")+eur(target))),
     late&&React.createElement("div",{className:"pr6-nota","data-testid":"flujo-nota"}, tf("pr6_nota_late",{d:dayF})),
+    // Enlazado o marcado, pero el saldo la sigue esperando su día: se dice, para que la cifra no engañe.
+    !st.llego&&prueba&&dayF!=null&&React.createElement("div",{className:"pr6-nota","data-testid":"flujo-nota-espera"}, tf("fl_cuenta_dia",{d:dayF})),
     st.sinMov&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-sin-mov"},
       React.createElement("span",{className:"pr6-cand-t"},
         React.createElement("span",{className:"pr6-cand-n"}, t("fl_sin_mov")),
         React.createElement("span",{className:"pr6-cand-s"}, (st.day!=null?st.day+" "+monthShort(m-1)+" · ":"")+entOf(bank).label))),
-    st.llego&&st.aMano&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-a-mano"},
+    st.aMano&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-a-mano"},
       React.createElement("span",{className:"pr6-cand-t"},
         React.createElement("span",{className:"pr6-cand-n"}, t("pr6_a_mano")),
-        React.createElement("span",{className:"pr6-cand-s"}, st.day+" "+monthShort(m-1)+" · "+t("fl_sin_mov").toLowerCase())),
+        React.createElement("span",{className:"pr6-cand-s"}, (st.llego?st.day+" "+monthShort(m-1)+" · ":"")+t("fl_sin_mov").toLowerCase())),
       React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
     movBanco&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-mov"},
       React.createElement(Mono,{ent:movBanco,size:34}),

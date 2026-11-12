@@ -201,7 +201,10 @@ function flowFilaCasa(s,f,x,y,m){
    y «Te deben» deja de contarlo (revisión de dinero del 12/11/2026: un movimiento, una cosa). */
 function flowNombraPersona(s,x){
   const txt=" "+recNorm([x.merchant,x.obName,x.concept,x.note].join(" "))+" ";
-  return personasDe(s).some(function(p){ const w=p.via!=="debt"&&debenNombre(p.n); return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; }); });
+  // Como en `teDebenRecibido`: dos palabras del titular que no son de la persona = es dinero tuyo.
+  const titular=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
+  return personasDe(s).some(function(p){ const w=p.via!=="debt"&&debenNombre(p.n); return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })
+    &&titular.filter(function(k){ return w.indexOf(k)<0&&txt.indexOf(" "+k+" ")>=0; }).length<2; });
 }
 function flowFilaAuto(s,f,y,m,today){
   const pool=flowFilasElegibles(s,f,y,m,today).filter(function(x){ return flowFilaCasa(s,f,x,y,m)&&!flowNombraPersona(s,x); });
@@ -230,17 +233,22 @@ function flowFilaEnlazada(s,f,y,m,today){
    → {llego, day, expense?, bank?, amount?, aMano?, auto?, extracto?, sinMov?, overdue?} */
 function flowEstadoMes(s,f,y,m,today){
   const planned=flowDay(f,y,m);
-  const fila=function(x,auto){ return {llego:true,day:recDay(x.date),expense:x,bank:expenseBankOf(x),amount:Math.abs(Number(x.amount)),auto:auto}; };
+  /* Lo que la acredita (el movimiento enlazado, la marca a mano o el que casa solo) se enseña siempre,
+     pero «ha llegado» lo decide el dinero (`flowLlegoIn`, re-revisión del 12/11/2026): un movimiento
+     de otra cifra o un «de otra forma» antes de su día no anclan el saldo, y mientras «¿Te llega?» la
+     siga esperando, sigue en «Lo que aún entrará» con lo que llegó a la vista. */
+  const cuenta=flowLlegoIn(s,f,y,m,today);
+  const fila=function(x,auto){ return {llego:cuenta,day:cuenta?recDay(x.date):planned,expense:x,bank:expenseBankOf(x),amount:Math.abs(Number(x.amount)),auto:auto}; };
   const enlazada=flowFilaEnlazada(s,f,y,m,today);
   if(enlazada) return fila(enlazada,false);
   const mano=flowLlegadaAMano(f,y,m);
-  if(mano!=null&&mano<=today) return {llego:true,day:mano,aMano:true};
+  if(mano!=null&&mano<=today) return {llego:cuenta,day:cuenta?mano:planned,aMano:true};
   const x=flowFilaAuto(s,f,y,m,today);
   if(x) return fila(x,true);
   // El abono del extracto sin fila en Gastos (aún no importada): llega igual, como hoy.
   const cd=flowConfirmedDay(f,y,m), tx=cd==null?flowEarlyBankTx(s,f,y,m,today):null;
   if(cd!=null&&cd<=today||tx) return {llego:true,day:cd!=null?cd:recDay(tx.date),bank:flowBancoEntra(f),amount:Number(f.amount),extracto:true};
-  if(flowLlegoIn(s,f,y,m,today)) return {llego:true,day:planned,sinMov:true};
+  if(cuenta) return {llego:true,day:planned,sinMov:true};
   return {llego:false,day:planned,overdue:planned!=null&&planned<today};
 }
 /* «¿Cuál es el ingreso?»: enlaza ese movimiento a la entrada de ese mes. → estado nuevo (o el mismo
@@ -274,7 +282,7 @@ function flowDesenlazar(s,flowId,y,m,today,ahora){
   const f=(s.flows||[]).find(function(o){ return o&&o.id===flowId; });
   if(!f) return s;
   const st=flowEstadoMes(s,f,y,m,today), ym=y*12+m, vid=flowVetoId(f);
-  if(!st.llego||st.aMano||st.sinMov) return s;
+  if(st.aMano||st.sinMov||!(st.expense||st.extracto)) return s;
   const n=Object.assign({},f), ll=flowLlegadasCon(f.llegadas,ym,null);
   if(Object.keys(ll).length) n.llegadas=ll; else delete n.llegadas;
   const claves=st.expense?reciboNoClaves(vid,reciboNoIdentidad(st.expense),st.expense.id):[];
@@ -317,13 +325,21 @@ function flowFoto(s,flowId,y,m){
   return {llegada:flowLlegadaGuardada(f,y,m),paid:{paidYm:f.paidYm,paidDay:f.paidDay,paidBank:f.paidBank,paidAmount:f.paidAmount},
     vetos:(s.reciboNo||[]).filter(function(k){ return k.indexOf(pre)===0; })};
 }
-function flowDeshacer(s,flowId,y,m,foto,ahora){
+/* `tras` es la foto justo después de enlazar: el ancla solo se repone si sigue siendo la que dejó el
+   enlace (una sincronización pudo traer otra, y esa no se pisa). Los vetos, solo los de ESE mes:
+   los de otros meses no los tocó el enlace (re-revisión del 12/11/2026). */
+function flowDeshacer(s,flowId,y,m,foto,tras,ahora){
   const f=(s.flows||[]).find(function(o){ return o&&o.id===flowId; });
   if(!f||!foto) return s;
   const ym=y*12+m, n=Object.assign({},f), ll=flowLlegadasCon(f.llegadas,ym,foto.llegada||null);
   if(Object.keys(ll).length) n.llegadas=ll; else delete n.llegadas;
-  ["paidYm","paidDay","paidBank","paidAmount"].forEach(function(k){ if(foto.paid[k]===undefined) delete n[k]; else n[k]=foto.paid[k]; });
-  const pre=flowVetoId(f)+"|", ya=(s.reciboNo||[]).filter(function(k){ return k.indexOf(pre)===0; });
+  const ks=["paidYm","paidDay","paidBank","paidAmount"];
+  if(!tras||ks.every(function(k){ return f[k]===tras.paid[k]; }))
+    ks.forEach(function(k){ if(foto.paid[k]===undefined) delete n[k]; else n[k]=foto.paid[k]; });
+  const mes='"'+y+"-"+String(m).padStart(2,"0")+"-";
+  const delMes=function(k){ return k.indexOf(pre)===0&&k.indexOf(mes)>=0; };
+  const pre=flowVetoId(f)+"|", ya=(s.reciboNo||[]).filter(delMes);
+  foto=Object.assign({},foto,{vetos:foto.vetos.filter(delMes)});
   const quitar=ya.filter(function(k){ return foto.vetos.indexOf(k)<0; }), poner=foto.vetos.filter(function(k){ return ya.indexOf(k)<0; });
   let base=s;
   if(quitar.length) base=Object.assign({},base,reciboNoPon(base,quitar,false,ahora||Date.now()));
@@ -1365,7 +1381,7 @@ function planChargesMonth(s,m,y,today){
     if(!(a>0)||f.kind!=="income"&&f.kind!=="transfer") return;
     var st=flowEstadoMes(s,f,y,m,today);
     var x={id:"flow_"+f.id,name:f.name||t(f.kind==="income"?"fj_income":"fj_transfer"),day:st.day,paid:st.llego,overdue:!!st.overdue,
-      aMano:!!st.aMano,sinMov:!!st.sinMov,paidBank:st.llego?st.bank||null:null,paidAmount:st.llego&&st.amount>0?st.amount:null,expenseId:st.expense?st.expense.id:null,kind:f.kind};
+      aMano:!!st.aMano,sinMov:!!st.sinMov,paidBank:st.bank||null,paidAmount:st.amount>0?st.amount:null,expenseId:st.expense?st.expense.id:null,kind:f.kind};
     if(f.kind==="income") r.push(Object.assign(x,{amount:-a,bank:f.to||"sabadell"}));
     else r.push(Object.assign(x,{amount:a,bank:f.from||"sabadell",to:f.to||null}));
   });

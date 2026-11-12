@@ -10610,7 +10610,7 @@ Object.assign(LANG.es,{
   fl_ya_entrado:"Ya ha entrado", fl_llego_btn:"Ya ha llegado", fl_cual:"¿Cuál es el ingreso?", fl_cual_tr:"¿Cuál es el movimiento?",
   fl_otra_forma:"Lo recibí de otra forma", fl_otra_forma_tr:"Lo moví de otra forma", fl_no_es:"No es este", fl_aun_no:"Aún no ha llegado",
   fl_mov_de:"movimiento de {bank}", fl_de_a:"de {from} a {to}", fl_otros:"Otros movimientos de {bank}", fl_menos:"Menos movimientos",
-  fl_sin_movs:"Sin movimientos de {bank} este mes", fl_sin_mov:"Sin movimiento del banco", fl_elegir:"Elegir su movimiento",
+  fl_sin_movs:"Sin movimientos de {bank} este mes", fl_sin_mov:"Sin movimiento del banco", fl_elegir:"Elegir su movimiento", fl_llego_parcial:"llegó {x} de {y}", fl_cuenta_dia:"El saldo la cuenta el día {d}", fl_enlazado_toast:"{name} enlazado",
   fl_entrado_toast:"{name} pasa a Ya ha entrado", fl_vuelve_toast:"{name} vuelve a Lo que aún entrará",
 fl_t_name:"¿Qué entra?", fl_t_name_tr:"¿Qué mueves?", fl_name_ph:"Nómina, pensión…",
   fl_t_amount:"¿Cuánto?", fl_t_when:"¿Cuándo?", fl_t_to:"¿En qué cuenta entra?", fl_t_from:"¿De qué cuenta sale?", fl_t_dest:"¿A qué cuenta va?",
@@ -20038,7 +20038,10 @@ function flowFilaCasa(s,f,x,y,m){
    y «Te deben» deja de contarlo (revisión de dinero del 12/11/2026: un movimiento, una cosa). */
 function flowNombraPersona(s,x){
   const txt=" "+recNorm([x.merchant,x.obName,x.concept,x.note].join(" "))+" ";
-  return personasDe(s).some(function(p){ const w=p.via!=="debt"&&debenNombre(p.n); return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; }); });
+  // Como en `teDebenRecibido`: dos palabras del titular que no son de la persona = es dinero tuyo.
+  const titular=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
+  return personasDe(s).some(function(p){ const w=p.via!=="debt"&&debenNombre(p.n); return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })
+    &&titular.filter(function(k){ return w.indexOf(k)<0&&txt.indexOf(" "+k+" ")>=0; }).length<2; });
 }
 function flowFilaAuto(s,f,y,m,today){
   const pool=flowFilasElegibles(s,f,y,m,today).filter(function(x){ return flowFilaCasa(s,f,x,y,m)&&!flowNombraPersona(s,x); });
@@ -20067,17 +20070,22 @@ function flowFilaEnlazada(s,f,y,m,today){
    → {llego, day, expense?, bank?, amount?, aMano?, auto?, extracto?, sinMov?, overdue?} */
 function flowEstadoMes(s,f,y,m,today){
   const planned=flowDay(f,y,m);
-  const fila=function(x,auto){ return {llego:true,day:recDay(x.date),expense:x,bank:expenseBankOf(x),amount:Math.abs(Number(x.amount)),auto:auto}; };
+  /* Lo que la acredita (el movimiento enlazado, la marca a mano o el que casa solo) se enseña siempre,
+     pero «ha llegado» lo decide el dinero (`flowLlegoIn`, re-revisión del 12/11/2026): un movimiento
+     de otra cifra o un «de otra forma» antes de su día no anclan el saldo, y mientras «¿Te llega?» la
+     siga esperando, sigue en «Lo que aún entrará» con lo que llegó a la vista. */
+  const cuenta=flowLlegoIn(s,f,y,m,today);
+  const fila=function(x,auto){ return {llego:cuenta,day:cuenta?recDay(x.date):planned,expense:x,bank:expenseBankOf(x),amount:Math.abs(Number(x.amount)),auto:auto}; };
   const enlazada=flowFilaEnlazada(s,f,y,m,today);
   if(enlazada) return fila(enlazada,false);
   const mano=flowLlegadaAMano(f,y,m);
-  if(mano!=null&&mano<=today) return {llego:true,day:mano,aMano:true};
+  if(mano!=null&&mano<=today) return {llego:cuenta,day:cuenta?mano:planned,aMano:true};
   const x=flowFilaAuto(s,f,y,m,today);
   if(x) return fila(x,true);
   // El abono del extracto sin fila en Gastos (aún no importada): llega igual, como hoy.
   const cd=flowConfirmedDay(f,y,m), tx=cd==null?flowEarlyBankTx(s,f,y,m,today):null;
   if(cd!=null&&cd<=today||tx) return {llego:true,day:cd!=null?cd:recDay(tx.date),bank:flowBancoEntra(f),amount:Number(f.amount),extracto:true};
-  if(flowLlegoIn(s,f,y,m,today)) return {llego:true,day:planned,sinMov:true};
+  if(cuenta) return {llego:true,day:planned,sinMov:true};
   return {llego:false,day:planned,overdue:planned!=null&&planned<today};
 }
 /* «¿Cuál es el ingreso?»: enlaza ese movimiento a la entrada de ese mes. → estado nuevo (o el mismo
@@ -20111,7 +20119,7 @@ function flowDesenlazar(s,flowId,y,m,today,ahora){
   const f=(s.flows||[]).find(function(o){ return o&&o.id===flowId; });
   if(!f) return s;
   const st=flowEstadoMes(s,f,y,m,today), ym=y*12+m, vid=flowVetoId(f);
-  if(!st.llego||st.aMano||st.sinMov) return s;
+  if(st.aMano||st.sinMov||!(st.expense||st.extracto)) return s;
   const n=Object.assign({},f), ll=flowLlegadasCon(f.llegadas,ym,null);
   if(Object.keys(ll).length) n.llegadas=ll; else delete n.llegadas;
   const claves=st.expense?reciboNoClaves(vid,reciboNoIdentidad(st.expense),st.expense.id):[];
@@ -20154,13 +20162,21 @@ function flowFoto(s,flowId,y,m){
   return {llegada:flowLlegadaGuardada(f,y,m),paid:{paidYm:f.paidYm,paidDay:f.paidDay,paidBank:f.paidBank,paidAmount:f.paidAmount},
     vetos:(s.reciboNo||[]).filter(function(k){ return k.indexOf(pre)===0; })};
 }
-function flowDeshacer(s,flowId,y,m,foto,ahora){
+/* `tras` es la foto justo después de enlazar: el ancla solo se repone si sigue siendo la que dejó el
+   enlace (una sincronización pudo traer otra, y esa no se pisa). Los vetos, solo los de ESE mes:
+   los de otros meses no los tocó el enlace (re-revisión del 12/11/2026). */
+function flowDeshacer(s,flowId,y,m,foto,tras,ahora){
   const f=(s.flows||[]).find(function(o){ return o&&o.id===flowId; });
   if(!f||!foto) return s;
   const ym=y*12+m, n=Object.assign({},f), ll=flowLlegadasCon(f.llegadas,ym,foto.llegada||null);
   if(Object.keys(ll).length) n.llegadas=ll; else delete n.llegadas;
-  ["paidYm","paidDay","paidBank","paidAmount"].forEach(function(k){ if(foto.paid[k]===undefined) delete n[k]; else n[k]=foto.paid[k]; });
-  const pre=flowVetoId(f)+"|", ya=(s.reciboNo||[]).filter(function(k){ return k.indexOf(pre)===0; });
+  const ks=["paidYm","paidDay","paidBank","paidAmount"];
+  if(!tras||ks.every(function(k){ return f[k]===tras.paid[k]; }))
+    ks.forEach(function(k){ if(foto.paid[k]===undefined) delete n[k]; else n[k]=foto.paid[k]; });
+  const mes='"'+y+"-"+String(m).padStart(2,"0")+"-";
+  const delMes=function(k){ return k.indexOf(pre)===0&&k.indexOf(mes)>=0; };
+  const pre=flowVetoId(f)+"|", ya=(s.reciboNo||[]).filter(delMes);
+  foto=Object.assign({},foto,{vetos:foto.vetos.filter(delMes)});
   const quitar=ya.filter(function(k){ return foto.vetos.indexOf(k)<0; }), poner=foto.vetos.filter(function(k){ return ya.indexOf(k)<0; });
   let base=s;
   if(quitar.length) base=Object.assign({},base,reciboNoPon(base,quitar,false,ahora||Date.now()));
@@ -21202,7 +21218,7 @@ function planChargesMonth(s,m,y,today){
     if(!(a>0)||f.kind!=="income"&&f.kind!=="transfer") return;
     var st=flowEstadoMes(s,f,y,m,today);
     var x={id:"flow_"+f.id,name:f.name||t(f.kind==="income"?"fj_income":"fj_transfer"),day:st.day,paid:st.llego,overdue:!!st.overdue,
-      aMano:!!st.aMano,sinMov:!!st.sinMov,paidBank:st.llego?st.bank||null:null,paidAmount:st.llego&&st.amount>0?st.amount:null,expenseId:st.expense?st.expense.id:null,kind:f.kind};
+      aMano:!!st.aMano,sinMov:!!st.sinMov,paidBank:st.bank||null,paidAmount:st.amount>0?st.amount:null,expenseId:st.expense?st.expense.id:null,kind:f.kind};
     if(f.kind==="income") r.push(Object.assign(x,{amount:-a,bank:f.to||"sabadell"}));
     else r.push(Object.assign(x,{amount:a,bank:f.from||"sabadell",to:f.to||null}));
   });
@@ -30504,7 +30520,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b5c85547a9078c812e264aa50aaee08443df09be86f86f727a6e2627fee67dac";
+var _rnSha="86b6bb0007a052b33c6847ec69f2168ce81dbd2693dedf6bc481f5b84fc6fcc6";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32991,7 +33007,13 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      con el movimiento que lo acredita en vez de desaparecer. */
   const flowsDone=pack.flowsDone||[];
   const flowSub=function(x){
-    return x.kind==="transfer"?tf("fl_de_a",{from:entOf(x.bank).label,to:x.to?entOf(x.to).label:"—"}):entOf(x.bank).label;
+    const base=x.kind==="transfer"?tf("fl_de_a",{from:entOf(x.bank).label,to:x.to?entOf(x.to).label:"—"}):entOf(x.bank).label;
+    // Aún no la cuenta el saldo, pero ya hay algo enlazado o marcado: se ve en la fila.
+    if(x.paid) return base;
+    if(x.aMano) return base+" · "+t("pr6_a_mano_sub");
+    if(x.expenseId&&x.paidAmount>0) return base+" · "+(Math.round(x.paidAmount*100)!==Math.round(Math.abs(x.amount)*100)
+      ?tf("fl_llego_parcial",{x:eur(x.paidAmount),y:eur(Math.abs(x.amount))}):tf("fl_mov_de",{bank:entOf(x.paidBank).label}));
+    return base;
   };
   const flowAmt=function(x){ return (x.kind==="income"?"+":"")+eur(Math.abs(x.amount)); };
   const flowRow=function(x){
@@ -34411,20 +34433,22 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
       const antes=state;
       const enlaza=function(s){ const u=rechazo?flowDesenlazar(s,f.id,y,m,today):s; return flowEnlazar(u,f.id,x.id,y,m,today); };
       const prueba=enlaza(antes);
-      if(prueba===antes||!flowEstadoMes(prueba,prueba.flows.find(function(o){ return o.id===f.id; }),y,m,today).llego){
+      const tras0=flowEstadoMes(prueba,prueba.flows.find(function(o){ return o.id===f.id; }),y,m,today);
+      if(prueba===antes||!(tras0.expense&&tras0.expense.id===x.id)){
         if(showToast) showToast(t("pr6_link_fail")); swipe.close(); return;
       }
       // Deshacer repone la foto de antes (llegada, ancla y vetos), no veta: eso es «No es este».
-      const tras=llegadaDe(prueba), foto=flowFoto(antes,f.id,y,m);
+      const tras=llegadaDe(prueba), foto=flowFoto(antes,f.id,y,m), fotoTras=flowFoto(prueba,f.id,y,m);
       set(enlaza);
-      avisa(tf("fl_entrado_toast",{name:row.name}),function(){ set(function(s){ return llegadaDe(s)===tras?flowDeshacer(s,f.id,y,m,foto):s; }); });
+      avisa(tf(tras0.llego?"fl_entrado_toast":"fl_enlazado_toast",{name:row.name}),function(){ set(function(s){ return llegadaDe(s)===tras?flowDeshacer(s,f.id,y,m,foto,fotoTras):s; }); });
       swipe.close();
     },260);
   };
   const aMano=function(){
+    const n=flowMarcarAMano(state,f.id,y,m,today), cuenta=flowEstadoMes(n,(n.flows||[]).find(function(o){ return o.id===f.id; }),y,m,today).llego;
     set(function(s){ return flowMarcarAMano(s,f.id,y,m,today); });
     mcTickHaptic();
-    avisa(tf("fl_entrado_toast",{name:row.name}),function(){ set(function(s){ return flowMarcarAMano(s,f.id,y,m,null); }); });
+    avisa(tf(cuenta?"fl_entrado_toast":"fl_enlazado_toast",{name:row.name}),function(){ set(function(s){ return flowMarcarAMano(s,f.id,y,m,null); }); });
     swipe.close();
   };
   const desmarcar=function(){
@@ -34450,14 +34474,15 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
   };
   const sub=tr?tf("fl_de_a",{from:entOf(sale).label,to:f.to?entOf(f.to).label:"—"}):tf("pr6_entra_en",{bank:entOf(bank).label});
   const late=!st.llego&&st.overdue&&dayF!=null;
-  const movBanco=st.llego&&!st.aMano&&!st.sinMov?(st.bank||bank):null;
+  const movBanco=!st.aMano&&(st.expense||st.extracto)?(st.bank||bank):null;
   const movTxt=st.expense?reciboCargoTexto(st.expense):"";
   const botones=[];
-  if(!st.llego) botones.push(React.createElement("button",{type:"button",key:"ll",className:"pr6-btn pr6-btn-main","data-act":"llego",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_llego_btn")));
-  if(st.llego&&st.aMano) botones.push(React.createElement("button",{type:"button",key:"dm",className:"pr6-btn","data-act":"desmarcar",onClick:desmarcar},t("pr6_desmarcar")));
+  const prueba=st.aMano||st.expense||st.extracto;
+  if(!st.llego&&!prueba) botones.push(React.createElement("button",{type:"button",key:"ll",className:"pr6-btn pr6-btn-main","data-act":"llego",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_llego_btn")));
+  if(st.aMano) botones.push(React.createElement("button",{type:"button",key:"dm",className:"pr6-btn","data-act":"desmarcar",onClick:desmarcar},t("pr6_desmarcar")));
   // Sin movimiento (el saldo ya la cuenta por su día): se le puede enlazar el suyo.
   if(st.sinMov) botones.push(React.createElement("button",{type:"button",key:"el",className:"pr6-btn pr6-btn-main","data-act":"elegir",onClick:function(){ setRechazo(false); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_elegir")));
-  if(st.llego&&!st.aMano&&!st.sinMov) botones.push(React.createElement("button",{type:"button",key:"no",className:"pr6-btn","data-act":"no-es",onClick:function(){ setRechazo(true); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_no_es")));
+  if(!st.aMano&&(st.expense||st.extracto)) botones.push(React.createElement("button",{type:"button",key:"no",className:"pr6-btn","data-act":"no-es",onClick:function(){ setRechazo(true); setElegido(null); setOtros(false); setQ(""); setPaso(1); }},t("fl_no_es")));
   botones.push(React.createElement("button",{type:"button",key:"ed",className:"pr6-btn","data-act":"editar",onClick:function(){ onEdit(f.id); }},t("pr6_editar")));
   const fichaPanel=React.createElement("div",{className:"pr6-step"+(paso===0?" on":""),"aria-hidden":paso===0?null:"true",inert:paso===0?undefined:""},
     React.createElement("div",{className:"pr6-ficha-h"},
@@ -34469,14 +34494,16 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
         React.createElement("span",{className:"pr6-ficha-s"}, sub)),
       React.createElement("span",{className:"serif num pr6-ficha-a"+(tr?"":" pos"),"data-testid":"flujo-importe"}, (tr?"":"+")+eur(target))),
     late&&React.createElement("div",{className:"pr6-nota","data-testid":"flujo-nota"}, tf("pr6_nota_late",{d:dayF})),
+    // Enlazado o marcado, pero el saldo la sigue esperando su día: se dice, para que la cifra no engañe.
+    !st.llego&&prueba&&dayF!=null&&React.createElement("div",{className:"pr6-nota","data-testid":"flujo-nota-espera"}, tf("fl_cuenta_dia",{d:dayF})),
     st.sinMov&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-sin-mov"},
       React.createElement("span",{className:"pr6-cand-t"},
         React.createElement("span",{className:"pr6-cand-n"}, t("fl_sin_mov")),
         React.createElement("span",{className:"pr6-cand-s"}, (st.day!=null?st.day+" "+monthShort(m-1)+" · ":"")+entOf(bank).label))),
-    st.llego&&st.aMano&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-a-mano"},
+    st.aMano&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-a-mano"},
       React.createElement("span",{className:"pr6-cand-t"},
         React.createElement("span",{className:"pr6-cand-n"}, t("pr6_a_mano")),
-        React.createElement("span",{className:"pr6-cand-s"}, st.day+" "+monthShort(m-1)+" · "+t("fl_sin_mov").toLowerCase())),
+        React.createElement("span",{className:"pr6-cand-s"}, (st.llego?st.day+" "+monthShort(m-1)+" · ":"")+t("fl_sin_mov").toLowerCase())),
       React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
     movBanco&&React.createElement("div",{className:"pr6-cargo","data-testid":"flujo-mov"},
       React.createElement(Mono,{ent:movBanco,size:34}),
