@@ -1,5 +1,73 @@
 [
   {
+    "v": "4.26.231",
+    "d": "2026-11-12",
+    "t": {
+      "es": "Traspasos a tus cuentas reconocidos, despliegues sin huecos y renombrar sin avisos falsos",
+      "en": "Transfers to your accounts recognised, unfolding without gaps and renaming without false warnings",
+      "ca": "Traspassos als teus comptes reconeguts, desplegaments sense buits i canviar el nom sense avisos falsos"
+    },
+    "items": {
+      "es": [
+        "Las transferencias a tus propias cuentas salen en Traspasos y no como gasto, y al cambiar el nombre de un movimiento ya no sale un aviso de «pendiente» con conexión ni parpadea la lista.",
+        "Los traspasos y entradas hechos unos días antes, aunque sea el mes anterior, se enlazan solos con su movimiento, y en «Ya ha entrado» cada fila dice lo que llegó y el total cuadra.",
+        "Si una entrada y alguien de «Te deben» son el mismo pago, el movimiento deja las dos al día.",
+        "En Recibos, «Ver los…», «Ya pagados» y «Ya ha entrado» se despliegan igual que Personas, con las filas llegando junto al borde y sin huecos vacíos."
+      ],
+      "en": [
+        "Transfers to your own accounts now show under Transfers, not as spending, and renaming a movement no longer shows a \"pending\" warning when you're online or makes the list flicker.",
+        "Transfers and income made a few days early, even the month before, now link to their movement on their own, and in \"Already in\" each row shows what arrived and the total adds up.",
+        "When an expected payment and someone in \"You're owed\" are the same payment, one movement settles both.",
+        "In Bills, \"See all…\", \"Already paid\" and \"Already in\" now unfold just like People, with the rows coming in as it opens and no empty gaps."
+      ],
+      "ca": [
+        "Les transferències als teus propis comptes surten a Traspassos i no com a despesa, i en canviar el nom d'un moviment ja no surt un avís de «pendent» amb connexió ni parpelleja la llista.",
+        "Els traspassos i entrades fets uns dies abans, encara que sigui el mes anterior, s'enllacen sols amb el seu moviment, i a «Ja ha entrat» cada fila diu el que ha arribat i el total quadra.",
+        "Si una entrada i algú d'«Et deuen» són el mateix pagament, el moviment deixa les dues al dia.",
+        "A Rebuts, «Veure els…», «Ja pagats» i «Ja ha entrat» es despleguen igual que Persones, amb les files arribant amb la vora i sense buits."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-gastos-231",
+        "t": {
+          "es": "Recibos y Gastos: despliegues, lo que entra, «Te deben», traspasos y renombrar",
+          "en": "Bills and Spending: unfolding, what comes in, \"You're owed\", transfers and renaming",
+          "ca": "Rebuts i Despeses: desplegaments, el que entra, «Et deuen», traspassos i canviar el nom"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos: toca «Ver los N» en «Por pagar» y luego «Ver menos»; abre y cierra «Ya pagados» y «Ya ha entrado». BIEN: las filas crecen pegadas a «Ver menos», sin hueco vacío, igual de suave que Personas y sin que la pantalla se mueva sola; en «Ya ha entrado» cada fila dice lo que llegó (o «llegó X de Y») y el total es la suma de las filas; un traspaso hecho unos días antes, aunque sea el mes anterior, sale con su fecha (por ejemplo «30 oct») y «movimiento de» tu banco. MAL: un hueco, un bote o la página desplazándose sola; el total no cuadra con las filas; o «sin movimiento del banco» con el traspaso ya hecho.",
+            "2. Toca una entrada o un traspaso que aún no haya llegado → «Ya ha llegado» (o, en uno ya llegado, «No es este»). BIEN: en un traspaso arriba solo salen movimientos de ese importe y lo demás tras «Más movimientos»; al elegir uno, la ficha lo enseña con «No es este», y el saldo de arriba y «¿Te llega?» no cambian de cifra; «Deshacer» lo deja como estaba. MAL: salen compras o recibos a la vista, el saldo o «¿Te llega?» suman otra vez esa cantidad, o «Deshacer» no lo devuelve.",
+            "3. Recibos → «Te deben», con alguien que ya te pagó su parte. BIEN: sale pagado; si además tienes una entrada prevista con su nombre y ese importe, la entrada sale con ese mismo movimiento; un pago adelantado cuenta solo en un mes. MAL: sale pendiente con el pago hecho, o el mismo pago cuenta dos veces (dos entradas, o dos meses).",
+            "4. «¿Te llega?» → «¿Y si gasto…?» → toca «Importe» (De una vez); ciérralo, escribe una cifra, pasa a «A plazos» y toca «Importe» y luego «Entrada». BIEN: la hoja sube en un solo movimiento, igual en los tres. MAL: un tirón, una parada a medias o un segundo empujón.",
+            "5. «Todos ›»: toca «Ver los N» de Recibos y el de Personas, baja y toca «Ver menos» en los dos; luego «Añadir lo que entra o lo que mueves». BIEN: los dos se abren y se cierran igual, con las filas pegadas al botón, sin vacío ni saltos y sin scroll solo; añadir abre la misma hoja por pasos que un recibo (nombre, importe, cuándo, cuenta, resumen) y lo añadido sale en Recibos. MAL: un vacío entre las filas y el botón, el botón saliendo disparado, o un formulario distinto que no guarda.",
+            "6. En «Todos ›», abre un recibo → Editar → «Más opciones» y ábrelo y ciérralo varias veces; luego, en «Cuotas de deuda», toca una cuota. BIEN: sin destello ni hoja transparente y con aire en «¿Lo pagas con alguien?»; con la cuota, Tus recibos se va de lado como con Atrás y debajo ya está esa deuda, resaltada. MAL: un parpadeo, el título pegado al botón, la hoja corriendo sola hasta arriba, o algo que entra deslizando o la página bajando sola después.",
+            "7. Gastos, en los días en que hiciste una transferencia a otra cuenta tuya (abre la app con conexión). BIEN: sale en «Traspasos · no cuentan» y no suma en lo gastado; una transferencia a otra persona sigue como gasto; si tú la devuelves a «Otros», se queda en «Otros». Abre un movimiento, cámbiale el nombre y toca «Listo». BIEN: la ficha se cierra sin aviso, la lista enseña el nombre nuevo al momento y ninguna fila desaparece ni parpadea. MAL: tu transferencia sigue en «Otros», la de otra persona entra en Traspasos o vuelve sola a Traspasos; o sale «Nombre pendiente de confirmar» con cobertura, la ficha da un salto antes de cerrarse o una fila desaparece un instante."
+          ],
+          "en": [
+            "1. Plan → Bills: tap \"See all\" in \"To pay\" and then \"See less\"; open and close \"Already paid\" and \"Already in\". RIGHT: the rows grow right against \"See less\", with no empty gap, as smoothly as People and without the screen moving on its own; in \"Already in\" each row shows what arrived (or \"X of Y in\") and the total is the sum of the rows; a transfer made a few days early, even the month before, shows its date (for example \"30 Oct\") and the movement from your bank. WRONG: a gap, a bounce or the page scrolling by itself; the total doesn't match the rows; or \"no bank movement\" for a transfer that was already made.",
+            "2. Tap an income or transfer that hasn't arrived yet → \"It's arrived\" (or, on one that has, \"Not this one\"). RIGHT: for a transfer only movements of that amount show at the top and the rest under \"More movements\"; once you pick one, the card shows it with \"Not this one\", and the balance at the top and \"Will it cover?\" keep the same figure; \"Undo\" leaves it as it was. WRONG: purchases or bills show up front, the balance or \"Will it cover?\" add that amount again, or \"Undo\" doesn't bring it back.",
+            "3. Bills → \"You're owed\", with someone who has already paid you their share. RIGHT: they show as paid; if you also have an expected income with their name and that amount, the income shows that same movement; a payment made early counts in one month only. WRONG: they show as pending with the payment made, or the same payment counts twice (two incomes, or two months).",
+            "4. \"Will it cover?\" → \"What if I spend…?\" → tap \"Amount\" (All at once); close it, type a figure, switch to \"In instalments\" and tap \"Amount\" and then \"Down payment\". RIGHT: the sheet rises in a single motion, the same in all three. WRONG: a jerk, a pause halfway or a second push.",
+            "5. \"All ›\": tap \"See all\" in Bills and in People, scroll down and tap \"See less\" in both; then \"Add what comes in or what you move\". RIGHT: both open and close the same way, with the rows right against the button, no gap or jumps and no scrolling on its own; adding opens the same step-by-step sheet as a bill (name, amount, when, account, summary) and what you add shows in Bills. WRONG: a gap between the rows and the button, the button shooting off, or a different form that doesn't save.",
+            "6. In \"All ›\", open a bill → Edit → \"More options\" and open and close it several times; then, in \"Debt instalments\", tap an instalment. RIGHT: no flash or see-through sheet and room to breathe in \"Do you pay it with someone?\"; with the instalment, Your bills slides away like with Back and that debt is already underneath, highlighted. WRONG: a flicker, the title stuck to the button, the sheet running up to the top on its own, or something sliding in or the page scrolling down afterwards.",
+            "7. Spending, on the days you made a transfer to another account of yours (open the app with a connection). RIGHT: it shows under \"Transfers · don't count\" and isn't added to what you spent; a transfer to someone else stays as spending; if you move it back to \"Other\", it stays in \"Other\". Open a movement, change its name and tap \"Done\". RIGHT: the card closes with no warning, the list shows the new name straight away and no row disappears or flickers. WRONG: your transfer stays in \"Other\", someone else's goes into Transfers or goes back there on its own; or \"Name awaiting confirmation\" shows while online, the card jumps before closing or a row disappears for a moment."
+          ],
+          "ca": [
+            "1. Pla → Rebuts: toca «Veure'ls tots» a «Per pagar» i després «Veure menys»; obre i tanca «Ja pagats» i «Ja ha entrat». BÉ: les files creixen enganxades a «Veure menys», sense buit, igual de suau que Persones i sense que la pantalla es mogui sola; a «Ja ha entrat» cada fila diu el que ha arribat (o «ha arribat X de Y») i el total és la suma de les files; un traspàs fet uns dies abans, encara que sigui el mes anterior, surt amb la seva data (per exemple «30 oct.») i «moviment de» el teu banc. MALAMENT: un buit, un bot o la pàgina desplaçant-se sola; el total no quadra amb les files; o «sense moviment del banc» amb el traspàs ja fet.",
+            "2. Toca una entrada o un traspàs que encara no hagi arribat → «Ja ha arribat» (o, en un ja arribat, «No és aquest»). BÉ: en un traspàs a dalt només surten moviments d'aquest import i la resta a «Més moviments»; en triar-ne un, la fitxa el mostra amb «No és aquest», i el saldo de dalt i «T'arriba?» no canvien de xifra; «Desfer» ho deixa com estava. MALAMENT: surten compres o rebuts a la vista, el saldo o «T'arriba?» sumen un altre cop aquesta quantitat, o «Desfer» no ho torna.",
+            "3. Rebuts → «Et deuen», amb algú que ja t'ha pagat la seva part. BÉ: surt pagat; si a més tens una entrada prevista amb el seu nom i aquest import, l'entrada surt amb aquest mateix moviment; un pagament avançat compta només en un mes. MALAMENT: surt pendent amb el pagament fet, o el mateix pagament compta dues vegades (dues entrades, o dos mesos).",
+            "4. «T'arriba?» → «I si gasto…?» → toca «Import» (D'un cop); tanca'l, escriu una xifra, passa a «A terminis» i toca «Import» i després «Entrada». BÉ: el full puja en un sol moviment, igual en els tres. MALAMENT: una estrebada, una parada a mitges o una segona empenta.",
+            "5. «Tots ›»: toca «Veure'ls tots» de Rebuts i el de Persones, baixa i toca «Veure menys» en tots dos; després «Afegir el que entra o el que mous». BÉ: tots dos s'obren i es tanquen igual, amb les files enganxades al botó, sense buit ni salts i sense desplaçament sol; afegir obre el mateix full per passos que un rebut (nom, import, quan, compte, resum) i el que afegeixes surt a Rebuts. MALAMENT: un buit entre les files i el botó, el botó sortint disparat, o un formulari diferent que no desa.",
+            "6. A «Tots ›», obre un rebut → Editar → «Més opcions» i obre'l i tanca'l diverses vegades; després, a «Quotes de deute», toca una quota. BÉ: sense espurnes ni full transparent i amb aire a «El pagues amb algú?»; amb la quota, Els teus rebuts se'n va de costat com amb Enrere i a sota ja hi ha aquest deute, ressaltat. MALAMENT: un parpelleig, el títol enganxat al botó, el full corrent sol fins a dalt, o alguna cosa que entra lliscant o la pàgina baixant sola després.",
+            "7. Despeses, els dies en què vas fer una transferència a un altre compte teu (obre l'app amb connexió). BÉ: surt a «Traspassos · no compten» i no suma en el que has gastat; una transferència a una altra persona continua com a despesa; si tu la tornes a «Altres», es queda a «Altres». Obre un moviment, canvia-li el nom i toca «Fet». BÉ: la fitxa es tanca sense avís, la llista mostra el nom nou de seguida i cap fila desapareix ni parpelleja. MALAMENT: la teva transferència continua a «Altres», la d'una altra persona entra a Traspassos o hi torna sola; o surt «Nom pendent de confirmar» amb cobertura, la fitxa fa un salt abans de tancar-se o una fila desapareix un instant."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.230",
     "d": "2026-11-12",
     "t": {
@@ -27,42 +95,7 @@
         "«Més opcions» s'obre sense espurnes i amb més aire."
       ]
     },
-    "tandas": [
-      {
-        "id": "recibos-230",
-        "t": {
-          "es": "Recibos: pliegues suaves, «¿Y si gasto…?», «Más opciones» y lo que entra",
-          "en": "Bills: smooth folds, \"What if I spend…?\", \"More options\" and what comes in",
-          "ca": "Rebuts: plecs suaus, «I si gasto…?», «Més opcions» i el que entra"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos: toca «Ver los N» en «Por pagar» y luego «Ver menos»; abre y cierra «Ya pagados» y, si sale, «Ya ha entrado». BIEN: todo se abre y se cierra igual de suave que Personas y la pantalla no se mueve sola; si este mes ya cobraste la nómina, sale en «Ya ha entrado» con su día y «movimiento de» tu banco. MAL: un bote al empezar o al acabar, la página se desplaza sin tocarla, o la nómina ya cobrada sigue en «Lo que aún entrará» o no sale en ningún sitio.",
-            "2. Toca una entrada o un traspaso previsto que aún no haya llegado → «Ya ha llegado» → elige su movimiento. BIEN: la ficha enseña ese movimiento con «No es este», y el saldo de arriba y «¿Te llega?» no cambian de cifra; «Deshacer» lo deja como estaba. MAL: el saldo o «¿Te llega?» suman otra vez esa cantidad, o «Deshacer» no lo devuelve.",
-            "3. «¿Te llega?» → «¿Y si gasto…?» → toca «Importe» (De una vez); ciérralo, escribe una cifra, pasa a «A plazos» y toca «Importe» y luego «Entrada». BIEN: la hoja sube en un solo movimiento, igual en los tres. MAL: un tirón, una parada a medias o un segundo empujón.",
-            "4. «Todos ›»: toca «Ver los N» de una sección y el de Personas; luego «Añadir lo que entra o lo que mueves». BIEN: se despliega suave sin que la pantalla se mueva sola; añadir abre la misma hoja por pasos que un recibo (nombre, importe, cuándo, cuenta, resumen) y lo añadido sale en Recibos. MAL: un bote o scroll solo; se abre un formulario distinto o no se guarda.",
-            "5. En «Todos ›», abre un recibo → Editar → «Más opciones»: ábrelo y ciérralo varias veces. BIEN: sin destello ni hoja transparente; «¿Lo pagas con alguien?» con aire; la hoja no corre sola hasta arriba. MAL: un parpadeo, o el título pegado al botón.",
-            "6. En «Todos ›» → «Cuotas de deuda», toca una cuota. BIEN: Tus recibos se va de lado como con Atrás y debajo ya está esa deuda, resaltada. MAL: después algo entra deslizando o la página baja sola."
-          ],
-          "en": [
-            "1. Plan → Bills: tap \"See all\" in \"To pay\" and then \"See less\"; open and close \"Already paid\" and, if it shows, \"Already in\". RIGHT: everything opens and closes as smoothly as People and the screen doesn't move on its own; if your salary already came in this month, it shows under \"Already in\" with its day and the movement from your bank. WRONG: a bounce at the start or end, the page scrolls without you touching it, or the salary you already got stays in \"Still to come in\" or shows nowhere.",
-            "2. Tap an expected income or transfer that hasn't arrived yet → \"It's arrived\" → pick its movement. RIGHT: the card shows that movement with \"Not this one\", and the balance at the top and \"Will it cover?\" keep the same figure; \"Undo\" leaves it as it was. WRONG: the balance or \"Will it cover?\" add that amount again, or \"Undo\" doesn't bring it back.",
-            "3. \"Will it cover?\" → \"What if I spend…?\" → tap \"Amount\" (All at once); close it, type a figure, switch to \"In instalments\" and tap \"Amount\" and then \"Down payment\". RIGHT: the sheet rises in a single motion, the same in all three. WRONG: a jerk, a pause halfway or a second push.",
-            "4. \"All ›\": tap \"See all\" in a section and in People; then \"Add what comes in or what you move\". RIGHT: it unfolds smoothly without the screen moving on its own; adding opens the same step-by-step sheet as a bill (name, amount, when, account, summary) and what you add shows in Bills. WRONG: a bounce or scrolling on its own; a different form opens or it isn't saved.",
-            "5. In \"All ›\", open a bill → Edit → \"More options\": open and close it several times. RIGHT: no flash or see-through sheet; \"Do you pay it with someone?\" has room to breathe; the sheet doesn't run up to the top on its own. WRONG: a flicker, or the title stuck to the button.",
-            "6. In \"All ›\" → \"Debt instalments\", tap an instalment. RIGHT: Your bills slides away like with Back and that debt is already underneath, highlighted. WRONG: afterwards something slides in or the page scrolls down on its own."
-          ],
-          "ca": [
-            "1. Pla → Rebuts: toca «Veure'ls tots» a «Per pagar» i després «Veure menys»; obre i tanca «Ja pagats» i, si surt, «Ja ha entrat». BÉ: tot s'obre i es tanca igual de suau que Persones i la pantalla no es mou sola; si aquest mes ja has cobrat la nòmina, surt a «Ja ha entrat» amb el seu dia i «moviment de» el teu banc. MALAMENT: un bot en començar o en acabar, la pàgina es desplaça sense tocar-la, o la nòmina ja cobrada continua a «El que encara entrarà» o no surt enlloc.",
-            "2. Toca una entrada o un traspàs previst que encara no hagi arribat → «Ja ha arribat» → tria el seu moviment. BÉ: la fitxa mostra aquest moviment amb «No és aquest», i el saldo de dalt i «T'arriba?» no canvien de xifra; «Desfer» ho deixa com estava. MALAMENT: el saldo o «T'arriba?» sumen un altre cop aquesta quantitat, o «Desfer» no ho torna.",
-            "3. «T'arriba?» → «I si gasto…?» → toca «Import» (D'un cop); tanca'l, escriu una xifra, passa a «A terminis» i toca «Import» i després «Entrada». BÉ: el full puja en un sol moviment, igual en els tres. MALAMENT: una estrebada, una parada a mitges o una segona empenta.",
-            "4. «Tots ›»: toca «Veure'ls tots» d'una secció i el de Persones; després «Afegir el que entra o el que mous». BÉ: es desplega suau sense que la pantalla es mogui sola; afegir obre el mateix full per passos que un rebut (nom, import, quan, compte, resum) i el que afegeixes surt a Rebuts. MALAMENT: un bot o desplaçament sol; s'obre un formulari diferent o no es desa.",
-            "5. A «Tots ›», obre un rebut → Editar → «Més opcions»: obre'l i tanca'l diverses vegades. BÉ: sense espurnes ni full transparent; «El pagues amb algú?» amb aire; el full no corre sol fins a dalt. MALAMENT: un parpelleig, o el títol enganxat al botó.",
-            "6. A «Tots ›» → «Quotes de deute», toca una quota. BÉ: Els teus rebuts se'n va de costat com amb Enrere i a sota ja hi ha aquest deute, ressaltat. MALAMENT: després alguna cosa entra lliscant o la pàgina baixa sola."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.229",
