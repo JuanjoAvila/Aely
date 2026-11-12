@@ -844,8 +844,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const deben=useMemo(function(){ return teDebenMes(state,year,month,today); },
     [pack,state.fixed,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,year,month,today]);
   const debenTotal=deben.reduce(function(a,p){ return a+Math.round(p.falta*100); },0)/100;
-  useBackClose(!!paidOpen, function(){ setPaidOpen(false); });
-  useBackClose(!!entOpen, function(){ setEntOpen(false); });
+  useBackClose(!!paidOpen, function(){ pr6FoldDur("pr6-paid-list"); setPaidOpen(false); });
+  useBackClose(!!entOpen, function(){ pr6FoldDur("pr6-ent-list"); setEntOpen(false); });
   const openManage=function(){ setManageEdit(null); setManageOpen(true); };
   const abrir=function(x){
     if(/^(fixed|oneoff|debt|balloon|flow)_/.test(String(x.id))) setFicha({id:x.id});
@@ -1125,7 +1125,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
               React.createElement("svg",{width:17,height:17,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
                 React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
             React.createElement(lineasCerrado.length?"button":"div",Object.assign({className:"pr6-cerr-t"},lineasCerrado.length?{type:"button","aria-expanded":cerradoAbierto?"true":"false","aria-controls":"pr6-cerr-det",
-              onClick:function(){ setCerradoAbierto(function(o){ return !o; }); }}:null),
+              onClick:function(){ pr6FoldDur("pr6-cerr-det"); setCerradoAbierto(function(o){ return !o; }); }}:null),
               React.createElement("span",{className:"pr6-cerr-n"}, pr6TituloCerrado(cerrado)),
               React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-linea"}, pr6LineaCerrado(cerrado)),
               React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-vs"}, pr6VsCerrado(cerrado))),
@@ -1162,7 +1162,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           : pr6Tres(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
     !sig&&(v.paid.length>0||pausados.length>0)&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
-        onClick:function(){ setPaidOpen(function(o){ return !o; }); }},
+        onClick:function(){ pr6FoldDur("pr6-paid-list"); setPaidOpen(function(o){ return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},
           React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
@@ -1187,7 +1187,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     // «Ya ha entrado»: el «Ya pagados» de lo que entra, plegado igual y con el mismo gesto.
     !sig&&flowsDone.length>0&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(entOpen?" open":""),ref:entRef,"data-testid":"plan-entrado","aria-label":t("fl_ya_entrado")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":entOpen?"true":"false","aria-controls":"pr6-ent-list",
-        onClick:function(){ setEntOpen(function(o){ return !o; }); }},
+        onClick:function(){ pr6FoldDur("pr6-ent-list"); setEntOpen(function(o){ return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},
           React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
@@ -1392,13 +1392,25 @@ function pr6Tres(items,render,open,setOpen,id,more){
   const rest=items.slice(3);
   return React.createElement(React.Fragment,null,
     items.slice(0,3).map(render),
-    rest.length>0&&React.createElement("div",{className:"pr6-fold"+(open?" open":""),id:id},
+    rest.length>0&&React.createElement("div",{className:"pr6-fold pr6-fold-l"+(open?" open":""),id:id},
       // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
       React.createElement("div",Object.assign({className:"pr6-fold-in"},open?null:{"aria-hidden":"true",inert:""}), rest.map(render))),
     rest.length>0&&React.createElement("button",Object.assign({type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
-      onClick:function(){ setOpen(function(o){ return !o; }); }},more),
+      onClick:function(){ pr6FoldDur(id); setOpen(function(o){ return !o; }); }},more),
       open?t("v4_ver_menos"):tf("pr6_ver_los",{n:items.length}),
       pr6Chev()));
+}
+/* Lo que tarda un pliegue de lista, a la velocidad de Personas. Con el mismo .35 s, Personas (tres
+   filas, ~190 px) se abría a ~1,5 px/ms y «Ver los 13» (diez recibos, ~820 px) a ~7: 210 px en el
+   primer fotograma, vacíos, y las filas encendiéndose después; al plegar, «Ver los N» salía volando
+   (sus vídeos del 12/11, «como las personas, que es la ostia»). Se estira la misma curva con el alto
+   para que el borde avance casi como en Personas, hasta 1,2 s (lineal serían 1,5 con diez recibos):
+   el último tramo de la curva ya va despacio y fuera de pantalla, y más largo, bajar por la lista
+   recién abierta alcanzaba al borde todavía creciendo. Se escribe antes de cambiar el estado. */
+function pr6FoldDur(id){
+  const f=document.getElementById(id), i=f&&f.firstChild;
+  if(!i) return;
+  f.style.setProperty("--pr6-fd",Math.min(1.2,Math.max(.35,.35*i.scrollHeight/190)).toFixed(3)+"s");
 }
 /* «te han pagado 0 de 1» no se entendía (¿uno de qué?). Con una sola persona se dice su parte. */
 function pr6TeHanPagado(d){

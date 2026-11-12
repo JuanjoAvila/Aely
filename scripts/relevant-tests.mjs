@@ -129,6 +129,9 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-suave.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-suave.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-suave.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
+  // Los despliegues de Recibos contra Personas por fotograma (12/11, tras la 230): sin hueco y a su velocidad.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-despliegue-personas.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-despliegue-personas.spec.mjs"] },
   // Abrir «¿Te llega?», Tus recibos y «Editar» sin fotogramas largos (10/11/2026): hojas que no apagan
   // la app de detrás, pasos que nacen después y el ensayo en seco, que no puede dejar rastro.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
