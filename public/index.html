@@ -1030,13 +1030,32 @@
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
   .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
-  .pr6-fold{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-8px;transition:grid-template-rows .35s var(--ease),opacity .25s ease;}
+  /* Recorta el pliegue, NO su contenido. Con la rejilla a menos de 1fr el navegador da a la caja
+     f·alto y a la fila de dentro f·(f·alto): si recortaba `.pr6-fold-in`, lo visible crecía como f² y
+     lo de debajo como f, y entre medias un hueco vacío de hasta un cuarto del alto (205 px con diez
+     recibos, medido por fotograma). En Personas no se veía porque ese hueco quedaba dentro de su
+     tarjeta; en Recibos era fondo: «Ver menos» bajaba y las filas llegaban después (vídeo 12/11). */
+  .pr6-fold{display:grid;grid-template-rows:0fr;overflow:hidden;opacity:0;margin-top:-8px;transition:grid-template-rows var(--pr6-fd,.35s) var(--ease),opacity calc(var(--pr6-fd,.35s)*.714) ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
-  .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;transition:padding .35s var(--ease);}
+  .pr6-fold-in{min-height:0;display:flex;flex-direction:column;gap:8px;transition:padding var(--pr6-fd,.35s) var(--ease);}
+  /* Listas con «Ver los N» (`pr6Tres`): lo que aparece es lo que hay DENTRO de cada fila, no la fila.
+     En Personas las filas no tienen fondo (el fondo es la tarjeta, fuera del pliegue): el ojo ve la
+     tarjeta crecer con el borde y el texto encenderse. Recibos son tarjetas sueltas DENTRO del pliegue
+     y con el pliegue entero a opacidad 0 se veía un hueco vacío creciendo y las tarjetas llegando tarde
+     (opacidad 0,15 con 210 px ya abiertos). Ahora la tarjeta llega con el borde, como la de Personas,
+     y su contenido se enciende con la misma curva. Solo se apaga al plegar: abierto manda la opacidad
+     propia de cada fila (atenuadas, pausadas). Duración: `pr6FoldDur`. */
+  .pr6-fold-l{opacity:1;}
+  .pr6-fold-l>.pr6-fold-in>*>*{transition:opacity calc(var(--pr6-fd,.35s)*.714) ease;}
+  .pr6-fold-l:not(.open)>.pr6-fold-in>*>*{opacity:0;}
+  /* Al abrir, el encendido de Personas (.25 s) aunque el pliegue dure más: el borde avanza a su
+     velocidad, así que cada fila queda a la vista cuando en Personas, y con más tiempo eran
+     tarjetas vacías bajando. Al plegar se estira con el pliegue: si no, se vaciaban antes de irse. */
+  .pr6-fold-l.open>.pr6-fold-in>*>*{transition-duration:.25s;}
   /* El hueco de arriba de cada pliegue (su `padding` en `.open`) crece y se va CON el pliegue. Puesto de
      golpe era un bote de 8-16 px en el primer fotograma, al abrir y al cerrar: «Ver los N» y «Ya pagados»
      arrancaban con un salto y Personas, que no lleva hueco, era «el smooth que busco» (dueño, 12/11).
-     Ahora todos los pliegues son Personas: rejilla 0fr→1fr en .35 s con la curva de la casa, opacidad en
+     Ahora todos los pliegues son Personas: rejilla 0fr→1fr con la curva de la casa (.35 s; las listas, el tiempo de `pr6FoldDur`), opacidad en
      .25 s y nada que aparezca de golpe. Ya lo hacían a mano «¿Te llega?» (228) y Prueba/Permanencia. */
   /* Flechas y barras de progreso con capa fija: son diminutas y así no nacen ni mueren en cada toque.
      El plegable NO: cambia de alto en cada fotograma y con capa propia se repintaba entero en cada
@@ -1389,8 +1408,8 @@
   .pr6-imp .pr6-cta:disabled{opacity:.5;cursor:default;}
   @media (prefers-reduced-motion:reduce){ .pr6-cz,.pr6-imp-row,.pr6-imp-dot{transition:none;} }
   html.reduce-motion .pr6-cz,html.reduce-motion .pr6-imp-row{transition:none;}
-  @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-fold-in,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
-  html.reduce-motion .pr6-fold,html.reduce-motion .pr6-fold-in,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
+  @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-fold-in,.pr6-fold-l>.pr6-fold-in>*>*,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
+  html.reduce-motion .pr6-fold,html.reduce-motion .pr6-fold-in,html.reduce-motion .pr6-fold-l>.pr6-fold-in>*>*,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}
   .v4-goals{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
   .v4-goal{flex:0 0 78%;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
@@ -30544,7 +30563,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="654df23cc3fa3cdab7935ecf31e69364744313526dc2c954880ac72eca909ad8";
+var _rnSha="e1d17da4ba576dce72e243eb8a4ef192a69ff8d5e9fdbf1a123c790773983cd7";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32905,8 +32924,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const deben=useMemo(function(){ return teDebenMes(state,year,month,today); },
     [pack,state.fixed,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,year,month,today]);
   const debenTotal=deben.reduce(function(a,p){ return a+Math.round(p.falta*100); },0)/100;
-  useBackClose(!!paidOpen, function(){ setPaidOpen(false); });
-  useBackClose(!!entOpen, function(){ setEntOpen(false); });
+  useBackClose(!!paidOpen, function(){ pr6FoldDur("pr6-paid-list"); setPaidOpen(false); });
+  useBackClose(!!entOpen, function(){ pr6FoldDur("pr6-ent-list"); setEntOpen(false); });
   const openManage=function(){ setManageEdit(null); setManageOpen(true); };
   const abrir=function(x){
     if(/^(fixed|oneoff|debt|balloon|flow)_/.test(String(x.id))) setFicha({id:x.id});
@@ -33181,7 +33200,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
               React.createElement("svg",{width:17,height:17,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
                 React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
             React.createElement(lineasCerrado.length?"button":"div",Object.assign({className:"pr6-cerr-t"},lineasCerrado.length?{type:"button","aria-expanded":cerradoAbierto?"true":"false","aria-controls":"pr6-cerr-det",
-              onClick:function(){ setCerradoAbierto(function(o){ return !o; }); }}:null),
+              onClick:function(){ pr6FoldDur("pr6-cerr-det"); setCerradoAbierto(function(o){ return !o; }); }}:null),
               React.createElement("span",{className:"pr6-cerr-n"}, pr6TituloCerrado(cerrado)),
               React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-linea"}, pr6LineaCerrado(cerrado)),
               React.createElement("span",{className:"num pr6-cerr-l","data-testid":"plan-cerrado-vs"}, pr6VsCerrado(cerrado))),
@@ -33218,7 +33237,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           : pr6Tres(v.due,dueRow,dueOpen,setDueOpen,"pr6-due-more"))),
     !sig&&(v.paid.length>0||pausados.length>0)&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(paidOpen?" open":""),ref:paidRef,"data-testid":"plan-paid","aria-label":t("pr6_ya_pagados")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":paidOpen?"true":"false","aria-controls":"pr6-paid-list",
-        onClick:function(){ setPaidOpen(function(o){ return !o; }); }},
+        onClick:function(){ pr6FoldDur("pr6-paid-list"); setPaidOpen(function(o){ return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},
           React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
@@ -33243,7 +33262,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     // «Ya ha entrado»: el «Ya pagados» de lo que entra, plegado igual y con el mismo gesto.
     !sig&&flowsDone.length>0&&React.createElement("section",{className:"pr6-paid pr6-paid-in"+(entOpen?" open":""),ref:entRef,"data-testid":"plan-entrado","aria-label":t("fl_ya_entrado")},
       React.createElement("button",{type:"button",className:"pr6-paid-h","aria-expanded":entOpen?"true":"false","aria-controls":"pr6-ent-list",
-        onClick:function(){ setEntOpen(function(o){ return !o; }); }},
+        onClick:function(){ pr6FoldDur("pr6-ent-list"); setEntOpen(function(o){ return !o; }); }},
         React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},
           React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
@@ -33448,13 +33467,25 @@ function pr6Tres(items,render,open,setOpen,id,more){
   const rest=items.slice(3);
   return React.createElement(React.Fragment,null,
     items.slice(0,3).map(render),
-    rest.length>0&&React.createElement("div",{className:"pr6-fold"+(open?" open":""),id:id},
+    rest.length>0&&React.createElement("div",{className:"pr6-fold pr6-fold-l"+(open?" open":""),id:id},
       // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
       React.createElement("div",Object.assign({className:"pr6-fold-in"},open?null:{"aria-hidden":"true",inert:""}), rest.map(render))),
     rest.length>0&&React.createElement("button",Object.assign({type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
-      onClick:function(){ setOpen(function(o){ return !o; }); }},more),
+      onClick:function(){ pr6FoldDur(id); setOpen(function(o){ return !o; }); }},more),
       open?t("v4_ver_menos"):tf("pr6_ver_los",{n:items.length}),
       pr6Chev()));
+}
+/* Lo que tarda un pliegue de lista, a la velocidad de Personas. Con el mismo .35 s, Personas (tres
+   filas, ~190 px) se abría a ~1,5 px/ms y «Ver los 13» (diez recibos, ~820 px) a ~7: 210 px en el
+   primer fotograma, vacíos, y las filas encendiéndose después; al plegar, «Ver los N» salía volando
+   (sus vídeos del 12/11, «como las personas, que es la ostia»). Se estira la misma curva con el alto
+   para que el borde avance casi como en Personas, hasta 1,2 s (lineal serían 1,5 con diez recibos):
+   el último tramo de la curva ya va despacio y fuera de pantalla, y más largo, bajar por la lista
+   recién abierta alcanzaba al borde todavía creciendo. Se escribe antes de cambiar el estado. */
+function pr6FoldDur(id){
+  const f=document.getElementById(id), i=f&&f.firstChild;
+  if(!i) return;
+  f.style.setProperty("--pr6-fd",Math.min(1.2,Math.max(.35,.35*i.scrollHeight/190)).toFixed(3)+"s");
 }
 /* «te han pagado 0 de 1» no se entendía (¿uno de qué?). Con una sola persona se dice su parte. */
 function pr6TeHanPagado(d){

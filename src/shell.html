@@ -1030,13 +1030,32 @@
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
   .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
-  .pr6-fold{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-8px;transition:grid-template-rows .35s var(--ease),opacity .25s ease;}
+  /* Recorta el pliegue, NO su contenido. Con la rejilla a menos de 1fr el navegador da a la caja
+     f·alto y a la fila de dentro f·(f·alto): si recortaba `.pr6-fold-in`, lo visible crecía como f² y
+     lo de debajo como f, y entre medias un hueco vacío de hasta un cuarto del alto (205 px con diez
+     recibos, medido por fotograma). En Personas no se veía porque ese hueco quedaba dentro de su
+     tarjeta; en Recibos era fondo: «Ver menos» bajaba y las filas llegaban después (vídeo 12/11). */
+  .pr6-fold{display:grid;grid-template-rows:0fr;overflow:hidden;opacity:0;margin-top:-8px;transition:grid-template-rows var(--pr6-fd,.35s) var(--ease),opacity calc(var(--pr6-fd,.35s)*.714) ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
-  .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;transition:padding .35s var(--ease);}
+  .pr6-fold-in{min-height:0;display:flex;flex-direction:column;gap:8px;transition:padding var(--pr6-fd,.35s) var(--ease);}
+  /* Listas con «Ver los N» (`pr6Tres`): lo que aparece es lo que hay DENTRO de cada fila, no la fila.
+     En Personas las filas no tienen fondo (el fondo es la tarjeta, fuera del pliegue): el ojo ve la
+     tarjeta crecer con el borde y el texto encenderse. Recibos son tarjetas sueltas DENTRO del pliegue
+     y con el pliegue entero a opacidad 0 se veía un hueco vacío creciendo y las tarjetas llegando tarde
+     (opacidad 0,15 con 210 px ya abiertos). Ahora la tarjeta llega con el borde, como la de Personas,
+     y su contenido se enciende con la misma curva. Solo se apaga al plegar: abierto manda la opacidad
+     propia de cada fila (atenuadas, pausadas). Duración: `pr6FoldDur`. */
+  .pr6-fold-l{opacity:1;}
+  .pr6-fold-l>.pr6-fold-in>*>*{transition:opacity calc(var(--pr6-fd,.35s)*.714) ease;}
+  .pr6-fold-l:not(.open)>.pr6-fold-in>*>*{opacity:0;}
+  /* Al abrir, el encendido de Personas (.25 s) aunque el pliegue dure más: el borde avanza a su
+     velocidad, así que cada fila queda a la vista cuando en Personas, y con más tiempo eran
+     tarjetas vacías bajando. Al plegar se estira con el pliegue: si no, se vaciaban antes de irse. */
+  .pr6-fold-l.open>.pr6-fold-in>*>*{transition-duration:.25s;}
   /* El hueco de arriba de cada pliegue (su `padding` en `.open`) crece y se va CON el pliegue. Puesto de
      golpe era un bote de 8-16 px en el primer fotograma, al abrir y al cerrar: «Ver los N» y «Ya pagados»
      arrancaban con un salto y Personas, que no lleva hueco, era «el smooth que busco» (dueño, 12/11).
-     Ahora todos los pliegues son Personas: rejilla 0fr→1fr en .35 s con la curva de la casa, opacidad en
+     Ahora todos los pliegues son Personas: rejilla 0fr→1fr con la curva de la casa (.35 s; las listas, el tiempo de `pr6FoldDur`), opacidad en
      .25 s y nada que aparezca de golpe. Ya lo hacían a mano «¿Te llega?» (228) y Prueba/Permanencia. */
   /* Flechas y barras de progreso con capa fija: son diminutas y así no nacen ni mueren en cada toque.
      El plegable NO: cambia de alto en cada fotograma y con capa propia se repintaba entero en cada
@@ -1389,8 +1408,8 @@
   .pr6-imp .pr6-cta:disabled{opacity:.5;cursor:default;}
   @media (prefers-reduced-motion:reduce){ .pr6-cz,.pr6-imp-row,.pr6-imp-dot{transition:none;} }
   html.reduce-motion .pr6-cz,html.reduce-motion .pr6-imp-row{transition:none;}
-  @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-fold-in,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
-  html.reduce-motion .pr6-fold,html.reduce-motion .pr6-fold-in,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
+  @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-fold-in,.pr6-fold-l>.pr6-fold-in>*>*,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
+  html.reduce-motion .pr6-fold,html.reduce-motion .pr6-fold-in,html.reduce-motion .pr6-fold-l>.pr6-fold-in>*>*,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}
   .v4-goals{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
   .v4-goal{flex:0 0 78%;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
