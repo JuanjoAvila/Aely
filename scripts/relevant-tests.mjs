@@ -119,6 +119,11 @@ export const E2E_MAP = [
   { file: "src/shell.html", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
+  // Recibos suave (12/11/2026): pliegues como Personas y sin scroll solo, el teclado de «¿Y si gasto…?» en un
+  // movimiento y «Más opciones» sin flash. El toque que ya no sube la hoja a otra capa vive en 02.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-suave.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-suave.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-suave.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
   // Abrir «¿Te llega?», Tus recibos y «Editar» sin fotogramas largos (10/11/2026): hojas que no apagan
   // la app de detrás, pasos que nacen después y el ensayo en seco, que no puede dejar rastro.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },

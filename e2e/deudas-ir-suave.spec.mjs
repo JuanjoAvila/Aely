@@ -89,6 +89,49 @@ test("desde Plan › Recibos: la cuota lleva a su deuda deslizando, y queda ente
   expect(intermedios.size, "frames a medio camino: " + JSON.stringify(m)).toBeGreaterThanOrEqual(4);
 });
 
+/* Desde Tus recibos (dueño, 12/11: «va hacia la deuda de forma muy violenta, rapidísimo pero no suave»).
+   Antes: Tus recibos salía, a los 320 ms Deudas entraba deslizando y la página se desplazaba a la vez.
+   Ahora Deudas se coloca debajo, quieta y ya en la tarjeta, y el único movimiento es el de «Atrás»: Tus
+   recibos se va de lado y la descubre. Se mira por fotograma dónde está la página y por dónde va Tus recibos. */
+test("desde Tus recibos: la cuota descubre su deuda ya en su sitio, en un solo movimiento", async ({ page }) => {
+  await abre(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await page.locator('.page-live .v4-screen > [data-seg="recibos"]').getByTestId("plan-todos").click();
+  const hub = page.locator('[data-bills-manage] [data-screen="bills-home"]');
+  await hub.locator('[data-mg-more="debt"]').click();
+  const fila = hub.locator('[data-mg-sec="debt"] [data-bill-id="d6"]');
+  await fila.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(500);
+  const f = await page.evaluate(() => new Promise((ok) => {
+    const push = document.querySelector("[data-bills-manage]"), out = [], t0 = performance.now();
+    document.querySelector('[data-mg-sec="debt"] [data-bill-id="d6"]').click();
+    const paso = () => {
+      const c = document.querySelector('[data-debt-id="d6"]'), pg = c && c.closest(".page"), capa = document.querySelector('.page-live .v4-screen > [data-seg="deudas"]');
+      const p = document.querySelector("[data-bills-manage]");
+      out.push({ t: performance.now() - t0, x: p ? p.getBoundingClientRect().left : null, st: pg ? Math.round(pg.scrollTop) : null,
+        entra: !!(capa && /v4-seg-enter/.test(capa.className)), foco: !!(c && c.classList.contains("v4-foco")) });
+      if (performance.now() - t0 < 1400) requestAnimationFrame(paso); else ok(out);
+    };
+    requestAnimationFrame(paso);
+  }));
+  const dbg = JSON.stringify(f.map((x) => Math.round(x.t) + ":" + (x.x == null ? "-" : Math.round(x.x)) + "/" + x.st));
+  await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
+  await enVista(page, "d6");
+  const fin = f[f.length - 1].st;
+  // Mientras Tus recibos se va, la página de debajo ya está quieta en la tarjeta: nada se mueve a la vez.
+  const saliendo = f.filter((x) => x.x != null && x.x > 2);
+  expect(saliendo.length, "Tus recibos no salió deslizando " + dbg).toBeGreaterThanOrEqual(4);
+  expect(saliendo.every((x) => x.st === fin), "la página se movía mientras Tus recibos salía " + dbg).toBe(true);
+  expect(saliendo.every((x, i) => i === 0 || x.x >= saliendo[i - 1].x - 0.5), "Tus recibos no salió en un solo sentido " + dbg).toBe(true);
+  // Sin entrada de sección ni scroll suave por encima: el movimiento es solo el de salir.
+  expect(f.some((x) => x.entra), "Deudas entró deslizando además").toBe(false);
+  expect(await page.evaluate(() => window.__scrollPedidos.map((p) => p.behavior))).not.toContain("smooth");
+  // El resalte se ve cuando ya se ha descubierto, no a medias por debajo.
+  const primerFoco = f.find((x) => x.foco);
+  expect(primerFoco, "sin resalte " + dbg).toBeTruthy();
+  expect(primerFoco.x == null || primerFoco.x > 300, "el resalte empezó tapado " + dbg).toBe(true);
+});
+
 test("desde Gastos: «Abrir en Plan · Deudas» con cuotas de una sola deuda aterriza en su tarjeta", async ({ page }) => {
   await abre(page, { expenses: [{ id: "c6", merchant: "CUOTA D6", date: "2026-09-20T12:00:00Z", amount: 106, category: "deudas", debtId: "d6", source: "ob", ent: "trade_republic" }] });
   await page.locator('.botnav-tab[data-tour="gastos"]').click();

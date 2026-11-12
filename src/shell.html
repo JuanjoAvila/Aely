@@ -1032,7 +1032,12 @@
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
   .pr6-fold{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-8px;transition:grid-template-rows .35s var(--ease),opacity .25s ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
-  .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;}
+  .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;transition:padding .35s var(--ease);}
+  /* El hueco de arriba de cada pliegue (su `padding` en `.open`) crece y se va CON el pliegue. Puesto de
+     golpe era un bote de 8-16 px en el primer fotograma, al abrir y al cerrar: «Ver los N» y «Ya pagados»
+     arrancaban con un salto y Personas, que no lleva hueco, era «el smooth que busco» (dueño, 12/11).
+     Ahora todos los pliegues son Personas: rejilla 0fr→1fr en .35 s con la curva de la casa, opacidad en
+     .25 s y nada que aparezca de golpe. Ya lo hacían a mano «¿Te llega?» (228) y Prueba/Permanencia. */
   /* Flechas y barras de progreso con capa fija: son diminutas y así no nacen ni mueren en cada toque.
      El plegable NO: cambia de alto en cada fotograma y con capa propia se repintaba entero en cada
      uno (el doble de fotogramas lentos con la CPU a ×6, medido A/B el 7/11). */
@@ -1229,7 +1234,15 @@
   .pe-deben-ok{border:0;background:transparent;padding:4px 0;font:inherit;font-size:11.5px;font-weight:700;color:var(--mint);cursor:pointer;text-align:right;}
   .pe-recibos{display:flex;flex-direction:column;gap:8px;}
   .rp5-mas{display:flex;flex-direction:column;}
-  .rp5-in{display:flex;flex-direction:column;gap:12px;padding-top:4px;}
+  /* «¿Lo pagas con alguien?» con aire, como el prototipo (vídeo del dueño 12/11: «ultra pegado»). El
+     pliegue heredaba el `margin-top:-8px` de los de lista sin hueco que lo compensara: el título quedaba
+     4 px bajo «Más opciones», a 6 px de las caras y las caras a 6 px entre filas. */
+  /* Plegado conserva 4 px de caja (con el margen, el mismo sitio de antes): con caja cero el navegador no le
+     da capa a las flechas de dentro hasta abrir y nacían al tocar (guardián: recibos-sin-parpadeo). */
+  .rp5-mas > .pr6-fold{margin-top:-4px;}
+  .rp5-in{display:flex;flex-direction:column;gap:14px;padding-top:4px;}
+  .pr6-fold.open > .rp5-in{padding-top:16px;}
+  .rp5-in > .pr6-lbl{margin-bottom:0;}
   /* Prueba gratis y Permanencia (SPEC §7): una línea «etiqueta · valor ⌄» que se despliega. */
   .rp7-x{display:flex;flex-direction:column;border-top:1px solid var(--line-soft);}
   .rp7-row{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 2px;border:0;background:transparent;color:var(--text);font:inherit;cursor:pointer;}
@@ -1237,8 +1250,7 @@
   .rp7-k{flex:1;min-width:0;text-align:left;font-size:15px;font-weight:700;}
   .rp7-v{flex:none;font-size:15px;font-weight:700;}
   .rp7-row .pr6-chev{color:var(--muted);}
-  /* El relleno se va con el pliegue, no de golpe al empezar a cerrarlo: era un bote (como «¿Te llega?», 228). */
-  .rp7-in{gap:12px;transition:padding .35s var(--ease);}
+  .rp7-in{gap:12px;}
   .rp7-x > .pr6-fold{margin-top:0;}
   .pr6-fold.open > .rp7-in{padding:4px 0 12px;}
   .rp7-chips{display:flex;gap:8px;flex-wrap:wrap;}
@@ -1246,8 +1258,8 @@
     transition:background .2s ease,color .2s ease,border-color .2s ease;}
   .rp7-chip.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .rp7-fecha{flex:1;min-width:0;font-size:15px;}
-  .rp5-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
-  .rp5-ava{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;padding:4px 0;border:0;background:transparent;color:var(--text);font:inherit;cursor:pointer;}
+  .rp5-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));row-gap:12px;column-gap:4px;}
+  .rp5-ava{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:2px 0;border:0;background:transparent;color:var(--text);font:inherit;cursor:pointer;}
   .rp5-ava:disabled{opacity:.35;cursor:default;}
   .rp5-ava.on .pe-ava{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .rp5-ava-n{max-width:100%;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1281,9 +1293,6 @@
   .pr6-ll-b .pr6-fold{margin-top:-10px;}
   .pr6-ll-det{gap:6px;font-size:14px;}
   .pr6-ll-b .pr6-fold.open .pr6-ll-det{padding-top:10px;}
-  /* El hueco de arriba del detalle se pliega con él: si se iba de golpe, al abrir el teclado la hoja
-     daba un bote hacia abajo de 10 px por banco antes de subir (vídeo 11/11, «en dos tiempos»). */
-  .v4-sheet.pr6-ll .pr6-ll-det{transition:padding-top .35s var(--ease);}
   .pr6-ll-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
   .pr6-ll-row>span:first-child{flex:1;min-width:0;color:var(--muted);}
   .pr6-ll-row .num{font-weight:700;white-space:nowrap;}
@@ -1380,8 +1389,8 @@
   .pr6-imp .pr6-cta:disabled{opacity:.5;cursor:default;}
   @media (prefers-reduced-motion:reduce){ .pr6-cz,.pr6-imp-row,.pr6-imp-dot{transition:none;} }
   html.reduce-motion .pr6-cz,html.reduce-motion .pr6-imp-row{transition:none;}
-  @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
-  html.reduce-motion .pr6-fold,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
+  @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-fold-in,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
+  html.reduce-motion .pr6-fold,html.reduce-motion .pr6-fold-in,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}
   .v4-goals{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
   .v4-goal{flex:0 0 78%;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}

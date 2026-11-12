@@ -6412,7 +6412,7 @@ test("Catálogo229 retira las diez tandas aprobadas en la 228 con tandas: [], ab
   const css=from=>({file:SH,from,to:"}"});
   // ReciboPasos y BillsManagePush guardan con el set real: como recibos-zona-pulida, la tanda lleva el bloque del guardado (G).
   const G=(({file,from,to})=>({file,from,to}))(integrated["recibo-quitar-deshacer"].web.find(u=>u.from&&u.from.includes("INC-0410 guardado: de aquí")));
-  const propias=[...fn(V14,["BillsManagePush","ReciboPasos","PlanRecibos","pr6Tres","pr6VerPlegado","rp4Duplicado"]),G,
+  const propias=[...fn(V14,["BillsManagePush","ReciboPasos","PlanRecibos","pr6Tres","rp4Duplicado"]),G,
     css("  .rp7-in{"),css("  .pr6-mg-sec .pr6-row .sub{"),css("  .pr6-mg-pl .pr6-fold{"),css("  .pr6-mg-pl .pr6-fold-in,.pr6-mg-pl .pr6-fold.open .pr6-fold-in{"),
     css("  .pr6-mg-pl .pr6-fold-in .pr6-mg-pe:first-child{"),css("  .pr6-mg-pl .pr6-more{"),
     // «A plazos» y el colchón por cuenta pasan de «¿Me lo puedo permitir?» a «¿Y si gasto…?» (paso 1): la hoja, el bloque y sus reglas.
