@@ -144,18 +144,40 @@ function suite(c){
     assert.equal(mostrado(n,"sabadell"),mostrado(sin,"sabadell"),"enlazar tampoco");
   });
 
+  /* ---------- C (re-revisión). Un pago, un mes; dos gemelas, un pago ---------- */
+  caso("C8 · el adelanto del 30 de la persona gemela cuenta en «Te deben» de octubre, no también en noviembre",()=>{
+    const YT2=Object.assign({},ENT_OTTO,{day:2});
+    const s=estado({fixed:[YT],flows:[YT2],expenses:[fila("a1","sabadell","2026-10-30",-5,"TRANSFERENCIA OTTO DEL PINO")]});
+    dia(12);
+    assert.equal(c.teDebenMes(s,Y,10,31).find(x=>x.id==="pe_otto").pagado,true,"es el pago de octubre");
+    assert.equal(otto(s,12).pagado,false,"noviembre no lo vuelve a contar");
+    assert.equal(hecho(pack(s,12),"eal").expenseId,null,"y la gemela de noviembre no se lo queda");
+    // Ni enlazado a mano.
+    const n=c.flowEnlazar(s,"eal","a1",Y,M,12,1);
+    assert.equal(hecho(pack(n,12),"eal").expenseId,"a1","a mano manda él en la entrada");
+    assert.equal(otto(n,12).pagado,false,"pero «Te deben» no lo cuenta en dos meses");
+  });
+  caso("C9 · dos gemelas de la misma persona no comparten un pago",()=>{
+    const MUS={id:"mus",name:"Música",amount:10,bankAmount:15,freq:"mes",day:2,account:"sabadell",reparto:[{id:"pe_otto",n:"Otto",via:"transfer",amt:5}]};
+    const ENT_MUS={id:"emu",kind:"income",name:"Música Otto",amount:5,to:"sabadell",day:11};
+    const s=estado({fixed:[YT,MUS],flows:[ENT_OTTO,ENT_MUS],expenses:[fila("a1","sabadell","2026-11-11",-5,"TRANSFERENCIA OTTO DEL PINO")]});
+    dia(12);
+    const p=pack(s,12), ids=[hecho(p,"eal").expenseId,hecho(p,"emu").expenseId];
+    assert.deepEqual(ids.filter(x=>x==="a1").length,1,"un movimiento de 5 €, una entrada");
+  });
+
   /* ---------- A. La salida de un traspaso tuyo ---------- */
   const salen=s=>Array.from(c.salidasTraspasoPropio(s),x=>x.id).sort();
-  caso("A1 · las dos salidas del 30/10 a su nombre pasan a traspaso (pareja de llegada y traspaso previsto)",()=>{
+  caso("A1 · las dos salidas del 30/10 a su nombre pasan a traspaso (traspaso previsto, y pareja con su traspaso)",()=>{
     dia(12);
     const s=estado({flows:[A_TR,A_MI],expenses:[SALE_TR,SALE_MI,LLEGA_TR]});
     assert.deepEqual(salen(s),["s1","s2"]);
     const r=c.reconcileObDupes(s);
     assert.deepEqual(Array.from(r.recat,x=>x.expense.id+":"+x.cat).sort(),["s1:traspaso","s2:traspaso"]);
     assert.equal(c.expenseBucket(r.state.expenses.find(e=>e.id==="s1"),r.state),"neutra","«Traspasos · no cuentan»");
-    // Y con la pareja basta aunque el concepto no lleve su nombre.
-    const sinNombre=estado({expenses:[fila("s1","sabadell","2026-10-30",1200,"Transferencia emitida"),LLEGA_TR]});
-    assert.deepEqual(salen(sinNombre),["s1"]);
+    // Sin su nombre basta la pareja si hay un traspaso previsto entre ESOS dos bancos.
+    const emitida=fila("s1","sabadell","2026-10-30",1200,"Transferencia emitida");
+    assert.deepEqual(salen(estado({flows:[A_TR],expenses:[emitida,LLEGA_TR]})),["s1"]);
   });
   caso("A2 · dinero: si sale de un banco de gasto diario, deja de contar en el gastado",()=>{
     dia(12);
@@ -165,23 +187,54 @@ function suite(c){
     assert.equal(c.expenseCountsBudget(r.state.expenses[0],r.state),false);
     assert.equal(c.expenseCountsCash(r.state.expenses[0],r.state),true,"el saldo la sigue restando: el dinero salió de esa cuenta");
   });
-  caso("A3 · sin falsos positivos: al casero, a su nombre sin traspaso previsto, lejos de su día, o dos parejas",()=>{
+  caso("A3 · sin falsos positivos: al casero, sin traspaso previsto, lejos de su día, o dos parejas",()=>{
     dia(12);
     const casero=fila("k1","sabadell","2026-10-30",400,"Casero Ejemplo SL",{concept:"TRANSFERENCIA A CASERO EJEMPLO SL"});
     assert.deepEqual(salen(estado({flows:[A_MI],expenses:[casero]})),[],"mismo importe y día, pero no va a su nombre");
     assert.deepEqual(salen(estado({expenses:[SALE_MI]})),[],"a su nombre pero sin traspaso previsto ni llegada");
-    assert.deepEqual(salen(estado({flows:[A_MI],expenses:[Object.assign({},SALE_MI,{date:"2026-10-15"})]})),[],"a 14 días de su día");
+    assert.deepEqual(salen(estado({flows:[Object.assign({},A_MI,{day:20})],expenses:[Object.assign({},SALE_MI,{date:"2026-11-03"})]})),[],"a 17 días de su día");
     const otra=fila("s3","bbva","2026-10-30",1200,"Transferencia emitida");
-    assert.deepEqual(salen(estado({expenses:[fila("s1","sabadell","2026-10-30",1200,"Transferencia emitida"),otra,LLEGA_TR]})),[],"dos salidas para una llegada: no se sabe cuál");
+    assert.deepEqual(salen(estado({flows:[A_TR],expenses:[fila("s1","sabadell","2026-10-30",1200,"Transferencia emitida"),otra,LLEGA_TR]})),[],"dos salidas para una llegada: no se sabe cuál");
   });
-  caso("A4 · lo que él decidió manda: «Otros» elegido, «no es un traspaso mío», otra categoría o hace más de 60 días",()=>{
+  caso("A5 · el nombre ENTERO: ni un hermano con los dos apellidos ni un tocayo",()=>{
+    dia(12);
+    const perfil={profile:{fullName:"Leo Marc Sastre Ruano"}};
+    const a=(id,quien)=>fila(id,"sabadell","2026-10-30",400,quien,{concept:"TRANSFERENCIA A "+quien.toUpperCase()});
+    assert.deepEqual(salen(estado({settings:perfil,flows:[A_MI],expenses:[a("h1","Pedro Sastre Ruano")]})),[],"hermano");
+    assert.deepEqual(salen(estado({settings:perfil,flows:[A_MI],expenses:[a("t1","Leo Marc Garcia")]})),[],"tocayo");
+    assert.deepEqual(salen(estado({settings:perfil,flows:[A_MI],expenses:[a("y1","Leo Sastre Ruano")]})),["y1"],"nombre de pila y los dos apellidos");
+  });
+  caso("A6 · la pata de llegada sola no basta: el alquiler al casero con 700 € entrando en otro banco",()=>{
+    dia(12);
+    const alquiler=fila("q1","sabadell","2026-11-05",700,"Transferencia alquiler",{concept:"TRANSFERENCIA ALQUILER"});
+    const llega=fila("q2","trade_republic","2026-11-06",-700,"Traspaso recibido",{category:"traspaso"});
+    assert.deepEqual(salen(estado({expenses:[alquiler,llega]})),[]);
+    assert.deepEqual(salen(estado({flows:[A_TR],expenses:[alquiler,llega]})),[],"el traspaso previsto entre esos bancos es de otro importe");
+  });
+  caso("A4 · lo que él decidió manda: «Otros» elegido, «no es un traspaso mío», otra categoría, o un mes cerrado",()=>{
     dia(12);
     const base={flows:[A_MI]};
     assert.deepEqual(salen(estado(Object.assign({},base,{expenses:[SALE_MI],catOverrides:{"leo sastre ruano":"otros"}}))),[]);
     assert.deepEqual(salen(estado(Object.assign({},base,{expenses:[Object.assign({},SALE_MI,{ownTransferRejected:true})]}))),[]);
     assert.deepEqual(salen(estado(Object.assign({},base,{expenses:[Object.assign({},SALE_MI,{category:"hogar"})]}))),[]);
-    dia(1); reloj.ms=Date.parse("2027-01-15T12:00:00Z");
-    assert.deepEqual(salen(estado(Object.assign({},base,{expenses:[SALE_MI]}))),[],"de hace 77 días");
+    // Sacarla él de traspaso (sin comercio no se aprende regla) se guarda y viaja.
+    const s=estado(Object.assign({},base,{expenses:[SALE_MI]}));
+    assert.deepEqual(salen(Object.assign({},s,c.traspasoPropioNoPon(s,SALE_MI,1))),[],"la devolvió a «Otros»");
+    // Octubre ya cerrado: solo su adelanto (los últimos 7 días) cuenta para noviembre.
+    assert.deepEqual(salen(estado({flows:[Object.assign({},A_MI,{day:20})],expenses:[Object.assign({},SALE_MI,{date:"2026-10-20"})]})),[],"el 20 de octubre ya no se toca");
+    reloj.ms=Date.parse("2027-01-15T12:00:00Z");
+    assert.deepEqual(salen(estado(Object.assign({},base,{expenses:[SALE_MI]}))),[],"en enero, octubre ya no se toca");
+    dia(12);
+  });
+  caso("A7 · si la nube no la acepta, no se reescribe en cada vuelta a primer plano",()=>{
+    dia(12);
+    const r=fila("i9","sabadell","2026-10-31",400,"Leo Sastre Ruano",{concept:"TRANSFERENCIA A LEO SASTRE RUANO"});
+    const s=estado({flows:[A_MI],expenses:[r]});
+    assert.deepEqual(salen(s),["i9"]);
+    c.marcarIntentoTraspaso(r);
+    assert.deepEqual(salen(s),[],"intentada hace nada");
+    reloj.ms+=7*36e5;
+    assert.deepEqual(salen(s),["i9"],"horas después, otro intento");
     dia(12);
   });
   return fallos;
@@ -198,15 +251,22 @@ const MUTANTES=[
   ["B · lo enlazado en el mes de al lado se ofrece otra vez",'    [antes,despues].forEach(function(v){ const l=flowLlegadaFila(o,v[0],v[1]); if(l) usadas.add(l.expenseId); });\n',''],
   ["B · «No es este» veta en el extracto del mes de la entrada",'!==(fecha?fecha.slice(0,7):flowYm(y,m))) return;','!==flowYm(y,m)) return;'],
   ["C · la gemela no puede coger el pago de su persona",'p.id!==salvo&&',''],
-  ["C · lo enlazado a la gemela no paga a la persona",'if(x){ forz[String(x.id)]={pid:p.id,mano:true,row:x}; return; }',''],
+  ["C · lo enlazado a la gemela no paga a la persona",'if(x){ if(delMes(x)) forz[String(x.id)]={pid:p.id,mano:true,row:x}; return; }','if(x){ return; }'],
   ["C · lo que la gemela coge sola paga aunque no la nombre",'if(a&&w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })&&','if(a&&'],
   ["C · la entrada no enseña el pago que casó «Te deben»",'  if(pago) return fila(pago,true);\n',''],
   ["C · gemela con cualquier importe",'(quien[0].c===c||quien[0].partes.indexOf(c)>=0)','true'],
-  ["A · pareja sin mirar que sea la única",'if(salidas.length===1&&salidas[0]===e) return true;','if(salidas.length>=1) return true;'],
-  ["A · basta un traspaso previsto, aunque no vaya a su nombre",'    if(!tuyo) return false;\n',''],
+  ["C · lo enlazado de otro mes paga también este",'if(x){ if(delMes(x)) forz','if(x){ if(true) forz'],
+  ["C · la gemela se queda el adelanto del mes anterior",'&&(!gem||String(x.date).slice(0,7)===ym)',''],
+  ["C · dos gemelas comparten un pago",'&&!usados.has(String(x.id))&&','&&'],
+  ["A · pareja sin mirar que sea la única",'return salidas.length===1&&salidas[0]===e&&','return salidas.length>=1&&'],
+  ["A · basta un traspaso previsto, aunque no vaya a su nombre",'if(tuyo&&previsto(e,null)) return true;','if(previsto(e,null)) return true;'],
+  ["A · la pata de llegada sola basta",'&&(tuyo||previsto(e,expenseBankOf(l)))',''],
+  ["A · dos palabras del titular bastan",'w.every(esta)||w.length>=3&&esta(w[0])&&esta(w[w.length-2])&&esta(w[w.length-1])','w.filter(esta).length>=2'],
   ["A · traspaso previsto de cualquier día",'Math.abs(r-pl)<=FLOW_ADELANTO;','true;'],
-  ["A · no respeta su «Otros»",'if(rule&&rule.cat==="otros"||ov==="otros") return false;',''],
-  ["A · también lo de hace meses",'hoy-d<=SALIDA_PROPIA_DIAS&&',''],
+  ["A · no respeta su «Otros»",'ov==="otros"||reciboVetado','reciboVetado'],
+  ["A · no respeta que la devolviera a «Otros»",'||reciboVetado(s,TRASPASO_NO,k)) return false;',') return false;'],
+  ["A · también los meses cerrados",'r!=null&&r>=1-FLOW_ADELANTO&&','r!=null&&'],
+  ["A · reintenta en cada pull",'if(Date.now()-(traspasoIntentos.get(k)||-Infinity)<TRASPASO_REINTENTO_MS) return false;',''],
   ["A · reconcile no lo escribe",'salidasTraspasoPropio(state).forEach(','[].forEach('],
 ];
 let muertos=0;

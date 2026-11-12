@@ -261,8 +261,11 @@ function flowNombraPersona(s,x,salvo){
     &&titular.filter(function(k){ return w.indexOf(k)<0&&txt.indexOf(" "+k+" ")>=0; }).length<2; });
 }
 function flowFilaAuto(s,f,y,m,today){
-  const gem=flowGemelaDe(s,f,y,m,today);
-  const pool=flowFilasElegibles(s,f,y,m,today).filter(function(x){ return flowFilaCasa(s,f,x,y,m)&&flowEsSuMes(f,x,y,m)&&!flowNombraPersona(s,x,gem&&gem.id); });
+  const gem=flowGemelaDe(s,f,y,m,today), ym=flowYm(y,m);
+  /* La gemela de alguien de «Te deben» solo se queda movimientos de SU mes: «Te deben» cuenta cada pago
+     en el mes del movimiento, y el adelanto del 30 cogido por la entrada del día 2 lo daba por pagado en
+     octubre Y en noviembre (re-revisión del 12/11/2026, P1-3). */
+  const pool=flowFilasElegibles(s,f,y,m,today).filter(function(x){ return flowFilaCasa(s,f,x,y,m)&&flowEsSuMes(f,x,y,m)&&!flowNombraPersona(s,x,gem&&gem.id)&&(!gem||String(x.date).slice(0,7)===ym); });
   const llega=pool.filter(function(x){ return Number(x.amount)<0; });
   const c=f.kind==="transfer"&&llega.length?llega:pool;
   if(c.length!==1) return null;
@@ -1729,14 +1732,27 @@ function flowGemelaDe(s,f,y,m,today,personas){
   const quien=(personas||teDebenPersonasMes(s,y,m,today)).filter(function(p){ const w=debenNombre(p.n); return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; }); });
   return quien.length===1&&(quien[0].c===c||quien[0].partes.indexOf(c)>=0)?quien[0]:null;
 }
-// El pago que «Te deben» le casó a la persona gemela, si esta entrada puede cogerlo (el más parecido).
+/* El pago que «Te deben» le casó a la persona gemela, si esta entrada puede cogerlo (el más parecido).
+   Uno a uno (re-revisión del 12/11/2026, P2-1): con dos gemelas de la misma persona («Vídeo» y «Música»,
+   5 € cada una) y un solo pago de 5 €, las dos salían «Ya ha entrado» con él y el total sumaba 10 € de un
+   movimiento de 5. Se reparten en orden fijo (por id), y lo que él enlazó a una ya no lo coge otra. */
 function flowPagoGemela(s,f,y,m,today,p){
   const r=teDebenRecibidoMes(s,y,m,today)[p.id];
   if(!r||!r.ids.length) return null;
-  const want=Number(f.amount);
-  const libres=flowFilasElegibles(s,f,y,m,today).filter(function(x){ return r.ids.indexOf(String(x.id))>=0&&!flowFilaVetada(s,f,x); });
-  libres.sort(function(a,b){ return Math.abs(Math.abs(a.amount)-want)-Math.abs(Math.abs(b.amount)-want)||String(b.date).localeCompare(String(a.date)); });
-  return libres[0]||null;
+  const gemelas=(s.flows||[]).filter(function(o){ if(!o||o.kind!=="income"||!flowOccursIn(o,m,y)) return false; const g=o===f?p:flowGemelaDe(s,o,y,m,today); return !!g&&g.id===p.id; })
+    .sort(function(a,b){ return String(a.id).localeCompare(String(b.id)); });
+  const usados=new Set();
+  gemelas.forEach(function(o){ const x=flowFilaEnlazada(s,o,y,m,today); if(x) usados.add(String(x.id)); });
+  for(let i=0;i<gemelas.length;i++){
+    const o=gemelas[i], want=Number(o.amount);
+    if(flowFilaEnlazada(s,o,y,m,today)||flowLlegadaAMano(o,y,m)!=null) continue;
+    const libres=flowFilasElegibles(s,o,y,m,today).filter(function(x){ return r.ids.indexOf(String(x.id))>=0&&!usados.has(String(x.id))&&!flowFilaVetada(s,o,x); });
+    libres.sort(function(a,b){ return Math.abs(Math.abs(a.amount)-want)-Math.abs(Math.abs(b.amount)-want)||String(b.date).localeCompare(String(a.date)); });
+    const x=libres[0]||null;
+    if(x) usados.add(String(x.id));
+    if(o===f) return x;
+  }
+  return null;
 }
 // Lo mismo que «Te deben» de este mes, recordado mientras no cambie nada de lo que lee: Plan lo pide por
 // cada entrada gemela en cada pintado, y recorrer el histórico entero cada vez se nota en el móvil.
@@ -1786,15 +1802,17 @@ function teDebenRecibido(s,y,m,personas,today){
   // Lo que él enlazó a una entrada (nómina, traspaso) ya es de ella: el mismo dinero no paga dos cosas.
   // Salvo si la entrada es la gemela de una persona (`flowGemelaDe`): entonces es su pago (`forz`).
   // Lo que la entrada coge sola solo se le da a la persona si el banco la nombra; lo que él enlazó, siempre.
-  const deEntrada=new Set(), forz={};
+  // Solo movimientos de ESTE mes: «Te deben» cuenta cada pago en el mes del movimiento, y un adelanto del 30
+  // enlazado a la gemela del día 2 ya lo cuenta octubre (re-revisión del 12/11/2026, P1-3).
+  const deEntrada=new Set(), forz={}, delMes=function(e){ const ms=_pdMs(String(e.date||"").trim()), d=new Date(ms); return isFinite(ms)&&d.getFullYear()===y&&d.getMonth()+1===m; };
   (s.flows||[]).forEach(function(f){
     const l=flowLlegadaFila(f,y,m), p=today!=null&&flowOccursIn(f,m,y)?flowGemelaDe(s,f,y,m,today,personas):null;
     const x=p?flowFilaEnlazada(s,f,y,m,today):null;
-    if(x){ forz[String(x.id)]={pid:p.id,mano:true,row:x}; return; }
+    if(x){ if(delMes(x)) forz[String(x.id)]={pid:p.id,mano:true,row:x}; return; }
     if(l){ deEntrada.add(String(l.expenseId)); return; }
     const a=p&&flowLlegadaAMano(f,y,m)==null?flowFilaAuto(s,f,y,m,today):null;
     const w=a&&debenNombre(p.n), txt=a&&" "+recNorm([a.merchant,a.obName,a.concept,a.note].join(" "))+" ";
-    if(a&&w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
+    if(a&&w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })&&delMes(a)&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
   });
   Object.keys(forz).forEach(function(id){
     const z=forz[id], e=z.row, ms=_pdMs(String(e.date||"").trim());
@@ -4986,65 +5004,86 @@ function reconcileObDupes(state){
    Gastos las pintaba como «Otros», un gasto más, mientras la llegada a Trade Republic sí estaba
    en «Traspasos · no cuentan». Nada las reconocía solas: la pareja salida↔llegada solo se ofrecía como
    pregunta al abrir la ficha (`ownTransferPair`), y a MyInvestor no llega ninguna fila con la que
-   emparejar. Pasan a «traspaso» —y salen del gastado si ese banco es de gasto diario— SOLO con una de
-   estas dos pruebas, además de que el banco la llame transferencia o traspaso:
-   1. su otra pata: una llegada ya marcada traspaso, del mismo importe al céntimo, en OTRO banco tuyo y
-      ±2 días, y una sola en los dos sentidos (dos candidatas = no se sabe cuál, no se toca);
-   2. va a tu nombre (dos palabras del titular del perfil, o «yo mismo / cuenta propia») Y casa con un
-      traspaso previsto que sale de ese banco: importe parecido y ±7 días de uno de sus días.
-   Una transferencia al casero, aunque coincida en importe, no va a tu nombre ni tiene pata de llegada.
+   emparejar. Pasan a «traspaso» —y salen del gastado si ese banco es de gasto diario— solo si el banco
+   la llama transferencia o traspaso y además:
+   1. va a tu nombre ENTERO (`aNombreDelTitular`) y casa con un traspaso previsto que sale de ese banco
+      (importe parecido, ±7 días de uno de sus días); o
+   2. tiene su otra pata —una llegada ya marcada traspaso, mismo céntimo, OTRO banco tuyo, ±2 días, única
+      en los dos sentidos— y o va a tu nombre entero o hay un traspaso previsto entre ESOS dos bancos.
+   La revisión de dinero (NO-GO del 12/11/2026) tumbó la primera versión: con dos palabras cualesquiera del
+   titular pasaban a traspaso la transferencia a un hermano (los dos apellidos) o a un tocayo (el nombre
+   compuesto), y una llegada de 700 € a Trade Republic convertía en traspaso el alquiler de 700 € al casero.
    No se toca lo que él ya decidió: lo que no está en «Otros», lo que dijo que no era un traspaso suyo
-   (`ownTransferRejected`), lo que eligió «Otros» para ese comercio (regla u override de categoría) o
-   aún tiene una elección suya sin confirmar. Ni lo de hace más de 60 días: son meses que ya revisó.
+   (`ownTransferRejected`, o sacarla él de traspaso: `traspasoPropioNo`, que viaja en `reciboNo`), lo que
+   eligió «Otros» para ese comercio (regla u override) o aún tiene una elección suya sin confirmar. Solo
+   del mes en curso y del adelanto del anterior (sus últimos 7 días, el mismo de las entradas): el 30/10
+   del traspaso del 1/11 sí; el resto de octubre ya es un mes cerrado y su gastado no se mueve.
    Se escribe como la recategorización del cashback (`reconcileObDupes` → `setExpenseCat`), así el
-   servidor y el widget cuentan lo mismo que la app. → filas que pasan a traspaso. */
-const SALIDA_PROPIA_DIAS=60;
+   servidor y el widget cuentan lo mismo que la app; si la nube no la acepta, no se reintenta en cada
+   vuelta a primer plano (`marcarIntentoTraspaso`). → filas que pasan a traspaso. */
 const TRASPASO_PALABRA=/ (transferencia|transferencias|transfer|traspaso|traspasos|transf) /;
+const TRASPASO_NO="traspasoNo";
+const TRASPASO_REINTENTO_MS=6*36e5;
+const traspasoIntentos=new Map();
 function diaCivilDe(e){ const p=String(e&&e.date||"").slice(0,10).split("-"); return p.length===3&&+p[0]>0&&+p[1]>=1?Date.UTC(+p[0],+p[1]-1,+p[2])/864e5:NaN; }
+function traspasoPropioClave(e){ return fixedPaymentIdentity(expenseBankOf(e),e); }
+// «No es un traspaso mío» dicho al sacarla él de traspaso: se guarda en `reciboNo`, que viaja entre móviles.
+function traspasoPropioNoPon(s,e,ahora){ return reciboNoPon(s,[TRASPASO_NO+"|"+traspasoPropioClave(e)],true,ahora||Date.now()); }
+// La app la mandó a la nube: no se repite en cada pull si la nube no la acepta (re-revisión, P2-4).
+function marcarIntentoTraspaso(e){ traspasoIntentos.set(traspasoPropioClave(e),Date.now()); }
+/* El nombre ENTERO del titular: todas las palabras de su nombre en el perfil, o (con tres o más) el nombre
+   de pila y los dos apellidos. Un hermano lleva los apellidos y un tocayo el nombre, no las dos cosas. */
+function aNombreDelTitular(s,txt){
+  if(DEBEN_PROPIO.test(txt)) return true;
+  const w=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(x){ return x.length>=2&&!DEBEN_PALABRAS_NO[x]; });
+  if(w.length<2) return false;
+  const esta=function(k){ return txt.indexOf(" "+k+" ")>=0; };
+  return w.every(esta)||w.length>=3&&esta(w[0])&&esta(w[w.length-2])&&esta(w[w.length-1]);
+}
 function salidasTraspasoPropio(s){
-  const n=new Date(), exps=(s&&s.expenses)||[], deleted=expenseDeletedSet(s), hoy=Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/864e5;
-  const titular=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
+  const n=new Date(), exps=(s&&s.expenses)||[], deleted=expenseDeletedSet(s), Y=n.getFullYear(), M=n.getMonth()+1;
   const traspasos=(s.flows||[]).filter(function(f){ return f&&f.kind==="transfer"&&f.to&&Number(f.amount)>0&&f.to!==flowBancoSale(f); });
   const vivo=function(x){ return x&&!x.possibleDup&&!x.obPending&&isFinite(diaCivilDe(x))&&!expenseIsTombstoned(x,deleted); };
   const cand=exps.filter(function(e){
     if(!e||!esFilaDeBanco(e)||!(Number(e.amount)>0)||e.category!=="otros"||!vivo(e)) return false;
     if(e.reciboId||e.debtId||e.goalId||e.metaPend||e.ownTransferRejected||e.catStale||e.catAckAt!=null) return false;
     if((e.cur||e.currency)&&String(e.cur||e.currency).toUpperCase()!=="EUR") return false;
-    const b=expenseBankOf(e), d=diaCivilDe(e);
-    return !!b&&b!=="efectivo"&&hoy-d<=SALIDA_PROPIA_DIAS&&TRASPASO_PALABRA.test(" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ");
+    const b=expenseBankOf(e), r=flowDiaRel(e,Y,M);
+    return !!b&&b!=="efectivo"&&r!=null&&r>=1-FLOW_ADELANTO&&TRASPASO_PALABRA.test(" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ");
   });
   if(!cand.length) return [];
   const porCent=new Map();
   exps.forEach(function(x){ if(!vivo(x)) return; const c=Math.round(Number(x.amount)*100); if(!c) return; const l=porCent.get(c); if(l) l.push(x); else porCent.set(c,[x]); });
   const reglas=(typeof USER_CAT_RULES!=="undefined"&&USER_CAT_RULES)||{};
-  return cand.filter(function(e){
-    const rule=reglas[catRuleKey(e)], ov=s.catOverrides&&s.catOverrides[catKey(e.merchant)];
-    if(rule&&rule.cat==="otros"||ov==="otros") return false;
-    const c=Math.round(Number(e.amount)*100), d=diaCivilDe(e), b=expenseBankOf(e);
-    // 1. Su otra pata, sin dudas en ninguno de los dos sentidos.
-    const llegadas=(porCent.get(-c)||[]).filter(function(x){ return x.category==="traspaso"&&expenseBankOf(x)&&expenseBankOf(x)!==b&&Math.abs(diaCivilDe(x)-d)<=2; });
-    if(llegadas.length===1){
-      const l=llegadas[0], salidas=(porCent.get(c)||[]).filter(function(o){ return expenseBankOf(o)&&expenseBankOf(o)!==expenseBankOf(l)&&Math.abs(diaCivilDe(o)-diaCivilDe(l))<=2; });
-      if(salidas.length===1&&salidas[0]===e) return true;
-    }
-    // 2. A tu nombre y casada con un traspaso previsto que sale de este banco.
-    const txt=" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ";
-    const tuyo=DEBEN_PROPIO.test(txt)||titular.length>=2&&titular.filter(function(w){ return txt.indexOf(" "+w+" ")>=0; }).length>=2;
-    if(!tuyo) return false;
-    const p=String(e.date).slice(0,10).split("-"), y=+p[0], m=+p[1];
+  // ¿Casa con un traspaso previsto que sale de ese banco (y, si se dice, que llega a `a`)?
+  const previsto=function(e,a){
+    const p=String(e.date).slice(0,10).split("-"), y=+p[0], m=+p[1], b=expenseBankOf(e), c=Math.round(Number(e.amount)*100);
     return traspasos.some(function(f){
-      if(flowBancoSale(f)!==b) return false;
-      const want=Number(f.amount), amt=Number(e.amount);
-      if(Math.round(want*100)!==c&&!recAmtClose(want,amt)) return false;
+      if(flowBancoSale(f)!==b||a&&f.to!==a) return false;
+      const want=Number(f.amount);
+      if(Math.round(want*100)!==c&&!recAmtClose(want,Number(e.amount))) return false;
       return [flowMesAntes(y,m),[y,m],flowMesDespues(y,m)].some(function(o){
         if(!flowOccursIn(f,o[1],o[0])) return false;
         const pl=flowDay(f,o[0],o[1]), r=flowDiaRel(e,o[0],o[1]);
         return pl!=null&&r!=null&&Math.abs(r-pl)<=FLOW_ADELANTO;
       });
     });
+  };
+  return cand.filter(function(e){
+    const rule=reglas[catRuleKey(e)], ov=s.catOverrides&&s.catOverrides[catKey(e.merchant)], k=traspasoPropioClave(e);
+    if(rule&&rule.cat==="otros"||ov==="otros"||reciboVetado(s,TRASPASO_NO,k)) return false;
+    if(Date.now()-(traspasoIntentos.get(k)||-Infinity)<TRASPASO_REINTENTO_MS) return false;
+    const c=Math.round(Number(e.amount)*100), d=diaCivilDe(e), b=expenseBankOf(e);
+    const tuyo=aNombreDelTitular(s," "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ");
+    // 1. A tu nombre entero y con su traspaso previsto.
+    if(tuyo&&previsto(e,null)) return true;
+    // 2. Su otra pata, sin dudas en ninguno de los dos sentidos, y a tu nombre o con el traspaso entre esos dos bancos.
+    const llegadas=(porCent.get(-c)||[]).filter(function(x){ return x.category==="traspaso"&&expenseBankOf(x)&&expenseBankOf(x)!==b&&Math.abs(diaCivilDe(x)-d)<=2; });
+    if(llegadas.length!==1) return false;
+    const l=llegadas[0], salidas=(porCent.get(c)||[]).filter(function(o){ return expenseBankOf(o)&&expenseBankOf(o)!==expenseBankOf(l)&&Math.abs(diaCivilDe(o)-diaCivilDe(l))<=2; });
+    return salidas.length===1&&salidas[0]===e&&(tuyo||previsto(e,expenseBankOf(l)));
   });
 }
-
 /* ¿Son ENTRADA y SALIDA el mismo cashback que entra y sale? La regla, en un solo sitio: la usan el
    sync diario (`findCashbackTwin`) y el histórico (`histParesCashback`). Cada lado es
    {date, amount (magnitud), ent, merchant}. */
