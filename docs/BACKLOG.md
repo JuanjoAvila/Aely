@@ -36,6 +36,7 @@ hecho**. Cada cierre se comprobó contra `CHANGELOG.md`, `git log origin/beta`, 
 | Auditoría de rendimiento | Toda la app a CPU ×6: fotogramas >32 ms por pantalla y gesto, tamaño del bundle y escrituras. | producción de la 229 |
 | Auditoría de funciones, textos y botones | Lo redundante, huérfano, roto o con textos largos, en los tres idiomas. | producción de la 229 |
 | Te deben: remates P2 de la revisión de dinero de la 228 | Un hermano con los dos apellidos del titular no casa; una transferencia a un tercero ±2 días tapa un Bizum legítimo; dos fuentes no-banco del mismo ingreso cuentan doble (con tope en lo debido). | — |
+| Lo que entra: decisiones abiertas de la 230 | Que decida el dueño: (1) el nombre «Ya ha entrado» también para traspasos; (2) traspasos y entradas siguen en dos secciones (el prototipo las junta en Todos); (3) «Lo recibí de otra forma» antes de su día no cambia el saldo (si debe significar «fuera de esta cuenta», excluirla como `fixedPagadoFuera`); (4) enlazar no cambia la categoría del movimiento en Gastos. P2-3 de la revisión: la pata que sale de un traspaso puede coger un gasto del mismo céntimo (solo lo que se ve). | — |
 | Pruebas: `ob-iguales-ordinal` y `sync-memoria` | El umbral de rendimiento quedó en 2× (CI daba 1,6× con el mismo código); revisar si se puede volver a 1,5× con otra medida. Filtro estricto de `sync-memoria`. | — |
 
 
