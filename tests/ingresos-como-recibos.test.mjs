@@ -184,18 +184,20 @@ function suite(c){
     dia(16);
     assert.equal(c.flowEnlazar(pronto,"nom","p1",Y,M,16,1).flows[0].paidYm,undefined,"13 días antes no es el adelanto del extracto");
   });
+  // Marta debe 6 y la entrada es de 5: NO son el mismo hecho (ver `flowGemelaDe`, 230). Con el mismo
+  // importe serían gemelas y el movimiento las deja hechas a las dos (tests/traspasos-tedeben-230).
   caso("un movimiento no paga a la vez «Te deben» y una entrada",()=>{
-    const yt={id:"yt",name:"YouTube",amount:10,bankAmount:15,freq:"mes",day:5,account:"sabadell",reparto:[{id:"p1",n:"Marta",via:"bizum",amt:5}]};
+    const yt={id:"yt",name:"YouTube",amount:10,bankAmount:16,freq:"mes",day:5,account:"sabadell",reparto:[{id:"p1",n:"Marta",via:"bizum",amt:6}]};
     const biz={id:"biz",kind:"income",name:"Bizum Marta",amount:5,to:"sabadell",day:20};
     const s=estado({fixed:[yt],flows:[biz],expenses:[fila("i1","sabadell","2026-11-18",-5,"TRANSFERENCIA MARTA LOPEZ")]});
     dia(19);
     const deb=c.teDebenMes(s,Y,M,19);
-    assert.equal(deb[0].pagado,true,"es la parte de Marta");
+    assert.equal(deb[0].recibido,5,"es (parte de) lo de Marta");
     assert.equal(pack(s,19).incomePending.length,1);
     assert.equal(pack(s,19).incomePending[0].expenseId,null,"el motor no se la da también a la entrada");
     const n=c.flowEnlazar(s,"biz","i1",Y,M,19,1);
     assert.equal(pack(n,19).flowsDone[0].expenseId,"i1","a mano manda él");
-    assert.equal(c.teDebenMes(n,Y,M,19)[0].pagado,false,"y entonces no paga a Marta");
+    assert.equal(c.teDebenMes(n,Y,M,19)[0].recibido,0,"y entonces no paga a Marta");
   });
   return fallos;
 }
@@ -214,13 +216,13 @@ const MUTANTES=[
   ["un enlace que no ancla da la entrada por llegada",'llego:cuenta,day:cuenta?recDay(x.date):planned','llego:true,day:recDay(x.date)'],
   ["la marca a mano da la entrada por llegada antes de que la cuente el saldo",'llego:cuenta,day:cuenta?mano:planned','llego:true,day:mano'],
   ["deshacer pisa el ancla de una sincronización",'if(!tras||ks.every(','if(true||ks.every('],
-  ["deshacer toca vetos de otros meses",'k.indexOf(pre)===0&&k.indexOf(mes)>=0','k.indexOf(pre)===0'],
+  ["deshacer toca vetos de otros meses",'k.indexOf(pre)===0&&(k.indexOf(mes)>=0||antes.some(function(a){ return k.indexOf(a)>=0; }))','k.indexOf(pre)===0'],
   ["la vista no sigue al dinero pasado su día",'  if(cuenta) return {llego:true,day:planned,sinMov:true};',''],
   ["deshacer veta como «No es este»",'function flowDeshacer(s,flowId,y,m,foto,tras,ahora){','function flowDeshacer(s,flowId,y,m,foto,tras,ahora){ return flowDesenlazar(s,flowId,y,m,31,ahora);'],
   ["deshacer no repone los vetos de antes",'  if(poner.length) base=',' if(false) base='],
   ["enlazar ancla un importe que no se parece",'\n    &&recAmtClose(Number(f.amount),Math.abs(Number(x.amount)))',''],
   ["enlazar ancla un adelanto de más de 7 días",'d<planned&&planned-d<=7','d<planned'],
-  ["el motor da a una entrada el pago de una persona",'&&!flowNombraPersona(s,x); });',' });'],
+  ["el motor da a una entrada el pago de una persona",'&&!flowNombraPersona(s,x,gem&&gem.id)&&','&&'],
   ["«Te deben» cuenta lo enlazado a una entrada",'||deEntrada.has(String(e.id))) return;',') return;'],
   ["un movimiento sirve para dos entradas",'!usadas.has(x.id)&&',''],
   ["enlazar mueve el saldo que se ve",'  return keepShownAcrossFlows(base,(base.flows||[]).map(function(o){ return o===f?n:o; }));\n}\n/* «No es este»','  return Object.assign({},base,{flows:(base.flows||[]).map(function(o){ return o===f?n:o; })});\n}\n/* «No es este»'],

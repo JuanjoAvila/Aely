@@ -790,6 +790,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
       }
       const fuera={expenses:exps,catOverrides:ov,catRules:rules};
+      /* Sacar él de traspaso una salida del banco es «esto no es un traspaso mío»: sin comercio
+         («Movimiento») no se aprende regla ni override y la sincronización la volvía a pasar a traspaso
+         (`salidasTraspasoPropio`, re-revisión 230, P2-2). Va en `reciboNo`, que viaja entre móviles. */
+      if(ex.category==="traspaso"&&newCat!=="traspaso"&&esFilaDeBanco(ex)&&Number(ex.amount)>0) Object.assign(fuera,traspasoPropioNoPon(s,ex,Date.now()));
       // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
         const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];

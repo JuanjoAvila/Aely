@@ -789,7 +789,9 @@ function App(){
         // puede ser otro y el UPDATE no tocaría nada).
         if(rec.recat.length || kept.recat.length){
           setTimeout(function(){
-            rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
+            // Un traspaso propio se intenta una vez: si la nube no lo acepta, el pull siguiente no lo
+            // reescribe en cada vuelta a primer plano (`marcarIntentoTraspaso`, re-revisión 230).
+            rec.recat.forEach(function(r){ if(r.cat==="traspaso") marcarIntentoTraspaso(r.expense); cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
             kept.recat.forEach(function(r){
               cloud.setExpenseCat(r.expense, r.cat).then(function(n){
                 if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); },false);

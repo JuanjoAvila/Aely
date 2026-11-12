@@ -992,7 +992,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     return React.createElement("button",{type:"button",className:"v4-charge pr6-row",key:x.id,"data-flujo":x.id,"aria-label":lbl,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"dt","aria-hidden":"true"},
         React.createElement("span",{className:"d"}, x.day||"—"),
-        React.createElement("span",{className:"m"}, monthShort(month-1))),
+        React.createElement("span",{className:"m"}, monthShort((x.dayMes||month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name),
         React.createElement("span",{className:"sub pr6-sub-cat"},
@@ -1000,19 +1000,24 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           x.day!=null&&React.createElement("span",{className:"pr6-bk pr6-when"+(n!=null&&n<=1?" soon":"")}, "· "+cuando(x)))),
       React.createElement("span",{className:"am num"+(x.kind==="income"?" pos":"")}, flowAmt(x)));
   };
+  /* Lo que se ve en cada fila y el total de la cabecera salen de la MISMA cifra (su prueba de la 230:
+     el total de arriba no era la suma de las filas): de una entrada con movimiento, lo que trajo el banco,
+     y si no es lo previsto la fila lo dice («llegó 3,80 € de 5,00 €»); sin movimiento o marcada a mano,
+     lo previsto. Los traspasos se ven pero no suman: no es dinero nuevo. */
+  const entCifra=function(x){ return x.paidAmount>0?x.paidAmount:Math.abs(x.amount); };
+  const entParcial=function(x){ return x.kind==="income"&&!!x.expenseId&&x.paidAmount>0&&Math.round(x.paidAmount*100)!==Math.round(Math.abs(x.amount)*100); };
   const entRow=function(x){
-    const how=x.aMano?t("pr6_a_mano_sub"):x.sinMov?t("fl_sin_mov").toLowerCase():x.paidBank?tf("fl_mov_de",{bank:entOf(x.paidBank).label}):"";
+    const how=x.aMano?t("pr6_a_mano_sub"):x.sinMov?t("fl_sin_mov").toLowerCase():entParcial(x)?tf("fl_llego_parcial",{x:eur(x.paidAmount),y:eur(Math.abs(x.amount))}):x.paidBank?tf("fl_mov_de",{bank:entOf(x.paidBank).label}):"";
     return React.createElement("button",{type:"button",className:"v4-charge v4-paid pr6-prow",key:x.id,"data-flujo":x.id,onClick:function(){ abrir(x); }},
       React.createElement("span",{className:"pr6-tick","aria-hidden":"true"},"✓"),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name),
         React.createElement("span",{className:"sub"},
-          x.day!=null&&React.createElement(React.Fragment,null,React.createElement("span",{className:"d"},x.day)," ",React.createElement("span",{className:"m"},monthShort(month-1)),how?" · ":""),
+          x.day!=null&&React.createElement(React.Fragment,null,React.createElement("span",{className:"d"},x.day)," ",React.createElement("span",{className:"m"},monthShort((x.dayMes||month)-1)),how?" · ":""),
           how)),
-      React.createElement("span",{className:"am num"+(x.kind==="income"?" pos":"")}, flowAmt(x)));
+      React.createElement("span",{className:"am num"+(x.kind==="income"?" pos":""),"data-testid":"plan-entrado-importe"}, x.kind==="income"?"+"+eur(entCifra(x)):flowAmt(x)));
   };
-  // Lo que ha entrado de verdad: con movimiento, su importe; marcado a mano, lo previsto. Los traspasos no suman: no es dinero nuevo.
-  const entTotal=Math.round(flowsDone.reduce(function(a,x){ return x.kind==="income"?a+(x.paidAmount>0?x.paidAmount:Math.abs(x.amount)):a; },0)*100)/100;
+  const entTotal=Math.round(flowsDone.reduce(function(a,x){ return x.kind==="income"?a+entCifra(x):a; },0)*100)/100;
   const nPend=pack.pendingBills.length, nBills=nPend+pack.paidBills.length+pausados.length;
   const countLine=nPend>0
     ? tf(nPend===1?"pr6_count_one":"pr6_count",{n:nPend})+(v.week>0?" · "+tf("pr6_count_week",{n:v.week}):"")
@@ -2404,7 +2409,8 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
   const dms=function(x){ return dateMs(String(x.date).slice(0,10)); };
   // Lista para elegir a mano, más ancha que el casado solo, como la de un recibo (SPEC §2.6.3).
   const cands=pool.filter(function(x){
-    const d=recDay(x.date), a=Math.abs(Number(x.amount));
+    // En días de verdad: el adelanto del día 30 está a 2 días del 1, no «en otro mes».
+    const d=flowDiaRel(x,y,m), a=Math.abs(Number(x.amount));
     return (dayF==null||d==null||d>=dayF-7)&&Math.abs(a-target)<=Math.max(2,target*0.15);
   }).sort(function(a,b){ return Math.abs(Math.abs(a.amount)-target)-Math.abs(Math.abs(b.amount)-target); });
   const recientes=pool.filter(function(x){ return cands.indexOf(x)<0; }).sort(function(a,b){ return dms(b)-dms(a); }).slice(0,4);
@@ -2458,7 +2464,7 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
       React.createElement(Mono,{ent:b,size:38}),
       React.createElement("span",{className:"pr6-cand-t"},
         React.createElement("span",{className:"pr6-cand-n"}, reciboCargoTexto(x)||entOf(b).label),
-        React.createElement("span",{className:"pr6-cand-s"}, (recDay(x.date)||"")+" "+monthShort(m-1)+" · "+entOf(b).label)),
+        React.createElement("span",{className:"pr6-cand-s"}, (recDay(x.date)||"")+" "+monthShort((+String(x.date).slice(5,7)||m)-1)+" · "+entOf(b).label)),
       React.createElement("span",{className:"pr6-cand-a num"+(Number(x.amount)<0?" pos":"")}, (Number(x.amount)<0?"+":"")+eur(Math.abs(Number(x.amount)))),
       React.createElement("span",{className:"pr6-ring","aria-hidden":"true"},"✓"));
   };
@@ -2478,7 +2484,7 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
     React.createElement("div",{className:"pr6-ficha-h"},
       React.createElement("span",{className:"pr6-dt","aria-hidden":"true"},
         React.createElement("span",{className:"d serif num"}, (st.llego?st.day:dayF)||"—"),
-        React.createElement("span",{className:"m"}, monthShort(m-1))),
+        React.createElement("span",{className:"m"}, monthShort((st.llego&&st.mes||m)-1))),
       React.createElement("span",{className:"pr6-ficha-t"},
         React.createElement("span",{id:titleId,ref:titleRef,tabIndex:-1,className:"pr6-ficha-n"}, row.name),
         React.createElement("span",{className:"pr6-ficha-s"}, sub)),
@@ -2499,10 +2505,15 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
       React.createElement(Mono,{ent:movBanco,size:34}),
       React.createElement("span",{className:"pr6-cand-t"},
         React.createElement("span",{className:"pr6-cand-n"}, movTxt||entOf(movBanco).label),
-        React.createElement("span",{className:"pr6-cand-s"}, (st.day!=null?st.day+" "+monthShort(m-1)+" · ":"")+entOf(movBanco).label+(st.amount>0&&Math.round(st.amount*100)!==Math.round(target*100)?" · "+eur(st.amount):""))),
+        React.createElement("span",{className:"pr6-cand-s"}, (st.day!=null?st.day+" "+monthShort((st.mes||m)-1)+" · ":"")+entOf(movBanco).label+(st.amount>0&&Math.round(st.amount*100)!==Math.round(target*100)?" · "+eur(st.amount):""))),
       React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
     React.createElement("div",{className:"pr6-btns pr6-acts"},botones));
-  const lista=qq?encontrados:cands.concat(otros||!cands.length?recientes:[]);
+  /* Un traspaso tiene dos bancos (el que lo manda y el que lo recibe): «Otros movimientos de X» mentía
+     con filas del otro, y sin ninguno del importe enseñaba a la vista el agua y una compra con tarjeta
+     (su prueba de la 230). Ahí solo se ven las dos patas de importe parecido; lo demás, tras «Más
+     movimientos». Una entrada tiene un solo banco y sigue como estaba. */
+  const verOtros=otros||!tr&&!cands.length;
+  const lista=qq?encontrados:cands.concat(verOtros?recientes:[]);
   const elegirPanel=React.createElement("div",{className:"pr6-step"+(paso===1?" on":""),"aria-hidden":paso===1?null:"true",inert:paso===1?undefined:""},
     React.createElement("div",{className:"pr6-pick-h"},
       React.createElement("button",{type:"button",className:"pr6-back","aria-label":t("v4_back"),onClick:function(){ setPaso(0); }},"‹"),
@@ -2514,11 +2525,11 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
         React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
       React.createElement("input",{className:"pr6-mg-qi",type:"search",value:q,placeholder:t("pr6_buscar_cargo"),"aria-label":t("pr6_buscar_cargo"),
         onChange:function(e){ setQ(e.target.value); }})),
-    !qq&&!cands.length&&recientes.length>0&&React.createElement("div",{className:"pr6-lbl"}, tf("fl_otros",{bank:entOf(bank).label})),
+    !qq&&!cands.length&&recientes.length>0&&verOtros&&React.createElement("div",{className:"pr6-lbl"}, tr?t("fl_mas"):tf("fl_otros",{bank:entOf(bank).label})),
     React.createElement("div",{className:"pr6-cands","data-testid":"flujo-movs"}, lista.map(movRow)),
-    !lista.length&&React.createElement("div",{className:"pr6-empty"}, qq?tf("pr6_sin_resultados",{q:q.trim()}):tf("fl_sin_movs",{bank:entOf(bank).label})),
-    !qq&&cands.length>0&&recientes.length>0&&React.createElement("button",{type:"button",className:"pr6-more",onClick:function(){ setOtros(function(o){ return !o; }); }},
-      otros?t("fl_menos"):tf("fl_otros",{bank:entOf(bank).label})),
+    !lista.length&&React.createElement("div",{className:"pr6-empty"}, qq?tf("pr6_sin_resultados",{q:q.trim()}):tr&&recientes.length?t("fl_sin_parecidos"):tf("fl_sin_movs",{bank:entOf(bank).label})),
+    !qq&&(cands.length>0||tr)&&recientes.length>0&&React.createElement("button",{type:"button",className:"pr6-more","data-act":"mas-movs",onClick:function(){ setOtros(function(o){ return !o; }); }},
+      otros?t("fl_menos"):tr?t("fl_mas"):tf("fl_otros",{bank:entOf(bank).label})),
     !rechazo&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide","data-act":"a-mano",onClick:aMano},t(tr?"fl_otra_forma_tr":"fl_otra_forma")),
     rechazo&&React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-wide","data-act":"aun-no",onClick:aunNo},t("fl_aun_no")));
   return ReactDOM.createPortal(
