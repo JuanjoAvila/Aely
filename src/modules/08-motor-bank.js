@@ -793,10 +793,20 @@ function reciboNoPon(s,claves,vetar,ahora){
   claves.forEach(function(k){ at[k]=Math.max(ahora,(at[k]||0)+1); });
   return reciboNoTope(vetar?no.concat(claves):no,at);
 }
+/* Con más de RECIBO_NO_MAX se olvida lo más viejo, pero los alias de «Te deben» (`debenAlias|…`) van
+   los últimos en caer: son pocos, los confirmó él uno a uno y perderlos deja a una persona «pendiente»
+   sin que nada lo diga, mientras que un veto viejo de un cargo de hace meses ya no se vuelve a ver
+   (revisión de la 231). */
+function reciboNoEsAlias(k){ return String(k).indexOf("debenAlias|")===0; }
 function reciboNoTope(no,at){
   var claves=Object.keys(at);
-  if(claves.length>RECIBO_NO_MAX) claves.sort(function(a,b){ return at[b]-at[a]; }).slice(RECIBO_NO_MAX).forEach(function(k){ delete at[k]; });
-  return {reciboNo:no.slice(-RECIBO_NO_MAX),reciboNoAt:at};
+  if(claves.length>RECIBO_NO_MAX) claves.sort(function(a,b){ return (reciboNoEsAlias(b)-reciboNoEsAlias(a))||(at[b]-at[a]); }).slice(RECIBO_NO_MAX).forEach(function(k){ delete at[k]; });
+  if(no.length>RECIBO_NO_MAX){
+    var sobra=no.length-RECIBO_NO_MAX;
+    no=no.filter(function(k){ if(sobra>0&&!reciboNoEsAlias(k)){ sobra--; return false; } return true; });
+    if(no.length>RECIBO_NO_MAX) no=no.slice(-RECIBO_NO_MAX);
+  }
+  return {reciboNo:no,reciboNoAt:at};
 }
 function reciboNoUnion(local,nube){
   // La regla, clave a clave, es la misma de las lápidas: vive en `unionPorHora` (00-core).
@@ -1860,14 +1870,39 @@ function debenPorPrincipio(p,w,x,txt){
    («noraida ejemplo prat») queda como suyo y desde entonces casa por ese nombre exacto, sin depender
    del nombre abreviado. Viaja en `reciboNo` («debenAlias|persona|nombre», se une por hora entre
    móviles); deshacer el enlace o «No es este» lo quitan. Solo nombres de persona: dos palabras o más,
-   ni transferencia ni Bizum, ni empresa. */
+   ni transferencia ni Bizum, ni empresa, ni tu propio nombre (la regla del titular de «Te deben»). Y
+   solo de un ingreso que el banco llama transferencia o Bizum y de un comercio al que él no le haya
+   enseñado ya una categoría: eso es un comercio, no una persona (re-revisión de la 231). */
 const DEBEN_ALIAS="debenAlias";
-function debenAliasDe(s,pid){ const pre=DEBEN_ALIAS+"|"+pid+"|"; return ((s&&s.reciboNo)||[]).filter(function(k){ return k.indexOf(pre)===0; }).map(function(k){ return k.slice(pre.length); }); }
-function debenAliasValido(a){ const w=String(a||"").split(" ").filter(Boolean); return w.length>=2&&!TRASPASO_PALABRA.test(" "+a+" ")&&!/ bizum /.test(" "+a+" ")&&debenPersonaFisica(a); }
+// Por persona, sus alias; se calcula una vez por lista `reciboNo` (la leen todos los ingresos del mes).
+const debenAliasIdx=new WeakMap();
+function debenAliasDe(s,pid){
+  const no=s&&s.reciboNo;
+  if(!Array.isArray(no)||!no.length) return [];
+  let idx=debenAliasIdx.get(no);
+  if(!idx){
+    idx=new Map(); const pre=DEBEN_ALIAS+"|";
+    no.forEach(function(k){ if(String(k).indexOf(pre)!==0) return; const r=k.slice(pre.length), i=r.indexOf("|"); if(i<0) return; const p=r.slice(0,i); (idx.get(p)||idx.set(p,[]).get(p)).push(r.slice(i+1)); });
+    debenAliasIdx.set(no,idx);
+  }
+  return idx.get(String(pid))||[];
+}
+// Tu propio nombre (dos palabras del titular del perfil, o «yo mismo…»): la misma regla de `teDebenRecibido`.
+function debenEsTitular(s,txt){
+  const titular=recNorm(s&&s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
+  return DEBEN_PROPIO.test(txt)||titular.filter(function(w){ return txt.indexOf(" "+w+" ")>=0; }).length>=2;
+}
+function debenAliasValido(s,a){ const w=String(a||"").split(" ").filter(Boolean); return w.length>=2&&!TRASPASO_PALABRA.test(" "+a+" ")&&!/ bizum /.test(" "+a+" ")&&debenPersonaFisica(a)&&!debenEsTitular(s," "+a+" "); }
 function debenAprenderAlias(s,pid,x,on,ahora){
   const a=debenPagador(x);
-  if(!pid||!debenAliasValido(a)) return s;
+  if(!pid||!a) return s;
   const k=DEBEN_ALIAS+"|"+pid+"|"+a, ya=(s.reciboNo||[]).indexOf(k)>=0;
+  if(on){
+    const txt=" "+recNorm([x.merchant,x.obName,x.concept,x.note].join(" "))+" ";
+    const reglas=(typeof USER_CAT_RULES!=="undefined"&&USER_CAT_RULES)||{};
+    if(!debenAliasValido(s,a)||!TRASPASO_PALABRA.test(txt)&&!/ bizum /.test(txt)) return s;
+    if(reglas[catRuleKey(x)]||s.catOverrides&&s.catOverrides[catKey(x.merchant)]) return s;
+  }
   return ya===!!on?s:Object.assign({},s,reciboNoPon(s,[k],!!on,ahora||Date.now()));
 }
 /* ¿Este ingreso es de la persona `p` ({id, n, c, partes})? Su nombre entero como palabras; su alias;
@@ -1900,7 +1935,11 @@ function teDebenRecibido(s,y,m,personas,today){
     if(x){ if(delMes(x)) forz[String(x.id)]={pid:p.id,mano:true,row:x}; return; }
     if(l){ deEntrada.add(String(l.expenseId)); return; }
     const a=p&&flowLlegadaAMano(f,y,m)==null?flowFilaAuto(s,f,y,m,today):null;
-    if(a&&debenNombra(s,p,a,personas)&&delMes(a)&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
+    // Lo que coge sola, con el mismo filtro del titular que el camino normal: dos palabras de tu nombre
+    // que no son de la persona = dinero tuyo (re-revisión de la 231). Lo que él enlaza a mano, lo dijo él.
+    const wa=a&&debenNombre(p.n), ta=a&&" "+recNorm([a.merchant,a.obName,a.concept,a.note].join(" "))+" ";
+    const suyo=a&&titular.filter(function(k){ return (wa||[]).indexOf(k)<0&&ta.indexOf(" "+k+" ")>=0; }).length>=2;
+    if(a&&!suyo&&debenNombra(s,p,a,personas)&&delMes(a)&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
   });
   Object.keys(forz).forEach(function(id){
     const z=forz[id], e=z.row, ms=_pdMs(String(e.date||"").trim());

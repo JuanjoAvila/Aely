@@ -116,6 +116,27 @@ function suite(c){
     assert.equal(fila_(s,"gem").expenseId,"p1");
     assert.equal(fila_(s,"cla").expenseId,null,"«Clases» no lo coge también");
   });
+  caso("F5 · el alias no aprende tu nombre, ni lo que no es transferencia o Bizum, ni un comercio con categoría",()=>{
+    const fx=persona("pe_nana","Nana",5), s=estado({fixed:[fx],flows:[]});
+    const p=(merchant,note)=>fila("z1","sabadell","2026-11-06",-5,merchant,{note});
+    assert.equal(c.debenAprenderAlias(s,"pe_nana",p("Leo Sastre Ruano","ABONO TRANSFERENCIA"),true,1),s,"tu propio nombre");
+    assert.equal(c.debenAprenderAlias(s,"pe_nana",p("Noraida Ejemplo Prat","INGRESO EFECTIVO"),true,1),s,"no dice transferencia ni Bizum");
+    const conCat=Object.assign({},s,{catOverrides:{"noraida ejemplo prat":"ocio"}});
+    assert.equal(c.debenAprenderAlias(conCat,"pe_nana",p("Noraida Ejemplo Prat","ABONO TRANSFERENCIA"),true,1),conCat,"ya le enseñó una categoría: es un comercio");
+    const a=c.debenAprenderAlias(s,"pe_nana",p("Noraida Ejemplo Prat","ABONO TRANSFERENCIA"),true,1);
+    assert.notEqual(a,s);
+    assert.equal(c.debenAliasDe(a,"pe_nana"),c.debenAliasDe(a,"pe_nana"),"se calcula una vez por lista");
+    assert.deepEqual([...c.debenAliasDe(a,"pe_nana")],["noraida ejemplo prat"]);
+  });
+  caso("F6 · con la lista de vetos llena, el alias no cae antes que un veto viejo",()=>{
+    const fx=persona("pe_nana","Nana",5);
+    let s=c.debenAprenderAlias(estado({fixed:[fx],flows:[]}),"pe_nana",fila("z1","sabadell","2026-11-06",-5,"Noraida Ejemplo Prat",{note:"ABONO TRANSFERENCIA"}),true,1);
+    const vetos=Array.from({length:420},(_,i)=>"r"+i+"|x");
+    s=Object.assign({},s,c.reciboNoPon(s,vetos,true,10));
+    assert.ok(Array.from(s.reciboNo).length<=400);
+    assert.deepEqual([...c.debenAliasDe(s,"pe_nana")],["noraida ejemplo prat"],"sigue");
+    assert.ok(s.reciboNoAt["debenAlias|pe_nana|noraida ejemplo prat"]!=null,"y su hora también");
+  });
   caso("F4 · lo que no es un pago aunque diga «abono»",()=>{
     const s=t=>estado({flows:[],expenses:[fila("b1","sabadell","2026-11-06",-15,t)]});
     for(const t of ["ABONO RETROCESO BIZUM NORA EJEMPLO","ABONO PROMOCION NORA EJEMPLO","BIZUM RECHAZADO NORA EJEMPLO","ABONO BONIFICACION NORA EJEMPLO","TRANSFERENCIA CANCELADA NORA EJEMPLO"])
@@ -141,10 +162,16 @@ const MUTANTES=[
   ["nombre abreviado de una empresa",'&&debenPersonaFisica(q.join(" "))',''],
   ["nombre abreviado que es otro nombre de pila",'&&!DEBEN_NOMBRES.has(q[0])',''],
   ["sin alias",'return debenAliasDe(s,o.id).indexOf(pag)>=0||','return '],
-  ["alias de cualquier texto",'if(!pid||!debenAliasValido(a)) return s;','if(!pid) return s;'],
+  ["alias de cualquier texto",'if(!debenAliasValido(s,a)||','if('],
   ["la otra entrada no aparta el pago de la persona por su nombre abreviado",'return !!w&&debenNombra(s,p,x,ps)','return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })'],
   ["«retroceso», «promoción»… vuelven a ser pagos",'|retroceso|rechazo|rechazado|rechazada|cancelado|cancelada|cancelacion|','|'],
   ["«bonificación» vuelve a ser pago",'|promocion|bonificacion|','|promocion|'],
+  ["alias con tu nombre",'&&debenPersonaFisica(a)&&!debenEsTitular(s," "+a+" ")','&&debenPersonaFisica(a)'],
+  ["alias sin transferencia ni Bizum",'||!TRASPASO_PALABRA.test(txt)&&!/ bizum /.test(txt)) return s;',') return s;'],
+  ["alias de un comercio con categoría",'    if(reglas[catRuleKey(x)]||s.catOverrides&&s.catOverrides[catKey(x.merchant)]) return s;\n',''],
+  ["alias sin caché",'    debenAliasIdx.set(no,idx);\n',''],
+  ["el tope tira alias antes que vetos (hora)",'(reciboNoEsAlias(b)-reciboNoEsAlias(a))||',''],
+  ["el tope tira alias antes que vetos (lista)",'if(sobra>0&&!reciboNoEsAlias(k))','if(sobra>0)'],
 ];
 let muertos=0;
 for(const [nombre,de,a] of MUTANTES){

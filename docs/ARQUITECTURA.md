@@ -441,7 +441,8 @@ entrada (`flowLlegoIn`). Una entrada también acepta el ingreso del importe exac
 La ficha lo dice («Llegó a <banco> · Cambiar la cuenta», que abre la edición; nada cambia solo).
 «Te deben» casa una persona por su nombre entero, por un ALIAS que él confirmó al enlazar a mano un
 pago a su entrada gemela (`debenAprenderAlias`: «debenAlias|persona|nombre» en `reciboNo`, viaja y se
-une por hora) o por el nombre abreviado («Nora» → «Noraida …») con todas sus vallas: transferencia o
+une por hora; nunca su propio nombre, ni de un ingreso que no diga transferencia o Bizum, ni de un
+comercio con categoría aprendida; con `reciboNo` lleno, los alias son lo último que se olvida) o por el nombre abreviado («Nora» → «Noraida …») con todas sus vallas: transferencia o
 Bizum, nombre y dos apellidos, ni empresa ni comercio, la primera palabra no es otro nombre de pila,
 importe exacto de lo que debe o una parte y sin otra persona que case igual (`debenNombra`). La
 misma regla aparta ese ingreso de las demás entradas (`flowNombraPersona`). «Abono» a secas ya no es
