@@ -356,7 +356,10 @@ const PRESUPUESTO = {
   // Lo que entra y lo que mueves con el ciclo de un recibo (12/11/2026: enlace con Gastos, «Ya ha entrado», su
   // ficha y el alta por pasos, en tres idiomas) lleva el minificado a 1876 KiB sobre la 4.26.229. Es lógica de dinero
   // con su hoja; nada que recortar sin quitar el enlace. SUBE (mandato 11/10) a 1900 KiB; el gzip cabe en 520.
-  minificado: 1900 * 1024,
+  // 4.26.231 (13/11): traspasos propios, adelantos, gemelas de «Te deben», enlace con otro banco y el nombre
+  // abreviado con sus vallas (incluido el catálogo corto de nombres de pila) llenan los 1900. Es lógica de
+  // dinero ya revisada; SUBE (mandato 11/10) a 1920 KiB. El gzip sigue en su tope.
+  minificado: 1920 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
