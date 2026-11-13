@@ -264,22 +264,26 @@ function flowFilaCasa(s,f,x,y,m){
 /* Un ingreso que nombra a alguien con quien compartes un recibo es, antes que nada, su parte («Te
    deben», `teDebenRecibido`): el motor no se lo da a una entrada. Si él lo enlaza a mano, manda él
    y «Te deben» deja de contarlo (revisión de dinero del 12/11/2026: un movimiento, una cosa).
-   `salvo`: la persona de la que esa entrada ES la parte (`flowGemelaDe`): su pago sí es de ella. */
-function flowNombraPersona(s,x,salvo){
+   `salvo`: la persona de la que esa entrada ES la parte (`flowGemelaDe`): su pago sí es de ella.
+   Con la misma regla de nombre que «Te deben» (`debenNombra`: entero, alias o abreviado): si no, una
+   entrada se quedaba el ingreso que «Te deben» ya daba a esa persona por su nombre abreviado
+   (re-revisión de la 231). `ps`: las personas del mes (`teDebenPersonasMes`). */
+function flowNombraPersona(s,x,salvo,ps){
   const txt=" "+recNorm([x.merchant,x.obName,x.concept,x.note].join(" "))+" ";
   // Como en `teDebenRecibido`: dos palabras del titular que no son de la persona = es dinero tuyo.
   const titular=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
-  return personasDe(s).some(function(p){ const w=p.via!=="debt"&&p.id!==salvo&&debenNombre(p.n); return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })
+  return (ps||personasDe(s)).some(function(p){ // Con las personas del mes («Lo descuento» ya fuera) también cuenta quien paga por una deuda que no se descuenta.
+    const w=(!!ps||p.via!=="debt")&&p.id!==salvo&&debenNombre(p.n); return !!w&&debenNombra(s,p,x,ps)
     &&titular.filter(function(k){ return w.indexOf(k)<0&&txt.indexOf(" "+k+" ")>=0; }).length<2; });
 }
 function flowFilaAuto(s,f,y,m,today){
-  const gem=flowGemelaDe(s,f,y,m,today), ym=flowYm(y,m);
+  const ps=teDebenPersonasMes(s,y,m,today), gem=flowGemelaDe(s,f,y,m,today,ps), ym=flowYm(y,m);
   /* La gemela de alguien de «Te deben» solo se queda movimientos de SU mes: «Te deben» cuenta cada pago
      en el mes del movimiento, y el adelanto del 30 cogido por la entrada del día 2 lo daba por pagado en
      octubre Y en noviembre (re-revisión del 12/11/2026, P1-3). */
   // De otro banco solo si es el pago de SU persona (la nombra): un importe redondo cualquiera no lo es (231).
-  const pool=flowFilasElegibles(s,f,y,m,today).filter(function(x){ return flowFilaCasa(s,f,x,y,m)&&flowEsSuMes(f,x,y,m)&&!flowNombraPersona(s,x,gem&&gem.id)&&(!gem||String(x.date).slice(0,7)===ym)
-    &&(flowFilaEncaja(f,x)||!!gem&&debenNombra(gem,x,teDebenPersonasMes(s,y,m,today))); });
+  const pool=flowFilasElegibles(s,f,y,m,today).filter(function(x){ return flowFilaCasa(s,f,x,y,m)&&flowEsSuMes(f,x,y,m)&&!flowNombraPersona(s,x,gem&&gem.id,ps)&&(!gem||String(x.date).slice(0,7)===ym)
+    &&(flowFilaEncaja(f,x)||!!gem&&debenNombra(s,gem,x,ps)); });
   const llega=pool.filter(function(x){ return Number(x.amount)<0; });
   const c=f.kind==="transfer"&&llega.length?llega:pool;
   if(c.length!==1) return null;
@@ -1757,6 +1761,12 @@ function flowPagoGemela(s,f,y,m,today,p){
     .sort(function(a,b){ return String(a.id).localeCompare(String(b.id)); });
   const usados=new Set();
   gemelas.forEach(function(o){ const x=flowFilaEnlazada(s,o,y,m,today); if(x) usados.add(String(x.id)); });
+  // Y lo que otra entrada (no gemela de esta persona) coge sola: un movimiento acredita una sola cosa
+  // (re-revisión de la 231: «Clases» de Sabadell y la gemela de Trade Republic enseñaban el mismo pago).
+  (s.flows||[]).forEach(function(o){
+    if(!o||o.kind!=="income"||gemelas.indexOf(o)>=0||!flowOccursIn(o,m,y)||flowFilaEnlazada(s,o,y,m,today)) return;
+    const a=flowFilaAuto(s,o,y,m,today); if(a) usados.add(String(a.id));
+  });
   for(let i=0;i<gemelas.length;i++){
     const o=gemelas[i], want=Number(o.amount);
     if(flowFilaEnlazada(s,o,y,m,today)||flowLlegadaAMano(o,y,m)!=null) continue;
@@ -1807,27 +1817,70 @@ function teDebenRecibidoMes(s,y,m,today){
    importe, ±3 días) cuentan una vez; dos pagos de verdad iguales cuentan dos. Solo se lee: ningún
    gasto ni ingreso cambia, así que el total del mes no se mueve. */
 const DEBEN_PALABRAS_NO={de:1,del:1,la:1,las:1,el:1,los:1,da:1,do:1,dos:1,van:1,von:1};
-const DEBEN_NO_ES_PAGO=/ (devolucion|devoluciones|devuelto|devuelta|reembolso|retrocesion|anulacion|anulado|anulada|refund) | bizum a /;
+/* Lo que no es un pago aunque traiga su nombre. «Abono» a secas no está (ver arriba); sí lo que en
+   Sabadell y otros bancos acompaña a un abono que NO es su pago: un Bizum rechazado o retrocedido, una
+   operación cancelada, una promoción o bonificación (re-revisión de la 231). */
+const DEBEN_NO_ES_PAGO=/ (devolucion|devoluciones|devuelto|devuelta|reembolso|retrocesion|retroceso|rechazo|rechazado|rechazada|cancelado|cancelada|cancelacion|anulacion|anulado|anulada|promocion|bonificacion|refund) | bizum a /;
 const DEBEN_PROPIO=/ (yo mismo|mismo titular|cuenta propia) /;
 function debenNombre(n){
   const w=recNorm(n).split(" ").filter(function(x){ return x.length>=2&&!DEBEN_PALABRAS_NO[x]; });
   return w.some(function(x){ return x.length>=3; })?w:null;
 }
-/* ¿Este ingreso es de la persona `p` ({n, c, partes})? Su nombre entero como palabras; o, si la llamas
-   con una sola palabra de 3+ letras, como principio de la primera palabra de quien paga («Nora» →
-   «Noraida …») cuando el importe es EXACTAMENTE lo que debe o una de sus partes y ninguna otra persona
-   de `todas` casa también así. → true/false. */
-function debenNombra(p,x,todas){
+/* EL NOMBRE ABREVIADO, CON TODAS LAS VALLAS (re-revisión de la 231: «Mar» casaba con «MARKETPLACE
+   EJEMPLO SL», con «Maria …», «Pol» con «POLONIA TRAVEL» y «Sol» con «SOLRED SA»). Solo vale si:
+   el texto es una transferencia o un Bizum; quien paga tiene nombre y dos apellidos (la palabra que
+   empieza por el suyo y al menos dos más); no es una empresa ni un comercio; su primera palabra no es
+   otro nombre de pila conocido (Mar no es María); el importe es exactamente lo que debe o una de sus
+   partes; y ninguna otra persona del reparto encaja igual. Lo que no pase, se enlaza a mano una vez y
+   desde ahí casa por su ALIAS (`debenAliasDe`). */
+const DEBEN_JURIDICO={sl:1,sa:1,slu:1,sau:1,sll:1,slne:1,scp:1,cb:1,sc:1,coop:1,sccl:1,cia:1,ltd:1,gmbh:1,inc:1,llc:1,bv:1,nv:1,srl:1,sas:1,spa:1,ag:1,plc:1};
+const DEBEN_COMERCIO={travel:1,viajes:1,market:1,marketplace:1,shop:1,tienda:1,store:1,servicios:1,grupo:1,seguros:1,energia:1,gasolinera:1,banco:1,bank:1,pay:1,online:1,
+  restaurante:1,bar:1,hotel:1,club:1,asociacion:1,fundacion:1,ayuntamiento:1,consorcio:1,comunidad:1,academia:1,escuela:1,farmacia:1,clinica:1};
+const DEBEN_NOMBRES=new Set(("maria marta marina mariano marc marcos mario mar marisa mariona martin martina manuel manuela miguel mireia montse montserrat "+
+  "ana anabel andrea andres antonio antonia angel angela alba alberto alejandro alex alicia alvaro amparo ainhoa aitor adrian adriana "+
+  "pablo paula pau pol pedro pilar patricia paloma pere pep jose josep joan juan juana jordi jorge javier jaime julia julio judith "+
+  "carlos carla carmen carolina cristina cristian clara laura lucia luis luisa lorena lola elena eva emma enrique eduardo ester "+
+  "francisco francesc fernando felipe sergio sara silvia sofia sonia sol susana santiago raul ramon rosa ruben roberto rocio "+
+  "david daniel diana dolores irene isabel ivan ignacio ines nuria nerea noelia oscar olga victor vicente veronica teresa tomas xavier").split(" "));
+function debenPagador(x){ return recNorm(x&&x.obName!=null&&String(x.obName).trim()?x.obName:x&&x.merchant); }
+function debenPersonaFisica(t){
+  const w=String(t||"").split(" ").filter(Boolean);
+  return !w.some(function(k){ return DEBEN_JURIDICO[k]||DEBEN_COMERCIO[k]; });
+}
+function debenPorPrincipio(p,w,x,txt){
+  const c=Math.round(-Number(x.amount)*100);
+  if(w.length!==1||w[0].length<3||!(c===p.c||(p.partes||[]).indexOf(c)>=0)) return false;
+  if(!TRASPASO_PALABRA.test(txt)&&!/ bizum /.test(txt)) return false;
+  return [x.obName,x.merchant].some(function(t){
+    const q=recNorm(t).split(" ").filter(function(k){ return k&&!DEBEN_PALABRAS_NO[k]; });
+    return q.length>=3&&q[0].length>w[0].length&&q[0].indexOf(w[0])===0&&!DEBEN_NOMBRES.has(q[0])&&debenPersonaFisica(q.join(" "));
+  });
+}
+/* EL ALIAS QUE ÉL CONFIRMA: al enlazar a mano un pago a la entrada gemela de una persona, quien paga
+   («noraida ejemplo prat») queda como suyo y desde entonces casa por ese nombre exacto, sin depender
+   del nombre abreviado. Viaja en `reciboNo` («debenAlias|persona|nombre», se une por hora entre
+   móviles); deshacer el enlace o «No es este» lo quitan. Solo nombres de persona: dos palabras o más,
+   ni transferencia ni Bizum, ni empresa. */
+const DEBEN_ALIAS="debenAlias";
+function debenAliasDe(s,pid){ const pre=DEBEN_ALIAS+"|"+pid+"|"; return ((s&&s.reciboNo)||[]).filter(function(k){ return k.indexOf(pre)===0; }).map(function(k){ return k.slice(pre.length); }); }
+function debenAliasValido(a){ const w=String(a||"").split(" ").filter(Boolean); return w.length>=2&&!TRASPASO_PALABRA.test(" "+a+" ")&&!/ bizum /.test(" "+a+" ")&&debenPersonaFisica(a); }
+function debenAprenderAlias(s,pid,x,on,ahora){
+  const a=debenPagador(x);
+  if(!pid||!debenAliasValido(a)) return s;
+  const k=DEBEN_ALIAS+"|"+pid+"|"+a, ya=(s.reciboNo||[]).indexOf(k)>=0;
+  return ya===!!on?s:Object.assign({},s,reciboNoPon(s,[k],!!on,ahora||Date.now()));
+}
+/* ¿Este ingreso es de la persona `p` ({id, n, c, partes})? Su nombre entero como palabras; su alias;
+   o el nombre abreviado con sus vallas (`debenPorPrincipio`). Por alias o abreviado, solo si ninguna
+   otra persona de `todas` encaja igual. → true/false. */
+function debenNombra(s,p,x,todas){
   const w=debenNombre(p.n);
   if(!w) return false;
   const txt=" "+recNorm([x.merchant,x.obName,x.concept,x.note].join(" "))+" ";
   if(w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })) return true;
-  return debenPorPrincipio(p,w,x)&&!(todas||[]).some(function(o){ if(o.id===p.id) return false; const v=debenNombre(o.n); return !!v&&(v.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })||debenPorPrincipio(o,v,x)); });
-}
-function debenPorPrincipio(p,w,x){
-  const c=Math.round(-Number(x.amount)*100);
-  if(w.length!==1||w[0].length<3||!(c===p.c||(p.partes||[]).indexOf(c)>=0)) return false;
-  return [x.obName,x.merchant].some(function(t){ const q=recNorm(t).split(" ")[0]||""; return q.length>w[0].length&&q.indexOf(w[0])===0; });
+  const pag=debenPagador(x);
+  const por=function(o,v){ return debenAliasDe(s,o.id).indexOf(pag)>=0||debenPorPrincipio(o,v,x,txt); };
+  return por(p,w)&&!(todas||[]).some(function(o){ if(o.id===p.id) return false; const v=debenNombre(o.n); return !!v&&(v.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })||por(o,v)); });
 }
 function debenDia(ms){ return Math.floor((ms-new Date(ms).getTimezoneOffset()*6e4)/864e5); }
 function teDebenRecibido(s,y,m,personas,today){
@@ -1847,7 +1900,7 @@ function teDebenRecibido(s,y,m,personas,today){
     if(x){ if(delMes(x)) forz[String(x.id)]={pid:p.id,mano:true,row:x}; return; }
     if(l){ deEntrada.add(String(l.expenseId)); return; }
     const a=p&&flowLlegadaAMano(f,y,m)==null?flowFilaAuto(s,f,y,m,today):null;
-    if(a&&debenNombra(p,a,personas)&&delMes(a)&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
+    if(a&&debenNombra(s,p,a,personas)&&delMes(a)&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
   });
   Object.keys(forz).forEach(function(id){
     const z=forz[id], e=z.row, ms=_pdMs(String(e.date||"").trim());
@@ -1864,7 +1917,7 @@ function teDebenRecibido(s,y,m,personas,today){
     if(d.getFullYear()!==y||d.getMonth()+1!==m||expenseIsTombstoned(e,deleted)) return;
     const txt=" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ";
     if(DEBEN_NO_ES_PAGO.test(txt)||DEBEN_PROPIO.test(txt)) return;
-    const quien=nombres.filter(function(x){ return debenNombra(x.p,e,personas); });
+    const quien=nombres.filter(function(x){ return debenNombra(s,x.p,e,personas); });
     if(quien.length!==1) return;
     const suyas=quien[0].w;
     if(titular.filter(function(w){ return suyas.indexOf(w)<0&&txt.indexOf(" "+w+" ")>=0; }).length>=2) return;

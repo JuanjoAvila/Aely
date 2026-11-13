@@ -190,4 +190,10 @@ test("231: el importe exacto que llegó por otro banco se puede elegir", async (
   await expect(ficha).toHaveCount(0);
   await expect(ent.locator('[data-flujo="flow_cla"]')).toContainText("movimiento de Sabadell");
   await expect.poll(() => page.evaluate(() => loadState().flows.find((f) => f.id === "cla").paidYm)).toBe(undefined);
+  // La ficha dice que llegó a otro banco y ofrece cambiar la cuenta de la entrada (sin cambiarla sola).
+  await ent.locator('[data-flujo="flow_cla"]').click();
+  await expect(ficha.getByTestId("flujo-otro-banco")).toContainText("Llegó a Sabadell");
+  await expect.poll(() => page.evaluate(() => loadState().flows.find((f) => f.id === "cla").to)).toBe("revolut");
+  await ficha.locator('[data-act="cambiar-cuenta"]').click();
+  await expect(page.locator('.v4-sheet[data-sheet="recibo-pasos"]')).toHaveAttribute("data-modo", "edit");
 });

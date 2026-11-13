@@ -262,7 +262,7 @@ const MUTANTES=[
   ["B · «No es este» veta en el extracto del mes de la entrada",'!==(fecha?fecha.slice(0,7):flowYm(y,m))) return;','!==flowYm(y,m)) return;'],
   ["C · la gemela no puede coger el pago de su persona",'p.id!==salvo&&',''],
   ["C · lo enlazado a la gemela no paga a la persona",'if(x){ if(delMes(x)) forz[String(x.id)]={pid:p.id,mano:true,row:x}; return; }','if(x){ return; }'],
-  ["C · lo que la gemela coge sola paga aunque no la nombre",'if(a&&debenNombra(p,a,personas)&&','if(a&&'],
+  ["C · lo que la gemela coge sola paga aunque no la nombre",'if(a&&debenNombra(s,p,a,personas)&&','if(a&&'],
   ["C · la entrada no enseña el pago que casó «Te deben»",'  if(pago) return fila(pago,true);\n',''],
   ["C · gemela con cualquier importe",'(quien[0].c===c||quien[0].partes.indexOf(c)>=0)','true'],
   ["C · lo enlazado de otro mes paga también este",'if(x){ if(delMes(x)) forz','if(x){ if(true) forz'],

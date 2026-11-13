@@ -2439,7 +2439,11 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
     mcTickHaptic();
     setTimeout(function(){
       const antes=state;
-      const enlaza=function(s){ const u=rechazo?flowDesenlazar(s,f.id,y,m,today):s; return flowEnlazar(u,f.id,x.id,y,m,today); };
+      /* Enlazar a mano un pago a la gemela de una persona le enseña su nombre en el banco (`debenAprenderAlias`):
+         desde entonces casa sola aunque el banco la llame de otra forma; «No es este» y Deshacer lo olvidan. */
+      const gem=flowGemelaDe(antes,f,y,m,today), viejo=rechazo&&gem&&st.expense?st.expense:null;
+      const aprende=!!gem&&debenAprenderAlias(antes,gem.id,x,true)!==antes;
+      const enlaza=function(s){ let u=rechazo?flowDesenlazar(s,f.id,y,m,today):s; if(viejo) u=debenAprenderAlias(u,gem.id,viejo,false); u=flowEnlazar(u,f.id,x.id,y,m,today); return gem?debenAprenderAlias(u,gem.id,x,true):u; };
       const prueba=enlaza(antes);
       const tras0=flowEstadoMes(prueba,prueba.flows.find(function(o){ return o.id===f.id; }),y,m,today);
       if(prueba===antes||!(tras0.expense&&tras0.expense.id===x.id)){
@@ -2448,7 +2452,7 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
       // Deshacer repone la foto de antes (llegada, ancla y vetos), no veta: eso es «No es este».
       const tras=llegadaDe(prueba), foto=flowFoto(antes,f.id,y,m), fotoTras=flowFoto(prueba,f.id,y,m);
       set(enlaza);
-      avisa(tf(tras0.llego?"fl_entrado_toast":"fl_enlazado_toast",{name:row.name}),function(){ set(function(s){ return llegadaDe(s)===tras?flowDeshacer(s,f.id,y,m,foto,fotoTras):s; }); });
+      avisa(tf(tras0.llego?"fl_entrado_toast":"fl_enlazado_toast",{name:row.name}),function(){ set(function(s){ if(llegadaDe(s)!==tras) return s; const u=flowDeshacer(s,f.id,y,m,foto,fotoTras); return aprende?debenAprenderAlias(u,gem.id,x,false):u; }); });
       swipe.close();
     },260);
   };
@@ -2466,7 +2470,8 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
   };
   // «Aún no ha llegado» tras «No es este»: el movimiento queda apartado y la entrada vuelve a esperar.
   const aunNo=function(){
-    set(function(s){ return flowDesenlazar(s,f.id,y,m,today); });
+    const gem=flowGemelaDe(state,f,y,m,today), viejo=st.expense||null;
+    set(function(s){ const u=flowDesenlazar(s,f.id,y,m,today); return gem&&viejo?debenAprenderAlias(u,gem.id,viejo,false):u; });
     if(showToast) showToast(tf("fl_vuelve_toast",{name:row.name}));
     swipe.close();
   };
@@ -2519,6 +2524,12 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
         React.createElement("span",{className:"pr6-cand-n"}, movTxt||entOf(movBanco).label),
         React.createElement("span",{className:"pr6-cand-s"}, (st.day!=null?st.day+" "+monthShort((st.mes||m)-1)+" · ":"")+entOf(movBanco).label+(st.amount>0&&Math.round(st.amount*100)!==Math.round(target*100)?" · "+eur(st.amount):""))),
       React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
+    /* Lo enlazado llegó a OTRO banco que el de la entrada: el saldo de la entrada lo sigue esperando en el
+       suyo y el otro ya lo trae. No se cambia solo (la cuenta la eligió él): se dice y se ofrece cambiarla
+       (re-revisión de la 231). */
+    !tr&&st.expense&&st.bank&&st.bank!==entra&&React.createElement("div",{className:"pr6-nota","data-testid":"flujo-otro-banco"},
+      tf("fl_otro_banco",{bank:entOf(st.bank).label})+" · ",
+      React.createElement("button",{type:"button",className:"pr6-link","data-act":"cambiar-cuenta",onClick:function(){ onEdit(f.id); }},t("fl_cambiar_cuenta"))),
     React.createElement("div",{className:"pr6-btns pr6-acts"},botones));
   /* Un traspaso tiene dos bancos (el que lo manda y el que lo recibe): «Otros movimientos de X» mentía
      con filas del otro, y sin ninguno del importe enseñaba a la vista el agua y una compra con tarjeta

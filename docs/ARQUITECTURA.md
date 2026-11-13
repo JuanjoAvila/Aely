@@ -438,9 +438,15 @@ que la acredita (enlazado a mano, o el que coge sola si el banco nombra a la per
 y el pago que «Te deben» casó acredita a la entrada (`flowPagoGemela`); el saldo sigue solo con la
 entrada (`flowLlegoIn`). Una entrada también acepta el ingreso del importe exacto en otro banco tuyo
 (`flowFilaOtroBanco`, 231): a mano siempre, solo si es el pago de su persona gemela, y nunca ancla.
-«Te deben» casa el nombre abreviado («Nora» → «Noraida …») solo con el importe exacto de lo que debe
-o una parte y sin otra persona que case igual (`debenNombra`); «abono» a secas ya no es devolución
-(en Sabadell es cualquier transferencia recibida). Las entradas y traspasos del día 1 a 7 aceptan el adelanto del mes anterior
+La ficha lo dice («Llegó a <banco> · Cambiar la cuenta», que abre la edición; nada cambia solo).
+«Te deben» casa una persona por su nombre entero, por un ALIAS que él confirmó al enlazar a mano un
+pago a su entrada gemela (`debenAprenderAlias`: «debenAlias|persona|nombre» en `reciboNo`, viaja y se
+une por hora) o por el nombre abreviado («Nora» → «Noraida …») con todas sus vallas: transferencia o
+Bizum, nombre y dos apellidos, ni empresa ni comercio, la primera palabra no es otro nombre de pila,
+importe exacto de lo que debe o una parte y sin otra persona que case igual (`debenNombra`). La
+misma regla aparta ese ingreso de las demás entradas (`flowNombraPersona`). «Abono» a secas ya no es
+devolución (en Sabadell es cualquier transferencia recibida); sí retroceso, rechazo, cancelación,
+promoción o bonificación. Las entradas y traspasos del día 1 a 7 aceptan el adelanto del mes anterior
 dentro de sus 7 días (`flowFilasElegibles`, `flowEsSuMes`), solo para lo que se ve: el ancla del saldo
 es del mismo mes. No hay lista de personas
 aparte: viven en las partes de los recibos (`personasDe`), dentro de `state.fixed`. El reparto

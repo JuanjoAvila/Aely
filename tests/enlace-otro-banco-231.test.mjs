@@ -78,6 +78,50 @@ function suite(c){
     assert.equal(fila_(s,"ent").expenseId,null);
     assert.equal(nora(s).pagado,false);
   });
+  /* ---------- Re-revisión de la 231 ---------- */
+  const persona=(id,n,amt)=>({id:"r_"+id,name:"Recibo "+n,amount:10,bankAmount:10+amt,freq:"mes",day:2,account:"sabadell",reparto:[{id,n,via:"transfer",amt}]});
+  const debe=(s,id)=>c.teDebenMes(s,Y,M,HOY).find(x=>x.id===id);
+  caso("F1 · el nombre abreviado no casa con comercios, empresas, otra gente ni sin transferencia",()=>{
+    const solo=(n,merchant,extra)=>estado({fixed:[persona("pe_x",n,5)],flows:[],expenses:[fila("z1","sabadell","2026-11-06",-5,merchant,Object.assign({concept:"TRANSFERENCIA"},extra||{}))]});
+    assert.equal(debe(solo("Mar","MARKETPLACE EJEMPLO SL"),"pe_x").recibido,0,"empresa");
+    assert.equal(debe(solo("Mar","Maria Lopez Gil"),"pe_x").recibido,0,"otra persona: María no es Mar");
+    assert.equal(debe(solo("Pol","POLONIA TRAVEL"),"pe_x").recibido,0,"comercio");
+    assert.equal(debe(solo("Sol","SOLRED SA",{concept:"ABONO"}),"pe_x").recibido,0,"reembolso de combustible");
+    assert.equal(debe(solo("Nora","Noraida Prat"),"pe_x").recibido,0,"sin dos apellidos");
+    assert.equal(debe(solo("Nora","Noraida Ejemplo Prat",{concept:"INGRESO EFECTIVO"}),"pe_x").recibido,0,"no es transferencia ni Bizum");
+    assert.equal(debe(solo("Nora","Noraida Ejemplo Prat"),"pe_x").recibido,5,"y con todo en regla, sí");
+  });
+  caso("F2 · lo que él enlaza a la gemela le enseña el nombre: desde ahí casa por alias",()=>{
+    const ENT2={id:"en2",kind:"income",name:"Vídeo Nana",amount:5,to:"trade_republic",day:1};
+    const fx=persona("pe_nana","Nana",5), pago=fila("z1","sabadell","2026-11-06",-5,"Noraida Ejemplo Prat",{note:"ABONO TRANSFERENCIA"});
+    const s=estado({fixed:[fx],flows:[ENT2],expenses:[pago]});
+    assert.equal(debe(s,"pe_nana").recibido,0,"«Nana» no es principio de «Noraida»");
+    const a=c.debenAprenderAlias(s,"pe_nana",pago,true,1);
+    assert.equal(debe(a,"pe_nana").pagado,true,"con el alias, sí");
+    // El mes siguiente también, y otro nombre no.
+    const dic=Object.assign({},a,{expenses:[fila("z2","sabadell","2026-12-05",-5,"Noraida Ejemplo Prat",{note:"ABONO TRANSFERENCIA"}),fila("z3","sabadell","2026-12-05",-5,"Otra Ejemplo Prat",{note:"ABONO TRANSFERENCIA"})]});
+    const d=c.teDebenMes(dic,Y,12,10).find(x=>x.id==="pe_nana");
+    assert.deepEqual([...d.ingresos],["z2"]);
+    assert.equal(debe(c.debenAprenderAlias(a,"pe_nana",pago,false,2),"pe_nana").recibido,0,"y olvidarlo lo quita");
+    assert.equal(c.debenAprenderAlias(s,"pe_nana",fila("z4","sabadell","2026-11-06",-5,"BIZUM RECIBIDO"),true,1),s,"un texto genérico no es un alias");
+    // El mismo alias en dos personas no decide.
+    const ambas=c.debenAprenderAlias(Object.assign({},a,{fixed:[fx,persona("pe_otra","Otra",5)]}),"pe_otra",pago,true,3);
+    assert.equal(debe(ambas,"pe_nana").recibido,0);
+  });
+  caso("F3 · un movimiento, una cosa: la entrada de otro banco no se queda el pago que «Te deben» da a la persona",()=>{
+    const GEM={id:"gem",kind:"income",name:"Vídeo Nora",amount:5,to:"trade_republic",day:1};
+    const CLA={id:"cla",kind:"income",name:"Clases",amount:5,to:"sabadell",day:6};
+    const s=estado({fixed:[persona("pe_nora","Nora",5)],flows:[GEM,CLA],expenses:[fila("p1","sabadell","2026-11-06",-5,"Noraida Ejemplo Prat",{note:"ABONO TRANSFERENCIA"})]});
+    assert.equal(debe(s,"pe_nora").pagado,true);
+    assert.equal(fila_(s,"gem").expenseId,"p1");
+    assert.equal(fila_(s,"cla").expenseId,null,"«Clases» no lo coge también");
+  });
+  caso("F4 · lo que no es un pago aunque diga «abono»",()=>{
+    const s=t=>estado({flows:[],expenses:[fila("b1","sabadell","2026-11-06",-15,t)]});
+    for(const t of ["ABONO RETROCESO BIZUM NORA EJEMPLO","ABONO PROMOCION NORA EJEMPLO","BIZUM RECHAZADO NORA EJEMPLO","ABONO BONIFICACION NORA EJEMPLO","TRANSFERENCIA CANCELADA NORA EJEMPLO"])
+      assert.equal(nora(s(t)).recibido,0,t);
+    assert.equal(nora(s("ABONO TRANSFERENCIA NORA EJEMPLO")).pagado,true);
+  });
   return fallos;
 }
 
@@ -88,11 +132,19 @@ console.log("enlace-otro-banco-231: casos OK");
 const MUTANTES=[
   ["solo el banco de la entrada",'flowFilaLibre(x,deleted)&&flowFilaEncajaO(f,x)) out.push(x);\n  });\n  const planned','flowFilaLibre(x,deleted)&&flowFilaEncaja(f,x)) out.push(x);\n  });\n  const planned'],
   ["otro banco con cualquier importe",'&&Math.round(-a*100)===Math.round(Number(f.amount)*100);','&&true;'],
-  ["la entrada coge sola de otro banco sin que nombre a su persona",'\n    &&(flowFilaEncaja(f,x)||!!gem&&debenNombra(gem,x,teDebenPersonasMes(s,y,m,today)))',''],
+  ["la entrada coge sola de otro banco sin que nombre a su persona",'\n    &&(flowFilaEncaja(f,x)||!!gem&&debenNombra(s,gem,x,ps))',''],
   ["«abono» vuelve a ser devolución",'devuelta|reembolso','devuelta|abono|reembolso'],
-  ["sin nombre abreviado",'q.indexOf(w[0])===0','false'],
+  ["sin nombre abreviado",'q[0].indexOf(w[0])===0','false'],
   ["nombre abreviado con cualquier importe",'!(c===p.c||(p.partes||[]).indexOf(c)>=0)','false'],
-  ["nombre abreviado aunque case otra persona",'(todas||[]).some(function(o){ if(o.id===p.id) return false;','[].some(function(o){ if(o.id===p.id) return false;'],
+  ["nombre abreviado sin transferencia ni Bizum",'if(!TRASPASO_PALABRA.test(txt)&&!/ bizum /.test(txt)) return false;',''],
+  ["nombre abreviado sin apellidos",'return q.length>=3&&q[0]','return q[0]'],
+  ["nombre abreviado de una empresa",'&&debenPersonaFisica(q.join(" "))',''],
+  ["nombre abreviado que es otro nombre de pila",'&&!DEBEN_NOMBRES.has(q[0])',''],
+  ["sin alias",'return debenAliasDe(s,o.id).indexOf(pag)>=0||','return '],
+  ["alias de cualquier texto",'if(!pid||!debenAliasValido(a)) return s;','if(!pid) return s;'],
+  ["la otra entrada no aparta el pago de la persona por su nombre abreviado",'return !!w&&debenNombra(s,p,x,ps)','return !!w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })'],
+  ["«retroceso», «promoción»… vuelven a ser pagos",'|retroceso|rechazo|rechazado|rechazada|cancelado|cancelada|cancelacion|','|'],
+  ["«bonificación» vuelve a ser pago",'|promocion|bonificacion|','|promocion|'],
 ];
 let muertos=0;
 for(const [nombre,de,a] of MUTANTES){
