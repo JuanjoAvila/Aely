@@ -127,6 +127,22 @@ test("cada toque filtra en vivo y «Ver N» cuadra con la lista; Restablecer vue
   await expect(hoja(page)).toHaveCount(0);
   await expect(tarjetas(page)).toHaveCount(3);
   await expect(botonFiltros(page).getByTestId("gastos-filtros-globo")).toHaveText("1");
+  // El globo se ve ENTERO (captura del dueño 2026-11-13: salía cortado por arriba y por la derecha). Sin fijarse en
+  // quién recorta: en las cuatro puntas de su caja, lo que hay encima ha de ser el propio globo, y la caja no sale del viewport.
+  const recorte = await page.evaluate(() => {
+    const el0 = document.querySelector('[data-testid="gastos-filtros-globo"]');
+    const g = el0.getBoundingClientRect();
+    const fuera = [];
+    if (g.top < 0 || g.left < 0 || g.right > innerWidth || g.bottom > innerHeight) fuera.push("viewport");
+    const k = 0.3 * g.width / 2;
+    const cx = (g.left + g.right) / 2, cy = (g.top + g.bottom) / 2, r = g.width / 2;
+    for (const [dx, dy] of [[0, -1], [1, 0], [-1, 0], [0, 1], [0.7, -0.7], [-0.7, -0.7]]) {
+      const top = document.elementFromPoint(cx + dx * (r - 1.5), cy + dy * (r - 1.5));
+      if (top !== el0) fuera.push("punto " + dx + "," + dy + " tapado por " + (top && (top.className || top.tagName)));
+    }
+    return fuera;
+  });
+  expect(recorte, "partes del globo recortadas").toEqual([]);
   await expect(botonFiltros(page)).toHaveText("1");
   await expect(botonFiltros(page)).toHaveClass(/\bon\b/);
 
