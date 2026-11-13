@@ -1614,6 +1614,8 @@
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
   .gx-filter-btn{position:relative;flex:0 0 46px;width:46px;height:46px;padding:0;border-radius:23px;box-sizing:border-box;
     display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;}
+  /* Último de su fila: con el globo a -3px lo recortaba por arriba y por la derecha (captura del dueño 2026-11-13). Dentro del botón no hay borde que lo corte. */
+  .gx-filter-btn .gx-sec-globo{top:2px;right:2px;}
   .gx-filter-btn.on{border-color:var(--mint-deep);background:color-mix(in srgb,var(--mint) 16%,var(--surface));color:var(--mint);}
   .gx-filter-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   /* Categorías (SPEC §5): la lista en una tarjeta, cada fila con su barra. */
