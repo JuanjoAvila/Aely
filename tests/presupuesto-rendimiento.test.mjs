@@ -396,7 +396,10 @@ const PRESUPUESTO = {
   // corto por 252 B: 393 KiB (quedan 772 B); el crudo cabe en 1413 KiB con 294 B.
   // Integración 4.26.159 (con fin23-24): 1418 KiB minificado y 394 KiB gzip medidos en local; el gzip queda a 1 KiB. SUBE por producto: gzip 396 KiB (el minificado conserva 3 KiB de margen).
   // Mismo motivo que el minificado (Plan Recibos v6): 428 KiB medidos en la 188, tope con ~5 % de holgura.
-  gzip: 520 * 1024, // 4.26.212: ver el comentario de minificado (488 KiB medidos).
+  // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
+  // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
+  // dueño; SUBE (mandato 11/10) a 524 KiB.
+  gzip: 524 * 1024, // 4.26.212: ver el comentario de minificado (488 KiB medidos).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
