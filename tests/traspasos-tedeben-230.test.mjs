@@ -105,11 +105,21 @@ function suite(c){
     assert.equal(hecho(pack(s,12),"eal").expenseId,"a1");
     assert.equal(otto(s,12).pagado,true,"el mismo movimiento paga a Otto");
   });
-  caso("C2b · y si el banco lo llama «abono» (lo que «Te deben» descarta por si es una devolución), igual",()=>{
+  caso("C2b · y si el banco lo llama «abono» (en Sabadell, cualquier transferencia recibida), igual",()=>{
     const s=estado({fixed:[YT],flows:[ENT_OTTO],expenses:[fila("a1","sabadell","2026-11-11",-5,"TRANSFERENCIA OTTO DEL PINO",{note:"ABONO TRANSFERENCIA"})]});
     dia(12);
     assert.equal(hecho(pack(s,12),"eal").expenseId,"a1");
     assert.equal(otto(s,12).pagado,true);
+  });
+  // Desde la 231 «abono» ya no aparta el pago de «Te deben», así que C2b lo coge «Te deben»: lo que
+  // vigila que la gemela pueda quedarse un ingreso que nombra a SU persona es un pago que «Te deben»
+  // tiene vetado (él deshizo su casado): la entrada sigue con él (decisión abierta de la 230).
+  caso("C2c · la gemela coge el ingreso que nombra a su persona aunque «Te deben» lo tenga vetado",()=>{
+    const yt=Object.assign({},YT,{repartoCobrado:{[Y*12+M]:["!pe_otto:a1"]}});
+    const s=estado({fixed:[yt],flows:[ENT_OTTO],expenses:[fila("a1","sabadell","2026-11-11",-5,"TRANSFERENCIA OTTO DEL PINO")]});
+    dia(12);
+    assert.equal(otto(s,12).pagado,false);
+    assert.equal(hecho(pack(s,12),"eal").expenseId,"a1");
   });
   caso("C3 · un pago a medias: «Te deben» dice lo que falta y la entrada enseña ese movimiento y su cifra",()=>{
     const s=estado({fixed:[YT],flows:[ENT_OTTO],expenses:[fila("a1","sabadell","2026-11-10",-3.8,"TRANSFERENCIA OTTO DEL PINO")]});
@@ -252,7 +262,7 @@ const MUTANTES=[
   ["B · «No es este» veta en el extracto del mes de la entrada",'!==(fecha?fecha.slice(0,7):flowYm(y,m))) return;','!==flowYm(y,m)) return;'],
   ["C · la gemela no puede coger el pago de su persona",'p.id!==salvo&&',''],
   ["C · lo enlazado a la gemela no paga a la persona",'if(x){ if(delMes(x)) forz[String(x.id)]={pid:p.id,mano:true,row:x}; return; }','if(x){ return; }'],
-  ["C · lo que la gemela coge sola paga aunque no la nombre",'if(a&&w&&w.every(function(k){ return txt.indexOf(" "+k+" ")>=0; })&&','if(a&&'],
+  ["C · lo que la gemela coge sola paga aunque no la nombre",'if(a&&debenNombra(p,a,personas)&&','if(a&&'],
   ["C · la entrada no enseña el pago que casó «Te deben»",'  if(pago) return fila(pago,true);\n',''],
   ["C · gemela con cualquier importe",'(quien[0].c===c||quien[0].partes.indexOf(c)>=0)','true'],
   ["C · lo enlazado de otro mes paga también este",'if(x){ if(delMes(x)) forz','if(x){ if(true) forz'],

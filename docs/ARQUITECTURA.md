@@ -436,7 +436,11 @@ gasto ni ingreso. Una entrada prevista (`flows`, income) cuyo nombre lleva el de
 importe es lo que debe ese mes o una de sus partes es su gemela (`flowGemelaDe`, 230): el movimiento
 que la acredita (enlazado a mano, o el que coge sola si el banco nombra a la persona) paga a la persona,
 y el pago que «Te deben» casó acredita a la entrada (`flowPagoGemela`); el saldo sigue solo con la
-entrada (`flowLlegoIn`). Las entradas y traspasos del día 1 a 7 aceptan el adelanto del mes anterior
+entrada (`flowLlegoIn`). Una entrada también acepta el ingreso del importe exacto en otro banco tuyo
+(`flowFilaOtroBanco`, 231): a mano siempre, solo si es el pago de su persona gemela, y nunca ancla.
+«Te deben» casa el nombre abreviado («Nora» → «Noraida …») solo con el importe exacto de lo que debe
+o una parte y sin otra persona que case igual (`debenNombra`); «abono» a secas ya no es devolución
+(en Sabadell es cualquier transferencia recibida). Las entradas y traspasos del día 1 a 7 aceptan el adelanto del mes anterior
 dentro de sus 7 días (`flowFilasElegibles`, `flowEsSuMes`), solo para lo que se ve: el ancla del saldo
 es del mismo mes. No hay lista de personas
 aparte: viven en las partes de los recibos (`personasDe`), dentro de `state.fixed`. El reparto

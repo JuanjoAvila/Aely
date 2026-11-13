@@ -170,3 +170,24 @@ test("230: el adelanto del 30 se enlaza solo, el selector de un traspaso no mezc
   await ficha.locator('[data-act="mas-movs"]').click();
   await expect(movs.locator('[data-cargo="agua"]')).toBeVisible();
 });
+
+/* Su prueba de la 4.26.231 (13/11/2026), con datos inventados: la entrada está en Trade Republic y el
+   dinero llegó por Sabadell. El ingreso del importe exacto de otro banco tuyo sale arriba para elegirlo
+   (sin anclar nada), aunque no case solo. */
+test("231: el importe exacto que llegó por otro banco se puede elegir", async ({ page }) => {
+  const recibos = await abre(page, {
+    flows: [{ id: "cla", kind: "income", name: "Clases", amount: 20, to: "revolut", day: 10 }],
+    expenses: [mov("aca", "sabadell", "2026-11-09", -20, "ACADEMIA EJEMPLO"), mov("otro", "revolut", "2026-11-12", -3, "INTERES")] });
+  const ent = recibos.getByTestId("plan-entrado");
+  await ent.locator(".pr6-paid-h").click();
+  await ent.locator('[data-flujo="flow_cla"]').click();
+  const ficha = page.locator('.v4-sheet[data-sheet="flujo"]');
+  await ficha.locator('[data-act="elegir"]').click();
+  const primero = ficha.getByTestId("flujo-movs").locator(".pr6-cand").first();
+  await expect(primero).toHaveAttribute("data-cargo", "aca");
+  await expect(primero).toContainText("Sabadell");
+  await primero.click();
+  await expect(ficha).toHaveCount(0);
+  await expect(ent.locator('[data-flujo="flow_cla"]')).toContainText("movimiento de Sabadell");
+  await expect.poll(() => page.evaluate(() => loadState().flows.find((f) => f.id === "cla").paidYm)).toBe(undefined);
+});
