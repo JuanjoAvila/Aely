@@ -6359,6 +6359,8 @@ const sourceBeta230=sourceAt("925a876ff7817a6319257c71f1e0d2467cc75f1b");
 // Catálogo231 pasa a histórico con la 232: se lee de la 4.26.231 servida en beta (85e2d6d19, sin APK nueva, sigue la 64). Su tanda
 // (plan-gastos-231) no tuvo veredicto: la 232 la sustituye por plan-gastos-232, que la cubre con lo nuevo.
 const sourceBeta231=sourceAt("85e2d6d194b847f8e02e9d93115a996be51febce");
+// Catálogo232 pasa a histórico con la promoción 232: se lee de la beta 4.26.232 servida y aprobada (8d82bb729), lo último que probó el móvil y lo que sube entero.
+const sourceBeta232=sourceAt("8d82bb729a14780950f45fd1d870f8d9c0cb88fb");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -6561,11 +6563,11 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
 // (claude/231-globo-filtro) y «Ver menos» que sube con la cifra del resumen siempre visible (claude/231-ver-menos). plan-gastos-231
 // se retira con tandas: [] y UNA tanda, plan-gastos-232, la cubre con lo nuevo. Registro: un descriptor nuevo, el último; los
 // anteriores solo crecen por el final con el cierre de lectores exacto (sin reanclas ni funciones borradas).
-test("Catálogo232 sustituye plan-gastos-231 por plan-gastos-232 (con tandas: []) y hace crecer el registro con el cierre de lectores",()=>{
+test("Catálogo232 histórico sustituye plan-gastos-231 por plan-gastos-232 (con tandas: []) y hace crecer el registro con el cierre de lectores",()=>{
   const nueva="plan-gastos-232";
   const V14="src/modules/14-v4-screens.js",V02="src/modules/02-ui-shared.js",V08="src/modules/08-motor-bank.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta231("scripts/beta-sources.json")),before=JSON.parse(sourceBeta231("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta231(f));
+  const source=f=>nl(sourceBeta232(f)),old=f=>nl(sourceBeta231(f));
   assert.equal(before[0].v,"4.26.231");
   const retiradas=before.flatMap(n=>(n.tandas||[]).map(g=>g.id));
   assert.deepEqual(retiradas,["plan-gastos-231"]);
@@ -8655,6 +8657,69 @@ test("Promoción198 muestra una nota y el historial de producción, retira todas
   for(const id of entregadas){
     const delivered=betaRevision(id,beta,undefined,old[id]);
     assert.deepEqual(betaRevision(id,source,undefined,scopes[id]),delivered,id+": la huella es la de la beta198, sin revisión nueva que juzgar");
+    assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
+  }
+  assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
+});
+
+// Producción 4.26.232 (13/11/2026): sube entera la ronda de beta 199 a 232 (8d82bb729), aprobada por el dueño en su panel, sobre la producción 4.26.198 (9e7237a3b).
+// main es ancestro de la beta (la ronda ya mezcló el cierre de la 198): el cierre de esta rama lleva main como primer padre con el árbol de la promoción. Producto, servidor y
+// nativo son los de la beta 232 byte a byte y lo único que cambia es el catálogo: la familia ve UNA nota más las 238 de producción198 (las notas 199 a 231 de beta quedan en
+// Git y en sus `expected`). La APK 64 (4.26.206) es el MISMO binario que probó el móvil, pero la release `beta` se reescribe en cada ronda: producción la anuncia desde su
+// release estable `v4.26.206`. Edge y SQL: nada que desplegar (`supabase/` idéntico a la producción 198).
+const expectedProd232={"v":"4.26.232","d":"2026-11-13","t":{"es":"Recibos a fondo, quién te debe y traspasos entre tus cuentas","en":"Bills in depth, who owes you and transfers between your accounts","ca":"Rebuts a fons, qui et deu i traspassos entre els teus comptes"},"items":{"es":["Recibos, renovado: das de alta un recibo paso a paso con los cargos que se repiten en tu banco, y «Tus recibos» reúne todo lo que se te va al mes o al año, con buscador y secciones. Si pagaste uno en efectivo o por Bizum, «Lo pagué de otra forma» lo da por pagado.","Puedes apuntar la prueba gratis y la permanencia de cada recibo; pausar un recibo solo quita sus meses, y con la app actualizada el aviso de la víspera dice cuánto se cobra y lo que te queda en ese banco.","Si el banco cobra un recibo con otro nombre o un importe algo distinto, te pregunta si es ese antes de tocar ninguna cifra; un cargo ya no paga dos recibos y los domiciliados se marcan como pagados solos.","Recibos compartidos con personas: ves solo tu parte, y «Te deben» reconoce lo que te pagan aunque llegue a otro de tus bancos o paguen de menos.","El dinero que pasas entre tus cuentas sale en Traspasos y no cuenta como gasto, y la nómina y lo que esperas cobrar se enlazan solos con su movimiento cuando llegan.","Un ojo nuevo en Plan tapa todas las cifras, también en los avisos del móvil; y en Deudas, la cuota y lo que baja la deuda cuadran sin sorpresas.","Y más: Trade Republic reconoce tu aportación mensual, los filtros de Gastos tienen icono nuevo, las hojas y listas se abren suaves y sin tirones, y las importaciones del banco van más rápido."],"en":["Bills, renewed: you add a bill step by step with the charges that repeat at your bank, and “Your bills” gathers everything that goes out each month or year, with a search box and sections. If you paid one in cash or by Bizum, “I paid it another way” marks it as paid.","You can note each bill's free trial and minimum term; pausing a bill only removes its months, and with the app updated the reminder the day before says how much is charged and what you have left at that bank.","If the bank charges a bill under another name or a slightly different amount, it asks you whether it is that bill before changing any figure; one charge no longer pays two bills, and direct debits are marked as paid on their own.","Bills shared with people: you see only your share, and “You're owed” spots what you are paid even if it lands in another of your banks or someone pays short.","Money you move between your accounts shows under Transfers and doesn't count as spending, and your salary and what you expect to receive link to their movement on their own when they arrive.","A new eye in Plan hides every figure, also in phone notifications; and in Debts, the instalment and how much the debt goes down add up without surprises.","And more: Trade Republic recognises your monthly contribution, Spending filters have a new icon, sheets and lists open smoothly without stutters, and bank imports are faster."],"ca":["Rebuts, renovat: dones d'alta un rebut pas a pas amb els càrrecs que es repeteixen al teu banc, i «Els teus rebuts» reuneix tot el que se't va al mes o a l'any, amb cercador i seccions. Si en vas pagar un en efectiu o per Bizum, «Ho vaig pagar d'una altra manera» el dona per pagat.","Pots apuntar la prova gratuïta i la permanència de cada rebut; pausar un rebut només en treu els seus mesos, i amb l'app actualitzada l'avís de la vigília diu quant es cobra i el que et queda en aquest banc.","Si el banc cobra un rebut amb un altre nom o un import una mica diferent, et pregunta si és aquest abans de tocar cap xifra; un càrrec ja no paga dos rebuts i els domiciliats es marquen com a pagats sols.","Rebuts compartits amb persones: veus només la teva part, i «Et deuen» reconeix el que et paguen encara que arribi a un altre dels teus bancs o et paguin de menys.","Els diners que passes entre els teus comptes surten a Traspassos i no compten com a despesa, i la nòmina i el que esperes cobrar s'enllacen sols amb el seu moviment quan arriben.","Un ull nou a Pla amaga totes les xifres, també als avisos del mòbil; i a Deutes, la quota i el que baixa el deute quadren sense sorpreses.","I més: Trade Republic reconeix la teva aportació mensual, els filtres de Despeses tenen icona nova, els fulls i les llistes s'obren suaus i sense estrebades, i les importacions del banc van més de pressa."]},"tandas":[]};
+test("Promoción232 muestra una nota y el historial de producción, retira todas las tandas aprobadas y no toca producto, descriptores ni APK",()=>{
+  const beta=f=>nl(sourceBeta232(f)),source=f=>nl(read(f)),prod=f=>nl(sourceProd198(f));
+  const production=JSON.parse(prod("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
+  assert.equal(production.length,238);assert.deepEqual(production.slice(0,4).map(n=>n.v),["4.26.198","4.26.182","4.26.159","4.26.142"]);
+  for(const n of production)assert.deepEqual(n.tandas,[],"producción198 no deja nada en el panel: "+n.v);
+  const ronda=Array.from({length:34},(_,i)=>"4.26."+(232-i));
+  assert.deepEqual(before.slice(0,ronda.length).map(n=>n.v),ronda,"las notas de la ronda en la beta232");
+  // Debajo de la ronda la beta ya lleva la nota única de producción 198 (mezcló su cierre), pero luego sus notas 197 a 138 y no las notas únicas de producción 182 y 159.
+  assert.deepEqual(before[ronda.length],production[0],"la nota única de producción 198 que lleva la beta, tal cual");
+  assert.notDeepEqual(before.find(n=>n.v==="4.26.182"),production[1],"la nota de beta 182 no es la nota única de producción");
+  assert.deepEqual(before.slice(before.length-234),production.slice(4),"debajo, beta ya llevaba el historial de producción137 tal cual");
+  const panel=before.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(panel,["plan-gastos-232"],"la beta232 solo dejaba su tanda en el panel, aprobada");
+  const expected=[expectedProd232,...production];
+  const verify=list=>assert.deepEqual(list,expected,"una nota literal y el historial de producción198 íntegro");
+  const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,239);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes)assert.deepEqual(n.tandas,[],n.v+": nunca resucitar /todo");
+  for(const v of ronda.slice(1))assert.equal(notes.some(n=>n.v===v),false,v+": nota intermedia ausente de Novedades");
+  for(const lang of ["es","en","ca"]){
+    assert.ok(notes[0].t[lang]);assert.equal(notes[0].items[lang].length,7,lang+": siete puntos familiares");
+    // Sin cocina en la nota que lee la familia (AGENTS §4).
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|acuse|cursor|token|Edge|servidor|Open Banking|ajust|tune|regul|versión|zoom|FIN-|SES-|SEC-|UX-|PRO-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const resurrected=structuredClone(notes);resurrected[0].tandas=structuredClone(before[0].tandas);assert.throws(()=>verify(resurrected),assert.AssertionError,"la tanda de Plan y Gastos, entregada, no vuelve");
+  const intermediate=structuredClone(notes);intermediate.splice(1,0,{...before[1],tandas:[]});assert.throws(()=>verify(intermediate),assert.AssertionError,"la nota 231 no se enseña aparte");
+  const implicit=structuredClone(notes);delete implicit[0].tandas;assert.throws(()=>verify(implicit),assert.AssertionError,"sin la propiedad el panel la resucitaría como /todo");
+  const lost=structuredClone(notes);lost.splice(1,1);assert.throws(()=>verify(lost),assert.AssertionError,"la nota única de producción 198 no se pierde");
+  const betaNote=structuredClone(notes);betaNote[2]={...before.find(n=>n.v==="4.26.182"),tandas:[]};assert.throws(()=>verify(betaNote),assert.AssertionError,"la nota de beta 182 no sustituye a la de producción");
+  const lost2=structuredClone(notes);lost2.splice(5,1);assert.throws(()=>verify(lost2),assert.AssertionError,"no se pierde ninguna nota de producción");
+  // Lo que sube es lo que se probó: producto, servidor, nativo, descriptores y archivo, idénticos a la beta232.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),old=JSON.parse(beta("scripts/beta-sources.json"));
+  assert.deepEqual(scopes,old,"ningún descriptor se recorta ni se repina");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),JSON.parse(beta("scripts/beta-archives.json")),"archivo y rechazo109 no se repinan");
+  const tracked=execFileSync("git",["ls-tree","-r","--name-only","8d82bb729a14780950f45fd1d870f8d9c0cb88fb","--","src/modules","src/shell.html","src/build-order.json","android","supabase"],{encoding:"utf8"}).trim().split("\n");
+  assert.ok(tracked.length>50);
+  for(const file of tracked)assert.equal(source(file),beta(file),file+": idéntico a la beta232");
+  // La APK 64 es el MISMO binario que probó el móvil; producción la anuncia desde su release estable, no desde `beta`.
+  const apk=JSON.parse(source("public/apk.json")),apkBeta=JSON.parse(beta("public/apk.json"));
+  assert.equal(apkBeta.url,"https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.206-beta-64.apk");
+  assert.equal(apk.url,"https://github.com/JuanjoAvila/Aely/releases/download/v"+apk.versionName+"/Aely-"+apk.versionName+".apk","apunta a la release estable de su versión");
+  assert.deepEqual({...apk,url:apkBeta.url},apkBeta,"apk.json idéntico al de la beta232 salvo la URL");
+  assert.equal(apk.versionCode,64);assert.equal(apk.sha256,"68b6b43fa5b932b60a19dfb9a85efca5e7a616bedf4b2bfa9fd53911b20e104e","la huella del binario aprobado");
+  // El panel queda vacío y el recibo web sigue entregando cada unidad de la ronda con su huella de la beta232.
+  const entregadas=["plan-recibos-t4","gastos-filtros-icono","plan-recibos-guardar-pagado","informe-mes-limite-del-mes","plan-recibos-qa","plan-recibos-t5","plan-recibos-t6","pro03-aviso-te-llega","deuda-ponle-dia","tr-inversion-mensual","deuda-lo-descuento","traspaso-propio-confirmado","recibo-anual-mes","plan-velo-fundido","recibo-quitar-deshacer","deuda-tae-con-descuento","recibo-cargo-pendiente","traspaso-ingreso-manual","recibos-zona-pulida","recibos-retoques-229","recibos-230","plan-gastos-231","plan-gastos-232"];
+  assert.deepEqual(Object.keys(scopes).filter(id=>!(id in JSON.parse(prod("scripts/beta-sources.json")))),entregadas,"los descriptores que nacen en la ronda, todos");
+  const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
+  assert.deepEqual(receipt.pruebas,{},"ningún guion por probar");
+  assert.equal(betaNotes(notes,source,scopes).flatMap(n=>n.tandas||[]).length,0);
+  for(const id of entregadas){
+    const delivered=betaRevision(id,beta,undefined,old[id]);
+    assert.deepEqual(betaRevision(id,source,undefined,scopes[id]),delivered,id+": la huella es la de la beta232, sin revisión nueva que juzgar");
     assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
   }
   assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
