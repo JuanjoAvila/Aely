@@ -28,7 +28,7 @@ for(const [name,from,to,kind] of [
   ['pull revive nombre borrado','if(checkDeleted&&expenseIsTombstoned(inc,delSet)&&!expenseIsTombstoned(byKey[k],delSet))return;','','tombstone'],
   ['colapsar importes','a.amount===e.amount&&','true&&','amounts'],
   ['perder metadatos','if(selected)merged[k]=selected[k];','if(false)merged[k]=selected[k];','metadata'],
-  ['perder categoría editada','const cat=edited(e)?e:edited(a)?a:winner;','const cat=winner;','metadata'],
+  ['perder categoría editada','(edited(e)?e:edited(a)?a:winner)','winner','metadata'],
   ['perder nota humana','{note:note.note,noteEdited:note.noteEdited','{note:winner.note,noteEdited:note.noteEdited','metadata'],
   ['pull borra noCard','!protects("noCard")&&Object.prototype.hasOwnProperty','Object.prototype.hasOwnProperty','metadata']
 ])test('FIN04 R2 mutante cazado: '+name,()=>{

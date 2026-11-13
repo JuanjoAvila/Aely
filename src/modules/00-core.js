@@ -1339,22 +1339,30 @@ const cloud = (function(){
        la cuota de una deuda, un aviso del móvil o un gasto a mano que coincidan se quedan como
        están, y a un «posible repetido» no se le pone marca. Prefijo, `#dup` y `#n<k>` se conservan. */
     async setExpenseRecibo(e){
-      if(!sb || !e.ent) return;
+      if(!sb || !e || !e.ent) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
-      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense upload denied");
+      const {data,error}=await sb.from('expenses').select('user_id,id,source,fecha,importe,comercio,cat')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
+      const rows=[],keys=["user_id","id","source","fecha","importe","comercio","cat"];
+      let alreadyApplied=true;
       for(const r of data||[]){
         const m=/^(ob|ob-hist):([^~#]+)(~recibo\.[^~#]*)?((?:#.*)?)$/.exec(String(r.source||""));
         if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
-        if(src===r.source) continue;
-        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
-        const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id);
+        if(!isExpenseUuid(r.id)||r.user_id!==session.user.id||!keys.every(function(k){return Object.prototype.hasOwnProperty.call(r,k);}))throw new Error("expense snapshot unavailable");
+        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))throw new Error("expense upload denied");
+        // Una marca ya leída y validada no necesita otra escritura para acreditar el mismo estado.
+        if(src===r.source){rows.push({id:r.id});continue;}
+        const w=await expenseSourcePatch(sb,session.user.id,e,{source:src},r);
         if(w.error) throw w.error;
+        rows.push.apply(rows,w.data);alreadyApplied=false;
       }
+      if(!rows.length)throw new Error("expense source unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense owner changed");
+      return {acknowledged:true,rows:rows,alreadyApplied:alreadyApplied};
     },
     /* LA MARCA DE APORTACIÓN A META (24/10/2026), con la misma búsqueda que la del recibo y por lo
        mismo: el id local puede no ser el de la fila de la nube. Solo toca filas `ob:<ent>` u
@@ -1447,26 +1455,28 @@ const cloud = (function(){
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
-      if(!sb) return;
+      if(!sb || !e) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))return;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))throw new Error("expense upload denied");
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
+      const {data,error}=await expenseSourcePatch(sb,session.user.id,e,{source:src});
       if(error) throw error;
+      return {acknowledged:true,rows:data,alreadyApplied:false};
     },
     // Persiste la DECISIÓN sobre un posible repetido (B09-D, 2026-09-08). Sin esto, «son
     // distintos» solo quitaba la marca en el móvil: la fila seguía siendo `ob:ent#dup` en la nube,
     // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
     // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
     async setExpenseDup(e, isDup){
-      if(!sb) return;
+      if(!sb || !e) throw new Error("expense unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      if(!session) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("expense upload denied");
       const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
+      const {data,error}=await expenseSourcePatch(sb,session.user.id,e,{source:src});
       if(error) throw error;
+      return {acknowledged:true,rows:data,alreadyApplied:false};
     },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
@@ -1552,8 +1562,110 @@ const cloud = (function(){
       if(error) throw error;
       return Array.isArray(data) ? data.length : 0;
     },
+    // Una pareja local puede conservar UUID distintos de nube: no ofrecer una decisión imposible.
+    // Este sondeo no reutiliza guards de subida, que pueden liquidar absorciones escribiendo.
+    async canSetIncomeOwnTransfer(plan, readState, peer){
+      const ready=function(){const s=readState();return !mcSandbox()&&!mcSandboxTransition()&&incomeOwnTransferPlanValid(s,plan)&&(!peer||JSON.stringify(incomeOwnTransferPeer(s,plan))===JSON.stringify(peer));};
+      if(!sb||!ready())return false;
+      try{
+        const auth=await sb.auth.getSession(),session=!auth.error&&auth.data&&auth.data.session;
+        if(!incomeOwnTransferSession(session,plan.owner)||!ready())return false;
+        for(const e of peer?[plan.incoming,peer.outgoing]:[plan.incoming]){
+          const r=await sb.from('expenses').select(INCOME_OWN_TRANSFER_COLS).eq('user_id',plan.owner).eq('id',e.id).maybeSingle();
+          if(r.error||!incomeOwnTransferRowMatches(e,r.data,plan.owner)||!ready())return false;
+        }
+        const last=await sb.auth.getSession();
+        return !last.error&&incomeOwnTransferSession(last.data&&last.data.session,plan.owner)&&ready();
+      }catch(err){return false;}
+    },
+    async setIncomeOwnTransfer(plan, readState, peer){
+      const ready=function(after){return !mcSandbox()&&!mcSandboxTransition()&&incomeOwnTransferWriteValid(readState(),plan,peer,after);};
+      if(!sb||!ready())throw new Error("income transfer unavailable");
+      const owner=plan.owner,sessionOK=async function(){const r=await sb.auth.getSession();return !r.error&&incomeOwnTransferSession(r.data&&r.data.session,owner);};
+      if(!await sessionOK()||!ready())throw new Error("income transfer owner changed");
+      const e=peer?peer.outgoing:plan.incoming,category=peer?"traspaso":plan.category;
+      if(peer){
+        const incoming=await sb.from('expenses').select(INCOME_OWN_TRANSFER_COLS).eq('user_id',owner).eq('id',plan.incoming.id).maybeSingle();
+        if(incoming.error||!incomeOwnTransferRowMatches(Object.assign({},plan.incoming,{category:"traspaso"}),incoming.data,owner)||!ready())throw new Error("income transfer peer changed");
+      }
+      const r=await sb.from('expenses').select(INCOME_OWN_TRANSFER_COLS).eq('user_id',owner).eq('id',e.id).maybeSingle(),row=r.data;
+      if(r.error||!incomeOwnTransferRowMatches(e,row,owner))throw new Error("income transfer row changed");
+      if(!await obConfirmedCanUpload(e,owner,sb)||!await sessionOK()||!ready())throw new Error("income transfer unavailable");
+      // Nota y nombre bancario también forman parte del CAS: pueden revelar una nómina o Bizum.
+      let q=sb.from('expenses').update({cat:category});
+      INCOME_OWN_TRANSFER_COLS.split(',').forEach(function(k){q=row[k]===null?q.is(k,null):q.eq(k,row[k]);});
+      const result=await q.select(INCOME_OWN_TRANSFER_COLS),rows=result.data;
+      if(result.error||!Array.isArray(rows)||rows.length!==1||!INCOME_OWN_TRANSFER_COLS.split(',').every(function(k){return Object.prototype.hasOwnProperty.call(rows[0],k)&&rows[0][k]===(k==='cat'?category:row[k]);}))throw new Error("income transfer unconfirmed");
+      if(!await sessionOK()||!ready(true))throw new Error("income transfer changed after send");
+      return rows[0];
+    },
+    async canConfirmOwnTransfer(plan, readState){
+      const ready=function(){return !mcSandbox()&&!mcSandboxTransition()&&ownTransferPlanValid(readState(),plan);};
+      if(!sb||!ready())return false;
+      const owner=plan.owner,cols="id,user_id,source,cat,fecha,importe,comercio";
+      const sessionOK=async function(){const r=await sb.auth.getSession(),s=!r.error&&r.data&&r.data.session;return !!s&&s.user&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now());};
+      try{
+        if(!await sessionOK()||!ready())return false;
+        for(const e of [plan.outgoing,plan.incoming]){
+          const r=await sb.from('expenses').select(cols).eq('user_id',owner).eq('id',e.id).maybeSingle();
+          if(r.error||!ownTransferRowMatches(e,r.data,owner)||!ready())return false;
+        }
+        return await sessionOK()&&ready();
+      }catch(err){return false;}
+    },
     // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
     // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
+    async confirmTrMonthlyInvestment(e, readState){
+      let expectedOwner=null;
+      const ready=function(){ const s=readState(); return s&&s.user&&(!expectedOwner||s.user.id===expectedOwner)&&trMonthlyProposal(s,e,Date.now()); };
+      if(!sb || !ready() || !isExpenseUuid(e&&e.id)) throw new Error("monthly investment unavailable");
+      const owner=await sb.auth.getSession(), session=owner.data&&owner.data.session;
+      if(owner.error||!session) throw new Error("session unavailable");
+      expectedOwner=session.user.id;
+      if(!ready()) throw new Error("session unavailable");
+      const cols="id,user_id,fecha,importe,comercio,source,cat,nota,ob_name,no_card,nota_edit,ingest_event_id";
+      const read=await sb.from('expenses').select(cols).eq('user_id',session.user.id).eq('id',e.id).maybeSingle();
+      if(read.error||!read.data||read.data.user_id!==expectedOwner||!trMonthlyRowMatches(e,read.data)) throw new Error("monthly investment changed");
+      const row=read.data;
+      const active=await sb.auth.getSession();
+      if(active.error||!active.data.session||active.data.session.user.id!==session.user.id||!ready()) throw new Error("session unavailable");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)) throw new Error("monthly investment unavailable");
+      // El timeout o un cambio de fila/titular durante la guardia retira el permiso antes del envío.
+      if(!ready()) throw new Error("monthly investment unavailable");
+      let q=sb.from('expenses').update({cat:"inversion"}).eq('user_id',session.user.id).eq('id',e.id);
+      // El NULL del extracto también forma parte de la foto que la persona confirmó.
+      ["fecha","importe","comercio","source","cat","nota","ob_name","no_card","nota_edit","ingest_event_id"].forEach(function(k){ q=row[k]==null?q.is(k,null):q.eq(k,row[k]); });
+      const result=await q.select(cols), after=await sb.auth.getSession();
+      const ack=Array.isArray(result.data)&&result.data.length===1&&result.data[0];
+      if(result.error||after.error||!after.data.session||after.data.session.user.id!==session.user.id||!ready()||!ack||ack.user_id!==session.user.id||ack.cat!=="inversion"||!trMonthlyRowMatches(e,ack,true)||["fecha","importe","comercio","source","nota","ob_name","no_card","nota_edit","ingest_event_id"].some(function(k){return ack[k]!==row[k];})) throw new Error("monthly investment unconfirmed");
+      return ack;
+    },
+    async decideOwnTransfer(plan, decision, readState){
+      const ready=function(){return ownTransferPlanValid(readState(),plan);};
+      if(!sb||!["yes","no"].includes(decision)||!ready())throw new Error("transfer unavailable");
+      const owner=plan.owner, cols="id,user_id,source,cat,fecha,importe,comercio";
+      const sessionOK=async function(){const r=await sb.auth.getSession(),s=!r.error&&r.data&&r.data.session;return !!s&&s.user&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now());};
+      if(!await sessionOK())throw new Error("transfer owner changed");
+      const read=async function(e){
+        const r=await sb.from('expenses').select(cols).eq('user_id',owner).eq('id',e.id).maybeSingle();
+        if(r.error||!ownTransferRowMatches(e,r.data,owner))throw new Error("transfer row changed");
+        return r.data;
+      };
+      const row=await read(plan.outgoing);await read(plan.incoming);
+      if(!await obConfirmedCanUpload(plan.outgoing,owner,sb)||!await sessionOK()||!ready())throw new Error("transfer unavailable");
+      const patch=decision==="yes"?{cat:"traspaso"}:{source:expenseSourceForCloud(Object.assign({},plan.outgoing,{ownTransferRejected:true}))};
+      let q=sb.from('expenses').update(patch);
+      Object.keys(row).forEach(function(k){q=q.eq(k,row[k]);});
+      const result=await q.select(cols), rows=result.data;
+      if(result.error||!Array.isArray(rows)||rows.length!==1||!Object.keys(row).every(function(k){return rows[0][k]===(Object.prototype.hasOwnProperty.call(patch,k)?patch[k]:row[k]);}))throw new Error("transfer unconfirmed");
+      if(!await sessionOK()||!ownTransferOutgoingValid(readState(),plan,decision))throw new Error("transfer changed after send");
+      // La contraparte se relee, pero esto no es una transacción de dos filas: jamás se escribe en ella.
+      let peerChanged=!ready();
+      try{await read(plan.incoming);}catch(err){peerChanged=true;}
+      if(!await sessionOK()||!ownTransferOutgoingValid(readState(),plan,decision))throw new Error("transfer owner changed after ack");
+      // El ACK de la salida ya acredita el cambio: una contraparte distinta no lo revierte.
+      return Object.assign({},rows[0],{ownTransferPeerChanged:peerChanged});
+    },
     async confirmExpenseWithdrawal(e, readState){
       const ready=function(){ const s=typeof readState==="function"&&readState(); return !!s&&canRecognizeWithdrawal(e,s); };
       if(!sb || !isExpenseUuid(e&&e.id) || !ready()) throw new Error("withdrawal unavailable");
@@ -2584,7 +2696,9 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
+  "setIncomeOwnTransfer",
+  "decideOwnTransfer",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","confirmTrMonthlyInvestment","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -2624,9 +2738,13 @@ const CLOUD_READS_QUE_LLENAN=[
    widget. Con `~` cualquier servidor sin esta regla —y cualquier app vieja de la familia— lee un
    banco raro («sabadell~deuda.x») que no está en la lista de gasto diario y la deja fuera: el
    lado seguro. Espejo en `_shared/presupuesto.ts` (`esCuotaDeDeuda`). */
-function deudaSufijo(debtId){
+/* `~mano` detrás = la marcó él a mano («Es la cuota de…»), no el motor. Solo esa paga la cuota
+   aunque el banco cobre otro importe (`debtPaymentState`, beta 4.26.200). Un lector viejo ignora el
+   tramo (`partirEntDeuda` solo mira los que conoce) y el servidor busca `~deuda.` en cualquier
+   sitio del banco: los dos leen la cuota igual que antes y no inventan nada. */
+function deudaSufijo(debtId, aMano){
   const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
-  return id ? "~deuda."+id : "";
+  return id ? "~deuda."+id+(aMano?"~mano":"") : "";
 }
 /* EL CARGO DE UN RECIBO VIAJA COMO `ob:<ent>~recibo.<id>` (decisión suya del 12/10/2026: «yo
    solo quiero que salga todo en gastos»). El adeudo que casa con un recibo del Plan ya no se
@@ -2656,14 +2774,15 @@ function metaSufijo(goalId){
    (`expenseSourceForCloud`) y en local (`marcarCuotaAMano`): es lo que la persona dijo a mano. */
 function partirEntDeuda(tramo){
   const partes=String(tramo||"").split("~");
-  let debtId=null, reciboId=null, goalId=null;
+  let debtId=null, reciboId=null, goalId=null, aMano=false;
   partes.slice(1).forEach(function(p){
-    if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
+    if(p==="mano") aMano=true;
+    else if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
     else if(p.indexOf("recibo.")===0) reciboId=p.slice(7)||null;
     else if(p.indexOf("meta.")===0) goalId=p.slice(5)||null;
   });
   // La meta solo vale sola: con cuota o recibo, la fila ya es de ellos (una marca por gasto).
-  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId, goalId:(debtId||reciboId)?null:goalId };
+  return { ent:partes[0]||null, debtId:debtId, debtManual:!!(debtId&&aMano), reciboId:debtId?null:reciboId, goalId:(debtId||reciboId)?null:goalId };
 }
 /* Tramos de un `source` OB tras el banco: «ob:tr#dup#n3» → ["dup","n3"]. El ordinal es el tramo
    `n<k>`; `dup` sigue siendo la marca de posible repetido. Espejo en `presupuesto.ts`. */
@@ -2718,10 +2837,10 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id> | ~meta.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
+  // Orden: ob:<ent>[~deuda.<id>[~mano] | ~recibo.<id> | ~meta.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#ownno][#n<k>].
   // La cuenta debe sobrevivir al pull para no ensanchar la lápida al reinstalar u otro móvil.
-  const acc=e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"";
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  const acc=(e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"")+(e&&e.ownTransferRejected?"#ownno":"");
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId,e&&e.debtManual)||reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+(reciboSufijo(e&&e.reciboId)||metaSufijo(e&&e.goalId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
@@ -2940,6 +3059,21 @@ function expenseRenameFailure(s,orig,intent,failures){
   const rows=(s.expenses||[]).map(function(e){
     if(e.id!==orig.id||e.date!==orig.date||e.amount!==orig.amount||!e.renamePending||e.renamePending.at!==intent.at)return e;
     changed=true;return Object.assign({},e,{renamePending:Object.assign({},e.renamePending,{failures:failures,quarantined:failures>=3})});
+  });
+  return changed?Object.assign({},s,{expenses:rows}):s;
+}
+/* AVISO DE NOMBRE PENDIENTE SOLO SI DE VERDAD TARDA (12/11/2026). El borrador nace al tocar
+   «Listo» y la nube suele confirmarlo en un segundo; aun así la ficha pintaba al instante
+   «pendiente… al volver la conexión» con el móvil conectado, y el aviso empujaba la hoja justo
+   antes de cerrarse (vídeo del OnePlus, beta 4.26.230). La marca `slow` la pone Gastos si a los
+   RENAME_AVISO_MS sigue sin ACK; un rechazo del servidor (`failures`) se enseña en el acto. */
+const RENAME_AVISO_MS=5000;
+function renameAvisoVisible(p){ return !!p&&!!(p.quarantined||p.slow||(p.failures||0)>0); }
+function expenseRenameSlow(s,orig,intent){
+  let changed=false;
+  const rows=(s.expenses||[]).map(function(e){
+    if(e.id!==orig.id||e.date!==orig.date||e.amount!==orig.amount||!e.renamePending||e.renamePending.at!==intent.at||e.renamePending.slow)return e;
+    changed=true;return Object.assign({},e,{renamePending:Object.assign({},e.renamePending,{slow:true})});
   });
   return changed?Object.assign({},s,{expenses:rows}):s;
 }
@@ -3304,6 +3438,187 @@ function applyEntradaEfectivo(state, amount){
   });
   return Object.assign({}, st, { accounts:accounts });
 }
+// La pareja solo ofrece una pregunta. La decisión pertenece a la persona, nunca al nombre del comercio.
+const ownTransferRecent=new WeakMap();
+async function expenseSourcePatch(sdk,owner,e,patch,snapshot){
+  const cols='user_id,id,source,fecha,importe,comercio,cat',keys=cols.split(',');
+  const read=snapshot?{data:[snapshot]}:await expenseCloudEq(sdk.from('expenses').select(cols),owner,e);
+  if(read.error)return read;
+  const data=[];
+  for(let row of read.data||[]){
+    if(!isExpenseUuid(row.id)||row.user_id!==owner||!keys.every(function(k){return Object.prototype.hasOwnProperty.call(row,k);}))return {data:[],error:new Error("expense snapshot unavailable")};
+    for(let attempt=0;attempt<2;attempt++){
+    let source=patch.source;
+    if(/#ownno(?:#|$)/.test(row.source)&&!/#ownno(?:#|$)/.test(source))source=source.replace(/(#n\d+)$/,"#ownno$1");
+    if(/#ownno(?:#|$)/.test(row.source)&&!/#ownno(?:#|$)/.test(source))source+="#ownno";
+    if(!await obConfirmedCanUpload(e,owner,sdk))return {data:[],error:new Error("expense owner changed")};
+    // La categoría también pertenece a la foto: un NO concurrente nunca autoriza pisar otra decisión.
+    let q=sdk.from('expenses').update(Object.assign({},patch,{source:source}));
+    keys.forEach(function(k){q=row[k]===null?q.is(k,null):q.eq(k,row[k]);});
+    const result=await q.select('id');
+    if(result.error)return result;
+    if(Array.isArray(result.data)&&result.data.length===1&&result.data[0].id===row.id){
+      if(!await obConfirmedCanUpload(e,owner,sdk))return {data:[],error:new Error("expense owner changed")};
+      data.push(result.data[0]);break;
+    }
+    if(!Array.isArray(result.data)||result.data.length)return {data:[],error:new Error("expense source unconfirmed")};
+    if(attempt)return {data:[],error:new Error("expense source conflict")};
+    const fresh=await sdk.from('expenses').select(cols).eq('user_id',owner).eq('id',row.id).maybeSingle(),next=fresh.data;
+    if(fresh.error||!next||/#ownno(?:#|$)/.test(row.source)||(String(next.source).match(/#ownno(?=#|$)/g)||[]).length!==1
+      ||next.source.replace(/#ownno(?=#|$)/g,'')!==row.source
+      ||!keys.filter(function(k){return k!=='source';}).every(function(k){return Object.prototype.hasOwnProperty.call(next,k)&&row[k]===next[k];}))return {data:[],error:fresh.error||new Error("expense source conflict")};
+    row=next;
+    }
+  }
+  return {data:data,error:data.length?null:new Error("expense source unavailable")};
+}
+function ownTransferCents(e){
+  const n=e&&e.amount,c=Math.round(n*100);
+  return typeof n==="number"&&Number.isFinite(n)&&Number.isSafeInteger(c)&&Math.abs(n*100-c)<0.000001?c:null;
+}
+const INCOME_OWN_TRANSFER_COLS="id,user_id,source,cat,fecha,importe,comercio,nota,ob_name";
+function incomeOwnTransferSession(session,owner){
+  return !!session&&!!session.user&&session.user.id===owner&&(session.expires_at==null||Number.isFinite(Number(session.expires_at))&&Number(session.expires_at)*1000>Date.now());
+}
+function incomeOwnTransferExcluded(s,e){
+  return /\bbizum\b/.test(recNorm([e.merchant,e.note,e.concept,e.obName].join(" ")))
+    ||esNomina(Object.assign({},e,{category:"ingreso",concept:[e.concept,e.obName].join(" ")}),nominaFlowsOf(s));
+}
+function incomeOwnTransferPending(e){return !!e&&(!!e.notePending||!!(e.catStale&&e.catStale.length)||!!(e.uuidPreserved&&Object.prototype.hasOwnProperty.call(e.uuidPreserved,"category")));}
+function incomeOwnTransferEligible(s,e,context){
+  if(!s||!s._historyOwner||!ownTransferBankRow(s,e,context)||!(ownTransferCents(e)<0)||!["ingreso","traspaso"].includes(e.category)
+    ||e.reciboId||e.debtId||e.goalId||e.metaPend||incomeOwnTransferPending(e)
+    ||incomeOwnTransferExcluded(s,e)||withdrawalReceiptLink(s,e)||cargoDeRecibo(e,s)||expensePaymentRelationUI(s,e))return false;
+  const rows=(s.expenses||[]).filter(function(x){return x&&x.id===e.id;});
+  return rows.length===1&&JSON.stringify(rows[0])===JSON.stringify(e);
+}
+function incomeOwnTransferPlan(s,e){
+  if(!incomeOwnTransferEligible(s,e))return null;
+  return {owner:s._historyOwner,incoming:JSON.parse(JSON.stringify(e)),category:e.category==="ingreso"?"traspaso":"ingreso",accounts:JSON.stringify(s.accounts||[]),flows:JSON.stringify(s.flows||[])};
+}
+function incomeOwnTransferPlanValid(s,p,after,context){
+  if(!s||!p||!p.incoming||s._historyOwner!==p.owner||JSON.stringify(s.accounts||[])!==p.accounts||JSON.stringify(s.flows||[])!==p.flows
+    ||p.category!==(p.incoming.category==="ingreso"?"traspaso":"ingreso"))return false;
+  const e=(s.expenses||[]).find(function(x){return x&&x.id===p.incoming.id;});
+  if(!incomeOwnTransferEligible(s,e,context))return false;
+  const snapshot=JSON.stringify(e);
+  return snapshot===JSON.stringify(p.incoming)||!!after&&snapshot===JSON.stringify(Object.assign({},p.incoming,{category:p.category}));
+}
+function incomeOwnTransferPeer(s,p,after){
+  const deleted=expenseDeletedSet(s);
+  if(!incomeOwnTransferPlanValid(s,p,after,{deleted:deleted})||p.category!=="traspaso")return null;
+  const view=Object.assign({},s,{expenses:s.expenses.map(function(e){return e.id===p.incoming.id?Object.assign({},e,{category:"traspaso"}):e;})});
+  const context=ownTransferIndex(view,p.incoming,deleted);
+  const candidates=ownTransferNear(context,p.incoming).filter(function(e){return ownTransferBankRow(view,e,context);});
+  if(candidates.length!==1||incomeOwnTransferPending(candidates[0])||incomeOwnTransferExcluded(s,candidates[0]))return null;
+  const outgoing=candidates[0];
+  const incomingCandidates=ownTransferNear(context,outgoing).filter(function(e){return ownTransferBankRow(view,e,context);});
+  if(incomingCandidates.length!==1||incomingCandidates[0].id!==p.incoming.id)return null;
+  const plan=ownTransferPlan(view,outgoing,context);
+  return plan&&plan.incoming.id===p.incoming.id?plan:null;
+}
+function incomeOwnTransferRowMatches(e,r,owner){
+  return !!r&&INCOME_OWN_TRANSFER_COLS.split(',').every(function(k){return Object.prototype.hasOwnProperty.call(r,k);})
+    &&ownTransferRowMatches(e,r,owner)&&(r.nota||"")===(e.note||"")&&(r.ob_name||"")===(e.obName||"");
+}
+function incomeOwnTransferWriteValid(s,p,peer,after){
+  if(!peer)return incomeOwnTransferPlanValid(s,p,after);
+  if(p.category!=="traspaso"||!incomeOwnTransferPlanValid(s,p,true))return false;
+  const incoming=(s.expenses||[]).find(function(e){return e.id===p.incoming.id;}),outgoing=(s.expenses||[]).find(function(e){return e.id===peer.outgoing.id;});
+  return !!incoming&&incoming.category==="traspaso"&&!!outgoing&&!incomeOwnTransferPending(outgoing)&&!incomeOwnTransferExcluded(s,outgoing)
+    &&JSON.stringify(peer.incoming)===JSON.stringify(Object.assign({},p.incoming,{category:"traspaso"}))
+    &&(after?ownTransferOutgoingValid(s,peer,"yes"):JSON.stringify(incomeOwnTransferPeer(s,p,true))===JSON.stringify(peer));
+}
+function applyIncomeOwnTransfer(s,p,at,ack){
+  if(!incomeOwnTransferPlanValid(s,p,!!ack)||ack&&!incomeOwnTransferRowMatches(Object.assign({},p.incoming,{category:p.category}),ack,p.owner))return s;
+  let changed=false;
+  const expenses=s.expenses.map(function(e){if(e.id!==p.incoming.id)return e;const next=Object.assign({},e,{category:p.category});ownTransferRecent.set(next,at);changed=true;return next;});
+  return changed?Object.assign({},s,{expenses:expenses}):s;
+}
+function ownTransferDay(e){
+  const ms=Date.parse(e&&e.date);if(!Number.isFinite(ms))return NaN;
+  const p=madridYmdParts(ms);return Date.UTC(p.y,p.m-1,p.d)/86400000;
+}
+function ownTransferAccount(s,e){
+  if(!e||!e.obAcc||!e.ent)return null;
+  const a=(s.accounts||[]).filter(function(x){return x&&x.ent===e.ent&&[x.bankIban,x.bankUid].filter(Boolean).map(String).includes(String(e.obAcc));});
+  return a.length===1?a[0]:null;
+}
+// El índice vive solo durante esta consulta: un guardado vuelve a comprobar el estado fresco.
+// Los UUID se cuentan en TODO el histórico, incluso cuando su otra copia tiene otro importe.
+function ownTransferIndex(s,e,deleted){
+  const ids=new Map(),buckets=new Map(),days=new Map(),amount=Math.abs(ownTransferCents(e));
+  (s.expenses||[]).forEach(function(x){
+    if(!x)return;
+    const previous=ids.get(x.id);ids.set(x.id,{row:x,count:previous?previous.count+1:1});
+    const cents=ownTransferCents(x);if(cents===null||!amount||Math.abs(cents)!==amount)return;
+    const day=ownTransferDay(x);days.set(x,day);if(!Number.isFinite(day))return;
+    let banks=buckets.get(cents);if(!banks){banks=new Map();buckets.set(cents,banks);}
+    let dates=banks.get(x.ent);if(!dates){dates=new Map();banks.set(x.ent,dates);}
+    const rows=dates.get(day)||[];rows.push(x);dates.set(day,rows);
+  });
+  return {ids:ids,buckets:buckets,days:days,deleted:deleted===undefined?expenseDeletedSet(s):deleted};
+}
+function ownTransferNear(context,e){
+  const banks=context.buckets.get(-ownTransferCents(e)),day=context.days.has(e)?context.days.get(e):ownTransferDay(e),rows=[];
+  if(!banks||!Number.isFinite(day))return rows;
+  banks.forEach(function(dates,bank){if(bank!==e.ent)for(let d=day-2;d<=day+2;d++){
+    const found=dates.get(d);if(found)found.forEach(function(x){rows.push(x);});
+  }});
+  return rows;
+}
+function ownTransferBankRow(s,e,context){
+  return !!e&&isExpenseUuid(e.id)&&["ob","ob-hist"].includes(e.source)&&!e.possibleDup&&!e.obPending&&!e.renamePending&&!e.expenseEditPending
+    &&!!ownTransferAccount(s,e)&&Number.isFinite(context&&context.days&&context.days.has(e)?context.days.get(e):ownTransferDay(e))
+    &&!expenseIsTombstoned(e,context?context.deleted:expenseDeletedSet(s));
+}
+function ownTransferPair(s,e,context){
+  if(!s||!s._historyOwner||!e||!(ownTransferCents(e)>0))return null;
+  context=context||ownTransferIndex(s,e);
+  if(!ownTransferBankRow(s,e,context)||e.ownTransferRejected
+    ||["traspaso","ingreso","deudas","inversion"].includes(e.category)||e.reciboId||e.debtId||e.goalId||e.metaPend
+    ||withdrawalReceiptLink(s,e)||cargoDeRecibo(e,s)||expensePaymentRelationUI(s,e))return null;
+  const same=context.ids.get(e.id);
+  if(!same||same.count!==1||JSON.stringify(same.row)!==JSON.stringify(e))return null;
+  const peers=ownTransferNear(context,e).filter(function(x){return x.category==="traspaso"&&!x.reciboId&&!x.debtId&&!x.goalId&&ownTransferBankRow(s,x,context);});
+  if(peers.length!==1||context.ids.get(peers[0].id).count!==1)return null;
+  // Una entrada tampoco se puede prestar a dos salidas, aunque una ya esté corregida o rechazada.
+  if(ownTransferNear(context,peers[0]).filter(function(x){return ownTransferBankRow(s,x,context);}).length!==1)return null;
+  return peers[0];
+}
+function ownTransferPlan(s,e,context){
+  const peer=ownTransferPair(s,e,context);if(!peer)return null;
+  return {owner:s._historyOwner,outgoing:JSON.parse(JSON.stringify(e)),incoming:JSON.parse(JSON.stringify(peer)),accounts:JSON.stringify(s.accounts||[])};
+}
+function ownTransferPlanValid(s,p){
+  if(!s||!p||s._historyOwner!==p.owner||JSON.stringify(s.accounts||[])!==p.accounts)return false;
+  const peer=ownTransferPair(s,p.outgoing);
+  return !!peer&&JSON.stringify(peer)===JSON.stringify(p.incoming);
+}
+function ownTransferOutgoingValid(s,p,decision){
+  if(!s||!p||s._historyOwner!==p.owner)return false;
+  const rows=(s.expenses||[]).filter(function(e){return e.id===p.outgoing.id;});
+  if(rows.length!==1)return false;
+  // El ACK no autoriza una salida vinculada después del envío: el recibo vive fuera de expenses.
+  if(!ownTransferBankRow(s,rows[0])||withdrawalReceiptLink(s,rows[0])||cargoDeRecibo(rows[0],s)||expensePaymentRelationUI(s,rows[0]))return false;
+  const snapshot=JSON.stringify(rows[0]);
+  return snapshot===JSON.stringify(p.outgoing)||["yes","no"].includes(decision)&&snapshot===JSON.stringify(Object.assign({},p.outgoing,decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true}));
+}
+function ownTransferRowMatches(e,r,owner){
+  return !!r&&r.user_id===owner&&r.id===e.id&&isExpenseUuid(r.id)&&r.source===expenseSourceForCloud(e)
+    &&r.cat===e.category&&Date.parse(r.fecha)===Date.parse(e.date)&&Number(r.importe)===e.amount&&r.comercio===e.merchant;
+}
+function applyOwnTransferDecision(s,p,decision,at,ack){
+  if(!["yes","no"].includes(decision))return s;
+  const expected=p&&Object.assign({},p.outgoing,decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true});
+  if(ack?(!ownTransferOutgoingValid(s,p,decision)||!ownTransferRowMatches(expected,ack,p.owner)):!ownTransferPlanValid(s,p))return s;
+  return Object.assign({},s,{expenses:s.expenses.map(function(e){
+    if(e.id!==p.outgoing.id)return e;
+    const next=Object.assign({},e,decision==="yes"?{category:"traspaso"}:{ownTransferRejected:true});
+    if(decision==="yes")ownTransferRecent.set(next,at);
+    return next;
+  })});
+}
 // La persona reconoce esta salida concreta; no inferirlo del nombre ni recategorizar historia.
 function withdrawalReceiptLink(state,e){
   if(!state||!e) return null;
@@ -3618,7 +3933,7 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false, debtId=null, reciboId=null, goalId=null, ord=1;
+  let ent=null, source=raw, dup=false, debtId=null, debtManual=false, reciboId=null, goalId=null, ord=1;
   const nativeTwin=raw.indexOf("native:trade_republic#")===0, nativeTime=nativeTwin&&/#t(\d+)(?:#|$)/.exec(raw);
   if(nativeTwin){ ent="trade_republic"; source="macrodroid"; dup=raw.split("#").indexOf("dup")>=0; ord=ordinalDeTramos(raw.split("#").slice(1)); }
   else if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
@@ -3629,7 +3944,7 @@ function expenseFromRow(r){
   // hace que la clave de mezcla no lo funda con el primero. Siempre es el último tramo.
   // «ob:ent~recibo.id» = cargo de ese recibo del Plan: vuelve con su `reciboId` y no mueve cifras.
   // «ob:ent~meta.id» = aportación a esa meta (24/10/2026): vuelve con su `goalId`.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; goalId=pe.goalId; source=(r.ingest_event_id&&(p[1]==="dup"||ordinalDeTramos(p.slice(1))>1))?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; debtManual=pe.debtManual; reciboId=pe.reciboId; goalId=pe.goalId; source=(r.ingest_event_id&&(p[1]==="dup"||ordinalDeTramos(p.slice(1))>1))?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; reciboId=pe.reciboId; goalId=pe.goalId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -3658,6 +3973,7 @@ function expenseFromRow(r){
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
     possibleDup: dup ? true : undefined,
     debtId: debtId || undefined,
+    debtManual: debtId&&debtManual ? true : undefined,
     reciboId: reciboId || undefined,
     goalId: goalId || undefined,
     obOrd: ord>1 ? ord : undefined,
@@ -3665,6 +3981,7 @@ function expenseFromRow(r){
     obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
     obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
     obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,
+    ownTransferRejected: (source==="ob"||source==="ob-hist")&&/#ownno(?:#|$)/.test(raw) ? true : undefined,
   };
 }
 /* LA FILA QUE NO HA CAMBIADO NO SE VUELVE A CONVERTIR (diagnóstico de lag, 19/10/2026).
@@ -3776,7 +4093,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
-  const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
+  const withdrawalRecent=readStartedAt!=null && (local.withdrawalConfirmedAt>=readStartedAt||ownTransferRecent.get(local)>=readStartedAt);
+  if(local.id===incoming.id&&incoming.ownTransferRejected)put("ownTransferRejected",true);
   if(!manual && !cuotaLocal && !withdrawalRecent && !protects("category") && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
@@ -3813,7 +4131,13 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
-  if(incoming.debtId&&!protects("debtId")) put("debtId", incoming.debtId);
+  if(incoming.debtId&&!protects("debtId")){
+    /* La marca «a mano» va con su deuda: baja con ella; una fila de la nube con la MISMA deuda y sin
+       la marca no la quita (subida pendiente o un móvil viejo que la reescribió sin `~mano`). */
+    if(incoming.debtManual) put("debtManual", true);
+    else if(incoming.debtId!==local.debtId) put("debtManual", undefined);
+    put("debtId", incoming.debtId);
+  }
   /* Cargo de recibo (12/10/2026): la marca que baja se adopta, como la de la cuota. Una fila de
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
@@ -3848,6 +4172,7 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
      propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
+  if(out!==local&&ownTransferRecent.has(local))ownTransferRecent.set(out,ownTransferRecent.get(local));
   return out;
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
@@ -3879,15 +4204,21 @@ function uniqueExpenseUuids(rows,delSet,index){
     const winner=ad!==ed?(ad?e:a):((e.expenseEditAt||0)>=(a.expenseEditAt||0)?e:a);
     const note=(e.noteEditAt||0)!==(a.noteEditAt||0)?((e.noteEditAt||0)>(a.noteEditAt||0)?e:a):(e.noteEdited?e:a.noteEdited?a:winner);
     const merged=Object.assign({},winner,{note:note.note,noteEdited:note.noteEdited,noteEditAt:note.noteEditAt,notePending:note.notePending});
+    if(a.ownTransferRejected||e.ownTransferRejected)merged.ownTransferRejected=true;
     const guarded=Object.assign({},a.uuidPreserved,e.uuidPreserved);
     const edited=function(x){return !!(x.catStale&&x.catStale.length)||x.catAckAt!=null;};
-    const cat=edited(e)?e:edited(a)?a:winner;
+    const recentA=ownTransferRecent.get(a)||0,recentE=ownTransferRecent.get(e)||0;
+    const newest=Math.max(a.catAckAt||0,e.catAckAt||0,a.expenseEditAt||0,e.expenseEditAt||0);
+    const cat=Math.max(recentA,recentE)>newest?(recentE>=recentA?e:a):(edited(e)?e:edited(a)?a:winner);
+    if(ownTransferRecent.has(cat))ownTransferRecent.set(merged,ownTransferRecent.get(cat));
     if(cat.category!=null){merged.category=cat.category;if(cat.catStale)merged.catStale=cat.catStale;if(cat.catAckAt!=null)merged.catAckAt=cat.catAckAt;}
     ['debtId','reciboId','noCard','goalId','metaPend'].forEach(function(k){
       const has=function(x){return Object.prototype.hasOwnProperty.call(x,k)&&x[k]!==undefined;};
       const selected=has(e)?e:has(a)?a:null;
       if(selected)merged[k]=selected[k];
     });
+    // La marca «a mano» es de la fila que da la deuda, no de la otra copia.
+    { const de=e.debtId!==undefined?e:a.debtId!==undefined?a:null; if(de&&de.debtManual&&de.debtId===merged.debtId) merged.debtManual=true; else delete merged.debtManual; }
     if(merged.debtId)delete merged.reciboId;
     if(merged.debtId||merged.reciboId){ delete merged.goalId; delete merged.metaPend; }
     // Lo recuperado de otra copia no se pierde otra vez en un pull viejo.
@@ -4027,6 +4358,7 @@ function keepCategoryChoices(prevList, incoming, readStartedAt,identityScope){
   const soltar=function(at, loc){
     if(out.prev===prevList) out.prev=prevList.slice();
     const libre=Object.assign({},loc); delete libre.catStale; delete libre.catAckAt;
+    if(ownTransferRecent.has(loc))ownTransferRecent.set(libre,ownTransferRecent.get(loc));
     out.prev[at]=libre;
   };
   (incoming||[]).forEach(function(inc, i){
@@ -4331,7 +4663,78 @@ function goalSyncAck(prev,owner,sent,expected,revision){
 }
 const PLAN_EDIT_INTENT=Symbol("plan-edit-intent");
 function planSyncEditToken(s){return s&&s[PLAN_EDIT_INTENT];}
-function planSyncEditState(s,at){return Object.assign({},s,{_savedAt:at,[PLAN_EDIT_INTENT]:{}});}
+// Una fecha antigua pudo sobrevivir a otro editor: sólo estas transiciones nuevas acreditan
+// una lectura manual. El intento es privado y puro; React puede evaluar el updater dos veces.
+const MANUAL_BALANCE_INTENT=Symbol("manualBalanceIntent"), MANUAL_BALANCE_TYPED=Symbol("manualBalanceTyped");
+function manualBalanceModel(a){
+  return a?{id:a.id,ent:a.ent,value:a.value,role:accRole(a),spendFrom:!!a.spendFrom,readAt:a.saldoLeidoAt}:null;
+}
+function manualBalanceTarget(a){return a?{id:a.id,ent:a.ent,role:accRole(a),spendFrom:!!a.spendFrom}:null;}
+function manualBalanceSame(a,b){
+  return !!a&&!!b&&["id","ent","value","role","spendFrom","readAt"].every(function(k){return a[k]===b[k];});
+}
+function manualBalanceAccount(s,id){
+  const rows=(s.accounts||[]).filter(function(a){return a.id===id;});
+  return rows.length===1?rows[0]:null;
+}
+function manualBalanceIsManual(s,a){
+  return !!a&&!a.bankIban&&!a.bankUid&&a.balSaldo==null&&!a.balanceAt&&!saldoLoMandaPuenteNativo(s,a.ent);
+}
+function manualBalanceRead(s,id){
+  const env=s.manualBalanceReads,a=manualBalanceAccount(s,id);
+  if(s[MANUAL_BALANCE_INTENT]||!env||env.schema!==1||!Number.isFinite(env.stateAt)||env.stateAt<=0||env.stateAt!==s._savedAt||!env.byId||!Object.prototype.hasOwnProperty.call(env.byId,id)) return null;
+  const p=env.byId[id],ms=p&&Date.parse(p.readAt);
+  return p&&p.origin==="manual-v1"&&typeof p.value==="number"&&Number.isFinite(p.value)&&ms>0&&ms<=env.stateAt&&ms<=Date.now()&&manualBalanceIsManual(s,a)&&manualBalanceSame(p,manualBalanceModel(a))?p:null;
+}
+function manualBalanceStage(next,source,kind,rows){
+  const out=Object.assign({},next);delete out.manualBalanceReads;
+  out[MANUAL_BALANCE_INTENT]={source:source,envelope:source.manualBalanceReads,savedAt:source._savedAt,kind:kind,rows:rows};
+  return out;
+}
+function manualBalanceCommit(s,at){
+  const intent=s[MANUAL_BALANCE_INTENT];
+  if(!intent&&!s.manualBalanceReads) return s;
+  const out=Object.assign({},s);delete out[MANUAL_BALANCE_INTENT];delete out.manualBalanceReads;
+  // Cualquier edición ajena rompe la trazabilidad; nunca se pone al día una marca heredada.
+  if(!intent||!Number.isFinite(at)||at<=0||!intent.source||intent.source._savedAt!==intent.savedAt||intent.source.manualBalanceReads!==intent.envelope||s._savedAt!==intent.savedAt||intent.savedAt!=null&&(!Number.isFinite(intent.savedAt)||at<=intent.savedAt)||!["read","pause"].includes(intent.kind)) return out;
+  const byId=Object.create(null);
+  (Array.isArray(intent.rows)?intent.rows:[]).forEach(function(r){
+    if(!r||!r.next||!r.before) return;
+    const before=manualBalanceAccount(intent.source,r.next.id),after=manualBalanceAccount(s,r.next.id),ms=Date.parse(r.next.readAt);
+    if(!manualBalanceSame(r.before,manualBalanceModel(before))||!manualBalanceSame(r.next,manualBalanceModel(after))||!manualBalanceIsManual(s,after)||!Number.isFinite(r.next.value)||!(ms>0&&ms<=at)||r.next.origin!=="manual-v1") return;
+    if(intent.kind==="pause"&&!manualBalanceSame(manualBalanceRead(intent.source,r.next.id),r.next)) return;
+    byId[r.next.id]=Object.assign({},r.next);
+  });
+  if(Object.keys(byId).length) out.manualBalanceReads={schema:1,stateAt:at,byId:byId};
+  return out;
+}
+function manualBalanceWrite(s,readings){
+  const input=insumosSaldoGasto(s),rows=[],submitted=Object.create(null);
+  (readings||[]).forEach(function(r){if(r&&Number.isFinite(r.typed)&&r.expected) submitted[r.id]=r;});
+  let changed=false,editable=false;
+  const accounts=(s.accounts||[]).map(function(a){
+    if(!Object.prototype.hasOwnProperty.call(submitted,a.id)||!manualBalanceAccount(s,a.id)||a.bankIban||a.bankUid||a._obKey) return a;
+    const r=submitted[a.id],target=manualBalanceTarget(a);
+    if(!["id","ent","role","spendFrom"].every(function(k){return r.expected[k]===target[k];})) return a;
+    editable=true;
+    const typed=+(r.typed).toFixed(2),shown=saldoCuentaMostrada(a,input);
+    // La misma cifra sigue siendo una lectura nueva (t3), aunque no acredite otra base manual.
+    if(Math.round(typed*100)===Math.round(shown*100)){changed=true;return Object.assign({},a,{saldoLeidoAt:new Date().toISOString()});}
+    const pn=input.paidNetByBank[a.ent]||0,spent=input.spentByBank[a.ent]||0;
+    const value=accDaily(a)?valueDesdeSaldo({shown:typed,injTR:input.injTR,spentOwn:spent,roundup:input.roundup,monthlyInvest:input.monthlyInvest,ambos:accRole(a)==="ambos",paidNet:pn}):isEfectivoEnt(a)?+(typed+spent).toFixed(2):+(typed-pn).toFixed(2);
+    const n=Object.assign({},a,{value:value,saldoLeidoAt:new Date().toISOString()});
+    changed=true;
+    // Editabilidad y procedencia no son lo mismo: TR nativo sigue admitiendo corregir saldo,
+    // aunque esa lectura nunca autorice a retirar una proyección al pausar.
+    if(manualBalanceIsManual(s,a)) rows.push({before:manualBalanceModel(a),next:Object.assign(manualBalanceModel(n),{origin:"manual-v1"}),typed:typed});
+    return n;
+  });
+  if(!editable) return s;
+  const next=changed?Object.assign({},s,{accounts:accounts}):s,after=insumosSaldoGasto(next);
+  const exact=rows.filter(function(r){const a=manualBalanceAccount(next,r.next.id);return a&&Math.round(saldoCuentaMostrada(a,after)*100)===Math.round(r.typed*100);});
+  return manualBalanceStage(next,s,"read",exact);
+}
+function planSyncEditState(s,at){return Object.assign({},manualBalanceCommit(s,at),{_savedAt:at,[PLAN_EDIT_INTENT]:{}});}
 function goalSyncMetadataOnly(prev,next,commitKey){
   if(!prev || prev._goalSync===next._goalSync && prev._planSync===next._planSync && (!commitKey || prev[commitKey]===next[commitKey])) return false;
   return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_planSync" || k==="_savedAt" || prev[k]===next[k]; });
@@ -4351,7 +4754,7 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
   }
   const payment=kind==="fixed"?["paidYm","paidDay"]:[];
   // La pausa viaja entera: «desde» de un móvil con «hasta» del otro sería una pausa que nadie pidió.
-  const pause=kind==="fixed"?["pausedFrom","pausedUntil"]:[];
+  const pause=kind==="fixed"?["pausedFrom","pausedUntil","manualPauseBalance"]:[];
   new Set([...r.keys(),...l.keys()]).forEach(function(id){
     const old=b&&b.get(id),left=l.get(id),right=r.get(id);
     if(!left || !right){rows.push(left||right);return;}
@@ -4360,7 +4763,11 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
       rows.push(right);conflicts.push({kind:kind,id:id,fields:keys,local:goalSyncCopy(left)});return;
     }
     const independent=kind==="fixed"?["name","cat","category"]:["name","note"];
-    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day"]:
+    // `soloMes` va con lo que se cobra: «Desde ahora» cambia el importe Y congela los meses pagados
+    // en la misma edición; mezclar el importe de un móvil con los meses del otro no lo pidió nadie.
+    // `reparto` (tanda 5) también: tu parte + las partes = lo que cobra el banco, y media suma de
+    // cada móvil no cuadraría (el cliente nuevo la descartaría, pero no hace falta llegar ahí).
+    const financial=kind==="fixed"?["amount","bankAmount","account","freq","months","schedule","day","soloMes","reparto"]:
       keys.filter(function(k){return independent.indexOf(k)<0 && ["id","owner","user_id","type","debtLinkRevision"].indexOf(k)<0;});
     const groups=[financial];
     if(payment.length)groups.push(payment);
@@ -4386,6 +4793,38 @@ function mergePlanThreeWay(base,local,remote,kind,deleted,localNewer){
           if(has(source,month))Object.defineProperty(proofs,month,{value:source[month],enumerable:true,writable:true,configurable:true});
         });
         if(has(left,"paymentProofs")||has(right,"paymentProofs"))merged.paymentProofs=has(left,"paymentProofs")&&goalSyncEqual(proofs,a)?left.paymentProofs:has(right,"paymentProofs")&&goalSyncEqual(proofs,c)?right.paymentProofs:proofs;
+        return;
+      }
+      /* «Lo pagué de otra forma» (`pagadoAMano`, {año*12+mes: día}) se mezcla mes a mes, como las
+         pruebas de pago: dos móviles que marcan meses distintos conservan las dos marcas, y la
+         primera lectura sin base no tira la marca local (revisión de dinero 9/11, C3). */
+      if(kind==="fixed"&&group[0]==="pagadoAMano"&&[old,left,right].every(function(o){return !has(o,"pagadoAMano")||o.pagadoAMano&&typeof o.pagadoAMano==="object"&&!Array.isArray(o.pagadoAMano);})){
+        const before=old&&old.pagadoAMano||{},a=left.pagadoAMano||{},c=right.pagadoAMano||{},out={};
+        new Set([...Object.keys(before),...Object.keys(a),...Object.keys(c)]).forEach(function(month){
+          const equal=function(x,y){return has(x,month)===has(y,month)&&(!has(x,month)||x[month]===y[month]);};
+          let source=c;
+          if(equal(c,before))source=a;
+          else if(!equal(a,before)&&!equal(a,c)&&fields.indexOf("pagadoAMano")<0)fields.push("pagadoAMano");
+          if(has(source,month))Object.defineProperty(out,month,{value:source[month],enumerable:true,writable:true,configurable:true});
+        });
+        if(Object.keys(out).length)merged.pagadoAMano=goalSyncEqual(out,a)&&has(left,"pagadoAMano")?left.pagadoAMano:goalSyncEqual(out,c)&&has(right,"pagadoAMano")?right.pagadoAMano:out;
+        return;
+      }
+      /* «Ya me lo ha pagado» (tanda 5): dos móviles que marcan a personas distintas suman las dos
+         marcas; quitarla en uno la quita si el otro no la tocó (rev. t5, R3). Mes a mes, id a id. */
+      if(kind==="fixed"&&group[0]==="repartoCobrado"&&[old,left,right].every(function(o){return !has(o,"repartoCobrado")||o.repartoCobrado&&typeof o.repartoCobrado==="object"&&!Array.isArray(o.repartoCobrado);})){
+        const b0=old&&old.repartoCobrado||{},a=left.repartoCobrado||{},c=right.repartoCobrado||{},out={};
+        new Set([...Object.keys(b0),...Object.keys(a),...Object.keys(c)]).forEach(function(month){
+          const lista=function(o){return Array.isArray(o[month])?o[month]:[];};
+          const la=lista(a),lc=lista(c),lb=lista(b0),ids=[];
+          la.concat(lc).forEach(function(id){
+            if(ids.indexOf(id)>=0)return;
+            const enA=la.indexOf(id)>=0,enC=lc.indexOf(id)>=0,enB=lb.indexOf(id)>=0;
+            if(enA&&enC||enA&&!enB||enC&&!enB)ids.push(id);
+          });
+          if(ids.length)Object.defineProperty(out,month,{value:ids,enumerable:true,writable:true,configurable:true});
+        });
+        if(Object.keys(out).length)merged.repartoCobrado=goalSyncEqual(out,a)?left.repartoCobrado:goalSyncEqual(out,c)?right.repartoCobrado:out;
         return;
       }
       let source=right;
@@ -4664,10 +5103,22 @@ function bankConnectOnce(aspsp_name, country){
 // Punto de miles también con cuatro cifras: el español de Intl no lo pone hasta las cinco, y la
 // app decía «1426,23 €» junto a «193.993,44 €» y al «1.912 €» del widget nativo (capturas del
 // dueño, 26/10/2026). Un motor sin `"always"` lo toma como `true`: vuelve a lo de antes, sin romper.
-const NF  = new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"});
-const NF0 = new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"});
+// Con la app en inglés las cifras van en formato inglés, «1,234.56 €» (auditoría de Recibos, P2-10:
+// antes salían «1.234,56 €» junto a textos en inglés). El símbolo se queda detrás: su sitio es
+// maquetación (las cifras grandes parten entero, decimales y símbolo) y lo comparten 30 monedas.
+// En español y en catalán no cambia nada: los dos siguen con el formato de siempre.
+// `CURLANG` nace en 01-i18n; antes de eso (y en los tests que cargan solo esto), español.
+const NF_ES=[new Intl.NumberFormat('es-ES',{maximumFractionDigits:0,useGrouping:"always"}), new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"})];
+const NF_EN=[new Intl.NumberFormat('en-GB',{maximumFractionDigits:0,useGrouping:"always"}), new Intl.NumberFormat('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"})];
+const nfIngles=function(){ try{ return CURLANG==="en"; }catch(e){ return false; } };
+const NF  = {format:function(n){ return (nfIngles()?NF_EN:NF_ES)[1].format(n); }};
+const NF0 = {format:function(n){ return (nfIngles()?NF_EN:NF_ES)[0].format(n); }};
+// Separador decimal de lo que pinta `NF`: lo usan las cifras partidas (`eurParts`) y los
+// importes que se precargan en un campo, para que se lean igual que el resto de la pantalla.
+const numDecSep=function(){ return nfIngles()?".":","; };
 // Moneda de visualización. Todos los importes de la app están en € (base); DISP los convierte
 // a la moneda elegida (k = factor sobre €, sym = símbolo). Se fija en App según ajustes + fx.
+// `DISP.oculto` (el ojo, SPEC Plan Recibos §8) lo fija App desde `settings.ocultarImportes` en cada render.
 let DISP = { sym:"€", k:1 };
 // Símbolos de las monedas de visualización (Ajustes → Dinero). Todas contra € vía fxRates (BCE).
 // TRY (lira turca) añadida 2026-08-05: crucero — sin ella el selector no ofrecía la divisa real
@@ -4675,5 +5126,7 @@ let DISP = { sym:"€", k:1 };
 const CUR_SYM = { EUR:"€", USD:"$", GBP:"£", CHF:"CHF", JPY:"¥", CAD:"C$", AUD:"A$", CNY:"CN¥", MXN:"MX$", SEK:"kr", NOK:"kr", DKK:"kr", PLN:"zł", BRL:"R$", INR:"₹", TRY:"₺" };
 // Monedas ofrecidas en el selector y la comparativa (deben venir en el fetch del BCE / frankfurter).
 const CUR_LIST = ["EUR","USD","GBP","CHF","TRY","JPY","CAD","AUD","CNY","MXN","SEK","NOK","DKK","PLN","BRL","INR","CZK","HKD","HUF","IDR","ILS","ISK","KRW","MYR","NZD","PHP","RON","SGD","THB","ZAR"];
-const eur  = (n)=> NF.format((n||0)*DISP.k)+" "+DISP.sym;
-const eur0 = (n)=> NF0.format(Math.round((n||0)*DISP.k))+" "+DISP.sym;
+/* El ojo vive en los formateadores para que no se escape ninguna cifra (SPEC §8). También en los
+   avisos del móvil, que se leen con la pantalla bloqueada: con el ojo puesto, nada de importes. */
+const eur  = (n)=> DISP.oculto ? "•••• "+DISP.sym : NF.format((n||0)*DISP.k)+" "+DISP.sym;
+const eur0 = (n)=> DISP.oculto ? "•••• "+DISP.sym : NF0.format(Math.round((n||0)*DISP.k))+" "+DISP.sym;

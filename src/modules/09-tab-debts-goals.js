@@ -10,9 +10,27 @@ function planEditNumber(raw,optional){
   const n=Number(text.replace(",","."));
   return Number.isFinite(n)&&n>=0?n:NaN;
 }
+/* «Baja cada mes» (`amort`) solo se ofrece sin interés: con TAE la cuota lleva intereses y el modelo
+   lineal no sabe separarlos (`deudaDescontable`, rev. t5 R1). El préstamo familiar dado de alta con
+   plazo guardaba `amort` = saldo/plazo y no había forma de corregirlo (feedback 1/11/2026). */
+function debtEditAmortable(d){ return !(Number(d&&d.apr)>0); }
 function debtEditDraft(d){
-  return {name:d.name||"",note:d.note==null?"":String(d.note),balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
+  const o={name:d.name||"",note:d.note==null?"":String(d.note),balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
     day:String(debtChargeDay(d)),months:d.months==null?"":String(d.months),apr:d.apr==null?"":String(d.apr)};
+  if(debtEditAmortable(d)) o.amort=String(+debtAmort(d).toFixed(2));
+  return o;
+}
+/* Cambiar el plazo de una deuda cuya bajada NO es la cuota (préstamo familiar) se validaba contra la
+   bajada vieja y no había plazo que encajara: con el plazo nuevo, lo lineal es pendiente/meses que
+   quedan, como en el alta. La ligada a la cuota (financiación al 0 %) no se toca: ahí cuota y plazo
+   tienen que encajar y la hoja dice con qué cuota. null = no hay nada que proponer. */
+function debtEditAmortDePlazo(d,form){
+  if(!debtEditAmortable(d)||form.amort===undefined||planEditNumber(form.apr,true)>0) return null;
+  const amort=planEditNumber(form.amort,true),monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true),balance=planEditNumber(form.balance);
+  if(!(amort>0)||!(monthly>=0)||Math.round(amort*100)===Math.round(monthly*100)||months==null||!Number.isInteger(months)||!(balance>0)) return null;
+  const remaining=months-debtPaidCount(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
+  if(!(remaining>0)||principal<=0) return null;
+  return String(Math.ceil(principal/remaining)/100);
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -25,14 +43,22 @@ function debtEditMonths(d,balance,am,paid){
 function debtEditResult(d,form){
   const balance=planEditNumber(form.balance),monthly=planEditNumber(form.monthly),day=planEditNumber(form.day),
     months=planEditNumber(form.months,true),apr=planEditNumber(form.apr,true);
-  if(!form.name.trim() || [balance,monthly,day,months,apr].some(function(n){ return Number.isNaN(n); }) ||
+  // Vacío o sin el campo (deuda con TAE, borradores de antes) = no se toca lo que baja.
+  const amortIn=debtEditAmortable(d)&&!(apr>0)?planEditNumber(form.amort,true):null;
+  if(!form.name.trim() || [balance,monthly,day,months,apr,amortIn].some(function(n){ return Number.isNaN(n); }) ||
     !Number.isInteger(day)||day<1||day>31 || months!=null&&!Number.isInteger(months)) return {error:"plan_edit_invalid"};
   const next=Object.assign({},d),oldBalance=+debtBalance(d).toFixed(2);
   const amountChanged=balance!==oldBalance,quotaChanged=monthly!==(d.monthly||0),dayChanged=day!==debtChargeDay(d),
-    termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr);
+    termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr),
+    // Tecleada en la hoja (`amortSet`) también cuenta si es la de antes pero la cuota ligada se movió:
+    // si no, «cuota 197, baja 250» en una deuda que bajaba 250 se guardaba bajando 197 (rev. lo-descuento B1).
+    tiedMoves=quotaChanged&&(d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005),
+    // Ligada y siguiendo a la cuota en pantalla (bajada = cuota nueva) sigue siendo la ligadura de siempre.
+    amortChanged=amortIn!=null&&(tiedMoves?Math.round(amortIn*100)!==Math.round(monthly*100)&&
+      (form.amortSet===true||Math.round(amortIn*100)!==Math.round(debtAmort(d)*100)):Math.round(amortIn*100)!==Math.round(debtAmort(d)*100));
   // Cambiar el calendario de una deuda terminada puede reabrirla o reescribir su historia.
   // La guardia también protege llamadas que no pasan por los campos bloqueados de la ficha.
-  if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged)) return {error:"db_finished_edit_hint"};
+  if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged||amortChanged)) return {error:"db_finished_edit_hint"};
   if(form.name.trim()!==(d.name||"")) next.name=form.name.trim();
   if(form.note!==undefined&&form.note!==(d.note==null?"":String(d.note)))next.note=form.note;
   // El alta con plazo pone `amort` lineal (saldo/plazo), no la cuota tecleada: si coinciden (o no hay
@@ -40,13 +66,17 @@ function debtEditResult(d,form){
   // que paga 197 y amortiza 250), cambiar la cuota solo cambia lo que se paga, no el calendario (revisión d139).
   const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;
   if(quotaChanged){ next.monthly=+monthly.toFixed(2); if(quotaIsAmort&&d.amort!=null) next.amort=next.monthly; }
+  // Lo que baja, tecleado, manda sobre la ligadura con la cuota; igual a la cuota no hace falta guardarlo.
+  if(amortChanged){ next.amort=+amortIn.toFixed(2); if(Math.abs(next.amort-(next.monthly||0))<0.005) delete next.amort; }
+  if(amortChanged&&!(amortIn>0)&&balance>0.005) return {error:"db_edit_amort_zero"};
   if(dayChanged) next.day=day;
   if(termChanged){ if(months==null) delete next.months; else next.months=months; }
   if(aprChanged) next.apr=apr;
   // Cambiar nombre/TAE o guardar lo mismo nunca re-ancla ni redondea una deuda heredada.
   // Si cambia el saldo, se conserva el contrato anterior: ancla nueva sin plazo, cuotas pagadas
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
-  if(amountChanged||quotaChanged||dayChanged||termChanged){
+  // Cambiar lo que baja re-ancla `value` (si no, el saldo de hoy cambiaría hacia atrás: value − amort×pagadas).
+  if(amountChanged||quotaChanged||dayChanged||termChanged||amortChanged){
     const am=debtAmort(next),paid=debtPaidCount(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
@@ -55,6 +85,8 @@ function debtEditResult(d,form){
     if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null){
       const remaining=next.months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
       if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth){
+        // Con la bajada tecleada, el rango de cuotas no dice nada: lo que no encaja es lo que baja.
+        if(amortChanged) return {error:"db_err_term_amort"};
         // Con solo la cuota tocada se dice qué cuota encaja: «no encajan» a secas dejaba a la
         // hipoteca heredada sin forma de saber qué valor aceptaba (revisión d139c).
         const lo=remaining>0?Math.ceil(principal/remaining):0,hi=remaining>1?Math.ceil(principal/(remaining-1))-1:null;
@@ -76,7 +108,8 @@ function debtEditResult(d,form){
       // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
       // nadie miraba el plazo y quedaba principal sin cuotas o cuotas fantasma (revisión d139).
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
-      if((amountChanged||dayChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
+      // Con otra bajada y el plazo intacto, el plazo sale de ella (y la hoja pide confirmarlo).
+      if((amountChanged||dayChanged||amortChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
         const calculated=debtEditMonths(next,balance,am,paid);
         if(calculated==null) return {error:"plan_edit_invalid"};
         next.months=calculated;
@@ -113,6 +146,22 @@ function goalEditResult(g,form){
   return {item:JSON.stringify(next)===JSON.stringify(g)?g:next};
 }
 function planEditSame(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function debtEditRateError(s,before,next){
+  if(Number(before&&before.apr)>0||!(Number(next&&next.apr)>0)) return "";
+  const linked=function(r){ return Array.isArray(r)&&r.some(function(x){ return x&&x.via==="debt"&&x.debtId===before.id; }); };
+  const p=madridYmdParts(Date.now()),cur=p.y*12+p.m;
+  // La relación sigue viva aunque el recibo esté pausado o aún no toque cobrarlo. Los repartos
+  // congelados de pagos anteriores se conservan: quitarlos no es requisito para cambiar la TAE.
+  const has=(s.fixed||[]).some(function(e){
+    if(linked(e.reparto)) return true;
+    return Object.keys(e.soloMes||{}).some(function(k){
+      const ym=Number(k),o=e.soloMes[k];
+      return Number.isInteger(ym)&&ym>=cur&&o&&linked(o.reparto)&&
+        (ym>cur||!fixedPaymentState(s,e,p.y,p.m,p.d).paid);
+    });
+  });
+  return has?"db_rate_discount_remove":"";
+}
 function debtEditTermChange(d,form,result){
   if(!result.item||d.months==null||planEditNumber(form.months,true)!==d.months||result.item.months===d.months) return null;
   return {before:d.months,after:result.item.months,leftBefore:debtLeft(d),leftAfter:debtLeft(result.item)};
@@ -129,6 +178,7 @@ function debtEditConfirmResult(state,debt,form,confirmed){
 function planEditCommit(s,field,before,next){
   const matches=(s[field]||[]).filter(function(x){ return x.id===before.id; });
   if(matches.length!==1||planEditSame(matches[0],next)||!planEditSame(matches[0],before)) return s;
+  if(field==="debts"&&debtEditRateError(s,matches[0],next)) return s;
   return Object.assign({},s,{[field]:s[field].map(function(x){ return x.id===before.id?next:x; })});
 }
 function usePlanEditSave({state,set,field,item,onClose,showToast,review}){
@@ -136,7 +186,7 @@ function usePlanEditSave({state,set,field,item,onClose,showToast,review}){
   const sending=useRef(false),outcome=useRef(null);
   useLayoutEffect(function(){
     if(!pending||!outcome.current) return;
-    if(outcome.current.error){ sending.current=false; setPending(null); setError("plan_edit_changed"); return; }
+    if(outcome.current.error){ sending.current=false; setPending(null); setError(typeof outcome.current.error==="string"?outcome.current.error:"plan_edit_changed"); return; }
     const rows=(state[field]||[]).filter(function(x){ return x.id===item.id; });
     // La hoja ya no se desmonta aquí sino tras bajar: durante esa salida otra escritura (la nube,
     // un sync) volvía a pasar por este efecto y repetía el cierre y el «Cambios guardados».
@@ -146,11 +196,17 @@ function usePlanEditSave({state,set,field,item,onClose,showToast,review}){
     if(sending.current) return;
     if(result.error){ setError(result.error); setRange(result.range||null); return; }
     const next=result.item;
+    const rateError=field==="debts"?debtEditRateError(state,item,next):"";
+    if(rateError){ setError(rateError); setRange(null); return; }
     sending.current=true; const response={error:false}; outcome.current=response; setError(""); setRange(null);
     // Pendiente y escritura comparten prioridad: un Guardar urgente se confirmaba antes de
     // rebasarse sobre una corrección ya en cola y desmontaba la hoja antes de poder avisar.
     React.startTransition(function(){ setPending(next); set(function(s){
       if(review&&!goalSyncEqual(planSyncConflict(s,field,item.id),review)){response.error=true;return s;}
+      // Un recibo puede llegar de la nube sin cambiar la deuda que abrió esta hoja.
+      const current=field==="debts"?(s.debts||[]).find(function(d){return d.id===item.id;}):null;
+      const rateError=field==="debts"?debtEditRateError(s,current||item,next):"";
+      if(rateError){response.error=rateError;return s;}
       let changed=field==="debts"&&review&&!(s.debts||[]).some(function(d){return d.id===item.id;})
         ?planSyncRecoverDebt(s,review,next):planEditCommit(s,field,item,next);
       const rows=(changed[field]||[]).filter(function(x){ return x.id===item.id; });
@@ -233,8 +289,37 @@ function PlanConflictSheet({record,current,onReview,onDiscard,onClose}){
       React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:onReview},t("plan_conflict_review")),
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:onDiscard},t("plan_conflict_discard"))));
 }
-function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery}){
-  const [form,setForm]=useState(function(){ return debtEditDraft(planReviewDraft(debt,review)); });
+function debtNeedsChargeDay(d){ return !!d&&debtActive(d)&&!d.settledAt&&!d.archivedAt&&cleanDay(dayOf(d))==null; }
+function DebtDayPrompt({debt,onOpen}){
+  if(!debtNeedsChargeDay(debt)) return null;
+  return React.createElement("button",{type:"button",className:"link","data-debt-day-id":debt.id,
+    "aria-label":debt.name+" · "+t("db_day_prompt"),style:{display:"block",minHeight:44,textAlign:"left",color:"var(--mint)",textDecoration:"underline",textUnderlineOffset:3},
+    onClick:function(){ onOpen(debt); }},t("db_day_prompt"));
+}
+function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery,initialFocus}){
+  const [form,setForm]=useState(function(){
+    const source=planReviewDraft(debt,review),draft=debtEditDraft(source);
+    // Revisar un conflicto conserva el día local aunque la copia remota aún no tenga uno.
+    if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&cleanDay(dayOf(source))==null) draft.day="";
+    return draft;
+  });
+  /* Si «Baja la deuda» va ligada a la cuota se decide UNA vez, con la deuda tal y como se abre. Antes
+     se decidía en cada tecla comparando los dos campos en vivo: en un préstamo familiar (paga 197,
+     baja 250) la cuota pasaba un instante por «250» al teclearla, la bajada se enganchaba y se
+     guardaba sin sus 250 (revisión independiente de la 4.26.214). Con la misma tolerancia que el
+     guardado (`quotaIsAmort`): una cuota guardada con tres decimales (197,333) y sin bajada propia
+     abre la bajada a 197,33 y es la misma ligadura. */
+  const tied=useRef(function(){
+    if(form.amort===undefined) return false;
+    const a=planEditNumber(form.amort,true),m=planEditNumber(form.monthly);
+    return Number.isFinite(a)&&Number.isFinite(m)?Math.abs(a-m)<=0.005:a===m;
+  }()).current;
+  const dayRef=useRef(null);
+  useEffect(function(){
+    if(initialFocus!=="day"||recovery) return;
+    const frame=requestAnimationFrame(function(){ if(dayRef.current){ dayRef.current.focus({preventScroll:true}); dayRef.current.scrollIntoView({block:"nearest"}); } });
+    return function(){ cancelAnimationFrame(frame); };
+  },[]);
   const [attempt,setAttempt]=useState(0),errorRef=useRef(null);
   const finished=debtEditFinished(debt);
   const closer=useRef(null);
@@ -248,29 +333,49 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
   const [confirmPending,setConfirmPending]=useState(false),confirming=useRef(false),latest=useRef(null);
   useLayoutEffect(function(){ latest.current={state:state,form:form,save:save}; });
   useEffect(function(){ return function(){latest.current=null;}; },[]);
+  // El editor legado compara contra el día 1 de respaldo: elegirlo expresamente desde el
+  // aviso debe persistir ese campo, sin cambiar las validaciones ni los cálculos del editor.
+  const chosenDayResult=function(result,draft){
+    if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&result.item&&!result.error&&
+      planEditNumber(draft.day)===1&&cleanDay(dayOf(result.item))==null)
+      return Object.assign({},result,{item:Object.assign({},result.item,{day:1})});
+    return result;
+  };
   const submit=function(){
     if(confirming.current||save.pending) return;
     setAttempt(function(n){return n+1;});
     const result=debtEditResult(debt,form);
     if(recovery&&result.item)result.item=Object.assign({},result.item,{restoredAt:new Date().toISOString()});
     const change=debtEditTermChange(debt,form,result);
-    if(!change){ save.save(result); return; }
+    if(!change){ save.save(chosenDayResult(result,form)); return; }
     confirming.current=true; setConfirmPending(true);
     askConfirm({title:t("db_edit_term_confirm"),sub:tf(change.after===1?"db_edit_term_summary_one":"db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
       confirming.current=false; const current=latest.current;
       if(!current) return;
       setConfirmPending(false);
       if(!yes) return;
-      current.save.save(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}));
+      current.save.save(chosenDayResult(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}),current.form));
     });
   };
+  const amortOn=form.amort!==undefined&&!(planEditNumber(form.apr,true)>0);
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
-      disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
-      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
+      ref:key==="day"?dayRef:undefined,disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
+      onChange:function(e){
+        const f=Object.assign({},form,{[key]:e.target.value});
+        // Se ve antes de guardar: el plazo nuevo mueve lo que baja (si va por libre de la cuota).
+        if(key==="months"){ const a=debtEditAmortDePlazo(debt,f); if(a!=null) f.amort=a; }
+        // Ligada y sin tocar, lo que baja sigue a la cuota en pantalla: lo que se ve es lo que se guarda.
+        // Con `tied` fijo, borrar la cuota o dejarla mal formada a medias tampoco suelta el vínculo
+        // (antes NaN!==NaN lo soltaba y Guardar fallaba: INC1810, beta 4.26.213).
+        if(key==="monthly"&&tied&&!form.amortSet&&form.amort!==undefined) f.amort=e.target.value;
+        if(key==="amort") f.amortSet=true;
+        setForm(f); }})); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),input("note","plan_conflict_note"),input("balance","db_pending","decimal"),
     React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
+    amortOn&&input("amort","db_amort_ph","decimal"),
+    amortOn&&React.createElement("div",{className:"hint"},t("db_amort_hint")),
     input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
     finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
     input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),
@@ -367,13 +472,20 @@ function AmortAdvisor({state, onEdit, onAmort}){
     React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("da_est"))
   );
 }
-function Debts({state, set, showToast}){
+function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
   const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
   const [showArchive,setShowArchive]=useState(false);
   const [editingDebt,setEditingDebt]=useState(null);
   const [reviewDebt,setReviewDebt]=useState(null);
+  const [dayFocus,setDayFocus]=useState(false);
+  const openDay=function(d){ setReviewDebt(null);setDayFocus(true);setEditingDebt(d); };
+  useEffect(function(){
+    if(!editDayRequest) return;
+    const d=state.debts.find(function(x){return String(x.id)===String(editDayRequest.id);});
+    if(debtNeedsChargeDay(d)) openDay(d); else if(onEditDayClose) onEditDayClose();
+  },[editDayRequest&&editDayRequest.ts]);
   const conflict=editingDebt&&planSyncConflict(state,"debts",editingDebt.id);
   const orphaned=state._planSync&&state._planSync.owner===state._historyOwner?(state._planSync.conflicts||[]).filter(function(c){return c.kind==="debts"&&!state.debts.some(function(d){return d.id===c.id;});}):[];
   const recovering=!!(editingDebt&&reviewDebt&&!state.debts.some(function(d){return d.id===editingDebt.id;}));
@@ -479,7 +591,7 @@ function Debts({state, set, showToast}){
   const amortize=(d)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
-      ph:"0,00 €", ok:"💸 "+t("db_amortize"),
+      ph:NF.format(0)+" €", ok:"💸 "+t("db_amortize"),
       // atajos: los importes redondos que quepan + «todo» para liquidarla de un toque
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
         .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}])
@@ -514,6 +626,12 @@ function Debts({state, set, showToast}){
     const p=madridYmdParts(Date.now()), m=p.m-1+li.n;
     return tf("v4_debts_ends",{d:monthLong(m%12)+" "+(p.y+Math.floor(m/12))});
   };
+  const editor=editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
+    onClose:function(){setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},
+    onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
+    React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,initialFocus:dayFocus?"day":undefined,
+      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
+  if(editorOnly) return editor;
   return React.createElement("div",null,
     React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
@@ -533,9 +651,9 @@ function Debts({state, set, showToast}){
       const pct=Math.min(100,(paid/(d.original||1))*100);
       // «Quedan n/tot cuotas» en TODAS las deudas (feedback 2026-07-21): sin plazo va estimado.
       const li=leftInfo(d);
-      const day=debtChargeDay(d);
-      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setReviewDebt(null);setEditingDebt(d);}}},
-        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
+      const day=cleanDay(dayOf(d));
+      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
+        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
           React.createElement("span",{className:"v4-debt-emoji"},debtEmoji(d)),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
@@ -543,6 +661,13 @@ function Debts({state, set, showToast}){
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
         React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
+        React.createElement(DebtDayPrompt,{debt:d,onOpen:openDay}),
+        // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
+        (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
+          return c&&c.amt>0?React.createElement("div",{className:"v4-debt-sub","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(", ")})):null; })(),
+        // El descuadre ya guardado no se pregunta solo (rev. lo-descuento R1): se señala y se ajusta si quiere.
+        descuentoDescuadreGuardado(state,d)&&React.createElement("button",{type:"button",className:"chip","data-act":"debt-descuadre",style:{alignSelf:"flex-start",marginTop:6},
+          onClick:function(){ descuentoAjustarGuardado(state,set,d); }},t("rp6_no_cuadra")),
         React.createElement("div",{className:"v4-debt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
         React.createElement("div",{className:"v4-debt-foot"},
           React.createElement("span",null,tf("db_paidoff",{x:eur0(paid),p:Math.round(pct)})),
@@ -565,7 +690,7 @@ function Debts({state, set, showToast}){
       ); })
     ),
     React.createElement("div",{className:"v4-tip"},
-      React.createElement(AmortAdvisor,{state:state,onEdit:setEditingDebt,onAmort:doAmort})
+      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);},onAmort:doAmort})
     ),
     adding
       ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
@@ -591,10 +716,7 @@ function Debts({state, set, showToast}){
         )
       : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
     React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
-    editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
-      onClose:function(){setEditingDebt(null);setReviewDebt(null);},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);},
-      onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
-      React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,onClose:function(){setEditingDebt(null);setReviewDebt(null);},onDelete:delDebt,showToast:showToast}))
+    editor
   );
 }
 
@@ -784,7 +906,7 @@ function SavingsPlanCard({state, set, totals, showToast}){
   const [drafts,setDrafts]=useState(null);   // null = cerrado; array = editando
   const AP_ENTS=Object.keys(ENT).filter(function(k){ return k!=="familia"; });
   const start=function(){
-    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",","):"",ent:a.ent||"myinvestor"}; }));
+    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",numDecSep()):"",ent:a.ent||"myinvestor"}; }));
   };
   const setD=function(id,k,v){ setDrafts(function(ds){ return ds.map(function(d){ return d.id===id?Object.assign({},d,{[k]:v}):d; }); }); };
   const add=function(){ setDrafts(function(ds){ return ds.concat([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]); }); };

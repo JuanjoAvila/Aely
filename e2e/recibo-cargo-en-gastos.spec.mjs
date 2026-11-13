@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosCifra } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosCifra, mirrorExpensesToCloud } from "./fixtures.mjs";
 
 /* EL CARGO DE UN RECIBO SALE EN GASTOS Y NO CUENTA DOS VECES (decisión del dueño, 12/10/2026).
    Sus palabras: «yo solo quiero que salga todo en gastos… si sale en recibos pero no en gastos
@@ -31,6 +31,7 @@ const gastado = async (page) => (await gastosCifra(page).textContent()).trim();
    (decisión suya, 26/10/2026; del 20/10 al 26/10 iba plegado en un bloque «Recibos · no cuentan»).
    Al decir «No es este recibo» vuelve a ser una tarjeta normal. */
 const bloques = (page) => page.locator(".v4-gastos-list-body .gx-gris");
+const owner = "e2e-user";
 
 /** El resumen del sync tapa la barra inferior hasta que se cierra tocando fuera. */
 async function cierraInforme(page) {
@@ -41,7 +42,7 @@ async function cierraInforme(page) {
 
 async function abre(page, lang, otro) {
   await seedLoggedInDashboard(page, Object.assign({
-    __seedOnce: true, hasBankLink: true, budget: 1000,
+    __seedOnce: true, _historyOwner: owner, hasBankLink: true, budget: 1000,
     accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", role: "ambos", value: 2000 }],
     settings: { autoPrices: false, theme: "green", lang, expenseBanks: ["sabadell"] },
     fixed: [recibo, agua], debts: [], oneoffs: [], flows: [], bankTx: [],
@@ -53,10 +54,13 @@ async function abre(page, lang, otro) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await page.waitForFunction(() => !document.getElementById("mc-load"));
   await dismissNews(page);
+  await mirrorExpensesToCloud(page, owner);
 }
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
+// En inglés las cifras van en formato inglés («1,000.50 €»): la misma cifra, con los separadores cambiados.
+const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):txt;
 for (const lang of ["es", "en", "ca"]) {
   test(lang + ": al actualizar, el adeudo sale en Gastos con su recibo, el recibo queda pagado y el gastado no lo cuenta", async ({ page }) => {
     await abre(page, lang);
@@ -65,12 +69,13 @@ for (const lang of ["es", "en", "ca"]) {
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await expect(fila(page, "Compra de control")).toHaveCount(1);
     await expect(fila(page, "COMUNIDAD DE PROPIETARIOS")).toHaveCount(0);
-    expect(await gastado(page)).toContain("20,00");
+    expect(await gastado(page)).toContain(cifra(lang, "20,00"));
 
     await page.locator('.botnav-tab[data-tour="cartera"]').click();
     await page.getByRole("button", { name: textos.sync }).click();
     await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
     await cierraInforme(page);
+    await mirrorExpensesToCloud(page, owner);
 
     // Inicio lo enseña igual que Gastos: atenuado y diciendo de qué recibo es.
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
@@ -95,7 +100,7 @@ for (const lang of ["es", "en", "ca"]) {
     expect(cifras.neto).toBe(-80);
     // El saldo que queda tras sincronizar es el que dice el banco, no el banco más el recibo.
     expect(cifras.saldo).toBeCloseTo(1900, 2);
-    expect(await gastado(page)).toContain("23,40");
+    expect(await gastado(page)).toContain(cifra(lang, "23,40"));
 
     // La ficha dice a qué recibo corresponde y deja corregirlo.
     // Lo que solo se parece a un recibo sigue sin contar, como cuando se tiraba, pero pregunta…
@@ -141,6 +146,7 @@ test("Plan: el recibo cobrado sale en «Ya pagado» tras actualizar", async ({ p
   await page.getByRole("button", { name: /Sincronizar bancos/i }).click();
   await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
   await cierraInforme(page);
+  await mirrorExpensesToCloud(page, owner);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({ hasText: "Comunidad" })).toHaveCount(1);
 });
@@ -157,6 +163,7 @@ for (const lang of ["es", "en", "ca"]) {
     await page.getByRole("button", { name: textos.sync }).click();
     await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
     await cierraInforme(page);
+    await mirrorExpensesToCloud(page, owner);
     expect(await foto()).toEqual({ spent: 23.4, marcadas: "ag,com", vetos: 0, pagado: true, saldo: 1900 });
 
     await page.locator('.botnav-tab[data-tour="gastos"]').click();

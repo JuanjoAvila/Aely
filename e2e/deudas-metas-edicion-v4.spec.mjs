@@ -183,7 +183,9 @@ test("M2/M7: baja el objetivo de la segunda de DOS metas y recalcula done",async
 const pcErrors={es:"El plazo y la cuota no encajan con el saldo pendiente. Revisa el plazo o la cuota.",en:"The term and payment do not match the remaining balance. Check the term or payment.",ca:"El termini i la quota no encaixen amb el saldo pendent. Revisa el termini o la quota."};
 const pcRange={es:"Con 6 cuotas por pagar, la cuota tiene que estar entre",en:"With 6 payments left, the payment must be between",ca:"Amb 6 quotes per pagar, la quota ha d'estar entre"};
 const pcDebt=extra=>({...reviewDebt,original:2000,...extra}),pcRows=d=>({...reviewRows,debts:[reviewRows.debts[0],d]});
-const pcInvalid=[{id:"fantasma",months:20,debt:{}},{id:"residual",months:8,debt:{}},{id:"amort",months:16,debt:{monthly:300,amort:200}},{id:"balloon",months:20,debt:{value:2400,balloon:400}}];
+// Sin «amort» (cuota 300, baja 200): desde el 1/11/2026 el plazo nuevo recalcula lo que baja en la hoja
+// en vez de validarse contra la bajada vieja (e2e/deudas-lo-descuento.spec.mjs lo comprueba).
+const pcInvalid=[{id:"fantasma",months:20,debt:{}},{id:"residual",months:8,debt:{}},{id:"balloon",months:20,debt:{value:2400,balloon:400}}];
 for(const lang of ["es","en","ca"])for(const scenario of pcInvalid.filter(x=>lang==="es"||x.id==="fantasma"||x.id==="residual"))test(`PC: rechaza ${scenario.id} y conserva borrador (${lang})`,async({page})=>{
  await open(page,lang,pcRows(pcDebt(scenario.debt)));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,lang);
  await sheet.locator('[data-debt-field="months"]').fill(String(scenario.months));await sheet.locator('[data-debt-field="monthly"]').fill("100");await sheet.getByRole("button",{name:texts[lang].saveDebt,exact:true}).click();
@@ -265,7 +267,7 @@ for(const kind of ["debt","goal"])test(`apertura de la hoja de ${kind==="debt"?"
  expect(new Set(rec.frames.map(f=>Math.round(f.card))).size).toBe(1);expect(new Set(rec.frames.map(f=>f.scroll))).toEqual(new Set([200]));
  expect(shown.length).toBeGreaterThan(3);
  for(let i=1;i<shown.length;i++)expect(shown[i].sheet,"la hoja nunca retrocede al subir").toBeLessThanOrEqual(shown[i-1].sheet+0.5);
- const look=await sheet.evaluate(el=>{const back=getComputedStyle(el.parentElement).backgroundColor.match(/[\d.]+/g).map(Number);return {sheet:el.classList.contains("v4-sheet"),back:el.parentElement.classList.contains("v4-sheet-back"),alpha:back.length>3?back[3]:1,duration:parseFloat(getComputedStyle(el).animationDuration)};});
+ const look=await sheet.evaluate(el=>{const host=el.parentElement,pseudo=getComputedStyle(host,"::before"),paint=(pseudo.content!=="none"&&pseudo.content!=="normal")?pseudo.backgroundColor:getComputedStyle(host).backgroundColor,back=paint.match(/[\d.]+/g).map(Number);return {sheet:el.classList.contains("v4-sheet"),back:host.classList.contains("v4-sheet-back"),alpha:back.length>3?back[3]:1,duration:parseFloat(getComputedStyle(el).animationDuration)};});
  expect(look).toMatchObject({sheet:true,back:true});expect(look.alpha).toBeLessThanOrEqual(0.3);expect(look.duration).toBeGreaterThanOrEqual(0.4);
 });
 // El atrás del sistema cierra la hoja con el borrador sin escribir y sin salir de la app. Sin
@@ -308,8 +310,8 @@ for(const scenario of [{kind:"debt",how:"save"},{kind:"debt",how:"x"},{kind:"goa
  await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
  const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:4});
  await page.evaluate(()=>{const rec=window.__cierre=[],t0=performance.now();(function f(){const sh=document.querySelector(".v4-sheet"),bk=document.querySelector(".v4-sheet-back");
-  const c=bk&&getComputedStyle(bk).backgroundColor.match(/[\d.]+/g).map(Number);
-  rec.push({sheet:sh?Math.round(sh.getBoundingClientRect().top):null,alpha:c?(c.length>3?c[3]:1):null});if(performance.now()-t0<1500)requestAnimationFrame(f);})();});
+  let alpha=null;if(bk){const b=getComputedStyle(bk,"::before");if(b.content!=="none"&&b.content!=="normal")alpha=parseFloat(b.opacity);else{const c=getComputedStyle(bk).backgroundColor.match(/[\d.]+/g);if(c){const n=c.map(Number);alpha=n.length>3?n[3]:1;}}}
+  rec.push({sheet:sh?Math.round(sh.getBoundingClientRect().top):null,alpha});if(performance.now()-t0<1500)requestAnimationFrame(f);})();});
  // Clics crudos: el de Playwright espera sondeando el DOM y falsea el ritmo de fotogramas.
  await page.evaluate(how=>{
   if(how==="save")document.querySelector(".plan-edit-sheet .btn-primary").click();
@@ -334,7 +336,7 @@ for(const scenario of [{kind:"debt",how:"back"},{kind:"debt",how:"x"},{kind:"deb
  const {kind,how}=scenario;
  await open(page,"es",reviewRows,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
  if(kind==="apuntar")await page.locator(".botnav-fab").evaluate(b=>b.click());
- else if(kind==="filtros"){await page.locator('.botnav-tab[data-tour="gastos"]').click();await page.locator("button.v4-chip").filter({hasText:"🎛️"}).first().evaluate(b=>b.click());}
+ else if(kind==="filtros"){await page.locator('.botnav-tab[data-tour="gastos"]').click();await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").evaluate(b=>b.click());}
  else await page.locator(kind==="debt"?'[data-debt-id="debt"] .plan-item-open':'[data-goal-id="goal"] .plan-item-open').evaluate(b=>b.click());
  await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
  await page.waitForTimeout(150);

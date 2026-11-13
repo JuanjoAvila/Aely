@@ -114,7 +114,7 @@ test("en Mi ciclo, entre la cabecera y la lista solo está el buscador; nada se 
   const buscador = await movs.locator(".searchbar").boundingBox(), dia = await movs.locator(".gx-dia").first().boundingBox();
   expect(dia.y - (buscador.y + buscador.height)).toBeLessThan(40);
   // Las puertas siguen: la ayuda de Mi ciclo y la hora de la última lectura en Filtros, el desglose en Categorías.
-  await gastosRoot(page).locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await gastosRoot(page).getByTestId("gastos-filtros").click();
   await expect(page.locator(".v4-gastos-filter-sheet").getByTestId("gastos-cycle-help")).toContainText("Del 24/9");
   await expect(page.locator(".v4-gastos-filter-sheet").getByTestId("gastos-lectura")).toBeAttached();
   await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });

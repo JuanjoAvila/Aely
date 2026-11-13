@@ -37,7 +37,7 @@ async function abreGastos(page) {
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
 }
 async function abreFiltros(page) {
-  await page.locator('.v4-gastos button.v4-chip:has-text("🎛️"), button.v4-chip:has-text("🎛️")').first().click();
+  await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").click();
   await expect(page.locator(".v4-sheet")).toBeVisible();
 }
 async function cierraSheet(page) {

@@ -1,8 +1,28 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
 
+test.use({ timezoneId: "Europe/Madrid" });
+
+/* Mes de cargo del recibo ficticio: la app usa Madrid (`madridYmdParts`) y la clave y*12+m.
+   Antes iba fijado a 2026*12+9 mientras el reloj real podía ser otro mes → Inicio/Recibos
+   fallaban intermitentes en CI (p. ej. tras el 1/11). */
+function ymKeyMadrid(ms) {
+  const [y, m] = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit" })
+    .format(new Date(ms)).split("-").map(Number);
+  return y * 12 + m;
+}
+const FIXTURE_YM = ymKeyMadrid(FIXTURE_NOW);
+const reciboBill = () => ({
+  id: "agua-prueba", name: "Agua doméstica sintética", amount: 40, bankAmount: 80, freq: "mes", day: 25,
+  account: "caixabank", wait: FIXTURE_YM,
+});
+
 const id="550e8400-e29b-41d4-a716-446655440000";
 const expense={id,date:new Date(FIXTURE_NOW).toISOString(),merchant:"Disposición oficina ficticia",amount:80,category:"otros",source:"ob",ent:"caixabank"};
+async function freezeFixtureClock(page) {
+  await installFixtureClock(page);
+  await page.clock.install({ time: new Date(FIXTURE_NOW) });
+}
 /* Releer la nube = volver a la app (Gastos v5, tanda 5): «Actualizar gastos» ya no existe y esa
    es la puerta que queda, la misma que usa la familia. Se simula la vuelta con visibilitychange. */
 const vuelveALaApp=page=>page.evaluate(()=>{let vis="hidden";Object.defineProperty(document,"visibilityState",{configurable:true,get:()=>vis});
@@ -18,7 +38,7 @@ async function filaRetirada(page){
   return page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant});
 }
 async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
-  await installFixtureClock(page);
+  await freezeFixtureClock(page);
   const remote={id,fecha:expense.date,comercio:expense.merchant,importe:80,cat:remoteCat,source:"ob:caixabank"};
   await seedLoggedInDashboard(page,{__seedOnce:true,expenses:[expense],__cloudRows:{expenses:[remote]},
     accounts:[{id:"caixa",ent:"caixabank",name:"Cuenta ficticia",value:920,bankIban:"fixture",role:"diario"}],
@@ -110,13 +130,15 @@ const texts={
   ca:{action:"És una retirada d'efectiu",neutral:"Traspàs: no compta com a despesa.",pending:"Confirmant la retirada…",limit:"no suma diners a Efectiu"}
 };
 const stored=page=>page.evaluate(()=>({expenses:JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]"),state:JSON.parse(localStorage.getItem("micartera_v3")||"{}"),writes:window.__withdrawalFixture.writes}));
+// En inglés las cifras van en formato inglés («1,000.50 €»): la misma cifra, con los separadores cambiados.
+const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):txt;
 for(const lang of ["es","en","ca"])test(`cancelar, ACK, recarga y móvil B conservan la retirada (${lang})`,async({page,browser})=>{
   const sheet=await open(page,lang),txt=texts[lang];
   const action=sheet.getByTestId("exp-withdrawal");
   await expect(action).toHaveText(txt.action);
   const before=await stored(page);
   // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
-  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("80,00 €");
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText(cifra(lang,"80,00 €"));
   await action.click();await page.locator('.askback .btn-ghost').click();
   expect((await stored(page)).writes).toBe(0);
   await expect(sheet.getByTestId("exp-cat-otros")).toHaveAttribute("aria-pressed","true");
@@ -130,7 +152,7 @@ for(const lang of ["es","en","ca"])test(`cancelar, ACK, recarga y móvil B conse
   expect(after.writes).toBe(1);expect(after.expenses).toHaveLength(1);
   expect(after.expenses[0]).toMatchObject({...expense,category:"traspaso"});
   expect(after.state.accounts).toEqual(before.state.accounts);
-  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText("0,00 €");
+  await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText(cifra(lang,"0,00 €"));
   await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText(txt.limit);
   await page.reload();await dismissNews(page);await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
@@ -158,20 +180,20 @@ for(const mode of ["zero","noSession","wrongUuid","error","timeout"])test(`sin c
 
 async function receiptOnB(browser,lang,snapshot,paid,bill){
   expect(snapshot.expenses).toBeUndefined();expect(snapshot.bankTx).toBeUndefined();
-  const device=await browser.newContext({baseURL:test.info().project.use.baseURL,viewport:{width:393,height:851},isMobile:true,hasTouch:true});
+  const device=await browser.newContext({baseURL:test.info().project.use.baseURL,viewport:{width:393,height:851},isMobile:true,hasTouch:true,timezoneId:"Europe/Madrid"});
   try{
-    const b=await device.newPage();await installFixtureClock(b);
+    const b=await device.newPage();await freezeFixtureClock(b);
     await seedLoggedInDashboard(b,{__seedOnce:true,...snapshot,expenses:[],bankTx:[],settings:{...snapshot.settings,lang}});
     await b.goto("/");await dismissNews(b);await b.waitForFunction(()=>!document.getElementById("mc-load"));
     await expect(b.locator('.v4-skel')).toHaveCount(0);
-    // Solo los de este mes: con todo pagado, Inicio enseña los del que viene (31/10/2026).
+    // Solo los de este mes: con todo pagado, Inicio enseña los del que viene (misma fecha congelada).
     await expect(b.locator('.page-scroll-host .v4-section:not([data-mes="siguiente"]) .v4-charge').filter({hasText:bill.name})).toHaveCount(paid?0:1);
     await b.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(b.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:bill.name})).toHaveCount(paid?1:0);
   }finally{await device.close();}
 }
 for(const lang of ["es","en","ca"])test(`vínculo de recibo bloquea ambas puertas; deshacer habilita retirada sin pago residual en B (${lang})`,async({page,browser})=>{
-  const bill={id:"agua-prueba",name:"Agua doméstica sintética",amount:40,bankAmount:80,freq:"mes",day:25,account:"caixabank",wait:2026*12+9};
+  const bill=reciboBill();
   const sheet=await open(page,lang,"ok","otros",{fixed:[bill],bankTx:[],flows:[],oneoffs:[],debts:[]});
   await sheet.getByTestId("exp-receipt").click();await sheet.getByTestId("exp-receipt-"+bill.id).click();
   await page.locator('.askback .btn-primary').click();
@@ -182,7 +204,7 @@ for(const lang of ["es","en","ca"])test(`vínculo de recibo bloquea ambas puerta
   await page.getByTestId("expense-all-cat-traspaso").click();
   await expect(sheet.getByTestId("exp-cat-otros")).toHaveAttribute("aria-pressed","true");
   expect((await stored(page)).writes).toBe(0);
-  await expect.poll(async()=>!!((await stored(page)).state.fixed[0].paymentProofs||{})[2026*12+9]).toBe(true);
+  await expect.poll(async()=>!!((await stored(page)).state.fixed[0].paymentProofs||{})[FIXTURE_YM]).toBe(true);
   const linked=await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey())));
   await receiptOnB(browser,lang,linked,true,bill);
   if(!(await sheet.getByTestId("exp-receipt-unlink").isVisible()))await sheet.getByTestId("exp-receipt").click();
@@ -197,7 +219,7 @@ for(const lang of ["es","en","ca"])test(`vínculo de recibo bloquea ambas puerta
   await receiptOnB(browser,lang,await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey()))),false,bill);
 });
 for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se concilia solo con ACK real y deja recibo pendiente en B (${lang})`,async({page,browser})=>{
-  const bill={id:"agua-prueba",name:"Agua doméstica sintética",amount:40,bankAmount:80,freq:"mes",day:25,account:"caixabank",wait:2026*12+9};
+  const bill=reciboBill();
   const sheet=await open(page,lang,"lateReceipt","otros",{fixed:[bill],bankTx:[],flows:[],oneoffs:[],debts:[]});
   const before=await stored(page);
   await sheet.getByTestId("exp-withdrawal").click();await page.locator('.askback .btn-primary').click();
@@ -207,15 +229,15 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   await sheet.locator('.v4-exp-note-in').fill("Nota sintética que provoca un CAS de metadatos");
   await sheet.getByTestId("exp-bank").click();
   await expect(sheet.getByTestId("exp-withdrawal-receipt-blocked")).toBeVisible();
-  await expect.poll(async()=>!!((await stored(page)).state.fixed[0].paymentProofs||{})[2026*12+9]).toBe(true);
+  await expect.poll(async()=>!!((await stored(page)).state.fixed[0].paymentProofs||{})[FIXTURE_YM]).toBe(true);
   await page.evaluate(()=>{window.__withdrawalFixture.releaseAck=true;});
   await expect(sheet.getByTestId("exp-withdrawal-neutral")).toHaveText(texts[lang].neutral);
   const message=await page.evaluate(()=>t("f_withdraw_receipt_undone"));await expect(sheet.getByTestId("exp-withdrawal-info").getByRole("status")).toHaveText(message);
-  await expect.poll(async()=>{const saved=await stored(page);return saved.expenses[0]?.category==="traspaso"&&!saved.state.fixed[0].paymentProofs?.[2026*12+9];}).toBe(true);
+  await expect.poll(async()=>{const saved=await stored(page);return saved.expenses[0]?.category==="traspaso"&&!saved.state.fixed[0].paymentProofs?.[FIXTURE_YM];}).toBe(true);
   const after=await stored(page);expect(after.writes).toBe(1);expect(after.expenses).toHaveLength(1);
   expect(after.expenses[0]).toMatchObject({...expense,category:"traspaso"});expect(after.state.accounts).toEqual(before.state.accounts);
   expect(after.state.fixed[0].amount).toBe(40);expect(after.state.fixed[0].bankAmount).toBe(80);
-  expect(after.state.fixed[0].paymentProofs[2026*12+9]).toBeUndefined();
+  expect(after.state.fixed[0].paymentProofs[FIXTURE_YM]).toBeUndefined();
   // El pull real posterior conserva la única retirada y no recrea la prueba invalidada.
   await page.locator('.v4-exp-sheet .v4-ficha-done').click();
   await vuelveALaApp(page);
@@ -223,7 +245,7 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   await receiptOnB(browser,lang,await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey()))),false,bill);
 });
 test("vínculo tardío con UPDATE denegado conserva prueba A/B y categoría original",async({page,browser})=>{
-  const bill={id:"agua-prueba",name:"Agua doméstica sintética",amount:40,bankAmount:80,freq:"mes",day:25,account:"caixabank",wait:2026*12+9};
+  const bill=reciboBill();
   const sheet=await open(page,"es","lateReceiptError","otros",{fixed:[bill],bankTx:[],flows:[],oneoffs:[],debts:[]});
   await sheet.getByTestId("exp-withdrawal").click();await page.locator('.askback .btn-primary').click();
   await expect.poll(async()=>(await stored(page)).writes).toBe(1);

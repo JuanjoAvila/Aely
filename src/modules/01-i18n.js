@@ -1,4 +1,4 @@
-function eurParts(n){ const s=NF.format(Math.abs((n||0)*DISP.k)); const p=s.split(','); return {sign:n<0?"-":"", ent:p[0], dec:p[1], sym:DISP.sym}; }
+function eurParts(n){ if(DISP.oculto) return {sign:"", ent:"••••", dec:"••", sep:numDecSep(), sym:DISP.sym}; const sep=numDecSep(), s=NF.format(Math.abs((n||0)*DISP.k)); const p=s.split(sep); return {sign:n<0?"-":"", ent:p[0], dec:p[1], sep:sep, sym:DISP.sym}; }
 /* ============================================================
    i18n — idiomas (ES/EN/CA). t(clave) traduce; si falta, cae al español.
    Fase 1: navegación, Ajustes y onboarding. El resto se irá traduciendo.
@@ -7,6 +7,11 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    tr_monthly_title:"Inversión mensual", tr_monthly_question:"¿Es tu aportación mensual?", tr_monthly_semantic:"Confirma esta aportación y reconoce las siguientes del mismo plan, cuenta e importe al empezar el mes.", tr_monthly_confirm:"Confirmar inversión", tr_monthly_done:"Aportación confirmada.", tr_monthly_error:"No se ha podido confirmar y guardar la aportación. Vuelve a intentarlo.",
+    f_incomeown_action:"Es un traspaso entre mis cuentas",f_incomeown_income:"Contar como ingreso",f_incomeown_income_hint:"Solo cambia esta entrada; la salida se cambia desde su propia ficha.",f_incomeown_peer:"Marcar también la salida de {amount} en {bank}",f_incomeown_done:"Entrada marcada como traspaso.",f_incomeown_income_done:"La entrada cuenta como ingreso.",f_incomeown_partial:"Entrada guardada; salida sin confirmar",
+    f_source_pending:"Guardando cambio…",f_source_unconfirmed:"Cambio sin confirmar",
+    f_source_save_error:"Sin confirmar",f_source_refresh:"Actualizar movimientos",
+    f_owntransfer_title:"¿Lo enviaste a otra cuenta tuya?", f_owntransfer_sub:"Hay una entrada de {amount} en {bank}. Confirma solo si es tu mismo dinero. La salida dejará de contar como gasto.", f_owntransfer_yes:"Sí, es mi dinero", f_owntransfer_no:"No, es un pago", f_owntransfer_pending:"Guardando tu respuesta…", f_owntransfer_done:"Traspaso confirmado. Ya no cuenta como gasto.", f_owntransfer_rejected:"Guardado. No volveremos a preguntarte por esta salida.", f_owntransfer_error:"Sin confirmar",
     mode_change_reopen:"Cierra y vuelve a abrir la app para terminar el cambio de modo.",
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
@@ -131,18 +136,18 @@ const LANG = {
     v4_paid_fold:"Ya has pagado {n} recibos · {amount}", v4_paid_fold_one:"Ya has pagado 1 recibo · {amount}",
     v4s_plan_left_title:"Lo que te queda por pagar", v4s_change_bills:"Cambiar mis recibos",
     v4s_row_from:"sale de {bank}", v4s_row_debt:"la cuota de {name}", v4s_row_income:"te entra en {bank}", v4s_row_to:"lo que pasas a {bank}", v4s_row_invest:"lo que apartas para invertir en {bank}",
-    v4_pendiente:"Pendiente",
+    pr6_por_pagar:"Por pagar", pr6_ojo_ocultar:"Ocultar importes", pr6_ojo_ver:"Enseñar importes",
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     // Plan › Recibos v6 (SPEC docs/design/plan-recibos): una línea útil o nada.
-    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}",
+    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}", pr6_ver:"Ver", pr6_ocultar:"Ocultar",
     pr6_count:"{n} recibos", pr6_count_one:"1 recibo", pr6_count_week:"{n} esta semana", pr6_all_paid:"Todo pagado", pr6_nada:"Nada pendiente este mes",
     pr6_llega:"Te llega", pr6_falta:"Falta {x}", pr6_no_llegado:"No ha llegado",
     pr6_hoy:"hoy", pr6_manana:"mañana", pr6_en_dias:"en {n} días", pr6_tocaba_ayer:"tocaba ayer", pr6_tocaba:"tocaba hace {n} días",
-    pr6_cargo_de:"cargo de {bank}", pr6_se_cobra:"Se cobra el {d} · {bank}", pr6_este_ano:"Este año {x}",
-    pr6_ya_pagado_btn:"Ya está pagado", pr6_no_es_este:"No es este recibo", pr6_editar:"Editar",
+    pr6_cargo_de:"cargo de {bank}", pr6_se_cobra:"Se cobra el {d} · {bank}", pr6_se_cobra_v:"Se cobra el {d} · {bank}", pr6_este_ano:"Este año {x}",
+    pr6_ya_pagado_btn:"Ya está pagado", pr6_no_es_este:"No es este recibo", pr6_es_este:"Sí, es este", pr6_editar:"Editar",
     pr6_cual_cargo:"¿Cuál es el cargo?", pr6_con_cual:"¿Con cuál se pagó?", pr6_buscar_cargo:"Buscar por nombre o importe",
-    pr6_otros_cargos:"Otros cargos de {bank}", pr6_menos_cargos:"Menos cargos", pr6_sin_cargos:"Sin cargos de {bank} este mes", pr6_sin_resultados:"Nada con «{q}»",
-    pr6_aun_no:"Aún no se ha cobrado", pr6_pagado_toast:"{name} pagado", pr6_vuelve_toast:"{name} vuelve a Pendiente", pr6_revisar_toast:"{name} pasa a Para revisar", pr6_sin_cargo:"Sin cargo del banco", pr6_link_fail:"No se ha podido enlazar ese cargo",
+    pr6_otros_cargos:"Otros cargos de {bank}", pr6_menos_cargos:"Menos cargos", pr6_sin_cargos:"Sin cargos de {bank} este mes", pr6_pend_banco:"Pendiente del banco · podrás elegirlo al confirmarse",pr6_sin_resultados:"Nada con «{q}»",
+    pr6_aun_no:"Aún no se ha cobrado", pr6_marcar_a_mano:"Lo pagué de otra forma", pr6_a_mano:"Marcado a mano", pr6_a_mano_sub:"marcado a mano", pr6_a_mano_toast:"{name} marcado a mano", pr6_desmarcar:"Desmarcar", pr6_a_pagados_toast:"{name} pasa a Ya pagados", pr6_undo_cambio:"No se pudo deshacer: ha cambiado mientras tanto", pr6_pagado_toast:"{name} pagado", pr6_vuelve_toast:"{name} vuelve a Por pagar", pr6_revisar_toast:"{name} pasa a Para revisar", pr6_sin_cargo:"Sin cargo del banco", pr6_link_fail:"No se ha podido enlazar ese cargo",
     pr6_fantasma:"Hace {n} meses que no se cobra", pr6_ha_subido:"Ha subido {x}", pr6_esperabas:"Esperabas {x}",
     pr6_nota_late:"Tocaba el {d} y no ha llegado", pr6_nota_diff:"Cobró {x} · esperabas {y}", pr6_nota_up:"Antes {x}",
     pr6_solo_mes:"Solo este mes", pr6_desde_ahora:"Desde ahora", pr6_actualizar:"Actualizar precio", pr6_sigue:"Sigue activo",
@@ -150,20 +155,40 @@ const LANG = {
     pr6_manana_btn:"Recuérdamelo mañana", pr6_manana_toast:"{name}: te lo recuerdo mañana",
     pr6_pausar:"Pausar", pr6_hasta:"Hasta {m}", pr6_reanudar:"Reanudar", pr6_pausado_hasta:"pausado hasta {m}", pr6_este_mes_no:"este mes no",
     pr6_pausado_toast:"{name} pausado hasta {m}", pr6_pausa_mes_toast:"{name}: este mes no", pr6_reanudado_toast:"{name} reanudado",
-    pr6_precio_toast:"{name}: ahora {x}", pr6_borrado_toast:"{name} borrado",
+    pr6_precio_toast:"{name}: ahora {x}",
     pr6_llega_t:"¿Te llega?", pr6_te_faltan:"te faltan", pr6_justo:"lo más justo, el {d}", pr6_justo_hoy:"lo más justo, hoy", pr6_justo_sin:"lo más justo",
     pr6_tienes_hoy:"Tienes hoy", pr6_faltan_recibos:"Recibos que faltan", pr6_dia_n:"{name} · día {d}",
     pr6_pasa:"Pasa {x} a {bank} antes del {d}", pr6_pasa_hoy:"Pasa {x} a {bank} hoy", pr6_pasa_sin:"Pasa {x} a {bank}",
+    pr6_enlazado_x:"Enlazado · {x}", pr6_ver_deuda:"Ver en Deudas", pr6_deuda_importe:"Se cobró {x} y la cuota es {y}.", pr6_deuda_sin_dia:"La cuota no tiene día de cobro.", pr6_deuda_sin_banco:"Aún no está en el extracto del banco.",
+    pr6_de_una_vez:"De una vez", pr6_a_plazos:"A plazos", pr6_meses_n:"{n} meses", pr6_meses:"Meses", pr6_meses_min:"De 2 a 120 meses", pr6_entrada:"Entrada", pr6_entrada_x:"Entrada {x}", pr6_cuota_hasta:"Sin intereses, hasta {d}", pr6_al_mes:"{x}/mes", pr6_plazos_que:"¿Qué compras?", pr6_crear_deuda:"Crear la deuda", pr6_colchon:"Colchón tras el gasto", pr6_colchon_de:"{bank} · mín. {x}",
     pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
     pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
+    // Plan › Recibos v6, tanda 6: resumen del mes cerrado, vista del mes siguiente y primer uso.
+    pr6c_titulo:"{mes} cerrado", pr6c_total:"{x} en recibos", pr6c_vs:"{d} vs. {mes}", pr6c_vs_sin_datos:"vs. {mes}: sin datos de {largo}", pr6c_vs_sin_recibos:"vs. {mes}: sin recibos en {largo}", pr6c_igual:"igual que {mes}",
+    pr6c_sube:"{name}, más que {mes}", pr6c_subio:"{name} subió", pr6c_bajo:"{name} bajó", pr6c_no_llegaron:"Recibos que no llegaron", pr6c_cerrar:"Cerrar el resumen",
+    pr6_se_van:"Se te van en {month}", pr6_nada_sig:"Nada previsto en {month}",
+    pr6_onb_n:"{n} cargos que se repiten", pr6_onb_1:"1 cargo que se repite", pr6_onb_en:"en {x}", pr6_onb_vacio:"Aún no tienes recibos", pr6_empezar:"Empezar",
+    pr6_imp_t:"{n} de {m} son recibos", pr6_imp_quitar:"Quitar todos", pr6_imp_marcar:"Marcar todos", pr6_imp_add:"Añadir {n} recibos", pr6_imp_add1:"Añadir 1 recibo", pr6_imp_ninguno:"Ninguno",
+    pr6_imp_toast:"{n} recibos añadidos", pr6_imp_toast1:"1 recibo añadido",
+    // Plan › Recibos v6, tanda 4: añadir y editar por pasos (SPEC §7).
+    rp4_t_name:"¿Qué recibo es?", rp4_name_ph:"Netflix, luz, alquiler…", rp4_visto:"Visto en tu banco", rp4_dia:"día", rp4_dup:"Ya tienes «{name}»", rp4_dup_dia:"{x} el día {d}", rp4_dup_ver:"Ver ese", pr6_cuota:"cuota",
+    rp4_t_amount:"¿Cuánto es?", rp4_variable:"Cambia cada mes", rp4_t_when:"¿Cuándo se cobra?", rp4_once:"Solo una vez", rp4_split:"En varios pagos",
+    rp4_pago:"Pago {n}", rp4_otro_pago:"Otro pago", rp4_quitar_pago:"Quitar este pago", rp4_dia_menos:"Un día antes", rp4_dia_mas:"Un día después", rp4_dia_n:"día {d}",
+    rp4_importe_pago:"Importe del pago {n}", rp4_t_account:"¿De qué cuenta sale?", rp4_t_sum:"¿Todo bien?", rp4_t_edit:"Editar recibo",
+    rp4_r_name:"Nombre", rp4_r_amount:"Importe", rp4_r_day:"Día", rp4_r_date:"Fecha", rp4_r_pays:"Pagos", rp4_r_account:"Cuenta",
+    rp4_en_pagos:"{x} en {n} pagos", rp4_una_vez:"una sola vez", rp4_solo_mes:"Solo {m}", rp4_scope:"Cuándo se aplica", rp4_mes_cobra:"Este mes se cobra {x}",
+    rp4_next:"Siguiente", rp4_add:"Añadir recibo", rp4_listo:"Listo", rp4_guardar:"Guardar", rp4_cerrar:"Cerrar",
+    rp4_saved:"{name} actualizado", rp4_saved_mes:"{name}: solo este mes", rp4_baja_antes:"Antes, date de baja en {name}",
+    rp4_s_luz:"Luz", rp4_s_agua:"Agua", rp4_s_gas:"Gas", rp4_s_internet:"Internet", rp4_s_movil:"Móvil", rp4_s_alquiler:"Alquiler",
+    rp4_s_seguro:"Seguro", rp4_s_gimnasio:"Gimnasio", rp4_s_netflix:"Netflix", rp4_s_spotify:"Spotify", rp4_s_hacienda:"Hacienda", rp4_s_comunidad:"Comunidad",
     v4_gastos_title:"Tus gastos",
     v4_gastos_cat_limit:"límite {x}",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Orientativo: no cambia tu presupuesto. Vacío o 0 = sin límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
     v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
-    v4_sync_broker_ok:"📈 {b} al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
+    v4_sync_broker_ok:"📈 {b} al día", v4_sync_brokers_ok:"📈 Brókers al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
     ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
     cal_today:"Hoy", cal_prev:"Mes anterior", cal_next:"Mes siguiente",
     bk_issue:"⚠ {bank} necesita tu permiso otra vez", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
@@ -212,7 +237,7 @@ const LANG = {
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
    hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Más toques cuanto más lleno esté el anillo.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
-    v4_moved_cat:"Movido a {cat}", 
+    v4_moved_cat:"Movido a {cat}", v4_cuota_confirmada:"Confirmada como cuota de {name}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
     f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
@@ -323,6 +348,11 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    tr_monthly_title:"Monthly investment", tr_monthly_question:"Is this your monthly contribution?", tr_monthly_semantic:"Confirm this contribution and recognize future payments for this exact plan, account and amount at the start of the month.", tr_monthly_confirm:"Confirm investment", tr_monthly_done:"Contribution confirmed.", tr_monthly_error:"The contribution could not be confirmed and saved. Try again.",
+    f_incomeown_action:"This is a transfer between my accounts",f_incomeown_income:"Count as income",f_incomeown_income_hint:"Only this incoming transaction changes; change the outgoing one in its own details.",f_incomeown_peer:"Also mark the outgoing {amount} at {bank}",f_incomeown_done:"Incoming transaction marked as a transfer.",f_incomeown_income_done:"The incoming transaction counts as income.",f_incomeown_partial:"Incoming saved; outgoing unconfirmed",
+    f_source_pending:"Saving change…",f_source_unconfirmed:"Change unconfirmed",
+    f_source_save_error:"Unconfirmed",f_source_refresh:"Refresh transactions",
+    f_owntransfer_title:"Did you send this to another account of yours?", f_owntransfer_sub:"There is an incoming {amount} at {bank}. Confirm only if it is the same money. The outgoing payment will no longer count as spending.", f_owntransfer_yes:"Yes, it is my money", f_owntransfer_no:"No, it is a payment", f_owntransfer_pending:"Saving your answer…", f_owntransfer_done:"Transfer confirmed. It no longer counts as spending.", f_owntransfer_rejected:"Saved. We will not ask about this outgoing payment again.", f_owntransfer_error:"Unconfirmed",
     mode_change_reopen:"Close and reopen the app to finish changing mode.",
     beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
     notes_unavailable:"The updates could not be verified. Connect and try again.",
@@ -448,17 +478,17 @@ const LANG = {
     v4_paid_fold:"You already paid {n} bills · {amount}", v4_paid_fold_one:"You already paid 1 bill · {amount}",
     v4s_plan_left_title:"What you still have to pay", v4s_change_bills:"Change my bills",
     v4s_row_from:"from {bank}", v4s_row_debt:"the {name} installment", v4s_row_income:"into {bank}", v4s_row_to:"moving to {bank}", v4s_row_invest:"setting aside to invest in {bank}",
-    v4_pendiente:"Pending",
+    pr6_por_pagar:"To pay", pr6_ojo_ocultar:"Hide amounts", pr6_ojo_ver:"Show amounts",
     v4_ver_mas:"See more · {n}", v4_ver_menos:"See less",
-    pr6_revisar:"To review", pr6_ya_pagados:"Already paid", pr6_todos:"All", pr6_ver_los:"See all {n}",
+    pr6_revisar:"To review", pr6_ya_pagados:"Already paid", pr6_todos:"All", pr6_ver_los:"See all {n}", pr6_ver:"Show", pr6_ocultar:"Hide",
     pr6_count:"{n} bills", pr6_count_one:"1 bill", pr6_count_week:"{n} this week", pr6_all_paid:"All paid", pr6_nada:"Nothing left this month",
     pr6_llega:"You're covered", pr6_falta:"Short {x}", pr6_no_llegado:"Hasn't arrived",
     pr6_hoy:"today", pr6_manana:"tomorrow", pr6_en_dias:"in {n} days", pr6_tocaba_ayer:"due yesterday", pr6_tocaba:"due {n} days ago",
-    pr6_cargo_de:"charge from {bank}", pr6_se_cobra:"Charged on the {d} · {bank}", pr6_este_ano:"This year {x}",
-    pr6_ya_pagado_btn:"It's paid", pr6_no_es_este:"Not this bill", pr6_editar:"Edit",
+    pr6_cargo_de:"charge from {bank}", pr6_se_cobra:"Charged on the {d} · {bank}", pr6_se_cobra_v:"Charged on the {d} · {bank}", pr6_este_ano:"This year {x}",
+    pr6_ya_pagado_btn:"It's paid", pr6_no_es_este:"Not this bill", pr6_es_este:"Yes, it is", pr6_editar:"Edit",
     pr6_cual_cargo:"Which charge is it?", pr6_con_cual:"Which one paid it?", pr6_buscar_cargo:"Search by name or amount",
-    pr6_otros_cargos:"Other charges from {bank}", pr6_menos_cargos:"Fewer charges", pr6_sin_cargos:"No charges from {bank} this month", pr6_sin_resultados:"Nothing matches «{q}»",
-    pr6_aun_no:"Not charged yet", pr6_pagado_toast:"{name} paid", pr6_vuelve_toast:"{name} is back in Pending", pr6_revisar_toast:"{name} moves to To review", pr6_sin_cargo:"No bank charge", pr6_link_fail:"That charge couldn't be linked",
+    pr6_otros_cargos:"Other charges from {bank}", pr6_menos_cargos:"Fewer charges", pr6_sin_cargos:"No charges from {bank} this month", pr6_pend_banco:"Pending at the bank · you can pick it once confirmed",pr6_sin_resultados:"Nothing matches «{q}»",
+    pr6_aun_no:"Not charged yet", pr6_marcar_a_mano:"I paid it another way", pr6_a_mano:"Marked by hand", pr6_a_mano_sub:"marked by hand", pr6_a_mano_toast:"{name} marked by hand", pr6_desmarcar:"Unmark", pr6_a_pagados_toast:"{name} moves to Already paid", pr6_undo_cambio:"Couldn't undo: it changed in the meantime", pr6_pagado_toast:"{name} paid", pr6_vuelve_toast:"{name} is back in To pay", pr6_revisar_toast:"{name} moves to To review", pr6_sin_cargo:"No bank charge", pr6_link_fail:"That charge couldn't be linked",
     pr6_fantasma:"Not charged for {n} months", pr6_ha_subido:"Up {x}", pr6_esperabas:"You expected {x}",
     pr6_nota_late:"Due on the {d} and not here yet", pr6_nota_diff:"Charged {x} · you expected {y}", pr6_nota_up:"Was {x}",
     pr6_solo_mes:"Just this month", pr6_desde_ahora:"From now on", pr6_actualizar:"Update price", pr6_sigue:"Still active",
@@ -466,20 +496,40 @@ const LANG = {
     pr6_manana_btn:"Remind me tomorrow", pr6_manana_toast:"{name}: I'll remind you tomorrow",
     pr6_pausar:"Pause", pr6_hasta:"Until {m}", pr6_reanudar:"Resume", pr6_pausado_hasta:"paused until {m}", pr6_este_mes_no:"not this month",
     pr6_pausado_toast:"{name} paused until {m}", pr6_pausa_mes_toast:"{name}: not this month", pr6_reanudado_toast:"{name} resumed",
-    pr6_precio_toast:"{name}: now {x}", pr6_borrado_toast:"{name} deleted",
+    pr6_precio_toast:"{name}: now {x}",
     pr6_llega_t:"Will it cover?", pr6_te_faltan:"short by", pr6_justo:"lowest on the {d}", pr6_justo_hoy:"lowest today", pr6_justo_sin:"lowest point",
     pr6_tienes_hoy:"You have today", pr6_faltan_recibos:"Bills to come", pr6_dia_n:"{name} · day {d}",
     pr6_pasa:"Move {x} to {bank} before the {d}", pr6_pasa_hoy:"Move {x} to {bank} today", pr6_pasa_sin:"Move {x} to {bank}",
+    pr6_enlazado_x:"Linked · {x}", pr6_ver_deuda:"See in Debts", pr6_deuda_importe:"{x} was charged and the payment is {y}.", pr6_deuda_sin_dia:"The payment has no charge day.", pr6_deuda_sin_banco:"Not in the bank statement yet.",
+    pr6_de_una_vez:"All at once", pr6_a_plazos:"In instalments", pr6_meses_n:"{n} months", pr6_meses:"Months", pr6_meses_min:"2 to 120 months", pr6_entrada:"Down payment", pr6_entrada_x:"Down payment {x}", pr6_cuota_hasta:"Interest-free, until {d}", pr6_al_mes:"{x}/mo", pr6_plazos_que:"What are you buying?", pr6_crear_deuda:"Create the debt", pr6_colchon:"Cushion after spending", pr6_colchon_de:"{bank} · min. {x}",
     pr6_si_gasto:"What if I spend…?", pr6_importe:"Amount", pr6_si_llega:"Covered · {x} left", pr6_no_llega:"Not covered · short {x}",
     pr6_entra_en:"goes into {bank}", pr6_dia:"day {d}", pr6_dia_menos:"One day earlier", pr6_dia_mas:"One day later",
     pr6_sin_restar:"Paid, not yet in the balance", pr6_fresh_now:"balance from just now", pr6_fresh_min:"balance from {n} min ago", pr6_fresh_h:"balance from {n} h ago", pr6_fresh_ayer:"balance from yesterday", pr6_fresh_d:"balance from {n} days ago", pr6_fresh_fecha:"balance from {x}",
+    // Plan › Bills v6, batch 6: closed-month summary, next-month view and first use.
+    pr6c_titulo:"{mes} closed", pr6c_total:"{x} in bills", pr6c_vs:"{d} vs {mes}", pr6c_vs_sin_datos:"vs {mes}: no data for {largo}", pr6c_vs_sin_recibos:"vs {mes}: no bills in {largo}", pr6c_igual:"same as {mes}",
+    pr6c_sube:"{name}, more than {mes}", pr6c_subio:"{name} went up", pr6c_bajo:"{name} went down", pr6c_no_llegaron:"Bills that didn't arrive", pr6c_cerrar:"Close the summary",
+    pr6_se_van:"Going out in {month}", pr6_nada_sig:"Nothing due in {month}",
+    pr6_onb_n:"{n} repeating charges", pr6_onb_1:"1 repeating charge", pr6_onb_en:"in {x}", pr6_onb_vacio:"No bills yet", pr6_empezar:"Get started",
+    pr6_imp_t:"{n} of {m} are bills", pr6_imp_quitar:"Clear all", pr6_imp_marcar:"Select all", pr6_imp_add:"Add {n} bills", pr6_imp_add1:"Add 1 bill", pr6_imp_ninguno:"None",
+    pr6_imp_toast:"{n} bills added", pr6_imp_toast1:"1 bill added",
+    // Plan › Bills v6, batch 4: add and edit step by step (SPEC §7).
+    rp4_t_name:"Which bill is it?", rp4_name_ph:"Netflix, electricity, rent…", rp4_visto:"Seen in your bank", rp4_dia:"day", rp4_dup:"You already have “{name}”", rp4_dup_dia:"{x} on day {d}", rp4_dup_ver:"See it", pr6_cuota:"instalment",
+    rp4_t_amount:"How much is it?", rp4_variable:"Changes every month", rp4_t_when:"When is it charged?", rp4_once:"Just once", rp4_split:"In several payments",
+    rp4_pago:"Payment {n}", rp4_otro_pago:"Another payment", rp4_quitar_pago:"Remove this payment", rp4_dia_menos:"One day earlier", rp4_dia_mas:"One day later", rp4_dia_n:"day {d}",
+    rp4_importe_pago:"Amount of payment {n}", rp4_t_account:"Which account pays it?", rp4_t_sum:"All good?", rp4_t_edit:"Edit bill",
+    rp4_r_name:"Name", rp4_r_amount:"Amount", rp4_r_day:"Day", rp4_r_date:"Date", rp4_r_pays:"Payments", rp4_r_account:"Account",
+    rp4_en_pagos:"{x} in {n} payments", rp4_una_vez:"one time only", rp4_solo_mes:"Only {m}", rp4_scope:"When it applies", rp4_mes_cobra:"This month it charges {x}",
+    rp4_next:"Next", rp4_add:"Add bill", rp4_listo:"Done", rp4_guardar:"Save", rp4_cerrar:"Close",
+    rp4_saved:"{name} updated", rp4_saved_mes:"{name}: this month only", rp4_baja_antes:"First, cancel it at {name}",
+    rp4_s_luz:"Electricity", rp4_s_agua:"Water", rp4_s_gas:"Gas", rp4_s_internet:"Internet", rp4_s_movil:"Mobile", rp4_s_alquiler:"Rent",
+    rp4_s_seguro:"Insurance", rp4_s_gimnasio:"Gym", rp4_s_netflix:"Netflix", rp4_s_spotify:"Spotify", rp4_s_hacienda:"Taxes", rp4_s_comunidad:"Community fees",
     v4_gastos_title:"Your spending",
     v4_gastos_cat_limit:"limit {x}",
     g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just a guide: it doesn't change your budget. Empty or 0 = no limit.",
     g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_connect_accounts:"Connect accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
     v4_sync_banks:"Sync banks", v4_sync_banks_done:"✓ Banks synced",
-    v4_sync_broker_ok:"📈 {b} up to date", v4_sync_broker_exp:"⚠ {b}: session expired · reconnect in Settings → Banks",
+    v4_sync_broker_ok:"📈 {b} up to date", v4_sync_brokers_ok:"📈 Brokers up to date", v4_sync_broker_exp:"⚠ {b}: session expired · reconnect in Settings → Banks",
     ap_bank:"Bank", ap_bank_none:"No bank", ap_date:"Date",
     cal_today:"Today", cal_prev:"Previous month", cal_next:"Next month",
     bk_issue:"⚠ {bank} needs your permission again", bk_issue_sub:"The read consent expired (required every ~3 months): the balance may be stale. One tap fixes it.",
@@ -526,7 +576,7 @@ const LANG = {
     v4_set_money:"Money", v4_set_app:"App",
     v4_set_tour:"See the tour", v4_set_adv:"Advanced",
    hv_title:"Vibration", hv_usage:"Vibration type", hv_usage_hint:"If every strength feels the same when you try them, pick another type.", hv_u_touch:"Touch", hv_u_hardware:"Buttons", hv_u_media:"Media", hv_u_unknown:"Generic", hv_motor_amp:"Your phone adjusts both the strength and the rhythm of the vibration.", hv_motor_onoff:"Your phone cannot adjust strength: you will feel it as longer or shorter taps.", hv_intro:"Find the vibration you like. It is saved only on this phone.", hv_cycle:"My cycle (the ring on Home)", hv_cycle_hint:"More taps the fuller the ring.", hv_edge:"Reaching the top or bottom", hv_seg:"Switching between Bills, Debts and Goals", hv_tick:"Home chart cursor", hv_strength:"Strength", hv_length:"Length", hv_every:"Repeats every (if you keep pulling)", hv_try:"Try", hv_copy:"Copy values", hv_copied:"Values copied", hv_copy_fail:"Could not copy", hv_reset:"Back to defaults", hv_need_apk:"To feel these values, install the latest version of the app.", hv_no_native:"Vibration only works in the Android app.",
-    v4_moved_cat:"Moved to {cat}", 
+    v4_moved_cat:"Moved to {cat}", v4_cuota_confirmada:"Confirmed as the {name} payment", 
     v4_exp_del:"Delete", v4_exp_del_q:"Delete “{name}”?", v4_exp_del_sub:"You can recover it for 5 seconds.",
     f_amount_aria:"Amount", f_concept_ph:"Tap to add what it was", f_cat:"Category",
     f_cat_all:"All {n} ›", f_cat_all_title:"All categories", f_meta_cash:"Cash", 
@@ -626,6 +676,11 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    tr_monthly_title:"Inversió mensual", tr_monthly_question:"És la teva aportació mensual?", tr_monthly_semantic:"Confirma aquesta aportació i reconeix les següents del mateix pla, compte i import a principi de mes.", tr_monthly_confirm:"Confirmar inversió", tr_monthly_done:"Aportació confirmada.", tr_monthly_error:"No s’ha pogut confirmar i desar l’aportació. Torna-ho a provar.",
+    f_incomeown_action:"És un traspàs entre els meus comptes",f_incomeown_income:"Comptar com a ingrés",f_incomeown_income_hint:"Només canvia aquesta entrada; la sortida es canvia des de la seva fitxa.",f_incomeown_peer:"Marcar també la sortida de {amount} a {bank}",f_incomeown_done:"Entrada marcada com a traspàs.",f_incomeown_income_done:"L’entrada compta com a ingrés.",f_incomeown_partial:"Entrada desada; sortida sense confirmar",
+    f_source_pending:"Desant el canvi…",f_source_unconfirmed:"Canvi sense confirmar",
+    f_source_save_error:"Sense confirmar",f_source_refresh:"Actualitzar moviments",
+    f_owntransfer_title:"Ho vas enviar a un altre compte teu?", f_owntransfer_sub:"Hi ha una entrada de {amount} a {bank}. Confirma només si són els mateixos diners. La sortida deixarà de comptar com a despesa.", f_owntransfer_yes:"Sí, són els meus diners", f_owntransfer_no:"No, és un pagament", f_owntransfer_pending:"Desant la teva resposta…", f_owntransfer_done:"Traspàs confirmat. Ja no compta com a despesa.", f_owntransfer_rejected:"Desat. No tornarem a preguntar-te per aquesta sortida.", f_owntransfer_error:"Sense confirmar",
     mode_change_reopen:"Tanca i torna a obrir l’app per acabar el canvi de mode.",
     beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
     notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",
@@ -751,17 +806,17 @@ const LANG = {
     v4_paid_fold:"Ja has pagat {n} rebuts · {amount}", v4_paid_fold_one:"Ja has pagat 1 rebut · {amount}",
     v4s_plan_left_title:"El que et queda per pagar", v4s_change_bills:"Canviar els meus rebuts",
     v4s_row_from:"surt de {bank}", v4s_row_debt:"la quota de {name}", v4s_row_income:"t'entra a {bank}", v4s_row_to:"el que passes a {bank}", v4s_row_invest:"el que apartes per invertir a {bank}",
-    v4_pendiente:"Pendent",
+    pr6_por_pagar:"Per pagar", pr6_ojo_ocultar:"Amagar imports", pr6_ojo_ver:"Mostrar imports",
     v4_ver_mas:"Veure més · {n}", v4_ver_menos:"Veure menys",
-    pr6_revisar:"Per revisar", pr6_ya_pagados:"Ja pagats", pr6_todos:"Tots", pr6_ver_los:"Veure'ls tots ({n})",
+    pr6_revisar:"Per revisar", pr6_ya_pagados:"Ja pagats", pr6_todos:"Tots", pr6_ver_los:"Veure'ls tots ({n})", pr6_ver:"Veure", pr6_ocultar:"Amagar",
     pr6_count:"{n} rebuts", pr6_count_one:"1 rebut", pr6_count_week:"{n} aquesta setmana", pr6_all_paid:"Tot pagat", pr6_nada:"Res pendent aquest mes",
     pr6_llega:"T'arriba", pr6_falta:"Falten {x}", pr6_no_llegado:"No ha arribat",
     pr6_hoy:"avui", pr6_manana:"demà", pr6_en_dias:"d'aquí a {n} dies", pr6_tocaba_ayer:"tocava ahir", pr6_tocaba:"tocava fa {n} dies",
-    pr6_cargo_de:"càrrec de {bank}", pr6_se_cobra:"Es cobra el {d} · {bank}", pr6_este_ano:"Aquest any {x}",
-    pr6_ya_pagado_btn:"Ja està pagat", pr6_no_es_este:"No és aquest rebut", pr6_editar:"Editar",
+    pr6_cargo_de:"càrrec de {bank}", pr6_se_cobra:"Es cobra el {d} · {bank}", pr6_se_cobra_v:"Es cobra l'{d} · {bank}", pr6_este_ano:"Aquest any {x}",
+    pr6_ya_pagado_btn:"Ja està pagat", pr6_no_es_este:"No és aquest rebut", pr6_es_este:"Sí, és aquest", pr6_editar:"Editar",
     pr6_cual_cargo:"Quin és el càrrec?", pr6_con_cual:"Amb quin es va pagar?", pr6_buscar_cargo:"Cerca per nom o import",
-    pr6_otros_cargos:"Altres càrrecs de {bank}", pr6_menos_cargos:"Menys càrrecs", pr6_sin_cargos:"Sense càrrecs de {bank} aquest mes", pr6_sin_resultados:"Res amb «{q}»",
-    pr6_aun_no:"Encara no s'ha cobrat", pr6_pagado_toast:"{name} pagat", pr6_vuelve_toast:"{name} torna a Pendent", pr6_revisar_toast:"{name} passa a Per revisar", pr6_sin_cargo:"Sense càrrec del banc", pr6_link_fail:"No s'ha pogut enllaçar aquest càrrec",
+    pr6_otros_cargos:"Altres càrrecs de {bank}", pr6_menos_cargos:"Menys càrrecs", pr6_sin_cargos:"Sense càrrecs de {bank} aquest mes", pr6_pend_banco:"Pendent del banc · el podràs triar quan es confirmi",pr6_sin_resultados:"Res amb «{q}»",
+    pr6_aun_no:"Encara no s'ha cobrat", pr6_marcar_a_mano:"Ho vaig pagar d'una altra manera", pr6_a_mano:"Marcat a mà", pr6_a_mano_sub:"marcat a mà", pr6_a_mano_toast:"{name} marcat a mà", pr6_desmarcar:"Desmarcar", pr6_a_pagados_toast:"{name} passa a Ja pagats", pr6_undo_cambio:"No s'ha pogut desfer: ha canviat mentrestant", pr6_pagado_toast:"{name} pagat", pr6_vuelve_toast:"{name} torna a Per pagar", pr6_revisar_toast:"{name} passa a Per revisar", pr6_sin_cargo:"Sense càrrec del banc", pr6_link_fail:"No s'ha pogut enllaçar aquest càrrec",
     pr6_fantasma:"Fa {n} mesos que no es cobra", pr6_ha_subido:"Ha pujat {x}", pr6_esperabas:"Esperaves {x}",
     pr6_nota_late:"Tocava el {d} i no ha arribat", pr6_nota_diff:"Ha cobrat {x} · esperaves {y}", pr6_nota_up:"Abans {x}",
     pr6_solo_mes:"Només aquest mes", pr6_desde_ahora:"A partir d'ara", pr6_actualizar:"Actualitzar preu", pr6_sigue:"Segueix actiu",
@@ -769,20 +824,40 @@ const LANG = {
     pr6_manana_btn:"Recorda-m'ho demà", pr6_manana_toast:"{name}: t'ho recordo demà",
     pr6_pausar:"Pausar", pr6_hasta:"Fins a {m}", pr6_reanudar:"Reprendre", pr6_pausado_hasta:"pausat fins a {m}", pr6_este_mes_no:"aquest mes no",
     pr6_pausado_toast:"{name} pausat fins a {m}", pr6_pausa_mes_toast:"{name}: aquest mes no", pr6_reanudado_toast:"{name} reprès",
-    pr6_precio_toast:"{name}: ara {x}", pr6_borrado_toast:"{name} esborrat",
+    pr6_precio_toast:"{name}: ara {x}",
     pr6_llega_t:"T'arriba?", pr6_te_faltan:"et falten", pr6_justo:"el més just, el {d}", pr6_justo_hoy:"el més just, avui", pr6_justo_sin:"el més just",
     pr6_tienes_hoy:"Tens avui", pr6_faltan_recibos:"Rebuts que falten", pr6_dia_n:"{name} · dia {d}",
     pr6_pasa:"Passa {x} a {bank} abans del {d}", pr6_pasa_hoy:"Passa {x} a {bank} avui", pr6_pasa_sin:"Passa {x} a {bank}",
+    pr6_enlazado_x:"Enllaçat · {x}", pr6_ver_deuda:"Veure a Deutes", pr6_deuda_importe:"Es va cobrar {x} i la quota és {y}.", pr6_deuda_sin_dia:"La quota no té dia de cobrament.", pr6_deuda_sin_banco:"Encara no és a l'extracte del banc.",
+    pr6_de_una_vez:"D'un cop", pr6_a_plazos:"A terminis", pr6_meses_n:"{n} mesos", pr6_meses:"Mesos", pr6_meses_min:"De 2 a 120 mesos", pr6_entrada:"Entrada", pr6_entrada_x:"Entrada {x}", pr6_cuota_hasta:"Sense interessos, fins a {d}", pr6_al_mes:"{x}/mes", pr6_plazos_que:"Què compres?", pr6_crear_deuda:"Crear el deute", pr6_colchon:"Coixí després de la despesa", pr6_colchon_de:"{bank} · mín. {x}",
     pr6_si_gasto:"I si gasto…?", pr6_importe:"Import", pr6_si_llega:"Arriba · et queden {x}", pr6_no_llega:"No arriba · falten {x}",
     pr6_entra_en:"entra a {bank}", pr6_dia:"dia {d}", pr6_dia_menos:"Un dia abans", pr6_dia_mas:"Un dia després",
     pr6_sin_restar:"Pagat, encara sense restar del saldo", pr6_fresh_now:"saldo d'ara", pr6_fresh_min:"saldo de fa {n} min", pr6_fresh_h:"saldo de fa {n} h", pr6_fresh_ayer:"saldo d'ahir", pr6_fresh_d:"saldo de fa {n} dies", pr6_fresh_fecha:"saldo del {x}",
+    // Pla › Rebuts v6, tanda 6: resum del mes tancat, vista del mes següent i primer ús.
+    pr6c_titulo:"{mes} tancat", pr6c_total:"{x} en rebuts", pr6c_vs:"{d} vs. {mes}", pr6c_vs_sin_datos:"vs. {mes}: sense dades {largo}", pr6c_vs_sin_recibos:"vs. {mes}: sense rebuts {largo}", pr6c_igual:"igual que {mes}",
+    pr6c_sube:"{name}, més que {mes}", pr6c_subio:"{name} ha pujat", pr6c_bajo:"{name} ha baixat", pr6c_no_llegaron:"Rebuts que no han arribat", pr6c_cerrar:"Tanca el resum",
+    pr6_se_van:"Previst · {month}", pr6_nada_sig:"Res previst per a {month}",
+    pr6_onb_n:"{n} càrrecs que es repeteixen", pr6_onb_1:"1 càrrec que es repeteix", pr6_onb_en:"a {x}", pr6_onb_vacio:"Encara no tens rebuts", pr6_empezar:"Comença",
+    pr6_imp_t:"{n} de {m} són rebuts", pr6_imp_quitar:"Treu-los tots", pr6_imp_marcar:"Marca'ls tots", pr6_imp_add:"Afegeix {n} rebuts", pr6_imp_add1:"Afegeix 1 rebut", pr6_imp_ninguno:"Cap",
+    pr6_imp_toast:"{n} rebuts afegits", pr6_imp_toast1:"1 rebut afegit",
+    // Pla › Rebuts v6, tanda 4: afegir i editar per passos (SPEC §7).
+    rp4_t_name:"Quin rebut és?", rp4_name_ph:"Netflix, llum, lloguer…", rp4_visto:"Vist al teu banc", rp4_dia:"dia", rp4_dup:"Ja tens «{name}»", rp4_dup_dia:"{x} el dia {d}", rp4_dup_ver:"Veure’l", pr6_cuota:"quota",
+    rp4_t_amount:"Quant és?", rp4_variable:"Canvia cada mes", rp4_t_when:"Quan es cobra?", rp4_once:"Només una vegada", rp4_split:"En diversos pagaments",
+    rp4_pago:"Pagament {n}", rp4_otro_pago:"Un altre pagament", rp4_quitar_pago:"Treu aquest pagament", rp4_dia_menos:"Un dia abans", rp4_dia_mas:"Un dia després", rp4_dia_n:"dia {d}",
+    rp4_importe_pago:"Import del pagament {n}", rp4_t_account:"De quin compte surt?", rp4_t_sum:"Tot bé?", rp4_t_edit:"Edita el rebut",
+    rp4_r_name:"Nom", rp4_r_amount:"Import", rp4_r_day:"Dia", rp4_r_date:"Data", rp4_r_pays:"Pagaments", rp4_r_account:"Compte",
+    rp4_en_pagos:"{x} en {n} pagaments", rp4_una_vez:"una sola vegada", rp4_solo_mes:"Només {m}", rp4_scope:"Quan s'aplica", rp4_mes_cobra:"Aquest mes es cobra {x}",
+    rp4_next:"Següent", rp4_add:"Afegeix el rebut", rp4_listo:"Fet", rp4_guardar:"Desa", rp4_cerrar:"Tanca",
+    rp4_saved:"{name} actualitzat", rp4_saved_mes:"{name}: només aquest mes", rp4_baja_antes:"Abans, dona't de baixa de {name}",
+    rp4_s_luz:"Llum", rp4_s_agua:"Aigua", rp4_s_gas:"Gas", rp4_s_internet:"Internet", rp4_s_movil:"Mòbil", rp4_s_alquiler:"Lloguer",
+    rp4_s_seguro:"Assegurança", rp4_s_gimnasio:"Gimnàs", rp4_s_netflix:"Netflix", rp4_s_spotify:"Spotify", rp4_s_hacienda:"Hisenda", rp4_s_comunidad:"Comunitat",
     v4_gastos_title:"Les teves despeses",
     v4_gastos_cat_limit:"límit {x}",
     g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Orientatiu: no canvia el pressupost. Buit o 0 = sense límit.",
     g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_connect_accounts:"Connectar comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
     v4_sync_banks:"Sincronitza els bancs", v4_sync_banks_done:"✓ Bancs sincronitzats",
-    v4_sync_broker_ok:"📈 {b} al dia", v4_sync_broker_exp:"⚠ {b}: sessió caducada · reconnecta a Ajustos → Bancs",
+    v4_sync_broker_ok:"📈 {b} al dia", v4_sync_brokers_ok:"📈 Bròkers al dia", v4_sync_broker_exp:"⚠ {b}: sessió caducada · reconnecta a Ajustos → Bancs",
     ap_bank:"Banc", ap_bank_none:"Sense banc", ap_date:"Data",
     cal_today:"Avui", cal_prev:"Mes anterior", cal_next:"Mes següent",
     bk_issue:"⚠ {bank} necessita el teu permís altra vegada", bk_issue_sub:"El permís de lectura ha caducat (obligatori cada ~3 mesos): el saldo pot estar desfasat. Un toc i llest.",
@@ -829,7 +904,7 @@ const LANG = {
     v4_set_money:"Diners", v4_set_app:"App",
     v4_set_tour:"Veure el tutorial", v4_set_adv:"Avançat",
    hv_title:"Vibració", hv_usage:"Tipus de vibració", hv_usage_hint:"Si en provar totes les forces es noten igual, prova un altre tipus.", hv_u_touch:"Toc", hv_u_hardware:"Botons", hv_u_media:"Multimèdia", hv_u_unknown:"Genèrica", hv_motor_amp:"El teu mòbil ajusta la força i el ritme de la vibració.", hv_motor_onoff:"El teu mòbil no ajusta la força: es nota com tocs més llargs o més curts.", hv_intro:"Busca la vibració que t’agradi. Només es desa en aquest mòbil.", hv_cycle:"El meu cicle (l’anell d’Inici)", hv_cycle_hint:"Més tocs com més ple estigui l'anell.", hv_edge:"En arribar a dalt o a baix", hv_seg:"En canviar entre Rebuts, Deutes i Metes", hv_tick:"Cursor del gràfic d’Inici", hv_strength:"Força", hv_length:"Durada", hv_every:"Es repeteix cada (si continues estirant)", hv_try:"Provar", hv_copy:"Copiar valors", hv_copied:"Valors copiats", hv_copy_fail:"No s’han pogut copiar", hv_reset:"Tornar als de sèrie", hv_need_apk:"Per notar aquests valors cal instal·lar l’última versió de l’app.", hv_no_native:"La vibració només funciona a l’app d’Android.",
-    v4_moved_cat:"Mogut a {cat}", 
+    v4_moved_cat:"Mogut a {cat}", v4_cuota_confirmada:"Confirmada com a quota de {name}", 
     v4_exp_del:"Esborra", v4_exp_del_q:"Vols esborrar «{name}»?", v4_exp_del_sub:"El podràs recuperar durant 5 segons.",
     f_amount_aria:"Import", f_concept_ph:"Toca per escriure el concepte", f_cat:"Categoria",
     f_cat_all:"Les {n} ›", f_cat_all_title:"Totes les categories", f_meta_cash:"Efectiu", 
@@ -1010,7 +1085,6 @@ Object.assign(LANG.es,{
   ru_interest:"Interés del efectivo (% anual)",
   ru_interest_hint:"TR paga un {p}% anual el día 1; la app lo suma al cerrar cada mes.",
   h_ru:"Round-up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
-  h_afford:"Pon importe y día y te digo si llegas sin números rojos hasta la nómina.",
   h_recon:"Compara tus recibos y cuotas con lo que el banco ha cobrado y marca lo que no cuadra.",
 });
 Object.assign(LANG.en,{
@@ -1032,7 +1106,6 @@ Object.assign(LANG.en,{
   ru_interest:"Cash interest (% p.a.)",
   ru_interest_hint:"TR pays {p}% p.a. on the 1st; the app adds it at each month close.",
   h_ru:"Round-up: TR rounds each card purchase up to the euro and invests it. Saveback: a 1% reward for paying by card.",
-  h_afford:"Enter amount and day and I'll tell you if you stay out of the red until payday.",
   h_recon:"Compares your bills and instalments with what the bank charged and flags mismatches.",
 });
 Object.assign(LANG.ca,{
@@ -1054,7 +1127,6 @@ Object.assign(LANG.ca,{
   ru_interest:"Interès de l'efectiu (% anual)",
   ru_interest_hint:"TR paga un {p}% anual el dia 1; l'app el suma en tancar cada mes.",
   h_ru:"Round-up: TR arrodoneix cada compra amb targeta a l'euro i ho inverteix. Saveback: un 1 % de regal per pagar-hi.",
-  h_afford:"Posa import i dia i et dic si arribes sense números vermells fins a la nòmina.",
   h_recon:"Compara els teus rebuts i quotes amb el que ha cobrat el banc i marca el que no quadra.",
 });
 /* Roles de cuenta + import OB + informe mensual */
@@ -1071,6 +1143,7 @@ Object.assign(LANG.es,{
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
   mr_title:"Así acabó {mes}",
+  mr_budget_missing:"Límite de este mes no guardado", mr_budget_none:"Este mes no tenía límite configurado", mr_budget_invalid:"Límite de este mes no disponible",
   mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
   mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
   hh_title:"Hogar compartido", hh_intro:"Cada uno ve el patrimonio conjunto, sin mezclar datos privados.",
@@ -1088,6 +1161,8 @@ Object.assign(LANG.es,{
   hh_fixed_top:"Sus fijos principales",
   rc_title:"Recibo gordo cerca", rc_body:"{name}: {x} el día {d}",
   rc_title_tmrw:"Mañana toca recibo", rc_body_tmrw:"{name}: mañana se cobran {x}. Si algo no cuadra, aún estás a tiempo.",
+  rc_body_tmrw_enough:"{name}: mañana se cobran {x}. Mínimo previsto este mes en {bank}: {saldo}.",
+  rc_body_tmrw_short:"{name}: mañana se cobran {x}. Mínimo previsto este mes en {bank}: {saldo}.",
   bn_50:"🟢 Mitad del presupuesto del mes: llevas {x} de {b}",
   bn_80:"⚠️ 80% del presupuesto usado: {x} de {b}",
   bn_95:"🔶 ¡95%! Casi agotado el presupuesto: {x} de {b}",
@@ -1106,6 +1181,7 @@ Object.assign(LANG.en,{
   rp_btn:"📸 Month report (image)", rp_spent:"Spent this month", rp_of_budget:"of {b} budget ({p}%)",
   rp_top:"Top categories", rp_networth:"Net worth", rp_footer:"made with Aely",
   mr_title:"How {mes} ended",
+  mr_budget_missing:"This month's limit was not saved", mr_budget_none:"No limit was set for this month", mr_budget_invalid:"This month's limit is unavailable",
   mr_share:"📸 Create report image", mr_later:"Dismiss", mr_shared:"✓ Report ready to share",
   mr_top:"Top spend: {cat} ({x})", mr_saved:"You saved {x}", mr_over:"You spent {x} more than came in",
   hh_title:"Shared household", hh_intro:"Everyone sees the combined net worth, without mixing private data.",
@@ -1123,6 +1199,8 @@ Object.assign(LANG.en,{
   hh_fixed_top:"Their main fixed costs",
   rc_title:"Big bill coming", rc_body:"{name}: {x} on day {d}",
   rc_title_tmrw:"Bill due tomorrow", rc_body_tmrw:"{name}: {x} will be charged tomorrow. If something's off, there's still time.",
+  rc_body_tmrw_enough:"{name}: {x} will be charged tomorrow. Lowest projected balance this month at {bank}: {saldo}.",
+  rc_body_tmrw_short:"{name}: {x} will be charged tomorrow. Lowest projected balance this month at {bank}: {saldo}.",
   bn_50:"🟢 Half the monthly budget: {x} of {b}",
   bn_80:"⚠️ 80% of the budget used: {x} of {b}",
   bn_95:"🔶 95%! Budget nearly gone: {x} of {b}",
@@ -1141,6 +1219,7 @@ Object.assign(LANG.ca,{
   rp_btn:"📸 Informe del mes (imatge)", rp_spent:"Gastat aquest mes", rp_of_budget:"de {b} de pressupost ({p}%)",
   rp_top:"Top categories", rp_networth:"Patrimoni", rp_footer:"fet amb Aely",
   mr_title:"Així va acabar {mes}",
+  mr_budget_missing:"Límit d'aquest mes no desat", mr_budget_none:"Aquest mes no tenia cap límit configurat", mr_budget_invalid:"Límit d'aquest mes no disponible",
   mr_share:"📸 Crear imatge de l'informe", mr_later:"Descartar", mr_shared:"✓ Informe llest per compartir",
   mr_top:"Més despesa: {cat} ({x})", mr_saved:"Has estalviat {x}", mr_over:"Has gastat {x} més del que va entrar",
   hh_title:"Llar compartida", hh_intro:"Cadascú veu el patrimoni conjunt, sense barrejar dades privades.",
@@ -1158,6 +1237,8 @@ Object.assign(LANG.ca,{
   hh_fixed_top:"Els seus fixes principals",
   rc_title:"Rebut gros a prop", rc_body:"{name}: {x} el dia {d}",
   rc_title_tmrw:"Demà toca rebut", rc_body_tmrw:"{name}: demà es cobren {x}. Si alguna cosa no quadra, encara ets a temps.",
+  rc_body_tmrw_enough:"{name}: demà es cobren {x}. Saldo mínim previst aquest mes a {bank}: {saldo}.",
+  rc_body_tmrw_short:"{name}: demà es cobren {x}. Saldo mínim previst aquest mes a {bank}: {saldo}.",
   bn_50:"🟢 Meitat del pressupost del mes: portes {x} de {b}",
   bn_80:"⚠️ 80% del pressupost usat: {x} de {b}",
   bn_95:"🔶 95%! Pressupost gairebé esgotat: {x} de {b}",
@@ -1167,14 +1248,14 @@ Object.assign(LANG.ca,{
 //     el que lo lee no lleva finanzas. Los _one existen porque «De 1 recibos» se lee roto. ---
 Object.assign(LANG.es,{
   gb_title:"Tus recibos", gb_hero_label:"SE TE VAN CADA MES",
-  gb_hero_sub:"De {n} recibos. Los que no son mensuales ya están repartidos a su parte de cada mes.",
-  gb_hero_sub_one:"De 1 recibo. Si no es mensual, ya está repartido a su parte de cada mes.", gb_search:"Buscar un recibo",
-  gb_search_empty:"No hay ningún recibo con ese nombre.", gb_per_month:"al mes", gb_g_serv:"Servicios y suministros",
-  gb_g_serv_sub:"{n} recibos · luz, agua, móvil, suscripciones", gb_g_serv_sub_one:"1 recibo · luz, agua, móvil, suscripciones",
-  gb_g_debt:"Cuotas de deuda", gb_g_debt_sub:"{n} cuotas · se cambian en Deudas", gb_g_debt_sub_one:"1 cuota · se cambia en Deudas",
-  gb_g_debt_sub_simple:"{n} cuotas · tócala para cambiarla", gb_g_debt_sub_simple_one:"1 cuota · tócala para cambiarla", gb_g_in:"Lo que entra y lo que mueves", gb_g_in_sub:"Nómina y pasos entre tus cuentas",
-  gb_g_once:"Cargos de una sola vez", gb_g_once_sub:"{n} este mes", gb_g_once_sub_one:"1 este mes", gb_this_month:"este mes",
-  gb_add:"+ Añadir un recibo", gb_locked:"Se cambia en Deudas", gb_step_what:"¿Qué es?",
+  
+  gb_search:"Buscar un recibo",
+  
+  
+  gb_g_debt:"Cuotas de deuda", 
+  gb_g_in:"Lo que entra y lo que mueves", gb_g_in_sub:"Nómina y pasos entre tus cuentas",
+  
+  gb_locked:"Se cambia en Deudas", gb_step_what:"¿Qué es?",
   gb_step_how_much:"¿Cuánto?", gb_step_how_often:"¿Cada cuánto?", gb_months_q:"¿En qué meses?", gb_step_monthyear:"¿Qué mes?",
   gb_step_when:"¿Qué día?", gb_step_account:"¿De qué cuenta sale?", gb_when_first:"Primer día hábil", gb_when_last:"Último día hábil",
   gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos meses", 
@@ -1182,55 +1263,53 @@ Object.assign(LANG.es,{
   gb_freq_y:"Una vez al año", 
   gb_preview_each:"Se cobrarán {each} en {months} ({total} al año): {x} al mes repartidos.",
   gb_preview_nomonth:"Serán {x} al mes repartidos ({total} al año). Falta elegir en qué mes se cobra.",
-  gb_preview_m:"Serán {x} cada mes.", gb_empty:"Aún no hay recibos", gb_empty_sub:"Conecta tu banco y los detecto solos.",
-  gb_afford:"¿Me lo puedo permitir?",
-  gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.", gb_del:"Quitar este recibo", gb_removed:"Recibo quitado",
+  gb_preview_m:"Serán {x} cada mes.", 
+  gb_del:"Quitar este recibo", gb_removed:"Recibo quitado", gb_undo_changed:"No se ha deshecho nada porque hay cambios posteriores.", gb_undo_partial:"Hay cambios posteriores que no se han deshecho.", gb_remove_changed:"No se ha podido quitar el recibo. Revisa los cambios e inténtalo de nuevo.", gb_undo_sync_error:"Cambio guardado; no se ha podido sincronizar la marca del cargo.",
   gb_bill_locked_amt:"Este recibo cambia de importe según el mes: cámbialo en cada mes.",
   gb_when_day:"Un día concreto", gb_save_ok:"Guardado", gb_saved_fixed:"Recibo añadido", gb_saved_oneoff:"Cargo puntual añadido", gb_saved_income:"Ingreso añadido", gb_saved_transfer:"Traspaso añadido", gb_next:"Siguiente", gb_recon:"¿Cuadran con el banco?", gb_flow_income:"Lo que cobras", gb_flow_move:"Paso entre tus cuentas", gb_month:"Mes", gb_year:"Año", gb_add_btn:"Añadir",
 });
 Object.assign(LANG.en,{
   gb_title:"Your bills", gb_hero_label:"GOES OUT EVERY MONTH",
-  gb_hero_sub:"From {n} bills. The ones that aren't monthly are already spread into their monthly share.",
-  gb_hero_sub_one:"From 1 bill. If it isn't monthly, it's already spread into its monthly share.", gb_search:"Search a bill",
-  gb_search_empty:"No bill with that name.", gb_per_month:"a month", gb_g_serv:"Utilities and services",
-  gb_g_serv_sub:"{n} bills · power, water, phone, subscriptions", gb_g_serv_sub_one:"1 bill · power, water, phone, subscriptions",
-  gb_g_debt:"Debt instalments", gb_g_debt_sub:"{n} instalments · changed in Debts", gb_g_debt_sub_one:"1 instalment · changed in Debts",
-  gb_g_debt_sub_simple:"{n} instalments · tap one to change it", gb_g_debt_sub_simple_one:"1 instalment · tap it to change it", gb_g_in:"What comes in and what you move",
-  gb_g_in_sub:"Salary and moves between your accounts", gb_g_once:"One-off charges", gb_g_once_sub:"{n} this month", gb_g_once_sub_one:"1 this month",
-  gb_this_month:"this month", gb_add:"+ Add a bill", gb_locked:"Changed in Debts", 
+  
+  gb_search:"Search a bill",
+  
+  
+  gb_g_debt:"Debt instalments", 
+  gb_g_in:"What comes in and what you move",
+  gb_g_in_sub:"Salary and moves between your accounts", 
+  gb_locked:"Changed in Debts", 
   gb_step_what:"What is it?", gb_step_how_much:"How much?", gb_step_how_often:"How often?", gb_months_q:"In which months?",
   gb_step_monthyear:"Which month?", gb_step_when:"Which day?", gb_step_account:"Which account does it come out of?", gb_when_first:"First working day",
   gb_when_last:"Last working day", gb_freq_m:"Every month", gb_freq_2m:"Every two months",
   gb_freq_3m:"Every three months", 
   gb_freq_6m:"Every six months", gb_freq_y:"Once a year",
   gb_preview_each:"{each} will be charged in {months} ({total} a year): {x} a month spread out.",
-  gb_preview_nomonth:"That's {x} a month spread out ({total} a year). Pick the month it's charged in.", gb_preview_m:"That's {x} every month.", gb_empty:"No bills yet",
-  gb_empty_sub:"Connect your bank and I'll spot them for you.", 
-  gb_afford:"Can I afford it?", gb_afford_sub:"Give me an amount and a day and I'll tell you if it fits this month.",
-  gb_del:"Remove this bill", gb_removed:"Bill removed",
+  gb_preview_nomonth:"That's {x} a month spread out ({total} a year). Pick the month it's charged in.", gb_preview_m:"That's {x} every month.", 
+  
+  gb_del:"Remove this bill", gb_removed:"Bill removed", gb_undo_changed:"Nothing was undone because there are later changes.", gb_undo_partial:"There are later changes that have not been undone.", gb_remove_changed:"The bill could not be removed. Review the changes and try again.", gb_undo_sync_error:"Change saved; the payment label could not be synced.",
   gb_bill_locked_amt:"This bill's amount changes by month: change it in each month.",
   gb_when_day:"A chosen day", gb_save_ok:"Saved", gb_saved_fixed:"Bill added", gb_saved_oneoff:"One-off charge added", gb_saved_income:"Income added", gb_saved_transfer:"Transfer added", gb_next:"Next", gb_recon:"Do they match the bank?", gb_flow_income:"What you get paid", gb_flow_move:"Move between your accounts", gb_month:"Month", gb_year:"Year", gb_add_btn:"Add",
 });
 Object.assign(LANG.ca,{
   gb_title:"Els teus rebuts", gb_hero_label:"SE'T VAN CADA MES",
-  gb_hero_sub:"De {n} rebuts. Els que no són mensuals ja estan repartits a la seva part de cada mes.",
-  gb_hero_sub_one:"D'1 rebut. Si no és mensual, ja està repartit a la seva part de cada mes.", gb_search:"Cerca un rebut",
-  gb_search_empty:"No hi ha cap rebut amb aquest nom.", gb_per_month:"al mes", gb_g_serv:"Serveis i subministraments",
-  gb_g_serv_sub:"{n} rebuts · llum, aigua, mòbil, subscripcions", gb_g_serv_sub_one:"1 rebut · llum, aigua, mòbil, subscripcions",
-  gb_g_debt:"Quotes de deute", gb_g_debt_sub:"{n} quotes · es canvien a Deutes", gb_g_debt_sub_one:"1 quota · es canvia a Deutes",
-  gb_g_debt_sub_simple:"{n} quotes · toca-la per canviar-la", gb_g_debt_sub_simple_one:"1 quota · toca-la per canviar-la", gb_g_in:"El que entra i el que mous",
-  gb_g_in_sub:"Nòmina i passos entre els teus comptes", gb_g_once:"Càrrecs d'una sola vegada", gb_g_once_sub:"{n} aquest mes",
-  gb_g_once_sub_one:"1 aquest mes", gb_this_month:"aquest mes", gb_add:"+ Afegir un rebut", gb_locked:"Es canvia a Deutes",
+  
+  gb_search:"Cerca un rebut",
+  
+  
+  gb_g_debt:"Quotes de deute", 
+  gb_g_in:"El que entra i el que mous",
+  gb_g_in_sub:"Nòmina i passos entre els teus comptes", 
+  gb_locked:"Es canvia a Deutes",
   gb_step_what:"Què és?", gb_step_how_much:"Quant?", gb_step_how_often:"Cada quant?", gb_months_q:"En quins mesos?",
   gb_step_monthyear:"Quin mes?", gb_step_when:"Quin dia?", gb_step_account:"De quin compte surt?", gb_when_first:"Primer dia feiner",
   gb_when_last:"Últim dia feiner", gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos mesos",
   gb_freq_3m:"Cada tres mesos", 
   gb_freq_6m:"Cada sis mesos", gb_freq_y:"Un cop l'any",
   gb_preview_each:"Es cobraran {each} a {months} ({total} l'any): {x} al mes repartits.",
-  gb_preview_nomonth:"Seran {x} al mes repartits ({total} l'any). Falta triar en quin mes es cobra.", gb_preview_m:"Seran {x} cada mes.", gb_empty:"Encara no hi ha rebuts",
-  gb_empty_sub:"Connecta el teu banc i els detecto sols.", 
-  gb_afford:"M'ho puc permetre?", gb_afford_sub:"Digue'm un import i un dia i et dic si t'hi cap aquest mes.", gb_del:"Treu aquest rebut",
-  gb_removed:"Rebut tret", gb_bill_locked_amt:"L'import d'aquest rebut canvia segons el mes: canvia'l a cada mes.",
+  gb_preview_nomonth:"Seran {x} al mes repartits ({total} l'any). Falta triar en quin mes es cobra.", gb_preview_m:"Seran {x} cada mes.", 
+  
+  gb_del:"Treu aquest rebut",
+  gb_removed:"Rebut tret", gb_undo_changed:"No s’ha desfet res perquè hi ha canvis posteriors.", gb_undo_partial:"Hi ha canvis posteriors que no s’han desfet.", gb_remove_changed:"No s’ha pogut treure el rebut. Revisa els canvis i torna-ho a provar.", gb_undo_sync_error:"Canvi desat; no s’ha pogut sincronitzar la marca del càrrec.", gb_bill_locked_amt:"L'import d'aquest rebut canvia segons el mes: canvia'l a cada mes.",
   gb_when_day:"Un dia concret", gb_save_ok:"Desat", gb_saved_fixed:"Rebut afegit", gb_saved_oneoff:"Càrrec puntual afegit", gb_saved_income:"Ingrés afegit", gb_saved_transfer:"Traspàs afegit", gb_next:"Següent", gb_recon:"Quadren amb el banc?", gb_flow_income:"El que cobres", gb_flow_move:"Pas entre els teus comptes", gb_month:"Mes", gb_year:"Any", gb_add_btn:"Afegeix",
 });
 /* Importador CSV del bróker (Inversiones) */
@@ -1805,19 +1884,12 @@ Object.assign(LANG.es,{
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
   cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_multas:"Multas", cat_zona_azul:"Zona azul", cat_peajes:"Peajes", cat_coche:"Coche", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   // Fijos
-  af_title:"💸 ¿Me lo puedo permitir?", af_sub:"Simula una compra y mira el impacto", af_amount:"Importe €", af_day:"Día", af_enter:"Escribe un importe para simular el gasto.",
-  af_yes:"✅ Sí, puedes permitírtelo", af_tight:"🟠 Puedes, pero te quedarías muy justo", af_no:"🔴 Mejor no: te quedarías en negativo",
-  af_low:"Tu punto más bajo del mes sería {x} (día {d})", af_low_noday:"Tu punto más bajo del mes sería {x}", af_from_to:"sin la compra {a} → con ella {b}",
-  af_floor:"🛟 Colchón mínimo de {bank}", af_floor_ph:"sin tope", af_floor_break:"🟠 Puedes, PERO bajarías de tu colchón de {x}", af_below:"⚠ Ya estás por debajo de tu colchón de {x} (vas {y})",
-  af_safe:"💚 Hoy puedes gastar hasta {x} sin pasarte", af_eom:"A fin de mes te quedarían ~{x}",
-  af_mode_cash:"💶 Al contado", af_mode_fin:"📅 A plazos", af_fin_months:"Meses", af_fin_down:"Entrada €",
-  af_fin_quota:"Cuota: {x}/mes · {n} meses (hasta {d})", af_fin_fixed:"Tus fijos pasarían de {a} a {b}/mes",
-  af_fin_margin_ok:"✅ La cuota te cabe: te quedarían {x}/mes libres", af_fin_margin_tight:"🟠 Justo: la cuota se come más de la mitad de tu margen libre ({x}/mes)",
-  af_fin_margin_no:"🔴 No te cabe: tu margen libre mensual es {x}", af_fin_margin_none:"Apunta tu nómina (Plan → Gestionar → ingresos) y te digo si la cuota te cabe cada mes.",
-  af_fin_name_ph:"¿Qué es? (ej. iPhone)", af_fin_create:"➕ Crear la deuda · {x}/mes", af_fin_created:"✓ Deuda creada · la verás en Plan → Deudas",
-  af_fin_hint:"Cuota estimada al 0%. Si lleva intereses, crea la deuda y ponle la TAE en Plan → Deudas.",
+  af_floor:"Colchón mínimo de {bank}", af_floor_ph:"sin tope",
+  af_fin_margin_ok:"La cuota te cabe: te quedarían {x}/mes libres", af_fin_margin_tight:"Justo: la cuota se come más de la mitad de tu margen libre ({x}/mes)",
+  af_fin_margin_no:"No te cabe: tu margen libre mensual es {x}", af_fin_margin_none:"Apunta tu nómina (Plan → Gestionar → ingresos) y te digo si la cuota te cabe cada mes.",
+  af_fin_create:"Crear la deuda · {x}/mes", af_fin_created:"Deuda creada · la verás en Plan → Deudas",
   fj_debt_tag:"cuota de deuda", fj_fixed_tag:"gasto fijo",
-  fj_income_tag:"ingreso (entra)", fj_transfer_tag:"transferencia",
+  fj_income_tag:"ingreso", fj_transfer_tag:"transferencia",
   fj_permonth:"{x}/mes", fj_edit:"Editar", fj_save:"Guardar", fj_fixed:"Recibo",
   fj_day:"día", 
   ask_ok:"Aceptar", ask_all:"Todo · {x}",
@@ -1870,19 +1942,12 @@ Object.assign(LANG.en,{
   g_empty_period_t:"No expenses yet this period", g_empty_period_d:"They'll show up as you sync or add them.",
   g_today:"Today", g_yesterday:"Yesterday", g_invalid:"Enter a valid amount", g_saved_g:"✓ Expense added", g_saved_i:"✓ Income added", g_deleted:"Deleted", g_changecat:"Change category",
   cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_gasolina:"Fuel", cat_taxi:"Taxi", cat_multas:"Fines", cat_zona_azul:"Blue zone", cat_peajes:"Tolls", cat_coche:"Car", cat_parking:"Parking", cat_agua:"Water", cat_luz:"Power", cat_gas:"Gas", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_bizum:"Bizum", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer", cat_deudas:"Debt payment",
-  af_title:"💸 Can I afford it?", af_sub:"Simulate a purchase and see the impact", af_amount:"Amount €", af_day:"Day", af_enter:"Type an amount to simulate the purchase.",
-  af_yes:"✅ Yes, you can afford it", af_tight:"🟠 You can, but it'd be very tight", af_no:"🔴 Better not: you'd go negative",
-  af_low:"Your lowest point this month would be {x} (day {d})", af_low_noday:"Your lowest point this month would be {x}", af_from_to:"without it {a} → with it {b}",
-  af_floor:"🛟 {bank} safety floor", af_floor_ph:"no floor", af_floor_break:"🟠 You can, BUT you'd dip below your {x} floor", af_below:"⚠ You're already below your {x} floor (at {y})",
-  af_safe:"💚 Today you can spend up to {x} safely", af_eom:"End of month you'd have ~{x}",
-  af_mode_cash:"💶 Upfront", af_mode_fin:"📅 In instalments", af_fin_months:"Months", af_fin_down:"Down payment €",
-  af_fin_quota:"Instalment: {x}/mo · {n} months (until {d})", af_fin_fixed:"Your fixed costs would go from {a} to {b}/mo",
-  af_fin_margin_ok:"✅ It fits: you'd keep {x}/mo free", af_fin_margin_tight:"🟠 Tight: the instalment eats over half your free margin ({x}/mo)",
-  af_fin_margin_no:"🔴 It doesn't fit: your free monthly margin is {x}", af_fin_margin_none:"Log your salary (Plan → Manage → income) and I'll tell you if the instalment fits each month.",
-  af_fin_name_ph:"What is it? (e.g. iPhone)", af_fin_create:"➕ Create the debt · {x}/mo", af_fin_created:"✓ Debt created · see Plan → Debts",
-  af_fin_hint:"Instalment estimated at 0%. If it carries interest, create the debt and set the APR in Plan → Debts.",
+  af_floor:"{bank} safety floor", af_floor_ph:"no floor",
+  af_fin_margin_ok:"It fits: you'd keep {x}/mo free", af_fin_margin_tight:"Tight: the instalment eats over half your free margin ({x}/mo)",
+  af_fin_margin_no:"It doesn't fit: your free monthly margin is {x}", af_fin_margin_none:"Log your salary (Plan → Manage → income) and I'll tell you if the instalment fits each month.",
+  af_fin_create:"Create the debt · {x}/mo", af_fin_created:"Debt created · see Plan → Debts",
   fj_debt_tag:"debt payment", fj_fixed_tag:"fixed cost",
-  fj_income_tag:"income (in)", fj_transfer_tag:"transfer",
+  fj_income_tag:"income", fj_transfer_tag:"transfer",
   fj_permonth:"{x}/mo", fj_edit:"Edit", fj_save:"Save", fj_fixed:"Bill",
   fj_day:"day", 
   ask_ok:"OK", ask_all:"All · {x}",
@@ -1935,19 +2000,12 @@ Object.assign(LANG.ca,{
   g_empty_period_t:"Encara no hi ha despeses en aquest període", g_empty_period_d:"Aniran sortint a mesura que sincronitzis o apuntis.",
   g_today:"Avui", g_yesterday:"Ahir", g_invalid:"Posa un import vàlid", g_saved_g:"✓ Despesa apuntada", g_saved_i:"✓ Ingrés apuntat", g_deleted:"Eliminat", g_changecat:"Canvia la categoria",
   cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_gasolina:"Benzina", cat_taxi:"Taxi", cat_multas:"Multes", cat_zona_azul:"Zona blava", cat_peajes:"Peatges", cat_coche:"Cotxe", cat_parking:"Pàrquing", cat_agua:"Aigua", cat_luz:"Llum", cat_gas:"Gas", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_bizum:"Bizum", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs", cat_deudas:"Quota de deute",
-  af_title:"💸 M'ho puc permetre?", af_sub:"Simula una compra i mira l'impacte", af_amount:"Import €", af_day:"Dia", af_enter:"Escriu un import per simular la despesa.",
-  af_yes:"✅ Sí, t'ho pots permetre", af_tight:"🟠 Pots, però et quedaries molt just", af_no:"🔴 Millor no: et quedaries en negatiu",
-  af_low:"El teu punt més baix del mes seria {x} (dia {d})", af_low_noday:"El teu punt més baix del mes seria {x}", af_from_to:"sense la compra {a} → amb ella {b}",
-  af_floor:"🛟 Coixí mínim de {bank}", af_floor_ph:"sense límit", af_floor_break:"🟠 Pots, PERÒ baixaries del teu coixí de {x}", af_below:"⚠ Ja estàs per sota del teu coixí de {x} (vas {y})",
-  af_safe:"💚 Avui pots gastar fins a {x} sense passar-te", af_eom:"A fi de mes et quedarien ~{x}",
-  af_mode_cash:"💶 Al comptat", af_mode_fin:"📅 A terminis", af_fin_months:"Mesos", af_fin_down:"Entrada €",
-  af_fin_quota:"Quota: {x}/mes · {n} mesos (fins a {d})", af_fin_fixed:"Els teus fixes passarien de {a} a {b}/mes",
-  af_fin_margin_ok:"✅ La quota t'hi cap: et quedarien {x}/mes lliures", af_fin_margin_tight:"🟠 Just: la quota es menja més de la meitat del teu marge lliure ({x}/mes)",
-  af_fin_margin_no:"🔴 No t'hi cap: el teu marge lliure mensual és {x}", af_fin_margin_none:"Apunta la teva nòmina (Pla → Gestionar → ingressos) i et dic si la quota t'hi cap cada mes.",
-  af_fin_name_ph:"Què és? (ex. iPhone)", af_fin_create:"➕ Crear el deute · {x}/mes", af_fin_created:"✓ Deute creat · el veuràs a Pla → Deutes",
-  af_fin_hint:"Quota estimada al 0%. Si porta interessos, crea el deute i posa-li la TAE a Pla → Deutes.",
+  af_floor:"Coixí mínim de {bank}", af_floor_ph:"sense límit",
+  af_fin_margin_ok:"La quota t'hi cap: et quedarien {x}/mes lliures", af_fin_margin_tight:"Just: la quota es menja més de la meitat del teu marge lliure ({x}/mes)",
+  af_fin_margin_no:"No t'hi cap: el teu marge lliure mensual és {x}", af_fin_margin_none:"Apunta la teva nòmina (Pla → Gestionar → ingressos) i et dic si la quota t'hi cap cada mes.",
+  af_fin_create:"Crear el deute · {x}/mes", af_fin_created:"Deute creat · el veuràs a Pla → Deutes",
   fj_debt_tag:"quota de deute", fj_fixed_tag:"despesa fixa",
-  fj_income_tag:"ingrés (entra)", fj_transfer_tag:"transferència",
+  fj_income_tag:"ingrés", fj_transfer_tag:"transferència",
   fj_permonth:"{x}/mes", fj_edit:"Edita", fj_save:"Desa", fj_fixed:"Rebut",
   fj_day:"dia", 
   ask_ok:"D'acord", ask_all:"Tot · {x}",
@@ -3944,7 +4002,9 @@ function loadState(){
     if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored || saved.trasAbonoDesde==null;
+    // Antes de cerrar meses: el sello decide qué traspasos abonan en su destino (`flowAbonaEn`, 08).
+    if(saved.trasAbonoDesde==null) saved.trasAbonoDesde=sellarAbonoTraspasos({}).trasAbonoDesde;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));
@@ -3954,7 +4014,7 @@ function loadState(){
     return s;
   }
   // Sin estado guardado = usuario nuevo → arranca VACÍO y verá el onboarding (no hereda la cartera de ejemplo).
-  const init = buildEmpty();
+  const init = sellarAbonoTraspasos(buildEmpty());
   mcSaveRaw(mcStateKey(), init);
   applyTheme(init.settings&&init.settings.theme);
   applyA11y(init);
@@ -4188,7 +4248,7 @@ Object.assign(LANG.es, {
   plan_edit_changed:"Este dato cambió o se borró. Cierra y vuelve a abrir la edición para ver la versión actual.",
   plan_edit_saved:"Cambios guardados",
   db_edit_title:"Editar deuda",
-  db_edit_named:"Editar {name}",
+  db_edit_named:"Editar {name}", db_day_prompt:"Sin día de cobro · ponle día",
   db_left_count:"Quedan {n}/{tot} cuotas",
   db_term_hint:"Plazo total, incluidas las cuotas ya pagadas. Déjalo vacío si no lo conoces.",
   db_edit_term_confirm:"¿Guardar con el nuevo plazo?",
@@ -4197,6 +4257,7 @@ Object.assign(LANG.es, {
   db_edit_term_cancel:"Seguir editando",
   db_edit_projection_changed:"La previsión ha cambiado. Revisa los datos y vuelve a guardar para confirmarla.",
   db_rate_edit_hint:"Vacío = interés desconocido. 0 = sin intereses. Se guarda al tocar Guardar cambios.",
+  db_rate_discount_remove:"Primero quita el descuento del recibo compartido para poner una TAE positiva.",
   db_set_rate:"Añadir interés",
   gl_edit_title:"Editar meta",
   gl_edit_named:"Editar {name}",
@@ -4231,7 +4292,7 @@ Object.assign(LANG.en, {
   plan_edit_changed:"This item changed or was deleted. Close and reopen the editor to see the current version.",
   plan_edit_saved:"Changes saved",
   db_edit_title:"Edit debt",
-  db_edit_named:"Edit {name}",
+  db_edit_named:"Edit {name}", db_day_prompt:"No payment day · set a day",
   db_left_count:"{n}/{tot} payments left",
   db_term_hint:"Total term, including payments already made. Leave blank if unknown.",
   db_edit_term_confirm:"Save with the new term?",
@@ -4240,6 +4301,7 @@ Object.assign(LANG.en, {
   db_edit_term_cancel:"Keep editing",
   db_edit_projection_changed:"The projection has changed. Review the details and save again to confirm it.",
   db_rate_edit_hint:"Blank = unknown interest. 0 = no interest. Saved when you tap Save changes.",
+  db_rate_discount_remove:"First remove the discount from the shared bill to set a positive APR.",
   db_set_rate:"Add interest",
   gl_edit_title:"Edit goal",
   gl_edit_named:"Edit {name}",
@@ -4274,7 +4336,7 @@ Object.assign(LANG.ca, {
   plan_edit_changed:"Aquesta dada ha canviat o s’ha esborrat. Tanca i torna a obrir l’edició per veure la versió actual.",
   plan_edit_saved:"Canvis desats",
   db_edit_title:"Edita el deute",
-  db_edit_named:"Edita {name}",
+  db_edit_named:"Edita {name}", db_day_prompt:"Sense dia de cobrament · posa-hi dia",
   db_left_count:"Queden {n}/{tot} quotes",
   db_term_hint:"Termini total, incloses les quotes ja pagades. Deixa’l buit si no el coneixes.",
   db_edit_term_confirm:"Vols desar amb el nou termini?",
@@ -4283,9 +4345,156 @@ Object.assign(LANG.ca, {
   db_edit_term_cancel:"Continua editant",
   db_edit_projection_changed:"La previsió ha canviat. Revisa les dades i torna a desar per confirmar-la.",
   db_rate_edit_hint:"Buit = interès desconegut. 0 = sense interessos. Es desa en tocar Desa els canvis.",
+  db_rate_discount_remove:"Primer treu el descompte del rebut compartit per posar una TAE positiva.",
   db_set_rate:"Afegeix interès",
   gl_edit_title:"Edita l’objectiu",
   gl_edit_named:"Edita {name}",
   gl_delete_q:"Vols eliminar «{name}»?",
   gl_delete_sub:"L’objectiu desapareixerà de la llista. Les regles i les aportacions anteriors es conserven."
+});
+// Plan › Recibos v6, tanda 5: personas, recibos compartidos, «Te deben» y «Lo descuento» (SPEC §5-§6).
+Object.assign(LANG.es,{
+  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya te ha pagado su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
+  pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
+  pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_deben_saldar:"Dar por pagado", pr6_deben_parcial:"pagó {a} · falta {b}", pr6_deben_via_dia:"{via} el {d}", pr6_te_lo_ha_pagado:"Te lo ha pagado", pr6_deben_pend:"pendiente",
+  pe_title:"Personas", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
+  pe_como_paga:"¿Cómo te paga?", pe_bizum:"Bizum", pe_transfer:"Transferencia", pe_debt:"Lo descuento", pe_descuenta_de:"Su parte se descuenta de",
+  pe_recibos:"Sus recibos", pe_que_recibos:"¿Qué recibos comparte?", pe_sin_recibos:"Ningún recibo se puede compartir", pe_borrar:"Borrar", kp_borrar:"Borrar", pe_seguro:"¿Seguro? Sale de todos sus recibos",
+  rp5_mas:"Más opciones", rp5_con_alguien:"¿Lo pagas con alguien?", rp5_no_admite:"Solo se comparte un recibo de cada mes o cada pocos meses",
+  rp5_otra:"Otra", rp5_importe_de:"Parte de {name}", rp5_quitar:"Quitar a {name}", rp5_tu_parte:"Tu parte",
+  rp5_supera:"Las partes pasan del importe: no te queda parte", rp5_descuento_mensual:"«Lo descuento» solo en recibos de cada mes",
+  rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda", pe_viejo_ajustar:"En {name} ajustarás las partes antes de guardar"
+});
+Object.assign(LANG.en,{
+  pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_su_parte_ok:"their share is paid", pr6_su_parte_falta:"their share is pending", pr6_tu_parte:"Your share {x}",
+  pr6_te_deben:"You're owed {x}", pr6_te_deben_t:"You're owed", pr6_te_han_pagado_todos:"Everyone has paid you",
+  pr6_ya_me_lo_ha_pagado:"They've paid me", pr6_deben_saldar:"Mark as paid", pr6_deben_parcial:"paid {a} · {b} left", pr6_deben_via_dia:"{via}, day {d}", pr6_te_lo_ha_pagado:"Paid you", pr6_deben_pend:"pending",
+  pe_title:"People", pe_add:"Add a person", pe_nueva:"New person", pe_nombre:"Name",
+  pe_como_paga:"How do they pay you?", pe_bizum:"Bizum", pe_transfer:"Bank transfer", pe_debt:"I deduct it", pe_descuenta_de:"Their share is deducted from",
+  pe_recibos:"Their bills", pe_que_recibos:"Which bills do they share?", pe_sin_recibos:"No bill can be shared", pe_borrar:"Delete", kp_borrar:"Delete", pe_seguro:"Sure? They leave all their bills",
+  rp5_mas:"More options", rp5_con_alguien:"Do you pay it with someone?", rp5_no_admite:"Only a monthly bill or one every few months can be shared",
+  rp5_otra:"Other", rp5_importe_de:"{name}'s share", rp5_quitar:"Remove {name}", rp5_tu_parte:"Your share",
+  rp5_supera:"The shares exceed the amount: nothing left for you", rp5_descuento_mensual:"“I deduct it” only works on monthly bills",
+  rp5_rehacer:"These shares no longer added up: check them and save", pe_viejo_ajustar:"You'll adjust the shares of {name} before saving"
+});
+Object.assign(LANG.ca,{
+  pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_su_parte_ok:"ja t'ha pagat la seva part", pr6_su_parte_falta:"falta la seva part", pr6_tu_parte:"La teva part {x}",
+  pr6_te_deben:"Et deuen {x}", pr6_te_deben_t:"Et deuen", pr6_te_han_pagado_todos:"T'han pagat tots",
+  pr6_ya_me_lo_ha_pagado:"Ja m'ho ha pagat", pr6_deben_saldar:"Dona-ho per pagat", pr6_deben_parcial:"ha pagat {a} · falta {b}", pr6_deben_via_dia:"{via} el dia {d}", pr6_te_lo_ha_pagado:"T'ho ha pagat", pr6_deben_pend:"pendent",
+  pe_title:"Persones", pe_add:"Afegir una persona", pe_nueva:"Persona nova", pe_nombre:"Nom",
+  pe_como_paga:"Com et paga?", pe_bizum:"Bizum", pe_transfer:"Transferència", pe_debt:"Ho descompto", pe_descuenta_de:"La seva part es descompta de",
+  pe_recibos:"Els seus rebuts", pe_que_recibos:"Quins rebuts comparteix?", pe_sin_recibos:"Cap rebut es pot compartir", pe_borrar:"Esborrar", kp_borrar:"Esborrar", pe_seguro:"Segur? Surt de tots els seus rebuts",
+  rp5_mas:"Més opcions", rp5_con_alguien:"El pagues amb algú?", rp5_no_admite:"Només es comparteix un rebut de cada mes o de cada pocs mesos",
+  rp5_otra:"Una altra", rp5_importe_de:"Part de {name}", rp5_quitar:"Treure {name}", rp5_tu_parte:"La teva part",
+  rp5_supera:"Les parts superen l'import: no et queda part", rp5_descuento_mensual:"«Ho descompto» només en rebuts de cada mes",
+  rp5_rehacer:"Aquestes parts ja no quadraven: revisa-les i desa", pe_viejo_ajustar:"A {name} ajustaràs les parts abans de desar"
+});
+// Recibos: prueba gratis y permanencia (decisión del dueño, 10/11/2026).
+Object.assign(LANG.es,{
+  pr6_prueba_hoy:"Hoy empieza a cobrar", pr6_prueba_manana:"Mañana empieza a cobrar", pr6_perm_fin:"Fin de permanencia: {x}",
+  pr6_prueba_hoy_fila:"Cobra hoy", pr6_prueba_manana_fila:"Cobra mañana", pr6_perm_fila:"Permanencia: {x}",
+  pr6_me_lo_quedo:"Me lo quedo", pr6_ya_mirado:"Ya lo he mirado", pr6_te_lo_quedas:"{name}: te lo quedas",
+  rp7_prueba:"Prueba gratis", rp7_perm:"Permanencia", rp7_no:"No", rp7_hasta_dia:"hasta el {x}", rp7_hasta:"hasta {x}",
+  rp7_empieza:"empieza a cobrar el {x}", rp7_sin_prueba:"Sin prueba", rp7_un_mes:"Un mes", rp7_sin_perm:"Sin permanencia", rp7_un_ano:"Un año",
+  rp7_mes_menos:"Un mes antes", rp7_mes_mas:"Un mes después"
+});
+Object.assign(LANG.en,{
+  pr6_prueba_hoy:"Starts charging today", pr6_prueba_manana:"Starts charging tomorrow", pr6_perm_fin:"Commitment ends: {x}",
+  pr6_prueba_hoy_fila:"Charges today", pr6_prueba_manana_fila:"Charges tomorrow", pr6_perm_fila:"Term ends {x}",
+  pr6_me_lo_quedo:"I'll keep it", pr6_ya_mirado:"I've checked it", pr6_te_lo_quedas:"{name}: you're keeping it",
+  rp7_prueba:"Free trial", rp7_perm:"Minimum term", rp7_no:"No", rp7_hasta_dia:"until {x}", rp7_hasta:"until {x}",
+  rp7_empieza:"starts charging on {x}", rp7_sin_prueba:"No trial", rp7_un_mes:"One month", rp7_sin_perm:"No minimum term", rp7_un_ano:"One year",
+  rp7_mes_menos:"One month earlier", rp7_mes_mas:"One month later"
+});
+Object.assign(LANG.ca,{
+  pr6_prueba_hoy:"Avui comença a cobrar", pr6_prueba_manana:"Demà comença a cobrar", pr6_perm_fin:"Fi de permanència: {x}",
+  pr6_prueba_hoy_fila:"Cobra avui", pr6_prueba_manana_fila:"Cobra demà", pr6_perm_fila:"Permanència: {x}",
+  pr6_me_lo_quedo:"M'ho quedo", pr6_ya_mirado:"Ja ho he mirat", pr6_te_lo_quedas:"{name}: te'l quedes",
+  rp7_prueba:"Prova gratuïta", rp7_perm:"Permanència", rp7_no:"No", rp7_hasta_dia:"fins al {x}", rp7_hasta:"fins a {x}",
+  rp7_empieza:"comença a cobrar el {x}", rp7_sin_prueba:"Sense prova", rp7_un_mes:"Un mes", rp7_sin_perm:"Sense permanència", rp7_un_ano:"Un any",
+  rp7_mes_menos:"Un mes abans", rp7_mes_mas:"Un mes després"
+});
+// Tus recibos (Gestionar) según la SPEC §3 del rediseño de Recibos: secciones planas, mes/año y solapes.
+Object.assign(LANG.es,{
+  mg_al_ano:"SE TE VAN AL AÑO", mg_desglose:"recibos {a} + cuotas {b}", mg_por_mes:"{x}/mes", mg_por_ano:"{x}/año",
+  mg_cuenta:"Cuenta", mg_todas:"Todas", mg_recibos:"Recibos", mg_anadir:"Añadir", mg_dia:"DÍA", mg_compartido:"compartido",
+  mg_add_recibo:"Añadir un recibo", mg_add_once:"Añadir un cargo de una sola vez", mg_add_flow:"Añadir lo que entra o lo que mueves",
+  mg_una_vez:"De una sola vez", mg_no_repiten:"no se repiten", mg_mas:"{a} + {b} de {from}",
+  mg_personas_sub:"con quien compartes recibos", mg_persona_sub:"{list} · {x} al mes", mg_se_descuenta:"se descuenta de {x}",
+  mg_nada:"Nada con «{q}»", mg_anadir_q:"Añadir «{q}» como recibo",
+  mg_ov_musica:"{list} incluyen música", mg_ov_series:"{n} plataformas de series: {list}",
+  mg_ov_m2:"{x} al mes entre los dos", mg_ov_mn:"{x} al mes entre los {n}", mg_ov_v2:"{x} al mes entre las dos", mg_ov_vn:"{x} al mes entre las {n}",
+  mg_ov_x:"Ocultar este aviso"
+});
+Object.assign(LANG.en,{
+  mg_al_ano:"GOES OUT EVERY YEAR", mg_desglose:"bills {a} + instalments {b}", mg_por_mes:"{x}/month", mg_por_ano:"{x}/year",
+  mg_cuenta:"Account", mg_todas:"All", mg_recibos:"Bills", mg_anadir:"Add", mg_dia:"DAY", mg_compartido:"shared",
+  mg_add_recibo:"Add a bill", mg_add_once:"Add a one-off charge", mg_add_flow:"Add what comes in or what you move",
+  mg_una_vez:"One-off", mg_no_repiten:"they don't repeat", mg_mas:"{a} + {b} from {from}",
+  mg_personas_sub:"who you share bills with", mg_persona_sub:"{list} · {x} a month", mg_se_descuenta:"deducted from {x}",
+  mg_nada:"Nothing matching “{q}”", mg_anadir_q:"Add “{q}” as a bill",
+  mg_ov_musica:"{list} include music", mg_ov_series:"{n} streaming services: {list}",
+  mg_ov_m2:"{x} a month for the two", mg_ov_mn:"{x} a month for the {n}", mg_ov_v2:"{x} a month for the two", mg_ov_vn:"{x} a month for the {n}",
+  mg_ov_x:"Hide this notice"
+});
+Object.assign(LANG.ca,{
+  mg_al_ano:"SE'T VAN A L'ANY", mg_desglose:"rebuts {a} + quotes {b}", mg_por_mes:"{x}/mes", mg_por_ano:"{x}/any",
+  mg_cuenta:"Compte", mg_todas:"Tots", mg_recibos:"Rebuts", mg_anadir:"Afegir", mg_dia:"DIA", mg_compartido:"compartit",
+  mg_add_recibo:"Afegir un rebut", mg_add_once:"Afegir un càrrec d'una sola vegada", mg_add_flow:"Afegir el que entra o el que mous",
+  mg_una_vez:"D'una sola vegada", mg_no_repiten:"no es repeteixen", mg_mas:"{a} + {b} de {from}",
+  mg_personas_sub:"amb qui comparteixes rebuts", mg_persona_sub:"{list} · {x} al mes", mg_se_descuenta:"es descompta de {x}",
+  mg_nada:"Res amb «{q}»", mg_anadir_q:"Afegir «{q}» com a rebut",
+  mg_ov_musica:"{list} inclouen música", mg_ov_series:"{n} plataformes de sèries: {list}",
+  mg_ov_m2:"{x} al mes entre els dos", mg_ov_mn:"{x} al mes entre els {n}", mg_ov_v2:"{x} al mes entre les dues", mg_ov_vn:"{x} al mes entre les {n}",
+  mg_ov_x:"Amaga aquest avís"
+});
+// «Lo descuento» que no cuadra con su deuda y lo que baja una deuda sin interés (feedback 1/11/2026).
+Object.assign(LANG.es,{
+  rp6_pasas_q:"¿Cuánto le pasas al mes?", rp6_no_cuadra:"No cuadra · Ajustar", db_err_term_amort:"El plazo y lo que baja la deuda no encajan con el pendiente.",
+  rp6_desc_q:"¿Le pasas {x} y la deuda baja esto?", rp6_desc_ok:"Ajustar la deuda", rp6_desc_no:"Dejarla como está",
+  db_amort_ph:"Baja la deuda al mes (€)", db_amort_hint:"Puede no ser lo que sale del banco.",
+  db_edit_amort_zero:"Queda saldo pendiente: tiene que bajar algo cada mes."
+});
+Object.assign(LANG.en,{
+  rp6_pasas_q:"How much do you send each month?", rp6_no_cuadra:"Doesn’t add up · Adjust", db_err_term_amort:"The term and how much the debt goes down do not match the balance.",
+  rp6_desc_q:"You send {x} and the debt goes down by this?", rp6_desc_ok:"Adjust the debt", rp6_desc_no:"Leave it as is",
+  db_amort_ph:"Debt goes down per month (€)", db_amort_hint:"It may differ from what leaves the bank.",
+  db_edit_amort_zero:"There is still a balance left: it has to go down every month."
+});
+Object.assign(LANG.ca,{
+  rp6_pasas_q:"Quant li passes cada mes?", rp6_no_cuadra:"No quadra · Ajustar", db_err_term_amort:"El termini i el que baixa el deute no encaixen amb el pendent.",
+  rp6_desc_q:"Li passes {x} i el deute baixa això?", rp6_desc_ok:"Ajustar el deute", rp6_desc_no:"Deixar-lo com està",
+  db_amort_ph:"Baixa el deute al mes (€)", db_amort_hint:"Pot no ser el que surt del banc.",
+  db_edit_amort_zero:"Queda saldo pendent: ha de baixar alguna cosa cada mes."
+});
+// Lo que entra y lo que mueves con el ciclo de un recibo: enlazado con Gastos y «Ya ha entrado» (12/11/2026).
+Object.assign(LANG.es,{
+  fl_ya_entrado:"Ya ha entrado", fl_llego_btn:"Ya ha llegado", fl_cual:"¿Cuál es el ingreso?", fl_cual_tr:"¿Cuál es el movimiento?",
+  fl_otra_forma:"Lo recibí de otra forma", fl_otra_forma_tr:"Lo moví de otra forma", fl_no_es:"No es este", fl_aun_no:"Aún no ha llegado",
+  fl_mov_de:"movimiento de {bank}", fl_de_a:"de {from} a {to}", fl_otros:"Otros movimientos de {bank}", fl_menos:"Menos movimientos", fl_mas:"Más movimientos", fl_sin_parecidos:"Ningún movimiento de ese importe", fl_otro_banco:"Llegó a {bank}", fl_cambiar_cuenta:"Cambiar la cuenta",
+  fl_sin_movs:"Sin movimientos de {bank} este mes", fl_sin_mov:"Sin movimiento del banco", fl_elegir:"Elegir su movimiento", fl_llego_parcial:"llegó {x} de {y}", fl_cuenta_dia:"El saldo la cuenta el día {d}", fl_enlazado_toast:"{name} enlazado",
+  fl_entrado_toast:"{name} pasa a Ya ha entrado", fl_vuelve_toast:"{name} vuelve a Lo que aún entrará",
+fl_t_name:"¿Qué entra?", fl_t_name_tr:"¿Qué mueves?", fl_name_ph:"Nómina, pensión…",
+  fl_t_amount:"¿Cuánto?", fl_t_when:"¿Cuándo?", fl_t_to:"¿En qué cuenta entra?", fl_t_from:"¿De qué cuenta sale?", fl_t_dest:"¿A qué cuenta va?",
+  fl_t_edit:"Editar", fl_r_to:"Entra en", fl_r_from:"Sale de", fl_r_dest:"Va a", fl_s_nomina:"Nómina", fl_s_pension:"Pensión"
+});
+Object.assign(LANG.en,{
+  fl_ya_entrado:"Already in", fl_llego_btn:"It's arrived", fl_cual:"Which payment is it?", fl_cual_tr:"Which movement is it?",
+  fl_otra_forma:"I got it another way", fl_otra_forma_tr:"I moved it another way", fl_no_es:"Not this one", fl_aun_no:"Not here yet",
+  fl_mov_de:"{bank} movement", fl_de_a:"from {from} to {to}", fl_otros:"Other movements in {bank}", fl_menos:"Fewer movements", fl_mas:"More movements", fl_sin_parecidos:"No movement of that amount", fl_otro_banco:"Arrived in {bank}", fl_cambiar_cuenta:"Change the account",
+  fl_sin_movs:"No movements in {bank} this month", fl_sin_mov:"No bank movement", fl_elegir:"Pick its movement", fl_llego_parcial:"{x} of {y} in", fl_cuenta_dia:"Your balance counts it on the {d}", fl_enlazado_toast:"{name} linked",
+  fl_entrado_toast:"{name} moves to Already in", fl_vuelve_toast:"{name} is back in Still to come in",
+fl_t_name:"What comes in?", fl_t_name_tr:"What do you move?", fl_name_ph:"Salary, pension…",
+  fl_t_amount:"How much?", fl_t_when:"When?", fl_t_to:"Which account does it go into?", fl_t_from:"Which account does it leave?", fl_t_dest:"Which account does it go to?",
+  fl_t_edit:"Edit", fl_r_to:"Goes into", fl_r_from:"Leaves", fl_r_dest:"Goes to", fl_s_nomina:"Salary", fl_s_pension:"Pension"
+});
+Object.assign(LANG.ca,{
+  fl_ya_entrado:"Ja ha entrat", fl_llego_btn:"Ja ha arribat", fl_cual:"Quin és l'ingrés?", fl_cual_tr:"Quin és el moviment?",
+  fl_otra_forma:"L'he rebut d'una altra manera", fl_otra_forma_tr:"L'he mogut d'una altra manera", fl_no_es:"No és aquest", fl_aun_no:"Encara no ha arribat",
+  fl_mov_de:"moviment de {bank}", fl_de_a:"de {from} a {to}", fl_otros:"Altres moviments de {bank}", fl_menos:"Menys moviments", fl_mas:"Més moviments", fl_sin_parecidos:"Cap moviment d'aquest import", fl_otro_banco:"Ha arribat a {bank}", fl_cambiar_cuenta:"Canviar el compte",
+  fl_sin_movs:"Sense moviments de {bank} aquest mes", fl_sin_mov:"Sense moviment del banc", fl_elegir:"Triar-ne el moviment", fl_llego_parcial:"ha arribat {x} de {y}", fl_cuenta_dia:"El saldo el compta el dia {d}", fl_enlazado_toast:"{name} enllaçat",
+  fl_entrado_toast:"{name} passa a Ja ha entrat", fl_vuelve_toast:"{name} torna a El que encara entrarà",
+fl_t_name:"Què entra?", fl_t_name_tr:"Què mous?", fl_name_ph:"Nòmina, pensió…",
+  fl_t_amount:"Quant?", fl_t_when:"Quan?", fl_t_to:"A quin compte entra?", fl_t_from:"De quin compte surt?", fl_t_dest:"A quin compte va?",
+  fl_t_edit:"Editar", fl_r_to:"Entra a", fl_r_from:"Surt de", fl_r_dest:"Va a", fl_s_nomina:"Nòmina", fl_s_pension:"Pensió"
 });

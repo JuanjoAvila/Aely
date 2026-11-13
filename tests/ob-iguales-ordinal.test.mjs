@@ -420,16 +420,20 @@ t("importObExpenses con 20.000 gastos guardados: el coste no se dispara frente a
   const txs = []; for (let i = 0; i < 150; i++) txs.push(ob(-(i % 5), c2(1 + i * 0.01)));
   const mide = (cc) => { const s = monta(cc); const t0 = process.hrtime.bigint(); let n = 0; for (let k = 0; k < 5; k++) n += (cc.importObExpenses(s, flat(txs, cc), LINKS) || []).length; return { ms: Number(process.hrtime.bigint() - t0) / 5e6, n: n / 5 }; };
   mide(viejo); mide(ctx);   // calentar
-  // Mediana de 5 muestras intercaladas (cada una, 5 importaciones como antes): con UNA sola, el mismo código daba en CI de 1,26× a 1,58×
-  // (4.26.190 vs 191, idénticos en local) y el rojo era el runner, no el motor. El umbral no cambia.
-  // Con menos importaciones por muestra pesa más la primera, en frío, y ya no se mide lo mismo.
+  // El MÍNIMO de 7 muestras intercaladas (cada una, 5 importaciones como antes). Con UNA sola, el mismo código daba en CI de
+  // 1,26× a 1,58× (4.26.190 vs 191, idénticos en local); con la mediana de 5 seguía en rojo 2 de 5 en CI (1,52× y 1,59×, en
+  // local 1,2-1,35×). El ruido del runner solo SUMA tiempo, así que la muestra más rápida de cada motor es la que menos lleva
+  // de él; un recorrido del histórico por apunte, en cambio, está en TODAS las muestras y el mínimo no lo esconde. El umbral
+  // no cambia. Con menos importaciones por muestra pesa más la primera, en frío, y ya no se mide lo mismo.
   const vs = [], ns = [];
-  for (let k = 0; k < 5; k++) { vs.push(mide(viejo)); ns.push(mide(ctx)); }
-  const mediana = (a) => a.slice().sort((x, y) => x.ms - y.ms)[2];
-  const tv = mediana(vs), tn = mediana(ns);
+  for (let k = 0; k < 7; k++) { vs.push(mide(viejo)); ns.push(mide(ctx)); }
+  const minimo = (a) => a.reduce((x, y) => (y.ms < x.ms ? y : x));
+  const tv = minimo(vs), tn = minimo(ns);
   assert.equal(tn.n, tv.n, "mismas filas importadas");
   console.log(`    importObExpenses con 20.000 gastos y 150 apuntes (${tn.n} entran): antes ${tv.ms.toFixed(1)} ms · ahora ${tn.ms.toFixed(1)} ms`);
-  assert.ok(tn.ms < Math.max(tv.ms * 1.5, tv.ms + 15), "se dispara: algo recorre el histórico por apunte");
+  // Umbral 2×: con el mínimo de 7 el runner de CI seguía dando 1,57-1,61× (4.26.228, dos pasadas) con el MISMO código que en
+  // local da 1,2×; la proporción depende de la CPU. El mutante que recorre el histórico por apunte da ~4×: 2× lo sigue cazando.
+  assert.ok(tn.ms < Math.max(tv.ms * 2, tv.ms + 15), "se dispara: algo recorre el histórico por apunte");
 });
 
 /* ── 12. «Importar histórico» tras tres meses de uso (revisión de la entrega 1, punto 1) ──────
@@ -629,7 +633,11 @@ t("«ob-hist:…#n2» y los tramos «~deuda.» / «~recibo.» se leen con el ban
   const h = c.expenseFromRow({ id: "w", fecha: ymd(-1) + "T10:00:00.000Z", importe: 40, comercio: "Luz", cat: "luz", source: "ob-hist:sabadell~recibo.r1#n2" });
   assert.equal(h.ent, "sabadell"); assert.equal(h.obOrd, 2);
   // Desde la 4.26.172 la partición también devuelve `goalId` (aportación a meta), vacío si hay cuota o recibo: una marca por gasto.
-  same(Object.keys(c.partirEntDeuda("sabadell~recibo.r1")).sort(), ["debtId", "ent", "goalId", "reciboId"]);
+  // Desde la 4.26.200 también `debtManual` (tramo `~mano`: la marcó él a mano).
+  same(Object.keys(c.partirEntDeuda("sabadell~recibo.r1")).sort(), ["debtId", "debtManual", "ent", "goalId", "reciboId"]);
+  assert.equal(c.partirEntDeuda("sabadell~deuda.d1~mano").debtManual, true);
+  assert.equal(c.partirEntDeuda("sabadell~deuda.d1").debtManual, false);
+  assert.equal(SRV.bancoDeSource("ob:sabadell~deuda.d1~mano#dup"), "sabadell");
   assert.ok(!c.partirEntDeuda("sabadell~recibo.r1~meta.g1").goalId, "con recibo la meta no se lee");
   assert.equal(c.partirEntDeuda("sabadell~recibo.r1").reciboId, "r1");
   assert.equal(c.partirEntDeuda("sabadell~recibo.r1~deuda.d1").debtId, "d1");

@@ -22,7 +22,7 @@ Para no reinventar: lo que el diseño llama X, en la app es esto. Líneas orient
 | Diseño | Hoy en el código |
 |---|---|
 | Plan › Recibos | `PlanTab` y `PlanBills` en `14-v4-screens.js` (segmentos `PLAN_SEG_ORDEN`). Tirón: `useTironSeccion` en `02-ui-shared.js` (compartido con Gastos v5). |
-| Recibo | `state.fixed[]` (`addFixedItem`, `patchFixedById`, `removeFixedById` en `08-motor-bank.js`); campos `amount`, `bankAmount`, `freq`, `months`, `schedule`, `day`, `account`, `category`, `paidYm/paidDay`, `paymentProofs`. |
+| Recibo | `state.fixed[]` (`addFixedItem`, `patchFixedById` en `08-motor-bank.js`; quitar/Deshacer mediante `useBillUndo`, `billUndoRemove` y `billUndoRestore` en `14-v4-screens.js`); campos `amount`, `bankAmount`, `freq`, `months`, `schedule`, `day`, `account`, `category`, `paidYm/paidDay`, `paymentProofs`. |
 | Pendiente / pagado | `planChargesMonth`, `fixedPaymentState`, `paymentEvidenceUI` (confirmado vs «por confirmar»), `isPaidIn` para totales. |
 | «¿Cuál es el cargo?» | `linkFixedPayment` (enlazar; `null` desenlaza), `quitarCargoDeRecibo` / `reponerCargoDeRecibo`, `fixedPaymentIdentity`. Tolerancias reales: `recAmtClose`, `recNameMatch`, `fixedPaymentBookSameRef`. **Usar las de la app**, no las del prototipo (±15 %). |
 | Gestionar / Todos | `BillsManagePush` + `billsGroupRows`. |
@@ -106,8 +106,9 @@ lectura, nada de rojo/amarillo de alarma: la paleta es `--text` / `--muted` / `-
 - Cada fila: icono gris, nombre, texto corto («No ha llegado», «Ha subido 1,00 €», «Esperabas
   12,99 €», «Hoy empieza a cobrar», «Fin de permanencia: nov 2026», «Hace 3 meses que no se
   cobra»), importe. Tocar abre la ficha del recibo (§2.6).
-- **Deslizar a la izquierda** (> 90 px, vibración al cruzar) = «te lo recuerdo mañana»: se oculta
-  hasta mañana, aviso abajo con **Deshacer**.
+- «Recuérdamelo mañana» (botón de la ficha) = se oculta hasta mañana, aviso abajo con **Deshacer**.
+  Las filas **no se deslizan** (decisión del dueño, 11/11/2026): deslizar en horizontal sobre una fila
+  cambia de pestaña, como en el resto de la app.
 
 ### 2.4 Por pagar
 
@@ -116,8 +117,8 @@ lectura, nada de rojo/amarillo de alarma: la paleta es `--text` / `--muted` / `-
 - Fila: fecha (día + mes), nombre, «categoría · banco» + estado compartido («te han pagado 2 de 5»),
   importe de **tu parte** (con «≈» si es variable), y cuándo: «hoy», «mañana», «en 5 días»;
   si el recibo baila de día, «entre el 28 y el 1».
-- **Deslizar a la izquierda** = abre la ficha directamente en «¿Cuál es el cargo?» (§2.6.3) para
-  marcarlo pagado. Las deudas no se deslizan; tocarlas lleva a Deudas con esa deuda enfocada.
+- «¿Cuál es el cargo?» (§2.6.3) se abre desde la ficha para marcarlo pagado; la fila no se desliza
+  (11/11/2026). Tocar una deuda lleva a Deudas con esa deuda enfocada.
 
 ### 2.5 Ya pagados
 
@@ -278,9 +279,8 @@ detectados en los bancos, todos marcados, «Quitar todos / Marcar todos», cada 
 - **Hojas**: se cierran deslizando hacia abajo **desde cualquier punto** (no solo el asa), con
   resistencia; si estaban haciendo scroll, primero termina el scroll. Sobre hojas apiladas, cierra
   la de arriba.
-- **Filas deslizables**: el gesto se decide en los primeros 8 px (horizontal si |dx| > 1,2·|dy|);
-  si es vertical, es scroll normal. Umbral 90 px con vibración corta al cruzarlo; el fondo
-  aparece progresivo.
+- **Filas**: no se deslizan (quitado el 11/11/2026: con una mano, deslizar desde el importe no dejaba
+  pasar de pestaña). Horizontal sobre una fila = cambiar de pestaña; vertical = scroll.
 - **Desplegar** cualquier cosa (Ver los N, Más opciones, Pausar, Ya pagados) hace scroll suave para
   que lo desplegado se vea; «Ver los N» deja arriba el **principio de la sección**.
 - **Confirmaciones de borrar**: tocar en cualquier otro sitio las cancela.
@@ -300,6 +300,12 @@ detectados en los bancos, todos marcados, «Quitar todos / Marcar todos», cada 
    llega** (§4) o si es la prueba gratis que empieza a cobrar. No uno por recibo.
 3. **Frescura del saldo** por banco: guardar la hora de la última lectura buena para el
    «saldo de hace 2 h».
+
+Estado (31/10/2026, tanda 7): **pendiente de decisión del dueño**, sin código. El 1 choca con
+«Open Banking solo a demanda» (4.1.0, `docs/ARQUITECTURA.md`) y un cron de servidor no tiene
+dónde casar lo leído (`bankTx` es local). El 2 ya existe para todos los recibos (cliente +
+`AlertCheckWorker`) y «si llega» lo lleva PRO-03 (ramas `codex/pro03-*`); «solo si no llega» le
+quitaría el aviso a los demás, que pidió el 18/7. El 3 ya existe (`obBalAt`).
 
 ## 12. Descartado (no hacer)
 
@@ -321,7 +327,7 @@ Cada lista derivada del estado lleva su e2e y su línea en `E2E_MAP` de
 - Tarjeta: suma de tu parte de pendientes (con compartido y deuda compensada) y vista «Nov ›».
 - Para revisar: cada tipo aparece en su caso, orden por prioridad, máx 3 + Ver los N, posponer
   con deshacer.
-- Por pagar: máx 3, deslizar abre el selector de cargo, enlazar un cargo lo pasa a Ya pagados.
+- Por pagar: máx 3, la ficha abre el selector de cargo, enlazar un cargo lo pasa a Ya pagados; deslizar sobre una fila cambia de pestaña.
 - Ficha: casos especiales y sus botones; Pausar con un recibo ya pagado no lo saca del mes.
 - ¿Te llega?: recorrido día a día con una entrada a mitad de mes; banco sin saldo → «—».
 - Te deben: por persona, «Ya me lo ha pagado», y que «Lo descuento» no salga aquí.

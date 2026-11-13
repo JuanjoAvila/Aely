@@ -204,7 +204,7 @@ test("volver a primer plano con la nube igual: ni filas reconvertidas, ni catego
   expect(n.escrituras, "la cartera no se reescribe si la nube trae lo mismo").toEqual([]);
   // «Última sincronización» sigue con hora aunque el estado no haya cambiado (la da la lectura).
   expect(await page.evaluate(() => _mcLecturaNube), "la vuelta sin cambios también deja su hora").toBeGreaterThan(sync0);
-  await page.locator(".page-scroll-host .gx-root button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await page.locator(".page-scroll-host .gx-root").getByTestId("gastos-filtros").click();
   await expect(page.locator(".v4-gastos-filter-sheet").getByTestId("gastos-lectura")).toContainText(/\d/);
   await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
   await page.locator(".v4-sheet-back").waitFor({ state: "detached" });

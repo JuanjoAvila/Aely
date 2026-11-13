@@ -31,7 +31,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
  *  acotar a una pantalla sin mentir. */
 export const CORE = [
   "scripts/verify-selective106.mjs",
-  "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/beta-archives.json", "scripts/beta-sources.json", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
+  "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
   "src/modules/00-core.js",
   "src/modules/01-i18n.js",
   "src/modules/02-ui-shared.js",
@@ -45,6 +45,18 @@ export const CORE = [
   "tests/beta-veredictos.test.mjs",
 ];
 
+/** REGISTROS DE TESTS: los alcances del panel de beta (8/11/2026). Antes estaban en CORE y casi
+ *  cada tanda los toca, así que casi cada beta salía con los 2005 e2e. No son lógica de la app: el
+ *  build los lee solo para sellar las huellas del panel «Revisar esta beta». Por eso corren TODOS
+ *  los unitarios (beta-revisions los lee al importarse, y casi todos los tests pasan por ahí) y los
+ *  e2e que pintan ese panel y sus notas. Lo que sí es código del build (beta-revisions,
+ *  beta-source-code, build-app) sigue en CORE. */
+export const TEST_REGISTRY = ["scripts/beta-sources.json", "scripts/beta-archives.json"];
+export const TEST_REGISTRY_SPECS = [
+  "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs",
+  "e2e/inicio-offline.spec.mjs", "e2e/ajustes-versiones.spec.mjs",
+];
+
 /**
  * Módulo de UI → specs que lo pintan. Si añades un e2e nuevo, o un módulo nuevo, una línea aquí
  * (o en CROSSCUTTING si no es de una pantalla). El test `relevant-tests` recorre el disco y
@@ -53,6 +65,8 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/fin25-charge-months.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/fin27-book-charge-month.spec.mjs", "e2e/fin27-balance-reanchor.spec.mjs"] },
   { file: "src/modules/00-core.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
@@ -61,7 +75,76 @@ export const E2E_MAP = [
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs", "e2e/plan-seg-barra.spec.mjs"] },
+  // Velo de las hojas de Plan: fundido de entrada y de salida, mismo ritmo que el deslizamiento.
+  { file: "src/shell.html", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
+  // Recibos sin fotogramas en blanco: capas que nacen/mueren al tocar y carril de pasos (vídeo 7/11).
+  { file: "src/shell.html", specs: ["e2e/recibos-sin-parpadeo.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-sin-parpadeo.spec.mjs"] },
+  // Recibos: atrás y tirar abajo de la hoja por pasos, botones de un recibo y el teclado de
+  // «¿Me lo puedo permitir?» sin recolocar la app (vídeo 8/11).
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-gestos.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-gestos.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-gestos.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-gestionar-v6.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-gestos.spec.mjs"] },
+  // «Ya pagados» con el cargo del banco que no lleva el nombre del recibo (queja 8/11/2026).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-ya-pagados-banco.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-ya-pagados-banco.spec.mjs"] },
+  // «Cobró distinto» sin el nombre del recibo: se pregunta, no se paga solo (auditoría 9/11, P1-11).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
+  // Portada como el prototipo: «Ya pagados» en una línea con la letra al 110 %, tres en «Para revisar»,
+  // «Todos ›», «¿Y si gasto…?» y «¿Cuánto es?» sin aplastarse (auditoría 9/11). Lo que se mide es CSS.
+  // Lo que entra y lo que mueves con el ciclo de un recibo (12/11/2026): sección, ficha y alta.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-ingresos-recibos.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-ingresos-recibos.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-ingresos-recibos.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-ingresos-recibos.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
+  // Tus recibos de tres en tres, sin «¿Me lo puedo permitir?», el aviso de duplicado y filas compactas (11/11/2026).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
+  // Prueba gratis, permanencia y filas que se deslizan (decisión del dueño, 10/11/2026): el gesto
+  // convive con el carrusel de pestañas (11) y el tirón de sección (02), así que van también ahí.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-prueba-desliz.spec.mjs"] },
+  // Recibos suave (12/11/2026): pliegues como Personas y sin scroll solo, el teclado de «¿Y si gasto…?» en un
+  // movimiento y «Más opciones» sin flash. El toque que ya no sube la hoja a otra capa vive en 02.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-suave.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-suave.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-suave.spec.mjs", "e2e/deudas-ir-suave.spec.mjs"] },
+  // Los despliegues de Recibos contra Personas por fotograma (12/11, tras la 230): sin hueco y a su velocidad.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-despliegue-personas.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-despliegue-personas.spec.mjs"] },
+  // «Ver menos» de una lista larga sube con el pliegue, y la cifra de «Se te van cada mes» no se queda apagada (13/11).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-ver-menos-sube.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-ver-menos-sube.spec.mjs"] },
+  // Abrir «¿Te llega?», Tus recibos y «Editar» sin fotogramas largos (10/11/2026): hojas que no apagan
+  // la app de detrás, pasos que nacen después y el ensayo en seco, que no puede dejar rastro.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
+  // Cerrar Tus recibos de un desliz y seguir hacia otra pestaña sin que el carrusel se desplace de
+  // lado (vídeo del dueño, 11/11): el foco que vuelve a «Todos» y el gesto de pestañas.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
@@ -77,12 +160,26 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
   // Meses marcados a mano: la mensualidad de `fixedMonthlyOf` y la vista previa del alta (FIN-20/21).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-meses-a-mano.spec.mjs", "e2e/recibo-anual-mes.spec.mjs"] },
   // Plan › Recibos v6: tarjeta, «Para revisar», «Por pagar», «Ya pagados» y «¿Cuál es el cargo?».
   // Las cifras y el enlace salen del motor (`planChargesMonth`, `linkFixedPayment`): también lo ata.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
+  // Recibos como el prototipo (auditoría 216): «Por pagar», chips y filtros de Tus recibos, el ojo
+  // (formateadores de 00/01 y su clave en 11), la tecla de borrar dibujada (02) y el tema claro.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-prototipo.spec.mjs"] },
+  // «¿Cuál es el cargo?» con el cargo pendiente o de mañana: se lista aparte (beta 4.26.210).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibo-cargo-pendiente.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-v6.spec.mjs"] },
   // Tanda 2: avisos nuevos, casos especiales de la ficha, posponer y Pausar. La pausa se lee en
   // el motor (`planChargesMonth`, totales de 11) y en la mezcla con la nube (00-core).
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
@@ -91,6 +188,18 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
   { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t2.spec.mjs"] },
+  // Dinero de Recibos (auditoría 9/11): «Lo pagué de otra forma» vive en el motor (08) y la ficha
+  // (14); el día 31 recortado, en `dayIn` (07); los textos, en 01.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-dinero.spec.mjs"] },
+  // Auditoría 226: los pliegues de «Más opciones» (14), Inicio con lo marcado a mano (03 y 08) y
+  // buscar por lo que cobra el banco (14).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-auditoria-226.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-auditoria-226.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/recibos-auditoria-226.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-auditoria-226.spec.mjs"] },
   // Tanda 3: hoja «¿Te llega?». El recorrido es `minWalk` (08) con `pendingWalkEvents` (08, con la
   // pausa y el día de 07) y lo alimenta `totals` (11); la
   // nómina se edita con `patchFlowById` (08) y la hoja tiene su CSS en el shell.
@@ -104,6 +213,67 @@ export const E2E_MAP = [
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t3.spec.mjs"] },
+  // Tanda 4: alta y edición por pasos (14). «Solo este mes / Desde ahora» lo escribe
+  // `fixedEditarRecibo` (08) sobre `soloMes`, que leen `occAmountIn`/`dayIn` (07) y viaja en la
+  // mezcla de dos móviles (00); `totals` (11) y Gastos (04) piden el importe con su año.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-t4.spec.mjs"] },
+  // QA de la beta 4.26.200: la hoja por pasos (14, su CSS y el gesto de `useEdgePageClose` en 02),
+  // la ficha de una cuota de deuda que lee `debtPaymentState` (08) y los dos simuladores (14 y 08).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  // La cuota marcada a mano (`debtManual`): se marca en Gastos (04) y viaja/mezcla en 00-core.
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  // Tanda 5: personas y compartidos. El reparto, «Te deben» y «Lo descuento» viven en 08 (y mueven
+  // el recorrido de «¿Te llega?»), la mezcla de dos móviles en 00, la cuota con su descuento en
+  // Deudas (09) e Inicio (03), y las hojas en 14.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-t5.spec.mjs"] },
+  // «Lo descuento» que no cuadra (pregunta) y «Baja la deuda al mes» en Editar deuda (1/11/2026).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-tae-descuento.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-tae-descuento.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/deudas-tae-descuento.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/deudas-tae-descuento.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/lo-descuento-undo.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/lo-descuento-undo.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/lo-descuento-undo.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/lo-descuento-undo.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  // Tanda 6: resumen del mes cerrado (`planRecibosMesCerrado`, 08, sobre `planChargesMonth` y
+  // `paymentEvidenceUI`), vista del mes siguiente y primer uso (14, con `rp4VistoEnBanco` sobre
+  // `detectSubscriptions` de 01 y el alta por pasos), textos (01) y su CSS en el shell.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  // «Pasar a Recibos» de Gastos pone el mes de alta (`createdYm`) que lee el resumen.
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  // La mezcla de las fotos del mes al bajar de la nube vive en `syncFromCloud` (11).
+  { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
@@ -136,7 +306,10 @@ export const E2E_MAP = [
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs", "e2e/cifras-coherentes.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
+    "e2e/own-transfer-confirm.spec.mjs",
     "e2e/gastos-transfer-rename-offline.spec.mjs",
+    // Renombrar y cerrar la ficha: la fila no desaparece ni un frame (vídeo 12/11/2026).
+    "e2e/gastos-renombrar-sin-parpadeo.spec.mjs",
     "e2e/fin28-manual-link-warning.spec.mjs",
     // Tocar una deuda (Recibos o la fila gris de Gastos) lleva a su tarjeta, a la vista y deslizando.
     "e2e/deudas-ir-suave.spec.mjs",
@@ -310,6 +483,7 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  "e2e/tr-monthly-invest-confirm.spec.mjs",
   "e2e/inicio-mes-futuro.spec.mjs",
   "e2e/backclose-handover.spec.mjs", "e2e/botnav-indicador.spec.mjs",
   "e2e/auth-disposal.spec.mjs", "e2e/lifecycle-listeners.spec.mjs",
@@ -443,6 +617,7 @@ export function planFromFiles(files) {
     else if (isSrc(f)) kinds.add("src");
     else if (isE2e(f)) kinds.add("e2e");
     else if (isUnitTest(f)) kinds.add("unit");
+    else if (TEST_REGISTRY.includes(f)) kinds.add("registry");
     else if (f.startsWith("scripts/")) kinds.add("scripts");
     else kinds.add("other");
   }
@@ -498,11 +673,13 @@ export function planFromFiles(files) {
 
   // Un cambio de pantalla también puede romper persistencia / swipe / frames.
   if (srcFiles.length) CROSSCUTTING.forEach((s) => specs.add(s));
+  if (kinds.has("registry")) TEST_REGISTRY_SPECS.forEach((s) => specs.add(s));
 
   const e2e = specs.size ? [...specs].sort() : "none";
   return {
     reason: srcFiles.length
       ? ("src/e2e acotado: " + (srcFiles[0] || e2eFiles[0]))
+      : kinds.has("registry") ? "registro de tests: " + rest.find((f) => TEST_REGISTRY.includes(f))
       : "specs e2e tocados",
     build: true,
     deno: kinds.has("supabase"),
@@ -510,6 +687,28 @@ export function planFromFiles(files) {
     e2e,
     steps: "all",
   };
+}
+
+/* REPARTO DE LA CI EN PARALELO (8/11/2026). En serie, la suite entera de beta eran ~3,5 h. Los
+   jobs de beta.yml leen esto de GITHUB_OUTPUT: qué trozos hacen falta y en cuántas máquinas.
+   E2E: un shard por cada ~12 ficheros de spec, hasta E2E_SHARDS (los 212 de hoy → 8), más un job
+   aparte para los de rendimiento, que se miden con un worker y sin vecinos. Un plan acotado a tres
+   specs no levanta ocho Chromium para nada. */
+export const E2E_SHARDS = 8;
+export const BETA_SOURCES_SHARDS = 4;
+export function ciJobs(plan, specsEnDisco) {
+  const steps = plan.steps === "all" || !plan.steps ? "all" : plan.steps;
+  const betaSources = steps === "all" || steps.includes("beta-sources");
+  const unit = steps === "all" || steps.some((s) => s !== "beta-sources") || plan.deno !== false;
+  let e2e = [];
+  if (plan.playwright !== false && plan.e2e !== "none") {
+    const count = plan.e2e === "all" || !plan.e2e ? specsEnDisco : plan.e2e.length;
+    const n = Math.min(E2E_SHARDS, Math.max(1, Math.ceil(count / 12)));
+    for (let i = 1; i <= n; i++) e2e.push({ part: "e2e", shard: i + "/" + n });
+    e2e.push({ part: "e2e-perf", shard: "" });
+  }
+  const bs = betaSources ? Array.from({ length: BETA_SOURCES_SHARDS }, (_, i) => (i + 1) + "/" + BETA_SOURCES_SHARDS) : [];
+  return { unit, betaSources, bs, e2e };
 }
 
 export function filesFromGit(before, sha) {
@@ -571,6 +770,15 @@ if (self.toLowerCase() === invoked.toLowerCase()) {
     fs.appendFileSync(ghOut, "playwright=" + plan.playwright + "\n");
     fs.appendFileSync(ghOut, "deno=" + plan.deno + "\n");
     fs.appendFileSync(ghOut, "reason=" + plan.reason.replace(/\r|\n/g, " ") + "\n");
+    const specsEnDisco = fs.readdirSync(path.join(root, "e2e"), { recursive: true })
+      .filter((p) => String(p).endsWith(".spec.mjs")).length;
+    const jobs = ciJobs(plan, specsEnDisco);
+    // El plan entero en una línea: cada job lo vuelve a escribir en su máquina en vez de recalcularlo.
+    fs.appendFileSync(ghOut, "plan=" + JSON.stringify(plan) + "\n");
+    fs.appendFileSync(ghOut, "unit=" + jobs.unit + "\n");
+    fs.appendFileSync(ghOut, "beta_sources=" + JSON.stringify(jobs.bs) + "\n");
+    fs.appendFileSync(ghOut, "e2e=" + JSON.stringify(jobs.e2e) + "\n");
+    console.log("  CI: unit=" + jobs.unit + "  beta-sources=" + jobs.bs.length + " trozos  e2e=" + jobs.e2e.length + " jobs");
   }
   const summary = process.env.GITHUB_STEP_SUMMARY;
   if (summary) {

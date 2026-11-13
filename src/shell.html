@@ -745,6 +745,14 @@
      de la barra — la app entera («cuando hago scroll veo la lista detrás de la barra un
      segundo»). Mismo sólido que `scroll-host-on`: la barra debe verse IGUAL con o sin blur. */
   .app-shell.nav-sin-blur .botnav{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg-2);}
+  /* Con Tus recibos abierto la barra cuelga de <body> para pasarle por encima (N8, 10/11/2026: el
+     prototipo la deja a la vista). Encima de un scroller raíz va como en el host nativo: sin
+     desenfoque, sin will-change y sin transform, que cortaban la ola de Android (labs 5/8). Las
+     hojas (80) y los avisos siguen por encima; Tus recibos (72) por debajo. */
+  .botnav.botnav-bills{position:fixed;z-index:73;max-width:520px;margin:0 auto;
+    backdrop-filter:none;-webkit-backdrop-filter:none;will-change:auto;transform:none;background:var(--bg-2);transition:none;}
+  /* Escondida por un scroll de Plan que se quedó a medias: aquí se ve igual (App la destapa al abrir). */
+  .botnav.botnav-bills.botnav-hidden{transform:none;pointer-events:auto;}
   .botnav-row{position:relative;display:flex;align-items:center;}
   .botnav-ind{position:absolute;top:-9px;left:0;width:20%;height:3px;display:flex;justify-content:center;
     transition:transform .32s var(--spring),opacity .2s;pointer-events:none;}
@@ -813,7 +821,11 @@
      Un solo bloque, mismo color y grosor que la nav, cero JS. */
   .v4-chip:focus-visible, .v4-keys button:focus-visible, .v4-cta:focus-visible,
   .v4-seg-btn:focus-visible, .v4-link-mini:focus-visible, .v4-legend-btn:focus-visible,
-  .profile-row:focus-visible, .set-row:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .profile-row:focus-visible, .set-row:focus-visible,
+  .pr6-row:focus-visible, .pr6-rev:focus-visible, .pr6-prow:focus-visible, .pr6-pill:focus-visible,
+  .pr6-mes-nav:focus-visible, .pr6-more:focus-visible, .pr6-paid-h:focus-visible, .pr6-cta:focus-visible,
+  .pr6-btn:focus-visible, .pr6-cand:focus-visible, .pr6-back:focus-visible, .pr6-cerr-x:focus-visible,
+  .v4-section-h button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .botnav-fab-slot{flex:1;display:flex;justify-content:center;}
   .botnav-fab{width:58px;height:58px;border-radius:50%;margin-top:-26px;border:none;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
@@ -976,42 +988,104 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  .pr6-pills{display:flex;gap:8px;}
-  .pr6-pill{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
+  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Las dos miden lo mismo
+     (SPEC §2.2): parten de la mitad y, si una no cabe en ella (360 px, letra al 110 %), las dos bajan
+     a su renglón enteras en vez de quedar una ancha y otra estrecha (auditoría de la 222, P2-8) o de
+     perder la flecha o cortar la cifra (auditoría 4.26.218). En estrecho se aprieta el relleno. */
+  .pr6-pills{display:flex;flex-wrap:wrap;gap:8px;container:pr6pildoras / inline-size;}
+  @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill{padding:0 10px;gap:6px;} }
+  .pr6-pill{flex:1 1 calc(50% - 4px);min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
-  .pr6-pill-ok{color:var(--mint-bright);font-weight:800;}
+  .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
+  /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */
+  .pr6-pill.ok{background:color-mix(in srgb,var(--mint-dim) 24%,transparent);}
+  .pr6-pill.falta{background:var(--coral-dim);}
+  /* «Ya pagados» aparece al haber el primer pago: fundido corto con la curva de siempre. */
+  .pr6-paid-in{animation:pr6PagadosIn .35s var(--ease) both;}
+  @keyframes pr6PagadosIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){ .pr6-paid-in{animation:none;} }
+  html.reduce-motion .pr6-paid-in{animation:none;}
   .pr6-sec{margin-top:22px;display:flex;flex-direction:column;gap:8px;}
   .pr6-sec-h{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:0;font-size:17px;font-weight:800;}
+  /* El botón «Todos» lleva 8 px de relleno propio: sin compensarlo el texto acababa ~16 px antes del borde de las tarjetas. */
+  .pr6-sec-h button.link{margin-right:-8px;}
+  .pr6-sec-h button.pr6-todos{display:flex;align-items:center;gap:4px;font-size:15px;color:var(--mint-bright);}
+  /* Traspasos y entradas: la misma tarjeta que Pendiente, pero no se tocan. */
+  .pr6-sec div.v4-charge.pr6-row{cursor:default;}
   .pr6-n{margin-left:8px;font-size:14px;font-weight:700;color:var(--muted);}
   .pr6-sec .v4-charge.pr6-row,.pr6-sec .v4-charge.pr6-rev{width:100%;gap:14px;padding:12px 16px 12px 12px;border:1px solid var(--line-soft);
     border-radius:20px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .pr6-sec .v4-charge.pr6-rev{padding:14px 16px;}
   .pr6-row .dt{width:52px;height:56px;border-radius:14px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .pr6-row .dt .d{font-size:22px;}
-  .pr6-row .dt .m{font-size:11px;letter-spacing:1px;color:var(--muted);}
+  .pr6-row .dt .m{font-size:11.5px;letter-spacing:1px;color:var(--muted);}
   .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
   .pr6-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
+  .pr6-sub-cat{display:flex;min-width:0;white-space:nowrap;}
+  .pr6-cat{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-bk{flex:none;margin-left:.3em;}
   .pr6-when{font-size:13px;font-weight:700;color:var(--muted);}
   .pr6-when.soon{color:var(--text);}
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
-  .pr6-rev .pr6-why{font-weight:700;}
+  .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
-  .pr6-fold{display:grid;grid-template-rows:0fr;opacity:0;margin-top:-8px;transition:grid-template-rows .35s var(--ease),opacity .25s ease;}
+  /* Recorta el pliegue, NO su contenido. Con la rejilla a menos de 1fr el navegador da a la caja
+     f·alto y a la fila de dentro f·(f·alto): si recortaba `.pr6-fold-in`, lo visible crecía como f² y
+     lo de debajo como f, y entre medias un hueco vacío de hasta un cuarto del alto (205 px con diez
+     recibos, medido por fotograma). En Personas no se veía porque ese hueco quedaba dentro de su
+     tarjeta; en Recibos era fondo: «Ver menos» bajaba y las filas llegaban después (vídeo 12/11). */
+  .pr6-fold{display:grid;grid-template-rows:0fr;overflow:hidden;opacity:0;margin-top:-8px;transition:grid-template-rows var(--pr6-fd,.35s) var(--ease),opacity calc(var(--pr6-fd,.35s)*.714) ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
-  .pr6-fold-in{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:8px;}
+  .pr6-fold-in{min-height:0;display:flex;flex-direction:column;gap:8px;transition:padding var(--pr6-fd,.35s) var(--ease);}
+  /* Listas con «Ver los N» (`pr6Tres`): lo que aparece es lo que hay DENTRO de cada fila, no la fila.
+     En Personas las filas no tienen fondo (el fondo es la tarjeta, fuera del pliegue): el ojo ve la
+     tarjeta crecer con el borde y el texto encenderse. Recibos son tarjetas sueltas DENTRO del pliegue
+     y con el pliegue entero a opacidad 0 se veía un hueco vacío creciendo y las tarjetas llegando tarde
+     (opacidad 0,15 con 210 px ya abiertos). Ahora la tarjeta llega con el borde, como la de Personas,
+     y su contenido se enciende con la misma curva. Solo se apaga al plegar: abierto manda la opacidad
+     propia de cada fila (atenuadas, pausadas). Duración: `pr6FoldDur`. */
+  .pr6-fold-l{opacity:1;}
+  .pr6-fold-l>.pr6-fold-in>*>*{transition:opacity calc(var(--pr6-fd,.35s)*.714) ease;}
+  .pr6-fold-l:not(.open)>.pr6-fold-in>*>*{opacity:0;}
+  /* Al abrir, el encendido de Personas (.25 s) aunque el pliegue dure más: el borde avanza a su
+     velocidad, así que cada fila queda a la vista cuando en Personas, y con más tiempo eran
+     tarjetas vacías bajando. Al plegar se estira con el pliegue: si no, se vaciaban antes de irse. */
+  .pr6-fold-l.open>.pr6-fold-in>*>*{transition-duration:.25s;}
+  /* El hueco de arriba de cada pliegue (su `padding` en `.open`) crece y se va CON el pliegue. Puesto de
+     golpe era un bote de 8-16 px en el primer fotograma, al abrir y al cerrar: «Ver los N» y «Ya pagados»
+     arrancaban con un salto y Personas, que no lleva hueco, era «el smooth que busco» (dueño, 12/11).
+     Ahora todos los pliegues son Personas: rejilla 0fr→1fr con la curva de la casa (.35 s; las listas, el tiempo de `pr6FoldDur`), opacidad en
+     .25 s y nada que aparezca de golpe. Ya lo hacían a mano «¿Te llega?» (228) y Prueba/Permanencia. */
+  /* Flechas y barras de progreso con capa fija: son diminutas y así no nacen ni mueren en cada toque.
+     El plegable NO: cambia de alto en cada fotograma y con capa propia se repintaba entero en cada
+     uno (el doble de fotogramas lentos con la CPU a ×6, medido A/B el 7/11). */
+  .pr6-chev,.rp4-prog i::after{will-change:transform;}
   .pr6-sec .pr6-fold.open .pr6-fold-in{padding-top:8px;}
   .pr6-more{align-self:center;display:flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border:0;background:transparent;
     color:var(--mint-bright);font-size:15px;font-weight:700;cursor:pointer;}
   .pr6-chev{flex:none;transition:transform .3s var(--ease);}
-  .pr6-more[aria-expanded="true"] .pr6-chev,.pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
+  .pr6-more[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
   .pr6-empty{padding:14px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--line-soft);font-size:15px;font-weight:700;}
   .pr6-paid{margin-top:14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;}
   .pr6-paid-h{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
   .pr6-tick{width:28px;height:28px;flex:none;border-radius:14px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
-  .pr6-paid-t{flex:1;font-size:16px;font-weight:700;}
-  .pr6-paid-t .pr6-n{margin-left:4px;}
-  .pr6-paid-amt{font-size:15px;font-weight:700;color:var(--muted);}
+  /* Una línea pase lo que pase (letra del sistema al 110 %, 360 px): si no cabe, se acorta la palabra
+     con «…» y el número de pagados, el importe y «Ver» se quedan enteros. */
+  .pr6-paid-t{flex:1;min-width:0;display:flex;align-items:baseline;white-space:nowrap;font-size:16px;font-weight:700;}
+  .pr6-paid-l{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-paid-t .pr6-n{flex:none;margin-left:4px;}
+  .pr6-paid-amt{flex:none;white-space:nowrap;font-size:15px;font-weight:700;color:var(--muted);}
+  .pr6-paid-v{flex:none;min-width:52px;text-align:right;white-space:nowrap;font-size:14px;font-weight:700;color:var(--mint-bright);}
+  /* Donde «Ver» no cabe (360 px, o 412 px con la letra grande) la flecha ocupa su sitio: 14 px en vez
+     de 52 y se sigue viendo que se despliega. Medido en «em» para que la letra del sistema cuente. */
+  .pr6-paid{container:pr6pagados / inline-size;}
+  .pr6-paid-h .pr6-chev{display:none;color:var(--mint-bright);}
+  .pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
+  @container pr6pagados (max-width:21.6em){
+    .pr6-paid-h .pr6-paid-v{display:none;}
+    .pr6-paid-h .pr6-chev{display:block;}
+  }
   .pr6-paid .pr6-fold{margin-top:0;}
   .pr6-paid .pr6-fold-in{gap:0;}
   .pr6-paid .v4-charge.pr6-prow{width:100%;padding:11px 16px;gap:12px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
@@ -1024,13 +1098,17 @@
   .v4-sheet.pr6-ficha{padding-left:0;padding-right:0;overflow-x:hidden;}
   .pr6-track{display:flex;align-items:flex-start;transition:transform .36s var(--ease);}
   .pr6-track.pick{transform:translateX(-100%);}
+  /* Capa propia desde el principio (ver `.rp4-body`): si nace al empezar a deslizar, la ficha se ve
+     en blanco un fotograma en el WebView. */
+  .pr6-ficha > .pr6-track{will-change:transform;}
+  .pr6-ficha > .pr6-track > .pr6-step{will-change:opacity;}
   .pr6-step{flex:0 0 100%;min-width:0;padding:0 20px;display:flex;flex-direction:column;gap:16px;max-height:0;overflow:hidden;opacity:0;
     transition:opacity .28s ease,max-height .36s var(--ease);}
   .pr6-step.on{max-height:none;overflow:visible;opacity:1;}
   .pr6-ficha-h,.pr6-pick-h{display:flex;align-items:center;gap:14px;}
   .pr6-dt{width:56px;height:60px;flex:none;border-radius:16px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .pr6-dt .d{font-size:24px;font-weight:600;line-height:1;}
-  .pr6-dt .m{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
+  .pr6-dt .m{font-size:11.5px;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
   .pr6-ficha-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
   .pr6-ficha-n{font-size:20px;font-weight:700;outline:none;}
   .pr6-ficha-s{font-size:14px;color:var(--muted);}
@@ -1042,7 +1120,12 @@
   .pr6-cta{height:48px;border-radius:14px;border:0;background:var(--mint);color:var(--on-mint);font-size:15px;font-weight:800;cursor:pointer;}
   .pr6-btns{display:flex;gap:8px;}
   .pr6-btn{flex:1;min-width:0;height:44px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;}
-  .pr6-btn-wide{flex:none;width:100%;height:50px;}
+  .pr6-btn-wide{flex:none;width:100%;height:44px;}
+  /* Acciones de un recibo: cada botón mide lo que dice y la fila parte si no caben (en catalán o
+     con letra grande). La principal se distingue por el color, no por ocupar la pantalla. */
+  .pr6-acts{flex-wrap:wrap;}
+  .pr6-acts .pr6-btn{flex:1 1 auto;padding:0 14px;white-space:nowrap;}
+  .pr6-btn.pr6-btn-main{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .pr6-back{width:40px;height:40px;flex:none;border-radius:20px;border:1px solid var(--line-soft);background:var(--surface-2);color:var(--text);font-size:22px;line-height:1;cursor:pointer;}
   .pr6-search{height:52px;border-radius:16px;background:var(--bg);border:1px solid var(--line-soft);color:var(--text);padding:0 16px;font-size:16px;outline:none;}
   .pr6-lbl{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:-6px;}
@@ -1050,6 +1133,7 @@
   .pr6-cand{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;border:1px solid var(--line-soft);background:var(--surface-2);
     color:inherit;font:inherit;text-align:left;cursor:pointer;transition:border-color .2s ease;}
   .pr6-cand.on{border-color:var(--mint);}
+  .pr6-cand.pend{cursor:default;opacity:.62;border-style:dashed;}
   .pr6-cand-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
   .pr6-cand-n{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .pr6-cand-s{font-size:13px;color:var(--muted);}
@@ -1058,6 +1142,8 @@
     font-size:12px;font-weight:900;transition:background .2s ease,border-color .2s ease,color .2s ease;}
   .pr6-cand.on .pr6-ring,.pr6-ring.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .pr6-nota{margin-top:-6px;font-size:14px;font-weight:600;color:var(--muted);}
+  /* «Llegó a otro banco · Cambiar la cuenta»: el enlace va en la misma nota, con el verde de los botones de texto. */
+  .pr6-link{border:0;background:transparent;padding:0;font:inherit;color:var(--mint);cursor:pointer;}
   .pr6-btns .pr6-par{flex:1;min-width:0;}
   .pr6-btns .pr6-cta.pr6-par{height:44px;}
   .pr6-btn.pr6-seguro{border-color:var(--coral);background:var(--coral-dim);}
@@ -1066,17 +1152,164 @@
   .pr6-pausa{flex-direction:row;flex-wrap:wrap;gap:6px;}
   .pr6-ficha .pr6-fold.open .pr6-pausa{padding:8px 0 2px;}
   .pr6-skip .pr6-nm,.pr6-skip .am{text-decoration:line-through;}
+  /* Añadir / editar por pasos (SPEC §7, tanda 4): el mismo carril de la ficha con cinco pasos;
+     el que no se ve se pliega en alto. El botón de abajo va pegado para que no lo tape el teclado. */
+  /* Alto fijo: cada paso mide distinto y la hoja subía y bajaba de golpe al pasar de uno a otro
+     (beta 4.26.200, «el botón de Siguiente hace cosas raras»). Ahora solo se mueve el carril. */
+  .v4-sheet.rp4{padding-bottom:0;height:88dvh;display:flex;flex-direction:column;overflow:hidden;}
+  /* Solo scrollea el cuerpo: la cabecera (Atrás y progreso) y el botón quedan fuera. Con el botón
+     pegado DENTRO del scroll, la hoja pasaba de no scrollear a scrollear al abrir «Más opciones» o
+     «En varios pagos»; Chromium crea entonces una capa nueva para el contenido y en su móvil (120 Hz)
+     la hoja y el «Siguiente» salían en blanco uno o dos fotogramas (vídeo del 7/11). El carril mide
+     siempre 1 px más que el cuerpo para que el scroll, y su capa, existan desde el principio; carril
+     y pasos van en capa propia por lo mismo: si nacen al empezar a deslizar, se ven en blanco. */
+  .rp4-body{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
+  .rp4-body > .rp4-track{min-height:calc(100% + 1px);will-change:transform;}
+  .rp4-track > .rp4-step{will-change:opacity;}
+  .rp4-top{display:flex;align-items:center;gap:14px;padding:0 20px 10px;}
+  .rp4-prog{flex:1;display:flex;gap:6px;}
+  .rp4-prog i{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;overflow:hidden;}
+  .rp4-prog i::after{content:"";position:absolute;inset:0;background:var(--mint);transform:scaleX(0);transform-origin:left;transition:transform .36s var(--ease);}
+  .rp4-prog i.on::after{transform:scaleX(1);}
+  .rp4-h{margin:0;font-size:24px;font-weight:600;font-family:'Fraunces',Georgia,serif;outline:none;}
+  .rp4-step{padding-bottom:12px;}
+  .rp4-dim{color:var(--muted);font-weight:600;}
+  .rp4-dup{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface-2);color:inherit;font:inherit;text-align:left;cursor:pointer;}
+  .rp4-dup-t{flex:1;min-width:0;font-size:14px;font-weight:700;}
+  .rp4-dup-go{color:var(--mint-bright);font-size:14px;font-weight:800;}
+  .rp4-visto{display:flex;flex-direction:column;gap:8px;}
+  .rp4-visto-bank{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.35;}
+  .pr6-dt.rp4-dt-s{width:42px;height:44px;border-radius:12px;background:var(--bg);}
+  .pr6-dt.rp4-dt-s .d{font-size:17px;}
+  .pr6-dt.rp4-dt-s .m{font-size:11px;}
+  .rp4-sugs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rp4-sug{display:flex;align-items:center;gap:10px;height:48px;padding:0 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface);color:var(--text);
+    font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:border-color .2s ease,background .2s ease;}
+  .rp4-sug.on{border-color:var(--mint);background:var(--surface-2);}
+  .rp4-sug-i{display:flex;flex:none;color:var(--muted);}
+  .rp4-sug.on .rp4-sug-i{color:var(--mint-bright);}
+  .rp4-amt{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px;}
+  /* El nombre, en un renglón y centrado: uno largo ocupaba dos, alineados a la izquierda, y empujaba
+     «¿Cuánto es?» por debajo de la barra de progreso (auditoría 9/11). */
+  .rp4-amt > .rp4-dim{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* En pantallas bajas (393×727) el paso del importe no cabía por 19 px y al tocar las teclas de abajo
+     el cuerpo se desplazaba y tapaba el título: teclas algo más bajas y el paso entero a la vista. */
+  @media (max-height:760px){ .v4-sheet.rp4 .v4-keys button{height:50px;} }
+  .rp4-amt-v{font-size:44px;font-weight:600;border-radius:12px;padding:0 8px;transition:background .2s ease;}
+  .rp4-amt-v.fresh{background:var(--surface-2);}
+  .rp4-var,.rp4-mode,.rp4-mes{border:1px solid var(--line-soft);background:var(--surface);color:var(--text);font:inherit;font-weight:700;cursor:pointer;
+    transition:background .2s ease,color .2s ease,border-color .2s ease;}
+  .rp4-var{height:36px;padding:0 14px;border-radius:18px;font-size:13px;color:var(--muted);}
+  .rp4-var.on{border-color:var(--mint);color:var(--mint-bright);background:var(--surface-2);}
+  .rp4-freqs,.rp4-modes,.rp4-scope{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rp4-freqs{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .rp4-mode{min-height:50px;padding:0 10px;border-radius:16px;font-size:15px;}
+  .rp4-mode.on{border-color:var(--mint);background:var(--surface-2);color:var(--mint-bright);}
+  .rp4-mode:disabled{opacity:.4;cursor:default;}
+  .rp4-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;scroll-margin-bottom:12px;}
+  .rp4-pagos,.rp4-msel{scroll-margin-bottom:12px;}
+  .rp4-day{height:42px;border-radius:12px;border:0;background:var(--surface);color:var(--text);font:inherit;font-size:15px;font-weight:700;cursor:pointer;
+    transition:background .2s ease,color .2s ease,transform .2s var(--ease);}
+  .rp4-day.on{background:var(--mint);color:var(--on-mint);transform:scale(1.08);}
+  .rp4-pagos{gap:10px;}
+  .rp4-pago{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:18px;background:var(--surface-2);}
+  .rp4-pago-h{display:flex;align-items:center;gap:10px;}
+  .rp4-pago-n{width:26px;height:26px;flex:none;border-radius:13px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--muted);}
+  .rp4-pago-f{flex:1;font-size:15px;font-weight:700;}
+  .rp4-pago-a{font-family:'Fraunces',Georgia,serif;font-size:18px;font-weight:600;padding:4px 10px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;}
+  span.rp4-pago-a{border-style:dashed;}
+  .rp4-pago-a.on{border-color:var(--mint);}
+  .rp4-x{width:32px;height:32px;flex:none;border-radius:16px;border:0;background:var(--bg);color:var(--muted);font-size:18px;cursor:pointer;}
+  .rp4-meses{display:flex;flex-wrap:wrap;gap:6px;}
+  .rp4-mes{height:32px;padding:0 10px;border-radius:16px;font-size:13px;text-transform:capitalize;}
+  .rp4-mes.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .rp4-mes:disabled{opacity:.35;cursor:default;}
+  /* «¿En qué meses?» usa el selector de siempre, con el texto apagado de un mes deshabilitado: en
+     el mismo paso que los meses de «En varios pagos» parecía que no se podían tocar. Mismo tono. */
+  .rp4-msel .mchip{background:var(--surface);color:var(--text);font-size:13px;}
+  .rp4-msel .mchip.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .rp4-dia-row{display:flex;align-items:center;justify-content:center;gap:18px;}
+  .rp4-step-btn{width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:22px;font-weight:700;cursor:pointer;
+    touch-action:manipulation;-webkit-user-select:none;user-select:none;}
+  .rp4-dia-v{min-width:72px;text-align:center;font-size:16px;font-weight:700;}
+  .rp4-rows{display:flex;flex-direction:column;border-radius:18px;background:var(--surface-2);overflow:hidden;}
+  .rp4-row{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;}
+  .rp4-row:first-child{border-top:0;}
+  .rp4-row:disabled{cursor:default;}
+  .rp4-row-k{flex:none;font-size:14px;color:var(--muted);font-weight:700;}
+  .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rp4-foot{flex:none;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
+  .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
+  .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
+  /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
+  .pe-ava{width:38px;height:38px;flex:none;border-radius:19px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:800;color:var(--text);transition:background .2s ease,color .2s ease,border-color .2s ease;}
+  .pe-link{border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;}
+  /* «Te deben» como el prototipo (auditoría 4.26.218): botón de contorno con «pendiente» al lado
+     de la cifra; cinco mint rellenos gritaban más que el propio total. Quien ya pagó, apagado. */
+  .pr6-deben-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+  .pr6-deben-tot{font-size:24px;font-weight:600;white-space:nowrap;}
+  .pe-deben .pr6-ll-r{max-width:55%;}
+  .pe-deben.ok .pr6-ll-n,.pe-deben.ok .pr6-ll-a{color:var(--muted);}
+  .pe-deben-cta{border-color:var(--line-soft);}
+  .pe-deben-ok{border:0;background:transparent;padding:4px 0;font:inherit;font-size:11.5px;font-weight:700;color:var(--mint);cursor:pointer;text-align:right;}
+  .pe-recibos{display:flex;flex-direction:column;gap:8px;}
+  .rp5-mas{display:flex;flex-direction:column;}
+  /* «¿Lo pagas con alguien?» con aire, como el prototipo (vídeo del dueño 12/11: «ultra pegado»). El
+     pliegue heredaba el `margin-top:-8px` de los de lista sin hueco que lo compensara: el título quedaba
+     4 px bajo «Más opciones», a 6 px de las caras y las caras a 6 px entre filas. */
+  /* Plegado conserva 4 px de caja (con el margen, el mismo sitio de antes): con caja cero el navegador no le
+     da capa a las flechas de dentro hasta abrir y nacían al tocar (guardián: recibos-sin-parpadeo). */
+  .rp5-mas > .pr6-fold{margin-top:-4px;}
+  .rp5-in{display:flex;flex-direction:column;gap:14px;padding-top:4px;}
+  .pr6-fold.open > .rp5-in{padding-top:16px;}
+  .rp5-in > .pr6-lbl{margin-bottom:0;}
+  /* Prueba gratis y Permanencia (SPEC §7): una línea «etiqueta · valor ⌄» que se despliega. */
+  .rp7-x{display:flex;flex-direction:column;border-top:1px solid var(--line-soft);}
+  .rp7-row{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 2px;border:0;background:transparent;color:var(--text);font:inherit;cursor:pointer;}
+  .rp7-row[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
+  .rp7-k{flex:1;min-width:0;text-align:left;font-size:15px;font-weight:700;}
+  .rp7-v{flex:none;font-size:15px;font-weight:700;}
+  .rp7-row .pr6-chev{color:var(--muted);}
+  .rp7-in{gap:12px;}
+  .rp7-x > .pr6-fold{margin-top:0;}
+  .pr6-fold.open > .rp7-in{padding:4px 0 12px;}
+  .rp7-chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .rp7-chip{height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--line-soft);background:transparent;color:var(--text);font:inherit;font-size:14px;font-weight:700;cursor:pointer;
+    transition:background .2s ease,color .2s ease,border-color .2s ease;}
+  .rp7-chip.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .rp7-fecha{flex:1;min-width:0;font-size:15px;}
+  .rp5-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));row-gap:12px;column-gap:4px;}
+  .rp5-ava{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:2px 0;border:0;background:transparent;color:var(--text);font:inherit;cursor:pointer;}
+  .rp5-ava:disabled{opacity:.35;cursor:default;}
+  .rp5-ava.on .pe-ava{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .rp5-ava-n{max-width:100%;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rp5-row{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:16px;background:var(--surface-2);}
+  .rp5-row-h{display:flex;align-items:center;gap:10px;}
+  .rp5-nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0;}
+  .rp5-nm-n{font-size:15px;font-weight:700;}
+  .rp5-nm .rp4-dim{font-size:12px;}
+  .rp4-pago-a.rp5-auto{color:var(--muted);border-style:dashed;}
+  /* El lápiz dice que la parte se teclea: con las partes iguales puestas solas no se veía que se
+     pudiera poner la de cada uno (feedback 1/11/2026). */
+  .rp5-row .rp4-pago-a::after{content:" ✎";font-family:system-ui,sans-serif;font-size:12px;font-weight:400;color:var(--muted);}
+  .rp5-mine{font-weight:800;}
+  .rp5-mal{color:var(--muted);}
   /* «¿Te llega?» (SPEC §4): la píldora abre la hoja; bloques por banco en surface-2 como el prototipo. */
   button.pr6-pill{border:0;font-family:inherit;text-align:left;cursor:pointer;}
   .pr6-pill-go{flex:none;margin-left:auto;color:var(--muted);}
   .v4-sheet.pr6-ll,.v4-sheet.pr6-nd{display:flex;flex-direction:column;gap:16px;}
+  /* Un pliegue cerrado sigue siendo hijo de la columna y se llevaba su hueco: en la ficha de una
+     persona con Bizum quedaba un vacío entre los chips y «Sus recibos» (auditoría 4.26.218). */
+  .v4-sheet.pr6-ll>.pr6-fold{margin-top:-16px;}
+  .v4-sheet.pr6-ll>.pr6-fold.open>.pr6-fold-in{padding-top:16px;}
   .pr6-ll-t{margin:0;font-size:24px;font-weight:600;outline:none;}
   .pr6-ll-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface-2);}
   .pr6-ll-h{display:flex;align-items:center;gap:12px;}
   .pr6-ll-n{font-size:16px;font-weight:700;}
   .pr6-ll-f{font-size:12px;}
   .pr6-ll-r{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none;}
-  .pr6-ll-l{font-size:11px;font-weight:700;color:var(--muted);}
+  .pr6-ll-l{font-size:11.5px;font-weight:700;color:var(--muted);}
   .pr6-ll-a{font-size:22px;font-weight:600;white-space:nowrap;}
   .pr6-ll-b .pr6-fold{margin-top:-10px;}
   .pr6-ll-det{gap:6px;font-size:14px;}
@@ -1088,9 +1321,10 @@
   .pr6-ll-in{min-height:40px;margin:-6px 0;padding:0;border:0;background:transparent;color:var(--muted);font:inherit;text-align:left;cursor:pointer;}
   .pr6-ll-tip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:14px;font-weight:700;}
   .pr6-ll-wi{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;border:1px dashed var(--line);}
-  .pr6-ll-wr{display:flex;align-items:center;gap:6px;}
-  .pr6-ll-wr .chip{height:46px;padding:0 12px;border-radius:14px;font-size:14px;font-weight:700;}
-  .pr6-ll-amt{flex:1;min-width:0;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:0 14px;
+  .pr6-ll-wr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+  .pr6-ll-bks{flex:1 0 auto;display:flex;gap:6px;}
+  .pr6-ll-wr .chip{flex:1 1 auto;height:46px;padding:0 12px;border-radius:14px;font-size:14px;font-weight:700;}
+  .pr6-ll-amt{flex:2 1 9em;min-width:9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:0 14px;
     font-size:17px;font-weight:600;text-align:left;cursor:pointer;transition:border-color .2s ease;}
   .pr6-ll-amt.on{border-color:var(--mint);}
   .pr6-ll-amt.ph{color:var(--muted);}
@@ -1098,6 +1332,22 @@
   .pr6-ll-wt.ok{color:var(--mint-bright);}
   .pr6-ll-wi .pr6-fold{margin-top:-10px;}
   .pr6-ll-wi .pr6-fold .v4-keys{margin:10px 0 0;}
+  /* «De una vez / A plazos» y lo que sale debajo (meses, entrada, cuota, colchón por cuenta): pliegues
+     como el resto de la hoja; el hueco de arriba va dentro y se pliega con ellos. */
+  .pr6-ll-modo{display:flex;gap:6px;}
+  .pr6-ll-modo .chip{flex:1;height:38px;border-radius:12px;font-size:13.5px;font-weight:700;}
+  .pr6-ll-plf{flex-direction:row;gap:6px;}
+  .pr6-ll-plf,.pr6-ll-plz,.pr6-ll-col{padding-top:0;transition:padding-top .35s var(--ease);}
+  .pr6-ll-wi .pr6-fold.open>.pr6-ll-plf,.pr6-ll-wi .pr6-fold.open>.pr6-ll-plz,.pr6-ll-wi .pr6-fold.open>.pr6-ll-col{padding-top:10px;}
+  .pr6-ll-cmp{flex:1 1 0;min-width:0;height:42px;font-size:15px;}
+  .pr6-ll-af{display:flex;flex-direction:column;margin-top:-10px;}
+  .pr6-ll-af .pr6-fold{margin-top:0;}
+  .pr6-ll-plz,.pr6-ll-col{gap:6px;font-size:14px;}
+  .pr6-ll-plz .pr6-cta{margin-top:4px;}
+  .pr6-ll-wt.no{color:var(--coral);}
+  .pr6-ll-row .num.neg{color:var(--coral);}
+  .pr6-ll-undo{flex:0 0 auto;height:36px;padding:0 14px;}
+  .pr6-ll-col .pr6-lbl{margin-bottom:0;}
   .pr6-nd-v{display:flex;justify-content:center;}
   .pr6-nd-v .serif{font-size:44px;font-weight:600;line-height:1;padding:6px 14px;border-radius:16px;transition:background .2s ease;}
   .pr6-nd-v .serif.sel{background:var(--surface-2);}
@@ -1105,8 +1355,63 @@
   .pr6-nd-d .num{flex:1;text-align:center;font-size:15px;font-weight:700;}
   .pr6-nd-b{width:44px;height:40px;border-radius:12px;border:0;background:var(--surface-2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;touch-action:none;user-select:none;}
   .pr6-nd .pr6-cta:disabled{opacity:.5;}
-  @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
-  html.reduce-motion .pr6-fold,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
+  /* Tanda 6 (SPEC §2.1, §2.2, §9): resumen del mes cerrado, «Nov ›» y primer uso. */
+  .pr6-vista{display:flex;flex-direction:column;gap:12px;}
+  /* Al cambiar de mes entra de lado TODA la vista (tarjeta y secciones), hacia donde se va. */
+  /* La anima `PlanRecibos` (WAAPI) desde .4, como al cambiar de Recibos a Deudas: desde 0 la vista
+     entera desaparecía de golpe un fotograma antes de entrar. Capa fija para que no nazca al tocar. */
+  .pr6-vistas{will-change:transform,opacity;}
+  .pr6-sum-h{display:flex;align-items:center;gap:2px;}
+  /* A 360 px «QUEDA POR PAGAR EN NOVIE…» perdía el mes: mejor en dos renglones que cortado. */
+  .pr6-sum-h .v4-micro{flex:1;min-width:0;line-height:1.45;}
+  /* A 360 px «QUEDA POR PAGAR EN NOVIEMBRE» se iba a dos renglones (N7): más prieta cabe en uno;
+     con la letra muy grande sigue pudiendo bajar antes que cortar el mes. */
+  .pr6-sum{container:pr6tarjeta / inline-size;}
+  @container pr6tarjeta (max-width:20.5em){ .pr6-sum-h .v4-micro{font-size:11.5px;letter-spacing:1px;} }
+  .pr6-mes-nav{flex:none;min-width:44px;min-height:44px;margin:-12px -10px -12px 0;padding:0 10px;border:0;background:transparent;color:var(--mint-bright);
+    font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+  .pr6-cz{display:grid;grid-template-rows:1fr;transition:grid-template-rows .38s var(--ease),opacity .25s ease;}
+  .pr6-cz.fuera{grid-template-rows:0fr;opacity:0;}
+  .pr6-cz-in{overflow:hidden;min-height:0;}
+  .pr6-cerr{margin-bottom:14px;padding:14px 8px 14px 16px;border-radius:20px;background:var(--surface-2);display:flex;flex-direction:column;gap:10px;}
+  .pr6-cerr-h{display:flex;align-items:center;gap:10px;}
+  .pr6-cerr-ico{width:34px;height:34px;flex:none;border-radius:17px;background:var(--bg);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;}
+  .pr6-cerr-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;}
+  button.pr6-cerr-t{cursor:pointer;}
+  .pr6-cerr-n{font-size:15px;font-weight:800;}
+  .pr6-cerr-l{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-cerr-x{width:44px;height:44px;margin:-4px -4px -4px 0;flex:none;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .pr6-cerr .pr6-fold{margin-top:-10px;}
+  .pr6-cerr-det{gap:6px;padding:0 8px 0 44px;}
+  .pr6-cerr .pr6-fold.open .pr6-cerr-det{padding-top:10px;}
+  .pr6-cerr-row{display:flex;justify-content:space-between;gap:8px;font-size:14px;}
+  .pr6-cerr-row>span:first-child{min-width:0;color:var(--muted);}
+  .pr6-cerr-row .num{font-weight:700;white-space:nowrap;}
+  .pr6-onb{display:flex;flex-direction:column;gap:14px;padding:20px;border-color:var(--mint);}
+  .pr6-onb-ico{width:48px;height:48px;border-radius:24px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;}
+  .pr6-onb-t{display:flex;flex-direction:column;gap:4px;}
+  .pr6-onb-n{font-size:24px;font-weight:600;}
+  .pr6-onb-s{font-size:14px;color:var(--muted);}
+  .pr6-onb .pr6-cta{height:52px;font-size:16px;}
+  .v4-sheet.pr6-imp{display:flex;flex-direction:column;gap:14px;}
+  .pr6-imp-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .pr6-imp-h .link{flex:none;}
+  .pr6-imp-l{display:flex;flex-direction:column;border-radius:18px;background:var(--surface-2);overflow:hidden;}
+  .pr6-imp-row{display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 14px;border:0;border-top:1px solid var(--line-soft);
+    background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:opacity .2s ease;}
+  .pr6-imp-row:first-child{border-top:0;}
+  .pr6-imp-row.off{opacity:.45;}
+  .pr6-imp-row .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:600;}
+  .pr6-imp-row .sub{font-size:12.5px;font-weight:500;color:var(--muted);}
+  .pr6-imp-row .am{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:600;white-space:nowrap;}
+  .pr6-imp-dot{width:22px;height:22px;flex:none;border-radius:11px;border:2px solid var(--mint);background:radial-gradient(circle,var(--mint) 0 5px,transparent 6px);
+    transition:border-color .2s ease,background .2s ease;}
+  .pr6-imp-row.off .pr6-imp-dot{border-color:var(--line);background:transparent;}
+  .pr6-imp .pr6-cta:disabled{opacity:.5;cursor:default;}
+  @media (prefers-reduced-motion:reduce){ .pr6-cz,.pr6-imp-row,.pr6-imp-dot{transition:none;} }
+  html.reduce-motion .pr6-cz,html.reduce-motion .pr6-imp-row{transition:none;}
+  @media (prefers-reduced-motion:reduce){ .pr6-fold,.pr6-fold-in,.pr6-fold-l>.pr6-fold-in>*>*,.pr6-chev,.pr6-track,.pr6-step,.pr6-cand,.pr6-ring{transition:none;} }
+  html.reduce-motion .pr6-fold,html.reduce-motion .pr6-fold-in,html.reduce-motion .pr6-fold-l>.pr6-fold-in>*>*,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}
   .v4-goals{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
   .v4-goal{flex:0 0 78%;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
@@ -1150,9 +1455,19 @@
   }
   html[data-theme="light"] .dc-badge,
   html[data-theme="light"] .v4-section-h button.link,
+  html[data-theme="light"] .pr6-mes-nav,
+  html[data-theme="light"] .pr6-pill-ok,
+  html[data-theme="light"] .pr6-more,
+  html[data-theme="light"] .pr6-mg-add,
+  html[data-theme="light"] .pr6-mg-lbl svg,
+  html[data-theme="light"] .pr6-mg-sec .pr6-row .am.pos,
+  html[data-theme="light"] .pr6-tick,
+  html[data-theme="light"] .pr6-baja,
+  html[data-theme="light"] .pr6-paid-v,
+  html[data-theme="light"] .pr6-paid-h .pr6-chev,
+  html[data-theme="light"] .pr6-ll-row .num.pos,
   html[data-theme="light"] .profile-handle,
   html[data-theme="light"] .profile-row .pr-edit,
-  html[data-theme="light"] .af-safe,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
   html[data-theme="light"] .v4-pill,
@@ -1224,6 +1539,14 @@
      en su padding y `sticky` lo respeta) y lleva el mismo lavado de temporada que `.season-glow`,
      medido a pantalla completa: parado no se distingue del fondo, y al bajar tapa la lista. */
   .gx-head{position:sticky;top:0;z-index:6;isolation:isolate;margin:0 -18px;padding:0 18px 12px;}
+  /* Plan no tiene cabecera fija: una franja de alto 0 pegada arriba lleva el mismo fondo que
+     `.gx-head::before` hasta el borde de la pantalla. Parada no se distingue del fondo. */
+  /* Plan scrollea SIEMPRE (1 px de más): con «Dic ›», Deudas o Metas cortos la página dejaba de
+     scrollear, su capa se deshacía y en su móvil la pantalla salía en blanco un instante. */
+  .page > .v4-screen.v4-plan{min-height:calc(100% + 1px);}
+  .v4-plan-techo{position:sticky;top:0;z-index:6;height:0;margin:0 -18px;pointer-events:none;}
+  .v4-plan-techo::before{content:"";position:absolute;left:0;right:0;top:calc(-1 * (var(--safe-top) + 18px));height:calc(var(--safe-top) + 18px);
+    background-color:var(--bg);background-image:var(--season-glow-top,none);background-repeat:no-repeat;background-size:100% 100vh;}
   .gx-head::before{content:"";position:absolute;left:0;right:0;top:calc(-1 * (var(--safe-top) + 18px));bottom:0;z-index:-1;
     background-color:var(--bg);background-image:var(--season-glow-top,none);background-repeat:no-repeat;background-size:100% 100vh;
     transition:bottom .2s var(--ease),box-shadow .2s var(--ease);}
@@ -1276,6 +1599,12 @@
      a la franja por la que se desliza entre pestañas y los e2e de gestos perderían su sitio. */
   .gx-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0;min-height:44px;}
   .gx-titulo .v4-title{margin:0;min-width:0;}
+  .v4-plan-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 14px;}
+  .v4-plan-cab .v4-title{margin:0;min-width:0;}
+  .v4-ojo{flex:none;width:44px;height:44px;margin-right:-8px;display:flex;align-items:center;justify-content:center;border:0;border-radius:22px;
+    background:transparent;color:var(--muted);cursor:pointer;transition:color .2s var(--ease),background .2s var(--ease);}
+  .v4-ojo.on{color:var(--mint-bright);background:var(--surface);}
+  .v4-ojo:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .gx-secciones{display:flex;gap:8px;flex:0 0 auto;}
   .gx-sec{position:relative;width:44px;height:44px;border-radius:22px;padding:0;display:flex;align-items:center;justify-content:center;
     border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;
@@ -1283,6 +1612,12 @@
   .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
+  .gx-filter-btn{position:relative;flex:0 0 46px;width:46px;height:46px;padding:0;border-radius:23px;box-sizing:border-box;
+    display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;}
+  /* Último de su fila: con el globo a -3px lo recortaba por arriba y por la derecha (captura del dueño 2026-11-13). Dentro del botón no hay borde que lo corte. */
+  .gx-filter-btn .gx-sec-globo{top:2px;right:2px;}
+  .gx-filter-btn.on{border-color:var(--mint-deep);background:color-mix(in srgb,var(--mint) 16%,var(--surface));color:var(--mint);}
+  .gx-filter-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   /* Categorías (SPEC §5): la lista en una tarjeta, cada fila con su barra. */
   .gx-cats{display:flex;flex-direction:column;gap:14px;padding-top:8px;}
   .gx-cats-lista{background:var(--surface);border-radius:22px;padding:6px 0;}
@@ -1433,9 +1768,27 @@
   .v4-gastos-list-body{padding:0;}
 
   .v4-sheet-back{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;
-    /* Velo verdoso suave: se ve la app, sin el negro seco ni el scale (feedback 2026-07-17). */
-    background:rgba(8,28,20,.28);
-    pointer-events:auto;}
+    /* Velo verdoso suave: se ve la app, sin el negro seco ni el scale (feedback 2026-07-17).
+       El tinte vive en el ::before y solo se anima su opacity: animar background-color de
+       esta capa (pantalla completa) repintaba cada fotograma y en un OnePlus a 120 Hz se
+       notaba (1/11/2026). El padre no pinta; el ::before queda detrás de la hoja porque
+       este fixed ya es contexto de apilamiento (z-index:80) y el -1 no se sale. Con
+       will-change fijo: sin él la capa nacía con la animación de entrada y moría al acabar,
+       y ese repintado del velo entero se veía como un parpadeo al terminar de abrir la hoja
+       (capas medidas con CDP, 7/11). */
+    background:transparent;pointer-events:auto;}
+  .v4-sheet-back::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    background:rgba(8,28,20,.28);opacity:var(--sheet-veil,1);will-change:opacity;
+    animation:sheetveil .42s cubic-bezier(.22,.61,.36,1);}
+  /* Hojas que se arrastran de lado con el dedo (Atrás por pasos): la capa del gesto existe desde que
+     se abren. Si nacía al empezar a arrastrar y moría al soltar, la hoja se veía en blanco al volver
+     a su sitio (vídeo del 7/11, «¿Cuándo se cobra?» → «¿Cuánto es?»). */
+  .v4-sheet-back.mc-edge-back{will-change:transform,opacity;}
+  /* Congela la opacidad que se ve (la animación de entrada si no, gana a la transición)
+     y al frame siguiente .v4-sheet-out la lleva a 0. */
+  .v4-sheet-back.v4-sheet-hold::before{animation:none;transition:none;opacity:var(--sheet-veil,1);}
+  .v4-sheet-back.v4-sheet-out::before{will-change:opacity;
+    transition:opacity var(--veil-ms,420ms) var(--veil-ease,cubic-bezier(.3,0,.2,1));opacity:0;}
   .v4-sheet{width:100%;max-width:520px;max-height:88dvh;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
     border-radius:26px 26px 0 0;
     /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
@@ -1458,7 +1811,7 @@
   .v4-sheet-handle{width:40px;height:5px;border-radius:4px;background:var(--line);margin:6px auto 14px;position:relative;flex:0 0 auto;cursor:grab;}
   .v4-sheet-handle::before{content:"";position:absolute;inset:-16px -48px;}
   .v4-sheet.dragging{transition:none;}
-  html.sheet-open .app-shell{
+  html.sheet-shell-off .app-shell{
     pointer-events:none !important;
   }
   .v4-exp-name{width:100%;border:none;background:transparent;color:var(--text);font-size:16px;font-weight:700;text-align:center;padding:2px 8px 6px;outline:none;}
@@ -1516,7 +1869,12 @@
   .v4-ficha-adjust-row .chev{color:var(--muted-2);font-size:17px;}
   .v4-ficha-adjust-open{padding:9px 0 3px;}
   .v4-ficha-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;
-    padding-top:8px;border-top:1px solid var(--line-soft);}
+    padding-top:8px;border-top:1px solid var(--line-soft);position:relative;}
+  /* Aviso que flota sobre el pie: fuera del flujo para que su llegada no mueva la ficha. */
+  .v4-ficha-aviso{position:absolute;left:0;right:0;bottom:calc(100% + 8px);z-index:2;display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:14px;background:var(--sur);border:1px solid var(--line);
+    box-shadow:0 6px 18px rgba(0,0,0,.28);color:var(--muted);font-size:12px;line-height:1.35;}
+  .v4-ficha-aviso .btn{flex:0 0 auto;min-height:36px;padding:0 12px;}
   .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
   .v4-ficha-saved{color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.2;}
   .v4-ficha-done{min-height:44px;padding:0 16px;border-radius:14px;background:var(--mint);color:var(--on-mint);font-size:13px;font-weight:850;white-space:nowrap;}
@@ -1569,7 +1927,9 @@
   /* Ganar a `.settings-push` en la promoción de capa: con transform none, will-change también
      anclaba la hija fixed al scroll del padre (19/10). El cierre/retorno ponen su transición
      inline; al limpiarla, no volver a animar la matriz identidad hacia none. */
-  .settings-push.v4-bills-push{will-change:auto;transition:none;}
+  /* Abajo, el alto de la barra (73 px + zona segura, ver `.botnav-bills`) además del aire de siempre:
+     la última fila tiene que poder quedar por encima de la barra y del «+», no debajo (N8). */
+  .settings-push.v4-bills-push{will-change:auto;transition:none;padding-bottom:calc(97px + var(--safe-bottom));}
   /* Un único candidato a scroller raíz (INC-2709-03, 19/10). Chromium solo convierte en raíz
      implícita —la única que recibe la ola nativa de Android— un `fixed` a pantalla completa que
      desplace, y SOLO si no hay otro igual: con dos, ninguno. Plan y Ajustes quedaban debajo
@@ -1580,43 +1940,75 @@
   .v4-bills-push[data-covered]{overflow-y:hidden;}
   /* El contenido de estas hijas también entrega sus bordes al navegador. La promoción de
      capa solo hace falta durante el arrastre/salida; no mantener una textura en reposo. */
-  .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"]{will-change:auto;}
-  /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
-     al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
+  .v4-sheet[data-sheet="bill"],.v4-sheet[data-sheet="bill-add"],.v4-sheet[data-sheet="recibo-pasos"]{will-change:auto;}
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */
   .v4-bills-hub{max-width:520px;min-height:calc(100% + 1px);margin:0 auto;animation:v4BillsIn .28s cubic-bezier(.32,.72,0,1) both;}
   @keyframes v4BillsIn{from{opacity:.35;transform:translate3d(16px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
-  .v4-bills-hero{margin-bottom:14px;}
-  .v4-bills-hero-amt{font-size:clamp(32px,10vw,40px);font-weight:550;letter-spacing:-1px;margin-top:6px;}
-  .v4-bills-hero-sub{margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.4;}
-  .v4-bills-hero-bar{margin-top:14px;}
-  .v4-bills-search-row{display:flex;gap:8px;align-items:center;margin:4px 0 12px;}
   .v4-bills-search{flex:1;min-height:46px;padding:0 14px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:14px;}
   .v4-bills-search:focus{border-color:var(--mint);outline:none;}
   .v4-bills-add{flex:0 0 46px;width:46px;height:46px;border-radius:14px;border:0;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:#06120C;font-size:24px;font-weight:800;}
-  .v4-bills-groups{display:flex;flex-direction:column;gap:8px;}
-  .v4-bills-group{display:flex;align-items:center;gap:11px;min-height:64px;padding:10px 12px;border-radius:18px;background:var(--sur);border:1px solid var(--line-soft);text-align:left;color:var(--text);}
-  .v4-bills-group-tile{width:42px;height:42px;border-radius:14px;background:var(--sur2);display:grid;place-items:center;font-size:20px;flex:0 0 auto;}
-  .v4-bills-group-copy{min-width:0;flex:1;}
-  .v4-bills-group-t{font-size:14.5px;font-weight:800;line-height:1.25;}
-  .v4-bills-group-s{font-size:11.5px;color:var(--muted-2);margin-top:2px;}
-  .v4-bills-group-amt{flex:0 0 auto;min-width:max-content;text-align:right;font-size:clamp(13px,4.2vw,17px);font-weight:550;line-height:1.15;white-space:nowrap;}
-  .v4-bills-group-amt span{display:block;font-family:inherit;font-size:10.5px;color:var(--muted-2);font-weight:700;white-space:nowrap;}
-  /* Los importes no son titulares decorativos: el subrayado de temporada parecía un enlace y
-     restaba espacio justo a las cifras largas (feedback 18/9). */
-  html[data-season] .v4-bills-group-amt.serif.num{text-decoration:none;}
-  .v4-bills-group-chev{color:var(--muted-2);font-size:18px;flex:0 0 auto;}
-  .v4-bills-list{display:flex;flex-direction:column;gap:6px;}
   .v4-bills-row{width:100%;text-align:left;}
-  .v4-bill-kind-icon{background:var(--sur2);border:1px solid var(--line-soft);font-size:21px;}
-  .v4-bills-empty{padding:18px 8px;color:var(--muted);font-size:13px;line-height:1.45;text-align:center;}
-  .v4-bills-afford,.v4-bills-recon{width:100%;margin-top:12px;padding:14px 16px;border-radius:18px;border:1px solid rgba(230,195,106,.35);background:rgba(230,195,106,.08);text-align:left;color:var(--text);}
-  .v4-bills-afford-t{font-size:14.5px;font-weight:800;}
-  .v4-bills-afford-s{margin-top:3px;font-size:12.5px;color:var(--muted);line-height:1.4;}
-  .v4-bills-afford-body{margin-top:8px;}
   .v4-bills-banks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
   .v4-bills-bank{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 10px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:12.5px;font-weight:700;}
   .v4-bills-bank.on{border-color:var(--mint);background:rgba(95,208,138,.1);}
+  /* Tus recibos v6 (SPEC §3, prototipo): cabecera con flecha redonda, tarjeta que alterna mes/año,
+     buscador con lupa, chips de banco y secciones planas. Todo con los tokens y las piezas .pr6-*
+     de la portada de Recibos para que las dos pantallas se lean como una. */
+  .v4-bills-push .pr6-mg-h{gap:12px;margin-bottom:12px;}
+  .v4-bills-push .pr6-mg-h .back{border-radius:22px;background:var(--surface);}
+  .v4-bills-push .pr6-mg-h h1{font-size:28px;font-weight:500;}
+  .pr6-mg-sum{width:100%;padding:18px;gap:10px;text-align:left;color:inherit;font:inherit;cursor:pointer;}
+  .pr6-mg-lbl{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;}
+  .pr6-mg-lbl svg{flex:none;color:var(--mint-bright);}
+  .pr6-mg-sum .pr6-big{font-size:clamp(36px,11vw,44px);margin-top:0;}
+  .pr6-mg-sum .pr6-big-swap{animation:v4fade .28s var(--ease) both;}
+  .pr6-mg-q{display:flex;align-items:center;gap:12px;height:56px;margin-top:20px;padding:0 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line-soft);color:var(--muted);}
+  .pr6-mg-q:focus-within{border-color:var(--mint);}
+  .pr6-mg-qi{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--text);font:500 16px 'Manrope',sans-serif;outline:none;}
+  .pr6-mg-qi::-webkit-search-cancel-button{display:none;}
+  .pr6-mg-q.pr6-pick-q{margin-top:0;height:52px;background:var(--bg);}
+  .pr6-mg-chips{margin:12px 0 0;padding-bottom:2px;}
+  /* Como el prototipo: el banco elegido, relleno de menta; los demás, solo con borde (N9). */
+  .pr6-mg-chips .v4-chip{background:transparent;color:var(--text);}
+  .pr6-mg-chips .v4-chip.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  html[data-theme="light"] .pr6-mg-chips .v4-chip.on{background:var(--mint-ink);border-color:var(--mint-ink);color:var(--on-mint);}
+  .pr6-mg-sec{margin-top:24px;}
+  .pr6-mg-st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .pr6-mg-ss{font-size:13px;font-weight:500;color:var(--muted);}
+  .pr6-mg-add{display:flex;align-items:center;gap:5px;flex:none;color:var(--mint-bright)!important;font-size:15px!important;font-weight:700!important;}
+  .pr6-mg-sec .pr6-row .dt{width:46px;height:48px;border-radius:13px;}
+  .pr6-mg-sec .pr6-row .dt .d{font-size:19px;font-weight:600;line-height:1;}
+  .pr6-mg-sec .pr6-row .dt .m{font-size:10px;font-weight:800;text-transform:uppercase;}
+  .pr6-mg-sec .pr6-row .nm{min-width:0;flex:1;font-size:15px;}
+  /* Un renglón y con elipsis, como en la portada: «Hogar · Sabadell · cada tres meses · compartido»
+     partía la fila en dos a 412 px (11/11/2026). La frase entera va en el aria-label. */
+  .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-mg-sec .pr6-row .am{font-size:17px;}
+  .pr6-mg-sec .pr6-row .am.pos{color:var(--mint-bright);}
+  .pr6-mg-sec .pr6-row.pr6-mg-off{opacity:.5;}
+  .pr6-mg-ov{margin:24px 0 0;}
+  .pr6-cz + .pr6-cz .pr6-mg-ov{margin-top:12px;}
+  .pr6-mg-ov .pr6-cerr-l{white-space:normal;}
+  .pr6-mg-pl{background:var(--surface);border:1px solid var(--line-soft);border-radius:18px;overflow:hidden;}
+  .pr6-mg-pe{width:100%;display:flex;align-items:center;gap:12px;min-height:58px;padding:10px 16px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
+  .pr6-mg-pe:first-child{border-top:0;}
+  /* Las personas plegadas siguen dentro de la tarjeta: sin hueco y con su raya, y «Ver los N» como
+     una fila más del mismo bloque. */
+  .pr6-mg-pl .pr6-fold{margin-top:0;}
+  .pr6-mg-pl .pr6-fold-in,.pr6-mg-pl .pr6-fold.open .pr6-fold-in{gap:0;padding-top:0;}
+  .pr6-mg-pl .pr6-fold-in .pr6-mg-pe:first-child{border-top:1px solid var(--line-soft);}
+  .pr6-mg-pl .pr6-more{width:100%;justify-content:center;border-top:1px solid var(--line-soft);}
+  .pr6-mg-pe .pe-ava{width:34px;height:34px;background:var(--surface-2);border:0;color:var(--mint-bright);font-size:14px;}
+  .pr6-mg-pe .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;font-size:15px;font-weight:700;}
+  /* Hasta dos renglones: en uno se cortaba justo antes de «se descuenta de Mamá» (N2). */
+  .pr6-mg-pe .sub{font-size:12px;font-weight:500;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;}
+  .pr6-mg-go{flex:none;color:var(--muted);}
+  .pr6-mg-pe:focus-visible,.pr6-mg-sum:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .pr6-mg-nada{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 0 8px;color:var(--muted);font-size:15px;text-align:center;}
+  .pr6-mg-nada .pr6-cta{display:flex;align-items:center;gap:8px;padding:0 18px;}
+  /* Los importes no son titulares decorativos: el subrayado de temporada parecía un enlace y
+     restaba espacio justo a las cifras largas (feedback 18/9). */
+  html[data-season] .v4-bills-push .serif.num{text-decoration:none;}
   @media (prefers-reduced-motion:reduce){
     .v4-bills-push{transition:none !important;}
     .v4-bills-hub{animation:none !important;}
@@ -1634,7 +2026,13 @@
   html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none;}
   /* Solo .page (no .track/.viewport): overflow en el track + translateX de tabs ≠ Inicio
      clippea la página visible y deja el body oscuro detrás del + / editar gasto (2026-07-17). */
-  html.sheet-open .page{overflow:hidden !important;overscroll-behavior:none;touch-action:none;}
+  /* Sin `overflow:hidden`: pasar la página de scroller a no-scroller al abrir una hoja deshacía su
+     capa (y la de la barra de abajo, que va encima) y en su móvil la barra y el fondo salían en
+     blanco uno o dos fotogramas al abrir cualquier ficha (vídeo del 7/11). La página ya no recibe
+     toques con una hoja abierta (`.app-shell` sin pointer-events y el velo encima). */
+  html.sheet-open .page{overscroll-behavior:none;}
+  /* Aparte y solo con `sheet-shell-off` (ver `mcSheetLock`): `touch-action` se hereda. */
+  html.sheet-shell-off .page{touch-action:none;}
   .v4-apuntar-amt{text-align:center;font-size:34px;font-weight:550;letter-spacing:-1px;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
   .v4-input{width:100%;background:var(--sur);border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px;font-size:15px;color:var(--text);margin-bottom:10px;}
   .v4-input:focus{border-color:var(--mint);outline:none;}
@@ -1679,9 +2077,13 @@
   html.ask-open .v4-cta{box-shadow:none;}
   .settings-push,.settings-slide{position:fixed;inset:0;z-index:70;background:var(--bg);max-width:520px;margin:0 auto;overflow-y:auto;
     padding:calc(var(--safe-top) + 12px) 18px calc(24px + var(--safe-bottom));
-    transform:translate3d(-100%,0,0);transition:transform .42s cubic-bezier(.32,.72,0,1);will-change:transform;
+    transform:translate3d(-100%,0,0);transition:transform .42s cubic-bezier(.32,.72,0,1),box-shadow .42s ease;will-change:transform;
     box-shadow:8px 0 32px rgba(0,0,0,.35);}
   .settings-push.open,.settings-slide.open{transform:translate3d(0,0,0);}
+  /* Cerrado, el cajón espera fuera por la izquierda y su sombra entraba 40 px en la pantalla: en
+     tema claro era una franja gris en el borde izquierdo de Recibos (auditoría, punto 7; 7/11).
+     Sin sombra mientras está fuera; al arrastrarlo o abrirlo vuelve con su fundido. */
+  .settings-push:not(.open):not(.dragging):not(.mc-page-dragging),.settings-slide:not(.open):not(.dragging){box-shadow:none;}
   /* Inversiones es una pantalla hija de Cartera: entra por la derecha y vuelve en la misma
      dirección que el gesto de borde, no como el cajón de Ajustes que nace a la izquierda. */
   .settings-push.v4-investments-push{transform:translate3d(100%,0,0);}
@@ -1784,6 +2186,10 @@
   .v4-banks .bk-actions .btn{flex:1 1 auto;min-width:0;padding:10px 12px;font-size:13px;}
 
   @keyframes sheetup{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  /* Fundido del velo, en paralelo con `sheetup` (misma curva y 0,42 s). Solo opacity, que
+     lo compone la GPU. Sin `forwards`: el reposo ya es 1 y un fill se comería la transición
+     del cierre. */
+  @keyframes sheetveil{from{opacity:0;}to{opacity:1;}}
   /* `to` con transform:none (no translateY(0)): si deja matrix(1,0,0,1,0,0) el hijo sigue
      creando capa con transform y en Cartera (muchas cards .rise) el overscroll nativo se
      cortaba arriba/abajo — Ajustes no tiene hijos así. */
@@ -1793,7 +2199,7 @@
   @keyframes v4growup{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast,.v4-debt-card.v4-foco::after{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.v4-sheet-back::before,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast,.v4-debt-card.v4-foco::after{animation:none !important;transition:none !important;}
   }
 
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;}
@@ -1870,17 +2276,6 @@
   .v4-investments-full .curbtn,.v4-investments-full .v4-link-mini{min-height:44px;}
   .v4-investments-full .v4-field-label{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:10px;}
   .v4-investments-full .v4-field-label .af-in{display:block;min-height:44px;margin-top:5px;color:var(--text);font-weight:500;}
-  .af-result{border-radius:12px;padding:11px 13px;border:1px solid var(--line-soft);background:var(--bg-2);}
-  .af-result.yes{border-color:rgba(95,208,138,.45);background:rgba(95,208,138,.08);}
-  .af-result.tight,.af-result.floor{border-color:rgba(242,193,78,.5);background:rgba(242,193,78,.08);}
-  .af-result.no{border-color:rgba(226,112,95,.5);background:rgba(226,112,95,.08);}
-  .af-floor{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:12.5px;}
-  .af-below{margin-top:8px;font-size:12px;font-weight:600;color:#E2A05F;}
-  .af-info{margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--bg-2);border:1px solid var(--line-soft);}
-  .af-safe{font-weight:700;font-size:13px;color:var(--mint);}
-  .af-verdict{font-weight:800;font-size:14px;}
-  .af-low{font-size:12.5px;color:var(--text);margin-top:5px;}
-  .af-delta{font-size:11.5px;color:var(--muted);margin-top:3px;}
   .liqrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:2px 0;}
   .liqrow.strong{font-weight:800;font-size:15px;border-top:1px solid var(--line-soft);margin-top:5px;padding-top:7px;}
   .alarmbox{background:rgba(226,112,95,.12);border:1px solid rgba(226,112,95,.45);color:var(--coral);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.45;}
@@ -2035,7 +2430,10 @@
   /* El editor mensual conserva su cifra compacta; el ritmo que estrenó aquí ya es el común. */
   .v4-budget-sheet .v4-ob-stepper .serif{font-size:clamp(36px,11vw,42px);letter-spacing:-1px;min-width:4.1ch;}
   .v4-card-list{display:flex;flex-direction:column;gap:0;}
-  html[data-theme="light"] .chip.active{color:#fff;}
+  /* En claro el chip elegido va relleno, como en oscuro, pero con `--mint-ink`: el blanco sobre el
+     tinte del 12 % no se leía (banco de «¿Y si gasto…?», auditoría 216, N1) y sobre `--mint`
+     se queda en 3,6:1. */
+  html[data-theme="light"] .chip.active{background:var(--mint-ink);border-color:var(--mint-ink);color:var(--on-mint);}
   .v4-set-profile{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:20px;padding:16px;margin-top:4px;box-shadow:var(--shadow);}
   .v4-set-av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);flex:0 0 auto;}
   .v4-set-sec{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted-2);margin:18px 4px 6px;}

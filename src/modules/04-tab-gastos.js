@@ -229,7 +229,7 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
   useBackClose(open, swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
   const [amt,setAmt]=useState({k:null, v:""});
-  if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",",")});
+  if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",numDecSep())});
   useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
   if(!open) return null;
   const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0];
@@ -293,7 +293,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones}){
+function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -431,7 +431,17 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     });
     return function(){ heavyIdleGen.current++; unsub(); };
   },[]);
-  const expensesDef=useDeferredValue(state.expenses);
+  /* LA LISTA Y SUS LÁPIDAS SE DIFIEREN JUNTAS (vídeo del 12/11/2026). Al confirmarse un renombre,
+     el mismo `set` cambia el nombre de la fila y pone la lápida del nombre viejo. Con solo los
+     gastos diferidos, el render urgente juntaba la fila VIEJA con la lápida NUEVA: la fila de
+     1.550 € desaparecía un frame al cerrar la ficha y volvía con el render diferido. */
+  const lapidasNow=useMemo(function(){ return {expenses:state.expenses,deleted:state.deleted,
+    obAbsorbedPending:state.obAbsorbedPending,obAbsorbedConfirmed:state.obAbsorbedConfirmed,_historyOwner:state._historyOwner}; },
+    [state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
+  const lapidasDef=useDeferredValue(lapidasNow);
+  const expensesDef=lapidasDef.expenses;
+  // `state` con la porción diferida: lo que se pinta de la lista sale siempre de UNA foto.
+  const stateDef=Object.assign({},state,lapidasDef);
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
@@ -493,6 +503,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
   const resolveDup=function(e, same){
     if(!e || !e.possibleDup) return;
+    if(sourceActionBusy(e.id))return;
+    if(!same)return runSourceAction(e,function(){return cloud.setExpenseDup(e,false);},function(s){return resolvePossibleDup(s,e.id,false);},t("g_dup_diff"));
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
@@ -509,6 +521,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     else showToast(t("g_dup_diff"));
   };
   const separarGemelo=function(e,unir){
+    if(sourceActionBusy(e.id))return;
     set(function(s){
       const next=unir?unirGemeloAutomatico(s,e.id):separarGemeloAutomatico(s,e.id);
       if(next===s) return s;
@@ -518,10 +531,171 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     });
     showToast(t(unir?"g_auto_paired":"g_auto_separated"));
   };
+  const monthlyPending=useRef({}), monthlyState=useRef(state); monthlyState.current=state;
+  const [monthlyStatus,setMonthlyStatus]=useState(null);
+  const confirmMonthlyInvestment=function(row){
+    const ex=Object.assign({},row), proposal=trMonthlyProposal(monthlyState.current,ex,Date.now());
+    if(!proposal||monthlyPending.current[ex.id]) return;
+    const token={active:true}; monthlyPending.current[ex.id]=token;
+    askConfirm({title:t("tr_monthly_title"),sub:t(proposal.purpose?"tr_monthly_semantic":"tr_monthly_question"),ok:t("tr_monthly_confirm")}).then(async function(yes){
+      if(!yes) return;
+      let timer;
+      try{
+        setMonthlyStatus({id:ex.id,status:"pending"});
+        const read=function(){return token.active?monthlyState.current:null;};
+        const ack=await Promise.race([cloud.confirmTrMonthlyInvestment(ex,read),new Promise(function(_,reject){timer=setTimeout(function(){token.active=false;reject(new Error("monthly investment timeout"));},10000);})]);
+        const fresh=read(), next=trMonthlyConfirmed(fresh,ex,ack,Date.now());
+        if(next===fresh||!trMonthlySaveConfirmed(next,ex.id)) throw new Error("monthly investment not saved");
+        // El permiso llega a React solo después de confirmar la fila y leer el guardado durable.
+        ReactDOM.flushSync(function(){set(function(s){return s===fresh?next:s;});});
+        setMonthlyStatus({id:ex.id,status:"done"}); showToast(t("tr_monthly_done"));
+      }catch(err){setMonthlyStatus({id:ex.id,status:"error"});showToast(t("tr_monthly_error"));}
+      finally{clearTimeout(timer);}
+    }).finally(function(){token.active=false;delete monthlyPending.current[ex.id];});
+  };
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
   const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const [sourceActionStatus,setSourceActionStatus]=useState({});
+  const sourceActionPending=useRef({});
+  const sourceActionBusy=function(id){return !!sourceActionPending.current[withdrawalState.current._historyOwner+"|"+id];};
+  const sourceActionMounted=useRef(true);
+  useEffect(function(){sourceActionMounted.current=true;return function(){sourceActionMounted.current=false;};},[]);
+  const runSourceAction=async function(ex,write,apply,success){
+    const before=withdrawalState.current,owner=before._historyOwner,snapshot=expenseSourceActionSnapshot(before,ex.id);
+    const key=owner+"|"+ex.id,operation={};
+    if(sourceActionPending.current[key]||withdrawalPending.current[ex.id])return false;
+    if(!snapshot)return false;
+    const remote=cloud.enabled()&&!mcSandbox();let timer;
+    const status=function(value){setSourceActionStatus(function(current){
+      if(value!=="pending"&&(!current[key]||current[key].operation!==operation))return current;
+      const next=Object.assign({},current);if(value)next[key]={id:ex.id,owner:owner,operation:operation,status:value};else delete next[key];return next;
+    });};
+    sourceActionPending.current[key]=operation;status("pending");
+    try{
+      if(remote){
+        const ack=await Promise.race([(async function(){const result=await write();const session=await cloud.session();if(!session||session.user.id!==owner)throw new Error("source owner changed");return result;})(),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("source timeout"));},10000);})]);
+        if(!ack||ack.acknowledged!==true||!Array.isArray(ack.rows)||!ack.rows.length)throw new Error("source unconfirmed");
+      }
+      if(!sourceActionMounted.current)throw new Error("source unmounted");
+      let applied=false,appliedSnapshot=null;
+      ReactDOM.flushSync(function(){set(function(s){
+        applied=false;appliedSnapshot=null;
+        if(expenseSourceActionSnapshot(s,ex.id)!==snapshot)return s;
+        const next=apply(s);if(!next||next===s)return s;applied=true;appliedSnapshot=expenseSourceActionSnapshot(next,ex.id);return next;
+      });});
+      if(!applied||expenseSourceActionSnapshot(withdrawalState.current,ex.id)!==appliedSnapshot)throw new Error("source intention changed");
+      status(null);if(success)showToast(success);return true;
+    }
+    catch(err){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner){status("error");showToast(t("f_source_save_error"));}return false;}
+    finally{clearTimeout(timer);if(sourceActionPending.current[key]===operation)delete sourceActionPending.current[key];}
+  };
+  const [incomeTransferStatus,setIncomeTransferStatus]=useState({});
+  useEffect(function(){
+    setIncomeTransferStatus(function(current){let next=current;
+      Object.keys(current).forEach(function(key){const a=current[key];
+        if(!["error","partial"].includes(a.status)||a.owner!==state._historyOwner||!incomeOwnTransferPlanValid(state,a.plan,true))return;
+        const e=(state.expenses||[]).find(function(x){return x.id===a.id;});
+        const peer=a.peer&&(state.expenses||[]).find(function(x){return x.id===a.peer.outgoing.id;});
+        if(!e||e.category!==a.plan.category||a.peer&&(!peer||peer.category!=="traspaso"||!ownTransferOutgoingValid(state,a.peer,"yes")))return;
+        if(next===current)next=Object.assign({},current);delete next[key];
+      });return next;
+    });
+  },[state,incomeTransferStatus]);
+  const setIncomeTransfer=async function(plan,peer){
+    const initial=withdrawalState.current;
+    if(!incomeOwnTransferPlanValid(initial,plan)||peer&&JSON.stringify(incomeOwnTransferPeer(initial,plan))!==JSON.stringify(peer))return;
+    const owner=plan.owner,key=owner+"|"+plan.incoming.id,ids=[plan.incoming.id].concat(peer?[peer.outgoing.id]:[]),operation={active:true};
+    if(ids.some(function(id){return sourceActionBusy(id)||withdrawalPending.current[id];}))return;
+    const sandbox=mcSandbox();
+    if(mcSandboxTransition()||!sandbox&&!cloud.enabled())return;
+    ids.forEach(function(id){sourceActionPending.current[owner+"|"+id]=operation;withdrawalPending.current[id]=operation;});
+    const live=function(){return operation.active&&sourceActionMounted.current&&withdrawalState.current._historyOwner===owner&&mcSandbox()===sandbox&&!mcSandboxTransition()?withdrawalState.current:null;};
+    const status=function(value){if(!sourceActionMounted.current||withdrawalState.current._historyOwner!==owner)return;
+      setIncomeTransferStatus(function(current){if(value!=="pending"&&current[key]&&current[key].operation!==operation)return current;
+        return Object.assign({},current,{[key]:{id:plan.incoming.id,owner:owner,plan:plan,peer:peer,operation:operation,status:value}});
+      });
+    };
+    status("pending");let timer,incomingConfirmed=false;
+    try{
+      await Promise.race([(async function(){
+        if(!sandbox&&!await cloud.canSetIncomeOwnTransfer(plan,live,peer))throw new Error("income transfer unavailable");
+        if(!live())throw new Error("income transfer cancelled");
+        const ack=sandbox?null:await cloud.setIncomeOwnTransfer(plan,live);
+        if(!live()||!sandbox&&!ack)throw new Error("income transfer unconfirmed");
+        let applied=false;const incomingAt=Date.now();
+        // React puede reproducir el updater después del finally: la decisión con ACK es pura.
+        ReactDOM.flushSync(function(){set(function(s){const next=applyIncomeOwnTransfer(s,plan,incomingAt,ack);applied=next!==s;return next;});});
+        const committedIncoming=(withdrawalState.current.expenses||[]).find(function(e){return e.id===plan.incoming.id;});
+        if(!applied||!incomeOwnTransferPlanValid(withdrawalState.current,plan,true)||!committedIncoming||committedIncoming.category!==plan.category)throw new Error("income transfer changed");incomingConfirmed=true;
+        if(peer){
+          // El primer ACK no reserva la otra fila: se valida la pareja elegida, nunca otra parecida.
+          if(!live()||!incomeOwnTransferWriteValid(live(),plan,peer,false))throw new Error("income transfer peer changed");
+          const peerAck=sandbox?null:await cloud.setIncomeOwnTransfer(plan,live,peer);
+          if(!live()||!sandbox&&!peerAck)throw new Error("income transfer peer unconfirmed");
+          applied=false;const outgoingAt=Date.now();
+          ReactDOM.flushSync(function(){set(function(s){const next=applyOwnTransferDecision(s,peer,"yes",outgoingAt,peerAck);applied=next!==s;return next;});});
+          const committedOutgoing=(withdrawalState.current.expenses||[]).find(function(e){return e.id===peer.outgoing.id;});
+          if(!applied||!ownTransferOutgoingValid(withdrawalState.current,peer,"yes")||!committedOutgoing||committedOutgoing.category!=="traspaso")throw new Error("income transfer peer changed");
+        }
+      })(),new Promise(function(_,reject){timer=setTimeout(function(){operation.active=false;reject(new Error("income transfer timeout"));},10000);})]);
+      status("done");if(live())showToast(t(plan.category==="ingreso"?"f_incomeown_income_done":"f_incomeown_done"));
+    }catch(err){
+      status(incomingConfirmed&&peer?"partial":"error");
+      if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner)showToast(t(incomingConfirmed&&peer?"f_incomeown_partial":"f_source_save_error"));
+    }finally{
+      operation.active=false;clearTimeout(timer);
+      ids.forEach(function(id){if(sourceActionPending.current[owner+"|"+id]===operation)delete sourceActionPending.current[owner+"|"+id];if(withdrawalPending.current[id]===operation)delete withdrawalPending.current[id];});
+    }
+  };
+  const [ownTransferStatus,setOwnTransferStatus]=useState({});
+  useEffect(function(){
+    setOwnTransferStatus(function(current){
+      let next=current;
+      Object.keys(current).forEach(function(key){const attempt=current[key];
+        if(attempt.status!=="error"||attempt.owner!==state._historyOwner)return;
+        const e=(state.expenses||[]).find(function(x){return x.id===attempt.id;});
+        if(!e||!ownTransferOutgoingValid(state,attempt.plan,attempt.decision))return;
+        if(attempt.decision==="yes"?e.category!=="traspaso":e.ownTransferRejected!==true)return;
+        if(next===current)next=Object.assign({},current);delete next[key];
+      });return next;
+    });
+  },[state.expenses,state.fixed,state.deleted,state._historyOwner,ownTransferStatus]);
+  const recognizeOwnTransfer=function(ex){
+    if(sourceActionBusy(ex.id))return;
+    const plan=ownTransferPlan(withdrawalState.current,ex);
+    if(!plan||withdrawalPending.current[ex.id])return;
+    withdrawalPending.current[ex.id]=true;
+    askChoice({title:t("f_owntransfer_title"),sub:tf("f_owntransfer_sub",{amount:eur(ex.amount),bank:entOf(plan.incoming.ent).label}),
+      options:[{v:"yes",label:t("f_owntransfer_yes")},{v:"no",label:t("f_owntransfer_no")}]}).then(async function(decision){
+      if(decision!=="yes"&&decision!=="no")return;
+      const key=plan.owner+"|"+ex.id,operation={};
+      const status=function(value){setOwnTransferStatus(function(current){
+        if(value!=="pending"&&(!current[key]||current[key].operation!==operation))return current;
+        return Object.assign({},current,{[key]:{id:ex.id,owner:plan.owner,plan:plan,decision:decision,operation:operation,status:value}});
+      });};
+      status("pending");
+      let timer;
+      try{
+        let ack;const sandbox=mcSandbox();
+        if(!sandbox){
+          ack=await Promise.race([cloud.decideOwnTransfer(plan,decision,function(){return withdrawalState.current;}),new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("transfer timeout"));},10000);})]);
+          if(!ack)throw new Error("transfer unconfirmed");
+        }
+        let applied=false;
+        ReactDOM.flushSync(function(){set(function(s){const next=applyOwnTransferDecision(s,plan,decision,Date.now(),ack);applied=next!==s;return next;});});
+        if(!applied)throw new Error("transfer changed");
+        status("done");if(withdrawalState.current._historyOwner===plan.owner)showToast(t(decision==="yes"?"f_owntransfer_done":"f_owntransfer_rejected"));
+      }catch(err){
+        const current=withdrawalState.current,e=(current.expenses||[]).find(function(x){return x.id===ex.id;});
+        const confirmed=e&&ownTransferOutgoingValid(current,plan,decision)&&(decision==="yes"?e.category==="traspaso":e.ownTransferRejected===true);
+        status(confirmed?"done":"error");if(!confirmed&&current._historyOwner===plan.owner)showToast(t("f_owntransfer_error"));
+      }
+      finally{clearTimeout(timer);}
+    }).finally(function(){delete withdrawalPending.current[ex.id];});
+  };
   const recognizeWithdrawal=function(ex){
+    if(sourceActionBusy(ex.id))return;
     if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
     if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
       showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)||cargoDeRecibo(ex,withdrawalState.current)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
@@ -555,7 +729,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
-    if(withdrawalPending.current[ex.id]) return;
+    if(withdrawalPending.current[ex.id]||sourceActionBusy(ex.id)) return;
     if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
@@ -603,7 +777,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(stale && stale.length) upd.catStale=stale; else delete upd.catStale;
         delete upd.catAckAt;   // decisión nueva: aún nadie la ha confirmado
         // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
-        if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
+        if(isTarget && upd.debtId && newCat!=="deudas"){ delete upd.debtId; delete upd.debtManual; }
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
         // duplicaría las participaciones del fondo.
         if(isTwin) return upd;
@@ -626,6 +800,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
       }
       const fuera={expenses:exps,catOverrides:ov,catRules:rules};
+      /* Sacar él de traspaso una salida del banco es «esto no es un traspaso mío»: sin comercio
+         («Movimiento») no se aprende regla ni override y la sincronización la volvía a pasar a traspaso
+         (`salidasTraspasoPropio`, re-revisión 230, P2-2). Va en `reciboNo`, que viaja entre móviles. */
+      if(ex.category==="traspaso"&&newCat!=="traspaso"&&esFilaDeBanco(ex)&&Number(ex.amount)>0) Object.assign(fuera,traspasoPropioNoPon(s,ex,Date.now()));
       // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
         const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];
@@ -641,11 +819,16 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   };
   /* «Es la cuota de…» desde la ficha (4.22.2, su rechazo: «no la puedo cambiar manualmente?»).
      La fila va a «Deudas» con esa deuda y el comercio se aprende para el mes que viene. */
+  /* Tocar la deuda que ya está encendida porque la enlazó el MOTOR la confirma a mano (`debtManual`):
+     antes el chip salía marcado y no hacía nada (R3 de la revisión, su queja de «no deja enlazarlo»).
+     Así también valen, sin migración, las que él marcó antes de que existiera la marca. */
   const setCuota=function(ex,debtId){
+    const confirma=ex.category==="deudas"&&ex.debtId===debtId&&!ex.debtManual;
     let subir=null;
     set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
-    if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
+    const d=confirma&&(state.debts||[]).find(function(x){ return x.id===debtId; });
+    if(showToast) showToast(confirma?tf("v4_cuota_confirmada",{name:(d&&String(d.name||"").trim())||catName("deudas")}):tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   /* «Es aportación a la meta X» desde la ficha (decisión suya del 24/10/2026). Toca dinero, así que
      PONERLA se confirma diciendo qué cambia («de 100 € a 350 €»), y si la meta ya tenía algo
@@ -663,6 +846,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     }).catch(function(){}).then(function(){ delete metaEnVuelo.current[k]; });
   };
   const setMeta=function(ex,goalId){
+    if(sourceActionBusy(ex.id))return;
     const subirMeta=function(){
       let subir=null;
       set(function(s){ const r=marcarAportacionMeta(s, ex.id, goalId); if(!r) return s; subir=r.e; return r.state; });
@@ -681,12 +865,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   /* «No es este recibo» (12/10/2026): el sync casa por nombre e importe parecidos y puede
      equivocarse. Sin la marca, la fila vuelve a contar como un gasto cualquiera. */
   const quitarRecibo=function(ex){
-    let subir=null;
-    set(function(s){ const r=quitarCargoDeRecibo(s, ex.id); if(!r) return s; subir=r.e; return r.state; });
+    const intended=quitarCargoDeRecibo(withdrawalState.current,ex.id);if(!intended)return;
     // La marca viaja en `source`, y se busca la fila por lo que es: su id aquí puede no ser el de la nube.
-    if(subir && cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
+    return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},function(s){const r=quitarCargoDeRecibo(s,ex.id);return r&&r.state;});
   };
   const setReceipt=function(ex,fixedId){
+    if(sourceActionBusy(ex.id))return;
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
@@ -704,15 +888,16 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
             ok:t("f_receipt_other_payment")}).then(function(yes){if(yes) save(signature);});return;
         }
       }
-      let subir=null;
+      const intended=fixedId!=null&&reponerCargoDeRecibo(withdrawalState.current,ex.id,fixedId,y,m,today,expected);
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
-      set(function(s){
+      const apply=function(s){
         // Solo si de ESTE cargo se dijo «no es este recibo»: confirmar lo deshace y repone la marca.
         const r=fixedId!=null&&reponerCargoDeRecibo(s,ex.id,fixedId,y,m,today,expected);
-        if(r){ subir=r.e; return r.state; }
+        if(r)return r.state;
         return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected);
-      });
-      if(subir && cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
+      };
+      if(intended)return runSourceAction(ex,function(){return cloud.setExpenseRecibo(intended.e);},apply);
+      set(apply);
     };
     // Deshacer el vínculo de un cargo marcado es decir «no es este recibo»: una sola salida.
     if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }
@@ -726,7 +911,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const repone=!!de&&reciboNoDe(state,fixedId,reciboNoIdentidad(ex),ex.id).length>0&&admiteMarcaDe(ex,de);
     if(!f&&!repone) return;
     const warnings=f?fixedPaymentManualLinkWarnings(state,ex,f,y,m,today):[];
-    const sub=repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))});
+    const sub=repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m,y))});
     askConfirm({title:tf("f_receipt_confirm",{name:de.name}),
       sub:warnings.length?React.createElement("span",null,sub,React.createElement("span",{style:{display:"block"},"data-testid":"receipt-manual-link-warning"},warnings.map(function(w){ return tf("f_receipt_possible_same",{name:w.name,date:fmtIsoCorto(w.date)}); }).join(" · "))):sub,
       ok:t(warnings.length?"f_receipt_other_payment":"f_receipt_yes")}).then(function(yes){ if(yes) save(JSON.stringify(warnings)); });
@@ -740,8 +925,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // vienen con su banco real y cambiárselo sería mentirse.
   const setBank=function(ex,b){
     if(ex && ex.source && ex.source!=="manual") return;
-    set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });
-    if(cloud.enabled()) cloud.setExpenseBank(ex,b).catch(function(){});   // durable (source manual:banco)
+    return runSourceAction(ex,function(){return cloud.setExpenseBank(ex,b);},function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });
   };
   // Guarda el CONCEPTO escrito a mano (2026-07-24). `noteEdited` blinda el texto: el siguiente
   // sync del banco rellena conceptos vacíos, pero nunca pisa lo que ha escrito el usuario.
@@ -781,20 +965,46 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     clearTimeout(renameTimer.current);
     renameTimer.current=setTimeout(function(){ if(retryRef.current) retryRef.current(); },ms+20);
   };
+  /* Un renombre sin ACK a los RENAME_AVISO_MS se marca `slow` y solo entonces sale el aviso
+     (ver `renameAvisoVisible`). Se mira antes de escribir: `set()` sella el estado aunque el
+     updater no cambie nada, y eso reescribiría el histórico por una marca que ya está. */
+  const renameAvisoTimers=useRef({}), renameAckVisto=useRef({});
+  const programaAvisoLento=function(e,pending,owner){
+    const k=e.id+"|"+pending.at;
+    if(pending.slow||renameAvisoTimers.current[k])return;
+    renameAvisoTimers.current[k]=setTimeout(function(){
+      delete renameAvisoTimers.current[k];
+      const fresh=renameState.current;
+      const sigue=fresh._historyOwner===owner&&(fresh.expenses||[]).some(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&x.renamePending.at===pending.at&&!x.renamePending.slow;});
+      if(sigue)set(function(s){return s._historyOwner===owner?expenseRenameSlow(s,e,pending):s;});
+    },typeof navigator!=="undefined"&&navigator.onLine===false?0:Math.max(0,RENAME_AVISO_MS-(Date.now()-pending.at))); // sin red: ya se sabe
+  };
   const retryRenames=function(volvioRed){
     if(!cloud.enabled()||mcSandbox()||mcSandboxTransition())return;
     const s=renameState.current, owner=s._historyOwner,deleted=expenseDeletedSet(s);
     (s.expenses||[]).forEach(function(e){
       const pending=e.renamePending;
+      if(pending&&!pending.quarantined&&!expenseIsTombstoned(e,deleted))programaAvisoLento(e,pending,owner);
       if(!pending||pending.quarantined||expenseIsTombstoned(e,deleted)||editCola.current.pend.some(function(p){return p.rename&&p.id===e.id&&p.rename.at===pending.at;}))return;
       const job={id:e.id,rename:pending,current:function(){
         const fresh=renameState.current;if(fresh._historyOwner!==owner)return null;
-        return (fresh.expenses||[]).find(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&!x.renamePending.quarantined&&x.renamePending.at===pending.at&&!expenseIsTombstoned(x,expenseDeletedSet(fresh));});
-      },ack:function(orig,ack){set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(orig,failures,quarantined,red){
+        const x=(fresh.expenses||[]).find(function(x){return x.id===e.id&&x.date===e.date&&x.amount===e.amount&&x.renamePending&&!x.renamePending.quarantined&&x.renamePending.at===pending.at&&!expenseIsTombstoned(x,expenseDeletedSet(fresh));});
+        /* El ACK anterior aún no ha llegado al estado (React lo pinta después), pero la nube ya
+           tiene ese nombre: sin esto la intención siguiente salía con el nombre viejo, la nube
+           respondía «rename identity changed» y contaba un rechazo falso → aviso con conexión. */
+        const ya=x&&renameAckVisto.current[x.id];
+        if(ya&&x.merchant===ya.merchant)delete renameAckVisto.current[x.id];
+        return ya&&x.merchant===ya.from?Object.assign({},x,{merchant:ya.merchant}):x;
+      },ack:function(orig,ack){renameAckVisto.current[orig.id]={from:orig.merchant,merchant:ack.comercio};set(function(fresh){return fresh._historyOwner===owner?expenseRenameAck(fresh,orig,pending,ack):fresh;});},fail:function(orig,failures,quarantined,red){
         const fresh=renameState.current,active=fresh._historyOwner===owner&&(fresh.expenses||[]).some(function(x){return x.id===orig.id&&x.date===orig.date&&x.amount===orig.amount&&x.renamePending&&x.renamePending.at===pending.at&&!x.renamePending.quarantined;});
         if(!active)return;
         if(!quarantined)renameEspera(job,red);
-        if(red)return; // sin red: ni cuenta ni toca el estado
+        // Sin red no cuenta como fallo; solo adelanta el aviso, que entonces dice la verdad.
+        if(red){
+          const yaLento=(fresh.expenses||[]).some(function(x){return x.id===orig.id&&x.renamePending&&x.renamePending.at===pending.at&&x.renamePending.slow;});
+          if(!yaLento)set(function(s){return s._historyOwner===owner?expenseRenameSlow(s,orig,pending):s;});
+          return;
+        }
         set(function(s){return s._historyOwner===owner?expenseRenameFailure(s,orig,pending,failures):s;});
         if(quarantined)showToast(t("g_rename_paused"));
       }};
@@ -826,7 +1036,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     document.addEventListener("visibilitychange",alVerse);
     return function(){ window.removeEventListener("online",alVolver); document.removeEventListener("visibilitychange",alVerse); };
   },[state.expenses]);
-  useEffect(function(){ return function(){ clearTimeout(renameTimer.current); }; },[]);
+  useEffect(function(){ return function(){ clearTimeout(renameTimer.current);
+    Object.keys(renameAvisoTimers.current).forEach(function(k){ clearTimeout(renameAvisoTimers.current[k]); }); }; },[]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -838,7 +1049,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       return true;
     }).sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
     if(cands[0]){
-      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:String(Math.abs(cands[0].amount)).replace('.',','), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
+      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:String(Math.abs(cands[0].amount)).replace('.',numDecSep()), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
       if(clearFocus) clearFocus();
       return;
     }
@@ -848,7 +1059,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // pareja 2026-07-10, punto 8). Si en 12s no aparece, abrimos el más reciente como antes.
     const tm=setTimeout(function(){
       const e=(state.expenses||[]).slice().sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); })[0];
-      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
+      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
       if(clearFocus) clearFocus();
     }, 12000);
     return function(){ clearTimeout(tm); };
@@ -872,7 +1083,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        vaciar el estado de edición era justo lo contrario. Ahora se deja sincronizado con lo
        guardado, que es lo que ese comentario prometía. */
     const sincroniza=function(e){
-      setEditExp({ id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','),
+      setEditExp({ id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()),
         income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10) });
     };
     const origDay=String(orig.date||"").slice(0,10);
@@ -927,9 +1138,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Las ventanas de mes son de Madrid: el memo también debe caducar al cambiar el día ALLÍ, que
   // en un dispositivo de otra zona no coincide con `todayKey`.
   const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
-  const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
-    :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
-    [expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled,todayKey]);
+  const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(stateDef,null,expensesDef)
+    :lastPaydayOf(expensesDef,null,expenseDeletedSet(lapidasDef)),
+    [lapidasDef,state.flows,cycleEnabled,todayKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
@@ -942,8 +1153,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
      ciclo. Lista de más viejo a más nuevo, como la de meses. */
   const ciclos=useMemo(function(){
     if(preset!=="cycle" || !cycle) return null;
-    const delSet=expenseDeletedSet(state);
-    const busca=function(ms){ return cycleEnabled?budgetPaydayOf(state,ms,expensesDef):lastPaydayOf(expensesDef,ms,delSet); };
+    const delSet=expenseDeletedSet(lapidasDef);
+    const busca=function(ms){ return cycleEnabled?budgetPaydayOf(stateDef,ms,expensesDef):lastPaydayOf(expensesDef,ms,delSet); };
     const out=[{start:cycle.start, inc:cycle.inc, from:cycle.start.getTime(), to:null}];
     for(let i=0;i<GX_CICLOS_MAX;i++){
       const sig=out[out.length-1], prev=busca(sig.from-1);
@@ -951,7 +1162,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       out.push({start:prev.start, inc:prev.inc, from:prev.start.getTime(), to:sig.from-1});
     }
     return out.reverse();
-  },[preset,cycle,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.flows,cycleEnabled]);
+  },[preset,cycle,lapidasDef,state.flows,cycleEnabled]);
   // El ciclo pasado elegido (null = el en curso, también si el elegido ya no existe).
   const cicloPas=ciclos&&cicloSel!=null?ciclos.find(function(c){ return c.to!=null&&c.from===cicloSel; })||null:null;
   const cicloPasRef=useRef(cicloPas); cicloPasRef.current=cicloPas;
@@ -1019,7 +1230,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     for(let i=0;i<src.length;i++){
       const e=src[i];
       // La lápida puede venir de otro dispositivo sin retirar aún esta fila local.
-      if(e.autoGemelo||expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
+      if(e.autoGemelo||expenseIsTombstoned(e,expenseDeletedSet(lapidasDef))) continue;
       const ms=dateMs(e.date);
       if(!inBounds(ms,bounds)) continue;
       if(fil){
@@ -1027,12 +1238,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         if(catOf(e.category||"otros").id!==fil.id) continue;
         // Los cargos de las filas grises (recibos, cuotas, metas, inversiones) no se enseñan con
         // filtro (SPEC §4.4): no suman a la categoría. Siguen en Movimientos sin filtro (los recibos, sueltos).
-        if(grisDeGasto(e, expenseBucket(e, state))) continue;
+        if(grisDeGasto(e, expenseBucket(e, stateDef))) continue;
       }
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
       if(bankSet && !bankSet.has(gastosBancoFiltro(e))) continue;
-      if(bkSet && !bkSet.has(expenseBucket(e, state))) continue;
+      if(bkSet && !bkSet.has(expenseBucket(e, stateDef))) continue;
       if(needle){
         // El concepto también se busca: si tu padre busca «alquiler» tiene que salir el bizum
         // cuyo mensaje lo dice, aunque el título sea solo el nombre de la persona (2026-07-24).
@@ -1043,10 +1254,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       }
       out.push(e);
     }
-    return sortExpensesForDisplay(out,state);
+    return sortExpensesForDisplay(out,stateDef);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,bounds,sel,bankSel,bucketSel,q,catFil,preset,madridDay,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
+  },[lapidasDef,bounds,sel,bankSel,bucketSel,q,catFil,preset,madridDay,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -1110,7 +1321,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Un ciclo pasado es como un mes cerrado: sin límite (no hay foto del límite de entonces).
   const budgetApplies=preset==="months"||preset==="cycle"&&!cicloPas;
   const monthSummary=useMemo(function(){
-    const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    const bs=monthBudgetStats(stateDef,null,null,null,selectedPeriod);
     /* La cifra grande sigue su modo (Balance o Gastos), pero el margen contra el límite es el de
        Inicio (`dashboardBudgetStats`, modo "mes") y el del widget (`against` de ingest): en el mes
        natural, gasto menos ingresos sin la nómina; en Mi ciclo, el neto. Cada pantalla con su
@@ -1130,15 +1341,15 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[lapidasDef,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   /* Sumas por día para la cifra viva. Mismas porciones del estado que la cabecera (las lee
      `expenseCountsBudget`); NO depende de la búsqueda ni de los filtros: la cifra es la del
      presupuesto, igual que antes la tarjeta («buscar no redefine el límite»). */
   const cifra=useMemo(function(){
     const months=preset==="months";
     const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
-    return gastosCifraDias(state, expensesDef, months?{cycle:null}:selectedPeriod, months?-Infinity:bounds.from, to, months);
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,bounds,todayKey,madridDay]);
+    return gastosCifraDias(stateDef, expensesDef, months?{cycle:null}:selectedPeriod, months?-Infinity:bounds.from, to, months);
+  },[lapidasDef,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,bounds,todayKey,madridDay]);
   /* Lo mismo para el filtro de categoría: sus sumas por día con la regla del desglose. En «meses»
      se acumula por mes sobre el histórico entero (para comparar con la misma categoría el mes
      anterior); en Mi ciclo / Rango / Todo, dentro de la ventana. Solo existe con filtro puesto. */
@@ -1147,8 +1358,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     if(!catFilId) return null;
     const months=preset==="months";
     const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
-    return gastosCifraDias(state, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaCat(catFilId));
-  },[catFilId,expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,preset,bounds,todayKey,madridDay]);
+    return gastosCifraDias(stateDef, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaCat(catFilId));
+  },[catFilId,lapidasDef,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,preset,bounds,todayKey,madridDay]);
   /* Las sumas de LO QUE SE VE con los filtros de la hoja (tanda 6: categorías, bancos o «Qué
      contar»): las mismas filas que la lista (`filtered`, misma referencia de cada gasto; si además
      hay búsqueda, también la cuenta) y, de ellas, las que la tarjeta no marca como «no cuenta» —
@@ -1161,7 +1372,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     if(!filtraVista) return null;
     const months=preset==="months";
     const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
-    return gastosCifraDias(state, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaVista(filtered, bucketSel));
+    return gastosCifraDias(stateDef, expensesDef, {cycle:null}, months?-Infinity:bounds.from, to, months, gastosFilaVista(filtered, bucketSel));
   },[filtraVista,filtered,bucketSel,expensesDef,preset,bounds]);
   /* Categorías enseña el mes elegido en su fila de meses (SPEC §5). El límite y la barra del
      presupuesto solo en el mes en curso (o Mi ciclo): no hay foto del límite de un mes pasado, y
@@ -1173,7 +1384,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
-    const rows0=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,catsPeriod);
+    const rows0=categorySpentByMonth(stateDef,null,null,catsPeriod);
     // Una categoría que ya no existe (id viejo o raro) se PINTA como «Otros» (catOf); agrupar por
     // el id crudo enseñaba dos filas «Otros» (90 € y 15 €, captura de la tanda 2, 24/10). Se suma
     // en la que se ve, así el total sigue cuadrando con la cifra de arriba.
@@ -1189,7 +1400,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       return String(a.id).localeCompare(String(b.id));
     });
     return catsBudget?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,catsPeriod,catsBudget,todayKey,madridDay]);
+  },[lapidasDef,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,catsPeriod,catsBudget,todayKey,madridDay]);
   /* Las categorías de la hoja de Filtros: las de MÁS GASTO del periodo que se ve, sacadas de este
      mismo desglose (no de otra cuenta): así las cinco de la hoja son las cinco primeras de
      Categorías. Sin las que no han gastado nada (las de límite a 0). */
@@ -1212,7 +1423,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const chips=[{v:100,label:"100 €"},{v:200,label:"200 €"},{v:300,label:"300 €"}];
     if(cur>0) chips.push({v:0,label:t("g_cat_budget_clear")});
     askText({ title:tf("g_cat_budget_title",{cat:catName(id)}), sub:t("g_cat_budget_sub"),
-      ph:cur>0?String(cur).replace(".",","):"200", ok:t("save"), chips:chips })
+      ph:cur>0?String(cur).replace(".",numDecSep()):"200", ok:t("save"), chips:chips })
       .then(function(raw){
         if(raw==null) return;
         const amt=parseAmt(raw);
@@ -1229,15 +1440,23 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // cuenta el globito del icono y las enseña su sección (antes se filtraban al pintar).
   // «Ya la he dado de baja» (SPEC §6.4) guarda la fecha de su último cobro: se esconde mientras no
   // llegue uno posterior, y si llega vuelve con aviso (darla de baja no es descartarla para siempre).
+  /* Lo que ya es un recibo no se propone (`subsDeRecibos`/`subEsRecibo`, 08): antes solo se
+     comparaba el nombre del recibo con el del comercio, y el agua de Recibos salía «por revisar»
+     con su cargo ya enlazado (11/11/2026). El motor va en su propio memo, con las porciones que
+     lee (`state` cambia en cada `set()`), y solo si hay alguna candidata: descartar o dar de baja
+     una no lo vuelve a pasar. */
+  const subsRecibos=useMemo(function(){
+    return (subs||[]).some(function(sp){ return sp.active; })?subsDeRecibos(state):null;
+  },[subs,state.fixed,state.oneoffs,state.expenses,state.bankTx,state.reciboNo,state.reciboBorrado,state.accounts,state.debts,state.deleted,madridDay]);
   const novelSubs=useMemo(function(){
     const dismissed=state.subsDismissed||[], baja=state.subsBaja||{};
     return (subs||[]).filter(function(sp){
       if(!sp.active) return false;
       if(dismissed.indexOf(sp.key)!==-1) return false;
       if(baja[sp.key]!=null && !(sp.lastMs>baja[sp.key])) return false;
-      return !(state.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
+      return !subEsRecibo(state,sp,subsRecibos);
     });
-  },[subs,state.subsDismissed,state.subsBaja,state.fixed]);
+  },[subs,state.subsDismissed,state.subsBaja,state.fixed,subsRecibos]);
   const [subFicha,setSubFicha]=useState(null);
   const [subInfo,setSubInfo]=useState(false);
   // Cambiar de sección cierra las fichas (SPEC §2.2): salir de Gastos también vuelve a Movimientos.
@@ -1256,7 +1475,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const subARecibos=function(sp, amtTxt){
     const useAmt=parseFloat(String(amtTxt).replace(",","."))||sp.amount;
     const acc=(state.accounts||[]).find(function(a){ return accRole(a)==="fijos"; })||(state.accounts||[]).find(function(a){ return accRole(a)==="ambos"; });
-    const it={ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" };
+    // Con su mes de alta: el resumen del mes cerrado de Plan no lo cuenta en meses de antes.
+    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" });
     const dd=parseDate(sp.ult[0].e.date).getDate(); if(dd>=1&&dd<=31) it.day=dd;
     set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
     showToast(tf("gv5_sub_recibos_ok",{n:sp.name,b:entOf((acc&&acc.ent)||"sabadell").label}));
@@ -1391,11 +1611,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
-  const l10nKey=CURLANG+"|"+DISP.sym;
+  // El ojo también: las filas memorizadas (`MovRow`) solo se repintan si cambia esta clave.
+  const l10nKey=CURLANG+"|"+DISP.sym+"|"+(DISP.oculto?1:0);
 
   /* Meses de la lista (para la fila de meses) y dónde empieza cada uno. Una pasada por cambio de
      lista; `gastosDia` va por caché de hora, sin un `Date` por fila. */
@@ -1870,9 +2091,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
             React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
             q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
           ),
-          React.createElement("button",{type:"button",className:"v4-chip"+(nFilters?" on":""),onClick:function(){ setFilterOpen(true); },title:t("g_filters"),
-            style:{minHeight:0,padding:"0 14px",fontWeight:700,flex:"0 0 auto"}},
-            "🎛️"+(nFilters?" "+nFilters:""))
+          React.createElement("button",{type:"button",className:"gx-filter-btn"+(nFilters?" on":""),onClick:function(){ setFilterOpen(true); },title:t("g_filters"),
+            "aria-label":t("g_filters"),"aria-expanded":filterOpen,"data-testid":"gastos-filtros"},
+            React.createElement("svg",{"aria-hidden":true,width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+              React.createElement("path",{d:"M4 7h4m4 0h8M4 17h8m4 0h4"}),
+              React.createElement("circle",{cx:10,cy:7,r:2}),
+              React.createElement("circle",{cx:14,cy:17,r:2})),
+            nFilters>0 && React.createElement("span",{className:"gx-sec-globo num","aria-hidden":true,"data-testid":"gastos-filtros-globo"},nFilters))
         ),
         // Resumen de los filtros activos (categorías/bancos) + botón para quitarlos. El botón que
         // ABRE el sheet ya no vive aquí: se movió junto al buscador (ver arriba).
@@ -1936,7 +2161,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       !heavyOk ? null
       : novelSubs.length
         ? React.createElement("div",{className:"gx-subs-lista"},
-            novelSubs.map(function(sp){ return React.createElement(GxSubTarjeta,{key:sp.key,sp:sp,vuelve:!!subsBaja&&subsBaja[sp.key]!=null,onOpen:abreSub}); }))
+            novelSubs.map(function(sp){ return React.createElement(GxSubTarjeta,{key:sp.key,sp:sp,vuelve:!!subsBaja&&subsBaja[sp.key]!=null,onOpen:abreSub,l10n:l10nKey}); }))
         : React.createElement("div",{className:"gx-vacio"},
             React.createElement("div",{className:"gx-vacio-ic","aria-hidden":true},"✓"),
             React.createElement("div",{className:"gx-vacio-t serif"},t("gv5_subs_ok_t")),
@@ -1962,7 +2187,17 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         setDetailId(null); setEditExp(null);
       },
       setCat:setCat, setCuota:setCuota, setMeta:setMeta, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
+      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,confirmMonthlyInvestment:confirmMonthlyInvestment,monthlyStatus:monthlyStatus,
+      recognizeOwnTransfer:recognizeOwnTransfer,ownTransferStatus:ownTransferStatus[state._historyOwner+"|"+detailId]||null,
+      setIncomeTransfer:setIncomeTransfer,incomeTransferStatus:incomeTransferStatus[state._historyOwner+"|"+detailId]||null,
+      sourceActionStatus:sourceActionStatus[state._historyOwner+"|"+detailId],refreshSourceAction:function(){
+        if(!onRefreshExpenses)return Promise.reject(new Error("refresh unavailable"));
+        const owner=withdrawalState.current._historyOwner,key=owner+"|"+detailId,attempt=sourceActionStatus[key];
+        return onRefreshExpenses().then(function(){if(sourceActionMounted.current&&withdrawalState.current._historyOwner===owner)setSourceActionStatus(function(current){
+          if(!attempt||current[key]!==attempt||attempt.status==="pending")return current;
+          const next=Object.assign({},current);delete next[key];return next;
+        });});
+      },
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -2328,7 +2563,7 @@ const GX_DIGITOS=["0","1","2","3","4","5","6","7","8","9"];
 function GxCifra({n}){
   const ok=typeof n==="number"&&isFinite(n);
   if(!ok) return React.createElement("div",{className:"gx-num num"},React.createElement("span",{"data-testid":"gastos-cifra"},"—"));
-  const p=eurParts(n), ent=p.ent, dec=","+p.dec;
+  const p=eurParts(n), ent=p.ent, dec=p.sep+p.dec;
   const celdas=function(txt, base){
     const out=[];
     for(let i=0;i<txt.length;i++){
@@ -2483,7 +2718,7 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       // Renombrado en vuelo: la lista enseña ya el nombre nuevo, igual que la ficha, sin tocar
       // `merchant` (eso solo cambia con el ack del servidor). En cuarentena vuelve al guardado.
       React.createElement("div",{className:"nm-title"}, shownName||"—",
-        pendingName?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
+        pendingName&&renameAvisoVisible(e.renamePending)?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
       React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
@@ -2671,14 +2906,71 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
+  const transferSandbox=mcSandbox();
   const paymentDay=new Date().toDateString();
+  // Las relaciones leen colecciones ajenas a la fila y el día civil local. _savedAt cambia
+  // todo el estado al escribir: memorizar por state recalcularía el histórico en cada render.
+  const incomeSignature=useMemo(function(){return JSON.stringify(abierto?incomeOwnTransferPlan(state,exp):null);},
+    [abierto,exp,paymentDay,state.expenses,state.accounts,state._historyOwner,state.flows,state.fixed,state.debts,state.oneoffs,state.bankTx,state.reciboNo,state.reciboBorrado,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed]);
+  const incomePlan=useMemo(function(){return JSON.parse(incomeSignature);},[incomeSignature]);
+  const incomePeerSignature=useMemo(function(){return JSON.stringify(incomePlan?incomeOwnTransferPeer(state,incomePlan):null);},
+    [incomePlan,paymentDay,state.expenses,state.accounts,state._historyOwner,state.flows,state.fixed,state.debts,state.oneoffs,state.bankTx,state.reciboNo,state.reciboBorrado,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed]);
+  const incomePeer=useMemo(function(){return JSON.parse(incomePeerSignature);},[incomePeerSignature]);
+  const incomeLive=useRef(null);incomeLive.current={plan:incomePlan,peer:incomePeer,state:state,sandbox:transferSandbox};
+  const [incomeOffer,setIncomeOffer]=useState(null),[incomePeerOffer,setIncomePeerOffer]=useState(null),[incomeWithPeer,setIncomeWithPeer]=useState(false);
+  useEffect(function(){
+    let active=true;setIncomeOffer(null);setIncomeWithPeer(false);
+    const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
+    let timer;
+    (async function(){try{
+      if(!incomePlan||!current())return;
+      const ready=transferSandbox?incomeOwnTransferPlanValid(incomeLive.current.state,incomePlan):await Promise.race([cloud.canSetIncomeOwnTransfer(incomePlan,function(){return current()?incomeLive.current.state:null;}),new Promise(function(resolve){timer=setTimeout(function(){resolve(false);},10000);})]);
+      if(current()&&ready)setIncomeOffer(incomePlan);
+    }catch(err){}finally{clearTimeout(timer);}})();
+    return function(){active=false;clearTimeout(timer);};
+  },[incomePlan,transferSandbox]);
+  useEffect(function(){
+    let active=true;setIncomePeerOffer(null);setIncomeWithPeer(false);let timer;
+    const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.peer===incomePeer&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
+    (async function(){try{
+      if(!incomePlan||!incomePeer||!current())return;
+      const ready=transferSandbox?true:await Promise.race([cloud.canSetIncomeOwnTransfer(incomePlan,function(){return current()?incomeLive.current.state:null;},incomePeer),new Promise(function(resolve){timer=setTimeout(function(){resolve(false);},10000);})]);
+      if(current()&&ready)setIncomePeerOffer(incomePeer);
+    }catch(err){}finally{clearTimeout(timer);}})();
+    return function(){active=false;clearTimeout(timer);};
+  },[incomePlan,incomePeer,transferSandbox]);
+  // Conservar también la firma: copiar arrays sin cambiar el plan no repite prelecturas remotas.
+  const transferSignature=useMemo(function(){return JSON.stringify(abierto?ownTransferPlan(state,exp):null);},
+    [abierto,exp,paymentDay,state.expenses,state.accounts,state._historyOwner,state.fixed,state.debts,state.oneoffs,state.bankTx,state.reciboNo,state.reciboBorrado,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed]);
+  const transferPlan=useMemo(function(){return JSON.parse(transferSignature);},[transferSignature]);
+  const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
+  const [transferOffer,setTransferOffer]=useState(null);
+  useEffect(function(){
+    let active=true;
+    const current=function(){return active&&transferLive.current.plan===transferPlan&&transferLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
+    // La ficha permanece montada al cerrarse. Cada plan tiene su propia cancelación y nunca
+    // habilita la siguiente ficha con la respuesta atrasada de una lectura anterior.
+    const check=async function(){
+      if(!transferPlan||!current())return false;
+      setTransferOffer(null);let timer,ready=false;
+      try{
+        ready=transferSandbox?ownTransferPlanValid(transferLive.current.state,transferPlan):await Promise.race([
+          cloud.canConfirmOwnTransfer(transferPlan,function(){return current()?transferLive.current.state:null;}),
+          new Promise(function(resolve){timer=setTimeout(function(){resolve(false);},10000);})]);
+      }catch(err){}finally{clearTimeout(timer);}
+      if(!current())return false;
+      setTransferOffer(ready?{plan:transferPlan,check:check}:null);return ready;
+    };
+    setTransferOffer(null);check();
+    return function(){active=false;};
+  },[transferPlan,transferSandbox]);
   const paymentRelation=useMemo(function(){return abierto?expensePaymentRelationUI(state,exp):null;},
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
   const swipe=useSheetSwipe(abierto, onClose);
@@ -2784,8 +3076,20 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    exp.renamePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-rename-pending"},t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry"))),
     trace,duplicate,paired,reciboAviso,
+    sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
+    incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
+      incomePlan.category==="ingreso"&&React.createElement("div",{className:"hint"},t("f_incomeown_income_hint")),
+      incomePeer&&incomePeerOffer===incomePeer&&React.createElement("label",{className:"hint"},React.createElement("input",{type:"checkbox","data-testid":"exp-income-own-peer",checked:incomeWithPeer,disabled:incomeTransferStatus&&incomeTransferStatus.status==="pending",onChange:function(e){setIncomeWithPeer(e.target.checked);}}),tf("f_incomeown_peer",{bank:entOf(incomePeer.outgoing.ent).label,amount:eur(incomePeer.outgoing.amount)})),
+      React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-income-own",disabled:incomeTransferStatus&&incomeTransferStatus.status==="pending",onClick:function(){setIncomeTransfer(incomePlan,incomeWithPeer&&incomePeerOffer===incomePeer?incomePeer:null);}},t(incomePlan.category==="ingreso"?"f_incomeown_income":"f_incomeown_action"))),
+    incomeTransferStatus&&incomeTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-income-own-status"},React.createElement("div",null,t(incomeTransferStatus.status==="pending"?"f_source_pending":incomeTransferStatus.status==="partial"?"f_incomeown_partial":"f_source_save_error")),incomeTransferStatus.status!=="pending"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-income-own-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
+    transferPlan&&transferOffer&&transferOffer.plan===transferPlan&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer",
+      disabled:!transferOffer||transferOffer.plan!==transferPlan||ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status==="pending",onClick:function(){
+        if(!transferOffer||transferOffer.plan!==transferPlan)return;
+        // Revalidar también al pulsar: haber abierto la ficha no reserva esas filas remotas.
+        transferOffer.check().then(function(ready){if(ready&&transferLive.current.plan===transferPlan)recognizeOwnTransfer(exp);});
+      }},t("f_owntransfer_title")),
+    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},React.createElement("div",null,t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),ownTransferStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
       exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
@@ -2831,10 +3135,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
           // (es lo que pide el aviso de la retirada), y solo entonces se ofrece confirmar otro.
           reciboConfirmable&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-"+reciboConfirmable.id,
-            onClick:function(){ setReceipt(exp,reciboConfirmable.id); }},reciboConfirmable.name+" · "+eur(occAmountIn(reciboConfirmable,receiptMonth))),
+            onClick:function(){ setReceipt(exp,reciboConfirmable.id); }},reciboConfirmable.name+" · "+eur(occAmountIn(reciboConfirmable,receiptMonth,receiptYear))),
           (receiptLinked||reciboDe)&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
           !receiptLinked&&!reciboDe&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
-            onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); }),
+            onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth,receiptYear))); }),
           !receiptLinked&&!reciboDe&&receiptPuntuales.map(function(o){ return React.createElement("button",{key:o.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+o.id,
             onClick:function(){ setReceipt(exp,o.id); }},o.name+" · "+eur(o.amount)); })),
         !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")),
@@ -2853,7 +3157,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
         debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
-          onClick:function(){ if(!on) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
+          "data-manual":on&&exp.debtManual?"1":null,onClick:function(){ if(!on||!exp.debtManual) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
     /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
        los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
        explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está
@@ -2887,15 +3191,28 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     // seguía bloqueando toda la pantalla, aunque el dato sí hubiera cambiado (feedback 18/9).
     swipe.close(function(){ onClose(true); });
   };
+  const pendingSourceStatus=sourceActionStatus&&sourceActionStatus.id===exp.id?sourceActionStatus:
+    ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"?ownTransferStatus:
+    incomeTransferStatus&&incomeTransferStatus.status!=="done"?incomeTransferStatus:null;
+  /* El aviso de nombre pendiente flota sobre el pie, no dentro del cuerpo: metido entre los
+     chips empujaba toda la ficha ~60 px al aparecer (vídeo del 12/11/2026). Y solo sale si la
+     subida tarda o la nube la rechazó (`renameAvisoVisible`), no en el segundo normal de vuelo. */
+  const renameAviso=renameAvisoVisible(exp.renamePending)&&React.createElement("div",{className:"v4-ficha-aviso",role:"status","data-testid":"expense-rename-pending"},
+    React.createElement("span",null,t(exp.renamePending.quarantined?"g_rename_paused":"g_rename_pending")),
+    React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry")));
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
+    renameAviso,
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+    React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
+        trMonthlyProposal(state,exp,Date.now())&&React.createElement("div",{className:"hint",style:{padding:"8px 16px"},"data-testid":"tr-monthly-proposal"},
+          React.createElement("span",null,t("tr_monthly_question")),
+          React.createElement("button",{type:"button",className:"btn btn-ghost",disabled:!!(monthlyStatus&&monthlyStatus.id===exp.id&&monthlyStatus.status==="pending"),onClick:function(){confirmMonthlyInvestment(exp);},"data-testid":"tr-monthly-confirm"},t("tr_monthly_title"))),
         React.createElement(ExpenseFichaLayout,{kind:editExp.income?"ingreso":"gasto",onKind:function(k){
             if(auto){ lockedToast(); return; }
             const income=k==="ingreso"; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});

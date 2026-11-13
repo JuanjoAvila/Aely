@@ -1,7 +1,61 @@
 // Motivo con identidad: `runBankSync` no llamó al banco porque no había pull de la nube (15/9).
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
+// El worker no vuelve a leer el banco: solo puede enseñar el cálculo de ESTA víspera.
+// La cifra es la de «¿Te llega?», incluidas las cuotas sin día de planCoverState.
+function receiptEveProducer(state,totals,now){
+  now=now||new Date();
+  const dateKey=function(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+  const calculatedOn=dateKey(now), tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,12);
+  const current=totals.curYear===now.getFullYear()&&totals.curMonth===now.getMonth()+1&&totals.today===now.getDate();
+  const readSince=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1).getTime(), readNow=now.getTime();
+  const futureRead=function(v){ const at=Date.parse(v); return isFinite(at)&&at>readNow; };
+  const byBank=Object.create(null);
+  let pending=null;
+  return function(charge,bank){
+    const due=new Date(totals.curYear,totals.curMonth-1,charge.day,12);
+    const validDay=typeof charge.day==="number"&&Number.isInteger(charge.day)&&due.getFullYear()===totals.curYear&&due.getMonth()+1===totals.curMonth&&due.getDate()===charge.day;
+    const dueOn=validDay?dateKey(due):"";
+    const name=String(charge.name||"?").replace(/[\r\n\u2028\u2029]+/g," ");
+    const vals={name:name,x:eur(charge.amount)};
+    const eve={v:1,title:t("rc_title_tmrw"),body:tf("rc_body_tmrw",vals),coverage:"unknown",calculatedOn:calculatedOn,dueOn:dueOn};
+    if(!current||dueOn!==dateKey(tomorrow)||typeof bank!=="string"||!bank) return eve;
+    if(!Object.prototype.hasOwnProperty.call(byBank,bank)){
+      const bal=totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal,bank)?totals.bankBal[bank]:null;
+      let bankOB=false, future=false;
+      const stale=(state.bankIssues||[]).some(function(i){ return i&&i.ent===bank; })
+        ||(state.accounts||[]).some(function(a){
+          if(!a||a.ent!==bank) return false;
+          if(a.bankIban||a.bankUid||a.balSaldo!=null) bankOB=true;
+          if(futureRead(a.saldoLeidoAt)||futureRead(a.balanceAt)) future=true;
+          return a.balanceStale;
+        })
+        ||(state.obAccounts||[]).some(function(a){ return a&&a.ent===bank&&a.stale; });
+      // Una lectura futura no se vuelve fiable porque otra cuenta o conexion tenga un sello anterior.
+      if(bankOB&&!future) future=Object.keys(state.obBalAt||{}).some(function(asp){ return entFromAspsp(asp)===bank&&futureRead(state.obBalAt[asp]); });
+      if(!future&&bank==="trade_republic"&&saldoLoMandaPuenteNativo(state,bank)) future=futureRead(state.lastTrSync);
+      const readAt=saldoLeidoDelBanco(state,bank);
+      let min=null;
+      if(typeof bal==="number"&&isFinite(bal)&&!stale&&readAt>0&&readAt>=readSince&&readAt<=readNow&&!future){
+        if(pending===null) pending=planChargesMonth(state,totals.curMonth,totals.curYear,totals.today).pendingBills;
+        const cover=planCoverState(totals,bank,0,pending);
+        if(cover&&typeof cover.min==="number"&&isFinite(cover.min)) min=cover.min;
+      }
+      byBank[bank]=min;
+    }
+    const min=byBank[bank];
+    if(min===null) return eve;
+    eve.coverage=min<-0.005?"short":"enough";
+    eve.body=tf(eve.coverage==="short"?"rc_body_tmrw_short":"rc_body_tmrw_enough",Object.assign({},vals,{saldo:eur(min),bank:String(entOf(bank).label).replace(/[\r\n\u2028\u2029]+/g," ")}));
+    return eve;
+  };
+}
+/* Monta la barra de abajo donde le toca: en su sitio o, con Tus recibos encima (N8), en <body>. */
+function BarraFuera({fuera, children}){
+  return fuera?ReactDOM.createPortal(children, document.body):children;
+}
 function App(){
   const [state,setStateRaw]=useState(loadState);
+  useEffect(function(){ mcScheduleIdle(mcCalentarGlifos,6000); },[]);
   const [modeChangePending,setModeChangePending]=useState(false);
   useEffect(function(){
     let timer=null;
@@ -395,12 +449,14 @@ function App(){
      avisos seguidos se pisaban: el temporizador del PRIMERO borraba el SEGUNDO a mitad. Los largos
      (un resumen de sincronización) duran algo más para que dé tiempo a leerlos. */
   const toastTimer=useRef(0);
-  const showToast=(m)=>{ setToast(m); if(toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current=setTimeout(()=>{ toastTimer.current=0; setToast(null); }, String(m||"").length>60 ? 4000 : 2200);
+  /* Un aviso con cifras puede llegar como función: se vuelve a formatear en cada pintado y el ojo
+     esconde también la cifra del que ya está en pantalla (auditoría de la 222, P2-13). */
+  const showToast=(m)=>{ setToast(typeof m==="function"?{f:m}:m); if(toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current=setTimeout(()=>{ toastTimer.current=0; setToast(null); }, String((typeof m==="function"?m():m)||"").length>60 ? 4000 : 2200);
     // Telemetría: TODO error que ve el usuario en pantalla viaja a app_events. Antes solo se
     // subían los crashes/errores no capturados — los fallos "domados" (✕/⚠ en un toast, como el
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
-    try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
+    try{ const s=String((typeof m==="function"?m():m)||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
   useEffect(function(){
     const warning=function(event){
@@ -420,6 +476,7 @@ function App(){
     const r=fxRateOf(c,state);
     if(c!=="EUR" && r>0){ DISP.sym=CUR_SYM[c]||c; DISP.k=1/r; }
     else { DISP.sym="€"; DISP.k=1; }
+    DISP.oculto=!!(state.settings&&state.settings.ocultarImportes);
   })();
   const savedLang=(state.settings&&state.settings.lang)||"es";
   const [langLoaded,setLangLoaded]=useState(0);
@@ -732,7 +789,9 @@ function App(){
         // puede ser otro y el UPDATE no tocaría nada).
         if(rec.recat.length || kept.recat.length){
           setTimeout(function(){
-            rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
+            // Un traspaso propio se intenta una vez: si la nube no lo acepta, el pull siguiente no lo
+            // reescribe en cada vuelta a primer plano (`marcarIntentoTraspaso`, re-revisión 230).
+            rec.recat.forEach(function(r){ if(r.cat==="traspaso") marcarIntentoTraspaso(r.expense); cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
             kept.recat.forEach(function(r){
               cloud.setExpenseCat(r.expense, r.cat).then(function(n){
                 if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); },false);
@@ -911,10 +970,21 @@ function App(){
           // Los «no es este recibo» no se pisan con la lista de quien llegó el último: clave a
           // clave gana lo más reciente que se dijo, sea ponerlo o levantarlo (`reciboNoUnion`).
           if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));
+          // Las fotos del mes de Plan › Recibos se mezclan mes a mes con lo que más sabe cada una
+          // (`pr6FotosUnion`, 08): gane quien gane el estado, los dos móviles acaban con la misma.
+          const fotosL=sameOwner&&(prev.settings||{}).pr6Fotos, fotosN=(cloudState.settings||{}).pr6Fotos;
+          if(fotosL||fotosN){
+            const fotos=pr6FotosUnion((baseObj.settings||{}).pr6Fotos, fotosL===(baseObj.settings||{}).pr6Fotos?fotosN:fotosL);
+            if(fotos!==(baseObj.settings||{}).pr6Fotos) baseObj.settings=Object.assign({},baseObj.settings,{pr6Fotos:fotos});
+          }
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
+          // Sello de los traspasos que abonan (`flowAbonaEn`, 08): el de la nube, que es de donde
+          // vienen los saldos; si la subió un móvil sin actualizar, sigue el de aquí (ya en `baseObj`).
+          baseObj=sellarAbonoTraspasos(baseObj);
           // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
+          baseObj=trMonthlyInvalidatePull(prev,baseObj);
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
@@ -1054,13 +1124,14 @@ function App(){
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
         // `links` lleva el suelo del tramo recuperado (`syncFrom`): sin él, lo anterior al margen se tira.
-        const add=importObExpenses(prev, txs, links);
+        const imported=importObExpenses(prev, txs, links);
+        const monthlyPlan=trMonthlyImportPlan(prev,imported,txs,at), add=monthlyPlan.rows;
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
         // que `reconcileTR` usaba a ciegas, ahora disparado por el dato de verdad (2026-08-03).
         let invState=prev;
         (add||[]).forEach(function(e){
-          if(e.category!=="inversion") return;
+          if(e.category!=="inversion"||monthlyPlan.changed.has(e.id)) return;
           const ib=applyInvestBuy(invState, e.ent, e.amount);
           if(!ib) return;
           invState=ib.state;
@@ -1082,7 +1153,11 @@ function App(){
           const gem=pushGemelos(invState.gemelos, vinculos);
           if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
         }
-        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}));
+        // El índice vive en el array anterior. Sin este segundo argumento cada
+        // sincronización repartía otra vez todo el histórico, aunque el arranque ya
+        // lo hubiera indexado (31/10/2026). Va después de los vínculos: los dos
+        // lados comparten gemelos y solo se recalientan los grupos del alta.
+        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}),invState);
         invState=paired;
         const pairedById={}; (paired.expenses||[]).forEach(function(e){ pairedById[e.id]=e; });
         obAdded=(add||[]).map(function(e){ return pairedById[e.id]||e; });
@@ -1775,6 +1850,18 @@ function App(){
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);
   const [drawerOpen,setDrawerOpen]=useState(false);
+  /* Tus recibos abierto (Plan › Recibos › Todos): la barra de abajo se le pinta encima, colgada de
+     <body> (ver `mc-bills-open` en 14-v4-screens.js), y entra siempre a la vista (N8, 10/11/2026). */
+  const [billsOpen,setBillsOpen]=useState(false);
+  useEffect(function(){
+    var on=function(ev){
+      var v=!!ev.detail;
+      if(v) revealNav();
+      setBillsOpen(v);
+    };
+    window.addEventListener("mc-bills-open", on);
+    return function(){ window.removeEventListener("mc-bills-open", on); };
+  },[]);
   // v4: Ajustes es push a pantalla completa (SPEC §9). drawerMounted = primera apertura.
   const [drawerMounted,setDrawerMounted]=useState(false);
   const [apuntarOpen,setApuntarOpen]=useState(false);
@@ -2426,8 +2513,8 @@ function App(){
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
     // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---
     // Un recibo en pausa (y sin cobrar) no se cobra este mes: ni suma ni baja el saldo previsto.
-    const fijoDelMes=e=> occursIn(e,curMonth) && !fixedEnPausa(state,e,curYear,curMonth,today);
-    const fijosEsteMes=state.fixed.reduce((a,e)=> fijoDelMes(e) ? a+occAmountIn(e,curMonth) : a, 0);
+    const fijoDelMes=e=> occursIn(e,curMonth,curYear) && !fixedEnPausa(state,e,curYear,curMonth,today);
+    const fijosEsteMes=state.fixed.reduce((a,e)=> fijoDelMes(e) ? a+occAmountIn(e,curMonth,curYear) : a, 0);
     const cargosMes=fijosEsteMes+cuotas;                 // fijos del mes + cuotas de deuda (todos los bancos)
     // saldo disponible por banco (la cuenta de gasto descuenta el gasto del mes)
     const bankBal={};
@@ -2439,23 +2526,40 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today,curYear,state)); });
+    // Lo pagado de otra forma no queda pendiente en ningún banco (`fixedPagadoFuera`, la regla de «¿Te llega?»).
+    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });
+    // Por banco cuenta lo que sale del banco: en un compartido, el importe entero (`fixedCargoBanco`,
+    // la regla del recorrido de «¿Te llega?»). Los totales del mes siguen con tu parte. Sin esto el
+    // previsto a fin de mes de la ficha de cuenta y del asistente salía 88 € por encima (rev. t5, R2).
+    state.fixed.forEach(e=>{
+      if(!fijoDelMes(e)) return;
+      const b=accOf(e), extra=fixedCargoBanco(e,curMonth,curYear)-occAmountIn(e,curMonth,curYear);
+      if(!(Math.abs(extra)>0.0001)) return;
+      chargesByBank[b]=(chargesByBank[b]||0)+extra;
+      if(!isPaidIn(e,curMonth,today,curYear,state)&&!fixedPagadoFuera(state,e,curYear,curMonth,today)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
+    });
     state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
-    const incomeInByBank={}, transferOutByBank={};
+    const incomeInByBank={}, transferOutByBank={}, transferInByBank={};
     let pendingIncome=0, pendingTransferOut=0;
+    // Lo que un traspaso pendiente dejará en el banco que lo recibe (`flowAbonaEn`, 08): la suma
+    // de los bancos no cambia por mover dinero entre ellos; cada banco, sí.
+    (state.flows||[]).forEach(f=>{
+      const to=flowOccursIn(f,curMonth,curYear)?flowAbonaEn(state,f,curYear,curMonth):null;
+      if(to&&!flowLlegoIn(state,f,curYear,curMonth,today)) transferInByBank[to]=(transferInByBank[to]||0)+(f.amount||0);
+    });
     (state.flows||[]).forEach(f=>{
       if(!flowOccursIn(f,curMonth,curYear) || flowPaidIn(state,f,curYear,curMonth,today)) return;
       const amt=f.amount||0;
       if(f.kind==="income"){ const b=f.to||"sabadell"; incomeInByBank[b]=(incomeInByBank[b]||0)+amt; pendingIncome+=amt; }
       else if(f.kind==="transfer"){ const b=f.from||"sabadell"; transferOutByBank[b]=(transferOutByBank[b]||0)+amt; pendingTransferOut+=amt; }
     });
-    // disponible proyectado a fin de mes por banco = saldo + ingresos pend − transfers pend − fijos pend
-    const allBanks={}; [bankBal,incomeInByBank,transferOutByBank,pendingByBank].forEach(o=>Object.keys(o).forEach(b=>allBanks[b]=1));
+    // disponible proyectado a fin de mes por banco = saldo + ingresos pend + traspasos que llegan − traspasos que salen − fijos pend
+    const allBanks={}; [bankBal,incomeInByBank,transferOutByBank,transferInByBank,pendingByBank].forEach(o=>Object.keys(o).forEach(b=>allBanks[b]=1));
     const projectedByBank={};
-    Object.keys(allBanks).forEach(b=>{ projectedByBank[b]=(bankBal[b]||0)+(incomeInByBank[b]||0)-(transferOutByBank[b]||0)-(pendingByBank[b]||0); });
+    Object.keys(allBanks).forEach(b=>{ projectedByBank[b]=(bankBal[b]||0)+(incomeInByBank[b]||0)+(transferInByBank[b]||0)-(transferOutByBank[b]||0)-(pendingByBank[b]||0); });
     // --- SIMULACIÓN INTRA-MES: recorre el resto del mes por día y busca el saldo MÍNIMO.
     // Importa el ORDEN: si los fijos se cobran antes de que entre la nómina, puedes quedarte
     // en negativo a mitad de mes aunque a fin de mes cuadres. Sin día: cargos al principio
@@ -2486,7 +2590,7 @@ function App(){
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
-    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,transferInByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -2494,7 +2598,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
-     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
+     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){
@@ -2767,31 +2871,40 @@ function App(){
   },[state.onboarded,locked,showAuth,tourOpen]);
   // Calendario de cargos del mes (fijos + cuotas) para el intercambio con el nativo: lo usan
   // el efecto de avisos de la víspera Y el push al AlertCheckWorker — misma lista en ambos.
-  const alertCalendarOf=function(){
+  const alertCalendar=useMemo(function(){
     const cm=totals.curMonth, cy=totals.curYear;
     const ym=cy+"-"+String(cm).padStart(2,"0");
     const charges=[];
+    const eveOf=receiptEveProducer(state,totals);
     (state.fixed||[]).forEach(function(e){
       // Pausado = este mes no se cobra: avisar la víspera de algo que no llega sería mentir.
-      if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
-      const d=dayIn(e,cm); const amt=occAmountIn(e,cm)||0;
+      if(!occursIn(e,cm,cy)||fixedSinCobroIn(e,cy,cm)) return;
+      if(isPaidIn(e,cm,totals.today,cy,state)||fixedPagadoFuera(state,e,cy,cm,totals.today)) return;
+      const d=dayIn(e,cm,cy); const amt=occAmountIn(e,cm,cy)||0;
       if(d==null||!(amt>0)) return;
-      charges.push({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d});
+      const c={id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d};
+      c.eve=eveOf(c,e.account); charges.push(c);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
-      charges.push({id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)});
+      if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)};
+      c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
     charges.forEach(function(c){ try{ if(localStorage.getItem("_rc1_"+c.id+"_"+ym)==="1") fired.push(c.id); }catch(e){} });
     return {ym:ym,charges:charges,fired:fired};
-  };
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.accounts,state.obAccounts,state.expenses,state.bankTx,
+     state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,
+     state.obBalAt,state.lastTrSync,state.bankIssues,state.settings,totals,calendarDay,CURLANG,DISP.k,DISP.sym]);
+  const alertCalendarOf=function(){ return alertCalendar; };
   // Recordatorio de recibos: TODOS avisan LA VÍSPERA (petición 2026-07-18: «el banco no te
   // avisa, la app podría»); los gordos además con 2–3 días de antelación como hasta ahora.
   // Incluye también las cuotas de deuda. Una noti por cargo y mes. Importes con eur() EXACTO:
   // redondear aquí hizo que «la luz» saliera como 90 € cuando el cargo real era 89,54 (2026-07-21).
   useEffect(function(){
     if(state.onboarded===false||locked||showAuth) return;
+    if(mcSandbox()) return;
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
@@ -2799,20 +2912,30 @@ function App(){
     const minAmt=Math.max(80, (totals.fijosMensual||0)*0.12);
     const cal=alertCalendarOf();
     const ym=cal.ym;
+    let cancelled=false;
+    const messageOf=function(id,name,amt){
+      const c=cal.charges.find(function(c){ return c.id===id; });
+      return c&&c.eve||{title:t("rc_title_tmrw"),body:tf("rc_body_tmrw",{name:name||"?",x:eur(amt)})};
+    };
     const notify=function(key,title,body){
       try{ if(localStorage.getItem(key)==="1") return; localStorage.setItem(key,"1"); }catch(err){}
       try{ nat.showNotification({title:title,body:body}).catch(function(){}); }catch(err){}
     };
     const run=function(){
+      if(cancelled) return;
+      // El intercambio de sellos puede resolver tras medianoche: ese cálculo ya no es de hoy.
+      const now=new Date();
+      if(totals.curYear!==now.getFullYear()||totals.curMonth!==now.getMonth()+1||totals.today!==now.getDate()) return;
       (state.fixed||[]).forEach(function(e){
-        if(!occursIn(e,cm)||fixedPausedIn(e,cy,cm)) return;
-        const d=dayIn(e,cm); if(d==null) return;
-        if(isPaidIn(e,cm,today,cy,state)) return;
-        const amt=occAmountIn(e,cm)||0;
+        if(!occursIn(e,cm,cy)||fixedSinCobroIn(e,cy,cm)) return;
+        const d=dayIn(e,cm,cy); if(d==null) return;
+        if(isPaidIn(e,cm,today,cy,state)||fixedPagadoFuera(state,e,cy,cm,today)) return;
+        const amt=occAmountIn(e,cm,cy)||0;
         if(!(amt>0)) return;
         const daysLeft=d-today;
         if(daysLeft===1){
-          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}));
+          const msg=messageOf(String(e.id),e.name,amt);
+          notify("_rc1_"+e.id+"_"+ym, msg.title, msg.body);
         } else if(amt>=minAmt && daysLeft>=2 && daysLeft<=3){
           notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}));
         }
@@ -2822,7 +2945,8 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
+        const msg=messageOf("debt_"+d.id,d.name,d.monthly);
+        notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });
     };
     // ANTES de avisar, sella lo que el NATIVO ya avisó. Este efecto corría en paralelo al
@@ -2836,7 +2960,8 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.oneoffs,state.accounts,state.expenses,state.bankTx,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
+    return function(){ cancelled=true; };
+  },[state.onboarded,locked,showAuth,alertCalendar]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -2844,6 +2969,7 @@ function App(){
   // aparte del efecto de arriba para que el calendario llegue al worker TAMBIÉN con la app
   // bloqueada o a medio onboarding (el de arriba sale temprano en esos casos).
   useEffect(function(){
+    if(mcSandbox()) return;
     const nat=natPlugin();
     if(!nat||!nat.setAlertData) return;
     const cal=alertCalendarOf();
@@ -2852,7 +2978,7 @@ function App(){
         ((r&&r.fired)||[]).forEach(function(id){ try{ localStorage.setItem("_rc1_"+id+"_"+cal.ym,"1"); }catch(e){} });
       }).catch(function(){});
     }catch(e){}
-  },[state.fixed,state.debts,totals.curMonth]);
+  },[alertCalendar]);
 
   // Avisos de presupuesto al cruzar 50/80/95/100% (petición 2026-07-18). Una noti por umbral
   // y mes; si al abrir ya vas por el 97%, solo suena el umbral MÁS ALTO (los demás se sellan
@@ -2881,10 +3007,10 @@ function App(){
       try{ seen=localStorage.getItem(k)==="1"; localStorage.setItem(k,"1"); }catch(e){}
       if(seen||fired) return;
       fired=true;
-      const msg=tf("bn_"+th,{x:eur0(spent),b:eur0(bud),p:Math.round(pct)});
+      const msg=function(){ return tf("bn_"+th,{x:eur0(spent),b:eur0(bud),p:Math.round(pct)}); };
       showToast(msg);
       const nat=natPlugin();
-      if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
+      if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg()}).catch(function(){}); }catch(e){} }
     });
   },[state.onboarded,locked,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
@@ -3803,10 +3929,18 @@ function App(){
     navSinBlurTrasTransicion();
   },[tab]);
   // Contrapartida de medir en píxeles: un porcentaje se re-resolvía solo al girar el móvil, y un
-  // píxel no. Si cambia el ancho (rotación, teclado, barra del navegador), se tira la medida
+  // píxel no. Si cambia el ancho (rotación, ventana partida), se tira la medida
   // cacheada y se vuelve a colocar el carrusel. Fuera del gesto, para no medir con el dedo puesto.
   useEffect(function(){
+    /* El teclado solo cambia el ALTO, y la colocación va en px de ancho: no hay nada que recolocar.
+       Salir y volver a entrar al host re-renderizaba App dos veces y recalculaba los estilos de
+       toda la página en cada paso del teclado al subir: «¿Me lo puedo permitir?» iba a tirones al
+       tocar el importe (vídeo del dueño, 8/11). */
+    let ancho=trackAnchoAhora();
     const alRedimensionar=function(){
+      const w=trackAnchoAhora();
+      if(w===ancho) return;
+      ancho=w;
       trackW.current=0;
       if(trackRef.current&&!dragging.current){
         // Snap sin animar: el ancho nuevo cambia el destino en px; animar desde el viejo salta.
@@ -3933,7 +4067,7 @@ function App(){
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
-    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,
+    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,onRefreshExpenses:syncCloudExpenses,
       // «Abrir en Plan · Deudas/Metas» de las filas grises (Gastos v5): mismo camino que Inicio.
       // `debtId`: si todas las cuotas del bloque son de una misma deuda, se aterriza en su tarjeta.
       onGoPlan:function(seg,debtId){ if(seg) setPlanGoto({id:seg,ts:Date.now(),debtId:debtId}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },
@@ -4061,7 +4195,7 @@ function App(){
     modeChangeWarning,
     React.createElement(Onboarding,{set:set, onCloud:(cloud.enabled()?onCloudClick:null), onSignup:(cloud.enabled()?onSignupClick:null)}),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
-    toast && React.createElement("div",{className:"toast"},toast)
+    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast)
   );
 
   return React.createElement("div",{className:"app v4"+(mcSandbox()?" sandbox":"")},
@@ -4077,7 +4211,10 @@ function App(){
       React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
-      React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
+      // Una sola barra: dentro de `.app-shell` siempre, salvo con Tus recibos abierto, que va a <body>
+      // para pasarle por encima (`billsOpen`). Cambiar de padre la remonta; es idéntica, no se nota.
+      React.createElement(BarraFuera,{fuera:billsOpen},
+      React.createElement("nav",{className:"botnav"+(billsOpen?" botnav-bills":"")+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?(billsOpen?"":" botnav-hidden"):""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},
@@ -4096,7 +4233,7 @@ function App(){
           React.createElement("button",{className:"botnav-tab"+(tab===3&&!drawerOpen&&!profileOpen?" active":""),"data-tour":"cartera",onTouchStart:function(){ prepMountTab(3); },onClick:function(){ setDrawerOpen(false); setProfileOpen(false); goTab(3); }},
             React.createElement(I.invest,null), t("tab_cartera"))
         )
-      )
+      ))
     ),
     React.createElement(AskHost,null),
     cloud.enabled() && sharedOpen && React.createElement(SharedPanel,{state:state,set:set,uid:uid,totals:totals,showToast:showToast,
@@ -4109,7 +4246,7 @@ function App(){
       (upd.otaReady&&!upd.otaDownloaded)?t("upd_downloading"):t("upd_ready")),
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
-    toast && React.createElement("div",{className:"toast"},toast),
+    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast),
     syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{

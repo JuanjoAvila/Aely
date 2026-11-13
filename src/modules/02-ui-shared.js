@@ -198,9 +198,10 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=surface; round(72,210,W-144,330,28); g.fill(); g.strokeStyle=line; g.lineWidth=2; round(72,210,W-144,330,28); g.stroke();
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_spent").toUpperCase(), 116, 252);
     // Misma cifra que Resumen/Gastos (`monthBudgetStats`), no thisMonthSpent.
-    const bs=monthBudgetStats(state, winStart+12*864e5, winEnd!=null?winEnd:undefined);
+    const bs=winEnd!=null?closedMonthBudgetStats(state,winStart,winEnd)
+      :monthBudgetStats(state,winStart+12*864e5);
     // La barra mide lo mismo que Inicio y la tarjeta del mes cerrado (`limiteDeStats`, 26/10/2026).
-    bs.against=limiteDeStats(bs,state).against;
+    if(winEnd==null) bs.against=limiteDeStats(bs,state).against;
     const spentShown=bs.shown!=null?bs.shown:Math.max(0,bs.against||0);
     g.fillStyle=text;  g.font="700 96px Manrope, sans-serif"; g.fillText(eur0(spentShown), 112, 300);
     const bud=bs.budget!=null?bs.budget:0;
@@ -209,6 +210,8 @@ function shareMonthReport(state, tt, showToast, opt){
       g.fillStyle="rgba(128,128,128,.18)"; round(116,432,W-232,26,13); g.fill();
       g.fillStyle=ratio<1?mint:coral; round(116,432,Math.max(20,(W-232)*ratio),26,13); g.fill();
       g.fillStyle=muted; g.font="600 28px Manrope, sans-serif"; g.fillText(tf("rp_of_budget",{b:eur0(bud),p:Math.round(ratio*100)}), 116, 480);
+    } else if(bs.budgetReason){
+      g.fillStyle=muted; g.font="600 28px Manrope, sans-serif"; g.fillText(t(bs.budgetReason),116,480);
     }
     // top 3 categorías del mes (misma ventana que bs)
     const byCat={};
@@ -557,6 +560,16 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
 
 function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
+}
+/* La curva de la casa (`--ease`, cubic-bezier(.22,.61,.36,1)) en JS: lo que se desplaza acompañando a un
+   pliegue va con su MISMA curva y su mismo tiempo. Con otra (la cúbica a secas) el scroll iba por
+   delante o por detrás del pliegue y se veían dos movimientos (Recibos, 12/11). p en [0,1]. */
+function mcCurvaCasa(p){
+  if(p<=0) return 0; if(p>=1) return 1;
+  const bx=function(t){ return 3*t*(1-t)*(1-t)*.22+3*t*t*(1-t)*.36+t*t*t; };
+  let lo=0, hi=1, t=p;
+  for(let i=0;i<24;i++){ if(bx(t)<p) lo=t; else hi=t; t=(lo+hi)/2; }
+  return 3*t*(1-t)*(1-t)*.61+3*t*t*(1-t)+t*t*t;
 }
 
 /* UX16 ronda 4: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada»,
@@ -1181,7 +1194,7 @@ function settingsDeps(settings, keys){
    sería una cifra vieja. Se declaran todos los que leen ellas y su cierre de llamadas, y el
    guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
    `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`). */
-const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared"];
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trasAbonoDesde"];
 const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
@@ -1778,7 +1791,13 @@ function useEdgePageClose(open,onClose,on,ref,opts){
   },[open,on]);
   const close=function(){
     if(busy.current) return;
+    // Una hoja por pasos que solo vuelve un paso no se va: la página regresa a su sitio y el
+    // carril de pasos hace la animación. Antes salía volando entera y reaparecía de golpe un paso
+    // atrás («si tiras para atrás se buguea todo», beta 4.26.200).
+    if(opts.soloPaso&&opts.soloPaso()){ reset(); cb.current&&cb.current(); return; }
     stopRest();
+    // Una hoja inferior se va como entró, hacia abajo: quien la monta pasa su cierre animado.
+    if(opts.hoja){ opts.hoja(); return; }
     const el=ref.current;
     if(!el||mcReduced()){ cb.current&&cb.current(); return; }
     busy.current=true;
@@ -1793,6 +1812,8 @@ function useEdgePageClose(open,onClose,on,ref,opts){
   };
   const reset=function(){
     stopRest();
+    // Sin movimiento lateral no hay nada que devolver (ver `move`).
+    if(opts.hoja) return;
     const el=ref.current; if(!el) return;
     el.classList.remove("mc-page-dragging");
     if(mcReduced()){
@@ -1816,6 +1837,10 @@ function useEdgePageClose(open,onClose,on,ref,opts){
     }
   };
   const move=function(x,p){
+    /* Una hoja inferior no acompaña al dedo de lado: se veía la lista de detrás y dos pasos a la
+       vez, y luego volvía de golpe (vídeo del dueño, 8/11). Atrás vuelve un paso con el carril o
+       la baja; el gesto solo decide si se suelta o se cancela. */
+    if(opts.hoja) return;
     const el=ref.current; if(!el||busy.current||mcReduced()) return;
     stopRest();
     el.classList.add("mc-page-dragging");
@@ -1908,17 +1933,78 @@ function useEdgePageClose(open,onClose,on,ref,opts){
   return {close:close};
 }
 
-let _mcSheetLocks=0, _mcSheetPrevOverflow="";
-function mcSheetLock(){
+/* PRIMERA VEZ DE UN GLIFO DE OTRA FUENTE (P1-13, trazas del 9/11 con la CPU a ×6). Un emoji o
+   un símbolo que Manrope no tiene obliga al navegador a buscar otra fuente del sistema, y esa
+   búsqueda se guarda por TAMAÑO y PESO: los iconos de categoría de Apuntar (19 px, 700) costaban
+   ~120 ms la primera vez aunque los mismos emojis ya salieran en Gastos con otro tamaño. Se pagan
+   una vez en un hueco libre, con las mismas clases que la hoja, fuera de la pantalla. No toca el
+   bloqueo de hojas (`mcSheetLock`): medido, quitarlo no movía nada. */
+function mcCalentarGlifos(){
+  try{
+    const d=document.createElement("div");
+    d.setAttribute("aria-hidden","true");
+    d.style.cssText="position:fixed;left:-9999px;top:0;width:300px;visibility:hidden;pointer-events:none;contain:strict;height:200px;";
+    const cat=document.createElement("span"), ic=document.createElement("span");
+    cat.className="v4-ficha-cat"; ic.className="v4-ficha-cat-icon";
+    ic.textContent=CATEGORIES.map(function(c){ return c.icon; }).join("");
+    cat.appendChild(ic); d.appendChild(cat);
+    document.body.appendChild(d);
+    void d.offsetHeight;
+    mcScheduleIdle(function(){ if(d.parentNode) d.parentNode.removeChild(d); });
+  }catch(e){}
+}
+/* Capas premontadas con `content-visibility:hidden` (segmentos de Plan): se montan en un hueco
+   libre, pero su PRIMERA maquetación —texto, emojis, fuentes— se quedaba para el toque que las
+   enseña (Recibos→Deudas, 133 ms a ×6). Se maqueta una vez aquí, aún con alto 0, y vuelve a
+   `hidden`, que conserva lo maquetado: al enseñarla solo queda pintarla. */
+function mcCalentarCapa(el){
+  if(!el||!el.style||el.style.contentVisibility!=="hidden") return;
+  try{ el.style.contentVisibility="visible"; void el.offsetHeight; }catch(e){}
+  el.style.contentVisibility="hidden";
+}
+/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos). El velo
+   ya se queda todos los toques, así que no hace falta apagar la app de detrás con `sheet-shell-off`:
+   sus dos reglas (`pointer-events` en `.app-shell` y `touch-action` en `.page`) son propiedades que
+   se HEREDAN, y cambiarlas recalcula el estilo de la pantalla entera (~700 nodos en Recibos) en el
+   mismo fotograma en que la hoja empieza a subir, y otra vez al cerrarla: a 6× de CPU, 20 ms de 80
+   (medido con traza, 10/11/2026). Las demás hojas siguen como estaban. */
+/* ENSAYO EN SECO (10/11/2026). La PRIMERA vez que se abre una hoja cuesta el doble o el triple que
+   las siguientes: el motor compila su código en ese momento, y cada fuente a un tamaño y un peso
+   que aún no han salido se prepara ahí mismo (con la CPU a ×6: «¿Te llega?» 83 ms la primera vez y
+   33 después; «Editar» un recibo, 133 y 67). Aquí se monta, se maqueta y se desmonta dentro de la
+   MISMA tarea y en un hueco libre: no llega a pintarse y nada puede verla ni tocarla. Va en una
+   raíz de React aparte y con `ensayo` en las props de quien se ensaya, que es quien deja sin poner
+   su candado, su entrada de Atrás y sus clases en <html> (una marca global la leería también la
+   app si le tocara repintar justo dentro de este `flushSync`). */
+function mcEnsayar(el){
+  let host=null, root=null;
+  try{
+    host=document.createElement("div");
+    host.setAttribute("aria-hidden","true");
+    document.body.appendChild(host);
+    root=ReactDOM.createRoot(host,{identifierPrefix:"ens"});
+    ReactDOM.flushSync(function(){ root.render(el); });
+    void document.body.offsetHeight;
+  }catch(e){}
+  try{ if(root) root.unmount(); }catch(e){}
+  if(host&&host.parentNode) host.parentNode.removeChild(host);
+}
+let _mcSheetLocks=0, _mcSheetDuros=0, _mcSheetPrevOverflow="";
+function mcSheetLock(soloVelo){
   if(_mcSheetLocks===0){
     _mcSheetPrevOverflow=document.body.style.overflow;
     document.documentElement.classList.add("sheet-open");
   }
   _mcSheetLocks++;
+  if(!soloVelo&&_mcSheetDuros++===0) document.documentElement.classList.add("sheet-shell-off");
   document.body.style.overflow="hidden";
 }
-function mcSheetUnlock(){
+function mcSheetUnlock(soloVelo){
   _mcSheetLocks=Math.max(0,_mcSheetLocks-1);
+  if(!soloVelo){
+    _mcSheetDuros=Math.max(0,_mcSheetDuros-1);
+    if(_mcSheetDuros===0) document.documentElement.classList.remove("sheet-shell-off");
+  }
   if(_mcSheetLocks===0){
     document.body.style.overflow=_mcSheetPrevOverflow;
     document.documentElement.classList.remove("sheet-open");
@@ -1939,7 +2025,7 @@ function useSheetSwipe(open, onClose, opts){
   useLayoutEffect(function(){
     if(!open) return undefined;
     closing.current=false;
-    mcSheetLock(); lockHeld.current=true;
+    mcSheetLock(opts.soloVelo); lockHeld.current=true;
     const block=function(e){
       const sheet=sheetRef.current;
       /* Las hojas hijas son portales hermanos en body, no descendientes del `sheetRef` padre.
@@ -1955,8 +2041,23 @@ function useSheetSwipe(open, onClose, opts){
       /* Hay hojas anidadas (Modificar > Todas las categorías). Solo la última devuelve el
          scroll: si la hija lo soltaba, la lista se movía detrás durante su salida animada. */
       if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
-      if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
+      if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(opts.soloVelo); }
     };
+  },[open]);
+  /* React escucha touchmove en pasivo: su preventDefault no frena al scroller, y al tirar de la
+     hoja desde el cuerpo el contenido se estiraba (la ola de Android) a la vez que bajaba. Este,
+     nativo y decidido en el mismo toque, se queda la bajada solo cuando el scroller ya está arriba. */
+  useEffect(function(){
+    const el=opts.nativeScroll&&open?sheetRef.current:null;
+    if(!el) return undefined;
+    const tm=function(e){
+      const t=e.touches&&e.touches[0], sc=scrollHost.current;
+      if(!t||!armed.current||closing.current||!sc||sc.scrollTop>0) return;
+      const ddy=t.clientY-startY.current, ddx=t.clientX-startX.current;
+      if(ddy>0&&Math.abs(ddx)<=ddy&&e.cancelable) e.preventDefault();
+    };
+    el.addEventListener("touchmove",tm,{passive:false});
+    return function(){ el.removeEventListener("touchmove",tm); };
   },[open]);
   const onTouchStart=function(e){
     // Portal a body pero el árbol React sigue bajo la tab: sin esto el swipe de tabs
@@ -1964,9 +2065,6 @@ function useSheetSwipe(open, onClose, opts){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
     if(!(e.touches&&e.touches[0])) return;
-    // En las fichas de Gestionar, el contenido conserva el overscroll del navegador.
-    // El asa sigue permitiendo bajar la hoja; el gesto lateral de Atrás es independiente.
-    if(opts.nativeScroll&&!(e.target&&e.target.closest&&e.target.closest(".v4-sheet-handle"))) return;
     armed.current=true;
     dragging.current=true; dy.current=0; axis.current=null;
     startY.current=e.touches[0].clientY; startX.current=e.touches[0].clientX;
@@ -1975,6 +2073,16 @@ function useSheetSwipe(open, onClose, opts){
        un scroll normal hacia arriba en un tirón de cierre de toda la ficha. */
     const target=e.target&&e.target.closest?e.target.closest(".v4-sheet-body"):null;
     scrollHost.current=target&&sheetRef.current&&sheetRef.current.contains(target)?target:sheetRef.current;
+    /* Las fichas de Recibos scrollean por dentro (`.rp4-body`) y antes solo bajaban desde el asa:
+       desde el cuerpo no había forma de tirarlas («no se puede tirar hacia abajo», vídeo del dueño,
+       8/11). Manda el scroller de verdad: arriba del todo, la bajada es de la hoja. */
+    if(opts.nativeScroll){
+      let sc=sheetRef.current;
+      for(let n=e.target;n&&n!==sheetRef.current&&n.nodeType===1;n=n.parentElement){
+        if(n.scrollHeight>n.clientHeight+1&&/(auto|scroll)/.test(getComputedStyle(n).overflowY)){ sc=n; break; }
+      }
+      scrollHost.current=sc;
+    }
   };
   const onTouchMove=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
@@ -2009,7 +2117,9 @@ function useSheetSwipe(open, onClose, opts){
       el.classList.add("dragging");
       el.style.transform="translate3d(0,"+resist+"px,0)";
     }
-    if(e.cancelable) e.preventDefault();
+    // Sin preventDefault: React escucha touchmove como pasivo, así que no paraba nada y solo dejaba
+    // «Unable to preventDefault inside passive event listener» en la consola (P2-11). Lo que
+    // impide el scroll mientras se arrastra la hoja es su `touch-action`.
   };
   const runClose=function(done,fromDrag){
     if(closing.current) return;
@@ -2028,8 +2138,14 @@ function useSheetSwipe(open, onClose, opts){
     const ms=fromDrag?(opts.closeMs||300):420;
     // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
-    if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
+    if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(opts.soloVelo); }
     const ease=fromDrag?(opts.closeEase||"cubic-bezier(.32,.72,0,1)"):"cubic-bezier(.3,0,.2,1)";
+    // `sheetup` sigue mandando sobre el transform inline mientras la entrada no ha terminado:
+    // cerrar a medias devolvía la hoja hacia arriba y luego saltaba abajo (1/11/2026).
+    const sheetNow=getComputedStyle(el).transform;
+    el.style.animation="none";
+    el.style.transform=sheetNow;
+    void el.offsetWidth;
     el.style.transition="transform "+ms+"ms "+ease;
     el.style.transform="translate3d(0,110%,0)";
     // El velo se va con la hoja, mismo tiempo y curva. Antes solo bajaba la hoja y el velo se
@@ -2037,8 +2153,18 @@ function useSheetSwipe(open, onClose, opts){
     // fotograma, medido en Deudas, Metas y también Apuntar (beta 4.26.139.1, 2026-10-17).
     const back=el.parentElement;
     if(back&&back.classList.contains("v4-sheet-back")){
-      back.style.transition="background-color "+ms+"ms "+ease;
-      back.style.backgroundColor="rgba(8,28,20,0)";
+      // El velo es el ::before y su entrada anima opacity (`sheetveil`). Mientras dura, esa
+      // animación gana a la transición: sin congelarla, el opacity:0 de .v4-sheet-out no se
+      // ve hasta que la entrada termina y el velo salta (1/11/2026). Se deja la opacidad que
+      // se ve ahora y, al frame siguiente, se funde con la bajada. will-change solo lo pone
+      // esa clase, no el reposo.
+      const cur=getComputedStyle(back,"::before").opacity;
+      back.style.setProperty("--sheet-veil",cur);
+      back.classList.add("v4-sheet-hold");
+      void back.offsetWidth;
+      back.style.setProperty("--veil-ms",ms+"ms");
+      back.style.setProperty("--veil-ease",ease);
+      back.classList.add("v4-sheet-out");
     }
     closeTimer.current=setTimeout(function(){
       closeTimer.current=null;
@@ -2050,7 +2176,12 @@ function useSheetSwipe(open, onClose, opts){
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
-    if(!dragging.current && dy.current<=0){ armed.current=false; axis.current=null; scrollHost.current=null; return; }
+    /* Un toque (sin arrastre hacia abajo) no tiene nada que devolver a su sitio. Antes también pasaba por
+       el «vuelve arriba» de abajo y escribía `translate3d(0,0,0)`: cada toque en un botón de la hoja la
+       subía a una capa nueva durante 280 ms. En su WebView a 120 Hz esa capa nacía sin pintar mientras
+       el contenido cambiaba de alto, y la hoja entera se veía transparente 4-5 fotogramas: el «flash
+       raro» al plegar «Más opciones» (vídeo del 12/11, Tus recibos asomando por detrás). */
+    if(dy.current<=0){ dragging.current=false; armed.current=false; axis.current=null; scrollHost.current=null; return; }
     dragging.current=false; armed.current=false; axis.current=null;
     const dist=dy.current; dy.current=0; scrollHost.current=null;
     const el=sheetRef.current;
@@ -2333,12 +2464,9 @@ function applyNumPadKey(raw, ch, sep){
   return raw==="0"?ch:(raw+ch);
 }
 function numPadDecSep(){
-  // El teclado tenía la coma clavada. En inglés (en-GB) el decimal es punto; el parseo
-  // de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
-  try{
-    const ch=(1.1).toLocaleString(loc()).charAt(1);
-    return (ch==="."||ch===",")?ch:",";
-  }catch(e){ return ","; }
+  // El teclado tenía la coma clavada. En inglés el decimal es punto, como en las cifras que se
+  // pintan (`numDecSep`, 00); el parseo de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
+  return numDecSep();
 }
 function parseNumPadRaw(raw){
   // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.
@@ -2382,13 +2510,18 @@ function NumPad({value, onChange}){
       const isDel=k==="⌫";
       return React.createElement("button",{
         key:k, type:"button",
-        "aria-label":isDel?"Borrar":k,
+        // Lo lee el lector de pantalla: en inglés y catalán decía «Borrar» (auditoría 226).
+        "aria-label":isDel?t("kp_borrar"):k,
         onClick:isDel?undefined:function(){ tap(k); },
         onPointerDown:isDel?startHold:undefined,
         onPointerUp:isDel?stopHold:undefined,
         onPointerCancel:isDel?stopHold:undefined,
         onPointerLeave:isDel?stopHold:undefined
-      }, k);
+      // «⌫» no está en Manrope: la primera vez el navegador buscaba otra fuente del sistema solo
+      // para esa tecla y ese fotograma duraba 100 ms con la CPU a ×6 al abrir «¿Te llega?» o
+      // Apuntar (trazas del 9/11, P1-13). Dibujada, cuesta lo que cualquier otra tecla.
+      }, isDel?React.createElement("svg",{width:24,height:24,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},
+        React.createElement("path",{d:"M21 5H9l-6 7 6 7h12zM18 9l-6 6M12 9l6 6"})):k);
     })
   );
 }

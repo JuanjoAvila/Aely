@@ -1,3 +1,36 @@
+Arneses de `runBankSync` tras la beta 4.26.208 (01/11/2026):
+`banco-sintetico` y `ob-hueco-sync` extraen las sentencias reales hasta
+`imported=importObExpenses(...)`: comprueban el importador y el suelo de la respuesta,
+antes de la transformación del plan mensual. Los updaters completos de
+`bank-download-fixture` y `refund-polarity` inyectan además `trMonthlyImportPlan`
+desde la lógica real, sin sustituirla por un doble. Las aserciones no cambian.
+La comprobación dirigida, con `TZ=Europe/Madrid` y `TZ=UTC`, es:
+
+```sh
+node --test --test-concurrency=1 tests/compras-identicas-ids.test.mjs tests/fin10-absorption-scope.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/h2-account-phases.test.mjs tests/bank-download-incomplete.test.mjs tests/bank-sync-acuse.test.mjs tests/bank-reconnect.test.mjs tests/bank-revoke-callback-race.test.mjs tests/ob-hueco-sync.test.mjs tests/refund-polarity.test.mjs
+```
+
+En ambas zonas termina con EXIT 0 (283 tests contados por Node, incluidos los
+ficheros con su propio contador); también pasa `npm run test:syntax`. La base
+sin adaptar falla en extracción y por `trMonthlyImportPlan` sin inyectar.
+Son pruebas sintéticas locales, no una sincronización bancaria ni una entrega.
+
+Candidata de entrada propia: casos añadidos a tests/own-transfer-confirm.test.mjs y e2e/own-transfer-confirm.spec.mjs, conservando registro y assertions previas. Validados en fixture aislada: 268 casos de transferencias, persistencia y siete suites complementarias; Playwright 95/95 con un trabajador y sin reintentos. Cubre sin pareja, inversa individual, opt-in, ACK parcial, replay de updater y fuente intacta. Causal en la base 144506c: mismo caso sin pareja falla por ausencia de la acción. Las comprobaciones esperan la persistencia local de 400 ms y reproducen la reevaluación de updaters tras terminar una operación. Build oficial, CI y móvil real siguen pendientes. [Contrato](briefs/own-transfer-income-manual.md).
+
+PRO03 · avisos precomputados del worker nativo:
+`node tests/pro03-native-precomputed-alert.test.mjs`, ya registrado en `steps`,
+compila y ejecuta el worker real en JVM con fronteras Android sintéticas.
+Busca java y javac juntos en `--jdk-home`, `JAVA_HOME` o `PATH`; si falta JDK,
+imprime `SKIP pro03-native-precomputed-alert` y termina con EXIT 0 antes de crear
+temporales. Con JDK presente, errores de compilación, ejecución o aserciones
+siguen fallando. Cada invocación recoge sus propias fuentes, clases y logs TEMP,
+tanto al pasar como al fallar, sin atravesar enlaces ni limpiar carpetas previas.
+Para conservar logs, copias de diagnóstico y `RESULT.json` con hashes y estado
+de cleanup, usar `--output-dir=<directorio-de-evidencia>`: crea una subcarpeta
+nueva fuera del runtime desechable; los hashes de fuentes transitorias no prometen
+que esos archivos sigan en disco. Javac/JVM son secuenciales con CPU1/SerialGC,
+sin reintentos. Esto no acredita el parser/framework Android ni un móvil real.
+
 FIN29/30, candidata local en verificación (28/10/2026):
 `node --test --test-concurrency=1 tests/fin29-30-rename-scope.test.mjs`, registrado
 en `steps`, ensambla módulos y shell literalmente en memoria, sin generados ni
@@ -428,7 +461,7 @@ columna versionada y el acuse de una fila. SQL, navegador y móvil real conserva
 
 ## Recibos borrados y uniones entre móviles · rama `claude/recibos-bajas-y-union` (13/10, integrada en la 4.26.130 por la PR 230)
 
-`tests/recibos-bajas-y-union` (13 casos, en `steps`) reproduce los seis defectos de la última revisión de la 122 y las reservas de la revisión de su primer arreglo (`747fb3e0`), y falla sin cada arreglo: el estado más antiguo de otro móvil que deshacía el borrado de un recibo (40 frente a 102,40, con el servidor real `presupuesto.ts` como tercera cuenta, en banco «para todo» y de gasto diario); «Deshacer» ese borrado por las puertas reales de Plan (`removeFixedById` → `addFixedItem`: el cargo recupera la marca, el saldo pintado no se mueve y el siguiente arranque no vuelve a quitar el recibo); el borrado sin cargos y el de un puntual; el «No es este recibo» sin vuelta atrás sobre uno de dos cargos iguales de un recibo fijo, con el bloque real de la ficha que lo ofrece; el apunte con id y su idéntico sin id como UN cargo (los dos órdenes, una y dos sincronizaciones, dos ids + uno sin id, un id + dos sin id, lápidas, recibo y nómina); el segundo pull que pisaba categoría y «no tarjeta», con la fila propia llegando delante y detrás; la unión de lápidas con «Deshacer» reversible, reloj atrasado, versiones mezcladas (lápida sin hora de un estado guardado antes o después) y topes; editar 10 → 12 → 10; y la edición contra una tabla falsa con clave primaria que devuelve `23505`, con dos guardados seguidos y con el borrado fallando sin red. Los bloques de pantalla se leen del bundle servido: `syncFromCloud`, borrar, «Deshacer», «es el mismo» y guardar de Gastos, las opciones de recibo de la ficha y la escritura en la nube de `saveEdit`. Treinta y cuatro mutaciones de esas líneas caen. `ob-iguales-ordinal` lee el bloque de borrar con su forma nueva (`lapidaPon`). `recibo-invariante` compara ahora contra la cifra CONVERGIDA del código de antes: su `sincroniza` funde las filas de misma clave como lo hace el pull, porque aquel código metía dos (el apunte con id y su idéntico sin id) y contaba doble hasta entonces. `e2e/recibo-cargo-en-gastos.spec.mjs` suma la vuelta atrás con dos cargos iguales de un recibo fijo (10 pruebas) y `e2e/plan-gestionar.spec.mjs` el «Deshacer» de un recibo con su cargo en Gastos, recargando después. `presupuesto-rendimiento` sube a los mínimos medidos, 1356/373 KiB. `beta-sources` y `docs-frescura` quedan en rojo en esta rama a propósito: las unidades nuevas no están declaradas en el catálogo ni hay bump de `VERSION`, que se hacen al integrar. No se ha probado en el móvil, ni con dos móviles reales, ni contra un banco real.
+`tests/recibos-bajas-y-union` (13 casos, en `steps`) reproduce los seis defectos de la última revisión de la 122 y las reservas de la revisión de su primer arreglo (`747fb3e0`), y falla sin cada arreglo: el estado más antiguo de otro móvil que deshacía el borrado de un recibo (40 frente a 102,40, con el servidor real `presupuesto.ts` como tercera cuenta, en banco «para todo» y de gasto diario); «Deshacer» ese borrado por las puertas reales de Plan (`billUndoReview` → `billUndoRemove` → `billUndoRestore`: el cargo recupera la marca, el saldo pintado no se mueve y el siguiente arranque no vuelve a quitar el recibo); el borrado sin cargos y el de un puntual; el «No es este recibo» sin vuelta atrás sobre uno de dos cargos iguales de un recibo fijo, con el bloque real de la ficha que lo ofrece; el apunte con id y su idéntico sin id como UN cargo (los dos órdenes, una y dos sincronizaciones, dos ids + uno sin id, un id + dos sin id, lápidas, recibo y nómina); el segundo pull que pisaba categoría y «no tarjeta», con la fila propia llegando delante y detrás; la unión de lápidas con «Deshacer» reversible, reloj atrasado, versiones mezcladas (lápida sin hora de un estado guardado antes o después) y topes; editar 10 → 12 → 10; y la edición contra una tabla falsa con clave primaria que devuelve `23505`, con dos guardados seguidos y con el borrado fallando sin red. Los bloques de pantalla se leen del bundle servido: `syncFromCloud`, borrar, «Deshacer», «es el mismo» y guardar de Gastos, las opciones de recibo de la ficha y la escritura en la nube de `saveEdit`. Treinta y cuatro mutaciones de esas líneas caen. `ob-iguales-ordinal` lee el bloque de borrar con su forma nueva (`lapidaPon`). `recibo-invariante` compara ahora contra la cifra CONVERGIDA del código de antes: su `sincroniza` funde las filas de misma clave como lo hace el pull, porque aquel código metía dos (el apunte con id y su idéntico sin id) y contaba doble hasta entonces. `e2e/recibo-cargo-en-gastos.spec.mjs` suma la vuelta atrás con dos cargos iguales de un recibo fijo (10 pruebas) y `e2e/plan-gestionar.spec.mjs` el «Deshacer» de un recibo con su cargo en Gastos, recargando después. `presupuesto-rendimiento` sube a los mínimos medidos, 1356/373 KiB. `beta-sources` y `docs-frescura` quedan en rojo en esta rama a propósito: las unidades nuevas no están declaradas en el catálogo ni hay bump de `VERSION`, que se hacen al integrar. No se ha probado en el móvil, ni con dos móviles reales, ni contra un banco real.
 
 ## Todo cargo del banco sale en Gastos · candidata4.26.122
 
@@ -445,6 +478,8 @@ Lo que sigue es la descripción del autor de la rama, antes de integrarse (sus t
 `tests/inicio-deps-ajustes` (en `run-tests`) vigila de qué depende el recálculo de Inicio (tirones de «Tus cuentas», 20/10/2026). Comprueba que los ajustes que leen `netWorthSeries` y `dashboardBudgetStats`, más todo lo que llaman, son los declarados en `NET_WORTH_SETTINGS` / `BUDGET_SETTINGS`. Lo hace de dos formas: leyendo el código del cierre de llamadas de todos los módulos (cualquier lectura de `settings` entero falla) y ejecutándolas con los ajustes espiados. Cada campo declarado, mutado, obliga a recalcular la serie; el contraste, el idioma o el tamaño de letra, no. También comprueba que `netWorthHistoryKey` es exacta: en un barrido de 160 históricos alrededor de hoy, sobre dos carteras, la misma clave da la misma serie byte a byte, con `coverage` y `fresh`. Y que las pestañas no dependen de `drawerOpen` y que la cifra animada de Cartera vive en `CarteraHeroAmt`. Mutantes muertos: quitar `profile` de los declarados, quitar el punto de hoy también cuando es el primer cierre y olvidar `fresh` en la clave.
 
 ## Trade Republic: apuntes iguales con ordinal · candidata4.26.120
+
+`tests/gemelos-incremental` (en `run-tests`) compara, byte a byte, el reparto que reutiliza el índice con el cálculo completo sobre un histórico sintético de 20.000 filas: importaciones seguidas, avisos nuevos, categoría, importe, borrado, grupo apretado, lápida, vínculos y un array que todavía no está indexado. Ejecuta el bloque real de la sincronización (`11-app-main.js`) y cuenta los bancos que entran en `gemeloAsignar`: sin el estado anterior el número es el del histórico entero y el test cae. No hay e2e: el fallo es trabajo de CPU con el mismo dinero en pantalla, y `08-motor-bank.js` / `11-app-main.js` ya están en `CORE`. `GEMELOS_BENCH=1 node tests/gemelos-incremental.test.mjs` imprime el tiempo por importación y no lo usa de umbral: la prueba exige que el lado con estado anterior reparta menos de una décima parte de los bancos. El mismo fichero cubre el borrado de un manual enlazado, un vínculo entre grupos distintos, un manual sin banco marcado como distinto al que luego llega un aviso con las decisiones copiadas (el total, no solo el enlace) y un fuzz con semillas fijas; si no coincide con el cálculo completo, el mensaje lleva la semilla y la cadena de operaciones. Las pasadas que siguen un vínculo (`possibleDupOf`, `autoGemelo`, `gemeloSeparado`) o una decisión no recorren el histórico: salen de la lista anotada en el mismo recorrido que arma el índice, y el mapa de bancos solo se construye si hay decisiones.
 
 `tests/ob-iguales-ordinal` (en `run-tests`) cubre el producto con el importador real del cliente y un servidor falso que aplica el índice único de `expenses`: k apuntes iguales sin identificador entran los k, repetir la sincronización no añade nada, un aviso empareja una sola vez, «es el mismo» y el borrado a mano no vuelven, el vínculo sin lápida (un móvil contesta y sube, otro pisa el estado, el primero baja la unión), la señal pendiente/contabilizado, el histórico con lápidas y vínculos, el móvil anterior (`788432f4`, leído de Git) compartiendo nube y el rendimiento con 20.000 gastos. Los bloques de App (`syncCloudExpenses`, `syncFromCloud`, `runBankSync`, Gastos y la pantalla del histórico) se extraen del bundle servido, así que una mutación sobre `public/index.html` también los alcanza. `e2e/tr-iguales-ordinal.spec.mjs` (mapeado a 04-tab-gastos y 10-app-components) abre la app: sincronizar mete los k iguales, Gastos los pinta, «Es el mismo» se contesta desde la ficha y el histórico da el cargo por apuntado. `supabase/functions/ingest/widget.test.ts` (Deno, lo corre la CI) fija que el servidor separa las filas con `#n` y que sobre filas de clientes anteriores devuelve lo mismo que antes. `beta-sources` añade `Catálogo120`: la nota 120 como oráculo literal (dos puntos y dos tandas de cuatro pasos numerados, sin APK: `tr-iguales-ordinal`, nueva, y `bancos-acuse-reconexion`, que vuelve con el mismo id y el guion corregido tras su rechazo en la 119) sobre el catálogo de la beta119 con la nota 119 a `tandas:[]`. Ningún paso de las dos tandas puede prometer ausencia de repetidos, el paso 2 corregido es literal y el orden de las tandas forma parte del oráculo. El descriptor nuevo lleva una semilla con todo lo que la entrega toca (el test comprueba que las funciones y datos que cambian en 00-core y en el motor son exactamente esa semilla), sus dependencias transitivas y superficie `edge` (`_shared/presupuesto.ts`, `ingest/index.ts`, `ingest/widget.ts`). Lista cerrada frente a la beta119: crecen veinticinco descriptores, solo con unidades del ordinal y de los vínculos que exigen las auditorías de dependencias (comprobando que el descriptor anterior no las vigilaba), y se mueven esas mismas veinticinco huellas, todas solo por la web y cada una con las unidades que la mueven. Una huella que se mueva sin declarar, o una declarada que no se mueva, es rojo. Once mutantes del cliente reabren la tanda solo por la web y dos del servidor solo por `edge`. `Catálogo119` y `Retiro119` se leen ahora de su commit `788432f4`; `Catálogo115`, ya histórico, pasa su descriptor de entonces a la única llamada que tomaba el vivo. `Recientes106` compara su identidad histórica con la beta119, porque `keyOfExpense` con ordinal la mueve. `PERSIST91` cuenta 28 tandas que escriben estado. `presupuesto-rendimiento` sigue en 1310/359 KiB, los mínimos con el sello de la 120 (1.340.552 / 366.827 B). No se ha probado en el móvil ni contra Trade Republic real.
 
@@ -838,7 +873,10 @@ Tanda 3: `e2e/plan-recibos-t3.spec.mjs` abre «¿Te llega?» desde la píldora c
 el mínimo con una nómina a mitad de mes («lo más justo, el 15»), la nómina que llega tarde («Pasa
 200 € a Sabadell antes del 25», y no sale porque cae tras el último recibo), que el mismo día
 primero sale y luego entra (con el orden viejo el caso daba «Te llega»: comprobado), un banco sin
-cuenta con «—» fuera de la píldora, la frescura sembrada en `obBalAt`, «¿Y si gasto…?» en vivo y
+cuenta con «—» fuera de la píldora, la frescura sembrada en `obBalAt`, «¿Y si gasto…?» en vivo (también
+a plazos: solo resta la entrada, la cuota y si cabe, crear la deuda con el nombre —cancelar no crea nada—
+y deshacerla —nace sin cuotas pagadas, debiendo lo financiado y con la última en «hasta…»—, un plazo de menos de
+dos meses no deja crear, y el colchón por cuenta, que se cambia tocando su línea) y
 editar la nómina (el primer número sustituye, el día se mueve, el saldo mostrado no cambia y una
 nómina «último laborable» conserva la regla si solo cambia el importe). También un recibo vencido
 sin cobro acreditado: cuenta como cargo de hoy y «Tienes hoy − Recibos que faltan» cuadra con la
@@ -856,6 +894,64 @@ puente»: los dos de 350 en rojo. La lectura cuenta a partir del día SIGUIENTE 
 las 7:30 del mismo día del cobro, 50 con su fila; al día siguiente, 350 (mutante «el mismo día
 vale»: rojo). Los casos «con saldo del banco» siembran la cuenta re-anclada (`bankUid`). Está en `E2E_MAP` para `14-v4-screens`, `08-motor-bank`,
 `07-tab-patri-fijos`, `00-core`, `06-sync-brokers`, `11-app-main`, `01-i18n` y `shell.html`.
+
+Tanda 4: `e2e/plan-recibos-t4.spec.mjs` (reloj en el 18/10) añade un recibo por los cinco pasos
+(el primer número sustituye, «3.275,00 €» con miles, Atrás del sistema vuelve un paso) y lo ve en
+Pendiente con «Queda por pagar» sumando justo su importe; «Solo una vez» guarda un puntual de
+noviembre que no suma en octubre; «En varios pagos» con Hacienda propone 600 el 30 jun y el resto
+(400) el 5 nov sin dejar repetir mes; «Visto en tu banco» rellena nombre, importe, día y banco y
+deja de proponerse al ser recibo; el duplicado lleva a editar el que ya existe. Editar: «Solo
+octubre» deja el recibo en 50 y octubre en 80 (`soloMes`), «Desde ahora» cambia el recibo; un
+recibo ya pagado no pregunta, su mes se queda con 30 y la prueba con su importe real, sin aviso de
+«cobró distinto»; «Ya no lo tengo» pide un segundo toque que se cancela tocando fuera. Está en
+`E2E_MAP` para `14-v4-screens`, `08-motor-bank`, `07-tab-patri-fijos`, `00-core`,
+`11-app-main`, `04-tab-gastos`, `03-tab-dash`, `01-i18n` y `shell.html`.
+
+QA de la beta 4.26.200: `e2e/plan-recibos-qa.spec.mjs` (reloj en el 31/10, último día del mes, con
+Sabadell, CaixaBank y Trade Republic) repite lo que el dueño encontró en su móvil. La hoja por pasos:
+Atrás (botón y arrastre con CDP) vuelve un paso con la hoja quieta en su sitio y solo en el primero
+cierra; el borde de arriba no se mueve entre pasos; «Visto en tu banco» de 2.050 € lleva al resumen,
+tocar «Importe» y «Listo» vuelve al resumen y Atrás vuelve a la lista; al elegir los meses, el día
+31 queda encima del botón fijo; «Solo una vez» arranca en noviembre y guarda el 1/11. Una cuota de
+deuda enlazada en Gastos (641,27 € sobre 640 €, o sin día de cobro) dice «Enlazado · …» en su fila
+y abre su ficha con el cargo y el motivo sin saltar a Deudas; «Queda por pagar» sigue en 240,00 €
+(igual que antes del cambio); con el cargo justo, la ficha la da por pagada. «¿Y si gasto…?» abre el
+teclado tocando la zona y lo deja dentro de la pantalla.
+Remates de la revisión: el camino del dueño («Visto en tu banco» → resumen → «Nombre» → Atrás vuelve al
+resumen), «Cuenta»/«Cuándo»/«Importe» desde el resumen vuelven a él, un doble toque en «Siguiente» o «Listo»
+no guarda sin ver el resumen, y el chip de banco de «¿Y si gasto…?» no abre el teclado. La cuota marcada A MANO
+en Gastos («Es la cuota de…», por la ficha de verdad) con otro importe (203,40 sobre 200, el 18/10) sale pagada
+en Recibos con «Cargo 203,40 €», no sale en Inicio y «¿Te llega?» no la resta otra vez (656,60 €); la misma fila
+enlazada por el MOTOR por nombre («PRESTAMO COCHE») sigue pendiente, igual que la hipoteca enlazada por el motor
+con 641,27. Guardianes en `tests/debt-payment-state` (motor por nombre y por alias con 59 € no pagan; a mano sí;
+`~mano` ida y vuelta) y en `plan-cuota-contabilizada` (cargo59 del motor no paga; marcado a mano sí). Está en `E2E_MAP` para `14-v4-screens`, `02-ui-shared`,
+`08-motor-bank`, `01-i18n` y `shell.html`.
+Tanda 6: `tests/plan-recibos-cerrado.test.mjs` (en `npm test`) guarda las fotos de septiembre y
+octubre con el reloj en su último día y calcula el resumen el 3/11, en céntimos y por dos vías: la
+cuenta a mano (octubre 182,99, septiembre 222,99) y lo que pintaba Plan › Recibos ese día
+(`planRecibosVista` de 14: «Ya pagados» + lo que cobró distinto). Fija lo de la revisión NO-GO
+del 31/10: un alta de noviembre (`createdYm`) no toca octubre ni septiembre; borrar en octubre un
+recibo pagado en septiembre no cambia septiembre; sin foto, o con una foto del día 20 y el cargo
+del 29 ya fuera del extracto, la cifra es «—» (null); lo marcado a mano no es «no llegó» y sin
+movimientos del banco tampoco; la foto no se reescribe si no cambia ni la pisa una de un día
+anterior. `e2e/plan-recibos-t6.spec.mjs` recorre 30/9 → 31/10 → 3/11 con `page.clock`: «Octubre
+cerrado» con «62,99 € · −40,00 € vs. sep» en un renglón a 393 px, sus tres líneas, la × y dianas
+de 44 px; borrar el Gimnasio en octubre deja septiembre en 102,99; sin foto de septiembre «— vs.
+sep»; marcado a mano sin «no llegaron»; el 8/11 ya no sale. «Dic ›» cambia tarjeta y lista (toda la
+vista entra de lado), el atrás (`_mcBackCloseNative`) y pasar por Gastos vuelven a noviembre, y en
+catalán «A l'abril». Primer uso: sin cargos, alta por pasos; con cargos, importación con el último
+importe (Netflix 13,99), sin «Octubre cerrado» tras importar el 1/11, y un doble toque en «Añadir»
+no abre Apuntar. Los casos «(revisión)» fallan con el bundle de 799859495. Revisión R2: el banco
+Node fija que lo de hoy solo sube un cargo a pagado (nunca «no se sabe» → «no llegó»), que sin
+cambios `planRecibosConFoto` devuelve el mismo estado (también otro día sin movimientos nuevos) y
+que dos móviles con extractos distintos convergen con `pr6FotosUnion` sin volver a escribir; el e2e
+cuenta cero escrituras en tres vueltas a primer plano. Rechazo de la beta 206 («no salía el vs»): el banco Node
+reconstruye septiembre sin foto con las pruebas BOOK guardadas y `paidYm` (Seguro, Movistar,
+Naturgy 115,40 = 115,40 a mano y = lo que Plan enseñaba el 31/10) y da «sin datos» si falta una
+prueba, si se borró un recibo desde el 1/9 o si un gasto de septiembre apunta a un recibo que ya
+no está; el e2e enseña «−40,00 € vs. sep» sin foto y «vs. sep: sin datos de septiembre» con un
+cargo sin prueba (los dos fallan con el bundle de 2fdecb18b). Está en `E2E_MAP` para `14-v4-screens`,
+`08-motor-bank`, `07-tab-patri-fijos`, `04-tab-gastos`, `11-app-main`, `01-i18n` y `shell.html`.
 
 Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
@@ -1116,17 +1212,47 @@ Tras v3.108.0 la lógica vive en **`src/modules/*.js`**. No edites `public/index
 
 ## CI
 
-- `.github/workflows/test.yml` — push/PR a **main**: suite **entera**
-- `.github/workflows/promote-beta.yml` — al subir a producción: suite **entera**
+- `.github/workflows/test.yml` — push/PR a **main**: suite **entera**, repartida en paralelo
+  desde el 8/11/2026 (ver «Trozos» abajo): `unit` (build + unitarios + Deno + privacidad, sin
+  beta-sources), `beta-sources (i/4)`, `e2e i/8` + `e2e-perf`, y el veredicto en `test`, que solo
+  sale verde si salen todos. Las matrices van escritas a mano y `tests/relevant-tests` comprueba
+  que cuadran con `E2E_SHARDS` / `BETA_SOURCES_SHARDS`.
+- `.github/workflows/promote-beta.yml` — al subir a producción: suite **entera**, todavía **en
+  serie** en el mismo job que hace el merge (~3,5 h). Repartirla exige fijar el SHA probado
+  (los jobs de tests leerían `origin/beta` en un momento y el merge en otro) y mantener el
+  `GITHUB_REF_NAME=beta` de docs-frescura en cada trozo; sin poder ensayarlo fuera de producción
+  se deja anotado, no hecho.
 - `tests/wait-promote-deploy.test.mjs` — reproduce un deploy cuya suite supera diez minutos,
   un fallo real y la comprobación del sello de Pages; se ejecuta desde `scripts/run-tests.mjs`.
 - `.github/workflows/beta.yml` — push a **beta**: desde el 11/10/2026 **publicar no espera a la
   suite** (orden del dueño: 55 min por beta era inasumible). El job `beta` solo pasa
-  `test:syntax` y publica (~5 min); la suite corre en paralelo en el job `tests`, que avisa en
-  rojo sin frenar. Un rojo ahí hay que mirarlo igual: la beta ya está en su móvil.
-  El job `tests` usa el recorte por carpetas (`scripts/relevant-tests.mjs`).
+  `test:syntax` y publica (~5 min); la suite corre en paralelo y el veredicto queda en el job
+  `tests`, que avisa en rojo sin frenar. Un rojo ahí hay que mirarlo igual: la beta ya está en su
+  móvil. Desde el 8/11/2026 `tests` es un agregador: el job `plan` saca el recorte por carpetas
+  (`scripts/relevant-tests.mjs --ci`, que escribe el plan y el reparto en `GITHUB_OUTPUT`) y a la
+  vez corren `unit`, `beta-sources (i/4)` y la matriz `e2e i/N` + `e2e-perf`; `tests` sale rojo si
+  cualquiera de los que tocaban falla o se cancela (`skipped` = el plan no lo pedía).
   Docs → sin Chromium. Ingest → Deno, sin e2e. Gastos → sus specs + transversales (persistencia,
   swipe, frames). Núcleo (motor, i18n, shell, runner) o un workflow → todo.
+  Los **registros de tests** del panel (`scripts/beta-sources.json`, `scripts/beta-archives.json`,
+  lista `TEST_REGISTRY`) ya no son núcleo: casi cada tanda los toca y cada beta salía con los 2005
+  e2e. Lanzan todos los unitarios (beta-revisions los lee al importarse) y los e2e del panel
+  (`TEST_REGISTRY_SPECS`: revisar-beta, beta-panel-reopen, inicio-offline, ajustes-versiones). El
+  código que el build usa para sellar el panel (`beta-revisions.mjs`, `beta-source-code.mjs`,
+  `build-app.mjs`) sigue en `CORE`.
+- **Trozos** (`node scripts/run-tests.mjs --part <trozo> [--shard i/N]`, 8/11/2026). Sin `--part`
+  todo sigue igual: `npm test` en local es la suite entera en serie.
+  `unit` = build + unitarios sin beta-sources + Deno · `beta-sources` = solo ese fichero; con
+  `--shard` corre uno de cada N tests por orden de aparición (`BETA_SOURCES_SHARD`) y un trozo que
+  no corre ninguno es rojo. Los dos inventarios de mutantes («cada llamada de lógica…» y «cada
+  dato leído…») recorren todo el registro y solo el de lógica eran 22 de los 38 min en local:
+  corren en todos los trozos y cada uno muta solo los alcances que le tocan, con el recuento
+  mínimo (561 / 160) contado sobre el total · `e2e` = e2e funcionales con `--shard` de Playwright
+  (`--pass-with-no-tests`: un plan de tres specs deja shards vacíos y eso es verde) · `e2e-perf` =
+  los de rendimiento, con un worker y sin trocear. Cuántos shards: `ciJobs()` en
+  `relevant-tests.mjs` (uno por cada ~12 ficheros de spec, hasta 8).
+  Ojo: los e2e ya no esperan a que los unitarios salgan verdes (antes, un unitario rojo se saltaba
+  los e2e). Ahora corren igual y el rojo de `tests` dice cuál de los trozos falló.
   El guardián `beta-veredictos` también exige la suite completa: corregir su fixture tras
   un publicador fallido no permite servir una unión pendiente sin abrir sus pantallas.
   **Si añades un e2e o un módulo de `src/`**, una línea en `E2E_MAP` / `CROSSCUTTING` / `CORE`
@@ -1676,3 +1802,37 @@ Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML
 
 
 `e2e/inicio-traspasos.spec.mjs` (4.26.198, 31/10/2026) abre Inicio y Gastos con un estado sembrado y comprueba en el DOM: Próximos cargos del mes siguiente («En noviembre») cuando este mes no queda nada, la sección oculta si tampoco hay y el vacío de bienvenida solo sin banco ni recibos; Últimos movimientos sin las patas de traspaso ni lo de bancos que no son de gasto diario; y en Gastos el bloque plegado «Traspasos · no cuentan» al final del día sin que cambie el total del día. Está en `E2E_MAP` de `03-tab-dash` y `04-tab-gastos`.
+
+`e2e/recibos-gestionar-v6.spec.mjs` (9/11/2026) abre Plan → Recibos → Gestionar con un estado sembrado y comprueba la pantalla «Tus recibos» de la SPEC §3: cabecera, cifra y desglose «recibos + cuotas» que cuadran con la suma de las secciones y con `billsHeroTotal`, el paso al año, cuatro filas con su día y «Ver los N», la cuota con lo que se descuenta, «De una sola vez» sin los ya pasados, Personas, los avisos de solapes (y que «Amazon Prime» + «Movistar fibra» no dan aviso), su × guardada, los chips de banco, el buscador por nombre e importe con «Añadir "x" como recibo», y las puertas a una persona, a un recibo, a una cuota (Deudas), a lo que entra y a «¿Me lo puedo permitir?». Está en `E2E_MAP` de 14, 08, 07, 01 y shell.
+
+`e2e/recibos-dinero.spec.mjs` (9/11/2026, 4.26.216) vigila lo que mueve dinero en Plan → Recibos: «Lo pagué de otra forma» con Desmarcar y Deshacer, que ningún sitio del motor resta del banco lo marcado a mano y que marcarlo no mueve el saldo visto, devolver un recibo saltado con Deshacer (también con saldo compensado), el día 31 en un mes de 30, la mezcla mes a mes de la marca entre dos móviles y «Ya no lo tengo» con Deshacer.
+
+`tests/traspaso-abona-destino.test.mjs` (10/11/2026) fija que un traspaso previsto entre dos bancos propios resta en el que sale y suma en el que llega, con cifras hechas a mano: saldo, lo más justo y previsto a fin de mes de cada banco antes y después del día del traspaso (no puede saltar al pasar el día), el total que no cambia, el cierre de mes, el destino que no es propio, el traspaso sin día, el sello `trasAbonoDesde`, la cuenta de gasto diario y la llegada adelantada que el banco ya trae. `e2e/recibos-dinero.spec.mjs` lo mira en «¿Te llega?» los días 9 y 16. `tests/cifras-por-idioma.test.mjs` fija el formato de las cifras: en español y catalán el de siempre carácter a carácter, en inglés «1,234.56 €», y que lo tecleado o precargado en un campo se lee como el mismo número en los tres idiomas.
+
+`tests/ingresos-como-recibos.test.mjs` y `e2e/plan-ingresos-recibos.spec.mjs` (12/11/2026) fijan que lo que entra y lo que mueves (`flows`) sigue el ciclo de un recibo: llega con un movimiento de Gastos del banco que lo recibe (o el que él elige, o «Lo recibí de otra forma») y pasa a «Ya ha entrado»; pasado su día sin movimiento también, «sin movimiento», porque el saldo ya lo cuenta (la vista sigue al dinero). Los casos de dinero, a mano: antes de llegar, el día que llega, adelantado (el enlace ancla como el extracto y el día previsto no suma otra vez), sin llegar, traspaso propio confirmado, dos nóminas iguales, Deshacer que no veta, un movimiento de otra cifra o de hace más de 7 días que no ancla, y un ingreso que no paga a la vez «Te deben» y una entrada; quince mutantes del motor tienen que caer. El e2e mira la sección, la ficha («No es este», elegir a mano, deshacer sin veto, de otra forma) y el alta por pasos (no deja guardar «Cada 3 meses» sin meses).
+
+`tests/traspasos-tedeben-230.test.mjs` (12/11/2026, lo que encontró en la 230; veintitrés mutantes del motor tienen que caer) fija: (A) la salida «TRANSFERENCIA A <titular>» pasa a traspaso solo yendo al nombre ENTERO del titular con un traspaso previsto de ese banco (±7 días), o con su pata de llegada única más su nombre o el traspaso previsto entre esos dos bancos; nunca a un hermano, un tocayo ni al casero aunque entre el mismo importe en otro banco, ni lo que él dejó o devolvió a «Otros», ni un mes cerrado salvo el adelanto de los últimos 7 días, ni se reintenta en cada pull; deja de contar en el gastado sin dejar de restar del saldo; (B) el adelanto de una entrada o traspaso del día 1 hecho el 30 del mes anterior se enlaza solo con su fecha, el mes de al lado no lo reclama, fuera de 7 días no vale y no ancla el saldo; (C) una entrada que es la parte de alguien de «Te deben» (mismo nombre, mismo importe) y esa persona quedan hechas con el mismo movimiento —también a medias, a mano, con el nombre del titular o «abono» en el concepto— sin mover el saldo, con cada pago contado en un solo mes y una sola gemela. El último caso de `e2e/plan-ingresos-recibos.spec.mjs` mira en pantalla el «30 oct», el selector de un traspaso (lo que no se parece, tras «Más movimientos») y (D) que el total de «Ya ha entrado» es la suma de lo que dicen sus filas.
+
+`tests/enlace-otro-banco-231.test.mjs` (13/11/2026, su prueba de la 4.26.231 y su revisión de dinero; quince mutantes) fija que una entrada se puede enlazar a un ingreso del importe EXACTO en otro banco tuyo (sin anclar el saldo), que casa solo únicamente si es el pago de la persona de la que es gemela, que «ABONO TRANSFERENCIA» es una transferencia y no una devolución (y un retroceso, rechazo, cancelación, promoción o bonificación no es un pago), que el nombre abreviado («Nora» → «Noraida …») solo casa con transferencia o Bizum, nombre y dos apellidos, sin empresa ni comercio ni otro nombre de pila («Mar» no es «MARKETPLACE … SL» ni «Maria …») y con el importe exacto, que el alias que él confirma al enlazar casa los meses siguientes, y que otra entrada no se queda el pago que «Te deben» da a la persona. El caso 231 de `e2e/plan-ingresos-recibos.spec.mjs` mira además la línea «Llegó a Sabadell · Cambiar la cuenta» de la ficha.
+
+`e2e/recibos-portada-prototipo.spec.mjs` (9/11/2026, 4.26.216) mide la portada de Plan → Recibos contra el prototipo: «Ya pagados» en una línea con la letra al 110 %, tres filas en «Para revisar» (cinco con la luz que «cobró distinto», 4.26.217), «Todos ›» (`data-testid="plan-todos"`), «Por pagar» en tres renglones, «¿Y si gasto…?» con tres bancos y «¿Cuánto es?» con un nombre largo.
+
+`e2e/recibos-cobro-distinto.spec.mjs` (10/11/2026, 4.26.217) siembra un recibo de luz sin pagar y un adeudo del mismo banco con otro nombre y unos céntimos de diferencia: sale en «Para revisar» como `data-review="cand"` con el cargo propuesto; «Sí, es este» lo pasa a «Ya pagados» y «No es este recibo» lo deja en «Por pagar», los dos con Deshacer, que lo vuelve a preguntar. La lógica (vallas, rivales, umbral) la vigila `tests/recibos-cobro-distinto.test.mjs`.
+
+`e2e/recibos-prueba-desliz.spec.mjs` (10/11/2026; gestos rehechos el 11/11, 4.26.229, al quitar el desliz de las filas) cubre la prueba gratis, la permanencia y los gestos sobre las filas de Plan → Recibos. Los avisos salen solo con fecha y en su orden (prueba, no ha llegado, permanencia); la prueba que acaba en otro mes sale de «Por pagar» y de la cifra, pero no de «Se te van cada mes», y al año faltan sus meses. A 360 px el aviso de la prueba cabe en un renglón. «Me lo quedo» y «Ya lo he mirado» los quitan, y «Más opciones» pone, guarda y quita las dos fechas. El gesto es táctil de verdad por CDP: espera a que se vaya `#mc-load` y a que el carrusel esté quieto. Comprueba que un desliz horizontal empezando sobre el importe o el nombre de una fila de «Por pagar» o «Para revisar» cambia a Cartera sin mover la fila, sin abrir la ficha, sin posponer y sin tocar lo guardado; que hacia la derecha va a Gastos y en vertical es scroll; y que un toque en la cifra abre la ficha. El orden y la mezcla entre móviles los vigila `tests/recibos-prueba-permanencia.test.mjs`.
+
+`e2e/recibos-apertura-ligera.spec.mjs` (10/11/2026) vigila lo que se hizo para que abrir «¿Te llega?», Tus recibos y «Editar» no deje fotogramas largos, que no se ve: una hoja de Recibos no pone `sheet-shell-off` en `<html>` pero su velo se queda los toques (y Apuntar sigue apagando la app de detrás); en «Editar» solo nace el paso a la vista y los demás llegan solos o en el toque que cambia de paso; y el ensayo en seco (`mcEnsayar`) pasa por las tres sin dejar nodos, clases ni entradas de Atrás. Los tiempos no se miden aquí: son de máquina (AGENTS §7 bis).
+
+`e2e/recibos-suave.spec.mjs` (12/11/2026) mide por fotograma lo que el dueño pidió «tan suave como Personas»: todos los pliegues de Recibos llevan la misma transición que Personas en Tus recibos (rejilla, `.35s` y la curva de la casa) y el hueco de arriba crece y se va con el pliegue (`padding` con transición en `.pr6-fold-in`); un espía de `scrollIntoView`/`scrollTo`/`scrollBy`/`scrollTop` comprueba que «Ver los N», «Ver menos» y «Ya pagados» no desplazan la página; en Editar, un toque de verdad (eventos táctiles) no deja `transform` en la hoja (era el flash: la hoja subía a otra capa en cada toque), «Más opciones» no corre sola hasta arriba y «¿Lo pagas con alguien?» tiene aire; y en «¿Y si gasto…?» el importe sube en un solo movimiento a ×6, de una vez y a plazos con cifra (antes un fotograma hacía 116 de 361 px). La llegada a una deuda desde Tus recibos se mide en `e2e/deudas-ir-suave.spec.mjs`: la página ya está en la tarjeta antes de que Tus recibos empiece a irse, y no se mueve mientras sale.
+
+`e2e/recibos-despliegue-personas.spec.mjs` (12/11/2026, tras la 230) compara por fotograma, con la CPU a ×6, «Ver los 13» de Tus recibos con «Ver los 6» de Personas, y «Ver los N» y «Ya pagados» de la portada: lo de debajo va pegado a lo que se ve (la rejilla a menos de 1fr da a la caja f·alto y a su fila f²·alto; recortando por la fila se abría un vacío de hasta 205 px), la caja de la lista no se apaga (las tarjetas llegan con el borde y se enciende su contenido) y el borde de diez recibos no va a más de 1,8 veces la velocidad de Personas (antes ~4). Contra la 230 falla con el hueco de 204 px.
+
+`e2e/recibos-ver-menos-sube.spec.mjs` (13/11/2026) mide por fotograma, con la CPU a ×6, el «Ver menos» de «Ver los 13» en Tus recibos desde abajo del todo: la vista sube con el pliegue, a la vez y al mismo porcentaje en cada fotograma, sin volver atrás ni saltar, y deja el título de la sección a 12 px de arriba; con el título a la vista o con una lista corta, la app no escribe el scroll. Y que la cifra de «Se te van cada mes» entra sin animación (sin fotograma a opacidad 0) y que, tras el ⇆, aunque su fundido se atasque en el primer fotograma, a los 600 ms se ve.
+
+`e2e/recibos-prototipo.spec.mjs` (10/11/2026, 4.26.217) compara con el prototipo lo visual de la auditoría de la 4.26.216: «Por pagar» y la categoría que no repite el nombre, «QUEDA POR PAGAR EN NOVIEMBRE» en un renglón a 360 px, el banco elegido legible en tema claro, «Tus recibos» (chip relleno, el banco filtra avisos y personas, cuota en una línea, cifra sin contar), el ojo (tapa todas las cifras de dinero y se recuerda al volver) y el dibujo de cada sugerencia del alta.
+
+`e2e/recibos-gestionar-v6.spec.mjs` (10/11/2026, 4.26.218) suma dos pruebas: un recibo en pausa (este mes o desde el que viene) sale atenuado con «pausado hasta …» y no entra en «Se te van» ni en sus secciones, al mes y al año, igual que `billsHeroTotal`; y la barra de abajo se pinta encima de Tus recibos (sin desenfoque ni transform), no tapa la última fila, cada pestaña lo cierra y ←, atrás y el borde la devuelven a `.app-shell`.
+
+`tests/plazos-deuda.test.mjs` (11/11/2026, 4.26.229) vigila la deuda que crea «¿Y si gasto…?» › «A plazos» (`deudaAPlazos`): al nacer 0 cuotas pagadas, saldo = financiado, `debtLeft` = n, nada en «Ya pagados» ni pendiente este mes ni en el recorrido de «¿Te llega?», y la última cuota en hoy + n; el mes siguiente su 1.ª cuota sí está pendiente en `planChargesMonth` (hoy = 0, como la vista «mes que viene») y en `billsHeroTotal` de ese mes, y tras la última ya no; con el ancla en este mes o antes `debtActiveIn` = `debtActive` en cualquier mes; plazos de 0, 1 o más de 120 no crean nada; y las deudas de siempre (ancla en este mes o antes) cuentan como antes tras el guardo del ancla futura en `debtPaidCount`/`debtActive`. Mutantes comprobados: ancla en este mes, sin el guardo en `debtPaidCount`, sin el de `debtActive`, `planChargesMonth` o `billsHeroTotal` con `debtActive` y la ventana de `debtActiveIn` un mes antes: rojo todos.
+
+`tests/recibos-pausa-cifra.test.mjs` (10/11/2026, 4.26.219) vigila la cifra de «Tus recibos» con recibos en pausa: al mes no suman (`billsPausado` = `fixedPausedIn` de este mes o del siguiente; una pausa caducada o futura sí suma), al año solo faltan los cobros que caen dentro de la pausa (`billsAnualDe`, contra un oráculo del calendario con mensual, trimestral, anual, `schedule` y semana), y el simulador «¿Me lo puedo permitir?» parte de `billsHeroTotal`. La prueba del pausado de `e2e/recibos-gestionar-v6.spec.mjs` lo mira en pantalla, al mes, al año y en «A plazos».

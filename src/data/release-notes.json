@@ -1,5 +1,44 @@
 [
   {
+    "v": "4.26.232",
+    "d": "2026-11-13",
+    "t": {
+      "es": "Recibos a fondo, quién te debe y traspasos entre tus cuentas",
+      "en": "Bills in depth, who owes you and transfers between your accounts",
+      "ca": "Rebuts a fons, qui et deu i traspassos entre els teus comptes"
+    },
+    "items": {
+      "es": [
+        "Recibos, renovado: das de alta un recibo paso a paso con los cargos que se repiten en tu banco, y «Tus recibos» reúne todo lo que se te va al mes o al año, con buscador y secciones. Si pagaste uno en efectivo o por Bizum, «Lo pagué de otra forma» lo da por pagado.",
+        "Puedes apuntar la prueba gratis y la permanencia de cada recibo; pausar un recibo solo quita sus meses, y con la app actualizada el aviso de la víspera dice cuánto se cobra y lo que te queda en ese banco.",
+        "Si el banco cobra un recibo con otro nombre o un importe algo distinto, te pregunta si es ese antes de tocar ninguna cifra; un cargo ya no paga dos recibos y los domiciliados se marcan como pagados solos.",
+        "Recibos compartidos con personas: ves solo tu parte, y «Te deben» reconoce lo que te pagan aunque llegue a otro de tus bancos o paguen de menos.",
+        "El dinero que pasas entre tus cuentas sale en Traspasos y no cuenta como gasto, y la nómina y lo que esperas cobrar se enlazan solos con su movimiento cuando llegan.",
+        "Un ojo nuevo en Plan tapa todas las cifras, también en los avisos del móvil; y en Deudas, la cuota y lo que baja la deuda cuadran sin sorpresas.",
+        "Y más: Trade Republic reconoce tu aportación mensual, los filtros de Gastos tienen icono nuevo, las hojas y listas se abren suaves y sin tirones, y las importaciones del banco van más rápido."
+      ],
+      "en": [
+        "Bills, renewed: you add a bill step by step with the charges that repeat at your bank, and “Your bills” gathers everything that goes out each month or year, with a search box and sections. If you paid one in cash or by Bizum, “I paid it another way” marks it as paid.",
+        "You can note each bill's free trial and minimum term; pausing a bill only removes its months, and with the app updated the reminder the day before says how much is charged and what you have left at that bank.",
+        "If the bank charges a bill under another name or a slightly different amount, it asks you whether it is that bill before changing any figure; one charge no longer pays two bills, and direct debits are marked as paid on their own.",
+        "Bills shared with people: you see only your share, and “You're owed” spots what you are paid even if it lands in another of your banks or someone pays short.",
+        "Money you move between your accounts shows under Transfers and doesn't count as spending, and your salary and what you expect to receive link to their movement on their own when they arrive.",
+        "A new eye in Plan hides every figure, also in phone notifications; and in Debts, the instalment and how much the debt goes down add up without surprises.",
+        "And more: Trade Republic recognises your monthly contribution, Spending filters have a new icon, sheets and lists open smoothly without stutters, and bank imports are faster."
+      ],
+      "ca": [
+        "Rebuts, renovat: dones d'alta un rebut pas a pas amb els càrrecs que es repeteixen al teu banc, i «Els teus rebuts» reuneix tot el que se't va al mes o a l'any, amb cercador i seccions. Si en vas pagar un en efectiu o per Bizum, «Ho vaig pagar d'una altra manera» el dona per pagat.",
+        "Pots apuntar la prova gratuïta i la permanència de cada rebut; pausar un rebut només en treu els seus mesos, i amb l'app actualitzada l'avís de la vigília diu quant es cobra i el que et queda en aquest banc.",
+        "Si el banc cobra un rebut amb un altre nom o un import una mica diferent, et pregunta si és aquest abans de tocar cap xifra; un càrrec ja no paga dos rebuts i els domiciliats es marquen com a pagats sols.",
+        "Rebuts compartits amb persones: veus només la teva part, i «Et deuen» reconeix el que et paguen encara que arribi a un altre dels teus bancs o et paguin de menys.",
+        "Els diners que passes entre els teus comptes surten a Traspassos i no compten com a despesa, i la nòmina i el que esperes cobrar s'enllacen sols amb el seu moviment quan arriben.",
+        "Un ull nou a Pla amaga totes les xifres, també als avisos del mòbil; i a Deutes, la quota i el que baixa el deute quadren sense sorpreses.",
+        "I més: Trade Republic reconeix la teva aportació mensual, els filtres de Despeses tenen icona nova, els fulls i les llistes s'obren suaus i sense estrebades, i les importacions del banc van més de pressa."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.198",
     "d": "2026-10-31",
     "t": {

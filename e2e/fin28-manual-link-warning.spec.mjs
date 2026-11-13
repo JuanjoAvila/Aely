@@ -23,6 +23,9 @@ async function choose(page,door){
   await page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:'Cargo sintético'}).click();
   await page.getByTestId('exp-receipt').click();await page.getByTestId('exp-receipt-classes').click();
  }else{
+  // «Para revisar» enseña solo una fila: se despliega «Ver los N» antes de buscar la segunda.
+  const mas=page.locator('div[data-seg="recibos"] [data-testid="plan-review"] .pr6-more');
+  if(await mas.count()&&await mas.first().getAttribute('aria-expanded')==='false'){await mas.first().click();await page.waitForTimeout(600);}
   await page.locator('div[data-seg="recibos"] [data-recibo="fixed_classes"]').click();
   await page.locator('[data-act="pagado"]').click();await page.locator('[data-cargo="wallet"]').click();
  }

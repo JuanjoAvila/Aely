@@ -3309,7 +3309,7 @@ function Shared({state, set, uid:userId, totals, showToast, meEmail}){
           ? React.createElement("div",{className:"add-form",style:{marginTop:10}},
               React.createElement("input",{className:"af-in",placeholder:t("sh_exp_ph"),value:eForm.desc,onChange:function(e){ setEForm(Object.assign({},eForm,{desc:e.target.value})); }}),
               React.createElement("div",{className:"af-row"},
-                React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:"0,00 €",value:eForm.amount,onChange:function(e){ setEForm(Object.assign({},eForm,{amount:e.target.value})); }}),
+                React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:NF.format(0)+" €",value:eForm.amount,onChange:function(e){ setEForm(Object.assign({},eForm,{amount:e.target.value})); }}),
                 React.createElement("select",{className:"af-in",value:eForm.payer,onChange:function(e){ setEForm(Object.assign({},eForm,{payer:e.target.value})); }}, open.people.map(function(p){ return React.createElement("option",{key:p,value:p},p); }))),
               React.createElement("div",{className:"mlabel",style:{textAlign:"left",margin:"8px 0 4px"}}, t("sh_split")),
               React.createElement("div",{className:"sh-parts"}, open.people.map(function(p){ const on=eForm.parts.indexOf(p)>=0; return React.createElement("button",{key:p,type:"button",className:"sh-part"+(on?" on":""),onClick:function(){ toggleParts(p); }}, p); })),

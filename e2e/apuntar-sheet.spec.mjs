@@ -291,7 +291,7 @@ test("Gastos › Filtros (con los periodos): cierra tirando hacia abajo", async 
   if (await dismissNews.count()) await dismissNews.first().click();
 
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
-  await page.locator('.page-scroll-host .gx-root button.v4-chip').filter({ hasText: "🎛️" }).first().click();
+  await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").click();
   const sheet = page.locator(".v4-sheet");
   await expect(sheet.locator('[data-periodo="cycle"]')).toBeVisible();
   await expect(sheet).toBeVisible();

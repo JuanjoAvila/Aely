@@ -451,7 +451,12 @@ for(const [rol,accounts,settings] of ROLES){
       assert.equal(j(mostrado(sin)),j(mostrado(r.state)),lista+": el saldo pintado sigue siendo el del banco");
       assert.equal(+(gastado(sin)-gastado(r.state)).toFixed(2),rol==="solo recibos"?0:importe,lista+": el cargo pasa a contar como un gasto");
       // Lo que entra por la puerta de la pantalla es esto mismo.
-      let porPantalla=r.state; (lista==="fixed"?c.removeFixedById:c.removeOneoffById)(f=>{ porPantalla=f(porPantalla); },id);
+      let porPantalla=r.state;
+      if(lista==="fixed"){
+        const quitado=c.billUndoRemove(porPantalla,c.billUndoReview(porPantalla,id),[],ahora);
+        assert.equal(quitado.error,undefined,"la retirada real admite el recibo revisado");
+        porPantalla=quitado.state;
+      } else c.removeOneoffById(f=>{ porPantalla=f(porPantalla); },id);
       assert.equal(j(porPantalla),j(sin));
     }
     // Sin ningún cargo suyo en Gastos, borrar hace lo de siempre y deja constancia del borrado
@@ -504,7 +509,8 @@ test("la marca que baja de la nube se adopta; la cuota de deuda manda sobre la d
   const fila=r.state.expenses.find(e=>e.reciboId==="mov");
   const m=c.marcarCuotaAMano(r.state,fila.id,"d1");
   assert.equal(j([m.e.debtId,m.e.reciboId]),j(["d1",undefined]));
-  assert.equal(c.expenseSourceForCloud(m.e),"ob:sabadell~deuda.d1#reft2#accsabadell");
+  // `~mano`: la marcó él a mano (4.26.200); solo esa paga la cuota con otro importe.
+  assert.equal(c.expenseSourceForCloud(m.e),"ob:sabadell~deuda.d1~mano#reft2#accsabadell");
   // Una fila que llega con las dos marcas (de un estado viejo) es cuota: no es cargo de recibo.
   const dosMarcas=Object.assign({},fila,{debtId:"d1",category:"deudas"});
   assert.equal(c.cargoDeRecibo(dosMarcas,r.state),null);
@@ -540,7 +546,8 @@ test("el lector de `source` no se rompe con un sufijo `#n<k>` detrás de la marc
 // tabla falsa en memoria con el índice único (user_id, fecha, importe, comercio) y el alta que
 // ignora duplicados, como la de verdad. Sin red.
 function nubeFalsa(previas){
-  const tabla=previas.map((p,i)=>Object.assign({id:"old"+i,user_id:"u1"},p)), log=[];
+  // La tabla real tiene UUID incluso cuando otro móvil conserva un id local distinto.
+  const tabla=previas.map((p,i)=>Object.assign({id:"00000000-0000-4000-8000-"+String(i+1).padStart(12,"0"),user_id:"u1"},p)), log=[];
   const clave=r=>[r.user_id,Date.parse(r.fecha),Number(r.importe),r.comercio].join("|");
   const from=()=>({
     upsert(fila){
@@ -552,14 +559,16 @@ function nubeFalsa(previas){
     select(columns){ return consulta(hit=>{ log.push("lee "+hit.length); return hit.map(r=>Object.fromEntries(columns.split(",").map(k=>[k,r[k]]))); }); },
     update(patch){ return consulta(hit=>{ log.push("cambia "+hit.length); hit.forEach(r=>Object.assign(r,patch)); return null; }); },
   });
-  const consulta=hace=>{ const conds=[]; const q={ eq(col,val){ conds.push([col,val]); return q; },
+  const consulta=hace=>{ const conds=[]; let selected=null; const q={ eq(col,val){ conds.push([col,val]); return q; },
+    is(col,val){ conds.push([col,val]); return q; },select(columns){ selected=columns.split(","); return q; },
     then(ok,ko){ const hit=tabla.filter(r=>conds.every(([col,v])=>col==="fecha"?Date.parse(r[col])===Date.parse(v):col==="importe"?Number(r[col])===Number(v):r[col]===v));
-      return Promise.resolve({data:hace(hit),error:null}).then(ok,ko); } }; return q; };
+      const data=hace(hit); return Promise.resolve({data:selected?hit.map(r=>Object.fromEntries(selected.map(k=>[k,r[k]]))):data,error:null}).then(ok,ko); } }; return q; };
   return {tabla,log,client:{auth:{getSession:async()=>({data:{session:{user:{id:"u1"},expires_at:9e9}},error:null}),onAuthStateChange(){ return {data:{subscription:{unsubscribe(){}}}}; }},from}};
 }
 function appConNube(n){
   const sb=createLogicSandbox(); sb.window.supabase={createClient:()=>n.client};
   vm.runInNewContext(extractPureLogicSource(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js)),sb);
+  vm.runInNewContext(source("src/modules/14-v4-screens.js"),sb);
   assert.equal(vm.runInContext("cloud.enabled()",sb),true,"la nube falsa está enganchada");
   return sb;
 }
@@ -601,9 +610,13 @@ test("subir una fila normal sigue siendo una sola escritura, y el modo pruebas n
 test("quitar la marca en la nube encuentra la fila aunque su id aquí sea otro, y conserva `#dup` y `#n<k>`", async ()=>{
   const sinMarca=Object.assign({},MARCADA,{reciboId:undefined});
   for(const [antes,despues] of [["ob:sabadell~recibo.mov","ob:sabadell"],["ob-hist:sabadell~recibo.mov#n2","ob-hist:sabadell#n2"],["ob:sabadell~recibo.mov#dup#n3","ob:sabadell#dup#n3"],["ob:sabadell~deuda.d1","ob:sabadell~deuda.d1"],["macrodroid","macrodroid"]]){
-    // El id de la fila en la nube («old0») no es el del móvil: un UPDATE por id no tocaría nada.
+    // El UUID de la fila en la nube no es el del móvil: un UPDATE por su id local no tocaría nada.
     const n=nubeFalsa([Object.assign({},YA,{source:antes})]), app=appConNube(n);
-    await vm.runInContext("cloud",app).setExpenseRecibo(sinMarca);
+    const write=vm.runInContext("cloud",app).setExpenseRecibo(sinMarca);
+    // Una fila excluida sigue intacta y ahora tampoco puede acreditar una marca
+    // de recibo que no le corresponde; conservar la comprobación de su source.
+    if(antes.indexOf("~deuda.")>=0||antes==="macrodroid")await assert.rejects(write,/expense source unavailable/);
+    else await write;
     assert.equal(n.tabla[0].source,despues,antes);
   }
 });
@@ -622,8 +635,13 @@ for(const [lista,id] of [["fixed","com"],["oneoffs","o1"]]){
     const octubre=new Date("2026-10-01T00:00:00+02:00").getTime();
     const servidor=s=>+statsDelMes(n.tabla,s,octubre).spent.toFixed(2);
     assert.equal(servidor(r.state),+gastado(r.state).toFixed(2),"antes de borrar ya cuadran");
-    let s=r.state;
-    (lista==="fixed"?app.removeFixedById:app.removeOneoffById)(f=>{ s=f(s); },id);
+    let s=Object.assign({},r.state,{_historyOwner:"u1"});
+    if(lista==="fixed"){
+      const quitado=app.billUndoRemove(s,app.billUndoReview(s,id),[],ahora);
+      assert.equal(quitado.error,undefined,"la retirada real admite el recibo revisado");
+      s=quitado.state;
+      await app.billUndoSend(quitado.subir,s._historyOwner);
+    } else app.removeOneoffById(f=>{ s=f(s); },id);
     await new Promise(setImmediate);
     const importe=lista==="fixed"?50:45;
     assert.equal(+(gastado(s)-gastado(r.state)).toFixed(2),importe,"la app pasa a contar el cargo");
@@ -687,8 +705,11 @@ test("borrar un recibo solo suelta sus cargos del periodo en curso: los meses ce
   const n=nubeFalsa([]), app=appConNube(n);
   app.Date=c.Date;
   for(const e of antes.expenses) await app.subirGasto(e,"test");
-  let s=antes;
-  app.removeFixedById(f=>{ s=f(s); },"com");
+  let s=Object.assign({},antes,{_historyOwner:"u1"});
+  const quitado=app.billUndoRemove(s,app.billUndoReview(s,"com"),[],ahora);
+  assert.equal(quitado.error,undefined,"la retirada real admite el recibo revisado");
+  s=quitado.state;
+  await app.billUndoSend(quitado.subir,s._historyOwner);
   await new Promise(setImmediate);
   // Agosto y septiembre, como estaban; octubre pasa a contar su cargo. En la app y en el servidor.
   assert.equal(j(["2026-08","2026-09","2026-10"].map(m=>gastadoMes(s,m))),j([30,35,53.4]));

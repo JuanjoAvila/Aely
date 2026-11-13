@@ -172,13 +172,15 @@ for(const window of ['actual','futuro','anterior']){
   function exercise(r){
     let n=0;
     for(const date of ['2026-10-31','2026-11-01','2026-12-31','2027-01-01'])
-    for(const kind of ['paused','before-start','resumed','paid-paused','budget-cap']){
+    for(const kind of ['paused','before-start','resumed','paid-paused','budget-cap','trial']){
       const at=Date.parse(date+'T12:00:00Z'),y=Number(date.slice(0,4)),m=Number(date.slice(5,7)),day=Number(date.slice(8)),ym=y*12+m;
       const c=r.c;
       c.Date=class extends Date{constructor(...args){super(...(args.length?args:[at]));}static now(){return at;}};
-      const paused=kind==='paused'||kind==='paid-paused'||kind==='budget-cap',paid=kind==='paid-paused';
+      const paused=kind==='paused'||kind==='paid-paused'||kind==='budget-cap'||kind==='trial',paid=kind==='paid-paused';
       const fixed={id:'r1',name:'Recibo sintetico',freq:'mes',amount:25.45,day:28,account:'trade_republic',wait:ym,
         pausedFrom:kind==='before-start'?ym+1:ym-1,pausedUntil:kind==='resumed'?ym:ym+1};
+      // Prueba gratis que empieza a cobrar el mes que viene (4.26.221): este mes no se cobra, como una pausa.
+      if(kind==='trial'){ delete fixed.pausedFrom; delete fixed.pausedUntil; const sig=ym+1,sy=Math.floor((sig-1)/12),sm=sig-sy*12; fixed.pruebaHasta=sy+'-'+String(sm).padStart(2,'0')+'-03'; }
       const rows=[{id:'payment',fecha:date+'T09:00:00Z',importe:5.45,cat:'super',source:'macrodroid',comercio:'Cafe sintetico'}];
       if(paid)rows.push({id:'receipt',fecha:date+'T08:00:00Z',importe:25.45,cat:'recibos',source:'ob:trade_republic~recibo.r1#refsynthetic',comercio:'Cargo bancario sintetico'});
       let state={budget:kind==='budget-cap'?100:2000,settings:{budgetCycle:false,expenseBanks:['trade_republic'],widgetBank:'trade_republic'},
@@ -216,9 +218,10 @@ for(const window of ['actual','futuro','anterior']){
     return n;
   }
   const mutants=[
-    {name:'recorrido sin pausa',file:'08-motor-bank.js',from:'||fixedPausedIn(e,y,m)) return;',to:') return;'},
-    {name:'saldo sin pausa',file:'08-motor-bank.js',from:'return fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;',to:'return false;'},
-    {name:'pausa oculta pago',file:'08-motor-bank.js',from:'return fixedPausedIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;',to:'return fixedPausedIn(e,y,m);'},
+    {name:'recorrido sin pausa',file:'08-motor-bank.js',from:'||fixedSinCobroIn(e,y,m)) return;',to:') return;'},
+    {name:'saldo sin pausa',file:'08-motor-bank.js',from:'return fixedSinCobroIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;',to:'return false;'},
+    {name:'pausa oculta pago',file:'08-motor-bank.js',from:'return fixedSinCobroIn(e,y,m)&&!fixedPaymentState(s,e,y,m,today).paid;',to:'return fixedSinCobroIn(e,y,m);'},
+    {name:'prueba gratis sin efecto',file:'07-tab-patri-fijos.js',from:'return fixedPausedIn(e,y,m)||fixedEnPruebaIn(e,y,m);',to:'return fixedPausedIn(e,y,m);'},
     {name:'reanudación inclusiva',file:'07-tab-patri-fijos.js',from:'&&ym<u;',to:'&&ym<=u;'},
     {name:'envío usa saldo en vez de mínimo',file:'11-app-main.js',from:'data.safeLiq=widgetSafeLiq;',to:'data.safeLiq=widgetCash;'},
     {name:'envío omite liquidez',file:'11-app-main.js',from:'if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;',to:'if(false) data.safeLiq=widgetSafeLiq;'},

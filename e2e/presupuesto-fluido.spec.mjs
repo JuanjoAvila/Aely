@@ -12,6 +12,8 @@ import { seedLoggedInDashboard, dismissNews, gastosRoot, gastosCifra, gastosEsta
 const desglose=(page)=>gastosRoot(page).getByTestId("gastos-desglose");
 
 test.use({ viewport:{width:375,height:812}, hasTouch:true });
+// En inglés las cifras van en formato inglés («1,000.50 €»): la misma cifra, con los separadores cambiados.
+const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):txt;
 
 for(const caso of [
   {lang:"es", pace:"43 € al día durante 16 días", start:"Aquí empieza el mes"},
@@ -38,7 +40,7 @@ for(const caso of [
   // El anillo cuenta lo usado: 300 de 1000 es un 30 % (quedan 700), y a 16 días del 1/10 son 43 al día.
   await expect(dash.locator(".v4-ring")).toHaveText("30%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
-  await expect(dash.locator(".v42-cycle-of")).toContainText("1.000");
+  await expect(dash.locator(".v42-cycle-of")).toContainText(cifra(caso.lang,"1.000"));
   await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace);
   await expect(dash).not.toContainText(caso.start);
   await expect(page.locator("[data-testid='dash-budget-streak']")).toHaveCount(0);
@@ -72,15 +74,15 @@ for(const caso of [
   // Quedan 20 de 1000 (se ha usado un 98 %) para los 28 días hasta el cobro del 26/10: ni un euro entero al día.
   await expect(dash.locator(".v4-ring")).toHaveText("98%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("20 €");
-  await expect(dash.locator(".v42-cycle-of")).toContainText("1.000");
+  await expect(dash.locator(".v42-cycle-of")).toContainText(cifra(caso.lang,"1.000"));
   await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace);
   await expect(page.locator(".v4-budget-foot")).toHaveCount(0);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/1\.?450/);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
-  await expect(gastosCifra(page)).toHaveText("980,00 €");
-  await expect(desglose(page)).toContainText("1.450,00");
-  await expect(desglose(page)).toContainText("470,00");
+  await expect(gastosCifra(page)).toHaveText(cifra(caso.lang,"980,00 €"));
+  await expect(desglose(page)).toContainText(cifra(caso.lang,"1.450,00"));
+  await expect(desglose(page)).toContainText(cifra(caso.lang,"470,00"));
   await expect(gastosEstado(page)).toContainText({es:"20 € por debajo",en:"20 € under",ca:"20 € per sota"}[caso.lang]);
 });
 

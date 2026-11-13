@@ -67,7 +67,7 @@ test('FIN17R F4 M12 reconstruido: sync mezcla disco sin presembrar confirmed en 
  await assert.rejects(()=>check(changed),e=>e.code==='ERR_ASSERTION'&&e.message.includes('sync debe incorporar'),'M12 muerto por resultado financiero');
 });
 test('FIN17R F4 M11 reconstruido: handler notificacion calcula month con confirmadas',async()=>{
- const check=async code=>{const {a}=make(),date=new Date().toISOString().slice(0,10),p={...pending,date:date+'T10:00:00.000Z'},b={...booked,date:date+'T10:00:00.001Z'};
+ const check=async code=>{const {a}=make(),date=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid'}).format(new Date()),p={...pending,date:date+'T10:00:00.000Z'},b={...booked,date:date+'T10:00:00.001Z'};
  const r={...record(a),owner:'user',key:a.c.obAbsorptionKey(b),keepKey:a.c.obAbsorptionKey(p)};
  const env=fakeDb({state:{...seed(),_historyOwner:'user',expenses:[],obAbsorbedConfirmed:[r]},rows:[p,b].map(e=>({...a.wire(e),user_id:'user'}))});
  const result=await post(env,{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 0,01 € en Otra cuenta sintetica',fecha:String(Date.now()),evento:'fin17-m11'},undefined,code);
@@ -258,7 +258,10 @@ test('FIN17 H1 conserva320c tras ACK,poda500 y backfill de otro cliente que cono
 test('FIN17 upserts simple/batch y metadatos no resuben el confirmado; DELETE sigue útil',async()=>{
  const {a,db}=make(),r=record(a);assert.equal(a.c.obConfirmedPersist(uid,[r]),true);
  assert.equal(await a.cloud.addExpense(booked),null);await a.c.subirGasto({...booked,reciboId:'synthetic-recibo'},'backfill');
- for(const [method,arg] of [['setExpenseDup',false],['setExpenseBank','caixabank'],['setExpenseNoCard',true],['setExpenseCat','otros'],['setExpenseDeuda'],['setExpenseRecibo']])await a.cloud[method](booked,arg);
+ for(const [method,arg] of [['setExpenseNoCard',true],['setExpenseCat','otros'],['setExpenseDeuda']])await a.cloud[method](booked,arg);
+ // Los writers de source con acuse explícito rechazan una fila protegida: además
+ // de cero consultas, deben impedir que el caller confunda ese veto con un ACK.
+ for(const [method,arg] of [['setExpenseDup',false],['setExpenseBank','caixabank'],['setExpenseRecibo']])await assert.rejects(a.cloud[method](booked,arg),/expense upload denied/,method);
  // FIN04: bloquear una nota/renombrado no puede aparentar un ACK. La guarda sigue
  // exigiendo cero consultas, además de rechazar explícitamente la confirmación.
  await assert.rejects(a.cloud.setExpenseNote(booked,'synthetic'),/expense unavailable/);

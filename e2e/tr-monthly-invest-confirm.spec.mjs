@@ -1,0 +1,79 @@
+import {test,expect} from "@playwright/test";
+import {seedLoggedInDashboard,dismissNews} from "./fixtures.mjs";
+
+const id="550e8400-e29b-41d4-a716-446655440000", now=Date.parse("2026-11-04T12:00:00Z");
+const row=(note="")=>({id,date:"2026-11-03T12:00:00.000Z",amount:50,merchant:"Movimiento",obName:"Movimiento",note,category:"otros",source:"ob",ent:"trade_republic",obAcc:"tr-synthetic",extId:"monthly-ref"});
+const remote=e=>({id:e.id,user_id:"e2e-user",fecha:e.date,importe:e.amount,comercio:e.merchant,cat:e.category,source:"ob:trade_republic#refmonthly-ref#acctr-synthetic",nota:e.note||null,ob_name:e.obName});
+async function open(page,note="",amount=50){
+  test.info().annotations.push({type:"own-clock",description:"November confirmation followed by December bank row"});
+  await page.addInitScript(epoch=>{const Native=Date,offset=epoch-Native.now();class MonthlyDate extends Native{constructor(...args){super(...(args.length?args:[Native.now()+offset]))}static now(){return Native.now()+offset}};window.Date=MonthlyDate;},now);
+  const e={...row(note),amount};
+  await seedLoggedInDashboard(page,{__seedOnce:true,__cloudPersist:true,user:{id:"e2e-user",email:"e2e@test.local"},_historyOwner:"e2e-user",_fixMovInvasion2:true,
+    accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:950}],expenses:[e],
+    bankTx:[{id:"monthly-ref",ent:e.ent,acc:e.obAcc,date:"2026-11-03",amount,merchant:"Movimiento",note,card:false,status:"BOOK"}],
+    settings:{autoPrices:false,theme:"green",expenseBanks:["trade_republic"],brokersOn:["trade_republic"]},hasBankLink:true,
+    investments:[{id:"fund",ent:"trade_republic",name:"Vanguard FTSE All-World",shares:10.5,value:1050,cost:950,cur:"EUR"}],trAnchor:"2026-11",
+    __cloudRows:{expenses:[remote(e)],bank_links:[{aspsp_name:"Trade Republic",aspsp_country:"DE",status:"active",valid_until:"2027-01-01T00:00:00Z",accounts:[{uid:"tr-synthetic"}]}]}});
+  await page.route("https://**",route=>route.abort());
+  await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator("button.v4-mov").filter({hasText:"Movimiento"}).first().click();
+  await expect(page.getByTestId("tr-monthly-proposal")).toBeVisible();
+}
+const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3_exp")));
+test("genérico: cancelar no cambia y confirmar solo esa fila, durable al recargar",async({page})=>{
+  await open(page);
+  await page.getByTestId("tr-monthly-confirm").click();
+  await page.getByRole("button",{name:"Cancelar",exact:true}).last().click();
+  expect((await saved(page))[0].category).toBe("otros");
+  await page.getByTestId("tr-monthly-confirm").click();await page.getByRole("button",{name:"Confirmar inversión",exact:true}).click();
+  await expect.poll(async()=>(await saved(page))[0].category).toBe("inversion");
+  const result=await page.evaluate(()=>({main:JSON.parse(localStorage.getItem("micartera_v3")),updates:window.__monthlyUpdates}));
+  expect(result.updates).toHaveLength(1);expect(result.updates[0].patch).toEqual({cat:"inversion"});
+  expect(result.main.settings.trMonthlyInvestRecognition).toBeUndefined();expect(result.main.investments[0].value).toBe(1050);expect(result.main.accounts[0].value).toBe(950);
+  await page.reload();await expect(page.locator(".botnav")).toBeVisible();expect((await saved(page))[0].category).toBe("inversion");
+});
+test("ACK cero no activa categoría ni regla",async({page})=>{
+  await open(page,"Plan de inversión Vanguard FTSE All-World");await page.evaluate(()=>window.__monthlyReject=true);
+  await page.getByTestId("tr-monthly-confirm").click();await page.getByRole("button",{name:"Confirmar inversión",exact:true}).click();
+  await expect(page.locator(".toast")).toContainText("No se ha podido confirmar");expect((await saved(page))[0].category).toBe("otros");
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.trMonthlyInvestRecognition)).toBeUndefined();
+});
+test("semántico: consentimientoNov4 durable y syncDec3 clasifica sin comprar dos veces",async({page})=>{
+  await open(page,"Plan de inversión Vanguard FTSE All-World");
+  await page.getByTestId("tr-monthly-confirm").click();await page.getByRole("button",{name:"Confirmar inversión",exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.trMonthlyInvestRecognition?.enabled)).toBe(true);
+  await page.reload();await expect(page.locator(".botnav")).toBeVisible();await page.waitForFunction(()=>!!JSON.parse(localStorage.getItem("micartera_v3")).lastSync);
+  await expect.poll(async()=>(await saved(page))[0].category).toBe("inversion");
+  const before=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).investments);
+  await page.evaluate(()=>{
+    const Native=Date,epoch=Date.parse("2026-12-04T12:00:00Z");class DecemberDate extends Native{constructor(...args){super(...(args.length?args:[epoch]))}static now(){return epoch}};window.Date=DecemberDate;
+    window.__monthlyFeed={data:{ok:true,links:[{aspsp:"Trade Republic",ok:true,accounts:[{uid:"tr-synthetic",ok:true,balances:[],transactions:[{ext_id:"dec-ref",date:"2026-12-03",amount:50,merchant:"Movimiento",note:"Plan de inversión Vanguard FTSE All-World",card:false,status:"BOOK"}]}]}]},error:null};
+    cloud.bankSync=async function(){window.__monthlyBankCalled=(window.__monthlyBankCalled||0)+1;return window.__monthlyFeed.data;};
+    window.dispatchEvent(new CustomEvent("mc-bank-role-changed"));
+  });
+  await expect.poll(async()=>(await saved(page)).find(e=>e.extId==="dec-ref")?.category,{timeout:15000}).toBe("inversion");
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).investments)).toEqual(before);
+});
+test("timeout tras UPDATE enviado: siguiente lectura converge73,27 sin segundo UPDATE ni permiso",async({page})=>{
+  await open(page,"Plan de inversión Vanguard FTSE All-World",73.27);
+  await page.waitForFunction(()=>!!JSON.parse(localStorage.getItem("micartera_v3")).lastSync);
+  await page.clock.install({time:new Date(now)});
+  await page.evaluate(()=>window.__monthlyDefer=true);
+  const before=await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem("micartera_v3"));return {accounts:s.accounts,investments:s.investments};});
+  await page.getByTestId("tr-monthly-confirm").click();await page.getByRole("button",{name:"Confirmar inversión",exact:true}).click();
+  await page.waitForFunction(()=>typeof window.__monthlyCompleteUpdate==="function");
+  expect(await page.evaluate(()=>window.__monthlyUpdates.length)).toBe(1);
+  await page.clock.fastForward(10001);await expect(page.locator(".toast")).toContainText("No se ha podido confirmar");
+  expect((await saved(page))[0].category).toBe("otros");
+  await page.evaluate(()=>window.__monthlyCompleteUpdate());
+  expect(await page.evaluate(()=>window.__e2eCloudRows.expenses[0].cat)).toBe("inversion");
+  await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+  await page.clock.runFor(500);
+  await test.info().attach("timeout-read-state",{body:JSON.stringify(await page.evaluate(()=>({visibility:document.visibilityState,reads:window.__monthlyReads,main:JSON.parse(localStorage.getItem("micartera_v3")),expenses:JSON.parse(localStorage.getItem("micartera_v3_exp"))}))),contentType:"application/json"});
+  await expect.poll(async()=>(await saved(page))[0].category).toBe("inversion");
+  const after=await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem("micartera_v3"));return {accounts:s.accounts,investments:s.investments,permission:s.settings.trMonthlyInvestRecognition,updates:window.__monthlyUpdates};});
+  expect(after.updates).toHaveLength(1);expect(after.updates[0].patch).toEqual({cat:"inversion"});
+  expect(after.updates[0].filters).toContainEqual(["importe",73.27]);expect(after.permission).toBeUndefined();
+  expect(after.accounts).toEqual(before.accounts);expect(after.investments).toEqual(before.investments);
+});

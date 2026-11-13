@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { planFromFiles, CORE, E2E_MAP, CROSSCUTTING } from "../scripts/relevant-tests.mjs";
+import { planFromFiles, ciJobs, CORE, E2E_MAP, CROSSCUTTING, TEST_REGISTRY, TEST_REGISTRY_SPECS, E2E_SHARDS, BETA_SOURCES_SHARDS } from "../scripts/relevant-tests.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -108,6 +108,66 @@ t("el núcleo (motor de dinero) NO se recorta", () => {
 t("un workflow de Actions tampoco se recorta", () => {
   const p = planFromFiles([".github/workflows/beta.yml"]);
   assert.equal(p.e2e, "all");
+});
+
+// Casi cada tanda toca el registro del panel: en CORE, casi cada beta salía con los 2005 e2e.
+t("el registro de tests del panel lanza todos los unitarios y los e2e del panel, no los 2005", () => {
+  for (const files of [["scripts/beta-sources.json"], ["scripts/beta-archives.json", "tests/beta-sources.test.mjs", "CHANGELOG.md"]]) {
+    const p = planFromFiles(files);
+    assert.equal(p.steps, "all", files + ": beta-revisions lee el registro al importarse");
+    assert.equal(p.build, true);
+    assert.equal(p.playwright, true);
+    assert.ok(Array.isArray(p.e2e), files + ": no es la suite entera");
+    for (const s of TEST_REGISTRY_SPECS) assert.ok(p.e2e.includes(s), files + " → " + s);
+    assert.ok(!p.e2e.includes("e2e/gastos-cajones.spec.mjs"));
+  }
+  for (const f of TEST_REGISTRY) assert.ok(!CORE.includes(f), f + " no puede volver a CORE sin quitarlo de aquí");
+  for (const s of TEST_REGISTRY_SPECS) assert.ok(fs.existsSync(path.join(root, s)), "spec del panel que no existe: " + s);
+});
+
+t("el registro junto a una pantalla suma sus specs a los de la pantalla", () => {
+  const p = planFromFiles(["scripts/beta-sources.json", "src/modules/13-hogar.js"]);
+  assert.ok(p.e2e.includes("e2e/revisar-beta.spec.mjs"));
+  assert.ok(p.e2e.includes("e2e/persistencia.spec.mjs"), "los transversales de src siguen");
+});
+
+t("el código que el build usa para sellar el panel sigue siendo núcleo", () => {
+  for (const f of ["scripts/beta-revisions.mjs", "scripts/beta-source-code.mjs", "scripts/build-app.mjs", "tests/beta-veredictos.test.mjs"])
+    assert.equal(planFromFiles([f]).e2e, "all", f);
+});
+
+t("el reparto de la CI: suite entera en todas las máquinas, docs sin ninguna", () => {
+  const todo = ciJobs(planFromFiles(["src/modules/08-motor-bank.js"]), 212);
+  assert.equal(todo.unit, true);
+  assert.equal(todo.bs.length, BETA_SOURCES_SHARDS);
+  assert.deepEqual(todo.bs, Array.from({ length: BETA_SOURCES_SHARDS }, (_, i) => (i + 1) + "/" + BETA_SOURCES_SHARDS));
+  const shards = todo.e2e.filter((j) => j.part === "e2e");
+  assert.equal(shards.length, E2E_SHARDS);
+  assert.deepEqual(shards.map((j) => j.shard), shards.map((_, i) => (i + 1) + "/" + E2E_SHARDS), "ningún trozo se queda fuera");
+  assert.equal(todo.e2e.filter((j) => j.part === "e2e-perf").length, 1, "rendimiento va aparte, con un worker");
+  const docs = ciJobs(planFromFiles(["docs/TESTING.md"]), 212);
+  assert.deepEqual(docs.bs, []);
+  assert.deepEqual(docs.e2e, []);
+  assert.equal(docs.unit, true, "docs-frescura y compañía siguen corriendo");
+  const pocos = ciJobs({ build: true, deno: false, playwright: true, e2e: ["e2e/a.spec.mjs", "e2e/b.spec.mjs"], steps: ["guard-privacy"] }, 212);
+  assert.deepEqual(pocos.e2e.map((j) => j.shard), ["1/1", ""], "dos specs no levantan ocho Chromium");
+  assert.deepEqual(pocos.bs, [], "sin beta-sources en el plan no hay trozos");
+});
+
+// test.yml (main) no pasa por el plan: sus trozos van escritos a mano. Si alguien sube E2E_SHARDS y
+// no toca la matriz, un shard «9/9» no existe y otro «8/8» deja fuera tests sin que nada se queje.
+t("las matrices de los workflows cubren todos los trozos y el veredicto conserva su nombre", () => {
+  const main = fs.readFileSync(path.join(root, ".github/workflows/test.yml"), "utf8");
+  for (let i = 1; i <= E2E_SHARDS; i++) assert.ok(main.includes('shard: "' + i + "/" + E2E_SHARDS + '"'), "test.yml sin e2e " + i + "/" + E2E_SHARDS);
+  assert.ok(!main.includes('"' + (E2E_SHARDS + 1) + "/"), "test.yml con un shard de más");
+  const bs = Array.from({ length: BETA_SOURCES_SHARDS }, (_, i) => '"' + (i + 1) + "/" + BETA_SOURCES_SHARDS + '"');
+  assert.ok(main.includes("shard: [" + bs.join(", ") + "]"), "test.yml: trozos de beta-sources = BETA_SOURCES_SHARDS");
+  assert.ok(main.includes("part: e2e-perf"), "rendimiento corre en main");
+  assert.match(main, /\n  test:\r?\n    needs: \[unit, beta-sources, e2e\]/);
+  const beta = fs.readFileSync(path.join(root, ".github/workflows/beta.yml"), "utf8");
+  assert.match(beta, /\n  tests:\r?\n    needs: \[plan, unit, beta-sources, e2e\]/, "el job que se mira antes de promocionar sigue llamándose tests");
+  for (const flag of ["--part unit", "--part beta-sources --shard", '--part "$PART"'])
+    assert.ok(beta.includes(flag) && (flag === "--part unit" ? main.includes(flag) : true), "falta " + flag);
 });
 
 t("lista vacía o desconocida → suite entera, no un verde ciego", () => {

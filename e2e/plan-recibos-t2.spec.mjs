@@ -60,7 +60,7 @@ test("para revisar: cada aviso en su caso y por prioridad (no cobrados antes que
   await expect(review.locator('[data-review="diff"]')).toContainText("Esperabas 60,00 €");
   await expect(review.locator('[data-review="diff"]')).toContainText("61,00 €");
   await expect(review.locator('[data-review="up"]')).toContainText("Ha subido 1,00 €");
-  // Tres a la vista y el cuarto tras «Ver los 4».
+  // Tres a la vista, como el prototipo (SPEC §2.3), y el cuarto tras «Ver los 4».
   await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(3);
   await review.getByRole("button", { name: /Ver los 4/ }).click();
   await expect(review.locator(".v4-charge:not([inert] *)")).toHaveCount(4);
@@ -70,6 +70,7 @@ test("para revisar: cada aviso en su caso y por prioridad (no cobrados antes que
 
 test("ficha: cobró distinto → «Solo este mes» lo deja como pagado con ese cargo", async ({ page }) => {
   const recibos = await abrePlan(page, cuatroAvisos());
+  // «Cobró distinto» es el tercero: se ve sin desplegar «Ver los N».
   await recibos.getByTestId("plan-review").locator('[data-review="diff"]').click();
   const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
   await expect(ficha.getByTestId("recibo-nota")).toHaveText("Cobró 61,00 € · esperabas 60,00 €");
@@ -131,6 +132,7 @@ test("ficha: ha subido → «Actualizar precio» cambia el importe y el recibo s
 test("ficha: fantasma → «Ya no lo tengo» pide confirmación, tocar fuera la cancela; no ha llegado lleva sus botones", async ({ page }) => {
   const recibos = await abrePlan(page, cuatroAvisos());
   const review = recibos.getByTestId("plan-review");
+  await review.getByRole("button", { name: /Ver los/ }).click();
   await review.locator('[data-review="ghost"]').click();
   const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
   await expect(ficha.getByTestId("recibo-nota")).toHaveText("Hace 3 meses que no se cobra");
@@ -224,8 +226,7 @@ test("pausar: un recibo ya pagado no sale del mes; uno pendiente «Solo este mes
   await expect.poll(async () => (await guardado(page, "gym")).pausedUntil).toBeUndefined();
 
   // En Todos se ve hasta cuándo está pausado.
-  await recibos.getByTestId("plan-due").getByRole("button", { name: "Todos" }).click();
-  await page.locator(".v4-bills-group").filter({ hasText: "Servicios y suministros" }).click();
-  await expect(page.locator('[data-screen="bills-group"] [data-bill-id="agua"]')).toContainText("pausado hasta dic");
-  await expect(page.locator('[data-screen="bills-group"] [data-bill-id="gym"]')).not.toContainText("pausado");
+  await recibos.getByTestId("plan-due").getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
+  await expect(page.locator('[data-bills-manage] [data-bill-id="agua"]')).toContainText("pausado hasta dic");
+  await expect(page.locator('[data-bills-manage] [data-bill-id="gym"]')).not.toContainText("pausado");
 });

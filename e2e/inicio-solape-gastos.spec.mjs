@@ -54,6 +54,9 @@ async function volverAInicio(page) {
 }
 
 test("Inicio activa: Gastos premontada no tiene cajas visibles, ni antes ni después de apuntar", async ({ page }) => {
+  // Reloj fijo en el mes de los gastos sembrados: con el reloj real, desde el 1/11 el desglose del
+  // mes en curso salía vacío, no había `.v4-gastos-cat` que buscar y la prueba caía sin mirar nada.
+  await page.clock.install({ time: new Date("2026-10-10T12:00:00+02:00") });
   await seedLoggedInDashboard(page, {
     budget: 200,
     accounts: [],

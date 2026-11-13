@@ -61,7 +61,7 @@ async function presupuesto(page,value,mode){
   await expect(page.locator('.page-scroll-host [data-testid="gastos-estado"]')).toContainText(new RegExp(String(margen).replace(/\B(?=(\d{3})+$)/g,"[.,\\s]?")+" € (por debajo|under|per sota)"));
   await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(mode==="net"?/1[.,\s]?900/:"100");
   await nav(page,"inicio");
-  await expect(page.locator(".v42-cycle-of")).toContainText(String(value).replace(/\B(?=(\d{3})+$)/g,"."));
+  await expect(page.locator(".v42-cycle-of")).toContainText(new RegExp(String(value).replace(/\B(?=(\d{3})+$)/g,"[.,]")));
   await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText(String(value-100)+" €");
 }
 async function disk(page){ return page.evaluate(()=>{

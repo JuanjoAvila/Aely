@@ -1,14 +1,13 @@
 /* INC-2709-03 / UX-08: precondiciones WEB de la ola. Chromium de escritorio no demuestra
    el stretch nativo Android. Sí demuestra que una hija fixed se desplace con el scroll del
-   padre si éste conserva una capa: la cabecera quedaba 21 px fuera de pantalla. Toques reales,
-   también al abrir categoría; click de ratón no recorre el reset táctil del cierre lateral. */
+   padre si éste conserva una capa: la cabecera quedaba 21 px fuera de pantalla. Toques reales;
+   click de ratón no recorre el reset táctil del cierre lateral. */
 import { test, expect } from "@playwright/test";
 import crypto from "node:crypto";
 import { seedLoggedInDashboard, installFixtureClock, dismissNews } from "./fixtures.mjs";
 
 test.use({ viewport: { width: 393, height: 740 }, hasTouch: true, isMobile: true, serviceWorkers: "block" });
 const root = page => page.locator("[data-bills-manage]");
-const child = page => page.locator("[data-bills-manage] > .settings-push");
 const financial = page => page.evaluate(() => ({ main: localStorage.getItem("micartera_v3"), expenses: localStorage.getItem("micartera_v3_exp") }));
 const geometry = page => root(page).evaluate(el => {
   const metric = n => { const c = getComputedStyle(n), r = n.getBoundingClientRect(); return {
@@ -16,7 +15,7 @@ const geometry = page => root(page).evaluate(el => {
     transform: c.transform, willChange: c.willChange, overscrollY: c.overscrollBehaviorY,
     touchAction: c.touchAction, inlineTransform: n.style.transform, cls: n.className,
   }; };
-  return { parent: metric(el), child: el.querySelector(":scope > .settings-push") ? metric(el.querySelector(":scope > .settings-push")) : null };
+  return { parent: metric(el) };
 });
 async function begin(page, info) {
   const origin = new URL(info.project.use.baseURL).origin;
@@ -39,7 +38,7 @@ async function begin(page, info) {
   // escritura natural de metadatos a la navegación ni rebajar el oracle de persistencia.
   await page.waitForFunction(() => JSON.parse(localStorage.getItem("micartera_v3") || "{}").lastBackup === "2026-09-26", null, { timeout: 15000 });
   await page.locator('.botnav-tab[data-tour="plan"]').tap();
-  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^Todos$/ }).tap();
+  await page.locator('.v4-screen > [data-seg="recibos"] button.link').filter({ hasText: /^(Gestionar|Todos)\b/ }).tap();
   await expect(root(page)).toBeVisible(); await page.waitForTimeout(650);
   await info.attach("served-html-sha.json", { body: JSON.stringify({ htmlSHA, CPUThrottlingCalls: 0 }), contentType: "application/json" });
 }
@@ -63,29 +62,28 @@ async function scrollHub(page) {
   expect((await geometry(page)).parent.scrollTop, "el caso necesita el padre desplazado con el dedo").toBeGreaterThan(10);
   // Un fling puede seguir activo aunque ya esté contra el borde. Detenerlo con un toque
   // neutro real antes de pedir navegación: el primer toque de Android/Chromium lo consume.
-  const neutral = await page.evaluate(() => !document.elementFromPoint(330, 180)?.closest("button,input,select,textarea,a"));
-  expect(neutral).toBe(true); await page.touchscreen.tap(330, 180); await page.waitForTimeout(180);
+  // Desde la v6 las filas de Tus recibos ocupan todo el ancho: el punto neutro se busca en vez de
+  // fijarlo. Y no basta con que el píxel exacto sea neutro: Chromium ajusta el toque al botón más
+  // cercano, así que en la CI (Linux, otras fuentes) un hueco de pocos px entre filas acababa
+  // abriendo la cuota de al lado, Gestionar se iba y el tap siguiente esperaba hasta el minuto
+  // (beta 216, 9/11). Se exige un margen de 24 px sin nada pulsable alrededor.
+  const neutral = await page.evaluate(() => {
+    const live = "button,input,select,textarea,a,label,[role=button],[role=radio]";
+    const calm = (x, y) => { for (let dx = -24; dx <= 24; dx += 8) for (let dy = -24; dy <= 24; dy += 8) {
+      const el = document.elementFromPoint(x + dx, y + dy); if (!el || el.closest(live)) return false; } return true; };
+    for (let y = 140; y <= 600; y += 8) for (const x of [200, 330, 100]) if (calm(x, y)) return { x, y };
+    return null; });
+  expect(neutral, "hace falta un hueco sin nada pulsable a 24 px para frenar la inercia").not.toBeNull();
+  await page.touchscreen.tap(neutral.x, neutral.y); await page.waitForTimeout(180);
+  // Si el toque cayera en algo, que falle aquí diciendo por qué y no un minuto después.
+  await expect(root(page), "el toque neutro no debe navegar").toHaveAttribute("data-screen", "bills-home");
+  expect((await geometry(page)).parent.inlineTransform, "el toque neutro no debe cerrar Gestionar").toBe("");
 }
-async function category(page, info) {
-  await root(page).evaluate(el => {
-    window.__olaTap = [];
-    for (const type of ["touchstart", "touchend", "click"]) el.addEventListener(type, e => {
-      window.__olaTap.push({ type, target: e.target.className, group: e.target.closest("[data-group]")?.dataset.group });
-    }, { capture: true, passive: true });
-  });
-  await root(page).locator('button.v4-bills-group[data-group="serv"]').tap();
-  try { await expect(child(page)).toBeVisible(); } finally {
-    await info.attach("category-touch-events.json", { body: JSON.stringify(await page.evaluate(() => window.__olaTap)), contentType: "application/json" });
-  }
-  await page.waitForTimeout(500);
+// Tus recibos ya no tiene pantalla hija (sin «¿Me lo puedo permitir?», 11/11/2026): desplazado,
+// su ‹ la cierra sin dejar capa.
+async function cierra(page) {
   const g = await geometry(page);
-  await info.attach("category-geometry.json", { body: JSON.stringify(g), contentType: "application/json" });
-  await info.attach("category.png", { body: await page.screenshot(), contentType: "image/png" });
   expect(g.parent.transform).toBe("none"); expect(g.parent.willChange).toBe("auto");
-  expect(Math.abs(g.child.y), "la hija fixed no debe desplazarse con el scroll del padre").toBeLessThan(1);
-  expect(g.child.transform).toBe("none"); expect(g.child.willChange).toBe("auto");
-  await child(page).locator(".settings-push-h .back").tap();
-  await expect(child(page)).toHaveCount(0);
   await root(page).locator(":scope > .v4-bills-hub > .settings-push-h .back").tap();
   await expect(root(page)).toHaveCount(0);
 }
@@ -97,9 +95,9 @@ test("INC270903: Gestionar es un scroller sin capa en reposo", async ({ page }, 
     expect(g.parent.overscrollY).toBe("auto"); expect(g.parent.touchAction).toBe("auto");
   });
 });
-for (const reduced of [false, true]) test("INC270903: categoría anclada al viewport, " + (reduced ? "movimiento reducido" : "normal"), async ({ page }, info) => {
+for (const reduced of [false, true]) test("INC270903: desplazado y cerrado con ‹ sin capa, " + (reduced ? "movimiento reducido" : "normal"), async ({ page }, info) => {
   if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
-  await begin(page, info); await guard(page, info, async () => { await scrollHub(page); await category(page, info); });
+  await begin(page, info); await guard(page, info, async () => { await scrollHub(page); await cierra(page); });
 });
 test("INC270903: cancelar y reanudar no deja capa ni limpia un arrastre vivo", async ({ page }, info) => {
   await begin(page, info); await guard(page, info, async () => {
@@ -114,6 +112,6 @@ test("INC270903: cancelar y reanudar no deja capa ni limpia un arrastre vivo", a
     await send("touchCancel"); await page.waitForTimeout(400); await cdp.detach();
     const after = await geometry(page); await info.attach("after-cancel.json", { body: JSON.stringify(after), contentType: "application/json" });
     expect(after.parent.inlineTransform).toBe(""); expect(after.parent.transform).toBe("none"); expect(after.parent.willChange).toBe("auto");
-    await scrollHub(page); await category(page, info);
+    await scrollHub(page); await cierra(page);
   });
 });

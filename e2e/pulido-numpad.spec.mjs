@@ -113,7 +113,7 @@ test("★ P10: en inglés la tecla pone «.» y escribe «.»", async ({ page })
     await expect(row.locator(".nm-title")).toHaveText("P10 decimal", { timeout });
     await expect(row).toBeVisible({ timeout });
     // Si el parseo quitara los puntos (miles ES), DOM y persistencia deben rechazar 1250.
-    await expect(row.locator(".am")).toHaveText("12,50 €", { timeout });
+    await expect(row.locator(".am")).toHaveText("12.50 €", { timeout });
     await expect(row.locator(".am")).toBeVisible({ timeout });
     await expect.poll(() => page.evaluate(() => {
       const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");

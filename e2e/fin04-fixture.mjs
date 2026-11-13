@@ -16,6 +16,8 @@ const evidence={scenario,baseSHA:'408d8d3484568e1c02fa25dcd2df30ad71477bf1',star
 let seq=0,hold=null,held=[],contexts=[];const offline=new Set();
 const rejectedNames=new Set(scenario==='permanent-rename'?['Nombre bloqueado']:scenario==='late-rename-failure'?['Primero']:[]);
 function record(label,data){evidence.events.push({seq:++seq,label,data:clone(data),at:Date.now()});}
+// La marca `slow` solo decide cuándo se enseña el aviso; no es parte del contrato de reintentos.
+const sinLento=p=>{if(!p)return p;const {slow,...r}=p;return r;};
 function check(name,actual,expected){let ok=true,error;try{assert.deepEqual(actual,expected);}catch(e){ok=false;error=e.message;}evidence.assertions.push({name,ok,actual:clone(actual),expected:clone(expected),error});if(!ok)throw Object.assign(new Error(name),{productFailure:true});return ok;}
 function matches(row,params){for(const [k,v] of params){if(['select','order','limit','offset','on_conflict'].includes(k))continue;const ix=v.indexOf('.'),op=v.slice(0,ix),rhs=v.slice(ix+1),val=row[k];if(op==='eq'&&String(val)!==rhs)return false;if(op==='lt'&&!(val<rhs))return false;if(op==='gt'&&!(val>rhs))return false;if(op==='is'&&rhs==='null'&&val!=null)return false;if(op==='in'&&!rhs.slice(1,-1).split(',').map(x=>x.replaceAll('"','')).includes(String(val)))return false;if(!['eq','lt','gt','is','in'].includes(op))throw Error('Unsupported filter '+k+':'+v);}return true;}
 function visible(table,row,uid,write){if(table==='households')return row.id===house;if(['household_members','household_snapshots'].includes(table)&&!write)return row.household_id===house;return !('user_id' in row)||row.user_id===uid;}
@@ -156,6 +158,9 @@ try{
   await release('A');await waitHeld(1);
   let s=await snap('old-rename-ack-new-intent',pages);
   check('old rename ACK keeps latest durable intention',s.clients[0].state.expenses[0].renamePending?.merchant,'Segundo');
+  // En vuelo y sin rechazo no hay aviso; solo si a los RENAME_AVISO_MS sigue sin ACK (vídeo 12/11/2026).
+  check('in-flight rename has no notice yet',await pages[0].getByTestId('expense-rename-pending').count(),0);
+  await pages[0].getByTestId('expense-rename-pending').waitFor({timeout:9000});
   check('new rename remains visibly pending',await pages[0].getByTestId('expense-rename-pending').count(),1);
   await release('A');hold=null;await pages[0].waitForFunction(()=>loadState().expenses[0].merchant==='Segundo'&&!loadState().expenses[0].renamePending);
   for(const p of pages){await p.reload();await ready(p);}s=await snap('latest-rename-confirmed-reloaded',pages);
@@ -226,7 +231,7 @@ try{
   await pages[0].waitForFunction(()=>loadState().expenses.some(e=>e.merchant==='Independiente'&&!e.renamePending));
   check('later independent edit reaches server',db.expenses.find(e=>e.id!==expenseId).comercio,'Independiente');check('closing sheet does not retry quarantine',rejected(),3);
   await pages[0].reload();await ready(pages[0]);for(let i=0;i<5;i++){await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));await sleep(80);}await expOpen(pages[0]);
-  s=await snap('quarantine-reloaded-online',pages);check('reload and online do not restart automatic failures',rejected(),3);check('quarantine durable with exact attempt count',s.clients[0].state.expenses.find(e=>e.id===expenseId).renamePending,{merchant:'Nombre bloqueado',at:s.clients[0].state.expenses.find(e=>e.id===expenseId).renamePending.at,failures:3,quarantined:true});
+  s=await snap('quarantine-reloaded-online',pages);check('reload and online do not restart automatic failures',rejected(),3);check('quarantine durable with exact attempt count',sinLento(s.clients[0].state.expenses.find(e=>e.id===expenseId).renamePending),{merchant:'Nombre bloqueado',at:s.clients[0].state.expenses.find(e=>e.id===expenseId).renamePending.at,failures:3,quarantined:true});
   check('reload does not repeat notice',s.clients[0].toasts.filter(x=>x.text.startsWith('No se ha podido confirmar el nombre.')).length,0);
   rejectedNames.clear();await pages[0].getByTestId('expense-rename-pending').getByRole('button',{name:'Reintentar',exact:true}).click();
   await pages[0].waitForFunction(()=>loadState().expenses.some(e=>e.merchant==='Nombre bloqueado'&&!e.renamePending));
@@ -244,6 +249,8 @@ try{
   let s=await snap('offline-rename-queued',pages);
   check('offline rename retains durable intention',s.clients[0].state.expenses[0].renamePending?.merchant,'Nombre pendiente');
   check('offline rename does not claim confirmed merchant',s.clients[0].state.expenses[0].merchant,'Compra sintética');
+  // El aviso no sale en el acto (podría confirmarse enseguida): como tarde a los RENAME_AVISO_MS.
+  await pages[0].getByTestId('expense-rename-pending').waitFor({timeout:9000});
   check('offline rename visibly pending',await pages[0].getByTestId('expense-rename-pending').count(),1);
   await pages[0].reload();await ready(pages[0]);await expOpen(pages[0]);
   check('offline rename draft survives reload',await pages[0].locator('input.v4-ficha-concept').inputValue(),'Nombre pendiente');
@@ -252,7 +259,7 @@ try{
   await pages[0].evaluate(()=>{window.__rnNetFails=0;const o=cloud.renameExpense;cloud.renameExpense=function(){return o.apply(this,arguments).catch(e=>{window.__rnNetFails++;throw e;});};});
   for(let i=1;i<=5;i++){await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));await pages[0].waitForFunction(n=>window.__rnNetFails>=n,i);}
   s=await snap('offline-rename-five-network-failures',pages);
-  check('network failures never quarantine nor count',s.clients[0].state.expenses[0].renamePending,{merchant:'Nombre pendiente',at:s.clients[0].state.expenses[0].renamePending.at});
+  check('network failures never quarantine nor count',s.clients[0].state.expenses[0].renamePending,{merchant:'Nombre pendiente',at:s.clients[0].state.expenses[0].renamePending.at,slow:true});
   check('still visibly pending after network failures',await pages[0].getByTestId('expense-rename-pending').count(),1);
   offline.delete('A');await pages[0].evaluate(()=>window.dispatchEvent(new Event('online')));
   await pages[0].waitForFunction(()=>loadState().expenses[0].merchant==='Nombre pendiente'&&!loadState().expenses[0].renamePending);

@@ -134,7 +134,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const pareceConjunta=sharePct==null&&(accountLooksJoint(a._holder||a.name)||/conjunt|compartid|joint|shared/i.test(a.name||""));
   const pedirParte=function(){
     askText({ title:t("ac_share_title"), sub:t("ac_share_sub"), ph:"50", ok:t("ac_share_ok"),
-      value:sharePct==null?"":String(sharePct).replace(".",","),
+      value:sharePct==null?"":String(sharePct).replace(".",numDecSep()),
       chips:[{v:50,label:"50 %"},{v:100,label:"100 %"}] })
       .then(function(raw){
         if(raw==null) return;   // null = canceló
@@ -391,19 +391,20 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
     return (typed - pn(i));
   };
-  const accEd=useEditable(state.accounts,it=>set(s=>Object.assign({},s,{accounts:it})),{
+  const accEd=useEditable(state.accounts,it=>set(function(s){
+    return manualBalanceWrite(s,it.filter(function(a){return Object.prototype.hasOwnProperty.call(a,MANUAL_BALANCE_TYPED);}).map(function(a){return Object.assign({id:a.id},a[MANUAL_BALANCE_TYPED]);}));
+  }),{
     display:  i => shownAcc(i),
-    toStored: valorDesdeTecleado
+    toStored: valorDesdeTecleado,
+    // El importe viaja privado hasta el updater: allí se despeja contra el estado fresco.
+    extra: function(i,typed){return {[MANUAL_BALANCE_TYPED]:{typed:typed,expected:manualBalanceTarget(i)}};}
   });
   /* Guardar el saldo de UNA cuenta (lo que hace la ficha). Mismo camino que el editor de siempre:
      misma fórmula, mismo `set`. */
   const guardarSaldoDe=function(id, tecleado){
+    const expected=manualBalanceTarget((state.accounts||[]).find(function(a){return a.id===id;}));
     set(function(s){
-      return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){
-        if(x.id!==id) return x;
-        // El saldo tecleado es el real de ahora: lo cobrado antes ya está dentro (`saldoLeidoDelBanco`).
-        return Object.assign({},x,{value: valorDesdeTecleado(x, tecleado), saldoLeidoAt:new Date().toISOString()});
-      })});
+      return manualBalanceWrite(s,[{id:id,typed:Number(tecleado),expected:expected}]);
     });
   };
   // Cartera pinta cuentas y bienes planos; inversiones van aparte (Investments).
@@ -730,7 +731,9 @@ function chargeMonths(e){
   return [];   // anual sin mes asignado → sin programar
 }
 // ¿se cobra este gasto en el mes m (1-12)?
-const occursIn=(e,m)=> chargeMonths(e).indexOf(m)>=0;
+// Con año, un mes ya pagado que el recibo nuevo ya no cobra sigue contando como suyo si «Desde
+// ahora» lo dejó apuntado (`soloMes[ym].on`): editar no borra un pago del historial.
+const occursIn=(e,m,y)=> chargeMonths(e).indexOf(m)>=0 || !!(y!=null&&fixedSoloMes(e,y,m)&&fixedSoloMes(e,y,m).on===true);
 /* Pausa de un recibo (Plan › Recibos v6). `pausedFrom` y `pausedUntil` son año*12+mes, como
    `paidYm`: desde `pausedFrom` incluido hasta `pausedUntil` sin incluir, que es el mes en que
    vuelve («Hasta dic» = se cobra otra vez en diciembre, como en el prototipo aprobado). Son
@@ -741,9 +744,34 @@ function fixedPausedIn(e,y,m){
   const ym=y*12+m;
   return ym>=(Number(e.pausedFrom)||0)&&ym<u;
 }
+/* Prueba gratis (decisión del dueño del 10/11/2026: «como el diseño»). `pruebaHasta` ("AAAA-MM-DD")
+   es el día en que empieza a cobrar: los meses de antes no se cobran y el prototipo los saca del
+   mes (`fromNext`); el mes en que acaba sí cuenta, porque ese día cobra. Opcional, como la pausa. */
+function fixedEnPruebaIn(e,y,m){
+  const k=/^(\d{4})-(\d{2})-\d{2}$/.exec(String(e&&e.pruebaHasta||""));
+  return !!k&&y*12+m<Number(k[1])*12+Number(k[2]);
+}
+/* Ese mes no se cobra: pausa o prueba gratis. Es lo que miran lo que queda por pagar, el recorrido
+   de «¿Te llega?», los avisos y el año (`billsAnualDe`), para que cuadren entre sí. «Se te van cada
+   mes» (`billsPausado`) y Pausar/Reanudar (`fixedPausa`) siguen leyendo solo la pausa: un recibo en
+   prueba cuesta eso al mes en cuanto empieza a cobrar, como en el prototipo, y no es una pausa. */
+function fixedSinCobroIn(e,y,m){
+  return fixedPausedIn(e,y,m)||fixedEnPruebaIn(e,y,m);
+}
+/* «Solo este mes» (Plan › Recibos v6, tanda 4). `soloMes` = {[año*12+mes]: {amt?, day?}}: lo que
+   ese mes concreto se cobra distinto sin tocar el recibo. «Desde ahora» lo usa también para dejar
+   los meses ya pagados con las cifras con que se pagaron. Sin año (`y`) no aplica: los meses de
+   otro año y las medias (`fixedMonthlyOf`) leen el recibo de siempre. Un cliente sin esto lo
+   ignora y ve el importe de siempre, que es real, no inventado. */
+function fixedSoloMes(e,y,m){
+  const o=e&&e.soloMes&&y!=null&&e.soloMes[y*12+m];
+  return o&&typeof o==="object"?o:null;
+}
 // importe del cobro EN EL MES m. Si hay `schedule` (importes a medida, p.ej. seguro 172,05 + 166,94)
 // usa ese importe; si es anual sin schedule reparte el total entre los meses marcados; si no, amount.
-function occAmountIn(e,m){
+function occAmountIn(e,m,y){
+  const o=fixedSoloMes(e,y,m);
+  if(o&&typeof o.amt==="number"&&isFinite(o.amt)&&o.amt>=0) return o.amt;
   if(e.schedule && e.schedule.length){ const s=e.schedule.find(x=>x.m===m); return s?(s.amt||0):0; }
   if(e.freq==="año"||e.freq==="anual"){ const n=chargeMonths(e).length||1; return e.amount/n; }
   return e.amount;
@@ -755,7 +783,21 @@ const accOf=(e)=> e.account||"sabadell";
 // día válido (1-31) o null — global para que lo usen Fijos y Deudas
 const cleanDay=(v)=>{ const n=parseInt(String(v),10); return (n>=1&&n<=31)?n:null; };
 // día del cobro en el mes m (schedule tiene su propio día por cobro)
-function dayIn(e,m){ if(e&&e.schedule&&e.schedule.length){ const s=e.schedule.find(x=>x.m===m); return s?(s.day||null):null; } return (e&&e.day)||null; }
+// Un «día 31» en un mes de 30 es el último día de ese mes: el banco lo cobra ahí. Sin recortarlo
+// salía «31 NOV», «en 22 días» y no vencía nunca, así que tampoco restaba del saldo (auditoría 9/11, P1-5).
+function dayIn(e,m,y){
+  const o=fixedSoloMes(e,y,m);
+  let d=o&&cleanDay(o.day)?cleanDay(o.day):e&&e.schedule&&e.schedule.length?((e.schedule.find(x=>x.m===m)||{}).day||null):(e&&e.day)||null;
+  // Un día imposible (32, «x») se deja tal cual: no es un 31 y no se convierte en uno válido.
+  if(cleanDay(d)===Number(d)&&m>=1&&m<=12){ const fin=new Date(y||new Date().getFullYear(),m,0).getDate(); if(d>fin) d=fin; }
+  /* El mes en que acaba la prueba gratis el primer cobro llega el día en que acaba, antes o después
+     de su día de siempre, como el prototipo (`r.day = r.trial.day`). Solo hacia delante (revisión de
+     la 221) el aviso decía «Cobra mañana» y la ficha «Se cobra el 15» del mismo recibo (auditoría de
+     la 222, P1-1). Sin año (calendario, medias) no cambia nada. */
+  const pk=y&&/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(e&&e.pruebaHasta||""));
+  if(pk&&+pk[1]===y&&+pk[2]===m&&cleanDay(d)!=null&&cleanDay(pk[3])!=null) d=+pk[3];
+  return d;
+}
 // día simple (objetos sin schedule: deudas)
 const dayOf=(e)=> (e&&e.day)||null;
 // Deudas sin día explícito: día 1 (entran en el motor de líquido como los fijos; antes quedaban
@@ -772,11 +814,24 @@ function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,
 // Rehacer un vínculo crea una prueba expense antes del pull. Solo su origen bancario local
 // adelanta el calendario; BOOK conserva su regla anterior y las notificaciones no mueven saldo.
 const isPaidIn=(e,m,t,y,s)=>{
-  const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m);
+  const year=y||new Date().getFullYear(),ym=year*12+m,d=dayIn(e,m,year);
   if(e.paidYm===ym) return true;
   const p=s&&fixedPaymentProof(s,e,year,m,t);
   return !!(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) || e.wait!==ym&&d!=null&&d<=t;
 };
+/* «Lo pagué de otra forma» (SPEC §2.6.3) sin cargo del banco detrás: ese banco ya NO lo va a cobrar.
+   Una sola regla para todo lo que resta recibos de un banco (saldo de la cuenta, pendiente y
+   previsto de `totals`, «¿Te llega?», avisos de la víspera): si cada sitio lo leía a su manera, el
+   previsto a fin de mes decía otra cosa que «¿Te llega?» y una cuenta manual perdía el importe el
+   día del recibo (revisión de dinero 9/11, C1). Un cargo real manda sobre la marca. */
+// Día del mes en que se marcó pagado a mano (`fixed.pagadoAMano`, {año*12+mes: día}), o null.
+function fixedMarcadoAMano(e,y,m){
+  const p=e&&e.pagadoAMano, d=p&&typeof p==="object"?Number(p[y*12+m]):NaN;
+  return d>=1&&d<=31?d:null;
+}
+function fixedPagadoFuera(s,e,y,m,t){
+  return !!s&&fixedMarcadoAMano(e,y,m)!=null&&!fixedPaymentEvidence(fixedPaymentState(s,e,y,m,t==null?new Date(y,m,0).getDate():t));
+}
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
@@ -813,7 +868,9 @@ const ymNow=()=>{ const p=madridYmdParts(Date.now()); return ymAbs(p.y, p.m-1); 
 const debtAmort=(d)=> d && d.amort!=null ? d.amort : ((d&&d.monthly)||0);
 // nº de pagos ya hechos. Una financiación (con `months`) cuenta TAMBIÉN el pago de ESTE mes si ya pasó
 // su día (ej. financias el 599/4 con día 26 y hoy es 28 → el 1er pago del 26 ya cuenta).
-function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+// Un ancla en un mes que aún no ha llegado es una compra a plazos cuya 1.ª cuota cae ese mes («¿Y si gasto…?»
+// › «A plazos», 11/11/2026): hasta entonces no hay nada pagado. Las altas de Deudas nunca anclan en el futuro.
+function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
 // Financiación tipo coche: además de entrada (downPayment, ya pagada = informativa) y cuotas,
 // hay un PAGO FINAL (balloon) en el último mes del plazo. debtBalloonIn(d,y,m): balloon si (y,m 1-12)
 // es ese último mes; 0 si no. La amort lineal ya se fija a (value−balloon)/months al crear la deuda,
@@ -822,20 +879,40 @@ function debtBalloonIn(d, y, m){ if(!d || !(d.balloon>0) || d.months==null) retu
 function debtBalance(d){ if(!d || d.value==null) return 0; let b=d.value - debtAmort(d)*debtPaidCount(d); if(d.balloon>0 && d.months!=null && debtPaidCount(d)>=d.months) b-=d.balloon; return Math.max(0, b); }
 // ¿la cuota sigue cobrándose este mes? Una financiación (con `months` = plazo) deja de
 // cobrar al acabar el plazo o al llegar el saldo a 0. Sin plazo (hipoteca/préstamo): mientras quede saldo.
-function debtActive(d){ if(!d || !d.monthly) return false; const bal=debtBalance(d); if(d.months!=null){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return (ymNow()-anchor) < d.months && bal>0.005; } return bal>0.005; }
+function debtActive(d){ if(!d || !d.monthly) return false; const bal=debtBalance(d); if(d.months!=null){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return ymNow()>=anchor && (ymNow()-anchor) < d.months && bal>0.005; } return bal>0.005; }
+/* ¿Se cobra la cuota en el mes (y, m 1-12) que se mira? Con el ancla en este mes o antes es `debtActive`
+   tal cual (mira hoy, como siempre). Solo una compra a plazos que aún no ha empezado (ancla futura,
+   «¿Y si gasto…?») se mira por el mes pedido: su 1.ª cuota tiene que salir en la vista del mes que viene
+   de Recibos, que antes la daba en 0 (revisión de dinero 229, ronda 2). */
+function debtActiveIn(d, y, m){
+  const anchor=d&&typeof d.asOf==="number"?d.asOf:ymNow();
+  if(!d||!d.monthly||d.months==null||anchor<=ymNow()) return debtActive(d);
+  const ym=y*12+(m-1);
+  return ym>=anchor && ym<anchor+d.months && Number(d.value)>0.005;
+}
 // cuotas que quedan de una financiación (null si no tiene plazo)
 function debtLeft(d){ if(!d || d.months==null) return null; return Math.max(0, d.months - debtPaidCount(d)); }
-// Movimientos netos de un banco en un mes (m 1-12): +ingresos −fijos −cuotas −puntuales −transfers.
+// Movimientos netos de un banco en un mes (m 1-12): +ingresos −fijos −cuotas −puntuales −traspasos
+// que salen +traspasos que le llegan de otro banco tuyo (`flowAbonaEn`, 08).
 // todayLim null = mes cerrado (cuentan todos); número = solo los YA ocurridos (día <= todayLim, regla isPaidIn).
 function monthNetForAccount(s, ent, y, m, t){
   const closed=(t==null);
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s))) net -= occAmountIn(e,m); });
+  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s)) && !fixedPagadoFuera(s,e,y,m,t)) net -= occAmountIn(e,m,y); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
-  (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const bd=f.kind==="income"?flowConfirmedDay(f,y,m):null, dd=bd!=null?bd:flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });
+  // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.
+  (s.flows||[]).forEach(function(f){
+    if(!flowOccursIn(f,m,y)) return;
+    const pd=flowDay(f,y,m), bd=flowConfirmedDay(f,y,m), dd=bd!=null?bd:pd;
+    if(f.kind==="income"){ if((f.to||"sabadell")===ent && hit(dd)) net += (f.amount||0); }
+    else if(f.kind==="transfer"){
+      if((f.from||"sabadell")===ent && hit(pd)) net -= (f.amount||0);
+      if(flowAbonaEn(s,f,y,m)===ent && hit(dd)) net += (f.amount||0);
+    }
+  });
   return net;
 }
 

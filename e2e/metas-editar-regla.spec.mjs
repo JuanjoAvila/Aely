@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta } from "./fixtures.mjs";
 
 const textos={
   es:{metas:"Metas",title:"Reservar dinero de tus ingresos",edit:"Editar regla",save:"Guardar regla",cancel:"Cancelar",hint:"Lo ya aportado no cambia. Si esta regla ya se aplicó este mes, los cambios se aplicarán el próximo mes."},
@@ -16,7 +16,7 @@ async function boot(page,lang,overrides={}){
     function Clock(...args){ return new.target?Reflect.construct(Native,args.length?args:[Native.now()+window.__editOffset],new.target):new Native(Native.now()+window.__editOffset).toString(); }
     Object.setPrototypeOf(Clock,Native); Clock.prototype=Native.prototype; Clock.now=()=>Native.now()+window.__editOffset; window.Date=Clock;
   });
-  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,goals:[{id:"g1",name:"Meta A",target:9000,saved:100},{id:"g2",name:"Meta B",target:9000,saved:0}],reservaLog:[log],
+  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,goals:[{id:"g1",name:"Meta A",target:9000,saved:100},{id:"g2",name:"Meta B",target:9000,saved:0}],reservaLog:[log],lastBackup:"2026-10-08",
     settings:{autoPrices:false,theme:"green",lang,gTotalMode:"split",expenseBanks:["sabadell"],reservaRules:[rule]},...overrides});
   await page.goto("/");
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
@@ -25,6 +25,13 @@ async function boot(page,lang,overrides={}){
   await page.getByRole("tab",{name:textos[lang].metas,exact:true}).click();
   if(!await page.locator('[data-reserva-rule]').first().isVisible()) await page.getByText(textos[lang].title,{exact:true}).click();
   await expect.poll(async()=> (await saved(page)).settings.reservaRules.length).toBe(1);
+  // Las fotos `before` comparan el estado ENTERO: el envío con debounce que sigue al primer pull recibe su acuse
+  // ~1,5 s después y reescribe `_goalSync`/`_planSync.revision` sin cambiar ningún dato (ver esperaNubeQuieta).
+  // Sin esperar a que la nube se asiente, la foto salía a medias y «Cancelar no escribe» fallaba al azar en los
+  // tres idiomas (2 de 48 ya en la 4.26.229; la CI de la 230 lo pilló dos veces seguidas en «en»). La copia diaria
+  // (`lastBackup`, 4 s tras asentarse) es la otra escritura de arranque: se siembra ya hecha hoy para que no caiga
+  // en medio de la prueba.
+  await esperaNubeQuieta(page);
 }
 const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));
 const expenseRaw=page=>page.evaluate(()=>localStorage.getItem("micartera_v3_exp"));

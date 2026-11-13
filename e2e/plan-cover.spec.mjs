@@ -155,7 +155,8 @@ test("marca sin prueba y pendiente se separan sin anillo ni mensaje diagnóstico
   await expect(recibos.locator(".v4-card-hero")).toContainText(/999/);
   // v6: sin cargo del banco detrás va a «Para revisar» y no suma en lo pendiente (antes «Por confirmar»).
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Mini.*Sin cargo del banco.*1,00/s);
-  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
+  // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
+  await expect(recibos).not.toContainText(/Ya pagados?/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/%|sin contar compras del día a día/i);
 });
@@ -250,7 +251,8 @@ test("marca sin prueba → 0 previsto y confirmación separada, sin NaN ni diagn
   await expect(recibos.locator(".v4-card-hero")).toContainText(/0/);
   await expect(recibos).toContainText(/Nada pendiente|ya no sale/i);
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
-  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
+  // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
+  await expect(recibos).not.toContainText(/Ya pagados?/i);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/NaN|día ya|day already|dia ja/i);
 });
@@ -358,10 +360,17 @@ test("marca sin prueba sigue visible para confirmar y no añade nómina a los re
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
-  await expect(recibos).toContainText(/Ya pagado.*0,00/i);
-  await expect(recibos.locator('.v4-paid')).toHaveCount(0);
+  // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
+  await expect(recibos).not.toContainText(/Ya pagados?/i);
+  // Ningún recibo pagado: las filas de «Ya ha entrado» se parecen, pero no son recibos (12/11/2026).
+  await expect(recibos.locator('.v4-paid[data-recibo]')).toHaveCount(0);
   await expect(recibos).toContainText("Luz");
-  await expect(recibos).not.toContainText("Nómina");
+  // La nómina no es un recibo: ni en Por pagar ni en Para revisar. Pasado su día el saldo ya la cuenta, así
+  // que está en «Ya ha entrado», sin movimiento (12/11/2026: antes desaparecía sin dejar rastro).
+  await expect(recibos.getByTestId("plan-due")).not.toContainText("Nómina");
+  await expect(recibos.getByTestId("plan-review")).not.toContainText("Nómina");
+  await expect(recibos.getByTestId("plan-income")).toHaveCount(0);
+  await expect(recibos.getByTestId("plan-entrado")).toContainText("Nómina");
 });
 
 test("Pregúntame abre Deudas en el segmented compacto", async ({ page }) => {
@@ -410,8 +419,8 @@ test("Modo sencillo: Ajustes › Dinero desde Inicio frío abre BillsManage vivo
   await expect(hub).toHaveAttribute("aria-modal", "true");
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour", "plan");
   await expect(hub).toContainText(/40/);
-  await expect(hub).toContainText(/1 recibo/i);
-  await hub.locator(".v4-bills-add").first().click();
+  await expect(hub.locator(".v4-bills-row")).toHaveCount(1);
+  await hub.locator('[data-act="bill-add"]').click();
   const alta = page.locator('.v4-sheet[data-sheet="bill-add"]');
   await expect(alta).toBeVisible();
   await alta.locator("input.v4-bills-search").fill("NetflixVivo");
@@ -428,25 +437,26 @@ test("Modo sencillo: Ajustes › Dinero desde Inicio frío abre BillsManage vivo
   await expect(hub).toContainText(/2 recibos|NetflixVivo/i);
 });
 
-test("hojas BillsItem/BillsAdd son dialog con trap y restauran foco", async ({ page }) => {
+// Modo normal: el alta y la edición de un recibo son la hoja por pasos (Plan › Recibos v6, tanda 4).
+test("hojas de alta y edición por pasos son dialog con trap y restauran foco", async ({ page }) => {
   await openPlan(page, {
     fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
   });
-  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^Todos$/ }).click();
+  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
   const hub = page.locator("[data-bills-manage]");
   await expect(hub).toBeVisible();
   await expect(hub).toHaveAttribute("role", "dialog");
-  const addBtn = hub.locator(".v4-bills-add").first();
+  const addBtn = hub.locator('[data-act="bill-add"]');
   await addBtn.focus();
   await addBtn.click();
-  const alta = page.locator('.v4-sheet[data-sheet="bill-add"]');
+  const alta = page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
   await expect(alta).toBeVisible();
   await expect(alta).toHaveAttribute("role", "dialog");
   await expect(alta).toHaveAttribute("aria-modal", "true");
-  await expect(alta).toHaveAccessibleName(/Qué es/i);
-  await expect(page.getByRole("dialog", { name: /Qué es/i })).toBeVisible();
-  // Teclear no debe robar foco al h1 (Codex 2120Z)
-  const altaIn = alta.locator("input.v4-bills-search");
+  await expect(alta).toHaveAccessibleName(/Qué recibo es/i);
+  await expect(page.getByRole("dialog", { name: /Qué recibo es/i })).toBeVisible();
+  // Teclear no debe robar foco al título (Codex 2120Z)
+  const altaIn = alta.locator('[data-rp4="name"]');
   await altaIn.click();
   await altaIn.pressSequentially("Netflix", { delay: 20 });
   await expect(altaIn).toHaveValue("Netflix");
@@ -459,22 +469,26 @@ test("hojas BillsItem/BillsAdd son dialog con trap y restauran foco", async ({ p
   await expect(alta).toHaveCount(0);
   await expect(hub).toBeVisible();
   await expect(addBtn).toBeFocused();
-  // Ficha de un recibo (entrar al grupo → fila)
-  await hub.locator(".v4-bills-group").filter({ hasText: /Servicios y suministros/i }).click();
+  // Ficha de un recibo (la fila, en la misma pantalla)
   const fila = hub.locator(".v4-bills-row").filter({ hasText: "Luz" });
   await fila.focus();
   await fila.click();
-  const ficha = page.locator('.v4-sheet[data-sheet="bill"]');
+  const ficha = page.locator('.v4-sheet[data-sheet="recibo-pasos"][data-modo="edit"]');
   await expect(ficha).toBeVisible();
   await expect(ficha).toHaveAttribute("role", "dialog");
   await expect(ficha).toHaveAttribute("aria-modal", "true");
-  await expect(ficha).toHaveAccessibleName(/Luz/i);
-  await expect(page.getByRole("dialog", { name: /Luz/i })).toBeVisible();
-  const fichaIn = ficha.locator("input.v4-bills-search").first();
+  await expect(ficha).toHaveAccessibleName(/Editar recibo/i);
+  await expect(ficha.locator(".pr6-ficha-n").last()).toHaveText("Luz");
+  // Teclear el nombre en la edición tampoco roba el foco al campo (Codex 2120Z).
+  await ficha.locator('[data-rp4-fila="0"]').click();
+  const fichaIn = ficha.locator('[data-rp4-paso="0"] [data-rp4="name"]');
   await fichaIn.click();
   await fichaIn.pressSequentially("ABC", { delay: 20 });
   await expect(fichaIn).toHaveValue(/ABC/);
   await expect(fichaIn).toBeFocused();
+  // Escape vuelve al resumen sin guardar; el siguiente cierra la hoja.
+  await page.keyboard.press("Escape");
+  await expect(ficha).toHaveAttribute("data-paso", "4");
   await page.keyboard.press("Tab");
   expect(await ficha.evaluate((el) => el.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Shift+Tab");

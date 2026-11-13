@@ -100,15 +100,20 @@ for(const rol of ["ambos","diario"]) test("1 · «Deshacer» el borrado de un re
   const antes=conLuz(rol);
   const foto=s=>j([gastadoMes(s,"2026-09"),gastadoMes(s,"2026-10"),s.fixed.map(f=>f.id).sort(),s.expenses.filter(e=>e.reciboId).length,Object.keys(s.reciboBorrado||{})]);
   assert.equal(foto(antes),j([35,40,["gim","luz"],2,[]]));
-  // Las puertas de Plan: `removeWithUndo` guarda el recibo y lo borra; `undoLastBill` lo devuelve con su MISMO id.
-  let s=antes; const set=f=>{ s=f(s); };
+  // Las transiciones de useBillUndo retiran y reponen con el snapshot comprometido y su MISMO id.
+  let s=antes;
   const guardado=Object.assign({},antes.fixed.find(f=>f.id==="luz"));
-  c.removeFixedById(set,"luz");
+  const quitado=c.billUndoRemove(s,c.billUndoReview(s,"luz"),[],ahora);
+  assert.equal(quitado.error,undefined,"la retirada real admite el recibo revisado");
+  s=quitado.state;
   const borrado=s;
   assert.equal(foto(borrado),j([35,102.4,["gim"],1,["luz"]]));
   ahora=OCT12+3000;
   try{
-    c.addFixedItem(set,guardado);
+    const repuesto=c.billUndoRestore(s,quitado.undo,ahora);
+    assert.equal(repuesto.error,undefined,"Deshacer admite el snapshot comprometido");
+    assert.equal(repuesto.skipped,false,"se repone la marca del cargo sin omisiones");
+    s=repuesto.state;
     assert.equal(foto(s),foto(antes),"el cargo de octubre vuelve a ser el de su recibo: antes se quedaba contando (102,40)");
     assert.equal(j(mostrado(s)),j(mostrado(antes)),"y el saldo pintado es el de antes de borrar");
     assert.equal(s.reciboBorradoAt.luz,OCT12+3000);

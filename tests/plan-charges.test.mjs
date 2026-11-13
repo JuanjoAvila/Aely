@@ -87,7 +87,11 @@ console.log("plan-charges");
   assert.equal(p.pendingBills.length, 3, "luz+coche+itv pendientes el día 10");
   assert.equal(p.pendingBillsTotal, 290);
   assert.equal(p.transfersPending.length, 1);
-  assert.equal(p.incomePending.length, 0, "nómina día 1 ya pagada");
+  // La vista sigue al dinero (12/11/2026): el saldo ya cuenta la nómina del día 1, así que está en
+  // «Ya ha entrado», sin movimiento que la acredite.
+  assert.equal(p.incomePending.length, 0, "nómina día 1 ya contada por el saldo");
+  assert.equal(p.flowsDone.length, 1);
+  assert.equal(p.flowsDone[0].sinMov, true);
   assert.ok(p.pendingBills.every((x) => x.kind !== "transfer" && x.kind !== "income"));
   const s = c.pendingBillsSummary(base(), 9, 2026, 10);
   assert.equal(s.count, p.pendingBills.length);

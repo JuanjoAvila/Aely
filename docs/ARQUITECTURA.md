@@ -1,4 +1,92 @@
+Candidata de entrada propia: writer singular setIncomeOwnTransfer en CLOUD_WRITES, CAS/ACK por fila y resultado parcial en operación secuencial. No incorpora marcas a source ni cambia schema; inversa individual. [Contrato y concurrencia](briefs/own-transfer-income-manual.md).
+
+## Confirmación de traspaso propio (candidata, 01/11/2026)
+
+Antes de mostrar la pregunta, `cloud.canConfirmOwnTransfer` comprueba sesión y ambas filas por owner/UUID y foto exacta. Sólo hace lecturas; no llama a los guards de subida que pueden liquidar absorciones. Una identidad local válida puede diferir de la remota: no se busca un gemelo por parecido, no se realinea el UUID ni se remapea el orden. La acción sólo se pinta con una comprobación positiva del plan actual; mientras la lectura está pendiente, falla o supera diez segundos, o los UUID no coinciden, permanece ausente. La elegibilidad local se recalcula en cada render; una firma JSON del plan completo (propietario, ambas fotos íntegras y cuentas) conserva su referencia cuando sólo cambia estado ajeno, evitando repetir lecturas. Los cambios semánticos, de relaciones de pago, cuentas, propietario, modo o cierre invalidan la oferta y descartan respuestas anteriores, incluso si se reabre el mismo movimiento. Al pulsar vuelve a comprobar antes de abrir `askChoice`. El modo pruebas valida únicamente su pareja sintética y no consulta este sondeo remoto.
+
+La disponibilidad de la pregunta no es un acuse ni reserva la fila: el writer final conserva sus relecturas, CAS y ACK. El sondeo no añade marcas persistidas ni cambia dinero. Cobertura R4 específica: UUID divergente de salida/entrada, lectura pendiente/fallida, cambio remoto entre habilitar y pulsar, y respuestas tardías tras cambiar propietario/cuentas/importe o cerrar y reabrir la ficha; control positivo y sandbox separados.
+
+`ownTransferPlan` congela owner, ambas filas y cuentas conocidas. La coincidencia es solo una oferta: UUID únicos, fuentes OB, signos opuestos y céntimos exactos, bancos distintos, entrada categorizada como traspaso, como máximo dos días civiles `Europe/Madrid`, unicidad en ambos sentidos y salida sin recibo/cuota/meta. No usa el nombre como prueba ni aprende reglas sobre otros movimientos.
+
+La ficha usa `askChoice` del host de confirmaciones existente: valores `yes`/`no`; Escape, Atrás, fondo y Cancelar devuelven `null`. `cloud.decideOwnTransfer` pertenece a `CLOUD_WRITES`, exige owner y fotos remotas por UUID, revalida estado antes de enviar, hace CAS de todos los campos leídos de la salida y exige un único ACK exacto. SÍ escribe solo `cat`; NO solo `source`. Un ACK de salida sigue siendo válido si cambia después la contraparte: la relectura detecta el límite, no deshace dinero ni escribe en la entrada. Un cambio de sesión o de la salida local impide aplicar el acuse a otro contexto.
+
+El rechazo viaja en `#ownno` antes del ordinal final, se deserializa y se conserva de forma monótona al refrescar o consolidar el mismo UUID. No se propaga por semejanza a otro UUID. `expenseSourcePatch` protege las escrituras de banco, duplicado y recibo con lectura y CAS. Las cuotas conservan literalmente su comportamiento anterior: la marca local se aplica sin esperar a la nube y su escritura se envía después. `setExpenseDeuda` y la rama de `setExpenseCat` que quita deuda son idénticos a la base `2fdecb18`; no usan esa protección ni se añade otra en segundo plano.
+
+**Límite aceptado expresamente en la revisión R5:** esos dos writers restaurados, dentro de esta candidata nueva, pueden borrar un `#ownno` remoto que la copia local todavía desconoce. El serializer sí conserva un NO conocido localmente. El efecto de perder la marca es volver a ofrecer la pregunta, nunca confirmar el traspaso ni mover dinero por sí solo. Este límite es distinto del de un cliente antiguo; ambos se documentan, sin presentar el primero como una propiedad de todos los writers actualizados.
+
+La protección contra un pull iniciado antes del ACK de SÍ vive en un `WeakMap`, sin añadir campos persistidos a la salida. No impide una corrección posterior. No hay garantía atómica entre salida y entrada ni frente a clientes antiguos; ambos límites están aceptados y constan en CHANGELOG. Cobertura dirigida: `tests/own-transfer-confirm.test.mjs` y `e2e/own-transfer-confirm.spec.mjs`.
+
+Los writers de banco, duplicado y recibo resuelven con `{acknowledged:true,rows:[{id}],alreadyApplied:false}` tras un UPDATE protegido y acuse exacto. Si todas las marcas de recibo ya coinciden, éste devuelve `alreadyApplied:true` sin UPDATE, después de validar UUID, propietario, foto completa y autorización vigente; no escribe de nuevo para demostrar el mismo estado. El doble de pruebas respeta la proyección de `select`. `expenseSourcePatch` compara la foto semántica completa desde el primer intento y permite un único reintento si se añadió exactamente un `#ownno` sin otro cambio. El cero posterior, la relectura fallida y el conflicto semántico se propagan como error. Este contrato de acuse no se aplica a las cuotas.
+
+Los estados de escritura de la ficha se indexan por owner/UUID y cada operación sólo puede limpiar su propio estado. El aviso y el pie de confirmación pertenecen a acciones que la persona inició en esa fila; las cuotas automáticas no crean estados de error de ficha. La recuperación de SÍ/NO llama al pull real y concilia la decisión esperada contra la salida actual, también cuando el pull se adelanta al rechazo. `ownTransferOutgoingValid` vuelve a comprobar elegibilidad, lápidas y vínculos durables externos después del ACK y al aplicar: `fixed.paymentProofs` puede cambiar sin modificar el objeto expense. Esta comprobación no revierte el UPDATE ya enviado ni convierte un conflicto saliente en una carrera aceptada de contraparte.
+
+En la ficha, `runSourceAction` espera el acuse y la sesión dentro de un plazo de diez segundos, revalida la foto del movimiento y sus vínculos y sólo informa éxito si el reducer se aplicó. Las acciones incompatibles de la misma fila se serializan. `Actualizar movimientos` llama al pull real de gastos; no borra el aviso si falla. `setCuota` y el efecto automático recuperan los cuerpos de la base: marca local inmediata y envío remoto posterior, sin veto por ACK, timeout, fila ausente o UUID local distinto del remoto. La recategorización que quita deuda conserva su reparación `catStale`/`recat`, y la separación de gemelos conserva la reparación del pull.
+
+### Mapa de escrituras de movimientos y conservación del rechazo
+
+Todas las entradas de persistencia de `expenses` del cliente viven en `cloud` (`00-core.js`). Los callers no escriben directamente en la tabla; los motores, el pull y las pantallas invocan estas mismas entradas. El mapa distingue conservar un NO local de proteger uno remoto desconocido:
+
+| Writer y callers | Tratamiento de `source` y de `#ownno` | Acuse, guard y límite |
+| --- | --- | --- |
+| `addExpense` / `subirGasto`; `addExpensesBatch` desde importación histórica | Serializan el NO local con `expenseSourceForCloud`. `upsert` con `ignoreDuplicates:true` no sobrescribe una fila existente. | No es reparación de `source` remoto. Si `subirGasto` detecta recibo ya existente, usa `setExpenseRecibo`. |
+| `setExpenseBank`, ficha `setBank` | Reconstruye el banco; `expenseSourcePatch` conserva NO remoto leído y protege cambios concurrentes. | CAS semántico y ACK; la acción manual espera y revalida su foto. |
+| `setExpenseDup`, decisión manual de gemelos, reparaciones de gemelos y del pull | Reconstruye `#dup`; mismo helper y protección de NO. | CAS y ACK. La acción explícita espera; las reparaciones existentes siguen enviándose en segundo plano. |
+| `setExpenseRecibo`, ficha, motores de recibos, Plan y `syncCloudExpenses` | Lee las filas compatibles por atributos y banco, conserva los sufijos remotos y pasa la foto a `expenseSourcePatch` si cambia la marca. | CAS y ACK al escribir; `alreadyApplied:true` sin UPDATE si todas las filas ya coinciden y se validan. La ficha revalida su intención; motores/Plan conservan su circuito previo de envío. |
+| `setExpenseMeta`, `persistMetaWrite` en ficha | Conserva los sufijos leídos, incluido NO; discrimina ordinal/referencia y compara `source` antes del UPDATE. | Devuelve número de filas escritas o ya iguales; `metaPend` sólo se retira con `ackMetaWrite`. No usa el nuevo helper. |
+| `setExpenseDeuda`, `setCuota` y efecto automático de App | **Writer idéntico a base.** Serializa NO local; puede borrar NO remoto desconocido. | La marca local no espera ACK. La ausencia de fila remota no veta el chip ni la exclusión de gasto. Límite R5 aceptado: sólo puede reofrecer la pregunta. |
+| `setExpenseCat` al quitar deuda, ficha y reparación `recat` | **Rama idéntica a base.** Reconstruye `source` sin deuda; conserva NO local, puede borrar NO remoto desconocido. | Mantiene `expenseCloudEq`, conteo de filas y `catStale`/`recat`. Mismo límite R5 explícito; sin protección adicional de fondo. |
+| `setExpenseCat` sin quitar deuda; `confirmExpenseWithdrawal` | Sólo cambian `cat`, no `source`. | Conservan el NO remoto al no escribir ese campo; la retirada mantiene su CAS y revalidación propios. |
+| `decideOwnTransfer` desde la pregunta de ficha | SÍ sólo `cat`; NO sólo `source` con el rechazo. | Foto completa, owner, UUID, CAS, ACK exacto y guards de salida. La contraparte no se escribe ni hay transacción entre ambas filas. |
+| `setExpenseNoCard`, `setExpenseNote`, `renameExpense` | No escriben `source`. Renombrar compara la foto remota; su alta opcional delega en `addExpense`. | Sin modificación del rechazo; se mantienen sus contratos originales. |
+| `deleteExpense`, `deleteExpensesByIds`, `settleObAbsorbed` | Borran filas según sus contratos; no reconstruyen `source` ni transportan un NO a otra identidad. | Son borrado/absorción, no una garantía de conservar una fila eliminada. |
+
+`expenseFromRow`, `refreshExpenseFromCloud`, `mergeExpenses` y el guard temporal de SÍ son lectores/reconciliadores locales, no writers remotos adicionales. `pushState` y copias de seguridad guardan sus documentos, no actualizan `expenses.source`. El blindaje `CLOUD_WRITES` sigue anulando toda escritura de nube en modo pruebas; la decisión de traspaso en ese modo se aplica sólo a su estado local de pruebas y no presenta un acuse remoto ficticio. Este mapa acredita el cliente de esta candidata, no servidores ni aplicaciones antiguas.
+
 ## FIN29/30: alias de nombre separados del borrado (candidata local, 28/10/2026)
+
+## Aportación mensual TR: flujo de confirmación separado (candidata 01/11/2026)
+
+La nueva acción de la ficha confirma solo una fila por UUID y titular. El cliente lee la fila
+remota, condiciona el UPDATE de `cat` a su foto completa y exige exactamente una fila de ACK,
+incluidos origen, fecha, importe, comercio, nota y nombre original. Los campos NULL se filtran
+con `is(null)`. Cero filas, error, cambio de sesión o de la fila local no acreditan confirmación.
+El writer está en `CLOUD_WRITES`: sandbox impide la consulta. No cambia esquema ni backend.
+
+No pasa por el selector genérico de categoría: conserva efectivo, participaciones, valor,
+coste, recompensas, fijos y cuotas. La pregunta para una fila opaca es «¿Es tu aportación
+mensual?». Aceptarla no aprende un patrón por «Movimiento» o por importe. Si el banco aporta
+un destino semántico inequívoco en concepto/nota (ISIN, nombre del fondo o plan), la aceptación
+explícita guarda una autorización versionada independiente de `monthlyInvest` después del ACK
+y del guardado partido con lectura de disco. Un fallo de persistencia no habilita el automatismo.
+
+La recurrencia nueva compara el campo y valor original completos (solo normaliza espacios/caso),
+misma cuenta/bróker, débito en céntimos exactos del importe confirmado por la persona, BOOK y
+días 1-5 no futuros. La fila y la transacción deben coincidir entre sí y, en cada recurrencia,
+con ese importe consentido; no hay un importe fijo ni tolerancia de un céntimo. No usa notas
+editadas, tarjetas/MCC de compra, filas ambiguas o fecha anterior al consentimiento; confirmar
+una fila de noviembre en diciembre no autoriza un 3 de diciembre ya pasado. Los pulls que
+cambian el permiso lo invalidan, sin mezclar datos financieros ni habilitarlo desde configuración.
+Las comparaciones de permiso durable y propósito son canónicas, también en claves anidadas:
+el orden devuelto por jsonb no cambia el consentimiento. La evidencia por ISIN exige dos letras,
+nueve alfanuméricos y un dígito de control ISO 6166 válido; un código mal formado o con control
+incorrecto aislado no acredita destino semántico.
+Solo los IDs cuya categoría cambia por este plan omiten la compra virtual del sync; la ruta
+legacy conserva sus efectos. El puente sigue aportando posiciones/cash; OB, los movimientos.
+
+El plazo de 10 s en Gastos retira la confirmación local, pero no puede deshacer un UPDATE ya
+enviado. Si termina tarde, la siguiente lectura de gastos vuelve a leer la nube y converge,
+también tras una lectura fallida; no reenvía la confirmación ni aprende permiso sin ACK y
+guardado durable. Las pruebas ejecutan la carrera real de Gastos, el writer y `syncCloudExpenses`
+con transporte y relojes sintéticos. En el caso preexistente de CAS perdido por importe remoto
+cambiado, el sync intenta un backfill con el mismo UUID: `addExpense` usa ignoreDuplicates y
+el conflicto de clave primaria no sobrescribe la fila. No se modifica ese flujo en esta tanda.
+
+**Límite expreso:** el reconocedor legacy por `monthlyInvest` y su prueba MCC 5411 se conservan.
+Por eso esta candidata no demuestra ausencia global de clasificación sin consentimiento ni
+corrige la simulación de cierre. El riesgo y la decisión pendiente del dueño están en BACKLOG.
+Las pruebas usan sobres sintéticos; no acreditan que TR real entregue notas de destino ni una
+aceptación móvil. Estado: candidata privada, sin integración/publicación en este corte.
+
 
 Un renombrado bancario nuevo guarda `expense-rename|identidad|clave` en la partición
 existente de lápidas. La identidad codifica banco, cuenta y referencia; si falta la
@@ -55,6 +143,19 @@ Un marcador de commit inválido es metadata privada, no una edición. El token p
 H2 candidata, ronda 2: saldo y movimientos independientes por cuenta, valor/fecha de identidades devueltas fallidas retenidos por UID/IBAN; cuentas extra omitidas retiradas y asignación única libre tras reservar vínculos exactos. Capacidad explícita y fallback conservador para móviles antiguos. Cursor y ACK siguen movimientos y persistencia local, con la excepción de desbordamiento existente. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
 
 # Arquitectura — Aely
+
+**Aviso nativo de recibos, contrato opcional `charge.eve` v1 (candidato).** La app entrega
+`{v,title,body,coverage,calculatedOn,dueOn}` dentro de cada cargo de `setAlertData`; el plugin
+ya conserva ese objeto. `AlertCheckWorker` solo acepta tipos reales, cobertura
+`enough|short|unknown`, texto completo de una línea y fechas que coincidan con hoy y mañana
+del reloj local existente y con el mes/día del cargo. Usa el título/cuerpo literalmente:
+el cálculo de «¿Te llega?» y la lectura válida pertenecen a la web. Si falta el objeto, es
+inválido o no se recalculó hoy, mantiene el aviso anterior sin afirmar saldo. No consulta
+el banco ni cambia sellos, importes, deduplicación o el hueco existente al cambiar de mes.
+El test JVM ejecuta el worker con un reloj temporal determinista y dobles de Android/JSON;
+no acredita el parser real, WorkManager, una APK ni la entrega con la app cerrada. Sin JDK
+la prueba falla explícitamente; por defecto usa `JAVA_HOME`/`PATH` y conserva sus artefactos
+en un temporal propio.
 
 **Sincronización del estado entre móviles (beta 4.26.170, FIN-04 fase 2 A + SAVEDAT).** El
 estado (todo menos los gastos, que viven en su tabla) viaja entero por «último que escribe»
@@ -130,6 +231,15 @@ por campos independientes y grupos financieros atómicos; nunca se suman dos sal
 El ACK ancla el payload enviado, conservando las ediciones posteriores. `_planSync`
 y los borradores por identidad son privados del dispositivo, particionados fuera
 del estado principal y excluidos de nube, Hogar y exportaciones.
+
+La acción «Sin día de cobro · ponle día» de Plan (también sencillo) y Deudas reutiliza
+`DebtEditSheet`, sus conflictos y su guardado. Solo aparece en cuotas activas sin día válido;
+el borrador de esa ruta empieza vacío si también falta el día en la copia local en revisión,
+y enfoca el día. Un día local válido se conserva. Abrir, escribir y cancelar no guardan.
+El editor legado usa 1 como respaldo al comparar días: esta ruta de UI persiste `day:1`
+únicamente tras elegirlo y guardar un resultado válido, después de cualquier revalidación de
+plazo. El borrador, el resultado y la confirmación financieros siguen intactos; el resto de
+entradas al editor conserva su comportamiento. No cambia importes, totales ni anclas duales.
 `debtDeleted` viaja con el estado y conserva la copia exacta que se borró: una copia
 intacta desaparece, una edición distinta permanece. El borrado sigue protegido si
 hay cuotas vinculadas. Las marcas offline `paidYm`/`paidDay` y `wait` sobreviven
@@ -140,15 +250,117 @@ en el recibo dentro de `app_state` y la mezcla de tres vías la trata como un so
 juntar el «desde» de un móvil con el «hasta» de otro. Un cliente anterior la ignora y la conserva
 (no reconstruye recibos campo a campo). Un recibo en pausa y sin cobrar no cuenta en el mes
 (`fixedEnPausa`: Plan, Inicio, totales, previsión de saldo y avisos de la víspera); si el banco lo
-cobra igualmente es un pago y se ve. Pausar o reanudar compensa el saldo mostrado
-(`conSaldoMostrado`), como los vínculos de pago. `revisado` (`{distinto, fantasma}` con el
+cobra igualmente es un pago y se ve. Pausar conserva normalmente el saldo mostrado
+(`conSaldoMostrado`), como los vínculos de pago. Reanudar deshace esa misma compensación de
+base, también al mover una pausa vigente a un intervalo futuro o terminado: las exclusiones
+legadas vuelven a su base anterior, sin descontar el recibo por segunda vez.
+La prueba gratis (`pruebaHasta`, "AAAA-MM-DD": el día en que empieza a cobrar) y la permanencia
+(`permHasta`, año*12+mes en que acaba) también viajan en el recibo dentro de `app_state`. Son
+opcionales, las teclea él en «Más opciones» y solo dan un aviso en «Para revisar» (la prueba hoy o
+mañana; la permanencia este mes o el siguiente, hasta «Ya lo he mirado», que guarda esa fecha en
+`revisado.perm`). La permanencia no mueve ninguna cifra. Los meses de antes del mes en que acaba la
+prueba no se cobran (decisión del dueño del 10/11, como el prototipo): `fixedSinCobroIn` (07) es
+pausa o prueba, y lo leen lo que queda por pagar (`planChargesMonth`), el recorrido de «¿Te
+llega?», `totals`, los avisos de la víspera y el año (`billsAnualDe`); «Se te van cada mes»
+(`billsPausado`) y Pausar (`fixedPausa`) siguen leyendo solo la pausa. El mes en que acaba, `dayIn`
+devuelve el día de fin de la prueba (antes o después del día del recibo, como el prototipo): el
+primer cobro llega ese día, y aviso, ficha, víspera, Inicio y «¿Te llega?» dicen el mismo. Cada una es un grupo propio en la mezcla de tres vías, y
+un cliente anterior las ignora y las conserva.
+La excepción es una lectura manual **nueva y
+trazable** anterior al día de un recibo vencido e impagado: una única cuenta de recibos de ese
+banco puede retirar o restaurar esa proyección manteniendo su base leída. No se infiere nada
+de fechas antiguas: el editor legacy podía conservar `saldoLeidoAt` tras cambiar el importe.
+`manualBalanceReads` guarda fuera de `accounts` la pareja `_savedAt`/`stateAt` y snapshots por
+identidad, entidad, rol, base y hora de lectura. Sólo una corrección manual con importe cambiado
+crea la prueba; ambas puertas de edición calculan la inversa con el estado fresco y verifican los
+céntimos mostrados. Confirmar una cifra igual conserva la base, sella `saldoLeidoAt` como una
+lectura nueva para t3 e invalida la prueba de base manual; no acredita otra base por igualdad.
+La pausa/reanudación
+sólo conserva la prueba del ID verificado mediante un intento privado, puro y no serializable,
+revalidado después del reconciliador; no acredita una lectura nueva.
+**Cobertura conservadora:** cualquier edición ordinaria ajena invalida todas las pruebas. La
+pareja coherente sobrevive al guardado/lectura y viaja íntegra en `app_state`; una adopción,
+cambio de rol/base/banco o un cliente antiguo con sello desfasado no la revalida. Sin prueba,
+con varias cuentas de recibos del banco, conexión bancaria, TR nativo, fecha inválida/futura,
+mismo día o posterior, pausar conserva el saldo mostrado y reanudar sigue la vía de base.
+Sólo cuando la pausa nueva retira efectivamente una compensación guarda en el recibo
+`manualPauseBalance` (versión, mes local, ID y entidad de su cuenta). Esta marca de origen es
+distinta de la prueba de lectura; viaja atómicamente con el intervalo en la mezcla de tres vías.
+Reanudar esa pausa mantiene la base entrante sólo de su cuenta original, con prueba íntegra o
+tras perderla por una edición/cliente viejo; las demás cuentas conservan su compensación de
+base. La marca se consume al reactivar, también moviendo el intervalo, y no se deduce de la
+ausencia de prueba. Conserva el origen mientras la pausa siga vigente al cambiar de mes;
+iniciar otra pausa desde un mes que ya no estaba pausado no lo hereda. Una lectura posterior
+no reclasifica una pausa legada.
+Si el ID del recibo se duplica mientras está pausado, reactivarlo (borrar el intervalo o
+moverlo al futuro o a un intervalo terminado) no compensa ninguna cuenta: conserva todas las
+cuentas entrantes y sus bases exactas, aunque se haya perdido la prueba de lectura. El ID ya no
+permite atribuir el cargo a una fila; por prudencia también se omite la compensación de base
+de otras cuentas en esa operación. No se confunde con duplicar el ID de una cuenta.
+**Límite de clientes antiguos:** un móvil sin actualizar que reanuda una pausa trazable ejecuta
+su propia compensación anterior. El cliente nuevo no puede impedir esa escritura ni garantizar
+que el móvil antiguo respete la marca de origen; conservar campos desconocidos no actualiza
+su lógica de reanudación. Esta protección exige reanudar desde un cliente actualizado y no
+repara datos que otro cliente ya haya escrito.
+TR manual sin puente sí puede
+ser elegible. El calendario compara días de Madrid; si el motor local está en otro día, falla
+prudente. `_savedAt` usa el reloj existente: no garantiza distinguir un cliente antiguo con
+timestamp exactamente coincidente o reloj revertido. Si un cliente elimina también la marca
+de origen del recibo, su estado resulta indistinguible del legado y rige la vía de base: la
+protección ante pérdida de prueba presupone que se conservan los campos desconocidos del
+recibo, como hacen los editores anteriores. No es una reparación completa de todos
+los saldos manuales. No se alteran las dos comparaciones semánticas de nube ni se avanza un
+sello por sí solo: la invalidación es un cambio real una vez y no genera un ticker de escrituras.
+Lo vigila `tests/recibos-manual-pausa.test.mjs`, registrado en el runner, con writers, setter,
+callback, almacenamiento y ambas puertas de nube reales bajo dobles offline. La matriz de
+intervalos cubre pausa actual corta/larga, futura, terminada y borrada; sus mutantes separan
+la compensación de base, la nueva, la pérdida de su origen y la atomicidad del intervalo. Cada
+exclusión compara cuentas y céntimos antes/pausa/reanudación con un oráculo separado de base;
+dos pasadas dirigidas pueden cargar además las funciones reales de 555fe0c3 y beta t4 c89bb12c5.
+El oráculo temporal exige resultados concretos en UTC y Madrid, medianoche y ambos cambios DST;
+el mutante R2 retira sólo el sellado de una confirmación idéntica. R1 conserva el límite del
+reloj de clientes antiguos descrito arriba; no se declara resuelto todo saldo manual.
+`revisado` (`{distinto, fantasma}` con el
 año*12+mes) guarda los avisos de «Para revisar» ya contestados; posponer es solo de ese móvil
 (almacén local, hasta el día siguiente).
-«¿Te llega?» no tiene cálculo propio: lee el recorrido día a día de `totals` (11), que pasa por
-`minWalk` (08), la misma función del simulador «¿Me lo puedo permitir?». A igualdad de día primero
+Los avisos de la víspera usan el mismo cálculo que «¿Te llega?».
+`receiptEveProducer` comparte la cifra de cada banco con el aviso de la víspera: usa
+`planCoverState(totals, banco, 0, planChargesMonth(...).pendingBills)`, incluida la corrección
+existente de cuotas sin día. No vuelve a recorrer el dinero ni descuenta de nuevo el recibo.
+Solo afirma suficiencia con banco explícito, saldo finito, lectura acreditada por
+`saldoLeidoDelBanco`, desde la medianoche local del día anterior a la víspera y nunca posterior
+al instante del cálculo, y sin incidencias/saldos rancios actuales. Una fuente de lectura
+aplicable con hora futura deja el aviso neutro aunque otra cuenta o conexión oculte esa hora
+en el mínimo del banco. El texto expresa el mínimo previsto del mes en ese banco, conservando
+su cifra y signo; no afirma que el recibo de mañana sea impagable. Sin esa evidencia conserva
+el aviso genérico. Las dos llamadas a `setAlertData` y la notificación web comparten el calendario
+memorizado y su texto localizado en es/en/ca; los cambios de saldo, lectura, pagos, flujos,
+idioma y fecha invalidan ese calendario. El banco de pruebas no envía estos avisos ni calendarios.
+
+Cada cargo puede llevar `eve:{v:1,title,body,coverage,calculatedOn,dueOn}`. Es un mensaje
+precalculado, no una orden de consultar el banco. `coverage` es `enough`, `short` o `unknown`;
+este último nunca afirma nada del saldo. `calculatedOn` corresponde al día local real del
+cálculo y debe coincidir con el año/mes/día de `totals`; `dueOn` es la fecha exacta del cargo.
+Solo se añade suficiencia para mañana. El consumidor nativo debe validar tipos, versión,
+fecha real actual/mañana y correspondencia con `ym`/`day` antes de usar el texto completo.
+Un objeto ausente, inválido o de otro día conserva el aviso anterior por cargo. El plugin
+actual conserva los campos adicionales de `charges`; una APK anterior los ignora. El cambio
+WEB por sí solo no implementa ni valida ese consumidor nativo, su APK o una notificación física.
+
+El calendario omite pagados con los mismos predicados del aviso web, sin escribir `paidYm`.
+Los identificadores, sellos mensuales y el intercambio `fired` antes del aviso web se conservan.
+Con la app cerrada el dato sigue siendo el cálculo guardado; si no se recalculó en el día de
+la notificación no se afirma suficiencia. No hay TTL financiero por horas, temporizador nuevo
+ni lectura bancaria programada. Se conserva el límite del calendario de mes actual: el worker
+no inventa previsión del siguiente mes ni corrige aquí el hueco del primer día de mes.
+
+«¿Te llega?» lee el recorrido día a día de `totals` (11), que pasa por
+`minWalk` (08). A igualdad de día primero
 salen los cargos y luego entran las entradas. Los eventos salen de `pendingWalkEvents` (08), la
-única lista: la usan `totals` (píldora, hoja, mínimo diario, `safeLiq` del widget) y el simulador
-«¿Me lo puedo permitir?» (`bankPendingEvents` = esa lista filtrada por banco). Un recibo sale del
+única lista: la usa `totals` (píldora, hoja, mínimo diario, `safeLiq` del widget); `bankPendingEvents`
+es esa lista filtrada por banco. «¿Y si gasto…?» no recorre nada por su cuenta: resta el gasto (o, a
+plazos, solo la entrada) del mínimo de su banco con `planRecibosBancos`, y `AffordSim` (08) saca de
+ahí el colchón de cada cuenta y la cuota. Un recibo sale del
 recorrido si Plan lo pinta pagado (`fixedPaymentState`) Y ese pago ya está en el saldo
 (`reciboEnElSaldo`): siempre si movió el saldo mostrado (`paidYm` o cargo enlazado con día); con
 cualquier otra prueba, solo si el saldo se leyó desde fuera el DÍA SIGUIENTE al pago o después (la
@@ -165,6 +377,172 @@ del banco caída o rancia no se enseña. `totals.evsByBank` expone esos eventos 
 traspasos y entradas con su id) para que la hoja enseñe justo los que ha recorrido. La frescura es
 `obBalAt` (la hora de lectura que da el servidor; sin lectura no se dice nada). Editar la nómina
 desde la hoja es `patchFlowById`, lo mismo que Todos: no hay campos nuevos.
+
+«Solo este mes» (alta y edición por pasos, Plan › Recibos v6 tanda 4) vive en el recibo:
+`soloMes = {año*12+mes: {amt?, day?}}`. Lo leen `occAmountIn(e,m,y)` y `dayIn(e,m,y)` (07)
+SOLO cuando se les pasa el año; sin año (medias de `fixedMonthlyOf`, previsiones de otros años)
+sale el recibo de siempre. El contrato de las pruebas de pago (`fixedPaymentContract`) no lo
+mira: añadir o quitar un «solo este mes» no invalida ninguna prueba y un cliente viejo, que lo
+ignora, calcula el mismo contrato. «Desde ahora» (`fixedEditarRecibo`, 08) cambia el recibo y
+deja en `soloMes` el importe y el día con que se pagaron los meses ya pagados de los últimos doce
+(y este, si ya está pagado), así su cargo sigue casando igual y los avisos y «Este año» leen lo de
+siempre; las pruebas de esos meses se atan al contrato nuevo conservando su importe real, y la
+marca `paidYm` de un mes pagado no se borra. Si este mes ya está pagado o no toca, «Solo este
+mes» va como «Desde ahora». Como `patchFixedById`, no compensa el saldo mostrado: un día movido
+que el calendario daba por cobrado y el banco no trae vuelve al saldo. En la mezcla de
+tres vías `soloMes` va en el grupo financiero (con importe, día, cuenta…). Una edición que no toca
+importe ni día no toca `soloMes` de este mes. Un mes pagado que el recibo nuevo ya no cobra
+(otros meses o pagos) queda en `soloMes` con `on:true`, y `occursIn(e,m,y)` lo sigue contando
+como suyo; sin año manda el calendario nuevo. «Solo este mes» guarda lo tecleado como cargo de
+ese mes, también en un anual repartido.
+
+Con el mes pagado por una prueba persistida válida (`fixedPaymentProof` o `paidYm` con día válido),
+guardar un importe equivalente en céntimos y un día equivalente según `cleanDay` conserva los
+valores del recibo anterior en las dos rutas de edición. La mera presencia de `day` en el parche
+no recalcula la marca: un BOOK persistido no se convierte en `paidYm` por guardar lo mismo.
+Así conserva «Pagado, aún sin restar del saldo» y el recorrido pendiente. Un BOOK recién llegado
+en el feed, sin prueba persistida reconocida, conserva el recálculo anterior, también con `wait`
+de este mes; ver un cargo o una notificación en `fixedPaymentState` no los hace persistidos.
+Los cambios reales de importe o día mantienen su contrato anterior; esta corrección no redefine
+cuándo un pago bancario está incluido en el saldo ni repara marcas escritas por otros clientes.
+Con `day` presente se conserva el recálculo previo si cambia el día global, el día efectivo o
+el importe efectivo del mes: un mes pagado congelado no oculta el cambio global, y retirar un
+override de «Solo este mes» tampoco equivale a guardar el mismo cargo.
+
+Un cliente viejo (la primera apertura tras el OTA, mientras el Service Worker sirve el bundle
+anterior) ignora `soloMes`: en el mes de «Solo este mes» ve el importe del recibo (real, pero no
+el que se puso). Tras «Desde ahora» con meses pagados por BOOK compara el BOOK con el importe
+nuevo: los meses pasados le salen sin pagar, octubre pagado por el importe nuevo, y su
+`planSyncDerived` puede borrar `paidYm`/`paidDay` de este mes y subirlo a la nube. Las pruebas
+de un enlace a mano (`expense`) sí le siguen valiendo. El cliente nuevo sigue correcto aunque el
+viejo quite `paidYm`, porque la prueba re-atada vale. Es lo mismo que ya hacía la ficha de antes
+(`patchFixedById`) en el propio móvil. «Solo una vez» es un cargo puntual (`oneoffs`) que se
+apunta desde mañana (uno de hoy contaría como pagado por calendario sin cargo detrás) y «En
+varios pagos» es `schedule` (cada año, `freq:"año"`); «Cambia cada mes» es `variable:true`,
+solo para el «≈». No hay columnas ni servidor nuevos.
+
+Personas y recibos compartidos (Plan › Recibos v6 tanda 5) se construyen encima de lo que había:
+`amount` = tu parte y `bankAmount` = lo que cobra el banco. Lo nuevo es `reparto` en el recibo,
+`[{id, n, via, debtId?, amt, auto?}]` (via `bizum`/`transfer`/`debt`), con cada parte ya resuelta
+en euros (las vacías se reparten a partes iguales al guardar, el céntimo que sobra es tuyo), y
+`repartoCobrado = {año*12+mes: [ids]}` para «Ya me lo ha pagado» (un `"!persona:ingreso"` en esa
+lista veta ese ingreso para esa persona: lo apunta «Deshacer» sobre algo que casó solo; deshacer una
+marca a mano no veta). Lo recibido también se lee de los ingresos del mes (`teDebenRecibido`, 08):
+casa si el texto del banco lleva el nombre entero de la persona, no es dinero tuyo (traspaso entre
+tus bancos, concepto a nombre del titular), ni una devolución, ni está atado a un recibo, deuda o
+meta, y el importe va de la mitad de su parte más pequeña a lo que debe más un céntimo por parte;
+un pago a medias deja `falta` (lo único que suma el total de «Te deben»). Solo se lee: no cambia ningún
+gasto ni ingreso. Una entrada prevista (`flows`, income) cuyo nombre lleva el de UNA persona y cuyo
+importe es lo que debe ese mes o una de sus partes es su gemela (`flowGemelaDe`, 230): el movimiento
+que la acredita (enlazado a mano, o el que coge sola si el banco nombra a la persona) paga a la persona,
+y el pago que «Te deben» casó acredita a la entrada (`flowPagoGemela`); el saldo sigue solo con la
+entrada (`flowLlegoIn`). Una entrada también acepta el ingreso del importe exacto en otro banco tuyo
+(`flowFilaOtroBanco`, 231): a mano siempre, solo si es el pago de su persona gemela, y nunca ancla.
+La ficha lo dice («Llegó a <banco> · Cambiar la cuenta», que abre la edición; nada cambia solo).
+«Te deben» casa una persona por su nombre entero, por un ALIAS que él confirmó al enlazar a mano un
+pago a su entrada gemela (`debenAprenderAlias`: «debenAlias|persona|nombre» en `reciboNo`, viaja y se
+une por hora; nunca su propio nombre, ni de un ingreso que no diga transferencia o Bizum, ni de un
+comercio con categoría aprendida; con `reciboNo` lleno, los alias son lo último que se olvida) o por el nombre abreviado («Nora» → «Noraida …») con todas sus vallas: transferencia o
+Bizum, nombre y dos apellidos, ni empresa ni comercio, la primera palabra no es otro nombre de pila,
+importe exacto de lo que debe o una parte y sin otra persona que case igual (`debenNombra`). La
+misma regla aparta ese ingreso de las demás entradas (`flowNombraPersona`). «Abono» a secas ya no es
+devolución (en Sabadell es cualquier transferencia recibida); sí retroceso, rechazo, cancelación,
+promoción o bonificación. Las entradas y traspasos del día 1 a 7 aceptan el adelanto del mes anterior
+dentro de sus 7 días (`flowFilasElegibles`, `flowEsSuMes`), solo para lo que se ve: el ancla del saldo
+es del mismo mes. No hay lista de personas
+aparte: viven en las partes de los recibos (`personasDe`), dentro de `state.fixed`. El reparto
+solo vale (`repartoVigente`, 08) si cuadra al céntimo, tu parte + partes = `bankAmount`, y en un
+recibo de cada vez (sin `schedule` ni anual repartido); si no cuadra se ignora entero: ni «Te
+deben» ni descuento de deuda. En un mes con importe congelado en `soloMes` (compartir un recibo ya
+pagado este mes va como «Desde ahora») o en pausa sin pagar, ese mes no hay partes.
+Todo lo que suma «lo que pagas» sigue usando tu parte (`amount`); el recorrido de «¿Te llega?»
+(`pendingWalkEvents`, y con él el mínimo, `safeLiq` y el widget) y `pendingByBank` usan lo que
+cobra el banco (`bankAmount`), también en los compartidos de antes sin reparto. Una parte
+«Lo descuento» (`via:"debt"`, solo en recibos de todos los meses y con la deuda viva) no sale en
+«Te deben»: la cuota de esa deuda en Plan, Inicio y Todos es `monthly` + descuento («pagas 197 € +
+53 € de Pepephone»), mientras que lo que sale del banco, el casado de la cuota y el recorrido
+siguen con `monthly`. Solo se ofrece en deudas sin interés (`deudaDescontable`): en una con TAE
+reescribir cuota y amortización apagaría el interés de la reconstrucción del patrimonio. Al poner,
+cambiar o quitar un descuento, `deudasTrasReparto` mueve `monthly` y deja `amort`, pero solo si
+la deuda cuadraba antes del cambio (`amort` = `monthly` + lo que se descontaba). Al borrar,
+`useBillUndo` aplica `billUndoRemove` con ese ajuste; `billUndoRestore` valida el snapshot
+comprometido y restaura su delta al deshacer. Una cuota bajada a
+mano (197 que amortiza 250) no cuadra al poner el descuento y no se toca; ya puesto sí cuadra
+(197 + 53), así que al quitarlo o pasar esa parte a Bizum vuelve a 250 sin `amort`. Cambiar quién
+paga va por `fixedEditarRecibo` «Desde ahora»; si el banco cobra lo mismo, un mes ya pagado guarda
+también con quién se repartió (`soloMes[ym].reparto`, validado contra `soloMes[ym].amt`), para no
+perder su «Te deben» ni su descuento. En la mezcla de tres vías `reparto` va en el grupo
+financiero (con `amount` y `bankAmount`); `repartoCobrado` se une mes a mes e id a id (dos móviles
+que marcan a personas distintas suman las dos; quitar una marca la quita si el otro no la tocó).
+
+Cuando un cambio afecta a varias deudas descuadradas, `descuentoPregunta` las pregunta en
+secuencia. «Dejarla como está» se refiere a esa deuda: conserva las respuestas aceptadas de
+las otras. En el guardado de `PersonaSheet`, `conDescuentoFijado` aplica esas respuestas y el
+cambio de reparto en un único `set` final, sin escrituras entre preguntas. El Node
+`deudas-lo-descuento` acciona ese guardado real con dos deudas y respuestas aplazadas, tanto
+aceptando ambas como cancelando la segunda; comprueba saldo al céntimo, plazo, entrada
+inmutable y número de escrituras. Su filtro opcional `AELY_LO_DESCUENTO_CASES=r164` ejecuta
+solo esos dos casos; sin filtro conserva también los anteriores.
+
+El e2e del mismo nombre cubre quitar un recibo compartido y borrar a una persona: la pregunta
+de ajuste aparece antes del cambio y cancelarla conserva la deuda completa, también tras
+recargar. El recibo se quita o la persona sale del reparto según la acción original. Esto no
+acredita una escritura única en todas las rutas: quitar/añadir recibo y aplicar los ajustes
+siguen siendo llamadas separadas. Deshacer el ajuste aceptado al quitar un recibo requiere
+el cambio separado anotado en el backlog; estas pruebas no lo implementan.
+
+Editar deuda rechaza la transición de TAE desconocida/cero a positiva mientras haya una relación
+`via:"debt"` con su id en el reparto base, aunque esté pausada o sea futura. La guardia
+`debtEditRateError` también comprueba `soloMes.reparto` futuro o del mes actual pendiente;
+excluye los meses pasados y el actual ya pagado según `fixedPaymentState`, igual que el productor
+del histórico. Así, quitar el descuento permite poner TAE sin borrar repartos de pagos anteriores.
+Se comprueba antes de guardar y contra el estado fresco del updater, además de `planEditCommit`:
+el rechazo devuelve el mismo estado completo, conserva el borrador y muestra una línea que pide
+quitar primero el descuento del recibo compartido. No ajusta cuota, amortización ni plazo,
+ni repara registros con TAE positiva preexistente. Metas conserva su guardado habitual.
+
+El previsto a fin de mes de `totals` (`pendingByBank`, `projectedByBank`: ficha de cuenta y
+asistente) usa la misma regla que el recorrido (`fixedCargoBanco`). Un cliente viejo ignora los
+campos nuevos (los conserva con `Object.assign`) y ve tu parte y lo que cobra el banco, que son
+reales; su mezcla puede juntar un reparto de un móvil con el importe de otro, o cambiar tu parte
+o quitar el compartido, y entonces el cliente nuevo deja de usar ese reparto porque no cuadra: no
+salen esas personas en Personas ni en «Te deben». Al editar ese recibo, sus personas vuelven al
+borrador con un aviso para revisarlas, y al guardar el reparto cuadra otra vez. Un compartido de
+antes (solo `bankAmount`) al que se le añade una persona le da todo el resto (tu parte no cambia), y
+desde Todos › Personas se abre su edición con esa parte a la vista para ajustarla antes de guardar.
+Sin servidor ni columnas nuevas; el resumen del Hogar (13) no cambia.
+El resumen del mes cerrado (Plan › Recibos v6 tanda 6, del día 1 al 7) NO relee el mes con el
+estado de hoy (revisión NO-GO 31/10/2026: altas y bajas posteriores y el extracto caducado lo
+cambiaban). Mientras un mes está en curso, cada cálculo de Plan guarda su foto en
+`settings.pr6Fotos[año*12+mes] = {d: día, it: [{id, n, a (céntimos de tu parte), st, pa?, pb?, v?, d?}]}`
+(`planRecibosConFoto`, 08; solo si cambió, sin sello de edición, últimos tres meses). `st`: «p»
+pagado con prueba, «s» pagado sin cargo del banco (marca a mano, calendario), «q» no llegó
+(tocaba con dos días de margen y el banco tiene movimientos de ese mes después) y «?» no se sabe.
+`planRecibosMesCerrado` parte de la foto y solo la mejora con lo que hoy se acredita (un «?» o
+«q» que hoy sale pagado); una foto anterior al último movimiento del mes convierte sus «q» en «?».
+Sin foto, el mes se acredita con la lectura de hoy solo si no puede quedarse corta
+(`pr6SinFotoAcreditado`, rechazo de la beta 206): todos sus cargos pagados con prueba guardada o
+marca, ningún recibo o puntual borrado desde el día 1 de ese mes (`reciboBorradoAt`) que hoy siga
+fuera de la lista (un «Deshacer» también sella la hora y no cuenta) y ningún gasto de ese mes
+enlazado a algo que hoy no sale. Si no, o con algún «?», la cifra es null («sin datos»), nunca más
+baja que la real, y el mes anterior sigue la misma regla. La tarjeta enseña la comparación siempre,
+con su porqué si no hay cifra. Los recibos nuevos llevan `createdYm` (`conMesDeAlta`: alta
+por pasos, importación, Gastos «Pasar a Recibos», alta vieja y el motor) y no cuentan en meses
+anteriores; `createdYm` es un grupo propio en la mezcla de tres vías y no lo lee nada más.
+Mezcla entre móviles (revisión R2): cada móvil calcula su foto con SUS datos (el extracto no
+viaja), así que no gana «la última»: al bajar de la nube (`syncFromCloud`, 11) `pr6FotosUnion` (08)
+mezcla mes a mes cargo a cargo quedándose con lo que más sabe (p > s > q > ?, luego la marca `x`,
+luego el texto) y el día mayor. Es conmutativa e idempotente: los dos móviles convergen y desde
+ahí ninguno escribe. El escritor tampoco baja nunca un estado, solo guarda si cambia el contenido
+(un día nuevo sin movimientos del banco posteriores no cuenta) y devuelve el MISMO estado si no
+(AGENTS §7 bis). Un cargo sin pagar que Plan deja de enseñar dentro del mes (borrado o pausado)
+se marca `x` y no cuenta al leer. Al leer, lo de hoy solo sube un cargo a pagado: nunca baja un
+«no se sabe» a «no llegó». Un cliente viejo no escribe ni lee fotos ni `createdYm`; sus
+escritores copian `settings` y el recibo con `Object.assign`, así que los conserva. El descarte de
+la tarjeta es `settings.pr6CerradoNo = año*12+mes`. La vista «Dic ›» es la misma lectura que los
+cargos del mes que viene de Inicio (`planChargesMonth` con hoy = 0). El primer uso importa con
+`addFixedItem` los cargos de `rp4VistoEnBanco` cobrados todos los meses seguidos, como recibos
+mensuales con su día, su banco y el importe del último cargo.
 
 Si la lápida alcanza una fila con un borrador privado pendiente, la fila sigue
 borrada y el borrador se ofrece en Plan → Deudas. Recuperar solo precarga el editor,
@@ -266,7 +644,7 @@ el contador actual. Migración y Edge aún sin desplegar: ver el orden en SETUP-
 
 ## Emparejado candidato PR228
 
-La asignación de avisos y bancos vive en reconcileGemelosAutomaticos y se invoca desde importObExpenses, el updater, el arranque y el pull. Las marcas se devuelven antes de subir los apuntes. Los pares automáticos se derivan de filas; gemelos conserva decisiones y reservas históricas. La caché no se persiste: índices por referencia y grupos banco/importe, con fechas de Madrid cacheadas. Un cambio no financiero conserva las parejas. Una retirada de #dup recibida de otra versión se respeta como decisión humana. [Contrato actual, migración y límites](briefs/tr-emparejado-automatico-20261013.md).
+La asignación de avisos y bancos vive en reconcileGemelosAutomaticos y se invoca desde importObExpenses, el updater, el arranque y el pull. Las marcas se devuelven antes de subir los apuntes. Los pares automáticos se derivan de filas; gemelos conserva decisiones y reservas históricas. La caché no se persiste: índices por referencia y grupos banco/importe, con fechas de Madrid cacheadas. Un cambio no financiero conserva las parejas. Una retirada de #dup recibida de otra versión se respeta como decisión humana. El arranque indexa el array. La sincronización tiene que pasar el estado anterior: sin él, cada importación repartía otra vez todos los grupos aunque el índice ya existiera. Si los vínculos o las lápidas cambian de referencia y el array de gastos es nuevo, se recalientan solo los grupos de lo que cambió; una decisión que no se localiza en las filas reparte todos los grupos, el mismo resultado que el cálculo completo. [Contrato actual, migración y límites](briefs/tr-emparejado-automatico-20261013.md).
 
 ## InicioAhora y archivo109 · versión4.26.112 del canal beta
 
@@ -319,6 +697,8 @@ no añade telemetría financiera. [Acta](briefs/inc-3009-nomina-anticipada.md).
 
 `dashboardBudgetStats` pide el modo `"mes"` al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. Desde el 26/10/2026 (decisión del dueño) el mes natural compara con el límite **gasto − ingresos sin la nómina**: Bizums recibidos y devoluciones devuelven margen; la nómina no (con el neto entero dejaba el mes a 0 %, que es lo que corrigió INC-2909-02). La nómina se identifica con `esNomina` (`04-tab-gastos.js`), la MISMA regla que abre Mi ciclo en `budgetPaydayOf`: ingreso ≥200 €, no neutro ni Bizum ni posible duplicado, con «nómina/salario/sueldo/…» en comercio, nota o concepto, o que casa con un ingreso periódico de Plan; sin la ventana de 45 días, así que una nómina anticipada al 28 se aparta en SU mes y dos en un mes se apartan las dos. En este modo lo usado nunca baja de 0: unos ingresos mayores que el gasto no estiran el límite. `monthBudgetStats` devuelve además `nomina`, `nominas` y `noNominas` (claves de los ingresos grandes que decidió). Frase, anillo, margen, Pregúntame, avisos, reto, la línea de Gastos, la tarjeta y la imagen del mes cerrado (`limiteDeStats`: `budgetStatsFromAmounts(..., cycle?"net":"mes", nomina)`), las rachas (`underBudgetStreak`, con el límite de cada mes) y el widget v2 (`spent` = `against`) dicen lo mismo; la cifra grande de Gastos y de la tarjeta sigue la preferencia. El ciclo reconocido conserva neto, incluso negativo. APK51 conserva su payload legado. No modifica saldos ni escrituras.
 
+Mes cerrado, candidata con pruebas dirigidas A/B verificadas (criterio del 31/10/2026): `closedMonthBudgetStats` deriva la clave de la ventana de Madrid, consulta exclusivamente su propia foto de `budgetByMonth` y calcula tarjeta e imagen con el mismo motor y reservas de ese mes. Acepta números finitos ≥0 y cadenas decimales sin espacios ni exponentes (compatibilidad heredada); excluye coerciones de booleanos/objetos, hexadecimal, negativos e infinitos. Ausencia/null conserva gasto/ingreso/ahorro sin porcentaje ni margen y explica «Límite de este mes no guardado»; 0 guardado tiene motivo de límite no configurado; inválidos dicen no disponible. Una foto positiva agotada por reservas conserva presupuesto utilizable 0 y margen calculado: es distinta de una foto 0. No rellena ni repara estado. La cifra grande sigue el modo preferido; la comparación usa gasto−ingresos sin nómina. El reporte de Ajustes sin ventana explícita conserva el límite actual. Rachas, persistencia, mes actual y Mi ciclo no cambian. La candidata pasa los 11 casos Node del informe, los 20 de presupuesto y los 9 del spec de navegador (DOM, canvas, toBlob y File PNG); sin reintentos, omisiones ni flaky. La base pasa los 20 controles de presupuesto y reproduce el fallo histórico en dos rojos causales, Node y DOM; el caso DOM de la base no alcanzó la creación de imagen. Es validación dirigida con datos sintéticos, no una suite global ni compartición física. Pendientes revisión final, integración por Claude, entrega en beta y aceptación móvil; sin entrega acreditada ni ProductREADY.
+
 INC-0210-03, candidata84: Gastos pasa una ventana explícita opcional a `monthBudgetStats` y `categorySpentByMonth`, calculada por el mismo `presetBoundsMs` de la lista. Los demás lectores conservan su ventana anterior. Las cifras y categorías leen el mismo array diferido que las filas; búsqueda, banco y categoría siguen siendo filtros exploratorios. El rango usa medianoche/final del día locales; mes y tres meses terminan al cierre del mes seleccionado, y Mi ciclo al final de hoy. La nómina ancla y los ingresos del ciclo conservan sus reglas. Fuera del mes/ciclo actual no hay presupuesto histórico ni acumulado registrado: se muestran presupuesto/margen desconocidos con motivo y se omiten barras de límites mensuales de categoría. No modifica preferencias, datos, saldos ni el payload nativo.
 
 ## Presupuesto por cobro real (4.26.65)
@@ -337,13 +717,15 @@ En la 4.26.62, `monthBudgetStats` conservaba la ventana de mes natural y la mism
 
 En 4.26.62, `reconcileEarlyIncomeAnchors` conserva en el flujo solo `paidYm/paidDay/paidBank/paidAmount` tras una atribución inequívoca. `bankTx` continúa local; el marcador y las cuentas reancladas viajan juntos en `app_state`. `monthNetForAccount` emplea el día confirmado para ese mes y el planificado para los demás. La base `value` se despeja en la misma transición con la fórmula real de `saldoCuentaMostrada`, de forma que el saldo visible no cambia al actualizar. El reconocimiento se repite sin efecto al cargar, al adoptar la nube y tras una sincronización bancaria; si no hay feed válido se conserva el estado anterior. Cerrar sesión vacía `bankTx`, y un cambio efectivo de usuario lo descarta antes de adoptar su nube; `INITIAL_SESSION` y `TOKEN_REFRESHED` conservan el feed en frío porque pueden adelantarse a `getSession`. Si hay varias cuentas de recibos en la misma entidad, `bankTx` no identifica la cuenta de destino y la confirmación automática se omite: la suma anterior de `paidNet` por entidad sigue pendiente de corregir sin alterar saldos existentes. Un cliente de versión anterior no interpreta el marcador aunque comparta `accounts.value`, por lo que no se debe sincronizar el mismo banco desde clientes de distinta versión durante la prueba. Cambiar importe o banco invalida el marcador y conserva el saldo actual. No se reconstruyen meses pasados ni se atribuyen transacciones ambiguas.
 
+Un traspaso previsto entre dos bancos propios tiene dos patas y una sola regla, `flowAbonaEn` (08): la que sale resta en el origen el día previsto, como siempre; la que llega suma en el destino si ese banco tiene una cuenta de recibos (la de gasto diario con recarga mensual ya recibe su dinero por `inject`) y el traspaso es posterior a `trasAbonoDesde`. La leen los tres sitios que deben coincidir: `monthNetForAccount` (saldo pintado y cierre de mes), `projectedByBank` de `totals` (con `transferInByBank`) y `pendingWalkEvents` («¿Te llega?», mínimo del mes y simulador). `trasAbonoDesde` (aaaammdd) es el día en que la regla llegó a la cartera; lo sella `sellarAbonoTraspasos` al cargar y al adoptar la nube, viaja en `app_state` y sin él no abona nada: así el saldo de una cuenta a mano no sube al actualizar por un traspaso que ya llevaba dentro. La llegada adelantada usa el mismo reconocimiento que la nómina (`flowLlegoIn`, `reconcileEarlyIncomeAnchors` con el abono `BOOK` del banco que recibe); la salida sigue por calendario (`flowPaidIn`), porque el extracto del destino no dice si el origen ya la restó.
+
 ## Persistencia del widget (4.26.55)
 
 El journal conserva eventos no cubiertos por la foto cloud. El parser tolera indentación del XML únicamente en líneas vacías e identificadores; vuelve a evaluar journalFull tras una foto de app, sin descartar entradas dañadas ni deltas desconocidos. La serialización nueva usa separadores entre eventos sin salto final. El tamaño restante sigue limitado; una recuperación necesita APK51, no OTA.
 
 ## Apuntes iguales sin id y aviso reclamado una vez (rama `claude/tr-iguales-ordinal`, 12/10/2026)
 
-Un apunte de banco SIN id (Trade Republic por Open Banking: sin `entry_reference` ni comercio) tenía por identidad banco+día+importe con signo+nombre del banco, así que k apuntes iguales del mismo día se fundían en uno (5 bizums de 12 € → 1 fila, −48 €). Ahora el segundo igual y siguientes llevan `obOrd` (2, 3…); el primero no lleva nada y conserva EXACTAMENTE su clave, lápidas y filas de versiones anteriores incluidas. El ordinal se deriva de cuántos iguales trae el banco (ranuras 1..k, asignadas por contenido, no por posición): si tengo j y el banco trae k entran k−j; si trae menos no se borra nada. La regla vive en `obOrdinalOf`/`obOrdinalSufijo` (00-core) y la leen `keyOfExpense` (mezcla con la nube, lápidas, FIN-03), `importObExpenses` (clave del importador: `kOf`/`scopedKOf`), `expenseSourceForCloud`/`expenseFromRow` (viaje) y `claveComoLaApp`/`ordinalDeSource` en `_shared/presupuesto.ts` (widget). Los apuntes CON id no cambian; `reconcileObDupes` (solo cashback) no lo necesita. El histórico (`histCandExisting`, clave por contenido 1:1) tampoco, pero sí mira las lápidas y los vínculos: un candidato cuya clave de ranura 1 tiene lápida en `deleted` o figura como `banco` en `gemelos` es «ya lo tienes apuntado» (`histCandLapidas`), no nuevo. Sin eso, lo contestado «es el mismo» volvía premarcado y entraba con lápida: invisible en la lista, pero restando del saldo de la cuenta diaria (`expenseCountsCash` no excluye lápidas a propósito: la base anclada puede incluirlas) y resubido en cada pull (el backfill de `syncCloudExpenses` ahora salta las filas con lápida).
+Un apunte de banco SIN id (Trade Republic por Open Banking: sin `entry_reference` ni comercio) tenía por identidad banco+día+importe con signo+nombre del banco, así que k apuntes iguales del mismo día se fundían en uno (5 bizums de 12 € → 1 fila, −48 €). Ahora el segundo igual y siguientes llevan `obOrd` (2, 3…); el primero no lleva nada y conserva EXACTAMENTE su clave, lápidas y filas de versiones anteriores incluidas. El ordinal se deriva de cuántos iguales trae el banco (ranuras 1..k, asignadas por contenido, no por posición): si tengo j y el banco trae k entran k−j; si trae menos no se borra nada. La regla vive en `obOrdinalOf`/`obOrdinalSufijo` (00-core) y la leen `keyOfExpense` (mezcla con la nube, lápidas, FIN-03), `importObExpenses` (clave del importador: `kOf`/`scopedKOf`), `expenseSourceForCloud`/`expenseFromRow` (viaje) y `claveComoLaApp`/`ordinalDeSource` en `_shared/presupuesto.ts` (widget). Los apuntes CON id no cambian; `reconcileObDupes` (cashback y, desde la 230, la salida de un traspaso tuyo: `salidasTraspasoPropio` pasa a «traspaso» una salida en «Otros» que el banco llama transferencia si va al nombre ENTERO del titular y casa con un traspaso previsto de ese banco ±7 días, o tiene su pata de llegada única y además va a su nombre o hay un traspaso previsto entre esos dos bancos; nunca lo que él dejó en «Otros» o sacó de traspaso (`traspasoNo|…` en `reciboNo`), lo rechazado, ni lo anterior al adelanto del mes pasado (sus últimos 7 días); se escribe con `setExpenseCat`, una vez cada 6 h si la nube no la acepta, así el widget cuenta igual) no lo necesita. El histórico (`histCandExisting`, clave por contenido 1:1) tampoco, pero sí mira las lápidas y los vínculos: un candidato cuya clave de ranura 1 tiene lápida en `deleted` o figura como `banco` en `gemelos` es «ya lo tienes apuntado» (`histCandLapidas`), no nuevo. Sin eso, lo contestado «es el mismo» volvía premarcado y entraba con lápida: invisible en la lista, pero restando del saldo de la cuenta diaria (`expenseCountsCash` no excluye lápidas a propósito: la base anclada puede incluirlas) y resubido en cada pull (el backfill de `syncCloudExpenses` ahora salta las filas con lápida).
 
 Viaje: en `source` como último tramo `#n2` (`ob:trade_republic#dup#n2`), que un móvil o servidor anterior ignora (`split("#")[0]` sigue dando el banco y `[1]` la marca `dup`), y en `fecha` como mediodía + (ordinal−1) ms, porque el índice único de `expenses` es usuario+fecha+importe+comercio y sin ello la segunda fila igual chocaría y nunca subiría. Determinista: dos móviles que suban el mismo ordinal escriben la misma fila. Un móvil anterior funde las k filas al bajar (ve una, como hoy) y su importador no añade ninguna.
 
@@ -916,6 +1298,13 @@ caducaran «cada dos por tres» (feedback 2026-07-18). Syncs que siguen vivos, t
 | Recién autorizado (`?bank=ok` / goto `bank\|ok`) | `11-app-main.js` |
 | Noti del banco (evento real del usuario) | apagado por defecto; si se activa expresamente, presupuesto persistente de 1 cada 12 h |
 
+No hay lectura programada del banco: el único `pg_cron` es `myinvestor-keepalive`, que no lee
+Open Banking. La «lectura el día del recibo» de Recibos v6 (SPEC §11.1) sigue sin hacer y
+pendiente de decisión del dueño (31/10/2026): Enable Banking no recibe cabeceras de usuario
+presente, así que cualquier lectura cuenta como desatendida y gasta el cupo diario del banco, y
+el extracto (`bankTx`) solo vive en el móvil, de modo que lo que leyera un cron en el servidor no
+llegaría a casar ningún recibo sin subir movimientos a la nube.
+
 El sincronizador general también consulta el puente nativo de Trade Republic cuando existe. Su
 `availableCash` y la tarjeta específica de TR pasan por el mismo reanclaje (`applyTrCash`), para
 que dos botones equivalentes no dejen saldos distintos. En enlaces Open Banking multicuenta, los
@@ -1227,6 +1616,8 @@ Sin versión de producción, betaChecklist conserva todas las tandas modernas ha
 
 INC-0210-01: el estado visual de una cuota y sus eventos futuros consumen debtPaymentState (vínculo explícito del gasto, cargo válido y único, mes de vencimiento cercano). El saldo actual y el principal siguen usando sus anclas/fórmulas anteriores; reconocer un cargo ya incluido por el banco no vuelve a descontarlo. No hay nuevo emparejamiento por nombre ni escritura en el histórico.
 
+Beta 4.26.200 (decisión del dueño): la fila que ÉL marcó a mano como cuota («Es la cuota de…», `marcarCuotaAMano`) lleva `debtManual:true` y paga la cuota ese mes con lo que cobró el banco aunque no sea la cuota exacta. Lo que enlaza el motor (`cuotasDeDeudaPorMarcar`: banco + céntimo + día, por nombre o por el comercio aprendido en `cuotaAlias`) sigue necesitando el céntimo exacto. Si hay una exacta, manda esa; dos a mano sin exacta no eligen por orden. La marca viaja en `source` como tramo `~mano` tras `~deuda.<id>` (`ob:sabadell~deuda.x~mano#…`): un cliente viejo lo ignora y lee la cuota de siempre; el servidor busca `~deuda.` y corta el banco en `~`, sin cambios. En la mezcla baja con su deuda; una fila de la nube con la misma deuda y sin la marca no la quita (un móvil viejo que reescribe la fila la pierde en la nube; el que la marcó la conserva). La fila de Plan lleva `paidAmount` frente a `plannedBankAmount` y se pinta como un recibo cobrado distinto. Siguen igual: la deuda sin día (no se acredita), el origen bancario (`ob` o BOOK único) y la ventana del mes.
+
 ## Liberación de reservas de Metas (INC-0310-01)
 
 La candidata de edición 8/10 usa `editReservaRule` en el mismo ID y conserva `mensual` y campos desconocidos. Compara semánticamente la copia que abrió el formulario con la única regla de ese ID al escribir: cambio o borrado rechazan, incluso si solo cambió un campo desconocido; el orden de claves JSONB no es una edición. Valida meta activa, tipo e importe con céntimos representables; un no-op sin mensual pendiente devuelve el mismo estado. Solo asienta la regla mensual editada si falta su identidad de este mes; los asientos previos y sus metas permanecen intactos. El resultado del updater se observa sin persistirlo y el cierre exige la configuración objetivo en el estado: un rechazo al rebasar una escritura provisional recupera el borrador, una edición posterior legítima no lo reabre. La referencia de operación impide atribuirle el resultado de otra edición. No añade sincronizaciones ni cambia el last-write-wins entre dispositivos. [Contrato y pruebas](briefs/inc-0810-metas-editar-regla.md).
@@ -1320,3 +1711,14 @@ El caller mensual de ingest acota su lectura y una copia de las reservas antes d
 - **Estado:** el de un primer inicio de sesión. `app_state` (sin gastos, `slimForCloud`) pasa por la cadena de `loadState`/`syncFromCloud`, y el histórico entero por `expensesFromRows` y la mezcla de `syncCloudExpenses`. El extracto local del banco (`bankTx`) no viaja a la nube: un recibo que el móvil da por pagado solo por ese extracto puede salir aquí como pendiente.
 - **Cifras:** con el bundle cargado por `load-pure-logic`, nunca con una copia. `mes.gastado` = `monthBudgetStats(...).spent` con la ventana de Gastos › Meses (el «gastado» del mes natural, también en modo Balance); `porCategoria` = `categorySpentByMonth` con la misma ventana, nombres de `catName`. `proximosCobros` = `planChargesMonth` (pausados y pagados fuera) de este mes desde hoy y del siguiente hasta hoy+30; lo vencido sin pagar no sale; sin día, `fecha:null` (solo el mes en curso); cuotas como `deuda`, el resto como `recibo` (Plan no distingue suscripciones). `cuentas` = `accountRowsInOrder` con `saldoCuentaMostrada`/`insumosSaldoGasto` y `leidoEn` de `saldoLeidoDelBanco` (null si no hay lectura externa).
 - **Formato v1:** `{version, generadoEn, mes:{gastado, porCategoria:[{cat, importe}]}, proximosCobros:[{nombre, importe, fecha, tipo}], cuentas:[{nombre, saldo, leidoEn}]}`, euros con dos decimales, sin IBAN, ids, correos ni tokens. Escritura atómica (temporal + rename). `tests/jarvis-resumen.test.mjs` fija formato, cifras por dos vías y ausencia de identificadores con un estado inventado y sin red.
+
+
+## Candidata: Deshacer recibo y ajustes de «Lo descuento»
+
+En Todos, retirar un recibo espera las preguntas por deuda: cada respuesta aceptada se aplica y cada cancelación conserva esa deuda. `billUndoRemove` compone retirada y ajustes en una única actualización. Las precondiciones incluyen el recibo, las deudas implicadas, los demás recibos que contribuyen a sus descuentos, el titular y la ventana temporal. Si cambian mientras se pregunta, no se aplican respuestas antiguas.
+
+El token local de Deshacer conserva el recibo y los campos realmente modificados de cada deuda, con su presencia anterior. Guarda además el posterior completo de todas las deudas vinculadas, incluso cuando cancelar el ajuste dejó su delta vacío. Un vínculo a una deuda ausente guarda también esa ausencia: si aparece durante la ventana, se rechaza todo; si sigue ausente, no se inventa una deuda. Incluye ajustes automáticos y campos derivados como `settledAt`/`archivedAt`; no restaura una cartera global. Antes de llamar a `conReciboEnPlan` o compensar saldos, comprueba presencia, unicidad e igualdad de todas esas deudas. Si cualquiera cambió, desapareció o se duplicó, no restaura nada: tampoco el recibo, las marcas ni otra deuda elegible; devuelve el mismo estado, sin envíos, y muestra un único aviso. Las deudas ajenas al recibo no bloquean. Un recibo recreado —también como puntual— o una lápida posterior también impiden la reposición. Se conserva la frontera de los gastos: las marcas solo vuelven a cargos cuya identidad y estado financiero siguen coincidiendo; etiquetas posteriores se conservan y las marcas omitidas tienen un aviso propio, distinto del rechazo total. Cuando procede reponer y la retirada compensaba un cargo marcado, el saldo se calcula sobre el delta completo recibo/deudas y las cuentas vigentes. El fallo al quitar tiene texto propio; los tres avisos son equivalentes en castellano, inglés y catalán.
+
+`useBillUndo` encola la intención local en una transición de React y solo escribe desde su layout si la hoja sigue abierta; acredita el commit mediante un símbolo no serializable y el estado observado en layout, también al rechazar una respuesta obsoleta. Los cinco segundos empiezan después de responder y comprometer el cambio; caducidad, doble toque, cierre y desmontaje invalidan el token o la presentación pendiente. Los efectos de nube quedan fuera del updater. La cola local por titular e identidad del cargo ordena retirada y reposición mediante la puerta existente `setExpenseRecibo`; un error produce aviso y no acredita sincronización remota. No introduce API de servidor ni promete atomicidad entre dispositivos. El acuse simbólico puede seguir retenido en memoria por las copias del estado: limpiarlo exigiría otra escritura general o cambiar su mecanismo de confirmación. Esa limpieza no trivial queda pendiente, sin añadir escrituras ni alterar la concurrencia en estos remates.
+
+Guardianes dirigidos: `tests/lo-descuento-undo.test.mjs` y `e2e/lo-descuento-undo.spec.mjs`, registrados en los runners. Candidata separada de la ampliación anterior de pruebas de Lo descuento: pendiente revisión de dinero e integración; no acredita beta servida ni aceptación móvil.

@@ -47,7 +47,7 @@ for(const caso of idiomas) for(const limite of [
     await expect(dash.locator(".v4-ring .num")).toHaveText(limite.pct);
     // Pasado del límite se enseña el exceso en positivo y el anillo cuenta lo usado (26/10/2026).
     const rem=1000-(limite.reserved||0)-limite.spent;
-    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(new Intl.NumberFormat("es-ES",{useGrouping:"always"}).format(Math.abs(rem))+" €");
+    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(new Intl.NumberFormat(caso.lang==="en"?"en-GB":"es-ES",{useGrouping:"always"}).format(Math.abs(rem))+" €");
     await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":"good");
     if(limite.daily) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(limite.daily));
     else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
@@ -89,7 +89,7 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // El balance mensual positivo es legítimo; no se transforma en gasto para arreglar Inicio.
     // Gastos v5: la cifra de la cabecera fija sustituye a la de la tarjeta resumen.
-    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(perfil==="net"?"1.480":"600");
+    await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toContainText(perfil==="net"?(caso.lang==="en"?"1,480":"1.480"):"600");
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
     await ciclo(page,caso);
     await expect(ring).toHaveText("2%");

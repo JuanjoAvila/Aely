@@ -8,7 +8,10 @@ const root=new URL("../",import.meta.url),read=p=>fs.readFileSync(new URL(p,root
 const source=JSON.parse(read("src/build-order.json")).map(p=>read("src/modules/"+p)).join("\n");
 const client=()=>loadPureLogic("<script>"+source+"</script>");
 const E=await mod("supabase/functions/_shared/enablebanking.ts");
-const now=Date.now(),day=new Date(now).toISOString().slice(0,10);
+// Los avisos caen una hora antes de `now` y deben contar en el mes de Madrid en curso: en la primera hora del mes (o 22:00-24:00 UTC
+// del ultimo dia) caerian en el mes anterior y el presupuesto saldria a 0 (cayo el 1/11/2026). Se ancla `now` a >= 02:00Z del dia 1.
+const ym01=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid"}).format(new Date()).slice(0,8)+"01";
+const now=Math.max(Date.now(),Date.parse(ym01+"T02:00:00Z")),day=new Date(now).toISOString().slice(0,10);
 const event=(id,offset=0)=>({fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 9,95 € en COMERCIO SINT",fecha:String(now-3600000+offset),evento:id});
 const state=(expenses=[])=>({accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:1000}],expenses,settings:{brokersOn:["trade_republic"]},fixed:[],flows:[],debts:[],oneoffs:[],deleted:[],gemelos:[]});
 const cents=(c,s)=>Math.round(c.dashboardBudgetStats(s).spent*100);

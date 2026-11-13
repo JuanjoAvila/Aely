@@ -48,3 +48,10 @@ Al pulsar **Actualizar mi vista**, el snapshot incluye también:
 - total de fijos + top 5 fijos por miembro
 
 La UI del hogar muestra gasto fusionado y barras por categoría. **No hace falta otra migración SQL.**
+
+## No confundir con las personas de Recibos (tanda 5, 31/10/2026)
+
+Plan › Recibos › Todos › **Personas** (con quién compartes un recibo, «Te deben», «Lo descuento»)
+no es el Hogar: no usa sus tablas ni su sincronización. Las personas viven dentro de los recibos
+(`reparto` en `state.fixed`, viaja en `app_state`). El resumen que publica «Actualizar mi vista»
+no cambia: el total de fijos sigue siendo tu parte de cada recibo, como antes.

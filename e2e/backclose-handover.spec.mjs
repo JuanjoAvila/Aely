@@ -4,8 +4,13 @@ import fs from "node:fs";
 
 const settingsNames={es:"Ir a Ajustes",en:"Go to Settings",ca:"Ves a Ajustos"};
 
-async function start(page,lang,previous=false){
-  await seedLoggedInDashboard(page,{settings:{autoPrices:false,theme:"green",lang}});
+// Con Plan vacío, Recibos enseña el primer uso («Empezar» abre el alta directa) y no hay
+// «Gestionar» (diseño de la v6 t6, 31/10). Los ensayos de Recibos miran el alta ENCIMA del hub,
+// así que siembran un recibo para que el hub exista y se llegue a él como lo hace la familia.
+const unRecibo=[{id:"bh-agua",name:"Agua sintética",amount:30,freq:"mes",day:19,account:"sabadell"}];
+
+async function start(page,lang,previous=false,fixed){
+  await seedLoggedInDashboard(page,Object.assign({settings:{autoPrices:false,theme:"green",lang}},fixed?{fixed}:{}));
   let previousUrl;
   if(previous){
     await page.goto("/privacy.html");
@@ -148,7 +153,7 @@ test("Ask de Perfil cancela el diálogo una vez y conserva Perfil",async({page})
 for(const method of ["ui","browser","native"]){
   test(`Recibos: tres retrocesos de pasos conservan el hub y cancelan sin guardar: ${method}`,async({page})=>{
     if(method==="native") await nativeButton(page);
-    await start(page,"es");const url=page.url(),before=await financial(page);
+    await start(page,"es",false,unRecibo);const url=page.url(),before=await financial(page);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
     const manage=await page.evaluate(()=>t("pr6_todos"));
@@ -156,15 +161,15 @@ for(const method of ["ui","browser","native"]){
     const hub=page.locator("[data-bills-manage]");await expect(hub).toBeVisible();
     const hubState=await page.evaluate(()=>history.state);
     await hub.locator('[data-act="bill-add"]').first().click();
-    const wizard=page.locator('[data-sheet="bill-add"]');await expect(wizard).toHaveAttribute("data-step","what");
-    await wizard.locator("input.v4-bills-search").fill("Recibo sintético");await wizard.locator('[data-act="next"]').click();
-    await wizard.getByRole("button",{name:"3",exact:true}).click();await wizard.locator('[data-act="next"]').click();
-    await expect(wizard).toHaveAttribute("data-step","freq");
-    for(const next of ["amount","what",null]){
+    const wizard=page.locator('[data-sheet="recibo-pasos"]');await expect(wizard).toHaveAttribute("data-paso","0");
+    await wizard.locator('[data-rp4="name"]').fill("Recibo sintético");await wizard.locator('[data-act="next"]').click();
+    await wizard.locator('[data-rp4-paso="1"] .v4-keys').getByRole("button",{name:"3",exact:true}).click();await wizard.locator('[data-act="next"]').click();
+    await expect(wizard).toHaveAttribute("data-paso","2");
+    for(const next of ["1","0",null]){
       if(method==="ui") await wizard.locator('[data-act="back"]').click();
       else if(method==="browser") await page.goBack();
       else await page.evaluate(()=>window.__backButton());
-      if(next) await expect(wizard).toHaveAttribute("data-step",next);
+      if(next) await expect(wizard).toHaveAttribute("data-paso",next);
       else await expect(wizard).toHaveCount(0);
     }
     await expect(hub).toBeVisible();
@@ -290,10 +295,10 @@ async function ux13Settled(page){
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
 
-async function ux13Start(page,method){
+async function ux13Start(page,method,fixed){
   if(method!=="browser") await nativeButton(page);
   await ux13Viewport(page);
-  const previous=await start(page,"es",true),url=page.url();
+  const previous=await start(page,"es",true,fixed),url=page.url();
   return {previous,url,before:await financial(page)};
 }
 
@@ -360,11 +365,11 @@ async function ux13Bills(page){
   await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
   const hub=page.locator("[data-bills-manage]");await expect(hub).toBeVisible();
   await hub.locator('[data-act="bill-add"]').first().click();
-  const wizard=page.locator('[data-sheet="bill-add"]');await expect(wizard).toHaveAttribute("data-step","what");
+  const wizard=page.locator('[data-sheet="recibo-pasos"]');await expect(wizard).toHaveAttribute("data-paso","0");
   // El foco inicial del título llega en rAF después de autoFocus. Escribir antes deja que
   // ese callback quite el foco al campo y el doble oculte el teclado antes del gesto.
-  await expect(wizard.locator("h1")).toBeFocused();
-  const input=wizard.locator("input.v4-bills-search");await input.fill("Recibo sintético UX13");
+  await expect(wizard.locator('[data-rp4-paso="0"] h2')).toBeFocused();
+  const input=wizard.locator('[data-rp4="name"]');await input.fill("Recibo sintético UX13");
   await page.evaluate(()=>window.__ux13SetKeyboard(300));
   await expect.poll(()=>input.evaluate(el=>({focused:document.activeElement===el,
     gap:window.__ux13Keyboard.gap,keyboard:_mcBackCloseNative("peek")===el})))
@@ -382,7 +387,7 @@ async function ux13Edge(page,phase,progress=0){
 
 for(const hideBeforeInvoke of [false,true]){
   test(`UX13: predictivo conserva alta y hub al ocultar teclado: hideAntesInvoke=${hideBeforeInvoke}`,async({page})=>{
-    const {previous,url,before}=await ux13Start(page,"native");
+    const {previous,url,before}=await ux13Start(page,"native",unRecibo);
     const {hub,wizard,input}=await ux13Bills(page);
     const transform=await wizard.evaluate(el=>el.parentElement.style.transform);
     await ux13Edge(page,"start");await ux13Edge(page,"progress",0.55);
@@ -392,8 +397,8 @@ for(const hideBeforeInvoke of [false,true]){
     // Esperar el desenfoque real también descubre un cierre indebido diferido: al desmontar
     // ya no quedaría hoja para las aserciones siguientes. No depender de una pausa fija.
     await expect(input).not.toBeFocused();
-    await expect(wizard).toHaveAttribute("data-step","what");await expect(hub).toBeVisible();
-    await expect(wizard.locator("input.v4-bills-search")).toHaveValue("Recibo sintético UX13");
+    await expect(wizard).toHaveAttribute("data-paso","0");await expect(hub).toBeVisible();
+    await expect(wizard.locator('[data-rp4="name"]')).toHaveValue("Recibo sintético UX13");
     await expect.poll(()=>page.evaluate(()=>window.__ux13Keyboard.gap)).toBe(0);
     await expect(page).toHaveURL(url);expect(await financial(page)).toEqual(before);
     expect(await page.evaluate(()=>window.__backExitCalls)).toBe(0);
@@ -409,14 +414,14 @@ for(const hideBeforeInvoke of [false,true]){
 }
 
 test("UX13: cancelar predictivo con teclado conserva hoja, valor y geometría",async({page})=>{
-  const {url,before}=await ux13Start(page,"native");const {wizard,input}=await ux13Bills(page);
+  const {url,before}=await ux13Start(page,"native",unRecibo);const {wizard,input}=await ux13Bills(page);
   const x=await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x);
   await ux13Edge(page,"start");await ux13Edge(page,"progress",0.4);
   expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);
   await ux13Edge(page,"cancel");
   await expect(input).toBeFocused();
-  await expect(wizard).toHaveAttribute("data-step","what");
-  await expect(wizard.locator("input.v4-bills-search")).toHaveValue("Recibo sintético UX13");
+  await expect(wizard).toHaveAttribute("data-paso","0");
+  await expect(wizard.locator('[data-rp4="name"]')).toHaveValue("Recibo sintético UX13");
   expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);
   expect(await page.evaluate(()=>window.__ux13Keyboard.gap)).toBe(300);
   expect(await financial(page)).toEqual(before);await expect(page).toHaveURL(url);

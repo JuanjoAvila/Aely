@@ -15,6 +15,16 @@ import { loadPureLogicFromFile, loadPureLogic } from "../scripts/load-pure-logic
  *   · la sincronización guarda la cuenta de cada movimiento y la recupera en los ya apuntados. */
 const c = loadPureLogicFromFile();
 const today = "2026-10-14";
+// Reloj congelado en el día del caso: el importador descarta lo anterior a `startOfMonth()` - 8 días
+// y con el reloj real el test dejó de importar nada al pasar de mes (CI de beta rojo desde la 4.26.201).
+const congelar = ctx => {
+  ctx.Date = class extends Date {
+    constructor(...args) { super(...(args.length ? args : ["2026-10-14T10:00:00Z"])); }
+    static now() { return Date.parse("2026-10-14T10:00:00Z"); }
+  };
+  return ctx;
+};
+congelar(c);
 const plain = x => JSON.parse(JSON.stringify(x));
 const JOINT = "ES00 SYNTH 0000 0000 0002", MINE = "ES00SYNTH0000000000000001";
 
@@ -206,6 +216,6 @@ const mutantes = [
 ];
 for (const [nombre, de, a] of mutantes) {
   assert.equal(html.split(de).length, 2, "mutante único real: " + nombre);
-  assert.throws(() => comprobar(loadPureLogic(html.replace(de, a))), assert.AssertionError, "se mata el mutante: " + nombre);
+  assert.throws(() => comprobar(congelar(loadPureLogic(html.replace(de, a)))), assert.AssertionError, "se mata el mutante: " + nombre);
 }
 console.log("cuenta-parte-mia: " + mutantes.length + " mutaciones muertas");

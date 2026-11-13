@@ -44,7 +44,7 @@ async function check(page,count,balance,cycle,remaining=500){
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   const account=page.locator('.v4-card-list button.v4-mov').filter({hasText:"Cuenta ficticia"});
   await expect(account).toHaveCount(1);
-  await expect(account).toContainText(balance===400?"400,00":"2.200,00");
+  await expect(account).toContainText(balance===400?/400[.,]00/:/2[.,]200[.,]00/);
 }
 for(const lang of ["es","en","ca"]){
   test(lang+": pendiente, futuro y estado desconocido no crean ingreso ni ciclo",async({page})=>{
@@ -91,7 +91,9 @@ for(const decision of ["mismo","distintos","ambiguo"]){
   test("UX2909 manual: BOOK con nombre pide revision " + decision,async({page})=>{
     await page.clock.install({time:new Date("2026-10-17T12:00:00Z")});
     const manual={id:"manual-salary",source:"manual",ent:"sabadell",date:"2026-10-16T12:00:00Z",amount:-1800,merchant:"Nomina manual",category:"ingreso"};
-    await seedLoggedInDashboard(page,{__seedOnce:true,__seenVersion:"4.26.137",hasBankLink:true,budget:500,
+    // «Son distintos» espera el ACK de la nube y comprueba que la sesión es del dueño del histórico
+    // (desde el 1/11): sin `_historyOwner` el cambio no se aplica y la fila sigue fuera del total.
+    await seedLoggedInDashboard(page,{__seedOnce:true,_historyOwner:"e2e-user",__seenVersion:"4.26.137",hasBankLink:true,budget:500,
       accounts:[{id:"sb",ent:"sabadell",name:"Cuenta ficticia",role:"diario",spendFrom:true,value:400}],
       expenses:decision==="ambiguo"?[manual,{...manual,id:"other-manual",merchant:"Otra nomina manual"}]:[manual],
       settings:{autoPrices:false,theme:"green",lang:"es",budgetCycle:false,gTotalMode:"net",expenseBanks:["sabadell"]}});
@@ -127,7 +129,9 @@ for(const decision of ["mismo","distintos","ambiguo"]){
 test("UX2909 remates: generico ambiguo con manuales sigue visible para revision",async({page})=>{
   await page.clock.install({time:new Date("2026-10-17T12:00:00Z")});
   const manual={id:"manual-salary",source:"manual",ent:"sabadell",date:"2026-10-16T12:00:00Z",amount:-1800,merchant:"Nomina manual",category:"ingreso"};
-  await seedLoggedInDashboard(page,{__seedOnce:true,__seenVersion:"4.26.137",hasBankLink:true,budget:500,
+  // «Son distintos» espera el ACK de la nube y comprueba que la sesión es del dueño del histórico
+  // (desde el 1/11): sin `_historyOwner` el cambio no se aplica y la fila sigue fuera del total.
+  await seedLoggedInDashboard(page,{__seedOnce:true,_historyOwner:"e2e-user",__seenVersion:"4.26.137",hasBankLink:true,budget:500,
     accounts:[{id:"sb",ent:"sabadell",name:"Cuenta ficticia",role:"diario",spendFrom:true,value:400}],
     expenses:[manual,{...manual,id:"other-manual",merchant:"Otra nomina manual"},{...manual,id:"notice",source:"wallet",merchant:"Aviso sintetico"}],
     settings:{autoPrices:false,theme:"green",lang:"es",budgetCycle:false,gTotalMode:"net",expenseBanks:["sabadell"]}});

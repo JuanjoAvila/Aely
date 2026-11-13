@@ -201,9 +201,13 @@ function handlerEnv(initial){
     fixedPaymentManualLinkWarnings:ctx.fixedPaymentManualLinkWarnings,cargoDeRecibo:ctx.cargoDeRecibo,reciboNoDe:ctx.reciboNoDe,reciboNoIdentidad:ctx.reciboNoIdentidad,admiteMarcaDe:ctx.admiteMarcaDe,reponerCargoDeRecibo:ctx.reponerCargoDeRecibo,
     quitarRecibo:ex=>env.set(s=>{const r=ctx.quitarCargoDeRecibo(s,ex.id);return r?r.state:s;}),
     accOf:vm.runInContext("accOf",ctx),occAmountIn:ctx.occAmountIn,entOf:vm.runInContext("entOf",ctx),fmtIsoCorto:x=>x,
-    state:initial,withdrawalState:ref,withdrawalPending:pending,setWithdrawalStatus:x=>statuses.push(x),
+    state:initial,withdrawalState:ref,withdrawalPending:pending,setWithdrawalStatus:x=>statuses.push(x),sourceActionPending:{current:{}},
     askConfirm:()=>new Promise(resolve=>{resolveDialog=resolve;}),showToast:x=>toasts.push(x),t:x=>x,tf:x=>x,eur:x=>String(x),
     set:update=>{current=update(current);ref.current=current;},ReactDOM:{flushSync:fn=>fn()},mcSandbox:()=>false};
+  // El guard compartido se ejecuta desde su fuente para conservar la exclusión real.
+  const busy=gastosSource.match(/const sourceActionBusy=function\(id\)\{[^\n]+\};/);
+  assert.ok(busy,"guard de acciones de source");
+  env.sourceActionBusy=new Function("sourceActionPending","withdrawalState",busy[0]+"return sourceActionBusy;")(env.sourceActionPending,ref);
   return {env,pending,ref,toasts,statuses,get current(){return current;},setCurrent:s=>{current=s;ref.current=s;},yes:()=>resolveDialog(true)};
 }
 await check("recibo compartido: puerta bloqueada, cero write y A/B sin feed conservan la prueba",async()=>{

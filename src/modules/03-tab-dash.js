@@ -172,7 +172,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
     ),
     active&&React.createElement("span",{className:"v42-net-date","data-testid":"inicio-net-date"},dateLabels[touch]),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
-      p?p.sign+p.ent:"—", p&&React.createElement("span",null,","+(p.dec||"00")+" "+p.sym)),
+      p?p.sign+p.ent:"—", p&&React.createElement("span",null,p.sep+(p.dec||"00")+" "+p.sym)),
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
     valid&&series.length<2&&React.createElement("div",{className:"hint"},t(series.fresh?"v4_hist_empty":"v42_net_missing")),
     valid&&points.length>1&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta","data-verdict":verdict,style:{color:verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--muted)"}},
@@ -294,22 +294,26 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     const cm=tt.curMonth;
     const rows=[];
     (state.fixed||[]).forEach(function(f){
-      const amount=occAmountIn(f,cm);
-      if(!(amount>0) || !occursIn(f,cm)) return;
-      const status=fixedPaymentState(state,f,tt.curYear,cm,today);
-      if(status.paid||fixedPausedIn(f,tt.curYear,cm)) return;
+      const amount=occAmountIn(f,cm,tt.curYear);
+      if(!(amount>0) || !occursIn(f,cm,tt.curYear)) return;
+      // Lo marcado «Lo pagué de otra forma» ya no está vencido: la misma lectura que Recibos.
+      const status=fixedEstadoMes(state,f,tt.curYear,cm,today);
+      if(status.paid||fixedSinCobroIn(f,tt.curYear,cm)) return;
       const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
       (status.overdue?overdue:rows).push(row);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d) || !(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
-      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:d.monthly, pos:false});
+      // Con «Lo descuento» la cuota es la tuya entera, como en Plan (pagas 197 € + 53 € del recibo).
+      const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt;
+      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((d.monthly+desc)*100)/100:d.monthly, pos:false});
     });
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
       if(!flowOccursIn(f,cm,tt.curYear)) return;
-      if(flowPaidIn(state,f,tt.curYear,cm,today)) return;
+      // La misma regla que Plan (`flowEstadoMes`): lo que allí ya ha entrado aquí no sale como próximo.
+      if(flowEstadoMes(state,f,tt.curYear,cm,today).llego) return;
       const day=flowDay(f,tt.curYear,cm)||1;
       rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });
@@ -418,6 +422,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{style:{fontSize:12,color:"var(--muted)"}}, t("rp_spent")),
       closedCard.stats.budget!=null && closedCard.stats.budget>0 && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
         tf("rp_of_budget",{b:eur0(closedCard.stats.budget),p:Math.round(Math.min(100,(closedCard.stats.against/(closedCard.stats.budget||1))*100))})),
+      closedCard.stats.budgetReason && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},t(closedCard.stats.budgetReason)),
       closedCard.topCat && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
         tf("mr_top",{cat:catName(closedCard.topCat.id), x:eur0(closedCard.topCat.amount)})),
       React.createElement("div",{style:{fontSize:12.5,marginTop:6}},

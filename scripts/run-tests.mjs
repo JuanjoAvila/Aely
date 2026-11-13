@@ -23,6 +23,31 @@ function loadPlan() {
 const plan = loadPlan();
 if (plan.reason) console.log("── plan: " + plan.reason + " ──");
 
+/* TROZOS PARA LA CI EN PARALELO (8/11/2026). En serie, la suite entera de beta eran ~3,5 h en una
+   sola máquina: ~1 h de beta-sources y ~2 h de los 2005 e2e con dos workers. Con `--part` cada job
+   de Actions corre solo su trozo y `--shard=i/N` reparte beta-sources o los e2e entre varios.
+   Sin `--part` todo sigue como siempre: `npm test` en local no cambia.
+     all           build + unitarios + Deno + e2e (lo de siempre)
+     unit          build + unitarios SIN beta-sources + Deno
+     beta-sources  build + solo beta-sources (con --shard, uno de cada N tests)
+     e2e           build + e2e funcionales (con --shard, el trozo i de N de Playwright)
+     e2e-perf      build + e2e de rendimiento, con un worker */
+function argOf(name) {
+  const eq = process.argv.find((a) => a.startsWith(name + "="));
+  if (eq) return eq.slice(name.length + 1);
+  const i = process.argv.indexOf(name);
+  return i >= 0 ? process.argv[i + 1] : null;
+}
+const PARTS = ["all", "unit", "beta-sources", "e2e", "e2e-perf"];
+const part = argOf("--part") || "all";
+const shard = argOf("--shard") || "";
+if (!PARTS.includes(part)) { console.error("--part tiene que ser " + PARTS.join(" | ") + " (llegó «" + part + "»)"); process.exit(2); }
+const shardOk = /^(\d+)\/(\d+)$/.exec(shard);
+if (shard && (!shardOk || +shardOk[1] < 1 || +shardOk[1] > +shardOk[2])) { console.error("--shard va como i/N con 1 ≤ i ≤ N (llegó «" + shard + "»)"); process.exit(2); }
+// Un trozo sin --part no tiene sentido: «la suite entera, pero un octavo» sería un verde a medias.
+if (shard && !["beta-sources", "e2e"].includes(part)) { console.error("--shard solo vale con --part=beta-sources o --part=e2e"); process.exit(2); }
+if (part !== "all") console.log("── trozo: " + part + (shard ? " " + shard : "") + " ──");
+
 if (plan.build !== false) {
   console.log("── build-app ──");
   const started = performance.now();
@@ -38,6 +63,8 @@ const steps = [
   ["ingest-native-slots", ["node", "tests/ingest-native-slots.test.mjs"]],
   ["ingest-native-phase1", ["node", "tests/ingest-native-phase1.test.mjs"]],
   ["fixed-ispaidin", ["node", "tests/fixed-ispaidin.test.mjs"]],
+  ["recibos-manual-pausa", ["node", "tests/recibos-manual-pausa.test.mjs"]],
+  ["pro03-receipt-eve-forecast", ["node", "tests/pro03-receipt-eve-forecast.test.mjs"]],
   ["pr297-r2-plan-sync", ["node", "--test", "--test-concurrency=1", "tests/pr297-r2-plan-sync.test.mjs"]],
   ["fin04-commit", ["node", "--test", "--test-concurrency=1", "tests/fin04-commit.test.mjs"]],
   ["fin36-debt-madrid-month", ["node", "tests/fin36-debt-madrid-month.test.mjs"]],
@@ -57,6 +84,9 @@ const steps = [
   ["deudas-plazo-cuota", ["node", "tests/deudas-plazo-cuota.test.mjs"]],
   ["deudas-mes-madrid", ["node", "--test", "--test-concurrency=1", "tests/deudas-mes-madrid.test.mjs"]],
   ["deudas-alargar-plazo", ["node", "tests/deudas-alargar-plazo.test.mjs"]],
+  ["deudas-lo-descuento", ["node", "tests/deudas-lo-descuento.test.mjs"]],
+  ["lo-descuento-undo", ["node", "--test", "tests/lo-descuento-undo.test.mjs"]],
+  ["deudas-tae-descuento", ["node", "tests/deudas-tae-descuento.test.mjs"]],
   ["refund-polarity", ["node", "--test", "tests/refund-polarity.test.mjs"]],
   ["fin10-absorption-scope", ["node", "--test", "tests/fin10-absorption-scope.test.mjs"]],
   ["deudas-plazo-aviso", ["node", "tests/deudas-plazo-aviso.test.mjs"]],
@@ -73,12 +103,15 @@ const steps = [
   ["dashboard-memo-instrument", ["node", "tests/dashboard-memo-instrument.test.mjs"]],
   ["supabase-workflow", ["node", "tests/supabase-workflow.test.mjs"]],
   ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
+  ["plazos-deuda", ["node", "tests/plazos-deuda.test.mjs"]],
   ["payment-evidence-ui", ["node", "tests/payment-evidence-ui.test.mjs"]],
   ["payment-presentation", ["node", "tests/payment-presentation.test.mjs"]],
 
   ["gastos-periodo", ["node", "tests/gastos-periodo.test.mjs"]],
   ["gastos-v5-cifra", ["node", "tests/gastos-v5-cifra.test.mjs"]],
   ["retirada-bancaria", ["node", "tests/retirada-bancaria.test.mjs"]],
+  ["own-transfer-confirm", ["node", "tests/own-transfer-confirm.test.mjs"]],
+  ["source-action-recibo-ack", ["node", "tests/source-action-recibo-ack.test.mjs"]],
   ["backup-snapshot", ["node", "tests/backup-snapshot.test.mjs"]],
   ["backup-sin-datos-banco", ["node", "tests/backup-sin-datos-banco.test.mjs"]],
   ["bank-merchant-category", ["node", "tests/bank-merchant-category.test.mjs"]],
@@ -190,6 +223,7 @@ const steps = [
   ["widget-coherente", ["node", "tests/widget-coherente.test.mjs"]],
   ["widget-arbitraje", ["node", "tests/widget-arbitraje.test.mjs"]],
   ["native-event-debounce", ["node", "tests/native-event-debounce.test.mjs"]],
+  ["pro03-native-precomputed-alert", ["node", "tests/pro03-native-precomputed-alert.test.mjs"]],
   ["widget-offline", ["node", "tests/widget-offline.test.mjs"]],
   ["widget-unknown-loss", ["node", "tests/widget-unknown-loss.test.mjs"]],
   ["widget-unknown-journal", ["node", "tests/widget-unknown-journal.test.mjs"]],
@@ -201,6 +235,7 @@ const steps = [
   ["divisa-original", ["node", "tests/divisa-original.test.mjs"]],
   ["wallet-notis", ["node", "tests/wallet-notis.test.mjs"]],
   ["invest-category", ["node", "tests/invest-category.test.mjs"]],
+  ["tr-monthly-invest-confirm", ["node", "tests/tr-monthly-invest-confirm.test.mjs"]],
   ["fx-multi", ["node", "tests/fx-multi.test.mjs"]],
   ["categories", ["node", "tests/categories.test.mjs"]],
   ["gasolina-taxi", ["node", "tests/gasolina-taxi.test.mjs"]],
@@ -216,9 +251,17 @@ const steps = [
   ["import-docx-pdf", ["node", "tests/import-docx-pdf.test.mjs"]],
   ["hist-import-dup", ["node", "tests/hist-import-dup.test.mjs"]],
   ["plan-charges", ["node", "tests/plan-charges.test.mjs"]],
+  ["plan-recibos-cerrado", ["node", "tests/plan-recibos-cerrado.test.mjs"]],
+  ["te-deben-ingresos", ["node", "--test", "--test-concurrency=1", "tests/te-deben-ingresos.test.mjs"]],
+  ["recibo-cargo-pendiente", ["node", "tests/recibo-cargo-pendiente.test.mjs"]],
   ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["fixed-payment-state", ["node", "tests/fixed-payment-state.test.mjs"]],
+  ["recibos-ya-pagados-banco", ["node", "--test", "tests/recibos-ya-pagados-banco.test.mjs"]],
+  ["gastos-subs-ya-recibo", ["node", "--test", "tests/gastos-subs-ya-recibo.test.mjs"]],
+  ["recibos-cobro-distinto", ["node", "--test", "tests/recibos-cobro-distinto.test.mjs"]],
+  ["recibos-prueba-permanencia", ["node", "--test", "tests/recibos-prueba-permanencia.test.mjs"]],
   ["recibos-renombrar", ["node", "tests/recibos-renombrar.test.mjs"]],
+  ["recibos-t4-book-edit-state", ["node", "--test", "tests/recibos-t4-book-edit-state.test.mjs"]],
   ["recibos-book-rival", ["node", "tests/recibos-book-rival.test.mjs"]],
   ["recibo-domiciliado-sin-acreditar", ["node", "tests/recibo-domiciliado-sin-acreditar.test.mjs"]],
   ["recibo-invariante", ["node", "tests/recibo-invariante.test.mjs"]],
@@ -227,6 +270,7 @@ const steps = [
   ["fin27-balance-reanchor", ["node", "tests/fin27-balance-reanchor.test.mjs"]],
   ["recibos-bajas-y-union", ["node", "tests/recibos-bajas-y-union.test.mjs"]],
   ["recibos-meses-a-mano", ["node", "tests/recibos-meses-a-mano.test.mjs"]],
+  ["recibos-pausa-cifra", ["node", "--test", "tests/recibos-pausa-cifra.test.mjs"]],
   ["fin25-charge-months", ["node", "--test", "--test-concurrency=1", "tests/fin25-charge-months.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],
@@ -236,6 +280,11 @@ const steps = [
   ["onboarding", ["node", "tests/onboarding.test.mjs"]],
   ["expense-bank", ["node", "tests/expense-bank.test.mjs"]],
   ["saldo-por-banco", ["node", "tests/saldo-por-banco.test.mjs"]],
+  ["traspaso-abona-destino", ["node", "tests/traspaso-abona-destino.test.mjs"]],
+  ["ingresos-como-recibos", ["node", "tests/ingresos-como-recibos.test.mjs"]],
+  ["traspasos-tedeben-230", ["node", "tests/traspasos-tedeben-230.test.mjs"]],
+  ["enlace-otro-banco-231", ["node", "tests/enlace-otro-banco-231.test.mjs"]],
+  ["cifras-por-idioma", ["node", "tests/cifras-por-idioma.test.mjs"]],
   ["rol-cuenta-sin-salto", ["node", "tests/rol-cuenta-sin-salto.test.mjs"]],
   ["ota-bases-espejo", ["node", "tests/ota-bases-espejo.test.mjs"]],
   ["hist-dia-local", ["node", "tests/hist-dia-local.test.mjs"]],
@@ -270,6 +319,7 @@ const steps = [
   ["tr-emparejado-revision", ["node", "tests/tr-emparejado-revision.test.mjs"]],
   ["tr-emparejado-nogo2", ["node", "tests/tr-emparejado-nogo2.test.mjs"]],
   ["ob-iguales-ordinal", ["node", "tests/ob-iguales-ordinal.test.mjs"]],
+  ["gemelos-incremental", ["node", "tests/gemelos-incremental.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
   ["fin04-rename-note-ack", ["node", "--test", "tests/fin04-rename-note-ack.test.mjs"]],
@@ -341,13 +391,20 @@ if (denoHuerfanos.length) {
 }
 
 let failed = false;
-const runSteps = plan.steps === "all" || !plan.steps
+const planSteps = plan.steps === "all" || !plan.steps
   ? steps
   : steps.filter(([name]) => plan.steps.includes(name));
+const runSteps = part === "all" ? planSteps
+  : part === "unit" ? planSteps.filter(([name]) => name !== "beta-sources")
+  : part === "beta-sources" ? planSteps.filter(([name]) => name === "beta-sources")
+  : [];
+if (part === "beta-sources" && !runSteps.length) console.log("\n── beta-sources ── (el plan no lo pide)");
 for (const [name, cmd] of runSteps) {
-  console.log(`\n── ${name} ──`);
+  console.log(`\n── ${name}${name === "beta-sources" && shard ? " " + shard : ""} ──`);
   const started = performance.now();
-  const r = spawnSync(cmd[0], cmd.slice(1), { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
+  // El trozo de beta-sources lo elige el propio test (BETA_SOURCES_SHARD): solo él sabe qué es un test.
+  const env = name === "beta-sources" && shard ? { ...process.env, BETA_SOURCES_SHARD: shard } : process.env;
+  const r = spawnSync(cmd[0], cmd.slice(1), { cwd: root, stdio: "inherit", env, shell: process.platform === "win32" });
   recordTime(name, started);
   if (r.status !== 0) {
     failed = true;
@@ -355,7 +412,7 @@ for (const [name, cmd] of runSteps) {
   }
 }
 
-if (plan.deno !== false) {
+if (plan.deno !== false && (part === "all" || part === "unit")) {
   console.log("\n── ingest-deno ──");
   const denoTests = denoEnLista;
   for (const testFile of denoTests) {
@@ -397,7 +454,10 @@ if (plan.deno !== false) {
   console.log("\n── ingest-deno ── (omitido)");
 }
 
-if (!failed && plan.playwright !== false && plan.e2e !== "none") {
+const e2ePart = part === "all" || part === "e2e" || part === "e2e-perf";
+if (!e2ePart) {
+  console.log("\n── playwright-e2e ── (otro trozo)");
+} else if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   console.log("\n── playwright-e2e ──");
   const specs = plan.e2e === "all" || !plan.e2e
     ? fs.readdirSync(path.join(root, "e2e"), { recursive: true })
@@ -419,8 +479,14 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
   // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
   const isPerf = p => p.replaceAll("\\", "/").endsWith("/tr-emparejado-rendimiento.spec.mjs") || p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || p.replaceAll("\\", "/").endsWith("/inicio-v42-rendimiento.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
-  const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
-    ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
+  // En un trozo, un shard puede quedarse sin specs (plan acotado a pocos ficheros): eso es un
+  // verde legítimo, no un «No tests found». Rendimiento NUNCA se trocea: va en su propio job.
+  const groups = [
+    ...(part !== "e2e-perf" ? [["playwright-e2e", specs.filter(p => !isPerf(p)),
+      shard ? ["--shard=" + shard, "--pass-with-no-tests"] : []]] : []),
+    ...(part !== "e2e" ? [["playwright-perf", specs.filter(isPerf), ["--workers=1"]]] : []),
+  ];
+  if (part === "e2e-perf" && !groups[0][1].length) console.log("  (el plan no trae specs de rendimiento)");
   const reports = [];
   fs.rmSync(path.join(root, "test-results", "playwright.json"), { force: true });
   for (const [name, selected, extra] of groups) {

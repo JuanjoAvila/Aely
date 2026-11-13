@@ -4,6 +4,8 @@ import { seedLoggedInDashboard, dismissNews, estadoHeredado } from "./fixtures.m
 test.use({ viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block" });
 test.describe.configure({retries:0});
 const today="2026-10-14";
+// En inglés las cifras van en formato inglés («1,000.50 €»): la misma cifra, con los separadores cambiados.
+const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):txt;
 const currentAmount=mode=>mode==="con-efectivo"||mode.startsWith("confirmada-")?"18.622,44":mode.startsWith("transfer-")?"18.302,40":"18.502,44";
 async function abrir(page,mode,prior=false,lang="es"){
   const state=estadoHeredado(today),confirmed=mode.startsWith("confirmada-");
@@ -37,7 +39,7 @@ async function abrir(page,mode,prior=false,lang="es"){
   const settings=page.locator(".settings-push.open");
   if(await settings.count()) await settings.locator(".settings-push-h .back").click();
   await expect(settings).toHaveCount(0);
-  await expect(page.getByTestId("inicio-net-current").locator(".v4-hero-amt")).toContainText(currentAmount(mode));
+  await expect(page.getByTestId("inicio-net-current").locator(".v4-hero-amt")).toContainText(cifra(lang,currentAmount(mode)));
   await expect(page.getByTestId("inicio-net-current").locator(".v42-net-line")).toHaveCount(1);
 }
 async function cifras(page){
