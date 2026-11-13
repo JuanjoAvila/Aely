@@ -283,6 +283,7 @@ const steps = [
   ["traspaso-abona-destino", ["node", "tests/traspaso-abona-destino.test.mjs"]],
   ["ingresos-como-recibos", ["node", "tests/ingresos-como-recibos.test.mjs"]],
   ["traspasos-tedeben-230", ["node", "tests/traspasos-tedeben-230.test.mjs"]],
+  ["enlace-otro-banco-231", ["node", "tests/enlace-otro-banco-231.test.mjs"]],
   ["cifras-por-idioma", ["node", "tests/cifras-por-idioma.test.mjs"]],
   ["rol-cuenta-sin-salto", ["node", "tests/rol-cuenta-sin-salto.test.mjs"]],
   ["ota-bases-espejo", ["node", "tests/ota-bases-espejo.test.mjs"]],

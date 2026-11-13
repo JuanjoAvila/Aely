@@ -222,7 +222,7 @@ const MUTANTES=[
   ["deshacer no repone los vetos de antes",'  if(poner.length) base=',' if(false) base='],
   ["enlazar ancla un importe que no se parece",'\n    &&recAmtClose(Number(f.amount),Math.abs(Number(x.amount)))',''],
   ["enlazar ancla un adelanto de más de 7 días",'d<planned&&planned-d<=7','d<planned'],
-  ["el motor da a una entrada el pago de una persona",'&&!flowNombraPersona(s,x,gem&&gem.id)&&','&&'],
+  ["el motor da a una entrada el pago de una persona",'&&!flowNombraPersona(s,x,gem&&gem.id,ps)&&','&&'],
   ["«Te deben» cuenta lo enlazado a una entrada",'||deEntrada.has(String(e.id))) return;',') return;'],
   ["un movimiento sirve para dos entradas",'!usadas.has(x.id)&&',''],
   ["enlazar mueve el saldo que se ve",'  return keepShownAcrossFlows(base,(base.flows||[]).map(function(o){ return o===f?n:o; }));\n}\n/* «No es este»','  return Object.assign({},base,{flows:(base.flows||[]).map(function(o){ return o===f?n:o; })});\n}\n/* «No es este»'],

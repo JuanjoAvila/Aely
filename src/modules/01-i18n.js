@@ -4471,7 +4471,7 @@ Object.assign(LANG.ca,{
 Object.assign(LANG.es,{
   fl_ya_entrado:"Ya ha entrado", fl_llego_btn:"Ya ha llegado", fl_cual:"¿Cuál es el ingreso?", fl_cual_tr:"¿Cuál es el movimiento?",
   fl_otra_forma:"Lo recibí de otra forma", fl_otra_forma_tr:"Lo moví de otra forma", fl_no_es:"No es este", fl_aun_no:"Aún no ha llegado",
-  fl_mov_de:"movimiento de {bank}", fl_de_a:"de {from} a {to}", fl_otros:"Otros movimientos de {bank}", fl_menos:"Menos movimientos", fl_mas:"Más movimientos", fl_sin_parecidos:"Ningún movimiento de ese importe",
+  fl_mov_de:"movimiento de {bank}", fl_de_a:"de {from} a {to}", fl_otros:"Otros movimientos de {bank}", fl_menos:"Menos movimientos", fl_mas:"Más movimientos", fl_sin_parecidos:"Ningún movimiento de ese importe", fl_otro_banco:"Llegó a {bank}", fl_cambiar_cuenta:"Cambiar la cuenta",
   fl_sin_movs:"Sin movimientos de {bank} este mes", fl_sin_mov:"Sin movimiento del banco", fl_elegir:"Elegir su movimiento", fl_llego_parcial:"llegó {x} de {y}", fl_cuenta_dia:"El saldo la cuenta el día {d}", fl_enlazado_toast:"{name} enlazado",
   fl_entrado_toast:"{name} pasa a Ya ha entrado", fl_vuelve_toast:"{name} vuelve a Lo que aún entrará",
 fl_t_name:"¿Qué entra?", fl_t_name_tr:"¿Qué mueves?", fl_name_ph:"Nómina, pensión…",
@@ -4481,7 +4481,7 @@ fl_t_name:"¿Qué entra?", fl_t_name_tr:"¿Qué mueves?", fl_name_ph:"Nómina, p
 Object.assign(LANG.en,{
   fl_ya_entrado:"Already in", fl_llego_btn:"It's arrived", fl_cual:"Which payment is it?", fl_cual_tr:"Which movement is it?",
   fl_otra_forma:"I got it another way", fl_otra_forma_tr:"I moved it another way", fl_no_es:"Not this one", fl_aun_no:"Not here yet",
-  fl_mov_de:"{bank} movement", fl_de_a:"from {from} to {to}", fl_otros:"Other movements in {bank}", fl_menos:"Fewer movements", fl_mas:"More movements", fl_sin_parecidos:"No movement of that amount",
+  fl_mov_de:"{bank} movement", fl_de_a:"from {from} to {to}", fl_otros:"Other movements in {bank}", fl_menos:"Fewer movements", fl_mas:"More movements", fl_sin_parecidos:"No movement of that amount", fl_otro_banco:"Arrived in {bank}", fl_cambiar_cuenta:"Change the account",
   fl_sin_movs:"No movements in {bank} this month", fl_sin_mov:"No bank movement", fl_elegir:"Pick its movement", fl_llego_parcial:"{x} of {y} in", fl_cuenta_dia:"Your balance counts it on the {d}", fl_enlazado_toast:"{name} linked",
   fl_entrado_toast:"{name} moves to Already in", fl_vuelve_toast:"{name} is back in Still to come in",
 fl_t_name:"What comes in?", fl_t_name_tr:"What do you move?", fl_name_ph:"Salary, pension…",
@@ -4491,7 +4491,7 @@ fl_t_name:"What comes in?", fl_t_name_tr:"What do you move?", fl_name_ph:"Salary
 Object.assign(LANG.ca,{
   fl_ya_entrado:"Ja ha entrat", fl_llego_btn:"Ja ha arribat", fl_cual:"Quin és l'ingrés?", fl_cual_tr:"Quin és el moviment?",
   fl_otra_forma:"L'he rebut d'una altra manera", fl_otra_forma_tr:"L'he mogut d'una altra manera", fl_no_es:"No és aquest", fl_aun_no:"Encara no ha arribat",
-  fl_mov_de:"moviment de {bank}", fl_de_a:"de {from} a {to}", fl_otros:"Altres moviments de {bank}", fl_menos:"Menys moviments", fl_mas:"Més moviments", fl_sin_parecidos:"Cap moviment d'aquest import",
+  fl_mov_de:"moviment de {bank}", fl_de_a:"de {from} a {to}", fl_otros:"Altres moviments de {bank}", fl_menos:"Menys moviments", fl_mas:"Més moviments", fl_sin_parecidos:"Cap moviment d'aquest import", fl_otro_banco:"Ha arribat a {bank}", fl_cambiar_cuenta:"Canviar el compte",
   fl_sin_movs:"Sense moviments de {bank} aquest mes", fl_sin_mov:"Sense moviment del banc", fl_elegir:"Triar-ne el moviment", fl_llego_parcial:"ha arribat {x} de {y}", fl_cuenta_dia:"El saldo el compta el dia {d}", fl_enlazado_toast:"{name} enllaçat",
   fl_entrado_toast:"{name} passa a Ja ha entrat", fl_vuelve_toast:"{name} torna a El que encara entrarà",
 fl_t_name:"Què entra?", fl_t_name_tr:"Què mous?", fl_name_ph:"Nòmina, pensió…",
