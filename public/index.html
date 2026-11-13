@@ -1960,7 +1960,8 @@
   .pr6-mg-sum{width:100%;padding:18px;gap:10px;text-align:left;color:inherit;font:inherit;cursor:pointer;}
   .pr6-mg-lbl{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;}
   .pr6-mg-lbl svg{flex:none;color:var(--mint-bright);}
-  .pr6-mg-sum .pr6-big{font-size:clamp(36px,11vw,44px);margin-top:0;animation:v4fade .28s var(--ease) both;}
+  .pr6-mg-sum .pr6-big{font-size:clamp(36px,11vw,44px);margin-top:0;}
+  .pr6-mg-sum .pr6-big-swap{animation:v4fade .28s var(--ease) both;}
   .pr6-mg-q{display:flex;align-items:center;gap:12px;height:56px;margin-top:20px;padding:0 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line-soft);color:var(--muted);}
   .pr6-mg-q:focus-within{border-color:var(--mint);}
   .pr6-mg-qi{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--text);font:500 16px 'Manrope',sans-serif;outline:none;}
@@ -30991,7 +30992,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="0dde4f613fa159c6c13287a0d098658d69b261d830a47e5c0d1cc7931a47bad8";
+var _rnSha="8db29a3ac10735a73e4be8283c7759592c9e362e2223ac4cfcce6f0071dad918";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -33893,9 +33894,10 @@ function pr6Chev(){
 }
 /* Como mucho tres a la vista; el resto se despliega debajo con «Ver los N» (SPEC §2.3–2.4). Es la
    misma lista en la portada de Recibos y en Tus recibos, donde el SPEC decía cuatro y el dueño pidió
-   tres (11/11/2026): seis personas seguidas llenaban la pantalla. Ni al abrir ni al plegar se mueve la
-   página: antes «Ver menos» la desplazaba sola hasta el principio de la sección y al dueño le resultaba
-   incómodo que se moviera sin tocarla (12/11). `more` añade atributos al botón (los e2e lo buscan). */
+   tres (11/11/2026): seis personas seguidas llenaban la pantalla. Al abrir no se mueve la página (antes
+   «Ver menos» la desplazaba sola, a destiempo, y le incomodaba, 12/11); al plegar una lista LARGA con su
+   título ya fuera por arriba, la vista sube con el pliegue (`pr6VerMenosSube`, petición suya del 13/11).
+   `more` añade atributos al botón (los e2e lo buscan). */
 function pr6Tres(items,render,open,setOpen,id,more){
   const rest=items.slice(3);
   return React.createElement(React.Fragment,null,
@@ -33904,7 +33906,7 @@ function pr6Tres(items,render,open,setOpen,id,more){
       // Las filas plegadas siguen en el DOM (se despliegan con transición), pero fuera del foco.
       React.createElement("div",Object.assign({className:"pr6-fold-in"},open?null:{"aria-hidden":"true",inert:""}), rest.map(render))),
     rest.length>0&&React.createElement("button",Object.assign({type:"button",className:"pr6-more","aria-expanded":open?"true":"false","aria-controls":id,
-      onClick:function(){ pr6FoldDur(id); setOpen(function(o){ return !o; }); }},more),
+      onClick:function(){ const d=pr6FoldDur(id); if(open) pr6VerMenosSube(id,d); setOpen(function(o){ return !o; }); }},more),
       open?t("v4_ver_menos"):tf("pr6_ver_los",{n:items.length}),
       pr6Chev()));
 }
@@ -33918,7 +33920,51 @@ function pr6Tres(items,render,open,setOpen,id,more){
 function pr6FoldDur(id){
   const f=document.getElementById(id), i=f&&f.firstChild;
   if(!i) return;
-  f.style.setProperty("--pr6-fd",Math.min(1.2,Math.max(.35,.35*i.scrollHeight/190)).toFixed(3)+"s");
+  const d=Math.min(1.2,Math.max(.35,.35*i.scrollHeight/190));
+  f.style.setProperty("--pr6-fd",d.toFixed(3)+"s");
+  return d;
+}
+/* «Ver menos» de una lista larga con su título ya fuera por arriba: la vista sube con el pliegue, a la
+   vez, con su curva y su tiempo, hasta dejar el título de la sección arriba. Es la única excepción al
+   «nada desplaza la página solo», y la pidió él (13/11): con diez recibos, plegar le dejaba lejos de lo
+   que estaba mirando, «¿podría subir suave hasta arriba?». Con listas cortas o el título a la vista no
+   se mueve nada. Sin anclaje de scroll mientras dura (peleaba con el valor de cada fotograma), y un
+   toque o la rueda lo sueltan. */
+function pr6VerMenosSube(id,d){
+  const f=document.getElementById(id), sec=f&&f.closest("section"), head=sec&&(sec.querySelector(".pr6-sec-h")||sec);
+  let sc=sec&&sec.parentElement;
+  while(sc&&sc!==document.body){
+    const o=getComputedStyle(sc).overflowY;
+    if((o==="auto"||o==="scroll")&&sc.scrollHeight>sc.clientHeight) break;
+    sc=sc.parentElement;
+  }
+  if(!head||!sc||sc===document.body||!d||mcReduced()) return;
+  // Solo si el título está fuera (aunque sea un poco): asomando, ya se ve dónde se está. Si sube, a 12 px.
+  const hTop=head.getBoundingClientRect().top-(sc.getBoundingClientRect().top+sc.clientTop);
+  if(hTop>=0||f.firstChild.scrollHeight<sc.clientHeight*.5) return;
+  const falta=hTop-12;
+  /* Hasta donde dejará llegar la página ya plegada: si el destino pidiera más, el navegador recortaría
+     el scroll fotograma a fotograma al ritmo del pliegue y no del nuestro (y acabaría donde quisiera). */
+  const H=f.getBoundingClientRect().height;
+  const desde=sc.scrollTop, hasta=Math.max(0,Math.min(desde+falta,sc.scrollHeight-sc.clientHeight-H)), tope=d*1000+250;
+  let t0=null, raf=0;
+  const suelta=function(){
+    cancelAnimationFrame(raf); sc.style.overflowAnchor="";
+    sc.removeEventListener("touchstart",suelta); sc.removeEventListener("wheel",suelta);
+  };
+  sc.style.overflowAnchor="none";
+  sc.addEventListener("touchstart",suelta,{passive:true}); sc.addEventListener("wheel",suelta,{passive:true});
+  /* La vista va donde va el PLIEGUE en este fotograma (lo que ya ha plegado / lo que medía), no por el
+     reloj: así es su curva y su tiempo por construcción, también con fotogramas irregulares (por reloj,
+     con uno de 8 ms el pliegue no avanzaba y la vista sí: «Ver menos» bajaba 12 px y volvía, a ×6).
+     Leer el alto aquí no cuesta otra maquetación: el scroll no la invalida. */
+  const paso=function(ts){
+    if(t0==null) t0=ts;
+    const h=f.getBoundingClientRect().height, p=H>0?Math.min(1,Math.max(0,(H-h)/H)):1;
+    sc.scrollTop=desde+(hasta-desde)*p;
+    if(p<1&&ts-t0<tope) raf=requestAnimationFrame(paso); else { sc.scrollTop=hasta; suelta(); }
+  };
+  raf=requestAnimationFrame(paso);
 }
 /* «te han pagado 0 de 1» no se entendía (¿uno de qué?). Con una sola persona se dice su parte. */
 function pr6TeHanPagado(d){
@@ -35261,6 +35307,19 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   // Tus recibos (SPEC §3): cifras al año, banco elegido en los chips, secciones desplegadas y el aviso que se va.
   const [anual,setAnual]=React.useState(false);
   const [banco,setBanco]=React.useState(null);
+  /* La cifra grande se funde al CAMBIAR (⇆, un banco), no al entrar: ya entra la pantalla entera. Con
+     `v4fade` también al montar, en su móvil se quedó a opacidad 0 y la tarjeta salió con el hueco de la
+     cifra y solo «recibos … + cuotas …» debajo (captura del 13/11): esa animación es lo único que puede
+     apagarla dejando su sitio, y si no arranca o no acaba su primer fotograma es 0. Y si una vez cambiada
+     se queda a medias, a los 600 ms se da por acabada: la cifra se ve sí o sí. */
+  const heroClave=(anual?"a":"m")+"|"+(banco||""), heroVista=useRef({k:heroClave,swap:false}), heroAmtRef=useRef(null);
+  if(heroVista.current.k!==heroClave) heroVista.current={k:heroClave,swap:true};
+  useEffect(function(){
+    const el=heroAmtRef.current;
+    if(!heroVista.current.swap||!el||!el.getAnimations) return undefined;
+    const tm=setTimeout(function(){ el.getAnimations().forEach(function(a){ if(a.playState!=="finished"){ try{ a.finish(); }catch(e){} } }); },600);
+    return function(){ clearTimeout(tm); };
+  },[heroClave]);
   const [abiertos,setAbiertos]=React.useState({});
   const [solapeSale,setSolapeSale]=React.useState(null);
   const [detail,setDetail]=React.useState(null);
@@ -35708,7 +35767,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       React.createElement("span",{className:"v4-micro pr6-mg-lbl"}, anual?t("mg_al_ano"):gbTxt("gb_hero_label"),
         React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},
           React.createElement("path",{d:"M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"}))),
-      React.createElement("span",{className:"serif num pr6-big v4-bills-hero-amt","data-bills-total":"1",key:anual+"|"+(banco||"")}, eur(hero)),
+      React.createElement("span",{className:"serif num pr6-big v4-bills-hero-amt"+(heroVista.current.swap?" pr6-big-swap":""),"data-bills-total":"1",key:heroClave,ref:heroAmtRef}, eur(hero)),
       mg.suma.debt>0&&mg.suma.serv>0&&React.createElement("span",{className:"pr6-count num","data-bills-desglose":"1"},
         tf("mg_desglose",{a:eur(mg.suma.serv),b:eur(mg.suma.debt)}))),
     React.createElement("label",{className:"pr6-mg-q"},
