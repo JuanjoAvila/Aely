@@ -2,6 +2,12 @@ name: Deploy Supabase
 
 # Supabase es compartido por ambos canales: integrar fuentes no autoriza activarlas.
 # Despliegue manual de una sola función; migraciones solo con selección explícita.
+
+# El despliegue usa SUPABASE_ACCESS_TOKEN, no el GITHUB_TOKEN: este solo hace checkout. Explícito
+# para no depender del ajuste por defecto del repo (auditoría 14/11, P3-15).
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
     inputs:

@@ -152,6 +152,18 @@ uso normal, `PRICES_RATE_LIMIT=0` apaga el de precios sin redesplegar. Cerrar el
 (Authentication → Sign In / Providers → «Allow new users to sign up») sigue siendo decisión del
 dueño y lo complementa.
 
+### P3 de la misma auditoría hechos en esta ronda
+
+- **`delete-account` (P3-06/P3-09):** 5 intentos cada 10 min por usuario ANTES de reautenticar
+  (con una sesión robada era un probador de contraseñas); los errores de Auth vuelven como `error`.
+  La revocación del consentimiento de Enable Banking al borrar la cuenta queda pendiente (ver
+  nota de la ronda): hoy se borra la fila y el consentimiento caduca solo en el proveedor.
+- **Migración `0027_hogar_funciones_sin_anon.sql`:** `revoke execute … from anon` en
+  `join_household_by_code` e `is_household_member`. Sin efecto para la app. Aplicarla a mano en
+  SQL Editor o con `migraciones=si`.
+- **`supabase.yml` (P3-15):** `permissions: contents: read` explícito; el despliegue sigue con
+  `SUPABASE_ACCESS_TOKEN`, sin cambios de flujo.
+
 ## SEC01: límites del cuerpo por función · PR256 candidata, sin desplegar (17/10/2026)
 
 `_shared/request_body.ts` aplica estos límites de bytes del cuerpo mientras lee el
