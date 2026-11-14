@@ -4867,7 +4867,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
    Se guarda siempre en €; sin tipo de cambio no se guarda — no inventamos el cambio. */
-function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
+function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const [kind,setKind]=useState("gasto"); // gasto | ingreso
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
@@ -4915,7 +4915,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     return (isEfectivoEnt(ent)?"💶 ":"🏦 ")+entOf(ent).label;
   };
   useEffect(function(){
-    if(open){
+    // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
+    if(open&&!ensayo){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
@@ -4956,8 +4957,21 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
-  const swipe=useSheetSwipe(!!open, onClose);
-  useBackClose(!!open, swipe.close);
+  // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
+  const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(!!open&&!ensayo, swipe.close);
+  /* La primera apertura costaba mucho más que las siguientes (123 ms de tarea larga frente a 0, con
+     la CPU a ×6, 14/11/2026): se ensaya una vez en seco a los pocos segundos de arrancar. Si ya se
+     abrió de verdad, no hace falta. */
+  const ensayoRef=useRef(null);
+  ensayoRef.current={state:state,abierta:!!open||!!(ensayoRef.current&&ensayoRef.current.abierta)};
+  useEffect(function(){
+    if(ensayo) return undefined;
+    const nada=function(){};
+    return mcEnsayarEnHueco(function(){
+      return ensayoRef.current.abierta?null:React.createElement(ApuntarSheet,{open:true,ensayo:true,state:ensayoRef.current.state,set:nada,onClose:nada,showToast:nada});
+    },3000);
+  },[]);
   // La pasada por todo el histórico queda preparada con la hoja cerrada; cambiar de categoría
   // ya solo recoloca ocho chips y no mete trabajo O(n) en mitad del gesto (vídeo 2026-09-17).
   const fichaCatsBase=useMemo(function(){

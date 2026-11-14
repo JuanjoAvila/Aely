@@ -1608,10 +1608,33 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
 
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
+  const editDe=function(e){
+    return {id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)};
+  };
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp(editDe(e));
+  },[]);
+  /* La primera ficha que se abre costaba mucho más que las siguientes (94 ms de tarea larga frente a
+     0, con la CPU a ×6, 14/11/2026). Se ensaya una vez en seco con el gasto más reciente, la primera
+     vez que Gastos está a la vista. */
+  const fichaVista=useRef(false), fichaEstado=useRef(null);
+  fichaEstado.current=state;
+  if(detailId) fichaVista.current=true;
+  useEffect(function(){
+    let quita=null, hecho=false;
+    const baja=mcOnGastosActive(function(active){
+      if(!active||hecho) return;
+      hecho=true;
+      quita=mcEnsayarEnHueco(function(){
+        const s=fichaEstado.current, lista=s.expenses||[], e=lista[lista.length-1];
+        if(fichaVista.current||!e) return null;
+        const nada=function(){};
+        return React.createElement(ExpenseDetailSheet,{exp:e,editExp:editDe(e),setEditExp:nada,onClose:nada,state:s,showToast:nada,ensayo:true});
+      },700);
+    });
+    return function(){ baja(); if(quita) quita(); };
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -2906,13 +2929,15 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
+  /* `ensayo`: montaje en seco de `mcEnsayar`. Se pinta entera, que es lo que hay que estrenar, pero
+     sin candado ni entrada de Atrás y sin ninguna lectura a la nube ni al puente nativo. */
   const transferSandbox=mcSandbox();
   const paymentDay=new Date().toDateString();
   // Las relaciones leen colecciones ajenas a la fila y el día civil local. _savedAt cambia
@@ -2926,6 +2951,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const incomeLive=useRef(null);incomeLive.current={plan:incomePlan,peer:incomePeer,state:state,sandbox:transferSandbox};
   const [incomeOffer,setIncomeOffer]=useState(null),[incomePeerOffer,setIncomePeerOffer]=useState(null),[incomeWithPeer,setIncomeWithPeer]=useState(false);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;setIncomeOffer(null);setIncomeWithPeer(false);
     const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     let timer;
@@ -2937,6 +2963,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return function(){active=false;clearTimeout(timer);};
   },[incomePlan,transferSandbox]);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;setIncomePeerOffer(null);setIncomeWithPeer(false);let timer;
     const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.peer===incomePeer&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     (async function(){try{
@@ -2953,6 +2980,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
   const [transferOffer,setTransferOffer]=useState(null);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;
     const current=function(){return active&&transferLive.current.plan===transferPlan&&transferLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     // La ficha permanece montada al cerrarse. Cada plan tiene su propia cancelación y nunca
@@ -2973,11 +3001,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   },[transferPlan,transferSandbox]);
   const paymentRelation=useMemo(function(){return abierto?expensePaymentRelationUI(state,exp):null;},
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
-  const swipe=useSheetSwipe(abierto, onClose);
-  useBackClose(abierto, swipe.close);
+  const swipe=useSheetSwipe(abierto&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(abierto&&!ensayo, swipe.close);
   // Diagnóstico de «Paga un recibo»: canal beta o la APK .debug de pruebas, nunca en la estable.
   const [diagDebug,setDiagDebug]=useState(false);
   useEffect(function(){
+    if(ensayo) return undefined;
     let vivo=true;
     try{
       const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;

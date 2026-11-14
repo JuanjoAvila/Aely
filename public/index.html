@@ -12635,7 +12635,8 @@ function mcCalentarCapa(el){
   try{ el.style.contentVisibility="visible"; void el.offsetHeight; }catch(e){}
   el.style.contentVisibility="hidden";
 }
-/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos). El velo
+/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos, Apuntar
+   y la ficha de un gasto). El velo
    ya se queda todos los toques, así que no hace falta apagar la app de detrás con `sheet-shell-off`:
    sus dos reglas (`pointer-events` en `.app-shell` y `touch-action` en `.page`) son propiedades que
    se HEREDAN, y cambiarlas recalcula el estilo de la pantalla entera (~700 nodos en Recibos) en el
@@ -12661,6 +12662,25 @@ function mcEnsayar(el){
   }catch(e){}
   try{ if(root) root.unmount(); }catch(e){}
   if(host&&host.parentNode) host.parentNode.removeChild(host);
+}
+/* Un ensayo suelto (Apuntar, la ficha de un gasto) en el primer hueco libre pasada `espera`: con
+   una hoja abierta o algo moviéndose se aplaza, que ocupa el hilo lo que la primera apertura de
+   verdad. `hacer` devuelve el elemento a ensayar, o nada si ya no hace falta. Devuelve cómo
+   cancelarlo. */
+function mcEnsayarEnHueco(hacer, espera){
+  let vivo=true, tm=0, esperas=0;
+  const sigue=function(dl){
+    if(!vivo) return;
+    const h=document.documentElement.classList;
+    if(h.contains("sheet-open")||h.contains("bills-open")){ tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },2000); return; }
+    if(dl&&!dl.didTimeout&&typeof dl.timeRemaining==="function"&&dl.timeRemaining()<8&&esperas<10){
+      esperas++; tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },150); return;
+    }
+    vivo=false;
+    try{ const e=hacer(); if(e) mcEnsayar(e); }catch(err){}
+  };
+  tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },espera);
+  return function(){ vivo=false; clearTimeout(tm); };
 }
 let _mcSheetLocks=0, _mcSheetDuros=0, _mcSheetPrevOverflow="";
 function mcSheetLock(soloVelo){
@@ -15519,10 +15539,33 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
 
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
+  const editDe=function(e){
+    return {id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)};
+  };
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp(editDe(e));
+  },[]);
+  /* La primera ficha que se abre costaba mucho más que las siguientes (94 ms de tarea larga frente a
+     0, con la CPU a ×6, 14/11/2026). Se ensaya una vez en seco con el gasto más reciente, la primera
+     vez que Gastos está a la vista. */
+  const fichaVista=useRef(false), fichaEstado=useRef(null);
+  fichaEstado.current=state;
+  if(detailId) fichaVista.current=true;
+  useEffect(function(){
+    let quita=null, hecho=false;
+    const baja=mcOnGastosActive(function(active){
+      if(!active||hecho) return;
+      hecho=true;
+      quita=mcEnsayarEnHueco(function(){
+        const s=fichaEstado.current, lista=s.expenses||[], e=lista[lista.length-1];
+        if(fichaVista.current||!e) return null;
+        const nada=function(){};
+        return React.createElement(ExpenseDetailSheet,{exp:e,editExp:editDe(e),setEditExp:nada,onClose:nada,state:s,showToast:nada,ensayo:true});
+      },700);
+    });
+    return function(){ baja(); if(quita) quita(); };
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -16817,13 +16860,15 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
+  /* `ensayo`: montaje en seco de `mcEnsayar`. Se pinta entera, que es lo que hay que estrenar, pero
+     sin candado ni entrada de Atrás y sin ninguna lectura a la nube ni al puente nativo. */
   const transferSandbox=mcSandbox();
   const paymentDay=new Date().toDateString();
   // Las relaciones leen colecciones ajenas a la fila y el día civil local. _savedAt cambia
@@ -16837,6 +16882,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const incomeLive=useRef(null);incomeLive.current={plan:incomePlan,peer:incomePeer,state:state,sandbox:transferSandbox};
   const [incomeOffer,setIncomeOffer]=useState(null),[incomePeerOffer,setIncomePeerOffer]=useState(null),[incomeWithPeer,setIncomeWithPeer]=useState(false);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;setIncomeOffer(null);setIncomeWithPeer(false);
     const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     let timer;
@@ -16848,6 +16894,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return function(){active=false;clearTimeout(timer);};
   },[incomePlan,transferSandbox]);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;setIncomePeerOffer(null);setIncomeWithPeer(false);let timer;
     const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.peer===incomePeer&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     (async function(){try{
@@ -16864,6 +16911,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
   const [transferOffer,setTransferOffer]=useState(null);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;
     const current=function(){return active&&transferLive.current.plan===transferPlan&&transferLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     // La ficha permanece montada al cerrarse. Cada plan tiene su propia cancelación y nunca
@@ -16884,11 +16932,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   },[transferPlan,transferSandbox]);
   const paymentRelation=useMemo(function(){return abierto?expensePaymentRelationUI(state,exp):null;},
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
-  const swipe=useSheetSwipe(abierto, onClose);
-  useBackClose(abierto, swipe.close);
+  const swipe=useSheetSwipe(abierto&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(abierto&&!ensayo, swipe.close);
   // Diagnóstico de «Paga un recibo»: canal beta o la APK .debug de pruebas, nunca en la estable.
   const [diagDebug,setDiagDebug]=useState(false);
   useEffect(function(){
+    if(ensayo) return undefined;
     let vivo=true;
     try{
       const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
@@ -30992,7 +31041,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="aefe5ffe6c6a8fe0f9d1a1dab6a5c3d3f748a0182d83f832e9b370ac00fdbfbd";
+var _rnSha="52a5493967afea7ccdf76287fece7e27b8626b58ee4c199ce0b8966648d5a42b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -37376,7 +37425,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
    Se guarda siempre en €; sin tipo de cambio no se guarda — no inventamos el cambio. */
-function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
+function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const [kind,setKind]=useState("gasto"); // gasto | ingreso
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
@@ -37424,7 +37473,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     return (isEfectivoEnt(ent)?"💶 ":"🏦 ")+entOf(ent).label;
   };
   useEffect(function(){
-    if(open){
+    // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
+    if(open&&!ensayo){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
@@ -37465,8 +37515,21 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
-  const swipe=useSheetSwipe(!!open, onClose);
-  useBackClose(!!open, swipe.close);
+  // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
+  const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(!!open&&!ensayo, swipe.close);
+  /* La primera apertura costaba mucho más que las siguientes (123 ms de tarea larga frente a 0, con
+     la CPU a ×6, 14/11/2026): se ensaya una vez en seco a los pocos segundos de arrancar. Si ya se
+     abrió de verdad, no hace falta. */
+  const ensayoRef=useRef(null);
+  ensayoRef.current={state:state,abierta:!!open||!!(ensayoRef.current&&ensayoRef.current.abierta)};
+  useEffect(function(){
+    if(ensayo) return undefined;
+    const nada=function(){};
+    return mcEnsayarEnHueco(function(){
+      return ensayoRef.current.abierta?null:React.createElement(ApuntarSheet,{open:true,ensayo:true,state:ensayoRef.current.state,set:nada,onClose:nada,showToast:nada});
+    },3000);
+  },[]);
   // La pasada por todo el histórico queda preparada con la hoja cerrada; cambiar de categoría
   // ya solo recoloca ocho chips y no mete trabajo O(n) en mitad del gesto (vídeo 2026-09-17).
   const fichaCatsBase=useMemo(function(){

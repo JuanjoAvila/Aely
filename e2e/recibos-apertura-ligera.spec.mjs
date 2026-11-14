@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosAbreFiltros } from "./fixtures.mjs";
 
 /* Plan › Recibos: abrir «¿Te llega?», Tus recibos y «Editar» sin fotogramas largos (10/11/2026).
    Lo que se hizo para la fluidez no se ve, así que aquí se vigila que no rompa nada sin avisar:
@@ -73,9 +73,10 @@ test("una hoja de Recibos no apaga la app de detrás, pero su velo se queda los 
   await expect(page.getByTestId("llega-sheet")).toHaveCount(0);
   await expect(page.locator(".v4-sheet-back,[data-bills-manage]")).toHaveCount(0);
   await expect.poll(() => clases(page)).not.toMatch(/sheet-open/);
-  // Las demás hojas siguen apagando la app: Apuntar.
-  await page.locator(".botnav-fab").click();
-  await expect(page.locator(".v4-sheet").first()).toBeVisible();
+  // Las demás hojas siguen apagando la app: Filtros de Gastos (Apuntar y la ficha de un gasto ya
+  // no, ver `apuntar-ficha-apertura-ligera`).
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await gastosAbreFiltros(page);
   expect(await clases(page)).toMatch(/sheet-shell-off/);
   expect(await page.evaluate(() => getComputedStyle(document.querySelector(".app-shell")).pointerEvents)).toBe("none");
 });

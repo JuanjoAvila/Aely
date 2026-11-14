@@ -140,6 +140,11 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
+  // Apuntar y la ficha de un gasto: velo que se queda los toques y ensayo en seco sin rastro.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
   // Cerrar Tus recibos de un desliz y seguir hacia otra pestaña sin que el carrusel se desplace de
   // lado (vídeo del dueño, 11/11): el foco que vuelve a «Todos» y el gesto de pestañas.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },

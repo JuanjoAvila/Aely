@@ -1962,7 +1962,8 @@ function mcCalentarCapa(el){
   try{ el.style.contentVisibility="visible"; void el.offsetHeight; }catch(e){}
   el.style.contentVisibility="hidden";
 }
-/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos). El velo
+/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos, Apuntar
+   y la ficha de un gasto). El velo
    ya se queda todos los toques, así que no hace falta apagar la app de detrás con `sheet-shell-off`:
    sus dos reglas (`pointer-events` en `.app-shell` y `touch-action` en `.page`) son propiedades que
    se HEREDAN, y cambiarlas recalcula el estilo de la pantalla entera (~700 nodos en Recibos) en el
@@ -1988,6 +1989,25 @@ function mcEnsayar(el){
   }catch(e){}
   try{ if(root) root.unmount(); }catch(e){}
   if(host&&host.parentNode) host.parentNode.removeChild(host);
+}
+/* Un ensayo suelto (Apuntar, la ficha de un gasto) en el primer hueco libre pasada `espera`: con
+   una hoja abierta o algo moviéndose se aplaza, que ocupa el hilo lo que la primera apertura de
+   verdad. `hacer` devuelve el elemento a ensayar, o nada si ya no hace falta. Devuelve cómo
+   cancelarlo. */
+function mcEnsayarEnHueco(hacer, espera){
+  let vivo=true, tm=0, esperas=0;
+  const sigue=function(dl){
+    if(!vivo) return;
+    const h=document.documentElement.classList;
+    if(h.contains("sheet-open")||h.contains("bills-open")){ tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },2000); return; }
+    if(dl&&!dl.didTimeout&&typeof dl.timeRemaining==="function"&&dl.timeRemaining()<8&&esperas<10){
+      esperas++; tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },150); return;
+    }
+    vivo=false;
+    try{ const e=hacer(); if(e) mcEnsayar(e); }catch(err){}
+  };
+  tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },espera);
+  return function(){ vivo=false; clearTimeout(tm); };
 }
 let _mcSheetLocks=0, _mcSheetDuros=0, _mcSheetPrevOverflow="";
 function mcSheetLock(soloVelo){
