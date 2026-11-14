@@ -58,6 +58,43 @@ dueño, y los avisos de la víspera los dan el cliente y el `AlertCheckWorker` d
 programar cualquier lectura de `bank-sync`, ver «Open Banking: sync SOLO a demanda» en
 `docs/ARQUITECTURA.md`.
 
+## Auditoría de seguridad 14/11 · ronda 233 en fuente, SIN desplegar
+
+### Cifrado de tokens: comprobar la clave y activar el modo estricto (P2-04)
+
+`_shared/crypto.ts` cifra con `TOKEN_ENCRYPTION_KEY` los `session_id` de Enable Banking y los
+tokens de MyInvestor. **Si falta la clave, por defecto se siguen guardando en claro** (como hasta
+ahora: cerrarlo a ciegas dejaría sin poder conectar bancos si el secreto no existe), pero la
+función deja **una línea `ENC_MISSING`** en su log por cada arranque de instancia, sin ningún dato
+del secreto. Con **`TOKEN_ENCRYPTION_REQUIRED=1`** ya no se guarda nada en claro: el guardado lanza
+y la conexión falla con el error genérico de cada función. Leer valores viejos sin prefijo sigue
+funcionando en los dos modos (es lo que permite recifrarlos).
+
+Cómo comprobarlo, todo de **solo lectura** 👤:
+
+1. **Project Settings → Edge Functions → Secrets**: tiene que aparecer `TOKEN_ENCRYPTION_KEY`
+   (el panel solo enseña el resumen, no el valor). Debe ser 32 bytes en base64 (44 caracteres).
+2. **Edge Functions → Logs** de `bank-callback`, `myinvestor-connect`, `myinvestor-sync` y
+   `myinvestor-keepalive` tras desplegar esta ronda: buscar `ENC_MISSING`. Si aparece, la clave
+   NO está llegando a esa función.
+3. **SQL Editor**, solo recuentos (no selecciona ningún valor):
+   ```sql
+   select count(*) filter (where session_id is not null and session_id not like 'enc:v1:%') as eb_en_claro,
+          count(*) filter (where session_id like 'enc:v1:%') as eb_cifrados
+     from public.bank_links;
+   select count(*) filter (where access_token is not null and access_token not like 'enc:v1:%') as mi_en_claro,
+          count(*) filter (where access_token like 'enc:v1:%') as mi_cifrados
+     from public.myinvestor_links;
+   ```
+   `*_en_claro` debería ser 0. Si no lo es: con la clave puesta, `myinvestor-sync` recifra lo de
+   MyInvestor en la siguiente lectura; un banco en claro se recifra al reconectarlo.
+
+Activar el modo estricto **solo con los tres pasos en verde**: añadir el secreto
+`TOKEN_ENCRYPTION_REQUIRED` = `1`. Para volver atrás basta borrarlo. Si se activa y falta la clave,
+conectar o reconectar un banco o MyInvestor falla (nada se guarda en claro), y además
+`myinvestor-sync`/`myinvestor-keepalive` no pueden guardar los tokens renovados, así que la sesión de
+MyInvestor acaba caducando. Por eso el orden es: clave comprobada → estricto, nunca al revés.
+
 ## SEC01: límites del cuerpo por función · PR256 candidata, sin desplegar (17/10/2026)
 
 `_shared/request_body.ts` aplica estos límites de bytes del cuerpo mientras lee el
