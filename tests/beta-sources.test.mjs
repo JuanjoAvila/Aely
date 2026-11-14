@@ -442,7 +442,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro","gastos-lag-ciclos-r3","recibo-vinculo-saldo","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","widget-pasado-del-limite","widget-se-actualiza-solo","inicio-anillo-usado","plan-recibos-v6-t1","deuda-ir-suave","plan-recibos-v6-t2","gastos-renombrar-otro-banco","gastos-renombrar-traspaso","recibos-anual-inversiones-eur","plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","barra-gastos-carga","inicio-traspasos","plan-recibos-t4","gastos-filtros-icono","plan-recibos-guardar-pagado","informe-mes-limite-del-mes","plan-recibos-qa","plan-recibos-t5","plan-recibos-t6","pro03-aviso-te-llega","deuda-ponle-dia","tr-inversion-mensual","deuda-lo-descuento","traspaso-propio-confirmado","recibo-anual-mes","plan-velo-fundido","recibo-quitar-deshacer","deuda-tae-con-descuento","recibo-cargo-pendiente","traspaso-ingreso-manual","recibos-zona-pulida","recibos-retoques-229","recibos-230","plan-gastos-231","plan-gastos-232"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro","gastos-lag-ciclos-r3","recibo-vinculo-saldo","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","widget-pasado-del-limite","widget-se-actualiza-solo","inicio-anillo-usado","plan-recibos-v6-t1","deuda-ir-suave","plan-recibos-v6-t2","gastos-renombrar-otro-banco","gastos-renombrar-traspaso","recibos-anual-inversiones-eur","plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","barra-gastos-carga","inicio-traspasos","plan-recibos-t4","gastos-filtros-icono","plan-recibos-guardar-pagado","informe-mes-limite-del-mes","plan-recibos-qa","plan-recibos-t5","plan-recibos-t6","pro03-aviso-te-llega","deuda-ponle-dia","tr-inversion-mensual","deuda-lo-descuento","traspaso-propio-confirmado","recibo-anual-mes","plan-velo-fundido","recibo-quitar-deshacer","deuda-tae-con-descuento","recibo-cargo-pendiente","traspaso-ingreso-manual","recibos-zona-pulida","recibos-retoques-229","recibos-230","plan-gastos-231","plan-gastos-232","auditorias-233"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).filter(u=>!(u&&u.function==="removeFixedById")).map(limpieza129).map(retirada164).map(retirada166).map(retirada167).map(retirada169).filter(Boolean))assert.ok(scopes[key].web.map(sinCanSet213).map(sinIngreso212).map(desde199).map(desde198).map(sinMeta172).map(sinMensual208).map(sinConfirmar211).map(sinTraspaso210).some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -6359,6 +6359,9 @@ const sourceBeta230=sourceAt("925a876ff7817a6319257c71f1e0d2467cc75f1b");
 // Catálogo231 pasa a histórico con la 232: se lee de la 4.26.231 servida en beta (85e2d6d19, sin APK nueva, sigue la 64). Su tanda
 // (plan-gastos-231) no tuvo veredicto: la 232 la sustituye por plan-gastos-232, que la cubre con lo nuevo.
 const sourceBeta231=sourceAt("85e2d6d194b847f8e02e9d93115a996be51febce");
+// Catálogo232 pasa a histórico con la 233: se lee de la 4.26.232 servida en beta (8d82bb729, sin APK nueva, sigue la 64). Su tanda
+// (plan-gastos-232) la aprobó el dueño: la 233 la retira con tandas: [] y abre auditorias-233.
+const sourceBeta232=sourceAt("8d82bb729a14780950f45fd1d870f8d9c0cb88fb");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -6556,16 +6559,122 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
   assert.deepEqual(receipt.pruebas,{[nueva]:{v:"4.26.230",contenido:JSON.stringify([nueva,g0.t.es,g0.items.es,1])}},"un guion por probar, el de la tanda nueva");
 });
 
+// 4.26.233 (14/11/2026): cinco ramas de la auditoría del 14/11 sobre la beta 4.26.232 aprobada (8d82bb729): el bucle del histórico
+// de saldos (claude/233-saldos, revisión de dinero GO), seguridad de Edge sin desplegar (claude/233-edge), apertura ligera de
+// Apuntar y de la ficha, serie de patrimonio y adelgazado (claude/233-rendimiento), contraste y áreas táctiles (claude/233-diseno)
+// y textos (claude/233-textos). plan-gastos-232 se retira con tandas: [] y UNA tanda, auditorias-233, lleva lo que se puede probar.
+// Registro: un descriptor nuevo, el último; los anteriores solo crecen por el final con el cierre de lectores exacto (`errTxt`, que
+// ahora llama el pull de la nube de App), sin reanclas: las funciones que se borran no estaban en ningún alcance.
+test("Catálogo233 retira plan-gastos-232, aprobada (con tandas: []), abre auditorias-233 y hace crecer el registro con el cierre de lectores",()=>{
+  const nueva="auditorias-233";
+  const V14="src/modules/14-v4-screens.js",V02="src/modules/02-ui-shared.js",V08="src/modules/08-motor-bank.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/";
+  const integrated=JSON.parse(sourceBeta232("scripts/beta-sources.json")),before=JSON.parse(sourceBeta232("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta232(f));
+  assert.equal(before[0].v,"4.26.232");
+  const retiradas=before.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(retiradas,["plan-gastos-232"]);
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.equal(notes[0].v,"4.26.233");assert.equal(notes.length,before.length+1);
+  // Todo lo anterior intacto salvo la tanda aprobada, que deja la propiedad como lista vacía.
+  const esperado=before.map(n=>{const out=structuredClone(n);if(Array.isArray(out.tandas)&&out.tandas.length)out.tandas=[];return out;});
+  assert.deepEqual(notes.slice(1),esperado);
+  assert.deepEqual(notes.find(x=>x.v==="4.26.232").tandas,[],"4.26.232: retirada, la propiedad sigue como lista vacía");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[nueva],"solo la tanda nueva en el panel");
+  const n233=notes[0];
+  assert.deepEqual(n233.tandas.map(g=>g.id),[nueva]);assert.deepEqual(Object.keys(n233.tandas[0]),["id","t","items"],"sin APK nueva");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|UX-|SEC-|zoom|PRO-|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.ok(n233.items[lang].length>=3&&n233.items[lang].length<=4,lang+": tres o cuatro puntos familiares");
+    for(const text of [n233.t[lang],...n233.items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+    const steps=n233.tandas[0].items[lang];
+    assert.equal(steps.length,7,lang+": siete pasos, uno por cosa que se puede probar hoy");
+    assert.ok(steps.every((s,i)=>s.startsWith((i+1)+". ")),lang+": pasos numerados");
+    for(const step of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(step)&&/BIEN|RIGHT|BÉ/.test(step),lang+": cada paso dice qué es MAL y qué es BIEN");
+  }
+  // Registro: el descriptor nuevo, el último; los anteriores solo crecen por el final con el cierre de lectores exacto.
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),nueva],"el descriptor nuevo, el último");
+  const fns=logicFunctions(source),dat=logicData(source);
+  const cierre=(web0)=>{
+    let web=web0.slice();
+    for(let ronda=0;ronda<30;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  const esMiembros=u=>u.data==="cloud"&&u.members,sinMiembros=web=>web.map(u=>esMiembros(u)?{...u,members:undefined}:u);
+  for(const [key,scope0] of Object.entries(integrated)){
+    const scope=scope0;
+    const ahora=scopes[key];
+    assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
+    for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
+    if(key===archiveId){assert.deepEqual(ahora.web,scope0.web,key+": referencia fija, no crece");continue;}
+    const esperada=cierre(scope.web);
+    assert.deepEqual(sinMiembros(ahora.web.slice(0,scope.web.length)),sinMiembros(scope.web),key+": lo anterior intacto");
+    assert.deepEqual(sinMiembros(ahora.web),sinMiembros(esperada),key+": solo crece lo que el cierre de lectores exige, en su orden");
+    ahora.web.forEach((u,i)=>{if(esMiembros(u)&&i<scope.web.length)for(const m of scope.web[i].members)assert.ok(u.members.includes(m),key+": no pierde el miembro "+m);});
+  }
+  const fn=(file,names)=>names.map(function_=>({file,function:function_}));
+  const css=from=>({file:SH,from,to:"}"});
+  // Lo que se prueba en el panel: Apuntar y la ficha de un gasto (apertura ligera y teclado a la vista), los textos de Inicio y de
+  // Plan en modo sencillo, Deudas sin coral, la cifra de Gastos, Cartera (leyenda, tipo de cambio y cierres de saldo por clave), la
+  // serie de patrimonio, la frase de error y el CSS de contraste y de áreas táctiles que tiene regla propia.
+  const G=(({file,from,to})=>({file,from,to}))(integrated["recibo-quitar-deshacer"].web.find(u=>u.from&&u.from.includes("INC-0410 guardado: de aquí")));
+  const propias=[...fn(V14,["ApuntarSheet","PlanTab","CarteraTab"]),
+    ...fn("src/modules/04-tab-gastos.js",["Expenses","ExpenseDetailSheet","GxCifra"]),
+    ...fn("src/modules/03-tab-dash.js",["Dashboard"]),
+    ...fn("src/modules/09-tab-debts-goals.js",["Debts","DebtEditSheet"]),
+    ...fn("src/modules/07-tab-patri-fijos.js",["Wealth"]),
+    ...fn("src/modules/06-sync-brokers.js",["Investments"]),
+    ...fn(V02,["useSheetSwipe","mcEnsayarEnHueco","mcReduced","accountBalanceRows","netWorthSeries","netWorthDebtPolicy"]),
+    ...fn("src/modules/00-core.js",["errTxt"]),G,
+    ...["  .v4-sheet:has(>.v4-ficha-body[data-testid=\"ap\"]){","  .v4-ficha-body[data-testid=\"ap\"] > .v4-keys{","  .v4-ficha-amount.empty{",
+      "  .gx-dig{","  .v4-mov .nm-cat{","  html[data-theme=\"light\"] .v4-mov .nm-cat{","  .v4-ob-badge{","  html[data-theme=\"light\"] .v4-ob-badge{",
+      "  .pr6-mg-add{","  html[data-theme=\"light\"] .pr6-mg-add{","  .pr6-mg-add::after{","  .v4-debt-bal{","  .v4-debt-bar i{",
+      "  .v42-net-info:before{","  .helpq::after{","  .v4-legend-btn::after{","  .v4-legend:has(>.v4-legend-btn){","  .edit-link::after{","  .v4-theme-sw::after{"].map(css)];
+  {
+    const ahora=scopes[nueva];
+    assert.deepEqual(Object.keys(ahora),["web","unidades"],nueva+": claves");assert.equal(ahora.unidades,true);
+    assert.deepEqual(ahora.web.slice(0,propias.length),propias,nueva+": las unidades propias");
+    assert.deepEqual(ahora.web,cierre(propias),nueva+": el cierre de lectores es exactamente el calculado, en su orden");
+  }
+  // De la 232 cambian los textos, el motor (una función sin uso menos), las pantallas v4 y el shell; la APK y el nativo siguen
+  // idénticos. `ingest/index.ts` sí cambia (versión fija de supabase-js, sin desplegar) y por eso no está en la lista.
+  for(const file of ["src/modules/01-i18n.js",V08,V14,SH])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of [java+"AlertCheckWorker.java",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"TradeRepublicPlugin.java","supabase/functions/ingest/widget.ts","public/apk.json"])assert.equal(source(file),old(file),"idéntico: "+file);
+  const apk=JSON.parse(source("public/apk.json"));
+  assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
+  const current=betaRevision(nueva,source,undefined,scopes[nueva]);
+  assert.ok(current.web);assert.equal(current.native,undefined);assert.equal(current.edge,undefined,"la tanda nueva es solo web");
+  // Mutantes sobre la fuente real: tocar Apuntar o los cierres de saldo por clave reabre la huella de la tanda.
+  for(const [file,a] of [[V14,"function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){"],[V02,"function accountBalanceRows(state, shownAcc){"]]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(nueva,x=>x===file?source(x).replace(a,()=>a+" void 0;"):source(x),undefined,scopes[nueva]);
+    assert.notEqual(mutated.web,current.web,nueva+" reabre la tanda web: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.equal(receipt.web[nueva],current.web,"su huella llega al panel");
+  assert.deepEqual(receipt.pruebas,{[nueva]:{v:"4.26.233",contenido:JSON.stringify([nueva,g0.t.es,g0.items.es,1])}},"un guion por probar, el de la tanda nueva");
+});
+
 // 4.26.232 (13/11/2026): tres ramas sobre la beta 4.26.231 servida SIN veredicto (85e2d6d19): enlace con el ingreso de otro banco,
 // «abono» y nombre abreviado con alias (claude/231-enlace-otro-banco, revisión de dinero GO), el globo del filtro de Gastos
 // (claude/231-globo-filtro) y «Ver menos» que sube con la cifra del resumen siempre visible (claude/231-ver-menos). plan-gastos-231
 // se retira con tandas: [] y UNA tanda, plan-gastos-232, la cubre con lo nuevo. Registro: un descriptor nuevo, el último; los
 // anteriores solo crecen por el final con el cierre de lectores exacto (sin reanclas ni funciones borradas).
-test("Catálogo232 sustituye plan-gastos-231 por plan-gastos-232 (con tandas: []) y hace crecer el registro con el cierre de lectores",()=>{
+test("Catálogo232 histórico sustituye plan-gastos-231 por plan-gastos-232 (con tandas: []) y hace crecer el registro con el cierre de lectores",()=>{
   const nueva="plan-gastos-232";
   const V14="src/modules/14-v4-screens.js",V02="src/modules/02-ui-shared.js",V08="src/modules/08-motor-bank.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta231("scripts/beta-sources.json")),before=JSON.parse(sourceBeta231("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta231(f));
+  const source=f=>nl(sourceBeta232(f)),old=f=>nl(sourceBeta231(f));
   assert.equal(before[0].v,"4.26.231");
   const retiradas=before.flatMap(n=>(n.tandas||[]).map(g=>g.id));
   assert.deepEqual(retiradas,["plan-gastos-231"]);
@@ -13284,7 +13393,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,99);assert.ok(dependientes.includes("plan-gastos-232"),"Recibos y Gastos 232 (lo de la 231 más el enlace de otro banco y el alias) escribe estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-gastos-231"),"Recibos y Gastos 231 (lo de la 230 más TeDebenSheet y la ficha de Gastos) escribe estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("recibos-230"),"Recibos 230 (ReciboPasos para lo que entra, FlujoFicha, BillsManagePush) escribe estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("recibos-retoques-229"),"los retoques de Recibos de la 229 (ReciboPasos, BillsManagePush) escriben estado con el set real: llevan el bloque del guardado");assert.ok(dependientes.includes("recibos-zona-pulida"),"la zona Recibos (ReciboPasos, ReciboFicha) escribe estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("recibo-anual-mes"),"el alta de recibos (ReciboPasos) y «Ya me lo ha pagado» (TeDebenSheet) escriben estado con el set real: lleva el bloque del guardado");assert.ok(!dependientes.includes("plan-velo-fundido"),"el velo de las hojas no escribe estado: no lleva el bloque del guardado");assert.ok(dependientes.includes("traspaso-propio-confirmado"),"las fichas de Gastos escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("deuda-lo-descuento"),"las hojas de persona, de recibo y de Editar deuda escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("tr-inversion-mensual"),"confirmar la aportación mensual (Expenses) y el pull/import de App escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("deuda-ponle-dia"),"las hojas de Deudas y Plan escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t6"),"la foto del mes y la importación escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t5"),"las hojas de reparto, «Ya me lo ha pagado» y las personas escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-qa"),"marcar la cuota a mano (setCuota de Expenses) y las hojas de Recibos escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-guardar-pagado"),"guardar un recibo pagado sin cambios escribe con el set real (patchFixedById): lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t4"),"añadir y editar recibos por pasos escribe con el set real (BillsManagePush): lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t3"),"la nómina editable (patchFlowById), corregir saldo y la importación de TR escriben con el set real: «¿Te llega?» lleva el bloque del guardado");
+  assert.equal(dependientes.length,100);assert.ok(dependientes.includes("auditorias-233"),"las auditorías de la 233 (Apuntar, las fichas de Gastos y Editar deuda) escriben estado con el set real: llevan el bloque del guardado");assert.ok(dependientes.includes("plan-gastos-232"),"Recibos y Gastos 232 (lo de la 231 más el enlace de otro banco y el alias) escribe estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-gastos-231"),"Recibos y Gastos 231 (lo de la 230 más TeDebenSheet y la ficha de Gastos) escribe estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("recibos-230"),"Recibos 230 (ReciboPasos para lo que entra, FlujoFicha, BillsManagePush) escribe estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("recibos-retoques-229"),"los retoques de Recibos de la 229 (ReciboPasos, BillsManagePush) escriben estado con el set real: llevan el bloque del guardado");assert.ok(dependientes.includes("recibos-zona-pulida"),"la zona Recibos (ReciboPasos, ReciboFicha) escribe estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("recibo-anual-mes"),"el alta de recibos (ReciboPasos) y «Ya me lo ha pagado» (TeDebenSheet) escriben estado con el set real: lleva el bloque del guardado");assert.ok(!dependientes.includes("plan-velo-fundido"),"el velo de las hojas no escribe estado: no lleva el bloque del guardado");assert.ok(dependientes.includes("traspaso-propio-confirmado"),"las fichas de Gastos escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("deuda-lo-descuento"),"las hojas de persona, de recibo y de Editar deuda escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("tr-inversion-mensual"),"confirmar la aportación mensual (Expenses) y el pull/import de App escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("deuda-ponle-dia"),"las hojas de Deudas y Plan escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t6"),"la foto del mes y la importación escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t5"),"las hojas de reparto, «Ya me lo ha pagado» y las personas escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-qa"),"marcar la cuota a mano (setCuota de Expenses) y las hojas de Recibos escriben estado con el set real: lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-guardar-pagado"),"guardar un recibo pagado sin cambios escribe con el set real (patchFixedById): lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t4"),"añadir y editar recibos por pasos escribe con el set real (BillsManagePush): lleva el bloque del guardado");assert.ok(dependientes.includes("plan-recibos-t3"),"la nómina editable (patchFlowById), corregir saldo y la importación de TR escriben con el set real: «¿Te llega?» lleva el bloque del guardado");
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");

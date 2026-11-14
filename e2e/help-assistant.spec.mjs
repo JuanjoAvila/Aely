@@ -109,7 +109,8 @@ test("Ajustes revoca OpenAI y volver a activarlo exige consentimiento informado"
   await page.getByRole("button",{name:/Tu cuenta/i}).click();
   const toggle=page.locator("button.set-row").filter({hasText:/Más ayuda con OpenAI|OpenAI/i});
   await expect(toggle).toBeVisible();
-  await expect(page.getByText(/No cambia las respuestas normales/i)).toBeVisible();
+  // Desde la 4.26.233 la nota es una línea; sigue diciendo lo que importa: solo sale la pregunta, nunca tus cifras.
+  await expect(page.getByText(/Solo envía la pregunta escrita, nunca tus cifras/i)).toBeVisible();
   await toggle.click();
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.helpAiOk)).toBe(false);
   await toggle.click();

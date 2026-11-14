@@ -109,7 +109,8 @@ test("offline al descargar conserva estado y permite reintento; copia abierta si
   const server=backupCloud();await withCopy(page,server,s=>({...s,expenses:[expense(1)]}));
   const before=await halves(page);
   server.setOffline(true);await page.getByRole("button",{name:"Ver copia",exact:true}).click();
-  await expect(page.getByText(/OPS02 sin red sintética/)).toBeVisible();expect(await halves(page)).toEqual(before);
+  // Desde la 4.26.233 el aviso es una frase traducida (`errTxt`), nunca el mensaje crudo del fallo.
+  await expect(page.getByText("✕ No ha salido bien. Prueba otra vez.")).toBeVisible();await expect(page.getByText(/OPS02 sin red sintética/)).toHaveCount(0);expect(await halves(page)).toEqual(before);
   server.setOffline(false);await viewCopy(page);server.setOffline(true);
   await page.locator(".bk-preview").getByRole("button",{name:/Solo en la copia/}).click();
   await expect(page.locator(".bk-expense")).toContainText(ids[1]);

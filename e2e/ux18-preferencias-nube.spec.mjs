@@ -53,10 +53,13 @@ async function harness(browser,baseURL,info,{holdFirst=false,failPack=false,hold
     // El gancho se pone en cuanto ReactDOM existe, no en DOMContentLoaded: si la app monta
     // antes de ese evento, __ux18Root quedaba sin poner y el desmontaje fallaba (main, 26/10).
     // El UMD asigna `ReactDOM = {}` y rellena después, por eso se intercepta createRoot como propiedad.
+    // Solo la raíz que monta en #root: desde la 4.26.233 la app crea otras raíces sueltas para
+    // ensayar en seco Apuntar y la ficha de un gasto, y quedarse con la ÚLTIMA desmontaba un ensayo
+    // ya desmontado mientras App seguía viva (el rojo parecía un repintado tras desmontar).
     const wrapRoot=R=>{
       if(!R||R.__ux18p)return R;let real=R.createRoot;
       Object.defineProperty(R,"createRoot",{configurable:true,enumerable:true,
-        get(){return real&&function(...args){const root=real.apply(this,args);window.__ux18Root=root;return root;};},
+        get(){return real&&function(...args){const root=real.apply(this,args);if(args[0]&&args[0].id==="root")window.__ux18Root=root;return root;};},
         set(fn){real=fn;}});
       Object.defineProperty(R,"__ux18p",{value:1});return R;
     };
