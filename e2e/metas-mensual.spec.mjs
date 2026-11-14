@@ -149,7 +149,7 @@ for(const lang of Object.keys(textos)){
     await expect.poll(()=>page.evaluate(()=>window.__mensualPulls)).toBe(1);
     await page.evaluate(()=>window.__mensualReject(new Error("fallo sintetico")));
     // Dejar terminar la promesa evita que un segundo evento mida el bloqueo del vuelo anterior.
-    await expect(page.locator(".toast")).toContainText(/No ha salido bien|That didn't work|No ha sortit bé/);
+    await expect(page.locator(".toast")).toContainText(/traer lo de la nube|from the cloud|del núvol/);
     await saved(page,100);
     expect((await disk(page)).reservaLog).toHaveLength(1);
     await volver(page);

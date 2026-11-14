@@ -42,6 +42,29 @@ test("Plan sencillo: la cifra es el total y la frase dice de qué banco salen su
   await expect(frase).not.toContainText(/Te quedan|v4_plan_state/);
 });
 
+// Sin cuenta de ese banco su saldo no se sabe: ni banco ni «te quedarías» (revisión de dinero 233).
+for (const [caso, recibo, cuenta] of [
+  ["banco sin cuenta", { account: "bbva" }, { id: "sb", ent: "sabadell", name: "Cuenta A", value: 800, role: "fijos" }],
+  ["recibo sin banco", {}, { id: "bb", ent: "bbva", name: "Cuenta B", value: 800, role: "fijos" }],
+]) {
+  test(`Plan sencillo, ${caso}: no inventa banco ni saldo`, async ({ page }) => {
+    await abre(page, {
+      accounts: [cuenta],
+      fixed: [Object.assign({ id: "gas", name: "Gas ficticio", amount: 50, freq: "mes", day: 20 }, recibo)],
+      debts: [], oneoffs: [], flows: [], budget: 500,
+      settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
+    });
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    const cover = page.locator(".page-live .v4-plan-cover-simple");
+    await expect(cover.locator(".v4-plan-simple-amt")).toHaveText(/^50\s*€$/);
+    await expect(cover.locator(".ph").first()).toHaveText(/^Te quedan 50\s*€ de recibos\.$/);
+    await expect(cover).not.toContainText(/salen de|quedarías|bajarías|-50/);
+    // Tampoco un titular de «bien» o «corto»: sale de un saldo que no se sabe.
+    await expect(cover).not.toContainText(/Vas bien|Ojo este mes|se queda corto/);
+    await expect(cover).toHaveAttribute("data-plan-state", "unknown");
+  });
+}
+
 for (const [lang, libres] of [["es", "libres de"], ["en", "left of"], ["ca", "lliures de"]]) {
   test(`${lang}: Inicio dice que la cifra del ciclo es lo que queda, y <html lang> sigue al idioma`, async ({ page }) => {
     await abre(page, { budget: 1000, settings: { autoPrices: false, theme: "green", lang } });

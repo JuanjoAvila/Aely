@@ -154,7 +154,8 @@ function mcLogCode(err){
    resto, la genérica. Un error lanzado con una clave de LANG por mensaje se traduce, y uno que ya
    viene traducido (`throw new Error(t("exp_pull_invalid"))`) se enseña tal cual.
    El detalle va a la consola como clase cerrada (`mcLogCode`, SEC-03), no a la pantalla. */
-function errTxt(e){
+// `generica`: la frase de reserva de ese sitio (p. ej. que lo que falló es la nube).
+function errTxt(e,generica){
   const m=String((e&&e.message)||e||"");
   try{ console.warn("toast:",mcLogCode(e)); }catch(_){}
   if(m&&Object.values(LANG[CURLANG]||LANG.es).indexOf(m)>=0) return "✕ "+m;
@@ -164,7 +165,7 @@ function errTxt(e){
     :/already (been )?registered/i.test(m)?"err_registered"
     :/email not confirmed/i.test(m)?"err_unconfirmed"
     :/failed to fetch|network|load failed/i.test(m)||(typeof navigator!=="undefined"&&navigator.onLine===false)?"err_offline"
-    :"err_generic";
+    :generica||"err_generic";
   return "✕ "+t(k);
 }
 function mcLogText(raw){
