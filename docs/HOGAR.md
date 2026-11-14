@@ -28,6 +28,10 @@ Des-compartir = salir del hogar (borra tu snapshot, no toca el `app_state` del o
    (error real del 2026-07-18 al crear un hogar): reconstruye TODAS las políticas de
    las 3 tablas (a la BD le faltaba la de INSERT) y además deja visible el hogar recién
    creado para su creador. Idempotente.
+4. `0027_hogar_funciones_sin_anon.sql` (14/11/2026, en fuente, sin aplicar) — quita a `anon` el
+   EXECUTE de `join_household_by_code` e `is_household_member` (Supabase se lo da explícito a cada
+   función nueva y el `revoke … from public` de 0013–0022 no lo quitaba). No cambia nada con
+   sesión: las políticas son `to authenticated`. Idempotente.
 
 > **Desde 2026-07-18 el CI aplica las migraciones solo** (workflow «Deploy Supabase»,
 > `db push --include-all`; antes abortaba en silencio por las dos «0012» aplicadas a mano).
