@@ -363,11 +363,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
   React.useEffect(function(){
     if(parte!=="cuentas"||!balanceReady) return;
     const today=netWorthDay();
-    const rows=(state.accounts||[]).map(function(a){
-      return {key:a.accountOrderKey||("acc:"+a.id),value:+Number(shownAcc(a)).toFixed(2)};
-    }).concat((state.obAccounts||[]).map(function(o){
-      return {key:"ob:"+o.key,value:toEurAmt(o.value||0,o.cur||"EUR",state)};
-    })).filter(function(r){ return r.key&&r.value!=null&&Number.isFinite(r.value); });
+    const rows=accountBalanceRows(state,shownAcc);
     const current=state.accountBalanceHistory||{};
     const needs=rows.some(function(r){
       const list=current[r.key]||[], last=list[list.length-1];
