@@ -11717,9 +11717,12 @@ function netWorthDay(nowMs){
   const p=madridYmdParts(nowMs==null?Date.now():nowMs);
   return p.ym+"-"+String(p.d).padStart(2,"0");
 }
-/* La deuda de un día pasado solo depende de la lista de deudas y de hoy: se guarda por lista entre
+/* La deuda de un día pasado solo depende de las deudas y de hoy: se guarda por lista entre
    llamadas. La serie la pide para cada día de tres años cada vez que cambia un gasto, y las deudas
-   no han cambiado (14/11/2026). Otra lista u otro «hoy» empiezan de cero. */
+   no han cambiado (14/11/2026). Otra lista, otro «hoy» u otro contenido empiezan de cero: la firma
+   lleva las deudas enteras, así que tampoco se fía de que nadie cambie una en el sitio (hoy no lo
+   hace nadie, pero esta caché sobrevive a los cambios de gastos y un despiste futuro dejaría la
+   deuda de la gráfica vieja; revisión de dinero, 15/11/2026). */
 const _nwDebtDays=new WeakMap();
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
@@ -11785,8 +11788,9 @@ function netWorthDebtPolicy(state, today, current){
   });
   const sum=function(day){ return debts.reduce(function(n,d,i){ return n+at(d,day,startDays[i]); },0); };
   const value=current!=null?current:sum(today);
+  const sig=today+"|"+JSON.stringify(debts);
   let days=_nwDebtDays.get(debts);
-  if(!days||days.today!==today){ days={today:today,by:new Map()}; _nwDebtDays.set(debts,days); }
+  if(!days||days.sig!==sig){ days={sig:sig,by:new Map()}; _nwDebtDays.set(debts,days); }
   const past=function(day){ let v=days.by.get(day); if(v===undefined){ v=sum(day); days.by.set(day,v); } return v; };
   return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:past(day); }};
 }
@@ -11924,10 +11928,14 @@ function netWorthSeries(state, options){
       (e.status&&String(e.status).toUpperCase()!=="BOOK")) return;
     const bank=expenseBankOf(e);if(!owned[bank]) return;
     let m=memo.get(e);
-    if(!m||m.date!==e.date||m.merchant!==e.merchant){
+    // Una fecha sin zona («2026-11-10T23:30:00», «10/11/2026») se lee en la hora del móvil: si el
+    // móvil cambia de zona con la app abierta (de viaje), su instante es otro y la entrada no vale.
+    // `off` es el desfase que tenía ese instante al calcularla; con zona en la fecha, null.
+    if(!m||m.date!==e.date||m.merchant!==e.merchant||(m.off!==null&&new Date(m.ms).getTimezoneOffset()!==m.off)){
       const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
-      m={date:e.date,merchant:e.merchant,ms:ms,day:"",civil:0,atm:false};
+      m={date:e.date,merchant:e.merchant,ms:ms,day:"",civil:0,atm:false,off:null};
       if(Number.isFinite(ms)){
+        if(!/^\d{4}-\d{2}-\d{2}(?:T.*(?:Z|[+-]\d{2}:?\d{2}))?$/i.test(raw)) m.off=new Date(ms).getTimezoneOffset();
         const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
         m.day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);m.civil=Date.parse(m.day)/864e5;m.atm=isAtmWithdrawal(e.merchant);
       }
