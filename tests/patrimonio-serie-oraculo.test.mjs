@@ -205,7 +205,7 @@ for (let semilla = 1; semilla <= 12; semilla++) {
 
 // 5) El oráculo distingue: una caché que no mirase la fecha de la fila daría otra serie.
 {
-  const sinGuardia = html.replace("if(!m||m.date!==e.date||m.merchant!==e.merchant){", "if(!m){");
+  const sinGuardia = html.replace("if(!m||m.date!==e.date||m.merchant!==e.merchant||", "if(!m||");
   assert.notEqual(sinGuardia, html, "mutante sobre fuente real: la guardia de la caché por fila");
   const mut = loadPureLogic(sinGuardia), s0 = cartera(historico(200, 31));
   mut.netWorthSeries(s0, { today: HOY });
@@ -213,7 +213,7 @@ for (let semilla = 1; semilla <= 12; semilla++) {
   const s1 = { ...s0, expenses: s0.expenses.slice() };
   viejo.netWorthSeries.cache = [];
   assert.notDeepEqual(plain(mut.netWorthSeries(s1, { today: HOY })), plain(viejo.netWorthSeries(s1, { today: HOY })), "sin la guardia, una fila cambiada en el sitio deja la serie vieja");
-  const sinHoy = html.replace("if(!days||days.today!==today){", "if(!days){");
+  const sinHoy = html.replace("if(!days||days.sig!==sig){", "if(!days){");
   assert.notEqual(sinHoy, html, "mutante sobre fuente real: la deuda por día mira qué día es hoy");
   const mut2 = loadPureLogic(sinHoy), s2 = cartera(historico(120, 32));
   mut2.netWorthSeries(s2, { today: HOY });
@@ -221,4 +221,71 @@ for (let semilla = 1; semilla <= 12; semilla++) {
   assert.notDeepEqual(plain(mut2.netWorthSeries(s2, { today: "2026-10-04" })), plain(viejo.netWorthSeries(s2, { today: "2026-10-04" })), "sin mirar hoy, la deuda de ayer se queda con la de la semana pasada");
 }
 
-console.log("patrimonio-serie-oraculo: " + comparadas + " series (" + puntos + " puntos) idénticas a la función de antes, al céntimo, con las cachés llenas y en frío; 2 mutantes de caché muertos OK");
+// 6) Una deuda cambiada EN EL SITIO (misma lista, mismo objeto). Hoy la app no lo hace en ningún
+//    sitio, pero la caché de deuda sobrevive a los cambios de gastos: si algún día alguien lo
+//    hiciera, la gráfica no puede quedarse con la deuda de antes. Llega un gasto (lista nueva) para
+//    que la serie se rehaga, que es como pasaría de verdad.
+{
+  const gasto = (id) => ({ id, date: HOY + "T09:00:00Z", amount: 5, merchant: "Café sintético", category: "bares", ent: "sabadell", source: "manual" });
+  let s = cartera(historico(250, 41));
+  igual(s, { today: HOY }, "deuda en el sitio, antes");
+  s.debts[0].value -= 5000; s.debts[1].monthly = 250; s.debts[2].months = 9;
+  s = { ...s, expenses: s.expenses.concat([gasto("d1")]) };
+  igual(s, { today: HOY }, "deuda cambiada en el sitio: saldo, cuota y plazo");
+  s.debts[0].apr = "3,2"; s.debts.push({ id: "extra", ent: "familia", name: "Deuda sintética añadida en el sitio", value: 1200, original: 1200, monthly: 100, amort: 100, months: 12, day: 9, asOf: 2026 * 12 + 4, account: "sabadell" });
+  s = { ...s, expenses: s.expenses.concat([gasto("d2")]) };
+  igual(s, { today: HOY }, "tipo cambiado y deuda añadida a la misma lista");
+  s.debts.splice(1, 1);
+  s = { ...s, expenses: s.expenses.concat([gasto("d3")]) };
+  igualEnFrio(s, { today: HOY }, "deuda quitada de la misma lista");
+  // Y el mutante: una caché que solo mirase la lista y el día se quedaría con la deuda vieja.
+  const sinFirma = html.replace('const sig=today+"|"+JSON.stringify(debts);', "const sig=today;");
+  assert.notEqual(sinFirma, html, "mutante sobre fuente real: la firma de la caché de deuda lleva su contenido");
+  const mut = loadPureLogic(sinFirma); let m0 = cartera(historico(120, 42));
+  mut.netWorthSeries(m0, { today: HOY });
+  m0.debts[0].value -= 5000; m0 = { ...m0, expenses: m0.expenses.concat([gasto("d4")]) };
+  viejo.netWorthSeries.cache = [];
+  assert.notDeepEqual(plain(mut.netWorthSeries(m0, { today: HOY })), plain(viejo.netWorthSeries(m0, { today: HOY })), "sin la firma, una deuda cambiada en el sitio deja la gráfica con la deuda de antes");
+}
+
+// 7) El móvil cambia de zona horaria con la app abierta (de viaje). Una fecha SIN zona se lee en la
+//    hora local: a las 23:30 de Madrid le corresponde otro instante en Nueva York, y con él puede
+//    caer en otro día de Madrid. La función de antes lo recalculaba en cada llamada; la caché por
+//    fila tiene que notarlo. (`dd/mm/aaaa` ya se quedaba con la zona de la primera lectura en la
+//    232, por la caché de `_pdMs`: aquí solo se comprueba que sigue igual que antes.)
+{
+  const zonaDeAntes = process.env.TZ;
+  const pon = (z) => { if (z == null) delete process.env.TZ; else process.env.TZ = z; };
+  try {
+    pon("Europe/Madrid");
+    const filas = [
+      { id: "z1", date: "2026-09-10T23:30:00", amount: 500, merchant: "Compra sin zona", category: "compras", ent: "sabadell", source: "manual" },
+      { id: "z2", date: "2026-09-12T00:15:00", amount: 70.5, merchant: "Otra sin zona", category: "compras", ent: "sabadell", source: "manual" },
+      { id: "z3", date: "2026-09-14T23:30:00Z", amount: 20, merchant: "Con zona", category: "compras", ent: "sabadell", source: "manual" },
+      { id: "z4", date: "2026-09-15", amount: 30, merchant: "Solo día", category: "compras", ent: "sabadell", source: "manual" },
+      { id: "z5", date: "16/09/2026", amount: 40, merchant: "Día, mes y año", category: "compras", ent: "sabadell", source: "manual" }];
+    let s = cartera(historico(150, 51).concat(filas));
+    const enMadrid = plain(igual(s, { today: HOY }, "zona: Madrid"));
+    for (const zona of ["America/New_York", "Asia/Tokyo", "Europe/Madrid", "UTC", "Pacific/Auckland"]) {
+      pon(zona);
+      s = { ...s, expenses: s.expenses.slice() };
+      igual(s, { today: HOY }, "zona: " + zona);
+    }
+    pon("America/New_York");
+    s = { ...s, expenses: s.expenses.slice() };
+    const enNuevaYork = plain(igual(s, { today: HOY }, "zona: Nueva York otra vez"));
+    assert.notDeepEqual(enNuevaYork, enMadrid, "el caso no prueba nada: la serie sale igual en Madrid y en Nueva York");
+    // El mutante: sin el desfase en la guardia, la fila se queda con el día que tenía en Madrid.
+    const sinZona = html.replace("||(m.off!==null&&new Date(m.ms).getTimezoneOffset()!==m.off)){", "){");
+    assert.notEqual(sinZona, html, "mutante sobre fuente real: la guardia de la caché por fila mira la zona");
+    pon("Europe/Madrid");
+    const mut = loadPureLogic(sinZona); let m0 = cartera(historico(150, 52).concat(filas.map((f) => ({ ...f }))));
+    mut.netWorthSeries(m0, { today: HOY });
+    pon("America/New_York");
+    m0 = { ...m0, expenses: m0.expenses.slice() };
+    viejo.netWorthSeries.cache = [];
+    assert.notDeepEqual(plain(mut.netWorthSeries(m0, { today: HOY })), plain(viejo.netWorthSeries(m0, { today: HOY })), "sin mirar la zona, una fecha sin zona se queda en el día de la zona anterior");
+  } finally { pon(zonaDeAntes); }
+}
+
+console.log("patrimonio-serie-oraculo: " + comparadas + " series (" + puntos + " puntos) idénticas a la función de antes, al céntimo, con las cachés llenas y en frío; 4 mutantes de caché muertos OK");
