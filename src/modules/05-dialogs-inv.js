@@ -94,13 +94,7 @@ function AskHost(){
       if(!root) return;
       if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); cancel(); return; }
       if(e.key!=="Tab") return;
-      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
-        .filter(function(el){ return el.getClientRects().length>0; });
-      if(!focusable.length){ e.preventDefault(); root.focus(); return; }
-      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
-      const at=focusable.indexOf(active);
-      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+      if(!mcTabTrap(e,root)){ e.preventDefault(); root.focus(); }
     };
     document.addEventListener("keydown",keydown);
     return function(){

@@ -2055,6 +2055,20 @@ function mcSheetUnlock(soloVelo){
     document.documentElement.classList.remove("sheet-open");
   }
 }
+/* TRAMPA DE TAB DE UN DIÁLOGO, una sola para todos (estaba copiada siete veces, con el selector y
+   el filtro un poco distintos en cada una). Tab desde el último enfocable —o desde fuera de la
+   lista, como el título con tabIndex=-1— va al primero; Mayús+Tab desde el primero o desde fuera,
+   al último. Enfocable: a la vista, sin `disabled` y fuera de un `inert`. Devuelve false si no hay
+   ninguno, y quien llama decide qué hacer con la tecla. */
+function mcTabTrap(e, root){
+  const list=Array.prototype.filter.call(root.querySelectorAll('button,a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'),
+    function(el){ return !el.disabled&&el.getClientRects().length>0&&!el.closest("[inert]"); });
+  if(!list.length) return false;
+  const first=list[0], last=list[list.length-1], at=list.indexOf(document.activeElement);
+  if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey&&(at<0||at===list.length-1)){ e.preventDefault(); first.focus(); }
+  return true;
+}
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
    Un gesto que empezó desplazando contenido le pertenece entero al scroller; solo una bajada
    NUEVA, ya desde el borde superior, mueve la hoja. Transferirlo a mitad era el salto del vídeo. */
