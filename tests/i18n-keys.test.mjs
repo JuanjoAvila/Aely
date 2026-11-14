@@ -145,5 +145,28 @@ if (phMismatch.length) {
   console.log("  ✓ los placeholders {x} cuadran en los tres idiomas");
 }
 
+// 4) Y al revés: toda clave definida se usa en algún sitio. La auditoría del 14/11/2026 encontró
+//    60 claves sin uso (×3 idiomas) que viajaban en cada descarga con el presupuesto al 99 %.
+//    «Se usa» = aparece como literal en src/ (cualquier comilla, no solo dentro de t()) o la
+//    alcanza un prefijo dinámico pegado a un `+` (`t("cat_"+id)`). El prefijo tiene que llevar
+//    «_» y 3 letras: `"g_"+preset` o un `"v"+x` cualquiera darían por usadas decenas de claves.
+//    Una clave nueva que solo se forme a trozos se escribe como prefijo: `"gv5_more"+sd`.
+{
+  let all = fs.readFileSync(path.join(root, "src", "shell.html"), "utf8");
+  for (const f of fs.readdirSync(modulesDir)) if (f.endsWith(".js")) all += "\n" + fs.readFileSync(path.join(modulesDir, f), "utf8");
+  all = all.replace(/^\s*"[A-Za-z0-9_]+"\s*:/gm, ""); // `  "clave": "…"` a principio de línea es una definición
+  const lits = new Set([...all.matchAll(/(["'`])([A-Za-z0-9_]+)\1/g)].map((m) => m[2]));
+  const prefixes = [...new Set([...all.matchAll(/["'`]([A-Za-z0-9_]+)["'`]\s*\+/g)].map((m) => m[1]))]
+    .filter((p) => p.includes("_") && p.length >= 3);
+  const orphans = Object.keys(LANG.es).filter((k) => !lits.has(k) && !prefixes.some((p) => k.startsWith(p)));
+  if (orphans.length) {
+    failed++;
+    console.log(`  ✗ ${orphans.length} clave(s) definidas que no usa nadie (bórralas en los tres idiomas):`);
+    for (const k of orphans.slice(0, 40)) console.log("      " + k);
+  } else {
+    console.log("  ✓ ninguna clave definida sin uso");
+  }
+}
+
 console.log(failed ? "\ni18n-keys: FALLA" : "\ni18n-keys: OK");
 process.exit(failed ? 1 : 0);

@@ -145,13 +145,13 @@ test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píl
   await expect(sab).toContainText("Recibos que faltan− 930,00 €");
   await expect(sab.getByTestId("llega-cifra")).toHaveText("te faltan130,00 €");
   await expect(sab.getByTestId("llega-tip")).toHaveText("Pasa 130 € a Sabadell antes del 25");
-  // Inicio: el mismo saldo y el Teléfono como vencido sin pago acreditado, por su importe.
+  // Inicio: el mismo saldo y el Teléfono en «Para revisar» como «No ha llegado», por su importe.
   await page.locator(".v4-sheet-back").first().click({ position: { x: 20, y: 20 } });
   await expect(hoja).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
-  const inicio = page.locator(".page-live").filter({ hasText: "Cargos vencidos" });
+  const inicio = page.locator(".page-live").filter({ hasText: "Para revisar" });
   await expect(inicio).toContainText("800,00 €");
-  await expect(inicio).toContainText(/Teléfono\s*Sabadell · Sin pago acreditado\s*30,00 €/);
+  await expect(inicio).toContainText(/Teléfono\s*Sabadell · No ha llegado\s*30,00 €/);
   expect(await saldoVisto(page)).toEqual([800]);
   // El mínimo que usa Inicio (`totals.minByBank`, el del widget y el mínimo diario) sale de la
   // misma lista de eventos que la hoja: −130 desde el mismo saldo.

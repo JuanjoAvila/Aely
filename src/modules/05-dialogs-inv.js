@@ -7,12 +7,13 @@
    askText → Promise<string|null> (null = canceló) · askConfirm → Promise<bool>.
    Son PROMESAS: el prompt nativo era síncrono, así que al portar un sitio hay que mover lo
    de después dentro del .then() (ojo con los early-return del patrón viejo).
-   Si el host no está montado (p.ej. la pantalla del candado, que va antes que el árbol de la
-   app) caen al diálogo nativo: feo, pero nunca se pierde la acción. */
+   Sin host montado ya NO caen al diálogo nativo (auditoría 14/11/2026: era el último camino a
+   «CANCEL/OK»): cuentan como «cancelar». La pantalla del candado, que era el caso, monta su
+   propio `AskHost` (ver el `if(locked)` de App). */
 var askEmit=null;
 function askDialog(o){
   return new Promise(function(resolve){
-    if(!askEmit){ resolve(o.input?window.prompt(o.title,o.value||""):window.confirm(o.title)); return; }
+    if(!askEmit){ try{ console.warn("askDialog sin AskHost"); }catch(e){} resolve(o.input?null:false); return; }
     askEmit(Object.assign({},o,{resolve:resolve}));
   });
 }
@@ -23,11 +24,11 @@ function askConfirm(o){ return askDialog(Object.assign({input:false},o)); }
    Con `askConfirm` habría que inventarse cuál de las dos cosas es «aceptar», y eso es adivinar con
    su dinero — que es justo lo que no queremos.
    `options`: [{v, label, sub}]. Resuelve con el `v` elegido, o `null` si cancela.
-   Sin `AskHost` montado cae a `confirm()` con la PRIMERA opción, para no perder la acción. */
+   Sin `AskHost` montado, como `askDialog`: cancelar. */
 function askChoice(o){
   const opts=(o&&o.options)||[];
   return new Promise(function(resolve){
-    if(!askEmit){ resolve(window.confirm(o.title)? (opts[0]&&opts[0].v) : null); return; }
+    if(!askEmit){ resolve(null); return; }
     askEmit(Object.assign({},o,{input:false,options:opts,resolve:resolve}));
   });
 }

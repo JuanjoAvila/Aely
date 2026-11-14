@@ -1059,7 +1059,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
               !missingFx && React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
               state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
               state.investments.length>0&&!missingFx && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
-        React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?fx.toFixed(4):"—"}))),
+        React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?Number(fx).toLocaleString(loc(),{maximumFractionDigits:4}):"—"}))),
 
       React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:22}},
         React.createElement("span",null,t("iv_where")),
@@ -1210,7 +1210,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     ),
     React.createElement("div",{className:"hint",style:{padding:"0 4px"}}, editing
       ? t("inv_hint_edit")
-      : tf("inv_hint_view",{fx:fx}))
+      // El tipo con 4 decimales y la coma de cada idioma: salía «0.904813608397» (auditoría 14/11/2026).
+      : tf("inv_hint_view",{fx:fx>0?Number(fx).toLocaleString(loc(),{maximumFractionDigits:4}):"—"}))
   );
 }
 

@@ -244,7 +244,7 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=text;  g.font="700 64px Manrope, sans-serif"; g.fillText(eur0(tt.netWorth), 112, py+80);
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
-      if(!b){ if(showToast) showToast("✕ Informe: canvas vacío"); return; }
+      if(!b){ if(showToast) showToast(errTxt()); return; }
       const fname="mi-cartera-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
@@ -272,7 +272,7 @@ function shareMonthReport(state, tt, showToast, opt){
         saidSaved();
       }
     },"image/png");
-  }catch(e){ if(showToast) showToast("✕ Informe: "+((e&&e.message)||e)); }
+  }catch(e){ if(showToast) showToast(errTxt(e)); }
 }
 
 /* ============================================================

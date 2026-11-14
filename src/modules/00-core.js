@@ -5025,12 +5025,13 @@ const bio = {
     const nat=natPlugin();
     if(nat){
       const r=await nat.bioAvailable();
-      if(!r || !r.available) throw new Error("Configura primero la huella o el bloqueo de pantalla del móvil");
+      // El mensaje es una clave de LANG: `errTxt` la enseña en el idioma de la app.
+      if(!r || !r.available) throw new Error("au_bio_need");
       await nat.bioVerify();                       // pide la huella YA, como el create() de WebAuthn
       store.set("bio_cred", { native:true });
       return true;
     }
-    if(!this.supported()) throw new Error("Este dispositivo/navegador no soporta huella");
+    if(!this.supported()) throw new Error("au_bio_nosupport");
     const cred = await navigator.credentials.create({ publicKey:{
       challenge: crypto.getRandomValues(new Uint8Array(32)),
       rp:{ id: location.hostname, name:"Aely" },

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 import fs from "node:fs";
 
-const settingsNames={es:"Ir a Ajustes",en:"Go to Settings",ca:"Ves a Ajustos"};
+const settingsNames={es:"Ir a Ajustes",en:"Go to Settings",ca:"Ves a Configuració"};
 
 // Con Plan vacío, Recibos enseña el primer uso («Empezar» abre el alta directa) y no hay
 // «Gestionar» (diseño de la v6 t6, 31/10). Los ensayos de Recibos miran el alta ENCIMA del hub,
