@@ -12,6 +12,7 @@ import { categorizar } from "../_shared/ingest_logic.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
 import { readInput } from "../_shared/request_body.ts";
+import { cuentaVeterana, cupoGlobal } from "../_shared/cupos.ts";
 
 // Misma lista que CATEGORIES en src/modules/00-core.js (más "otros").
 // Si añades una categoría y no está aquí, la IA no puede devolverla — el test
@@ -102,6 +103,16 @@ Deno.serve(withCors(async (req: Request) => {
   const gate = await rateLimit(admin, "categorize-ai:" + user.id, 40, 600);
   if (!gate.ok) {
     return json({ ok: true, category: "otros", source: "kw", ai: "limit" });
+  }
+  /* Y UN TOPE AL DÍA, POR USUARIO Y DE TODOS (P2-06, auditoría del 14/11). Con el registro abierto,
+     40 cada 10 minutos por cuenta no ponía techo a nada: bastaba con abrir cuentas. Las de menos de
+     una semana comparten un cupo global aparte y menor (`_shared/cupos.ts`), así un bucle de altas
+     no deja a la familia sin sugerencias. Al pasarse, lo mismo que arriba: «otros», nunca un error. */
+  const veterana = cuentaVeterana(user.created_at);
+  const global = cupoGlobal("categorize-ai", "day", veterana, { veterana: 3000, nueva: 300 }, 86400);
+  for (const [bucket, limit] of [["categorize-ai-day:" + user.id, veterana ? 300 : 60], [global.bucket, global.limit]] as const) {
+    const daily = await rateLimit(admin, bucket, limit, 86400);
+    if (!daily.ok) return json({ ok: true, category: "otros", source: "kw", ai: "limit" });
   }
 
   try {

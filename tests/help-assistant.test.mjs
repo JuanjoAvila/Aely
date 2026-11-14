@@ -108,11 +108,14 @@ assert.equal(ctx.helpCashWantsAccounts("where do I withdraw cash?"),false);
 console.log("  ✓ guías locales ES/EN/CA, intents y destinos desconocidos rechazados");
 
 const code=transformSync(fs.readFileSync("supabase/functions/help-assistant/index.ts","utf8"),{loader:"ts",format:"esm"}).code.replace(/^import[\s\S]*?;\s*$/gm,"");
+// Los cupos por antigüedad son el módulo REAL (P2-06): un doble aquí escondería el reparto.
+const cupos=(()=>{const m={exports:{}};new Function("module","exports",transformSync(fs.readFileSync("supabase/functions/_shared/cupos.ts","utf8"),{loader:"ts",format:"cjs"}).code)(m,m.exports);return m.exports;})();
 function environment(options={}){
   let handler; const calls=[]; const gates=[];
   const deps={
     Deno:{env:{get:k=>k==="AELY_HELP_AI_ENABLED"?(options.disabled?"":"true"):k==="OPENAI_API_KEY"?(options.noKey?"":"synthetic"):k==="OPENAI_HELP_MODEL"?(options.helpModel||""):"synthetic"},serve:f=>{handler=f;}},
-    createClient:()=>({auth:{getUser:async()=>({data:{user:options.unauthorized?null:{id:"synthetic-user"}},error:null})},from:()=>{throw Error("No debe leer datos financieros");}}),
+    createClient:()=>({auth:{getUser:async()=>({data:{user:options.unauthorized?null:{id:"synthetic-user",...(options.createdAt?{created_at:options.createdAt}:{})}},error:null})},from:()=>{throw Error("No debe leer datos financieros");}}),
+    cuentaVeterana:cupos.cuentaVeterana,cupoGlobal:cupos.cupoGlobal,
     withCors:f=>f,rateLimit:async(...args)=>{gates.push(args);return {ok:!options.limited&&!(options.dailyLimited&&gates.length===2)&&!(options.globalLimited&&gates.length===3),checked:!options.unchecked};},
     fetch:async(url,init)=>{
       calls.push({url,body:JSON.parse(init.body),signal:init.signal});
@@ -129,6 +132,19 @@ for(const options of [{noKey:true},{disabled:true},{limited:true},{dailyLimited:
   const e=environment(options);const r=await e.handler(request());assert.notEqual(r.status,200);assert.equal(e.calls.length,0);
 }
 console.log("  ✓ sin sesión, clave o límite comprobado no hay llamada de pago");
+{
+  // P2-06: la cuenta de siempre usa el cupo global de la familia; la recién creada, uno aparte y menor.
+  const old=new Date(Date.now()-30*864e5).toISOString(), fresh=new Date(Date.now()-864e5).toISOString();
+  const v=environment({createdAt:old});await v.handler(request());
+  assert.deepEqual(v.gates.map(g=>[g[1],g[2],g[3]]),[["help-assistant:synthetic-user",15,600],["help-assistant-day:synthetic-user",30,86400],["help-assistant-total-day",1000,86400]]);
+  for(const createdAt of [fresh,undefined,"no-es-fecha"]){
+    const n=environment({createdAt});await n.handler(request());
+    assert.deepEqual(n.gates.map(g=>[g[1],g[2],g[3]]),[["help-assistant:synthetic-user",15,600],["help-assistant-day:synthetic-user",10,86400],["help-assistant-new-day",100,86400]]);
+  }
+  assert.equal(cupos.cuentaVeterana(new Date(Date.now()-cupos.ANTIGUEDAD_VETERANA_MS-1).toISOString()),true);
+  assert.equal(cupos.cuentaVeterana(new Date(Date.now()-cupos.ANTIGUEDAD_VETERANA_MS+60000).toISOString()),false);
+}
+console.log("  ✓ cuentas nuevas no agotan el cupo global de las de siempre");
 {
   const e=environment();
   for(const req of [request({},""),request({question:5}),request({question:"x".repeat(601)}),request({question:"x",extra:"y".repeat(4096)})]) assert.notEqual((await e.handler(req)).status,200);

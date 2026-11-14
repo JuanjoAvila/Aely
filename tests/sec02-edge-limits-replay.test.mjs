@@ -56,6 +56,19 @@ await check('cuota diaria/global y RPC averiado cierran ANTES del proveedor', as
   assert.equal((await h.request()).status, 503); assert.equal(h.runtime.fetches.length, 0);
   assert.equal(JSON.stringify(h.runtime.logs).includes('private synthetic failure'), false);
 });
+await check('cuenta recién creada usa cupos menores y el global de nuevas, no el de la familia', async () => {
+  const db = quotaDb(), h = help(db); db.setCreatedAt(new Date().toISOString());
+  db.counts.set('help-assistant-total-day', 1000);
+  assert.equal((await h.request()).status, 200);
+  assert.deepEqual(db.calls.map(x => x.args).slice(1), [
+    { p_bucket: 'help-assistant-day:synthetic-a', p_limit: 10, p_window_secs: 86400 },
+    { p_bucket: 'help-assistant-new-day', p_limit: 100, p_window_secs: 86400 },
+  ]);
+  db.counts.set('help-assistant-new-day', 100); db.setUser('synthetic-b');
+  assert.equal((await h.request()).status, 429);
+  db.setCreatedAt('2026-01-01T00:00:00.000Z'); db.counts.set('help-assistant-total-day', 0);
+  assert.equal((await h.request()).status, 200, 'la cuenta de siempre no depende del cupo de nuevas');
+});
 await check('ACK nativo no cruza propietarios ni descarta un mes distinto', async () => {
   const event = 'tr:trade_republic:v1_shared';
   const f = ingestFixture({ mutate, rows: [{ id: 'synthetic-existing', user_id: 'synthetic-a', ingest_event_id: event, fecha: '2026-09-25T12:00:00.000Z', importe: 9.95, comercio: 'Synthetic Shop', source: 'macrodroid' }] });

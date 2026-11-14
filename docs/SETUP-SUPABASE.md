@@ -95,6 +95,25 @@ conectar o reconectar un banco o MyInvestor falla (nada se guarda en claro), y a
 `myinvestor-sync`/`myinvestor-keepalive` no pueden guardar los tokens renovados, así que la sesión de
 MyInvestor acaba caducando. Por eso el orden es: clave comprobada → estricto, nunca al revés.
 
+### Topes de lo que cuesta dinero o cuota (P2-06)
+
+Con el registro abierto, un freno solo por usuario no pone techo: basta con crear cuentas. Ahora
+cada función de pago tiene además un cupo **global**, y las cuentas con **menos de 7 días**
+(`user.created_at`, `_shared/cupos.ts`) comparten uno propio y menor, para que un bucle de altas
+no deje sin servicio a las cuentas de siempre. Sin migración: usa `check_rate_limit` (0019).
+
+| Función | Por usuario | Global cuentas de siempre | Global cuentas nuevas | Al pasarse |
+|---|---|---|---|---|
+| `prices` | 30 / 10 min (**encendido por defecto**; `PRICES_RATE_LIMIT=0` lo apaga) | `prices-total-hour` 240/h | `prices-new-hour` 60/h | 429 `limited`; la app conserva los precios de antes |
+| `help-assistant` | 15 / 10 min y 30/día (nuevas: 10/día) | `help-assistant-total-day` 1000/día (el de siempre) | `help-assistant-new-day` 100/día | 429 `limited`; queda la ayuda local |
+| `categorize` (solo camino IA) | 40 / 10 min y 300/día (nuevas: 60/día) | `categorize-ai-total-day` 3000/día | `categorize-ai-new-day` 300/día | 200 «otros» con `ai:"limit"` |
+
+El uso de la app no se acerca: precios se piden a mano (botón, tirar para refrescar, al editar una
+inversión) y la IA de categorías solo cuando las palabras clave no saben. Si algún tope saltara en
+uso normal, `PRICES_RATE_LIMIT=0` apaga el de precios sin redesplegar. Cerrar el registro
+(Authentication → Sign In / Providers → «Allow new users to sign up») sigue siendo decisión del
+dueño y lo complementa.
+
 ## SEC01: límites del cuerpo por función · PR256 candidata, sin desplegar (17/10/2026)
 
 `_shared/request_body.ts` aplica estos límites de bytes del cuerpo mientras lee el
@@ -441,7 +460,7 @@ Qué frena y por qué:
 |---|---|---|
 | `ingest` | 60/min **por IP** | No pide sesión; su única credencial es un token. Sin freno se prueban tokens a la velocidad de la red. Por IP y no por token: contar por token no frena a quien va probando tokens distintos, que es justo el ataque. |
 | `myinvestor-connect` | 10 cada 10 min **por usuario** | Por ahí van el usuario y la CONTRASEÑA reales del banco. Un bucle de reintentos puede dejar al usuario **bloqueado en su propio banco**. |
-| `prices` | **sin cuota activa** (SEC-02) | Propuesta documentada 30/600 por usuario (`PRICES_RATE_PROPOSAL`) **apagada por defecto**. No confundir con `categorize`/`help-assistant`. 30×25 fetches no protege Finnhub ~60/min. Ver [brief](briefs/sec02-prices-limites.md). Activar exigiría autorización + `PRICES_RATE_LIMIT=1` en deploy aparte. |
+| `prices` | 30 cada 10 min **por usuario** + cupo global por hora (P2-06, ronda 233) | Encendido por defecto desde P2-06; `PRICES_RATE_LIMIT=0` lo apaga. Cuenta peticiones, no fetches al proveedor. Ver «Topes de lo que cuesta dinero o cuota» arriba y el [brief](briefs/sec02-prices-limites.md) de SEC-02. |
 
 **Si la migración no está aplicada, no se rompe nada**: `rateLimit()` deja pasar y lo apunta en la
 consola de la función. Un freno de seguridad que tumba la app cuando se rompe convierte un incidente
