@@ -29,7 +29,7 @@
 //   SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY — los inyecta Supabase automáticamente
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import {
   categorizar, clasificarConMotivo, extraerComercio, extraerConcepto, extraerImporte, extraerPersona,
   limpiarTexto, type Fuente, type Tipo,

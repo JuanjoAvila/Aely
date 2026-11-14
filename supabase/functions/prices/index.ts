@@ -3,7 +3,7 @@
 // Lógica en prices_core.ts. Cuota 30/600 = PROPUESTA (apagada por defecto).
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
 import { handlePrices, type PricesDeps } from "./prices_core.ts";

@@ -378,6 +378,7 @@ const denoEnLista = [
   "supabase/functions/bank-sync/overflow-resume.test.ts",
   "supabase/functions/bank-disconnect/lifecycle.test.ts",
   "supabase/functions/bank-callback/generation-fence.test.ts",
+  "supabase/functions/_shared/imports-fijos.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
   .flatMap((d) => d.isDirectory() ? buscaDeno(dir + "/" + d.name)
@@ -431,6 +432,8 @@ if (plan.deno !== false && (part === "all" || part === "unit")) {
       ? ["test", "--cached-only", "--no-lock", "--no-prompt", "--node-modules-dir=none", "--allow-read=supabase/functions,src/modules", "--fail-fast=1", testFile]
       : /myinvestor-(counter|token-race)\.test|bank-callback\/generation-fence\.test/.test(testFile)
       ? ["test", "--node-modules-dir=none", "--allow-read=supabase/functions", ...(testFile.includes("generation-fence.test") ? ["--fail-fast=1"] : []), testFile]
+      : testFile.includes("imports-fijos.test")
+      ? ["test", "--allow-read=supabase/functions", testFile]
       : testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
       : ["test", testFile];

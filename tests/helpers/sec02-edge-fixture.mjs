@@ -26,7 +26,7 @@ export function edgeRuntime({ db, env = {}, transport, provider = {}, tokens = {
   }, { codeGeneration: { strings: false, wasm: false } });
   function load(file) {
     if (modules.has(file)) return modules.get(file);
-    if (file === 'https://esm.sh/@supabase/supabase-js@2') return { createClient: () => db };
+    if (file === 'https://esm.sh/@supabase/supabase-js@2.110.0') return { createClient: () => db };
     if (file.endsWith('/token_store.ts') && Object.keys(tokens).length) return tokens;
     if (file.endsWith('/enablebanking.ts') && Object.keys(provider).length) return provider;
     if (!file.startsWith('supabase/functions/') || file.includes('..')) throw Error('Unexpected module ' + file);

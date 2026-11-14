@@ -7,7 +7,7 @@
 // Auth: JWT de usuario (verify_jwt en deploy). No envía importes.
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { categorizar } from "../_shared/ingest_logic.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";

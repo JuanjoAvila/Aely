@@ -6,7 +6,7 @@
 // autorizada y devolvemos al usuario a la app. NO escribe en expenses.
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
 import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";

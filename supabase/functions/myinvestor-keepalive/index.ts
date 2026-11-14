@@ -10,7 +10,7 @@
 // solo service role puede leerlo, así que solo el cron de la BD conoce la clave.
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { CORS, jsonResp, MI_BASE, miHeaders, miRefreshOutcome } from "../_shared/myinvestor.ts";
 import { miTokensFromRow, miTokensToRow } from "../_shared/token_store.ts";
 import { timingSafeEqual } from "../_shared/entrada.ts";

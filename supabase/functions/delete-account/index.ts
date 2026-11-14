@@ -4,7 +4,7 @@
 // La contraseña NO se guarda en ningún sitio; solo se valida en este paso.
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { jsonResp } from "../_shared/myinvestor.ts";
 import { withCors } from "../_shared/cors.ts";
 import { readInput } from "../_shared/request_body.ts";

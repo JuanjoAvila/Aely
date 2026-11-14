@@ -15,7 +15,7 @@
 // se guarda ni se loguea. verify_jwt ata el enlace al usuario de Aely.
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { jsonResp, MI_BASE, miHeaders } from "../_shared/myinvestor.ts";
 import { miTokensToRow } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";

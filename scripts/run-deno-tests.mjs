@@ -22,6 +22,7 @@ export function denoArgs(file) {
   const permissions = {
     "supabase/functions/ingest/native-identity.test.ts": ["--allow-env=SUPABASE_URL,SUPABASE_SERVICE_ROLE_KEY,INGEST_TOKEN,INGEST_USER_ID,INGEST_NATIVE_TWINS", "--config=supabase/functions/ingest/native-identity.deno.json", "--import-map=supabase/functions/ingest/native-identity.imports.json"],
     "supabase/functions/_shared/crypto.test.ts": ["--allow-env"],
+    "supabase/functions/_shared/imports-fijos.test.ts": ["--allow-read=supabase/functions"],
     "supabase/functions/_shared/myinvestor-counter.test.ts": ["--allow-read=supabase/functions"],
     "supabase/functions/bank-callback/generation-fence.test.ts": ["--allow-read=supabase/functions", "--fail-fast=1"],
     "supabase/functions/bank-sync/attempt-budget.test.ts": ["--allow-read=supabase/functions"],

@@ -5,7 +5,7 @@
 // luego el callback. NO escribe nada en expenses ni en app_state.
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { ebApi, ebConfig, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
