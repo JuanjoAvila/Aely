@@ -1514,7 +1514,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       if(!cat||cat==="otros"||!CAT[cat]){ showToast(t("ai_cat_none")); return; }
       setCat(ex,cat);
       showToast(tf("ai_cat_ok",{c:catName(cat)}));
-    }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setAiBusy(false); });
+    }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setAiBusy(false); });
   };
   useEffect(()=>{ setVisible(CONFIG.PAGE_SIZE); },[preset,range,sel,bankSel,bucketSel,q,catFil]);
   /* LA PAGINACIÓN DE LA LISTA — sus fallos, y el de 2026-07-27.
@@ -1684,7 +1684,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const vsPrev=function(cur,prev,ym,mismoDia){
       const diff=cur-prev, mes=mesDe(ym), sd=mismoDia?"_sd":"";
       if(Math.abs(diff)<1) return {tail:tf("gv5_same"+sd,{mes:mes}),tone:"muted"};
-      return {tail:tf((diff>0?"gv5_more":"gv5_less")+sd,{x:fmt(diff),mes:mes}),tone:diff>0?"coral":"mint"};
+      // Cada clave como prefijo pegado a `+sd`: así `i18n-keys` sabe que las `_sd` se usan.
+      return {tail:tf(diff>0?"gv5_more"+sd:"gv5_less"+sd,{x:fmt(diff),mes:mes}),tone:diff>0?"coral":"mint"};
     };
     const etiquetaMes=function(ym){ const y=+ym.slice(0,4); return mesDe(ym)+(y!==mad.y?" "+y:""); };
     // Meses para la fila fija de Categorías y del filtro: los que tienen algo que cuenta, y el en curso.

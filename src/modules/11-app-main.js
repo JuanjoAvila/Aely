@@ -497,6 +497,9 @@ function App(){
     return function(){ active=false; window.removeEventListener("online",load); };
   },[savedLang]);
   CURLANG = langPackReady(savedLang)?savedLang:"es";
+  // `<html lang>` fijo en «es» hacía que el lector de pantalla leyera el inglés y el catalán con
+  // voz castellana (auditoría de diseño 14/11/2026).
+  if(document.documentElement.lang!==CURLANG) document.documentElement.lang=CURLANG;
   SIMPLEMODE = !!(state.settings&&state.settings.simpleMode); // modo sencillo → etiquetas sin jerga
 
   /* ---------- Sincronización en la nube (Supabase) ---------- */
@@ -891,7 +894,7 @@ function App(){
       if(cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return;
       // No confundir datos corruptos, una revisión ausente o un error con una cuenta nueva.
       if(cloudPack && (!validCloudState(cloudState)||!cloudPack.updated_at)){
-        showToast("⚠ Nube con formato inesperado: se conservan tus datos locales");
+        showToast("⚠ "+t("err_cloud_format"));
         // Una revisión real permite rescatar la copia del mismo titular con CAS. No acredita
         // un mes sin aportar, ni permite crear una fila o enviar datos de otra cuenta.
         const local=stateRef.current;
@@ -1046,7 +1049,7 @@ function App(){
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
-    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
+    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast(errTxt(e)); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
       .then(mcBootReady, mcBootReady);
@@ -1698,7 +1701,7 @@ function App(){
         showToast(t("apk_downloading"));
         nat.installApk({url:url}).then(function(r){
           if(r&&r.needsPermission) showToast(t("apk_perm"));
-        }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); });
+        }).catch(function(e){ showToast(errTxt(e)); });
       };
       if(window._mcApkUpdate&&window._mcApkUpdate.url){
         run(window._mcApkUpdate.url);
@@ -1995,7 +1998,7 @@ function App(){
       .catch(function(e){
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
         if(bankRateLimited(e)){ showToast("⚠ "+t("bank_rate_limit")); return; }
-        showToast("⚠ "+t("bank_error")+": "+((e&&e.message)||e));
+        showToast("⚠ "+t("bank_error"));
       });
   };
   useEffect(function(){
@@ -2436,12 +2439,12 @@ function App(){
 
   const [authStart,setAuthStart]=useState("in");   // modo con el que se abre AuthPanel ("in"/"up")
   const onCloudClick=function(){
-    if(!cloud.enabled()){ showToast("Nube no disponible"); return; }
+    if(!cloud.enabled()){ showToast(t("err_cloud_off")); return; }
     setAuthStart("in");
     setShowAuth(true);
   };
   const onSignupClick=function(){
-    if(!cloud.enabled()){ showToast("Nube no disponible"); return; }
+    if(!cloud.enabled()){ showToast(t("err_cloud_off")); return; }
     setAuthStart("up");   // onboarding → "Crear cuenta" directo, sin pasar por el login (punto 5)
     setShowAuth(true);
   };
@@ -3059,16 +3062,16 @@ function App(){
   const fetchPrices=function(silent){
     refreshFx();   // y también al pulsar "Precios USD"
     const withTicker=state.investments.filter(function(i){ return i.ticker; });
-    if(withTicker.length===0){ if(!silent) showToast("No hay tickers configurados"); return Promise.resolve(); }
-    if(!(cloud.enabled() && uid)){ if(!silent) showToast("Inicia sesión para actualizar precios"); return Promise.resolve(); }
-    if(!silent){ setPricing(true); showToast("Actualizando precios…"); }
+    if(withTicker.length===0){ if(!silent) showToast(t("pr_no_tickers")); return Promise.resolve(); }
+    if(!(cloud.enabled() && uid)){ if(!silent) showToast(t("pr_login")); return Promise.resolve(); }
+    if(!silent){ setPricing(true); showToast(t("pr_updating")); }
     const symbols=Array.from(new Set(withTicker.map(function(i){ return String(i.ticker).toUpperCase(); })));
     return Promise.resolve(cloud.prices(symbols)).then(function(data){
       if(data && data.ok===false) throw new Error(data.error||"el servidor devolvió un error");
       const prices = data && (data.prices||data.quotes||data); // admite {prices:{...}} o {...}
       // si el servidor responde OK pero sin cotizaciones, no es "sin cambios": es un fallo de Finnhub
       if(!prices || Object.keys(prices).length===0){
-        if(!silent) showToast("✕ Finnhub no devolvió cotizaciones");
+        if(!silent) showToast("✕ "+t("pr_none"));
         return;
       }
       // cuántos tickers nuestros llegan con precio válido (se calcula desde el estado actual,
@@ -3088,7 +3091,7 @@ function App(){
       });
       if(!silent) showToast(matched.length>0?("✓ "+matched.length+" precios actualizados"):"Sin cambios");
     }).catch(function(err){
-      if(!silent) showToast("✕ "+((err&&err.message)?err.message:"No se pudieron traer precios"));
+      if(!silent) showToast(errTxt(err));
     }).then(function(){ if(!silent) setPricing(false); });
   };
 
@@ -4190,7 +4193,9 @@ function App(){
 
   const modeChangeWarning=modeChangePending && React.createElement("div",{role:"alert",className:"mode-change-warning",
     style:{position:"fixed",top:0,left:0,right:0,zIndex:2147483647,padding:"16px",background:"var(--bg)",color:"var(--text)",borderBottom:"2px solid var(--accent)",fontSize:14}},t("mode_change_reopen"));
-  if(locked) return React.createElement(React.Fragment,null,modeChangeWarning,React.createElement(LockScreen,{onUnlock:function(){ setLocked(false); }}));
+  // Con su propio AskHost: la salida de emergencia del candado («No puedo usar la huella») es un
+  // askConfirm, y sin host caía al confirm nativo de Android (y ahora, a cancelar).
+  if(locked) return React.createElement(React.Fragment,null,modeChangeWarning,React.createElement(LockScreen,{onUnlock:function(){ setLocked(false); }}),React.createElement(AskHost,null));
   if(state.onboarded===false) return React.createElement(React.Fragment,null,
     modeChangeWarning,
     React.createElement(Onboarding,{set:set, onCloud:(cloud.enabled()?onCloudClick:null), onSignup:(cloud.enabled()?onSignupClick:null)}),
@@ -4214,7 +4219,7 @@ function App(){
       // Una sola barra: dentro de `.app-shell` siempre, salvo con Tus recibos abierto, que va a <body>
       // para pasarle por encima (`billsOpen`). Cambiar de padre la remonta; es idéntica, no se nota.
       React.createElement(BarraFuera,{fuera:billsOpen},
-      React.createElement("nav",{className:"botnav"+(billsOpen?" botnav-bills":"")+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?(billsOpen?"":" botnav-hidden"):""),"aria-label":"Navegación"},
+      React.createElement("nav",{className:"botnav"+(billsOpen?" botnav-bills":"")+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?(billsOpen?"":" botnav-hidden"):""),"aria-label":t("nav_aria")},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},

@@ -148,6 +148,25 @@ function mcLogCode(err){
   if(/network|fetch/i.test(msg)) return "network";
   return "unavailable";
 }
+/* El toast de un fallo: una frase traducida, nunca el `e.message` crudo (salían «✕ Failed to
+   fetch», «✕ Edge Function returned a non-2xx status code» o el castellano de la nube con la app
+   en inglés — auditoría 14/11/2026). Los casos que el usuario puede arreglar tienen su frase; el
+   resto, la genérica. Un error lanzado con una clave de LANG por mensaje se traduce, y uno que ya
+   viene traducido (`throw new Error(t("exp_pull_invalid"))`) se enseña tal cual.
+   El detalle va a la consola como clase cerrada (`mcLogCode`, SEC-03), no a la pantalla. */
+function errTxt(e){
+  const m=String((e&&e.message)||e||"");
+  try{ console.warn("toast:",mcLogCode(e)); }catch(_){}
+  if(m&&Object.values(LANG[CURLANG]||LANG.es).indexOf(m)>=0) return "✕ "+m;
+  const k=LANG.es[m]!=null?m
+    :/invalid login credentials/i.test(m)?"err_login"
+    :/contraseña incorrecta|wrong password/i.test(m)?"err_pass"
+    :/already (been )?registered/i.test(m)?"err_registered"
+    :/email not confirmed/i.test(m)?"err_unconfirmed"
+    :/failed to fetch|network|load failed/i.test(m)||(typeof navigator!=="undefined"&&navigator.onLine===false)?"err_offline"
+    :"err_generic";
+  return "✕ "+t(k);
+}
 function mcLogText(raw){
   const omit=typeof t==="function"?t("log_private"):"[redacted]";
   return String(raw||"").replace(/https?:\/\/\S+/gi,omit)
@@ -5025,12 +5044,13 @@ const bio = {
     const nat=natPlugin();
     if(nat){
       const r=await nat.bioAvailable();
-      if(!r || !r.available) throw new Error("Configura primero la huella o el bloqueo de pantalla del móvil");
+      // El mensaje es una clave de LANG: `errTxt` la enseña en el idioma de la app.
+      if(!r || !r.available) throw new Error("au_bio_need");
       await nat.bioVerify();                       // pide la huella YA, como el create() de WebAuthn
       store.set("bio_cred", { native:true });
       return true;
     }
-    if(!this.supported()) throw new Error("Este dispositivo/navegador no soporta huella");
+    if(!this.supported()) throw new Error("au_bio_nosupport");
     const cred = await navigator.credentials.create({ publicKey:{
       challenge: crypto.getRandomValues(new Uint8Array(32)),
       rp:{ id: location.hostname, name:"Aely" },

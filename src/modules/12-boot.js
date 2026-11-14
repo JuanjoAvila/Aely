@@ -374,7 +374,7 @@ window._mcCheckOtaUpdates=function(opts){
       return window._mcDownloadOta(up, v, opts);
     }).catch(function(e){
       var m=(e&&e.message)||String(e);
-      if(opts&&opts.showToast) opts.showToast("⚠ "+m);
+      if(opts&&opts.showToast) opts.showToast(errTxt(e));
       // A la telemetría también: el chequeo automático no tiene toast, y sin rastro un canal que
       // no contesta es indistinguible de «no hay nada nuevo» (así se perdieron semanas de beta).
       try{ cloud.logEvent('error','OTA '+mcChannel()+': '+m.slice(0,200)); }catch(_){}

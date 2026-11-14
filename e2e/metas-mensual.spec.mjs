@@ -149,7 +149,7 @@ for(const lang of Object.keys(textos)){
     await expect.poll(()=>page.evaluate(()=>window.__mensualPulls)).toBe(1);
     await page.evaluate(()=>window.__mensualReject(new Error("fallo sintetico")));
     // Dejar terminar la promesa evita que un segundo evento mida el bloqueo del vuelo anterior.
-    await expect(page.locator(".toast")).toContainText("fallo sintetico");
+    await expect(page.locator(".toast")).toContainText(/No ha salido bien|That didn't work|No ha sortit bé/);
     await saved(page,100);
     expect((await disk(page)).reservaLog).toHaveLength(1);
     await volver(page);
@@ -166,7 +166,7 @@ for(const lang of Object.keys(textos)){
     await page.clock.setSystemTime(new Date(noviembre)); await volver(page);
     await expect.poll(()=>page.evaluate(()=>window.__mensualPulls)).toBe(1);
     await nube(page,{incomplete:true});
-    await expect(page.locator(".toast")).toContainText("formato inesperado");
+    await expect(page.locator(".toast")).toContainText(/datos raros|odd data|dades estranyes/);
     // Recuperar la copia local no acredita que el estado remoto carezca ya de un asiento del mes.
     await saved(page,100);
     expect((await disk(page)).reservaLog).toHaveLength(1);

@@ -2,7 +2,8 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 // `late`: en Plan › Recibos v6, un recibo vencido sin cargo pasa a «Para revisar» con su motivo.
-const labels={es:{overdue:"Cargos vencidos",unknown:"Sin pago acreditado",late:"No ha llegado"},en:{overdue:"Overdue charges",unknown:"Payment unconfirmed",late:"Hasn't arrived"},ca:{overdue:"Càrrecs vençuts",unknown:"Sense pagament acreditat",late:"No ha arribat"}};
+// Inicio usa las palabras de Recibos (auditoría 14/11/2026): «Para revisar» y «No ha llegado».
+const labels={es:{overdue:"Para revisar",unknown:"No ha llegado",late:"No ha llegado"},en:{overdue:"To review",unknown:"Hasn't arrived",late:"Hasn't arrived"},ca:{overdue:"Per revisar",unknown:"No ha arribat",late:"No ha arribat"}};
 const fixed={id:"gas",name:"Gas ficticio",amount:42,freq:"mes",day:25,account:"sabadell",wait:2026*12+9};
 const tx={id:"gas-bank",ent:"sabadell",date:"2026-09-25",amount:42,merchant:"Gas ficticio",status:"BOOK"};
 
@@ -399,7 +400,7 @@ for(const lang of ["es","en","ca"]){
   });
   test(lang+": un movimiento pendiente no acredita el pago",async({page})=>{
     await open(page,lang,{bankTx:[Object.assign({},tx,{status:"PDNG"})]});
-    await expect(page.getByText(labels[lang].overdue,{exact:true})).toBeVisible();
+    await expect(page.locator('.v4-section-h',{hasText:labels[lang].overdue})).toBeVisible();
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Gas ficticio"})).toHaveCount(0);
   });

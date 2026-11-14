@@ -16,7 +16,7 @@ async function appLista(page) {
 
 async function abrirAjustes(page) {
   await page.locator(".v4-avatar").click();
-  await page.getByRole("button", { name: /Ir a Ajustes|Go to Settings|Ves a Ajustos/i }).click();
+  await page.getByRole("button", { name: /Ir a Ajustes|Go to Settings|Ves a Configuració/i }).click();
   const ajustes = page.locator(".settings-push.open");
   await expect(ajustes).toHaveCount(1);
   return ajustes;

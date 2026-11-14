@@ -56,11 +56,17 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       ? (coverBank&&balKnown
         ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
         : t("v4_plan_state_all_paid_nobank"))
+      // La cifra grande es el total de TODOS los bancos y la frase habla de uno: por eso la
+      // frase nombra el banco en su importe. Con «Te quedan X de recibos» a secas, el total
+      // arriba y lo de un banco abajo eran dos «te quedan» que se contradecían (auditoría
+      // 14/11/2026). Las claves `_noday` no existían: salía la clave cruda.
       : (coverBank!=null&&cover.min!=null&&isFinite(cover.min)
-        ? tf((coverTone==="bad"?"v4_plan_state_bad":(coverTone==="warn"?"v4_plan_state_warn":"v4_plan_state_ok"))+(hasMinDay?"":"_noday"),{
-            left:eur0(leftForPhrase), end:eur0(cover.min), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
+        ? tf(coverTone==="ok"?(hasMinDay?"v4_plan_state_ok":"v4_plan_state_ok_noday"):(hasMinDay?"v4_plan_state_warn":"v4_plan_state_warn_noday"),{
+            left:eur0(leftForPhrase), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
           })
-        : t("v4_plan_state_none"))));
+        // Sin saldo del banco no hay mínimo que contar, pero sí recibos: antes decía «Aún no hay
+        // recibos» debajo de la cifra de lo que queda por pagar.
+        : tf("v4_plan_state_left",{left:eur0(charges.pendingBillsTotal)}))));
   const coverAria=coverHead+". "+coverPhrase;
   // Puerta viva desde Ajustes: flag pendiente si Plan aún no montó (cold start / idle).
   useEffect(function(){
@@ -362,7 +368,8 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     if(x.unconfirmed) return entOf(x.bank).label;
     // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
     var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
-    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
+    // Las palabras de Recibos (SPEC §2.3): «Sin pago acreditado» era otro nombre para lo mismo.
+    if(x.overdue) return entOf(x.bank).label+" · "+t("pr6_no_llegado");
     if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
     if(x.kind==="transfer"){
       var toEnt=x.to||null;

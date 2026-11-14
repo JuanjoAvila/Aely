@@ -21,7 +21,7 @@ test("Ajustes muestra web/OTA y APK cuando el puente nativo responde", async ({ 
 
   await page.locator(".v4-avatar").click();
   await expect(page.locator(".profile-pull.open")).toBeVisible({ timeout: 5_000 });
-  await page.getByRole("button", { name: /Ir a Ajustes|Go to Settings|Ves a Ajustos/i }).click();
+  await page.getByRole("button", { name: /Ir a Ajustes|Go to Settings|Ves a Configuració/i }).click();
   const ajustes = page.locator(".settings-push.open");
   await expect(ajustes).toBeVisible({ timeout: 5_000 });
 
@@ -38,7 +38,7 @@ test("en el navegador (sin puente) Ajustes enseña solo la versión web", async 
   await dismissNews(page);
 
   await page.locator(".v4-avatar").click();
-  await page.getByRole("button", { name: /Ir a Ajustes|Go to Settings|Ves a Ajustos/i }).click();
+  await page.getByRole("button", { name: /Ir a Ajustes|Go to Settings|Ves a Configuració/i }).click();
   const ajustes = page.locator(".settings-push.open");
   await expect(ajustes).toBeVisible({ timeout: 5_000 });
 

@@ -3254,6 +3254,25 @@ function mcLogCode(err){
   if(/network|fetch/i.test(msg)) return "network";
   return "unavailable";
 }
+/* El toast de un fallo: una frase traducida, nunca el `e.message` crudo (salían «✕ Failed to
+   fetch», «✕ Edge Function returned a non-2xx status code» o el castellano de la nube con la app
+   en inglés — auditoría 14/11/2026). Los casos que el usuario puede arreglar tienen su frase; el
+   resto, la genérica. Un error lanzado con una clave de LANG por mensaje se traduce, y uno que ya
+   viene traducido (`throw new Error(t("exp_pull_invalid"))`) se enseña tal cual.
+   El detalle va a la consola como clase cerrada (`mcLogCode`, SEC-03), no a la pantalla. */
+function errTxt(e){
+  const m=String((e&&e.message)||e||"");
+  try{ console.warn("toast:",mcLogCode(e)); }catch(_){}
+  if(m&&Object.values(LANG[CURLANG]||LANG.es).indexOf(m)>=0) return "✕ "+m;
+  const k=LANG.es[m]!=null?m
+    :/invalid login credentials/i.test(m)?"err_login"
+    :/contraseña incorrecta|wrong password/i.test(m)?"err_pass"
+    :/already (been )?registered/i.test(m)?"err_registered"
+    :/email not confirmed/i.test(m)?"err_unconfirmed"
+    :/failed to fetch|network|load failed/i.test(m)||(typeof navigator!=="undefined"&&navigator.onLine===false)?"err_offline"
+    :"err_generic";
+  return "✕ "+t(k);
+}
 function mcLogText(raw){
   const omit=typeof t==="function"?t("log_private"):"[redacted]";
   return String(raw||"").replace(/https?:\/\/\S+/gi,omit)
@@ -8131,12 +8150,13 @@ const bio = {
     const nat=natPlugin();
     if(nat){
       const r=await nat.bioAvailable();
-      if(!r || !r.available) throw new Error("Configura primero la huella o el bloqueo de pantalla del móvil");
+      // El mensaje es una clave de LANG: `errTxt` la enseña en el idioma de la app.
+      if(!r || !r.available) throw new Error("au_bio_need");
       await nat.bioVerify();                       // pide la huella YA, como el create() de WebAuthn
       store.set("bio_cred", { native:true });
       return true;
     }
-    if(!this.supported()) throw new Error("Este dispositivo/navegador no soporta huella");
+    if(!this.supported()) throw new Error("au_bio_nosupport");
     const cred = await navigator.credentials.create({ publicKey:{
       challenge: crypto.getRandomValues(new Uint8Array(32)),
       rp:{ id: location.hostname, name:"Aely" },
@@ -8310,7 +8330,7 @@ const LANG = {
     help_consent_body:"Aely enviará a OpenAI solo la pregunta que has escrito. Nunca envía saldos ni movimientos. Puedes quitar este permiso en Ajustes.",
     help_consent_title:"¿Usar OpenAI para entender esta pregunta?",
     help_remote_setting:"Más ayuda con OpenAI (solo dudas difíciles)",
-    help_remote_setting_hint:"No cambia las respuestas normales. Solo permite pedir más ayuda cuando la guía local no basta, para que OpenAI elija otra guía. Recibe solo la pregunta escrita; nunca saldos ni movimientos. Puedes revocar este permiso aquí.",
+    help_remote_setting_hint:"Solo envía la pregunta escrita, nunca tus cifras.",
     help_cue_goals_simple:"Metas está escondido en el modo sencillo. Te lo enseño en Ajustes.",
     help_cue_next_bills_amount:"Te quedan recibos por {x} este mes.",
     help_cue_next_bills_one:"Te queda 1 recibo por {x} este mes.",
@@ -8348,11 +8368,11 @@ const LANG = {
     v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
     v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_same:"Igual que {when}", v42_net_cmp_none:"Aún sin datos para comparar",
     v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_1m:"frente al mismo día del mes pasado", v42_net_i_cmp_n:"frente al mismo día de hace {n} meses", v42_net_i_cmp_12:"frente al mismo día de hace un año", v42_net_i_cmp_all:"desde el principio",
-    v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_excess_of:"de más · límite {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
+    v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"libres de {x}", v42_cycle_excess_of:"de más · límite {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Sin un tope al mes no se puede saber cuánto te queda.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_in:"En {mes}", v4_upcoming_in_v:"En {mes}", 
-    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado", v4_payment_pending:"Por confirmar",
+    v4_payment_pending:"Por confirmar",
     v4_payment_pending_hint:"No cuenta en lo pendiente.",
     v4_payment_mixed_hint:"Solo los recibos y las cuotas se suman a lo que queda por pagar.",
     v4_payment_all_except_one:"Todo pagado, salvo {n} cargo por confirmar.", v4_payment_all_except:"Todo pagado, salvo {n} cargos por confirmar.",
@@ -8362,9 +8382,8 @@ const LANG = {
     v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
     v4_plan_left:"Queda por pagar en {month}",
     v4_plan_state_ok_h:"Vas bien este mes", v4_plan_state_warn_h:"Ojo este mes", v4_plan_state_bad_h:"Este mes se queda corto",
-    v4_plan_state_ok:"Te quedan {left} de recibos. El día {day} bajarías a {min} en {bank}, sin contar compras del día a día.",
-    v4_plan_state_warn:"Te quedan {left} de recibos. El día {day} te quedarías en {min} en {bank}, sin contar compras del día a día.",
-    v4_plan_state_bad:"Te quedan {left} de recibos. El día {day} te quedarías en {min} en {bank}, sin contar compras del día a día.",
+    v4_plan_state_ok:"{left} de recibos salen de {bank}: el día {day} bajarías a {min}, sin contar el día a día.",
+    v4_plan_state_warn:"{left} de recibos salen de {bank}: el día {day} te quedarías en {min}, sin contar el día a día.", v4_plan_state_ok_noday:"{left} de recibos salen de {bank}: bajarías a {min}, sin contar el día a día.", v4_plan_state_warn_noday:"{left} de recibos salen de {bank}: te quedarías en {min}, sin contar el día a día.", v4_plan_state_left:"Te quedan {left} de recibos.",
     v4_plan_state_all_paid:"Ya has pagado todos los recibos de este mes; tienes {x} en {bank}.",
     v4_plan_state_all_paid_nobank:"Ya has pagado todos los recibos de este mes.",
     v4_plan_state_none:"Aún no hay recibos este mes.",
@@ -8412,7 +8431,7 @@ const LANG = {
     // Plan › Recibos v6, tanda 4: añadir y editar por pasos (SPEC §7).
     rp4_t_name:"¿Qué recibo es?", rp4_name_ph:"Netflix, luz, alquiler…", rp4_visto:"Visto en tu banco", rp4_dia:"día", rp4_dup:"Ya tienes «{name}»", rp4_dup_dia:"{x} el día {d}", rp4_dup_ver:"Ver ese", pr6_cuota:"cuota",
     rp4_t_amount:"¿Cuánto es?", rp4_variable:"Cambia cada mes", rp4_t_when:"¿Cuándo se cobra?", rp4_once:"Solo una vez", rp4_split:"En varios pagos",
-    rp4_pago:"Pago {n}", rp4_otro_pago:"Otro pago", rp4_quitar_pago:"Quitar este pago", rp4_dia_menos:"Un día antes", rp4_dia_mas:"Un día después", rp4_dia_n:"día {d}",
+    rp4_otro_pago:"Otro pago", rp4_quitar_pago:"Quitar este pago", rp4_dia_menos:"Un día antes", rp4_dia_mas:"Un día después", rp4_dia_n:"día {d}",
     rp4_importe_pago:"Importe del pago {n}", rp4_t_account:"¿De qué cuenta sale?", rp4_t_sum:"¿Todo bien?", rp4_t_edit:"Editar recibo",
     rp4_r_name:"Nombre", rp4_r_amount:"Importe", rp4_r_day:"Día", rp4_r_date:"Fecha", rp4_r_pays:"Pagos", rp4_r_account:"Cuenta",
     rp4_en_pagos:"{x} en {n} pagos", rp4_una_vez:"una sola vez", rp4_solo_mes:"Solo {m}", rp4_scope:"Cuándo se aplica", rp4_mes_cobra:"Este mes se cobra {x}",
@@ -8481,7 +8500,7 @@ const LANG = {
     f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
-    f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Se confirma para el mes del movimiento y puedes deshacerlo. El cargo conserva su importe, banco y clasificación.",
+    f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Puedes deshacerlo.",
     f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.", f_receipt_diag:"Copiar diagnóstico",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
@@ -8511,11 +8530,10 @@ const LANG = {
     // Estas tres estaban SOLO en inglés y catalán: en castellano (el idioma de la casa) la app
     // pintaba la clave pelada «tb_removed» / «tb_nodel» en el toast (bug encontrado 2026-07-24
     // por el test de claves i18n).
-    tb_removed:"Pestaña quitada · recupérala con el +", 
-    st_mode_hint:"Solo Inicio, Gastos, Plan (recibos) y Cartera.",
+    st_mode_hint:"Plan solo con recibos: sin deudas ni metas.",
     settings:"Ajustes", language:"Idioma", theme:"Tema de color", currency:"Moneda de visualización",
     save:"Guardar", backup:"Copia de seguridad", st_imports:"Importaciones",
-    eb_title:"Algo se ha torcido", eb_msg:"La app ha tenido un error al dibujar. Tus datos están a salvo. Descarga una copia por si acaso y recarga.", eb_export:"⬇️ Descargar copia de seguridad", eb_reload:"🔄 Recargar la app",
+    eb_title:"Algo se ha torcido", eb_msg:"La app ha tenido un error al dibujar. Tus datos están a salvo. Descarga una copia por si acaso y recarga.", eb_export:"⬇️ Descargar copia de seguridad", eb_export_fail:"No se pudo descargar la copia. Recarga y prueba otra vez.", err_generic:"No ha salido bien. Prueba otra vez.", err_offline:"Sin conexión. Prueba otra vez.", err_login:"Correo o contraseña incorrectos.", err_pass:"Contraseña incorrecta.", err_registered:"Ese correo ya tiene cuenta.", err_unconfirmed:"Confirma el correo antes de entrar.", err_cloud_off:"Nube no disponible.", err_cloud_format:"La nube trae datos raros: se quedan los de este móvil.", au_bio_need:"Configura primero la huella o el bloqueo de pantalla del móvil.", au_bio_nosupport:"Este móvil no permite usar la huella aquí.", pr_no_tickers:"Ninguna inversión tiene precio automático.", pr_login:"Inicia sesión para actualizar precios.", pr_updating:"Actualizando precios…", pr_none:"No han llegado precios. Prueba más tarde.", nav_aria:"Navegación", eb_reload:"🔄 Recargar la app",
     off_pill:"📴 Sin conexión · se guarda y sincroniza al volver",
     upd_ready:"✨ Nueva versión · toca para actualizar",
     upd_downloading:"⬇️ Descargando versión nueva…",
@@ -8553,10 +8571,9 @@ const LANG = {
     th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
     rp_saved:"✓ Informe guardado en Descargas (busca «mi-cartera-…png»)",
     rp_saved_notif:"📊 Informe del mes guardado en Descargas: {f}. Ábrelo desde tu app de Archivos o la galería.",
-    ob_accounts:"Tus cuentas (banco y saldo actual)",
     ob_haveacc:"Ya tengo cuenta · Iniciar sesión",
     // v4.6 — aportar a metas con banco + teclado propio
-    gl_contribute_title:"Aportar a {name}", gl_contribute_from:"¿De qué banco sale?", gl_contribute_save:"Aportar {x}", gl_contribute_need:"Pon un importe 🙂",
+    gl_contribute_title:"Aportar a {name}", gl_contribute_from:"¿De qué banco sale?", gl_contribute_save:"Aportar {x}",
     // Accesibilidad
     v4_set_a11y:"Accesibilidad",
     st_textsize:"Tamaño de letra", st_textsize_hint:"Agranda toda la app.",
@@ -8568,7 +8585,6 @@ const LANG = {
     th_none:"Ninguna", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Navidad 🎄", th_verano:"Verano ☀️", th_invierno:"Invierno ❄️", th_pascua:"Pascua 🐣", th_otono:"Otoño 🍂", th_primavera:"Primavera 🌸",
     // Bancos de gasto diario (varios)
     v4_shared_sub:"Hogar, pareja y grupos de gastos",
-    v4_expdaily_chip:"En gasto diario",
     // Comparativa de monedas
     st_cur_compare_empty:"Aún no hay tipos de cambio. Comprueba la conexión y pulsa reintentar.",
     st_cur_compare_retry:"Reintentar",
@@ -8700,7 +8716,7 @@ Object.assign(LANG.es,{
   hh_pub_busy:"Publicando…", hh_pub_hint:"Los demás solo ven lo que publicas; nunca editan tus datos.",
   hh_updated:"Actualizado", hh_leave:"Salir", hh_leave_q:"¿Salir del hogar?", hh_leave_sub:"Tu vista dejará de mostrarse. Tus datos locales no se borran.",
   hh_leave_ok:"Sí, salir", hh_left:"Has salido del hogar",
-  hh_rls_fix:"La nube necesita un ajuste (migración 0015 en Supabase → SQL Editor). Ver docs/HOGAR.md",
+  hh_rls_fix:"No se ha podido guardar en el hogar. Prueba más tarde.",
   hh_spent_m:"Gastado este mes", hh_fixed_m:"Fijos /mes", hh_cats:"Gastos del hogar por categoría",
   hh_fixed_top:"Sus fijos principales",
   rc_title:"Recibo gordo cerca", rc_body:"{name}: {x} el día {d}",
@@ -8736,13 +8752,13 @@ Object.assign(LANG.es,{
   gb_preview_m:"Serán {x} cada mes.", 
   gb_del:"Quitar este recibo", gb_removed:"Recibo quitado", gb_undo_changed:"No se ha deshecho nada porque hay cambios posteriores.", gb_undo_partial:"Hay cambios posteriores que no se han deshecho.", gb_remove_changed:"No se ha podido quitar el recibo. Revisa los cambios e inténtalo de nuevo.", gb_undo_sync_error:"Cambio guardado; no se ha podido sincronizar la marca del cargo.",
   gb_bill_locked_amt:"Este recibo cambia de importe según el mes: cámbialo en cada mes.",
-  gb_when_day:"Un día concreto", gb_save_ok:"Guardado", gb_saved_fixed:"Recibo añadido", gb_saved_oneoff:"Cargo puntual añadido", gb_saved_income:"Ingreso añadido", gb_saved_transfer:"Traspaso añadido", gb_next:"Siguiente", gb_recon:"¿Cuadran con el banco?", gb_flow_income:"Lo que cobras", gb_flow_move:"Paso entre tus cuentas", gb_month:"Mes", gb_year:"Año", gb_add_btn:"Añadir",
+  gb_when_day:"Un día concreto", gb_save_ok:"Guardado", gb_saved_fixed:"Recibo añadido", gb_saved_oneoff:"Cargo puntual añadido", gb_saved_income:"Ingreso añadido", gb_saved_transfer:"Traspaso añadido", gb_next:"Siguiente", gb_flow_income:"Lo que cobras", gb_flow_move:"Paso entre tus cuentas", gb_month:"Mes", gb_year:"Año", gb_add_btn:"Añadir",
 });
 
 
 /* Importador CSV del bróker (Inversiones) */
 Object.assign(LANG.es,{
-  bi_title:"Importar del bróker (CSV)", bi_sub:"re-ancla posiciones con tu extracto",
+  bi_title:"Importar del bróker (CSV)", bi_sub:"pone tus posiciones al día con el extracto",
   bi_hint:"Sube el CSV de tu bróker o pega el texto. Se procesa en tu móvil, no se sube.",
   bi_file:"📄 Elegir CSV (puedes marcar varios)", bi_paste_ph:"…o pega aquí el contenido del CSV", bi_analyze:"Analizar",
   bi_err:"No he podido leer el CSV (¿formato raro?). Pega unas líneas y dime qué columnas tiene.",
@@ -8818,7 +8834,7 @@ Object.assign(LANG.es,{
   tr_disconnect:"Desconectar",
   tr_preview:"{n} posiciones traídas de Trade Republic. Revisa el mapeo y aplica:",
   tr_cash:"Efectivo en TR: {x} · al aplicar se actualiza también tu cuenta TR",
-  g_edit:"Editar", g_edited:"✓ Gasto corregido",
+  g_edited:"✓ Gasto corregido",
   rec_hide:"Ocultar aviso",
   pt_name_ph:"Nombre (ej. Personal)",
   pt_acc_del:"Quitar cuenta", pt_acc_del_q:"¿Quitar esta cuenta del patrimonio?", pt_acc_del_yes:"Sí, quitar", pt_acc_del_no:"Cancelar", 
@@ -8865,8 +8881,8 @@ Object.assign(LANG.es,{
   mi_solving_captcha:"🛡 Resolviendo el captcha de MyInvestor…",
   mi_rc_key_hint:"Avanzado: para que la app intente resolver el captcha sola, pega aquí el «site key» de reCAPTCHA de MyInvestor. Cómo sacarlo: en el PC entra a la web de MyInvestor, abre las herramientas de desarrollador (F12) → pestaña Red, filtra «recaptcha», y copia el valor «render=6L…» (empieza por 6L).",
   mi_rc_key_saved:"✓ Site key guardado · al conectar, la app intentará resolver el captcha sola.",
-  mi_rc_fail_gen:"🛡 Google no ha dado un token de captcha dentro de la app (el site key de MyInvestor solo funciona en su propia web). El atajo del site key no da más de sí: espera unas horas y reintenta desde el WiFi de casa.",
-  mi_rc_rejected:"🛡 La app generó el token del captcha pero MyInvestor lo rechazó (comprueba desde dónde se generó). No se puede forzar más desde la app: espera unas horas y reintenta desde el WiFi de casa.",
+  mi_rc_fail_gen:"🛡 No se pudo resolver el captcha en la app. Espera unas horas y reintenta desde el WiFi de casa.",
+  mi_rc_rejected:"🛡 MyInvestor rechazó el captcha. Espera unas horas y reintenta desde el WiFi de casa.",
   mi_rc_badge_note:"Protegido por reCAPTCHA · aplican la privacidad y los términos de Google.",
   mi_connected:"✓ MyInvestor conectado", mi_sync:"Sincronizar posiciones", mi_syncing:"Sincronizando…", mi_disconnect:"Desconectar",
   mi_preview:"{n} posiciones encontradas. Elige a cuál de tus posiciones va cada una:",
@@ -8890,7 +8906,7 @@ Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {
 
 
 // «Es aportación a la meta X» en la ficha de un gasto y su fila gris de Metas (24/10/2026).
-Object.assign(LANG.es,{f_meta_row:"Es aportación a una meta", f_meta_hint:"Elige la meta. El cargo deja de contar en el gasto del mes y en el presupuesto, y suma a lo ahorrado de la meta. El saldo del banco no cambia.",
+Object.assign(LANG.es,{f_meta_row:"Es aportación a una meta", f_meta_hint:"Elige la meta: el cargo deja de contar como gasto y suma a lo ahorrado.",
   f_meta_quitar:"No es una aportación", f_meta_otra:"Este cargo ya cuenta en el Plan como cuota o recibo. Cada gasto lleva una sola marca.",
   f_meta_ninguna:"No tienes metas abiertas. Crea una en Plan → Metas.",
   f_meta_confirm_t:"¿Es aportación a «{name}»?", f_meta_confirm_sub:"{x} dejan de contar en el gasto del mes y la meta pasa de {a} a {b}.",
@@ -8956,15 +8972,13 @@ Object.assign(LANG.es,{
   d_networth:"Patrimonio neto", d_assets:"Activos", 
   d_liquid:"Liquidez", d_invest:"Inversiones", d_goods:"Bienes",
   d_saving:"Ahorro", 
-  lt_top:" {cat} se lleva la mayor parte, como casi siempre.", 
   done:"Listo ✓", drag_hint:"mantén pulsada una tarjeta para moverla",
   // Gastos
   g_month:"Este mes", g_cycle:"Mi ciclo", g_all:"Todo", g_custom:"Rango…", g_allcats:"Todas",
-  g_no_budget:"no afecta",
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
-  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_recibo_de:"Recibo: {name}", g_recibo_quiza:"¿Recibo: {name}?", g_filters_debts:"Cuotas", g_cuota_de:"Es la cuota de…",
+  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_recibo_de:"Recibo: {name}", g_recibo_quiza:"¿Recibo: {name}?", g_filters_debts:"Cuotas",
   g_dup_title:"¿Es el mismo movimiento?",
   g_dup_sub:"El banco lo trajo otra vez sin nombre. Si es el mismo que ya tenías, se queda el que tiene el comercio bien puesto. Si son dos cargos distintos, los dos cuentan.",
   g_dup_same:"Es el mismo",
@@ -8975,7 +8989,7 @@ Object.assign(LANG.es,{
   g_allbanks:"Todos los bancos", g_bank_manual:"A mano", g_bank_ob:"del banco",
   g_filters:"Filtros",
   g_filters_search:"Buscar categoría…", g_filters_cats:"Categorías", g_filters_banks:"bancos",
-  g_filters_clear:"Limpiar", g_filters_done:"Listo",
+  g_filters_clear:"Limpiar",
   ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
   g_cycle_budget_hint:"La nómina abre el ciclo. Los ingresos posteriores, incluidos Bizums y alquileres, aumentan el margen; traspasos no.",
@@ -8986,25 +9000,22 @@ Object.assign(LANG.es,{
   g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
   sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
-  g_totalfilt:"Gastos del período", g_n_one:"gasto", g_n_many:"gastos", g_inc_one:"ingreso", g_inc_many:"ingresos", g_balance:"Balance", g_lbl_spent:"Gastos", g_lbl_income:"Ingresos",
-  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con nómina reconocida, Gastos va de nómina a nómina; si no, por mes natural.",
+  st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con nómina reconocida, Gastos va de nómina a nómina; si no, por mes natural.",
   sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
   sec_order:"⇅ Ordenar secciones", 
-  g_sync:"Sincronizar", g_syncing:"Sincronizando…", g_add:"Apuntar",
+  g_syncing:"Sincronizando…",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
-  g_gasto:"💸 Gasto", g_ingreso:"💰 Ingreso", g_concept_g:"Concepto (ej. Cena)", g_concept_i:"Concepto (ej. me devolvió Ana)",
-  g_addgasto:"Añadir gasto", g_addingreso:"Añadir ingreso", g_date:"Fecha (vacía = hoy)",
   g_card:"Con tarjeta", g_nocard:"Bizum o transferencia",
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Irán apareciendo según sincronices o apuntes.",
-  g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
+  g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido",
   cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_multas:"Multas", cat_zona_azul:"Zona azul", cat_peajes:"Peajes", cat_coche:"Coche", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   // Fijos
   af_floor:"Colchón mínimo de {bank}", af_floor_ph:"sin tope",
   af_fin_margin_ok:"La cuota te cabe: te quedarían {x}/mes libres", af_fin_margin_tight:"Justo: la cuota se come más de la mitad de tu margen libre ({x}/mes)",
   af_fin_margin_no:"No te cabe: tu margen libre mensual es {x}", af_fin_margin_none:"Apunta tu nómina (Plan → Gestionar → ingresos) y te digo si la cuota te cabe cada mes.",
   af_fin_create:"Crear la deuda · {x}/mes", af_fin_created:"Deuda creada · la verás en Plan → Deudas",
-  fj_debt_tag:"cuota de deuda", fj_fixed_tag:"gasto fijo",
+  fj_debt_tag:"cuota de deuda",
   fj_income_tag:"ingreso", fj_transfer_tag:"transferencia",
   fj_permonth:"{x}/mes", fj_edit:"Editar", fj_save:"Guardar", fj_fixed:"Recibo",
   fj_day:"día", 
@@ -9021,7 +9032,7 @@ Object.assign(LANG.es,{
 Object.assign(LANG.es,{
   inv_save:"Guardar", inv_cancel:"Cancelar", inv_editmanual:"Editar a mano",
   inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
-  inv_sold:"💸 Líquido vendido (realizado)", inv_proj:"Proyección de tu ahorro", inv_proj_sub:"Interés compuesto",
+  inv_proj:"Proyección de tu ahorro", inv_proj_sub:"Interés compuesto",
   inv_hint_edit:"Escribe el valor actual de cada posición; el % se calcula solo.",
   inv_hint_view:"Sin precio automático (fondos, oro…): usa «Editar a mano». Dólar→euro: {fx}.",
   inv_sold_part:"Vendí parte →", inv_value:"Valor", inv_invested:"Invertido", inv_sell_prompt:"¿Qué % de «{name}» has vendido?",
@@ -9030,7 +9041,7 @@ Object.assign(LANG.es,{
   ru_title:"Round-up & Saveback (TR)", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
   ru_title_simple:"Redondeo y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
   ru_hint_simple:"Redondea cada compra al euro e invierte la diferencia, más el 1 % que devuelve TR.",
-  ru_mult:"Multiplicador del redondeo", ru_off:"Off", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
+  ru_mult:"Multiplicador del redondeo", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
   ru_saveback:"Saveback 1% (cashback de TR, máx 15€/mes)",
   ru_month_ru:"Round-up ya invertido (este mes)", ru_month_sb:"Saveback ya invertido (este mes)", ru_total:"Aportado vía TR (total acumulado)",
   ru_plan:"Aporte periódico a inversión", ru_plan_amt:"Cada mes (€)", ru_plan_hint:"{x}/mes salen de tu efectivo de TR y compran {inv} (tu plan de ahorro). Así tu saldo de TR cuadra sin tocar nada.", 
@@ -9040,13 +9051,12 @@ Object.assign(LANG.es,{
   type_acciones:"Acciones", type_etf:"ETF", type_fondo:"Fondo indexado", type_materias:"Materias primas",
   pj_projvalue:"Valor proyectado", pj_contrib:"Tu contribución", pj_monthly:"Contribución mensual", pj_rate:"Interés anual %", pj_years:"Años",
   pj_gain:"Ganancia estimada en {y} años", pj_hint:"Sobre lo ya invertido ({x}). La banda es ±2% sobre el interés. Estimación, no garantía.",
-  pt_accounts:"Cuentas", 
   pt_ob_extra:"Cuenta", pt_ob_badge:"del banco", pt_ob_stale:"sin actualizar", pt_ob_joint:"Conjunta", pt_ob_saving:"Ahorro", pt_ob_current:"Corriente",
   pt_goods:"Bienes", 
-  db_total:"Deuda total", db_quota:"Cuota {x}/mes", db_amort:"amortiza {x}/mes", db_amort_q:"amortiza {x}/mes (cuota {y})", db_paidoff:"Amortizado {x} ({p}%)",
-  db_pending:"Pendiente", db_pending_sub:"baja solo cada mes", db_delete:"Eliminar esta deuda", db_savechanges:"Guardar cambios", db_editbalances:"Editar saldos pendientes",
+  db_quota:"Cuota {x}/mes", db_paidoff:"Amortizado {x} ({p}%)",
+  db_pending:"Pendiente", db_delete:"Eliminar esta deuda", db_savechanges:"Guardar cambios",
   db_concept:"Concepto (ej. Financiación móvil)", db_amount:"Importe €", db_quota_ph:"Cuota/mes € (vacío si 0%)", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
-  db_months_ph:"Plazo (meses)", db_day_ph:"Día", db_left:"Quedan {n}/{tot} cuotas · {x}/mes", db_paidoff_done:"✓ Financiación pagada", db_financing_hint:"Plazo en meses: la cuota se apunta sola y para al acabar. Al 0 % déjala vacía; con interés, pon la real.",
+  db_months_ph:"Plazo (meses)", db_day_ph:"Día", db_financing_hint:"Plazo en meses: la cuota se apunta sola y para al acabar. Al 0 % déjala vacía; con interés, pon la real.",
   db_down_ph:"Entrada € (opcional)", db_balloon_ph:"Pago final € (coche)", db_balloon_tag:"(pago final)", db_balloon_hint:"Coche con pago final: pon importe financiado, pago final y plazo; la cuota sale sola.", db_balloon_line:"Pago final: {x}", db_down_line:"Entrada: {x}",
   db_hint:"El saldo baja solo cada mes. Corrígelo aquí cuando tengas el real del banco.",
   db_err_amount:"⚠ Falta el importe total de la deuda", db_err_quota:"⚠ Pon la cuota/mes o el plazo en meses", db_err_paid:"⚠ Has pagado tantas cuotas como el plazo: esa deuda ya está liquidada", db_added:"✓ Deuda añadida",
@@ -9055,7 +9065,7 @@ Object.assign(LANG.es,{
   db_est_zero:"Saldo estimado: 0 €. Confirma si el banco ya la ha liquidado.", db_settle_q:"¿«{name}» ya está liquidada?", db_settle_sub:"Confirma el saldo real. Esta acción no crea pagos ni cambia los movimientos guardados.", db_settle_ok:"Marcar liquidada", db_settled:"✓ Liquidada. Puedes archivarla sin perder sus pagos.",
   db_archive:"Archivar deuda", db_archived:"Deuda archivada", db_archive_title:"Deudas archivadas ({n})", db_archive_hint:"Siguen guardadas para consultar los pagos vinculados.", db_unarchive:"Volver a mostrar", db_delete_q:"¿Eliminar «{name}»?", db_delete_sub:"Solo se puede eliminar si no tiene pagos vinculados.", db_delete_linked:"Esta deuda tiene pagos vinculados y no se puede eliminar. Consérvala en la lista o archívala al liquidarla.",
   da_title:"¿Cuándo amortizar?", da_sub:"simula y decide con números",
-  da_rate:"Interés anual (TAE %)", da_rate_hint:"Ponle el interés a la deuda (sale en tu contrato o en la app del banco) y te digo cuánto te ahorras amortizando. Si es una financiación sin intereses, pon 0.",
+  da_rate:"Interés anual (TAE %)", da_rate_hint:"Pon el interés para ver cuánto ahorras amortizando (0 si no tiene).", da_est:"Es una estimación: tu banco puede calcularlo distinto.",
   da_amount:"¿Cuánto amortizarías?",
   da_cut:"Te quitas {n} cuotas: acabarías en {d} en vez de {d0}.",
   da_nocut:"Con ese importe no te quitas una cuota entera (recorta el último pago).",
@@ -9069,7 +9079,6 @@ Object.assign(LANG.es,{
   da_first:"🥇 Con varias deudas, amortiza primero la de mayor interés: «{name}» ({p}%).",
   da_apply:"💸 Amortizar {x} ahora",
   da_apply_q:"¿Amortizar {x} de «{name}»?", da_apply_sub:"El pendiente baja y el plazo se acorta con la misma cuota.",
-  da_est:"Estimación con el modelo lineal de la app: la cifra exacta depende de cómo calcule tu banco.",
   lk_unlock:"Desbloquea para continuar", lk_failed:"No se pudo verificar. Inténtalo de nuevo.", lk_unlockbtn:"Desbloquear con huella", lk_cant:"No puedo desbloquear",
   lk_escape:"¿Quitar el candado de huella?", lk_escape_sub:"Solo en este dispositivo. Podrás volver a activarlo desde tu cuenta.", lk_escape_ok:"Quitar el candado",
   au_account:"Tu cuenta", au_bio_off:"Desactivar desbloqueo con huella", au_bio_on:"Activar desbloqueo con huella", au_nobio:"Este dispositivo/navegador no soporta huella.",
@@ -9077,7 +9086,7 @@ Object.assign(LANG.es,{
   au_toup:"¿No tienes cuenta? Crear una", au_toin:"¿Ya tienes cuenta? Inicia sesión", au_cancel:"Cancelar",
   au_forgot:"¿Olvidaste tu contraseña?", au_reset_title:"Recuperar contraseña", au_reset_send:"Enviar email de recuperación", au_reset_sent:"📩 Si el email existe, te hemos enviado un enlace para cambiarla.", au_need_email:"Pon tu email", au_newpass_title:"Nueva contraseña", au_newpass_save:"Guardar contraseña", au_pass_changed:"✓ Contraseña actualizada", au_pass_short:"Mínimo 6 caracteres", au_back:"← Volver",
   au_need:"Pon email y contraseña", au_signedin:"✓ Sesión iniciada", au_created:"✓ Cuenta creada", au_signedout:"Sesión cerrada", au_bio_dis:"Huella desactivada", au_bio_en:"✓ Huella activada",
-  bk_auto_title:"Copias automáticas", bk_auto_hint:"Una copia al día, 30 días en la nube. Abrirlas no cambia tu cartera.", bk_auto_none:"Aún no hay copias guardadas.", bk_auto_confirm:"¿Restaurar la copia del {day}?",
+  bk_auto_title:"Copias automáticas", bk_auto_hint:"Una copia al día, 30 días en la nube. Abrirlas no cambia tu cartera.", bk_auto_none:"Aún no hay copias guardadas.",
 });
 
 
@@ -9085,12 +9094,12 @@ Object.assign(LANG.es,{
 /* ---- Metas de ahorro (#15) ---- */
 Object.assign(LANG.es,{
   tab_metas:"Metas", tab_logros:"Logros",
-  gl_total:"Ahorrado en metas", gl_total_sub:"de {x} en total",
-  gl_new:"Nueva meta", gl_create:"Crear meta", gl_cancel:"Cancelar",
+  gl_total_sub:"de {x} en total",
+  gl_create:"Crear meta", gl_cancel:"Cancelar",
   gl_name_ph:"Nombre (ej. Vacaciones)", gl_target_ph:"Objetivo €", gl_saved_ph:"Ya ahorrado €", gl_deadline:"Fecha límite (opcional)", gl_monthly_ph:"Aporte al mes € (opcional)",
-  gl_emoji:"Icono", gl_newdefault:"Mi meta",
-  gl_contribute:"+ Aportar", gl_contribute_prompt:"¿Cuánto añades a «{name}»?", gl_contribute_sub:"Se suma a lo que llevas ahorrado para esta meta.",
-  gl_edit:"Editar metas", gl_save:"Guardar cambios", gl_delete:"Eliminar meta", gl_of:"de",
+  gl_newdefault:"Mi meta",
+  gl_contribute:"+ Aportar",
+  gl_save:"Guardar cambios", gl_delete:"Eliminar meta", gl_of:"de",
   gl_eta:"A tu ritmo ({x}/mes) la cumples en {when} 🟢",
   gl_eta_ok:"Vas bien 🟢 · faltan {x}", gl_eta_behind:"Necesitas {x}/mes para llegar a tiempo 🟠",
   gl_eta_reached:"🎉 ¡Conseguida!", gl_eta_overdue:"La fecha ya pasó 🟠 · ajústala", gl_eta_nosaving:"Empieza a ahorrar para ver la previsión",
@@ -9104,7 +9113,6 @@ Object.assign(LANG.es,{
   sh_expenses:"Gastos del grupo", sh_noexp:"Aún no hay gastos. Añade el primero.", sh_paidby:"Pagó {who}", sh_addexp:"Añadir gasto", sh_exp:"Gasto", sh_exp_ph:"Concepto (ej. Cena)", sh_split:"¿Entre quién se reparte?",
   sh_back:"Grupos", sh_delgroup:"Borrar grupo", sh_delgroup_q:"¿Borrar este grupo y sus gastos?",
   gl_empty_t:"Aún no tienes metas", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
-  gl_widget_title:"Tu meta", 
   rr_add:"+ Añadir regla", rr_save:"Guardar regla",
   // INC-0810 es: textos propios de edición de reglas, sin cambiar el contrato de alta.
   rr_edit:"Editar regla",
@@ -9140,7 +9148,7 @@ Object.assign(LANG.es,{
   rr_m_base:"Este mes: —. Sin presupuesto mensual no se puede calcular el porcentaje.",
   rr_m_meta:"Este mes: —. La meta ya no está activa.",
   rr_m_none:"Este mes: —. Aún no se ha aplicado.",
-  rr_m_hint:"Al guardar, el importe se descuenta de tu presupuesto de este mes y se aporta a la meta, sin confirmar nada más. Se repite cada mes, al abrir la app.",
+  rr_m_hint:"Cada mes, al abrir la app, se descuenta del presupuesto y va a la meta.",
   // INC-0410 es: límite para no invalidar textos ajenos al alta de reglas.
 });
 
@@ -9175,7 +9183,7 @@ Object.assign(LANG.es,{
   bank_refresh:"Actualizar todos", bank_reconnect:"Reconectar",
   bank_pending:"Pendiente de autorizar en el banco",
   bank_updated:"Saldo actualizado: {x}", bank_neversync:"Aún sin sincronizar",
-  bank_consent:"Permiso válido hasta {x}", bank_consent_soon:"⚠ El permiso caduca el {x} · reconéctate",
+  bank_consent:"Permiso válido hasta {x}",
 });
 
 
@@ -9187,7 +9195,7 @@ Object.assign(LANG.es,{
   pv_s1_h:"Qué datos guardamos",
   pv_s1:["Tu cartera: cuentas, inversiones, deudas, presupuesto y ajustes (en el móvil y, si inicias sesión, en Supabase).","Gastos: importe, comercio, categoría y fecha.","Conexiones bancarias: estado del enlace Open Banking y tokens de sesión cifrados. No guardamos la contraseña del banco.","MyInvestor: tokens de sesión cifrados tras conectar. La contraseña solo se usa al entrar y no se almacena.","Telemetría mínima (opcional): versión, plataforma y errores — sin datos financieros."],
   pv_s2_h:"Dónde se alojan",
-  pv_s2:"Los datos en la nube están en Supabase (UE). La app se sirve desde GitHub Pages. Cada usuario solo lee y escribe sus propios datos (Row Level Security). Los CSV de tus extractos se procesan en el móvil y no se suben a ningún sitio.",
+  pv_s2:"Tus datos se guardan en la UE y solo tú puedes leerlos. Los extractos se leen en el móvil y no se suben.",
   pv_s3_h:"Tus derechos",
   pv_s3:["Acceso y portabilidad: exporta tus datos en JSON desde Ajustes → Copia de seguridad.","Supresión: Ajustes → Tu cuenta → Borrar mi cuenta (pide contraseña). Borra tu usuario y todos sus datos.","Rectificación: puedes editar cualquier dato dentro de la app."],
   pv_s4_h:"Contacto",
@@ -9272,7 +9280,6 @@ Object.assign(LANG.es,{
   bp_rm_keep_diario_sub:"Se corta la conexión y nada más. Si quieres que dejen de contar, primero cambia cuál es tu cuenta del día a día en Patrimonio.",
   bp_rm_stop:"Que dejen de contar",
   bp_rm_stop_sub:"Sus compras salen del gasto del mes. Ojo: también cambia lo que ves en los meses ya pasados, porque la cifra se recalcula.",
-  bp_foot:"",
   bp_brokers:"Brókers",
   bp_which:"¿Qué brókers usas? Toca para añadir o quitar.",
 });
@@ -10439,7 +10446,7 @@ const THEMES=[["green","Verde","#5FD08A"],["dark","Oscuro","#3A3A40"],["light","
     otono:["🍂","🍁","🍄","🌰","🍁"],
     primavera:["🌸","🌿","🦋","🌼","🌸"]
   };
-Object.assign(LANG.es,{g_note_unconfirmed:"Nota sin confirmar en la nube. Se conserva en este dispositivo.",g_note_retry:"Reintentar",g_edit_unconfirmed:"No se pudo guardar el cambio. Vuelve a intentarlo."});
+Object.assign(LANG.es,{g_note_unconfirmed:"Nota sin confirmar en la nube. Se conserva en este dispositivo.",g_note_retry:"Reintentar"});
 
 
 Object.assign(LANG.es,{g_rename_pending:"Nombre pendiente de confirmar. Se conserva en este dispositivo y se reintentará al volver la conexión."});
@@ -10906,7 +10913,7 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=text;  g.font="700 64px Manrope, sans-serif"; g.fillText(eur0(tt.netWorth), 112, py+80);
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
-      if(!b){ if(showToast) showToast("✕ Informe: canvas vacío"); return; }
+      if(!b){ if(showToast) showToast(errTxt()); return; }
       const fname="mi-cartera-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
@@ -10934,7 +10941,7 @@ function shareMonthReport(state, tt, showToast, opt){
         saidSaved();
       }
     },"image/png");
-  }catch(e){ if(showToast) showToast("✕ Informe: "+((e&&e.message)||e)); }
+  }catch(e){ if(showToast) showToast(errTxt(e)); }
 }
 
 /* ============================================================
@@ -13747,6 +13754,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const ringLabel=over?(usedPct>100?usedPct+"%":">100%")
     :usedC>0&&usedPct===0?t("v42_cycle_under_one"):usedPct+"%";
   const amountTxt=over?cycleMoney(paceState.excess):cycleMoney(rem);
+  // «libres de»: la cifra es lo que QUEDA y el anillo lo gastado; con «de» a secas se leía
+  // «llevo 912 € gastados de 1.000» (auditoría 14/11/2026).
   const amountOf=tf(over?"v42_cycle_excess_of":"v42_cycle_of",{x:cycleMoney(budAmt)});
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
@@ -13906,18 +13915,22 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
     !showSkel && overdue.length>0 && React.createElement("div",{className:"v4-section rise"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,t("v4_charges_overdue")),
+        // Mismo nombre que en Plan › Recibos («Para revisar» / «No ha llegado»): antes Inicio decía
+        // «Cargos vencidos» / «Sin pago acreditado» para el mismo recibo (auditoría 14/11/2026).
+        React.createElement("span",null,t("pr6_revisar")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_see_plan"))),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
           return React.createElement("div",{key:i,className:"v4-charge"},
             React.createElement("div",{className:"dt"},React.createElement("div",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("div",{className:"m"},monthName.slice(0,3))),
-            React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{className:"nm"},u.name),React.createElement("div",{className:"sub"},u.sub+" · "+t("v4_charge_unconfirmed"))),
+            React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{className:"nm"},u.name),React.createElement("div",{className:"sub"},u.sub+" · "+t("pr6_no_llegado"))),
             React.createElement("div",{className:"am num"},eur(u.amount)));
         }))
     ),
 
-    !showSkel && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
+    // Modo sencillo: Plan no tiene Metas, así que «Crear una meta» y «Ver plan» llevaban a Recibos
+    // (auditoría 14/11/2026). Fuera, igual que en Plan.
+    !showSkel && !simple && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_your_goals"))),
       React.createElement("div",{className:"v4-empty"},
         React.createElement("div",{className:"em"}, "🎯"),
@@ -13927,7 +13940,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
 
-    !showSkel && goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
+    !showSkel && !simple && goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_your_goals")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_see_plan"))
@@ -15498,7 +15511,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       if(!cat||cat==="otros"||!CAT[cat]){ showToast(t("ai_cat_none")); return; }
       setCat(ex,cat);
       showToast(tf("ai_cat_ok",{c:catName(cat)}));
-    }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setAiBusy(false); });
+    }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setAiBusy(false); });
   };
   useEffect(()=>{ setVisible(CONFIG.PAGE_SIZE); },[preset,range,sel,bankSel,bucketSel,q,catFil]);
   /* LA PAGINACIÓN DE LA LISTA — sus fallos, y el de 2026-07-27.
@@ -15668,7 +15681,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const vsPrev=function(cur,prev,ym,mismoDia){
       const diff=cur-prev, mes=mesDe(ym), sd=mismoDia?"_sd":"";
       if(Math.abs(diff)<1) return {tail:tf("gv5_same"+sd,{mes:mes}),tone:"muted"};
-      return {tail:tf((diff>0?"gv5_more":"gv5_less")+sd,{x:fmt(diff),mes:mes}),tone:diff>0?"coral":"mint"};
+      // Cada clave como prefijo pegado a `+sd`: así `i18n-keys` sabe que las `_sd` se usan.
+      return {tail:tf(diff>0?"gv5_more"+sd:"gv5_less"+sd,{x:fmt(diff),mes:mes}),tone:diff>0?"coral":"mint"};
     };
     const etiquetaMes=function(ym){ const y=+ym.slice(0,4); return mesDe(ym)+(y!==mad.y?" "+y:""); };
     // Meses para la fila fija de Categorías y del filtro: los que tienen algo que cuenta, y el en curso.
@@ -17277,12 +17291,13 @@ function BudgetSheet({open, budget, onClose, onSave}){
    askText → Promise<string|null> (null = canceló) · askConfirm → Promise<bool>.
    Son PROMESAS: el prompt nativo era síncrono, así que al portar un sitio hay que mover lo
    de después dentro del .then() (ojo con los early-return del patrón viejo).
-   Si el host no está montado (p.ej. la pantalla del candado, que va antes que el árbol de la
-   app) caen al diálogo nativo: feo, pero nunca se pierde la acción. */
+   Sin host montado ya NO caen al diálogo nativo (auditoría 14/11/2026: era el último camino a
+   «CANCEL/OK»): cuentan como «cancelar». La pantalla del candado, que era el caso, monta su
+   propio `AskHost` (ver el `if(locked)` de App). */
 var askEmit=null;
 function askDialog(o){
   return new Promise(function(resolve){
-    if(!askEmit){ resolve(o.input?window.prompt(o.title,o.value||""):window.confirm(o.title)); return; }
+    if(!askEmit){ try{ console.warn("askDialog sin AskHost"); }catch(e){} resolve(o.input?null:false); return; }
     askEmit(Object.assign({},o,{resolve:resolve}));
   });
 }
@@ -17293,11 +17308,11 @@ function askConfirm(o){ return askDialog(Object.assign({input:false},o)); }
    Con `askConfirm` habría que inventarse cuál de las dos cosas es «aceptar», y eso es adivinar con
    su dinero — que es justo lo que no queremos.
    `options`: [{v, label, sub}]. Resuelve con el `v` elegido, o `null` si cancela.
-   Sin `AskHost` montado cae a `confirm()` con la PRIMERA opción, para no perder la acción. */
+   Sin `AskHost` montado, como `askDialog`: cancelar. */
 function askChoice(o){
   const opts=(o&&o.options)||[];
   return new Promise(function(resolve){
-    if(!askEmit){ resolve(window.confirm(o.title)? (opts[0]&&opts[0].v) : null); return; }
+    if(!askEmit){ resolve(null); return; }
     askEmit(Object.assign({},o,{input:false,options:opts,resolve:resolve}));
   });
 }
@@ -18978,7 +18993,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
               !missingFx && React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
               state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
               state.investments.length>0&&!missingFx && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
-        React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?fx.toFixed(4):"—"}))),
+        React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?Number(fx).toLocaleString(loc(),{maximumFractionDigits:4}):"—"}))),
 
       React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:22}},
         React.createElement("span",null,t("iv_where")),
@@ -19129,7 +19144,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     ),
     React.createElement("div",{className:"hint",style:{padding:"0 4px"}}, editing
       ? t("inv_hint_edit")
-      : tf("inv_hint_view",{fx:fx}))
+      // El tipo con 4 decimales y la coma de cada idioma: salía «0.904813608397» (auditoría 14/11/2026).
+      : tf("inv_hint_view",{fx:fx>0?Number(fx).toLocaleString(loc(),{maximumFractionDigits:4}):"—"}))
   );
 }
 
@@ -29026,7 +29042,7 @@ function useUpdates(){
     if(showToast) showToast(t("apk_downloading"));
     nat.installApk({url:apkUpd.url}).then(function(r){
       if(r&&r.needsPermission&&showToast){ showToast(t("apk_perm")); return; }   // Android abrió el ajuste; reintocar
-    }).catch(function(e){ if(showToast) showToast("⚠ "+((e&&e.message)||e)); });
+    }).catch(function(e){ if(showToast) showToast(errTxt(e)); });
   };
   const otaDownloaded=!!(window._mcOtaReady&&window._mcOtaReady.id);
   return { updateReady:updateReady, otaReady:otaReady, otaDownloaded:otaDownloaded, apkUpd:apkUpd, applyUpdate:applyUpdate, installApk:installApk };
@@ -29076,12 +29092,12 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     setBusy(true);
     const p = mode==="in" ? cloud.signInPassword(email.trim(),pass) : cloud.signUpPassword(email.trim(),pass);
     p.then(function(){ showToast(mode==="in"?t("au_signedin"):t("au_created")); onClose(); })
-     .catch(function(e){ showToast("✕ "+((e&&e.message)||e)); })
+     .catch(function(e){ showToast(errTxt(e)); })
      .then(function(){ setBusy(false); });
   };
   const toggleBio=function(){
     if(bioOn){ bio.disable(); setBioOn(false); showToast(t("au_bio_dis")); return; }
-    bio.enable(uid, (session&&session.user&&session.user.email)).then(function(){ setBioOn(true); showToast(t("au_bio_en")); }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); });
+    bio.enable(uid, (session&&session.user&&session.user.email)).then(function(){ setBioOn(true); showToast(t("au_bio_en")); }).catch(function(e){ showToast(errTxt(e)); });
   };
   const stop=function(e){ e.stopPropagation(); };
   const sendReset=function(){
@@ -29089,7 +29105,7 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     setBusy(true);
     cloud.resetPassword(email.trim())
       .then(function(){ showToast(t("au_reset_sent")); setMode("in"); })
-      .catch(function(e){ showToast("✕ "+((e&&e.message)||e)); })
+      .catch(function(e){ showToast(errTxt(e)); })
       .then(function(){ setBusy(false); });
   };
   const saveNewPass=function(){
@@ -29097,7 +29113,7 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     setBusy(true);
     cloud.updatePassword(pass)
       .then(function(){ showToast(t("au_pass_changed")); onClose(); })
-      .catch(function(e){ showToast("✕ "+((e&&e.message)||e)); })
+      .catch(function(e){ showToast(errTxt(e)); })
       .then(function(){ setBusy(false); });
   };
   // Recuperación: poner contraseña nueva (se llega desde el enlace del email; ya hay sesión temporal).
@@ -29710,7 +29726,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
     window.addEventListener("mc-bank-links-changed", alRefrescar);
     return function(){ window.removeEventListener("mc-bank-links-changed", alRefrescar); };
   },[uid]);
-  const loadAspsps=function(){ if(aspsps!==null||loadingA) return; setLoadingA(true); cloud.bankAspsps("ES").then(function(rows){ setAspsps(rows||[]); }).catch(function(e){ setAspsps([]); showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setLoadingA(false); }); };
+  const loadAspsps=function(){ if(aspsps!==null||loadingA) return; setLoadingA(true); cloud.bankAspsps("ES").then(function(rows){ setAspsps(rows||[]); }).catch(function(e){ setAspsps([]); showToast(errTxt(e)); }).finally(function(){ setLoadingA(false); }); };
   const openPicker=function(){ setPicking(true); loadAspsps(); };
   // Candado compartido con el banner de Cartera: dos toques no gastan el permiso dos veces
   // (invalid_request de Enable Banking — 2026-07-26).
@@ -29724,7 +29740,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
         if(bankRateLimited(e)){ showToast("⚠ "+t("bank_rate_limit")); return; }
         const msg=(e&&e.message)||String(e);
-        showToast("⚠ "+t("bank_error")+": "+msg);
+        showToast("⚠ "+t("bank_error"));
         /* ANTES ESTE FALLO ERA MUDO: solo un toast, que se lee y se olvida. La conexión de TR
            por Open Banking rechazada (2026-08-01: «da error») no dejó NINGÚN rastro en
            app_events — no había forma de saber, sin estar delante de su móvil en ese instante,
@@ -29825,7 +29841,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           return next;
         });
         loadLinks();
-      }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setBusy(""); });
+      }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(""); });
     });
   };
 
@@ -30951,7 +30967,7 @@ function AutoBackupsPanel({state, showToast, uid, onClose}){
   useEffect(function(){
     mounted.current=true;
     cloud.listBackupDays(uid).then(function(rows){ setDays(rows||[]); })
-      .catch(function(e){ setDays([]); showToast("⚠ "+((e&&e.message)||e)); });
+      .catch(function(e){ setDays([]); showToast(errTxt(e)); });
     return function(){ mounted.current=false; };
   },[uid]);
   const inspect=function(day){
@@ -30961,7 +30977,7 @@ function AutoBackupsPanel({state, showToast, uid, onClose}){
       const check=validateBackupSnapshot(data);
       if(!check.ok){ showToast("✕ "+tf("bk_invalid_reason",{reason:t("bk_invalid_"+check.reason)})); return; }
       setPreview({day:day,data:data});
-    }).catch(function(e){ if(mounted.current) showToast("⚠ "+((e&&e.message)||e)); })
+    }).catch(function(e){ if(mounted.current) showToast(errTxt(e)); })
       .finally(function(){ if(mounted.current) setBusy(""); });
   };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
@@ -31082,7 +31098,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9a11bb118da99f85a11599bf483614b5c13db42806c10e381169f3c86fa938b7";
+var _rnSha="95cd5169e9937968d01bc59b6070ee668afa8e8a56e89dfadaf601ea86ff5a22";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -31379,7 +31395,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const toggleBio=function(){
     if(bioOn){ bio.disable(); setBioOn(false); showToast(t("au_bio_dis")); return; }
     bio.enable(uid, meEmail).then(function(){ setBioOn(true); showToast(t("au_bio_en")); })
-      .catch(function(e){ showToast("✕ "+((e&&e.message)||e)); });
+      .catch(function(e){ showToast(errTxt(e)); });
   };
   const doSignOut=function(){
     askConfirm({ title:t("au_signout"), ok:t("au_signout"), danger:true }).then(function(yes){
@@ -31466,7 +31482,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // feedback visible: sin esto, recargar con los mismos datos parecía "no hacer nada" (2026-07-11)
       const nErr=(rows||[]).filter(function(r){ return r.kind==="error"; }).length;
       showToast("↻ "+(rows||[]).length+" eventos · "+nErr+" error(es)");
-    }).catch(function(e){ setEvents([]); showToast("⚠ "+((e&&e.message)||e)); });
+    }).catch(function(e){ setEvents([]); showToast(errTxt(e)); });
   };
   // ¿El lector de gastos TR tiene acceso a notificaciones? (se pierde al reinstalar la app).
   // Se re-chequea al volver a la app (visibilitychange): al activar el permiso y volver, el aviso se quita solo.
@@ -31829,7 +31845,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             try{ if(nat.setIngestUrl) return nat.setIngestUrl({url:url}); }catch(e){}
           }).then(function(){
             setS({trIngest:true, ingestToken:tok}); showToast(t("st_tring_on"));
-          }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); });
+          }).catch(function(e){ showToast(errTxt(e)); });
         } else {
           try{ if(nat.setIngestUrl) nat.setIngestUrl({url:""}).catch(function(){}); }catch(e){}
           cloud.clearIngestToken();
@@ -31908,7 +31924,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
                 cloud.deleteAccount(String(pwd)).then(function(){
                   showToast(t("st_delete_acc_done"));
                   onClose();
-                }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); });
+                }).catch(function(e){ showToast(errTxt(e)); });
               });
           });
       })
@@ -32299,12 +32315,16 @@ class ErrorBoundary extends React.Component{
     const wrap={position:"fixed",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:13,padding:24,textAlign:"center",background:"#0B1410",color:"#E8F0EB",fontFamily:"Manrope,sans-serif",zIndex:9999};
     const btn={padding:"13px 22px",borderRadius:14,border:"none",background:"#5FD08A",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer"};
     const btn2=Object.assign({},btn,{background:"transparent",border:"1px solid #2a3a31",color:"#E8F0EB"});
-    const dl=function(){ try{ const snapshot=Object.assign({},mcLoadRaw(mcStateKey())||{});delete snapshot._planSync;const data=JSON.stringify(snapshot,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="mi-cartera-backup-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ alert("Export error: "+e); } };
+    // Si la descarga falla, el aviso va en la propia pantalla: antes era un alert() nativo y en
+    // inglés («Export error: …»), lo único fuera de los diálogos de la app (auditoría 14/11/2026).
+    const self=this;
+    const dl=function(){ try{ const snapshot=Object.assign({},mcLoadRaw(mcStateKey())||{});delete snapshot._planSync;const data=JSON.stringify(snapshot,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="aely-copia-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ try{ console.error("Export:",mcLogCode(e)); }catch(_){} self.setState({dlFail:true}); } };
     return React.createElement("div",{style:wrap},
       React.createElement("div",{style:{fontSize:46}},"🛟"),
       React.createElement("div",{style:{fontWeight:800,fontSize:21,fontFamily:"Fraunces,serif"}}, t("eb_title")),
       React.createElement("div",{style:{color:"#9fb3a8",fontSize:14,maxWidth:340,lineHeight:1.5}}, t("eb_msg")),
       React.createElement("button",{style:btn,onClick:dl}, t("eb_export")),
+      this.state.dlFail && React.createElement("div",{role:"alert",style:{color:"#E8F0EB",fontSize:13,maxWidth:340}}, t("eb_export_fail")),
       React.createElement("button",{style:btn2,onClick:function(){ try{ location.reload(); }catch(e){} }}, t("eb_reload")),
       React.createElement("div",{style:{color:"#5a6b62",fontSize:11,maxWidth:340,marginTop:6,wordBreak:"break-word"}}, String((this.state.err&&this.state.err.message)||this.state.err||""))
     );
@@ -32436,7 +32456,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
     return cloud.fetchHouseholdBundle().then(function(b){
       setHh(b.household); setSnaps(b.snapshots||[]);
     }).catch(function(e){
-      showToast("✕ "+((e&&e.message)||e));
+      showToast(errTxt(e));
     }).finally(function(){ setBusy(false); });
   };
 
@@ -32451,7 +32471,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
     cloud.publishHouseholdSnapshot(hh.id, payload).then(function(){
       showToast(t("hh_pub_ok"));
       return reload();
-    }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); }).finally(function(){ setBusy(false); });
+    }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(false); });
   };
 
   const doCreate=function(){
@@ -32463,9 +32483,9 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       return reload();
     }).catch(function(e){
       const m=(e&&e.message)||String(e);
-      // RLS rota en la BD (caso real 2026-07-18): el error de Postgres no le dice nada al
-      // usuario; se traduce a algo accionable (aplicar la migración 0015).
-      showToast(m.indexOf("row-level security")>=0 ? ("✕ "+t("hh_rls_fix")) : ("✕ "+m));
+      // RLS rota en la BD (caso real 2026-07-18, se arregla con la migración 0015): a la familia
+      // le decimos que no se guardó; lo de Supabase no lo puede arreglar ella (auditoría 14/11/2026).
+      showToast(m.indexOf("row-level security")>=0 ? ("✕ "+t("hh_rls_fix")) : errTxt(e));
     }).finally(function(){ setBusy(false); });
   };
 
@@ -32479,7 +32499,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       return reload();
     }).catch(function(e){
       const m=(e&&e.message)||String(e);
-      showToast(m.indexOf("too_many")>=0 ? ("⚠ "+t("hh_code_wait")) : (m.indexOf("invalid")>=0?t("hh_code_bad"):("✕ "+m)));
+      showToast(m.indexOf("too_many")>=0 ? ("⚠ "+t("hh_code_wait")) : (m.indexOf("invalid")>=0?t("hh_code_bad"):errTxt(e)));
     }).finally(function(){ setBusy(false); });
   };
 
@@ -32491,7 +32511,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       cloud.leaveHousehold(hh.id).then(function(){
         showToast(t("hh_left"));
         setHh(null); setSnaps([]);
-      }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); }).finally(function(){ setBusy(false); });
+      }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(false); });
     });
   };
 
@@ -32655,11 +32675,17 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       ? (coverBank&&balKnown
         ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
         : t("v4_plan_state_all_paid_nobank"))
+      // La cifra grande es el total de TODOS los bancos y la frase habla de uno: por eso la
+      // frase nombra el banco en su importe. Con «Te quedan X de recibos» a secas, el total
+      // arriba y lo de un banco abajo eran dos «te quedan» que se contradecían (auditoría
+      // 14/11/2026). Las claves `_noday` no existían: salía la clave cruda.
       : (coverBank!=null&&cover.min!=null&&isFinite(cover.min)
-        ? tf((coverTone==="bad"?"v4_plan_state_bad":(coverTone==="warn"?"v4_plan_state_warn":"v4_plan_state_ok"))+(hasMinDay?"":"_noday"),{
-            left:eur0(leftForPhrase), end:eur0(cover.min), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
+        ? tf(coverTone==="ok"?(hasMinDay?"v4_plan_state_ok":"v4_plan_state_ok_noday"):(hasMinDay?"v4_plan_state_warn":"v4_plan_state_warn_noday"),{
+            left:eur0(leftForPhrase), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
           })
-        : t("v4_plan_state_none"))));
+        // Sin saldo del banco no hay mínimo que contar, pero sí recibos: antes decía «Aún no hay
+        // recibos» debajo de la cifra de lo que queda por pagar.
+        : tf("v4_plan_state_left",{left:eur0(charges.pendingBillsTotal)}))));
   const coverAria=coverHead+". "+coverPhrase;
   // Puerta viva desde Ajustes: flag pendiente si Plan aún no montó (cold start / idle).
   useEffect(function(){
@@ -32961,7 +32987,8 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     if(x.unconfirmed) return entOf(x.bank).label;
     // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
     var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
-    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
+    // Las palabras de Recibos (SPEC §2.3): «Sin pago acreditado» era otro nombre para lo mismo.
+    if(x.overdue) return entOf(x.bank).label+" · "+t("pr6_no_llegado");
     if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
     if(x.kind==="transfer"){
       var toEnt=x.to||null;
@@ -38786,6 +38813,9 @@ function App(){
     return function(){ active=false; window.removeEventListener("online",load); };
   },[savedLang]);
   CURLANG = langPackReady(savedLang)?savedLang:"es";
+  // `<html lang>` fijo en «es» hacía que el lector de pantalla leyera el inglés y el catalán con
+  // voz castellana (auditoría de diseño 14/11/2026).
+  if(document.documentElement.lang!==CURLANG) document.documentElement.lang=CURLANG;
   SIMPLEMODE = !!(state.settings&&state.settings.simpleMode); // modo sencillo → etiquetas sin jerga
 
   /* ---------- Sincronización en la nube (Supabase) ---------- */
@@ -39180,7 +39210,7 @@ function App(){
       if(cloudPullRef.current!==read||!sessionRef.current||sessionRef.current.user.id!==u)return;
       // No confundir datos corruptos, una revisión ausente o un error con una cuenta nueva.
       if(cloudPack && (!validCloudState(cloudState)||!cloudPack.updated_at)){
-        showToast("⚠ Nube con formato inesperado: se conservan tus datos locales");
+        showToast("⚠ "+t("err_cloud_format"));
         // Una revisión real permite rescatar la copia del mismo titular con CAS. No acredita
         // un mes sin aportar, ni permite crear una fila o enviar datos de otra cuenta.
         const local=stateRef.current;
@@ -39335,7 +39365,7 @@ function App(){
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
-    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
+    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast(errTxt(e)); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
       .then(mcBootReady, mcBootReady);
@@ -39987,7 +40017,7 @@ function App(){
         showToast(t("apk_downloading"));
         nat.installApk({url:url}).then(function(r){
           if(r&&r.needsPermission) showToast(t("apk_perm"));
-        }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); });
+        }).catch(function(e){ showToast(errTxt(e)); });
       };
       if(window._mcApkUpdate&&window._mcApkUpdate.url){
         run(window._mcApkUpdate.url);
@@ -40284,7 +40314,7 @@ function App(){
       .catch(function(e){
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
         if(bankRateLimited(e)){ showToast("⚠ "+t("bank_rate_limit")); return; }
-        showToast("⚠ "+t("bank_error")+": "+((e&&e.message)||e));
+        showToast("⚠ "+t("bank_error"));
       });
   };
   useEffect(function(){
@@ -40725,12 +40755,12 @@ function App(){
 
   const [authStart,setAuthStart]=useState("in");   // modo con el que se abre AuthPanel ("in"/"up")
   const onCloudClick=function(){
-    if(!cloud.enabled()){ showToast("Nube no disponible"); return; }
+    if(!cloud.enabled()){ showToast(t("err_cloud_off")); return; }
     setAuthStart("in");
     setShowAuth(true);
   };
   const onSignupClick=function(){
-    if(!cloud.enabled()){ showToast("Nube no disponible"); return; }
+    if(!cloud.enabled()){ showToast(t("err_cloud_off")); return; }
     setAuthStart("up");   // onboarding → "Crear cuenta" directo, sin pasar por el login (punto 5)
     setShowAuth(true);
   };
@@ -41348,16 +41378,16 @@ function App(){
   const fetchPrices=function(silent){
     refreshFx();   // y también al pulsar "Precios USD"
     const withTicker=state.investments.filter(function(i){ return i.ticker; });
-    if(withTicker.length===0){ if(!silent) showToast("No hay tickers configurados"); return Promise.resolve(); }
-    if(!(cloud.enabled() && uid)){ if(!silent) showToast("Inicia sesión para actualizar precios"); return Promise.resolve(); }
-    if(!silent){ setPricing(true); showToast("Actualizando precios…"); }
+    if(withTicker.length===0){ if(!silent) showToast(t("pr_no_tickers")); return Promise.resolve(); }
+    if(!(cloud.enabled() && uid)){ if(!silent) showToast(t("pr_login")); return Promise.resolve(); }
+    if(!silent){ setPricing(true); showToast(t("pr_updating")); }
     const symbols=Array.from(new Set(withTicker.map(function(i){ return String(i.ticker).toUpperCase(); })));
     return Promise.resolve(cloud.prices(symbols)).then(function(data){
       if(data && data.ok===false) throw new Error(data.error||"el servidor devolvió un error");
       const prices = data && (data.prices||data.quotes||data); // admite {prices:{...}} o {...}
       // si el servidor responde OK pero sin cotizaciones, no es "sin cambios": es un fallo de Finnhub
       if(!prices || Object.keys(prices).length===0){
-        if(!silent) showToast("✕ Finnhub no devolvió cotizaciones");
+        if(!silent) showToast("✕ "+t("pr_none"));
         return;
       }
       // cuántos tickers nuestros llegan con precio válido (se calcula desde el estado actual,
@@ -41377,7 +41407,7 @@ function App(){
       });
       if(!silent) showToast(matched.length>0?("✓ "+matched.length+" precios actualizados"):"Sin cambios");
     }).catch(function(err){
-      if(!silent) showToast("✕ "+((err&&err.message)?err.message:"No se pudieron traer precios"));
+      if(!silent) showToast(errTxt(err));
     }).then(function(){ if(!silent) setPricing(false); });
   };
 
@@ -42479,7 +42509,9 @@ function App(){
 
   const modeChangeWarning=modeChangePending && React.createElement("div",{role:"alert",className:"mode-change-warning",
     style:{position:"fixed",top:0,left:0,right:0,zIndex:2147483647,padding:"16px",background:"var(--bg)",color:"var(--text)",borderBottom:"2px solid var(--accent)",fontSize:14}},t("mode_change_reopen"));
-  if(locked) return React.createElement(React.Fragment,null,modeChangeWarning,React.createElement(LockScreen,{onUnlock:function(){ setLocked(false); }}));
+  // Con su propio AskHost: la salida de emergencia del candado («No puedo usar la huella») es un
+  // askConfirm, y sin host caía al confirm nativo de Android (y ahora, a cancelar).
+  if(locked) return React.createElement(React.Fragment,null,modeChangeWarning,React.createElement(LockScreen,{onUnlock:function(){ setLocked(false); }}),React.createElement(AskHost,null));
   if(state.onboarded===false) return React.createElement(React.Fragment,null,
     modeChangeWarning,
     React.createElement(Onboarding,{set:set, onCloud:(cloud.enabled()?onCloudClick:null), onSignup:(cloud.enabled()?onSignupClick:null)}),
@@ -42503,7 +42535,7 @@ function App(){
       // Una sola barra: dentro de `.app-shell` siempre, salvo con Tus recibos abierto, que va a <body>
       // para pasarle por encima (`billsOpen`). Cambiar de padre la remonta; es idéntica, no se nota.
       React.createElement(BarraFuera,{fuera:billsOpen},
-      React.createElement("nav",{className:"botnav"+(billsOpen?" botnav-bills":"")+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?(billsOpen?"":" botnav-hidden"):""),"aria-label":"Navegación"},
+      React.createElement("nav",{className:"botnav"+(billsOpen?" botnav-bills":"")+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?(billsOpen?"":" botnav-hidden"):""),"aria-label":t("nav_aria")},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},
@@ -42957,7 +42989,7 @@ window._mcCheckOtaUpdates=function(opts){
       return window._mcDownloadOta(up, v, opts);
     }).catch(function(e){
       var m=(e&&e.message)||String(e);
-      if(opts&&opts.showToast) opts.showToast("⚠ "+m);
+      if(opts&&opts.showToast) opts.showToast(errTxt(e));
       // A la telemetría también: el chequeo automático no tiene toast, y sin rastro un canal que
       // no contesta es indistinguible de «no hay nada nuevo» (así se perdieron semanas de beta).
       try{ cloud.logEvent('error','OTA '+mcChannel()+': '+m.slice(0,200)); }catch(_){}

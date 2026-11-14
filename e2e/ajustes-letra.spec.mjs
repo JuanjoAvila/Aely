@@ -13,7 +13,7 @@ async function abreAjustes(page, settings) {
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
   await dismissNews(page);
   await page.locator(".v4-avatar").click();
-  await page.getByRole("button", { name: /Ir a Ajustes|Go to Settings|Ves a Ajustos/i }).click();
+  await page.getByRole("button", { name: /Ir a Ajustes|Go to Settings|Ves a Configuració/i }).click();
   const ajustes = page.locator(".settings-push.open");
   await expect(ajustes).toBeVisible({ timeout: 5_000 });
   const boton = (v) => ajustes.locator(`button[data-ts="${v}"]`);
