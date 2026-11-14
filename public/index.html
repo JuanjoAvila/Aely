@@ -11781,6 +11781,10 @@ function netWorthDay(nowMs){
   const p=madridYmdParts(nowMs==null?Date.now():nowMs);
   return p.ym+"-"+String(p.d).padStart(2,"0");
 }
+/* La deuda de un día pasado solo depende de la lista de deudas y de hoy: se guarda por lista entre
+   llamadas. La serie la pide para cada día de tres años cada vez que cambia un gasto, y las deudas
+   no han cambiado (14/11/2026). Otra lista u otro «hoy» empiezan de cero. */
+const _nwDebtDays=new WeakMap();
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
   const debts=state.debts||[], notes=[];
@@ -11845,7 +11849,10 @@ function netWorthDebtPolicy(state, today, current){
   });
   const sum=function(day){ return debts.reduce(function(n,d,i){ return n+at(d,day,startDays[i]); },0); };
   const value=current!=null?current:sum(today);
-  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
+  let days=_nwDebtDays.get(debts);
+  if(!days||days.today!==today){ days={today:today,by:new Map()}; _nwDebtDays.set(debts,days); }
+  const past=function(day){ let v=days.by.get(day); if(v===undefined){ v=sum(day); days.by.set(day,v); } return v; };
+  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:past(day); }};
 }
 /* LOS AJUSTES QUE DE VERDAD LEEN LA SERIE DE PATRIMONIO Y EL PRESUPUESTO DE INICIO (20/10/2026).
    Dependían de `state.settings` entero, así que cualquier toque en Ajustes (contraste, idioma,
@@ -11966,16 +11973,34 @@ function netWorthSeries(state, options){
     if(e.amount) unsplit[bank]=true; return 1;
   };
   const del=expenseDeletedSet(state), entries=[], byAmount={}, firstByBank={}, hours={};
+  /* LO QUE SALE SOLO DE LA FECHA Y DEL COMERCIO DE UNA FILA SE GUARDA ENTRE LLAMADAS (14/11/2026).
+     Apuntar un gasto cambia `state.expenses` y la serie se rehace entera: con 6.300 gastos, 263 ms
+     con la CPU a ×6 por cada apunte, y más de la mitad se iba en volver a sacar de cada fila su
+     instante, su día de Madrid y si el comercio es un cajero. Nada de eso depende del resto del
+     estado ni de hoy. Se guarda por fila (el objeto) junto a la fecha y el comercio con que se
+     calculó: una fila nueva o editada es otro objeto y se calcula, y si alguien cambiara una en el
+     sitio, la fecha o el comercio dejarían de coincidir y se rehace. Todo lo demás (borrados,
+     bancos, partes, traspasos, importes) se sigue calculando en cada llamada, como siempre.
+     Lo vigila `tests/patrimonio-serie-oraculo.test.mjs` contra la función de antes, al céntimo. */
+  const memo=netWorthSeries.rows||(netWorthSeries.rows=new WeakMap());
   (state.expenses||[]).forEach(function(e){
     if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||
       (e.status&&String(e.status).toUpperCase()!=="BOOK")) return;
     const bank=expenseBankOf(e);if(!owned[bank]) return;
-    const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
-    if(!Number.isFinite(ms)) return;
-    const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
-    const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
+    let m=memo.get(e);
+    if(!m||m.date!==e.date||m.merchant!==e.merchant){
+      const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
+      m={date:e.date,merchant:e.merchant,ms:ms,day:"",civil:0,atm:false};
+      if(Number.isFinite(ms)){
+        const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
+        m.day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);m.civil=Date.parse(m.day)/864e5;m.atm=isAtmWithdrawal(e.merchant);
+      }
+      memo.set(e,m);
+    }
+    const ms=m.ms,day=m.day;
+    if(!Number.isFinite(ms)||day>today) return;
     // La confirmación de Gastos acredita el cajero aunque el banco use otro concepto.
-    const row={expense:e,bank:bank,day:day,civil:Date.parse(day)/864e5,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&(e.withdrawalConfirmedAt||isAtmWithdrawal(e.merchant))};entries.push(row);
+    const row={expense:e,bank:bank,day:day,civil:m.civil,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&(e.withdrawalConfirmedAt||m.atm)};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
