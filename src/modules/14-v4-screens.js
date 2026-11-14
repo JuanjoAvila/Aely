@@ -2948,17 +2948,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       }
       if(e.key==="Escape"){ e.preventDefault(); popRef.current&&popRef.current(); return; }
       if(e.key!=="Tab"||!rootRef.current) return;
-      var nodes=rootRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      // Título con tabIndex=-1 no está en la lista: sin esto el Tab se escapa al DOM de detrás.
-      var idx=list.indexOf(document.activeElement);
-      if(!rootRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,rootRef.current);
     };
     document.addEventListener("keydown", onKey);
     return function(){
@@ -3356,16 +3346,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
       if(e.key!=="Tab"||!sheetRef.current) return;
       // Siempre cortar: el hub escucha en bubble y ve foco fuera de rootRef (portal) → lo robaba (Codex 2105Z).
       e.stopPropagation();
-      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      var idx=list.indexOf(document.activeElement);
-      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown", onKey, true);
     return function(){
@@ -3872,12 +3853,7 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
       if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       e.stopPropagation();
-      const list=Array.prototype.filter.call(sheetRef.current.querySelectorAll('button,a,input,[tabindex]:not([tabindex="-1"])'),function(el){ return !el.disabled&&el.offsetParent!==null&&!el.closest("[inert]"); });
-      if(!list.length) return;
-      const first=list[0], last=list[list.length-1], idx=list.indexOf(document.activeElement);
-      if(idx===-1){ e.preventDefault(); (e.shiftKey?last:first).focus(); return; }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown",onKey,true);
     return function(){ document.removeEventListener("keydown",onKey,true); };
@@ -4491,16 +4467,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       e.stopPropagation();
-      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      var idx=list.indexOf(document.activeElement);
-      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown", onKey, true);
     return function(){ document.removeEventListener("keydown", onKey, true); };
@@ -4841,13 +4808,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
       if(document.documentElement.classList.contains("ask-open")) return;
       if(e.key==="Escape"){ e.preventDefault(); closePush(); return; }
       if(e.key!=="Tab") return;
-      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
-        .filter(function(el){ return el.getClientRects().length>0; });
-      if(!focusable.length){ e.preventDefault(); tr.current&&tr.current.focus(); return; }
-      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
-      const at=focusable.indexOf(active);
-      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+      if(!mcTabTrap(e,root)){ e.preventDefault(); tr.current&&tr.current.focus(); }
     };
     document.addEventListener("keydown",keydown);
     return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); };
@@ -4867,7 +4828,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
    Se guarda siempre en €; sin tipo de cambio no se guarda — no inventamos el cambio. */
-function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
+function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const [kind,setKind]=useState("gasto"); // gasto | ingreso
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
@@ -4915,7 +4876,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     return (isEfectivoEnt(ent)?"💶 ":"🏦 ")+entOf(ent).label;
   };
   useEffect(function(){
-    if(open){
+    // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
+    if(open&&!ensayo){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
@@ -4956,8 +4918,21 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
-  const swipe=useSheetSwipe(!!open, onClose);
-  useBackClose(!!open, swipe.close);
+  // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
+  const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(!!open&&!ensayo, swipe.close);
+  /* La primera apertura costaba mucho más que las siguientes (123 ms de tarea larga frente a 0, con
+     la CPU a ×6, 14/11/2026): se ensaya una vez en seco a los pocos segundos de arrancar. Si ya se
+     abrió de verdad, no hace falta. */
+  const ensayoRef=useRef(null);
+  ensayoRef.current={state:state,abierta:!!open||!!(ensayoRef.current&&ensayoRef.current.abierta)};
+  useEffect(function(){
+    if(ensayo) return undefined;
+    const nada=function(){};
+    return mcEnsayarEnHueco(function(){
+      return ensayoRef.current.abierta?null:React.createElement(ApuntarSheet,{open:true,ensayo:true,state:ensayoRef.current.state,set:nada,onClose:nada,showToast:nada});
+    },3000);
+  },[]);
   // La pasada por todo el histórico queda preparada con la hoja cerrada; cambiar de categoría
   // ya solo recoloca ocho chips y no mete trabajo O(n) en mitad del gesto (vídeo 2026-09-17).
   const fichaCatsBase=useMemo(function(){

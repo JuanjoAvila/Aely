@@ -843,7 +843,7 @@
     color:#1A1005;font-weight:800;font-size:11.5px;letter-spacing:.02em;padding:5px 10px;
     font-family:'Manrope',sans-serif;}
   .app.sandbox{padding-top:var(--safe-top);}
-  .app.v4 .topbar,.app.v4 .tabbar-wrap,.app.v4 .dots{display:none !important;}
+  .app.v4 .dots{display:none !important;}
   .app.v4 .viewport{flex:1;min-height:0;}
 
   .v4-screen{padding-top:8px;}
@@ -2040,11 +2040,11 @@
      resuelve eso con un degradado (.tabbar-wrap::after); aqui se hace con `mask-image`, que no
      necesita un pseudo-elemento posicionado y funciona igual sobre cualquier fondo. `.wrap` y
      `.meta-chips` van en varias filas: ahi no hay nada a la derecha que insinuar, se excluyen.
-     Y les faltaba `scrollbar-width:none`, que si tienen .chips, .cat-select, .tabbar y
-     .v4-period-more: en Firefox de escritorio asomaba la barra. */
+     Y les faltaba `scrollbar-width:none`, que si tienen .chips, .cat-select y .tabbar:
+     en Firefox de escritorio asomaba la barra. */
   .v4-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:10px;margin-bottom:8px;}
   .v4-chips::-webkit-scrollbar,.v4-goals::-webkit-scrollbar{display:none;}
-  .v4-chips:not(.wrap):not(.meta-chips),.v4-period-more,.v4-goals{
+  .v4-chips:not(.wrap):not(.meta-chips),.v4-goals{
     -webkit-mask-image:linear-gradient(to right,#000 88%,transparent);
     mask-image:linear-gradient(to right,#000 88%,transparent);}
   .v4-chip{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:22px;background:var(--sur);border:1px solid var(--line-soft);font-size:13.5px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;box-sizing:border-box;}
@@ -2093,9 +2093,9 @@
   .settings-push.mc-page-enter{animation:mcPageEnter .42s cubic-bezier(.32,.72,0,1);}
   .settings-push.mc-page-dragging{transition:none!important;will-change:transform,opacity;}
   @keyframes mcPageEnter{from{opacity:.62;clip-path:inset(0 0 0 12%)}to{opacity:1;clip-path:inset(0)}}
-  .settings-push-h,.settings-slide-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .settings-push-h .back,.settings-slide-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);}
-  .settings-push-h h1,.settings-slide-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
+  .settings-push-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .settings-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);}
+  .settings-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
 
   /* Perfil tipo Revolut (vídeo 2026-07-17, frame t_5_25): el panel ENTERO es una miniatura que
      CRECE desde el avatar (origin = centro del avatar, vars --pp-* medidas en JS) hasta llenar la
@@ -2237,7 +2237,6 @@
   .metric.tall{display:flex;flex-direction:column;justify-content:center;}
 
 
-  .legend{flex:1;display:flex;flex-direction:column;gap:7px;}
 
   .filters{margin-bottom:14px;}
   .searchbar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;margin-bottom:9px;}
@@ -2301,9 +2300,6 @@
   .row .rval{font-weight:700;text-align:right;}
   .row .rval .rvsub{font-size:11px;color:var(--mint);font-weight:600;margin-top:1px;}
   .row .rval .rvsub.neg{color:var(--coral);}
-  /* Sin el prefijo .row: en Cartera (v4-mov) el input salía SIN estilo y a todo lo ancho,
-     partiendo el nombre del bien palabra a palabra (foto feedback 2026-07-18). */
-  input.editv{width:108px;flex:0 0 auto;text-align:right;background:var(--bg-2);border:1px solid var(--mint-dim);color:var(--text);border-radius:9px;padding:7px 9px;font-size:14px;font-weight:600;}
   .editpair{display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
   .editpair label{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted-2);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
   .editpair input{width:96px;text-align:right;background:var(--bg-2);border:1px solid var(--mint-dim);color:var(--text);border-radius:8px;padding:6px 8px;font-size:13px;font-weight:600;}
@@ -2440,8 +2436,6 @@
   .v4-theme-row{display:flex;gap:14px;padding:14px 16px 6px;align-items:center;}
   .v4-theme-sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);}
   .v4-theme-sw.on{border-color:var(--mint-hi);box-shadow:0 0 0 3px rgba(95,208,138,.25);}
-  .v4-sheet-row{display:block;width:100%;text-align:left;padding:14px 16px;margin-top:8px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);font-weight:700;font-size:15px;font-family:inherit;cursor:pointer;}
-  .v4-sheet-row.on{border-color:var(--mint);background:rgba(95,208,138,.12);color:var(--mint);}
   .v4-danger{width:100%;margin-top:10px;min-height:44px;border:none;border-radius:12px;background:rgba(226,112,95,.14);color:var(--coral);font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;}
   .v4-sheet .btn.btn-primary{min-height:46px;font-size:14.5px;border-radius:12px;}
   button.v4-mov{width:100%;border:1px solid var(--line-soft);background:var(--sur);color:inherit;font:inherit;text-align:left;cursor:pointer;}
@@ -2541,14 +2535,8 @@
   .wedit-body{pointer-events:none;}
   .ex-del{font-size:12px;color:var(--muted-2);background:transparent;border:none;padding:4px 6px;opacity:.55;}
   .ex-del:hover{opacity:1;color:var(--coral);}
-  .debt-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted-2);margin-top:7px;}
 
   /* Metas de ahorro (#15) */
-  .goal-top{display:flex;align-items:center;gap:12px;}
-  .goal-emoji{font-size:28px;line-height:1;flex:0 0 auto;}
-  .goal-name{font-weight:700;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;}
-  .goal-amt{font-size:12.5px;color:var(--muted-2);margin-top:2px;}
-  .goal-pct{font-weight:800;font-size:16px;color:var(--mint);flex:0 0 auto;}
   .goal-eta{font-size:12.5px;color:var(--muted);margin-top:9px;line-height:1.45;}
   .goal-eta.ok{color:var(--mint);} .goal-eta.warn{color:#E2A23F;}
   .goal-medal{font-size:11.5px;font-weight:700;color:#F2C14E;}
@@ -9268,7 +9256,6 @@ Object.assign(LANG.es,{
 
 
 
-const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 /* parseDate es LA función más llamada de la app: filtrar y ordenar el histórico la invoca una vez
    por gasto y comparación (un sort de 2.000 movimientos son ~22.000 llamadas… en CADA render de
    Gastos). Cada llamada hacía regex + new Date(cadena), que es el parseo más caro que hay.
@@ -9859,38 +9846,11 @@ function celebrate(){
   }catch(e){}
 }
 
-// Rediseño · toque 2: convierte un entero a palabras en español (hasta millones), para "ver/oír"
-// el patrimonio al mantener pulsada la cifra. Apócopes: "un"/"veintiún", "cien"/"ciento".
-function words(num){
-  num=Math.round(Math.abs(num));
-  if(num===0) return "cero";
-  const U=["","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez","once","doce","trece","catorce","quince","dieciséis","diecisiete","dieciocho","diecinueve","veinte","veintiuno","veintidós","veintitrés","veinticuatro","veinticinco","veintiséis","veintisiete","veintiocho","veintinueve"];
-  const D=["","","","treinta","cuarenta","cincuenta","sesenta","setenta","ochenta","noventa"];
-  const C=["","ciento","doscientos","trescientos","cuatrocientos","quinientos","seiscientos","setecientos","ochocientos","novecientos"];
-  const tens=function(n){ return n<30?U[n]:D[Math.floor(n/10)]+(n%10?" y "+U[n%10]:""); };
-  const hund=function(n){ return n===100?"cien":(Math.floor(n/100)?C[Math.floor(n/100)]:"")+(Math.floor(n/100)&&n%100?" ":"")+(n%100?tens(n%100):""); };
-  const apo=function(s){ return s.replace(/uno$/,"un").replace(/veintiuno$/,"veintiún"); };
-  const mill=Math.floor(num/1000000), miles=Math.floor((num%1000000)/1000), resto=num%1000;
-  let out="";
-  if(mill) out+=(mill===1?"un millón":apo(hund(mill))+" millones");
-  if(miles) out+=(out?" ":"")+(miles===1?"mil":apo(hund(miles))+" mil");
-  if(resto) out+=(out?" ":"")+hund(resto);
-  return out.trim();
-}
-// Rediseño · toque 4: mezcla dos hex (mint↔coral) en JS → "r,g,b". Evita depender de color-mix
-// del WebView; con t=0 devuelve exactamente el mint del hero actual (0 cambios visibles).
-function mixHex(a,b,t){
-  const h=function(s,i){ return parseInt(s.slice(i,i+2),16); };
-  const r=Math.round(h(a,1)+(h(b,1)-h(a,1))*t), g=Math.round(h(a,3)+(h(b,3)-h(a,3))*t), bl=Math.round(h(a,5)+(h(b,5)-h(a,5))*t);
-  return r+","+g+","+bl;
-}
-
 /* ============================================================
    GAMIFICACIÓN (#15 capas Retos + Logros) — TODO DERIVADO de los datos,
    sin marcar nada a mano. savedScore = ahorrado en metas + recompensas TR acumuladas.
    ============================================================ */
 const RU_GOAL=30;                       // €/mes objetivo de round-up+saveback (reto)
-const SAVE_HITOS=[100,500,1000,5000];   // hitos de ahorro (medallas)
 const GM_LEVELS=[0,250,1000,3000,8000]; // umbrales de savedScore por nivel
 function median(arr){ const a=(arr||[]).slice().sort(function(x,y){return x-y;}); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; }
 // Detector de SUSCRIPCIONES / cargos recurrentes: mismo comercio en ≥3 meses distintos con importe
@@ -10099,30 +10059,6 @@ function buildEmpty(){
     categoryBudgets: {},
     lastSync: null, lastPriceSync: null,
     onboarded: false, _dataVer: 6, trAnchor: mkOf(new Date()),
-  };
-}
-function buildInitial(){
-  return {
-    fx: DATA.fx,
-    budget: DATA.budget,
-    monthStartNet: DATA.monthStartNet,
-    history: DATA.history.slice(),
-    accounts: DATA.accounts.map(a=>Object.assign({},a)),
-    investments: DATA.investments.map(a=>Object.assign({},a)),
-    assets: DATA.assets.map(a=>Object.assign({},a)),
-    debts: DATA.debts.map(a=>Object.assign({},a)),
-    fixed: DATA.fixed.map(a=>Object.assign({},a)),
-    flows: DATA.flows.map(a=>Object.assign({},a)),
-    oneoffs: [],
-    aportaciones: DATA.aportaciones.map(a=>Object.assign({},a)),
-    expenses: DATA.variables.map(v=>({ id:v.id, date:new Date(v.date).toISOString(), merchant:v.name, amount:v.amount, category:v.cat, source:"manual" })),
-    goals: [],
-    shared: [],
-    obAccounts: [],
-    obLabels: {},
-    settings: { autoPrices:false },
-    lastSync: null,
-    lastPriceSync: null,
   };
 }
 function migrate(s){
@@ -11806,6 +11742,10 @@ function netWorthDay(nowMs){
   const p=madridYmdParts(nowMs==null?Date.now():nowMs);
   return p.ym+"-"+String(p.d).padStart(2,"0");
 }
+/* La deuda de un día pasado solo depende de la lista de deudas y de hoy: se guarda por lista entre
+   llamadas. La serie la pide para cada día de tres años cada vez que cambia un gasto, y las deudas
+   no han cambiado (14/11/2026). Otra lista u otro «hoy» empiezan de cero. */
+const _nwDebtDays=new WeakMap();
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
   const debts=state.debts||[], notes=[];
@@ -11870,7 +11810,10 @@ function netWorthDebtPolicy(state, today, current){
   });
   const sum=function(day){ return debts.reduce(function(n,d,i){ return n+at(d,day,startDays[i]); },0); };
   const value=current!=null?current:sum(today);
-  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
+  let days=_nwDebtDays.get(debts);
+  if(!days||days.today!==today){ days={today:today,by:new Map()}; _nwDebtDays.set(debts,days); }
+  const past=function(day){ let v=days.by.get(day); if(v===undefined){ v=sum(day); days.by.set(day,v); } return v; };
+  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:past(day); }};
 }
 /* LOS AJUSTES QUE DE VERDAD LEEN LA SERIE DE PATRIMONIO Y EL PRESUPUESTO DE INICIO (20/10/2026).
    Dependían de `state.settings` entero, así que cualquier toque en Ajustes (contraste, idioma,
@@ -11991,16 +11934,34 @@ function netWorthSeries(state, options){
     if(e.amount) unsplit[bank]=true; return 1;
   };
   const del=expenseDeletedSet(state), entries=[], byAmount={}, firstByBank={}, hours={};
+  /* LO QUE SALE SOLO DE LA FECHA Y DEL COMERCIO DE UNA FILA SE GUARDA ENTRE LLAMADAS (14/11/2026).
+     Apuntar un gasto cambia `state.expenses` y la serie se rehace entera: con 6.300 gastos, 263 ms
+     con la CPU a ×6 por cada apunte, y más de la mitad se iba en volver a sacar de cada fila su
+     instante, su día de Madrid y si el comercio es un cajero. Nada de eso depende del resto del
+     estado ni de hoy. Se guarda por fila (el objeto) junto a la fecha y el comercio con que se
+     calculó: una fila nueva o editada es otro objeto y se calcula, y si alguien cambiara una en el
+     sitio, la fecha o el comercio dejarían de coincidir y se rehace. Todo lo demás (borrados,
+     bancos, partes, traspasos, importes) se sigue calculando en cada llamada, como siempre.
+     Lo vigila `tests/patrimonio-serie-oraculo.test.mjs` contra la función de antes, al céntimo. */
+  const memo=netWorthSeries.rows||(netWorthSeries.rows=new WeakMap());
   (state.expenses||[]).forEach(function(e){
     if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||
       (e.status&&String(e.status).toUpperCase()!=="BOOK")) return;
     const bank=expenseBankOf(e);if(!owned[bank]) return;
-    const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
-    if(!Number.isFinite(ms)) return;
-    const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
-    const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
+    let m=memo.get(e);
+    if(!m||m.date!==e.date||m.merchant!==e.merchant){
+      const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
+      m={date:e.date,merchant:e.merchant,ms:ms,day:"",civil:0,atm:false};
+      if(Number.isFinite(ms)){
+        const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
+        m.day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);m.civil=Date.parse(m.day)/864e5;m.atm=isAtmWithdrawal(e.merchant);
+      }
+      memo.set(e,m);
+    }
+    const ms=m.ms,day=m.day;
+    if(!Number.isFinite(ms)||day>today) return;
     // La confirmación de Gastos acredita el cajero aunque el banco use otro concepto.
-    const row={expense:e,bank:bank,day:day,civil:Date.parse(day)/864e5,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&(e.withdrawalConfirmedAt||isAtmWithdrawal(e.merchant))};entries.push(row);
+    const row={expense:e,bank:bank,day:day,civil:m.civil,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&(e.withdrawalConfirmedAt||m.atm)};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
@@ -12660,7 +12621,8 @@ function mcCalentarCapa(el){
   try{ el.style.contentVisibility="visible"; void el.offsetHeight; }catch(e){}
   el.style.contentVisibility="hidden";
 }
-/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos). El velo
+/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos, Apuntar
+   y la ficha de un gasto). El velo
    ya se queda todos los toques, así que no hace falta apagar la app de detrás con `sheet-shell-off`:
    sus dos reglas (`pointer-events` en `.app-shell` y `touch-action` en `.page`) son propiedades que
    se HEREDAN, y cambiarlas recalcula el estilo de la pantalla entera (~700 nodos en Recibos) en el
@@ -12687,6 +12649,25 @@ function mcEnsayar(el){
   try{ if(root) root.unmount(); }catch(e){}
   if(host&&host.parentNode) host.parentNode.removeChild(host);
 }
+/* Un ensayo suelto (Apuntar, la ficha de un gasto) en el primer hueco libre pasada `espera`: con
+   una hoja abierta o algo moviéndose se aplaza, que ocupa el hilo lo que la primera apertura de
+   verdad. `hacer` devuelve el elemento a ensayar, o nada si ya no hace falta. Devuelve cómo
+   cancelarlo. */
+function mcEnsayarEnHueco(hacer, espera){
+  let vivo=true, tm=0, esperas=0;
+  const sigue=function(dl){
+    if(!vivo) return;
+    const h=document.documentElement.classList;
+    if(h.contains("sheet-open")||h.contains("bills-open")){ tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },2000); return; }
+    if(dl&&!dl.didTimeout&&typeof dl.timeRemaining==="function"&&dl.timeRemaining()<8&&esperas<10){
+      esperas++; tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },150); return;
+    }
+    vivo=false;
+    try{ const e=hacer(); if(e) mcEnsayar(e); }catch(err){}
+  };
+  tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },espera);
+  return function(){ vivo=false; clearTimeout(tm); };
+}
 let _mcSheetLocks=0, _mcSheetDuros=0, _mcSheetPrevOverflow="";
 function mcSheetLock(soloVelo){
   if(_mcSheetLocks===0){
@@ -12707,6 +12688,20 @@ function mcSheetUnlock(soloVelo){
     document.body.style.overflow=_mcSheetPrevOverflow;
     document.documentElement.classList.remove("sheet-open");
   }
+}
+/* TRAMPA DE TAB DE UN DIÁLOGO, una sola para todos (estaba copiada siete veces, con el selector y
+   el filtro un poco distintos en cada una). Tab desde el último enfocable —o desde fuera de la
+   lista, como el título con tabIndex=-1— va al primero; Mayús+Tab desde el primero o desde fuera,
+   al último. Enfocable: a la vista, sin `disabled` y fuera de un `inert`. Devuelve false si no hay
+   ninguno, y quien llama decide qué hacer con la tecla. */
+function mcTabTrap(e, root){
+  const list=Array.prototype.filter.call(root.querySelectorAll('button,a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'),
+    function(el){ return !el.disabled&&el.getClientRects().length>0&&!el.closest("[inert]"); });
+  if(!list.length) return false;
+  const first=list[0], last=list[list.length-1], at=list.indexOf(document.activeElement);
+  if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey&&(at<0||at===list.length-1)){ e.preventDefault(); first.focus(); }
+  return true;
 }
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
    Un gesto que empezó desplazando contenido le pertenece entero al scroller; solo una bajada
@@ -15544,10 +15539,33 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
 
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
+  const editDe=function(e){
+    return {id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)};
+  };
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp(editDe(e));
+  },[]);
+  /* La primera ficha que se abre costaba mucho más que las siguientes (94 ms de tarea larga frente a
+     0, con la CPU a ×6, 14/11/2026). Se ensaya una vez en seco con el gasto más reciente, la primera
+     vez que Gastos está a la vista. */
+  const fichaVista=useRef(false), fichaEstado=useRef(null);
+  fichaEstado.current=state;
+  if(detailId) fichaVista.current=true;
+  useEffect(function(){
+    let quita=null, hecho=false;
+    const baja=mcOnGastosActive(function(active){
+      if(!active||hecho) return;
+      hecho=true;
+      quita=mcEnsayarEnHueco(function(){
+        const s=fichaEstado.current, lista=s.expenses||[], e=lista[lista.length-1];
+        if(fichaVista.current||!e) return null;
+        const nada=function(){};
+        return React.createElement(ExpenseDetailSheet,{exp:e,editExp:editDe(e),setEditExp:nada,onClose:nada,state:s,showToast:nada,ensayo:true});
+      },700);
+    });
+    return function(){ baja(); if(quita) quita(); };
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -16842,13 +16860,15 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
+  /* `ensayo`: montaje en seco de `mcEnsayar`. Se pinta entera, que es lo que hay que estrenar, pero
+     sin candado ni entrada de Atrás y sin ninguna lectura a la nube ni al puente nativo. */
   const transferSandbox=mcSandbox();
   const paymentDay=new Date().toDateString();
   // Las relaciones leen colecciones ajenas a la fila y el día civil local. _savedAt cambia
@@ -16862,6 +16882,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const incomeLive=useRef(null);incomeLive.current={plan:incomePlan,peer:incomePeer,state:state,sandbox:transferSandbox};
   const [incomeOffer,setIncomeOffer]=useState(null),[incomePeerOffer,setIncomePeerOffer]=useState(null),[incomeWithPeer,setIncomeWithPeer]=useState(false);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;setIncomeOffer(null);setIncomeWithPeer(false);
     const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     let timer;
@@ -16873,6 +16894,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return function(){active=false;clearTimeout(timer);};
   },[incomePlan,transferSandbox]);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;setIncomePeerOffer(null);setIncomeWithPeer(false);let timer;
     const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.peer===incomePeer&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     (async function(){try{
@@ -16889,6 +16911,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
   const [transferOffer,setTransferOffer]=useState(null);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;
     const current=function(){return active&&transferLive.current.plan===transferPlan&&transferLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     // La ficha permanece montada al cerrarse. Cada plan tiene su propia cancelación y nunca
@@ -16909,11 +16932,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   },[transferPlan,transferSandbox]);
   const paymentRelation=useMemo(function(){return abierto?expensePaymentRelationUI(state,exp):null;},
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
-  const swipe=useSheetSwipe(abierto, onClose);
-  useBackClose(abierto, swipe.close);
+  const swipe=useSheetSwipe(abierto&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(abierto&&!ensayo, swipe.close);
   // Diagnóstico de «Paga un recibo»: canal beta o la APK .debug de pruebas, nunca en la estable.
   const [diagDebug,setDiagDebug]=useState(false);
   useEffect(function(){
+    if(ensayo) return undefined;
     let vivo=true;
     try{
       const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
@@ -17282,13 +17306,7 @@ function AskHost(){
       if(!root) return;
       if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); cancel(); return; }
       if(e.key!=="Tab") return;
-      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
-        .filter(function(el){ return el.getClientRects().length>0; });
-      if(!focusable.length){ e.preventDefault(); root.focus(); return; }
-      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
-      const at=focusable.indexOf(active);
-      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+      if(!mcTabTrap(e,root)){ e.preventDefault(); root.focus(); }
     };
     document.addEventListener("keydown",keydown);
     return function(){
@@ -26057,17 +26075,8 @@ function histCanUndo(state){
    «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
    Se arregla en el CLIENTE a propósito: así le llega por OTA sin esperar a desplegar el servidor
    (que también se arregla, para cuando toque). */
-/* UN aviso para una sincronización a mano (13/9): bancos y brókers dejan cada uno sus mensajes y
-   aquí se juntan. Los ⚠ van DELANTE —son los que piden hacer algo, y la telemetría de toasts solo
-   recoge los que EMPIEZAN por ⚠—, sin repetir, separados por « · ». */
-function juntaAvisosSync(list){
-  const unicos=listaAvisosSync(list); const avisos=[]; const bien=[];
-  unicos.forEach(function(s){ (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s); });
-  if(!avisos.length) return bien.join(" · ");
-  const resto=avisos.slice(1).map(function(s){ return s.replace(/^[⚠✕✗]\s*/,""); });
-  return [avisos[0]].concat(resto, bien).join(" · ");
-}
-/* El resumen manual se pinta como filas, no como una frase kilométrica encima de la app. */
+/* El resumen de una sincronización a mano se pinta como filas, una por resultado y sin repetir, no
+   como una frase kilométrica encima de la app. */
 function listaAvisosSync(list){
   const vistos={}; const out=[];
   (list||[]).forEach(function(m){
@@ -31013,7 +31022,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="aefe5ffe6c6a8fe0f9d1a1dab6a5c3d3f748a0182d83f832e9b370ac00fdbfbd";
+var _rnSha="9a11bb118da99f85a11599bf483614b5c13db42806c10e381169f3c86fa938b7";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -35478,17 +35487,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       }
       if(e.key==="Escape"){ e.preventDefault(); popRef.current&&popRef.current(); return; }
       if(e.key!=="Tab"||!rootRef.current) return;
-      var nodes=rootRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      // Título con tabIndex=-1 no está en la lista: sin esto el Tab se escapa al DOM de detrás.
-      var idx=list.indexOf(document.activeElement);
-      if(!rootRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,rootRef.current);
     };
     document.addEventListener("keydown", onKey);
     return function(){
@@ -35886,16 +35885,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
       if(e.key!=="Tab"||!sheetRef.current) return;
       // Siempre cortar: el hub escucha en bubble y ve foco fuera de rootRef (portal) → lo robaba (Codex 2105Z).
       e.stopPropagation();
-      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      var idx=list.indexOf(document.activeElement);
-      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown", onKey, true);
     return function(){
@@ -36402,12 +36392,7 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
       if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       e.stopPropagation();
-      const list=Array.prototype.filter.call(sheetRef.current.querySelectorAll('button,a,input,[tabindex]:not([tabindex="-1"])'),function(el){ return !el.disabled&&el.offsetParent!==null&&!el.closest("[inert]"); });
-      if(!list.length) return;
-      const first=list[0], last=list[list.length-1], idx=list.indexOf(document.activeElement);
-      if(idx===-1){ e.preventDefault(); (e.shiftKey?last:first).focus(); return; }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown",onKey,true);
     return function(){ document.removeEventListener("keydown",onKey,true); };
@@ -37021,16 +37006,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       e.stopPropagation();
-      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      var idx=list.indexOf(document.activeElement);
-      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown", onKey, true);
     return function(){ document.removeEventListener("keydown", onKey, true); };
@@ -37371,13 +37347,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
       if(document.documentElement.classList.contains("ask-open")) return;
       if(e.key==="Escape"){ e.preventDefault(); closePush(); return; }
       if(e.key!=="Tab") return;
-      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
-        .filter(function(el){ return el.getClientRects().length>0; });
-      if(!focusable.length){ e.preventDefault(); tr.current&&tr.current.focus(); return; }
-      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
-      const at=focusable.indexOf(active);
-      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+      if(!mcTabTrap(e,root)){ e.preventDefault(); tr.current&&tr.current.focus(); }
     };
     document.addEventListener("keydown",keydown);
     return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); };
@@ -37397,7 +37367,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
    Se guarda siempre en €; sin tipo de cambio no se guarda — no inventamos el cambio. */
-function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
+function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const [kind,setKind]=useState("gasto"); // gasto | ingreso
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
@@ -37445,7 +37415,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     return (isEfectivoEnt(ent)?"💶 ":"🏦 ")+entOf(ent).label;
   };
   useEffect(function(){
-    if(open){
+    // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
+    if(open&&!ensayo){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
@@ -37486,8 +37457,21 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
-  const swipe=useSheetSwipe(!!open, onClose);
-  useBackClose(!!open, swipe.close);
+  // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
+  const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(!!open&&!ensayo, swipe.close);
+  /* La primera apertura costaba mucho más que las siguientes (123 ms de tarea larga frente a 0, con
+     la CPU a ×6, 14/11/2026): se ensaya una vez en seco a los pocos segundos de arrancar. Si ya se
+     abrió de verdad, no hace falta. */
+  const ensayoRef=useRef(null);
+  ensayoRef.current={state:state,abierta:!!open||!!(ensayoRef.current&&ensayoRef.current.abierta)};
+  useEffect(function(){
+    if(ensayo) return undefined;
+    const nada=function(){};
+    return mcEnsayarEnHueco(function(){
+      return ensayoRef.current.abierta?null:React.createElement(ApuntarSheet,{open:true,ensayo:true,state:ensayoRef.current.state,set:nada,onClose:nada,showToast:nada});
+    },3000);
+  },[]);
   // La pasada por todo el histórico queda preparada con la hoja cerrada; cambiar de categoría
   // ya solo recoloca ocho chips y no mete trabajo O(n) en mitad del gesto (vídeo 2026-09-17).
   const fichaCatsBase=useMemo(function(){
@@ -37972,11 +37956,7 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
     var keys=function(e){
       if(e.key==="Escape"){ e.preventDefault(); requestClose(); return; }
       if(e.key!=="Tab") return;
-      var xs=Array.prototype.filter.call(root.querySelectorAll('button:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'),function(x){ return x.offsetParent!==null; });
-      if(!xs.length){ e.preventDefault(); return; }
-      var a=xs[0],b=xs[xs.length-1];
-      if(e.shiftKey&&document.activeElement===a){ e.preventDefault(); b.focus(); }
-      else if(!e.shiftKey&&document.activeElement===b){ e.preventDefault(); a.focus(); }
+      if(!mcTabTrap(e,root)) e.preventDefault();
     };
     document.addEventListener("keydown",keys);
     return function(){ document.removeEventListener("keydown",keys); };

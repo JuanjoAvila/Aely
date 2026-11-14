@@ -2803,7 +2803,6 @@ Object.assign(LANG.ca,{
   iv_cash:"Líquid venut", iv_by_type:"Per tipus d'actiu", iv_fx_note:"Els imports es calculen en euros. Canvi dòlar→euro: {fx}.",
 });
 
-const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 /* parseDate es LA función más llamada de la app: filtrar y ordenar el histórico la invoca una vez
    por gasto y comparación (un sort de 2.000 movimientos son ~22.000 llamadas… en CADA render de
    Gastos). Cada llamada hacía regex + new Date(cadena), que es el parseo más caro que hay.
@@ -3394,38 +3393,11 @@ function celebrate(){
   }catch(e){}
 }
 
-// Rediseño · toque 2: convierte un entero a palabras en español (hasta millones), para "ver/oír"
-// el patrimonio al mantener pulsada la cifra. Apócopes: "un"/"veintiún", "cien"/"ciento".
-function words(num){
-  num=Math.round(Math.abs(num));
-  if(num===0) return "cero";
-  const U=["","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez","once","doce","trece","catorce","quince","dieciséis","diecisiete","dieciocho","diecinueve","veinte","veintiuno","veintidós","veintitrés","veinticuatro","veinticinco","veintiséis","veintisiete","veintiocho","veintinueve"];
-  const D=["","","","treinta","cuarenta","cincuenta","sesenta","setenta","ochenta","noventa"];
-  const C=["","ciento","doscientos","trescientos","cuatrocientos","quinientos","seiscientos","setecientos","ochocientos","novecientos"];
-  const tens=function(n){ return n<30?U[n]:D[Math.floor(n/10)]+(n%10?" y "+U[n%10]:""); };
-  const hund=function(n){ return n===100?"cien":(Math.floor(n/100)?C[Math.floor(n/100)]:"")+(Math.floor(n/100)&&n%100?" ":"")+(n%100?tens(n%100):""); };
-  const apo=function(s){ return s.replace(/uno$/,"un").replace(/veintiuno$/,"veintiún"); };
-  const mill=Math.floor(num/1000000), miles=Math.floor((num%1000000)/1000), resto=num%1000;
-  let out="";
-  if(mill) out+=(mill===1?"un millón":apo(hund(mill))+" millones");
-  if(miles) out+=(out?" ":"")+(miles===1?"mil":apo(hund(miles))+" mil");
-  if(resto) out+=(out?" ":"")+hund(resto);
-  return out.trim();
-}
-// Rediseño · toque 4: mezcla dos hex (mint↔coral) en JS → "r,g,b". Evita depender de color-mix
-// del WebView; con t=0 devuelve exactamente el mint del hero actual (0 cambios visibles).
-function mixHex(a,b,t){
-  const h=function(s,i){ return parseInt(s.slice(i,i+2),16); };
-  const r=Math.round(h(a,1)+(h(b,1)-h(a,1))*t), g=Math.round(h(a,3)+(h(b,3)-h(a,3))*t), bl=Math.round(h(a,5)+(h(b,5)-h(a,5))*t);
-  return r+","+g+","+bl;
-}
-
 /* ============================================================
    GAMIFICACIÓN (#15 capas Retos + Logros) — TODO DERIVADO de los datos,
    sin marcar nada a mano. savedScore = ahorrado en metas + recompensas TR acumuladas.
    ============================================================ */
 const RU_GOAL=30;                       // €/mes objetivo de round-up+saveback (reto)
-const SAVE_HITOS=[100,500,1000,5000];   // hitos de ahorro (medallas)
 const GM_LEVELS=[0,250,1000,3000,8000]; // umbrales de savedScore por nivel
 function median(arr){ const a=(arr||[]).slice().sort(function(x,y){return x-y;}); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; }
 // Detector de SUSCRIPCIONES / cargos recurrentes: mismo comercio en ≥3 meses distintos con importe
@@ -3634,30 +3606,6 @@ function buildEmpty(){
     categoryBudgets: {},
     lastSync: null, lastPriceSync: null,
     onboarded: false, _dataVer: 6, trAnchor: mkOf(new Date()),
-  };
-}
-function buildInitial(){
-  return {
-    fx: DATA.fx,
-    budget: DATA.budget,
-    monthStartNet: DATA.monthStartNet,
-    history: DATA.history.slice(),
-    accounts: DATA.accounts.map(a=>Object.assign({},a)),
-    investments: DATA.investments.map(a=>Object.assign({},a)),
-    assets: DATA.assets.map(a=>Object.assign({},a)),
-    debts: DATA.debts.map(a=>Object.assign({},a)),
-    fixed: DATA.fixed.map(a=>Object.assign({},a)),
-    flows: DATA.flows.map(a=>Object.assign({},a)),
-    oneoffs: [],
-    aportaciones: DATA.aportaciones.map(a=>Object.assign({},a)),
-    expenses: DATA.variables.map(v=>({ id:v.id, date:new Date(v.date).toISOString(), merchant:v.name, amount:v.amount, category:v.cat, source:"manual" })),
-    goals: [],
-    shared: [],
-    obAccounts: [],
-    obLabels: {},
-    settings: { autoPrices:false },
-    lastSync: null,
-    lastPriceSync: null,
   };
 }
 function migrate(s){

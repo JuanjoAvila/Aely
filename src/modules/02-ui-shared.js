@@ -1133,6 +1133,10 @@ function netWorthDay(nowMs){
   const p=madridYmdParts(nowMs==null?Date.now():nowMs);
   return p.ym+"-"+String(p.d).padStart(2,"0");
 }
+/* La deuda de un día pasado solo depende de la lista de deudas y de hoy: se guarda por lista entre
+   llamadas. La serie la pide para cada día de tres años cada vez que cambia un gasto, y las deudas
+   no han cambiado (14/11/2026). Otra lista u otro «hoy» empiezan de cero. */
+const _nwDebtDays=new WeakMap();
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
   const debts=state.debts||[], notes=[];
@@ -1197,7 +1201,10 @@ function netWorthDebtPolicy(state, today, current){
   });
   const sum=function(day){ return debts.reduce(function(n,d,i){ return n+at(d,day,startDays[i]); },0); };
   const value=current!=null?current:sum(today);
-  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
+  let days=_nwDebtDays.get(debts);
+  if(!days||days.today!==today){ days={today:today,by:new Map()}; _nwDebtDays.set(debts,days); }
+  const past=function(day){ let v=days.by.get(day); if(v===undefined){ v=sum(day); days.by.set(day,v); } return v; };
+  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:past(day); }};
 }
 /* LOS AJUSTES QUE DE VERDAD LEEN LA SERIE DE PATRIMONIO Y EL PRESUPUESTO DE INICIO (20/10/2026).
    Dependían de `state.settings` entero, así que cualquier toque en Ajustes (contraste, idioma,
@@ -1318,16 +1325,34 @@ function netWorthSeries(state, options){
     if(e.amount) unsplit[bank]=true; return 1;
   };
   const del=expenseDeletedSet(state), entries=[], byAmount={}, firstByBank={}, hours={};
+  /* LO QUE SALE SOLO DE LA FECHA Y DEL COMERCIO DE UNA FILA SE GUARDA ENTRE LLAMADAS (14/11/2026).
+     Apuntar un gasto cambia `state.expenses` y la serie se rehace entera: con 6.300 gastos, 263 ms
+     con la CPU a ×6 por cada apunte, y más de la mitad se iba en volver a sacar de cada fila su
+     instante, su día de Madrid y si el comercio es un cajero. Nada de eso depende del resto del
+     estado ni de hoy. Se guarda por fila (el objeto) junto a la fecha y el comercio con que se
+     calculó: una fila nueva o editada es otro objeto y se calcula, y si alguien cambiara una en el
+     sitio, la fecha o el comercio dejarían de coincidir y se rehace. Todo lo demás (borrados,
+     bancos, partes, traspasos, importes) se sigue calculando en cada llamada, como siempre.
+     Lo vigila `tests/patrimonio-serie-oraculo.test.mjs` contra la función de antes, al céntimo. */
+  const memo=netWorthSeries.rows||(netWorthSeries.rows=new WeakMap());
   (state.expenses||[]).forEach(function(e){
     if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||
       (e.status&&String(e.status).toUpperCase()!=="BOOK")) return;
     const bank=expenseBankOf(e);if(!owned[bank]) return;
-    const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
-    if(!Number.isFinite(ms)) return;
-    const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
-    const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
+    let m=memo.get(e);
+    if(!m||m.date!==e.date||m.merchant!==e.merchant){
+      const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
+      m={date:e.date,merchant:e.merchant,ms:ms,day:"",civil:0,atm:false};
+      if(Number.isFinite(ms)){
+        const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
+        m.day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);m.civil=Date.parse(m.day)/864e5;m.atm=isAtmWithdrawal(e.merchant);
+      }
+      memo.set(e,m);
+    }
+    const ms=m.ms,day=m.day;
+    if(!Number.isFinite(ms)||day>today) return;
     // La confirmación de Gastos acredita el cajero aunque el banco use otro concepto.
-    const row={expense:e,bank:bank,day:day,civil:Date.parse(day)/864e5,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&(e.withdrawalConfirmedAt||isAtmWithdrawal(e.merchant))};entries.push(row);
+    const row={expense:e,bank:bank,day:day,civil:m.civil,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&(e.withdrawalConfirmedAt||m.atm)};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
@@ -1987,7 +2012,8 @@ function mcCalentarCapa(el){
   try{ el.style.contentVisibility="visible"; void el.offsetHeight; }catch(e){}
   el.style.contentVisibility="hidden";
 }
-/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos). El velo
+/* `soloVelo`: hojas que cuelgan de <body> con su velo a pantalla completa (las de Recibos, Apuntar
+   y la ficha de un gasto). El velo
    ya se queda todos los toques, así que no hace falta apagar la app de detrás con `sheet-shell-off`:
    sus dos reglas (`pointer-events` en `.app-shell` y `touch-action` en `.page`) son propiedades que
    se HEREDAN, y cambiarlas recalcula el estilo de la pantalla entera (~700 nodos en Recibos) en el
@@ -2014,6 +2040,25 @@ function mcEnsayar(el){
   try{ if(root) root.unmount(); }catch(e){}
   if(host&&host.parentNode) host.parentNode.removeChild(host);
 }
+/* Un ensayo suelto (Apuntar, la ficha de un gasto) en el primer hueco libre pasada `espera`: con
+   una hoja abierta o algo moviéndose se aplaza, que ocupa el hilo lo que la primera apertura de
+   verdad. `hacer` devuelve el elemento a ensayar, o nada si ya no hace falta. Devuelve cómo
+   cancelarlo. */
+function mcEnsayarEnHueco(hacer, espera){
+  let vivo=true, tm=0, esperas=0;
+  const sigue=function(dl){
+    if(!vivo) return;
+    const h=document.documentElement.classList;
+    if(h.contains("sheet-open")||h.contains("bills-open")){ tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },2000); return; }
+    if(dl&&!dl.didTimeout&&typeof dl.timeRemaining==="function"&&dl.timeRemaining()<8&&esperas<10){
+      esperas++; tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },150); return;
+    }
+    vivo=false;
+    try{ const e=hacer(); if(e) mcEnsayar(e); }catch(err){}
+  };
+  tm=setTimeout(function(){ mcScheduleIdle(sigue,1500); },espera);
+  return function(){ vivo=false; clearTimeout(tm); };
+}
 let _mcSheetLocks=0, _mcSheetDuros=0, _mcSheetPrevOverflow="";
 function mcSheetLock(soloVelo){
   if(_mcSheetLocks===0){
@@ -2034,6 +2079,20 @@ function mcSheetUnlock(soloVelo){
     document.body.style.overflow=_mcSheetPrevOverflow;
     document.documentElement.classList.remove("sheet-open");
   }
+}
+/* TRAMPA DE TAB DE UN DIÁLOGO, una sola para todos (estaba copiada siete veces, con el selector y
+   el filtro un poco distintos en cada una). Tab desde el último enfocable —o desde fuera de la
+   lista, como el título con tabIndex=-1— va al primero; Mayús+Tab desde el primero o desde fuera,
+   al último. Enfocable: a la vista, sin `disabled` y fuera de un `inert`. Devuelve false si no hay
+   ninguno, y quien llama decide qué hacer con la tecla. */
+function mcTabTrap(e, root){
+  const list=Array.prototype.filter.call(root.querySelectorAll('button,a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'),
+    function(el){ return !el.disabled&&el.getClientRects().length>0&&!el.closest("[inert]"); });
+  if(!list.length) return false;
+  const first=list[0], last=list[list.length-1], at=list.indexOf(document.activeElement);
+  if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey&&(at<0||at===list.length-1)){ e.preventDefault(); first.focus(); }
+  return true;
 }
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
    Un gesto que empezó desplazando contenido le pertenece entero al scroller; solo una bajada

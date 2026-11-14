@@ -97,7 +97,7 @@ assert.throws(()=>comprobar(loadPureLogic(mutant)),assert.AssertionError,"sin re
 const oldTransfer=html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push', 'if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push');
 assert.notEqual(oldTransfer,html);
 assert.throws(()=>traspasos(loadPureLogic(oldTransfer)),assert.AssertionError,"volver a neutralizar una sola pata elimina la salida y falla");
-const noConfirmation=html.replace('(e.withdrawalConfirmedAt||isAtmWithdrawal(e.merchant))','isAtmWithdrawal(e.merchant)');
+const noConfirmation=html.replace('(e.withdrawalConfirmedAt||m.atm)','m.atm');
 assert.notEqual(noConfirmation,html,"el mutante elimina el reconocimiento manual del cajero");
 assert.throws(()=>cajerosConfirmados(loadPureLogic(noConfirmation)),assert.AssertionError,"ignorar la confirmación vuelve a pintar 1960 en vez de 1900");
 const noOwnPlan=html.replace('if(!plan&&transfer&&matches.some(p=>owned[p.ent])) return;','');

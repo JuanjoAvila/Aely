@@ -281,11 +281,7 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
     var keys=function(e){
       if(e.key==="Escape"){ e.preventDefault(); requestClose(); return; }
       if(e.key!=="Tab") return;
-      var xs=Array.prototype.filter.call(root.querySelectorAll('button:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'),function(x){ return x.offsetParent!==null; });
-      if(!xs.length){ e.preventDefault(); return; }
-      var a=xs[0],b=xs[xs.length-1];
-      if(e.shiftKey&&document.activeElement===a){ e.preventDefault(); b.focus(); }
-      else if(!e.shiftKey&&document.activeElement===b){ e.preventDefault(); a.focus(); }
+      if(!mcTabTrap(e,root)) e.preventDefault();
     };
     document.addEventListener("keydown",keys);
     return function(){ document.removeEventListener("keydown",keys); };
