@@ -427,7 +427,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     // Cuenta re-anclada por Open Banking: su saldo lo trae el banco (no se edita a mano).
     const isSynced=function(a){ return !!(a.bankIban||a.bankUid); };
     const badge=function(txt, color){
-      return React.createElement("span",{className:"v4-ob-badge",style:{background:color+"22",color:color}}, txt);
+      // Color como variable: el CSS lo oscurece en el tema Claro, donde «del banco» daba 2,2:1.
+      return React.createElement("span",{className:"v4-ob-badge",style:{"--b":color}}, txt);
     };
     const toast=function(msg){ if(typeof showToast==="function") showToast(msg); };
     /* «Gasto diario» admite VARIOS bancos (v4.6.3). Definido ANTES de la ficha y de las filas:

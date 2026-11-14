@@ -63,7 +63,11 @@
     --mint:#6CC688; --mint-bright:#8CEFB0; --mint-hi:#8CEFB0; --mint-dim:#2BB673; --mint-deep:#2BB673; --on-mint:#0B140F;
     --ok:#2BB673; --brand-word:#E8EEEC;
     --blue:#7FB5E8; --tan:#E6C36A; --cream:#F4EFE2;
-    --text:#FFFFFF; --muted:#A7B3AD; --muted-2:#5E7468; --coral:#E85D4C; --coral-dim:#5c322c;
+    /* `--muted-2` es sobre todo TEXTO (fechas, cabeceras, notas, pestañas sin elegir): a #5E7468
+       daba 3,7:1 sobre el fondo y 2,8 sobre las píldoras, por debajo del 4,5 de WCAG (auditoría
+       de diseño 14/11). En cada tema se sube lo justo para pasar sobre --bg y --surface sin
+       igualar a --muted; como borde o punto queda igual de discreto. */
+    --text:#FFFFFF; --muted:#A7B3AD; --muted-2:#80978A; --coral:#E85D4C; --coral-dim:#5c322c;
     --radius:20px;
     --shadow:0 20px 44px -26px rgba(0,0,0,.75);
     --ease:cubic-bezier(.22,.61,.36,1); --spring:cubic-bezier(.3,1.25,.5,1);
@@ -73,36 +77,42 @@
   html[data-theme="dark"]{
     --bg:#0A0A0C; --bg-2:#131316; --bg2:#131316; --surface:#17171B; --surface-2:#1F1F25; --sur:#17171B; --sur2:#1F1F25;
     --line:#2A2A31; --line-soft:#222228;
-    --text:#ECECEF; --muted:#9A9AA4; --muted-2:#66666F;
+    --text:#ECECEF; --muted:#9A9AA4; --muted-2:#888892;
     --shadow:0 20px 44px -26px rgba(0,0,0,.85);
   }
   html[data-theme="light"]{
     --bg:#F2F6F2; --bg-2:#FFFFFF; --bg2:#FFFFFF; --surface:#FFFFFF; --surface-2:#ECF2EC; --sur:#FFFFFF; --sur2:#ECF2EC;
     --line:#D9E3DA; --line-soft:#E5ECE5;
-    --mint:#249A5B; --mint-bright:#2FB56E; --mint-hi:#2FB56E; --mint-dim:#A8DDBE; --mint-deep:#A8DDBE; --on-mint:#FFFFFF;
+    /* Menta más honda que en oscuro: #249A5B como texto daba 3,6:1 sobre blanco y el blanco de
+       los botones encima, lo mismo; #2FB56E (bright/hi) bajaba a 2,6 (auditoría 14/11). Ahora el
+       texto menta pasa de 4,5 sobre el fondo y el blanco de «Apuntar» también sobre el degradado.
+       Ningún verde da 4,5 a la vez con blanco y con negro encima: por eso todo texto sobre menta
+       usa `--on-mint` (antes había un #08120C fijo en .btn-primary, chips y pastillas). */
+    --mint:#1C7F4A; --mint-bright:#1E874F; --mint-hi:#1E874F; --mint-dim:#A8DDBE; --mint-deep:#A8DDBE; --on-mint:#FFFFFF;
     --blue:#3E80C8; --tan:#B8890F; --cream:#5E5228;
-    --text:#141F18; --muted:#53685B; --muted-2:#8A988F; --coral:#CE4F37; --coral-dim:#F1D2CB;
+    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#CE4F37; --coral-dim:#F1D2CB;
     --shadow:0 16px 34px -24px rgba(20,40,30,.35);
   }
   /* Azul (modo oscuro fresquito) */
   html[data-theme="blue"]{
     --bg:#0A1320; --bg-2:#0E1B2E; --bg2:#0E1B2E; --surface:#13243B; --surface-2:#192E49; --sur:#13243B; --sur2:#192E49;
     --line:#213D5C; --line-soft:#1A3049;
-    --text:#E6EEF8; --muted:#93A8C2; --muted-2:#5E7A96;
+    --text:#E6EEF8; --muted:#93A8C2; --muted-2:#7E98B3;
     --shadow:0 18px 40px -24px rgba(0,0,0,.75);
   }
   /* Cyberpunk (UX-07, 18/9). Tema de color PROPIO, no una temática: noche índigo, neón magenta y
      cian. El dinero sigue leyéndose igual — `--mint` es verde (positivo) y `--coral` rojo-rosa
      (negativo) —, solo que en su versión neón. Los acentos nuevos van en `--cyber-*` y solo se
      usan en decoración. Contraste medido (WCAG, sobre --surface): text 16,8 · muted 8,9 ·
-     muted-2 4,2 (el Verde de siempre da 3,3) · mint 13,2 · coral 5,9 · on-mint sobre mint 14,3. */
+     muted-2 5,0 (subido de 4,2 con los demás temas, 14/11) · mint 13,2 · coral 5,9 · on-mint
+     sobre mint 14,3. */
   html[data-theme="cyber"]{
     --bg:#0A0612; --bg-2:#120A20; --bg2:#120A20; --surface:#150D26; --surface-2:#1E1437; --sur:#150D26; --sur2:#1E1437;
     --line:#33235A; --line-soft:#261A45;
     --mint:#39F5A0; --mint-bright:#8BFFCB; --mint-hi:#8BFFCB; --mint-dim:#14B87A; --mint-deep:#14B87A; --on-mint:#07030D;
     --ok:#14B87A; --brand-word:#F4F0FF;
     --blue:#3CE7FF; --tan:#FFD23F; --cream:#F7F1FF;
-    --text:#F4F0FF; --muted:#B9ACDC; --muted-2:#7D6EAA; --coral:#FF4D7D; --coral-dim:#5A1F36;
+    --text:#F4F0FF; --muted:#B9ACDC; --muted-2:#8A7BB8; --coral:#FF4D7D; --coral-dim:#5A1F36;
     --cyber-mag:#FF2E97; --cyber-cyan:#3CE7FF;
     --shadow:0 18px 40px -22px rgba(255,46,151,.28);
   }
@@ -194,7 +204,7 @@
 
   .tabbar{position:relative;display:flex;gap:4px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:16px;padding:5px;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;}
   .tab{flex:0 0 auto;padding:9px 14px;border-radius:11px;font-size:13.5px;font-weight:600;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:7px;transition:color .2s,transform .15s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-  .tab.active{color:#08120C;background:linear-gradient(160deg,var(--mint-bright),var(--mint));box-shadow:0 4px 12px -4px rgba(95,208,138,.5);}
+  .tab.active{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));box-shadow:0 4px 12px -4px rgba(95,208,138,.5);}
   .tabbar.reordering{touch-action:none;}
   .tabbar.reordering .tab.active{transform:scale(1.08);box-shadow:0 8px 20px -6px rgba(95,208,138,.7);}
   .tab svg{width:15px;height:15px;}
@@ -231,7 +241,7 @@
   /* Roles de cuenta (Patrimonio → Editar) */
   .rolechips{display:flex;gap:6px;padding:0 0 10px 50px;}
   .rchip{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:9px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--muted);}
-  .rchip.on{color:#08120C;background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
+  .rchip.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
   /* El badge flotante de reCAPTCHA (lo inyecta el script de Google al intentar el captcha de
      MyInvestor) se quedaba FIJO abajo en TODA la app (feedback 2026-07-21). Google permite
      ocultarlo si la atribución se muestra en el flujo — está junto al campo del site key. */
@@ -489,7 +499,9 @@
   @media (prefers-reduced-motion:reduce){ .hist-fila,.hist-fila.dentro{opacity:1;transform:none;animation:none !important;} }
 
   /* Ayuda contextual "?" */
-  .helpq{width:22px;height:22px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-size:12.5px;font-weight:800;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);}
+  .helpq{width:22px;height:22px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font-size:12.5px;font-weight:800;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);position:relative;}
+  /* El círculo se queda en 22 px; el dedo acierta en 44 (WCAG 2.5.8, auditoría 14/11). */
+  .helpq::after{content:"";position:absolute;inset:-13px;}
   .helpq:active{color:var(--mint);border-color:var(--mint-dim);}
   .helpover{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:95;display:flex;align-items:center;justify-content:center;padding:24px;}
   .helpcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:340px;width:100%;box-shadow:var(--shadow);animation:sheetup .22s ease;color:var(--text);}
@@ -875,6 +887,11 @@
   .v4-legend-btn b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
   .v4-legend-btn:not(.off){border-color:var(--line-soft);background:var(--sur2);}
   .v4-legend-btn.off{opacity:.4;}
+  /* La píldora mide 29 px: el toque crece a 44 por arriba y por abajo, y entre filas se deja el
+     hueco justo para que el toque de una no pise el dibujo de la de abajo (auditoría 14/11). */
+  .v4-legend-btn{position:relative;}
+  .v4-legend-btn::after{content:"";position:absolute;inset:-8.5px -3px;}
+  .v4-legend:has(>.v4-legend-btn){row-gap:15px;}
   .v4-seg{display:flex;gap:4px;background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:4px;margin-bottom:14px;}
   .v4-seg-btn{flex:1;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
   .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
@@ -907,7 +924,7 @@
   .v42-net .v4-hero-amt{font-size:46px;font-weight:560;margin-top:4px;}
   .v42-net .v4-hero-amt>span{font-size:23px;color:var(--muted);}
   .v42-net-info{width:16px;height:16px;border-radius:50%;border:1px solid var(--muted-2);background:none;color:var(--muted);font-size:10px;position:relative;padding:0;}
-  .v42-net-info:before{content:"";position:absolute;inset:-14px;}
+  .v42-net-info:before{content:"";position:absolute;inset:-15px;}
   .v42-net-date{position:absolute;right:0;top:0;font-size:11px;color:var(--muted);}
   .v42-net-delta{font-size:13.5px;font-weight:600;margin-top:5px;}
   .v42-net-chart{height:80px;margin-top:10px;touch-action:pan-y;}
@@ -1483,6 +1500,9 @@
   html[data-theme="light"] .helpq:active,
   html[data-theme="light"] .tab-add:active,
   html[data-theme="light"] .icon-btn,
+  html[data-theme="light"] .edit-link:not(.save),
+  html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
+  html[data-theme="light"] .v4-link-mini,
   html[data-theme="light"] .v4-goal-pct{
     color:var(--mint-ink);
   }
@@ -1491,6 +1511,7 @@
   html[data-theme="light"] .chip.active,
   html[data-theme="light"] .mc-cal-day.on,
   html[data-theme="light"] .pill.pos,
+  html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
   html[data-theme="light"] .dc-badge{
     background:color-mix(in srgb, var(--mint-ink) 12%, transparent);
   }
@@ -1569,8 +1590,10 @@
   .gx-num-dec{display:inline-block;vertical-align:top;font-size:28px;margin-top:calc(.86 * 18px);}
   /* El texto entero, oculto a la vista: lo leen el lector de pantalla y los tests. */
   .gx-num-txt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;}
-  /* El rodillo: cada dígito es una ventana de 1em con la tira 0–9 dentro. Solo se mueve la tira. */
-  .gx-dig{display:inline-block;height:1em;overflow:hidden;vertical-align:top;}
+  /* El rodillo: cada dígito es una ventana de 1em con la tira 0–9 dentro. Solo se mueve la tira.
+     El ancho lo pone `GxCifra` según el dígito: Fraunces no trae cifras tabulares y la ventana del
+     ancho del «0» dejaba huecos alrededor del 1 y del 7 («8 7,99 €», auditoría 14/11). */
+  .gx-dig{display:inline-block;height:1em;overflow:hidden;vertical-align:top;transition:width .2s var(--ease);}
   .gx-dig-tira{display:flex;flex-direction:column;transition:transform .2s var(--ease);will-change:transform;}
   .gx-dig-tira > span{height:1em;line-height:1;text-align:center;}
   .gx-sep{display:inline-block;vertical-align:top;}
@@ -1612,6 +1635,8 @@
   .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
+  /* En Claro `--on-mint` es blanco y sobre el ocre daba 3,2:1; el texto oscuro del tema, 5,6. */
+  html[data-theme="light"] .gx-sec-globo{color:var(--text);}
   .gx-filter-btn{position:relative;flex:0 0 46px;width:46px;height:46px;padding:0;border-radius:23px;box-sizing:border-box;
     display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;}
   /* Último de su fila: con el globo a -3px lo recortaba por arriba y por la derecha (captura del dueño 2026-11-13). Dentro del botón no hay borde que lo corte. */
@@ -1763,7 +1788,7 @@
   .gx-fil-ver{height:56px;border-radius:18px;font-size:17px;margin-top:4px;}
   .gx-fil-nube{margin:6px 0 0;}
   @media (prefers-reduced-motion:reduce){
-    .gx-head::before,.gx-num,.gx-status,.gx-meses,.gx-mes-pasti,.gx-dig-tira,.gx-gris-body{transition:none;}
+    .gx-head::before,.gx-num,.gx-status,.gx-meses,.gx-mes-pasti,.gx-dig,.gx-dig-tira,.gx-gris-body{transition:none;}
   }
   .v4-gastos-list-body{padding:0;}
 
@@ -1808,6 +1833,14 @@
   }
   .v4-sheet-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;}
   .v4-sheet > .v4-cta,.v4-sheet > .v4-danger{flex:0 0 auto;}
+  /* APUNTAR: el teclado entero y el botón, a la vista sin deslizar (auditoría 14/11: a 412×915 la
+     fila «, 0 Borrar» quedaba bajo «Apuntar» y para escribir un 0 había que mover la hoja).
+     - Bajo el botón basta el alto de su halo (34 px); con barra de gestos, la zona segura y un
+       respiro, no la zona segura MÁS 52 px.
+     - El teclado se pega al fondo del cuerpo: si en un móvil bajo no cabe todo, lo que se desliza
+       por debajo son las categorías, nunca las teclas. Lleva el fondo de la hoja para taparlas. */
+  .v4-sheet:has(>.v4-ficha-body[data-testid="ap"]){padding-bottom:max(34px,calc(14px + var(--safe-bottom)));}
+  .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:6px 0 10px;background:var(--bg-2);}
   .v4-sheet-handle{width:40px;height:5px;border-radius:4px;background:var(--line);margin:6px auto 14px;position:relative;flex:0 0 auto;cursor:grab;}
   .v4-sheet-handle::before{content:"";position:absolute;inset:-16px -48px;}
   .v4-sheet.dragging{transition:none;}
@@ -1831,7 +1864,10 @@
   .v4-ficha-amount{min-height:58px;max-width:calc(100% - 82px);border:0;background:transparent;color:var(--text);
     font-size:clamp(40px,13vw,56px);font-weight:550;font-variation-settings:"opsz" 40;letter-spacing:-2px;
     font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0;}
-  .v4-ficha-amount.empty{color:var(--muted-2);}
+  /* `empty` es también la clase GLOBAL de estado vacío (padding 34px 20px): con el importe a cero la
+     cifra medía 107 px y al teclear la primera tecla bajaba a 58, así que la hoja daba un salto y el
+     teclado de Apuntar no cabía de entrada (auditoría 14/11). Se queda con el relleno de siempre. */
+  .v4-ficha-amount.empty{color:var(--muted-2);padding:4px 0 10px;}
   .v4-ficha-currency{height:30px;min-width:58px;padding:0 9px;border-radius:15px;background:var(--sur);border:1px solid var(--line-soft);
     color:var(--text);font-size:12px;font-weight:800;white-space:nowrap;}
   .v4-ficha-currency.locked{color:var(--muted);}
@@ -1946,7 +1982,7 @@
   @keyframes v4BillsIn{from{opacity:.35;transform:translate3d(16px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
   .v4-bills-search{flex:1;min-height:46px;padding:0 14px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:14px;}
   .v4-bills-search:focus{border-color:var(--mint);outline:none;}
-  .v4-bills-add{flex:0 0 46px;width:46px;height:46px;border-radius:14px;border:0;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:#06120C;font-size:24px;font-weight:800;}
+  .v4-bills-add{flex:0 0 46px;width:46px;height:46px;border-radius:14px;border:0;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-size:24px;font-weight:800;}
   .v4-bills-row{width:100%;text-align:left;}
   .v4-bills-banks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
   .v4-bills-bank{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 10px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:12.5px;font-weight:700;}
@@ -1975,7 +2011,12 @@
   .pr6-mg-sec{margin-top:24px;}
   .pr6-mg-st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
   .pr6-mg-ss{font-size:13px;font-weight:500;color:var(--muted);}
-  .pr6-mg-add{display:flex;align-items:center;gap:5px;flex:none;color:var(--mint-bright)!important;font-size:15px!important;font-weight:700!important;}
+  .pr6-mg-add{display:flex;align-items:center;gap:5px;flex:none;color:var(--mint-bright)!important;font-size:15px!important;font-weight:700!important;position:relative;}
+  /* El `!important` de arriba (para ganar a `button.link` de la cabecera) se comía el verde hondo
+     del tema Claro (2,4:1): este lo repite con más peso. */
+  html[data-theme="light"] .pr6-mg-add{color:var(--mint-ink)!important;}
+  /* «+ Añadir» mide 23 px de alto: el toque se agranda a 44 sin mover el dibujo. */
+  .pr6-mg-add::after{content:"";position:absolute;inset:-11px -6px;}
   .pr6-mg-sec .pr6-row .dt{width:46px;height:48px;border-radius:13px;}
   .pr6-mg-sec .pr6-row .dt .d{font-size:19px;font-weight:600;line-height:1;}
   .pr6-mg-sec .pr6-row .dt .m{font-size:10px;font-weight:800;text-transform:uppercase;}
@@ -2174,7 +2215,10 @@
      de un vistazo (petición 2026-07-24). */
   .v4-mov .nm-note{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.3;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .v4-mov .nm-cat{font-size:12.5px;font-weight:650;margin-top:2px;line-height:1.2;}
+  .v4-mov .nm-cat{font-size:12.5px;font-weight:650;margin-top:2px;line-height:1.2;color:var(--cat,var(--muted));}
+  /* Los colores de categoría son pasteles pensados para fondo oscuro: en Claro se mezclan con
+     --text, que conserva el tono y deja el peor (Ocio) en 4,8:1 sobre blanco (antes 1,7). */
+  html[data-theme="light"] .v4-mov .nm-cat{color:color-mix(in srgb,var(--cat,var(--muted)) 45%,var(--text));}
   .v4-banks .bk-sec{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);margin:18px 2px 8px;}
   .v4-banks .v4-mov{margin-bottom:8px;}
   .v4-banks .bk-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;padding:0 2px;}
@@ -2268,10 +2312,10 @@
   .af-row .af-in{flex:1;min-width:0;}
   .month-picker{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
   .mchip{font-size:12px;font-weight:700;padding:7px 0;border-radius:9px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--muted-2);text-align:center;}
-  .mchip.on{color:#08120C;background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
+  .mchip.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
   .curtoggle{display:inline-flex;gap:2px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;padding:2px;}
   .curbtn{font-size:13px;font-weight:800;padding:4px 12px;border-radius:8px;background:transparent;color:var(--muted-2);border:none;cursor:pointer;}
-  .curbtn.on{color:#08120C;background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
+  .curbtn.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
   .inv-tap{min-height:44px;}
   .v4-investments-full .curbtn,.v4-investments-full .v4-link-mini{min-height:44px;}
   .v4-investments-full .v4-field-label{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:10px;}
@@ -2308,7 +2352,7 @@
   .editpair label{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted-2);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
   .editpair input{width:96px;text-align:right;background:var(--bg-2);border:1px solid var(--mint-dim);color:var(--text);border-radius:8px;padding:6px 8px;font-size:13px;font-weight:600;}
   .costtoggle{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;text-align:left;font-family:inherit;font-size:12.5px;color:var(--muted);font-weight:600;background:var(--surface);border:1px solid var(--line-soft);border-radius:13px;padding:11px 14px;margin-bottom:12px;cursor:pointer;}
-  .costtoggle .cbx{width:20px;height:20px;border-radius:6px;border:1px solid var(--mint-dim);background:var(--bg-2);color:#08120C;display:grid;place-items:center;font-size:13px;font-weight:800;flex:0 0 auto;}
+  .costtoggle .cbx{width:20px;height:20px;border-radius:6px;border:1px solid var(--mint-dim);background:var(--bg-2);color:var(--on-mint);display:grid;place-items:center;font-size:13px;font-weight:800;flex:0 0 auto;}
   .costtoggle .cbx.on{background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
   .inv-row-action{display:inline-flex;align-items:center;min-height:44px;background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;padding:4px 0;}
 
@@ -2351,9 +2395,11 @@
   .v4-debt-emoji{font-size:28px;line-height:1;flex:0 0 auto;}
   .v4-debt-name{font-weight:800;font-size:16px;}
   .v4-debt-sub{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4;}
-  .v4-debt-bal{font-size:18px;font-weight:550;color:var(--coral);font-variant-numeric:tabular-nums;}
+  /* Deber no es una alarma: el saldo y la barra de lo amortizado van en los colores de siempre
+     (--text y --mint, como Metas) y el coral queda para lo que de verdad va mal (auditoría 14/11). */
+  .v4-debt-bal{font-size:18px;font-weight:550;color:var(--text);font-variant-numeric:tabular-nums;}
   .v4-debt-bar,.v4-goal-bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:12px 0 8px;}
-  .v4-debt-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--coral),#F0937F);transform-origin:left;animation:v4bar .8s var(--ease) both;}
+  .v4-debt-bar i{display:block;height:100%;border-radius:6px;background:var(--mint);transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-goal-bar i{display:block;height:100%;border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-debt-foot{font-size:12.5px;color:var(--muted);line-height:1.4;}
   .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;}
@@ -2369,7 +2415,7 @@
   .plan-item-edit{display:block;margin-top:4px;color:var(--mint);font-size:12px;font-weight:700;}
   .plan-debt-details{margin-top:9px;font-size:12px;}
   .plan-item .v4-debt-bar,.plan-item .v4-goal-bar{height:4px;margin:10px 0 8px;}
-  .plan-item .v4-debt-bar i{background:var(--coral);}
+  .plan-item .v4-debt-bar i{background:var(--mint);}
   .plan-item .v4-debt-foot{font-size:12px;}
   .plan-item .v4-debt-amort,.plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
   .plan-rule-row{gap:8px;padding:12px 0;align-items:center;}
@@ -2438,7 +2484,9 @@
   .v4-set-av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);flex:0 0 auto;}
   .v4-set-sec{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted-2);margin:18px 4px 6px;}
   .v4-theme-row{display:flex;gap:14px;padding:14px 16px 6px;align-items:center;}
-  .v4-theme-sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);}
+  .v4-theme-sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);position:relative;}
+  /* Muestra de 30 px, toque de 44: con el hueco de 14 entre muestras las zonas se tocan sin pisarse. */
+  .v4-theme-sw::after{content:"";position:absolute;inset:-9px;}
   .v4-theme-sw.on{border-color:var(--mint-hi);box-shadow:0 0 0 3px rgba(95,208,138,.25);}
   .v4-sheet-row{display:block;width:100%;text-align:left;padding:14px 16px;margin-top:8px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);font-weight:700;font-size:15px;font-family:inherit;cursor:pointer;}
   .v4-sheet-row.on{border-color:var(--mint);background:rgba(95,208,138,.12);color:var(--mint);}
@@ -2485,7 +2533,10 @@
   .v4-mov .meta .sep{color:var(--muted-2);margin:0 1px;}
   /* Badge de cuenta Open Banking: vive en la línea de meta y puede saltar de línea entera —
      pegada al nombre se cortaba con nombres largos o con «· caducado» (2026-07-18). */
-  .v4-ob-badge{display:inline-block;font-size:10.5px;font-weight:800;border-radius:8px;padding:2px 7px;margin-left:7px;vertical-align:middle;white-space:nowrap;line-height:1.4;}
+  .v4-ob-badge{display:inline-block;font-size:10.5px;font-weight:800;border-radius:8px;padding:2px 7px;margin-left:7px;vertical-align:middle;white-space:nowrap;line-height:1.4;
+    color:var(--b,var(--muted));background:color-mix(in srgb,var(--b,var(--muted)) 13%,transparent);}
+  /* Mismo arreglo que las categorías de Gastos: el azul y el naranja del aviso, mezclados con --text. */
+  html[data-theme="light"] .v4-ob-badge{color:color-mix(in srgb,var(--b,var(--muted)) 45%,var(--text));}
   .v4-mov .meta .v4-ob-badge{margin-left:0;}
   html.sheet-open .v4-sheet,html.sheet-open .v4-sheet-body,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
   html.sheet-open .v4-sheet-back{pointer-events:auto;}
@@ -2537,7 +2588,7 @@
   .wedit-btns{display:flex;gap:6px;align-items:center;}
   .wedit-btns button{font-size:12px;font-weight:700;padding:5px 9px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line-soft);color:var(--text);}
   .wedit-btns button:disabled{opacity:.35;}
-  .wedit-btns button.on{color:#08120C;background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
+  .wedit-btns button.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
   .wedit-body{pointer-events:none;}
   .ex-del{font-size:12px;color:var(--muted-2);background:transparent;border:none;padding:4px 6px;opacity:.55;}
   .ex-del:hover{opacity:1;color:var(--coral);}
@@ -2582,18 +2633,20 @@
   .ru-edit:first-of-type{border-top:none;}
 
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:13px;font-weight:700;font-size:14px;}
-  .btn-primary{background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:#08120C;box-shadow:0 8px 18px -8px rgba(95,208,138,.55);}
+  .btn-primary{background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:var(--on-mint);box-shadow:0 8px 18px -8px rgba(95,208,138,.55);}
   .btn-primary:active{transform:translateY(1px);}
   .btn-ghost{background:var(--surface);border:1px solid var(--line-soft);color:var(--muted);}
   .btn-block{display:flex;width:100%;}
   .btn[disabled]{opacity:.55;pointer-events:none;}
-  .btn .spin{width:15px;height:15px;border:2px solid rgba(8,18,12,.3);border-top-color:#08120C;border-radius:50%;animation:sp .7s linear infinite;}
+  .btn .spin{width:15px;height:15px;border:2px solid rgba(8,18,12,.3);border-top-color:currentColor;border-radius:50%;animation:sp .7s linear infinite;}
   html.reduce-motion .spin{display:none;}
   @media (prefers-reduced-motion:reduce){.spin{display:none;}}
   @keyframes sp{to{transform:rotate(360deg);}}
 
-  .edit-link{font-size:12.5px;font-weight:700;color:var(--mint);padding:5px 9px;border-radius:9px;background:rgba(95,208,138,.10);}
-  .edit-link.save{color:#08120C;background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
+  .edit-link{font-size:12.5px;font-weight:700;color:var(--mint);padding:5px 9px;border-radius:9px;background:rgba(95,208,138,.10);position:relative;}
+  /* «Editar» mide 27 px de alto; el toque llega a 45 sin agrandar la píldora (auditoría 14/11). */
+  .edit-link::after{content:"";position:absolute;inset:-9px -2px;}
+  .edit-link.save{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
 
   .hint{font-size:12px;color:var(--muted-2);margin-top:10px;line-height:1.5;}
   .sync-note{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted-2);margin-top:10px;}
@@ -2608,7 +2661,7 @@
 
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-bottom));background:var(--sur2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:16px;font-size:14px;font-weight:700;z-index:200;box-shadow:var(--shadow);animation:toastin .3s ease;}
   .offline-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:rgba(226,160,95,.16);border:1px solid rgba(226,160,95,.5);color:#E2A05F;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;z-index:210;white-space:nowrap;box-shadow:var(--shadow);}
-  .update-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:#08120C;padding:9px 18px;border-radius:20px;font-size:12.5px;font-weight:800;z-index:215;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(95,208,138,.7);border:none;cursor:pointer;animation:updin .35s ease;}
+  .update-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:var(--on-mint);padding:9px 18px;border-radius:20px;font-size:12.5px;font-weight:800;z-index:215;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(95,208,138,.7);border:none;cursor:pointer;animation:updin .35s ease;}
   .update-pill+.update-pill{top:calc(var(--safe-top) + 48px);}
   .update-pill:active{transform:translateX(-50%) translateY(1px);}
   @keyframes updin{from{opacity:0;transform:translate(-50%,-10px);}to{opacity:1;transform:translate(-50%,0);}}

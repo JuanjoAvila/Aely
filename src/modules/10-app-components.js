@@ -103,7 +103,7 @@ function LockScreen({onUnlock}){
   const tryUnlock=function(){ setErr(false); bio.unlock().then(onUnlock).catch(function(){ setErr(true); }); };
   useEffect(function(){ const t=setTimeout(tryUnlock,350); return function(){ clearTimeout(t); }; },[]);
   const wrap={position:"fixed",inset:0,background:"var(--bg)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:100,color:"var(--text)",gap:"16px",padding:"24px",textAlign:"center"};
-  const btn={padding:"14px 22px",borderRadius:"14px",border:"none",background:"var(--mint)",color:"#06120C",fontWeight:700,fontSize:"15px",cursor:"pointer"};
+  const btn={padding:"14px 22px",borderRadius:"14px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"15px",cursor:"pointer"};
   const escape=function(){
     // la pantalla del candado va ANTES del árbol de la app: si AskHost aún no está montado,
     // askConfirm cae solo al confirm nativo (ver askDialog) y la salida de emergencia sigue viva.
@@ -577,8 +577,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
-  const chip=function(n){ const on=months===n; return React.createElement("button",{key:n,onClick:function(){ setMonths(n); },style:{flex:1,padding:"9px 0",borderRadius:10,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)":"var(--surface)",color:on?"#06120C":"var(--text)",fontWeight:800,fontSize:13,cursor:"pointer"}}, tf("bp_hist_m",{n:n})); };
-  const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
+  const chip=function(n){ const on=months===n; return React.createElement("button",{key:n,onClick:function(){ setMonths(n); },style:{flex:1,padding:"9px 0",borderRadius:10,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)":"var(--surface)",color:on?"var(--on-mint)":"var(--text)",fontWeight:800,fontSize:13,cursor:"pointer"}}, tf("bp_hist_m",{n:n})); };
+  const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
   const destChip=function(i,id,label,hint){
     const on=(dest[i]||"")==id;
     // `data-dest`/`data-cand`: las filas se pintan con estilos en linea y sin clase, asi que un
@@ -666,7 +666,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
           const dentro=revelado>=animTope || vi<revelado;
           return React.createElement("div",{key:i,className:"hist-fila"+(dentro?" dentro":""),style:{border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)14":"var(--surface)",borderRadius:12,marginBottom:7,padding:"10px 12px"}},
             React.createElement("button",{type:"button",onClick:function(){ toggle(i); },style:{display:"flex",alignItems:"center",gap:11,width:"100%",background:"none",border:"none",color:"inherit",cursor:"pointer",textAlign:"left",padding:0}},
-              React.createElement("span",{style:{width:20,height:20,borderRadius:6,border:"2px solid "+(on?"var(--mint)":"var(--muted-2)"),background:on?"var(--mint)":"transparent",color:"#06120C",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}, on?"✓":""),
+              React.createElement("span",{style:{width:20,height:20,borderRadius:6,border:"2px solid "+(on?"var(--mint)":"var(--muted-2)"),background:on?"var(--mint)":"transparent",color:"var(--on-mint)",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}, on?"✓":""),
               React.createElement("div",{style:{flex:1,minWidth:0}},
                 React.createElement("div",{style:{fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",textDecoration:(!on&&isDup)?"line-through":"none",color:(!on&&isDup)?"var(--muted-2)":undefined}}, x.merchant),
                 React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, x.date, " · ", histBankLabel(x), isIn?"":(x.card?"":" · "+t("bp_hist_notcard")), suggestRec&&!on?"":""),
@@ -1883,7 +1883,7 @@ function ActivityPanel({events, onReload, onClose}){
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
-  const chip=function(on){ return {background:on?"var(--mint)":"var(--surface-2)",color:on?"#06120C":"var(--text)",border:on?"none":"1px solid var(--line)",borderRadius:20,padding:"6px 13px",fontSize:12.5,fontWeight:700,cursor:"pointer"}; };
+  const chip=function(on){ return {background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)",borderRadius:20,padding:"6px 13px",fontSize:12.5,fontWeight:700,cursor:"pointer"}; };
   const nErr=(events||[]).filter(function(ev){ return ev.kind==="error"; }).length;
   const nFb=(events||[]).filter(function(ev){ return ev.kind==="feedback"; }).length;
   const nBeta=(events||[]).filter(function(ev){ return ev.kind==="beta"; }).length;   // veredictos de beta probada en el móvil
@@ -2276,7 +2276,7 @@ function CurConverterPanel({state, onClose, refreshFx}){
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const inp={width:"100%",padding:"10px 13px",borderRadius:12,border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:16,boxSizing:"border-box"};
-  const segBtn=function(on){ return {padding:"7px 10px",borderRadius:20,fontSize:12.5,fontWeight:700,cursor:"pointer",background:on?"var(--mint)":"var(--surface-2)",color:on?"#06120C":"var(--text)",border:on?"none":"1px solid var(--line)"}; };
+  const segBtn=function(on){ return {padding:"7px 10px",borderRadius:20,fontSize:12.5,fontWeight:700,cursor:"pointer",background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)"}; };
   const tbl=fxTableOf(state);
   const hasRates=CUR_LIST.some(function(c){ return c!=="EUR" && tbl[c]>0; });
   const nq=normQ(q).trim();
@@ -2616,7 +2616,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   // Inputs se quedan en 16px (menos = zoom automático del móvil al enfocar); los botones sí
   // bajan de tamaño para no parecer listones (feedback 2026-07-18).
   const inp={width:"100%",padding:"10px 13px",borderRadius:"12px",border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:"16px",boxSizing:"border-box"};
-  const btn={width:"100%",padding:"10px 12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"#06120C",fontWeight:700,fontSize:"14px",marginTop:"10px",cursor:"pointer"};
+  const btn={width:"100%",padding:"10px 12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"14px",marginTop:"10px",cursor:"pointer"};
   /* Presupuesto mensual: se edita en Resumen (BudgetSheet). Bancos de gasto diario: en Cartera.
      Quitados de aquí el 2026-08-05 — eran duplicados muertos / confusos (feedback suyo). */
   /* `doExport`/`doImport` (copia manual a fichero JSON) retirados el 2026-08-04 a petición suya:
@@ -2649,7 +2649,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const simOn=!!(state.settings&&state.settings.simpleMode);
   // Conversor de monedas: pantalla propia (CurConverterPanel), no acordeón — ver su comentario.
   const [convOpen,setConvOpen]=useState(false);
-  const segBtn=function(on){ return Object.assign({},btn,{flex:"1 1 30%",marginTop:0,background:on?"var(--mint)":"var(--surface-2)",color:on?"#06120C":"var(--text)",border:on?"none":"1px solid var(--line)"}); };
+  const segBtn=function(on){ return Object.assign({},btn,{flex:"1 1 30%",marginTop:0,background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)"}); };
   // ── Secciones colapsables + buscador (feedback 2026-07-13: «Ajustes se está haciendo
   // kilométrico»). Cada tarjeta es ahora un grupo plegado (estado en localStorage); el
   // buscador filtra grupos por título y palabras clave y los abre de golpe. ──
