@@ -1063,6 +1063,31 @@ function useCountUp(target, ready){
   return ready?shown:+(target||0);
 }
 
+/* QUÉ CIERRES SE GUARDAN HOY: una fila por cuenta, con la MISMA clave con la que luego se leen
+   (`accountOrderKeyOf`: la gráfica de Inicio y la ficha de la cuenta). Antes la clave se montaba
+   aquí aparte y dos cuentas podían compartirla (dos de banco sin identificador daban ambas
+   «ob:undefined»): cada una pisaba el cierre de la otra, el efecto veía siempre una diferencia y
+   la app se quedaba renderizando sin parar, con el estado reescrito en disco cada 400 ms y las
+   pestañas sin cambiar (auditoría 14/11/2026).
+   - Cuenta sin identificador: no deja cierre. No se sabría de quién es ni se podría leer luego.
+   - Dos cuentas con la misma clave: no deja cierre NINGUNA. Elegir una sería guardar el saldo
+     de la otra a su nombre; lo que ya hubiera bajo esa clave se queda como estaba.
+   - Saldo que no se sabe (sin número, o divisa sin cambio): no se apunta un cero en su lugar.
+   En los tres casos la cuenta sigue contando HOY con su saldo vivo; solo deja de tener pasado. */
+function accountBalanceRows(state, shownAcc){
+  const veces={}, rows=[];
+  const add=function(item, kind, value){
+    const key=accountOrderKeyOf(item,kind);
+    veces[key]=(veces[key]||0)+1;
+    if(key==="ob:"||key==="acc:"||typeof value!=="number"||!Number.isFinite(value)) return;
+    rows.push({key:key,value:value});
+  };
+  ((state&&state.accounts)||[]).forEach(function(a){ add(a,"account",+Number(shownAcc(a)).toFixed(2)); });
+  ((state&&state.obAccounts)||[]).forEach(function(o){
+    add(o,"ob",typeof o.value==="number"?toEurAmt(o.value,o.cur||"EUR",state):null);
+  });
+  return rows.filter(function(r){ return veces[r.key]===1; });
+}
 function recordAccountBalances(hist, day, rows){
   var out=hist||{}, changed=false;
   (rows||[]).forEach(function(r){

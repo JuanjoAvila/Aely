@@ -483,6 +483,9 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  /* Reposo tras cargar (14/11): dos filas de saldo con la misma clave dejaban la app renderizando
+     sin parar. Un bucle así puede nacer en cualquier módulo, no en una pantalla. */
+  "e2e/saldos-sin-bucle.spec.mjs",
   "e2e/tr-monthly-invest-confirm.spec.mjs",
   "e2e/inicio-mes-futuro.spec.mjs",
   "e2e/backclose-handover.spec.mjs", "e2e/botnav-indicador.spec.mjs",
