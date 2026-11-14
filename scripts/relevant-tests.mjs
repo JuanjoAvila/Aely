@@ -513,6 +513,9 @@ export const CROSSCUTTING = [
   /* Temas y temáticas (UX-07) son CSS global de `shell.html` y selección en Ajustes:
      cualquier pestaña puede romper su contraste, no una pantalla concreta. */
   "e2e/apariencia-temas.spec.mjs",
+  /* Igual de transversal: el teclado de Apuntar cabe o no según el CSS global de las hojas, y el
+     contraste de `--muted-2` y del menta de Claro sale de los tokens de `shell.html`. */
+  "e2e/apuntar-teclado-visible.spec.mjs",
   // INC-2709-12: el + de Cyberpunk por encima de la corriente de la barra, en todas las pestañas.
   "e2e/cyber-fab.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",

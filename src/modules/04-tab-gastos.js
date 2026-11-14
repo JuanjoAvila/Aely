@@ -2578,11 +2578,14 @@ function GxSecciones({secc, onSecc, nSubs}){
     }));
 }
 /* LA CIFRA RUEDA POR DÍGITO (referencia del dueño, 20/10: «este es el nivel que aspiro de
-   fluidez»). Cada dígito es una tira 0–9 que sube o baja con `translateY`: sin layout ni anchos
-   que cambien (cifras tabulares, celda de ancho fijo), y si llega otro cambio a mitad, la
-   transición sale desde donde está. Se alinea por la DERECHA para que las unidades no salten
-   de casilla cuando el número gana una cifra. Con «reducir movimiento» cambia sin rodar. */
+   fluidez»). Cada dígito es una tira 0–9 que sube o baja con `translateY`, y si llega otro
+   cambio a mitad, la transición sale desde donde está. Se alinea por la DERECHA para que las unidades no salten
+   de casilla cuando el número gana una cifra. Con «reducir movimiento» cambia sin rodar.
+   Fraunces no tiene cifras tabulares (el «1» mide dos tercios del «0»), así que cada casilla toma
+   el avance de SU dígito, medido en em con la fuente servida; el −1px es el `letter-spacing` de
+   `.gx-num`. El ancho solo cambia con el dígito y rueda a la vez que la tira. */
 const GX_DIGITOS=["0","1","2","3","4","5","6","7","8","9"];
+const GX_ANCHO=[.665,.452,.607,.557,.617,.578,.611,.520,.604,.613];
 function GxCifra({n}){
   const ok=typeof n==="number"&&isFinite(n);
   if(!ok) return React.createElement("div",{className:"gx-num num"},React.createElement("span",{"data-testid":"gastos-cifra"},"—"));
@@ -2594,7 +2597,7 @@ function GxCifra({n}){
       const dg=GX_DIGITOS.indexOf(ch);
       out.push(dg<0
         ? React.createElement("span",{key:base+"s"+pos+ch,className:"gx-sep"},ch)
-        : React.createElement("span",{key:base+pos,className:"gx-dig"},
+        : React.createElement("span",{key:base+pos,className:"gx-dig",style:{width:"calc("+GX_ANCHO[dg]+"em - 1px)"}},
             React.createElement("span",{className:"gx-dig-tira",style:{transform:"translateY("+(-dg*10)+"%)"}},
               GX_DIGITOS.map(function(d){ return React.createElement("span",{key:d},d); }))));
     }
@@ -2743,7 +2746,9 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       React.createElement("div",{className:"nm-title"}, shownName||"—",
         pendingName&&renameAvisoVisible(e.renamePending)?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
-      React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
+      // El color de la categoría va como variable y lo pinta el CSS: en el tema Claro, el pastel tal
+      // cual sobre blanco no se leía (1,9:1, auditoría 14/11) y ahí se oscurece (ver `.nm-cat`).
+      React.createElement("div",{className:"nm-cat",style:{"--cat":c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
         React.createElement("span",null,gxFecha(d,"dm")),
         bk?React.createElement(React.Fragment,null,
