@@ -3213,6 +3213,25 @@ function mcLogCode(err){
   if(/network|fetch/i.test(msg)) return "network";
   return "unavailable";
 }
+/* El toast de un fallo: una frase traducida, nunca el `e.message` crudo (salían «✕ Failed to
+   fetch», «✕ Edge Function returned a non-2xx status code» o el castellano de la nube con la app
+   en inglés — auditoría 14/11/2026). Los casos que el usuario puede arreglar tienen su frase; el
+   resto, la genérica. Un error lanzado con una clave de LANG por mensaje se traduce, y uno que ya
+   viene traducido (`throw new Error(t("exp_pull_invalid"))`) se enseña tal cual.
+   El detalle va a la consola como clase cerrada (`mcLogCode`, SEC-03), no a la pantalla. */
+function errTxt(e){
+  const m=String((e&&e.message)||e||"");
+  try{ console.warn("toast:",mcLogCode(e)); }catch(_){}
+  if(m&&Object.values(LANG[CURLANG]||LANG.es).indexOf(m)>=0) return "✕ "+m;
+  const k=LANG.es[m]!=null?m
+    :/invalid login credentials/i.test(m)?"err_login"
+    :/contraseña incorrecta|wrong password/i.test(m)?"err_pass"
+    :/already (been )?registered/i.test(m)?"err_registered"
+    :/email not confirmed/i.test(m)?"err_unconfirmed"
+    :/failed to fetch|network|load failed/i.test(m)||(typeof navigator!=="undefined"&&navigator.onLine===false)?"err_offline"
+    :"err_generic";
+  return "✕ "+t(k);
+}
 function mcLogText(raw){
   const omit=typeof t==="function"?t("log_private"):"[redacted]";
   return String(raw||"").replace(/https?:\/\/\S+/gi,omit)
@@ -8295,7 +8314,7 @@ const LANG = {
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Tu dinero en total",
+    v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
     // INC-0810 es: patrimonio de ahora.
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
     v42_net_info_title:"Cómo se calcula", v42_net_chart:"Evolución del patrimonio",
@@ -8384,9 +8403,9 @@ const LANG = {
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Orientativo: no cambia tu presupuesto. Vacío o 0 = sin límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
-    v4_sync_banks:"Sincronizar bancos",
+    v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
     v4_sync_broker_ok:"📈 {b} al día", v4_sync_brokers_ok:"📈 Brókers al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
-    ap_bank_none:"Sin banco",
+    ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
     cal_today:"Hoy", cal_prev:"Mes anterior", cal_next:"Mes siguiente",
     bk_issue:"⚠ {bank} necesita tu permiso otra vez", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
     bk_issue_cta:"Reconectar {bank}", bk_tr_dead:"⚠ Trade Republic (inversiones): sesión caducada",
@@ -8548,9 +8567,9 @@ const LANG = {
 // (para gente que no ha crecido con apps: "Patrimonio neto" → "Tu dinero en total").
 let SIMPLEMODE = false;   // lo fija App en cada render desde settings.simpleMode
 const LANG_SIMPLE = {
-  es:{ d_networth:"Tu dinero en total", tab_fijos:"Recibos", tab_dash:"Inicio" },
-  en:{ d_networth:"All your money",     tab_fijos:"Bills", tab_dash:"Home" },
-  ca:{ d_networth:"Els teus diners en total", tab_fijos:"Rebuts", tab_dash:"Inici" },
+  es:{ d_networth:"Tu dinero en total", d_assets:"Lo que tienes", tab_fijos:"Recibos", tab_dash:"Inicio" },
+  en:{ d_networth:"All your money",     d_assets:"What you have", tab_fijos:"Bills", tab_dash:"Home" },
+  ca:{ d_networth:"Els teus diners en total", d_assets:"El que tens", tab_fijos:"Rebuts", tab_dash:"Inici" },
 };
 const t = (k)=>{
   if(SIMPLEMODE){ const v=(LANG_SIMPLE[CURLANG]&&LANG_SIMPLE[CURLANG][k])!=null?LANG_SIMPLE[CURLANG][k]:LANG_SIMPLE.es[k]; if(v!=null) return v; }
@@ -8558,25 +8577,6 @@ const t = (k)=>{
 };
 // textos con variables: tf("key",{name:"x"}) reemplaza {name} en la traducción
 function tf(k,vals){ let s=t(k); if(vals) for(const v in vals) s=s.split("{"+v+"}").join(vals[v]); return s; }
-/* El toast de un fallo: una frase traducida, nunca el `e.message` crudo (salían «✕ Failed to
-   fetch», «✕ Edge Function returned a non-2xx status code» o el castellano de la nube con la app
-   en inglés — auditoría 14/11/2026). Los casos que el usuario puede arreglar tienen su frase; el
-   resto, la genérica. Un error lanzado con una clave de LANG por mensaje se traduce, y uno que ya
-   viene traducido (`throw new Error(t("exp_pull_invalid"))`) se enseña tal cual.
-   El detalle va a la consola como clase cerrada (`mcLogCode`, SEC-03), no a la pantalla. */
-function errTxt(e){
-  const m=String((e&&e.message)||e||"");
-  try{ console.warn("toast:",mcLogCode(e)); }catch(_){}
-  if(m&&Object.values(LANG[CURLANG]||LANG.es).indexOf(m)>=0) return "✕ "+m;
-  const k=LANG.es[m]!=null?m
-    :/invalid login credentials/i.test(m)?"err_login"
-    :/contraseña incorrecta|wrong password/i.test(m)?"err_pass"
-    :/already (been )?registered/i.test(m)?"err_registered"
-    :/email not confirmed/i.test(m)?"err_unconfirmed"
-    :/failed to fetch|network|load failed/i.test(m)||(typeof navigator!=="undefined"&&navigator.onLine===false)?"err_offline"
-    :"err_generic";
-  return "✕ "+t(k);
-}
 /* en/ca viven en public/i18n/*.json (build, 4.19.103): el bundle solo lleva es. Antes del
    primer paint con idioma ≠ es hay que tener el diccionario; si falla el fetch (offline
    en frío), t() cae a es y no rompe. Idempotente. */
@@ -8928,7 +8928,7 @@ const loc = ()=> LOCALE[CURLANG] || "es-ES";
 
 /* --- Diccionario: pestaña RESUMEN (Dashboard) --- */
 Object.assign(LANG.es,{
-  d_networth:"Patrimonio neto",
+  d_networth:"Patrimonio neto", d_assets:"Activos", 
   d_liquid:"Liquidez", d_invest:"Inversiones", d_goods:"Bienes",
   d_saving:"Ahorro", 
   done:"Listo ✓", drag_hint:"mantén pulsada una tarjeta para moverla",
@@ -9137,6 +9137,7 @@ Object.assign(LANG.es,{
   bank_upd_one:"✓ {bank} al día · {x}", bank_upd_n:"✓ {n} bancos al día",
   bank_upd_mov1:"1 movimiento nuevo", bank_upd_movn:"{n} movimientos nuevos",
   sync_result_title:"Resultado de la sincronización", sync_result_close:"Cerrar",
+  bank_expired_re:"permiso caducado · reconéctate",
   bank_nolink:"esta cuenta aún no está dada de alta en Enable Banking (modo restringido). Enlázala en el panel de Enable Banking y vuelve a conectar.",
   bank_refresh:"Actualizar todos", bank_reconnect:"Reconectar",
   bank_pending:"Pendiente de autorizar en el banco",

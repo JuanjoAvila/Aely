@@ -158,7 +158,16 @@ if (phMismatch.length) {
   const lits = new Set([...all.matchAll(/(["'`])([A-Za-z0-9_]+)\1/g)].map((m) => m[2]));
   const prefixes = [...new Set([...all.matchAll(/["'`]([A-Za-z0-9_]+)["'`]\s*\+/g)].map((m) => m[1]))]
     .filter((p) => p.includes("_") && p.length >= 3);
-  const orphans = Object.keys(LANG.es).filter((k) => !lits.has(k) && !prefixes.some((p) => k.startsWith(p)));
+  // Una clave que ancla un bloque de una tanda del panel (`from`/`to` de scripts/beta-sources.json)
+  // no se puede borrar sin romper su huella: espera a que el integrador retire esa tanda.
+  const anclas = new Set();
+  (function walk(o) {
+    if (Array.isArray(o)) return o.forEach(walk);
+    if (!o || typeof o !== "object") return;
+    if (o.file === "src/modules/01-i18n.js") for (const s of [o.from, o.to]) for (const m of String(s || "").matchAll(/([A-Za-z0-9_]+):/g)) anclas.add(m[1]);
+    for (const k in o) walk(o[k]);
+  })(JSON.parse(fs.readFileSync(path.join(root, "scripts", "beta-sources.json"), "utf8")));
+  const orphans = Object.keys(LANG.es).filter((k) => !lits.has(k) && !anclas.has(k) && !prefixes.some((p) => k.startsWith(p)));
   if (orphans.length) {
     failed++;
     console.log(`  ✗ ${orphans.length} clave(s) definidas que no usa nadie (bórralas en los tres idiomas):`);

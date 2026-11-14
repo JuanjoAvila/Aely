@@ -97,7 +97,7 @@ const LANG = {
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Tu dinero en total",
+    v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
     // INC-0810 es: patrimonio de ahora.
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
     v42_net_info_title:"Cómo se calcula", v42_net_chart:"Evolución del patrimonio",
@@ -186,9 +186,9 @@ const LANG = {
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Orientativo: no cambia tu presupuesto. Vacío o 0 = sin límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
-    v4_sync_banks:"Sincronizar bancos",
+    v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
     v4_sync_broker_ok:"📈 {b} al día", v4_sync_brokers_ok:"📈 Brókers al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
-    ap_bank_none:"Sin banco",
+    ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
     cal_today:"Hoy", cal_prev:"Mes anterior", cal_next:"Mes siguiente",
     bk_issue:"⚠ {bank} necesita tu permiso otra vez", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
     bk_issue_cta:"Reconectar {bank}", bk_tr_dead:"⚠ Trade Republic (inversiones): sesión caducada",
@@ -435,7 +435,7 @@ const LANG = {
     tab_dash:"Home", tab_gastos:"Spending", tab_plan:"Plan", tab_cartera:"Portfolio", tab_fijos:"Fixed", tab_inv:"Investments", tab_patri:"Net worth", tab_debt:"Debts", tab_compartido:"Shared",
     tab_metas:"Goals", tab_logros:"Achievements",
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
-    v4_money_total:"All your money",
+    v4_money_total:"All your money", v4_of_month:"of month",
     // INC-0810 en: patrimonio de ahora.
     v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
     v42_net_info_title:"How it's worked out", v42_net_chart:"Net worth history",
@@ -523,9 +523,9 @@ const LANG = {
     g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just a guide: it doesn't change your budget. Empty or 0 = no limit.",
     g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_connect_accounts:"Connect accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
-    v4_sync_banks:"Sync banks",
+    v4_sync_banks:"Sync banks", v4_sync_banks_done:"✓ Banks synced",
     v4_sync_broker_ok:"📈 {b} up to date", v4_sync_brokers_ok:"📈 Brokers up to date", v4_sync_broker_exp:"⚠ {b}: session expired · reconnect in Settings → Banks",
-    ap_bank_none:"No bank",
+    ap_bank:"Bank", ap_bank_none:"No bank", ap_date:"Date",
     cal_today:"Today", cal_prev:"Previous month", cal_next:"Next month",
     bk_issue:"⚠ {bank} needs your permission again", bk_issue_sub:"The read consent expired (required every ~3 months): the balance may be stale. One tap fixes it.",
     bk_issue_cta:"Reconnect {bank}", bk_tr_dead:"⚠ Trade Republic (investments): session expired",
@@ -759,7 +759,7 @@ const LANG = {
     tab_dash:"Inici", tab_gastos:"Despeses", tab_plan:"Pla", tab_cartera:"Cartera", tab_fijos:"Fixes", tab_inv:"Inversions", tab_patri:"Patrimoni", tab_debt:"Deutes", tab_compartido:"Compartit",
     tab_metas:"Metes", tab_logros:"Assoliments",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Els teus diners en total",
+    v4_money_total:"Els teus diners en total", v4_of_month:"del mes",
     // INC-0810 ca: patrimonio de ahora.
     v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
     v42_net_info_title:"Com es calcula", v42_net_chart:"Evolució del patrimoni",
@@ -847,9 +847,9 @@ const LANG = {
     g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Orientatiu: no canvia el pressupost. Buit o 0 = sense límit.",
     g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_connect_accounts:"Connectar comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
-    v4_sync_banks:"Sincronitza els bancs",
+    v4_sync_banks:"Sincronitza els bancs", v4_sync_banks_done:"✓ Bancs sincronitzats",
     v4_sync_broker_ok:"📈 {b} al dia", v4_sync_brokers_ok:"📈 Bròkers al dia", v4_sync_broker_exp:"⚠ {b}: sessió caducada · reconnecta a Configuració → Bancs",
-    ap_bank_none:"Sense banc",
+    ap_bank:"Banc", ap_bank_none:"Sense banc", ap_date:"Data",
     cal_today:"Avui", cal_prev:"Mes anterior", cal_next:"Mes següent",
     bk_issue:"⚠ {bank} necessita el teu permís altra vegada", bk_issue_sub:"El permís de lectura ha caducat (obligatori cada ~3 mesos): el saldo pot estar desfasat. Un toc i llest.",
     bk_issue_cta:"Reconnecta {bank}", bk_tr_dead:"⚠ Trade Republic (inversions): sessió caducada",
@@ -996,9 +996,9 @@ const LANG = {
 // (para gente que no ha crecido con apps: "Patrimonio neto" → "Tu dinero en total").
 let SIMPLEMODE = false;   // lo fija App en cada render desde settings.simpleMode
 const LANG_SIMPLE = {
-  es:{ d_networth:"Tu dinero en total", tab_fijos:"Recibos", tab_dash:"Inicio" },
-  en:{ d_networth:"All your money",     tab_fijos:"Bills", tab_dash:"Home" },
-  ca:{ d_networth:"Els teus diners en total", tab_fijos:"Rebuts", tab_dash:"Inici" },
+  es:{ d_networth:"Tu dinero en total", d_assets:"Lo que tienes", tab_fijos:"Recibos", tab_dash:"Inicio" },
+  en:{ d_networth:"All your money",     d_assets:"What you have", tab_fijos:"Bills", tab_dash:"Home" },
+  ca:{ d_networth:"Els teus diners en total", d_assets:"El que tens", tab_fijos:"Rebuts", tab_dash:"Inici" },
 };
 const t = (k)=>{
   if(SIMPLEMODE){ const v=(LANG_SIMPLE[CURLANG]&&LANG_SIMPLE[CURLANG][k])!=null?LANG_SIMPLE[CURLANG][k]:LANG_SIMPLE.es[k]; if(v!=null) return v; }
@@ -1006,25 +1006,6 @@ const t = (k)=>{
 };
 // textos con variables: tf("key",{name:"x"}) reemplaza {name} en la traducción
 function tf(k,vals){ let s=t(k); if(vals) for(const v in vals) s=s.split("{"+v+"}").join(vals[v]); return s; }
-/* El toast de un fallo: una frase traducida, nunca el `e.message` crudo (salían «✕ Failed to
-   fetch», «✕ Edge Function returned a non-2xx status code» o el castellano de la nube con la app
-   en inglés — auditoría 14/11/2026). Los casos que el usuario puede arreglar tienen su frase; el
-   resto, la genérica. Un error lanzado con una clave de LANG por mensaje se traduce, y uno que ya
-   viene traducido (`throw new Error(t("exp_pull_invalid"))`) se enseña tal cual.
-   El detalle va a la consola como clase cerrada (`mcLogCode`, SEC-03), no a la pantalla. */
-function errTxt(e){
-  const m=String((e&&e.message)||e||"");
-  try{ console.warn("toast:",mcLogCode(e)); }catch(_){}
-  if(m&&Object.values(LANG[CURLANG]||LANG.es).indexOf(m)>=0) return "✕ "+m;
-  const k=LANG.es[m]!=null?m
-    :/invalid login credentials/i.test(m)?"err_login"
-    :/contraseña incorrecta|wrong password/i.test(m)?"err_pass"
-    :/already (been )?registered/i.test(m)?"err_registered"
-    :/email not confirmed/i.test(m)?"err_unconfirmed"
-    :/failed to fetch|network|load failed/i.test(m)||(typeof navigator!=="undefined"&&navigator.onLine===false)?"err_offline"
-    :"err_generic";
-  return "✕ "+t(k);
-}
 /* en/ca viven en public/i18n/*.json (build, 4.19.103): el bundle solo lleva es. Antes del
    primer paint con idioma ≠ es hay que tener el diccionario; si falla el fetch (offline
    en frío), t() cae a es y no rompe. Idempotente. */
@@ -1844,7 +1825,7 @@ const loc = ()=> LOCALE[CURLANG] || "es-ES";
 
 /* --- Diccionario: pestaña RESUMEN (Dashboard) --- */
 Object.assign(LANG.es,{
-  d_networth:"Patrimonio neto",
+  d_networth:"Patrimonio neto", d_assets:"Activos", 
   d_liquid:"Liquidez", d_invest:"Inversiones", d_goods:"Bienes",
   d_saving:"Ahorro", 
   done:"Listo ✓", drag_hint:"mantén pulsada una tarjeta para moverla",
@@ -1901,7 +1882,7 @@ Object.assign(LANG.es,{
   fj_income:"Ingreso", fj_transfer:"Transferencia", 
 });
 Object.assign(LANG.en,{
-  d_networth:"Net worth",
+  d_networth:"Net worth", d_assets:"Assets", 
   d_liquid:"Cash", d_invest:"Investments", d_goods:"Property",
   d_saving:"Saving", 
   done:"Done ✓", drag_hint:"press and hold a card to move it",
@@ -1954,7 +1935,7 @@ Object.assign(LANG.en,{
   fj_income:"Income", fj_transfer:"Transfer", 
 });
 Object.assign(LANG.ca,{
-  d_networth:"Patrimoni net",
+  d_networth:"Patrimoni net", d_assets:"Actius", 
   d_liquid:"Liquiditat", d_invest:"Inversions", d_goods:"Béns",
   d_saving:"Estalvi", 
   done:"Fet ✓", drag_hint:"mantén premuda una targeta per moure-la",
@@ -2389,6 +2370,7 @@ Object.assign(LANG.es,{
   bank_upd_one:"✓ {bank} al día · {x}", bank_upd_n:"✓ {n} bancos al día",
   bank_upd_mov1:"1 movimiento nuevo", bank_upd_movn:"{n} movimientos nuevos",
   sync_result_title:"Resultado de la sincronización", sync_result_close:"Cerrar",
+  bank_expired_re:"permiso caducado · reconéctate",
   bank_nolink:"esta cuenta aún no está dada de alta en Enable Banking (modo restringido). Enlázala en el panel de Enable Banking y vuelve a conectar.",
   bank_refresh:"Actualizar todos", bank_reconnect:"Reconectar",
   bank_pending:"Pendiente de autorizar en el banco",
@@ -2412,6 +2394,7 @@ Object.assign(LANG.en,{
   bank_upd_one:"✓ {bank} up to date · {x}", bank_upd_n:"✓ {n} banks up to date",
   bank_upd_mov1:"1 new transaction", bank_upd_movn:"{n} new transactions",
   sync_result_title:"Sync results", sync_result_close:"Close",
+  bank_expired_re:"consent expired · reconnect",
   bank_nolink:"this account isn't linked in Enable Banking yet (restricted mode). Link it in the Enable Banking control panel and reconnect.",
   bank_refresh:"Refresh all", bank_reconnect:"Reconnect",
   bank_pending:"Pending authorization at the bank",
@@ -2435,6 +2418,7 @@ Object.assign(LANG.ca,{
   bank_upd_one:"✓ {bank} al dia · {x}", bank_upd_n:"✓ {n} bancs al dia",
   bank_upd_mov1:"1 moviment nou", bank_upd_movn:"{n} moviments nous",
   sync_result_title:"Resultat de la sincronització", sync_result_close:"Tanca",
+  bank_expired_re:"permís caducat · reconnecta't",
   bank_nolink:"aquest compte encara no està donat d'alta a Enable Banking (mode restringit). Enllaça'l al panell d'Enable Banking i torna a connectar.",
   bank_refresh:"Actualitza tots", bank_reconnect:"Reconnecta",
   bank_pending:"Pendent d'autoritzar al banc",
