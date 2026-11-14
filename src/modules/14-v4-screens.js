@@ -39,12 +39,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     if(isFinite(balRaw)){ balKnown=true; balNow=balRaw; }
   }
   // Todo pagado no fuerza verde si el saldo conocido es negativo (Codex 2055Z).
-  const coverTone=allBillsPaid
+  // Sin cuenta de ese banco no hay saldo: su tono salía de contar 0 € y la tarjeta decía «Este
+  // mes se queda corto» sin saberlo (revisión de dinero 233). Ni «bien» ni «corto»: sin titular.
+  const toneUnknown=!allBillsPaid&&billsEuroTotal>0&&!balKnown;
+  const coverTone=toneUnknown?"unknown":allBillsPaid
     ? ((balKnown&&balNow<0)?"bad":"ok")
     : cover.tone;
   const stCls=coverTone==="bad"?"st bad":(coverTone==="warn"?"st warn":"st");
   const bankLab=coverBank&&typeof entOf==="function"?entOf(coverBank).label:"";
-  const coverHead=coverTone==="bad"?t("v4_plan_state_bad_h"):(coverTone==="warn"?t("v4_plan_state_warn_h"):t("v4_plan_state_ok_h"));
+  const coverHead=toneUnknown?"":coverTone==="bad"?t("v4_plan_state_bad_h"):(coverTone==="warn"?t("v4_plan_state_warn_h"):t("v4_plan_state_ok_h"));
   const leftForPhrase=coverBank!=null?(pick.pending||0):charges.pendingBillsTotal;
   const hasMinDay=cover.minDay!=null&&cover.minDay>0;
   // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
@@ -60,14 +63,17 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       // frase nombra el banco en su importe. Con «Te quedan X de recibos» a secas, el total
       // arriba y lo de un banco abajo eran dos «te quedan» que se contradecían (auditoría
       // 14/11/2026). Las claves `_noday` no existían: salía la clave cruda.
-      : (coverBank!=null&&cover.min!=null&&isFinite(cover.min)
+      // `balKnown`: sin una cuenta de ese banco su saldo se cuenta como 0 y la frase nombraba un
+      // banco que no tienes (o el principal, si el recibo no tiene banco) con un «te quedarías en
+      // -50 €» inventado (revisión de dinero 233). Sin saldo, solo lo que se sabe.
+      : (coverBank!=null&&balKnown&&cover.min!=null&&isFinite(cover.min)
         ? tf(coverTone==="ok"?(hasMinDay?"v4_plan_state_ok":"v4_plan_state_ok_noday"):(hasMinDay?"v4_plan_state_warn":"v4_plan_state_warn_noday"),{
             left:eur0(leftForPhrase), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
           })
         // Sin saldo del banco no hay mínimo que contar, pero sí recibos: antes decía «Aún no hay
         // recibos» debajo de la cifra de lo que queda por pagar.
         : tf("v4_plan_state_left",{left:eur0(charges.pendingBillsTotal)}))));
-  const coverAria=coverHead+". "+coverPhrase;
+  const coverAria=coverHead?coverHead+". "+coverPhrase:coverPhrase;
   // Puerta viva desde Ajustes: flag pendiente si Plan aún no montó (cold start / idle).
   useEffect(function(){
     var onOpen=function(){
@@ -308,7 +314,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       React.createElement(OjoImportes,{state:state,set:set})),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
-        React.createElement("div",{className:stCls}, coverHead),
+        coverHead && React.createElement("div",{className:stCls}, coverHead),
         React.createElement("div",{className:"v4-plan-simple-amt num serif"}, eur0(charges.pendingBillsTotal)),
         React.createElement("div",{className:"ph"}, coverPhrase),
         biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},

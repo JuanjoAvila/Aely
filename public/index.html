@@ -3260,7 +3260,8 @@ function mcLogCode(err){
    resto, la genérica. Un error lanzado con una clave de LANG por mensaje se traduce, y uno que ya
    viene traducido (`throw new Error(t("exp_pull_invalid"))`) se enseña tal cual.
    El detalle va a la consola como clase cerrada (`mcLogCode`, SEC-03), no a la pantalla. */
-function errTxt(e){
+// `generica`: la frase de reserva de ese sitio (p. ej. que lo que falló es la nube).
+function errTxt(e,generica){
   const m=String((e&&e.message)||e||"");
   try{ console.warn("toast:",mcLogCode(e)); }catch(_){}
   if(m&&Object.values(LANG[CURLANG]||LANG.es).indexOf(m)>=0) return "✕ "+m;
@@ -3270,7 +3271,7 @@ function errTxt(e){
     :/already (been )?registered/i.test(m)?"err_registered"
     :/email not confirmed/i.test(m)?"err_unconfirmed"
     :/failed to fetch|network|load failed/i.test(m)||(typeof navigator!=="undefined"&&navigator.onLine===false)?"err_offline"
-    :"err_generic";
+    :generica||"err_generic";
   return "✕ "+t(k);
 }
 function mcLogText(raw){
@@ -8533,7 +8534,7 @@ const LANG = {
     st_mode_hint:"Plan solo con recibos: sin deudas ni metas.",
     settings:"Ajustes", language:"Idioma", theme:"Tema de color", currency:"Moneda de visualización",
     save:"Guardar", backup:"Copia de seguridad", st_imports:"Importaciones",
-    eb_title:"Algo se ha torcido", eb_msg:"La app ha tenido un error al dibujar. Tus datos están a salvo. Descarga una copia por si acaso y recarga.", eb_export:"⬇️ Descargar copia de seguridad", eb_export_fail:"No se pudo descargar la copia. Recarga y prueba otra vez.", err_generic:"No ha salido bien. Prueba otra vez.", err_offline:"Sin conexión. Prueba otra vez.", err_login:"Correo o contraseña incorrectos.", err_pass:"Contraseña incorrecta.", err_registered:"Ese correo ya tiene cuenta.", err_unconfirmed:"Confirma el correo antes de entrar.", err_cloud_off:"Nube no disponible.", err_cloud_format:"La nube trae datos raros: se quedan los de este móvil.", au_bio_need:"Configura primero la huella o el bloqueo de pantalla del móvil.", au_bio_nosupport:"Este móvil no permite usar la huella aquí.", pr_no_tickers:"Ninguna inversión tiene precio automático.", pr_login:"Inicia sesión para actualizar precios.", pr_updating:"Actualizando precios…", pr_none:"No han llegado precios. Prueba más tarde.", nav_aria:"Navegación", eb_reload:"🔄 Recargar la app",
+    eb_title:"Algo se ha torcido", eb_msg:"La app ha tenido un error al dibujar. Tus datos están a salvo. Descarga una copia por si acaso y recarga.", eb_export:"⬇️ Descargar copia de seguridad", eb_export_fail:"No se pudo descargar la copia. Recarga y prueba otra vez.", err_generic:"No ha salido bien. Prueba otra vez.", err_offline:"Sin conexión. Prueba otra vez.", err_login:"Correo o contraseña incorrectos.", err_pass:"Contraseña incorrecta.", err_registered:"Ese correo ya tiene cuenta.", err_unconfirmed:"Confirma el correo antes de entrar.", err_cloud_off:"Nube no disponible.", err_cloud_format:"La nube trae datos raros: se quedan los de este móvil.", err_cloud_pull:"No se ha podido traer lo de la nube. Lo de este móvil sigue aquí.", au_bio_need:"Configura primero la huella o el bloqueo de pantalla del móvil.", au_bio_nosupport:"Este móvil no permite usar la huella aquí.", pr_no_tickers:"Ninguna inversión tiene precio automático.", pr_login:"Inicia sesión para actualizar precios.", pr_updating:"Actualizando precios…", pr_none:"No han llegado precios. Prueba más tarde.", nav_aria:"Navegación", eb_reload:"🔄 Recargar la app",
     off_pill:"📴 Sin conexión · se guarda y sincroniza al volver",
     upd_ready:"✨ Nueva versión · toca para actualizar",
     upd_downloading:"⬇️ Descargando versión nueva…",
@@ -31106,7 +31107,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="95cd5169e9937968d01bc59b6070ee668afa8e8a56e89dfadaf601ea86ff5a22";
+var _rnSha="bd08a6bd870dec721ab5442234a3eedaf58510f94e43332af24c2e2e24679c59";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32666,12 +32667,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     if(isFinite(balRaw)){ balKnown=true; balNow=balRaw; }
   }
   // Todo pagado no fuerza verde si el saldo conocido es negativo (Codex 2055Z).
-  const coverTone=allBillsPaid
+  // Sin cuenta de ese banco no hay saldo: su tono salía de contar 0 € y la tarjeta decía «Este
+  // mes se queda corto» sin saberlo (revisión de dinero 233). Ni «bien» ni «corto»: sin titular.
+  const toneUnknown=!allBillsPaid&&billsEuroTotal>0&&!balKnown;
+  const coverTone=toneUnknown?"unknown":allBillsPaid
     ? ((balKnown&&balNow<0)?"bad":"ok")
     : cover.tone;
   const stCls=coverTone==="bad"?"st bad":(coverTone==="warn"?"st warn":"st");
   const bankLab=coverBank&&typeof entOf==="function"?entOf(coverBank).label:"";
-  const coverHead=coverTone==="bad"?t("v4_plan_state_bad_h"):(coverTone==="warn"?t("v4_plan_state_warn_h"):t("v4_plan_state_ok_h"));
+  const coverHead=toneUnknown?"":coverTone==="bad"?t("v4_plan_state_bad_h"):(coverTone==="warn"?t("v4_plan_state_warn_h"):t("v4_plan_state_ok_h"));
   const leftForPhrase=coverBank!=null?(pick.pending||0):charges.pendingBillsTotal;
   const hasMinDay=cover.minDay!=null&&cover.minDay>0;
   // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
@@ -32687,14 +32691,17 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       // frase nombra el banco en su importe. Con «Te quedan X de recibos» a secas, el total
       // arriba y lo de un banco abajo eran dos «te quedan» que se contradecían (auditoría
       // 14/11/2026). Las claves `_noday` no existían: salía la clave cruda.
-      : (coverBank!=null&&cover.min!=null&&isFinite(cover.min)
+      // `balKnown`: sin una cuenta de ese banco su saldo se cuenta como 0 y la frase nombraba un
+      // banco que no tienes (o el principal, si el recibo no tiene banco) con un «te quedarías en
+      // -50 €» inventado (revisión de dinero 233). Sin saldo, solo lo que se sabe.
+      : (coverBank!=null&&balKnown&&cover.min!=null&&isFinite(cover.min)
         ? tf(coverTone==="ok"?(hasMinDay?"v4_plan_state_ok":"v4_plan_state_ok_noday"):(hasMinDay?"v4_plan_state_warn":"v4_plan_state_warn_noday"),{
             left:eur0(leftForPhrase), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
           })
         // Sin saldo del banco no hay mínimo que contar, pero sí recibos: antes decía «Aún no hay
         // recibos» debajo de la cifra de lo que queda por pagar.
         : tf("v4_plan_state_left",{left:eur0(charges.pendingBillsTotal)}))));
-  const coverAria=coverHead+". "+coverPhrase;
+  const coverAria=coverHead?coverHead+". "+coverPhrase:coverPhrase;
   // Puerta viva desde Ajustes: flag pendiente si Plan aún no montó (cold start / idle).
   useEffect(function(){
     var onOpen=function(){
@@ -32935,7 +32942,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       React.createElement(OjoImportes,{state:state,set:set})),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
-        React.createElement("div",{className:stCls}, coverHead),
+        coverHead && React.createElement("div",{className:stCls}, coverHead),
         React.createElement("div",{className:"v4-plan-simple-amt num serif"}, eur0(charges.pendingBillsTotal)),
         React.createElement("div",{className:"ph"}, coverPhrase),
         biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},
@@ -39373,7 +39380,7 @@ function App(){
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
-    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast(errTxt(e)); })   // si estás sin conexión, ni avisamos (es normal)
+    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast(errTxt(e,"err_cloud_pull")); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
       .then(mcBootReady, mcBootReady);
