@@ -1796,6 +1796,21 @@ Los tests ingest-native-phase1 y ingest-native-slots cargan src real, no un HTML
 `supabase/functions/bank-callback/generation-fence.test.ts`, registrado en ambos runners Deno, ejecuta el handler real con SDK/proveedor/BD sintéticos y sin red ni entorno. RED causal en base y GREEN20/20: reconexión durante canje, preservación de generación/cuentas/cursor, emisión legacy nula, cambios justo al escribir, acuse final inválido y consumo previo fallido. Tres mutantes de state/emisión/NULL detectados; logs y exits originales conservados. [Contrato, comando y límites](briefs/sec02-callback-generation-fence.md).
 
 
+## Auditoría de seguridad 14/11 · ronda 233 (Edge, sin desplegar)
+
+- `supabase/functions/_shared/imports-fijos.test.ts` (Deno, en los dos runners, `--allow-read=supabase/functions`):
+  todo import remoto (`https:`, `npm:`, `jsr:`) del código desplegable lleva versión x.y.z y todas las
+  funciones usan la misma `supabase-js` (P2-03). Tests y fixtures quedan fuera.
+- `_shared/crypto.test.ts`: sin clave, aviso `ENC_MISSING` único y sin el secreto; con
+  `TOKEN_ENCRYPTION_REQUIRED=1`, no se guarda en claro (P2-04).
+- `tests/bank-confirm.test.mjs` (en `run-tests` y `STEPS_SUPABASE`): `bank-connect`, `bank-callback` y
+  `bank-confirm` reales sobre `baseDatos` de `helpers/banco-sintetico.mjs`. Compatibilidad sin `confirm`,
+  modo confirmación web/APK, ataque con la víctima confirmando un enlace ajeno, `BANK_REQUIRE_CONFIRM=1`,
+  caducidad y reconexión entre lectura y escritura (P2-01). Tres mutantes a mano (sin comprobar dueño,
+  callback que activa directo, huella aceptada como state) lo ponen en rojo.
+- Cupos (P2-06): `prices.test.ts`, `help-assistant`, `categorize-handler` (dos mutantes nuevos) y
+  `sec02-edge-limits-replay` fijan el reparto por antigüedad de cuenta de `_shared/cupos.ts`.
+
 ## Resumen para Jarvis
 
 `tests/jarvis-resumen.test.mjs` (runner unitario) arma con `estadoComoApp` un estado inventado (filas de `expenses` en formato de la nube, recibos pausado/pagado/vencido, una cuota y dos cuentas) con el reloj fijo y `fetch` bloqueado, y comprueba el formato v1 cerrado, `gastado` y categorías a mano y contra `monthBudgetStats`, los cobros de 30 días contra `planChargesMonth`, los saldos contra `saldoCuentaMostrada`, que no salgan IBAN, ids ni correos y la escritura atómica. No toca Supabase ni la cartera real; la ejecución real (`npm run jarvis-resumen`) es manual.

@@ -39,6 +39,11 @@ verify_jwt = true
 [functions.bank-callback]
 verify_jwt = false
 
+# bank-confirm: activa la vinculación que bank-callback dejó esperando (P2-01). La llama la app
+# con la sesión del usuario que inició la conexión → exige JWT.
+[functions.bank-confirm]
+verify_jwt = true
+
 # --- MyInvestor (API no oficial, fondos indexados) ---
 # connect/sync/disconnect: las llama la app (usuario logueado) → exigen JWT. La contraseña
 # de MyInvestor viaja SOLO en connect (HTTPS) y no se guarda; solo se persisten los tokens.

@@ -48,8 +48,8 @@ async function callback(rows){
   const state="synthetic-new-state";Object.assign(rows[0],{state,status:"pending",state_issued_at:new FakeDate(FakeDate.now()-1000).toISOString()});
   const {db}=dbFor(rows);let handler;
   const session={session_id:freshId,accounts:[{uid:"new-account",account_id:{iban:account.iban},currency:"EUR",identification_hash:account.hash}]};
-  new Function("Deno","createClient","ebApi","ebConfig","makeJWT","encryptSessionId","CallbackFallo","codigoCallback","codigoNolink","Date","console","setTimeout",CALLBACK)(
-    runtime(fn=>handler=fn),()=>db,async()=>session,()=>({}),async()=>"synthetic-jwt",token.encryptSessionId,Entrada.CallbackFallo,Entrada.codigoCallback,Entrada.codigoNolink,FakeDate,{error(){}},fn=>setTimeout(fn,0)
+  new Function("Deno","createClient","ebApi","ebConfig","makeJWT","encryptSessionId","CallbackFallo","codigoCallback","codigoNolink","Date","console","setTimeout","CONFIRM_PREFIX","huellaConfirmacion","nuevoTokenConfirmacion","stateConConfirmacion",CALLBACK)(
+    runtime(fn=>handler=fn),()=>db,async()=>session,()=>({}),async()=>"synthetic-jwt",token.encryptSessionId,Entrada.CallbackFallo,Entrada.codigoCallback,Entrada.codigoNolink,FakeDate,{error(){}},fn=>setTimeout(fn,0),Entrada.CONFIRM_PREFIX,Entrada.huellaConfirmacion,Entrada.nuevoTokenConfirmacion,Entrada.stateConConfirmacion
   );
   const response=await handler(new Request("https://app.invalid?code=synthetic&state="+state));
   assert.equal(response.status,302);assert.ok(response.headers.get("location").includes("bank=ok"));

@@ -10,7 +10,7 @@
 // SIEMPRE filtrado por user_id: un usuario nunca puede quitar el banco de otro.
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { ebApi, ebConfig, ebFailure, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
 import { decryptSessionId } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";

@@ -226,11 +226,13 @@ export async function vuelve(rows, state, sesion, get = () => sesion, src = CALL
     if (p === "/sessions" && init && init.method === "POST") return sesion;
     return get(gets++);
   };
-  const names = ["Deno", "createClient", "ebApi", "ebConfig", "makeJWT", "encryptSessionId", "CallbackFallo", "codigoCallback", "codigoNolink", "Date", "console", "setTimeout"];
+  const names = ["Deno", "createClient", "ebApi", "ebConfig", "makeJWT", "encryptSessionId", "CallbackFallo", "codigoCallback", "codigoNolink", "Date", "console", "setTimeout",
+    "CONFIRM_PREFIX", "huellaConfirmacion", "nuevoTokenConfirmacion", "stateConConfirmacion"];
   new Function(...names, src)(
     deno((f) => { handler = f; }), () => baseDatos(rows), api, () => ({}), async () => "jwt",
     async (id) => (id ? "enc:v1:" + id : null), Entrada.CallbackFallo, Entrada.codigoCallback, Entrada.codigoNolink, FakeDate,
-    { error() {} }, (f) => setTimeout(f, 0)
+    { error() {} }, (f) => setTimeout(f, 0),
+    Entrada.CONFIRM_PREFIX, Entrada.huellaConfirmacion, Entrada.nuevoTokenConfirmacion, Entrada.stateConConfirmacion
   );
   const res = await handler(new Request("https://sb.invalid/functions/v1/bank-callback?code=synthetic&state=" + encodeURIComponent(state)));
   assert.equal(res.status, 302);

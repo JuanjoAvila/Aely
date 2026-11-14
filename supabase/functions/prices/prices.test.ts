@@ -1,5 +1,6 @@
 /**
- * SEC-02 · prices — auth/cuerpo activos; gate 30/600 solo como propuesta testeable.
+ * SEC-02 · prices — auth/cuerpo activos; gate 30/600 por usuario + cupo global (P2-06, encendido
+ * en vivo salvo PRICES_RATE_LIMIT=0).
  * Cero Finnhub/Yahoo reales. El gate usa `rateLimit` REAL + RPC `check_rate_limit` simulada
  * que respeta p_bucket / p_limit / p_window_secs (semántica 0019).
  */
@@ -12,7 +13,9 @@ import {
   PRICES_FINNHUB_PACE_MS,
   PRICES_MAX_BODY,
   PRICES_MAX_SYMS,
+  PRICES_GLOBAL,
   PRICES_RATE_PROPOSAL,
+  pricesGlobalCupo,
   pricesProposalBucket,
   type PricesDeps,
 } from "./prices_core.ts";
@@ -76,7 +79,7 @@ function candidateDeps(hits: Hit[], overrides: Partial<PricesDeps> = {}): Prices
     fetch: mockFetch(hits),
     getUser: async () => ({ id: "user-a" }),
     rateLimit: rl.rateLimit,
-    applyRateProposal: false, // defecto live: propuesta NO activa
+    applyRateProposal: false, // como con PRICES_RATE_LIMIT=0; los tests del gate lo encienden
     env: { FINNHUB_KEY: "test-key" },
     sleep: async () => {},
     now: () => clock++,
@@ -98,10 +101,10 @@ function post(symbols: unknown, headers: Record<string, string> = {}) {
 
 // ---- Propuesta documentada (no contrato activo) ----
 
-Deno.test("propuesta 30/600 es explícita y no se hace pasar por otro número", () => {
+Deno.test("cuota 30/600 es explícita y no se hace pasar por otro número", () => {
   assertEquals(PRICES_RATE_PROPOSAL.limit, 30);
   assertEquals(PRICES_RATE_PROPOSAL.windowSecs, 600);
-  assertEquals(PRICES_RATE_PROPOSAL.status, "proposal-pending-authorization");
+  assertEquals(PRICES_RATE_PROPOSAL.status, "active-by-default");
   assertEquals(PRICES_RATE_PROPOSAL.worstCaseFetchesBeforeHttp429, 750);
   assertEquals(PRICES_RATE_PROPOSAL.unit, "http-request-to-prices-function");
 });
@@ -135,7 +138,7 @@ Deno.test("candidato: content-length > tope → 413 sin fetch", async () => {
   assertEquals(hits.length, 0);
 });
 
-Deno.test("candidato: por defecto applyRateProposal=false no llama al gate", async () => {
+Deno.test("candidato: con el interruptor apagado (PRICES_RATE_LIMIT=0) no llama al gate", async () => {
   const hits: Hit[] = [];
   const clock = { nowMs: 1_000_000 };
   const { sim, rateLimit: rl } = rateLimitViaSim(clock);
@@ -329,11 +332,60 @@ Deno.test("candidato con propuesta ON: tras 30 req, la 31ª → 429 sin fetch nu
   const blocked = await handlePrices(post(["NVDA"]), deps);
   assertEquals(blocked.status, 429);
   assertEquals(hits.length, before);
-  assert(sim.calls.every((c) =>
-    c.bucket === "prices:user-a" &&
-    c.limit === 30 &&
-    c.windowSecs === 600
-  ));
+  const own = sim.calls.filter((c) => c.bucket.startsWith("prices:"));
+  assertEquals(own.length, 31);
+  assert(own.every((c) => c.bucket === "prices:user-a" && c.limit === 30 && c.windowSecs === 600));
+  // El 31º se corta en el cupo propio, sin gastar el global de todos.
+  assertEquals(sim.calls.filter((c) => c.bucket.startsWith("prices-")).length, 30);
+});
+
+// ---- P2-06: cupo global por hora, aparte para cuentas nuevas ----
+
+Deno.test("P2-06: cuenta nueva o sin fecha usa el cupo global de nuevas; la veterana, el de siempre", async () => {
+  const now = 1_700_000_000_000;
+  for (const [createdAt, bucket, limit] of [
+    [new Date(now - 30 * 864e5).toISOString(), "prices-total-hour", PRICES_GLOBAL.veterana],
+    [new Date(now - 864e5).toISOString(), "prices-new-hour", PRICES_GLOBAL.nueva],
+    [undefined, "prices-new-hour", PRICES_GLOBAL.nueva],
+  ] as const) {
+    const calls: Array<[string, number, number]> = [];
+    const deps = candidateDeps([], {
+      applyRateProposal: true, now: () => now,
+      getUser: async () => ({ id: "user-a", createdAt }),
+      rateLimit: async (b, l, w) => { calls.push([b, l, w]); return { ok: true, checked: true }; },
+    });
+    assertEquals((await handlePrices(post(["NVDA"]), deps)).status, 200);
+    assertEquals(calls, [["prices:user-a", 30, 600], [bucket, limit, 3600]]);
+  }
+  assertEquals(pricesGlobalCupo(true).bucket, "prices-total-hour");
+});
+
+Deno.test("P2-06: muchas cuentas nuevas agotan SU cupo, no el de la familia", async () => {
+  const clock = { nowMs: 12_000_000 };
+  const { rateLimit: rl } = rateLimitViaSim(clock);
+  const hits: Hit[] = [];
+  const as = (id: string, createdAt?: string) => candidateDeps(hits, {
+    rateLimit: rl, applyRateProposal: true, now: () => clock.nowMs,
+    getUser: async () => ({ id, createdAt }),
+  });
+  let blocked = 0;
+  for (let i = 0; i < PRICES_GLOBAL.nueva + 5; i++) {
+    if ((await handlePrices(post(["NVDA"]), as("nueva-" + i))).status === 429) blocked++;
+  }
+  assertEquals(blocked, 5, "pasado el cupo de nuevas, se corta aunque cada cuenta vaya por su primera");
+  const familia = as("familia", new Date(clock.nowMs - 365 * 864e5).toISOString());
+  assertEquals((await handlePrices(post(["NVDA"]), familia)).status, 200);
+});
+
+Deno.test("P2-06: el cupo global agotado corta antes de tocar el proveedor", async () => {
+  const hits: Hit[] = [];
+  const deps = candidateDeps(hits, {
+    applyRateProposal: true,
+    rateLimit: async (b) => ({ ok: !b.startsWith("prices-"), checked: true }),
+  });
+  const res = await handlePrices(post(["NVDA", "GOLD"]), deps);
+  assertEquals(res.status, 429);
+  assertEquals(hits.length, 0);
 });
 
 Deno.test("guardián: un rateLimit falso que ignora args NO basta (detecta mentira)", async () => {
@@ -418,8 +470,8 @@ Deno.test("ROJO base: N paralelas × M símbolos = N×M fetches (sin freno)", as
   assertEquals(hits.length, 30);
 });
 
-Deno.test("candidato defecto (propuesta OFF): no afirma cortar esas 30 fetches", async () => {
-  // Documenta el límite de ESTA entrega: sin autorización no se activa 30/600.
+Deno.test("candidato con el interruptor apagado: no afirma cortar esas 30 fetches", async () => {
+  // Documenta qué deja de frenar PRICES_RATE_LIMIT=0.
   const hits: Hit[] = [];
   const batch = Array.from({ length: 10 }, (_, i) => "C" + String(i).padStart(2, "0"));
   const deps = candidateDeps(hits, { applyRateProposal: false });

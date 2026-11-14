@@ -59,3 +59,51 @@ export function codigoCallback(e: unknown): CallbackCodigo {
 export function codigoNolink(banco: unknown): string {
   return "nolink:" + recortar(banco, 60).replace(/[^\p{L}\p{N} .&'()-]/gu, "");
 }
+
+/* LA VINCULACIÓN LA CONFIRMA QUIEN LA INICIÓ (P2-01, auditoría del 14/11).
+   El `state` ata la vuelta del banco con quien llamó a `bank-connect`, pero NO con el navegador
+   que vuelve: el callback no lleva sesión. Un atacante con cuenta en Aely podía llamar a
+   `bank-connect`, mandarle a otra persona la URL del banco («reconecta tu banco») y, si esa
+   persona autorizaba, su consentimiento de 90 días quedaba en la cuenta del atacante.
+   No se puede atar con una cookie: en la APK la vuelta llega por el navegador del sistema, no por
+   la WebView que empezó. Así que, en modo confirmación, el callback no da la vinculación por
+   buena: guarda la sesión en `pending` con la HUELLA de un token de un solo uso y manda el token a
+   quien vuelve. Solo la app con sesión del MISMO usuario que inició (`bank-confirm`, con JWT) la
+   activa. El atacante nunca ve el token (vuelve al navegador de la víctima) y la víctima no puede
+   activarla porque el enlace no es suyo.
+   Fase 1, compatible con lo instalado: solo si el cliente lo pide (`confirm:true` en
+   `bank-connect`, que marca el state con `.c`). Fase 2: `BANK_REQUIRE_CONFIRM=1`, siempre. */
+export const CONFIRM_PREFIX = "confirm:";
+/** Ventana para confirmar, contada desde la emisión del state (bank-connect). */
+export const CONFIRM_TTL_MS = 60 * 60 * 1000;
+
+/** El state de bank-connect lleva `.c` antes del `.app` opcional cuando el cliente pidió confirmar. */
+export function stateConConfirmacion(state: unknown): boolean {
+  return typeof state === "string" && /^[^.:]+\.c(?:\.app)?$/.test(state);
+}
+
+/** 32 bytes aleatorios en base64url (43 caracteres): viaja en la URL de vuelta. */
+export function nuevoTokenConfirmacion(): string {
+  const b = crypto.getRandomValues(new Uint8Array(32));
+  let s = "";
+  for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export function tokenConfirmacionValido(token: unknown): token is string {
+  return typeof token === "string" && /^[A-Za-z0-9_-]{43}$/.test(token);
+}
+
+/** Lo que se guarda en `state`: solo la huella. Quien lea su fila (RLS) no puede sacar el token. */
+export async function huellaConfirmacion(token: string): Promise<string> {
+  const d = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token)));
+  let hex = "";
+  for (let i = 0; i < d.length; i++) hex += d[i].toString(16).padStart(2, "0");
+  return CONFIRM_PREFIX + hex;
+}
+
+/** Sin marca de emisión no se confirma: el modo confirmación nace siempre con ella. */
+export function confirmacionCaducada(stateIssuedAt: unknown, now = Date.now()): boolean {
+  const t = typeof stateIssuedAt === "string" ? Date.parse(stateIssuedAt) : NaN;
+  return !Number.isFinite(t) || now - t > CONFIRM_TTL_MS;
+}

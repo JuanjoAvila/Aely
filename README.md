@@ -132,6 +132,8 @@ mi-cartera/
 ├── tests/native-event-debounce.test.mjs # Listener/helper Java reales: ventana local por identidad y concurrencia
 ├── tests/fin29-30-*.test.mjs # Alias/borrado/backfill, writer real y paridad offline; R8 dirigido verde, revisión financiera pendiente
 ├── tests/bank-callback-state.test.mjs # Consumo único de state y fallos de guardado; handler real con BD/OAuth sintéticos
+├── tests/bank-confirm.test.mjs # P2-01: connect/callback/confirm reales; solo el usuario que inició activa el enlace
+├── supabase/functions/_shared/imports-fijos.test.ts # Deno: todo import remoto de las Edge con versión exacta (P2-03)
 ├── e2e/backclose-handover.spec.mjs · botnav-indicador.spec.mjs · metas-editar-regla.spec.mjs # Pantallas reales de110/107/108
 ├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados
 ├── tests/prod117-edge-compat.test.mjs # Fuentes desplegadas ingest50/prices13 y cliente actual, sin red

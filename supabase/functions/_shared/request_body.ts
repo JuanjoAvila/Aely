@@ -33,7 +33,7 @@ export async function readBodyLimited(req: Request, max: number): Promise<
 export const BODY_LIMITS = {
   "bank-aspsps": 16 * 1024, "bank-connect": 16 * 1024,
   "bank-disconnect": 16 * 1024, "bank-sync": 32 * 1024,
-  "bank-callback": 1024, "categorize": 8 * 1024, "delete-account": 64 * 1024,
+  "bank-callback": 1024, "bank-confirm": 1024, "categorize": 8 * 1024, "delete-account": 64 * 1024,
   "myinvestor-connect": 64 * 1024, "myinvestor-sync": 1024,
   "myinvestor-disconnect": 1024, "myinvestor-keepalive": 1024,
 } as const;
@@ -51,7 +51,9 @@ export function validInput(name: InputName, b: unknown): b is ObjectBody {
   switch (name) {
     case "bank-aspsps": return optional(b, "country", country);
     case "bank-connect": return optional(b, "aspsp_name", (v) => typeof v === "string")
-      && optional(b, "country", country) && optional(b, "platform", (v) => v === "app" || v === "web");
+      && optional(b, "country", country) && optional(b, "platform", (v) => v === "app" || v === "web")
+      && optional(b, "confirm", (v) => typeof v === "boolean");
+    case "bank-confirm": return typeof b.token === "string" && /^[A-Za-z0-9_-]{43}$/.test(b.token);
     case "bank-disconnect": return text(b.aspsp_name);
     case "bank-sync": return optional(b, "dateFrom", (v) => typeof v === "string" && date(v.slice(0, 10))
         && (v.length === 10 || /^\d{4}-\d{2}-\d{2}T/.test(v) && Number.isFinite(Date.parse(v))))

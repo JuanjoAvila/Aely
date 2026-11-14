@@ -3,7 +3,7 @@
 // Borra el enlace de sesión de MyInvestor del usuario (tokens incluidos).
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { jsonResp } from "../_shared/myinvestor.ts";
 import { withCors } from "../_shared/cors.ts";
 import { readInput } from "../_shared/request_body.ts";
