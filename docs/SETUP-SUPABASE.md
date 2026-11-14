@@ -60,6 +60,44 @@ programar cualquier lectura de `bank-sync`, ver «Open Banking: sync SOLO a dema
 
 ## Auditoría de seguridad 14/11 · ronda 233 en fuente, SIN desplegar
 
+### Open Banking: la vinculación la confirma quien la inició (P2-01)
+
+Problema: el `state` ata la vuelta del banco con quien llamó a `bank-connect`, pero no con el
+navegador que vuelve (el callback no lleva sesión). Otra cuenta de Aely podía mandarle a alguien
+la URL de su banco y quedarse 90 días de lectura de sus movimientos. Una cookie no sirve: en la
+APK la vuelta llega por el navegador del sistema, no por la WebView que empezó.
+
+Solución en dos fases (ver `_shared/entrada.ts` y `docs/ARQUITECTURA.md`):
+
+- **Fase 1, en esta ronda, compatible con web 4.26.232 y APK 64.** `bank-connect` acepta
+  `confirm:true` y marca el state con `.c`. Con esa marca, `bank-callback` canjea el código como
+  siempre pero deja el enlace en `pending` con la huella de un token de un solo uso, y manda el
+  token a quien vuelve: web `APP_URL?bank=confirm&t=<token>`, APK `APP_URL/back.html?confirm=<token>`.
+  La función nueva **`bank-confirm`** (JWT) lo activa solo si el enlace es del usuario que llama,
+  dentro de 1 h desde la emisión y sobre la misma generación. **Sin `.c` nada cambia**: ningún
+  cliente instalado manda `confirm`, así que desplegar las tres funciones no cambia nada visible.
+  Un state `confirm:…` usado como state del banco se rechaza (`msg=state`).
+- **Cliente (pendiente, otra ronda; toca `public/back.html`, `00-core.js` y `11-app-main.js`):**
+  1. `cloud.bankConnect` manda `confirm:true`.
+  2. `back.html`: si llega `?confirm=<43 caracteres base64url>`, saltar a
+     `micartera://bank?msg=confirm%3A<token>` (la APK 64 solo reenvía `msg`, y lo guarda como
+     `bank|error|confirm:<token>`: no hace falta APK nueva).
+  3. App: `?bank=confirm&t=` (web) y `bank|error|confirm:` (APK) llaman a
+     `sb.functions.invoke("bank-confirm",{body:{token}})`; con `ok` hace lo mismo que hoy con
+     `?bank=ok` (toast + sync); con error, el toast genérico de reconectar.
+  4. e2e de la vuelta en web y del deep link en APK.
+- **Fase 2, cuando la web con el cliente nuevo lleve días servida y no queden clientes sin OTA:**
+  secreto `BANK_REQUIRE_CONFIRM=1`. Desde ese momento `bank-connect` marca siempre `.c` y
+  `bank-callback` exige confirmación también a states sin marca. Es lo que cierra el ataque: en
+  fase 1 el atacante puede no pedir confirmación. Un cliente viejo en fase 2 conecta, pero el
+  banco se queda «pendiente» hasta actualizar. Para volver atrás, borrar el secreto.
+
+Orden de despliegue (una función cada vez, por Actions): **`bank-confirm` → `bank-callback` →
+`bank-connect`**. Con otro orden tampoco se rompe nada (sin `confirm:true` nadie entra en el modo
+nuevo), pero así nunca existe un token que no se pueda canjear. Sin migración ni secretos nuevos
+obligatorios. Si `BANK_REQUIRE_CONFIRM=1` se pusiera sin cliente nuevo, conectar un banco dejaría
+el enlace pendiente y la app no sabría confirmarlo: no activarlo antes de tiempo.
+
 ### Cifrado de tokens: comprobar la clave y activar el modo estricto (P2-04)
 
 `_shared/crypto.ts` cifra con `TOKEN_ENCRYPTION_KEY` los `session_id` de Enable Banking y los

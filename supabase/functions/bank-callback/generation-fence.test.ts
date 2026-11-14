@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";
+import { CallbackFallo, codigoCallback, codigoNolink, CONFIRM_PREFIX, huellaConfirmacion, nuevoTokenConfirmacion, stateConConfirmacion } from "../_shared/entrada.ts";
 import { readInput } from "../_shared/request_body.ts";
 import { keepsCursor } from "./reconnect.ts";
 
@@ -81,6 +81,7 @@ async function start(f: ReturnType<typeof fixture>) {
     },
     encryptSessionId: async (id: string) => "synthetic-encrypted:" + id,
     CallbackFallo, codigoCallback, codigoNolink, keepsCursor, readInput,
+    CONFIRM_PREFIX, huellaConfirmacion, nuevoTokenConfirmacion, stateConConfirmacion,
     bucketKey: async () => "synthetic-bucket", callerIp: () => "synthetic-ip",
     rateLimit: async () => ({ ok: true }),
     console: { error: (..._args: unknown[]) => {} },

@@ -9,7 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
-import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";
+import { CallbackFallo, codigoCallback, codigoNolink, CONFIRM_PREFIX, huellaConfirmacion, nuevoTokenConfirmacion, stateConConfirmacion } from "../_shared/entrada.ts";
 import { keepsCursor, type LinkedAccount } from "./reconnect.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { readInput } from "../_shared/request_body.ts";
@@ -52,6 +52,10 @@ Deno.serve(async (req) => {
   try {
     if (ebError || hasErrorDescription) throw new CallbackFallo("eb_error");
     if (!code || !state) throw new CallbackFallo("sin_code");
+    // `confirm:<huella>` es la fila esperando a `bank-confirm`, nunca un state del banco: su dueño
+    // la lee por RLS y no debe poder volver aquí con ella (P2-01, ver `_shared/entrada.ts`).
+    if (state.startsWith(CONFIRM_PREFIX)) throw new CallbackFallo("state", "huella de confirmación como state");
+    const confirmar = stateConConfirmacion(state) || Deno.env.get("BANK_REQUIRE_CONFIRM") === "1";
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -198,6 +202,11 @@ Deno.serve(async (req) => {
        Los acuses que tuviera un móvil de antes de reconectar dejan de valer solos: van
        ligados a `state_issued_at`, que `bank-connect` renovó al empezar (`ackLinkKey`). */
     const keep = !!uid && keepsCursor(link, accts);
+    /* MODO CONFIRMACIÓN (P2-01). Con cuenta legible, el enlace se queda en `pending` con la huella
+       de un token de un solo uso en `state`; `bank-sync` solo lee enlaces `active`, así que nada
+       se descarga hasta que la app del mismo usuario lo confirme. Sin cuenta legible no hay nada
+       que proteger y sigue como siempre (`error` + `nolink`). */
+    const token = confirmar && uid ? nuevoTokenConfirmacion() : null;
     // El canje puede tardar: bank-connect reutiliza esta misma fila para otra
     // autorización. Solo la generación que consumimos sigue siendo nuestra;
     // state=null por sí solo tampoco basta si el callback nuevo ya lo gastó.
@@ -206,7 +215,8 @@ Deno.serve(async (req) => {
       account_uid: uid,
       iban,
       accounts: accts,
-      status: uid ? "active" : "error",
+      status: uid ? (token ? "pending" : "active") : "error",
+      ...(token ? { state: await huellaConfirmacion(token) } : {}),
       ...(keep ? {} : { last_sync: null }),
       updated_at: new Date().toISOString(),
     }).eq("id", link.id).eq("user_id", link.user_id).is("state", null);
@@ -236,6 +246,11 @@ Deno.serve(async (req) => {
       throw new CallbackFallo("sin_cuenta");
     }
 
+    // El token solo viaja a quien vuelve del banco. En la APK, `back.html` lo reenvía dentro de
+    // `msg` (`micartera://bank?msg=confirm:<token>`), que es lo único que la APK 64 pasa a la web.
+    if (token) {
+      return Response.redirect(fromApp ? `${APP_URL}back.html?confirm=${token}` : `${APP_URL}?bank=confirm&t=${token}`, 302);
+    }
     if (fromApp) return backToApp(true);
     return Response.redirect(`${APP_URL}?bank=ok`, 302);
   } catch (e) {
