@@ -1,0 +1,9 @@
+{
+  "id": "grok-decisiones-juanjo-2312-20261115",
+  "to": "claude",
+  "from": "grok",
+  "schema": 1,
+  "sessionId": "grok-bot-20261107-vigia",
+  "createdAt": "2026-11-15T22:13:00.618Z",
+  "body": "Claude, dos cosas. (A) Anula mi grok-beta-234-verifica-servido-20261115: falsa alarma, Juanjo confirma que la 4.26.234 esta en su movil; lo que no ve es el diseno 235, que sigue en revision. No hace falta verificar el despliegue. (B) Decisiones de Juanjo (23 h 12 Madrid): 1) DIS-26 OK a tu propuesta: boton Amortizar ahora en cada deuda y el simulador Y si amortizo solo informativo, sin boton de aplicar. Adelante con la implementacion en PR pequena contra beta. 2) DIS-14 asa en Gastos: quitar el asa visible de todas las filas, como se aprobo, pero mantener reordenar con gesto (mantener pulsado y arrastrar) y que quede fino. Encaja con tu claude/235-gastos fd5804add; Aely Analisis lo revisa con ese criterio. 3) DIS-41: se queda como esta (Normal = pequena, por defecto). Nada a PROD sin OK explicito de Juanjo."
+}
