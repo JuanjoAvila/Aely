@@ -4,8 +4,9 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, ga
 /* LA FILA DE GASTOS, SIN LO QUE SOBRA (auditoría de diseño 233, DIS-13 y DIS-14, aprobada 15/11).
    · Bajo la cabecera del día la fila ya no repite la fecha; el banco solo si hay más de uno en lo
      que se ve, y sin nada que decir la línea ni se pinta.
-   · El asa de ordenar (⠿) solo en los días con más de un movimiento: en un día suelto le robaba el
-     ancho al comercio para nada. Sin asa, tocar abre la ficha y deslizar cambia de pestaña.
+   · Sin asa de ordenar (⠿): le robaba el ancho al comercio. Los días con más de un movimiento se
+     ordenan manteniendo pulsada la fila (e2e gastos-orden y gastos-pulsacion), y el nombre
+     accesible lo dice solo en esos; en un día suelto no hay nada que ordenar.
    · El importe (17 px) ya no es más grande que el nombre (16 px).
    El reloj es el de las fixtures (26/9/2026). */
 
@@ -27,16 +28,19 @@ async function aGastos(page, overrides) {
 }
 const fila = (page, id) => gastosRoot(page).locator(`button.v4-mov[data-expense-id="${id}"]`);
 
-test("un solo banco: sin fecha ni banco en la fila; asa solo en el día con dos", async ({ page }) => {
+test("un solo banco: sin fecha ni banco en la fila; se ordena solo en el día con dos", async ({ page }) => {
   await aGastos(page, { accounts: [sab], expenses: [
     g("a", "2026-09-26", "09", 12, "sabadell"), g("b", "2026-09-26", "10", 7, "sabadell"),
     g("c", "2026-09-24", "10", 5, "sabadell"),
   ] });
   await expect(fila(page, "c")).toBeVisible();
   for (const id of ["a", "b", "c"]) await expect(fila(page, id).locator(".meta")).toHaveCount(0);
-  await expect(fila(page, "a").locator(".v4-mov-drag")).toHaveCount(1);
-  await expect(fila(page, "b").locator(".v4-mov-drag")).toHaveCount(1);
-  await expect(fila(page, "c").locator(".v4-mov-drag")).toHaveCount(0);
+  await expect(gastosRoot(page).locator(".v4-mov-drag")).toHaveCount(0);
+  await expect(fila(page, "a")).toHaveAttribute("data-reorden", "1");
+  await expect(fila(page, "b")).toHaveAttribute("data-reorden", "1");
+  await expect(fila(page, "c")).not.toHaveAttribute("data-reorden", /./);
+  await expect(fila(page, "a")).toHaveAttribute("aria-label", /mantén pulsado/);
+  await expect(fila(page, "c")).not.toHaveAttribute("aria-label", /./);
   const tam = await fila(page, "c").evaluate((b) => ({
     am: parseFloat(getComputedStyle(b.querySelector(".am")).fontSize),
     nm: parseFloat(getComputedStyle(b.querySelector(".nm-title")).fontSize),
@@ -44,7 +48,7 @@ test("un solo banco: sin fecha ni banco en la fila; asa solo en el día con dos"
   }));
   expect(tam.am).toBe(17);
   expect(tam.am).toBeGreaterThanOrEqual(tam.nm);
-  expect(tam.entero, "«Movimiento sintético c» cabe entero sin asa").toBe(true);
+  expect(tam.entero, "«Movimiento sintético c» cabe entero").toBe(true);
 });
 
 test("dos bancos: la fila dice el banco, sin la fecha", async ({ page }) => {
@@ -56,7 +60,7 @@ test("dos bancos: la fila dice el banco, sin la fecha", async ({ page }) => {
   for (const id of ["a", "b"]) await expect(fila(page, id).locator(".meta")).not.toContainText("/");
 });
 
-test("sin asa: tocar abre la ficha y deslizar en horizontal sobre la fila cambia de pestaña", async ({ page }) => {
+test("día suelto: tocar abre la ficha y deslizar en horizontal sobre la fila cambia de pestaña", async ({ page }) => {
   await aGastos(page, { accounts: [sab], expenses: [g("c", "2026-09-26", "10", 5, "sabadell"), g("d", "2026-09-24", "10", 9, "sabadell")] });
   await page.evaluate(() => document.querySelector('.page-scroll-host button.v4-mov[data-expense-id="c"]').scrollIntoView({ block: "center" }));
   const r = await fila(page, "c").boundingBox();

@@ -377,9 +377,9 @@ export const E2E_MAP = [
     "e2e/gastos-fling-sin-tope.spec.mjs",
     // Rechazo de la 173: tocar un mes o un ciclo de la fila deja SU primer día bajo la cabecera.
     "e2e/gastos-fila-salto.spec.mjs",
-    // Y el asa de ordenar ya no se come el desliz hacia Plan (solo se queda el vertical).
-    "e2e/gastos-asa-desliz.spec.mjs",
-    // Diseño 233 (DIS-13/14): la fila sin fecha, banco solo si hay varios y asa solo donde se ordena.
+    // Ordenar con pulsación larga no se come el desliz hacia Plan, el toque ni el scroll (15/11).
+    "e2e/gastos-pulsacion.spec.mjs",
+    // Diseño 233 (DIS-13/14): la fila sin fecha, banco solo si hay varios y sin asa.
     "e2e/gastos-fila.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",

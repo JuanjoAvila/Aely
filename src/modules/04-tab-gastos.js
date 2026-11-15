@@ -293,7 +293,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
+function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -383,8 +383,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const [q,setQ]=useState("");        // búsqueda por texto (comercio/categoría)
   const [filterOpen,setFilterOpen]=useState(false);
   const [visible,setVisible]=useState(CONFIG.PAGE_SIZE);
-  const [dragExpense,setDragExpense]=useState(null);
-  const dragExpenseRef=useRef(null);
   const suppressOpenRef=useRef(0);
   const [aiBusy,setAiBusy]=useState(false);
   const [undoDelete,setUndoDelete]=useState(null);
@@ -1259,59 +1257,27 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
   },[lapidasDef,bounds,sel,bankSel,bucketSel,q,catFil,preset,madridDay,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
 
-  /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
-     convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
-     el DOM porque solo hay unas pocas filas visibles; `moveExpenseWithinDay` vuelve a comprobar
-     la fecha antes de guardar, así un dedo que cruce un separador nunca mezcla días.
-     ⚠ PERO EL ASA SOLO SE QUEDA EL DEDO EN VERTICAL (rechazo de la beta 4.26.173: «ahora ya no es
-     hacia Inicio sino hacia Plan»). El asa vive en el borde derecho de cada fila, justo donde el
-     pulgar empieza a deslizar hacia Plan. Antes reclamaba el toque entero: el carrusel no se movía
-     y el `setDragExpense` del toque y el del final repintaban la lista ENTERA dos veces, más caro
-     cuantas más filas hubiera bajadas (A/B en lag-gastos-r3: 100-150 ms por frame a CPU x6 con 670
-     filas, y sin cambiar de pestaña). Hacia Inicio el dedo empieza a la izquierda y nunca la
-     tocaba: de ahí que solo pasara hacia Plan. Ahora el toque solo marca la fila (por clase, sin
-     render) y el eje decide: en vertical empieza a ordenar; en horizontal se suelta y el carrusel
-     (que ve el asa como `data-noswipe="y"`) cambia de pestaña. */
-  const asaRef=useRef(null);
-  const startExpenseDrag=useCallback(function(ev,e){
-    ev.stopPropagation();
-    const p=ev.touches&&ev.touches[0]; if(!p) return;
-    const row=ev.currentTarget&&ev.currentTarget.closest?ev.currentTarget.closest(".v4-mov"):null;
-    if(row) row.classList.add("dragging");
-    asaRef.current={e:e, x:p.clientX, y:p.clientY, row:row};
-  },[]);
-  const sueltaAsa=function(){
-    const a=asaRef.current; asaRef.current=null;
-    if(a&&a.row&&!dragExpenseRef.current) a.row.classList.remove("dragging");
+  /* El asa reclamaba el dedo para ordenar y se fue: le robaba ancho al comercio en cada fila
+     (DIS-14). Ahora se REORDENA CON PULSACIÓN LARGA sobre la fila entera (petición del dueño,
+     15/11/2026: «que se pudiera mantener y se elevara y flotara mientras lo muevo e hiciera una
+     animación guapísima al reordenar»). La maquinaria vive en `gxReorden`, fuera del componente y
+     sin estado de React: aquí solo se le dice qué guardar. `moveExpenseWithinDay` vuelve a
+     comprobar el día antes de guardar.
+     (Este comentario empieza por «El asa reclama» a propósito: es el ancla con la que
+     scripts/beta-sources.json recorta el bloque de `filtered`, y ese registro no se reescribe.) */
+  const reordenaRef=useRef(null);
+  reordenaRef.current=function(desde,hasta){
+    set(function(s){ return moveExpenseWithinDay(s,desde,hasta); });
   };
-  const moveExpenseDrag=useCallback(function(ev){
-    if(!ev.touches||!ev.touches[0]) return;
-    const a=asaRef.current;
-    if(a && !dragExpenseRef.current){
-      // Mismo criterio de eje que el carrusel (`gestureAxis`): los dos deciden sobre el mismo dedo.
-      const eje=gestureAxis(ev.touches[0].clientX-a.x, ev.touches[0].clientY-a.y);
-      if(!eje) return;
-      if(eje!=="y"){ sueltaAsa(); return; }
-      cancelSwipe();
-      const nd={from:a.e.id,to:a.e.id,day:String(a.e.date||"").slice(0,10)};
-      dragExpenseRef.current=nd; setDragExpense(nd);
-    }
-    const d=dragExpenseRef.current; if(!d) return;
-    ev.stopPropagation();
-    const p=ev.touches[0], hit=document.elementFromPoint(p.clientX,p.clientY);
-    const row=hit&&hit.closest&&hit.closest("[data-expense-id]");
-    if(!row||row.getAttribute("data-expense-day")!==d.day) return;
-    const to=row.getAttribute("data-expense-id"); if(!to||to===d.to) return;
-    d.to=to; setDragExpense({from:d.from,to:d.to,day:d.day});
-  },[cancelSwipe]);
-  const endExpenseDrag=useCallback(function(){
-    sueltaAsa();
-    const d=dragExpenseRef.current;
-    // Un toque o un desliz horizontal no llegaron a ordenar: nada que repintar.
-    if(!d) return;
-    if(d&&d.from!==d.to){ suppressOpenRef.current=Date.now()+400; set(function(s){ return moveExpenseWithinDay(s,d.from,d.to); }); }
-    dragExpenseRef.current=null; setDragExpense(null);
-  },[set]);
+  const reordenLimpia=useRef(null);
+  const reordenRefCb=useCallback(function(node){
+    if(reordenLimpia.current){ reordenLimpia.current(); reordenLimpia.current=null; }
+    if(node) reordenLimpia.current=gxReorden(node,{
+      alSoltar:function(desde,hasta){ reordenaRef.current(desde,hasta); },
+      // Una pulsación larga que se suelta sin moverse no es un toque: que no abra la ficha.
+      calla:function(){ suppressOpenRef.current=Date.now()+450; }
+    });
+  },[]);
 
   // Las fechas elegidas mueven cabecera y categorías junto a la lista (reporte 2/10).
   // Buscar o filtrar bancos/categorías sigue explorando movimientos sin redefinir el límite.
@@ -2140,7 +2106,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       ),
       React.createElement(GastosLista,{filtered:filtered, visible:visible, state:state, cifra:cifraCat||cifraFil||cifra, mode:cifraCat?"split":cifraFil?"net":monthSummary.mode,
         q:q, sel:sel, bucketSel:bucketSel, bankSelIsDefault:bankSelIsDefault, preset:preset, hayHistorico:(expensesDef||[]).length>0,
-        dragExpense:dragExpense, openDetail:openDetail, startExpenseDrag:startExpenseDrag, moveExpenseDrag:moveExpenseDrag, endExpenseDrag:endExpenseDrag,
+        openDetail:openDetail, reordenRefCb:reordenRefCb,
         onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}))),
     /* Movimientos acaba en «Hasta aquí», sin pie: el último día ya no necesita una pantalla vacía
        debajo para llegar a la cabecera (lo resuelve la raya de `GastosCabecera` al final de la
@@ -2278,7 +2244,7 @@ function mcSinSeleccionHastaSoltar(){
    datos, los filtros o la tanda pintada: las callbacks van en `useCallback` y nada viaja como
    `Date`. Si añades una prop, que sea estable, o el memo queda de adorno. */
 const GastosLista=React.memo(function GastosLista({filtered, visible, state, cifra, mode, q, sel, bucketSel, bankSelIsDefault, preset, hayHistorico,
-    dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, onGoInversiones, simple, l10nKey, sentinelRefCb}){
+    openDetail, reordenRefCb, onGoPlan, onGoInversiones, simple, l10nKey, sentinelRefCb}){
   const shown=filtered.slice(0,visible);
   /* A `MovRow` NUNCA un `Date` ni otro objeto nuevo por render (2026-07-27): `parseDate` devuelve
      `new Date(ms)` en cada llamada y, cuando la fecha viajaba como prop, el `React.memo` fallaba
@@ -2339,7 +2305,7 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
     return (v<0?"+":"")+eur(Math.abs(v));
   };
   return (
-    React.createElement("div",{className:"v4-gastos-list gx-list",style:{marginTop:6}},
+    React.createElement("div",{className:"v4-gastos-list gx-list",ref:reordenRefCb,style:{marginTop:6}},
       React.createElement("div",{className:"v4-gastos-list-body"},
         shown.length===0
           ? (function(){
@@ -2373,9 +2339,7 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                   tot && React.createElement("span",{className:"gx-dia-tot num","data-testid":"gastos-dia-total"},tot)),
                 d.rows.map(function(g){
                   return React.createElement(MovRow,{key:g.e.id||g.ms, e:g.e, l:g.l, onOpen:openDetail, l10n:l10nKey,
-                    bucket:g.bucket,recibo:g.recibo,conBanco:variosBancos,reordenable:d.rows.length>1,dragging:!!(dragExpense&&dragExpense.from===g.e.id),
-                    dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
-                    onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag});
+                    bucket:g.bucket,recibo:g.recibo,conBanco:variosBancos,reordenable:d.rows.length>1});
                 }),
                 d.gris.slice().sort(function(a,b){ return GX_GRIS[a.kind].ord-GX_GRIS[b.kind].ord; }).map(function(g){
                   return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple});
@@ -2715,6 +2679,236 @@ function SyncHora({lastSync}){
     at?tf("g_lastsync",{d:new Date(at).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"));
 }
 
+/* ── PULSACIÓN LARGA PARA ORDENAR LOS MOVIMIENTOS DE UN DÍA (15/11/2026) ──
+   Mantener ~450 ms levanta la fila (vibra, crece, sombra y brillo del tema, el resto del día se
+   apaga); la fila sigue al dedo con un leve balanceo, las demás se apartan con muelles y al soltar
+   aterriza con un rebote en su hueco. Decisiones que no se ven leyendo el código:
+   · CERO setState hasta que todo está quieto. El asa anterior repintaba la lista entera al tocar y
+     al soltar, y con 670 filas bajadas eran 100-150 ms por frame a CPU ×6 (A/B lag-gastos-r3).
+     Aquí se lee el layout UNA vez, al levantar, y cada frame solo escribe `transform`.
+   · Listeners NATIVOS en la lista, no `onTouch*` de React: el carrusel escucha en `.viewport` con
+     listener nativo y React reparte desde la raíz, o sea DESPUÉS. Solo uno nativo dentro de la
+     lista llega antes y puede quedarse el dedo con `stopPropagation`.
+   · Mientras se espera no se reclama NADA: si el dedo se mueve más de GX_HOLD_TOL px la espera se
+     suelta y el dedo sigue siendo del scroll o del carrusel. Así no puede volver el rechazo de la
+     beta 4.26.173 (deslizar hacia Plan empezando en el borde derecho de una fila): ninguna zona de
+     la fila se queda el dedo antes de tiempo.
+   · Se guarda al ACABAR el aterrizaje, no al soltar, y con `flushSync`: React mueve los nodos justo
+     al sitio donde ya se ven y en el mismo frame se quitan los transform, sin salto. Guardar al
+     soltar metía el render de la lista en el primer frame del rebote. */
+const GX_HOLD_MS=450;   // lo que pidió: «mantener»; más corto se confunde con un toque lento
+const GX_HOLD_TOL=8;    // px de temblor tolerados esperando; por debajo de GEST_LEAD (12), así ni el
+                        // carrusel ni el scroll han decidido nada cuando la espera se suelta
+const GX_BORDE=72;      // px junto al borde visible donde empieza el auto-scroll
+const GX_ALZA=1.045;
+// Muelle amortiguado (Euler semi-implícito): estable con el dt de un frame a 30-120 Hz.
+function gxMuelle(m,k,c,dt){ m.v+=(-k*(m.p-m.to)-c*m.v)*dt; m.p+=m.v*dt; }
+function gxQuieto(m,tol){ return Math.abs(m.p-m.to)<tol && Math.abs(m.v)<tol*10; }
+// Pasado el primer o el último hueco del día la fila cede cada vez menos: se nota el tope sin un golpe seco.
+function gxGoma(d){ return 26*(1-Math.exp(-d/70)); }
+function gxReorden(lista, op){
+  let g=null, raf=0;
+  const html=document.documentElement;
+  const tieneDedo=function(){ return g&&(g.fase==="espera"||g.fase==="arrastre"); };
+  const sinMenu=function(ev){ if(tieneDedo()) ev.preventDefault(); };
+  const limpia=function(gg){
+    if(raf){ cancelAnimationFrame(raf); raf=0; }
+    if(!gg.R) return;
+    gg.R.forEach(function(r){ r.el.style.transform=""; });
+    gg.row.classList.remove("gx-alza","gx-aterriza");
+    gg.sec.classList.remove("gx-reorden","gx-suelta");
+    if(gg.hueco&&gg.hueco.parentNode) gg.hueco.parentNode.removeChild(gg.hueco);
+    document.removeEventListener("visibilitychange",corta);
+  };
+  // La app se va a segundo plano con el dedo puesto: no llega ni touchend. Todo a su sitio, sin guardar.
+  const corta=function(){ if(g){ const gg=g; g=null; if(gg.timer) clearTimeout(gg.timer); limpia(gg); } };
+  const fin=function(){
+    const gg=g; g=null; raf=0;
+    const desde=gg.R[gg.from].id, hasta=gg.R[gg.to].id;
+    op.calla();
+    if(desde!==hasta){
+      try{ ReactDOM.flushSync(function(){ op.alSoltar(desde,hasta); }); }
+      catch(e){ op.alSoltar(desde,hasta); }
+    }
+    limpia(gg);
+  };
+  // Dónde acaba la fila arrastrada si se suelta ahora: lo que miden las filas que ha adelantado.
+  const destino=function(gg){
+    let d=0;
+    if(gg.to>gg.from) for(let i=gg.from+1;i<=gg.to;i++) d+=gg.R[i].h+gg.gap;
+    else for(let i=gg.to;i<gg.from;i++) d-=gg.R[i].h+gg.gap;
+    return d;
+  };
+  const frame=function(ts){
+    raf=0;
+    if(!g||!g.R) return;
+    const dt=g.tPrev?Math.min(0.034,Math.max(0.004,(ts-g.tPrev)/1000)):1/60;
+    g.tPrev=ts;
+    // Si el dedo se para, su velocidad se apaga sola: la fila deja de inclinarse y solo flota.
+    g.vy*=Math.exp(-dt*9);
+    const R=g.R, yo=R[g.from], ult=R[R.length-1], red=g.reduce;
+    if(g.fase==="arrastre"){
+      // Auto-scroll: solo mientras quede día por enseñar hacia ese lado (el orden no sale del día).
+      let v=0;
+      if(g.y<g.arriba+GX_BORDE && R[0].top-g.st<g.arriba-2) v=-Math.pow(Math.min(1,(g.arriba+GX_BORDE-g.y)/GX_BORDE),2)*1100;
+      else if(g.y>g.abajo-GX_BORDE && ult.top+ult.h-g.st>g.abajo+2) v=Math.pow(Math.min(1,(g.y-g.abajo+GX_BORDE)/GX_BORDE),2)*1100;
+      if(v){
+        const st=Math.max(0,Math.min(g.stMax,g.st+v*dt));
+        if(st!==g.st){ g.st=st; g.host.scrollTop=st; }
+      }
+      const min=R[0].top-yo.top, max=ult.top+ult.h-yo.top-yo.h;
+      let dy=(g.y+g.st)-(g.yA+g.stA);
+      if(dy<min) dy=min-gxGoma(min-dy); else if(dy>max) dy=max+gxGoma(dy-max);
+      g.ym.p=dy; g.ym.v=g.vy;
+      const c=yo.top+dy+yo.h/2;
+      let to=g.from;
+      for(let i=g.from+1;i<R.length;i++) if(c>R[i].top+R[i].h/2) to=i;
+      for(let i=g.from-1;i>=0;i--) if(c<R[i].top+R[i].h/2) to=i;
+      if(to!==g.to){
+        g.to=to;
+        const paso=yo.h+g.gap;
+        R.forEach(function(r,i){
+          r.m.to=(to>g.from&&i>g.from&&i<=to)?-paso:(to<g.from&&i>=to&&i<g.from)?paso:0;
+        });
+        g.hm.to=destino(g);
+        try{ navigator.vibrate&&navigator.vibrate(4); }catch(_){}
+      }
+      g.xm.to=Math.max(-14,Math.min(14,(g.x-g.xA)*0.2));
+      g.rot.to=red?0:Math.max(-3,Math.min(3,g.vy/1500*2.6))+g.xm.p*0.07;
+    } else {
+      gxMuelle(g.ym,red?900:340,red?60:19,dt);
+    }
+    gxMuelle(g.sc,red?900:430,red?60:21,dt);
+    gxMuelle(g.xm,320,26,dt);
+    gxMuelle(g.rot,170,8.5,dt);
+    gxMuelle(g.hm,520,34,dt);
+    let quietos=gxQuieto(g.ym,0.4)&&gxQuieto(g.sc,0.002)&&gxQuieto(g.xm,0.4)&&gxQuieto(g.rot,0.05)&&gxQuieto(g.hm,0.4);
+    R.forEach(function(r){
+      if(r===yo) return;
+      gxMuelle(r.m,red?900:520,red?60:32,dt);
+      if(!gxQuieto(r.m,0.4)) quietos=false;
+      const s=Math.abs(r.m.p)<0.05&&r.m.to===0?"":"translate3d(0,"+r.m.p.toFixed(2)+"px,0)";
+      if(s!==r.s){ r.s=s; r.el.style.transform=s; }
+    });
+    // Un vaivén lento mientras flota, para que no parezca pegado al dedo con cola.
+    const vaiven=red||g.fase!=="arrastre"?0:Math.sin((ts-g.t0)/1000*2.6)*0.45;
+    yo.el.style.transform="translate3d("+g.xm.p.toFixed(2)+"px,"+g.ym.p.toFixed(2)+"px,0) rotate("+(g.rot.p+vaiven).toFixed(3)+"deg) scale("+g.sc.p.toFixed(4)+")";
+    g.hueco.style.transform="translate3d(0,"+g.hm.p.toFixed(2)+"px,0)";
+    if(g.fase==="aterriza" && (quietos || ts-g.tSuelta>1200)){ fin(); return; }
+    raf=requestAnimationFrame(frame);
+  };
+  const levanta=function(){
+    if(!g||g.fase!=="espera") return;
+    g.timer=0;
+    const row=g.row, sec=g.sec, host=g.host;
+    // Si la página se movió durante la espera, era un scroll (o una inercia frenada tarde): nada.
+    if(!row.isConnected||html.classList.contains("sheet-open")||(host&&Math.abs(host.scrollTop-g.st0)>2)){ g=null; return; }
+    const filas=[].slice.call(sec.querySelectorAll("button.v4-mov[data-reorden]"));
+    const from=filas.indexOf(row);
+    if(from<0||filas.length<2){ g=null; return; }
+    // La clase va ANTES de medir: quita `content-visibility` (su contención de pintado recortaría la
+    // sombra y la fila que se sale del día) y así lo medido ya es lo que se va a ver.
+    sec.classList.add("gx-reorden");
+    const st=host?host.scrollTop:0;
+    const hr=host?host.getBoundingClientRect():{top:0,bottom:innerHeight};
+    let arriba=hr.top, abajo=hr.bottom;
+    // Lo visible de verdad: bajo la cabecera fija de Gastos y encima de la barra de abajo.
+    const cab=host&&host.querySelector(".gx-head");
+    if(cab){ const r=cab.getBoundingClientRect(); if(r.bottom>arriba&&r.bottom<hr.top+hr.height/2) arriba=r.bottom; }
+    const nav=document.querySelector(".botnav");
+    if(nav){ const r=nav.getBoundingClientRect(); if(r.height>0&&r.top<abajo&&r.top>hr.top+hr.height/2) abajo=r.top; }
+    const secTop=sec.getBoundingClientRect().top+st;
+    const R=filas.map(function(el){
+      const r=el.getBoundingClientRect();
+      return {el:el,id:el.getAttribute("data-expense-id"),top:r.top+st,h:r.height,m:{p:0,v:0,to:0},s:""};
+    });
+    const yo=R[from];
+    Object.assign(g,{fase:"arrastre",R:R,from:from,to:from,gap:Math.max(0,R[1].top-R[0].top-R[0].h),
+      st:st,stA:st,stMax:host?Math.max(0,host.scrollHeight-host.clientHeight):0,arriba:arriba,abajo:abajo,
+      xA:g.x,yA:g.y,reduce:mcReduced(),t0:performance.now(),tPrev:0,
+      ym:{p:0,v:0,to:0},xm:{p:0,v:0,to:0},rot:{p:0,v:0,to:0},hm:{p:0,v:0,to:0}});
+    g.sc={p:1,v:g.reduce?0:1.2,to:g.reduce?1.02:GX_ALZA};
+    // El hueco donde caerá: detrás de las filas (va antes que ellas en el DOM) y sin ocupar sitio.
+    const hueco=document.createElement("div");
+    hueco.className="gx-hueco"; hueco.setAttribute("aria-hidden","true");
+    hueco.style.top=(yo.top-secTop)+"px"; hueco.style.height=yo.h+"px";
+    sec.insertBefore(hueco,R[0].el);
+    g.hueco=hueco;
+    row.classList.add("gx-alza");
+    document.addEventListener("visibilitychange",corta);
+    op.calla();
+    try{ navigator.vibrate&&navigator.vibrate(12); }catch(_){}
+    raf=requestAnimationFrame(frame);
+  };
+  const suelta=function(guardar){
+    g.fase="aterriza"; g.tSuelta=performance.now();
+    op.calla();
+    if(!guardar){
+      g.to=g.from; g.hm.to=0;
+      g.R.forEach(function(r){ r.m.to=0; });
+    }
+    g.ym.to=destino(g); g.ym.v=g.reduce?0:g.vy*0.35;
+    g.sc.to=1; g.xm.to=0; g.rot.to=0;
+    g.row.classList.add("gx-aterriza");
+    g.sec.classList.add("gx-suelta");   // el resto del día recupera el color mientras ella cae
+    g.hueco.classList.add("fuera");
+    if(!raf) raf=requestAnimationFrame(frame);
+  };
+  const ts=function(ev){
+    if(g){
+      /* Un arrastre que sigue «vivo» con un dedo NUEVO es que su touchend se perdió (si React quita
+         la fila de debajo del dedo, el evento ya no sube hasta la lista): se recoge, o ningún otro
+         gesto volvería a ordenar. Un segundo dedo o un toque durante el aterrizaje, se ignoran. */
+      if(g.fase==="arrastre"&&ev.touches&&ev.touches.length===1) corta();
+      else if(g.fase!=="espera") return;
+      else { clearTimeout(g.timer); g=null; }
+    }
+    if(!ev.touches||ev.touches.length!==1||html.classList.contains("sheet-open")) return;
+    const row=ev.target&&ev.target.closest?ev.target.closest("button.v4-mov[data-reorden]"):null;
+    const sec=row&&row.closest(".gx-dia");
+    if(!sec||!lista.contains(row)) return;
+    const host=row.closest(".page"), p=ev.touches[0];
+    g={fase:"espera",row:row,sec:sec,host:host,x0:p.clientX,y0:p.clientY,x:p.clientX,y:p.clientY,
+      st0:host?host.scrollTop:0,vy:0,tm:0,timer:0};
+    g.timer=setTimeout(levanta,GX_HOLD_MS);
+  };
+  const tm=function(ev){
+    if(!g) return;
+    const p=ev.touches&&ev.touches[0]; if(!p) return;
+    if(g.fase==="espera"){
+      g.x=p.clientX; g.y=p.clientY;
+      if(Math.abs(p.clientX-g.x0)>GX_HOLD_TOL||Math.abs(p.clientY-g.y0)>GX_HOLD_TOL){ clearTimeout(g.timer); g=null; }
+      return;
+    }
+    if(g.fase!=="arrastre") return;
+    // El navegador ya se quedó el gesto como scroll: no pelearle el dedo, la fila vuelve a su sitio.
+    if(!ev.cancelable){ suelta(false); return; }
+    ev.preventDefault(); ev.stopPropagation();
+    const now=ev.timeStamp||performance.now();
+    if(g.tm) g.vy=g.vy*0.6+(p.clientY-g.y)/Math.max(1,now-g.tm)*1000*0.4;
+    g.tm=now; g.x=p.clientX; g.y=p.clientY;
+    if(!raf) raf=requestAnimationFrame(frame);
+  };
+  const te=function(ev){
+    if(!g) return;
+    if(g.fase==="espera"){ clearTimeout(g.timer); g=null; return; }
+    if(g.fase==="arrastre" && !(ev.touches&&ev.touches.length)) suelta(ev.type!=="touchcancel");
+  };
+  lista.addEventListener("touchstart",ts,{passive:true});
+  lista.addEventListener("touchmove",tm,{passive:false});
+  lista.addEventListener("touchend",te,{passive:true});
+  lista.addEventListener("touchcancel",te,{passive:true});
+  lista.addEventListener("contextmenu",sinMenu);
+  return function(){
+    lista.removeEventListener("touchstart",ts);
+    lista.removeEventListener("touchmove",tm);
+    lista.removeEventListener("touchend",te);
+    lista.removeEventListener("touchcancel",te);
+    lista.removeEventListener("contextmenu",sinMenu);
+    if(g){ const gg=g; g=null; if(gg.timer) clearTimeout(gg.timer); limpia(gg); }
+  };
+}
+
 /* ---------- Fila del histórico ----------
    Va en React.memo a propósito. Antes se pintaba en línea dentro de Expenses, así que CUALQUIER
    cambio de estado (un toast, un sync de la nube, teclear en el buscador, el snapshot diario de
@@ -2725,7 +2919,7 @@ function SyncHora({lastSync}){
    `l10n` (idioma|símbolo de moneda) es un prop a posta: catName/entOf/eur leen globales que memo
    no puede ver, así que sin él cambiar de idioma o de moneda dejaría las filas en el idioma viejo.
    `onOpen` tiene que ser ESTABLE (useCallback) o el memo no sirve de nada. */
-const MovRow=React.memo(function MovRow({e, l, onOpen, bucket, recibo, conBanco, reordenable, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
+const MovRow=React.memo(function MovRow({e, l, onOpen, bucket, recibo, conBanco, reordenable}){
   // `bucket` (string) lo pasa el padre: si se pasara `state` entero, el memo no acertaría nunca.
   const c=catOf(e.category);
   const isIncome=e.amount<0;
@@ -2746,9 +2940,14 @@ const MovRow=React.memo(function MovRow({e, l, onOpen, bucket, recibo, conBanco,
      se ve hay más de uno (`conBanco`); y si no queda nada que decir, la línea ni se pinta. */
   const banco=conBanco&&bk?(entOf(bk).label||entOf(bk).mono):"";
   const meta=[banco,skipTxt].filter(Boolean);
-  return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
-      className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
-      onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
+  const importe=(isIncome?"+":"")+eur(Math.abs(e.amount));
+  /* Sin asa (DIS-14): en un día con más de un movimiento la fila ENTERA se mantiene pulsada para
+     ordenarla (`gxReorden`, que la reconoce por `data-reorden`). Como el gesto no se ve, lo dice
+     el nombre accesible, y solo donde es verdad. */
+  return React.createElement("button",{type:"button","data-expense-id":e.id,"data-reorden":reordenable?"1":null,
+      "aria-label":reordenable?[shownName||"—",l||catName(e.category),importe,t("g_mov_reorden")].join(" · "):null,
+      className:"v4-mov"+(skip?" v4-mov-skip":""),
+      onClick:function(){ onOpen(e); },style:skip?{opacity:.72}:null},
     React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
     React.createElement("div",{className:"nm"},
       // Renombrado en vuelo: la lista enseña ya el nombre nuevo, igual que la ficha, sin tocar
@@ -2765,11 +2964,7 @@ const MovRow=React.memo(function MovRow({e, l, onOpen, bucket, recibo, conBanco,
         skipTxt?React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt):null
       ):null
     ),
-    React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount))),
-    /* El asa solo donde hay con qué ordenar: un día con un único movimiento le quitaba ~28 px al
-       nombre para nada (DIS-14). Sin asa, el toque abre la ficha y el desliz cambia de pestaña. */
-    reordenable?React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"y","aria-label":t("drag_hint"),title:t("drag_hint"),
-      onTouchStart:function(ev){ onDragStart(ev,e); },onTouchMove:onDragMove,onTouchEnd:onDragEnd,onTouchCancel:onDragEnd},"⠿"):null
+    React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, importe)
   );
 });
 
