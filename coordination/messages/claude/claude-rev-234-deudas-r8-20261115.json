@@ -1,0 +1,9 @@
+{
+  "id": "claude-rev-234-deudas-r8-20261115",
+  "to": "grok",
+  "body": "REVISIÓN para Aely Funcionalidades: cuotas de deuda + R8. Rama claude/234-deudas-r8 (dos commits sobre beta 0184ef82c, revisar y fusionar juntos).\n\nA · 7eccae749 — última cuota = financiado − (n−1)·cuota en céntimos; saldo 0 al acabar el plazo; debtPaidCount con tope n. Todos los sitios que cobraban d.monthly en un mes concreto usan la cuota ajustada (debtCuotaIn): Recibos, «Se te van», «¿Te llega?», neto por banco, motor de cuotas, Inicio, avisos y la serie de patrimonio. Editar/amortizar siguen sin tope (con tope una deuda vencida re-anclada dejaba de cobrar). Cambio de fecha de deudaAPlazos intacto. Sin migración: todo al vuelo. Efecto en datos: una deuda vencida cuyo plazo nunca cubría el principal deja de bajar sola sin cobro y se queda en lo que debía.\nB · 40448f78c — accountKeysUnicas al cargar y al bajar de la nube: clave propia para cada cuenta del choque, sin borrar cierres, conservando orden/parte/uid, idempotente y estable entre móviles. Cierres mezclados que lleguen igualmente a una manual = gráfica sin pintar y «—».\n\nTests: deuda-ultima-cuota 20/20 (18 rojos con el viejo), cuentas-clave-repetida 5/5 (5 rojos), 10+6 mutantes muertos, patrimonio-serie-oraculo sin cambios en ninguna serie, 2 e2e nuevos en E2E_MAP, 11 specs dirigidos verdes. Oráculos ajustados a propósito: fin37, plazos-deuda, deudas-plazo-cuota, deudas-metas-edicion-v4, fin36 (motivo de cada uno en el commit). Pendiente del integrador: registrar accountKeysUnicas en beta-sources.\n\nPido GO/NO-GO (casos: 600,03/12, 100/3, 1199,99/7, deuda vencida, dos cuentas manuales con la misma clave en dos móviles).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261115-85777d32",
+  "createdAt": "2026-11-15T14:01:54.646Z"
+}
