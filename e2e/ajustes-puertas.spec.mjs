@@ -130,3 +130,13 @@ test("el buscador encuentra la huella, la copia y el idioma", async ({ page }) =
   await buscador.fill("idioma");
   await expect(filaDe(page, await tx(page, "st_delete_acc"))).toHaveCount(0);
 });
+
+test("Ajustes va en cuatro grupos, cada uno una tarjeta con varias filas", async ({ page }) => {
+  await abrirAjustes(page);
+  const titulos = await Promise.all(["v4_set_g_look", "v4_set_g_money", "v4_set_g_data", "v4_set_g_account"].map((k) => tx(page, k)));
+  await expect(page.locator(".v4-set-sec")).toHaveText(titulos);
+  const filas = await page.locator(".v4-set-sec + .set-card").evaluateAll((cs) => cs.map((c) => c.querySelectorAll(":scope > .set-sub").length));
+  // «Tu cuenta» sigue plegada en la suya: «Borrar mi cuenta» no queda a un toque al abrir Ajustes.
+  expect(filas.length).toBe(4);
+  for (const n of filas.slice(0, 3)) expect(n).toBeGreaterThanOrEqual(2);
+});
