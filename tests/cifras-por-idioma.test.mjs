@@ -65,4 +65,18 @@ caso("lo tecleado se lee igual con punto o con coma, en cualquier idioma",()=>{
     assert.equal(en(lang,"parseAccountShare(String(33.5).replace('.',numDecSep()))"),33.5,lang);
   }
 });
+// Diseño 235 (DIS-10): la ficha Modificar enseñaba «12,5». Se precarga con dos decimales si los
+// tiene y sin ellos si es entero; y lo precargado se lee como el mismo número, así que abrir la
+// ficha sin tocar nada no cuenta como cambio (el guardado compara números, ver `saveEdit`).
+caso("el importe de la ficha Modificar: «12,50», «12» y «0,10», y vuelve a ser el mismo número",()=>{
+  for(const lang of ["es","en","ca"]){
+    const sep=lang==="en"?".":",";
+    for(const [x,txt] of [[12.5,"12"+sep+"50"],[12,"12"],[0.1,"0"+sep+"10"],[-12.5,"12"+sep+"50"],[1234.56,"1234"+sep+"56"],[3.999,"4"]]){
+      assert.equal(en(lang,"montoEditable("+x+")"),txt,lang+" "+x);
+      const v=Math.round(Math.abs(x)*100)/100;
+      assert.equal(en(lang,"parseNumPadRaw(montoEditable("+x+"))"),v,lang+" "+x+" se relee igual");
+      assert.equal(en(lang,"parseFloat(String(montoEditable("+x+")).replace(',','.'))"),v,lang+" "+x+" como lo lee saveEdit");
+    }
+  }
+});
 console.log("cifras-por-idioma: "+n+" casos");

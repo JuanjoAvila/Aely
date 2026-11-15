@@ -2588,6 +2588,13 @@ function numPadDecSep(){
   // pintan (`numDecSep`, 00); el parseo de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
   return numDecSep();
 }
+// Importe que se precarga en la ficha para editarlo: con decimales, siempre dos («12,50», no
+// «12,5» como salía con `String`, diseño 235 DIS-10); entero, sin ellos («12»). Sin miles, para que
+// el teclado y `parseNumPadRaw` lo lean igual que lo tecleado.
+function montoEditable(x){
+  const n=Math.abs(Number(x)||0);
+  return (Math.round(n*100)%100===0?String(Math.round(n)):n.toFixed(2)).replace(".",numDecSep());
+}
 function parseNumPadRaw(raw){
   // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.
   return parseFloat(String(raw||"").replace(",","."))||0;
