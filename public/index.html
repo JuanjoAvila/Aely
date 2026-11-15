@@ -17193,26 +17193,29 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("div",{className:"v4-ficha-trace-sub"},tf("f_from_bank_sub",{date:traceDate,raw:traceRaw}))));
   /* La forma de pago en un segmentado (DIS-03): cada toque escribe por el camino de siempre y solo
      lo que cambia. Tarjeta ↔ Bizum es `setCardFlag` (también en los del banco, como la fila de antes);
-     Efectivo es `setBank` y no toca `noCard`, como la píldora 💶; salir de Efectivo deja el gasto
-     sin banco, como al apagarla, y el banco se elige en su píldora. */
+     Efectivo es `setBank`. Salir de Efectivo va al mismo banco que en Apuntar: el de gasto diario
+     si no es el sobre, si no el primer banco que no sea efectivo, o ninguno. */
   const payMode=bk==="efectivo"?"cash":(exp.noCard?"transfer":"card");
+  const cardBankEnt=(function(){
+    const d=(state.accounts||[]).find(function(a){ return a&&accDaily(a)&&!isEfectivoEnt(a); });
+    return (d&&d.ent)||bankOpts.filter(function(b){ return !isEfectivoEnt(b); })[0]||null;
+  })();
+  /* Cambiar de banco por su camino; si se llega al sobre (segmentado o lista de bancos), un Bizum
+     pierde la marca: en Efectivo no hay mando que la enseñe ni la quite, y escondida cambiaba su
+     clave de reglas (D3). La marca, siempre DESPUÉS de que la nube confirme el banco: el cambio de
+     banco se descarta si la fila cambia entre medias, y la marca la cambiaría. */
+  const aBanco=function(b,nc){
+    if(nc==null&&isEfectivoEnt(b)&&!isIncome) nc=false;
+    return Promise.resolve(setBank(exp,b)).then(function(ok){ if(ok&&nc!=null&&!!exp.noCard!==nc) setCardFlag(exp,nc); return ok; });
+  };
   const onPayMode=function(m){
-    if(m==="cash"||(isIncome&&payMode==="cash")){
+    const sale=payMode==="cash";
+    if(m==="cash"||sale){
       if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; }
-      const r=setBank(exp,m==="cash"?"efectivo":null);
-      /* Un Bizum que pasa a Efectivo pierde la marca (D3): en Efectivo ya no hay mando que la enseñe
-         ni la quite, y escondida cambiaba su clave de reglas. Solo si la nube confirma el banco. */
-      if(m==="cash"&&!isIncome&&exp.noCard) Promise.resolve(r).then(function(ok){ if(ok) setCardFlag(exp,false); });
-      if(m==="cash"||isIncome) return;
-    }
-    const nc=m==="transfer";
-    if(payMode==="cash"){
-      if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; }
-      // La marca, después de que la nube confirme el banco: el cambio de banco se descarta si la
-      // fila cambia entre medias, y la marca la cambiaría.
-      Promise.resolve(setBank(exp,null)).then(function(ok){ if(ok&&!!exp.noCard!==nc) setCardFlag(exp,nc); });
+      aBanco(m==="cash"?"efectivo":cardBankEnt, isIncome?null:(m==="cash"?false:m==="transfer"));
       return;
     }
+    const nc=m==="transfer";
     if(!!exp.noCard!==nc) setCardFlag(exp,nc);
   };
   const payRow=React.createElement(ExpensePayRow,{income:isIncome,mode:payMode,onMode:onPayMode,bankEnt:bk,bankOn:bankOpen,
@@ -17243,7 +17246,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
-        onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
+        onClick:function(){ aBanco(b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
     trace,duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
@@ -31232,7 +31235,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9370f5a0ed1554a183c754b17f8587f63b6f440aef84c780566731cd2c55b9ef";
+var _rnSha="252207c9c2f47c8cc21bd6b62b9fbb062c09b45b9cc587b11c58e3ce791e13b0";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

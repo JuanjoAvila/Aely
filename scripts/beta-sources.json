@@ -15393,8 +15393,8 @@
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "from": "    {id:\"cash\",testId:\"exp-efectivo\"",
-        "to": "    {id:\"date\",testId:\"exp-date\""
+        "from": "  const payMode=bk===\"efectivo\"",
+        "to": "  const payRow=React.createElement(ExpensePayRow"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
@@ -21775,6 +21775,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NF_ES"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "textSizeOf"
       }
     ],
     "unidades": true
@@ -25375,6 +25379,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoEsAlias"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "textSizeOf"
       },
       {
         "file": "src/modules/00-core.js",
@@ -69634,6 +69642,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
       }
     ],
     "unidades": true
@@ -75206,6 +75222,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
       }
     ],
     "unidades": true
@@ -85743,6 +85767,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "renameAvisoVisible"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
       }
     ],
     "unidades": true
@@ -94593,6 +94625,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "renameAvisoVisible"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
       }
     ],
     "unidades": true
@@ -95826,6 +95866,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "renameAvisoVisible"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
       }
     ],
     "unidades": true
@@ -101198,6 +101246,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "textSizeOf"
       }
     ],
     "edge": [
@@ -170007,6 +170059,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "eur"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "textSizeOf"
       },
       {
         "file": "src/modules/08-motor-bank.js",

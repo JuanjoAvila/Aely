@@ -342,10 +342,19 @@ test("DIS-03 Modificar: cada toque escribe por el camino de siempre, y en uno de
   await expect.poll(async () => (await de(MANO)).ent).toBe("efectivo");
   await expect.poll(async () => (await de(MANO)).noCard).toBeUndefined();
   await expect(hoja.getByTestId("exp-bank")).toBeHidden();
-  // De vuelta a Tarjeta: sin banco (como al apagar 💶) y sin la marca.
-  await hoja.getByTestId("exp-pay-card").click();
-  await expect.poll(async () => (await de(MANO)).ent).toBeUndefined();
+  // De vuelta a Bizum: al mismo banco que en Apuntar (el de gasto diario), no a «Sin banco».
+  await hoja.getByTestId("exp-pay-transfer").click();
+  await expect.poll(async () => (await de(MANO)).ent).toBe("revolut");
+  await expect.poll(async () => (await de(MANO)).noCard).toBe(true);
+  await expect(hoja.getByTestId("exp-bank")).toContainText("Revolut");
+  // Y por la lista de bancos al sobre: también pierde la marca (si no, efectivo + Bizum escondido).
+  await hoja.getByTestId("exp-bank").click();
+  await hoja.getByTestId("exp-bank-list").getByRole("button", { name: /Efectivo|sobre/i }).click();
+  await expect.poll(async () => (await de(MANO)).ent).toBe("efectivo");
   await expect.poll(async () => (await de(MANO)).noCard).toBeUndefined();
+  await hoja.getByTestId("exp-pay-card").click();
+  await expect.poll(async () => (await de(MANO)).ent).toBe("revolut");
+  expect((await de(MANO)).noCard).toBeUndefined();
   await hoja.locator(".v4-ficha-done").click();
   await expect(hoja).toHaveCount(0);
 
