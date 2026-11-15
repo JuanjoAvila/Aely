@@ -64,7 +64,8 @@ test("Metas vacía: sin el cero grande y con un botón principal que abre el alt
   const caja = await crear.boundingBox();
   expect(caja.height).toBeGreaterThanOrEqual(48);
   await crear.click();
-  await expect(metas.locator(".add-form")).toBeVisible();
+  // Desde DIS-31 el alta va en su hoja (portal a <body>), no dentro de la lista.
+  await expect(page.locator(".v4-sheet.plan-edit-sheet").getByTestId("goal-add-form")).toBeVisible();
 });
 
 test("Metas con una meta: vuelve el resumen y el botón de añadir otra", async ({ page }) => {

@@ -507,6 +507,7 @@ const DEBT_ICO={
   study:[["path",{d:"M2 9l10-5 10 5-10 5z"}],["path",{d:"M6 11v5c3 2.5 9 2.5 12 0v-5"}]],
   card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
 };
+const DEBT_BLANK={name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""};
 function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
@@ -525,11 +526,18 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const orphaned=state._planSync&&state._planSync.owner===state._historyOwner?(state._planSync.conflicts||[]).filter(function(c){return c.kind==="debts"&&!state.debts.some(function(d){return d.id===c.id;});}):[];
   const recovering=!!(editingDebt&&reviewDebt&&!state.debts.some(function(d){return d.id===editingDebt.id;}));
   const [adding,setAdding]=useState(false);
-  const [form,setForm]=useState({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""});
+  const [form,setForm]=useState(DEBT_BLANK);
+  const addCloser=useRef(null), addedRef=useRef(false);
+  const campoDeuda=function(key,label,mode,ph){ return React.createElement("label",{key:key},t(label),
+    React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||undefined,placeholder:ph?t(ph):undefined,value:form[key],"data-debt-add":key,
+      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
   const banks=(function(){ const b=[]; (state.accounts||[]).forEach(a=>{ if(b.indexOf(a.ent)<0) b.push(a.ent); }); ["sabadell","trade_republic","familia"].forEach(x=>{ if(b.indexOf(x)<0) b.push(x); }); return b; })();
   const total=state.debts.reduce((a,d)=>a+debtBalance(d),0);
   const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d):0),0);
   const addDebt=()=>{
+    // La hoja baja animada con el formulario aún vivo: un segundo toque daba otra deuda igual
+    // (revisión de dinero 235, M1). Desde el primer alta hasta que se desmonta, no se vuelve a crear.
+    if(addedRef.current) return;
     const v=parseFloat(String(form.value).replace(',','.'))||0;
     const months=parseInt(form.months,10)||0;
     const balloon=parseFloat(String(form.balloon).replace(',','.'))||0;
@@ -552,7 +560,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     if(months>0) it.startMonth=it.asOf;
     if(months>0&&paid===0) it.startDay=netWorthDay(); // Con cuotas previas no conocemos el día de origen.
     set(s=>Object.assign({},s,{debts:s.debts.concat([it])}));
-    setForm({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""}); setAdding(false);
+    // Se vacía al terminar de bajar la hoja, no antes: si no, los campos se quedan en blanco a la vista.
+    addedRef.current=true; if(addCloser.current) addCloser.current(); else { addedRef.current=false; setForm(DEBT_BLANK); setAdding(false); }
     showToast(t("db_added"));
   };
   const delDebt=(d)=>{
@@ -720,29 +729,24 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     React.createElement("div",{className:"v4-tip"},
       React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);},onAmort:doAmort})
     ),
-    adding
-      ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
-          React.createElement("input",{className:"af-in",placeholder:t("db_concept"),value:form.name,onChange:function(e){ setForm(Object.assign({},form,{name:e.target.value})); }}),
-          React.createElement("div",{className:"af-row"},
-            React.createElement("input",{className:"af-in num",placeholder:t("db_amount"),inputMode:"decimal",value:form.value,onChange:function(e){ setForm(Object.assign({},form,{value:e.target.value})); }}),
-            React.createElement("input",{className:"af-in num",placeholder:t("db_quota_ph"),inputMode:"decimal",value:form.monthly,onChange:function(e){ setForm(Object.assign({},form,{monthly:e.target.value})); }})
-          ),
-          React.createElement("div",{className:"af-row"},
-            React.createElement("input",{className:"af-in num",placeholder:t("db_months_ph"),inputMode:"numeric",value:form.months,onChange:function(e){ setForm(Object.assign({},form,{months:e.target.value})); }}),
-            React.createElement("input",{className:"af-in num",placeholder:t("db_day_ph"),inputMode:"numeric",style:{maxWidth:80},value:form.day,onChange:function(e){ setForm(Object.assign({},form,{day:e.target.value})); }}),
-            React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); }))
-          ),
-          React.createElement("div",{className:"af-row"},
-            React.createElement("input",{className:"af-in num",placeholder:t("db_down_ph"),inputMode:"decimal",value:form.down,onChange:function(e){ setForm(Object.assign({},form,{down:e.target.value})); }}),
-            React.createElement("input",{className:"af-in num",placeholder:t("db_balloon_ph"),inputMode:"decimal",value:form.balloon,onChange:function(e){ setForm(Object.assign({},form,{balloon:e.target.value})); }})
-          ),
-          React.createElement("input",{className:"af-in num",placeholder:t("db_paid_ph"),inputMode:"numeric",value:form.paid,onChange:function(e){ setForm(Object.assign({},form,{paid:e.target.value})); }}),
-          React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_paid_hint")),
-          React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_financing_hint")),
-          React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
-          React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add"))
-        )
-      : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
+    /* Añadir deuda va en su hoja con una etiqueta encima de cada campo (DIS-31, 15/11/2026): abierto
+       dentro de la lista, el texto de ejemplo era la única pista y se cortaba («Cuota/mes € (vací…»).
+       Los campos, `addDebt` y lo que guarda son los de antes; solo cambia dónde se pinta. */
+    adding && React.createElement(PlanEditSheet,{title:t("db_add"),closer:addCloser,onClose:function(){
+        setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } }},
+      React.createElement("div",{className:"add-form","data-testid":"debt-add-form"},
+        campoDeuda("name","plan_edit_name",null,"db_concept"),
+        React.createElement("div",{className:"af-row"},campoDeuda("value","db_amount","decimal"),campoDeuda("monthly","plan_edit_quota","decimal","db_quota_ph")),
+        React.createElement("div",{className:"af-row"},campoDeuda("months","db_months_ph","numeric"),campoDeuda("day","db_day_ph","numeric")),
+        React.createElement("label",null,t("plan_conflict_account"),
+          React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); }))),
+        React.createElement("div",{className:"af-row"},campoDeuda("down","db_down_ph","decimal"),campoDeuda("balloon","db_balloon_ph","decimal")),
+        campoDeuda("paid","db_paid_ph","numeric"),
+        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_paid_hint")),
+        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_financing_hint")),
+        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
+        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
+    React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
     React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
     editor
   );
@@ -1008,15 +1012,24 @@ function Goals({state, set, totals, showToast}){
   const [contribGoal,setContribGoal]=useState(null);   // meta abierta en la hoja de aportar
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);
+  const [dlCal,setDlCal]=useState(false);
+  const addCloser=useRef(null), sentRef=useRef(false);
+  const closeAdd=function(){ if(addCloser.current) addCloser.current(); else { sentRef.current=false; setAdding(false); setForm(blank); } };
+  const campoMeta=function(key,label,ph){ return React.createElement("label",{key:key},t(label),
+    React.createElement("input",{className:"af-in"+(ph?"":" num"),inputMode:ph?undefined:"decimal",placeholder:ph?t(ph):undefined,value:form[key],"data-goal-add":key,
+      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
 
   const addGoal=function(){
+    // Igual que addDebt: mientras la hoja baja, otro toque no crea otra meta (revisión 235, M1).
+    if(sentRef.current) return;
     const tg=parseFloat(String(form.target).replace(',','.'))||0; if(tg<=0) return;
+    sentRef.current=true;
     const sv=parseFloat(String(form.saved).replace(',','.'))||0;
     const mo=parseFloat(String(form.monthly).replace(',','.'))||0;
     const done=sv>=tg;
     const g={id:uid(),name:form.name||t("gl_newdefault"),emoji:form.emoji||"🎯",target:tg,saved:sv,deadline:form.deadline||null,monthly:mo>0?mo:null,color:"#5FD08A",createdAt:new Date().toISOString(),done:done,doneAt:done?new Date().toISOString():null};
     set(function(s){ return Object.assign({},s,{goals:(s.goals||[]).concat([g])}); });
-    setForm(blank); setAdding(false);
+    closeAdd();
   };
   // Aportar a una meta: hoja propia con teclado numérico in-app (como el + de gastos) y elección
   // de banco de origen — así no salta el teclado del sistema y no rompe la estética (2026-07-18).
@@ -1061,7 +1074,7 @@ function Goals({state, set, totals, showToast}){
     ),
     React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
-    goals.length===0 && !adding && React.createElement("div",{className:"empty"},
+    goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
 
     goals.map(function(g){
@@ -1086,24 +1099,25 @@ function Goals({state, set, totals, showToast}){
 
     React.createElement("div",{style:{marginTop:14}}, React.createElement(ReservaRules,{state:state,set:set})),
 
-    adding
-      ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
-          React.createElement("input",{className:"af-in",placeholder:t("gl_name_ph"),value:form.name,onChange:function(e){ setForm(Object.assign({},form,{name:e.target.value})); }}),
-          emojiPicker(form.emoji,function(e){ setForm(Object.assign({},form,{emoji:e})); }),
-          React.createElement("div",{className:"af-row"},
-            React.createElement("input",{className:"af-in num",placeholder:t("gl_target_ph"),inputMode:"decimal",value:form.target,onChange:function(e){ setForm(Object.assign({},form,{target:e.target.value})); }}),
-            React.createElement("input",{className:"af-in num",placeholder:t("gl_saved_ph"),inputMode:"decimal",value:form.saved,onChange:function(e){ setForm(Object.assign({},form,{saved:e.target.value})); }})
-          ),
-          React.createElement("label",{className:"goal-dl-lbl"},t("gl_deadline")),
-          React.createElement("input",{className:"af-in",type:"month",value:form.deadline,onChange:function(e){ setForm(Object.assign({},form,{deadline:e.target.value})); }}),
-          React.createElement("input",{className:"af-in num",placeholder:t("gl_monthly_ph"),inputMode:"decimal",value:form.monthly,onChange:function(e){ setForm(Object.assign({},form,{monthly:e.target.value})); }}),
-          React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")),
-          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setAdding(false); setForm(blank); }},t("gl_cancel"))
-        )
-      : goals.length===0
-        // La primera meta es LA acción de la pantalla vacía: botón principal, no el fantasma punteado.
-        ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first"))
-        : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
+    /* Nueva meta en su hoja, con etiquetas y el calendario de la app en vez del selector de mes
+       nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
+       selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
+    adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ sentRef.current=false; setAdding(false); setDlCal(false); setForm(blank); }},
+      React.createElement("div",{className:"add-form","data-testid":"goal-add-form"},
+        campoMeta("name","plan_edit_name","gl_name_ph"),
+        emojiPicker(form.emoji,function(e){ setForm(Object.assign({},form,{emoji:e})); }),
+        React.createElement("div",{className:"af-row"},campoMeta("target","gl_target_ph"),campoMeta("saved","gl_saved_ph")),
+        React.createElement("label",null,t("gl_deadline"),
+          React.createElement("button",{type:"button",className:"af-in","data-goal-add":"deadline","aria-expanded":dlCal,style:{display:"block",textAlign:"left",marginTop:5},
+            onClick:function(){ setDlCal(function(v){ return !v; }); }},form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"))),
+        dlCal && React.createElement(McCal,{value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ setForm(Object.assign({},form,{deadline:String(iso).slice(0,7)})); setDlCal(false); }}),
+        dlCal && form.deadline && React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ setForm(Object.assign({},form,{deadline:""})); setDlCal(false); }},t("gl_deadline_none")),
+        campoMeta("monthly","gl_monthly_ph"),
+        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")))),
+    goals.length===0
+      // La primera meta es LA acción de la pantalla vacía: botón principal, no el fantasma punteado.
+      ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first"))
+      : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
       onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),

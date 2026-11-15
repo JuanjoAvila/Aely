@@ -23,9 +23,12 @@ function context(iso,tz,source=html){
 }
 function manual(c,changes={},source=html){
   let state={debts:[]};
-  const add=vm.runInContext("(function(form,set,showToast,setForm,setAdding){"+body(source,"const addDebt=()=>{")+"})",c);
-  add({name:"FIN36 sintética",value:"1000",monthly:"100",months:"10",day:"5",paid:"0",account:"sabadell",down:"",balloon:"",...changes},update=>{state=update(state);},()=>{},()=>{},()=>{});
-  assert.equal(state.debts.length,1);return state.debts[0];
+  // Desde DIS-31 el alta va en hoja: el cuerpo lee `addedRef` (no repetir el alta mientras baja) y
+  // `addCloser` (cerrarla). Se pasan sin hoja montada, el mismo camino que cierra al instante.
+  const add=vm.runInContext("(function(form,set,showToast,setForm,setAdding,addedRef,addCloser){"+body(source,"const addDebt=()=>{")+"})",c);
+  const addedRef={current:false};
+  add({name:"FIN36 sintética",value:"1000",monthly:"100",months:"10",day:"5",paid:"0",account:"sabadell",down:"",balloon:"",...changes},update=>{state=update(state);},()=>{},()=>{},()=>{},addedRef,{current:null});
+  assert.equal(state.debts.length,1);assert.equal(addedRef.current,false,"sin hoja montada el alta no se queda bloqueada");return state.debts[0];
 }
 // La compra a plazos de «¿Y si gasto…?» (`deudaAPlazos`, 4.26.229): su 1.ª cuota cae el mes que viene, así
 // que al nacer no hay cuota del mes aunque su día ya haya pasado (revisión de dinero 229, P1-1).
