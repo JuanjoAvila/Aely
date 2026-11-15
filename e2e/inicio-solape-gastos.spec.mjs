@@ -88,7 +88,7 @@ test("Inicio activa: Gastos premontada no tiene cajas visibles, ni antes ni desp
     await page.locator(".botnav-fab").click();
     const sheet = page.locator(".v4-exp-sheet");
     await expect(sheet).toBeVisible();
-    await sheet.locator(".v4-ficha-cat-title button").click();
+    await sheet.locator('[data-testid="ap-cat-more"]').click();
     const todas = page.locator(".v4-ficha-cat-sheet");
     await expect(todas).toBeVisible();
     await todas.locator('[data-testid="expense-all-cat-' + cat + '"]').click();

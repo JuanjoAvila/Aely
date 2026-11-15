@@ -237,7 +237,7 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet gx-subf","data-sheet":"sub-ficha",role:"dialog","aria-modal":"true","aria-labelledby":titleId,ref:swipe.sheetRef,
-          style:{maxHeight:"90dvh"},onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+          style:{maxHeight:"calc(90dvh / var(--zoom,1))"},onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"gx-subf-cab"},
           React.createElement("span",{className:"gx-sub-ic gx-subf-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
@@ -3077,14 +3077,36 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("div",{className:"v4-ficha-trace-copy"},
       React.createElement("div",{className:"v4-ficha-trace-title"},tf("f_from_bank",{bank:bk?entOf(bk).label:t("bp_hist_bank_unknown")})),
       React.createElement("div",{className:"v4-ficha-trace-sub"},tf("f_from_bank_sub",{date:traceDate,raw:traceRaw}))));
-  const meta=[
-    {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
-      on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",
-      onClick:function(){ if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; } setBank(exp,bk==="efectivo"?null:"efectivo"); }},
-    {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
-      onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
-  ];
+  /* La forma de pago en un segmentado (DIS-03): cada toque escribe por el camino de siempre y solo
+     lo que cambia. Tarjeta ↔ Bizum es `setCardFlag` (también en los del banco, como la fila de antes);
+     Efectivo es `setBank`. Salir de Efectivo va al mismo banco que en Apuntar: el de gasto diario
+     si no es el sobre, si no el primer banco que no sea efectivo, o ninguno. */
+  const payMode=bk==="efectivo"?"cash":(exp.noCard?"transfer":"card");
+  const cardBankEnt=(function(){
+    const d=(state.accounts||[]).find(function(a){ return a&&accDaily(a)&&!isEfectivoEnt(a); });
+    return (d&&d.ent)||bankOpts.filter(function(b){ return !isEfectivoEnt(b); })[0]||null;
+  })();
+  /* Cambiar de banco por su camino; si se llega al sobre (segmentado o lista de bancos), un Bizum
+     pierde la marca: en Efectivo no hay mando que la enseñe ni la quite, y escondida cambiaba su
+     clave de reglas (D3). La marca, siempre DESPUÉS de que la nube confirme el banco: el cambio de
+     banco se descarta si la fila cambia entre medias, y la marca la cambiaría. */
+  const aBanco=function(b,nc){
+    if(nc==null&&isEfectivoEnt(b)&&!isIncome) nc=false;
+    return Promise.resolve(setBank(exp,b)).then(function(ok){ if(ok&&nc!=null&&!!exp.noCard!==nc) setCardFlag(exp,nc); return ok; });
+  };
+  const onPayMode=function(m){
+    const sale=payMode==="cash";
+    if(m==="cash"||sale){
+      if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; }
+      aBanco(m==="cash"?"efectivo":cardBankEnt, isIncome?null:(m==="cash"?false:m==="transfer"));
+      return;
+    }
+    const nc=m==="transfer";
+    if(!!exp.noCard!==nc) setCardFlag(exp,nc);
+  };
+  const payRow=React.createElement(ExpensePayRow,{income:isIncome,mode:payMode,onMode:onPayMode,bankEnt:bk,bankOn:bankOpen,
+    bankLocked:auto,cashLocked:auto,onLocked:lockedToast,testPrefix:"exp",
+    onBank:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }});
   const splitPair=gemeloSeparadoDe(state,exp);
   const autoPair=gemeloAutomaticoDe(state,exp);
   const paired=splitPair?React.createElement("div",{className:"hint"},React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-auto-rejoin",onClick:function(){separarGemelo(exp,true);onClose(true);}},t("g_auto_rejoin"))):autoPair&&React.createElement("div",{className:"hint","data-testid":"exp-auto-paired"},
@@ -3110,7 +3132,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
-        onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
+        onClick:function(){ aBanco(b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
     trace,duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
@@ -3212,8 +3234,6 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       if(auto){ lockedToast(); return; }
       const income=!editExp.income; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
     }},React.createElement("span",null,t("f_income_row")),React.createElement("span",{className:"value"},editExp.income?"✓":t("f_no")),React.createElement("span",{className:"chev"},"›")),
-    !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-payment",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-      React.createElement("span",null,t(exp.noCard?"g_nocard":"g_card")),React.createElement("span",{className:"chev"},"›")),
     cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
       React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")),React.createElement("span",{className:"chev"},"›"))
   );
@@ -3243,7 +3263,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
-      React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+      React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"calc(90dvh / var(--zoom,1))"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         trMonthlyProposal(state,exp,Date.now())&&React.createElement("div",{className:"hint",style:{padding:"8px 16px"},"data-testid":"tr-monthly-proposal"},
           React.createElement("span",null,t("tr_monthly_question")),
@@ -3254,7 +3274,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           },dateLabel:fmtIsoCorto(dateIso),onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); },
           amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:!auto,
           concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
-          meta:meta,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
+          payRow:payRow,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )

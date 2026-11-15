@@ -62,7 +62,7 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 });
 
-test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categorías y CTA con importe", async ({ page }) => {
+test("Apuntar usa la ficha v4.1: cabecera compacta, forma de pago en una fila, una fila de cuatro categorías con «Más» y CTA con importe", async ({ page }) => {
   await seedLoggedInDashboard(page);
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -72,17 +72,24 @@ test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categor
   await page.locator(".botnav-fab").click();
   const sheet = page.locator(".v4-exp-sheet");
   await expect(sheet.locator(".v4-ficha-head .v4-seg")).toBeVisible();
-  await expect(sheet.locator(".v4-ficha-meta-pill")).toHaveCount(3);
+  // Forma de pago (DIS-03): un segmentado Tarjeta · Efectivo · Bizum/transf. y la píldora del banco;
+  // la fecha se cambia desde la cabecera, sin píldora 📅 repetida.
+  await expect(sheet.locator(".v4-ficha-pay .v4-seg-btn")).toHaveCount(3);
+  await expect(sheet.locator(".v4-ficha-pay .v4-ficha-meta-pill")).toHaveCount(1);
+  await expect(sheet.locator(".v4-ficha-head [data-testid=\"ap-date\"]")).toBeVisible();
   await expect(sheet.locator('[data-testid="ap-efectivo"]')).toBeDisabled();
-  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(8);
+  // Una sola fila (DIS-01, 15/11): las cuatro más usadas y «Más», que abre el catálogo entero.
+  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(5);
+  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat").last()).toHaveAttribute("data-testid", "ap-cat-more");
+  await expect(sheet.locator(".v4-ficha-cat-title")).toHaveCount(0);
   await expect(sheet.locator(".v4-keys")).toBeVisible();
-  await expect(sheet.locator('[data-testid="ap-payment"]')).toBeVisible();
-  await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Con tarjeta/);
+  await expect(sheet.locator('[data-testid="ap-pay-card"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(sheet.locator('[data-testid="ap-pay-card"]')).toContainText(/Tarjeta/);
   await expect(sheet.locator('[data-testid="ap-cat-bizum"]')).toHaveCount(0);
 
   // Al cerrar la hoja hija de categorías, Apuntar sigue vivo debajo: el fondo no puede
   // desbloquearse durante los 300 ms de salida ni al desmontarse solo la hija.
-  await sheet.locator(".v4-ficha-cat-title button").click();
+  await sheet.locator('[data-testid="ap-cat-more"]').click();
   const categorySheet = page.locator(".v4-ficha-cat-sheet");
   await expect(categorySheet).toBeVisible();
   // La hija es un portal hermano: el candado táctil de Apuntar no puede cancelar su touchmove.
@@ -123,11 +130,11 @@ test("Bizum es forma de pago: el gasto conserva Salud como categoría real", asy
 
   await page.locator(".botnav-fab").click();
   const sheet = page.locator(".v4-exp-sheet");
-  await sheet.locator(".v4-exp-name").fill("Fisio");
-  await sheet.locator('[data-testid="ap-payment"]').click();
-  await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Bizum o transferencia/);
+  await sheet.locator(".v4-exp-name").fill("Fisio"); await sheet.locator(".v4-exp-name").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
+  await sheet.locator('[data-testid="ap-pay-transfer"]').click();
+  await expect(sheet.locator('[data-testid="ap-pay-transfer"]')).toHaveAttribute("aria-pressed", "true");
 
-  await sheet.locator(".v4-ficha-cat-title button").click();
+  await sheet.locator('[data-testid="ap-cat-more"]').click();
   const categorySheet = page.locator(".v4-ficha-cat-sheet");
   await expect(categorySheet.locator('[data-testid="expense-all-cat-bizum"]')).toHaveCount(0);
   await categorySheet.locator('[data-testid="expense-all-cat-salud"]').click();
@@ -164,7 +171,7 @@ test("un Bizum antiguo no cambia solo y se puede pasar a su categoría real", as
 
   const sheet=page.locator('.v4-exp-sheet');
   await expect(sheet.locator('[data-testid="exp-cat-bizum"]')).toHaveClass(/on/);
-  await expect(sheet.locator('[data-testid="exp-payment"]')).toContainText(/Bizum o transferencia/);
+  await expect(sheet.locator('[data-testid="exp-pay-transfer"]')).toHaveAttribute("aria-pressed", "true");
   await sheet.locator(".v4-ficha-cat-title button").click();
   const categorySheet=page.locator(".v4-ficha-cat-sheet");
   await expect(categorySheet.locator('[data-testid="expense-all-cat-bizum"]')).toHaveClass(/on/);
@@ -214,7 +221,7 @@ test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ p
   for (const d of ["1", "5", "0"]) {
     await sheet.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
   }
-  await sheet.locator(".v4-input").fill("Café Estambul");
+  await sheet.locator(".v4-input").fill("Café Estambul"); await sheet.locator(".v4-input").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
   await sheet.locator(".v4-cta").click();
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 

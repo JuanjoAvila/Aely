@@ -79,7 +79,7 @@ test("Apuntar: se ensaya en seco sin dejar rastro, y su velo se queda los toques
   for (const d of ["1", "2"]) await hoja.locator(".v4-keys button", { hasText: d }).first().click();
   await expect(hoja.locator(".v4-cta")).toContainText("12");
   // «Todas las categorías» es una hoja de las de antes: mientras está, la app de detrás se apaga.
-  await hoja.getByRole("button", { name: /^Las \d+/ }).click();
+  await hoja.getByTestId("ap-cat-more").click();
   await expect(page.locator(".v4-ficha-cat-back")).toBeVisible();
   expect(await clases(page)).toMatch(/sheet-shell-off/);
   await page.goBack();

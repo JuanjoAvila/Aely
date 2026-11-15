@@ -40,7 +40,7 @@ test("Apuntar deja elegir Efectivo y el gasto lleva ent efectivo", async ({ page
   for (const d of ["1", "2"]) {
     await sheet.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
   }
-  await sheet.locator(".v4-input").fill("Sobre e2e");
+  await sheet.locator(".v4-input").fill("Sobre e2e"); await sheet.locator(".v4-input").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
   await sheet.locator(".v4-cta").click();
   await expect(sheet).toHaveCount(0, { timeout: 5_000 });
 

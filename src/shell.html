@@ -1811,6 +1811,9 @@
   .v4-sheet-back::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
     background:rgba(8,28,20,.28);opacity:var(--sheet-veil,1);will-change:opacity;
     animation:sheetveil .42s cubic-bezier(.22,.61,.36,1);}
+  /* Apuntar y Modificar: la cifra grande de Gastos o Inicio se leía a través del velo más que el
+     importe de la hoja (DIS-06, 15/11). Solo el tinte; lo que se anima sigue siendo la opacidad. */
+  .v4-sheet-back:has(>.v4-exp-sheet)::before{background:rgba(8,28,20,.33);}
   /* Hojas que se arrastran de lado con el dedo (Atrás por pasos): la capa del gesto existe desde que
      se abren. Si nacía al empezar a arrastrar y moría al soltar, la hoja se veía en blanco al volver
      a su sitio (vídeo del 7/11, «¿Cuándo se cobra?» → «¿Cuánto es?»). */
@@ -1820,7 +1823,9 @@
   .v4-sheet-back.v4-sheet-hold::before{animation:none;transition:none;opacity:var(--sheet-veil,1);}
   .v4-sheet-back.v4-sheet-out::before{will-change:opacity;
     transition:opacity var(--veil-ms,420ms) var(--veil-ease,cubic-bezier(.3,0,.2,1));opacity:0;}
-  .v4-sheet{width:100%;max-width:520px;max-height:88dvh;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
+  /* Alto en px de pantalla, no del body: con la letra Enorme el zoom multiplicaba el 88dvh y la hoja
+     se salía por arriba, sin asa ni Gasto/Ingreso y sin poder cerrarla deslizando (DIS-07, 15/11). */
+  .v4-sheet{width:100%;max-width:520px;max-height:calc(88dvh / var(--zoom,1));background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
     border-radius:26px 26px 0 0;
     /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
     overflow:auto;-webkit-overflow-scrolling:touch;
@@ -1846,7 +1851,46 @@
      - El teclado se pega al fondo del cuerpo: si en un móvil bajo no cabe todo, lo que se desliza
        por debajo son las categorías, nunca las teclas. Lleva el fondo de la hoja para taparlas. */
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"]){padding-bottom:max(34px,calc(14px + var(--safe-bottom)));}
-  .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:6px 0 10px;background:var(--bg-2);}
+  /* Escribiendo el concepto (DIS-05) el numérico sobra y tapaba el campo con la WebView encogida. */
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-keys{display:none;}
+  /* Y la hoja sube y baja con el teclado del sistema en vez de saltar (el margen lo pone el JS). */
+  .v4-sheet.v4-exp-sheet{transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1);}
+  .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:4px 0 8px;gap:6px;background:var(--bg-2);}
+  /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
+     (56 px, las pidió él): una sola fila de categorías con «Más» al final y sin la cabecera
+     «Categoría · Las 32», y algo menos de aire alrededor del importe y del teclado. El relleno del
+     importe es el mismo vacío y escrito: si no, la hoja salta al teclear la primera cifra (D1). */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{padding:2px 0 6px;line-height:1.15;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:6px;}
+  /* Los últimos px para que a 360×640 no quede ni un deslizamiento y a 390×844 la hoja no pase de
+     660 (DIS-01/06): sin ellos sobraban 3 y 5 px respectivamente. */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-pay{margin-bottom:10px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-focus{margin-bottom:6px;}
+  /* En cinco columnas «Supermercado» no cabe en una línea y se cortaba por los dos lados: se parte
+     con guion (hay `lang` en <html>) y, como mucho, en dos líneas. */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat{padding:6px 2px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+  .v4-ficha-cat.more{color:var(--mint);}
+  /* Móvil bajo: la hoja de Apuntar ocupa la pantalla (menos la barra de estado) en vez del 88 %, y
+     el asa y el pie se aprietan un poco: ahí cada fila que cabe es una que no hay que buscar. */
+  @media (max-height:700px){
+    .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){max-height:calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1));
+      padding-top:6px;padding-bottom:max(22px,calc(10px + var(--safe-bottom)));}
+    .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]) > .v4-sheet-handle{margin:4px auto 8px;}
+  }
+  /* Letra Muy grande y Enorme (DIS-07): las teclas conservan su alto en pantalla (56 px reales,
+     no 56 × zoom) y las categorías van en una fila que se desliza de lado en vez de aplastarse. */
+  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys,
+  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys{gap:5px;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys button,
+  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys button{height:calc(56px / var(--zoom,1));}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{display:flex;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats::-webkit-scrollbar,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats::-webkit-scrollbar{display:none;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cat,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cat{flex:0 0 auto;min-width:72px;}
   .v4-sheet-handle{width:40px;height:5px;border-radius:4px;background:var(--line);margin:6px auto 14px;position:relative;flex:0 0 auto;cursor:grab;}
   .v4-sheet-handle::before{content:"";position:absolute;inset:-16px -48px;}
   .v4-sheet.dragging{transition:none;}
@@ -1881,8 +1925,19 @@
     transition:transform .5s var(--ease);transform-origin:center;}
   .v4-ficha-focus.on{transform:scaleX(1);}
   .v4-ficha-fx{text-align:center;color:var(--muted);font-size:12.5px;line-height:1.35;margin:-1px 0 7px;}
-  .v4-ficha-concept.v4-input{font-size:17px;font-weight:700;padding:2px 10px 10px;margin:0;background:transparent;border:0;border-radius:0;text-align:center;}
-  .v4-ficha-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 12px;}
+  /* El texto de ayuda largo con letra Enorme se cortaba a media palabra: puntos suspensivos. */
+  .v4-ficha-concept.v4-input{text-overflow:ellipsis;font-size:17px;font-weight:700;padding:2px 10px 10px;margin:0;background:transparent;border:0;border-radius:0;text-align:center;}
+  /* Forma de pago (DIS-03): segmentado de 44 px y la píldora del banco al lado. La píldora parte de
+     44 px y se estira con lo que sobre: si ni así cabe (letra Enorme a 360) baja a su propia línea. */
+  .v4-ficha-pay{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 12px;}
+  .v4-ficha-pay > .v4-seg{flex:1 0 auto;margin:0;padding:3px;border-radius:14px;}
+  .v4-ficha-pay .v4-seg-btn{min-height:36px;padding:0 8px;font-size:12.5px;border-radius:10px;white-space:nowrap;
+    transition:background-color .2s ease,color .2s ease;}
+  .v4-ficha-pay .v4-seg-btn:disabled{opacity:.45;cursor:default;}
+  .v4-ficha-pay > .v4-ficha-meta-pill{flex:1 1 44px;transition:opacity .2s ease,visibility 0s;}
+  .v4-ficha-pay.income > .v4-ficha-meta-pill{flex:1 1 0;}
+  /* Con Efectivo la píldora no se pinta, pero guarda su sitio: la fila no salta al cambiar. */
+  .v4-ficha-pay > .v4-ficha-meta-pill.off{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s .2s;}
   .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);
     display:flex;align-items:center;justify-content:center;gap:5px;color:var(--muted);font-size:11.5px;font-weight:750;white-space:nowrap;overflow:hidden;}
   .v4-ficha-meta-pill span{overflow:hidden;text-overflow:ellipsis;}
@@ -1903,7 +1958,7 @@
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:700;line-height:1.1;overflow:hidden;}
   .v4-ficha-cat.on{background:rgba(108,198,136,.16);border-color:var(--mint-deep);color:var(--text);}
   .v4-ficha-cat-icon{font-size:19px;line-height:1;overflow:visible !important;}
-  .v4-ficha-cat-sheet{max-height:80dvh;}
+  .v4-ficha-cat-sheet{max-height:calc(80dvh / var(--zoom,1));}
   .v4-ficha-adjust{border-top:1px solid var(--line-soft);margin:4px 0 10px;}
   .v4-ficha-adjust-row{width:100%;min-height:44px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line-soft);
     color:var(--text);font-size:13px;text-align:left;}
@@ -2427,7 +2482,7 @@
   .plan-item .v4-debt-amort,.plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
   .plan-rule-row{gap:8px;padding:12px 0;align-items:center;}
   .plan-rule-row .sub-meta{line-height:1.45;}
-  .plan-edit-sheet{max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;}
+  .plan-edit-sheet{max-height:calc(90dvh / var(--zoom,1));overflow-y:auto;overscroll-behavior:contain;}
   .plan-edit-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
   .plan-edit-head h2{font-size:22px;font-weight:560;margin:0;}
   .plan-edit-sheet .add-form{padding:0;background:none;border:0;}
