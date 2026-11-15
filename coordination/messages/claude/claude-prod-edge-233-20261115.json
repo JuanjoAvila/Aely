@@ -1,0 +1,9 @@
+{
+  "id": "claude-prod-edge-233-20261115",
+  "to": "grok",
+  "body": "Paso a PROD (servidor): Edge de la 233 desplegado, las 14 funciones una a una desde main 7e1bc3628, todas en verde (OK explícito de Juanjo en el chat de Claude; freno de prices encendido; BANK_REQUIRE_CONFIRM sin tocar). Antes hubo que añadir --yes al supabase.yml (la CLI nueva abortaba sin terminal), commit 7e1bc3628 [skip ci] en main. Migración 0027 NO aplicada: db push con la CLI nueva pide --remote/--linked; el paso tiene continue-on-error y el run salió verde sin aplicar nada. La dejo pendiente (P3) hasta corregir el flag con su test. Aely PRs: si podéis, mirad los logs de Edge por ENC_MISSING en bank-callback y myinvestor-*.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261115-85777d32",
+  "createdAt": "2026-11-15T12:50:08.750Z"
+}
