@@ -6882,7 +6882,11 @@ function patchDebtFields(set, id, patch){
         const bal=+debtBalance(d).toFixed(2);
         // Con TAE el modelo lineal no sabe el plazo (como `db_extend_unknown` en Editar deuda): se deja.
         if(n.months!=null&&debtEditAmortable(n)){ const k=debtEditMonths(n,bal,am,paid); if(k!=null&&k>paid) n.months=k; }
-        n.value=+(bal+am*paid).toFixed(2);
+        /* Re-anclar con las cuotas que va a contar `debtBalance`, con su tope: si el plazo no se pudo
+           recalcular (TAE) y ya había vencido, contar las de sin tope inflaba el saldo en
+           bajada × (vencidas − plazo) (revisión de dinero 234, H-A1). */
+        const cuenta=n.months!=null?Math.min(paid,n.months):paid;
+        n.value=+(bal+am*cuenta+(n.balloon>0&&n.months!=null&&cuenta>=n.months?n.balloon:0)).toFixed(2);
       }
       return n;
     })});

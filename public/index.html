@@ -27048,7 +27048,11 @@ function patchDebtFields(set, id, patch){
         const bal=+debtBalance(d).toFixed(2);
         // Con TAE el modelo lineal no sabe el plazo (como `db_extend_unknown` en Editar deuda): se deja.
         if(n.months!=null&&debtEditAmortable(n)){ const k=debtEditMonths(n,bal,am,paid); if(k!=null&&k>paid) n.months=k; }
-        n.value=+(bal+am*paid).toFixed(2);
+        /* Re-anclar con las cuotas que va a contar `debtBalance`, con su tope: si el plazo no se pudo
+           recalcular (TAE) y ya había vencido, contar las de sin tope inflaba el saldo en
+           bajada × (vencidas − plazo) (revisión de dinero 234, H-A1). */
+        const cuenta=n.months!=null?Math.min(paid,n.months):paid;
+        n.value=+(bal+am*cuenta+(n.balloon>0&&n.months!=null&&cuenta>=n.months?n.balloon:0)).toFixed(2);
       }
       return n;
     })});
@@ -27087,6 +27091,30 @@ function debtEditAmortDePlazo(d,form){
   const remaining=months-debtCuotasDesdeAncla(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
   if(!(remaining>0)||principal<=0) return null;
   return String(Math.ceil(principal/remaining)/100);
+}
+/* AMORTIZAR `amt` de una deuda cuyo pendiente era `bal` (lo que vio el diálogo) → la deuda nueva, o la
+   misma si no toca (un diálogo viejo o dos toques seguidos no amortizan dos veces). En curso, el ancla
+   no se mueve: baja `value` y el plazo se acorta. Con el plazo ya VENCIDO (dato heredado con pendiente)
+   se re-ancla como en Editar: con el tope de cuotas, acortar desde las cuotas sin tope dejaba un plazo
+   más largo que lo contado y el saldo salía 0: 1.300 en 12×100, debiendo 100, amortizar 50 pintaba
+   0,00 y los 50 desaparecían (revisión de dinero 234, H-A1). */
+function deudaAmortizada(x, bal, amt){
+  const current=debtBalance(x);
+  if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
+  const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
+  const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});
+  const paid=debtCuotasDesdeAncla(x), vencida=x.months!=null&&paid>=x.months, am=debtAmort(x);
+  if(remaining<=0.005){
+    // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
+    if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
+    o.settledAt=new Date().toISOString();
+  }else if(vencida&&am>0){
+    // Lo que queda se paga con cuotas desde hoy, como cuando se corrige el saldo en Editar.
+    delete o.balloon;
+    o.months=paid+Math.ceil(Math.round(remaining*100)/Math.round(am*100));
+    o.value=+(remaining+am*paid).toFixed(2);
+  }else if(x.months!=null&&!vencida&&am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=paid+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); }
+  return o;
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -27629,16 +27657,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       let changed=false;
       const debts=s.debts.map(function(x){
         if(x.id!==d.id) return x;
-        const current=debtBalance(x);
-        // Un diálogo viejo o dos toques seguidos no pueden amortizar dos veces el mismo importe.
-        if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
-        const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
-        const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});   // el ancla no se toca: el pendiente baja justo lo amortizado
-        if(remaining<=0.005){
-          if(x.months!=null) o.months=debtCuotasDesdeAncla(x);
-          delete o.balloon;
-          o.settledAt=new Date().toISOString();
-        }else if(x.months!=null){ const am=debtAmort(x); if(am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=debtCuotasDesdeAncla(x)+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); } }
+        const o=deudaAmortizada(x,bal,amt);
+        if(o===x) return x;
         changed=true; return o;
       });
       return changed?Object.assign({},s,{debts:debts}):s;
@@ -31199,7 +31219,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="2f13682fc06723357e614909d3a36f95c1b59057f3f505b8c334cb858db4dbd2";
+var _rnSha="fecf6cb66760374236d3bcb01cd90ba3a3a518b2bf9bed472fb8f039aca960fc";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

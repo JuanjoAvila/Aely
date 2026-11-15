@@ -124,5 +124,41 @@ test("la gráfica de patrimonio: la deuda acaba en 0 y no baja más pasado el pl
   assert.equal(cts(pol.at(dPen)),5003,"antes de la última se debe la última");
 });
 
+/* H-A1 (revisión de dinero 234): con el tope, una deuda vencida heredada enseña su pendiente y se puede
+   amortizar; amortizar no puede hacer desaparecer el resto. */
+const amortiza=(d,x)=>c.deudaAmortizada?c.deudaAmortizada(d,c.debtBalance(d),x):null;
+for(const hace of [23,12]){
+  test(`amortizar 50 de una vencida heredada (1.300 en 12×100, hace ${hace} meses) deja 50 pendientes`,()=>{
+    const d={id:"v",name:"Heredada sintética",value:1300,original:1300,monthly:100,months:12,day:1,account:"sabadell",asOf:ahora-hace};
+    assert.equal(cts(c.debtBalance(d)),10000);
+    const o=amortiza(d,50);
+    assert.ok(o,"deudaAmortizada existe");
+    assert.equal(cts(c.debtBalance(o)),5000,"quedan 50, no 0");
+    assert.equal(o.settledAt,undefined,"no se da por liquidada");
+    const t=amortiza(d,100);
+    assert.equal(c.debtBalance(t),0);assert.ok(t.settledAt,"amortizarlo todo sí la liquida");
+  });
+}
+test("vencida con pago final ya contado: amortizar parte deja el resto y liquidarla la deja a 0",()=>{
+  const d={id:"vb",name:"Coche heredado sintético",value:1500,original:1500,monthly:100,months:12,balloon:100,day:1,account:"sabadell",asOf:ahora-15};
+  assert.equal(cts(c.debtBalance(d)),20000);
+  assert.equal(cts(c.debtBalance(amortiza(d,50))),15000);
+  const t=amortiza(d,200);assert.equal(c.debtBalance(t),0);assert.ok(t.settledAt);
+});
+test("amortizar una en curso sigue como antes: baja el saldo y acorta el plazo",()=>{
+  const d={id:"cur",name:"En curso sintética",value:1000,original:1000,monthly:100,months:10,day:1,account:"sabadell",asOf:ahora-2};
+  const o=amortiza(d,250);
+  assert.ok(o,"deudaAmortizada existe");
+  assert.equal(cts(c.debtBalance(o)),cts(c.debtBalance(d))-25000);
+  assert.equal(o.months,3+5,"3 pagadas y 450 en 5 cuotas (la última de 50)");
+  assert.equal(o.asOf,d.asOf,"el ancla no se mueve");
+});
+test("cambiar lo que baja una vencida con TAE (sin plazo recalculable) no infla el saldo",()=>{
+  let s=estado([{id:"tae",name:"TAE sintética",value:1300,original:1300,monthly:100,months:12,apr:5,day:1,account:"sabadell",asOf:ahora-23}]);
+  assert.equal(cts(c.debtBalance(s.debts[0])),10000);
+  c.patchDebtFields(f=>{ s=f(s); },"tae",{amort:80});
+  assert.equal(cts(c.debtBalance(s.debts[0])),10000,"sigue debiendo 100");
+});
+
 if(fallos){ console.log(`deuda-ultima-cuota: ${fallos} fallan`); process.exit(1); }
 console.log(`deuda-ultima-cuota: ${total} pruebas OK`);
