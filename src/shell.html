@@ -2511,7 +2511,11 @@
   .v4-ob-card-ic{font-size:19px;line-height:1.25;flex:0 0 auto;}
   .v4-ob-card-tx{min-width:0;}
   .v4-ob-card-t{font-size:14.5px;font-weight:750;margin-bottom:2px;}
-  .v4-ob-card-s{font-size:12.5px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
+  .v4-ob-card-s{font-size:13px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
+  /* Bienvenida con UN botón principal (Empezar): entrar o crear cuenta van debajo como enlaces de
+     texto de 44 px. Con tres botones grandes no se sabía cuál era el camino (auditoría 15/11). */
+  .v4-ob-links{display:flex;flex-direction:column;align-items:stretch;margin-top:6px;}
+  .v4-ob-link{min-height:44px;background:none;border:none;color:var(--mint);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;padding:10px 8px;}
   .v4-ob-dots{display:flex;gap:6px;justify-content:center;margin:22px 0 0;}
   .v4-ob-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s var(--ease),background .3s;}
   .v4-ob-dots span.on{width:22px;background:var(--mint);}
@@ -2800,14 +2804,14 @@
 .v4-sheet.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;}
 .aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px;flex:0 0 auto;}
 .aely-help-sheet-h h1{font-size:20px;margin:0;font-weight:550;}
-.aely-help-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-  overscroll-behavior-y:none;scrollbar-width:none;padding:0 0 8px;}
-.aely-help-body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
-.aely-help-intro{margin:0 0 8px;}
 .aely-help-x{position:relative;flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line-soft);background:var(--sur);color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer;}
 /* Área de 44 px: el inset cuenta desde dentro del borde de 1 px (34 + 10 = 44), y los píxeles que
    faltan de ancho crecen hacia el título y no hacia el borde derecho de la hoja. */
 .aely-help-x::before{content:"";position:absolute;inset:-5px -1px -5px -9px;}
+.aely-help-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:none;scrollbar-width:none;padding:0 0 8px;}
+.aely-help-body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
+.aely-help-intro{margin:0 0 8px;}
 .aely-help-composer{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding:10px 0 calc(10px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface,var(--sur));}
 /* Con el teclado abierto la hoja ya se apoya encima de él (marginBottom del componente): la zona
    segura queda tapada y sumarla dejaba otro hueco sobre el teclado. */

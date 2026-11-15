@@ -110,9 +110,11 @@ function LockScreen({onUnlock}){
     askConfirm({ title:t("lk_escape"), sub:t("lk_escape_sub"), ok:t("lk_escape_ok"), danger:true })
       .then(function(yes){ if(yes){ bio.disable(); onUnlock(); } });
   };
-  const link={background:"none",border:"none",color:"var(--muted-2)",cursor:"pointer",fontSize:"12px",marginTop:"10px",textDecoration:"underline"};
+  // Salida de emergencia como botón de texto de 44 px, no un enlace gris subrayado de 12 px que
+  // costaba ver y acertar (auditoría de diseño 15/11).
+  const link={background:"none",border:"none",color:"var(--muted)",cursor:"pointer",fontSize:"14px",fontWeight:600,minHeight:44,padding:"10px 16px",marginTop:"4px",fontFamily:"inherit"};
   return React.createElement("div",{style:wrap},
-    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"◎"),
+    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"color-mix(in srgb,var(--mint) 14%,transparent)",color:"var(--mint)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"◎"),
     React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Aely"),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:"14px"}}, err?t("lk_failed"):t("lk_unlock")),
     React.createElement("button",{style:btn,onClick:tryUnlock},t("lk_unlockbtn")),
@@ -132,10 +134,11 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
   const [bioOn,setBioOn]=useState(bio.enabled());
   // zIndex ALTO: debe quedar por encima del onboarding (z90) para que "Ya tengo cuenta" sea visible.
   const overlay={position:"fixed",inset:0,background:"rgba(0,0,0,.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:120,padding:"20px"};
-  const card={background:"#0F1A15",border:"1px solid #1e2b24",borderRadius:"18px",padding:"22px",width:"100%",maxWidth:"360px",color:"#E8F0EB",fontFamily:"Manrope, sans-serif"};
-  const inp={width:"100%",padding:"12px 14px",margin:"6px 0",borderRadius:"12px",border:"1px solid #2a3a31",background:"#0B1410",color:"#fff",fontSize:"16px",boxSizing:"border-box"};
-  const btn={width:"100%",padding:"12px",borderRadius:"12px",border:"none",background:"#5FD08A",color:"#06120C",fontWeight:700,fontSize:"15px",marginTop:"8px",cursor:"pointer"};
-  const link={background:"none",border:"none",color:"#9BD0E0",cursor:"pointer",fontSize:"13px",marginTop:"12px",padding:"4px",width:"100%"};
+  // Colores del tema y no fijos: con el tema Claro el panel salía oscuro sobre la app clara.
+  const card={background:"var(--surface)",border:"1px solid var(--line)",borderRadius:"18px",padding:"22px",width:"100%",maxWidth:"360px",color:"var(--text)",fontFamily:"Manrope, sans-serif"};
+  const inp={width:"100%",padding:"12px 14px",margin:"6px 0",borderRadius:"12px",border:"1px solid var(--line)",background:"var(--bg)",color:"var(--text)",fontSize:"16px",boxSizing:"border-box"};
+  const btn={width:"100%",padding:"12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"15px",marginTop:"8px",cursor:"pointer"};
+  const link={background:"none",border:"none",color:"var(--blue)",cursor:"pointer",fontSize:"13px",marginTop:"12px",padding:"4px",width:"100%"};
   const submit=function(){
     if(!email||!pass){ showToast(t("au_need")); return; }
     setBusy(true);
@@ -180,11 +183,11 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     return React.createElement("div",{style:overlay,onClick:onClose},
       React.createElement("div",{style:card,onClick:stop},
         React.createElement("div",{style:{fontWeight:700,fontSize:"17px"}},t("au_account")),
-        React.createElement("div",{style:{color:"#9fb3a8",fontSize:"13px",marginBottom:"16px"}},(session.user.email||"")),
+        React.createElement("div",{style:{color:"var(--muted)",fontSize:"13px",marginBottom:"16px"}},(session.user.email||"")),
         bio.supported()
-          ? React.createElement("button",{style:Object.assign({},btn,{background:bioOn?"#243b30":"#5FD08A",color:bioOn?"#cfe9da":"#06120C"}),onClick:toggleBio}, bioOn?t("au_bio_off"):t("au_bio_on"))
-          : React.createElement("div",{style:{color:"#E6C36A",fontSize:"12px",margin:"6px 0"}},t("au_nobio")),
-        React.createElement("button",{style:Object.assign({},btn,{background:"#3a2430",color:"#f3d0d8"}),onClick:function(){ cloud.signOut().then(function(){ showToast(t("au_signedout")); onClose(); }); }},t("au_signout")),
+          ? React.createElement("button",{style:Object.assign({},btn,{background:bioOn?"var(--surface-2)":"var(--mint)",color:bioOn?"var(--text)":"var(--on-mint)"}),onClick:toggleBio}, bioOn?t("au_bio_off"):t("au_bio_on"))
+          : React.createElement("div",{style:{color:"var(--tan)",fontSize:"12px",margin:"6px 0"}},t("au_nobio")),
+        React.createElement("button",{style:Object.assign({},btn,{background:"var(--coral-dim)",color:"var(--text)"}),onClick:function(){ cloud.signOut().then(function(){ showToast(t("au_signedout")); onClose(); }); }},t("au_signout")),
         React.createElement("button",{style:link,onClick:onClose},t("au_close"))
       )
     );
@@ -240,9 +243,6 @@ function SyncReportSheet({items,onClose}){
     )
   );
 }
-function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks, goGastos}){
-  const expEnts=expenseBankEnts(state);
-  const bankEnts=((linkEnts&&linkEnts.length)?linkEnts:expEnts).filter(function(e,i,a){ return e&&a.indexOf(e)===i; });
 /* Cabecera de las subpantallas de pantalla completa: «‹» redondo a la izquierda y el título al
    lado, como Ajustes e Inversiones. Solo cambia el botón visible: cada pantalla sigue cerrando con
    su propio onBack y su useBackClose (auditoría de diseño 15/11, seis botones atrás distintos). */
@@ -251,6 +251,9 @@ function SubPushHead({onBack, title}){
     React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onBack},"‹"),
     React.createElement("h1",null, title));
 }
+function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks, goGastos}){
+  const expEnts=expenseBankEnts(state);
+  const bankEnts=((linkEnts&&linkEnts.length)?linkEnts:expEnts).filter(function(e,i,a){ return e&&a.indexOf(e)===i; });
   /* Arranca SOLO con los bancos marcados como gasto diario. Antes arrancaba con TODOS los
      conectados y «Buscar» consultaba incluso los que el filtro luego ocultaba: gastaba su cupo
      PSD2 y era justo lo contrario de lo que indicaba la pantalla. */
@@ -3156,9 +3159,12 @@ function Onboarding({set, onCloud, onSignup}){
             React.createElement("div",{className:"v4-ob-card-t"},t("v4_ob_"+c[0]+"t")),
             React.createElement("div",{className:"v4-ob-card-s"},t("v4_ob_"+c[0]+"s"))));
       })),
-    onCloud && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:18},onClick:onCloud},t("ob_haveacc")),
-    onSignup && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:onSignup},t("ob_signup")),
     React.createElement("button",{style:cta,onClick:function(){ setStep(1); }},t("ob2_go")+" →"),
+    // Empezar NO crea cuenta (solo termina la bienvenida en local): por eso «Crear cuenta nueva»
+    // sigue aquí, como enlace, igual que «Ya tengo cuenta».
+    (onCloud||onSignup) && React.createElement("div",{className:"v4-ob-links"},
+      onCloud && React.createElement("button",{type:"button",className:"v4-ob-link",onClick:onCloud},t("ob_haveacc")),
+      onSignup && React.createElement("button",{type:"button",className:"v4-ob-link",onClick:onSignup},t("ob_signup"))),
     dots
   ));
 

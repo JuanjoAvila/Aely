@@ -72,6 +72,10 @@ export const E2E_MAP = [
   { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  // Lote de menores del diseño 235: «‹» único de las subpantallas, X de Pregúntame, bienvenida con
+  // un solo botón principal y colores del tema en candado y panel de cuenta.
+  { file: "src/modules/10-app-components.js", specs: ["e2e/atras-y-bienvenida.spec.mjs", "e2e/backup-restauracion.spec.mjs"] },
+  { file: "src/modules/16-help-assistant.js", specs: ["e2e/atras-y-bienvenida.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/fin25-charge-months.spec.mjs"] },
