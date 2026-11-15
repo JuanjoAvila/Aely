@@ -28,9 +28,29 @@ function debtEditAmortDePlazo(d,form){
   if(!debtEditAmortable(d)||form.amort===undefined||planEditNumber(form.apr,true)>0) return null;
   const amort=planEditNumber(form.amort,true),monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true),balance=planEditNumber(form.balance);
   if(!(amort>0)||!(monthly>=0)||Math.round(amort*100)===Math.round(monthly*100)||months==null||!Number.isInteger(months)||!(balance>0)) return null;
-  const remaining=months-debtPaidCount(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
+  const remaining=months-debtCuotasDesdeAncla(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
   if(!(remaining>0)||principal<=0) return null;
   return String(Math.ceil(principal/remaining)/100);
+}
+/* AMORTIZAR `amt` de una deuda cuyo pendiente era `bal` (lo que vio el diálogo) → la deuda nueva, o la
+   misma si no toca (un diálogo viejo o dos toques seguidos no amortizan dos veces). En curso, el ancla
+   no se mueve: baja `value` y el plazo se acorta. Con el plazo ya VENCIDO (dato heredado con pendiente)
+   solo baja `value` y el plazo se queda: acortarlo desde las cuotas sin tope dejaba un plazo más largo
+   que lo contado y el saldo salía 0 (1.300 en 12×100, debiendo 100, amortizar 50 pintaba 0,00 y los 50
+   desaparecían; revisión de dinero 234, H-A1). Alargarlo para cobrar el resto desde hoy tampoco: la
+   cuota de este mes, si su día ya pasó, saldría como pagada sin ningún cargo. */
+function deudaAmortizada(x, bal, amt){
+  const current=debtBalance(x);
+  if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
+  const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
+  const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});
+  const paid=debtCuotasDesdeAncla(x), vencida=x.months!=null&&paid>=x.months, am=debtAmort(x);
+  if(remaining<=0.005){
+    // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
+    if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
+    o.settledAt=new Date().toISOString();
+  }else if(x.months!=null&&!vencida&&am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=paid+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); }
+  return o;
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -77,7 +97,7 @@ function debtEditResult(d,form){
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
   // Cambiar lo que baja re-ancla `value` (si no, el saldo de hoy cambiaría hacia atrás: value − amort×pagadas).
   if(amountChanged||quotaChanged||dayChanged||termChanged||amortChanged){
-    const am=debtAmort(next),paid=debtPaidCount(next);
+    const am=debtAmort(next),paid=debtCuotasDesdeAncla(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
     // También al tocar SOLO la cuota que amortiza: antes se alargaba el plazo en silencio y una cuota
@@ -102,7 +122,13 @@ function debtEditResult(d,form){
     if(quotaChanged&&!(next.monthly>0)&&balance>0.005) return {error:"db_edit_quota_zero"};
     if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
-    else{
+    else if(next.months!=null&&paid>=next.months&&!termChanged){
+      /* Plazo ya VENCIDO (dato heredado con pendiente): se corrige lo que se debe y el plazo se queda.
+         Alargarlo desde las cuotas sin tope la reactivaba y, con el día de cargo pasado, Recibos daba
+         por PAGADA una cuota de este mes sin cargo y el neto del banco restaba 100 (revisión de dinero
+         234, R2-1). Igual que `deudaAmortizada`. */
+      next.value=+(balance+am*next.months+(next.balloon>0?next.balloon:0)).toFixed(2);
+    }else{
       // Saldo/día también cambian la proyección: mantener el plazo dejaba principal huérfano.
       // Con la cuota que amortiza no se recalcula: ya se validó contra el plazo que el usuario ve.
       // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
@@ -127,7 +153,7 @@ function debtEditExtension(d,form){
   if(d.amort==null&&(d.apr>0||planEditNumber(form.apr,true)>0)) return {error:"db_extend_unknown"};
   const next=Object.assign({},d,{monthly:+monthly.toFixed(2),day:planEditNumber(form.day)});
   if(d.amort!=null&&Math.abs(d.amort-(d.monthly||0))<=0.005) next.amort=next.monthly;
-  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtPaidCount(next));
+  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtCuotasDesdeAncla(next));
   if(!Number.isSafeInteger(n)||n<=months||debtEditResult(d,Object.assign({},form,{months:String(n)})).error) return null;
   return {months:n};
 }
@@ -494,7 +520,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const [form,setForm]=useState({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""});
   const banks=(function(){ const b=[]; (state.accounts||[]).forEach(a=>{ if(b.indexOf(a.ent)<0) b.push(a.ent); }); ["sabadell","trade_republic","familia"].forEach(x=>{ if(b.indexOf(x)<0) b.push(x); }); return b; })();
   const total=state.debts.reduce((a,d)=>a+debtBalance(d),0);
-  const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
+  const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d):0),0);
   const addDebt=()=>{
     const v=parseFloat(String(form.value).replace(',','.'))||0;
     const months=parseInt(form.months,10)||0;
@@ -573,16 +599,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       let changed=false;
       const debts=s.debts.map(function(x){
         if(x.id!==d.id) return x;
-        const current=debtBalance(x);
-        // Un diálogo viejo o dos toques seguidos no pueden amortizar dos veces el mismo importe.
-        if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
-        const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
-        const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});   // el ancla no se toca: el pendiente baja justo lo amortizado
-        if(remaining<=0.005){
-          if(x.months!=null) o.months=debtPaidCount(x);
-          delete o.balloon;
-          o.settledAt=new Date().toISOString();
-        }else if(x.months!=null){ const am=debtAmort(x); if(am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=debtPaidCount(x)+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); } }
+        const o=deudaAmortizada(x,bal,amt);
+        if(o===x) return x;
         changed=true; return o;
       });
       return changed?Object.assign({},s,{debts:debts}):s;

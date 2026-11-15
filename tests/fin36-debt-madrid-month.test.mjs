@@ -107,7 +107,8 @@ try{
   assert.notEqual(calendar[0],local,"el mutante mensual cambia la fuente");
   const monthSource=html.replace(calendar[0],local),monthContext=context(cases[0].iso,"UTC",monthSource),monthDebt=manual(monthContext,{},monthSource);
   assert.notEqual(cents(monthContext.netWorthDebtPolicy({debts:[monthDebt]},cases[0].today).current),100000,"mutante mensual muere por saldo de Inicio sin current suministrado");checks++;
-  const charge=html.match(/function debtPaidCount\(d\)\{[^\n]+\}/);
+  // Desde el tope de cuotas (15/11/2026) el recuento vive en `debtCuotasDesdeAncla`; debtPaidCount lo acota.
+  const charge=html.match(/function debtCuotasDesdeAncla\(d\)\{[^\n]+\}/);
   assert.ok(charge,"cálculo real de pagos presente");
   assert.equal(charge[0].split("madridYmdParts(Date.now()).d").length,2,"punto diario único");
   const daySource=html.replace(charge[0],charge[0].replace("madridYmdParts(Date.now()).d","new Date().getDate()")),dayContext=context(cases[0].iso,"UTC",daySource),dayDebt=manual(dayContext,{},daySource);

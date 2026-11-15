@@ -306,8 +306,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       if(!debtActive(d) || !(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       // Con «Lo descuento» la cuota es la tuya entera, como en Plan (pagas 197 € + 53 € del recibo).
-      const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt;
-      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((d.monthly+desc)*100)/100:d.monthly, pos:false});
+      const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt, q=debtCuotaIn(d,tt.curYear,cm);
+      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
     });
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;

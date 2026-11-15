@@ -6914,6 +6914,64 @@ function accountRowsInOrder(state){
   rows.forEach(function(r){ if(!seen[r.key]) out.push(r); });
   return out;
 }
+/* UNA CLAVE POR CUENTA, AL CARGAR (revisión externa 15/11/2026, R8). Dos cuentas con la misma clave
+   leían la misma lista de cierres: con 1.000 y 500 hoy, la gráfica de patrimonio daba 2.000 en los días
+   pasados. Y desde la 233 una clave repetida no guarda cierres (`accountBalanceRows`), así que el error
+   se quedaba congelado. Aquí cada cuenta (de `accounts`) que comparte clave recibe una propia:
+   - TODAS las del choque, no «la de antes»: lo guardado bajo esa clave es de las dos mezclado y no se
+     sabe de quién es cada día. Se queda donde está, sin borrar ni repartir; desde hoy cada una apunta
+     el suyo y antes de su primer cierre la gráfica la mantiene con su saldo, como una cuenta nueva.
+   - Una de banco aún sin rol (`obAccounts`) conserva la suya: es el uid que manda el banco.
+   - Sin identificador («acc:», «ob:») no se toca: la 233 ya no le guarda cierres.
+   - Lo que él puso con la clave vieja sigue valiendo: el orden de la lista (las nuevas donde estaba la
+     vieja), la parte de la cuenta y, si la clave era el uid del banco («ob:»), ese uid en `bankUid`
+     para que sus movimientos sigan siendo suyos (`accountOwnsMovement`).
+   Idempotente: con las claves ya únicas devuelve el mismo objeto. La clave nueva sale del id y de una
+   huella de lo que no cambia entre móviles (banco, nombre, rol, IBAN/uid), NO del puesto en la lista:
+   con el puesto, dos móviles con las cuentas en otro orden cruzaban las claves y, con ellas, los
+   cierres (revisión de dinero 234, H-B2). Dos cuentas idénticas en todo eso son intercambiables y el
+   empate se resuelve por orden. */
+function accountKeysHuella(a){
+  const txt=[a.ent,a.name,a.role,a.bankIban,a.bankUid].map(function(x){ return x==null?"":String(x); }).join("|");
+  let h=0x811c9dc5;
+  for(let i=0;i<txt.length;i++){ h^=txt.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; }
+  return ("0000000"+h.toString(16)).slice(-8);
+}
+function accountKeysUnicas(state){
+  const accs=(state&&state.accounts)||[];
+  if(accs.length<2&&!(accs.length&&(state.obAccounts||[]).length)) return state;
+  const veces={};
+  accountRowsInOrder(Object.assign({},state,{settings:null})).forEach(function(r){ veces[r.key]=(veces[r.key]||0)+1; });
+  const choca=function(k){ return veces[k]>1&&k!=="acc:"&&k!=="ob:"; };
+  if(!accs.some(function(a){ return choca(accountOrderKeyOf(a,"account")); })) return state;
+  const usadas=Object.assign({},veces), nuevas={}, claveDe={};
+  accs.map(function(a,i){ return {a:a,i:i,vieja:accountOrderKeyOf(a,"account"),huella:accountKeysHuella(a)}; })
+    .filter(function(x){ return choca(x.vieja); })
+    .sort(function(x,y){ return x.huella<y.huella?-1:x.huella>y.huella?1:x.i-y.i; })
+    .forEach(function(x){
+      const raiz="acc:"+String(x.a.id)+"~"+x.huella;
+      let n=1, k=raiz;
+      while(usadas[k]) k=raiz+"~"+(++n);
+      usadas[k]=1; claveDe[x.i]=k; (nuevas[x.vieja]||(nuevas[x.vieja]=[])).push(k);
+    });
+  const accounts=accs.map(function(a,i){
+    const k=claveDe[i];
+    if(!k) return a;
+    const vieja=accountOrderKeyOf(a,"account"), o=Object.assign({},a,{accountOrderKey:k});
+    if(/^ob:./.test(vieja)&&!a.bankUid&&!a.bankIban) o.bankUid=vieja.slice(3);
+    return o;
+  });
+  const st=state.settings||{}, settings=Object.assign({},st);
+  // Si la vieja la sigue usando una de banco, esa se queda en su sitio, detrás de las nuevas.
+  const deBanco={}; (state.obAccounts||[]).forEach(function(o){ deBanco[accountOrderKeyOf(o,"ob")]=true; });
+  if(Array.isArray(st.accountListOrder)) settings.accountListOrder=st.accountListOrder.reduce(function(out,k){ return out.concat(nuevas[k]?nuevas[k].concat(deBanco[k]?[k]:[]):[k]); },[]);
+  if(st.accountShare){
+    const share=Object.assign({},st.accountShare);
+    Object.keys(nuevas).forEach(function(v){ if(share[v]!=null) nuevas[v].forEach(function(k){ share[k]=share[v]; }); });
+    settings.accountShare=share;
+  }
+  return Object.assign({},state,{accounts:accounts,settings:settings});
+}
 /* LA PARTE MÍA DE UNA CUENTA (14/10/2026). Una conjunta con la pareja contaba entera en el
    patrimonio: el saldo que la llenaron los dos salía como suyo y la gráfica de Inicio arrancaba
    ~4.300 € alta. El porcentaje vive en `settings.accountShare` y NO en la cuenta: las de Open
@@ -10469,7 +10527,8 @@ function loadState(){
     if(saved.trasAbonoDesde==null) saved.trasAbonoDesde=sellarAbonoTraspasos({}).trasAbonoDesde;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
-    const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));
+    // Dos cuentas con la misma clave mezclaban sus cierres en la gráfica (R8, 15/11/2026): cada una la suya.
+    const now=new Date(), s=accountKeysUnicas(liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate())))));
     if(writeBack || s!==seeded) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);
     applyA11y(s);
@@ -11861,7 +11920,9 @@ function netWorthDebtPolicy(state, today, current){
       value=Number(d.value)-debtAmort(d)*paidToday;
       for(let k=n;k<paidToday;k++) value=(value+Number(d.monthly))/(1+rate);
     }
-    if(d.balloon>0&&d.months!=null&&n>=d.months) value-=d.balloon;
+    // Con plazo, el mismo cuadro que `debtBalance`: tope de n cuotas y la última con el redondeo
+    // (sin él, 600,03 en 12 se quedaba en 0,03 y pasado el plazo seguía bajando; revisión 15/11/2026).
+    if(d.months!=null) value=debtBalanceAfter(d,n);
     if(n<0&&d.original>0) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));
     return Math.max(0,value);
   };
@@ -11957,7 +12018,11 @@ function netWorthSeries(state, options){
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
-  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{};
+  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{}, repetida=Object.create(null);
+  // Contadas sobre las listas, no sobre `rows`: con un orden guardado, dos filas con la misma clave se quedan en una.
+  {const n={};(state.accounts||[]).forEach(function(a){ const k=accountOrderKeyOf(a,"account");n[k]=(n[k]||0)+1; });
+   (state.obAccounts||[]).forEach(function(o){ const k=accountOrderKeyOf(o,"ob");n[k]=(n[k]||0)+1; });
+   Object.keys(n).forEach(function(k){ if(n[k]>1) repetida[k]=true; });}
   const ins=options.balanceInputs?Object.assign({},options.balanceInputs,{roundup:options.balanceInputs.roundupThisMonth,monthlyInvest:options.balanceInputs.monthlyInvestThisMonth}):insumosSaldoGasto(state);
   rows.forEach(function(r){ if(r.item.ent) owned[r.item.ent]=true; });
   // Solo cuenta su parte de cada cuenta (`accountShareOf`): el saldo de hoy, sus cierres y sus
@@ -12076,6 +12141,11 @@ function netWorthSeries(state, options){
       // entonces (sin flujos no hay nada que deshacer); la «i» lo declara.
       if(firstByBank[bank]&&!cash) later.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
     }else{
+      // Cierres bajo una clave que comparten dos cuentas: son de las dos mezclados y cada una los
+      // sumaba enteros (1.000 + 500 de hoy pintaban 2.000 en el pasado; revisión externa 15/11/2026).
+      // Al cargar ya se separan (`accountKeysUnicas`); si aun así llegan mezclados, el pasado no se
+      // sabe y no se pinta: sin gráfica y la cifra en «—», nunca una suma inventada.
+      if(points.length&&repetida[r.key]){ gaps.push({kind:"balance",unknown:true,name:r.item.name||bank}); return; }
       // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
       // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
       // efectivo con un cierre de hace dos semanas recortaba toda la serie a esa fecha (13/10).
@@ -13689,8 +13759,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       if(!debtActive(d) || !(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       // Con «Lo descuento» la cuota es la tuya entera, como en Plan (pagas 197 € + 53 € del recibo).
-      const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt;
-      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((d.monthly+desc)*100)/100:d.monthly, pos:false});
+      const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt, q=debtCuotaIn(d,tt.curYear,cm);
+      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
     });
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
@@ -20027,15 +20097,77 @@ const debtAmort=(d)=> d && d.amort!=null ? d.amort : ((d&&d.monthly)||0);
 // su día (ej. financias el 599/4 con día 26 y hoy es 28 → el 1er pago del 26 ya cuenta).
 // Un ancla en un mes que aún no ha llegado es una compra a plazos cuya 1.ª cuota cae ese mes («¿Y si gasto…?»
 // › «A plazos», 11/11/2026): hasta entonces no hay nada pagado. Las altas de Deudas nunca anclan en el futuro.
-function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+// Con plazo, nunca más de `months`: pasado el plazo no se cobra nada, así que tampoco se paga nada
+// (sin tope el saldo seguía bajando solo, sin ningún cobro; revisión externa 15/11/2026).
+function debtPaidCount(d){ const n=debtCuotasDesdeAncla(d); return d.months!=null?Math.min(n,Math.max(0,d.months)):n; }
+/* Lo mismo SIN tope: las cuotas que han vencido desde el ancla. Lo usan solo editar y amortizar, que
+   re-anclan una deuda ya vencida con saldo (dato heredado) contando desde hoy: con el tope, el plazo
+   nuevo quedaba antes de hoy y la deuda no volvía a cobrar nunca. */
+function debtCuotasDesdeAncla(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+/* LA ÚLTIMA CUOTA SE LLEVA EL REDONDEO (revisión externa 15/11/2026). La cuota se guarda redondeada al
+   céntimo y se cobraba igual los n meses: 600,03 en 12 sumaba 600,00 y dejaba 0,03 debidos para
+   siempre; 1.199,99 en 7 cobraba 1.200,01. En céntimos, la última amortiza lo que falta: principal
+   (value − pago final) − (n − 1) × amort. Devuelve cuánto se aparta de `amort` (céntimos, con signo).
+   null = no aplica: sin plazo, o un saldo que el plazo no cubre ni de lejos (más de un céntimo por
+   cuota de diferencia, dato heredado): eso no es redondeo y darlo por pagado sería inventar. Una
+   última parcial tras amortizar (350 con cuota 100 → 100, 100, 100 y 50) sí aplica. */
+function debtUltimaAjuste(d){
+  if(!d||d.months==null||!(d.months>=1)) return null;
+  const n=d.months, A=Math.round(debtAmort(d)*100), P=Math.round((Number(d.value)||0)*100)-Math.round((Number(d.balloon)||0)*100);
+  if(!(A>0)||!(P>0)) return null;
+  const last=P-(n-1)*A;
+  return last>0&&last<=A+n?last-A:null;
+}
+// Saldo tras `n` cuotas pagadas. Con el ajuste de la última, acabado el plazo no queda nada.
+function debtBalanceAfter(d, n){
+  if(d.months!=null){ n=Math.min(n,d.months); if(n>=d.months&&debtUltimaAjuste(d)!=null) return 0; }
+  let b=d.value - debtAmort(d)*n; if(d.balloon>0 && d.months!=null && n>=d.months) b-=d.balloon; return Math.max(0, b);
+}
+/* La cuota en EFECTIVO del mes (y, m 1-12; sin mes, el de hoy): `monthly`, salvo la última de un plazo,
+   que lleva el ajuste. Solo cuando la cuota ES lo que amortiza (financiación al 0 %): si difieren
+   (intereses, préstamo familiar que paga 197 y baja 250) lo que el banco cobre el último mes no lo
+   sabemos y se queda la cuota de siempre. El pago final va aparte (`debtBalloonIn`). */
+function debtCuotaIn(d, y, m){
+  const q=Number(d&&d.monthly)||0;
+  if(!(q>0)||d.months==null||Math.round(debtAmort(d)*100)!==Math.round(q*100)) return q;
+  if(y==null){ const p=madridYmdParts(Date.now()); y=p.y; m=p.m; }
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(), adj=debtUltimaAjuste(d);
+  return adj!=null&&(y*12+(m-1))===anchor+d.months-1 ? (Math.round(q*100)+adj)/100 : q;
+}
 // Financiación tipo coche: además de entrada (downPayment, ya pagada = informativa) y cuotas,
 // hay un PAGO FINAL (balloon) en el último mes del plazo. debtBalloonIn(d,y,m): balloon si (y,m 1-12)
 // es ese último mes; 0 si no. La amort lineal ya se fija a (value−balloon)/months al crear la deuda,
 // así el saldo baja con las cuotas y el balloon limpia el resto al final.
 function debtBalloonIn(d, y, m){ if(!d || !(d.balloon>0) || d.months==null) return 0; const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return (y*12+(m-1))===(anchor+d.months-1) ? d.balloon : 0; }
-function debtBalance(d){ if(!d || d.value==null) return 0; let b=d.value - debtAmort(d)*debtPaidCount(d); if(d.balloon>0 && d.months!=null && debtPaidCount(d)>=d.months) b-=d.balloon; return Math.max(0, b); }
+function debtBalance(d){ if(!d || d.value==null) return 0; return debtBalanceAfter(d, debtPaidCount(d)); }
 // ¿la cuota sigue cobrándose este mes? Una financiación (con `months` = plazo) deja de
 // cobrar al acabar el plazo o al llegar el saldo a 0. Sin plazo (hipoteca/préstamo): mientras quede saldo.
+/* ¿Es (y, m 1-12) el mes de la ÚLTIMA cuota de un plazo? Pagada la última, el saldo es 0 y la deuda
+   deja de estar activa; pero el cargo de ese mes sigue siendo su cuota (revisión de dinero 234, H-A2). */
+function debtUltimaCuotaEn(d, y, m){
+  if(!d||!(Number(d.monthly)>0)||d.months==null||!(d.months>=1)) return false;
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow();
+  return y*12+(m-1)===anchor+d.months-1;
+}
+/* Para el motor que reconoce cuotas en lo que trae el banco: la deuda activa, o una cuya última cuota
+   cae este mes o el anterior hace pocos días (el banco a veces apunta el cargo con retraso). Sin esto el
+   cargo de la última, que deja el saldo a 0, entraba como gasto. Que el cargo sea de un mes del plazo
+   lo mira `debtCuotaDelPlazo`. */
+const DEBT_GRACIA_DIAS=10;
+function debtCuotaReciente(d){
+  if(debtActive(d)) return true;
+  if(!d||!(Number(d.monthly)>0)||d.months==null||!(d.months>=1)) return false;
+  const p=madridYmdParts(Date.now()), now=ymAbs(p.y,p.m-1), last=((typeof d.asOf==="number")?d.asOf:ymNow())+d.months-1;
+  return now===last||(now===last+1&&p.d<=DEBT_GRACIA_DIAS);
+}
+// ¿La clave «id|año-mes» de una cuota cae dentro del plazo? (sin plazo, siempre).
+function debtCuotaDelPlazo(d, key){
+  if(!d||d.months==null) return true;
+  const mm=/\|(\d+)-(\d+)$/.exec(String(key||""));
+  if(!mm) return true;
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow();
+  return Number(mm[1])*12+Number(mm[2])-1<=anchor+d.months-1;
+}
 function debtActive(d){ if(!d || !d.monthly) return false; const bal=debtBalance(d); if(d.months!=null){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return ymNow()>=anchor && (ymNow()-anchor) < d.months && bal>0.005; } return bal>0.005; }
 /* ¿Se cobra la cuota en el mes (y, m 1-12) que se mira? Con el ancla en este mes o antes es `debtActive`
    tal cual (mira hoy, como siempre). Solo una compra a plazos que aún no ha empezado (ancla futura,
@@ -20058,7 +20190,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
   (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s)) && !fixedPagadoFuera(s,e,y,m,t)) net -= occAmountIn(e,m,y); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.
   (s.flows||[]).forEach(function(f){
@@ -20590,8 +20722,8 @@ function fixedPaymentFeedClear(s,identity){
 function fixedPaymentContenders(s,y,m){
   return (s.fixed||[]).filter(function(f){ return occursIn(f,m,y); }).map(function(f){
     return fixedPaymentContender(f,y,m);
-  }).concat((s.debts||[]).filter(debtActive).map(function(d){
-    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:(d.monthly||0)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d)),debt:d};
+  }).concat((s.debts||[]).filter(function(d){ return debtActive(d)||debtUltimaCuotaEn(d,y,m); }).map(function(d){
+    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d)),debt:d};
   }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
     return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount,day:cleanDay(o.day)};
   }));
@@ -21298,7 +21430,7 @@ function fixedPaymentState(s,e,y,m,today){
    la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el
    saldo ni el principal: el banco ya incluye el pago (feedback 2/10/2026). */
 function debtPaymentState(s,d,y,m,today){
-  var day=cleanDay(dayOf(d)),target=(Number(d.monthly)||0)+debtBalloonIn(d,y,m);
+  var day=cleanDay(dayOf(d)),target=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
   var unique=!!d.id&&(s.debts||[]).filter(function(other){ return other.id===d.id; }).length===1;
   var deleted=expenseDeletedSet(s),end=new Date(y,m-1,today,23,59,59).getTime();
   var rows=(s.expenses||[]).filter(function(x){
@@ -21410,7 +21542,7 @@ function paymentEvidenceUI(s,y,m,today){
     if(tx&&x.extId&&tx.id&&String(x.extId)!==String(tx.id)) return;
     add(x,"fixed",f);
   });
-  (s.debts||[]).filter(debtActive).forEach(function(d){
+  (s.debts||[]).filter(function(d){ return debtActive(d)||debtUltimaCuotaEn(d,y,m); }).forEach(function(d){
     var x=debtPaymentState(s,d,y,m,today).expense,ok=!!x&&current(x);
     confirmed["debt_"+d.id]=ok;confirmed["balloon_"+d.id]=ok;
     if(ok) add(x,"debt",d);
@@ -21528,7 +21660,7 @@ function planChargesMonth(s,m,y,today){
     // Sin day: pendiente con día desconocido. NO usar debtChargeDay/isDebtPaidThisMonth
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
     var status=debtPaymentState(s,d,y,m,today),dy=status.day,p=status.paid;
-    var a=Number(d.monthly)||0, desc=a>0?deudaDescuentoMes(s,d,y,m,today):null;
+    var a=debtCuotaIn(d,y,m), desc=a>0?deudaDescuentoMes(s,d,y,m,today):null;
     // Lo cobrado de verdad frente a la cuota (y su pago final, si lo hay): la fila lo dice como un recibo.
     var plan=a+debtBalloonIn(d,y,m);
     // Con «Lo descuento», la fila cuenta la cuota entera (tu parte); del banco sale solo `monthly`.
@@ -21740,7 +21872,7 @@ function deudaFijarDescuento(s,id,paga,baja){
     const form=Object.assign(debtEditDraft(d),{monthly:String(Math.round(paga*100)/100),amort:String(Math.round(baja*100)/100),amortSet:true});
     if(d.months!=null){
       const tmp=Object.assign({},d,{monthly:Number(form.monthly),amort:Number(form.amort)});
-      const n=debtEditMonths(tmp,Number(form.balance),Number(form.amort),debtPaidCount(d));
+      const n=debtEditMonths(tmp,Number(form.balance),Number(form.amort),debtCuotasDesdeAncla(d));
       if(n!=null) form.months=String(n);
     }
     const r=debtEditResult(d,form);
@@ -22782,7 +22914,8 @@ function pendingWalkEvents(state, y, m, today){
     const st=debtPaymentState(state,d,y,m,today);
     if(st.paid||st.day==null||!(Number(st.day)>0)) return;
     const b=d.account||"sabadell", bl=debtBalloonIn(d,y,m);
-    if(Number(d.monthly)>0) evs.push({bank:b, day:hoy(st.day), amt:-Number(d.monthly)});
+    const q=debtCuotaIn(d,y,m);
+    if(q>0) evs.push({bank:b, day:hoy(st.day), amt:-q});
     if(bl>0) evs.push({bank:b, day:hoy(st.day), amt:-bl});
   });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({bank:o.account||"sabadell", day:o.day||0, amt:-o.amount}); });
@@ -22918,7 +23051,7 @@ function reconcileBank(state, y, m, today){
   // cargos modelados de este mes por entidad
   const modeled=[];
   (state.fixed||[]).forEach(function(e){ const ent=accOf(e); if(!obEnts[ent]||!occursIn(e,m,y)) return; const amt=occAmountIn(e,m,y),day=dayIn(e,m,y); if(amt<=0) return; modeled.push({name:e.name,amount:amt,day:day,ent:ent,id:e.id,kind:"fixed",bankAmount:(typeof e.bankAmount==="number"?e.bankAmount:null)}); if(feedCovers(ent,day)) res.covered[e.id]=1; });
-  (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=(d.monthly||0)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:d.day||null,ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
+  (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:d.day||null,ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
   (state.oneoffs||[]).forEach(function(o){ const ent=o.account||"sabadell"; if(!obEnts[ent]||!oneoffOccurs(o,y,m)||(o.amount||0)<=0) return; modeled.push({name:o.name||"Cargo",amount:o.amount,day:o.day||null,ent:ent,id:o.id,kind:"oneoff",bankAmount:(typeof o.bankAmount==="number"?o.bankAmount:null)}); });
 
   const debits=month.filter(function(t){ return (t.amount||0)>0; }).map(function(t){ return Object.assign({},t,{_used:false}); });
@@ -23901,7 +24034,7 @@ function importObExpenses(s, txs, links){
   const modeledByEnt={};
   const pushModeled=function(ent,name,amount,debtId,otro,id){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null,otro:otro,id:id||null}); };
   (s.fixed||[]).forEach(function(f){ chargeMonths(f).concat(ym).forEach(function(mm){ pushModeled(accOf(f), f.name, occAmountIn(f,mm,yy), 0, mm!==ym||!occursIn(f,ym,yy), f.id); }); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d)||debtUltimaCuotaEn(d,yy,ym)) pushModeled(d.account||"sabadell", d.name||"Cuota", debtCuotaIn(d,yy,ym)+debtBalloonIn(d,yy,ym), d.id); });
   (s.oneoffs||[]).forEach(function(o){ pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0, 0, !oneoffOccurs(o,yy,ym), o.id); });
   /* QUÉ casó, no solo SI casó (4.21.0). Una DEUDA casada entra y `marcarCuotasDeDeuda` la pone
      en «Deudas», fuera del gastado. Un Fijo o un puntual casado entra con `reciboId` (12/10/2026):
@@ -24425,7 +24558,7 @@ function cuotaCargoCercano(d, ms){
     const ult=new Date(y, m+1, 0).getDate();
     const c=new Date(y, m, Math.min(dia, ult), 12).getTime();
     const dias=Math.abs(c-ms)/86400000;
-    if(!best || dias<best.dias) best={ key:y+"-"+(m+1), dias:dias, importe:(d.monthly||0)+debtBalloonIn(d, y, m+1) };
+    if(!best || dias<best.dias) best={ key:y+"-"+(m+1), dias:dias, importe:debtCuotaIn(d, y, m+1)+debtBalloonIn(d, y, m+1) };
   });
   return best;
 }
@@ -24471,7 +24604,8 @@ function cuotaAliasKey(e){
 const CUOTA_ALIAS_DIAS=15;
 function cuotasDeDeudaPorMarcar(s){
   const todas=((s&&s.debts)||[]).filter(function(d){ return d && d.id; });
-  const debts=todas.filter(function(d){ return debtActive(d); });
+  // La última cuota se reconoce aunque ya haya dejado el saldo a 0 (revisión de dinero 234, H-A2).
+  const debts=todas.filter(function(d){ return debtCuotaReciente(d); });
   const alias=(s&&s.cuotaAlias)||{};
   const hayAlias=Object.keys(alias).length>0;
   if(!debts.length && !hayAlias) return [];
@@ -24494,7 +24628,7 @@ function cuotasDeDeudaPorMarcar(s){
     const ent=expenseBankOf(e);
     if(!neutra) debts.forEach(function(d){
       const c=cuotaCasa(d, ent, e.amount||0, e.obName!=null?e.obName:(e.merchant||""), ms);
-      if(c) cands.push({ e:e, d:d, key:c.key, score:c.score });
+      if(c && debtCuotaDelPlazo(d, c.key)) cands.push({ e:e, d:d, key:c.key, score:c.score });
     });
     const ak=hayAlias && cuotaAliasKey(e);
     const da=ak && alias[ak] && todas.find(function(x){ return x.id===alias[ak]; });
@@ -25922,7 +26056,7 @@ function histSignSuspectByBank(cands){
    y lo que entra en este lote, y solo dentro de la ventana de `CUOTA_MESES`.
    Solo mira candidatos que de otro modo entrarían nuevos. → { índice: debtId }. */
 function histCuotasDeDeuda(cands, state, saltar){
-  const debts=((state&&state.debts)||[]).filter(function(d){ return d && d.id && debtActive(d); });
+  const debts=((state&&state.debts)||[]).filter(function(d){ return d && d.id && debtCuotaReciente(d); });
   const out={};
   if(!debts.length) return out;
   const desde=cuotaDesdeMs();
@@ -25934,7 +26068,7 @@ function histCuotasDeDeuda(cands, state, saltar){
     if(!(ms>=desde)) return;
     debts.forEach(function(d){
       const c=cuotaCasa(d, x.ent, Math.abs(x.amount||0), x.merchant||"", ms);
-      if(c) posibles.push({ i:i, d:d, key:c.key, score:c.score });
+      if(c && debtCuotaDelPlazo(d, c.key)) posibles.push({ i:i, d:d, key:c.key, score:c.score });
     });
   });
   posibles.sort(function(a,b){ return a.score-b.score; });
@@ -26580,7 +26714,7 @@ function billsCuotaAnualDe(state, d, curMonth, curYear){
   let x=0;
   for(let i=0;i<billsCuotasEnAno(d,curMonth,curYear);i++){
     const m=(curMonth-1+i)%12+1, y=curYear+Math.floor((curMonth-1+i)/12);
-    x+=(Number(d.monthly)||0)+debtBalloonIn(d,y,m)+billsDescuentoSin(state,d,function(e){ return fixedSinCobroIn(e,y,m); });
+    x+=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m)+billsDescuentoSin(state,d,function(e){ return fixedSinCobroIn(e,y,m); });
   }
   return Math.round(x*100)/100;
 }
@@ -26595,7 +26729,7 @@ function billsHeroTotal(state, totals, curMonth, curYear){
   const pausado=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?fixedMonthlyOf(e):0); },0);
   if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual-pausado+desc;
   const serv=(state.fixed||[]).reduce(function(a,e){ return a+(billsPausado(e,curMonth,curYear)?0:fixedMonthlyOf(e)); },0);
-  const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActiveIn(d,curYear,curMonth)?(d.monthly||0):0); },0);
+  const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActiveIn(d,curYear,curMonth)?debtCuotaIn(d,curYear,curMonth):0); },0);
   return serv+cuotas+desc;
 }
 function billsCountAll(state, curMonth, curYear){
@@ -26612,8 +26746,8 @@ function billsGroupRows(state, group, curMonth, curYear){
   }
   if(group==="debt"){
     return (state.debts||[]).filter(debtActive)
-      .map(function(d){ const desc=billsDescuentoSin(state,d,function(e){ return billsPausado(e,curMonth,curYear); });
-        return {kind:"debt",id:d.id,item:d,name:d.name,monthly:desc>0?Math.round(((d.monthly||0)+desc)*100)/100:d.monthly||0,anual:billsCuotaAnualDe(state,d,curMonth,curYear),cash:d.monthly||0,descuento:desc,bank:d.account||"sabadell",locked:true}; });
+      .map(function(d){ const desc=billsDescuentoSin(state,d,function(e){ return billsPausado(e,curMonth,curYear); }),q=debtCuotaIn(d,curYear,curMonth);
+        return {kind:"debt",id:d.id,item:d,name:d.name,monthly:desc>0?Math.round((q+desc)*100)/100:q,anual:billsCuotaAnualDe(state,d,curMonth,curYear),cash:q,descuento:desc,bank:d.account||"sabadell",locked:true}; });
   }
   if(group==="in"){
     return (state.flows||[]).filter(function(f){ return !flowOncePast(f,curYear,curMonth); })
@@ -26962,12 +27096,16 @@ function patchDebtFields(set, id, patch){
       if(!(n.amort>0) || Math.abs((n.amort||0)-(n.monthly||0))<0.005) delete n.amort;
       /* El saldo de hoy es value − bajada × pagadas: cambiar la bajada sin re-anclar movía el saldo
          hacia atrás (la misma regla que Editar deuda, feedback 1/11/2026). El plazo sale de la nueva. */
-      const am=debtAmort(n),paid=debtPaidCount(n);
+      const am=debtAmort(n),paid=debtCuotasDesdeAncla(n);
       if(Math.round(am*100)!==Math.round(debtAmort(d)*100)&&d.value!=null&&am>0){
         const bal=+debtBalance(d).toFixed(2);
         // Con TAE el modelo lineal no sabe el plazo (como `db_extend_unknown` en Editar deuda): se deja.
         if(n.months!=null&&debtEditAmortable(n)){ const k=debtEditMonths(n,bal,am,paid); if(k!=null&&k>paid) n.months=k; }
-        n.value=+(bal+am*paid).toFixed(2);
+        /* Re-anclar con las cuotas que va a contar `debtBalance`, con su tope: si el plazo no se pudo
+           recalcular (TAE) y ya había vencido, contar las de sin tope inflaba el saldo en
+           bajada × (vencidas − plazo) (revisión de dinero 234, H-A1). */
+        const cuenta=n.months!=null?Math.min(paid,n.months):paid;
+        n.value=+(bal+am*cuenta+(n.balloon>0&&n.months!=null&&cuenta>=n.months?n.balloon:0)).toFixed(2);
       }
       return n;
     })});
@@ -27003,9 +27141,29 @@ function debtEditAmortDePlazo(d,form){
   if(!debtEditAmortable(d)||form.amort===undefined||planEditNumber(form.apr,true)>0) return null;
   const amort=planEditNumber(form.amort,true),monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true),balance=planEditNumber(form.balance);
   if(!(amort>0)||!(monthly>=0)||Math.round(amort*100)===Math.round(monthly*100)||months==null||!Number.isInteger(months)||!(balance>0)) return null;
-  const remaining=months-debtPaidCount(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
+  const remaining=months-debtCuotasDesdeAncla(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
   if(!(remaining>0)||principal<=0) return null;
   return String(Math.ceil(principal/remaining)/100);
+}
+/* AMORTIZAR `amt` de una deuda cuyo pendiente era `bal` (lo que vio el diálogo) → la deuda nueva, o la
+   misma si no toca (un diálogo viejo o dos toques seguidos no amortizan dos veces). En curso, el ancla
+   no se mueve: baja `value` y el plazo se acorta. Con el plazo ya VENCIDO (dato heredado con pendiente)
+   solo baja `value` y el plazo se queda: acortarlo desde las cuotas sin tope dejaba un plazo más largo
+   que lo contado y el saldo salía 0 (1.300 en 12×100, debiendo 100, amortizar 50 pintaba 0,00 y los 50
+   desaparecían; revisión de dinero 234, H-A1). Alargarlo para cobrar el resto desde hoy tampoco: la
+   cuota de este mes, si su día ya pasó, saldría como pagada sin ningún cargo. */
+function deudaAmortizada(x, bal, amt){
+  const current=debtBalance(x);
+  if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
+  const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
+  const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});
+  const paid=debtCuotasDesdeAncla(x), vencida=x.months!=null&&paid>=x.months, am=debtAmort(x);
+  if(remaining<=0.005){
+    // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
+    if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
+    o.settledAt=new Date().toISOString();
+  }else if(x.months!=null&&!vencida&&am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=paid+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); }
+  return o;
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -27052,7 +27210,7 @@ function debtEditResult(d,form){
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
   // Cambiar lo que baja re-ancla `value` (si no, el saldo de hoy cambiaría hacia atrás: value − amort×pagadas).
   if(amountChanged||quotaChanged||dayChanged||termChanged||amortChanged){
-    const am=debtAmort(next),paid=debtPaidCount(next);
+    const am=debtAmort(next),paid=debtCuotasDesdeAncla(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
     // También al tocar SOLO la cuota que amortiza: antes se alargaba el plazo en silencio y una cuota
@@ -27077,7 +27235,13 @@ function debtEditResult(d,form){
     if(quotaChanged&&!(next.monthly>0)&&balance>0.005) return {error:"db_edit_quota_zero"};
     if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
-    else{
+    else if(next.months!=null&&paid>=next.months&&!termChanged){
+      /* Plazo ya VENCIDO (dato heredado con pendiente): se corrige lo que se debe y el plazo se queda.
+         Alargarlo desde las cuotas sin tope la reactivaba y, con el día de cargo pasado, Recibos daba
+         por PAGADA una cuota de este mes sin cargo y el neto del banco restaba 100 (revisión de dinero
+         234, R2-1). Igual que `deudaAmortizada`. */
+      next.value=+(balance+am*next.months+(next.balloon>0?next.balloon:0)).toFixed(2);
+    }else{
       // Saldo/día también cambian la proyección: mantener el plazo dejaba principal huérfano.
       // Con la cuota que amortiza no se recalcula: ya se validó contra el plazo que el usuario ve.
       // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
@@ -27102,7 +27266,7 @@ function debtEditExtension(d,form){
   if(d.amort==null&&(d.apr>0||planEditNumber(form.apr,true)>0)) return {error:"db_extend_unknown"};
   const next=Object.assign({},d,{monthly:+monthly.toFixed(2),day:planEditNumber(form.day)});
   if(d.amort!=null&&Math.abs(d.amort-(d.monthly||0))<=0.005) next.amort=next.monthly;
-  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtPaidCount(next));
+  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtCuotasDesdeAncla(next));
   if(!Number.isSafeInteger(n)||n<=months||debtEditResult(d,Object.assign({},form,{months:String(n)})).error) return null;
   return {months:n};
 }
@@ -27469,7 +27633,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const [form,setForm]=useState({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""});
   const banks=(function(){ const b=[]; (state.accounts||[]).forEach(a=>{ if(b.indexOf(a.ent)<0) b.push(a.ent); }); ["sabadell","trade_republic","familia"].forEach(x=>{ if(b.indexOf(x)<0) b.push(x); }); return b; })();
   const total=state.debts.reduce((a,d)=>a+debtBalance(d),0);
-  const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
+  const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d):0),0);
   const addDebt=()=>{
     const v=parseFloat(String(form.value).replace(',','.'))||0;
     const months=parseInt(form.months,10)||0;
@@ -27548,16 +27712,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       let changed=false;
       const debts=s.debts.map(function(x){
         if(x.id!==d.id) return x;
-        const current=debtBalance(x);
-        // Un diálogo viejo o dos toques seguidos no pueden amortizar dos veces el mismo importe.
-        if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
-        const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
-        const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});   // el ancla no se toca: el pendiente baja justo lo amortizado
-        if(remaining<=0.005){
-          if(x.months!=null) o.months=debtPaidCount(x);
-          delete o.balloon;
-          o.settledAt=new Date().toISOString();
-        }else if(x.months!=null){ const am=debtAmort(x); if(am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=debtPaidCount(x)+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); } }
+        const o=deudaAmortizada(x,bal,amt);
+        if(o===x) return x;
         changed=true; return o;
       });
       return changed?Object.assign({},s,{debts:debts}):s;
@@ -31118,7 +31274,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="49b8ea3c40ae1296024fe0fea7a618440196f15d828a953e16e086e324d05123";
+var _rnSha="639dd234136b4a2794e9cbcae227eac7b610722719d39ebb5035ae3c956117af";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -34623,7 +34779,7 @@ function reciboCargoTexto(x){ return String((x&&(x.merchant||x.obName))||""); }
 function deudaCargoEnlazado(s, d, y, m, today){
   if(!d) return null;
   const st=debtPaymentState(s,d,y,m,today);
-  if(st.expense) return {x:st.expense, acredita:true, motivo:null, cuota:(Number(d.monthly)||0)+debtBalloonIn(d,y,m)};
+  if(st.expense) return {x:st.expense, acredita:true, motivo:null, cuota:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m)};
   const fin=new Date(y,m-1,today,23,59,59).getTime(), borrados=expenseDeletedSet(s);
   // La misma ventana que usa el motor para atar un cargo a la cuota de un mes.
   const filas=(s.expenses||[]).filter(function(x){
@@ -34634,7 +34790,7 @@ function deudaCargoEnlazado(s, d, y, m, today){
     return c.key===y+"-"+m&&c.dias<=CUOTA_ALIAS_DIAS;
   }).sort(function(a,b){ return dateMs(String(b.date).slice(0,10))-dateMs(String(a.date).slice(0,10)); });
   if(!filas.length) return null;
-  const x=filas[0], cuota=(Number(d.monthly)||0)+debtBalloonIn(d,y,m);
+  const x=filas[0], cuota=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
   const motivo=cleanDay(dayOf(d))==null?"sin_dia":Math.round(cuota*100)!==Math.round(Number(x.amount)*100)?"importe":"banco";
   return {x:x, acredita:false, motivo:motivo, cuota:cuota};
 }
@@ -39333,7 +39489,8 @@ function App(){
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
-          const next=liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
+          // Y las claves de cuenta repetidas que traiga (R8, `accountKeysUnicas`): misma clave que al cargar.
+          const next=liberarReservasHuerfanas(accountKeysUnicas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate())));
           // Una lectura vieja no deshace el backup que este mismo titular ya terminó hoy.
           const backup=prev._historyOwner===u&&prev.lastBackup===new Date().toISOString().slice(0,10)?{lastBackup:prev.lastBackup}:null;
           return Object.assign({},planSyncDerived(next,prev),backup,{[cloudMergeKey.current]:{read:read}});
@@ -40853,7 +41010,7 @@ function App(){
     // recibos»: con `amount×FREQ_M` un recibo de importe distinto por cobro (seguro 172,05 + 166,94)
     // ignoraba su `schedule` y la cabecera no cuadraba con la suma de sus grupos (beta 4.26.150).
     const fijosVar=state.fixed.reduce((a,e)=>a+fixedMonthlyOf(e),0);
-    const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
+    const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d,curYear,curMonth):0),0);
     const fijosMensual=fijosVar+cuotas;
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
     // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---
@@ -40883,7 +41040,7 @@ function App(){
       chargesByBank[b]=(chargesByBank[b]||0)+extra;
       if(!isPaidIn(e,curMonth,today,curYear,state)&&!fixedPagadoFuera(state,e,curYear,curMonth,today)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
     });
-    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
+    state.debts.forEach(d=>{ if(debtActive(d)) acc(debtCuotaIn(d,curYear,curMonth)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
@@ -41233,7 +41390,7 @@ function App(){
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
-      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)};
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d)};
       c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
@@ -41290,7 +41447,7 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        const msg=messageOf("debt_"+d.id,d.name,d.monthly);
+        const msg=messageOf("debt_"+d.id,d.name,debtCuotaIn(d,cy,cm));
         notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });
     };

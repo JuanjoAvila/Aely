@@ -45,6 +45,9 @@ function debtOracle(d,day,now=today){
   if(term){
     for(let m=anchor;m<=month(day);m++)if(eventDay(m,charge)<=day)n++;
     for(let m=anchor;m<=month(now);m++)if(eventDay(m,charge)<=now)paid++;
+    // Con plazo nunca se pagan más de `months` cuotas (revisión externa 15/11/2026): un plazo de 0 con
+    // pago final ya no baja la cuota de cada mes sin que se cobre ninguna.
+    n=Math.min(n,d.months);
   }else{
     paid=month(now)-anchor;n=paid-events(day,now,charge);
     if(!(amort>0&&principal>0.5&&!d.settledAt))n=Math.max(0,n);

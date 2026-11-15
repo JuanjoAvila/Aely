@@ -105,6 +105,8 @@ const steps = [
   ["supabase-workflow", ["node", "tests/supabase-workflow.test.mjs"]],
   ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
   ["plazos-deuda", ["node", "tests/plazos-deuda.test.mjs"]],
+  ["deuda-ultima-cuota", ["node", "tests/deuda-ultima-cuota.test.mjs"]],
+  ["deuda-ultima-marca", ["node", "tests/deuda-ultima-marca.test.mjs"]],
   ["payment-evidence-ui", ["node", "tests/payment-evidence-ui.test.mjs"]],
   ["payment-presentation", ["node", "tests/payment-presentation.test.mjs"]],
 
@@ -275,6 +277,7 @@ const steps = [
   ["recibos-pausa-cifra", ["node", "--test", "tests/recibos-pausa-cifra.test.mjs"]],
   ["fin25-charge-months", ["node", "--test", "--test-concurrency=1", "tests/fin25-charge-months.test.mjs"]],
   ["saldos-cierres-por-clave", ["node", "--test", "tests/saldos-cierres-por-clave.test.mjs"]],
+  ["cuentas-clave-repetida", ["node", "--test", "tests/cuentas-clave-repetida.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],
   ["parsers-revolut", ["node", "tests/parsers/revolut.test.mjs"]],
