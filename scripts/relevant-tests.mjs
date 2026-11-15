@@ -83,6 +83,11 @@ export const E2E_MAP = [
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs", "e2e/plan-seg-barra.spec.mjs"] },
+  // Plan, lote de menores de diseño (15/11): enlazado con fecha, cuotas con céntimos, iconos de deuda y Metas vacía.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-menores-235.spec.mjs"] },
   // Velo de las hojas de Plan: fundido de entrada y de salida, mismo ritmo que el deslizamiento.
   { file: "src/shell.html", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-velo-fundido.spec.mjs"] },

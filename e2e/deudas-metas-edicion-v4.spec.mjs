@@ -59,7 +59,8 @@ for(const lang of Object.keys(texts)){
   await open(page,lang);const t=texts[lang],row=page.locator('[data-debt-id="debt"]');
   const initial=await saved(page);
   const subtitle=await row.locator(".plan-debt-details").innerText();
-  expect((subtitle.match(/661/g)||[]).length).toBe(1);
+  // La cuota sale con céntimos, como en Recibos (DIS-30): «660,85», no «661».
+  expect((subtitle.match(/660[,.]85/g)||[]).length).toBe(1);
   for(const raw of ["1,05","1.05","","0"]){
    await row.locator(".plan-item-open").click();const sheet=debtSheet(page,lang),input=sheet.locator('[data-debt-field="apr"]');
    const before=await saved(page);await input.fill("");let value="";
