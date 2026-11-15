@@ -12,7 +12,7 @@ async function open(page){
 async function record(page,merchant,category,amount,manual=false){
   await page.locator(".botnav-fab").click();const sheet=page.locator(".v4-exp-sheet");
   if(manual){
-    await sheet.locator(".v4-ficha-cat-title button").click();
+    await sheet.locator('[data-testid="ap-cat-more"]').click();
     await page.locator('[data-testid="expense-all-cat-'+category+'"]').click();
   }
   await sheet.locator(".v4-exp-name").fill(merchant);
@@ -28,7 +28,7 @@ for(const lang of ["es","en","ca"]){
   test(lang+": selector, iconos, altas y elección manual en DOM real",async({page})=>{
     await installFixtureClock(page);await seedLoggedInDashboard(page,{accounts,settings:settings(lang),expenses:[],budget:500,__seedOnce:true});
     await open(page);await page.locator(".botnav-fab").click();
-    await page.locator(".v4-exp-sheet .v4-ficha-cat-title button").click();
+    await page.locator('.v4-exp-sheet [data-testid="ap-cat-more"]').click();
     const cats=page.locator(".v4-ficha-cat-sheet");
     for(const [cat,, ,icon] of entries){
       await expect(cats.locator('[data-testid="expense-all-cat-'+cat+'"]')).toContainText(labels[lang][cat]);

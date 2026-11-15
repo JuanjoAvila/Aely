@@ -24,7 +24,7 @@ for(const lang of ["es","en","ca"]){
     await seedLoggedInDashboard(page,{accounts,settings:settings(lang),expenses:[],budget:500,__seedOnce:true});
     await open(page);
     await page.locator(".botnav-fab").click();
-    await page.locator(".v4-exp-sheet .v4-ficha-cat-title button").click();
+    await page.locator('.v4-exp-sheet [data-testid="ap-cat-more"]').click();
     const cats=page.locator(".v4-ficha-cat-sheet");
     await expect(cats.locator('[data-testid="expense-all-cat-gasolina"]')).toContainText(labels[lang].gasolina);
     await expect(cats.locator('[data-testid="expense-all-cat-gasolina"] .v4-ficha-cat-icon')).toHaveText("⛽");

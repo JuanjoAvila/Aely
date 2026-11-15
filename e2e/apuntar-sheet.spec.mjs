@@ -62,7 +62,7 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 });
 
-test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categorías y CTA con importe", async ({ page }) => {
+test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, una fila de cuatro categorías con «Más» y CTA con importe", async ({ page }) => {
   await seedLoggedInDashboard(page);
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -74,7 +74,10 @@ test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categor
   await expect(sheet.locator(".v4-ficha-head .v4-seg")).toBeVisible();
   await expect(sheet.locator(".v4-ficha-meta-pill")).toHaveCount(3);
   await expect(sheet.locator('[data-testid="ap-efectivo"]')).toBeDisabled();
-  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(8);
+  // Una sola fila (DIS-01, 15/11): las cuatro más usadas y «Más», que abre el catálogo entero.
+  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(5);
+  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat").last()).toHaveAttribute("data-testid", "ap-cat-more");
+  await expect(sheet.locator(".v4-ficha-cat-title")).toHaveCount(0);
   await expect(sheet.locator(".v4-keys")).toBeVisible();
   await expect(sheet.locator('[data-testid="ap-payment"]')).toBeVisible();
   await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Con tarjeta/);
@@ -82,7 +85,7 @@ test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categor
 
   // Al cerrar la hoja hija de categorías, Apuntar sigue vivo debajo: el fondo no puede
   // desbloquearse durante los 300 ms de salida ni al desmontarse solo la hija.
-  await sheet.locator(".v4-ficha-cat-title button").click();
+  await sheet.locator('[data-testid="ap-cat-more"]').click();
   const categorySheet = page.locator(".v4-ficha-cat-sheet");
   await expect(categorySheet).toBeVisible();
   // La hija es un portal hermano: el candado táctil de Apuntar no puede cancelar su touchmove.
@@ -127,7 +130,7 @@ test("Bizum es forma de pago: el gasto conserva Salud como categoría real", asy
   await sheet.locator('[data-testid="ap-payment"]').click();
   await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Bizum o transferencia/);
 
-  await sheet.locator(".v4-ficha-cat-title button").click();
+  await sheet.locator('[data-testid="ap-cat-more"]').click();
   const categorySheet = page.locator(".v4-ficha-cat-sheet");
   await expect(categorySheet.locator('[data-testid="expense-all-cat-bizum"]')).toHaveCount(0);
   await categorySheet.locator('[data-testid="expense-all-cat-salud"]').click();

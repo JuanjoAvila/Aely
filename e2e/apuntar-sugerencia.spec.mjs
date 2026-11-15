@@ -37,11 +37,14 @@ test("Apuntar: escribir Mercadona selecciona supermercado con ✨", async ({ pag
 
 test("Apuntar: si tocas otra categoría a mano, escribir más no la mueve", async ({ page }) => {
   const sheet = await openApuntar(page);
-  await sheet.locator('[data-testid="ap-cat-ocio"]').click();
-  await expect(sheet.locator('[data-testid="ap-cat-ocio"]')).toHaveClass(/on/);
+  // La fila son las cuatro más usadas (DIS-01): se toca la primera que no es supermercado.
+  const otraId = await sheet.locator(".v4-ficha-cats .v4-ficha-cat:not(.on):not(.more)").first().getAttribute("data-testid");
+  const otra = sheet.locator('[data-testid="' + otraId + '"]');
+  await otra.click();
+  await expect(otra).toHaveClass(/on/);
   await sheet.locator(".v4-input").fill("Mercadona");
   await page.waitForTimeout(700);
-  await expect(sheet.locator('[data-testid="ap-cat-ocio"]'), "tocar a mano manda").toHaveClass(/on/);
+  await expect(otra, "tocar a mano manda").toHaveClass(/on/);
   await expect(sheet.locator('[data-testid="ap-cat-super"]')).not.toHaveClass(/on/);
 });
 
@@ -55,7 +58,8 @@ test("Apuntar: la IA ofrece chip ✨ y solo se aplica al tocarlo", async ({ page
   await expect(ia).toContainText("Ocio");
   // Opción A: no se aplica sola — sigue el defecto (supermercado) hasta el toque.
   await expect(sheet.locator('[data-testid="ap-cat-super"]')).toHaveClass(/on/);
-  await expect(sheet.locator('[data-testid="ap-cat-ocio"]')).not.toHaveClass(/on/);
+  // Ocio puede no estar entre las cuatro de la fila hasta que se elige (DIS-01): que no esté marcada.
+  await expect(sheet.locator('[data-testid="ap-cat-ocio"].on')).toHaveCount(0);
   await ia.click();
   await expect(sheet.locator('[data-testid="ap-cat-ocio"]')).toHaveClass(/on/);
   await expect(sheet.locator('[data-testid="ap-cat-super"]')).not.toHaveClass(/on/);
