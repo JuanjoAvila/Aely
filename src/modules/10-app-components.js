@@ -1690,7 +1690,9 @@ function BetaReviewPanel({onClose, showToast}){
         setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict==="revoked"}); });
         showToast(verdict==="approved"?"✅ Aprobada · queda registrado":verdict==="revoked"?t("beta_revoked"):"⛔ Enviado · no se sube");
       })
-      .catch(function(e){ showToast("✕ No se pudo enviar: "+((e&&e.message)||e)); })
+      // El código y no el mensaje: el texto crudo del error puede traer datos de la petición y este
+      // aviso acaba en capturas que se comparten (revisión externa 234).
+      .catch(function(e){ showToast("✕ No se pudo enviar · "+mcLogCode(e)); })
       .finally(function(){ setBusy(false); });
   };
 
@@ -3367,6 +3369,9 @@ class ErrorBoundary extends React.Component{
     // Si la descarga falla, el aviso va en la propia pantalla: antes era un alert() nativo y en
     // inglés («Export error: …»), lo único fuera de los diálogos de la app (auditoría 14/11/2026).
     const self=this;
+    // El detalle del error iba en #5a6b62 (contraste 3,31 sobre este fondo). Va el valor de
+    // `--muted-2` del tema oscuro a pelo, no la variable: este fondo es oscuro en TODOS los temas y
+    // la variable del claro (#5F6F66) se quedaría corta aquí (revisión externa 234).
     const dl=function(){ try{ const snapshot=Object.assign({},mcLoadRaw(mcStateKey())||{});delete snapshot._planSync;const data=JSON.stringify(snapshot,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="aely-copia-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ try{ console.error("Export:",mcLogCode(e)); }catch(_){} self.setState({dlFail:true}); } };
     return React.createElement("div",{style:wrap},
       React.createElement("div",{style:{fontSize:46}},"🛟"),
@@ -3375,7 +3380,7 @@ class ErrorBoundary extends React.Component{
       React.createElement("button",{style:btn,onClick:dl}, t("eb_export")),
       this.state.dlFail && React.createElement("div",{role:"alert",style:{color:"#E8F0EB",fontSize:13,maxWidth:340}}, t("eb_export_fail")),
       React.createElement("button",{style:btn2,onClick:function(){ try{ location.reload(); }catch(e){} }}, t("eb_reload")),
-      React.createElement("div",{style:{color:"#5a6b62",fontSize:11,maxWidth:340,marginTop:6,wordBreak:"break-word"}}, String((this.state.err&&this.state.err.message)||this.state.err||""))
+      React.createElement("div",{style:{color:"#80978A",fontSize:11,maxWidth:340,marginTop:6,wordBreak:"break-word"}}, String((this.state.err&&this.state.err.message)||this.state.err||""))
     );
   }
 }

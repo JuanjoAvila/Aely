@@ -640,8 +640,8 @@ auth 401, cuerpo 413, sleep en `finally` si Finnhub lanza, fail-open de `_shared
 gate de la **propuesta** 30/600 con `rateLimit` real + RPC `check_rate_limit` simulada (bucket /
 limit / window, aislamiento por usuario, concurrencia, caducidad). Mutantes `limit=1` vs
 `999999` y `window=1` fallan si el mock ignora args. Rojo/verde: fixture `prices_base_fixture.ts`
-(lógica `8bb0398f`) vs candidato. La propuesta **no** está activa en live (`applyRateProposal`
-false salvo `PRICES_RATE_LIMIT=1`). [Brief](briefs/sec02-prices-limites.md).
+(lógica `8bb0398f`) vs candidato. El freno **está encendido** en live (`applyRateProposal`
+true salvo `PRICES_RATE_LIMIT=0`, P2-06; desde la 4.26.233). [Brief](briefs/sec02-prices-limites.md).
 
 Selección107/108/110, cualificación local9/10: `e2e/botnav-indicador.spec.mjs` y `e2e/backclose-handover.spec.mjs` en CROSSCUTTING; `e2e/metas-editar-regla.spec.mjs` en motor/Metas; `tests/backclose-history.test.mjs` en el runner y casos108 en `reserva-dinero`. Fixtures, tiempos y oráculos originales conservados. Descubrimiento real196casos/10specs;196casos distintos PASS por tramos18BackClose162con DSN real,161de brókers/Inversiones/Metas/Plan167con configuración sin DSN y17nav/Plan/Perfil169con headless shell. No es una suite única196ni CI remota del SHA final. Los controles Node finales y29oráculos históricos pasaron; presupuesto1295/353KiB/3 pasó con margen1.215/263 B y RED original1287/351conservado. Las paradas por carpeta y Git vacío se corrigieron solo en preparación privada;168observó Ajustes abierto antes de navegar a about:blank con Chrome completo, y169cambió solo su ejecutable para los12casos de navegación. Se conserva aparte el bloqueo CSP previo del DSN real. Node24local/entornos mixtos/datos sintéticos no acreditan producción ni móvil. [Alcance, controles y límites](briefs/promocion-107-108-110-local26.md).
 

@@ -39,7 +39,7 @@ Deno.serve(withCors(async (req: Request) => {
     // bank-callback lo detecta y en vez de volver a la web devuelve la página puente que salta
     // a micartera://bank (deep-link de vuelta a la app). Sin tocar el esquema de bank_links.
     // P2-01: con `.c` el callback no activa el enlace; espera a que la app del MISMO usuario lo
-    // confirme (`bank-confirm`, ver `_shared/bank_confirm.ts`). Fase 1: solo si el cliente lo
+    // confirme (`bank-confirm`, ver `bank-confirm/index.ts`). Fase 1: solo si el cliente lo
     // pide; con BANK_REQUIRE_CONFIRM=1, siempre. Va antes del `.app`, que se lee con endsWith.
     const confirm = body.confirm === true || Deno.env.get("BANK_REQUIRE_CONFIRM") === "1";
     const state = crypto.randomUUID() + (confirm ? ".c" : "") + (body.platform === "app" ? ".app" : "");
