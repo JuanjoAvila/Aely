@@ -173,7 +173,10 @@ function avisoBancoTxt(is){
   return {
     titulo: esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(pend?"bk_issue_pending":(noacct?"bk_issue_noacct":"bk_issue"),{bank:lbl}),
     sub: esTR ? t("bk_tr_ob_sub") : t(pend?"bk_issue_pending_sub":(noacct?"bk_issue_noacct_sub":"bk_issue_sub")),
-    cta: esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl})
+    cta: esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl}),
+    // El botón de la fila es corto; en TR no puede decir «Reconectar» como el del PIN + SMS
+    // («Reconectar Trade Republic», banner de al lado): «Renovar» casa con «permiso caducado».
+    btn: esTR ? t("bk_tr_ob_btn") : t("bank_reconnect")
   };
 }
 /* UNA fila por banco dentro de una sola tarjeta (diseño 233, DIS-24). Antes cada banco era una
@@ -194,7 +197,7 @@ function AvisosBanco({issues, onReconnect}){
             React.createElement("span",{className:"v4-bank-issue-t"},x.titulo),
             React.createElement("span",{className:"v4-bank-issue-q","aria-hidden":true},"?")),
           onReconnect && React.createElement("button",{type:"button",className:"btn btn-primary v4-bank-issue-cta","aria-label":x.cta,
-            onClick:function(){ onReconnect(is.aspsp); }}, t("bank_reconnect"))),
+            onClick:function(){ onReconnect(is.aspsp); }}, x.btn)),
         // Plegado con alto animado (grid 0fr → 1fr): abrir no da saltos (feedback 28/10).
         React.createElement("div",{className:"v4-bank-issue-sub","aria-hidden":!open},
           React.createElement("div",null,React.createElement("p",null,x.sub))));
@@ -203,10 +206,12 @@ function AvisosBanco({issues, onReconnect}){
 /* La misma lectura en Inicio, en una franja (DIS-23): el patrimonio de Inicio puede estar
    desfasado y solo lo decía Cartera. Solo `state.bankIssues`, sin pedir nada nuevo a la nube.
    Tocarla lleva a los avisos de Cartera, donde está el arreglo. */
-function AvisoBancoFranja({issues, onOpen}){
+function AvisoBancoFranja({issues}){
   if(!issues||!issues.length) return null;
   const uno=issues.length===1;
-  return React.createElement("button",{type:"button",className:"v4-bank-strip rise","data-testid":"inicio-aviso-banco",onClick:onOpen},
+  return React.createElement("button",{type:"button",className:"v4-bank-strip rise","data-testid":"inicio-aviso-banco",
+    // Por evento (lo recoge App): ver «La franja de banco caído» en 11-app-main.
+    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-go-bank-issues")); }catch(e){} }},
     uno?React.createElement(Mono,{ent:issues[0].ent,size:24}):null,
     React.createElement("span",{className:"v4-bank-strip-t"}, uno?avisoBancoTxt(issues[0]).titulo:tf("ini_bank_issue_many",{n:issues.length})),
     React.createElement("span",{className:"v4-bank-strip-cta"}, t("ini_bank_issue_cta")+" ›"));

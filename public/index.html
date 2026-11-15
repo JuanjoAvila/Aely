@@ -8495,6 +8495,7 @@ const LANG = {
     bk_tr_ob_noacct:"Trade Republic (banco): no devuelve ninguna cuenta",
     bk_tr_ob_sub:"Conexión de banco: trae tus compras con tarjeta. No afecta a tus posiciones ni al efectivo.",
     bk_tr_ob_cta:"Renovar el permiso del banco",
+    bk_tr_ob_btn:"Renovar",
     ini_bank_issue_many:"{n} bancos necesitan atención", ini_bank_issue_cta:"Revisar",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
@@ -10872,7 +10873,10 @@ function avisoBancoTxt(is){
   return {
     titulo: esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(pend?"bk_issue_pending":(noacct?"bk_issue_noacct":"bk_issue"),{bank:lbl}),
     sub: esTR ? t("bk_tr_ob_sub") : t(pend?"bk_issue_pending_sub":(noacct?"bk_issue_noacct_sub":"bk_issue_sub")),
-    cta: esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl})
+    cta: esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl}),
+    // El botón de la fila es corto; en TR no puede decir «Reconectar» como el del PIN + SMS
+    // («Reconectar Trade Republic», banner de al lado): «Renovar» casa con «permiso caducado».
+    btn: esTR ? t("bk_tr_ob_btn") : t("bank_reconnect")
   };
 }
 /* UNA fila por banco dentro de una sola tarjeta (diseño 233, DIS-24). Antes cada banco era una
@@ -10893,7 +10897,7 @@ function AvisosBanco({issues, onReconnect}){
             React.createElement("span",{className:"v4-bank-issue-t"},x.titulo),
             React.createElement("span",{className:"v4-bank-issue-q","aria-hidden":true},"?")),
           onReconnect && React.createElement("button",{type:"button",className:"btn btn-primary v4-bank-issue-cta","aria-label":x.cta,
-            onClick:function(){ onReconnect(is.aspsp); }}, t("bank_reconnect"))),
+            onClick:function(){ onReconnect(is.aspsp); }}, x.btn)),
         // Plegado con alto animado (grid 0fr → 1fr): abrir no da saltos (feedback 28/10).
         React.createElement("div",{className:"v4-bank-issue-sub","aria-hidden":!open},
           React.createElement("div",null,React.createElement("p",null,x.sub))));
@@ -10902,10 +10906,12 @@ function AvisosBanco({issues, onReconnect}){
 /* La misma lectura en Inicio, en una franja (DIS-23): el patrimonio de Inicio puede estar
    desfasado y solo lo decía Cartera. Solo `state.bankIssues`, sin pedir nada nuevo a la nube.
    Tocarla lleva a los avisos de Cartera, donde está el arreglo. */
-function AvisoBancoFranja({issues, onOpen}){
+function AvisoBancoFranja({issues}){
   if(!issues||!issues.length) return null;
   const uno=issues.length===1;
-  return React.createElement("button",{type:"button",className:"v4-bank-strip rise","data-testid":"inicio-aviso-banco",onClick:onOpen},
+  return React.createElement("button",{type:"button",className:"v4-bank-strip rise","data-testid":"inicio-aviso-banco",
+    // Por evento (lo recoge App): ver «La franja de banco caído» en 11-app-main.
+    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-go-bank-issues")); }catch(e){} }},
     uno?React.createElement(Mono,{ent:issues[0].ent,size:24}):null,
     React.createElement("span",{className:"v4-bank-strip-t"}, uno?avisoBancoTxt(issues[0]).titulo:tf("ini_bank_issue_many",{n:issues.length})),
     React.createElement("span",{className:"v4-bank-strip-cta"}, t("ini_bank_issue_cta")+" ›"));
@@ -13671,7 +13677,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
     React.createElement(NetWorthInfoSheet,{open:info,rows:infoRows,onClose:function(){ setInfo(false); }})
   );
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, onGoBankIssues, showToast}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);
@@ -13873,7 +13879,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
     // Un banco caído deja el patrimonio de aquí desfasado: se dice aquí también (DIS-23).
-    React.createElement(AvisoBancoFranja,{issues:state.bankIssues,onOpen:onGoBankIssues}),
+    React.createElement(AvisoBancoFranja,{issues:state.bankIssues}),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash
        nadie las ve (misma trampa que el count-up). prefers-reduced-motion: sin brillo (CSS). */
@@ -31194,7 +31200,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9b3c6b2ee8dafce6ecb87b34ae2a97249f0ac6a2a0f7e434b28ff0f297d3a11c";
+var _rnSha="e1d7684c70208de2b8bbbda5ae19d2b29d26b464e8926baf2cec0da956852f30";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -41532,22 +41538,20 @@ function App(){
   /* ADÓNDE LLEVA «Abrir en Cartera ›» DE LA FILA GRIS DE INVERSIONES (Gastos v5, 25/10/2026).
      El destino vive SOLO aquí a propósito: cuando exista la pestaña de inversiones (petición
      del dueño, «ya le añadiremos que se redirija a una tab nueva»), se cambia esta función y
-     nada más (`goInversiones`). Hoy: Cartera, con el bloque «Tus inversiones» arriba. El bloque
-     se puede haber reordenado, así que se busca por su marca; se baja con `scrollTop` de la
-     propia página y no con `scrollIntoView`, que también movería el carrusel de pestañas. La
-     franja de banco caído de Inicio aterriza igual en los avisos de Cartera. */
-  const goCartera=function(sel){
+     nada más. Hoy: Cartera, con el bloque «Tus inversiones» arriba. El bloque se puede haber
+     reordenado, así que se busca por su marca; se baja con `scrollTop` de la propia página y no
+     con `scrollIntoView`, que también movería el carrusel de pestañas. */
+  const goInversiones=function(){
     const i=tabIds.indexOf("cartera");
     if(i<0) return;
     goTabTop(i);
     requestAnimationFrame(function(){
       const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
-      const sec=pg&&pg.querySelector(sel);
+      const sec=pg&&pg.querySelector('[data-cartera-sec="inversiones"]');
       if(!sec) return;
       pg.scrollTop=Math.max(0,pg.scrollTop+sec.getBoundingClientRect().top-pg.getBoundingClientRect().top-12);
     });
   };
-  const goInversiones=function(){ goCartera('[data-cartera-sec="inversiones"]'); };
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
@@ -42383,6 +42387,26 @@ function App(){
     if(!id) return;
     setMountedTabs(function(m){ return m[id]? m : Object.assign({},m,{[id]:true}); });
   },[tab, tabIds.join("|")]);
+  /* La franja de banco caído de Inicio (DIS-23) llega por evento y no por prop de Dashboard:
+     así ni su firma ni `goInversiones` (que vigila nav-indicator) cambian. Aterriza como
+     «Abrir en Cartera ›»: Cartera arriba y se baja hasta los avisos con el `scrollTop` de la
+     propia página, sin `scrollIntoView`, que movería el carrusel de pestañas. Sin deps a
+     propósito: el manejador ve siempre el `goTabTop` y las pestañas del último render. */
+  useEffect(function(){
+    const h=function(){
+      const i=tabIds.indexOf("cartera");
+      if(i<0) return;
+      goTabTop(i);
+      requestAnimationFrame(function(){
+        const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
+        const sec=pg&&pg.querySelector(".v4-bank-issues");
+        if(!sec) return;
+        pg.scrollTop=Math.max(0,pg.scrollTop+sec.getBoundingClientRect().top-pg.getBoundingClientRect().top-12);
+      });
+    };
+    window.addEventListener("mc-go-bank-issues",h);
+    return function(){ window.removeEventListener("mc-go-bank-issues",h); };
+  });
   // Tras el primer pintado: NO montar vecinas en auto. Montar ±1 al toque/swipe (prepMountTab)
   // evitaba un segundo hitch a ~900 ms junto con WhatsNew (feedback 2026-07-16).
   //
@@ -42459,7 +42483,6 @@ function App(){
         requestAnimationFrame(function(){ requestAnimationFrame(function(){ profSetOrigin(); setProfileOpen(true); }); });
       },
       onGoGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); },
-      onGoBankIssues:function(){ goCartera(".v4-bank-issues"); },
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).

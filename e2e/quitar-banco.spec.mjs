@@ -115,8 +115,10 @@ test("★ TR por Open Banking dice que es la conexión de BANCO (compras con tar
   await expect(banner).toContainText(/compras con tarjeta/i);
   // Y dice explícitamente que lo OTRO no está afectado, que es lo que le confundía.
   await expect(banner).toContainText(/posiciones ni (al )?efectivo|posiciones y (tu )?efectivo/i); // la 182 acortó el aviso («No afecta a tus posiciones ni al efectivo.»)
-  // Desde el diseño 233 (DIS-24) el botón dice «Reconectar» y la explicación va plegada en la
-  // fila; cuál de las dos puertas de TR arregla lo sigue diciendo su nombre accesible.
+  // Desde el diseño 233 (DIS-24) el botón es corto y la explicación va plegada en la fila. Aun así
+  // no dice «Reconectar», que es lo que dice el de la sesión de PIN + SMS: «Renovar», como el
+  // «permiso caducado» del título. Su nombre accesible da la frase entera.
+  await expect(banner.locator(".v4-bank-issue-cta")).toHaveText("Renovar");
   await expect(banner.locator(".v4-bank-issue-cta")).toHaveAttribute("aria-label", /permiso del banco/i);
 });
 

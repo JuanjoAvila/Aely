@@ -203,7 +203,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
     React.createElement(NetWorthInfoSheet,{open:info,rows:infoRows,onClose:function(){ setInfo(false); }})
   );
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, onGoBankIssues, showToast}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);
@@ -405,7 +405,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
     // Un banco caído deja el patrimonio de aquí desfasado: se dice aquí también (DIS-23).
-    React.createElement(AvisoBancoFranja,{issues:state.bankIssues,onOpen:onGoBankIssues}),
+    React.createElement(AvisoBancoFranja,{issues:state.bankIssues}),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash
        nadie las ve (misma trampa que el count-up). prefers-reduced-motion: sin brillo (CSS). */
