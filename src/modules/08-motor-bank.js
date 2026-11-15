@@ -5133,10 +5133,11 @@ function reconcileObDupes(state){
    pregunta al abrir la ficha (`ownTransferPair`), y a MyInvestor no llega ninguna fila con la que
    emparejar. Pasan a «traspaso» —y salen del gastado si ese banco es de gasto diario— solo si el banco
    la llama transferencia o traspaso y además:
-   1. va a tu nombre ENTERO (`aNombreDelTitular`) y casa con un traspaso previsto que sale de ese banco
-      (importe parecido, ±7 días de uno de sus días); o
+   1. su beneficiario eres tú, con tu nombre ENTERO (`aNombreDelTitular`), y casa AL CÉNTIMO con un traspaso
+      previsto que sale de ese banco (±7 días de uno de sus días); o
    2. tiene su otra pata —una llegada ya marcada traspaso, mismo céntimo, OTRO banco tuyo, ±2 días, única
-      en los dos sentidos— y o va a tu nombre entero o hay un traspaso previsto entre ESOS dos bancos.
+      en los dos sentidos— y o su beneficiario eres tú o hay un traspaso previsto entre ESOS dos bancos.
+   Tu nombre en el concepto o en la nota no cuenta (revisión del 15/11/2026): nunca se marca solo por nombre.
    La revisión de dinero (NO-GO del 12/11/2026) tumbó la primera versión: con dos palabras cualesquiera del
    titular pasaban a traspaso la transferencia a un hermano (los dos apellidos) o a un tocayo (el nombre
    compuesto), y una llegada de 700 € a Trade Republic convertía en traspaso el alquiler de 700 € al casero.
@@ -5158,14 +5159,23 @@ function traspasoPropioClave(e){ return fixedPaymentIdentity(expenseBankOf(e),e)
 function traspasoPropioNoPon(s,e,ahora){ return reciboNoPon(s,[TRASPASO_NO+"|"+traspasoPropioClave(e)],true,ahora||Date.now()); }
 // La app la mandó a la nube: no se repite en cada pull si la nube no la acepta (re-revisión, P2-4).
 function marcarIntentoTraspaso(e){ traspasoIntentos.set(traspasoPropioClave(e),Date.now()); }
-/* El nombre ENTERO del titular: todas las palabras de su nombre en el perfil, o (con tres o más) el nombre
-   de pila y los dos apellidos. Un hermano lleva los apellidos y un tocayo el nombre, no las dos cosas. */
-function aNombreDelTitular(s,txt){
-  if(DEBEN_PROPIO.test(txt)) return true;
-  const w=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(x){ return x.length>=2&&!DEBEN_PALABRAS_NO[x]; });
-  if(w.length<2) return false;
-  const esta=function(k){ return txt.indexOf(" "+k+" ")>=0; };
-  return w.every(esta)||w.length>=3&&esta(w[0])&&esta(w[w.length-2])&&esta(w[w.length-1]);
+/* El BENEFICIARIO es el titular, con su nombre entero y nada más. Se mira solo a quién va (el nombre que da
+   el banco: `obName` si él lo renombró, si no el comercio), nunca el concepto ni la nota: ahí sale también el
+   ORDENANTE —«TRANSFERENCIA DE <titular>» en el alquiler al casero— o lo que él escribió («pago a Pedro, de
+   <titular>»). Y sin la variante «nombre de pila + dos apellidos»: un hermano con nombre compuesto la cumple
+   (revisión externa del 15/11/2026, ALTA: las tres convertían un gasto real en traspaso y lo subían).
+   Lo que el banco añade alrededor no es nombre: «TRANSFERENCIA REALIZADA A …» delante y «REF 123» detrás se
+   quitan; una inicial («LEO M SASTRE RUANO») sigue sin casar, mejor un traspaso sin marcar que un gasto perdido.
+   Sin acreedor el banco pone el concepto de título: si es SOLO el nombre (sin «transferencia a»), lo pudo
+   escribir él en un pago a otro, así que no basta (necesita la otra pata). Re-revisión del 15/11. */
+const TRASPASO_A_RE=/^(?:transferencias?|transfer|traspasos?|transf)(?: (?:emitida|realizada|enviada|ordenada|inmediata|sepa|nacional|internacional|ordinaria|periodica|online))* (?:a favor de|a|to|para) /;
+const TRASPASO_COLA_RE=/(?: (?:ref|referencia|num))?(?: [a-z]*\d[a-z0-9]*)+$|(?: ref| referencia)$/;
+function aNombreDelTitular(s,e){
+  const palabras=function(x){ return recNorm(x).split(" ").filter(function(k){ return k.length>=2&&!DEBEN_PALABRAS_NO[k]; }).sort().join(" "); };
+  const w=palabras(s.settings&&s.settings.profile&&s.settings.profile.fullName);
+  const benef=recNorm(e&&(e.obName!=null&&String(e.obName).trim()?e.obName:e.merchant)), sinPre=benef.replace(TRASPASO_A_RE,"");
+  if(!(w.indexOf(" ")>0&&palabras(sinPre.replace(TRASPASO_COLA_RE,""))===w)) return false;
+  return sinPre!==benef||benef!==recNorm(e.concept)&&benef!==recNorm(String(e.note||"").split(" · ")[0]);
 }
 function salidasTraspasoPropio(s){
   const n=new Date(), exps=(s&&s.expenses)||[], deleted=expenseDeletedSet(s), Y=n.getFullYear(), M=n.getMonth()+1;
@@ -5182,13 +5192,14 @@ function salidasTraspasoPropio(s){
   const porCent=new Map();
   exps.forEach(function(x){ if(!vivo(x)) return; const c=Math.round(Number(x.amount)*100); if(!c) return; const l=porCent.get(c); if(l) l.push(x); else porCent.set(c,[x]); });
   const reglas=(typeof USER_CAT_RULES!=="undefined"&&USER_CAT_RULES)||{};
-  // ¿Casa con un traspaso previsto que sale de ese banco (y, si se dice, que llega a `a`)?
-  const previsto=function(e,a){
+  // ¿Casa con un traspaso previsto que sale de ese banco (y, si se dice, que llega a `a`)? `exacto`: al
+  // céntimo. Sin la otra pata, un 2 % de margen casaba un pago de verdad del mismo orden (revisión del 15/11).
+  const previsto=function(e,a,exacto){
     const p=String(e.date).slice(0,10).split("-"), y=+p[0], m=+p[1], b=expenseBankOf(e), c=Math.round(Number(e.amount)*100);
     return traspasos.some(function(f){
       if(flowBancoSale(f)!==b||a&&f.to!==a) return false;
       const want=Number(f.amount);
-      if(Math.round(want*100)!==c&&!recAmtClose(want,Number(e.amount))) return false;
+      if(Math.round(want*100)!==c&&(exacto||!recAmtClose(want,Number(e.amount)))) return false;
       return [flowMesAntes(y,m),[y,m],flowMesDespues(y,m)].some(function(o){
         if(!flowOccursIn(f,o[1],o[0])) return false;
         const pl=flowDay(f,o[0],o[1]), r=flowDiaRel(e,o[0],o[1]);
@@ -5201,9 +5212,9 @@ function salidasTraspasoPropio(s){
     if(rule&&rule.cat==="otros"||ov==="otros"||reciboVetado(s,TRASPASO_NO,k)) return false;
     if(Date.now()-(traspasoIntentos.get(k)||-Infinity)<TRASPASO_REINTENTO_MS) return false;
     const c=Math.round(Number(e.amount)*100), d=diaCivilDe(e), b=expenseBankOf(e);
-    const tuyo=aNombreDelTitular(s," "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ");
-    // 1. A tu nombre entero y con su traspaso previsto.
-    if(tuyo&&previsto(e,null)) return true;
+    const tuyo=aNombreDelTitular(s,e);
+    // 1. Va a tu nombre entero y es, al céntimo, un traspaso previsto.
+    if(tuyo&&previsto(e,null,true)) return true;
     // 2. Su otra pata, sin dudas en ninguno de los dos sentidos, y a tu nombre o con el traspaso entre esos dos bancos.
     const llegadas=(porCent.get(-c)||[]).filter(function(x){ return x.category==="traspaso"&&expenseBankOf(x)&&expenseBankOf(x)!==b&&Math.abs(diaCivilDe(x)-d)<=2; });
     if(llegadas.length!==1) return false;
