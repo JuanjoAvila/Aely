@@ -6914,6 +6914,49 @@ function accountRowsInOrder(state){
   rows.forEach(function(r){ if(!seen[r.key]) out.push(r); });
   return out;
 }
+/* UNA CLAVE POR CUENTA, AL CARGAR (revisión externa 15/11/2026, R8). Dos cuentas con la misma clave
+   leían la misma lista de cierres: con 1.000 y 500 hoy, la gráfica de patrimonio daba 2.000 en los días
+   pasados. Y desde la 233 una clave repetida no guarda cierres (`accountBalanceRows`), así que el error
+   se quedaba congelado. Aquí cada cuenta (de `accounts`) que comparte clave recibe una propia:
+   - TODAS las del choque, no «la de antes»: lo guardado bajo esa clave es de las dos mezclado y no se
+     sabe de quién es cada día. Se queda donde está, sin borrar ni repartir; desde hoy cada una apunta
+     el suyo y antes de su primer cierre la gráfica la mantiene con su saldo, como una cuenta nueva.
+   - Una de banco aún sin rol (`obAccounts`) conserva la suya: es el uid que manda el banco.
+   - Sin identificador («acc:», «ob:») no se toca: la 233 ya no le guarda cierres.
+   - Lo que él puso con la clave vieja sigue valiendo: el orden de la lista (las nuevas donde estaba la
+     vieja), la parte de la cuenta y, si la clave era el uid del banco («ob:»), ese uid en `bankUid`
+     para que sus movimientos sigan siendo suyos (`accountOwnsMovement`).
+   Idempotente: con las claves ya únicas devuelve el mismo objeto. La clave nueva sale del id y del
+   puesto en la lista, así dos móviles que cargan el mismo estado llegan a la misma. */
+function accountKeysUnicas(state){
+  const accs=(state&&state.accounts)||[];
+  if(accs.length<2&&!(accs.length&&(state.obAccounts||[]).length)) return state;
+  const veces={};
+  accountRowsInOrder(Object.assign({},state,{settings:null})).forEach(function(r){ veces[r.key]=(veces[r.key]||0)+1; });
+  const choca=function(k){ return veces[k]>1&&k!=="acc:"&&k!=="ob:"; };
+  if(!accs.some(function(a){ return choca(accountOrderKeyOf(a,"account")); })) return state;
+  const usadas=Object.assign({},veces), nuevas={};
+  const accounts=accs.map(function(a){
+    const vieja=accountOrderKeyOf(a,"account");
+    if(!choca(vieja)) return a;
+    let n=1, k;
+    do{ k="acc:"+String(a.id)+"~"+(n++); }while(usadas[k]);
+    usadas[k]=1; (nuevas[vieja]||(nuevas[vieja]=[])).push(k);
+    const o=Object.assign({},a,{accountOrderKey:k});
+    if(/^ob:./.test(vieja)&&!a.bankUid&&!a.bankIban) o.bankUid=vieja.slice(3);
+    return o;
+  });
+  const st=state.settings||{}, settings=Object.assign({},st);
+  // Si la vieja la sigue usando una de banco, esa se queda en su sitio, detrás de las nuevas.
+  const deBanco={}; (state.obAccounts||[]).forEach(function(o){ deBanco[accountOrderKeyOf(o,"ob")]=true; });
+  if(Array.isArray(st.accountListOrder)) settings.accountListOrder=st.accountListOrder.reduce(function(out,k){ return out.concat(nuevas[k]?nuevas[k].concat(deBanco[k]?[k]:[]):[k]); },[]);
+  if(st.accountShare){
+    const share=Object.assign({},st.accountShare);
+    Object.keys(nuevas).forEach(function(v){ if(share[v]!=null) nuevas[v].forEach(function(k){ share[k]=share[v]; }); });
+    settings.accountShare=share;
+  }
+  return Object.assign({},state,{accounts:accounts,settings:settings});
+}
 /* LA PARTE MÍA DE UNA CUENTA (14/10/2026). Una conjunta con la pareja contaba entera en el
    patrimonio: el saldo que la llenaron los dos salía como suyo y la gráfica de Inicio arrancaba
    ~4.300 € alta. El porcentaje vive en `settings.accountShare` y NO en la cuenta: las de Open
@@ -10469,7 +10512,8 @@ function loadState(){
     if(saved.trasAbonoDesde==null) saved.trasAbonoDesde=sellarAbonoTraspasos({}).trasAbonoDesde;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
-    const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));
+    // Dos cuentas con la misma clave mezclaban sus cierres en la gráfica (R8, 15/11/2026): cada una la suya.
+    const now=new Date(), s=accountKeysUnicas(liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate())))));
     if(writeBack || s!==seeded) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);
     applyA11y(s);
@@ -11959,7 +12003,11 @@ function netWorthSeries(state, options){
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
-  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{};
+  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{}, repetida=Object.create(null);
+  // Contadas sobre las listas, no sobre `rows`: con un orden guardado, dos filas con la misma clave se quedan en una.
+  {const n={};(state.accounts||[]).forEach(function(a){ const k=accountOrderKeyOf(a,"account");n[k]=(n[k]||0)+1; });
+   (state.obAccounts||[]).forEach(function(o){ const k=accountOrderKeyOf(o,"ob");n[k]=(n[k]||0)+1; });
+   Object.keys(n).forEach(function(k){ if(n[k]>1) repetida[k]=true; });}
   const ins=options.balanceInputs?Object.assign({},options.balanceInputs,{roundup:options.balanceInputs.roundupThisMonth,monthlyInvest:options.balanceInputs.monthlyInvestThisMonth}):insumosSaldoGasto(state);
   rows.forEach(function(r){ if(r.item.ent) owned[r.item.ent]=true; });
   // Solo cuenta su parte de cada cuenta (`accountShareOf`): el saldo de hoy, sus cierres y sus
@@ -12078,6 +12126,11 @@ function netWorthSeries(state, options){
       // entonces (sin flujos no hay nada que deshacer); la «i» lo declara.
       if(firstByBank[bank]&&!cash) later.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
     }else{
+      // Cierres bajo una clave que comparten dos cuentas: son de las dos mezclados y cada una los
+      // sumaba enteros (1.000 + 500 de hoy pintaban 2.000 en el pasado; revisión externa 15/11/2026).
+      // Al cargar ya se separan (`accountKeysUnicas`); si aun así llegan mezclados, el pasado no se
+      // sabe y no se pinta: sin gráfica y la cifra en «—», nunca una suma inventada.
+      if(points.length&&repetida[r.key]){ gaps.push({kind:"balance",unknown:true,name:r.item.name||bank}); return; }
       // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
       // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
       // efectivo con un cierre de hace dos semanas recortaba toda la serie a esa fecha (13/10).
@@ -31146,7 +31199,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="cda7d6a73593fb76e206f8da73dcc7420a849d5afff423ebbc9c8a65256c798b";
+var _rnSha="2f13682fc06723357e614909d3a36f95c1b59057f3f505b8c334cb858db4dbd2";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39361,7 +39414,8 @@ function App(){
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
-          const next=liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
+          // Y las claves de cuenta repetidas que traiga (R8, `accountKeysUnicas`): misma clave que al cargar.
+          const next=liberarReservasHuerfanas(accountKeysUnicas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate())));
           // Una lectura vieja no deshace el backup que este mismo titular ya terminó hoy.
           const backup=prev._historyOwner===u&&prev.lastBackup===new Date().toISOString().slice(0,10)?{lastBackup:prev.lastBackup}:null;
           return Object.assign({},planSyncDerived(next,prev),backup,{[cloudMergeKey.current]:{read:read}});

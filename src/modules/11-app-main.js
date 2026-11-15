@@ -991,7 +991,8 @@ function App(){
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
-          const next=liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
+          // Y las claves de cuenta repetidas que traiga (R8, `accountKeysUnicas`): misma clave que al cargar.
+          const next=liberarReservasHuerfanas(accountKeysUnicas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate())));
           // Una lectura vieja no deshace el backup que este mismo titular ya terminó hoy.
           const backup=prev._historyOwner===u&&prev.lastBackup===new Date().toISOString().slice(0,10)?{lastBackup:prev.lastBackup}:null;
           return Object.assign({},planSyncDerived(next,prev),backup,{[cloudMergeKey.current]:{read:read}});

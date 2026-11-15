@@ -1289,7 +1289,11 @@ function netWorthSeries(state, options){
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
-  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{};
+  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{}, repetida=Object.create(null);
+  // Contadas sobre las listas, no sobre `rows`: con un orden guardado, dos filas con la misma clave se quedan en una.
+  {const n={};(state.accounts||[]).forEach(function(a){ const k=accountOrderKeyOf(a,"account");n[k]=(n[k]||0)+1; });
+   (state.obAccounts||[]).forEach(function(o){ const k=accountOrderKeyOf(o,"ob");n[k]=(n[k]||0)+1; });
+   Object.keys(n).forEach(function(k){ if(n[k]>1) repetida[k]=true; });}
   const ins=options.balanceInputs?Object.assign({},options.balanceInputs,{roundup:options.balanceInputs.roundupThisMonth,monthlyInvest:options.balanceInputs.monthlyInvestThisMonth}):insumosSaldoGasto(state);
   rows.forEach(function(r){ if(r.item.ent) owned[r.item.ent]=true; });
   // Solo cuenta su parte de cada cuenta (`accountShareOf`): el saldo de hoy, sus cierres y sus
@@ -1408,6 +1412,11 @@ function netWorthSeries(state, options){
       // entonces (sin flujos no hay nada que deshacer); la «i» lo declara.
       if(firstByBank[bank]&&!cash) later.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
     }else{
+      // Cierres bajo una clave que comparten dos cuentas: son de las dos mezclados y cada una los
+      // sumaba enteros (1.000 + 500 de hoy pintaban 2.000 en el pasado; revisión externa 15/11/2026).
+      // Al cargar ya se separan (`accountKeysUnicas`); si aun así llegan mezclados, el pasado no se
+      // sabe y no se pinta: sin gráfica y la cifra en «—», nunca una suma inventada.
+      if(points.length&&repetida[r.key]){ gaps.push({kind:"balance",unknown:true,name:r.item.name||bank}); return; }
       // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
       // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
       // efectivo con un cierre de hace dos semanas recortaba toda la serie a esa fecha (13/10).

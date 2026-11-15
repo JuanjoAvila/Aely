@@ -3808,6 +3808,49 @@ function accountRowsInOrder(state){
   rows.forEach(function(r){ if(!seen[r.key]) out.push(r); });
   return out;
 }
+/* UNA CLAVE POR CUENTA, AL CARGAR (revisión externa 15/11/2026, R8). Dos cuentas con la misma clave
+   leían la misma lista de cierres: con 1.000 y 500 hoy, la gráfica de patrimonio daba 2.000 en los días
+   pasados. Y desde la 233 una clave repetida no guarda cierres (`accountBalanceRows`), así que el error
+   se quedaba congelado. Aquí cada cuenta (de `accounts`) que comparte clave recibe una propia:
+   - TODAS las del choque, no «la de antes»: lo guardado bajo esa clave es de las dos mezclado y no se
+     sabe de quién es cada día. Se queda donde está, sin borrar ni repartir; desde hoy cada una apunta
+     el suyo y antes de su primer cierre la gráfica la mantiene con su saldo, como una cuenta nueva.
+   - Una de banco aún sin rol (`obAccounts`) conserva la suya: es el uid que manda el banco.
+   - Sin identificador («acc:», «ob:») no se toca: la 233 ya no le guarda cierres.
+   - Lo que él puso con la clave vieja sigue valiendo: el orden de la lista (las nuevas donde estaba la
+     vieja), la parte de la cuenta y, si la clave era el uid del banco («ob:»), ese uid en `bankUid`
+     para que sus movimientos sigan siendo suyos (`accountOwnsMovement`).
+   Idempotente: con las claves ya únicas devuelve el mismo objeto. La clave nueva sale del id y del
+   puesto en la lista, así dos móviles que cargan el mismo estado llegan a la misma. */
+function accountKeysUnicas(state){
+  const accs=(state&&state.accounts)||[];
+  if(accs.length<2&&!(accs.length&&(state.obAccounts||[]).length)) return state;
+  const veces={};
+  accountRowsInOrder(Object.assign({},state,{settings:null})).forEach(function(r){ veces[r.key]=(veces[r.key]||0)+1; });
+  const choca=function(k){ return veces[k]>1&&k!=="acc:"&&k!=="ob:"; };
+  if(!accs.some(function(a){ return choca(accountOrderKeyOf(a,"account")); })) return state;
+  const usadas=Object.assign({},veces), nuevas={};
+  const accounts=accs.map(function(a){
+    const vieja=accountOrderKeyOf(a,"account");
+    if(!choca(vieja)) return a;
+    let n=1, k;
+    do{ k="acc:"+String(a.id)+"~"+(n++); }while(usadas[k]);
+    usadas[k]=1; (nuevas[vieja]||(nuevas[vieja]=[])).push(k);
+    const o=Object.assign({},a,{accountOrderKey:k});
+    if(/^ob:./.test(vieja)&&!a.bankUid&&!a.bankIban) o.bankUid=vieja.slice(3);
+    return o;
+  });
+  const st=state.settings||{}, settings=Object.assign({},st);
+  // Si la vieja la sigue usando una de banco, esa se queda en su sitio, detrás de las nuevas.
+  const deBanco={}; (state.obAccounts||[]).forEach(function(o){ deBanco[accountOrderKeyOf(o,"ob")]=true; });
+  if(Array.isArray(st.accountListOrder)) settings.accountListOrder=st.accountListOrder.reduce(function(out,k){ return out.concat(nuevas[k]?nuevas[k].concat(deBanco[k]?[k]:[]):[k]); },[]);
+  if(st.accountShare){
+    const share=Object.assign({},st.accountShare);
+    Object.keys(nuevas).forEach(function(v){ if(share[v]!=null) nuevas[v].forEach(function(k){ share[k]=share[v]; }); });
+    settings.accountShare=share;
+  }
+  return Object.assign({},state,{accounts:accounts,settings:settings});
+}
 /* LA PARTE MÍA DE UNA CUENTA (14/10/2026). Una conjunta con la pareja contaba entera en el
    patrimonio: el saldo que la llenaron los dos salía como suyo y la gráfica de Inicio arrancaba
    ~4.300 € alta. El porcentaje vive en `settings.accountShare` y NO en la cuenta: las de Open
