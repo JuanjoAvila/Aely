@@ -20,7 +20,7 @@
  *          guardar efectivo + tarjeta + Sabadell. Ahora un segmentado que guarda los MISMOS campos
  *          que antes: esto es dinero, así que se comprueba lo que queda guardado, no lo que se ve. */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosAbreGasto } from "./fixtures.mjs";
 
 test.use({ hasTouch: true, isMobile: true });
 
@@ -395,3 +395,23 @@ for (const m of MODOS.filter((x) => x.id !== "ap-efectivo")) {
     expect(e.noCard).toBe(m.noCard);
   });
 }
+
+// Modificar comparte `.v4-exp-sheet` con Apuntar, pero no sube con el teclado del sistema: la
+// transición del margen es solo de Apuntar (observación del revisor sobre DIS-05).
+const transicion = (page) => page.evaluate(() => getComputedStyle(document.querySelector(".v4-exp-sheet")).transitionProperty);
+test("DIS-05: Apuntar lleva la transición del margen", async ({ page }) => {
+  await abreApuntar(page, { w: 390, h: 844, letra: "normal" });
+  expect(await transicion(page)).toContain("margin-bottom");
+});
+test("DIS-05: Modificar no la lleva", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seedLoggedInDashboard(page, { expenses: [{ id: "m1", date: new Date().toISOString(), amount: 12.5, merchant: "Mercadona", category: "super", source: "manual" }] });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await gastosAbreGasto(page, "Mercadona");
+  await expect(page.getByTestId("exp", { exact: true })).toBeVisible();
+  expect(await transicion(page)).not.toContain("margin-bottom");
+});
