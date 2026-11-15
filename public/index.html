@@ -917,6 +917,34 @@
   .v4-inicio-head{display:flex;align-items:center;justify-content:space-between;padding:12px 2px 4px;}
   .v4-inicio-date{font-size:14px;color:var(--muted-2);font-weight:600;}
   .v4-inicio-hi{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.2px;margin-top:2px;}
+  /* Avisos de banco caído (diseño 233, DIS-23/24). En Cartera, UNA tarjeta con una fila por banco
+     (con dos bancos caídos, las tarjetas de antes sacaban las cuentas de la primera pantalla); la
+     explicación se despliega con alto animado. En Inicio, una franja en tan que avisa sin alarmar:
+     allí no se arregla nada, solo lleva a Cartera. */
+  .v4-bank-issues{margin-top:10px;padding:2px 12px;border:1px solid color-mix(in srgb,var(--coral) 45%,transparent);
+    background:color-mix(in srgb,var(--coral) 8%,transparent);}
+  .v4-bank-issue + .v4-bank-issue{border-top:1px solid var(--line-soft);}
+  .v4-bank-issue-row{display:flex;align-items:center;gap:8px;min-height:54px;}
+  .v4-bank-issue-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:44px;padding:0;
+    background:none;border:none;color:var(--text);text-align:left;cursor:pointer;}
+  .v4-bank-issue-t{flex:1;min-width:0;font-size:14px;font-weight:800;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .v4-bank-issue-q{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    font-size:12px;font-weight:800;color:var(--muted);border:1px solid var(--line);}
+  /* 36 px de dibujo y 44 de dedo: el `::after` agranda la zona sin agrandar el botón. */
+  .v4-bank-issue-cta{flex:0 0 auto;position:relative;height:36px;padding:0 14px;font-size:13px;border-radius:11px;}
+  .v4-bank-issue-cta::after{content:"";position:absolute;inset:-4px -2px;}
+  .v4-bank-issue-sub{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.32,.72,0,1);}
+  .v4-bank-issue.open .v4-bank-issue-sub{grid-template-rows:1fr;}
+  .v4-bank-issue-sub > div{min-height:0;overflow:hidden;}
+  .v4-bank-issue-sub p{margin:0;padding:0 0 12px 38px;font-size:12.5px;color:var(--muted);line-height:1.45;}
+  html.reduce-motion .v4-bank-issue-sub{transition:none;}
+  .v4-bank-strip{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;margin-top:8px;padding:8px 12px;
+    border-radius:12px;background:color-mix(in srgb,var(--tan) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--tan) 40%,transparent);color:var(--text);
+    font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
+  .v4-bank-strip-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .v4-bank-strip-cta{flex:0 0 auto;color:var(--tan);font-weight:800;}
   .v4-hero{text-align:center;padding:22px 0 8px;}
   .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
   .v42-net{position:relative;}
@@ -8449,7 +8477,7 @@ const LANG = {
     v4_sync_broker_ok:"📈 {b} al día", v4_sync_brokers_ok:"📈 Brókers al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
     ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
     cal_today:"Hoy", cal_prev:"Mes anterior", cal_next:"Mes siguiente",
-    bk_issue:"⚠ {bank} necesita tu permiso otra vez", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
+    bk_issue:"{bank} necesita tu permiso", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
     bk_issue_cta:"Reconectar {bank}", bk_tr_dead:"⚠ Trade Republic (inversiones): sesión caducada",
     // Aviso al sincronizar con algún banco caído (petición 2026-07-24): sale como notificación de
     // verdad y al tocarla lleva a Cartera → Mis bancos, que era lo que no se encontraba.
@@ -8459,14 +8487,15 @@ const LANG = {
     bk_notif_n:"{n} bancos necesitan que los reconectes · toca para verlos",
     bk_tr_notif_title:"Trade Republic está desconectado",
     bk_tr_notif_body:"La sesión caducó · toca para ver el aviso en Cartera",
-    bk_issue_pending:"⚠ {bank} se quedó a medio conectar", bk_issue_pending_sub:"Empezaste a conectarlo pero el banco no llegó a dar el permiso, así que no trae ni saldo ni movimientos. Vuelve a intentarlo desde aquí.", bk_notif_pending:"{bank} no llegó a conectarse · toca para terminar",
-    bk_issue_noacct:"⚠ {bank} está conectado a medias", bk_issue_noacct_sub:"El enlace existe pero el banco no da ninguna cuenta. Vuelve a conectarlo y elige las cuentas que quieres ver.",
+    bk_issue_pending:"{bank} se quedó a medio conectar", bk_issue_pending_sub:"Empezaste a conectarlo pero el banco no llegó a dar el permiso, así que no trae ni saldo ni movimientos. Vuelve a intentarlo desde aquí.", bk_notif_pending:"{bank} no llegó a conectarse · toca para terminar",
+    bk_issue_noacct:"{bank} está conectado a medias", bk_issue_noacct_sub:"El enlace existe pero el banco no da ninguna cuenta. Vuelve a conectarlo y elige las cuentas que quieres ver.",
     bk_tr_sub:"Su sesión caducó: las posiciones y el efectivo no se actualizan. Se reconecta aquí, en la app (PIN + código SMS) — no en la app de Trade Republic.",
     bk_tr_cta:"Reconectar Trade Republic",
-    bk_tr_ob:"⚠ Trade Republic (banco): permiso caducado",
-    bk_tr_ob_noacct:"⚠ Trade Republic (banco): no devuelve ninguna cuenta",
+    bk_tr_ob:"Trade Republic (banco): permiso caducado",
+    bk_tr_ob_noacct:"Trade Republic (banco): no devuelve ninguna cuenta",
     bk_tr_ob_sub:"Conexión de banco: trae tus compras con tarjeta. No afecta a tus posiciones ni al efectivo.",
     bk_tr_ob_cta:"Renovar el permiso del banco",
+    ini_bank_issue_many:"{n} bancos necesitan atención", ini_bank_issue_cta:"Revisar",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
     goods_add:"Añadir bien", goods_name:"Nombre del bien", goods_value:"Valor en euros", goods_home:"Vivienda", goods_car:"Vehículo", goods_invalid:"Escribe un nombre y un valor válido, con hasta dos decimales.", goods_delete:"Borrar bien", goods_delete_q:"¿Borrar {name}?", goods_delete_sub:"Dejará de contar en el patrimonio. No se borran cuentas ni movimientos.",
@@ -10824,6 +10853,62 @@ function HelpTip({text}){
         )
       ), document.body)
   );
+}
+
+/* ---------- Avisos de banco caído (`state.bankIssues`) ----------
+   Los textos de cada caso salen de aquí para que Inicio y Cartera digan lo mismo.
+   · «noacct» = enlazado pero el banco no devuelve ninguna cuenta: el texto de «permiso caducado»
+     ahí despistaba, porque no hay ningún permiso que renovar (2026-07-24).
+   · «pending» = se quedó a medio autorizar en el banco. No es un permiso caducado —nunca llegó a
+     haberlo— ni un enlace sin cuentas: el viaje al banco no terminó. Hasta el 11/9 este caso no
+     llegaba siquiera a la app (ver `bankIssuesOf`) y su CaixaBank se quedó ahí semanas sin aviso.
+   · TRADE REPUBLIC ENTRA POR DOS PUERTAS, Y SE ROMPEN POR SEPARADO (petición suya, 10/9). Esto es
+     el permiso de Open Banking (sus COMPRAS con tarjeta, se arregla con el OAuth del banco); la
+     sesión con PIN + SMS de la API propia (POSICIONES y EFECTIVO) tiene su banner aparte en
+     Cartera. Cuando los dos decían «Trade Republic» no había forma de saber cuál tocar. */
+function avisoBancoTxt(is){
+  const lbl=is.ent?entOf(is.ent).label:(is.aspsp||"🏦");
+  const noacct=is.kind==="noacct", pend=is.kind==="pending", esTR=is.ent==="trade_republic";
+  return {
+    titulo: esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(pend?"bk_issue_pending":(noacct?"bk_issue_noacct":"bk_issue"),{bank:lbl}),
+    sub: esTR ? t("bk_tr_ob_sub") : t(pend?"bk_issue_pending_sub":(noacct?"bk_issue_noacct_sub":"bk_issue_sub")),
+    cta: esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl})
+  };
+}
+/* UNA fila por banco dentro de una sola tarjeta (diseño 233, DIS-24). Antes cada banco era una
+   tarjeta de ~105 px con párrafo y botón a todo el ancho: con dos bancos caídos las cuentas
+   quedaban fuera de la primera pantalla de Cartera. La explicación sigue ahí, plegada: se abre
+   tocando la fila (o su «?»). El «Reconectar» llama a lo mismo que antes, solo cambia dónde va. */
+function AvisosBanco({issues, onReconnect}){
+  const [abierto,setAbierto]=useState(null);
+  if(!issues||!issues.length) return null;
+  return React.createElement("div",{className:"v4-card v4-bank-issues"},
+    issues.map(function(is){
+      const x=avisoBancoTxt(is), open=abierto===is.aspsp;
+      return React.createElement("div",{key:"bi_"+is.aspsp,className:"v4-bank-issue"+(open?" open":"")},
+        React.createElement("div",{className:"v4-bank-issue-row"},
+          React.createElement("button",{type:"button",className:"v4-bank-issue-info","aria-expanded":open,
+              onClick:function(){ setAbierto(open?null:is.aspsp); }},
+            React.createElement(Mono,{ent:is.ent,size:28}),
+            React.createElement("span",{className:"v4-bank-issue-t"},x.titulo),
+            React.createElement("span",{className:"v4-bank-issue-q","aria-hidden":true},"?")),
+          onReconnect && React.createElement("button",{type:"button",className:"btn btn-primary v4-bank-issue-cta","aria-label":x.cta,
+            onClick:function(){ onReconnect(is.aspsp); }}, t("bank_reconnect"))),
+        // Plegado con alto animado (grid 0fr → 1fr): abrir no da saltos (feedback 28/10).
+        React.createElement("div",{className:"v4-bank-issue-sub","aria-hidden":!open},
+          React.createElement("div",null,React.createElement("p",null,x.sub))));
+    }));
+}
+/* La misma lectura en Inicio, en una franja (DIS-23): el patrimonio de Inicio puede estar
+   desfasado y solo lo decía Cartera. Solo `state.bankIssues`, sin pedir nada nuevo a la nube.
+   Tocarla lleva a los avisos de Cartera, donde está el arreglo. */
+function AvisoBancoFranja({issues, onOpen}){
+  if(!issues||!issues.length) return null;
+  const uno=issues.length===1;
+  return React.createElement("button",{type:"button",className:"v4-bank-strip rise","data-testid":"inicio-aviso-banco",onClick:onOpen},
+    uno?React.createElement(Mono,{ent:issues[0].ent,size:24}):null,
+    React.createElement("span",{className:"v4-bank-strip-t"}, uno?avisoBancoTxt(issues[0]).titulo:tf("ini_bank_issue_many",{n:issues.length})),
+    React.createElement("span",{className:"v4-bank-strip-cta"}, t("ini_bank_issue_cta")+" ›"));
 }
 
 /* ============================================================
@@ -13586,7 +13671,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
     React.createElement(NetWorthInfoSheet,{open:info,rows:infoRows,onClose:function(){ setInfo(false); }})
   );
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, onGoBankIssues, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);
@@ -13787,6 +13872,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
       )
     ),
+    // Un banco caído deja el patrimonio de aquí desfasado: se dice aquí también (DIS-23).
+    React.createElement(AvisoBancoFranja,{issues:state.bankIssues,onOpen:onGoBankIssues}),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash
        nadie las ve (misma trampa que el count-up). prefers-reduced-motion: sin brillo (CSS). */
@@ -31107,7 +31194,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="49b8ea3c40ae1296024fe0fea7a618440196f15d828a953e16e086e324d05123";
+var _rnSha="9b3c6b2ee8dafce6ecb87b34ae2a97249f0ac6a2a0f7e434b28ff0f297d3a11c";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -37325,37 +37412,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
         React.createElement("span",{style:{color:"var(--coral)",fontWeight:700}}, " "+eur0(-(totals.debtTotal||0))+" "),
         t("v4_debts_foot_b"))
     ),
-    // Banners de reconexión: el arreglo a UN toque, en la pantalla donde se VE el problema.
-    (state.bankIssues||[]).map(function(is){
-      const lbl=is.ent?entOf(is.ent).label:(is.aspsp||"🏦");
-      // «noacct» = enlazado pero el banco no devuelve ninguna cuenta: el texto de «permiso
-      // caducado» ahí despistaba, porque no hay ningún permiso que renovar (2026-07-24).
-      const noacct=is.kind==="noacct";
-      /* «pending» = se quedó a medio autorizar en el banco. No es un permiso caducado —nunca
-         llegó a haberlo— ni un enlace sin cuentas: es que el viaje al banco no terminó. Hasta
-         el 11/9 este caso no llegaba siquiera a la app (ver `bankIssuesOf`), así que su
-         CaixaBank se quedó ahí semanas sin que nada lo dijera. */
-      const pend=is.kind==="pending";
-      /* TRADE REPUBLIC ENTRA POR DOS PUERTAS, Y SE ROMPEN POR SEPARADO (petición suya, 10/9:
-         «estaría bien identificar cuándo falla por la api externa de trade republic y cuándo falla
-         por open banking, me refiero a trade republic»).
-         · Open Banking (esto): el permiso de Enable Banking. Es lo que trae sus COMPRAS con tarjeta.
-           Se arregla con el OAuth del banco.
-         · La API propia de TR (el banner de abajo): la sesión con PIN + SMS. Es lo que trae sus
-           POSICIONES y su EFECTIVO. Se arregla dentro de la app.
-         Hasta ahora los dos avisos decían «Trade Republic» y los dos decían «Reconectar Trade
-         Republic», así que no había forma de saber cuál tocar — y tocar el que no era no hacía
-         nada. Con cualquier otro banco esto no pasa: solo hay una puerta. */
-      const esTR=is.ent==="trade_republic";
-      return React.createElement("div",{key:"bi_"+is.aspsp,className:"v4-card v4-bank-issue",style:{marginTop:10,padding:"14px 16px",border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)"}},
-        React.createElement("div",{style:{fontWeight:800,fontSize:14.5,lineHeight:1.4}},
-          esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(pend?"bk_issue_pending":(noacct?"bk_issue_noacct":"bk_issue"),{bank:lbl})),
-        React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:3,lineHeight:1.45}},
-          esTR ? t("bk_tr_ob_sub") : t(pend?"bk_issue_pending_sub":(noacct?"bk_issue_noacct_sub":"bk_issue_sub"))),
-        onReconnectBank && React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:10,height:46},onClick:function(){ onReconnectBank(is.aspsp); }},
-          esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl}))
-      );
-    }),
+    // Avisos de reconexión: el arreglo a UN toque, en la pantalla donde se VE el problema. Los
+    // textos y los casos (caducado, a medias, sin cuentas, TR por banco) viven en `avisoBancoTxt`.
+    React.createElement(AvisosBanco,{issues:state.bankIssues,onReconnect:onReconnectBank}),
     trDead && React.createElement("div",{className:"v4-card v4-tr-issue",style:{marginTop:10,padding:"14px 16px",border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)"}},
       React.createElement("div",{style:{fontWeight:800,fontSize:14.5,lineHeight:1.4}}, t("bk_tr_dead")),
       React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:3,lineHeight:1.45}}, t("bk_tr_sub")),
@@ -41473,20 +41532,22 @@ function App(){
   /* ADÓNDE LLEVA «Abrir en Cartera ›» DE LA FILA GRIS DE INVERSIONES (Gastos v5, 25/10/2026).
      El destino vive SOLO aquí a propósito: cuando exista la pestaña de inversiones (petición
      del dueño, «ya le añadiremos que se redirija a una tab nueva»), se cambia esta función y
-     nada más. Hoy: Cartera, con el bloque «Tus inversiones» arriba. El bloque se puede haber
-     reordenado, así que se busca por su marca; se baja con `scrollTop` de la propia página y no
-     con `scrollIntoView`, que también movería el carrusel de pestañas. */
-  const goInversiones=function(){
+     nada más (`goInversiones`). Hoy: Cartera, con el bloque «Tus inversiones» arriba. El bloque
+     se puede haber reordenado, así que se busca por su marca; se baja con `scrollTop` de la
+     propia página y no con `scrollIntoView`, que también movería el carrusel de pestañas. La
+     franja de banco caído de Inicio aterriza igual en los avisos de Cartera. */
+  const goCartera=function(sel){
     const i=tabIds.indexOf("cartera");
     if(i<0) return;
     goTabTop(i);
     requestAnimationFrame(function(){
       const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
-      const sec=pg&&pg.querySelector('[data-cartera-sec="inversiones"]');
+      const sec=pg&&pg.querySelector(sel);
       if(!sec) return;
       pg.scrollTop=Math.max(0,pg.scrollTop+sec.getBoundingClientRect().top-pg.getBoundingClientRect().top-12);
     });
   };
+  const goInversiones=function(){ goCartera('[data-cartera-sec="inversiones"]'); };
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
@@ -42398,6 +42459,7 @@ function App(){
         requestAnimationFrame(function(){ requestAnimationFrame(function(){ profSetOrigin(); setProfileOpen(true); }); });
       },
       onGoGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); },
+      onGoBankIssues:function(){ goCartera(".v4-bank-issues"); },
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).

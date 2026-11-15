@@ -4697,37 +4697,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
         React.createElement("span",{style:{color:"var(--coral)",fontWeight:700}}, " "+eur0(-(totals.debtTotal||0))+" "),
         t("v4_debts_foot_b"))
     ),
-    // Banners de reconexión: el arreglo a UN toque, en la pantalla donde se VE el problema.
-    (state.bankIssues||[]).map(function(is){
-      const lbl=is.ent?entOf(is.ent).label:(is.aspsp||"🏦");
-      // «noacct» = enlazado pero el banco no devuelve ninguna cuenta: el texto de «permiso
-      // caducado» ahí despistaba, porque no hay ningún permiso que renovar (2026-07-24).
-      const noacct=is.kind==="noacct";
-      /* «pending» = se quedó a medio autorizar en el banco. No es un permiso caducado —nunca
-         llegó a haberlo— ni un enlace sin cuentas: es que el viaje al banco no terminó. Hasta
-         el 11/9 este caso no llegaba siquiera a la app (ver `bankIssuesOf`), así que su
-         CaixaBank se quedó ahí semanas sin que nada lo dijera. */
-      const pend=is.kind==="pending";
-      /* TRADE REPUBLIC ENTRA POR DOS PUERTAS, Y SE ROMPEN POR SEPARADO (petición suya, 10/9:
-         «estaría bien identificar cuándo falla por la api externa de trade republic y cuándo falla
-         por open banking, me refiero a trade republic»).
-         · Open Banking (esto): el permiso de Enable Banking. Es lo que trae sus COMPRAS con tarjeta.
-           Se arregla con el OAuth del banco.
-         · La API propia de TR (el banner de abajo): la sesión con PIN + SMS. Es lo que trae sus
-           POSICIONES y su EFECTIVO. Se arregla dentro de la app.
-         Hasta ahora los dos avisos decían «Trade Republic» y los dos decían «Reconectar Trade
-         Republic», así que no había forma de saber cuál tocar — y tocar el que no era no hacía
-         nada. Con cualquier otro banco esto no pasa: solo hay una puerta. */
-      const esTR=is.ent==="trade_republic";
-      return React.createElement("div",{key:"bi_"+is.aspsp,className:"v4-card v4-bank-issue",style:{marginTop:10,padding:"14px 16px",border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)"}},
-        React.createElement("div",{style:{fontWeight:800,fontSize:14.5,lineHeight:1.4}},
-          esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(pend?"bk_issue_pending":(noacct?"bk_issue_noacct":"bk_issue"),{bank:lbl})),
-        React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:3,lineHeight:1.45}},
-          esTR ? t("bk_tr_ob_sub") : t(pend?"bk_issue_pending_sub":(noacct?"bk_issue_noacct_sub":"bk_issue_sub"))),
-        onReconnectBank && React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:10,height:46},onClick:function(){ onReconnectBank(is.aspsp); }},
-          esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl}))
-      );
-    }),
+    // Avisos de reconexión: el arreglo a UN toque, en la pantalla donde se VE el problema. Los
+    // textos y los casos (caducado, a medias, sin cuentas, TR por banco) viven en `avisoBancoTxt`.
+    React.createElement(AvisosBanco,{issues:state.bankIssues,onReconnect:onReconnectBank}),
     trDead && React.createElement("div",{className:"v4-card v4-tr-issue",style:{marginTop:10,padding:"14px 16px",border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)"}},
       React.createElement("div",{style:{fontWeight:800,fontSize:14.5,lineHeight:1.4}}, t("bk_tr_dead")),
       React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:3,lineHeight:1.45}}, t("bk_tr_sub")),

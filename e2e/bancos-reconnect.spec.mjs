@@ -92,7 +92,7 @@ test("el banner de Cartera lanza UNA autorización al tocarlo", async ({ page })
     };
   });
 
-  await page.locator(".v4-bank-issue .v4-cta").click();
+  await page.locator(".v4-bank-issue-cta").click();
   await expect.poll(() => page.evaluate(() => window.__e2eConnects)).toBe(1);
 
   // Segundo toque mientras el primero «sigue» (candado busy): no suma otra llamada.
@@ -106,8 +106,8 @@ test("el banner de Cartera lanza UNA autorización al tocarlo", async ({ page })
       return lenta.then(() => ({ ok: true, url: location.pathname + location.search + "#e2e-bank-auth" }));
     };
   });
-  await page.locator(".v4-bank-issue .v4-cta").click();
-  await page.locator(".v4-bank-issue .v4-cta").click();
+  await page.locator(".v4-bank-issue-cta").click();
+  await page.locator(".v4-bank-issue-cta").click();
   await page.waitForTimeout(100);
   expect(await page.evaluate(() => window.__e2eConnects)).toBe(1);
   await page.evaluate(() => window.__e2eLiberar());

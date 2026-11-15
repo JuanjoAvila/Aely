@@ -69,6 +69,12 @@ export const E2E_MAP = [
   // de» del ciclo, metas en Inicio sencillo, <html lang>, tipo de cambio y candado sin diálogo nativo.
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  // Diseño 233 (DIS-23/24): franja de banco caído en Inicio y avisos compactos en Cartera.
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
   { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/textos-claros.spec.mjs"] },
