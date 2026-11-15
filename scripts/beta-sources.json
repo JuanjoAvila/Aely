@@ -170726,10 +170726,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "gestureAxis"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "moveExpenseWithinDay"
       },
       {
@@ -172175,14 +172171,6 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_mcInicioMesByYm"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "GEST_LEAD"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "GEST_MAX"
       },
       {
         "file": "src/modules/08-motor-bank.js",

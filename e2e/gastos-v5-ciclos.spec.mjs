@@ -249,13 +249,15 @@ test("la pulsación larga de una categoría no selecciona texto ni abre el menú
    Cooking» y «Bares y / restaurantes» se partían en dos líneas y el banco se cortaba en «Trad…».
    A 393 px, nombres típicos caben en UNA línea sin recortarse y el banco sale entero; con la letra
    del sistema más grande (se imita como en `gastos-v5`: el WebView escala el texto, no las cajas)
-   siguen en una línea, recortados con puntos suspensivos. */
+   siguen en una línea, recortados con puntos suspensivos. Dos bancos de diario para que la fila
+   diga el banco: con uno solo ya no lo pinta (diseño 233, DIS-13). */
 test.describe("filas a 393 px", () => {
   test.use({ viewport: { width: 393, height: 873 } });
   for (const zoom of [1, 1.3]) {
     test(`nombre y categoría en una línea (letra al ${Math.round(zoom * 100)} %)`, async ({ page }) => {
-      await abre(page, { settings: { ...base.settings, budgetCycle: false, gTotalMode: "split" }, expenses: [
-        e("Bizum recibido", "2026-09-26", -20, "ingreso"), e("Amazon", "2026-09-25", 39.59, "compras"),
+      await abre(page, { settings: { ...base.settings, budgetCycle: false, gTotalMode: "split", expenseBanks: ["trade_republic", "sabadell"] },
+        accounts: [...base.accounts, { id: "sab", ent: "sabadell", name: "Cuenta", value: 1000, role: "diario", spendFrom: true }], expenses: [
+        e("Bizum recibido", "2026-09-26", -20, "ingreso"), e("Amazon", "2026-09-25", 39.59, "compras", { ent: "sabadell" }),
         e("Barcelona Cooking", "2026-09-24", 27.65, "bares"), e("Telepizza", "2026-09-24", 49.8, "bares"),
       ] });
       const tarjetas = gastosRoot(page).locator('[data-gx-secc="movs"] button.v4-mov');

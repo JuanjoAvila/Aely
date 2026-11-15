@@ -1522,15 +1522,8 @@
     background:color-mix(in srgb, var(--mint-ink) 12%, transparent);
   }
   /* B3 active en claro: sur2 ya es verdoso; el scale se queda. */
-  /* Asa separada: tocar el resto sigue abriendo la ficha y deslizar en vertical sigue siendo
-     scroll. Solo el asa reclama el dedo para ordenar, sin activar el swipe entre pestañas. */
-  .v4-mov-drag{width:28px;height:44px;display:grid;place-items:center;flex:0 0 auto;margin:-4px -6px -4px 0;
-    color:var(--muted-2);font-size:22px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab;}
-  .v4-mov.dragging{opacity:.58;transform:scale(.985);border-color:var(--mint);}
-  .v4-mov.drag-over{border-color:var(--mint);box-shadow:0 0 0 2px rgba(95,208,138,.18);}
-  html.reduce-motion .v4-mov.dragging{transform:none;}
-  /* Cartera → Tus cuentas: long-press eleva la fila (12/9: «efecto chulo… smooth»). No reutilizar
-     el `.dragging` de Gastos (ese baja opacidad): aquí se LEVANTA. */
+  /* Cartera → Tus cuentas y brókers: long-press eleva la fila (12/9: «efecto chulo… smooth»).
+     Gastos ordena con su propio gesto, más vistoso (`.gx-alza`, más abajo). */
   :is(.v4-card-list,.v4-investments-full).reordering{touch-action:none;}
   :is(.v4-card-list,.v4-investments-full) button.v4-mov.dragging{
     opacity:1;z-index:2;position:relative;
@@ -1540,7 +1533,7 @@
     transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s ease;
   }
   :is(.v4-card-list,.v4-investments-full) button.v4-mov.drag-over{
-    border-color:var(--mint-dim);
+    border-color:var(--mint-dim);box-shadow:0 0 0 2px rgba(95,208,138,.18);
     background:rgba(95,208,138,.08);
   }
   html.reduce-motion :is(.v4-card-list,.v4-investments-full) button.v4-mov.dragging{
@@ -1728,16 +1721,17 @@
   .gx-list .v4-mov .nm-title{font-size:16px;font-weight:600;}
   .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
   .gx-list .v4-mov .meta{font-size:13px;}
-  .gx-list .v4-mov .am{font-size:19px;font-weight:600;}
-  /* «fecha · banco» en UNA línea aunque el móvil lleve la letra grande (captura suya de la beta
-     4.26.164, 24/10: el WebView escala el texto y no las cajas, y «24/10 ·» y «Trade Republic» se
-     partían en dos líneas con el punto huérfano: la regla general `.v4-mov .meta` deja que la fila
-     se parta). La fecha y los puntos no ceden; el banco y la
-     marca de recibo se recortan con puntos suspensivos. El importe tampoco cede ni se parte: es
-     lo que se viene a leer. */
+  /* 17 y no 19: más grande que el nombre (16) robaba el ancho que necesita el comercio y gritaba
+     más que él (auditoría de diseño 233, DIS-14). */
+  .gx-list .v4-mov .am{font-size:17px;font-weight:600;}
+  /* «banco · recibo» en UNA línea aunque el móvil lleve la letra grande (captura suya de la beta
+     4.26.164, 24/10: el WebView escala el texto y no las cajas, y la línea se partía con el punto
+     huérfano: la regla general `.v4-mov .meta` deja que la fila se parta). El punto no cede; el
+     banco y la marca de recibo se recortan con puntos suspensivos. El importe tampoco cede ni se
+     parte: es lo que se viene a leer. */
   .gx-list .v4-mov .meta{flex-wrap:nowrap;align-items:center;min-width:0;white-space:nowrap;overflow:hidden;}
   .gx-list .v4-mov .meta > span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .gx-list .v4-mov .meta > span:first-child,.gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
+  .gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
   .gx-list .v4-mov .am{flex:0 0 auto;white-space:nowrap;}
   /* Nombre y categoría en UNA línea cada uno (su «modo normal la letra», 25/10/2026): a 393 px la
      columna del nombre se quedaba en ~130 px entre el icono, los tres huecos de 14, el importe y el
@@ -1747,6 +1741,28 @@
      diseño) y, si aun así no cabe, se recorta con puntos suspensivos: una fila de dos líneas por
      gasto duplicaba la lista. */
   .gx-list .v4-mov .nm-title,.gx-list .v4-mov .nm-cat{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* ORDENAR EL DÍA CON PULSACIÓN LARGA (15/11/2026, ver `gxReorden` en 04-tab-gastos.js). Los
+     muelles los mueve JS escribiendo solo `transform`; aquí no se anima nada de layout. La sombra
+     y el brillo van en pseudo-elementos que solo cambian de OPACIDAD: animar `box-shadow` repinta
+     la fila en cada frame, y la opacidad la resuelve el compositor.
+     · `content-visibility:visible` mientras dura: con `auto` el día lleva contención de pintado y
+       recortaría la sombra y la fila en cuanto asomara por el borde del día.
+     · `transition:none` en la que vuela: la de `:active` (.12s sobre transform) la haría ir con
+       retraso detrás del dedo.
+     · Con «reducir movimiento» no hace falta nada aquí: estos fundidos no mueven nada, y el
+       balanceo y el rebote ya los quita el JS. */
+  .gx-dia.gx-reorden{content-visibility:visible;}
+  .gx-reorden .v4-mov{will-change:transform;transition:opacity .22s var(--ease) !important;}
+  .gx-reorden:not(.gx-suelta) .v4-mov:not(.gx-alza){opacity:.5 !important;}
+  .gx-list .v4-mov.gx-alza{position:relative;z-index:3;opacity:1 !important;transition:none !important;
+    background:var(--sur2);border-color:var(--mint-dim);}
+  .gx-alza::before,.gx-alza::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;z-index:-1;
+    animation:gx-alza-in .3s var(--ease) both;}
+  .gx-alza::before{box-shadow:0 30px 50px -22px rgba(0,0,0,.6),0 12px 34px -12px color-mix(in srgb, var(--mint) 40%, transparent);}
+  .gx-alza::after{background:linear-gradient(125deg,color-mix(in srgb, var(--mint-hi) 16%, transparent),transparent 45%);}
+  .gx-alza.gx-aterriza::before,.gx-alza.gx-aterriza::after{animation:gx-alza-out .28s var(--ease) both;}
+  @keyframes gx-alza-in{from{opacity:0}to{opacity:1}}
+  @keyframes gx-alza-out{from{opacity:1}to{opacity:0}}
   /* Fila gris: recibos y cuotas del día, que no cuentan (SPEC §4.4). Sin flecha, a petición. */
   .gx-gris{border:1px dashed var(--sur2);border-radius:18px;overflow:hidden;}
   .gx-gris-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border:0;background:transparent;

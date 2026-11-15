@@ -3903,6 +3903,9 @@ Object.assign(LANG.ca,{g_rename_pending:"Nom pendent de confirmar. Es conserva e
 Object.assign(LANG.es,{g_rename_paused:"No se ha podido confirmar el nombre. Sigue guardado en este dispositivo. Pulsa Reintentar cuando quieras volver a enviarlo."});
 Object.assign(LANG.en,{g_rename_paused:"The name could not be confirmed. It is still saved on this device. Tap Retry when you want to send it again."});
 Object.assign(LANG.ca,{g_rename_paused:"No s'ha pogut confirmar el nom. Continua desat en aquest dispositiu. Prem Torna-ho a provar quan el vulguis tornar a enviar."});
+Object.assign(LANG.es,{g_mov_reorden:"mantén pulsado para cambiar su orden en el día"});
+Object.assign(LANG.en,{g_mov_reorden:"press and hold to change its order within the day"});
+Object.assign(LANG.ca,{g_mov_reorden:"mantén premut per canviar-ne l'ordre dins del dia"});
 function loadState(){
   const saved = mcLoadRaw(mcStateKey());
   if(saved && saved.accounts){
