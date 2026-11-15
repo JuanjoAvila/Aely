@@ -2700,24 +2700,20 @@ const GX_HOLD_MS=450;   // lo que pidió: «mantener»; más corto se confunde c
 const GX_HOLD_TOL=8;    // px de temblor tolerados esperando; por debajo de GEST_LEAD (12), así ni el
                         // carrusel ni el scroll han decidido nada cuando la espera se suelta
 const GX_BORDE=72;      // px junto al borde visible donde empieza el auto-scroll
-const GX_ALZA=1.045;
 // Muelle amortiguado (Euler semi-implícito): estable con el dt de un frame a 30-120 Hz.
 function gxMuelle(m,k,c,dt){ m.v+=(-k*(m.p-m.to)-c*m.v)*dt; m.p+=m.v*dt; }
 function gxQuieto(m,tol){ return Math.abs(m.p-m.to)<tol && Math.abs(m.v)<tol*10; }
-// Pasado el primer o el último hueco del día la fila cede cada vez menos: se nota el tope sin un golpe seco.
-function gxGoma(d){ return 26*(1-Math.exp(-d/70)); }
 function gxReorden(lista, op){
   let g=null, raf=0;
   const html=document.documentElement;
-  const tieneDedo=function(){ return g&&(g.fase==="espera"||g.fase==="arrastre"); };
-  const sinMenu=function(ev){ if(tieneDedo()) ev.preventDefault(); };
+  // Sin menú del sistema mientras el dedo esté puesto en una fila (Android lo abre al mantener).
+  const sinMenu=function(ev){ if(g&&g.fase!=="aterriza") ev.preventDefault(); };
   const limpia=function(gg){
-    if(raf){ cancelAnimationFrame(raf); raf=0; }
+    cancelAnimationFrame(raf); raf=0;
     if(!gg.R) return;
     gg.R.forEach(function(r){ r.el.style.transform=""; });
     gg.row.classList.remove("gx-alza","gx-aterriza");
     gg.sec.classList.remove("gx-reorden","gx-suelta");
-    if(gg.hueco&&gg.hueco.parentNode) gg.hueco.parentNode.removeChild(gg.hueco);
     document.removeEventListener("visibilitychange",corta);
   };
   // La app se va a segundo plano con el dedo puesto: no llega ni touchend. Todo a su sitio, sin guardar.
@@ -2727,17 +2723,14 @@ function gxReorden(lista, op){
     const desde=gg.R[gg.from].id, hasta=gg.R[gg.to].id;
     op.calla();
     if(desde!==hasta){
-      try{ ReactDOM.flushSync(function(){ op.alSoltar(desde,hasta); }); }
-      catch(e){ op.alSoltar(desde,hasta); }
+      ReactDOM.flushSync(function(){ op.alSoltar(desde,hasta); });
     }
     limpia(gg);
   };
-  // Dónde acaba la fila arrastrada si se suelta ahora: lo que miden las filas que ha adelantado.
+  // Dónde acaba la fila arrastrada si se suelta ahora: alineada por arriba o por abajo con la que ocupa.
   const destino=function(gg){
-    let d=0;
-    if(gg.to>gg.from) for(let i=gg.from+1;i<=gg.to;i++) d+=gg.R[i].h+gg.gap;
-    else for(let i=gg.to;i<gg.from;i++) d-=gg.R[i].h+gg.gap;
-    return d;
+    const a=gg.R[gg.from], b=gg.R[gg.to];
+    return gg.to>gg.from?b.top+b.h-a.top-a.h:b.top-a.top;
   };
   const frame=function(ts){
     raf=0;
@@ -2758,7 +2751,8 @@ function gxReorden(lista, op){
       }
       const min=R[0].top-yo.top, max=ult.top+ult.h-yo.top-yo.h;
       let dy=(g.y+g.st)-(g.yA+g.stA);
-      if(dy<min) dy=min-gxGoma(min-dy); else if(dy>max) dy=max+gxGoma(dy-max);
+      // Pasado el primer o el último hueco del día la fila cede a un tercio: se nota el tope sin golpe seco.
+      if(dy<min) dy=min+(dy-min)/3; else if(dy>max) dy=max+(dy-max)/3;
       g.ym.p=dy; g.ym.v=g.vy;
       const c=yo.top+dy+yo.h/2;
       let to=g.from;
@@ -2770,19 +2764,14 @@ function gxReorden(lista, op){
         R.forEach(function(r,i){
           r.m.to=(to>g.from&&i>g.from&&i<=to)?-paso:(to<g.from&&i>=to&&i<g.from)?paso:0;
         });
-        g.hm.to=destino(g);
-        try{ navigator.vibrate&&navigator.vibrate(4); }catch(_){}
       }
-      g.xm.to=Math.max(-14,Math.min(14,(g.x-g.xA)*0.2));
-      g.rot.to=red?0:Math.max(-3,Math.min(3,g.vy/1500*2.6))+g.xm.p*0.07;
+      g.rot.to=red?0:Math.max(-3,Math.min(3,g.vy/1500*2.6));
     } else {
       gxMuelle(g.ym,red?900:340,red?60:19,dt);
     }
     gxMuelle(g.sc,red?900:430,red?60:21,dt);
-    gxMuelle(g.xm,320,26,dt);
     gxMuelle(g.rot,170,8.5,dt);
-    gxMuelle(g.hm,520,34,dt);
-    let quietos=gxQuieto(g.ym,0.4)&&gxQuieto(g.sc,0.002)&&gxQuieto(g.xm,0.4)&&gxQuieto(g.rot,0.05)&&gxQuieto(g.hm,0.4);
+    let quietos=gxQuieto(g.ym,0.4)&&gxQuieto(g.sc,0.002)&&gxQuieto(g.rot,0.05);
     R.forEach(function(r){
       if(r===yo) return;
       gxMuelle(r.m,red?900:520,red?60:32,dt);
@@ -2792,8 +2781,7 @@ function gxReorden(lista, op){
     });
     // Un vaivén lento mientras flota, para que no parezca pegado al dedo con cola.
     const vaiven=red||g.fase!=="arrastre"?0:Math.sin((ts-g.t0)/1000*2.6)*0.45;
-    yo.el.style.transform="translate3d("+g.xm.p.toFixed(2)+"px,"+g.ym.p.toFixed(2)+"px,0) rotate("+(g.rot.p+vaiven).toFixed(3)+"deg) scale("+g.sc.p.toFixed(4)+")";
-    g.hueco.style.transform="translate3d(0,"+g.hm.p.toFixed(2)+"px,0)";
+    yo.el.style.transform="translate3d(0,"+g.ym.p.toFixed(2)+"px,0) rotate("+(g.rot.p+vaiven).toFixed(3)+"deg) scale("+g.sc.p.toFixed(4)+")";
     if(g.fase==="aterriza" && (quietos || ts-g.tSuelta>1200)){ fin(); return; }
     raf=requestAnimationFrame(frame);
   };
@@ -2802,38 +2790,29 @@ function gxReorden(lista, op){
     g.timer=0;
     const row=g.row, sec=g.sec, host=g.host;
     // Si la página se movió durante la espera, era un scroll (o una inercia frenada tarde): nada.
-    if(!row.isConnected||html.classList.contains("sheet-open")||(host&&Math.abs(host.scrollTop-g.st0)>2)){ g=null; return; }
-    const filas=[].slice.call(sec.querySelectorAll("button.v4-mov[data-reorden]"));
+    if(!row.isConnected||html.classList.contains("sheet-open")||Math.abs(host.scrollTop-g.st0)>2){ g=null; return; }
+    const filas=Array.from(sec.querySelectorAll("button.v4-mov[data-reorden]"));
     const from=filas.indexOf(row);
     if(from<0||filas.length<2){ g=null; return; }
     // La clase va ANTES de medir: quita `content-visibility` (su contención de pintado recortaría la
     // sombra y la fila que se sale del día) y así lo medido ya es lo que se va a ver.
     sec.classList.add("gx-reorden");
-    const st=host?host.scrollTop:0;
-    const hr=host?host.getBoundingClientRect():{top:0,bottom:innerHeight};
+    const st=host.scrollTop;
+    const hr=host.getBoundingClientRect();
     let arriba=hr.top, abajo=hr.bottom;
     // Lo visible de verdad: bajo la cabecera fija de Gastos y encima de la barra de abajo.
-    const cab=host&&host.querySelector(".gx-head");
+    const cab=host.querySelector(".gx-head");
     if(cab){ const r=cab.getBoundingClientRect(); if(r.bottom>arriba&&r.bottom<hr.top+hr.height/2) arriba=r.bottom; }
     const nav=document.querySelector(".botnav");
     if(nav){ const r=nav.getBoundingClientRect(); if(r.height>0&&r.top<abajo&&r.top>hr.top+hr.height/2) abajo=r.top; }
-    const secTop=sec.getBoundingClientRect().top+st;
     const R=filas.map(function(el){
       const r=el.getBoundingClientRect();
-      return {el:el,id:el.getAttribute("data-expense-id"),top:r.top+st,h:r.height,m:{p:0,v:0,to:0},s:""};
+      return {el:el,id:el.getAttribute("data-expense-id"),top:r.top+st,h:r.height,m:{p:0,v:0,to:0}};
     });
-    const yo=R[from];
     Object.assign(g,{fase:"arrastre",R:R,from:from,to:from,gap:Math.max(0,R[1].top-R[0].top-R[0].h),
-      st:st,stA:st,stMax:host?Math.max(0,host.scrollHeight-host.clientHeight):0,arriba:arriba,abajo:abajo,
-      xA:g.x,yA:g.y,reduce:mcReduced(),t0:performance.now(),tPrev:0,
-      ym:{p:0,v:0,to:0},xm:{p:0,v:0,to:0},rot:{p:0,v:0,to:0},hm:{p:0,v:0,to:0}});
-    g.sc={p:1,v:g.reduce?0:1.2,to:g.reduce?1.02:GX_ALZA};
-    // El hueco donde caerá: detrás de las filas (va antes que ellas en el DOM) y sin ocupar sitio.
-    const hueco=document.createElement("div");
-    hueco.className="gx-hueco"; hueco.setAttribute("aria-hidden","true");
-    hueco.style.top=(yo.top-secTop)+"px"; hueco.style.height=yo.h+"px";
-    sec.insertBefore(hueco,R[0].el);
-    g.hueco=hueco;
+      st:st,stA:st,stMax:Math.max(0,host.scrollHeight-host.clientHeight),arriba:arriba,abajo:abajo,
+      yA:g.y,reduce:mcReduced(),t0:performance.now(),tPrev:0,ym:{p:0,v:0,to:0},rot:{p:0,v:0,to:0}});
+    g.sc={p:1,v:g.reduce?0:1.2,to:g.reduce?1.02:1.045};   // cuánto se levanta
     row.classList.add("gx-alza");
     document.addEventListener("visibilitychange",corta);
     op.calla();
@@ -2844,14 +2823,13 @@ function gxReorden(lista, op){
     g.fase="aterriza"; g.tSuelta=performance.now();
     op.calla();
     if(!guardar){
-      g.to=g.from; g.hm.to=0;
+      g.to=g.from;
       g.R.forEach(function(r){ r.m.to=0; });
     }
     g.ym.to=destino(g); g.ym.v=g.reduce?0:g.vy*0.35;
-    g.sc.to=1; g.xm.to=0; g.rot.to=0;
+    g.sc.to=1; g.rot.to=0;
     g.row.classList.add("gx-aterriza");
     g.sec.classList.add("gx-suelta");   // el resto del día recupera el color mientras ella cae
-    g.hueco.classList.add("fuera");
     if(!raf) raf=requestAnimationFrame(frame);
   };
   const ts=function(ev){
@@ -2863,13 +2841,13 @@ function gxReorden(lista, op){
       else if(g.fase!=="espera") return;
       else { clearTimeout(g.timer); g=null; }
     }
-    if(!ev.touches||ev.touches.length!==1||html.classList.contains("sheet-open")) return;
-    const row=ev.target&&ev.target.closest?ev.target.closest("button.v4-mov[data-reorden]"):null;
+    if(!ev.touches||ev.touches.length!==1) return;   // con una hoja abierta lo descarta `levanta`
+    const row=ev.target.closest&&ev.target.closest("button.v4-mov[data-reorden]");
     const sec=row&&row.closest(".gx-dia");
-    if(!sec||!lista.contains(row)) return;
-    const host=row.closest(".page"), p=ev.touches[0];
+    const host=sec&&sec.closest(".page"), p=ev.touches[0];
+    if(!host||!lista.contains(row)) return;
     g={fase:"espera",row:row,sec:sec,host:host,x0:p.clientX,y0:p.clientY,x:p.clientX,y:p.clientY,
-      st0:host?host.scrollTop:0,vy:0,tm:0,timer:0};
+      st0:host.scrollTop,vy:0};
     g.timer=setTimeout(levanta,GX_HOLD_MS);
   };
   const tm=function(ev){
@@ -2884,7 +2862,7 @@ function gxReorden(lista, op){
     // El navegador ya se quedó el gesto como scroll: no pelearle el dedo, la fila vuelve a su sitio.
     if(!ev.cancelable){ suelta(false); return; }
     ev.preventDefault(); ev.stopPropagation();
-    const now=ev.timeStamp||performance.now();
+    const now=ev.timeStamp;
     if(g.tm) g.vy=g.vy*0.6+(p.clientY-g.y)/Math.max(1,now-g.tm)*1000*0.4;
     g.tm=now; g.x=p.clientX; g.y=p.clientY;
     if(!raf) raf=requestAnimationFrame(frame);

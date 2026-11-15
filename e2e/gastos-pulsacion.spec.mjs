@@ -86,7 +86,7 @@ test("un toque corto abre la ficha; mantener y soltar sin mover no la abre ni ca
   await expect(gastosRoot(page).locator(`button.v4-mov.gx-alza[data-expense-id="${fila.id}"]`)).toHaveCount(1);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await expect(gastosRoot(page).locator(".gx-alza")).toHaveCount(0);
-  await expect(gastosRoot(page).locator(".gx-hueco")).toHaveCount(0);
+  await expect(gastosRoot(page).locator(".gx-reorden")).toHaveCount(0);
   await page.waitForTimeout(400);
   await expect(page.locator(".v4-exp-sheet")).toHaveCount(0);
   expect(await ordenGuardado(page)).toBeNull();
