@@ -3820,8 +3820,17 @@ function accountRowsInOrder(state){
    - Lo que él puso con la clave vieja sigue valiendo: el orden de la lista (las nuevas donde estaba la
      vieja), la parte de la cuenta y, si la clave era el uid del banco («ob:»), ese uid en `bankUid`
      para que sus movimientos sigan siendo suyos (`accountOwnsMovement`).
-   Idempotente: con las claves ya únicas devuelve el mismo objeto. La clave nueva sale del id y del
-   puesto en la lista, así dos móviles que cargan el mismo estado llegan a la misma. */
+   Idempotente: con las claves ya únicas devuelve el mismo objeto. La clave nueva sale del id y de una
+   huella de lo que no cambia entre móviles (banco, nombre, rol, IBAN/uid), NO del puesto en la lista:
+   con el puesto, dos móviles con las cuentas en otro orden cruzaban las claves y, con ellas, los
+   cierres (revisión de dinero 234, H-B2). Dos cuentas idénticas en todo eso son intercambiables y el
+   empate se resuelve por orden. */
+function accountKeysHuella(a){
+  const txt=[a.ent,a.name,a.role,a.bankIban,a.bankUid].map(function(x){ return x==null?"":String(x); }).join("|");
+  let h=0x811c9dc5;
+  for(let i=0;i<txt.length;i++){ h^=txt.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; }
+  return ("0000000"+h.toString(16)).slice(-8);
+}
 function accountKeysUnicas(state){
   const accs=(state&&state.accounts)||[];
   if(accs.length<2&&!(accs.length&&(state.obAccounts||[]).length)) return state;
@@ -3829,14 +3838,20 @@ function accountKeysUnicas(state){
   accountRowsInOrder(Object.assign({},state,{settings:null})).forEach(function(r){ veces[r.key]=(veces[r.key]||0)+1; });
   const choca=function(k){ return veces[k]>1&&k!=="acc:"&&k!=="ob:"; };
   if(!accs.some(function(a){ return choca(accountOrderKeyOf(a,"account")); })) return state;
-  const usadas=Object.assign({},veces), nuevas={};
-  const accounts=accs.map(function(a){
-    const vieja=accountOrderKeyOf(a,"account");
-    if(!choca(vieja)) return a;
-    let n=1, k;
-    do{ k="acc:"+String(a.id)+"~"+(n++); }while(usadas[k]);
-    usadas[k]=1; (nuevas[vieja]||(nuevas[vieja]=[])).push(k);
-    const o=Object.assign({},a,{accountOrderKey:k});
+  const usadas=Object.assign({},veces), nuevas={}, claveDe={};
+  accs.map(function(a,i){ return {a:a,i:i,vieja:accountOrderKeyOf(a,"account"),huella:accountKeysHuella(a)}; })
+    .filter(function(x){ return choca(x.vieja); })
+    .sort(function(x,y){ return x.huella<y.huella?-1:x.huella>y.huella?1:x.i-y.i; })
+    .forEach(function(x){
+      const raiz="acc:"+String(x.a.id)+"~"+x.huella;
+      let n=1, k=raiz;
+      while(usadas[k]) k=raiz+"~"+(++n);
+      usadas[k]=1; claveDe[x.i]=k; (nuevas[x.vieja]||(nuevas[x.vieja]=[])).push(k);
+    });
+  const accounts=accs.map(function(a,i){
+    const k=claveDe[i];
+    if(!k) return a;
+    const vieja=accountOrderKeyOf(a,"account"), o=Object.assign({},a,{accountOrderKey:k});
     if(/^ob:./.test(vieja)&&!a.bankUid&&!a.bankIban) o.bankUid=vieja.slice(3);
     return o;
   });

@@ -77,6 +77,17 @@ test("respeta lo que él puso: el orden de la lista, la parte de cada una y el e
   assert.equal(c.accountKeysUnicas(s),s);
 });
 
+test("dos móviles con las cuentas en distinto orden llegan a las mismas claves (revisión 234, H-B2)",()=>{
+  const s1=Object.assign(dosConLaMisma(),{settings:{accountListOrder:["acc:otra","acc:dup"]}});
+  const s2=Object.assign(dosConLaMisma(),{settings:{accountListOrder:["acc:otra","acc:dup"]}});
+  s2.accounts=s2.accounts.slice().reverse();
+  const porNombre=s=>Object.fromEntries(c.accountKeysUnicas(s).accounts.map(a=>[a.name,c.accountOrderKeyOf(a,"account")]));
+  assert.deepEqual(porNombre(s1),porNombre(s2));
+  assert.deepEqual(plano(c.accountKeysUnicas(s1).settings.accountListOrder),plano(c.accountKeysUnicas(s2).settings.accountListOrder));
+  // Y sigue siendo idempotente.
+  const una=c.accountKeysUnicas(s2); assert.equal(c.accountKeysUnicas(una),una);
+});
+
 test("una cuenta que choca con una de banco aún sin rol: la de banco conserva su clave",()=>{
   const s0=base([{id:"m",ent:"familia",value:20,accountOrderKey:"ob:K"}],{obAccounts:[{key:"K",ent:"sabadell",value:5,cur:"EUR"}],accountBalanceHistory:{}});
   const s=c.accountKeysUnicas(s0);
