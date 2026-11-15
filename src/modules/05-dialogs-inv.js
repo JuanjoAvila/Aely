@@ -119,6 +119,9 @@ function AskHost(){
       React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true","aria-labelledby":"ask-dialog-title",tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
         React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
+        // `live(valor)`: una línea que depende de lo tecleado (p. ej. cuotas que quita amortizar).
+        // null = no se pinta: el diálogo no enseña nada que aún no se sabe.
+        cur.input && cur.live && (function(){ const x=cur.live(val); return x?React.createElement("div",{className:"ts-hint","data-ask-live":"1"},x):null; })(),
         cur.input && React.createElement("input",{className:"af-in num ask-in"+(cur.compact?" ask-in-compact":""),autoFocus:true,
           type:cur.secret?"password":"text",
           inputMode:cur.secret?"text":(cur.mode||"decimal"), placeholder:cur.ph||"", value:val,

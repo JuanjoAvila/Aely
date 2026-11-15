@@ -440,8 +440,20 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
    estima intereses ahorrados, el coste de esperar y compara contra el efectivo remunerado
    (interestApr de las cuentas, p.ej. TR). Sin él, al menos simula cuántas cuotas te quitas.
    Los números usan el modelo lineal de la app (ver debtBalance): son una estimación honesta,
-   no la liquidación exacta del banco. */
-function AmortAdvisor({state, onEdit, onAmort}){
+   no la liquidación exacta del banco.
+   Solo informa: amortizar se hace desde «Amortizar ahora» de cada deuda (decisión DIS-26,
+   15/11/2026: dos puertas al mismo dinero eran una de más). */
+// Cuotas que quita un importe: la usan el asesor y el diálogo de amortizar, para que los dos
+// cuenten lo mismo. null si la deuda no tiene plazo (no hay cuotas que contar).
+function amortRecorte(d,amt){
+  const am=debtAmort(d);
+  if(d.months==null || !(am>0)) return null;
+  const leftNow=debtLeft(d), nb=+(debtBalance(d)-amt).toFixed(2);
+  const viaM=Math.max(0, nb-(d.balloon||0));
+  const leftNew=viaM>0?Math.ceil(viaM/am):((d.balloon>0&&nb>0.005)?1:0);
+  return {leftNow:leftNow, leftNew:leftNew, cut:Math.max(0,(leftNow||0)-leftNew)};
+}
+function AmortAdvisor({state, onEdit}){
   const debts=(state.debts||[]).filter(function(d){ return debtBalance(d)>0.005; });
   const [selId,setSelId]=useState(null);
   const [amtStr,setAmtStr]=useState("500");
@@ -450,14 +462,7 @@ function AmortAdvisor({state, onEdit, onAmort}){
   const bal=debtBalance(d);
   const apr=d.apr!=null?d.apr:null;
   const amt=Math.min(Math.max(0,parseFloat(String(amtStr).replace(',','.'))||0), bal);
-  const am=debtAmort(d), leftNow=debtLeft(d);
-  const nb=+(bal-amt).toFixed(2);
-  let leftNew=null, cut=null;
-  if(d.months!=null && am>0){
-    const viaM=Math.max(0, nb-(d.balloon||0));
-    leftNew=viaM>0?Math.ceil(viaM/am):((d.balloon>0&&nb>0.005)?1:0);
-    cut=Math.max(0,(leftNow||0)-leftNew);
-  }
+  const rc=amortRecorte(d,amt), leftNow=rc?rc.leftNow:null, leftNew=rc?rc.leftNew:null, cut=rc?rc.cut:null;
   // El mes mostrado parte de Madrid, también cuando el dispositivo aún está en otro mes.
   const inMonths=function(k){ const p=madridYmdParts(Date.now()), m=p.m-1+k; return monthLong(m%12)+" "+(p.y+Math.floor(m/12)); };
   const r=(apr||0)/1200;
@@ -492,10 +497,6 @@ function AmortAdvisor({state, onEdit, onAmort}){
         : res("⚖️ "+tf("da_under_cash",{a:apr,b:cashApr}))),
       ranked.length>1 && res(tf("da_first",{name:ranked[0].name,p:ranked[0].apr}))
     ),
-    amt>0 && React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},onClick:function(){
-      askConfirm({ title:tf("da_apply_q",{x:eur0(amt),name:d.name}), sub:t("da_apply_sub"), ok:"💸 "+t("db_amortize") })
-        .then(function(yes){ if(yes) onAmort(d, amt); });
-    }}, tf("da_apply",{x:eur0(amt)})),
     React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("da_est"))
   );
 }
@@ -589,7 +590,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     });
   };
   // amortización anticipada: baja el pendiente y acorta el plazo (misma cuota, menos meses).
-  // doAmort es la operación; amortize solo pregunta el importe. El asesor (#11) llama a doAmort.
+  // doAmort es la operación; amortize solo pregunta el importe.
   const doAmort=(d,rawAmt)=>{
     const bal=debtBalance(d);
     const amt=Math.min(rawAmt||0, bal);
@@ -613,7 +614,14 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       ph:NF.format(0)+" €", ok:"💸 "+t("db_amortize"),
       // atajos: los importes redondos que quepan + «todo» para liquidarla de un toque
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
-        .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}])
+        .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}]),
+      // Lo que antes solo contaba el asesor (DIS-26): con el importe ya puesto, cuántas cuotas
+      // quita. Sin importe o sin plazo no hay cifra honesta que dar, y no se pinta nada.
+      live:function(raw){
+        const a=Math.min(parseFloat(String(raw).replace(',','.'))||0, bal);
+        const rc=a>0?amortRecorte(d,a):null;
+        return rc&&rc.cut>0?"📆 "+tf("db_amortize_cut",{n:rc.cut}):null;
+      }
     }).then(function(raw){
       if(raw==null) return;
       doAmort(d, parseFloat(String(raw).replace(',','.'))||0);
@@ -709,7 +717,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       ); })
     ),
     React.createElement("div",{className:"v4-tip"},
-      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);},onAmort:doAmort})
+      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);}})
     ),
     adding
       ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
