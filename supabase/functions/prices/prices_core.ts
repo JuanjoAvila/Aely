@@ -10,9 +10,16 @@
 //   peticiones × 25 símbolos ≈ 750 fetches antes del 429 — NO acredita proteger
 //   el presupuesto ~60/min de Finnhub. Autorización y deploy = entrega futura.
 //   Ver docs/briefs/sec02-prices-limites.md.
+//
+// P2-06 (auditoría del 14/11): el 30/600 por usuario pasa a estar ENCENDIDO por defecto
+// (`PRICES_RATE_LIMIT=0` lo apaga) y se suma un cupo GLOBAL por hora, aparte para las
+// cuentas de menos de una semana (`_shared/cupos.ts`). Con el registro abierto, el freno por
+// usuario solo no ponía techo: bastaba con crear cuentas. El cliente pide precios a mano
+// (botón, tirar para refrescar o al editar una inversión): la familia no se acerca a esto.
 // ============================================================
 
 import { type RateVerdict } from "../_shared/ratelimit.ts";
+import { cuentaVeterana, cupoGlobal, type Cupo } from "../_shared/cupos.ts";
 
 export const DEFAULT_SYMS = ["NVDA", "GOOG", "TSM", "AVGO", "MU", "AMD", "VWCE", "GOLD"];
 export const YAHOO: Record<string, string> = {
@@ -30,7 +37,7 @@ export const SYM_RE = /^[A-Z0-9.=\-]{1,12}$/;
  * status: pendiente de autorización humana/Codex + deploy aparte.
  */
 export const PRICES_RATE_PROPOSAL = {
-  status: "proposal-pending-authorization" as const,
+  status: "active-by-default" as const,
   bucketPrefix: "prices:",
   limit: 30,
   windowSecs: 600,
@@ -47,6 +54,15 @@ export function pricesProposalBucket(userId: string): string {
   return PRICES_RATE_PROPOSAL.bucketPrefix + userId;
 }
 
+/** Techo de TODAS las cuentas juntas, por hora. 240 peticiones × 25 símbolos sigue pudiendo pasar
+ *  de 60/min de Finnhub en una ráfaga, pero ya no crece con el número de cuentas; si Finnhub
+ *  corta, cada símbolo cae a Yahoo como siempre. Las cuentas nuevas comparten 60. */
+export const PRICES_GLOBAL = { veterana: 240, nueva: 60, windowSecs: 3600 };
+
+export function pricesGlobalCupo(veterana: boolean): Cupo {
+  return cupoGlobal("prices", "hour", veterana, PRICES_GLOBAL, PRICES_GLOBAL.windowSecs);
+}
+
 const cors = { "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
 
 export function normalizeSymbols(raw: unknown[]): string[] {
@@ -57,13 +73,12 @@ export function normalizeSymbols(raw: unknown[]): string[] {
 
 export type PricesDeps = {
   fetch: typeof fetch;
-  getUser: (authHeader: string) => Promise<{ id: string } | null>;
+  getUser: (authHeader: string) => Promise<{ id: string; createdAt?: string | null } | null>;
   /** Adaptador sobre `_shared/ratelimit.rateLimit` + cliente con service role. */
   rateLimit: (bucket: string, limit: number, windowSecs: number) => Promise<RateVerdict>;
   /**
-   * false por defecto (live): no inventar contrato de cuota.
-   * true solo en pruebas del gate o si un deploy futuro autoriza la propuesta
-   * con `PRICES_RATE_LIMIT=1` (sigue siendo 30/600 HTTP, no presupuesto proveedor).
+   * true en vivo salvo `PRICES_RATE_LIMIT=0` (P2-06): 30/600 por usuario + cupo global por hora.
+   * Sigue contando peticiones HTTP, no fetches al proveedor.
    */
   applyRateProposal: boolean;
   env: { FINNHUB_KEY?: string | null };
@@ -172,10 +187,13 @@ export async function handlePrices(req: Request, deps: PricesDeps): Promise<Resp
   }
   if (!syms.length) syms = DEFAULT_SYMS.slice();
 
-  // Gate de la PROPUESTA: apagado en live. Solo si un deploy futuro lo autoriza.
+  // Primero el del usuario: quien se pasa solo no gasta el cupo de todos.
   if (deps.applyRateProposal) {
     const gate = await applyPricesRateProposalGate(deps.rateLimit, user.id);
     if (!gate.ok) return json({ ok: false, error: "limited" }, 429);
+    const cupo = pricesGlobalCupo(cuentaVeterana(user.createdAt, deps.now()));
+    const global = await deps.rateLimit(cupo.bucket, cupo.limit, cupo.windowSecs);
+    if (!global.ok) return json({ ok: false, error: "limited" }, 429);
   }
 
   const key = deps.env.FINNHUB_KEY || "";

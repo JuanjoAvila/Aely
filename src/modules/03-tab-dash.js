@@ -380,6 +380,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const ringLabel=over?(usedPct>100?usedPct+"%":">100%")
     :usedC>0&&usedPct===0?t("v42_cycle_under_one"):usedPct+"%";
   const amountTxt=over?cycleMoney(paceState.excess):cycleMoney(rem);
+  // «libres de»: la cifra es lo que QUEDA y el anillo lo gastado; con «de» a secas se leía
+  // «llevo 912 € gastados de 1.000» (auditoría 14/11/2026).
   const amountOf=tf(over?"v42_cycle_excess_of":"v42_cycle_of",{x:cycleMoney(budAmt)});
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
@@ -539,18 +541,22 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
     !showSkel && overdue.length>0 && React.createElement("div",{className:"v4-section rise"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,t("v4_charges_overdue")),
+        // Mismo nombre que en Plan › Recibos («Para revisar» / «No ha llegado»): antes Inicio decía
+        // «Cargos vencidos» / «Sin pago acreditado» para el mismo recibo (auditoría 14/11/2026).
+        React.createElement("span",null,t("pr6_revisar")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_see_plan"))),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
           return React.createElement("div",{key:i,className:"v4-charge"},
             React.createElement("div",{className:"dt"},React.createElement("div",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("div",{className:"m"},monthName.slice(0,3))),
-            React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{className:"nm"},u.name),React.createElement("div",{className:"sub"},u.sub+" · "+t("v4_charge_unconfirmed"))),
+            React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{className:"nm"},u.name),React.createElement("div",{className:"sub"},u.sub+" · "+t("pr6_no_llegado"))),
             React.createElement("div",{className:"am num"},eur(u.amount)));
         }))
     ),
 
-    !showSkel && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
+    // Modo sencillo: Plan no tiene Metas, así que «Crear una meta» y «Ver plan» llevaban a Recibos
+    // (auditoría 14/11/2026). Fuera, igual que en Plan.
+    !showSkel && !simple && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_your_goals"))),
       React.createElement("div",{className:"v4-empty"},
         React.createElement("div",{className:"em"}, "🎯"),
@@ -560,7 +566,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
 
-    !showSkel && goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
+    !showSkel && !simple && goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_your_goals")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_see_plan"))

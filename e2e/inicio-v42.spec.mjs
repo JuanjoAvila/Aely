@@ -49,9 +49,9 @@ for(const state of [{id:"tight",spent:800},{id:"over",spent:1001}]) test("tarjet
   await open(page,state);
   const card=page.locator(".v42-cycle");
   await expect(card).not.toContainText(/Te quedan|Vas |Toca frenar|Te has pasado/);
-  await expect(card.locator(".v42-cycle-amount>.serif")).toBeVisible(); await expect(card.locator(".v42-cycle-of")).toHaveText(state.id==="over"?"de más · límite 1.000 €":"de 1.000 €");
+  await expect(card.locator(".v42-cycle-amount>.serif")).toBeVisible(); await expect(card.locator(".v42-cycle-of")).toHaveText(state.id==="over"?"de más · límite 1.000 €":"libres de 1.000 €");
   await expect(card.getByTestId("inicio-cycle-pace")).toHaveCount(state.id==="over"?0:1);
-  await expect(card).toHaveAttribute("aria-label",state.id==="tight"?"Vas justito. Te quedan 200 € de 1.000 €. 11 € al día durante 18 días":"Te has pasado 1 €. 1 € de más · límite 1.000 €");
+  await expect(card).toHaveAttribute("aria-label",state.id==="tight"?"Vas justito. Te quedan 200 € libres de 1.000 €. 11 € al día durante 18 días":"Te has pasado 1 €. 1 € de más · límite 1.000 €");
   await page.waitForTimeout(1300); // el anillo se dibuja al entrar; con él quieto se mide el reposo
   const box=await card.evaluate(el=>{const c=n=>{const r=el.querySelector(n).getBoundingClientRect();return r.top+r.height/2;};
     return {ring:c(".v42-cycle-ring"),txt:c(".v4-budget-txt")};});
@@ -62,7 +62,7 @@ for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid e
   test("casi agotado dice justo y conserva el margen sin inventar ritmo",async({page})=>{
     await open(page,{cycle:false,day:26,spent:950});
     await expect(page.locator(".v42-cycle")).toHaveAttribute("data-state","tight");
-    await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",/^Vas justito\. Te quedan 50 € de 1\.000 €/);
+    await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",/^Vas justito\. Te quedan 50 € libres de 1\.000 €/);
     await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("50 €");
     await expect(page.getByTestId("inicio-cycle-pace")).toHaveText("10 € al día durante 5 días");
   });

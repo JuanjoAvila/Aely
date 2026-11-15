@@ -78,6 +78,7 @@ const steps = [
   ["fin37-debt-startday-once", ["node", "tests/fin37-debt-startday-once.test.mjs"]],
   ["run-deno-tests", ["node", "tests/run-deno-tests.test.mjs"]],
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
+  ["patrimonio-serie-oraculo", ["node", "tests/patrimonio-serie-oraculo.test.mjs"]],
   ["compras-identicas-ids", ["node", "--test", "tests/compras-identicas-ids.test.mjs"]],
   ["deudas-metas-edicion", ["node", "tests/deudas-metas-edicion.test.mjs"]],
   ["deudas-metas-revision", ["node", "tests/deudas-metas-revision.test.mjs", "--mutations"]],
@@ -191,6 +192,7 @@ const steps = [
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["bank-rate-contracts", ["node", "tests/bank-rate-contracts.test.mjs"]],
   ["bank-callback-state", ["node", "tests/bank-callback-state.test.mjs"]],
+  ["bank-confirm", ["node", "tests/bank-confirm.test.mjs"]],
   ["bank-rate-client", ["node", "tests/bank-rate-client.test.mjs"]],
   ["bank-download-incomplete", ["node", "tests/bank-download-incomplete.test.mjs"]],
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
@@ -272,6 +274,7 @@ const steps = [
   ["recibos-meses-a-mano", ["node", "tests/recibos-meses-a-mano.test.mjs"]],
   ["recibos-pausa-cifra", ["node", "--test", "tests/recibos-pausa-cifra.test.mjs"]],
   ["fin25-charge-months", ["node", "--test", "--test-concurrency=1", "tests/fin25-charge-months.test.mjs"]],
+  ["saldos-cierres-por-clave", ["node", "--test", "tests/saldos-cierres-por-clave.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],
   ["parsers-revolut", ["node", "tests/parsers/revolut.test.mjs"]],
@@ -378,6 +381,7 @@ const denoEnLista = [
   "supabase/functions/bank-sync/overflow-resume.test.ts",
   "supabase/functions/bank-disconnect/lifecycle.test.ts",
   "supabase/functions/bank-callback/generation-fence.test.ts",
+  "supabase/functions/_shared/imports-fijos.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
   .flatMap((d) => d.isDirectory() ? buscaDeno(dir + "/" + d.name)
@@ -431,6 +435,8 @@ if (plan.deno !== false && (part === "all" || part === "unit")) {
       ? ["test", "--cached-only", "--no-lock", "--no-prompt", "--node-modules-dir=none", "--allow-read=supabase/functions,src/modules", "--fail-fast=1", testFile]
       : /myinvestor-(counter|token-race)\.test|bank-callback\/generation-fence\.test/.test(testFile)
       ? ["test", "--node-modules-dir=none", "--allow-read=supabase/functions", ...(testFile.includes("generation-fence.test") ? ["--fail-fast=1"] : []), testFile]
+      : testFile.includes("imports-fijos.test")
+      ? ["test", "--allow-read=supabase/functions", testFile]
       : testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
       : ["test", testFile];

@@ -13,7 +13,7 @@ const sources = ['supabase/functions/_shared/entrada.ts', 'supabase/functions/_s
 const sourceText = Object.fromEntries(sources.map(p => [p, fs.readFileSync(new URL(p, repo), 'utf8')]));
 function compile(s) {
   const imports = (s.match(/^import .*;\r?$/gm) || []).map(x => x.trim());
-  assert.ok(imports.every(x => /^import .* from ["'](?:https:\/\/esm.sh\/@supabase\/supabase-js@2|\.\.\/_shared\/(?:enablebanking|token_store|entrada|ratelimit|request_body)\.ts|\.\/reconnect\.ts)["'];$/.test(x)));
+  assert.ok(imports.every(x => /^import .* from ["'](?:https:\/\/esm.sh\/@supabase\/supabase-js@2\.110\.0|\.\.\/_shared\/(?:enablebanking|token_store|entrada|ratelimit|request_body)\.ts|\.\/reconnect\.ts)["'];$/.test(x)));
   const clean = s.replace(/^import .*;\r?\n/gm, '').replace(/^export /gm, '');
   assert.ok(!/^\s*import\b/m.test(clean));
   return transformSync(clean, { loader: "ts", format: "cjs" }).code;

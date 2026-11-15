@@ -39,12 +39,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     if(isFinite(balRaw)){ balKnown=true; balNow=balRaw; }
   }
   // Todo pagado no fuerza verde si el saldo conocido es negativo (Codex 2055Z).
-  const coverTone=allBillsPaid
+  // Sin cuenta de ese banco no hay saldo: su tono salía de contar 0 € y la tarjeta decía «Este
+  // mes se queda corto» sin saberlo (revisión de dinero 233). Ni «bien» ni «corto»: sin titular.
+  const toneUnknown=!allBillsPaid&&billsEuroTotal>0&&!balKnown;
+  const coverTone=toneUnknown?"unknown":allBillsPaid
     ? ((balKnown&&balNow<0)?"bad":"ok")
     : cover.tone;
   const stCls=coverTone==="bad"?"st bad":(coverTone==="warn"?"st warn":"st");
   const bankLab=coverBank&&typeof entOf==="function"?entOf(coverBank).label:"";
-  const coverHead=coverTone==="bad"?t("v4_plan_state_bad_h"):(coverTone==="warn"?t("v4_plan_state_warn_h"):t("v4_plan_state_ok_h"));
+  const coverHead=toneUnknown?"":coverTone==="bad"?t("v4_plan_state_bad_h"):(coverTone==="warn"?t("v4_plan_state_warn_h"):t("v4_plan_state_ok_h"));
   const leftForPhrase=coverBank!=null?(pick.pending||0):charges.pendingBillsTotal;
   const hasMinDay=cover.minDay!=null&&cover.minDay>0;
   // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
@@ -56,12 +59,21 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       ? (coverBank&&balKnown
         ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
         : t("v4_plan_state_all_paid_nobank"))
-      : (coverBank!=null&&cover.min!=null&&isFinite(cover.min)
-        ? tf((coverTone==="bad"?"v4_plan_state_bad":(coverTone==="warn"?"v4_plan_state_warn":"v4_plan_state_ok"))+(hasMinDay?"":"_noday"),{
-            left:eur0(leftForPhrase), end:eur0(cover.min), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
+      // La cifra grande es el total de TODOS los bancos y la frase habla de uno: por eso la
+      // frase nombra el banco en su importe. Con «Te quedan X de recibos» a secas, el total
+      // arriba y lo de un banco abajo eran dos «te quedan» que se contradecían (auditoría
+      // 14/11/2026). Las claves `_noday` no existían: salía la clave cruda.
+      // `balKnown`: sin una cuenta de ese banco su saldo se cuenta como 0 y la frase nombraba un
+      // banco que no tienes (o el principal, si el recibo no tiene banco) con un «te quedarías en
+      // -50 €» inventado (revisión de dinero 233). Sin saldo, solo lo que se sabe.
+      : (coverBank!=null&&balKnown&&cover.min!=null&&isFinite(cover.min)
+        ? tf(coverTone==="ok"?(hasMinDay?"v4_plan_state_ok":"v4_plan_state_ok_noday"):(hasMinDay?"v4_plan_state_warn":"v4_plan_state_warn_noday"),{
+            left:eur0(leftForPhrase), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
           })
-        : t("v4_plan_state_none"))));
-  const coverAria=coverHead+". "+coverPhrase;
+        // Sin saldo del banco no hay mínimo que contar, pero sí recibos: antes decía «Aún no hay
+        // recibos» debajo de la cifra de lo que queda por pagar.
+        : tf("v4_plan_state_left",{left:eur0(charges.pendingBillsTotal)}))));
+  const coverAria=coverHead?coverHead+". "+coverPhrase:coverPhrase;
   // Puerta viva desde Ajustes: flag pendiente si Plan aún no montó (cold start / idle).
   useEffect(function(){
     var onOpen=function(){
@@ -302,7 +314,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       React.createElement(OjoImportes,{state:state,set:set})),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
-        React.createElement("div",{className:stCls}, coverHead),
+        coverHead && React.createElement("div",{className:stCls}, coverHead),
         React.createElement("div",{className:"v4-plan-simple-amt num serif"}, eur0(charges.pendingBillsTotal)),
         React.createElement("div",{className:"ph"}, coverPhrase),
         biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},
@@ -362,7 +374,8 @@ function PlanBills({state, set, totals, charges, evidence, manageOpen, setManage
     if(x.unconfirmed) return entOf(x.bank).label;
     // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
     var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
-    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
+    // Las palabras de Recibos (SPEC §2.3): «Sin pago acreditado» era otro nombre para lo mismo.
+    if(x.overdue) return entOf(x.bank).label+" · "+t("pr6_no_llegado");
     if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
     if(x.kind==="transfer"){
       var toEnt=x.to||null;
@@ -2948,17 +2961,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
       }
       if(e.key==="Escape"){ e.preventDefault(); popRef.current&&popRef.current(); return; }
       if(e.key!=="Tab"||!rootRef.current) return;
-      var nodes=rootRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      // Título con tabIndex=-1 no está en la lista: sin esto el Tab se escapa al DOM de detrás.
-      var idx=list.indexOf(document.activeElement);
-      if(!rootRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,rootRef.current);
     };
     document.addEventListener("keydown", onKey);
     return function(){
@@ -3356,16 +3359,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
       if(e.key!=="Tab"||!sheetRef.current) return;
       // Siempre cortar: el hub escucha en bubble y ve foco fuera de rootRef (portal) → lo robaba (Codex 2105Z).
       e.stopPropagation();
-      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      var idx=list.indexOf(document.activeElement);
-      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown", onKey, true);
     return function(){
@@ -3872,12 +3866,7 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
       if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       e.stopPropagation();
-      const list=Array.prototype.filter.call(sheetRef.current.querySelectorAll('button,a,input,[tabindex]:not([tabindex="-1"])'),function(el){ return !el.disabled&&el.offsetParent!==null&&!el.closest("[inert]"); });
-      if(!list.length) return;
-      const first=list[0], last=list[list.length-1], idx=list.indexOf(document.activeElement);
-      if(idx===-1){ e.preventDefault(); (e.shiftKey?last:first).focus(); return; }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown",onKey,true);
     return function(){ document.removeEventListener("keydown",onKey,true); };
@@ -4491,16 +4480,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       e.stopPropagation();
-      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
-      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
-      if(!list.length) return;
-      var first=list[0], last=list[list.length-1];
-      var idx=list.indexOf(document.activeElement);
-      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
-        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
-      }
-      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+      mcTabTrap(e,sheetRef.current);
     };
     document.addEventListener("keydown", onKey, true);
     return function(){ document.removeEventListener("keydown", onKey, true); };
@@ -4841,13 +4821,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
       if(document.documentElement.classList.contains("ask-open")) return;
       if(e.key==="Escape"){ e.preventDefault(); closePush(); return; }
       if(e.key!=="Tab") return;
-      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
-        .filter(function(el){ return el.getClientRects().length>0; });
-      if(!focusable.length){ e.preventDefault(); tr.current&&tr.current.focus(); return; }
-      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
-      const at=focusable.indexOf(active);
-      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+      if(!mcTabTrap(e,root)){ e.preventDefault(); tr.current&&tr.current.focus(); }
     };
     document.addEventListener("keydown",keydown);
     return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); };
@@ -4867,7 +4841,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
    Se guarda siempre en €; sin tipo de cambio no se guarda — no inventamos el cambio. */
-function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
+function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const [kind,setKind]=useState("gasto"); // gasto | ingreso
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
@@ -4915,7 +4889,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     return (isEfectivoEnt(ent)?"💶 ":"🏦 ")+entOf(ent).label;
   };
   useEffect(function(){
-    if(open){
+    // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
+    if(open&&!ensayo){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
@@ -4956,8 +4931,21 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
-  const swipe=useSheetSwipe(!!open, onClose);
-  useBackClose(!!open, swipe.close);
+  // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
+  const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(!!open&&!ensayo, swipe.close);
+  /* La primera apertura costaba mucho más que las siguientes (123 ms de tarea larga frente a 0, con
+     la CPU a ×6, 14/11/2026): se ensaya una vez en seco a los pocos segundos de arrancar. Si ya se
+     abrió de verdad, no hace falta. */
+  const ensayoRef=useRef(null);
+  ensayoRef.current={state:state,abierta:!!open||!!(ensayoRef.current&&ensayoRef.current.abierta)};
+  useEffect(function(){
+    if(ensayo) return undefined;
+    const nada=function(){};
+    return mcEnsayarEnHueco(function(){
+      return ensayoRef.current.abierta?null:React.createElement(ApuntarSheet,{open:true,ensayo:true,state:ensayoRef.current.state,set:nada,onClose:nada,showToast:nada});
+    },3000);
+  },[]);
   // La pasada por todo el histórico queda preparada con la hoja cerrada; cambiar de categoría
   // ya solo recoloca ocho chips y no mete trabajo O(n) en mitad del gesto (vídeo 2026-09-17).
   const fichaCatsBase=useMemo(function(){

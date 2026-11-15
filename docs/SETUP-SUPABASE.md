@@ -58,6 +58,112 @@ dueño, y los avisos de la víspera los dan el cliente y el `AlertCheckWorker` d
 programar cualquier lectura de `bank-sync`, ver «Open Banking: sync SOLO a demanda» en
 `docs/ARQUITECTURA.md`.
 
+## Auditoría de seguridad 14/11 · ronda 233 en fuente, SIN desplegar
+
+### Open Banking: la vinculación la confirma quien la inició (P2-01)
+
+Problema: el `state` ata la vuelta del banco con quien llamó a `bank-connect`, pero no con el
+navegador que vuelve (el callback no lleva sesión). Otra cuenta de Aely podía mandarle a alguien
+la URL de su banco y quedarse 90 días de lectura de sus movimientos. Una cookie no sirve: en la
+APK la vuelta llega por el navegador del sistema, no por la WebView que empezó.
+
+Solución en dos fases (ver `_shared/entrada.ts` y `docs/ARQUITECTURA.md`):
+
+- **Fase 1, en esta ronda, compatible con web 4.26.232 y APK 64.** `bank-connect` acepta
+  `confirm:true` y marca el state con `.c`. Con esa marca, `bank-callback` canjea el código como
+  siempre pero deja el enlace en `pending` con la huella de un token de un solo uso, y manda el
+  token a quien vuelve: web `APP_URL?bank=confirm&t=<token>`, APK `APP_URL/back.html?confirm=<token>`.
+  La función nueva **`bank-confirm`** (JWT) lo activa solo si el enlace es del usuario que llama,
+  dentro de 1 h desde la emisión y sobre la misma generación. **Sin `.c` nada cambia**: ningún
+  cliente instalado manda `confirm`, así que desplegar las tres funciones no cambia nada visible.
+  Un state `confirm:…` usado como state del banco se rechaza (`msg=state`).
+- **Cliente (pendiente, otra ronda; toca `public/back.html`, `00-core.js` y `11-app-main.js`):**
+  1. `cloud.bankConnect` manda `confirm:true`.
+  2. `back.html`: si llega `?confirm=<43 caracteres base64url>`, saltar a
+     `micartera://bank?msg=confirm%3A<token>` (la APK 64 solo reenvía `msg`, y lo guarda como
+     `bank|error|confirm:<token>`: no hace falta APK nueva).
+  3. App: `?bank=confirm&t=` (web) y `bank|error|confirm:` (APK) llaman a
+     `sb.functions.invoke("bank-confirm",{body:{token}})`; con `ok` hace lo mismo que hoy con
+     `?bank=ok` (toast + sync); con error, el toast genérico de reconectar.
+  4. e2e de la vuelta en web y del deep link en APK.
+- **Fase 2, cuando la web con el cliente nuevo lleve días servida y no queden clientes sin OTA:**
+  secreto `BANK_REQUIRE_CONFIRM=1`. Desde ese momento `bank-connect` marca siempre `.c` y
+  `bank-callback` exige confirmación también a states sin marca. Es lo que cierra el ataque: en
+  fase 1 el atacante puede no pedir confirmación. Un cliente viejo en fase 2 conecta, pero el
+  banco se queda «pendiente» hasta actualizar. Para volver atrás, borrar el secreto.
+
+Orden de despliegue (una función cada vez, por Actions): **`bank-confirm` → `bank-callback` →
+`bank-connect`**. Con otro orden tampoco se rompe nada (sin `confirm:true` nadie entra en el modo
+nuevo), pero así nunca existe un token que no se pueda canjear. Sin migración ni secretos nuevos
+obligatorios. Si `BANK_REQUIRE_CONFIRM=1` se pusiera sin cliente nuevo, conectar un banco dejaría
+el enlace pendiente y la app no sabría confirmarlo: no activarlo antes de tiempo.
+
+### Cifrado de tokens: comprobar la clave y activar el modo estricto (P2-04)
+
+`_shared/crypto.ts` cifra con `TOKEN_ENCRYPTION_KEY` los `session_id` de Enable Banking y los
+tokens de MyInvestor. **Si falta la clave, por defecto se siguen guardando en claro** (como hasta
+ahora: cerrarlo a ciegas dejaría sin poder conectar bancos si el secreto no existe), pero la
+función deja **una línea `ENC_MISSING`** en su log por cada arranque de instancia, sin ningún dato
+del secreto. Con **`TOKEN_ENCRYPTION_REQUIRED=1`** ya no se guarda nada en claro: el guardado lanza
+y la conexión falla con el error genérico de cada función. Leer valores viejos sin prefijo sigue
+funcionando en los dos modos (es lo que permite recifrarlos).
+
+Cómo comprobarlo, todo de **solo lectura** 👤:
+
+1. **Project Settings → Edge Functions → Secrets**: tiene que aparecer `TOKEN_ENCRYPTION_KEY`
+   (el panel solo enseña el resumen, no el valor). Debe ser 32 bytes en base64 (44 caracteres).
+2. **Edge Functions → Logs** de `bank-callback`, `myinvestor-connect`, `myinvestor-sync` y
+   `myinvestor-keepalive` tras desplegar esta ronda: buscar `ENC_MISSING`. Si aparece, la clave
+   NO está llegando a esa función.
+3. **SQL Editor**, solo recuentos (no selecciona ningún valor):
+   ```sql
+   select count(*) filter (where session_id is not null and session_id not like 'enc:v1:%') as eb_en_claro,
+          count(*) filter (where session_id like 'enc:v1:%') as eb_cifrados
+     from public.bank_links;
+   select count(*) filter (where access_token is not null and access_token not like 'enc:v1:%') as mi_en_claro,
+          count(*) filter (where access_token like 'enc:v1:%') as mi_cifrados
+     from public.myinvestor_links;
+   ```
+   `*_en_claro` debería ser 0. Si no lo es: con la clave puesta, `myinvestor-sync` recifra lo de
+   MyInvestor en la siguiente lectura; un banco en claro se recifra al reconectarlo.
+
+Activar el modo estricto **solo con los tres pasos en verde**: añadir el secreto
+`TOKEN_ENCRYPTION_REQUIRED` = `1`. Para volver atrás basta borrarlo. Si se activa y falta la clave,
+conectar o reconectar un banco o MyInvestor falla (nada se guarda en claro), y además
+`myinvestor-sync`/`myinvestor-keepalive` no pueden guardar los tokens renovados, así que la sesión de
+MyInvestor acaba caducando. Por eso el orden es: clave comprobada → estricto, nunca al revés.
+
+### Topes de lo que cuesta dinero o cuota (P2-06)
+
+Con el registro abierto, un freno solo por usuario no pone techo: basta con crear cuentas. Ahora
+cada función de pago tiene además un cupo **global**, y las cuentas con **menos de 7 días**
+(`user.created_at`, `_shared/cupos.ts`) comparten uno propio y menor, para que un bucle de altas
+no deje sin servicio a las cuentas de siempre. Sin migración: usa `check_rate_limit` (0019).
+
+| Función | Por usuario | Global cuentas de siempre | Global cuentas nuevas | Al pasarse |
+|---|---|---|---|---|
+| `prices` | 30 / 10 min (**encendido por defecto**; `PRICES_RATE_LIMIT=0` lo apaga) | `prices-total-hour` 240/h | `prices-new-hour` 60/h | 429 `limited`; la app conserva los precios de antes |
+| `help-assistant` | 15 / 10 min y 30/día (nuevas: 10/día) | `help-assistant-total-day` 1000/día (el de siempre) | `help-assistant-new-day` 100/día | 429 `limited`; queda la ayuda local |
+| `categorize` (solo camino IA) | 40 / 10 min y 300/día (nuevas: 60/día) | `categorize-ai-total-day` 3000/día | `categorize-ai-new-day` 300/día | 200 «otros» con `ai:"limit"` |
+
+El uso de la app no se acerca: precios se piden a mano (botón, tirar para refrescar, al editar una
+inversión) y la IA de categorías solo cuando las palabras clave no saben. Si algún tope saltara en
+uso normal, `PRICES_RATE_LIMIT=0` apaga el de precios sin redesplegar. Cerrar el registro
+(Authentication → Sign In / Providers → «Allow new users to sign up») sigue siendo decisión del
+dueño y lo complementa.
+
+### P3 de la misma auditoría hechos en esta ronda
+
+- **`delete-account` (P3-06/P3-09):** 5 intentos cada 10 min por usuario ANTES de reautenticar
+  (con una sesión robada era un probador de contraseñas); los errores de Auth vuelven como `error`.
+  La revocación del consentimiento de Enable Banking al borrar la cuenta queda pendiente (ver
+  nota de la ronda): hoy se borra la fila y el consentimiento caduca solo en el proveedor.
+- **Migración `0027_hogar_funciones_sin_anon.sql`:** `revoke execute … from anon` en
+  `join_household_by_code` e `is_household_member`. Sin efecto para la app. Aplicarla a mano en
+  SQL Editor o con `migraciones=si`.
+- **`supabase.yml` (P3-15):** `permissions: contents: read` explícito; el despliegue sigue con
+  `SUPABASE_ACCESS_TOKEN`, sin cambios de flujo.
+
 ## SEC01: límites del cuerpo por función · PR256 candidata, sin desplegar (17/10/2026)
 
 `_shared/request_body.ts` aplica estos límites de bytes del cuerpo mientras lee el
@@ -404,7 +510,7 @@ Qué frena y por qué:
 |---|---|---|
 | `ingest` | 60/min **por IP** | No pide sesión; su única credencial es un token. Sin freno se prueban tokens a la velocidad de la red. Por IP y no por token: contar por token no frena a quien va probando tokens distintos, que es justo el ataque. |
 | `myinvestor-connect` | 10 cada 10 min **por usuario** | Por ahí van el usuario y la CONTRASEÑA reales del banco. Un bucle de reintentos puede dejar al usuario **bloqueado en su propio banco**. |
-| `prices` | **sin cuota activa** (SEC-02) | Propuesta documentada 30/600 por usuario (`PRICES_RATE_PROPOSAL`) **apagada por defecto**. No confundir con `categorize`/`help-assistant`. 30×25 fetches no protege Finnhub ~60/min. Ver [brief](briefs/sec02-prices-limites.md). Activar exigiría autorización + `PRICES_RATE_LIMIT=1` en deploy aparte. |
+| `prices` | 30 cada 10 min **por usuario** + cupo global por hora (P2-06, ronda 233) | Encendido por defecto desde P2-06; `PRICES_RATE_LIMIT=0` lo apaga. Cuenta peticiones, no fetches al proveedor. Ver «Topes de lo que cuesta dinero o cuota» arriba y el [brief](briefs/sec02-prices-limites.md) de SEC-02. |
 
 **Si la migración no está aplicada, no se rompe nada**: `rateLimit()` deja pasar y lo apunta en la
 consola de la función. Un freno de seguridad que tumba la app cuando se rompe convierte un incidente

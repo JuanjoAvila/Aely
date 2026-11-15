@@ -1,9 +1,9 @@
 // ============================================================
 // Edge Function: prices — entrypoint.
-// Lógica en prices_core.ts. Cuota 30/600 = PROPUESTA (apagada por defecto).
+// Lógica en prices_core.ts. Cuota 30/600 por usuario + global por hora, encendida por defecto.
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
 import { handlePrices, type PricesDeps } from "./prices_core.ts";
@@ -19,7 +19,7 @@ function liveDeps(): PricesDeps {
       );
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error || !user) return null;
-      return { id: user.id };
+      return { id: user.id, createdAt: user.created_at ?? null };
     },
     async rateLimit(bucket, limit, windowSecs) {
       const admin = createClient(
@@ -28,10 +28,10 @@ function liveDeps(): PricesDeps {
       );
       return await rateLimit(admin, bucket, limit, windowSecs);
     },
-    // OFF por defecto: 30/600 es propuesta, no contrato autorizado (SEC-02 / Codex NO-GO).
-    // Un deploy futuro podría poner PRICES_RATE_LIMIT=1 tras autorización explícita;
-    // aun así cuenta peticiones HTTP, no fetches al proveedor (ver brief).
-    applyRateProposal: Deno.env.get("PRICES_RATE_LIMIT") === "1",
+    // ENCENDIDO por defecto desde P2-06 (auditoría 14/11): con el registro abierto, apagado
+    // dejaba la cuota de Finnhub a merced de cualquiera con cuentas. `PRICES_RATE_LIMIT=0` es el
+    // interruptor para apagarlo sin redesplegar si algo lo hiciera saltar en uso normal.
+    applyRateProposal: Deno.env.get("PRICES_RATE_LIMIT") !== "0",
     env: { FINNHUB_KEY: Deno.env.get("FINNHUB_KEY") },
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
     now: () => Date.now(),

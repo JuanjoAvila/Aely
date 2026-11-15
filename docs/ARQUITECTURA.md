@@ -909,6 +909,17 @@ ventana, `bank-sync` lee además lo que falta, con estas reglas (`bank-sync/dema
   solo un dato conocido en los dos y distinto. Y «sin cuentas» solo borra cuentas y cursor si el
   banco lo confirma: si el GET de la sesión falla, `bank-callback` sale con `msg=error` sin
   tocar la fila.
+- **Confirmación por quien inició (P2-01, 14/11, en fuente).** El `state` ata la vuelta del banco
+  con quien llamó a `bank-connect`, no con quien vuelve: otra cuenta podía hacer que alguien
+  autorizara su banco en ella. En modo confirmación (el state lleva `.c`: el cliente manda
+  `confirm:true`, o el secreto `BANK_REQUIRE_CONFIRM=1` lo fuerza) `bank-callback` canjea igual,
+  pero deja el enlace en `pending` con la huella SHA-256 de un token de un solo uso en `state`
+  (`confirm:<hex>`) y manda el token a quien vuelve (`?bank=confirm&t=` en la web,
+  `back.html?confirm=` en la APK). `bank-confirm` (JWT) lo pasa a `active` solo si el enlace es
+  del usuario que llama, dentro de la hora siguiente a emitir el state y sobre la misma
+  generación. `bank-sync` solo lee `active`, así que hasta entonces no se descarga nada. Sin
+  `.c` todo sigue como antes. Las piezas de cliente (`back.html` y la vuelta en
+  `11-app-main.js`) están descritas en `docs/SETUP-SUPABASE.md` y aún no existen.
 - Un cliente que no manda `recoverGaps` recibe solo la ventana; con hueco, su `last_sync` no sube
   para no quemar el tramo que un cliente nuevo sí puede guardar.
 - **Acuse (12/10).** El cursor se escribía al leer del banco, antes de que el móvil tuviera las

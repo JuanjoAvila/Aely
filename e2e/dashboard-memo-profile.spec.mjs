@@ -32,7 +32,11 @@ async function budgetCycles(page){
     await page.evaluate(()=>{const el=document.querySelector('.v4-budget');if(!el)throw new Error("Presupuesto no alcanzable");el.click();});
     await delay(350);
     await page.evaluate(()=>{if(!document.querySelector('.v4-budget-sheet'))throw new Error("Apertura presupuesto no aterrizó");history.back();});
-    await delay(450);
+    // Atrás baja la hoja en 420 ms (`runClose` sin dedo) y solo entonces se desmonta. Con 450 ms
+    // quedaban 30 para el popstate y el commit a CPU×6: en la CI la primera pasada salía roja y el
+    // reintento verde (4.26.221, 228, 230 y 233). Sigue siendo espera a ciegas: un sondeo de
+    // Playwright aquí contaría dentro de la ventana de rAF que se mide (15/11/2026).
+    await delay(750);
     await page.evaluate(()=>{if(document.querySelector('.v4-budget-sheet'))throw new Error("Back presupuesto no aterrizó");});
   }
 }

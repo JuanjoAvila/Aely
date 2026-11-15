@@ -51,7 +51,8 @@ await test("código cerrado del cuerpo también usa el mismo aviso", async () =>
 await test("red y HTTP500 conservan los errores anteriores", async () => {
   for (const e of [new Error("fixture-network"), sdkError(500)]) for (const kind of ["panel", "reconnect", "sync"]) {
     const r = await flow(kind, "es", e);
-    assert.equal(r.messages.at(-1), "⚠ " + (kind === "sync" ? LANG.es.bank_syncfail : LANG.es.bank_error + ": " + e.message));
+    // Desde la 4.26.233 el mensaje crudo del fallo ya no sale en pantalla (va a la telemetría): el aviso es solo la frase.
+    assert.equal(r.messages.at(-1), "⚠ " + (kind === "sync" ? LANG.es.bank_syncfail : LANG.es.bank_error));
   }
 });
 await test("autorización en curso conserva busy antes de clasificar429", async () => {

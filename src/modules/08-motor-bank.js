@@ -6084,17 +6084,8 @@ function histCanUndo(state){
    «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
    Se arregla en el CLIENTE a propósito: así le llega por OTA sin esperar a desplegar el servidor
    (que también se arregla, para cuando toque). */
-/* UN aviso para una sincronización a mano (13/9): bancos y brókers dejan cada uno sus mensajes y
-   aquí se juntan. Los ⚠ van DELANTE —son los que piden hacer algo, y la telemetría de toasts solo
-   recoge los que EMPIEZAN por ⚠—, sin repetir, separados por « · ». */
-function juntaAvisosSync(list){
-  const unicos=listaAvisosSync(list); const avisos=[]; const bien=[];
-  unicos.forEach(function(s){ (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s); });
-  if(!avisos.length) return bien.join(" · ");
-  const resto=avisos.slice(1).map(function(s){ return s.replace(/^[⚠✕✗]\s*/,""); });
-  return [avisos[0]].concat(resto, bien).join(" · ");
-}
-/* El resumen manual se pinta como filas, no como una frase kilométrica encima de la app. */
+/* El resumen de una sincronización a mano se pinta como filas, una por resultado y sin repetir, no
+   como una frase kilométrica encima de la app. */
 function listaAvisosSync(list){
   const vistos={}; const out=[];
   (list||[]).forEach(function(m){

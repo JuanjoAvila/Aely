@@ -12,7 +12,7 @@
 // en la nube: las devuelve para que la app re-ancle con previsualización (como Trade Republic).
 // ============================================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { jsonResp, MI_BASE, miHeaders, miPositionsFrom, miReadWithRefresh, miRefreshOutcome, type MiRefreshOutcome } from "../_shared/myinvestor.ts";
 import { miTokensFromRow, miTokensToRow, isEncrypted } from "../_shared/token_store.ts";
 import { miSaveRefresh } from "../_shared/myinvestor-refresh-save.ts";

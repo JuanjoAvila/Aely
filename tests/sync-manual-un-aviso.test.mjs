@@ -8,7 +8,7 @@
  *
  * Tres causas que se sumaban: bancos y brókers sacaban cada uno su toast y ganaba el último; el
  * temporizador del primero borraba el segundo; y con un banco a medias se callaba el «✓ al día»
- * de los demás. Aquí se vigila la función que junta los avisos, y en el código que el botón ya no
+ * de los demás. Aquí se vigila la función que deja cada resultado en su fila, y en el código que el botón ya no
  * lanza dos toasts ni el temporizador se queda sin cancelar.
  */
 import assert from "node:assert/strict";
@@ -21,31 +21,6 @@ const t = (n, fn) => { try { fn(); console.log("  ✓ " + n); } catch (e) { fall
 
 console.log("sync-manual-un-aviso");
 
-t("todo bien: bancos y brókers en UN mensaje", () => {
-  const m = ctx.juntaAvisosSync(["✓ 3 bancos al día", "📈 Brókers al día (TR/MyInvestor)"]);
-  assert.equal(m, "✓ 3 bancos al día · 📈 Brókers al día (TR/MyInvestor)");
-});
-
-t("con un banco a medias, el ⚠ va delante y lo que fue bien también se dice", () => {
-  const m = ctx.juntaAvisosSync(["✓ 2 bancos al día", "⚠ CaixaBank no llegó a conectarse", "📈 Brókers al día"]);
-  assert.ok(m.startsWith("⚠ CaixaBank"), "el aviso primero (la telemetría solo recoge los que empiezan por ⚠): " + m);
-  assert.ok(m.includes("✓ 2 bancos al día"), "y el ✓ de los otros no se calla");
-  assert.ok(m.includes("📈 Brókers al día"));
-});
-
-t("Trade Republic sin respuesta se dice, no se calla", () => {
-  const m = ctx.juntaAvisosSync(["✓ 3 bancos al día", "⚠ Trade Republic no ha respondido"]);
-  assert.ok(/Trade Republic/.test(m));
-});
-
-t("dos avisos: un solo ⚠ delante, sin repetir mensajes", () => {
-  const m = ctx.juntaAvisosSync(["⚠ A", "⚠ B", "⚠ A", "✓ ok"]);
-  assert.equal(m, "⚠ A · B · ✓ ok");
-});
-
-t("sin nada que decir, nada", () => {
-  assert.equal(ctx.juntaAvisosSync([]), "");
-});
 t("el resumen conserva cada resultado en su propia fila y elimina duplicados", () => {
   assert.deepEqual(Array.from(ctx.listaAvisosSync(["⚠ Caixa", "✓ Sabadell", "⚠ Caixa"])), ["⚠ Caixa", "✓ Sabadell"]);
 });

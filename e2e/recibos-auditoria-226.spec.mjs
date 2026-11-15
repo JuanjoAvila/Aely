@@ -68,7 +68,7 @@ for (const vp of [{ width: 412, height: 915 }, { width: 412, height: 800 }, { wi
 
 test("lo marcado «Lo pagué de otra forma» no sale en Inicio como vencido, igual que en Recibos", async ({ page }) => {
   await abre(page, { width: 412, height: 915 });
-  const vencidos = page.locator(".page-scroll-host .v4-section").filter({ hasText: "Cargos vencidos" });
+  const vencidos = page.locator(".page-scroll-host .v4-section").filter({ has: page.locator(".v4-section-h", { hasText: "Para revisar" }) });
   // Spotify (día 2, sin cargo) está vencido; el Gimnasio está marcado a mano: no.
   await expect(vencidos).toContainText("Spotify");
   await expect(vencidos).not.toContainText("Gimnasio");
@@ -83,7 +83,7 @@ test("lo marcado «Lo pagué de otra forma» no sale en Inicio como vencido, igu
   await expect(pagados.locator('[data-recibo="fixed_spo"]')).toContainText("marcado a mano");
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   // Sin ningún otro vencido, la sección desaparece.
-  await expect(page.locator(".page-scroll-host .v4-section").filter({ hasText: "Cargos vencidos" })).toHaveCount(0);
+  await expect(page.locator(".page-scroll-host .v4-section").filter({ has: page.locator(".v4-section-h", { hasText: "Para revisar" }) })).toHaveCount(0);
 });
 
 test("Tus recibos encuentra un compartido por lo que cobra el banco («29,94»)", async ({ page }) => {

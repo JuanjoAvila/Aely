@@ -10,6 +10,8 @@ const yaml = fs.readFileSync(path.join(root, ".github/workflows/supabase.yml"), 
 // Guardián del contrato concreto, sin parser YAML nuevo ni credenciales: el Bash es el del workflow.
 const events = yaml.split("\non:\n")[1]?.split("\njobs:\n")[0];
 assert.ok(events);
+// El GITHUB_TOKEN solo lee: el despliegue va con SUPABASE_ACCESS_TOKEN (P3-15).
+assert.match(yaml, /\npermissions:\n  contents: read\n\non:\n/);
 assert.deepEqual([...events.matchAll(/^  ([\w]+):/gm)].map(m => m[1]), ["workflow_dispatch"]);
 assert.match(events, /funcion:\n        description:.*\n        required: true\n        type: string\n        default: ""/);
 assert.match(events, /migraciones:[\s\S]*default: "no"[\s\S]*type: choice[\s\S]*options: \["no", "si"\]/);

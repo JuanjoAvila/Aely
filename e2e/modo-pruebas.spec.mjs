@@ -132,7 +132,7 @@ for(const [lang,action] of [['es','activate'],['en','activate'],['ca','activate'
     await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.locator('#mc-load').waitFor({state:'detached'});await dismissNews(page);
     const news=page.locator('.wn-panel');if(await news.count())await news.getByRole('button',{name:await page.evaluate(()=>t('wn_close')),exact:true}).click();
     await page.locator('.v4-avatar').click();
-    await page.getByRole('button',{name:{es:'Ir a Ajustes',en:'Go to Settings',ca:'Ves a Ajustos'}[lang],exact:true}).click();
+    await page.getByRole('button',{name:{es:'Ir a Ajustes',en:'Go to Settings',ca:'Ves a Configuració'}[lang],exact:true}).click();
     await page.getByRole('button',{name:new RegExp(action==='empty'?'Vaciar la cartera de pruebas':'Banco de pruebas')}).click();
     await page.evaluate(()=>{window._incCancelReload=true;});
     const ok=action==='activate'?'Entrar a probar':action==='empty'?'Vaciar':'Salir a mi cartera real';

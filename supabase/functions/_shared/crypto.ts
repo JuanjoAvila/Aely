@@ -29,11 +29,38 @@ async function loadKey(): Promise<CryptoKey | null> {
   return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
+/* SIN CLAVE NO SE CIFRA, Y ESO TIENE QUE VERSE (P2-04, auditoría del 14/11).
+   Hasta ahora, si faltaba TOKEN_ENCRYPTION_KEY, los tokens de MyInvestor y los `session_id` de
+   Enable Banking se guardaban en claro sin que nada lo dijera. No se cierra a ciegas: no consta
+   que el secreto exista en producción, y un `throw` aquí dejaría a la familia sin poder conectar
+   bancos de un día para otro. Queda así:
+   · Por defecto sigue guardando en claro, pero deja en el log de la función una línea
+     `ENC_MISSING` (una vez por arranque de la instancia y sin ningún dato del secreto) para que
+     se vea en Supabase → Edge Functions → Logs.
+   · Con TOKEN_ENCRYPTION_REQUIRED=1 no guarda nada en claro: lanza, y el guardado falla como
+     cualquier otro error de la función. Activarlo SOLO después de comprobar que la clave existe
+     (pasos en docs/SETUP-SUPABASE.md). Leer valores viejos sin prefijo sigue valiendo en los dos
+     modos: es lo que permite recifrarlos. */
+let avisadoEnClaro = false;
+
+export function cifradoObligatorio(): boolean {
+  return Deno.env.get("TOKEN_ENCRYPTION_REQUIRED") === "1";
+}
+
+function sinClave(): void {
+  if (cifradoObligatorio()) {
+    throw new Error("ENC_MISSING: falta TOKEN_ENCRYPTION_KEY y TOKEN_ENCRYPTION_REQUIRED=1");
+  }
+  if (avisadoEnClaro) return;
+  avisadoEnClaro = true;
+  console.error("ENC_MISSING: falta TOKEN_ENCRYPTION_KEY; un secreto se guarda SIN cifrar");
+}
+
 export async function encryptSecret(plaintext: string | null | undefined): Promise<string | null> {
   if (plaintext == null || plaintext === "") return plaintext ?? null;
   if (plaintext.startsWith(PREFIX)) return plaintext;
   const key = await loadKey();
-  if (!key) return plaintext;
+  if (!key) { sinClave(); return plaintext; }
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const enc = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },

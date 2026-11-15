@@ -53,4 +53,13 @@ t("la 0024 reparte el grant de device_id (la BD viva no lo tenía)", () => {
   assert.match(sql, /revoke execute on function public\.handle_new_user\(\) from public, anon, authenticated/);
 });
 
+t("la 0027 quita a anon las funciones SECURITY DEFINER de Hogar", () => {
+  const sql = fs.readFileSync(path.join(migDir, "0027_hogar_funciones_sin_anon.sql"), "utf8");
+  assert.match(sql, /revoke execute on function public\.join_household_by_code\(text\) from anon;/);
+  assert.match(sql, /revoke execute on function public\.is_household_member\(uuid\) from anon;/);
+  // Quitar también a authenticated rompería Hogar entero: las políticas llaman a is_household_member.
+  const sentencias = sql.split(/\r?\n/).filter((l) => !l.startsWith("--")).join("\n");
+  assert.doesNotMatch(sentencias, /authenticated/);
+});
+
 console.log("  ok");

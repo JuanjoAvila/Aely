@@ -57,4 +57,6 @@ Deno.test('byte cap counts UTF8 and cancels streaming before provider',async()=>
  const stream=new ReadableStream<Uint8Array>({pull(c){if(delivered>=bytes.length){c.close();return;}const end=Math.min(delivered+4096,bytes.length);c.enqueue(bytes.slice(delivered,end));delivered=end;},cancel(){cancelled=true;}}),f=await fixture('bank-connect');
  const r=await f.handler(new Request('https://synthetic.invalid/',{method:'POST',body:stream}));assert(r.status===413&&cancelled&&delivered<=24576&&f.effects.length===0,'stream must stop:'+JSON.stringify({status:r.status,delivered,cancelled}));
 });
+// P3-06: el freno por usuario va ANTES de reautenticar; agotado, ni se prueba la contraseña ni se borra nada.
+Deno.test('delete-account quota blocks before reauth and delete',async()=>{const e=await fixture('delete-account',{denyUser:true}),r=await e.handler(request('delete-account',JSON.stringify(VALID['delete-account'])));assert(r.status===429,'quota429:'+r.status);assert(JSON.stringify(e.effects)===JSON.stringify([['rpc','delete-account:synthetic']]),'only quota effect:'+JSON.stringify(e.effects));});
 Deno.test('config declares delete-account JWT explicitly',async()=>{const config=await Deno.readTextFile('supabase/config.toml');assert(/\[functions\.delete-account\]\s*verify_jwt\s*=\s*true/.test(config),'explicit JWT config missing');});

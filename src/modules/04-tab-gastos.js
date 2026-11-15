@@ -1514,7 +1514,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       if(!cat||cat==="otros"||!CAT[cat]){ showToast(t("ai_cat_none")); return; }
       setCat(ex,cat);
       showToast(tf("ai_cat_ok",{c:catName(cat)}));
-    }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setAiBusy(false); });
+    }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setAiBusy(false); });
   };
   useEffect(()=>{ setVisible(CONFIG.PAGE_SIZE); },[preset,range,sel,bankSel,bucketSel,q,catFil]);
   /* LA PAGINACIÓN DE LA LISTA — sus fallos, y el de 2026-07-27.
@@ -1608,10 +1608,33 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
 
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
+  const editDe=function(e){
+    return {id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)};
+  };
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
-    setEditExp({id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
+    setEditExp(editDe(e));
+  },[]);
+  /* La primera ficha que se abre costaba mucho más que las siguientes (94 ms de tarea larga frente a
+     0, con la CPU a ×6, 14/11/2026). Se ensaya una vez en seco con el gasto más reciente, la primera
+     vez que Gastos está a la vista. */
+  const fichaVista=useRef(false), fichaEstado=useRef(null);
+  fichaEstado.current=state;
+  if(detailId) fichaVista.current=true;
+  useEffect(function(){
+    let quita=null, hecho=false;
+    const baja=mcOnGastosActive(function(active){
+      if(!active||hecho) return;
+      hecho=true;
+      quita=mcEnsayarEnHueco(function(){
+        const s=fichaEstado.current, lista=s.expenses||[], e=lista[lista.length-1];
+        if(fichaVista.current||!e) return null;
+        const nada=function(){};
+        return React.createElement(ExpenseDetailSheet,{exp:e,editExp:editDe(e),setEditExp:nada,onClose:nada,state:s,showToast:nada,ensayo:true});
+      },700);
+    });
+    return function(){ baja(); if(quita) quita(); };
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -1661,7 +1684,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const vsPrev=function(cur,prev,ym,mismoDia){
       const diff=cur-prev, mes=mesDe(ym), sd=mismoDia?"_sd":"";
       if(Math.abs(diff)<1) return {tail:tf("gv5_same"+sd,{mes:mes}),tone:"muted"};
-      return {tail:tf((diff>0?"gv5_more":"gv5_less")+sd,{x:fmt(diff),mes:mes}),tone:diff>0?"coral":"mint"};
+      // Cada clave como prefijo pegado a `+sd`: así `i18n-keys` sabe que las `_sd` se usan.
+      return {tail:tf(diff>0?"gv5_more"+sd:"gv5_less"+sd,{x:fmt(diff),mes:mes}),tone:diff>0?"coral":"mint"};
     };
     const etiquetaMes=function(ym){ const y=+ym.slice(0,4); return mesDe(ym)+(y!==mad.y?" "+y:""); };
     // Meses para la fila fija de Categorías y del filtro: los que tienen algo que cuenta, y el en curso.
@@ -2555,11 +2579,14 @@ function GxSecciones({secc, onSecc, nSubs}){
     }));
 }
 /* LA CIFRA RUEDA POR DÍGITO (referencia del dueño, 20/10: «este es el nivel que aspiro de
-   fluidez»). Cada dígito es una tira 0–9 que sube o baja con `translateY`: sin layout ni anchos
-   que cambien (cifras tabulares, celda de ancho fijo), y si llega otro cambio a mitad, la
-   transición sale desde donde está. Se alinea por la DERECHA para que las unidades no salten
-   de casilla cuando el número gana una cifra. Con «reducir movimiento» cambia sin rodar. */
+   fluidez»). Cada dígito es una tira 0–9 que sube o baja con `translateY`, y si llega otro
+   cambio a mitad, la transición sale desde donde está. Se alinea por la DERECHA para que las unidades no salten
+   de casilla cuando el número gana una cifra. Con «reducir movimiento» cambia sin rodar.
+   Fraunces no tiene cifras tabulares (el «1» mide dos tercios del «0»), así que cada casilla toma
+   el avance de SU dígito, medido en em con la fuente servida; el −1px es el `letter-spacing` de
+   `.gx-num`. El ancho solo cambia con el dígito y rueda a la vez que la tira. */
 const GX_DIGITOS=["0","1","2","3","4","5","6","7","8","9"];
+const GX_ANCHO=[.665,.452,.607,.557,.617,.578,.611,.520,.604,.613];
 function GxCifra({n}){
   const ok=typeof n==="number"&&isFinite(n);
   if(!ok) return React.createElement("div",{className:"gx-num num"},React.createElement("span",{"data-testid":"gastos-cifra"},"—"));
@@ -2571,7 +2598,7 @@ function GxCifra({n}){
       const dg=GX_DIGITOS.indexOf(ch);
       out.push(dg<0
         ? React.createElement("span",{key:base+"s"+pos+ch,className:"gx-sep"},ch)
-        : React.createElement("span",{key:base+pos,className:"gx-dig"},
+        : React.createElement("span",{key:base+pos,className:"gx-dig",style:{width:"calc("+GX_ANCHO[dg]+"em - 1px)"}},
             React.createElement("span",{className:"gx-dig-tira",style:{transform:"translateY("+(-dg*10)+"%)"}},
               GX_DIGITOS.map(function(d){ return React.createElement("span",{key:d},d); }))));
     }
@@ -2720,7 +2747,9 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       React.createElement("div",{className:"nm-title"}, shownName||"—",
         pendingName&&renameAvisoVisible(e.renamePending)?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
-      React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
+      // El color de la categoría va como variable y lo pinta el CSS: en el tema Claro, el pastel tal
+      // cual sobre blanco no se leía (1,9:1, auditoría 14/11) y ahí se oscurece (ver `.nm-cat`).
+      React.createElement("div",{className:"nm-cat",style:{"--cat":c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
         React.createElement("span",null,gxFecha(d,"dm")),
         bk?React.createElement(React.Fragment,null,
@@ -2906,13 +2935,15 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
+  /* `ensayo`: montaje en seco de `mcEnsayar`. Se pinta entera, que es lo que hay que estrenar, pero
+     sin candado ni entrada de Atrás y sin ninguna lectura a la nube ni al puente nativo. */
   const transferSandbox=mcSandbox();
   const paymentDay=new Date().toDateString();
   // Las relaciones leen colecciones ajenas a la fila y el día civil local. _savedAt cambia
@@ -2926,6 +2957,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const incomeLive=useRef(null);incomeLive.current={plan:incomePlan,peer:incomePeer,state:state,sandbox:transferSandbox};
   const [incomeOffer,setIncomeOffer]=useState(null),[incomePeerOffer,setIncomePeerOffer]=useState(null),[incomeWithPeer,setIncomeWithPeer]=useState(false);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;setIncomeOffer(null);setIncomeWithPeer(false);
     const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     let timer;
@@ -2937,6 +2969,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return function(){active=false;clearTimeout(timer);};
   },[incomePlan,transferSandbox]);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;setIncomePeerOffer(null);setIncomeWithPeer(false);let timer;
     const current=function(){return active&&incomeLive.current.plan===incomePlan&&incomeLive.current.peer===incomePeer&&incomeLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     (async function(){try{
@@ -2953,6 +2986,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const transferLive=useRef(null);transferLive.current={plan:transferPlan,state:state,sandbox:transferSandbox};
   const [transferOffer,setTransferOffer]=useState(null);
   useEffect(function(){
+    if(ensayo) return undefined;
     let active=true;
     const current=function(){return active&&transferLive.current.plan===transferPlan&&transferLive.current.sandbox===transferSandbox&&mcSandbox()===transferSandbox&&!mcSandboxTransition();};
     // La ficha permanece montada al cerrarse. Cada plan tiene su propia cancelación y nunca
@@ -2973,11 +3007,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   },[transferPlan,transferSandbox]);
   const paymentRelation=useMemo(function(){return abierto?expensePaymentRelationUI(state,exp):null;},
     [abierto,exp,paymentDay,state.fixed,state.debts,state.oneoffs,state.expenses,state.bankTx,state.accounts,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner]);
-  const swipe=useSheetSwipe(abierto, onClose);
-  useBackClose(abierto, swipe.close);
+  const swipe=useSheetSwipe(abierto&&!ensayo, onClose, {soloVelo:true});
+  useBackClose(abierto&&!ensayo, swipe.close);
   // Diagnóstico de «Paga un recibo»: canal beta o la APK .debug de pruebas, nunca en la estable.
   const [diagDebug,setDiagDebug]=useState(false);
   useEffect(function(){
+    if(ensayo) return undefined;
     let vivo=true;
     try{
       const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;

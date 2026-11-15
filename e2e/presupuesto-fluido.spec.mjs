@@ -140,7 +140,7 @@ test("Inicio conserva la frase de gasto también con balance desfavorable",async
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
   await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("50 € al día durante 16 días");
-  await expect(dash).toHaveAttribute("aria-label",/^Vas sobrado\. Te quedan 800 € de 1\.000 €/);
+  await expect(dash).toHaveAttribute("aria-label",/^Vas sobrado\. Te quedan 800 € libres de 1\.000 €/);
 });
 
 test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defecto",async({page})=>{

@@ -359,7 +359,12 @@ const PRESUPUESTO = {
   // 4.26.231 (13/11): traspasos propios, adelantos, gemelas de «Te deben», enlace con otro banco y el nombre
   // abreviado con sus vallas (incluido el catálogo corto de nombres de pila) llenan los 1900. Es lógica de
   // dinero ya revisada; SUBE (mandato 11/10) a 1920 KiB. El gzip sigue en su tope.
-  minificado: 1920 * 1024,
+  // BAJA (14/11/2026): fuera cinco funciones sin uso, una que solo usaba su test, doce reglas CSS
+  // muertas y seis copias de la trampa de foco. Medido tras el corte: 1898 KiB minificado y 520 gzip
+  // (con sello). Topes a 1904 / 522: unos 6 y 2 KiB de aire, no los 22 y 4 que quedaban libres.
+  // Integración 4.26.233 (las cinco ramas de la auditoría juntas): 1.944.230 B (1898,7 KiB) y 532.162 B
+  // gzip (519,7 KiB) sin sello. Los topes se quedan: lo que suman diseño y saldos lo quita textos.
+  minificado: 1904 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -399,7 +404,7 @@ const PRESUPUESTO = {
   // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
   // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
   // dueño; SUBE (mandato 11/10) a 524 KiB.
-  gzip: 524 * 1024, // 4.26.212: ver el comentario de minificado (488 KiB medidos).
+  gzip: 522 * 1024, // ver el comentario de minificado (520 KiB medidos el 14/11/2026).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

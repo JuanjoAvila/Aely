@@ -363,11 +363,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
   React.useEffect(function(){
     if(parte!=="cuentas"||!balanceReady) return;
     const today=netWorthDay();
-    const rows=(state.accounts||[]).map(function(a){
-      return {key:a.accountOrderKey||("acc:"+a.id),value:+Number(shownAcc(a)).toFixed(2)};
-    }).concat((state.obAccounts||[]).map(function(o){
-      return {key:"ob:"+o.key,value:toEurAmt(o.value||0,o.cur||"EUR",state)};
-    })).filter(function(r){ return r.key&&r.value!=null&&Number.isFinite(r.value); });
+    const rows=accountBalanceRows(state,shownAcc);
     const current=state.accountBalanceHistory||{};
     const needs=rows.some(function(r){
       const list=current[r.key]||[], last=list[list.length-1];
@@ -427,7 +423,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     // Cuenta re-anclada por Open Banking: su saldo lo trae el banco (no se edita a mano).
     const isSynced=function(a){ return !!(a.bankIban||a.bankUid); };
     const badge=function(txt, color){
-      return React.createElement("span",{className:"v4-ob-badge",style:{background:color+"22",color:color}}, txt);
+      // Color como variable: el CSS lo oscurece en el tema Claro, donde «del banco» daba 2,2:1.
+      return React.createElement("span",{className:"v4-ob-badge",style:{"--b":color}}, txt);
     };
     const toast=function(msg){ if(typeof showToast==="function") showToast(msg); };
     /* «Gasto diario» admite VARIOS bancos (v4.6.3). Definido ANTES de la ficha y de las filas:

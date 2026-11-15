@@ -65,6 +65,13 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Textos que contradecían la pantalla (auditoría 14/11/2026): portada de Plan sencillo, «libres
+  // de» del ciclo, metas en Inicio sencillo, <html lang>, tipo de cambio y candado sin diálogo nativo.
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/fin25-charge-months.spec.mjs"] },
@@ -140,6 +147,11 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-apertura-ligera.spec.mjs"] },
+  // Apuntar y la ficha de un gasto: velo que se queda los toques y ensayo en seco sin rastro.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
   // Cerrar Tus recibos de un desliz y seguir hacia otra pestaña sin que el carrusel se desplace de
   // lado (vídeo del dueño, 11/11): el foco que vuelve a «Todos» y el gesto de pestañas.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
@@ -483,6 +495,9 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  /* Reposo tras cargar (14/11): dos filas de saldo con la misma clave dejaban la app renderizando
+     sin parar. Un bucle así puede nacer en cualquier módulo, no en una pantalla. */
+  "e2e/saldos-sin-bucle.spec.mjs",
   "e2e/tr-monthly-invest-confirm.spec.mjs",
   "e2e/inicio-mes-futuro.spec.mjs",
   "e2e/backclose-handover.spec.mjs", "e2e/botnav-indicador.spec.mjs",
@@ -505,6 +520,9 @@ export const CROSSCUTTING = [
   /* Temas y temáticas (UX-07) son CSS global de `shell.html` y selección en Ajustes:
      cualquier pestaña puede romper su contraste, no una pantalla concreta. */
   "e2e/apariencia-temas.spec.mjs",
+  /* Igual de transversal: el teclado de Apuntar cabe o no según el CSS global de las hojas, y el
+     contraste de `--muted-2` y del menta de Claro sale de los tokens de `shell.html`. */
+  "e2e/apuntar-teclado-visible.spec.mjs",
   // INC-2709-12: el + de Cyberpunk por encima de la corriente de la barra, en todas las pestañas.
   "e2e/cyber-fab.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",
@@ -546,7 +564,7 @@ const STEPS_SUPABASE = [
   "prod117-edge-compat",
   "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "meta-aportacion", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "ingest-native-slots", "ingest-native-phase1", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones", "entrada-edge", "h2-account-phases", "h2-account-identity", "bank-sync-paging", "bank-rate-contracts", "bank-callback-state", "bank-rate-client", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
+  "grants-migraciones", "entrada-edge", "h2-account-phases", "h2-account-identity", "bank-sync-paging", "bank-rate-contracts", "bank-callback-state", "bank-confirm", "bank-rate-client", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
   "categorize-limitador", "categorize-handler",
 ];
 

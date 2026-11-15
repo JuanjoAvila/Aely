@@ -22,7 +22,7 @@ async function abrir(page,mode,prior=false,lang="es"){
   if(mode==="transfer-pair")state.expenses.push({id:"own-in",date:"2026-10-04T23:59:00+02:00",amount:-300.07,merchant:"Entrada sintética",category:"otros",ent:"caixabank"});
   if(prior) await page.route(/http:\/\/127\.0\.0\.1:\d+\/$/,async route=>{
     const response=await route.fetch(),html=await response.text();
-    const old=confirmed?html.replace('(e.withdrawalConfirmedAt||isAtmWithdrawal(e.merchant))','isAtmWithdrawal(e.merchant)'):transfer?html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push','if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push'):html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
+    const old=confirmed?html.replace('(e.withdrawalConfirmedAt||m.atm)','m.atm'):transfer?html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push','if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push'):html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
     expect(old).not.toBe(html);
     await route.fulfill({response,body:old});
   });

@@ -1,6 +1,7 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
+import { cuentaVeterana, cupoGlobal } from "../_shared/cupos.ts";
 
 const TOPICS = ["cash", "goals", "debts", "banks", "history", "categories", "receipts"];
 const CUES = [
@@ -61,7 +62,11 @@ Deno.serve(withCors(async (req: Request) => {
   // La ayuda local sigue disponible si el contador falla; el camino de pago se cierra.
   if (!gate.checked) return json({ ok: false, error: "unavailable" }, 503);
   if (!gate.ok) return json({ ok: false, error: "limited" }, 429);
-  for (const [bucket, limit] of [["help-assistant-day:" + user.id, 30], ["help-assistant-total-day", 1000]] as const) {
+  // Las cuentas de menos de una semana tienen menos cupo diario y no tocan el global de la
+  // familia: 34 cuentas recién creadas agotaban los 1000 de todos (P2-06, `_shared/cupos.ts`).
+  const veterana = cuentaVeterana(user.created_at);
+  const global = cupoGlobal("help-assistant", "day", veterana, { veterana: 1000, nueva: 100 }, 86400);
+  for (const [bucket, limit] of [["help-assistant-day:" + user.id, veterana ? 30 : 10], [global.bucket, global.limit]] as const) {
     const daily = await rateLimit(admin, bucket, limit, 86400);
     if (!daily.checked) return json({ ok: false, error: "unavailable" }, 503);
     if (!daily.ok) return json({ ok: false, error: "limited" }, 429);

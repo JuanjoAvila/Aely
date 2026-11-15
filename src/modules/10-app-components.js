@@ -91,7 +91,7 @@ function useUpdates(){
     if(showToast) showToast(t("apk_downloading"));
     nat.installApk({url:apkUpd.url}).then(function(r){
       if(r&&r.needsPermission&&showToast){ showToast(t("apk_perm")); return; }   // Android abrió el ajuste; reintocar
-    }).catch(function(e){ if(showToast) showToast("⚠ "+((e&&e.message)||e)); });
+    }).catch(function(e){ if(showToast) showToast(errTxt(e)); });
   };
   const otaDownloaded=!!(window._mcOtaReady&&window._mcOtaReady.id);
   return { updateReady:updateReady, otaReady:otaReady, otaDownloaded:otaDownloaded, apkUpd:apkUpd, applyUpdate:applyUpdate, installApk:installApk };
@@ -103,7 +103,7 @@ function LockScreen({onUnlock}){
   const tryUnlock=function(){ setErr(false); bio.unlock().then(onUnlock).catch(function(){ setErr(true); }); };
   useEffect(function(){ const t=setTimeout(tryUnlock,350); return function(){ clearTimeout(t); }; },[]);
   const wrap={position:"fixed",inset:0,background:"var(--bg)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:100,color:"var(--text)",gap:"16px",padding:"24px",textAlign:"center"};
-  const btn={padding:"14px 22px",borderRadius:"14px",border:"none",background:"var(--mint)",color:"#06120C",fontWeight:700,fontSize:"15px",cursor:"pointer"};
+  const btn={padding:"14px 22px",borderRadius:"14px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"15px",cursor:"pointer"};
   const escape=function(){
     // la pantalla del candado va ANTES del árbol de la app: si AskHost aún no está montado,
     // askConfirm cae solo al confirm nativo (ver askDialog) y la salida de emergencia sigue viva.
@@ -141,12 +141,12 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     setBusy(true);
     const p = mode==="in" ? cloud.signInPassword(email.trim(),pass) : cloud.signUpPassword(email.trim(),pass);
     p.then(function(){ showToast(mode==="in"?t("au_signedin"):t("au_created")); onClose(); })
-     .catch(function(e){ showToast("✕ "+((e&&e.message)||e)); })
+     .catch(function(e){ showToast(errTxt(e)); })
      .then(function(){ setBusy(false); });
   };
   const toggleBio=function(){
     if(bioOn){ bio.disable(); setBioOn(false); showToast(t("au_bio_dis")); return; }
-    bio.enable(uid, (session&&session.user&&session.user.email)).then(function(){ setBioOn(true); showToast(t("au_bio_en")); }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); });
+    bio.enable(uid, (session&&session.user&&session.user.email)).then(function(){ setBioOn(true); showToast(t("au_bio_en")); }).catch(function(e){ showToast(errTxt(e)); });
   };
   const stop=function(e){ e.stopPropagation(); };
   const sendReset=function(){
@@ -154,7 +154,7 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     setBusy(true);
     cloud.resetPassword(email.trim())
       .then(function(){ showToast(t("au_reset_sent")); setMode("in"); })
-      .catch(function(e){ showToast("✕ "+((e&&e.message)||e)); })
+      .catch(function(e){ showToast(errTxt(e)); })
       .then(function(){ setBusy(false); });
   };
   const saveNewPass=function(){
@@ -162,7 +162,7 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     setBusy(true);
     cloud.updatePassword(pass)
       .then(function(){ showToast(t("au_pass_changed")); onClose(); })
-      .catch(function(e){ showToast("✕ "+((e&&e.message)||e)); })
+      .catch(function(e){ showToast(errTxt(e)); })
       .then(function(){ setBusy(false); });
   };
   // Recuperación: poner contraseña nueva (se llega desde el enlace del email; ya hay sesión temporal).
@@ -577,8 +577,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
-  const chip=function(n){ const on=months===n; return React.createElement("button",{key:n,onClick:function(){ setMonths(n); },style:{flex:1,padding:"9px 0",borderRadius:10,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)":"var(--surface)",color:on?"#06120C":"var(--text)",fontWeight:800,fontSize:13,cursor:"pointer"}}, tf("bp_hist_m",{n:n})); };
-  const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
+  const chip=function(n){ const on=months===n; return React.createElement("button",{key:n,onClick:function(){ setMonths(n); },style:{flex:1,padding:"9px 0",borderRadius:10,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)":"var(--surface)",color:on?"var(--on-mint)":"var(--text)",fontWeight:800,fontSize:13,cursor:"pointer"}}, tf("bp_hist_m",{n:n})); };
+  const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
   const destChip=function(i,id,label,hint){
     const on=(dest[i]||"")==id;
     // `data-dest`/`data-cand`: las filas se pintan con estilos en linea y sin clase, asi que un
@@ -666,7 +666,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
           const dentro=revelado>=animTope || vi<revelado;
           return React.createElement("div",{key:i,className:"hist-fila"+(dentro?" dentro":""),style:{border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)14":"var(--surface)",borderRadius:12,marginBottom:7,padding:"10px 12px"}},
             React.createElement("button",{type:"button",onClick:function(){ toggle(i); },style:{display:"flex",alignItems:"center",gap:11,width:"100%",background:"none",border:"none",color:"inherit",cursor:"pointer",textAlign:"left",padding:0}},
-              React.createElement("span",{style:{width:20,height:20,borderRadius:6,border:"2px solid "+(on?"var(--mint)":"var(--muted-2)"),background:on?"var(--mint)":"transparent",color:"#06120C",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}, on?"✓":""),
+              React.createElement("span",{style:{width:20,height:20,borderRadius:6,border:"2px solid "+(on?"var(--mint)":"var(--muted-2)"),background:on?"var(--mint)":"transparent",color:"var(--on-mint)",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}, on?"✓":""),
               React.createElement("div",{style:{flex:1,minWidth:0}},
                 React.createElement("div",{style:{fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",textDecoration:(!on&&isDup)?"line-through":"none",color:(!on&&isDup)?"var(--muted-2)":undefined}}, x.merchant),
                 React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, x.date, " · ", histBankLabel(x), isIn?"":(x.card?"":" · "+t("bp_hist_notcard")), suggestRec&&!on?"":""),
@@ -775,7 +775,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
     window.addEventListener("mc-bank-links-changed", alRefrescar);
     return function(){ window.removeEventListener("mc-bank-links-changed", alRefrescar); };
   },[uid]);
-  const loadAspsps=function(){ if(aspsps!==null||loadingA) return; setLoadingA(true); cloud.bankAspsps("ES").then(function(rows){ setAspsps(rows||[]); }).catch(function(e){ setAspsps([]); showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setLoadingA(false); }); };
+  const loadAspsps=function(){ if(aspsps!==null||loadingA) return; setLoadingA(true); cloud.bankAspsps("ES").then(function(rows){ setAspsps(rows||[]); }).catch(function(e){ setAspsps([]); showToast(errTxt(e)); }).finally(function(){ setLoadingA(false); }); };
   const openPicker=function(){ setPicking(true); loadAspsps(); };
   // Candado compartido con el banner de Cartera: dos toques no gastan el permiso dos veces
   // (invalid_request de Enable Banking — 2026-07-26).
@@ -789,7 +789,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
         if(bankRateLimited(e)){ showToast("⚠ "+t("bank_rate_limit")); return; }
         const msg=(e&&e.message)||String(e);
-        showToast("⚠ "+t("bank_error")+": "+msg);
+        showToast("⚠ "+t("bank_error"));
         /* ANTES ESTE FALLO ERA MUDO: solo un toast, que se lee y se olvida. La conexión de TR
            por Open Banking rechazada (2026-08-01: «da error») no dejó NINGÚN rastro en
            app_events — no había forma de saber, sin estar delante de su móvil en ese instante,
@@ -890,7 +890,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           return next;
         });
         loadLinks();
-      }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setBusy(""); });
+      }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(""); });
     });
   };
 
@@ -1883,7 +1883,7 @@ function ActivityPanel({events, onReload, onClose}){
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
-  const chip=function(on){ return {background:on?"var(--mint)":"var(--surface-2)",color:on?"#06120C":"var(--text)",border:on?"none":"1px solid var(--line)",borderRadius:20,padding:"6px 13px",fontSize:12.5,fontWeight:700,cursor:"pointer"}; };
+  const chip=function(on){ return {background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)",borderRadius:20,padding:"6px 13px",fontSize:12.5,fontWeight:700,cursor:"pointer"}; };
   const nErr=(events||[]).filter(function(ev){ return ev.kind==="error"; }).length;
   const nFb=(events||[]).filter(function(ev){ return ev.kind==="feedback"; }).length;
   const nBeta=(events||[]).filter(function(ev){ return ev.kind==="beta"; }).length;   // veredictos de beta probada en el móvil
@@ -2016,7 +2016,7 @@ function AutoBackupsPanel({state, showToast, uid, onClose}){
   useEffect(function(){
     mounted.current=true;
     cloud.listBackupDays(uid).then(function(rows){ setDays(rows||[]); })
-      .catch(function(e){ setDays([]); showToast("⚠ "+((e&&e.message)||e)); });
+      .catch(function(e){ setDays([]); showToast(errTxt(e)); });
     return function(){ mounted.current=false; };
   },[uid]);
   const inspect=function(day){
@@ -2026,7 +2026,7 @@ function AutoBackupsPanel({state, showToast, uid, onClose}){
       const check=validateBackupSnapshot(data);
       if(!check.ok){ showToast("✕ "+tf("bk_invalid_reason",{reason:t("bk_invalid_"+check.reason)})); return; }
       setPreview({day:day,data:data});
-    }).catch(function(e){ if(mounted.current) showToast("⚠ "+((e&&e.message)||e)); })
+    }).catch(function(e){ if(mounted.current) showToast(errTxt(e)); })
       .finally(function(){ if(mounted.current) setBusy(""); });
   };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
@@ -2276,7 +2276,7 @@ function CurConverterPanel({state, onClose, refreshFx}){
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const inp={width:"100%",padding:"10px 13px",borderRadius:12,border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:16,boxSizing:"border-box"};
-  const segBtn=function(on){ return {padding:"7px 10px",borderRadius:20,fontSize:12.5,fontWeight:700,cursor:"pointer",background:on?"var(--mint)":"var(--surface-2)",color:on?"#06120C":"var(--text)",border:on?"none":"1px solid var(--line)"}; };
+  const segBtn=function(on){ return {padding:"7px 10px",borderRadius:20,fontSize:12.5,fontWeight:700,cursor:"pointer",background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)"}; };
   const tbl=fxTableOf(state);
   const hasRates=CUR_LIST.some(function(c){ return c!=="EUR" && tbl[c]>0; });
   const nq=normQ(q).trim();
@@ -2444,7 +2444,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const toggleBio=function(){
     if(bioOn){ bio.disable(); setBioOn(false); showToast(t("au_bio_dis")); return; }
     bio.enable(uid, meEmail).then(function(){ setBioOn(true); showToast(t("au_bio_en")); })
-      .catch(function(e){ showToast("✕ "+((e&&e.message)||e)); });
+      .catch(function(e){ showToast(errTxt(e)); });
   };
   const doSignOut=function(){
     askConfirm({ title:t("au_signout"), ok:t("au_signout"), danger:true }).then(function(yes){
@@ -2531,7 +2531,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // feedback visible: sin esto, recargar con los mismos datos parecía "no hacer nada" (2026-07-11)
       const nErr=(rows||[]).filter(function(r){ return r.kind==="error"; }).length;
       showToast("↻ "+(rows||[]).length+" eventos · "+nErr+" error(es)");
-    }).catch(function(e){ setEvents([]); showToast("⚠ "+((e&&e.message)||e)); });
+    }).catch(function(e){ setEvents([]); showToast(errTxt(e)); });
   };
   // ¿El lector de gastos TR tiene acceso a notificaciones? (se pierde al reinstalar la app).
   // Se re-chequea al volver a la app (visibilitychange): al activar el permiso y volver, el aviso se quita solo.
@@ -2616,7 +2616,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   // Inputs se quedan en 16px (menos = zoom automático del móvil al enfocar); los botones sí
   // bajan de tamaño para no parecer listones (feedback 2026-07-18).
   const inp={width:"100%",padding:"10px 13px",borderRadius:"12px",border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:"16px",boxSizing:"border-box"};
-  const btn={width:"100%",padding:"10px 12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"#06120C",fontWeight:700,fontSize:"14px",marginTop:"10px",cursor:"pointer"};
+  const btn={width:"100%",padding:"10px 12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"14px",marginTop:"10px",cursor:"pointer"};
   /* Presupuesto mensual: se edita en Resumen (BudgetSheet). Bancos de gasto diario: en Cartera.
      Quitados de aquí el 2026-08-05 — eran duplicados muertos / confusos (feedback suyo). */
   /* `doExport`/`doImport` (copia manual a fichero JSON) retirados el 2026-08-04 a petición suya:
@@ -2649,7 +2649,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const simOn=!!(state.settings&&state.settings.simpleMode);
   // Conversor de monedas: pantalla propia (CurConverterPanel), no acordeón — ver su comentario.
   const [convOpen,setConvOpen]=useState(false);
-  const segBtn=function(on){ return Object.assign({},btn,{flex:"1 1 30%",marginTop:0,background:on?"var(--mint)":"var(--surface-2)",color:on?"#06120C":"var(--text)",border:on?"none":"1px solid var(--line)"}); };
+  const segBtn=function(on){ return Object.assign({},btn,{flex:"1 1 30%",marginTop:0,background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)"}); };
   // ── Secciones colapsables + buscador (feedback 2026-07-13: «Ajustes se está haciendo
   // kilométrico»). Cada tarjeta es ahora un grupo plegado (estado en localStorage); el
   // buscador filtra grupos por título y palabras clave y los abre de golpe. ──
@@ -2894,7 +2894,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             try{ if(nat.setIngestUrl) return nat.setIngestUrl({url:url}); }catch(e){}
           }).then(function(){
             setS({trIngest:true, ingestToken:tok}); showToast(t("st_tring_on"));
-          }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); });
+          }).catch(function(e){ showToast(errTxt(e)); });
         } else {
           try{ if(nat.setIngestUrl) nat.setIngestUrl({url:""}).catch(function(){}); }catch(e){}
           cloud.clearIngestToken();
@@ -2973,7 +2973,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
                 cloud.deleteAccount(String(pwd)).then(function(){
                   showToast(t("st_delete_acc_done"));
                   onClose();
-                }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); });
+                }).catch(function(e){ showToast(errTxt(e)); });
               });
           });
       })
@@ -3364,12 +3364,16 @@ class ErrorBoundary extends React.Component{
     const wrap={position:"fixed",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:13,padding:24,textAlign:"center",background:"#0B1410",color:"#E8F0EB",fontFamily:"Manrope,sans-serif",zIndex:9999};
     const btn={padding:"13px 22px",borderRadius:14,border:"none",background:"#5FD08A",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer"};
     const btn2=Object.assign({},btn,{background:"transparent",border:"1px solid #2a3a31",color:"#E8F0EB"});
-    const dl=function(){ try{ const snapshot=Object.assign({},mcLoadRaw(mcStateKey())||{});delete snapshot._planSync;const data=JSON.stringify(snapshot,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="mi-cartera-backup-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ alert("Export error: "+e); } };
+    // Si la descarga falla, el aviso va en la propia pantalla: antes era un alert() nativo y en
+    // inglés («Export error: …»), lo único fuera de los diálogos de la app (auditoría 14/11/2026).
+    const self=this;
+    const dl=function(){ try{ const snapshot=Object.assign({},mcLoadRaw(mcStateKey())||{});delete snapshot._planSync;const data=JSON.stringify(snapshot,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="aely-copia-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ try{ console.error("Export:",mcLogCode(e)); }catch(_){} self.setState({dlFail:true}); } };
     return React.createElement("div",{style:wrap},
       React.createElement("div",{style:{fontSize:46}},"🛟"),
       React.createElement("div",{style:{fontWeight:800,fontSize:21,fontFamily:"Fraunces,serif"}}, t("eb_title")),
       React.createElement("div",{style:{color:"#9fb3a8",fontSize:14,maxWidth:340,lineHeight:1.5}}, t("eb_msg")),
       React.createElement("button",{style:btn,onClick:dl}, t("eb_export")),
+      this.state.dlFail && React.createElement("div",{role:"alert",style:{color:"#E8F0EB",fontSize:13,maxWidth:340}}, t("eb_export_fail")),
       React.createElement("button",{style:btn2,onClick:function(){ try{ location.reload(); }catch(e){} }}, t("eb_reload")),
       React.createElement("div",{style:{color:"#5a6b62",fontSize:11,maxWidth:340,marginTop:6,wordBreak:"break-word"}}, String((this.state.err&&this.state.err.message)||this.state.err||""))
     );

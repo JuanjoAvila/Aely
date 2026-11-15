@@ -1,5 +1,35 @@
 [
   {
+    "v": "4.26.233",
+    "d": "2026-11-14",
+    "t": {
+      "es": "Apuntar con todo el teclado a la vista, textos más legibles y avisos que se entienden",
+      "en": "Adding an expense with the whole keypad in view, easier-to-read text and clearer messages",
+      "ca": "Apuntar amb tot el teclat a la vista, textos més llegibles i avisos que s'entenen"
+    },
+    "items": {
+      "es": [
+        "Al apuntar un gasto, todo el teclado y el botón se ven sin deslizar, y tanto esa hoja como la ficha de un movimiento se abren sin esperas.",
+        "Los textos grises se leen mejor en todos los temas, y en el tema Claro también las categorías, los verdes y «+ Añadir»; en Deudas las cifras ya no van en rojo.",
+        "Inicio dice «libres de» junto a lo que te queda y llama a los recibos igual que Recibos; en modo sencillo, Plan dice de qué banco salen los recibos e Inicio ya no ofrece metas.",
+        "Los avisos de error salen en tu idioma y con palabras claras, el tipo de cambio va con cuatro decimales y varios botones pequeños son más fáciles de tocar."
+      ],
+      "en": [
+        "When you add an expense, the whole keypad and the button show without scrolling, and both that sheet and a movement's card open without a wait.",
+        "Grey text is easier to read in every theme, and in the Light theme so are categories, greens and \"+ Add\"; in Debts the figures are no longer red.",
+        "Home says \"left of\" next to what you have left and names bills the same way Bills does; in simple mode, Plan says which bank the bills come out of and Home no longer offers goals.",
+        "Error messages come in your language and in plain words, the exchange rate shows four decimals and several small buttons are easier to tap."
+      ],
+      "ca": [
+        "En apuntar una despesa, tot el teclat i el botó es veuen sense lliscar, i tant aquest full com la fitxa d'un moviment s'obren sense esperes.",
+        "Els textos grisos es llegeixen millor en tots els temes, i en el tema Clar també les categories, els verds i «+ Afegir»; a Deutes les xifres ja no van en vermell.",
+        "Inici diu «lliures de» al costat del que et queda i anomena els rebuts igual que Rebuts; en mode senzill, el Pla diu de quin banc surten els rebuts i Inici ja no ofereix metes.",
+        "Els avisos d'error surten en el teu idioma i amb paraules clares, el tipus de canvi va amb quatre decimals i diversos botons petits són més fàcils de tocar."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.232",
     "d": "2026-11-13",
     "t": {

@@ -11,15 +11,17 @@ const paths = {
   cors: "supabase/functions/_shared/cors.ts",
   rate: "supabase/functions/_shared/ratelimit.ts",
   body: "supabase/functions/_shared/request_body.ts",
+  cupos: "supabase/functions/_shared/cupos.ts",
 };
 const sources = Object.fromEntries(Object.entries(paths).map(([key, p]) =>
   [key, fs.readFileSync(new URL("../" + p, import.meta.url), "utf8")]));
 const imports = [
-  'import { createClient } from "https://esm.sh/@supabase/supabase-js@2";',
+  'import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";',
   'import { categorizar } from "../_shared/ingest_logic.ts";',
   'import { withCors } from "../_shared/cors.ts";',
   'import { rateLimit } from "../_shared/ratelimit.ts";',
   'import { readInput } from "../_shared/request_body.ts";',
+  'import { cuentaVeterana, cupoGlobal } from "../_shared/cupos.ts";',
 ];
 
 function compile(input) {
@@ -62,11 +64,12 @@ function makeHandler(options = {}, compiled = code) {
     return {
       auth: { getUser: async () => {
         calls.auth++;
-        return { data: { user: options.noUser ? null : { id: userId } }, error: options.authError || null };
+        return { data: { user: options.noUser ? null : { id: userId, ...(options.createdAt ? { created_at: options.createdAt } : {}) } }, error: options.authError || null };
       } },
       rpc: async (name, args) => {
         calls.rpc.push({ name, args: plain(args) });
         if (options.rpcThrow) throw options.rpcThrow;
+        if (options.rateSeq) return { data: options.rateSeq[calls.rpc.length - 1], error: null };
         return { data: Object.hasOwn(options, "rateData") ? options.rateData : true, error: options.rpcError || null };
       },
       // Un acceso a tablas atrapado por un catch sigue quedando registrado como regresión.
@@ -94,8 +97,9 @@ function makeHandler(options = {}, compiled = code) {
       { filename: paths[key], timeout: 1000 });
     return context.module.exports;
   }
-  const logic = module("logic"), cors = module("cors"), rate = module("rate"), body = module("body");
-  Object.assign(context, { categorizar: logic.categorizar, withCors: cors.withCors, rateLimit: rate.rateLimit, readInput: body.readInput });
+  const logic = module("logic"), cors = module("cors"), rate = module("rate"), body = module("body"), cupos = module("cupos");
+  Object.assign(context, { categorizar: logic.categorizar, withCors: cors.withCors, rateLimit: rate.rateLimit, readInput: body.readInput,
+    cuentaVeterana: cupos.cuentaVeterana, cupoGlobal: cupos.cupoGlobal });
   vm.runInContext(compiled.handler, context, { filename: paths.handler, timeout: 1000 });
   assert.equal(calls.serve, 1, "el handler viene de Deno.serve real");
 
@@ -116,8 +120,12 @@ function makeHandler(options = {}, compiled = code) {
       assert.equal(client.key, i === 0 ? env.SUPABASE_ANON_KEY : env.SUPABASE_SERVICE_ROLE_KEY);
       assert.deepEqual(client.config, i === 0 ? { global: { headers: { Authorization: headers.Authorization } } } : undefined);
     }
-    for (const rpc of calls.rpc) assert.deepEqual(rpc, { name: "check_rate_limit",
-      args: { p_bucket: "categorize-ai:" + userId, p_limit: 40, p_window_secs: 600 } });
+    // Orden fijo: 10 minutos por usuario, día por usuario y cupo global de su grupo de antigüedad (P2-06).
+    const veterana = !!options.createdAt && Date.now() - Date.parse(options.createdAt) >= 7 * 864e5;
+    const gates = [["categorize-ai:" + userId, 40, 600], ["categorize-ai-day:" + userId, veterana ? 300 : 60, 86400],
+      veterana ? ["categorize-ai-total-day", 3000, 86400] : ["categorize-ai-new-day", 300, 86400]];
+    for (const [i, rpc] of calls.rpc.entries()) assert.deepEqual(rpc, { name: "check_rate_limit",
+      args: { p_bucket: gates[i][0], p_limit: gates[i][1], p_window_secs: gates[i][2] } });
     for (const llm of calls.llm) {
       assert.equal(llm.url, "https://api.openai.com/v1/chat/completions");
       assert.equal(llm.method, "POST");
@@ -175,7 +183,7 @@ await t("Bizum sin finalidad y pasarelas no inventan categoría sin clave", asyn
 async function aiOracle(category, compiled = code) {
   const h = makeHandler({ key: true, category }, compiled);
   await expectResult(h, "Comercio ficticio sin pistas", result(category, category === "otros" ? "kw" : "ai"));
-  assert.equal(h.calls.rpc.length, 1);
+  assert.equal(h.calls.rpc.length, 3);
   assert.equal(h.calls.llm.length, 1);
   assert.equal(h.calls.clients.length, 2);
   return h;
@@ -218,11 +226,25 @@ async function limitOracle(compiled = code) {
   assert.equal(h.calls.llm.length, 0);
 }
 await t("RPC false frena antes del modelo con respuesta 200, sin 429", () => limitOracle());
+async function dailyOracle(compiled = code) {
+  // P2-06: el tope del día (por usuario o global) también frena antes del modelo y contesta «otros».
+  for (const rateSeq of [[true, false, true], [true, true, false]]) {
+    const h = makeHandler({ key: true, category: "salud", rateSeq }, compiled);
+    await expectResult(h, "Comercio ficticio sin pistas", result("otros", "kw", { ai: "limit" }));
+    assert.equal(h.calls.llm.length, 0);
+    assert.equal(h.calls.rpc.length, rateSeq.indexOf(false) + 1);
+  }
+  const old = new Date(Date.now() - 30 * 864e5).toISOString();
+  const v = makeHandler({ key: true, category: "salud", createdAt: old }, compiled);
+  await expectResult(v, "Comercio ficticio sin pistas", result("salud", "ai"));
+  assert.deepEqual(v.calls.rpc.map((r) => r.args.p_bucket), ["categorize-ai:fixture-user", "categorize-ai-day:fixture-user", "categorize-ai-total-day"]);
+}
+await t("el tope diario y el cupo global por antigüedad frenan sin llamar al modelo", () => dailyOracle());
 await t("solo false deniega; null, cero o dato ausente dejan pasar", async () => {
   for (const rateData of [true, null, 0, undefined]) {
     const h = makeHandler({ key: true, rateData, category: "salud" });
     await expectResult(h, undefined, result("salud", "ai"));
-    assert.equal(h.calls.rpc.length, 1);
+    assert.equal(h.calls.rpc.length, 3);
     assert.equal(h.calls.llm.length, 1);
     const verdict = await h.rate.rateLimit({ rpc: async () => ({ data: rateData, error: null }) }, "fixture-bucket", 40, 600);
     assert.deepEqual(plain(verdict), { ok: true, checked: true });
@@ -238,13 +260,14 @@ async function sqlOracle(compiled = code) {
     await expectResult(h, undefined, result("salud", "ai"));
     const prefix = mode === "rpcError" ? "rate-limit no disponible (se deja pasar):" : "rate-limit excepción (se deja pasar):";
     const expectedCode = sqlCodes.includes(code) ? code : "unavailable";
-    assert.deepEqual(h.calls.logs, [{ level: "error", args: [prefix, expectedCode] }]);
+    // Los tres cupos fallan igual: tres líneas, las tres con solo el código.
+    assert.deepEqual(h.calls.logs, Array(3).fill({ level: "error", args: [prefix, expectedCode] }));
     assert.equal(h.calls.llm.length, 1, "fallo del limitador deja pasar");
     assert.equal(JSON.stringify(h.calls.logs).includes(marker), false);
     const rpc = async () => { if (mode === "rpcThrow") throw error; return { error }; };
     const verdict = await h.rate.rateLimit({ rpc }, marker, 40, 600);
     assert.deepEqual(plain(verdict), { ok: true, checked: false });
-    assert.deepEqual(h.calls.logs[1], { level: "error", args: [prefix, expectedCode] });
+    assert.deepEqual(h.calls.logs[3], { level: "error", args: [prefix, expectedCode] });
   }
 }
 await t("SQLSTATE permitidos, desconocidos y excepciones no filtran datos", () => sqlOracle());
@@ -258,7 +281,7 @@ await t("errores HTTP, transporte y JSON externo vuelven a otros", async () => {
   for (const failure of [{ fetchError: true }, { httpError: 429 }, { httpError: 503 }, { responseBody: "no-json" }]) {
     const h = makeHandler({ key: true, ...failure });
     await expectResult(h, undefined, result("otros", "kw", { ai: "error" }));
-    assert.equal(h.calls.rpc.length, 1);
+    assert.equal(h.calls.rpc.length, 3);
     assert.equal(h.calls.llm.length, 1);
   }
   for (const responseBody of ['{}', '{"choices":[]}', '{"choices":[{"message":{}}]}']) {
@@ -358,6 +381,8 @@ await t("controles negativos en memoria rechazan regresiones con los mismos orá
     ["limitador desatendido", "handler", "if (!gate.ok)", "if (false)", limitOracle],
     ["bucket no pertenece al usuario", "handler", '"categorize-ai:" + user.id', '"categorize-ai:shared"', (c) => aiOracle("salud", c)],
     ["auth sin verificar", "handler", "if (uerr || !user)", "if (false)", authOracle],
+    ["tope diario desatendido", "handler", "if (!daily.ok)", "if (false)", dailyOracle],
+    ["cuenta nueva en el cupo de la familia", "handler", "cuentaVeterana(user.created_at)", "true", dailyOracle],
   ];
   for (const [name, key, from, to, oracle] of mutations) {
     assert.equal(sources[key].split(from).length, 2, "ancla única del mutante: " + name);

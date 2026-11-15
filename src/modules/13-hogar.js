@@ -123,7 +123,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
     return cloud.fetchHouseholdBundle().then(function(b){
       setHh(b.household); setSnaps(b.snapshots||[]);
     }).catch(function(e){
-      showToast("✕ "+((e&&e.message)||e));
+      showToast(errTxt(e));
     }).finally(function(){ setBusy(false); });
   };
 
@@ -138,7 +138,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
     cloud.publishHouseholdSnapshot(hh.id, payload).then(function(){
       showToast(t("hh_pub_ok"));
       return reload();
-    }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); }).finally(function(){ setBusy(false); });
+    }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(false); });
   };
 
   const doCreate=function(){
@@ -150,9 +150,9 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       return reload();
     }).catch(function(e){
       const m=(e&&e.message)||String(e);
-      // RLS rota en la BD (caso real 2026-07-18): el error de Postgres no le dice nada al
-      // usuario; se traduce a algo accionable (aplicar la migración 0015).
-      showToast(m.indexOf("row-level security")>=0 ? ("✕ "+t("hh_rls_fix")) : ("✕ "+m));
+      // RLS rota en la BD (caso real 2026-07-18, se arregla con la migración 0015): a la familia
+      // le decimos que no se guardó; lo de Supabase no lo puede arreglar ella (auditoría 14/11/2026).
+      showToast(m.indexOf("row-level security")>=0 ? ("✕ "+t("hh_rls_fix")) : errTxt(e));
     }).finally(function(){ setBusy(false); });
   };
 
@@ -166,7 +166,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       return reload();
     }).catch(function(e){
       const m=(e&&e.message)||String(e);
-      showToast(m.indexOf("too_many")>=0 ? ("⚠ "+t("hh_code_wait")) : (m.indexOf("invalid")>=0?t("hh_code_bad"):("✕ "+m)));
+      showToast(m.indexOf("too_many")>=0 ? ("⚠ "+t("hh_code_wait")) : (m.indexOf("invalid")>=0?t("hh_code_bad"):errTxt(e)));
     }).finally(function(){ setBusy(false); });
   };
 
@@ -178,7 +178,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       cloud.leaveHousehold(hh.id).then(function(){
         showToast(t("hh_left"));
         setHh(null); setSnaps([]);
-      }).catch(function(e){ showToast("✕ "+((e&&e.message)||e)); }).finally(function(){ setBusy(false); });
+      }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(false); });
     });
   };
 

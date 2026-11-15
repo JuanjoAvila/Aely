@@ -26,7 +26,7 @@ export function edgeRuntime({ db, env = {}, transport, provider = {}, tokens = {
   }, { codeGeneration: { strings: false, wasm: false } });
   function load(file) {
     if (modules.has(file)) return modules.get(file);
-    if (file === 'https://esm.sh/@supabase/supabase-js@2') return { createClient: () => db };
+    if (file === 'https://esm.sh/@supabase/supabase-js@2.110.0') return { createClient: () => db };
     if (file.endsWith('/token_store.ts') && Object.keys(tokens).length) return tokens;
     if (file.endsWith('/enablebanking.ts') && Object.keys(provider).length) return provider;
     if (!file.startsWith('supabase/functions/') || file.includes('..')) throw Error('Unexpected module ' + file);
@@ -50,10 +50,11 @@ export function edgeRuntime({ db, env = {}, transport, provider = {}, tokens = {
 // Las cuotas son un doble del RPC, no una prueba de atomicidad/ventanas de Postgres.
 export function quotaDb() {
   const counts = new Map(), calls = [];
-  let user = 'synthetic-a', fault = false;
+  // Cuenta veterana por defecto: los cupos globales de las cuentas de siempre son los de la familia (P2-06).
+  let user = 'synthetic-a', fault = false, createdAt = '2026-01-01T00:00:00.000Z';
   return {
-    counts, calls, setUser(value) { user = value; }, setFault(value) { fault = value; },
-    auth: { getUser: async () => ({ data: { user: { id: user } }, error: null }) },
+    counts, calls, setUser(value) { user = value; }, setFault(value) { fault = value; }, setCreatedAt(value) { createdAt = value; },
+    auth: { getUser: async () => ({ data: { user: { id: user, created_at: createdAt } }, error: null }) },
     rpc: async (name, args) => {
       calls.push({ name, args: clone(args) });
       if (fault) return { data: null, error: { code: '42501', message: 'private synthetic failure' } };

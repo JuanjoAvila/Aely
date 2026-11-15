@@ -317,7 +317,7 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
   const dayRef=useRef(null);
   useEffect(function(){
     if(initialFocus!=="day"||recovery) return;
-    const frame=requestAnimationFrame(function(){ if(dayRef.current){ dayRef.current.focus({preventScroll:true}); dayRef.current.scrollIntoView({block:"nearest"}); } });
+    const frame=requestAnimationFrame(function(){ if(dayRef.current){ dayRef.current.focus({preventScroll:true}); dayRef.current.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); } });
     return function(){ cancelAnimationFrame(frame); };
   },[]);
   const [attempt,setAttempt]=useState(0),errorRef=useRef(null);
@@ -327,8 +327,9 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
   const extension=save.error?debtEditExtension(debt,form):null;
   // El rechazo puede quedar bajo el borde de la hoja. Cada Guardar vuelve a mostrarlo, incluso
   // si se repite el mismo error: el borrador y las guardas financieras no cambian (18/10).
+  // Suave, como en el resto de hojas: el salto seco desorientaba (auditoría de diseño 14/11).
   useLayoutEffect(function(){
-    if(save.error&&errorRef.current){ errorRef.current.focus({preventScroll:true}); errorRef.current.scrollIntoView({block:"center"}); }
+    if(save.error&&errorRef.current){ errorRef.current.focus({preventScroll:true}); errorRef.current.scrollIntoView({block:"center",behavior:mcReduced()?"auto":"smooth"}); }
   },[save.error,save.range,attempt]);
   const [confirmPending,setConfirmPending]=useState(false),confirming=useRef(false),latest=useRef(null);
   useLayoutEffect(function(){ latest.current={state:state,form:form,save:save}; });
@@ -635,7 +636,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   return React.createElement("div",null,
     React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--coral)"}},eur(total)),
+      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--text)"}},eur(total)),
       React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur0(monthly)}))
     ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
