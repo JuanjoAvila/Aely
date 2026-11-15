@@ -89,6 +89,10 @@ export const E2E_MAP = [
   { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  // Lote de menores del diseño 235: «‹» único de las subpantallas, X de Pregúntame, bienvenida con
+  // un solo botón principal y colores del tema en candado y panel de cuenta.
+  { file: "src/modules/10-app-components.js", specs: ["e2e/atras-y-bienvenida.spec.mjs", "e2e/backup-restauracion.spec.mjs"] },
+  { file: "src/modules/16-help-assistant.js", specs: ["e2e/atras-y-bienvenida.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/fin25-charge-months.spec.mjs"] },
@@ -100,6 +104,11 @@ export const E2E_MAP = [
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs", "e2e/plan-seg-barra.spec.mjs"] },
+  // Plan, lote de menores de diseño (15/11): enlazado con fecha, cuotas con céntimos, iconos de deuda y Metas vacía.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-menores-235.spec.mjs"] },
   // Velo de las hojas de Plan: fundido de entrada y de salida, mismo ritmo que el deslizamiento.
   { file: "src/shell.html", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
@@ -177,6 +186,12 @@ export const E2E_MAP = [
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
+  // Cartera con un solo patrón de acciones, filas cuenta/banco y áreas táctiles (lote 235).
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/cartera-acciones.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/cartera-acciones.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/cartera-acciones.spec.mjs", "e2e/cartera-inversiones.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/cartera-acciones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/cartera-acciones.spec.mjs"] },
   // La cifra grande (`useCountUp`) en Inicio, Cartera y «Tus recibos», y la mensualidad de los
   // recibos con importe por cobro (`fixedMonthlyOf`) que leen los totales y Hogar (4.26.150).
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
@@ -321,6 +336,12 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
+  // Menores de diseño de Inicio (235): «?» y enlaces de 44 px, movimientos planos, fila de metas,
+  // iniciales únicas (Inicio, Perfil, Ajustes), letra de «Pregúntame» y la primera cuenta en vacío.
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/16-help-assistant.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-grafica-reservas.spec.mjs", "e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
@@ -373,6 +394,9 @@ export const E2E_MAP = [
     "e2e/cifras-coherentes.spec.mjs",
     // Gastos v5 tanda 2: secciones, tirón con un solo toque, Categorías y Suscripciones como antes.
     "e2e/gastos-v5-secciones.spec.mjs",
+    // Diseño 235 (lote de menores): secciones con nombre, «hasta el N» en menta, Categorías con
+    // céntimos, el vacío con sus dos puertas y el importe «12,50» de la ficha Modificar.
+    "e2e/gastos-menores-235.spec.mjs",
     // Gastos v5 tanda 3: tocar una categoría filtra (píldora, cifra de la categoría, meses fijos) y
     // el límite por pulsación larga o por el chip del filtro, la misma hoja.
     "e2e/gastos-v5-filtro.spec.mjs",

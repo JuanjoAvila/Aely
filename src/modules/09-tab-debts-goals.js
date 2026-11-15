@@ -499,6 +499,14 @@ function AmortAdvisor({state, onEdit, onAmort}){
     React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("da_est"))
   );
 }
+// Trazos de 24 px como los de la barra de abajo (la casa es la misma de Inicio).
+const DEBT_ICO={
+  home:[["path",{d:"M3 10.5L12 3l9 7.5"}],["path",{d:"M5 10v10h14V10"}],["path",{d:"M10 20v-6h4v6"}]],
+  car:[["path",{d:"M3 16v-4l2.2-5.5h13.6L21 12v4z"}],["path",{d:"M3 12h18"}],["circle",{cx:7.5,cy:16.5,r:1.8}],["circle",{cx:16.5,cy:16.5,r:1.8}]],
+  phone:[["rect",{x:7,y:2.5,width:10,height:19,rx:2}],["path",{d:"M11 18h2"}]],
+  study:[["path",{d:"M2 9l10-5 10 5-10 5z"}],["path",{d:"M6 11v5c3 2.5 9 2.5 12 0v-5"}]],
+  card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
+};
 function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
@@ -619,13 +627,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       doAmort(d, parseFloat(String(raw).replace(',','.'))||0);
     });
   };
-  const debtEmoji=function(d){
+  /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
+     vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
+  const debtIco=function(d){
     const n=String(d.name||"").toLowerCase();
-    if(/coche|auto|car|seat|bmw/.test(n)) return "🚗";
-    if(/casa|hipo|piso|mort/.test(n)) return "🏠";
-    if(/móvil|movil|phone|móvil|iphone/.test(n)) return "📱";
-    if(/estudio|máster|master|uni/.test(n)) return "🎓";
-    return "💳";
+    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":"card";
+    return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
+      DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
   };
   // Cuotas que quedan: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
   // a mano) se ESTIMA con el ritmo de amortización actual. Devuelve {n,tot} o null.
@@ -655,7 +663,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
       React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--text)"}},eur(total)),
-      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur0(monthly)}))
+      // Con céntimos, como la cuota de cada tarjeta y Recibos: «661 €» al lado de 660,85 parecía otra cifra (DIS-30).
+      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur(monthly)}))
     ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
       React.createElement("div",{className:"hint"},t("plan_deleted_while_editing")),
@@ -673,13 +682,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       const day=cleanDay(dayOf(d));
       return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
-          React.createElement("span",{className:"v4-debt-emoji"},debtEmoji(d)),
+          React.createElement("span",{className:"v4-debt-emoji v4-debt-ico"},debtIco(d)),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
           ),
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
-        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
+        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
         React.createElement(DebtDayPrompt,{debt:d,onOpen:openDay}),
         // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
         (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
@@ -1044,7 +1053,8 @@ function Goals({state, set, totals, showToast}){
   };
 
   return React.createElement("div",null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // Sin metas, «Ahorrado en metas 0,00 €» en grande era un cero que no decía nada (DIS-28).
+    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
       React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--mint)"}},eur(totalSaved)),
       totalTarget>0 && React.createElement("div",{style:{marginTop:10,fontSize:13.5,color:"var(--muted)"}},tf("gl_total_sub",{x:eur0(totalTarget)}))
@@ -1090,7 +1100,10 @@ function Goals({state, set, totals, showToast}){
           React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")),
           React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setAdding(false); setForm(blank); }},t("gl_cancel"))
         )
-      : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
+      : goals.length===0
+        // La primera meta es LA acción de la pantalla vacía: botón principal, no el fantasma punteado.
+        ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first"))
+        : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
       onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),

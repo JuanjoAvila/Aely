@@ -55,6 +55,10 @@
   @font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
   @font-face{font-family:'Fraunces';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
   @font-face{font-family:'Fraunces';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
+  /* Escala tipográfica común (DIS-38, auditoría de diseño 233): la cifra grande medía 46 px en
+     Inicio y 40 en Cartera, y los importes de fila 16, 17 o 19 según la pantalla. Fuera de los
+     temas porque no cambia con el color. */
+  :root{--fs-hero:46px;--fs-row-amt:17px;--fs-row-title:16px;}
   :root, html[data-theme="green"]{
     /* Aely brand tokens (docs/design/aely/AELY_BRAND_BRIEF.md, 2026-09-10).
        dark-first forestal + menta; success = --ok, danger = --coral. */
@@ -89,8 +93,11 @@
        Ningún verde da 4,5 a la vez con blanco y con negro encima: por eso todo texto sobre menta
        usa `--on-mint` (antes había un #08120C fijo en .btn-primary, chips y pastillas). */
     --mint:#1C7F4A; --mint-bright:#1E874F; --mint-hi:#1E874F; --mint-dim:#A8DDBE; --mint-deep:#A8DDBE; --on-mint:#FFFFFF;
-    --blue:#3E80C8; --tan:#B8890F; --cream:#5E5228;
-    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#CE4F37; --coral-dim:#F1D2CB;
+    /* Coral más hondo: #CE4F37 daba 4,38:1 sobre blanco y las deudas son texto (5,41 ahora). Bienes
+       en gris cálido, no oliva: el oliva se leía como un segundo verde junto a la liquidez
+       (auditoría 15/11). */
+    --blue:#3E80C8; --tan:#B8890F; --cream:#7A6F5A;
+    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#B8432E; --coral-dim:#F1D2CB;
     --shadow:0 16px 34px -24px rgba(20,40,30,.35);
   }
   /* Azul (modo oscuro fresquito) */
@@ -173,7 +180,7 @@
      de la capa nativa. Lo que sí se comprueba en los e2e es la condición que la permite
      (`user-select` de la fila), y el veredicto de verdad es el suyo en el móvil. */
   button,.v4-mov,.v4-charge{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-  input,select{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
   /* La WebView puede seguir dibujando el indicador lateral aunque mida cero. `display:none`
      quita solo la barra visual: todas las superficies conservan overflow y gesto (feedback
      2026-09-23, también visible en Ajustes). Firefox/Chromium nuevo quedan cubiertos arriba. */
@@ -843,7 +850,7 @@
   .pr6-row:focus-visible, .pr6-rev:focus-visible, .pr6-prow:focus-visible, .pr6-pill:focus-visible,
   .pr6-mes-nav:focus-visible, .pr6-more:focus-visible, .pr6-paid-h:focus-visible, .pr6-cta:focus-visible,
   .pr6-btn:focus-visible, .pr6-cand:focus-visible, .pr6-back:focus-visible, .pr6-cerr-x:focus-visible,
-  .v4-section-h button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .v4-section-h button.link:focus-visible, .v4-inv-tools button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .botnav-fab-slot{flex:1;display:flex;justify-content:center;}
   .botnav-fab{width:58px;height:58px;border-radius:50%;margin-top:-26px;border:none;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
@@ -955,7 +962,7 @@
   .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
   .v42-net{position:relative;}
   .v42-net .v4-micro{font-size:11px;letter-spacing:2.4px;}
-  .v42-net .v4-hero-amt{font-size:46px;font-weight:560;margin-top:4px;}
+  .v42-net .v4-hero-amt{font-size:var(--fs-hero);font-weight:560;margin-top:4px;}
   .v42-net .v4-hero-amt>span{font-size:23px;color:var(--muted);}
   .v42-net-info{width:16px;height:16px;border-radius:50%;border:1px solid var(--muted-2);background:none;color:var(--muted);font-size:10px;position:relative;padding:0;}
   .v42-net-info:before{content:"";position:absolute;inset:-15px;}
@@ -981,7 +988,10 @@
   .v42-net-ranges button[aria-pressed="true"]{background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint);}
   .v42-cycle-section{margin-top:22px;}
   .v42-cycle-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px;font-size:14px;font-weight:700;}
-  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;}
+  /* 44 px de dedo como `.v4-section-h button.link`; el margen negativo devuelve el alto que gana
+     para que la cabecera no crezca (medía 20 px de alto, auditoría 15/11); el -2 de la derecha
+     anula el margen de la cabecera y alinea el texto con el de las demás secciones. */
+  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;min-height:44px;padding:10px 8px;margin:-10px -2px -10px 0;}
   .v42-cycle{gap:14px;padding:14px 16px;cursor:pointer;}
   .v42-cycle-ring{position:relative;width:76px;height:76px;flex:0 0 auto;}
   .v42-cycle-percent{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;padding-top:25px;font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;line-height:1;color:var(--text);}
@@ -1021,10 +1031,21 @@
   .v4-budget-txt .ph{font-size:14.5px;color:var(--muted);line-height:1.45;margin-top:6px;text-wrap:pretty;}
   .v4-section{margin-top:22px;}
   .v4-section-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:15px;font-weight:800;}
-  .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
+  .v4-section-h button.link,.v4-inv-tools button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
   /* «En noviembre» junto a «Próximos cargos» cuando lo que se ve es del mes que viene. */
   .v4-upcoming-mes{margin-left:8px;color:var(--muted);font-weight:600;font-size:13px;}
   .v4-section .v4-mov{min-height:60px;}
+  .v4-first-acc{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:12px;}
+  .v4-card-hero .v4-first-acc{align-items:flex-start;}
+  .v4-first-acc-t{font-size:26px;font-weight:550;letter-spacing:-.4px;line-height:1.15;}
+  .v4-first-acc .btn{min-height:48px;padding:0 22px;}
+  .v4-nogoal-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:0 14px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;
+    color:var(--text);font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:transform .12s var(--ease),background .12s var(--ease);}
+  .v4-nogoal-row:active{transform:scale(.995);background:var(--sur2);}
+  .v4-nogoal-row .em{font-size:22px;line-height:1;}
+  .v4-nogoal-row .tx{flex:1;min-width:0;}
+  .v4-nogoal-row .chev{color:var(--muted);font-size:20px;line-height:1;}
+  @media (prefers-reduced-motion:reduce){ .v4-nogoal-row:active{transform:none;} }
   .v4-charge{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-soft);}
   .v4-charge:first-child{border-top:none;}
   .v4-charge .dt{width:44px;text-align:center;flex:0 0 auto;}
@@ -1032,7 +1053,7 @@
   .v4-charge .dt .m{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted-2);font-weight:700;margin-top:2px;}
   .v4-charge .nm{flex:1;min-width:0;font-weight:700;font-size:15px;}
   .v4-charge .sub{font-size:12.5px;color:var(--muted);font-weight:500;margin-top:2px;}
-  .v4-charge .am{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:550;font-variant-numeric:tabular-nums;}
+  .v4-charge .am{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;}
   .v4-charge .am.pos{color:var(--mint);}
   /* Plan › Recibos v6 (docs/design/plan-recibos/SPEC.md §2). Paleta texto/gris/menta: aquí no
      hay rojos ni amarillos de alarma, lo que hay que mirar ya va en «Para revisar». */
@@ -1078,6 +1099,8 @@
   .pr6-bk{flex:none;margin-left:.3em;}
   .pr6-when{font-size:13px;font-weight:700;color:var(--muted);}
   .pr6-when.soon{color:var(--text);}
+  /* 19 px y no --fs-row-amt: es la medida del SPEC de Recibos (docs/design/plan-recibos),
+     que manda sobre la escala general (lote 235, DIS-38). */
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
   .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
@@ -1469,6 +1492,10 @@
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
+  /* «Últimos movimientos» ya va dentro de su tarjeta: con fondo y borde propios cada fila era una
+     tarjeta dentro de otra (auditoría 15/11). Filas planas con raya, como «Próximos cargos». */
+  .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
      Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
@@ -1477,14 +1504,14 @@
   @media (prefers-reduced-motion:reduce){ .v4-charge:active,.v4-mov:active{transform:none;} }
   .v4-mov .tile{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:21px;flex:0 0 auto;}
   .v4-mov button.tile{border:1px solid var(--line-soft);}
-  .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:15.5px;}
+  .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:var(--fs-row-title);}
   .v4-mov .meta{font-size:12.5px;color:var(--muted);margin-top:2px;}
-  .v4-mov .am{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:550;font-variant-numeric:tabular-nums;}
+  .v4-mov .am{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;}
   .v4-mov .am.pos{color:var(--mint);}
   .v4-mov .am.muted{color:var(--muted-2);}
   .v4-mov.v4-mov-skip{border-style:dashed;}
   /* Tarjeta fantasma de estado vacio (P3/P4 del pulido v4): mismo borde punteado que ya usan
-     `.tab-add` y `.v4-mov-skip`. Una sola clase para los tres huecos, cero componentes nuevos. */
+     `.v4-mov-skip`. Una sola clase para los huecos, cero componentes nuevos. */
   .v4-empty{border:1px dashed var(--line);border-radius:20px;padding:22px 18px;text-align:center;}
   .v4-empty .em{font-size:34px;line-height:1;}
   .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;margin-top:8px;color:var(--text);}
@@ -1504,8 +1531,10 @@
   html[data-theme="light"]{
     --mint-ink:#1A6B3F;
   }
-  html[data-theme="light"] .dc-badge,
   html[data-theme="light"] .v4-section-h button.link,
+  html[data-theme="light"] .v42-cycle-head .link,
+  html[data-theme="light"] .v4-avatar,
+  html[data-theme="light"] .v4-inv-tools button.link,
   html[data-theme="light"] .pr6-mes-nav,
   html[data-theme="light"] .pr6-pill-ok,
   html[data-theme="light"] .pr6-more,
@@ -1521,32 +1550,25 @@
   html[data-theme="light"] .profile-row .pr-edit,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
-  html[data-theme="light"] .v4-pill,
   html[data-theme="light"] .hoja-marc-ok b,
   html[data-theme="light"] .chip.active,
   html[data-theme="light"] .v4-chip.on,
   html[data-theme="light"] .mc-cal-day.on,
   html[data-theme="light"] .pill.pos,
-  html[data-theme="light"] .recap-v.good,
-  html[data-theme="light"] .v4-pace-marks .mid,
   html[data-theme="light"] .v4-charge .am.pos,
   html[data-theme="light"] .v4-mov .am.pos,
   html[data-theme="light"] .helpq:active,
-  html[data-theme="light"] .tab-add:active,
-  html[data-theme="light"] .icon-btn,
   html[data-theme="light"] .edit-link:not(.save),
   html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
   html[data-theme="light"] .v4-link-mini,
   html[data-theme="light"] .v4-goal-pct{
     color:var(--mint-ink);
   }
-  html[data-theme="light"] .v4-pill,
   html[data-theme="light"] .v4-chip.on,
   html[data-theme="light"] .chip.active,
   html[data-theme="light"] .mc-cal-day.on,
   html[data-theme="light"] .pill.pos,
-  html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
-  html[data-theme="light"] .dc-badge{
+  html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"]{
     background:color-mix(in srgb, var(--mint-ink) 12%, transparent);
   }
   /* B3 active en claro: sur2 ya es verdoso; el scale se queda. */
@@ -1629,6 +1651,7 @@
   .gx-head.compact .gx-status{transform:translateY(-12px);}
   .gx-status-sub{margin-top:0;font-size:13px;color:var(--muted-2);}
   .gx-tail{font-weight:600;}
+  .gx-hasta{color:var(--mint);font-weight:700;}
   .gx-tone-coral{color:var(--coral);}
   .gx-tone-mint{color:var(--mint);}
   /* Meses: aparecen al bajar y quedan fijos (SPEC §2.1). La pastilla del mes activo es UNA capa
@@ -1637,16 +1660,12 @@
     display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
     transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
   .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
-  /* La pastilla activa va en MENTA, como el icono de sección activo: en gris oscuro casi no se
+  /* La pastilla activa va en MENTA, como la sección activa: en gris oscuro casi no se
      distinguía en qué mes (o ciclo) estabas («que se note que estás en un mes u otro», 25/10). */
   .gx-mes-pasti{position:absolute;left:0;top:4px;height:36px;border-radius:18px;background:var(--mint);transition:transform .24s var(--ease);}
   .gx-mes{position:relative;flex:0 0 auto;height:36px;padding:0 14px;border:0;border-radius:18px;background:transparent;color:var(--muted);
     font:600 15px 'Manrope',sans-serif;white-space:nowrap;cursor:pointer;}
   .gx-mes.on{color:var(--on-mint);font-weight:700;}
-  /* Título con los tres iconos de sección a la derecha (SPEC §2.1): el activo relleno en menta.
-     La fila mide lo mismo que el título de antes (8 + 30 + 10 px): los iconos de 44 px se comen
-     los márgenes. Si la cabecera creciera, el buscador (que se queda el dedo, `stopSwipe`) bajaría
-     a la franja por la que se desliza entre pestañas y los e2e de gestos perderían su sitio. */
   .gx-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0;min-height:44px;}
   .gx-titulo .v4-title{margin:0;min-width:0;}
   .v4-plan-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 14px;}
@@ -1655,11 +1674,17 @@
     background:transparent;color:var(--muted);cursor:pointer;transition:color .2s var(--ease),background .2s var(--ease);}
   .v4-ojo.on{color:var(--mint-bright);background:var(--surface);}
   .v4-ojo:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
-  .gx-secciones{display:flex;gap:8px;flex:0 0 auto;}
-  .gx-sec{position:relative;width:44px;height:44px;border-radius:22px;padding:0;display:flex;align-items:center;justify-content:center;
-    border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;
-    transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease);}
-  .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  /* Secciones de Gastos: el segmentado de Plan, algo más bajo (40 px de dibujo); el `::after`
+     devuelve los 44 px de dedo. Cada botón mide lo que su texto
+     («Suscripciones» con su globito no cabe en un tercio a 360 px) y, con letra enorme, se corta
+     con puntos antes que partir la fila. */
+  .gx-seg{margin:0 0 12px;}
+  .gx-seg .gx-sec{position:relative;flex:1 1 auto;min-width:0;min-height:40px;flex-direction:row;gap:6px;padding:4px 6px;font-size:13px;
+    border:0;background:transparent;cursor:pointer;transition:background-color .2s var(--ease),color .2s var(--ease);}
+  .gx-seg .gx-sec::after{content:"";position:absolute;inset:-2px 0;}
+  .gx-seg .gx-sec.on{background:var(--mint);color:var(--on-mint);}
+  .gx-sec-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-seg .gx-sec-globo{position:static;flex:none;}
   .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
   /* En Claro `--on-mint` es blanco y sobre el ocre daba 3,2:1; el texto oscuro del tema, 5,6. */
@@ -2040,10 +2065,17 @@
   .v4-account-spark i{display:block;min-height:5px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,var(--mint-hi),var(--mint));
     transform-origin:center bottom;animation:v4growup .55s var(--ease) both;}
   .v4-account-spark-foot{display:flex;justify-content:space-between;margin-top:5px;color:var(--muted-2);font-size:10.5px;font-weight:650;}
-  .v4-account-spark-new{margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:12px;}
-  .v4-account-lock{margin-top:10px;color:var(--muted-2);font-size:10.5px;font-weight:650;line-height:1.35;}
+  /* Una sola línea de notas bajo el saldo (DIS-37). La primera letra en mayúscula porque la
+     nota puede empezar por «gráfico desde hoy», que va en minúscula cuando sigue a otra. */
+  .v4-account-lock{margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:12.5px;line-height:1.4;}
+  .v4-account-lock::first-letter{text-transform:uppercase;}
   .v4-account-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;}
-  .v4-account-actions>button:only-child{grid-column:1/-1;}
+  .v4-account-actions>button:only-child,.v4-account-actions>button:last-child:nth-child(odd){grid-column:1/-1;}
+  /* Banco y uso de la cuenta en una sola línea (DIS-33): partida en dos parecía otra fila. */
+  .v4-meta-1l{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .v4-meta-row{display:flex;align-items:center;min-width:0;}
+  .v4-mov .meta.v4-meta-row{flex-wrap:nowrap;}
+  .v4-meta-row>:not(.v4-meta-1l){flex:0 0 auto;}
   .v4-account-action{min-height:46px;padding:8px 9px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);
     color:var(--text);font-size:12.5px;font-weight:800;line-height:1.2;}
   .v4-account-action.on{border-color:var(--mint);color:var(--mint);background:rgba(95,208,138,.1);}
@@ -2130,7 +2162,7 @@
   /* Un renglón y con elipsis, como en la portada: «Hogar · Sabadell · cada tres meses · compartido»
      partía la fila en dos a 412 px (11/11/2026). La frase entera va en el aria-label. */
   .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-mg-sec .pr6-row .am{font-size:17px;}
+  .pr6-mg-sec .pr6-row .am{font-size:var(--fs-row-amt);}
   .pr6-mg-sec .pr6-row .am.pos{color:var(--mint-bright);}
   .pr6-mg-sec .pr6-row.pr6-mg-off{opacity:.5;}
   .pr6-mg-ov{margin:24px 0 0;}
@@ -2246,8 +2278,14 @@
   .settings-push.mc-page-dragging{transition:none!important;will-change:transform,opacity;}
   @keyframes mcPageEnter{from{opacity:.62;clip-path:inset(0 0 0 12%)}to{opacity:1;clip-path:inset(0)}}
   .settings-push-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .settings-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);}
+  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
   .settings-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
+  /* Subpantallas de Ajustes (Privacidad, Hogar, Copias…): el mismo «‹» redondo que Ajustes, con el
+     título al lado. Antes cada una llevaba un «‹ Ajustes» o «‹ Volver» de texto azul y había seis
+     botones atrás distintos en la app (auditoría de diseño, 15/11). Clase propia y no
+     `settings-push-h`: los e2e buscan ese «‹» de Ajustes sin acotar y se encontrarían dos. */
+  .sub-push-h{display:flex;align-items:center;gap:10px;margin:0 0 6px;}
+  .sub-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:25px;font-weight:560;margin:0;min-width:0;line-height:1.15;}
 
   /* Perfil tipo Revolut (vídeo 2026-07-17, frame t_5_25): el panel ENTERO es una miniatura que
      CRECE desde el avatar (origin = centro del avatar, vars --pp-* medidas en JS) hasta llenar la
@@ -2320,7 +2358,7 @@
     animation:wn-in .48s cubic-bezier(.32,.72,0,1) both;}
   @keyframes wn-in{from{transform:translate3d(0,12%,0);opacity:0;}to{transform:none;opacity:1;}}
   .wn-panel .wn-inner{max-width:480px;margin:0 auto;}
-  .v4-mov .nm-title{font-weight:700;font-size:15.5px;line-height:1.25;}
+  .v4-mov .nm-title{font-weight:700;font-size:var(--fs-row-title);line-height:1.25;}
   /* Concepto del movimiento (mensaje del bizum / descripción del banco). Una sola línea con
      puntos suspensivos: el detalle completo está en la ficha, aquí solo hay que reconocerlo
      de un vistazo (petición 2026-07-24). */
@@ -2444,6 +2482,8 @@
   .gx-list .sentinel{align-items:start;padding-top:8px;box-sizing:border-box;}
   .empty{text-align:center;padding:34px 20px;color:var(--muted);}
   .empty .ttl{font-weight:700;color:var(--text);margin-bottom:6px;}
+  .gx-vacio-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px;}
+  .gx-vacio-acts .btn{min-height:44px;}
 
   .mono{border-radius:11px;display:grid;place-items:center;font-size:12.5px;font-weight:800;flex:0 0 auto;border:1px solid;letter-spacing:.3px;}
   .row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line-soft);}
@@ -2518,6 +2558,8 @@
   .plan-item-open{width:100%;padding:0;border:0;background:none;color:var(--text);font-family:inherit;text-align:left;cursor:pointer;min-height:48px;}
   .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:anywhere;}
   .plan-item .v4-debt-emoji{font-size:22px;line-height:1.4;}
+  .v4-debt-ico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--muted);}
+  .plan-item .v4-debt-ico{line-height:1;margin-top:2px;}
   .plan-item-value{flex:0 0 auto;text-align:right;}
   .plan-item-edit{display:block;margin-top:4px;color:var(--mint);font-size:12px;font-weight:700;}
   .plan-debt-details{margin-top:9px;font-size:12px;}
@@ -2537,6 +2579,7 @@
   .plan-edit-sheet [role="alert"]{color:var(--coral);}
   .plan-item-open:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:12px;}
   .v4-ghost-add{width:100%;margin-top:12px;min-height:52px;border-radius:18px;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;}
+  .v4-goal-first{margin-top:12px;min-height:48px;font-size:15px;}
   .v4-tip{margin-top:14px;padding:4px;border-radius:18px;background:rgba(230,195,106,.08);border:1px solid rgba(230,195,106,.3);}
   .v4-tip .card{background:transparent;border:none;box-shadow:none;}
   /* ⚠ «SALTAR» YA NO VA EN ABSOLUTO (11/9, él con dos fotos: «está pegadísimo al título y en la
@@ -2573,7 +2616,11 @@
   .v4-ob-card-ic{font-size:19px;line-height:1.25;flex:0 0 auto;}
   .v4-ob-card-tx{min-width:0;}
   .v4-ob-card-t{font-size:14.5px;font-weight:750;margin-bottom:2px;}
-  .v4-ob-card-s{font-size:12.5px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
+  .v4-ob-card-s{font-size:13px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
+  /* Bienvenida con UN botón principal (Empezar): entrar o crear cuenta van debajo como enlaces de
+     texto de 44 px. Con tres botones grandes no se sabía cuál era el camino (auditoría 15/11). */
+  .v4-ob-links{display:flex;flex-direction:column;align-items:stretch;margin-top:6px;}
+  .v4-ob-link{min-height:44px;background:none;border:none;color:var(--mint);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;padding:10px 8px;}
   .v4-ob-dots{display:flex;gap:6px;justify-content:center;margin:22px 0 0;}
   .v4-ob-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s var(--ease),background .3s;}
   .v4-ob-dots span.on{width:22px;background:var(--mint);}
@@ -2652,8 +2699,20 @@
      "tus cuentas" cabe entero y no en dos líneas». 31 px es el mínimo que sigue siendo cómodo de
      tocar sin que la cabecera crezca. */
   .v4-ic-mini{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
-    background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;}
+    background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;position:relative;}
+  /* El dibujo sigue de 31 px; el dedo tiene 44 (DIS-48): 7,5 px por lado desde dentro del borde.
+     Por eso el hueco entre los dos iconos es de 13 px: con 7 el área del primero quedaba tapada
+     por la del segundo. */
+  .v4-ic-mini::after{content:"";position:absolute;inset:-7.5px;}
+  .v4-sec-acts{display:flex;align-items:center;gap:13px;flex:0 0 auto;}
   .v4-ic-mini svg{width:16px;height:16px;display:block;}
+  /* Un solo patrón para las acciones de cada bloque de Cartera (DIS-32): enlace a la derecha
+     del título, como en Inicio. El margen negativo le da 44 px de dedo sin engordar el título. */
+  .v4-sec-h.v4-section-h{margin:22px 0 10px;}
+  .v4-sec-h.v4-section-h button.link{margin:-10px -8px;}
+  .v4-sec-order{min-height:44px;margin-top:10px;}
+  .cartera-hero-amt{font-size:var(--fs-hero);font-weight:550;letter-spacing:-1px;line-height:1.05;margin-top:6px;white-space:nowrap;}
+  .cartera-hero-amt>span{font-size:23px;color:var(--muted);}
   .v4-ic-mini:disabled{opacity:.5;}
   .v4-ic-mini.girando svg{animation:mcSpin .9s linear infinite;transform-origin:50% 50%;}
   @keyframes mcSpin{to{transform:rotate(360deg)}}
@@ -2850,6 +2909,10 @@
 .v4-sheet.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;}
 .aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px;flex:0 0 auto;}
 .aely-help-sheet-h h1{font-size:20px;margin:0;font-weight:550;}
+.aely-help-x{position:relative;flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line-soft);background:var(--sur);color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer;}
+/* Área de 44 px: el inset cuenta desde dentro del borde de 1 px (34 + 10 = 44), y los píxeles que
+   faltan de ancho crecen hacia el título y no hacia el borde derecho de la hoja. */
+.aely-help-x::before{content:"";position:absolute;inset:-5px -1px -5px -9px;}
 .aely-help-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   overscroll-behavior-y:none;scrollbar-width:none;padding:0 0 8px;}
 .aely-help-body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
@@ -2868,7 +2931,11 @@
 .aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
 .aely-help-entry{margin:6px 0 10px;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
-.aely-help-entry-mini{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+.aely-help-entry-mini{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+/* El dibujo sigue en 36 px; el dedo necesita 44 (auditoría 15/11). -5 y no -4: el inset cuenta desde
+   dentro del borde de 1 px (con -4 quedaba en 42). Cabe en el hueco de 8 px que lo
+   separa del avatar sin pisarlo. */
+.aely-help-entry-mini::before{content:"";position:absolute;inset:-5px;}
 .aely-help-consent{margin-top:12px;padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);}
 .aely-help-remote-status{margin:0 0 8px;font-size:12px;}
 @media (prefers-reduced-motion:reduce){
@@ -8527,7 +8594,7 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
     // INC-0810 es: patrimonio de ahora.
-    v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
+    v4_hist_empty:"Tu histórico empieza hoy", v4_net_first_acc:"Añade tu primera cuenta", v4_net_unknown:"El total actual no está disponible.",
     v42_net_info_title:"Cómo se calcula", v42_net_chart:"Evolución del patrimonio",
     v42_net_i_flows:"Un traspaso resta sin entrada igual a otra cuenta propia en 3 días, enlace a bróker o aporte periódico coincidente. El cajero resta sin cuenta o bolsillo de efectivo.",
     v42_this_month:"Este mes", v42_remaining:"Te quedan", v42_cycle_under_one:"<1\u00a0%",
@@ -8540,7 +8607,7 @@ const LANG = {
     v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_1m:"frente al mismo día del mes pasado", v42_net_i_cmp_n:"frente al mismo día de hace {n} meses", v42_net_i_cmp_12:"frente al mismo día de hace un año", v42_net_i_cmp_all:"desde el principio",
     v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"libres de {x}", v42_cycle_excess_of:"de más · límite {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
-    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Sin un tope al mes no se puede saber cuánto te queda.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
+    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Sin un tope al mes no se puede saber cuánto te queda.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte una meta de ahorro",
     v4_upcoming:"Próximos cargos", v4_upcoming_in:"En {mes}", v4_upcoming_in_v:"En {mes}", 
     v4_payment_pending:"Por confirmar",
     v4_payment_pending_hint:"No cuenta en lo pendiente.",
@@ -8549,7 +8616,7 @@ const LANG = {
     v4_plan_transfers:"Traspasos previstos", f_link_unconfirmed:"{name} · sin confirmar",
     v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
-    v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
+    v4_all:"Ver todo ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
     v4_plan_left:"Queda por pagar en {month}",
     v4_plan_state_ok_h:"Vas bien este mes", v4_plan_state_warn_h:"Ojo este mes", v4_plan_state_bad_h:"Este mes se queda corto",
     v4_plan_state_ok:"{left} de recibos salen de {bank}: el día {day} bajarías a {min}, sin contar el día a día.",
@@ -8586,7 +8653,7 @@ const LANG = {
     pr6_llega_t:"¿Te llega?", pr6_te_faltan:"te faltan", pr6_justo:"lo más justo, el {d}", pr6_justo_hoy:"lo más justo, hoy", pr6_justo_sin:"lo más justo",
     pr6_tienes_hoy:"Tienes hoy", pr6_faltan_recibos:"Recibos que faltan", pr6_dia_n:"{name} · día {d}",
     pr6_pasa:"Pasa {x} a {bank} antes del {d}", pr6_pasa_hoy:"Pasa {x} a {bank} hoy", pr6_pasa_sin:"Pasa {x} a {bank}",
-    pr6_enlazado_x:"Enlazado · {x}", pr6_ver_deuda:"Ver en Deudas", pr6_deuda_importe:"Se cobró {x} y la cuota es {y}.", pr6_deuda_sin_dia:"La cuota no tiene día de cobro.", pr6_deuda_sin_banco:"Aún no está en el extracto del banco.",
+    pr6_enlazado_x:"Enlazado · {x}", pr6_enlazado:"Enlazado", pr6_enlazado_d:"Enlazado al cargo del {d}", pr6_ver_deuda:"Ver en Deudas", pr6_deuda_importe:"Se cobró {x} y la cuota es {y}.", pr6_deuda_sin_dia:"La cuota no tiene día de cobro.", pr6_deuda_sin_banco:"Aún no está en el extracto del banco.",
     pr6_de_una_vez:"De una vez", pr6_a_plazos:"A plazos", pr6_meses_n:"{n} meses", pr6_meses:"Meses", pr6_meses_min:"De 2 a 120 meses", pr6_entrada:"Entrada", pr6_entrada_x:"Entrada {x}", pr6_cuota_hasta:"Sin intereses, hasta {d}", pr6_al_mes:"{x}/mes", pr6_plazos_que:"¿Qué compras?", pr6_crear_deuda:"Crear la deuda", pr6_colchon:"Colchón tras el gasto", pr6_colchon_de:"{bank} · mín. {x}",
     pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
@@ -8613,7 +8680,7 @@ const LANG = {
     v4_gastos_cat_limit:"límite {x}",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Orientativo: no cambia tu presupuesto. Vacío o 0 = sin límite.",
     g_cat_budget_clear:"Quitar límite",
-    v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
+    v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones", v4_inv_position:"1 posición",
     v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
     v4_sync_broker_ok:"📈 {b} al día", v4_sync_brokers_ok:"📈 Brókers al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
     ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
@@ -8645,12 +8712,12 @@ const LANG = {
     v4_apuntar:"Apuntar", v4_gasto:"Gasto", v4_ingreso:"Ingreso", 
     v4_apuntar_need:"Pon un importe 🙂", v4_apuntar_ok:"✓ Gasto apuntado", v4_apuntar_ok_in:"✓ Ingreso apuntado",
     v4_back:"Volver",
-    v4_debts_hero:"Debes en total", v4_debts_sub:"{x}/mes en cuotas · bajando cada mes 📉",
+    v4_debts_hero:"Debes en total", v4_debts_sub:"{x}/mes en cuotas · bajando cada mes",
     v4_debts_ends:"acabas en {d}", v4_amort_now:"💸 Amortizar ahora",
     v4_debt_party_1:"🎉 {name}: ¡ÚLTIMA cuota este mes ({x})!", v4_debt_party_sub:"Después, {x}/mes libres para ti.",
     v4_goals_hero:"Ahorrado en metas", v4_goal_new:"+ Nueva meta de ahorro",
     v4_ob_skip:"Saltar", v4_ob_title1:"Bienvenido/a",
-    v4_ob_sub1:"La gracia no es tener 40 pantallas: es saber dónde estás cuando vas a gastar o decidir.",
+    v4_ob_sub1:"Tus cuentas, gastos y deudas en un sitio.",
     v4_ob_c1t:"Todo tu dinero",
     v4_ob_c1s:"Cuentas, deudas, fijos, metas e inversiones. El mapa entero, no solo el café del día.",
     v4_ob_c2t:"Se apunta solo",
@@ -8670,7 +8737,7 @@ const LANG = {
     v4_moved_cat:"Movido a {cat}", v4_cuota_confirmada:"Confirmada como cuota de {name}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
-    f_cat_all:"Las {n} ›", f_cat_more:"Más", f_kb_done:"Listo", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
+    f_cat_all:"Todas ›", f_cat_more:"Más", f_kb_done:"Listo", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
     f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Puedes deshacerlo.",
@@ -8864,9 +8931,9 @@ Object.assign(LANG.es,{
 
 /* Roles de cuenta + import OB + informe mensual */
 Object.assign(LANG.es,{
-  pt_ficha_saldo:"Saldo", pt_ficha_banco:"lo pone el banco", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}", ac_share_q:"Parte mía", ac_share_all:"Cuenta entera en tu patrimonio", ac_share_counts:"En tu patrimonio cuentan {x}", ac_share_change:"Cambiar", ac_share_title:"¿Qué parte de esta cuenta es tuya?", ac_share_sub:"En porcentaje, de 0 a 100. Solo cambia tu patrimonio: los gastos y el presupuesto siguen igual.", ac_share_ok:"Guardar", ac_share_bad:"Pon un número entre 0 y 100", ac_share_joint_hint:"Parece una cuenta con dos titulares. Si solo la mitad es tuya, pon 50 % y tu patrimonio contará solo tu parte.", pt_share_meta:"{n} % tuyo", ac_legacy_q:"{bank} tiene {n} movimientos antiguos que no dicen de qué cuenta salieron. ¿Son todos de esta cuenta?", ac_legacy_sub:"Se aplica a los {n} a la vez, también a los más grandes. Solo cambia tu patrimonio y su gráfica; puedes deshacerlo aquí mismo.", ac_legacy_yes:"Sí, son de esta cuenta", ac_legacy_no:"No, son de otra cuenta", ac_legacy_later:"Preguntar después", ac_legacy_decide:"Decidir", ac_legacy_undo:"Deshacer", ac_legacy_done_yes:"Los movimientos antiguos de {bank} sin cuenta cuentan como de esta cuenta.", ac_legacy_done_no:"Los movimientos antiguos de {bank} sin cuenta cuentan como de otra cuenta.", ac_legacy_done_other:"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.",
+  pt_ficha_saldo:"Saldo", pt_ficha_banco:"Saldo del banco", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}", ac_share_q:"Parte mía", ac_share_all:"Cuenta entera en tu patrimonio", ac_share_counts:"En tu patrimonio cuentan {x}", ac_share_change:"Cambiar", ac_share_title:"¿Qué parte de esta cuenta es tuya?", ac_share_sub:"En porcentaje, de 0 a 100. Solo cambia tu patrimonio: los gastos y el presupuesto siguen igual.", ac_share_ok:"Guardar", ac_share_bad:"Pon un número entre 0 y 100", ac_share_joint_hint:"Parece una cuenta con dos titulares. Si solo la mitad es tuya, pon 50 % y tu patrimonio contará solo tu parte.", pt_share_meta:"{n} % tuyo", ac_legacy_q:"{bank} tiene {n} movimientos antiguos que no dicen de qué cuenta salieron. ¿Son todos de esta cuenta?", ac_legacy_sub:"Se aplica a los {n} a la vez, también a los más grandes. Solo cambia tu patrimonio y su gráfica; puedes deshacerlo aquí mismo.", ac_legacy_yes:"Sí, son de esta cuenta", ac_legacy_no:"No, son de otra cuenta", ac_legacy_later:"Preguntar después", ac_legacy_decide:"Decidir", ac_legacy_undo:"Deshacer", ac_legacy_done_yes:"Los movimientos antiguos de {bank} sin cuenta cuentan como de esta cuenta.", ac_legacy_done_no:"Los movimientos antiguos de {bank} sin cuenta cuentan como de otra cuenta.", ac_legacy_done_other:"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.",
   ac_rename:"Renombrar", ac_manual_sub:"{bank} · la llevas a mano", ac_synced_sub:"{bank} · se actualiza sola", ac_balance_today:"SALDO DE HOY",
-  ac_delta_month:"↑ {x} este mes", ac_delta_month_down:"↓ {x} este mes", ac_eom:"a fin de mes: {x}", ac_spark_from:"hace 14 días", ac_spark_to:"hoy", ac_spark_new:"Su histórico empieza hoy",
+  ac_delta_month:"↑ {x} este mes", ac_delta_month_down:"↓ {x} este mes", ac_eom:"a fin de mes: {x}", ac_spark_from:"hace 14 días", ac_spark_to:"hoy", ac_spark_new:"gráfico desde hoy",
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Conectar banco", ac_sync_now:"↻ Sincronizar ahora", ac_reconnect:"⚠ Reconectar", ac_role_q:"¿Para qué la usas?",
   ac_role_fijos:"Para los recibos", ac_role_fijos_d:"De aquí salen la luz, el móvil y el alquiler.", ac_role_diario:"Para el día a día", ac_role_diario_d:"Con esta pagas el súper y los bares.", ac_role_ambos:"Las dos cosas", ac_role_ambos_d:"Recibos y día a día salen de aquí.", ac_last_movs:"Lo último de esta cuenta", ac_last_bank:"Lo último de {bank}", ac_see_all:"Ver todo ›", ac_change_sign:"Cambiar signo",
   st_stale:"datos del {day}",
@@ -9069,11 +9136,11 @@ Object.assign(LANG.es,{
    grises y el periodo en Filtros. En minúscula a propósito: la línea de estado sigue a la cifra
    como una frase («gastado en octubre · 139 € por encima»). */
 Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {mes}",
-  gv5_upto:"gastado en {mes} hasta el {d}", gv5_upto_net:"balance de {mes} hasta el {d}",
+  gv5_hasta_dia:"hasta el {d}", gv5_hasta:"hasta el {d}",
   gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo",
   gv5_more:"{x} más que en {mes}", gv5_less:"{x} menos que en {mes}", gv5_same:"igual que en {mes}",
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
-  gv5_cycle:"en tu ciclo", gv5_cycle_upto:"en tu ciclo hasta el {d}", gv5_period_upto:"{period} · hasta el {d}", gv5_all:"todo el histórico",
+  gv5_cycle:"en tu ciclo", gv5_all:"todo el histórico",
   gv5_no_cuentan:"{x} · no cuentan", gv5_traspasos:"Traspasos", gv5_plan_open:"Abrir en Plan · {x}", gv5_end:"Hasta aquí: {d}",
   gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
 
@@ -9179,7 +9246,7 @@ Object.assign(LANG.es,{
   g_syncing:"Sincronizando…",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
   ap_pay_card:"Tarjeta", ap_pay_cash:"Efectivo", ap_pay_transfer:"Bizum/transf.", ap_pay_aria:"Forma de pago",
-  g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
+  g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_empty_add:"Apuntar un gasto", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Irán apareciendo según sincronices o apuntes.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido",
   cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_multas:"Multas", cat_zona_azul:"Zona azul", cat_peajes:"Peajes", cat_coche:"Coche", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
@@ -9285,7 +9352,7 @@ Object.assign(LANG.es,{
   sh_people:"personas", sh_people_h:"Personas", sh_addperson_ph:"Añadir persona", sh_balances:"Quién debe a quién", sh_settled:"Todo saldado 🎉", sh_settled_short:"saldado", sh_pending:"{n} pago(s) pendiente(s)",
   sh_expenses:"Gastos del grupo", sh_noexp:"Aún no hay gastos. Añade el primero.", sh_paidby:"Pagó {who}", sh_addexp:"Añadir gasto", sh_exp:"Gasto", sh_exp_ph:"Concepto (ej. Cena)", sh_split:"¿Entre quién se reparte?",
   sh_back:"Grupos", sh_delgroup:"Borrar grupo", sh_delgroup_q:"¿Borrar este grupo y sus gastos?",
-  gl_empty_t:"Aún no tienes metas", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
+  gl_empty_t:"Aún no tienes metas", gl_first:"Crear mi primera meta", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
   rr_add:"+ Añadir regla", rr_save:"Guardar regla",
   // INC-0810 es: textos propios de edición de reglas, sin cambiar el contrato de alta.
   rr_edit:"Editar regla",
@@ -9363,7 +9430,6 @@ Object.assign(LANG.es,{
 // --- Privacidad in-app (2026-07-17: antes abría privacy.html en _blank → «muy arriba» bajo el
 // notch y «cuesta tirar para atrás». Ahora es un panel dentro de la app, con safe-area y gesto atrás). ---
 Object.assign(LANG.es,{
-  st_back_settings:"Ajustes",
   pv_title:"Privacidad y datos", pv_updated:"Última actualización: 15 jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"Qué datos guardamos",
   pv_s1:["Tu cartera: cuentas, inversiones, deudas, presupuesto y ajustes (en el móvil y, si inicias sesión, en Supabase).","Gastos: importe, comercio, categoría y fecha.","Conexiones bancarias: estado del enlace Open Banking y tokens de sesión cifrados. No guardamos la contraseña del banco.","MyInvestor: tokens de sesión cifrados tras conectar. La contraseña solo se usa al entrar y no se almacena.","Telemetría mínima (opcional): versión, plataforma y errores — sin datos financieros."],
@@ -9393,7 +9459,7 @@ Object.assign(LANG.es,{
 // --- Open Banking · sección "Mis bancos" (multibanco) ---
 Object.assign(LANG.es,{
   bp_title:"Mis bancos", bp_intro:"Solo lectura · el permiso se renueva cada ~3 meses.",
-  bp_manage:"Gestionar mis bancos", bp_close:"Ajustes", bp_back:"Mis bancos",
+  bp_manage:"Gestionar mis bancos",
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae los últimos meses de {banks} a Gastos. Los recibos fijos, solo si los marcas.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya está en tu Plan · se cuenta una sola vez",
@@ -9476,7 +9542,7 @@ Object.assign(LANG.es,{
 Object.assign(LANG.es,{
   iv_see_all:"Ver todas tus inversiones", iv_title:"Tus inversiones", iv_now:"VALEN AHORA", iv_currency:"Moneda de visualización",
   iv_put:"Pusiste {amount}", iv_gained:"Han ganado {amount}", iv_lost:"Han perdido {amount}",
-  iv_percent:"{pct}% desde que empezaste · Actualizado {time}", iv_updated:"Actualizado {time}", iv_never:"sin actualizar",
+  iv_percent:"{pct}% desde que empezaste · {upd}", iv_updated:"Actualizado {time}", iv_never:"sin actualizar", iv_never_full:"Sin actualizar todavía",
   iv_no_put:"Dime lo que pusiste y te diré cuánto han ganado.", iv_no_put_cta:"Añadir lo que puse",
   iv_where:"Dónde lo tienes", iv_refresh:"↻ Actualizar inversiones", iv_refreshing:"Sincronizando brókers y precios…", iv_broker_none:"Sin brókers conectados",
   iv_refresh_ok:"✓ Precios actualizados · {time}", iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar",
@@ -11931,6 +11997,32 @@ function mcInicioFillHaptic(e){
   }catch(err){}
 }
 
+/* Iniciales del avatar, UNA regla para Inicio y Ajustes: cada sitio tenía la suya y la misma
+   persona salía «EE» en Inicio y «E2» en Ajustes, o «MC» (el nombre viejo de la app) sin correo
+   (auditoría de diseño 15/11/2026). Sin nombre se usa la parte del correo antes de la arroba. */
+function avatarIniciales(nombre, email){
+  let base=String(nombre||"").trim();
+  if(!base){ const em=String(email||""); base=(em.indexOf("@")>0?em.split("@")[0]:em).replace(/[._-]+/g," ").trim(); }
+  const partes=base.split(/\s+/).filter(Boolean);
+  if(!partes.length) return "A";
+  return (partes[0].charAt(0)+(partes.length>1?partes[1].charAt(0):"")).toUpperCase();
+}
+
+/* Sin una sola cuenta, inversión, bien, deuda ni movimiento, «0,00 €» en grande no es una cifra:
+   es una pantalla vacía que parece un saldo (auditoría de diseño 15/11/2026). Inicio y Cartera
+   cambian la cifra por la salida: añadir la primera cuenta. */
+function mcSinNada(s){
+  const vacio=function(k){ return !(s&&s[k]&&s[k].length); };
+  return vacio("accounts")&&vacio("obAccounts")&&vacio("investments")&&vacio("assets")&&vacio("debts")&&vacio("expenses");
+}
+function PrimeraCuentaHero(){
+  return React.createElement("div",{className:"v4-first-acc","data-testid":"hero-first-acc"},
+    React.createElement("div",{className:"v4-first-acc-t serif","data-tour":"hero-amt"}, t("v4_net_first_acc")),
+    React.createElement("button",{type:"button",className:"btn btn-primary",onClick:function(){
+      try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){}
+    }}, t("v4_noup_cta")));
+}
+
 /* Cifra con transición compartida (B2). Ya NO cuenta desde 0: mientras la pestaña entraba
    deslizándose (`ready` aún en false) Cartera pintaba «0,00 €», y en «Tus recibos» quien tocaba un
    grupo antes de los 950 ms se quedaba viendo una cifra a medias (1518,65 por 1526,87, vídeo de la
@@ -13365,11 +13457,13 @@ function OrderableSections({tab, state, set, items, onMove}){
         React.createElement("div",{className:"wedit-body"},it.el)
       );
     }),
+    /* Botón fantasma a todo el ancho, el mismo en reposo y ordenando (auditoría de diseño 233,
+       DIS-32/36): antes era texto suelto gris y, al ordenar, «✓ Listo ✓» con la marca dos veces
+       porque `done` ya la lleva. */
     real.length>1 && React.createElement("button",{
-      className:"btn btn-ghost btn-block",
-      style:ordering?{marginTop:10}:{marginTop:10,fontSize:12.5,color:"var(--muted-2)",border:"none",background:"none"},
+      type:"button",className:"btn btn-ghost btn-block v4-sec-order",
       onClick:function(){ setOrdering(!ordering); }
-    }, ordering?("✓ "+t("done")):t("sec_order"))
+    }, ordering?t("done"):t("sec_order"))
   );
 }
 
@@ -13477,6 +13571,13 @@ function numPadDecSep(){
   // El teclado tenía la coma clavada. En inglés el decimal es punto, como en las cifras que se
   // pintan (`numDecSep`, 00); el parseo de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
   return numDecSep();
+}
+// Importe que se precarga en la ficha para editarlo: con decimales, siempre dos («12,50», no
+// «12,5» como salía con `String`, diseño 235 DIS-10); entero, sin ellos («12»). Sin miles, para que
+// el teclado y `parseNumPadRaw` lo lean igual que lo tecleado.
+function montoEditable(x){
+  const n=Math.abs(Number(x)||0);
+  return (Math.round(n*100)%100===0?String(Math.round(n)):n.toFixed(2)).replace(".",numDecSep());
 }
 function parseNumPadRaw(raw){
   // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.
@@ -13771,7 +13872,7 @@ function NetWorthInfoSheet({open, rows, onClose}){
       )
     ), document.body);
 }
-function NetWorthNow({tt, simple, series, splashGone}){
+function NetWorthNow({tt, simple, series, splashGone, vacio}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
   // dispara las lecturas de layout de navegación con el histórico grande.
   const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
@@ -13837,6 +13938,10 @@ function NetWorthNow({tt, simple, series, splashGone}){
   };
   const release=function(e){e.stopPropagation();clearTimeout(holdRef.current);gestureRef.current=null;cancelAnimationFrame(frameRef.current);frameRef.current=0;setTouch(null);};
   const id=React.useId();
+  if(vacio) return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current"},
+    React.createElement("div",{className:"v4-net-current-head"},
+      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth"))),
+    React.createElement(PrimeraCuentaHero));
   return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current",style:{"--v42-play":splashGone===false?"paused":"running"}},
     React.createElement("div",{className:"v4-net-current-head"},
       React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
@@ -13937,11 +14042,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     const first=nameGuess.trim().split(/\s+/)[0]||"";
     return first.charAt(0).toUpperCase()+first.slice(1);
   })();
-  const initials=(function(){
-    if(!nameGuess) return "MC";
-    const parts=nameGuess.trim().split(/\s+/);
-    return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
-  })();
+  const initials=avatarIniciales(profileOf(state).fullName||nameGuess, "");
 
   const seriesToday=netWorthDay();
   // Sólo un cambio financiero o de día justifica volver a recorrer el histórico
@@ -14110,7 +14211,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone, vacio:mcSinNada(state)}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
@@ -14127,7 +14228,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     !showSkel && state.budget>0 && React.createElement("div",{className:"v42-cycle-section"},
       React.createElement("div",{className:"v42-cycle-head"},
         React.createElement("span",null,t(bud.cycle?"v42_this_cycle":"v42_this_month")),
-        React.createElement("button",{type:"button",className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }},t("v4_see_gastos"))),
+        React.createElement("button",{type:"button",className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }},t("v4_all"))),
       /* El estado («Vas justito», «Te quedan…») dejó de pintarse en la tarjeta —molestaba al verlo un
          rato, feedback 2026-10-13— y lo dicen el color del anillo y el de la línea «al día». Sigue
          leyéndose entero para lectores de pantalla, con las mismas claves de texto de antes. */
@@ -14195,7 +14296,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
             tf(/^[aeiouàèéíòóú]/i.test(sigName)?"v4_upcoming_in_v":"v4_upcoming_in",{mes:sigName}))),
         // «Ver plan» fuerza el segmento Recibos: sin esto aterrizabas en el último subtab
         // usado (Deudas) — feedback 2026-07-18.
-        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }}, t("v4_see_plan"))
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }}, t("v4_all"))
       ),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         (upcoming.length>0?upcoming:nextUp).map(function(u,i){
@@ -14219,7 +14320,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         // Mismo nombre que en Plan › Recibos («Para revisar» / «No ha llegado»): antes Inicio decía
         // «Cargos vencidos» / «Sin pago acreditado» para el mismo recibo (auditoría 14/11/2026).
         React.createElement("span",null,t("pr6_revisar")),
-        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_see_plan"))),
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_all"))),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
           return React.createElement("div",{key:i,className:"v4-charge"},
@@ -14231,20 +14332,20 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
     // Modo sencillo: Plan no tiene Metas, así que «Crear una meta» y «Ver plan» llevaban a Recibos
     // (auditoría 14/11/2026). Fuera, igual que en Plan.
+    // Sin metas, una fila que se ve tocable: el vacío punteado ocupaba ~240 px y «Crear una meta»
+    // parecía texto (auditoría de diseño 15/11/2026).
     !showSkel && !simple && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_your_goals"))),
-      React.createElement("div",{className:"v4-empty"},
-        React.createElement("div",{className:"em"}, "🎯"),
-        React.createElement("div",{className:"ti"}, t("v4_nogoal_t")),
-        React.createElement("div",{className:"ph"}, t("v4_nogoal_p")),
-        React.createElement("button",{className:"btn cta",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_nogoal_cta"))
-      )
+      React.createElement("button",{type:"button",className:"v4-nogoal-row","data-testid":"inicio-nogoal",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }},
+        React.createElement("span",{className:"em","aria-hidden":"true"}, "🎯"),
+        React.createElement("span",{className:"tx"}, t("v4_nogoal_t")),
+        React.createElement("span",{className:"chev","aria-hidden":"true"}, "›"))
     ),
 
     !showSkel && !simple && goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_your_goals")),
-        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_see_plan"))
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_all"))
       ),
       // stopPropagation: el carrusel scrollea en horizontal y sin esto el gesto burbujeaba al
       // viewport y cambiaba de pestaña a la vez (feedback 2026-07-18, aparecía al crear metas).
@@ -15345,7 +15446,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       return true;
     }).sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
     if(cands[0]){
-      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:String(Math.abs(cands[0].amount)).replace('.',numDecSep()), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
+      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:montoEditable(cands[0].amount), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
       if(clearFocus) clearFocus();
       return;
     }
@@ -15355,7 +15456,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     // pareja 2026-07-10, punto 8). Si en 12s no aparece, abrimos el más reciente como antes.
     const tm=setTimeout(function(){
       const e=(state.expenses||[]).slice().sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); })[0];
-      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
+      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:montoEditable(e.amount), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
       if(clearFocus) clearFocus();
     }, 12000);
     return function(){ clearTimeout(tm); };
@@ -15379,7 +15480,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
        vaciar el estado de edición era justo lo contrario. Ahora se deja sincronizado con lo
        guardado, que es lo que ese comentario prometía. */
     const sincroniza=function(e){
-      setEditExp({ id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()),
+      setEditExp({ id:e.id, merchant:e.merchant||"", amount:montoEditable(e.amount),
         income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10) });
     };
     const origDay=String(orig.date||"").slice(0,10);
@@ -15873,7 +15974,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
   const editDe=function(e){
-    return {id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)};
+    return {id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:montoEditable(e.amount), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)};
   };
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
@@ -15971,7 +16072,10 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     });
     const cicloYm=ciclos?cicloKey(cicloPas||ciclos[ciclos.length-1]):null;
     // Bajando en Mi ciclo, lo sumado va del inicio del ciclo al día de debajo: «24 sep – 2 oct».
-    const cicloHasta=function(k,d){ return cicloRango?cicloTxt(new Date(Math.floor(k/10000),Math.floor(k/100)%100-1,k%100).getTime()):tf("gv5_cycle_upto",{d:d}); };
+    /* Bajando, la cifra deja de ser el total y la línea lo dice DELANTE y en menta («hasta el 20 ·
+       gastado en septiembre», diseño 235 DIS-16): al final de la frase se cortaba con puntos a 360 px
+       y en gris no se notaba que la cifra había cambiado. `hasta` va aparte para pintarlo así. */
+    const cicloHasta=function(k,d){ return cicloRango?{pre:cicloTxt(new Date(Math.floor(k/10000),Math.floor(k/100)%100-1,k%100).getTime())}:{pre:t("gv5_cycle"),hasta:tf("gv5_hasta",{d:d})}; };
     /* CON FILTRO DE CATEGORÍA (SPEC §3): la cifra es lo de esa categoría en ese mes, con la regla
        del desglose (la misma cifra que su fila en Categorías), y bajando, hasta el día de arriba.
        La línea cuenta los movimientos que suman y compara con la MISMA categoría el mes anterior:
@@ -16022,8 +16126,8 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       const fline=function(k, ym){
         if(k===mesesLista.newestK && ym===mesesLista.newestYm) return ftop;
         const c=gastosCumDia(fc,k,months?ym:undefined), d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase();
-        return {n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c),
-          pre:months?tf("gv5_upto",{mes:mesDe(ym),d:k%100}):preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d})};
+        return Object.assign({n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c)},
+          months?{pre:tf("gv5_spent_in",{mes:mesDe(ym)}),hasta:tf("gv5_hasta_dia",{d:k%100})}:preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})});
       };
       if(catFil){
         const fmeses=ciclosFila||mesesPres;
@@ -16042,12 +16146,12 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
           return {n:shownOf(v), pre:tf("gv5_closed",{mes:mesDe(ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:ym, sub:subDe(m)};
         }
         const c=gastosCumDia(cifra,k,ym);
-        return {n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_upto_net":"gv5_upto",{mes:mesDe(ym),d:k%100}), ym:ym, sub:subDe(c)};
+        return {n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_net_in":"gv5_spent_in",{mes:mesDe(ym)}), hasta:tf("gv5_hasta_dia",{d:k%100}), ym:ym, sub:subDe(c)};
       }
       if(k===mesesLista.newestK && ym===mesesLista.newestYm) return top;
       const d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase(), c=gastosCumDia(cifra,k);
-      return {n:shownOf(gastosValor(c,mode)), sub:subDe(c),
-        pre:preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
+      return Object.assign({n:shownOf(gastosValor(c,mode)), sub:subDe(c), ym:null},
+        preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})});
     };
     const meses=preset==="months"?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
     return {top:top, line:line, meses:meses, fijos:false, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
@@ -16271,7 +16375,13 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     setCicloSel(null);
   };
   // Elegir periodo en Filtros (o «Restablecer») vuelve al ciclo en curso.
-  const ponPreset=useCallback(function(p){ setCicloSel(null); setPreset(p); },[]);
+  /* Volver al ciclo en curso desde uno pasado (Filtros → periodo o Restablecer) es volver arriba,
+     como al tocar el ciclo en curso en la fila. Si no, con una lista corta el scroll se quedaba en
+     el tope de la del ciclo pasado y la cabecera hablaba del último día en vez del ciclo entero. */
+  const ponPreset=useCallback(function(p){
+    if(cicloSelRef.current!=null){ const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"}); }
+    setCicloSel(null); setPreset(p);
+  },[]);
   useEffect(function(){ if(preset!=="cycle") setCicloSel(null); },[preset]);
 
   // Resumen de filtros activos, para el botón "Filtros" (badge) y la línea de chips debajo.
@@ -16364,8 +16474,12 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   const ciclosAlBajar=!!(cabVista.ciclos && !cabVista.fijos);
   return React.createElement("div",{className:"v4-screen gx-root"+(ciclosAlBajar?" gx-ciclos-al-bajar":""),ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
     React.createElement(GastosCabecera,{rootRef:rootRef, cab:cabVista, meses:cabVista.meses, fijos:cabVista.fijos,
-      onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
+      onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef,
       onInfo:secc==="subs"&&heavyOk?abreSubInfo:null}),
+    /* Las secciones van FUERA de la cabecera fija, como el segmentado de Plan: dentro la estirarían
+       también encogida, y con ella bajarían la raya de los días, la fila de meses y la franja por la
+       que se desliza entre pestañas. Cambiar de sección ya vuelve arriba (`irASecc`). */
+    React.createElement(GxSecciones,{secc:secc, onSecc:irASecc, nSubs:novelSubs.length}),
     capa("movs", React.createElement(React.Fragment,null,
       React.createElement("div",{className:"filters"},
         // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
@@ -16431,7 +16545,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
               React.createElement("span",{className:"gx-cat-txt"},
                 React.createElement("span",{className:"v4-gastos-cat-row"},
                   React.createElement("span",{className:"v4-gastos-cat-name"}, catName(row.id)),
-                  React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+                  React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur(row.spent))),
                 lim>0
                   ? React.createElement(React.Fragment,null,
                       React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
@@ -16616,9 +16730,17 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
               // preselección automática (2026-08-17: todos los marcados, no solo el principal).
               const sinFiltros=!q.trim() && !sel.length && !bucketSel.length && bankSelIsDefault;
                             const esVacioNormal=sinFiltros && hayHistorico && preset==="cycle";
-              return React.createElement("div",{className:"empty"},
+              // El texto decía «apunta uno» y no había por dónde (diseño 235, DIS-18): las dos
+              // puertas debajo, las mismas que el + y que Cartera. Conectar, solo sin bancos.
+              const sinBancos=!(state.obAccounts||[]).length;
+              return React.createElement("div",{className:"empty","data-testid":"gastos-vacio"},
                 React.createElement("div",{className:"ttl"}, esVacioNormal?t("g_empty_period_t"):t("g_empty_t")),
-                esVacioNormal?t("g_empty_period_d"):t("g_empty_d"));
+                esVacioNormal?t("g_empty_period_d"):t("g_empty_d"),
+                !esVacioNormal && React.createElement("div",{className:"gx-vacio-acts"},
+                  React.createElement("button",{type:"button",className:"btn btn-primary","data-testid":"gastos-vacio-apuntar",
+                    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-apuntar")); }catch(e){} }},t("g_empty_add")),
+                  sinBancos && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"gastos-vacio-banco",
+                    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},t("v4_noup_cta"))));
             })()
           : dias.map(function(d){
               const tot=totalDia(d.k,d.ym);
@@ -16731,7 +16853,7 @@ function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMese
    `opacity` sobre una caja de alto fijo: bajar no recoloca nada de la lista. El scroll se lee en
    un `requestAnimationFrame` y el día se busca por bisección entre los encabezados ya pintados,
    así cada frame cuesta unas pocas lecturas aunque haya meses enteros cargados. */
-function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe, diasRef, saltoForzadoRef, secc, onSecc, nSubs, onInfo}){
+function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe, diasRef, saltoForzadoRef, onInfo}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
   // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
@@ -16768,8 +16890,11 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       let k=at>=0?+els[at].getAttribute("data-gx-day"):null, ym=at>=0?els[at].getAttribute("data-gx-ym"):null;
       // El salto a un mes del final (ver `saltaADia`): en el tope manda el día pedido. Se olvida al
       // salir del tope ya llegado, o si no llega (un dedo cortó el scroll suave).
+      // Y también si ese día ya no está en la lista (otro ciclo, Restablecer): el scroll podía
+      // seguir en el mismo tope y la cabecera se quedaba con un día de otra lista y su cifra a 0.
       const sf=saltoForzadoRef&&saltoForzadoRef.current;
-      if(sf){
+      if(sf && !root.querySelector('[data-gx-day="'+sf.k+'"][data-gx-ym="'+sf.ym+'"]')) saltoForzadoRef.current=null;
+      else if(sf){
         if(Math.abs(host.scrollTop-sf.st)<=2){ sf.llego=true; k=sf.k; ym=sf.ym; }
         else if(sf.llego || Date.now()-sf.t>1500) saltoForzadoRef.current=null;
       }
@@ -16805,10 +16930,10 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
   return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":"")+(fijos?" meses-fijos":""),ref:headRef,
       "data-gx-vista":vista.k==null?"":vista.k+"|"+vista.ym},
     React.createElement("div",{className:"gx-titulo"},
-      React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
-      React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
+      React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title"))),
     React.createElement(GxCifra,{n:line.n}),
     React.createElement("div",{className:"gx-status"+(onInfo?" con-info":""),"data-testid":"gastos-estado"},
+      line.hasta ? React.createElement(React.Fragment,null,React.createElement("span",{className:"gx-hasta"},line.hasta)," · ") : null,
       React.createElement("span",null,line.pre),
       line.tail ? React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"gx-tail"+tone},line.tail)) : null,
       // La «i» de Suscripciones (SPEC §6.3), la misma que la de la gráfica de Inicio. La letra la
@@ -16826,24 +16951,18 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
   );
 }
 function l10nKeyOf(){ return CURLANG+"|"+DISP.sym; }
-/* LOS TRES ICONOS DE SECCIÓN (SPEC §2.1): Movimientos (líneas), Categorías (barras) y
-   Suscripciones (reloj con flecha = «se repite»), con el globito de las que esperan decisión.
-   Son pestañas de verdad (`role="tab"`, `aria-selected`) y cada una dice su nombre: el icono solo
-   no se entiende con un lector de pantalla. */
-const GX_SECC_ICO={
-  movs:["M4 7h16M4 12h12M4 17h8"],
-  cats:["M6 20v-6M12 20V4M18 20v-10"],
-  subs:["M3.5 12a8.5 8.5 0 1 0 2.5-6","M3 3v4h4","M12 8v4l3 2"]
-};
+/* LAS TRES SECCIONES, CON SU NOMBRE (diseño 235, DIS-15): eran tres iconos sueltos junto al título
+   y el reloj no se leía como «suscripciones». Ahora es el mismo segmentado que Plan, con el globito
+   de las que esperan decisión junto a Suscripciones. Siguen siendo pestañas de verdad (`role="tab"`,
+   `aria-selected`, `data-gx-tab`), que es por donde las buscan el tirón y los e2e. */
 function GxSecciones({secc, onSecc, nSubs}){
-  return React.createElement("div",{className:"gx-secciones",role:"tablist","aria-label":t("gv5_secciones")},
+  return React.createElement("div",{className:"v4-seg gx-seg",role:"tablist","aria-label":t("gv5_secciones")},
     GX_SECC.map(function(id){
       const on=secc===id, globo=id==="subs"&&nSubs>0;
       return React.createElement("button",{key:id,type:"button",role:"tab","aria-selected":on,"data-gx-tab":id,
-          className:"gx-sec"+(on?" on":""),"aria-label":t(GX_SECC_TXT[id])+(globo?" · "+tf("gv5_subs_globo",{n:nSubs}):""),
+          className:"v4-seg-btn gx-sec"+(on?" on":""),"aria-label":t(GX_SECC_TXT[id])+(globo?" · "+tf("gv5_subs_globo",{n:nSubs}):""),
           onClick:function(){ onSecc(id); }},
-        React.createElement("svg",{"aria-hidden":true,width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
-          GX_SECC_ICO[id].map(function(d){ return React.createElement("path",{key:d,d:d}); })),
+        React.createElement("span",{className:"gx-sec-txt"},t(GX_SECC_TXT[id])),
         globo && React.createElement("span",{className:"gx-sec-globo num","aria-hidden":true,"data-testid":"gastos-subs-globo"},nSubs>99?"99+":nSubs));
     }));
 }
@@ -19462,17 +19581,21 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
 
   if(fullMode){
     const lastTime=lastPriceMs?new Date(lastPriceMs).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"}):t("iv_never");
+    // Sin precios todavía no hay «Actualizado …» que decir: salía «Actualizado sin actualizar».
+    const lastUpd=lastPriceMs?tf("iv_updated",{time:lastTime}):t("iv_never_full");
     const staleDay=lastPriceMs?new Date(lastPriceMs).toLocaleDateString(loc(),{weekday:"long"}):"—";
     const heroBase=completeCost?Math.max(0,Math.min(costTotal,total)):Math.max(total,1);
     const heroGain=completeCost?Math.max(0,gainTotal):0;
     const heroSum=Math.max(1,heroBase+heroGain);
     return React.createElement("div",{className:"v4-investments-full",ref:brokerDrag.bind},
       React.createElement("section",{className:"v4-card v4-card-hero rise","data-inv-hero":"1",style:{padding:20}},
-        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+        /* La moneda va DEBAJO de la cifra (DIS-35, auditoría de diseño 233): a su lado le robaba
+           el ancho y «5.200,00 €» se partía en dos líneas a 360 px. */
+        React.createElement("div",null,
           React.createElement("div",null,
             React.createElement("div",{className:"v4-micro"},t("iv_now")),
-            React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},f2(shownTotal))),
-          React.createElement("div",{className:"curtoggle","aria-label":t("iv_currency")},
+            React.createElement("div",{className:"serif num","data-inv-total":"1",style:{fontSize:"clamp(30px,10.5vw,40px)",fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6,whiteSpace:"nowrap"}},f2(shownTotal))),
+          React.createElement("div",{className:"curtoggle","aria-label":t("iv_currency"),style:{marginTop:12}},
             ["EUR","USD","GBP"].concat(["EUR","USD","GBP"].includes(invCur)?[]:[invCur]).map(function(c){
               return React.createElement("button",{key:c,type:"button",className:"curbtn"+(invCur===c?" on":""),"aria-label":CUR_SYM[c]||c,"aria-pressed":invCur===c,onClick:function(){ setInvCur(c); }},CUR_SYM[c]||c); }))),
         React.createElement(FxNotice,{missing:missingFx+(displayMissing?1:0)}),
@@ -19486,11 +19609,11 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
                 React.createElement("span",null,React.createElement("b",{style:{background:"var(--cream)"}}),tf("iv_put",{amount:f2(costTotal)})),
                 React.createElement("span",null,React.createElement("b",{style:{background:gainTotal>=0?"var(--mint)":"var(--coral)"}}),tf(gainTotal>=0?"iv_gained":"iv_lost",{amount:f2(Math.abs(gainTotal))}))),
               React.createElement("div",{style:{fontSize:13,fontWeight:750,color:gainTotal>=0?"var(--mint)":"var(--coral)",marginTop:10}},
-                tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2),time:lastTime})))
+                tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2),upd:lastUpd})))
           : React.createElement("div",{className:"hint",style:{marginTop:12}},
               state.investments.length>0 && React.createElement("div",{className:"v4-legend"},React.createElement("span",null,React.createElement("b",{style:{background:"var(--muted-2)"}}),t("iv_gain_unknown"))),
               !missingFx && React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
-              state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
+              state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},lastUpd),
               state.investments.length>0&&!missingFx && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
         React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?Number(fx).toLocaleString(loc(),{maximumFractionDigits:4}):"—"}))),
 
@@ -19543,7 +19666,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
+              React.createElement("div",{className:"meta"},items.length===1?t("v4_inv_position"):tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
             React.createElement("div",{style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{className:"am num"},f0(o.v)),
               brokerCostComplete && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),
@@ -19619,7 +19742,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"}, tf("v4_inv_positions",{n:items.length}),sub==null&&React.createElement("div",{className:"hint"},t("fx_unconverted")))
+              React.createElement("div",{className:"meta"}, items.length===1?t("v4_inv_position"):tf("v4_inv_positions",{n:items.length}),sub==null&&React.createElement("div",{className:"hint"},t("fx_unconverted")))
             ),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
               React.createElement("div",{className:"am num"}, f0(sub)),
@@ -19634,8 +19757,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         }),
         // Editar a mano en discreto, al pie de la lista (feedback 2026-07-18): normalmente los
         // números entran solos por los brókers; esto es el plan B para cuadrar algo puntual.
-        state.investments.length>0 && React.createElement("div",{style:{display:"flex",gap:8,margin:"8px 4px 0"}},
-          React.createElement("button",{type:"button",className:"edit-link"+(editing?" save":""),onClick:function(){ editing?save():start(); }}, editing?t("inv_save"):("✎ "+t("inv_editmanual"))),
+        // En reposo es un enlace como las demás acciones de Cartera, no un chip (DIS-32).
+        state.investments.length>0 && React.createElement("div",{className:"v4-inv-tools",style:{display:"flex",gap:8,margin:"8px 4px 0"}},
+          React.createElement("button",{type:"button",className:editing?"edit-link save":"link","data-act":"inv-manual",onClick:function(){ editing?save():start(); }}, editing?t("inv_save"):("✎ "+t("inv_editmanual"))),
           editing && React.createElement("button",{type:"button",className:"edit-link",style:{background:"transparent",color:"var(--muted)"},onClick:cancel}, t("inv_cancel"))
         )
       ),
@@ -19660,7 +19784,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
    aprender nada nuevo. Tampoco hay «Guardar»: cada cambio se guarda al vuelo, como en el resto.
    Y lo que rechazó de la primera maqueta: meter todo en una cartilla única («separado como está
    me gusta ya») y la flecha al lado del importe. */
-function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada, onBankSync, onReconnectBank, bankBusy}){
+function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada, onBankSync, onReconnectBank, bankBusy, onCajero, onEntrada}){
   const [borrando,setBorrando]=React.useState(false);
   const [saldo,setSaldo]=React.useState("");
   const [corrigiendo,setCorrigiendo]=React.useState(false);
@@ -19844,8 +19968,14 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                   })),
                 React.createElement("div",{className:"v4-account-spark-foot"},
                   React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
-            : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
-          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(balanceDate?" · "+tf("pt_ficha_sync",{x:new Date(balanceDate).toLocaleString()}):""))
+            : null,
+          /* UNA línea de notas bajo el saldo (DIS-37, auditoría de diseño 233): «Su histórico empieza
+             hoy» y «lo pone el banco» eran dos textos sueltos de 11-12 px que se leían como restos. */
+          (function(){
+            const nota=[conectada?t("pt_ficha_banco"):"", (missingFx||history.length<2)?t("ac_spark_new"):"",
+              conectada&&balanceDate?tf("pt_ficha_sync",{x:new Date(balanceDate).toLocaleString()}):""].filter(Boolean).join(" · ");
+            return nota && React.createElement("div",{className:"v4-account-lock"},nota);
+          })()
         ),
         React.createElement("div",{className:"v4-account-share",style:{padding:"14px 0 2px"}},
           React.createElement("div",{className:"v4-ficha-k"}, t("ac_share_q")),
@@ -19867,6 +19997,10 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
               }}, t(legacyDec?"ac_legacy_undo":"ac_legacy_decide")))
         ),
         React.createElement("div",{className:"v4-account-actions"},
+          /* Sacar del cajero y entrada de efectivo viven en la ficha del Efectivo (DIS-32, auditoría
+             de diseño 233): sueltas bajo la lista de cuentas eran dos píldoras sin dueño. */
+          efectivo && onCajero && React.createElement("button",{type:"button",className:"v4-account-action","data-act":"ef-cajero",onClick:onCajero},t("ef_cajero_btn")),
+          efectivo && onEntrada && React.createElement("button",{type:"button",className:"v4-account-action","data-act":"ef-entrada",onClick:onEntrada},t("ef_in_btn")),
           !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){
             if(corrigiendo) guardaSaldo(); else cambiaSaldo(""); setCorrigiendo(function(v){ return !v; });
           }},corrigiendo?t("done"):t("ac_fix_balance")),
@@ -19973,7 +20107,7 @@ function AssetSheet({asset,set,onClose}){
     )),document.body);
 }
 
-function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
+function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   const [sheetAsset,setSheetAsset]=useState(null);
@@ -20146,14 +20280,22 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
       const rowDragging=!!(dragAcc&&dragAcc.from===rowKey);
       const rowOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
       return React.createElement("button",{className:"v4-mov"+(rowDragging?" dragging":"")+(rowOver?" drag-over":""),key:rowKey,type:"button",
-        "data-account-key":rowKey,"data-account-id":a.id,"aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a)),
+        "data-account-key":rowKey,"data-account-id":a.id,"aria-label":[a.name,entOf(a.ent).label].filter(function(x,i,l){ return x&&l.indexOf(x)===i; }).join(" · ")+" · "+eur(shownAcc(a)),
         title:t("drag_hint"),
         onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:a.ent,size:44})),
-        React.createElement("div",{className:"nm"},
-          React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
-          React.createElement("div",{className:"meta"}, [roleLab(a),a.name,shareMeta(a,"account")].filter(Boolean).join(" · ")||"—")
-        ),
+        /* Título = la cuenta y debajo, en UNA línea, banco y uso (DIS-33, auditoría de diseño 233):
+           estas filas ponían el banco de título y las de Open Banking la cuenta, así que en la
+           misma lista se leían al revés según de dónde viniera cada una. */
+        (function(){
+          const banco=entOf(a.ent).label, tit=a.name||banco, rol=roleLab(a);
+          const meta=[banco!==tit?banco:"", rol!==a.name?rol:"", shareMeta(a,"account")].filter(Boolean).join(" · ");
+          return React.createElement("div",{className:"nm"},
+            // El nombre se recorta antes que la marca «del banco»: con un nombre largo la marca
+            // saltaba sola a otra línea.
+            React.createElement("div",{className:"v4-meta-row"},React.createElement("span",{className:"v4-meta-1l"},tit), isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
+            React.createElement("div",{className:"meta v4-meta-row"}, React.createElement("span",{className:"v4-meta-1l"},meta||"—")));
+        })(),
         React.createElement("div",{className:"am num"},eur(shownAcc(a)))
       );
     };
@@ -20256,22 +20398,26 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
        bloque, así que el piso y el coche viajaban pegados a las cuentas del banco y no se podían
        colocar por separado. `parte` los separa sin duplicar nada: sin `parte` sigue pintando los
        dos, que es como lo usa el resto de la app. */
+    const verEditar=(state.obAccounts||[]).length>0 || accEd.editing;
     return React.createElement("div",null,
+      titulo && parte==="cuentas" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
+        React.createElement("span",null,titulo),
+        React.createElement("div",{className:"v4-sec-acts"},
+          /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
+             veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
+             (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
+             se deja el botón para poder Guardar. */
+          verEditar && React.createElement("button",{type:"button",className:"link","data-act":"acc-edit",onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
+          iconos)),
+      titulo && parte==="bienes" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
+        React.createElement("span",null,titulo),
+        React.createElement("button",{type:"button",className:"link","data-act":"asset-add","aria-label":t("goods_add"),onClick:function(){setSheetAsset({});}},t("pf_add"))),
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list",ref:bindListDrag},
         React.createElement(FxNotice,{missing:(state.obAccounts||[]).filter(function(o){ return toEurAmt(o.value,o.cur,state)==null; }).length}),
         orderedAccountRows.map(function(row){
           return row.kind==="account" ? accRow(row.item,row.key) : obRow(row.item,row.key);
         }),
-        /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
-           veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
-           (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
-           se deja el botón para poder Guardar. */
-        ((state.obAccounts||[]).length>0 || accEd.editing) && React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
-        !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn")),
-        cashAcc && React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",margin:"8px 4px"}},
-          React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doSaqueCajero}, t("ef_cajero_btn")),
-          React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doEntradaEfectivo}, t("ef_in_btn"))
-        )
+        !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn"))
       ),
       // La ficha de la cuenta que esté abierta. Portal a `body`, así que da igual dónde se monte.
       React.createElement(AccountSheet,{
@@ -20281,7 +20427,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         rolVista:sheetRow&&sheetRow.kind==="account"?rolVistaOf(sheetRow.item):null,
         saldoMostrado:function(a){ return a&&a._obKey?a.value:shownAcc(a); },
         sincronizada:function(a){ return !!(a&&a._obKey)||isSynced(a); },
-        onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy
+        onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy,
+        onCajero:doSaqueCajero, onEntrada:doEntradaEfectivo
       }),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
       // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
@@ -20349,7 +20496,6 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         })
       ),
       parte!=="cuentas" && React.createElement(React.Fragment,null,
-        React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){setSheetAsset({});}},t("goods_add")),
         sheetAsset&&React.createElement(AssetSheet,{asset:sheetAsset,set:set,onClose:function(){setSheetAsset(null);}})
       )
     );
@@ -28032,6 +28178,14 @@ function AmortAdvisor({state, onEdit, onAmort}){
     React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("da_est"))
   );
 }
+// Trazos de 24 px como los de la barra de abajo (la casa es la misma de Inicio).
+const DEBT_ICO={
+  home:[["path",{d:"M3 10.5L12 3l9 7.5"}],["path",{d:"M5 10v10h14V10"}],["path",{d:"M10 20v-6h4v6"}]],
+  car:[["path",{d:"M3 16v-4l2.2-5.5h13.6L21 12v4z"}],["path",{d:"M3 12h18"}],["circle",{cx:7.5,cy:16.5,r:1.8}],["circle",{cx:16.5,cy:16.5,r:1.8}]],
+  phone:[["rect",{x:7,y:2.5,width:10,height:19,rx:2}],["path",{d:"M11 18h2"}]],
+  study:[["path",{d:"M2 9l10-5 10 5-10 5z"}],["path",{d:"M6 11v5c3 2.5 9 2.5 12 0v-5"}]],
+  card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
+};
 function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
@@ -28152,13 +28306,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       doAmort(d, parseFloat(String(raw).replace(',','.'))||0);
     });
   };
-  const debtEmoji=function(d){
+  /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
+     vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
+  const debtIco=function(d){
     const n=String(d.name||"").toLowerCase();
-    if(/coche|auto|car|seat|bmw/.test(n)) return "🚗";
-    if(/casa|hipo|piso|mort/.test(n)) return "🏠";
-    if(/móvil|movil|phone|móvil|iphone/.test(n)) return "📱";
-    if(/estudio|máster|master|uni/.test(n)) return "🎓";
-    return "💳";
+    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":"card";
+    return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
+      DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
   };
   // Cuotas que quedan: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
   // a mano) se ESTIMA con el ritmo de amortización actual. Devuelve {n,tot} o null.
@@ -28188,7 +28342,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
       React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--text)"}},eur(total)),
-      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur0(monthly)}))
+      // Con céntimos, como la cuota de cada tarjeta y Recibos: «661 €» al lado de 660,85 parecía otra cifra (DIS-30).
+      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur(monthly)}))
     ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
       React.createElement("div",{className:"hint"},t("plan_deleted_while_editing")),
@@ -28206,13 +28361,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       const day=cleanDay(dayOf(d));
       return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
-          React.createElement("span",{className:"v4-debt-emoji"},debtEmoji(d)),
+          React.createElement("span",{className:"v4-debt-emoji v4-debt-ico"},debtIco(d)),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
           ),
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
-        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
+        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
         React.createElement(DebtDayPrompt,{debt:d,onOpen:openDay}),
         // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
         (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
@@ -28577,7 +28732,8 @@ function Goals({state, set, totals, showToast}){
   };
 
   return React.createElement("div",null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // Sin metas, «Ahorrado en metas 0,00 €» en grande era un cero que no decía nada (DIS-28).
+    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
       React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--mint)"}},eur(totalSaved)),
       totalTarget>0 && React.createElement("div",{style:{marginTop:10,fontSize:13.5,color:"var(--muted)"}},tf("gl_total_sub",{x:eur0(totalTarget)}))
@@ -28623,7 +28779,10 @@ function Goals({state, set, totals, showToast}){
           React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")),
           React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setAdding(false); setForm(blank); }},t("gl_cancel"))
         )
-      : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
+      : goals.length===0
+        // La primera meta es LA acción de la pantalla vacía: botón principal, no el fantasma punteado.
+        ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first"))
+        : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
       onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),
@@ -29657,9 +29816,11 @@ function LockScreen({onUnlock}){
     askConfirm({ title:t("lk_escape"), sub:t("lk_escape_sub"), ok:t("lk_escape_ok"), danger:true })
       .then(function(yes){ if(yes){ bio.disable(); onUnlock(); } });
   };
-  const link={background:"none",border:"none",color:"var(--muted-2)",cursor:"pointer",fontSize:"12px",marginTop:"10px",textDecoration:"underline"};
+  // Salida de emergencia como botón de texto de 44 px, no un enlace gris subrayado de 12 px que
+  // costaba ver y acertar (auditoría de diseño 15/11).
+  const link={background:"none",border:"none",color:"var(--muted)",cursor:"pointer",fontSize:"14px",fontWeight:600,minHeight:44,padding:"10px 16px",marginTop:"4px",fontFamily:"inherit"};
   return React.createElement("div",{style:wrap},
-    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"◎"),
+    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"color-mix(in srgb,var(--mint) 14%,transparent)",color:"var(--mint)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"◎"),
     React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Aely"),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:"14px"}}, err?t("lk_failed"):t("lk_unlock")),
     React.createElement("button",{style:btn,onClick:tryUnlock},t("lk_unlockbtn")),
@@ -29679,10 +29840,11 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
   const [bioOn,setBioOn]=useState(bio.enabled());
   // zIndex ALTO: debe quedar por encima del onboarding (z90) para que "Ya tengo cuenta" sea visible.
   const overlay={position:"fixed",inset:0,background:"rgba(0,0,0,.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:120,padding:"20px"};
-  const card={background:"#0F1A15",border:"1px solid #1e2b24",borderRadius:"18px",padding:"22px",width:"100%",maxWidth:"360px",color:"#E8F0EB",fontFamily:"Manrope, sans-serif"};
-  const inp={width:"100%",padding:"12px 14px",margin:"6px 0",borderRadius:"12px",border:"1px solid #2a3a31",background:"#0B1410",color:"#fff",fontSize:"16px",boxSizing:"border-box"};
-  const btn={width:"100%",padding:"12px",borderRadius:"12px",border:"none",background:"#5FD08A",color:"#06120C",fontWeight:700,fontSize:"15px",marginTop:"8px",cursor:"pointer"};
-  const link={background:"none",border:"none",color:"#9BD0E0",cursor:"pointer",fontSize:"13px",marginTop:"12px",padding:"4px",width:"100%"};
+  // Colores del tema y no fijos: con el tema Claro el panel salía oscuro sobre la app clara.
+  const card={background:"var(--surface)",border:"1px solid var(--line)",borderRadius:"18px",padding:"22px",width:"100%",maxWidth:"360px",color:"var(--text)",fontFamily:"Manrope, sans-serif"};
+  const inp={width:"100%",padding:"12px 14px",margin:"6px 0",borderRadius:"12px",border:"1px solid var(--line)",background:"var(--bg)",color:"var(--text)",fontSize:"16px",boxSizing:"border-box"};
+  const btn={width:"100%",padding:"12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"15px",marginTop:"8px",cursor:"pointer"};
+  const link={background:"none",border:"none",color:"var(--blue)",cursor:"pointer",fontSize:"13px",marginTop:"12px",padding:"4px",width:"100%"};
   const submit=function(){
     if(!email||!pass){ showToast(t("au_need")); return; }
     setBusy(true);
@@ -29727,11 +29889,11 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     return React.createElement("div",{style:overlay,onClick:onClose},
       React.createElement("div",{style:card,onClick:stop},
         React.createElement("div",{style:{fontWeight:700,fontSize:"17px"}},t("au_account")),
-        React.createElement("div",{style:{color:"#9fb3a8",fontSize:"13px",marginBottom:"16px"}},(session.user.email||"")),
+        React.createElement("div",{style:{color:"var(--muted)",fontSize:"13px",marginBottom:"16px"}},(session.user.email||"")),
         bio.supported()
-          ? React.createElement("button",{style:Object.assign({},btn,{background:bioOn?"#243b30":"#5FD08A",color:bioOn?"#cfe9da":"#06120C"}),onClick:toggleBio}, bioOn?t("au_bio_off"):t("au_bio_on"))
-          : React.createElement("div",{style:{color:"#E6C36A",fontSize:"12px",margin:"6px 0"}},t("au_nobio")),
-        React.createElement("button",{style:Object.assign({},btn,{background:"#3a2430",color:"#f3d0d8"}),onClick:function(){ cloud.signOut().then(function(){ showToast(t("au_signedout")); onClose(); }); }},t("au_signout")),
+          ? React.createElement("button",{style:Object.assign({},btn,{background:bioOn?"var(--surface-2)":"var(--mint)",color:bioOn?"var(--text)":"var(--on-mint)"}),onClick:toggleBio}, bioOn?t("au_bio_off"):t("au_bio_on"))
+          : React.createElement("div",{style:{color:"var(--tan)",fontSize:"12px",margin:"6px 0"}},t("au_nobio")),
+        React.createElement("button",{style:Object.assign({},btn,{background:"var(--coral-dim)",color:"var(--text)"}),onClick:function(){ cloud.signOut().then(function(){ showToast(t("au_signedout")); onClose(); }); }},t("au_signout")),
         React.createElement("button",{style:link,onClick:onClose},t("au_close"))
       )
     );
@@ -29786,6 +29948,14 @@ function SyncReportSheet({items,onClose}){
       React.createElement("button",{type:"button",className:"btn btn-primary",style:{width:"100%",marginTop:8},onClick:onClose},t("sync_result_close"))
     )
   );
+}
+/* Cabecera de las subpantallas de pantalla completa: «‹» redondo a la izquierda y el título al
+   lado, como Ajustes e Inversiones. Solo cambia el botón visible: cada pantalla sigue cerrando con
+   su propio onBack y su useBackClose (auditoría de diseño 15/11, seis botones atrás distintos). */
+function SubPushHead({onBack, title}){
+  return React.createElement("div",{className:"sub-push-h"},
+    React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onBack},"‹"),
+    React.createElement("h1",null, title));
 }
 function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks, goGastos}){
   const expEnts=expenseBankEnts(state);
@@ -30123,7 +30293,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   const canUndo=histCanUndo(state);
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const chip=function(n){ const on=months===n; return React.createElement("button",{key:n,onClick:function(){ setMonths(n); },style:{flex:1,padding:"9px 0",borderRadius:10,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)":"var(--surface)",color:on?"var(--on-mint)":"var(--text)",fontWeight:800,fontSize:13,cursor:"pointer"}}, tf("bp_hist_m",{n:n})); };
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
   const destChip=function(i,id,label,hint){
@@ -30143,8 +30312,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
     return "🗐 "+t(c.reason==="modeled"?"bp_hist_dup":"bp_hist_dupexist");
   };
   return React.createElement("div",{style:wrap,className:"hist-import"}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
-    React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px"}}, t("bp_hist_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:t("bp_hist_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}},
       allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_pickbank")),
     canUndo && React.createElement("button",{type:"button",onClick:doUndoLast,
@@ -30450,7 +30618,6 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
 
   const wrap={position:"fixed",inset:0,zIndex:95,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 14px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--mint)",fontSize:14,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:4};
   const pill=function(txt,col){ return React.createElement("span",{style:{fontSize:11,fontWeight:800,color:col,background:col+"1f",borderRadius:20,padding:"3px 9px",whiteSpace:"nowrap"}}, txt); };
   const mb={flex:"1 1 auto",minWidth:0,background:"var(--sur)",border:"1px solid var(--line-soft)",color:"var(--text)",borderRadius:12,padding:"10px 12px",fontSize:13,fontWeight:700,cursor:"pointer"};
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"linear-gradient(160deg,var(--mint-hi),var(--mint))",color:"var(--on-mint)",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:8};
@@ -30465,8 +30632,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
   // ---- vista PICKER (elegir banco de la lista real) ----
   if(picking){
     return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-      React.createElement("button",{style:back,onClick:function(){ setPicking(false); setQ(""); }}, "‹ "+t("bp_back")),
-      React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px",fontWeight:560}}, t("bp_pick_title")),
+      React.createElement(SubPushHead,{onBack:function(){ setPicking(false); setQ(""); },title:t("bp_pick_title")}),
       React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}}, t("bp_pick_sub")),
       React.createElement("input",{style:inp,placeholder:t("bp_search"),value:q,onChange:function(e){ setQ(e.target.value); },autoFocus:true}),
       loadingA && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,padding:"18px 2px"}}, t("bp_loading")),
@@ -30495,8 +30661,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
 
   // ---- vista PRINCIPAL (mis bancos conectados) ----
   return React.createElement("div",{className:"v4-banks",style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
-    React.createElement("div",{className:"serif",style:{fontSize:26,fontWeight:560,margin:"2px 0 4px"}}, t("bp_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:t("bp_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("bp_intro")),
     links===null && React.createElement("div",{style:{color:"var(--muted)",fontSize:13}}, "…"),
     links!==null && links.length===0 && React.createElement(React.Fragment,null,
@@ -31245,14 +31410,12 @@ function BetaReviewPanel({onClose, showToast}){
 
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const btn=function(on,color){ return {flex:1,background:on?color:"var(--surface-2)",color:on?"#06120C":"var(--text)",
     border:on?"none":"1px solid var(--line)",borderRadius:12,padding:"9px 6px",fontSize:13,fontWeight:800,cursor:"pointer"}; };
 
   return React.createElement("div",{style:wrap,className:"beta-review",ref:wrapRef,onScroll:recordarScroll,onPointerDown:tocar},
     React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:cerrarDeVerdad}, "‹ Ajustes"),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "🧪 Revisar la beta"),
+    React.createElement(SubPushHead,{onBack:cerrarDeVerdad,title:"🧪 Revisar la beta"}),
     // Y a la vista, no solo en el parte: si un fallo es del icono o del instalador, lo primero que
     // hay que saber es qué APK lleva puesta — y hasta ahora aquí solo salía la versión web.
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:4}},
@@ -31431,15 +31594,13 @@ function ActivityPanel({events, onReload, onClose}){
   useBackClose(true, onClose);   // gesto atrás del móvil: cierra esta pantalla
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const chip=function(on){ return {background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)",borderRadius:20,padding:"6px 13px",fontSize:12.5,fontWeight:700,cursor:"pointer"}; };
   const nErr=(events||[]).filter(function(ev){ return ev.kind==="error"; }).length;
   const nFb=(events||[]).filter(function(ev){ return ev.kind==="feedback"; }).length;
   const nBeta=(events||[]).filter(function(ev){ return ev.kind==="beta"; }).length;   // veredictos de beta probada en el móvil
   const list=(events||[]).filter(function(ev){ return flt==="all" || ev.kind===flt; });
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ Ajustes"),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "👁 Actividad"),
+    React.createElement(SubPushHead,{onBack:onClose,title:"👁 Actividad"}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}},
       events===null ? "Cargando…" : ((events||[]).length+" eventos · "+nErr+" error(es) · solo tú ves esto")),
     React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}},
@@ -31476,7 +31637,6 @@ function PrivacyPanel({onClose}){
   useBackClose(true, onClose);   // gesto atrás del móvil: cierra esta pantalla
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 32px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:560,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const card={background:"var(--sur)",border:"1px solid var(--line-soft)",borderRadius:18,padding:"6px 16px 14px",marginTop:14,boxShadow:"var(--shadow)"};
   const h2={fontSize:14.5,fontWeight:800,color:"var(--mint)",margin:"16px 0 8px",letterSpacing:.2};
   const pS={fontSize:14,lineHeight:1.6,color:"var(--text)",margin:0};
@@ -31489,8 +31649,7 @@ function PrivacyPanel({onClose}){
     );
   };
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, "🛡️ "+t("pv_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:"🛡️ "+t("pv_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:12.5,marginBottom:4}}, t("pv_updated")),
     sec(t("pv_s1_h"), t("pv_s1")),
     sec(t("pv_s2_h"), t("pv_s2")),
@@ -31506,10 +31665,8 @@ function SharedPanel({state, set, uid, totals, showToast, meEmail, onClose}){
   useBackClose(true, onClose);
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("v4_back")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 10px"}}, "🏠 "+t("st_shared")),
+    React.createElement(SubPushHead,{onBack:onClose,title:"🏠 "+t("st_shared")}),
     React.createElement(Shared,{state:state,set:set,uid:uid,totals:totals,showToast:showToast,meEmail:meEmail})
   ));
 }
@@ -31537,11 +31694,9 @@ function FeedbackPanel({state, set, showToast, onClose}){
   const delNote=function(id){ set(function(s){ return Object.assign({},s,{verNotes:(s.verNotes||[]).filter(function(n){ return n.id!==id; })}); }); };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const inp={width:"100%",minHeight:96,padding:"10px 12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:14,fontFamily:"'Manrope',sans-serif",boxSizing:"border-box",resize:"vertical"};
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, t("wn_fb_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:t("wn_fb_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}}, t("wn_fb_hint")),
     React.createElement("textarea",{style:inp,placeholder:t("wn_fb_ph"),value:fb,onChange:function(e){ setFb(e.target.value); }}),
     React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:!fb.trim()||sending,onClick:sendFb}, sending?"…":("💬 "+t("wn_fb_send"))),
@@ -31580,14 +31735,12 @@ function AutoBackupsPanel({state, showToast, uid, onClose}){
   };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const dayRow={display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:"12px 14px",borderRadius:12,border:"1px solid var(--line)",marginBottom:8};
   const fmtDay=function(d){ try{ return new Date(d+"T12:00:00").toLocaleDateString(loc(),{weekday:"short",day:"2-digit",month:"short"}); }catch(e){ return d; } };
   if(preview) return React.createElement("div",{className:"bk-preview",style:wrap},
     React.createElement(BackupRecoveryPreview,{snapshot:preview.data,current:state,day:preview.day,onClose:function(){ setPreview(null); }}));
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, t("bk_auto_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:t("bk_auto_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("bk_auto_hint")),
     days===null && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,padding:"18px 2px"}}, t("bp_loading")),
     days!==null && days.length===0 && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,padding:"18px 2px"}}, t("bk_auto_none")),
@@ -31696,7 +31849,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9d1090abdaddda5d91a269640e60ea614f8676b2fbfa71210876e74865ab5772";
+var _rnSha="73312ebe5820f5582df372d333c6f697781b2a03211f09d6a6e970ce565a27be";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -31823,7 +31976,6 @@ function CurConverterPanel({state, onClose, refreshFx}){
   const normQ=function(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const inp={width:"100%",padding:"10px 13px",borderRadius:12,border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:16,boxSizing:"border-box"};
   const segBtn=function(on){ return {padding:"7px 10px",borderRadius:20,fontSize:12.5,fontWeight:700,cursor:"pointer",background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)"}; };
   const tbl=fxTableOf(state);
@@ -31855,8 +32007,7 @@ function CurConverterPanel({state, onClose, refreshFx}){
     return "1 "+(CUR_SYM[from]||from)+" = "+NF.format(one)+" "+(CUR_SYM[to]||to);
   })();
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "🔁 "+t("st_cur_convert")),
+    React.createElement(SubPushHead,{onBack:onClose,title:"🔁 "+t("st_cur_convert")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}}, t("st_cur_convert_hint")),
     !hasRates
       ? React.createElement("div",{style:{marginTop:4}},
@@ -32248,7 +32399,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   };
   return React.createElement(React.Fragment,null,
     React.createElement("div",{className:"v4-set-profile"},
-      React.createElement("div",{className:"v4-set-av"}, (meEmail||"MC").slice(0,2).toUpperCase()),
+      React.createElement("div",{className:"v4-set-av"}, avatarIniciales(profileOf(state).fullName, meEmail)),
       React.createElement("div",{style:{minWidth:0,flex:1}},
         React.createElement("div",{style:{fontWeight:800,fontSize:16}}, meEmail?meEmail.split("@")[0]:"Aely"),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:2}}, meEmail||t("v4_set_profile_local")),
@@ -32725,9 +32876,12 @@ function Onboarding({set, onCloud, onSignup}){
             React.createElement("div",{className:"v4-ob-card-t"},t("v4_ob_"+c[0]+"t")),
             React.createElement("div",{className:"v4-ob-card-s"},t("v4_ob_"+c[0]+"s"))));
       })),
-    onCloud && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:18},onClick:onCloud},t("ob_haveacc")),
-    onSignup && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:onSignup},t("ob_signup")),
     React.createElement("button",{style:cta,onClick:function(){ setStep(1); }},t("ob2_go")+" →"),
+    // Empezar NO crea cuenta (solo termina la bienvenida en local): por eso «Crear cuenta nueva»
+    // sigue aquí, como enlace, igual que «Ya tengo cuenta».
+    (onCloud||onSignup) && React.createElement("div",{className:"v4-ob-links"},
+      onCloud && React.createElement("button",{type:"button",className:"v4-ob-link",onClick:onCloud},t("ob_haveacc")),
+      onSignup && React.createElement("button",{type:"button",className:"v4-ob-link",onClick:onSignup},t("ob_signup"))),
     dots
   ));
 
@@ -34108,11 +34262,18 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
     return item&&planSyncConflict(state,kind,item.id);
   };
+  /* «Enlazado al cargo del 1 oct» y no «Enlazado · 661,27 €»: el importe ya va a la derecha de la
+     fila y dos cifras casi iguales juntas se leían como un error (auditoría de diseño 15/11, DIS-29).
+     El importe del cargo sigue en el aria-label y en la ficha. */
+  const enlazadoTxt=function(x){
+    const f=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(enlaces[x.id].x.date||""));
+    return f?tf("pr6_enlazado_d",{d:Number(f[3])+" "+pr6Mes(Number(f[1])*12+Number(f[2]))}):t("pr6_enlazado");
+  };
   const subOf=function(x){
     /* Con lo descontado de otro recibo, «pagas 197 € + 53 € de Pepephone» ya dice que es una cuota:
        delante de «cuota de deuda ·» la línea se iba a tres renglones (auditoría 9/11, P2-1). */
     if(x.kind==="debt"||x.kind==="balloon") return enlaces[x.id]
-      ? tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))})+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
+      ? enlazadoTxt(x)+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
       : (x.descuento?pr6PagasMas(x):t("pr6_cuota")+" · "+entOf(x.bank).label);
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
     const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
@@ -34173,7 +34334,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      permanencia: dic 2026» partían en dos renglones a 360 px (auditorías de la 221 y la 222). El icono
      y «Para revisar» ya dicen qué es; la ficha y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
   const motivoFila=function(x){
-    if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
+    if(enlaces[x.id]) return enlazadoTxt(x);
     if(x.rv==="trial") return t(x.dias===0?"pr6_prueba_hoy_fila":"pr6_prueba_manana_fila");
     if(x.rv==="perm") return tf("pr6_perm_fila",{x:pr6MesAno(x.permYm)});
     return pr6Motivo(x);
@@ -37823,8 +37984,10 @@ function CarteraHeroAmt({target}){
   const [carteraOn,setCarteraOn]=useState(false);
   useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const ph=eurParts(useCountUp(target, carteraOn));
-  return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},ph.sep+ph.dec+" "+ph.sym));
+  // Tamaño en `.cartera-hero-amt` (--fs-hero): con 40 px en línea era la única cifra grande
+  // distinta de Inicio, Gastos y Plan (DIS-38).
+  return React.createElement("div",{className:"serif num cartera-hero-amt"},
+    ph.ent, React.createElement("span",null,ph.sep+ph.dec+" "+ph.sym));
 }
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
@@ -37902,18 +38065,21 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
   const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
+  // Sin nada que sumar, ni cifra ni barra ni «Deudas 0 €» en coral: la salida (mcSinNada). Y una
+  // deuda de cero nunca va en coral, que es el color de lo que se debe.
+  const sinNada=mcSinNada(state);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
       React.createElement(FxNotice,{missing:totals.fxMissing}),
-      React.createElement(CarteraHeroAmt,{target:heroTarget}),
-      React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
+      sinNada ? React.createElement(PrimeraCuentaHero) : React.createElement(CarteraHeroAmt,{target:heroTarget}),
+      !sinNada && React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});
         })
       ),
-      React.createElement("div",{className:"v4-legend"},
+      !sinNada && React.createElement("div",{className:"v4-legend"},
         parts.map(function(x){
           const on=!!selParts[x.k];
           return React.createElement("button",{key:x.k,type:"button",className:"v4-legend-btn"+(on?"":" off"),
@@ -37921,9 +38087,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
             React.createElement("b",{style:{background:x.color}}), x.lab+" "+eur0(x.v));
         })
       ),
-      allOn && React.createElement("div",{style:{marginTop:12,fontSize:13,color:"var(--muted)"}},
+      allOn && !sinNada && React.createElement("div",{style:{marginTop:12,fontSize:13,color:"var(--muted)"}},
         t("v4_debts_foot_a"),
-        React.createElement("span",{style:{color:"var(--coral)",fontWeight:700}}, " "+eur0(-(totals.debtTotal||0))+" "),
+        React.createElement("span",{style:{color:(totals.debtTotal||0)>0?"var(--coral)":"var(--text)",fontWeight:700}}, " "+eur0(-(totals.debtTotal||0))+" "),
         t("v4_debts_foot_b"))
     ),
     // Avisos de reconexión: el arreglo a UN toque, en la pantalla donde se VE el problema. Los
@@ -37941,13 +38107,16 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
        cuenta y está en el sitio donde el usuario ya sabe buscarlo («⇅ Ordenar secciones» al pie).
        Se inventó un mecanismo nuevo cero: el que había ya hacía justo esto (hoy solo lo usa Cartera). */
     React.createElement(OrderableSections,{tab:"cartera",state:state,set:set,items:[
+      /* La cabecera de Cuentas y la de Bienes las pinta `Wealth` (`titulo`): su acción («Editar»,
+         «Añadir») depende de estado que vive allí, y tiene que ir a la derecha del título como
+         la del resto de bloques (DIS-32). Aquí solo se le pasan los iconos de bancos. */
       { id:"cuentas", label:t("v4_cuentas"), el:React.createElement(React.Fragment,null,
-        React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}},
-          React.createElement("span",null, t("v4_cuentas")),
+        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
+          onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy,titulo:t("v4_cuentas"),
           /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
              bancos» escritos, el título se partía en dos líneas en su móvil. Llevan su `title` y
              su `aria-label`, así que no se pierde el nombre para quien lo necesite. */
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:7,flex:"0 0 auto"}},
+          iconos:React.createElement(React.Fragment,null,
             // Sync a demanda: el auto-sync al abrir la app se retiró (los bancos veían «bot» y
             // caducaban la conexión cada dos por tres — feedback 2026-07-18).
             state.hasBankLink && onBankSync && React.createElement("button",{type:"button",
@@ -37968,23 +38137,22 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M5 10v8M10 10v8M14 10v5M19 10v3"}),
                 React.createElement("path",{d:"M3 20h11"}),
                 React.createElement("path",{d:"M18 16v6M15 19h6"})))
-          )
-        ),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
-          onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy})
+          )})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
       { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
-        React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes"})
+        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes",titulo:t("pt_goods")})
       ) },
       // `data-cartera-sec`: aquí aterriza «Abrir en Cartera ›» de la fila gris de Inversiones de
       // Gastos (`goInversiones`, 11-app-main), aunque el bloque se haya reordenado.
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
-        React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast}),
-        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
+        React.createElement("div",{className:"v4-sec-h v4-section-h"},
+          React.createElement("span",null, t("v4_inversiones")),
+          // El nombre largo se queda en el aria-label: «Ver todo» a secas no dice de qué.
+          React.createElement("button",{type:"button",className:"link",ref:invLinkRef,"aria-label":t("iv_see_all"),
+            onClick:function(){ setInvTools(true); }}, t("v4_all"))),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
       ) }
     ]}),
     // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
@@ -38351,11 +38519,7 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     if(email&&email.indexOf("@")>0) return email.split("@")[0].replace(/[._]/g," ");
     return "";
   })();
-  const initials=(function(){
-    const src=nameGuess||"MC";
-    const parts=src.trim().split(/\s+/);
-    return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
-  })();
+  const initials=avatarIniciales(nameGuess, email);
   const handleShow=p.handle ? (p.handle.charAt(0)==="@"?p.handle:("@"+p.handle)) : "@"+(email?email.split("@")[0]:"micartera");
   const patch=function(key,val){
     set(function(s){
@@ -38827,7 +38991,8 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"aely-help-sheet-h"},
         React.createElement("h1",{id:"help-title",className:"serif"}, t("help_title")),
-        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:requestClose},"‹")),
+        // Es una hoja: se cierra con una X, no con el «‹» de las pantallas (auditoría de diseño 15/11).
+        React.createElement("button",{type:"button",className:"aely-help-x","data-act":"back","aria-label":t("au_close"),onClick:requestClose},"✕")),
       React.createElement("div",{className:"aely-help-body v4-sheet-body"},
         React.createElement("p",{className:"hint aely-help-intro"}, t("help_intro")),
         remoteOk && React.createElement("p",{className:"hint aely-help-remote-status","data-testid":"help-remote-status"}, t("help_remote_status_on")),
@@ -40943,6 +41108,14 @@ function App(){
     };
     window.addEventListener("mc-open-banks",h);
     return function(){ window.removeEventListener("mc-open-banks",h); };
+  },[]);
+  // La misma hoja que el + desde dentro de una pantalla (el vacío de Gastos, diseño 235 DIS-18).
+  // Por evento y no por prop: la lista de Gastos es un `React.memo` y una función nueva en cada
+  // render lo dejaría de adorno.
+  useEffect(function(){
+    const h=function(){ setApuntarOpen(true); };
+    window.addEventListener("mc-open-apuntar",h);
+    return function(){ window.removeEventListener("mc-open-apuntar",h); };
   },[]);
   /* RESYNC AUTOMÁTICO AL CAMBIAR EL ROL DE UN BANCO (2026-08-01, su rechazo de la tanda
      `bancos`: «cambiar el banco de gasto diario... sigue sin salir en gastos es absurdo»).

@@ -243,7 +243,10 @@ test("cuota enlazada por el motor con otro importe: se abre su ficha con el carg
   // Internet 40 + préstamo sin día 200: lo enlazado por el motor no cambia ninguna cifra.
   await expect(cifra).toHaveText("240,00 €");
   const hipo = recibos.getByTestId("plan-review").locator('[data-recibo="debt_hipo"]');
-  await expect(hipo).toContainText("Enlazado · 641,27 €");
+  // El importe del cargo no se repite junto a la cuota (DIS-29): va en el aria-label y en la ficha.
+  await expect(hipo).toContainText("Enlazado al cargo del 1 oct");
+  await expect(hipo).not.toContainText("641,27");
+  await expect(hipo).toHaveAttribute("aria-label", /Enlazado · 641,27 €/);
   await hipo.click();
   const ficha = page.locator('.v4-sheet[data-sheet="deuda"]');
   await expect(ficha).toBeVisible();
@@ -256,7 +259,7 @@ test("cuota enlazada por el motor con otro importe: se abre su ficha con el carg
   await page.goBack();
   await expect(ficha).toHaveCount(0);
   const coche = recibos.getByTestId("plan-due").locator('[data-recibo="debt_coche"]');
-  await expect(coche).toContainText("Enlazado · 200,00 €");
+  await expect(coche).toContainText("Enlazado al cargo del 15 oct");
   await coche.click();
   await expect(ficha.getByTestId("deuda-nota")).toHaveText("La cuota no tiene día de cobro.");
   await ficha.locator('[data-act="ver-deuda"]').click();
@@ -338,7 +341,7 @@ test("el motor enlaza por nombre «PRESTAMO COCHE» 203,40: la cuota de 200 sigu
   // La pasada del motor la marca como cuota (por nombre e importe parecido) sin decir «a mano».
   await expect.poll(() => filaGuardada(page, "coche10"), { timeout: 5000 }).toBe("coche|undefined");
   await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText("240,00 €");
-  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="debt_coche"]')).toContainText("Enlazado · 203,40 €");
+  await expect(recibos.getByTestId("plan-due").locator('[data-recibo="debt_coche"]')).toContainText("Enlazado al cargo del 17 oct");
 });
 
 test("enlazada por el motor con otro importe: tocar su chip encendido la confirma a mano y pasa a pagada", async ({ page }) => {

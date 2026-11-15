@@ -110,3 +110,34 @@ test("--muted-2 y el menta de Claro se leen (≥4,5:1) en Verde, Oscuro y Claro"
     expect.soft(m.sobreMentaHi, tema + " texto sobre --mint-hi").toBeGreaterThanOrEqual(4.5);
   }
 });
+
+// Claro (auditoría de diseño 15/11/2026): las deudas en coral daban 4,38:1 sobre blanco y las
+// iniciales del avatar 4,42:1 sobre su fondo. Bienes es gráfico, no texto: con 3:1 basta.
+test("Claro: coral de deudas, iniciales del avatar y Bienes se leen", async ({ page }) => {
+  await seedLoggedInDashboard(page, { settings: { autoPrices: false, theme: "light" } });
+  await page.goto("/");
+  await appLista(page);
+  const m = await page.evaluate(() => {
+    const rgb = (css) => {
+      const c = document.createElement("canvas").getContext("2d");
+      c.fillStyle = css; const f = c.fillStyle;
+      if (f[0] === "#") return [0, 2, 4].map((i) => parseInt(f.slice(1 + i, 3 + i), 16));
+      return f.match(/\d+/g).slice(0, 3).map(Number);
+    };
+    const lum = (c) => { const f = (v) => ((v /= 255) <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+    const ratio = (a, b) => { const x = lum(rgb(a)), y = lum(rgb(b)); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+    const cs = getComputedStyle(document.documentElement), v = (n) => cs.getPropertyValue(n).trim();
+    return {
+      tema: document.documentElement.getAttribute("data-theme"),
+      coralFondo: ratio(v("--coral"), v("--bg")),
+      coralTarjeta: ratio(v("--coral"), v("--surface")),
+      avatar: ratio(getComputedStyle(document.querySelector(".v4-avatar")).color, v("--sur2")),
+      bienes: ratio(v("--cream"), v("--surface")),
+    };
+  });
+  expect(m.tema).toBe("light");
+  expect.soft(m.coralFondo, "--coral sobre --bg").toBeGreaterThanOrEqual(4.5);
+  expect.soft(m.coralTarjeta, "--coral sobre --surface").toBeGreaterThanOrEqual(4.5);
+  expect.soft(m.avatar, "iniciales del avatar").toBeGreaterThanOrEqual(4.5);
+  expect.soft(m.bienes, "--cream (Bienes) sobre la tarjeta").toBeGreaterThanOrEqual(3);
+});

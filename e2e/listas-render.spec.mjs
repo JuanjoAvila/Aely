@@ -86,8 +86,10 @@ for (const lang of ["es", "en", "ca"]) {
       await expect(cards).toHaveCount(Math.min(count,3));
       for(let i=0;i<Math.min(count,3);i++) await expect(cards.nth(i)).toContainText(activas[i].name);
       await expect(cards.filter({hasText:"Objetivo terminado"})).toHaveCount(0);
-      const link=count? /Ver plan|See plan|Veure pla/:/Crear una meta|Create a goal|Crear un objectiu/;
-      await inicio.getByRole("button",{name:link}).click();
+      const link=count? /Ver todo|See all|Veure-ho tot/:/Ponte una meta de ahorro|Set a savings goal|Posa't un objectiu d'estalvi/;
+      // «Ver todo ›» es el mismo texto en cada sección de Inicio: el de las metas, en su sección.
+      const zona=count? inicio.locator(".v4-section").filter({has:page.locator(".v4-goal")}) : inicio;
+      await zona.getByRole("button",{name:link}).click();
       await expect(paginaActiva(page).locator(".v4-goal-card")).toHaveCount(todas.length);
       for(const g of todas) await expect(paginaActiva(page).locator(".v4-goal-card").filter({hasText:g.name}).first()).toBeVisible();
       const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).goals);

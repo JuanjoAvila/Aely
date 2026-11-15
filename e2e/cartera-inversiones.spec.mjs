@@ -38,13 +38,16 @@ test("Cartera › Inversiones: los tres brókers se pintan, en orden, con sus im
      poder tocarlas y abrir su ficha— este test empezó a contarlas también: pedía 3 brókers y
      encontraba 4. Es el agujero de siempre: un selector sin acotar mide la página entera, no la
      tarjeta. Ver [[e2e-getbytext-pestanas-premontadas]]. */
-  const listaInv = page.locator(".v4-card-list").filter({ hasText: /posiciones|positions|posicions/ }).first();
+  const listaInv = page.locator(".v4-card-list").filter({ hasText: /posici|position/ }).first();
   const blocks = listaInv.locator("button.v4-mov");
   await expect(blocks).toHaveCount(3);
 
   // Orden fijo: Revolut → Trade Republic → MyInvestor (groupsBase, 06-sync-brokers.js).
   await expect(blocks.nth(0)).toContainText("Revolut");
   await expect(blocks.nth(1)).toContainText("Trade Republic");
+  // Singular con una sola posición: salía «1 posiciones» (DIS-34, auditoría de diseño 233).
+  await expect(blocks.nth(0).locator(".meta")).toHaveText("1 posición");
+  await expect(blocks.nth(1).locator(".meta")).toHaveText("3 posiciones");
   await expect(blocks.nth(2)).toContainText("MyInvestor");
   // En la portada, sin entrar en «Ver todas», cada posición enseña beneficio en euros Y en %.
   await blocks.nth(1).click();
@@ -69,7 +72,7 @@ test("Cartera › Inversiones: bróker sin posiciones no deja bloque fantasma", 
      poder tocarlas y abrir su ficha— este test empezó a contarlas también: pedía 3 brókers y
      encontraba 4. Es el agujero de siempre: un selector sin acotar mide la página entera, no la
      tarjeta. Ver [[e2e-getbytext-pestanas-premontadas]]. */
-  const listaInv = page.locator(".v4-card-list").filter({ hasText: /posiciones|positions|posicions/ }).first();
+  const listaInv = page.locator(".v4-card-list").filter({ hasText: /posici|position/ }).first();
   const blocks = listaInv.locator("button.v4-mov");
   await expect(blocks).toHaveCount(2);
   await expect(blocks.filter({ hasText: "MyInvestor" })).toHaveCount(0);
@@ -136,7 +139,7 @@ test("Inversiones v4: coste cero no finge +0%, manual se identifica y solo edita
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  const overview=page.locator(".v4-card-list").filter({ hasText: /posiciones|positions|posicions/ }).first();
+  const overview=page.locator(".v4-card-list").filter({ hasText: /posici|position/ }).first();
   await overview.locator("button.v4-mov").filter({hasText:"Trade Republic"}).click();
   await expect(overview.locator('[data-inv-position="manual"] .rvsub')).toHaveCount(0);
   await openInvestments(page);
@@ -210,6 +213,33 @@ test("Inversiones v4: un coste parcial nunca se convierte en ganancia inventada"
   await expect(hero).toContainText(/Actualizado \d{2}:\d{2}|Updated \d{2}:\d{2}|Actualitzat \d{2}:\d{2}/i);
   await expect(hero).not.toContainText(/Han ganado 520|They gained 520|Han guanyat 520/i);
   await expect(hero).not.toContainText(/520\.00%/);
+});
+
+/* DIS-35 (auditoría de diseño 233): sin precios aún, el hero decía «Actualizado sin actualizar», y
+   con la moneda al lado la cifra se partía en dos líneas a 360 px. */
+test("Inversiones v4: sin precios dice «Sin actualizar todavía» y la cifra cabe en una línea a 360", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  await seedLoggedInDashboard(page, { investments: [
+    { id: "f", ent: "trade_republic", name: "Fondo", ticker: "F", shares: 1, value: 5200, cur: "EUR" },
+  ] });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  const hero=page.locator("[data-inv-hero]");
+  await expect(hero).toContainText(/Sin actualizar todavía|Not updated yet|Encara sense actualitzar/);
+  await expect(hero).not.toContainText(/Actualizado sin|Updated not|Actualitzat sense/i);
+  const total=hero.locator("[data-inv-total]");
+  await expect(total).toContainText(/5\.200,00\s*€|€5,200\.00/);
+  const m=await total.evaluate((el) => ({ h:el.getBoundingClientRect().height, fs:parseFloat(getComputedStyle(el).fontSize), w:el.scrollWidth, cw:el.clientWidth }));
+  expect(m.h).toBeLessThan(m.fs*1.6);          // una sola línea
+  expect(m.w).toBeLessThanOrEqual(m.cw+1);      // y sin desbordar la tarjeta
+  // La moneda va debajo de la cifra, no a su lado.
+  const sel=await hero.locator(".curtoggle").boundingBox(), num=await total.boundingBox();
+  expect(sel.y).toBeGreaterThanOrEqual(num.y+num.height-1);
+  // Y el bróker de la pantalla completa también en singular (DIS-34).
+  await expect(page.locator('[data-inv-broker="trade_republic"] .meta').first()).toHaveText("1 posición");
 });
 
 test("Inversiones v4: alta desde bróker enfoca el nombre, conserva opciones reales y devuelve el foco", async ({ page }) => {
@@ -525,7 +555,7 @@ test("Inversiones v4: apertura medida con CPU x6", async ({ page, browserName })
     for (let i = 0; i < 5; i += 1) {
       samples.push(await page.evaluate(() => new Promise((resolve, reject) => {
         const start = performance.now();
-        const door = [...document.querySelectorAll("button")].find((b) => /Ver todas tus inversiones|See all your investments|Veure totes les inversions/i.test(b.textContent || ""));
+        const door = [...document.querySelectorAll("button")].find((b) => /Ver todas tus inversiones|See all your investments|Veure totes les inversions/i.test(b.getAttribute("aria-label") || b.textContent || ""));
         if (!door) return reject(new Error("puerta de inversiones no encontrada"));
         door.click();
         let frames = 0;
@@ -565,7 +595,7 @@ test("Inversiones v4: la pantalla entra como página y el gesto desde cualquier 
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
 
   const entered = await page.evaluate(() => new Promise((resolve, reject) => {
-    const door = [...document.querySelectorAll("button")].find((b) => /Ver todas tus inversiones|See all your investments|Veure totes les inversions/i.test(b.textContent || ""));
+    const door = [...document.querySelectorAll("button")].find((b) => /Ver todas tus inversiones|See all your investments|Veure totes les inversions/i.test(b.getAttribute("aria-label") || b.textContent || ""));
     if (!door) return reject(new Error("puerta de inversiones no encontrada"));
     let bornWithoutOpen = false;
     let timeout;

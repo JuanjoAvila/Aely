@@ -55,6 +55,10 @@
   @font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
   @font-face{font-family:'Fraunces';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
   @font-face{font-family:'Fraunces';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
+  /* Escala tipográfica común (DIS-38, auditoría de diseño 233): la cifra grande medía 46 px en
+     Inicio y 40 en Cartera, y los importes de fila 16, 17 o 19 según la pantalla. Fuera de los
+     temas porque no cambia con el color. */
+  :root{--fs-hero:46px;--fs-row-amt:17px;--fs-row-title:16px;}
   :root, html[data-theme="green"]{
     /* Aely brand tokens (docs/design/aely/AELY_BRAND_BRIEF.md, 2026-09-10).
        dark-first forestal + menta; success = --ok, danger = --coral. */
@@ -89,8 +93,11 @@
        Ningún verde da 4,5 a la vez con blanco y con negro encima: por eso todo texto sobre menta
        usa `--on-mint` (antes había un #08120C fijo en .btn-primary, chips y pastillas). */
     --mint:#1C7F4A; --mint-bright:#1E874F; --mint-hi:#1E874F; --mint-dim:#A8DDBE; --mint-deep:#A8DDBE; --on-mint:#FFFFFF;
-    --blue:#3E80C8; --tan:#B8890F; --cream:#5E5228;
-    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#CE4F37; --coral-dim:#F1D2CB;
+    /* Coral más hondo: #CE4F37 daba 4,38:1 sobre blanco y las deudas son texto (5,41 ahora). Bienes
+       en gris cálido, no oliva: el oliva se leía como un segundo verde junto a la liquidez
+       (auditoría 15/11). */
+    --blue:#3E80C8; --tan:#B8890F; --cream:#7A6F5A;
+    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#B8432E; --coral-dim:#F1D2CB;
     --shadow:0 16px 34px -24px rgba(20,40,30,.35);
   }
   /* Azul (modo oscuro fresquito) */
@@ -173,7 +180,7 @@
      de la capa nativa. Lo que sí se comprueba en los e2e es la condición que la permite
      (`user-select` de la fila), y el veredicto de verdad es el suyo en el móvil. */
   button,.v4-mov,.v4-charge{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-  input,select{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
   /* La WebView puede seguir dibujando el indicador lateral aunque mida cero. `display:none`
      quita solo la barra visual: todas las superficies conservan overflow y gesto (feedback
      2026-09-23, también visible en Ajustes). Firefox/Chromium nuevo quedan cubiertos arriba. */
@@ -843,7 +850,7 @@
   .pr6-row:focus-visible, .pr6-rev:focus-visible, .pr6-prow:focus-visible, .pr6-pill:focus-visible,
   .pr6-mes-nav:focus-visible, .pr6-more:focus-visible, .pr6-paid-h:focus-visible, .pr6-cta:focus-visible,
   .pr6-btn:focus-visible, .pr6-cand:focus-visible, .pr6-back:focus-visible, .pr6-cerr-x:focus-visible,
-  .v4-section-h button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .v4-section-h button.link:focus-visible, .v4-inv-tools button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .botnav-fab-slot{flex:1;display:flex;justify-content:center;}
   .botnav-fab{width:58px;height:58px;border-radius:50%;margin-top:-26px;border:none;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
@@ -955,7 +962,7 @@
   .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
   .v42-net{position:relative;}
   .v42-net .v4-micro{font-size:11px;letter-spacing:2.4px;}
-  .v42-net .v4-hero-amt{font-size:46px;font-weight:560;margin-top:4px;}
+  .v42-net .v4-hero-amt{font-size:var(--fs-hero);font-weight:560;margin-top:4px;}
   .v42-net .v4-hero-amt>span{font-size:23px;color:var(--muted);}
   .v42-net-info{width:16px;height:16px;border-radius:50%;border:1px solid var(--muted-2);background:none;color:var(--muted);font-size:10px;position:relative;padding:0;}
   .v42-net-info:before{content:"";position:absolute;inset:-15px;}
@@ -981,7 +988,10 @@
   .v42-net-ranges button[aria-pressed="true"]{background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint);}
   .v42-cycle-section{margin-top:22px;}
   .v42-cycle-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px;font-size:14px;font-weight:700;}
-  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;}
+  /* 44 px de dedo como `.v4-section-h button.link`; el margen negativo devuelve el alto que gana
+     para que la cabecera no crezca (medía 20 px de alto, auditoría 15/11); el -2 de la derecha
+     anula el margen de la cabecera y alinea el texto con el de las demás secciones. */
+  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;min-height:44px;padding:10px 8px;margin:-10px -2px -10px 0;}
   .v42-cycle{gap:14px;padding:14px 16px;cursor:pointer;}
   .v42-cycle-ring{position:relative;width:76px;height:76px;flex:0 0 auto;}
   .v42-cycle-percent{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;padding-top:25px;font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;line-height:1;color:var(--text);}
@@ -1021,10 +1031,21 @@
   .v4-budget-txt .ph{font-size:14.5px;color:var(--muted);line-height:1.45;margin-top:6px;text-wrap:pretty;}
   .v4-section{margin-top:22px;}
   .v4-section-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:15px;font-weight:800;}
-  .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
+  .v4-section-h button.link,.v4-inv-tools button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
   /* «En noviembre» junto a «Próximos cargos» cuando lo que se ve es del mes que viene. */
   .v4-upcoming-mes{margin-left:8px;color:var(--muted);font-weight:600;font-size:13px;}
   .v4-section .v4-mov{min-height:60px;}
+  .v4-first-acc{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:12px;}
+  .v4-card-hero .v4-first-acc{align-items:flex-start;}
+  .v4-first-acc-t{font-size:26px;font-weight:550;letter-spacing:-.4px;line-height:1.15;}
+  .v4-first-acc .btn{min-height:48px;padding:0 22px;}
+  .v4-nogoal-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:0 14px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;
+    color:var(--text);font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:transform .12s var(--ease),background .12s var(--ease);}
+  .v4-nogoal-row:active{transform:scale(.995);background:var(--sur2);}
+  .v4-nogoal-row .em{font-size:22px;line-height:1;}
+  .v4-nogoal-row .tx{flex:1;min-width:0;}
+  .v4-nogoal-row .chev{color:var(--muted);font-size:20px;line-height:1;}
+  @media (prefers-reduced-motion:reduce){ .v4-nogoal-row:active{transform:none;} }
   .v4-charge{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-soft);}
   .v4-charge:first-child{border-top:none;}
   .v4-charge .dt{width:44px;text-align:center;flex:0 0 auto;}
@@ -1032,7 +1053,7 @@
   .v4-charge .dt .m{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted-2);font-weight:700;margin-top:2px;}
   .v4-charge .nm{flex:1;min-width:0;font-weight:700;font-size:15px;}
   .v4-charge .sub{font-size:12.5px;color:var(--muted);font-weight:500;margin-top:2px;}
-  .v4-charge .am{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:550;font-variant-numeric:tabular-nums;}
+  .v4-charge .am{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;}
   .v4-charge .am.pos{color:var(--mint);}
   /* Plan › Recibos v6 (docs/design/plan-recibos/SPEC.md §2). Paleta texto/gris/menta: aquí no
      hay rojos ni amarillos de alarma, lo que hay que mirar ya va en «Para revisar». */
@@ -1078,6 +1099,8 @@
   .pr6-bk{flex:none;margin-left:.3em;}
   .pr6-when{font-size:13px;font-weight:700;color:var(--muted);}
   .pr6-when.soon{color:var(--text);}
+  /* 19 px y no --fs-row-amt: es la medida del SPEC de Recibos (docs/design/plan-recibos),
+     que manda sobre la escala general (lote 235, DIS-38). */
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
   .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
@@ -1469,6 +1492,10 @@
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
+  /* «Últimos movimientos» ya va dentro de su tarjeta: con fondo y borde propios cada fila era una
+     tarjeta dentro de otra (auditoría 15/11). Filas planas con raya, como «Próximos cargos». */
+  .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
      Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
@@ -1477,14 +1504,14 @@
   @media (prefers-reduced-motion:reduce){ .v4-charge:active,.v4-mov:active{transform:none;} }
   .v4-mov .tile{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:21px;flex:0 0 auto;}
   .v4-mov button.tile{border:1px solid var(--line-soft);}
-  .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:15.5px;}
+  .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:var(--fs-row-title);}
   .v4-mov .meta{font-size:12.5px;color:var(--muted);margin-top:2px;}
-  .v4-mov .am{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:550;font-variant-numeric:tabular-nums;}
+  .v4-mov .am{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;}
   .v4-mov .am.pos{color:var(--mint);}
   .v4-mov .am.muted{color:var(--muted-2);}
   .v4-mov.v4-mov-skip{border-style:dashed;}
   /* Tarjeta fantasma de estado vacio (P3/P4 del pulido v4): mismo borde punteado que ya usan
-     `.tab-add` y `.v4-mov-skip`. Una sola clase para los tres huecos, cero componentes nuevos. */
+     `.v4-mov-skip`. Una sola clase para los huecos, cero componentes nuevos. */
   .v4-empty{border:1px dashed var(--line);border-radius:20px;padding:22px 18px;text-align:center;}
   .v4-empty .em{font-size:34px;line-height:1;}
   .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;margin-top:8px;color:var(--text);}
@@ -1504,8 +1531,10 @@
   html[data-theme="light"]{
     --mint-ink:#1A6B3F;
   }
-  html[data-theme="light"] .dc-badge,
   html[data-theme="light"] .v4-section-h button.link,
+  html[data-theme="light"] .v42-cycle-head .link,
+  html[data-theme="light"] .v4-avatar,
+  html[data-theme="light"] .v4-inv-tools button.link,
   html[data-theme="light"] .pr6-mes-nav,
   html[data-theme="light"] .pr6-pill-ok,
   html[data-theme="light"] .pr6-more,
@@ -1521,32 +1550,25 @@
   html[data-theme="light"] .profile-row .pr-edit,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
-  html[data-theme="light"] .v4-pill,
   html[data-theme="light"] .hoja-marc-ok b,
   html[data-theme="light"] .chip.active,
   html[data-theme="light"] .v4-chip.on,
   html[data-theme="light"] .mc-cal-day.on,
   html[data-theme="light"] .pill.pos,
-  html[data-theme="light"] .recap-v.good,
-  html[data-theme="light"] .v4-pace-marks .mid,
   html[data-theme="light"] .v4-charge .am.pos,
   html[data-theme="light"] .v4-mov .am.pos,
   html[data-theme="light"] .helpq:active,
-  html[data-theme="light"] .tab-add:active,
-  html[data-theme="light"] .icon-btn,
   html[data-theme="light"] .edit-link:not(.save),
   html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
   html[data-theme="light"] .v4-link-mini,
   html[data-theme="light"] .v4-goal-pct{
     color:var(--mint-ink);
   }
-  html[data-theme="light"] .v4-pill,
   html[data-theme="light"] .v4-chip.on,
   html[data-theme="light"] .chip.active,
   html[data-theme="light"] .mc-cal-day.on,
   html[data-theme="light"] .pill.pos,
-  html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
-  html[data-theme="light"] .dc-badge{
+  html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"]{
     background:color-mix(in srgb, var(--mint-ink) 12%, transparent);
   }
   /* B3 active en claro: sur2 ya es verdoso; el scale se queda. */
@@ -1629,6 +1651,7 @@
   .gx-head.compact .gx-status{transform:translateY(-12px);}
   .gx-status-sub{margin-top:0;font-size:13px;color:var(--muted-2);}
   .gx-tail{font-weight:600;}
+  .gx-hasta{color:var(--mint);font-weight:700;}
   .gx-tone-coral{color:var(--coral);}
   .gx-tone-mint{color:var(--mint);}
   /* Meses: aparecen al bajar y quedan fijos (SPEC §2.1). La pastilla del mes activo es UNA capa
@@ -1637,16 +1660,12 @@
     display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
     transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
   .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
-  /* La pastilla activa va en MENTA, como el icono de sección activo: en gris oscuro casi no se
+  /* La pastilla activa va en MENTA, como la sección activa: en gris oscuro casi no se
      distinguía en qué mes (o ciclo) estabas («que se note que estás en un mes u otro», 25/10). */
   .gx-mes-pasti{position:absolute;left:0;top:4px;height:36px;border-radius:18px;background:var(--mint);transition:transform .24s var(--ease);}
   .gx-mes{position:relative;flex:0 0 auto;height:36px;padding:0 14px;border:0;border-radius:18px;background:transparent;color:var(--muted);
     font:600 15px 'Manrope',sans-serif;white-space:nowrap;cursor:pointer;}
   .gx-mes.on{color:var(--on-mint);font-weight:700;}
-  /* Título con los tres iconos de sección a la derecha (SPEC §2.1): el activo relleno en menta.
-     La fila mide lo mismo que el título de antes (8 + 30 + 10 px): los iconos de 44 px se comen
-     los márgenes. Si la cabecera creciera, el buscador (que se queda el dedo, `stopSwipe`) bajaría
-     a la franja por la que se desliza entre pestañas y los e2e de gestos perderían su sitio. */
   .gx-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0;min-height:44px;}
   .gx-titulo .v4-title{margin:0;min-width:0;}
   .v4-plan-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 14px;}
@@ -1655,11 +1674,17 @@
     background:transparent;color:var(--muted);cursor:pointer;transition:color .2s var(--ease),background .2s var(--ease);}
   .v4-ojo.on{color:var(--mint-bright);background:var(--surface);}
   .v4-ojo:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
-  .gx-secciones{display:flex;gap:8px;flex:0 0 auto;}
-  .gx-sec{position:relative;width:44px;height:44px;border-radius:22px;padding:0;display:flex;align-items:center;justify-content:center;
-    border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;
-    transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease);}
-  .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  /* Secciones de Gastos: el segmentado de Plan, algo más bajo (40 px de dibujo); el `::after`
+     devuelve los 44 px de dedo. Cada botón mide lo que su texto
+     («Suscripciones» con su globito no cabe en un tercio a 360 px) y, con letra enorme, se corta
+     con puntos antes que partir la fila. */
+  .gx-seg{margin:0 0 12px;}
+  .gx-seg .gx-sec{position:relative;flex:1 1 auto;min-width:0;min-height:40px;flex-direction:row;gap:6px;padding:4px 6px;font-size:13px;
+    border:0;background:transparent;cursor:pointer;transition:background-color .2s var(--ease),color .2s var(--ease);}
+  .gx-seg .gx-sec::after{content:"";position:absolute;inset:-2px 0;}
+  .gx-seg .gx-sec.on{background:var(--mint);color:var(--on-mint);}
+  .gx-sec-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-seg .gx-sec-globo{position:static;flex:none;}
   .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
   /* En Claro `--on-mint` es blanco y sobre el ocre daba 3,2:1; el texto oscuro del tema, 5,6. */
@@ -2040,10 +2065,17 @@
   .v4-account-spark i{display:block;min-height:5px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,var(--mint-hi),var(--mint));
     transform-origin:center bottom;animation:v4growup .55s var(--ease) both;}
   .v4-account-spark-foot{display:flex;justify-content:space-between;margin-top:5px;color:var(--muted-2);font-size:10.5px;font-weight:650;}
-  .v4-account-spark-new{margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:12px;}
-  .v4-account-lock{margin-top:10px;color:var(--muted-2);font-size:10.5px;font-weight:650;line-height:1.35;}
+  /* Una sola línea de notas bajo el saldo (DIS-37). La primera letra en mayúscula porque la
+     nota puede empezar por «gráfico desde hoy», que va en minúscula cuando sigue a otra. */
+  .v4-account-lock{margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:12.5px;line-height:1.4;}
+  .v4-account-lock::first-letter{text-transform:uppercase;}
   .v4-account-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;}
-  .v4-account-actions>button:only-child{grid-column:1/-1;}
+  .v4-account-actions>button:only-child,.v4-account-actions>button:last-child:nth-child(odd){grid-column:1/-1;}
+  /* Banco y uso de la cuenta en una sola línea (DIS-33): partida en dos parecía otra fila. */
+  .v4-meta-1l{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .v4-meta-row{display:flex;align-items:center;min-width:0;}
+  .v4-mov .meta.v4-meta-row{flex-wrap:nowrap;}
+  .v4-meta-row>:not(.v4-meta-1l){flex:0 0 auto;}
   .v4-account-action{min-height:46px;padding:8px 9px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);
     color:var(--text);font-size:12.5px;font-weight:800;line-height:1.2;}
   .v4-account-action.on{border-color:var(--mint);color:var(--mint);background:rgba(95,208,138,.1);}
@@ -2130,7 +2162,7 @@
   /* Un renglón y con elipsis, como en la portada: «Hogar · Sabadell · cada tres meses · compartido»
      partía la fila en dos a 412 px (11/11/2026). La frase entera va en el aria-label. */
   .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-mg-sec .pr6-row .am{font-size:17px;}
+  .pr6-mg-sec .pr6-row .am{font-size:var(--fs-row-amt);}
   .pr6-mg-sec .pr6-row .am.pos{color:var(--mint-bright);}
   .pr6-mg-sec .pr6-row.pr6-mg-off{opacity:.5;}
   .pr6-mg-ov{margin:24px 0 0;}
@@ -2246,8 +2278,14 @@
   .settings-push.mc-page-dragging{transition:none!important;will-change:transform,opacity;}
   @keyframes mcPageEnter{from{opacity:.62;clip-path:inset(0 0 0 12%)}to{opacity:1;clip-path:inset(0)}}
   .settings-push-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .settings-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);}
+  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
   .settings-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
+  /* Subpantallas de Ajustes (Privacidad, Hogar, Copias…): el mismo «‹» redondo que Ajustes, con el
+     título al lado. Antes cada una llevaba un «‹ Ajustes» o «‹ Volver» de texto azul y había seis
+     botones atrás distintos en la app (auditoría de diseño, 15/11). Clase propia y no
+     `settings-push-h`: los e2e buscan ese «‹» de Ajustes sin acotar y se encontrarían dos. */
+  .sub-push-h{display:flex;align-items:center;gap:10px;margin:0 0 6px;}
+  .sub-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:25px;font-weight:560;margin:0;min-width:0;line-height:1.15;}
 
   /* Perfil tipo Revolut (vídeo 2026-07-17, frame t_5_25): el panel ENTERO es una miniatura que
      CRECE desde el avatar (origin = centro del avatar, vars --pp-* medidas en JS) hasta llenar la
@@ -2320,7 +2358,7 @@
     animation:wn-in .48s cubic-bezier(.32,.72,0,1) both;}
   @keyframes wn-in{from{transform:translate3d(0,12%,0);opacity:0;}to{transform:none;opacity:1;}}
   .wn-panel .wn-inner{max-width:480px;margin:0 auto;}
-  .v4-mov .nm-title{font-weight:700;font-size:15.5px;line-height:1.25;}
+  .v4-mov .nm-title{font-weight:700;font-size:var(--fs-row-title);line-height:1.25;}
   /* Concepto del movimiento (mensaje del bizum / descripción del banco). Una sola línea con
      puntos suspensivos: el detalle completo está en la ficha, aquí solo hay que reconocerlo
      de un vistazo (petición 2026-07-24). */
@@ -2444,6 +2482,8 @@
   .gx-list .sentinel{align-items:start;padding-top:8px;box-sizing:border-box;}
   .empty{text-align:center;padding:34px 20px;color:var(--muted);}
   .empty .ttl{font-weight:700;color:var(--text);margin-bottom:6px;}
+  .gx-vacio-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px;}
+  .gx-vacio-acts .btn{min-height:44px;}
 
   .mono{border-radius:11px;display:grid;place-items:center;font-size:12.5px;font-weight:800;flex:0 0 auto;border:1px solid;letter-spacing:.3px;}
   .row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line-soft);}
@@ -2518,6 +2558,8 @@
   .plan-item-open{width:100%;padding:0;border:0;background:none;color:var(--text);font-family:inherit;text-align:left;cursor:pointer;min-height:48px;}
   .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:anywhere;}
   .plan-item .v4-debt-emoji{font-size:22px;line-height:1.4;}
+  .v4-debt-ico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--muted);}
+  .plan-item .v4-debt-ico{line-height:1;margin-top:2px;}
   .plan-item-value{flex:0 0 auto;text-align:right;}
   .plan-item-edit{display:block;margin-top:4px;color:var(--mint);font-size:12px;font-weight:700;}
   .plan-debt-details{margin-top:9px;font-size:12px;}
@@ -2537,6 +2579,7 @@
   .plan-edit-sheet [role="alert"]{color:var(--coral);}
   .plan-item-open:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:12px;}
   .v4-ghost-add{width:100%;margin-top:12px;min-height:52px;border-radius:18px;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;}
+  .v4-goal-first{margin-top:12px;min-height:48px;font-size:15px;}
   .v4-tip{margin-top:14px;padding:4px;border-radius:18px;background:rgba(230,195,106,.08);border:1px solid rgba(230,195,106,.3);}
   .v4-tip .card{background:transparent;border:none;box-shadow:none;}
   /* ⚠ «SALTAR» YA NO VA EN ABSOLUTO (11/9, él con dos fotos: «está pegadísimo al título y en la
@@ -2573,7 +2616,11 @@
   .v4-ob-card-ic{font-size:19px;line-height:1.25;flex:0 0 auto;}
   .v4-ob-card-tx{min-width:0;}
   .v4-ob-card-t{font-size:14.5px;font-weight:750;margin-bottom:2px;}
-  .v4-ob-card-s{font-size:12.5px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
+  .v4-ob-card-s{font-size:13px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
+  /* Bienvenida con UN botón principal (Empezar): entrar o crear cuenta van debajo como enlaces de
+     texto de 44 px. Con tres botones grandes no se sabía cuál era el camino (auditoría 15/11). */
+  .v4-ob-links{display:flex;flex-direction:column;align-items:stretch;margin-top:6px;}
+  .v4-ob-link{min-height:44px;background:none;border:none;color:var(--mint);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;padding:10px 8px;}
   .v4-ob-dots{display:flex;gap:6px;justify-content:center;margin:22px 0 0;}
   .v4-ob-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s var(--ease),background .3s;}
   .v4-ob-dots span.on{width:22px;background:var(--mint);}
@@ -2652,8 +2699,20 @@
      "tus cuentas" cabe entero y no en dos líneas». 31 px es el mínimo que sigue siendo cómodo de
      tocar sin que la cabecera crezca. */
   .v4-ic-mini{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
-    background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;}
+    background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;position:relative;}
+  /* El dibujo sigue de 31 px; el dedo tiene 44 (DIS-48): 7,5 px por lado desde dentro del borde.
+     Por eso el hueco entre los dos iconos es de 13 px: con 7 el área del primero quedaba tapada
+     por la del segundo. */
+  .v4-ic-mini::after{content:"";position:absolute;inset:-7.5px;}
+  .v4-sec-acts{display:flex;align-items:center;gap:13px;flex:0 0 auto;}
   .v4-ic-mini svg{width:16px;height:16px;display:block;}
+  /* Un solo patrón para las acciones de cada bloque de Cartera (DIS-32): enlace a la derecha
+     del título, como en Inicio. El margen negativo le da 44 px de dedo sin engordar el título. */
+  .v4-sec-h.v4-section-h{margin:22px 0 10px;}
+  .v4-sec-h.v4-section-h button.link{margin:-10px -8px;}
+  .v4-sec-order{min-height:44px;margin-top:10px;}
+  .cartera-hero-amt{font-size:var(--fs-hero);font-weight:550;letter-spacing:-1px;line-height:1.05;margin-top:6px;white-space:nowrap;}
+  .cartera-hero-amt>span{font-size:23px;color:var(--muted);}
   .v4-ic-mini:disabled{opacity:.5;}
   .v4-ic-mini.girando svg{animation:mcSpin .9s linear infinite;transform-origin:50% 50%;}
   @keyframes mcSpin{to{transform:rotate(360deg)}}
@@ -2850,6 +2909,10 @@
 .v4-sheet.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;}
 .aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px;flex:0 0 auto;}
 .aely-help-sheet-h h1{font-size:20px;margin:0;font-weight:550;}
+.aely-help-x{position:relative;flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line-soft);background:var(--sur);color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer;}
+/* Área de 44 px: el inset cuenta desde dentro del borde de 1 px (34 + 10 = 44), y los píxeles que
+   faltan de ancho crecen hacia el título y no hacia el borde derecho de la hoja. */
+.aely-help-x::before{content:"";position:absolute;inset:-5px -1px -5px -9px;}
 .aely-help-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   overscroll-behavior-y:none;scrollbar-width:none;padding:0 0 8px;}
 .aely-help-body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
@@ -2868,7 +2931,11 @@
 .aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
 .aely-help-entry{margin:6px 0 10px;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
-.aely-help-entry-mini{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+.aely-help-entry-mini{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+/* El dibujo sigue en 36 px; el dedo necesita 44 (auditoría 15/11). -5 y no -4: el inset cuenta desde
+   dentro del borde de 1 px (con -4 quedaba en 42). Cabe en el hueco de 8 px que lo
+   separa del avatar sin pisarlo. */
+.aely-help-entry-mini::before{content:"";position:absolute;inset:-5px;}
 .aely-help-consent{margin-top:12px;padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);}
 .aely-help-remote-status{margin:0 0 8px;font-size:12px;}
 @media (prefers-reduced-motion:reduce){

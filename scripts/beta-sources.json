@@ -104554,10 +104554,6 @@
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "data": "GX_SECC_ICO"
-      },
-      {
-        "file": "src/modules/04-tab-gastos.js",
         "data": "GX_OCULTO"
       },
       {
@@ -104589,7 +104585,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  /* Título con los tres iconos de sección a la derecha (SPEC §2.1)",
+        "from": "  /* Secciones de Gastos: el segmentado de Plan, algo más bajo (40 px de dibujo); el `::after`",
         "to": "  /* Días: encabezado con el total que cuenta"
       },
       {
@@ -113151,8 +113147,8 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  /* La pastilla activa va en MENTA, como el icono de sección activo:",
-        "to": "  /* Título con los tres iconos de sección a la derecha (SPEC §2.1)"
+        "from": "  /* La pastilla activa va en MENTA, como la sección activa: en gris oscuro casi no se",
+        "to": "  /* Secciones de Gastos: el segmentado de Plan, algo más bajo (40 px de dibujo); el `::after`"
       },
       {
         "file": "src/shell.html",

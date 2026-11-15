@@ -879,11 +879,18 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
     return item&&planSyncConflict(state,kind,item.id);
   };
+  /* «Enlazado al cargo del 1 oct» y no «Enlazado · 661,27 €»: el importe ya va a la derecha de la
+     fila y dos cifras casi iguales juntas se leían como un error (auditoría de diseño 15/11, DIS-29).
+     El importe del cargo sigue en el aria-label y en la ficha. */
+  const enlazadoTxt=function(x){
+    const f=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(enlaces[x.id].x.date||""));
+    return f?tf("pr6_enlazado_d",{d:Number(f[3])+" "+pr6Mes(Number(f[1])*12+Number(f[2]))}):t("pr6_enlazado");
+  };
   const subOf=function(x){
     /* Con lo descontado de otro recibo, «pagas 197 € + 53 € de Pepephone» ya dice que es una cuota:
        delante de «cuota de deuda ·» la línea se iba a tres renglones (auditoría 9/11, P2-1). */
     if(x.kind==="debt"||x.kind==="balloon") return enlaces[x.id]
-      ? tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))})+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
+      ? enlazadoTxt(x)+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
       : (x.descuento?pr6PagasMas(x):t("pr6_cuota")+" · "+entOf(x.bank).label);
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
     const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
@@ -944,7 +951,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      permanencia: dic 2026» partían en dos renglones a 360 px (auditorías de la 221 y la 222). El icono
      y «Para revisar» ya dicen qué es; la ficha y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
   const motivoFila=function(x){
-    if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
+    if(enlaces[x.id]) return enlazadoTxt(x);
     if(x.rv==="trial") return t(x.dias===0?"pr6_prueba_hoy_fila":"pr6_prueba_manana_fila");
     if(x.rv==="perm") return tf("pr6_perm_fila",{x:pr6MesAno(x.permYm)});
     return pr6Motivo(x);
@@ -4594,8 +4601,10 @@ function CarteraHeroAmt({target}){
   const [carteraOn,setCarteraOn]=useState(false);
   useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const ph=eurParts(useCountUp(target, carteraOn));
-  return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},ph.sep+ph.dec+" "+ph.sym));
+  // Tamaño en `.cartera-hero-amt` (--fs-hero): con 40 px en línea era la única cifra grande
+  // distinta de Inicio, Gastos y Plan (DIS-38).
+  return React.createElement("div",{className:"serif num cartera-hero-amt"},
+    ph.ent, React.createElement("span",null,ph.sep+ph.dec+" "+ph.sym));
 }
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
@@ -4673,18 +4682,21 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
   const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
+  // Sin nada que sumar, ni cifra ni barra ni «Deudas 0 €» en coral: la salida (mcSinNada). Y una
+  // deuda de cero nunca va en coral, que es el color de lo que se debe.
+  const sinNada=mcSinNada(state);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
       React.createElement(FxNotice,{missing:totals.fxMissing}),
-      React.createElement(CarteraHeroAmt,{target:heroTarget}),
-      React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
+      sinNada ? React.createElement(PrimeraCuentaHero) : React.createElement(CarteraHeroAmt,{target:heroTarget}),
+      !sinNada && React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});
         })
       ),
-      React.createElement("div",{className:"v4-legend"},
+      !sinNada && React.createElement("div",{className:"v4-legend"},
         parts.map(function(x){
           const on=!!selParts[x.k];
           return React.createElement("button",{key:x.k,type:"button",className:"v4-legend-btn"+(on?"":" off"),
@@ -4692,9 +4704,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
             React.createElement("b",{style:{background:x.color}}), x.lab+" "+eur0(x.v));
         })
       ),
-      allOn && React.createElement("div",{style:{marginTop:12,fontSize:13,color:"var(--muted)"}},
+      allOn && !sinNada && React.createElement("div",{style:{marginTop:12,fontSize:13,color:"var(--muted)"}},
         t("v4_debts_foot_a"),
-        React.createElement("span",{style:{color:"var(--coral)",fontWeight:700}}, " "+eur0(-(totals.debtTotal||0))+" "),
+        React.createElement("span",{style:{color:(totals.debtTotal||0)>0?"var(--coral)":"var(--text)",fontWeight:700}}, " "+eur0(-(totals.debtTotal||0))+" "),
         t("v4_debts_foot_b"))
     ),
     // Avisos de reconexión: el arreglo a UN toque, en la pantalla donde se VE el problema. Los
@@ -4712,13 +4724,16 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
        cuenta y está en el sitio donde el usuario ya sabe buscarlo («⇅ Ordenar secciones» al pie).
        Se inventó un mecanismo nuevo cero: el que había ya hacía justo esto (hoy solo lo usa Cartera). */
     React.createElement(OrderableSections,{tab:"cartera",state:state,set:set,items:[
+      /* La cabecera de Cuentas y la de Bienes las pinta `Wealth` (`titulo`): su acción («Editar»,
+         «Añadir») depende de estado que vive allí, y tiene que ir a la derecha del título como
+         la del resto de bloques (DIS-32). Aquí solo se le pasan los iconos de bancos. */
       { id:"cuentas", label:t("v4_cuentas"), el:React.createElement(React.Fragment,null,
-        React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}},
-          React.createElement("span",null, t("v4_cuentas")),
+        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
+          onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy,titulo:t("v4_cuentas"),
           /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
              bancos» escritos, el título se partía en dos líneas en su móvil. Llevan su `title` y
              su `aria-label`, así que no se pierde el nombre para quien lo necesite. */
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:7,flex:"0 0 auto"}},
+          iconos:React.createElement(React.Fragment,null,
             // Sync a demanda: el auto-sync al abrir la app se retiró (los bancos veían «bot» y
             // caducaban la conexión cada dos por tres — feedback 2026-07-18).
             state.hasBankLink && onBankSync && React.createElement("button",{type:"button",
@@ -4739,23 +4754,22 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M5 10v8M10 10v8M14 10v5M19 10v3"}),
                 React.createElement("path",{d:"M3 20h11"}),
                 React.createElement("path",{d:"M18 16v6M15 19h6"})))
-          )
-        ),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
-          onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy})
+          )})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
       { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
-        React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes"})
+        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes",titulo:t("pt_goods")})
       ) },
       // `data-cartera-sec`: aquí aterriza «Abrir en Cartera ›» de la fila gris de Inversiones de
       // Gastos (`goInversiones`, 11-app-main), aunque el bloque se haya reordenado.
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
-        React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast}),
-        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
+        React.createElement("div",{className:"v4-sec-h v4-section-h"},
+          React.createElement("span",null, t("v4_inversiones")),
+          // El nombre largo se queda en el aria-label: «Ver todo» a secas no dice de qué.
+          React.createElement("button",{type:"button",className:"link",ref:invLinkRef,"aria-label":t("iv_see_all"),
+            onClick:function(){ setInvTools(true); }}, t("v4_all"))),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
       ) }
     ]}),
     // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
@@ -5122,11 +5136,7 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     if(email&&email.indexOf("@")>0) return email.split("@")[0].replace(/[._]/g," ");
     return "";
   })();
-  const initials=(function(){
-    const src=nameGuess||"MC";
-    const parts=src.trim().split(/\s+/);
-    return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
-  })();
+  const initials=avatarIniciales(nameGuess, email);
   const handleShow=p.handle ? (p.handle.charAt(0)==="@"?p.handle:("@"+p.handle)) : "@"+(email?email.split("@")[0]:"micartera");
   const patch=function(key,val){
     set(function(s){

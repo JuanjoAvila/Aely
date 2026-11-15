@@ -45,7 +45,7 @@ async function abrir(page,mode,prior=false,lang="es"){
 async function cifras(page){
   const hero=page.getByTestId("inicio-net-current");
   const result={now:await hero.locator(".v4-hero-amt").innerText(),card:await page.locator(".v42-cycle-amount>.serif").innerText(),delta:await hero.getByTestId("inicio-net-delta").innerText(),line:await hero.locator(".v42-net-line").getAttribute("d")};
-  await page.getByRole("button",{name:"Ver gastos ›",exact:true}).tap();
+  await page.locator(".v42-cycle-head .link").tap();
   await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
   // Gastos v5: la cifra y su línea de la cabecera fija sustituyen a la tarjeta resumen.
   await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toBeVisible();

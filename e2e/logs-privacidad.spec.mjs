@@ -28,7 +28,8 @@ test("Actividad pinta diagnósticos útiles sin correo ni marcadores del transpo
   });
   await page.locator(".v4-avatar").click();await page.getByRole("button",{name:/Ir a Ajustes|Go to Settings|Ves a Configuració/i}).click();
   await page.getByText("Quién usa la app y sus errores",{exact:true}).click();
-  const activity=page.getByText("👁 Actividad",{exact:true}).last().locator("..");
+  // El título vive en la cabecera con el «‹» (diseño 235): la pantalla es el abuelo.
+  const activity=page.getByText("👁 Actividad",{exact:true}).last().locator("../..");
   await expect(activity).toContainText("addExpense");await expect(activity).toContainText("23505");await expect(activity).toContainText("No abre Plan");
   for(const marker of ["sec03@example.invalid","ES9121000418450200051332","9876.54","SEC03_NOTA_BANCARIA","sec03_secret_credential"])await expect(activity).not.toContainText(marker);
   const rows=await page.evaluate(()=>window.__sec03Rows);expect(rows.length).toBeGreaterThanOrEqual(2);expect(rows.every(row=>row.email===null)).toBe(true);

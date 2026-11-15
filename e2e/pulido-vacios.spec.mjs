@@ -27,8 +27,9 @@ test("★ app recién instalada: sin gráfico plano ni pastilla de cero", async 
   // Sin histórico no se inventa una serie de ceros: quien acaba de llegar lee que empieza hoy.
   await expect(page.locator(".v42-net-chart")).toHaveCount(0);
   await expect(page.getByTestId("inicio-net-now")).toHaveCount(0);
-  await expect(page.locator(".v4-hero")).toContainText("Tu histórico empieza hoy");
-  await expect(page.locator(".v4-hero-amt")).toContainText("0,00 €");
+  // Sin ninguna cuenta, ni siquiera «0,00 €»: la salida para añadir la primera (diseño 15/11/2026).
+  await expect(page.locator(".v4-hero")).toContainText("Añade tu primera cuenta");
+  await expect(page.locator(".v4-hero-amt")).toHaveCount(0);
   await expect(page.getByTestId("inicio-chart-note")).toHaveCount(0);
 
   // P2: la pastilla del mes no sale con delta 0 y sin histórico.
@@ -58,12 +59,13 @@ test("★ P4: Inicio recién instalado ofrece recibos y metas en vez de quedarse
   await inicio(page, { history: [], budget: 500, expenses: [], accounts: [], fixed: [], goals: [] });
 
   const recibos = page.locator(".v4-empty").filter({ hasText: /recibos|bills|rebuts/i });
-  const metas = page.locator(".v4-empty").filter({ hasText: /meta|goal|objectiu/i });
+  // Metas ya no es una tarjeta punteada: es una fila que es el propio botón (diseño 15/11/2026).
+  const metas = page.getByTestId("inicio-nogoal");
   await expect(recibos).toBeVisible();
   await expect(metas).toBeVisible();
   // No son adornos: las dos llevan a algún sitio.
   await expect(recibos.getByRole("button")).toBeEnabled();
-  await expect(metas.getByRole("button")).toBeEnabled();
+  await expect(metas).toBeEnabled();
 });
 
 test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", { annotation: { type: "own-clock", description: "Fecha y avances explícitos del escenario" } }, async ({ page }) => {

@@ -228,7 +228,7 @@ test("NO-GO cuenta nueva nombra el límite y un usuario nuevo empieza hoy",async
 test("NO-GO usuario nuevo sin presupuesto tiene mensaje propio y ningún ritmo",async({page})=>{
   await installFixtureClock(page);await seedLoggedInDashboard(page,{accounts:[],investments:[],expenses:[],budget:0,history:[],invHistory:[],accountBalanceHistory:{}});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await expect(page.getByTestId("inicio-net-current")).toContainText("Tu histórico empieza hoy");
+  await expect(page.getByTestId("inicio-net-current")).toContainText("Añade tu primera cuenta");
   await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
 });
 

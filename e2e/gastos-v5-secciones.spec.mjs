@@ -4,7 +4,7 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, ga
 /* GASTOS v5 · TANDA 2 (SPEC §2.1, §2.2, §5, §6 y §9). Las tres secciones de Gastos: Movimientos,
    Categorías y Suscripciones. Render puro derivado del estado (AGENTS §7): cada prueba abre la
    pantalla de verdad y mira el DOM.
-   · iconos con su pestaña activa y el globito de las suscripciones por revisar;
+   · secciones con su nombre, la activa marcada, y el globito de las suscripciones por revisar;
    · el tirón de Plan, arriba del todo, recorre Movimientos → Categorías → Suscripciones →
      Movimientos; a mitad de lista es scroll normal;
    · un solo toque de vibración por cambio, sea por icono o por tirón;
@@ -74,7 +74,7 @@ async function tiron(page, { y0 = 330, dy = 220, pasos = 10 } = {}) {
   await cdp.detach();
 }
 
-test("tres iconos de sección: Movimientos activo al entrar, cada uno con su nombre", async ({ page }) => {
+test("tres secciones con nombre: Movimientos activo al entrar, cada uno con su nombre", async ({ page }) => {
   await abre(page);
   const lista = gastosRoot(page).locator('[role="tablist"]');
   await expect(lista).toHaveAttribute("aria-label", "Secciones de Gastos");
@@ -258,7 +258,7 @@ test("Categorías junta en una sola fila «Otros» lo que se pinta como Otros, y
   await gastosSeccion(page, "cats");
   const filas = panel(page, "cats").locator(".v4-gastos-cat");
   await expect(filas.filter({ hasText: "Otros" })).toHaveCount(1);
-  await expect(filas.filter({ hasText: "Otros" })).toContainText("105 €");
+  await expect(filas.filter({ hasText: "Otros" })).toContainText("105,00 €");
   const total = await filas.evaluateAll((els) => els.reduce((s, el) => s + parseFloat(el.querySelector(".v4-gastos-cat-amt").textContent.replace(/[^\d,]/g, "").replace(",", ".")), 0));
   expect(total).toBe(205);
 });

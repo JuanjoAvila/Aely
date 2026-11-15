@@ -1966,6 +1966,14 @@ function App(){
     window.addEventListener("mc-open-banks",h);
     return function(){ window.removeEventListener("mc-open-banks",h); };
   },[]);
+  // La misma hoja que el + desde dentro de una pantalla (el vacío de Gastos, diseño 235 DIS-18).
+  // Por evento y no por prop: la lista de Gastos es un `React.memo` y una función nueva en cada
+  // render lo dejaría de adorno.
+  useEffect(function(){
+    const h=function(){ setApuntarOpen(true); };
+    window.addEventListener("mc-open-apuntar",h);
+    return function(){ window.removeEventListener("mc-open-apuntar",h); };
+  },[]);
   /* RESYNC AUTOMÁTICO AL CAMBIAR EL ROL DE UN BANCO (2026-08-01, su rechazo de la tanda
      `bancos`: «cambiar el banco de gasto diario... sigue sin salir en gastos es absurdo»).
      `pickRole` (07-tab-patri-fijos.js) escribe el rol nuevo en `state.accounts`/`settings` al

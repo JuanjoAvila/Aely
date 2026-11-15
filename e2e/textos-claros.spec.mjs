@@ -78,7 +78,7 @@ for (const simple of [false, true]) {
     await abre(page, { goals: [], settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: simple } });
     const inicio = page.locator('.page-live').filter({ has: page.locator('[data-testid="inicio-recent"]') });
     await expect(inicio.locator('[data-testid="inicio-recent"]')).toBeVisible();
-    await expect(inicio.getByRole("button", { name: "Crear una meta" })).toHaveCount(simple ? 0 : 1);
+    await expect(inicio.getByRole("button", { name: "Ponte una meta de ahorro" })).toHaveCount(simple ? 0 : 1);
     await expect(inicio.locator(".v4-section-h", { hasText: "Tus metas" })).toHaveCount(simple ? 0 : 1);
   });
 }
