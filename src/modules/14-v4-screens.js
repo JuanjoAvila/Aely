@@ -879,11 +879,18 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     const item=match&&(state[kind]||[]).find(function(e){return String(e.id)===match[2];});
     return item&&planSyncConflict(state,kind,item.id);
   };
+  /* «Enlazado al cargo del 1 oct» y no «Enlazado · 661,27 €»: el importe ya va a la derecha de la
+     fila y dos cifras casi iguales juntas se leían como un error (auditoría de diseño 15/11, DIS-29).
+     El importe del cargo sigue en el aria-label y en la ficha. */
+  const enlazadoTxt=function(x){
+    const f=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(enlaces[x.id].x.date||""));
+    return f?tf("pr6_enlazado_d",{d:Number(f[3])+" "+pr6Mes(Number(f[1])*12+Number(f[2]))}):t("pr6_enlazado");
+  };
   const subOf=function(x){
     /* Con lo descontado de otro recibo, «pagas 197 € + 53 € de Pepephone» ya dice que es una cuota:
        delante de «cuota de deuda ·» la línea se iba a tres renglones (auditoría 9/11, P2-1). */
     if(x.kind==="debt"||x.kind==="balloon") return enlaces[x.id]
-      ? tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))})+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
+      ? enlazadoTxt(x)+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
       : (x.descuento?pr6PagasMas(x):t("pr6_cuota")+" · "+entOf(x.bank).label);
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
     const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
@@ -944,7 +951,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      permanencia: dic 2026» partían en dos renglones a 360 px (auditorías de la 221 y la 222). El icono
      y «Para revisar» ya dicen qué es; la ficha y el lector de pantalla llevan la frase entera (`pr6Motivo`). */
   const motivoFila=function(x){
-    if(enlaces[x.id]) return tf("pr6_enlazado_x",{x:eur(Number(enlaces[x.id].x.amount))});
+    if(enlaces[x.id]) return enlazadoTxt(x);
     if(x.rv==="trial") return t(x.dias===0?"pr6_prueba_hoy_fila":"pr6_prueba_manana_fila");
     if(x.rv==="perm") return tf("pr6_perm_fila",{x:pr6MesAno(x.permYm)});
     return pr6Motivo(x);
