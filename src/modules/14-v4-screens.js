@@ -5065,9 +5065,13 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      al banco de gasto diario, como al apagar el 💶. Efectivo deja `noCard` en falso, que es lo que
      llevaba siempre un gasto en efectivo apuntado normal: la misma clave de reglas de categoría
      (`catRuleKey`) y el mismo redondeo que hasta ahora (propuesta en la nota del 15/11). */
+  /* Al salir de Efectivo se vuelve a un BANCO. Si el diario es el propio sobre, `dailyBankEnt` es
+     "efectivo" y Tarjeta/Bizum se quedaban guardando efectivo con la píldora del banco escondida
+     (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno. */
+  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:(bankOpts[0]||null);
   const onPayMode=function(m){
     if(m==="cash"){ setBank("efectivo"); setNc(false); }
-    else { if(bank==="efectivo") setBank(dailyBankEnt); setNc(m==="transfer"); }
+    else { if(bank==="efectivo") setBank(cardBankEnt); setNc(m==="transfer"); }
     setBankOpen(false); setCalOpen(false); setCurOpen(false);
   };
   const payRow=React.createElement(ExpensePayRow,{income:kind==="ingreso",mode:payMode,onMode:onPayMode,cashDisabled:!hasEfectivo,

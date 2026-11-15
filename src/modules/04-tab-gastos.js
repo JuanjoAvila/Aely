@@ -3085,7 +3085,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const onPayMode=function(m){
     if(m==="cash"||(isIncome&&payMode==="cash")){
       if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; }
-      setBank(exp,m==="cash"?"efectivo":null);
+      const r=setBank(exp,m==="cash"?"efectivo":null);
+      /* Un Bizum que pasa a Efectivo pierde la marca (D3): en Efectivo ya no hay mando que la enseñe
+         ni la quite, y escondida cambiaba su clave de reglas. Solo si la nube confirma el banco. */
+      if(m==="cash"&&!isIncome&&exp.noCard) Promise.resolve(r).then(function(ok){ if(ok) setCardFlag(exp,false); });
       if(m==="cash"||isIncome) return;
     }
     const nc=m==="transfer";

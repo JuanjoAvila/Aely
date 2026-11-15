@@ -17199,7 +17199,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const onPayMode=function(m){
     if(m==="cash"||(isIncome&&payMode==="cash")){
       if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; }
-      setBank(exp,m==="cash"?"efectivo":null);
+      const r=setBank(exp,m==="cash"?"efectivo":null);
+      /* Un Bizum que pasa a Efectivo pierde la marca (D3): en Efectivo ya no hay mando que la enseñe
+         ni la quite, y escondida cambiaba su clave de reglas. Solo si la nube confirma el banco. */
+      if(m==="cash"&&!isIncome&&exp.noCard) Promise.resolve(r).then(function(ok){ if(ok) setCardFlag(exp,false); });
       if(m==="cash"||isIncome) return;
     }
     const nc=m==="transfer";
@@ -31229,7 +31232,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="e0234f6503ec69aa56cbec4b276e459ae9706540cf4a0206a1a5e7b979879cb9";
+var _rnSha="9370f5a0ed1554a183c754b17f8587f63b6f440aef84c780566731cd2c55b9ef";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -37815,9 +37818,13 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      al banco de gasto diario, como al apagar el 💶. Efectivo deja `noCard` en falso, que es lo que
      llevaba siempre un gasto en efectivo apuntado normal: la misma clave de reglas de categoría
      (`catRuleKey`) y el mismo redondeo que hasta ahora (propuesta en la nota del 15/11). */
+  /* Al salir de Efectivo se vuelve a un BANCO. Si el diario es el propio sobre, `dailyBankEnt` es
+     "efectivo" y Tarjeta/Bizum se quedaban guardando efectivo con la píldora del banco escondida
+     (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno. */
+  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:(bankOpts[0]||null);
   const onPayMode=function(m){
     if(m==="cash"){ setBank("efectivo"); setNc(false); }
-    else { if(bank==="efectivo") setBank(dailyBankEnt); setNc(m==="transfer"); }
+    else { if(bank==="efectivo") setBank(cardBankEnt); setNc(m==="transfer"); }
     setBankOpen(false); setCalOpen(false); setCurOpen(false);
   };
   const payRow=React.createElement(ExpensePayRow,{income:kind==="ingreso",mode:payMode,onMode:onPayMode,cashDisabled:!hasEfectivo,

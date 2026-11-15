@@ -337,10 +337,10 @@ test("DIS-03 Modificar: cada toque escribe por el camino de siempre, y en uno de
   await hoja.getByTestId("exp-pay-transfer").click();
   await expect.poll(async () => (await de(MANO)).noCard).toBe(true);
   expect((await de(MANO)).ent).toBe("revolut");
-  // A Efectivo: solo cambia el banco (como la píldora 💶); la marca de Bizum no se toca.
+  // A Efectivo: cambia el banco y, confirmado, se va la marca de Bizum (en Efectivo no se vería; D3).
   await hoja.getByTestId("exp-efectivo").click();
   await expect.poll(async () => (await de(MANO)).ent).toBe("efectivo");
-  expect((await de(MANO)).noCard).toBe(true);
+  await expect.poll(async () => (await de(MANO)).noCard).toBeUndefined();
   await expect(hoja.getByTestId("exp-bank")).toBeHidden();
   // De vuelta a Tarjeta: sin banco (como al apagar 💶) y sin la marca.
   await hoja.getByTestId("exp-pay-card").click();
@@ -358,3 +358,31 @@ test("DIS-03 Modificar: cada toque escribe por el camino de siempre, y en uno de
   await expect.poll(async () => (await de("del-banco")).noCard).toBe(true);
   expect((await de("del-banco")).ent).toBe("revolut");
 });
+
+/* Revisión de dinero D1 (15/11): con el sobre como ÚNICA cuenta de gasto diario, salir de Efectivo
+   volvía a poner el sobre (el «diario») con la píldora del banco escondida: Tarjeta guardaba
+   efectivo y Bizum efectivo + noCard. Tiene que volver a un banco de verdad y enseñarlo. */
+for (const m of MODOS.filter((x) => x.id !== "ap-efectivo")) {
+  test(`DIS-03 con el sobre como diario, ${m.modo} sale de Efectivo a un banco`, async ({ page }) => {
+    await arranca(page, {
+      expenses: [],
+      accounts: [
+        { id: "rv", ent: "revolut", name: "Cuenta", value: 200, role: "fijos" },
+        { id: "ef", ent: "efectivo", name: "El sobre", value: 80, role: "diario", spendFrom: true },
+      ],
+    });
+    await page.locator(".botnav-fab").click();
+    const hoja = page.locator(".v4-exp-sheet");
+    await expect(hoja.getByTestId("ap-efectivo")).toHaveAttribute("aria-pressed", "true");
+    await hoja.getByTestId(m.id).click();
+    await expect(hoja.getByTestId(m.id)).toHaveAttribute("aria-pressed", "true");
+    await expect(hoja.getByTestId("ap-bank")).toBeVisible();
+    await expect(hoja.getByTestId("ap-bank")).toContainText("Revolut");
+    for (const d of ["9"]) await hoja.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
+    await hoja.locator(".v4-cta").click();
+    await expect(hoja).toHaveCount(0, { timeout: 5_000 });
+    const e = (await guardados(page)).find((x) => x.amount === 9);
+    expect(e.ent).toBe("revolut");
+    expect(e.noCard).toBe(m.noCard);
+  });
+}
