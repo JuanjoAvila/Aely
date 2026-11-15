@@ -35,9 +35,10 @@ function debtEditAmortDePlazo(d,form){
 /* AMORTIZAR `amt` de una deuda cuyo pendiente era `bal` (lo que vio el diálogo) → la deuda nueva, o la
    misma si no toca (un diálogo viejo o dos toques seguidos no amortizan dos veces). En curso, el ancla
    no se mueve: baja `value` y el plazo se acorta. Con el plazo ya VENCIDO (dato heredado con pendiente)
-   se re-ancla como en Editar: con el tope de cuotas, acortar desde las cuotas sin tope dejaba un plazo
-   más largo que lo contado y el saldo salía 0: 1.300 en 12×100, debiendo 100, amortizar 50 pintaba
-   0,00 y los 50 desaparecían (revisión de dinero 234, H-A1). */
+   solo baja `value` y el plazo se queda: acortarlo desde las cuotas sin tope dejaba un plazo más largo
+   que lo contado y el saldo salía 0 (1.300 en 12×100, debiendo 100, amortizar 50 pintaba 0,00 y los 50
+   desaparecían; revisión de dinero 234, H-A1). Alargarlo para cobrar el resto desde hoy tampoco: la
+   cuota de este mes, si su día ya pasó, saldría como pagada sin ningún cargo. */
 function deudaAmortizada(x, bal, amt){
   const current=debtBalance(x);
   if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
@@ -48,11 +49,6 @@ function deudaAmortizada(x, bal, amt){
     // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
     if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
     o.settledAt=new Date().toISOString();
-  }else if(vencida&&am>0){
-    // Lo que queda se paga con cuotas desde hoy, como cuando se corrige el saldo en Editar.
-    delete o.balloon;
-    o.months=paid+Math.ceil(Math.round(remaining*100)/Math.round(am*100));
-    o.value=+(remaining+am*paid).toFixed(2);
   }else if(x.months!=null&&!vencida&&am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=paid+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); }
   return o;
 }

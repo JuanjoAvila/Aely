@@ -135,6 +135,10 @@ for(const hace of [23,12]){
     assert.ok(o,"deudaAmortizada existe");
     assert.equal(cts(c.debtBalance(o)),5000,"quedan 50, no 0");
     assert.equal(o.settledAt,undefined,"no se da por liquidada");
+    // Y no se inventa ningún cobro: ni una cuota «pagada» este mes sin cargo, ni una pendiente.
+    assert.equal(c.debtActive(o),false,"sigue vencida");
+    assert.equal(cobroMes(estado([o]),o,ahora,dia),0,"Recibos no cobra nada este mes");
+    assert.equal(c.monthNetForAccount(estado([o]),"sabadell",y,m,null),0,"el banco no resta nada");
     const t=amortiza(d,100);
     assert.equal(c.debtBalance(t),0);assert.ok(t.settledAt,"amortizarlo todo sí la liquida");
   });
