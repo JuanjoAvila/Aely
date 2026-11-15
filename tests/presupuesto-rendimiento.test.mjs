@@ -364,6 +364,9 @@ const PRESUPUESTO = {
   // (con sello). Topes a 1904 / 522: unos 6 y 2 KiB de aire, no los 22 y 4 que quedaban libres.
   // Integración 4.26.233 (las cinco ramas de la auditoría juntas): 1.944.230 B (1898,7 KiB) y 532.162 B
   // gzip (519,7 KiB) sin sello. Los topes se quedan: lo que suman diseño y saldos lo quita textos.
+  // Lote 235 menores (15/11): 1.949.731 B con sello, 35 sobre el tope. Se quitan del tema claro
+  // ocho selectores que ya no lleva ningún elemento (dc-badge, v4-pill, recap-v, v4-pace-marks,
+  // tab-add, icon-btn): 1.949.449 B, quedan 247. El tope no se mueve.
   minificado: 1904 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
