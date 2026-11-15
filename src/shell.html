@@ -89,8 +89,11 @@
        Ningún verde da 4,5 a la vez con blanco y con negro encima: por eso todo texto sobre menta
        usa `--on-mint` (antes había un #08120C fijo en .btn-primary, chips y pastillas). */
     --mint:#1C7F4A; --mint-bright:#1E874F; --mint-hi:#1E874F; --mint-dim:#A8DDBE; --mint-deep:#A8DDBE; --on-mint:#FFFFFF;
-    --blue:#3E80C8; --tan:#B8890F; --cream:#5E5228;
-    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#CE4F37; --coral-dim:#F1D2CB;
+    /* Coral más hondo: #CE4F37 daba 4,38:1 sobre blanco y las deudas son texto (5,41 ahora). Bienes
+       en gris cálido, no oliva: el oliva se leía como un segundo verde junto a la liquidez
+       (auditoría 15/11). */
+    --blue:#3E80C8; --tan:#B8890F; --cream:#7A6F5A;
+    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#B8432E; --coral-dim:#F1D2CB;
     --shadow:0 16px 34px -24px rgba(20,40,30,.35);
   }
   /* Azul (modo oscuro fresquito) */
@@ -173,7 +176,7 @@
      de la capa nativa. Lo que sí se comprueba en los e2e es la condición que la permite
      (`user-select` de la fila), y el veredicto de verdad es el suyo en el móvil. */
   button,.v4-mov,.v4-charge{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-  input,select{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
   /* La WebView puede seguir dibujando el indicador lateral aunque mida cero. `display:none`
      quita solo la barra visual: todas las superficies conservan overflow y gesto (feedback
      2026-09-23, también visible en Ajustes). Firefox/Chromium nuevo quedan cubiertos arriba. */
@@ -1472,6 +1475,7 @@
   }
   html[data-theme="light"] .dc-badge,
   html[data-theme="light"] .v4-section-h button.link,
+  html[data-theme="light"] .v4-avatar,
   html[data-theme="light"] .pr6-mes-nav,
   html[data-theme="light"] .pr6-pill-ok,
   html[data-theme="light"] .pr6-more,
