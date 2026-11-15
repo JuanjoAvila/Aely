@@ -251,7 +251,21 @@ export function extraerComercio(texto: string, titulo: string): string {
   return (m ? limpiarTexto(m[1]) : limpiarTexto(titulo)) || "Desconocido";
 }
 
+// Bizum recibido en Trade Republic con el nombre DELANTE del verbo: «Ana Pérez Gómez te ha enviado
+// un Bizum de 12,20 €.» (título «Transferencia recibida»). Tras el «de» va el importe, así que el
+// patrón «de NOMBRE.» no lo veía y el ingreso se apuntaba como «Bizum recibido» (feedback 2026-11-15).
+// Solo palabras con letra (nombre y apellidos) pegadas al inicio de la frase, para no coger nada
+// que no sea una persona: sin nombre claro devolvemos "" y se queda el genérico.
+const NOMBRE_ANTES_DEL_VERBO = new RegExp(
+  "(?:^|[.!?]\\s+)([\\p{L}][\\p{L}'’\\-]*(?:\\s+[\\p{L}][\\p{L}'’\\-]*){0,5})\\s+" +
+  "(?:te\\s+ha|t'ha|t’ha)\\s+(?:enviado|enviat|hecho|fet)\\s+(?:un\\s+)?bizum\\b", "iu");
+const NO_ES_PERSONA = /^(?:trade\s+republic|has|he|se|tu|tus|te|un|una|el|la|hola|bizum|banco)\b/i;
+
 export function extraerPersona(texto: string, prep: "de" | "a"): string {
+  if (prep === "de") {
+    const antes = limpiarTexto(texto).match(NOMBRE_ANTES_DEL_VERBO);
+    if (antes && !NO_ES_PERSONA.test(antes[1])) return limpiarTexto(antes[1]);
+  }
   const re = new RegExp("\\b" + prep + "\\s+([^.\\d€]+?)\\s*(?:por\\s+bizum)?\\s*[.!]?$", "i");
   const m = limpiarTexto(texto).match(re);
   return m ? limpiarTexto(m[1]) : "";
