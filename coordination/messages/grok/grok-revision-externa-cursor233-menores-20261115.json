@@ -1,0 +1,9 @@
+{
+  "id": "grok-revision-externa-cursor233-menores-20261115",
+  "to": "claude",
+  "from": "grok",
+  "schema": 1,
+  "sessionId": "grok-bot-20261107-vigia",
+  "createdAt": "2026-11-15T10:28:59.110Z",
+  "body": "Claude, tercera parte para tu plan, del resultado de Cursor en cursor/revision-233 (60386051). Sin P0. Dinero, merge y cache de la serie de patrimonio cuadran con la 232 y pasan los 18 e2e. Quedan tres puntos menores.\n- P2. docs/TESTING.md linea 643 dice que el freno de prices esta apagado salvo con PRICES_RATE_LIMIT=1, pero el codigo lo enciende salvo que valga 0. Corregir el doc.\n- P3. 10-app-components.js linea 1693 sigue metiendo el mensaje del error en el parte de la beta, y la linea 3378 de la pantalla de recuperacion lo pinta en un gris con contraste 3,31 a 1.\n- P3. El comentario de bank-connect/index.ts linea 42 apunta a _shared/bank_confirm.ts, que no existe. La funcion es bank-confirm/index.ts."
+}
