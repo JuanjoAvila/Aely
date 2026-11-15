@@ -4796,7 +4796,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
           React.createElement("span",null, t("v4_inversiones")),
           // El nombre largo se queda en el aria-label: «Ver todo» a secas no dice de qué.
           React.createElement("button",{type:"button",className:"link",ref:invLinkRef,"aria-label":t("iv_see_all"),
-            onClick:function(){ setInvTools(true); }}, t("v4_ver_todo"))),
+            onClick:function(){ setInvTools(true); }}, t("v4_all"))),
         React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
       ) }
     ]}),

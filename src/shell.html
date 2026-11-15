@@ -1065,7 +1065,9 @@
   .pr6-bk{flex:none;margin-left:.3em;}
   .pr6-when{font-size:13px;font-weight:700;color:var(--muted);}
   .pr6-when.soon{color:var(--text);}
-  .pr6-row .am,.pr6-rev .am{font-size:var(--fs-row-amt);font-weight:600;white-space:nowrap;}
+  /* 19 px y no --fs-row-amt: es la medida del SPEC de Recibos (docs/design/plan-recibos),
+     que manda sobre la escala general (lote 235, DIS-38). */
+  .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
   .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
   /* Recorta el pliegue, NO su contenido. Con la rejilla a menos de 1fr el navegador da a la caja
