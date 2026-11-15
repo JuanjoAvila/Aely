@@ -4873,6 +4873,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      250 px de golpe: el campo se iba de debajo del dedo y el toque acababa en el velo, que la cierra. */
   const [kbAlto,setKbAlto]=useState(0);
   const listoAt=useRef(0);
+  // Dedo puesto mientras se escribe: el blur de un toque en la hoja llega en el `mousedown`.
+  const dedoRef=useRef(false);
   const noteRef=useRef(note); noteRef.current=note;
   const tocadaRef=useRef(tocadaAMano); tocadaRef.current=tocadaAMano;
   const iaParaRef=useRef(iaPara); iaParaRef.current=iaPara;
@@ -4958,9 +4960,15 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     const vv=window.visualViewport;
     if(vv){ vv.addEventListener("resize",sync); vv.addEventListener("scroll",sync); }
     window.addEventListener("resize",sync);
+    const baja=function(){ dedoRef.current=true; }, sube=function(){ dedoRef.current=false; };
+    document.addEventListener("pointerdown",baja,true); document.addEventListener("pointerup",sube,true);
+    document.addEventListener("pointercancel",sube,true);
     return function(){
       if(vv){ vv.removeEventListener("resize",sync); vv.removeEventListener("scroll",sync); }
       window.removeEventListener("resize",sync);
+      document.removeEventListener("pointerdown",baja,true); document.removeEventListener("pointerup",sube,true);
+      document.removeEventListener("pointercancel",sube,true);
+      dedoRef.current=false;
     };
   },[open, conceptoFoco]);
   // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
@@ -5052,18 +5060,21 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const visibleCats=fichaCats.map(function(c){
     return Object.assign({},c,{suggested:sugKw===c.id && cat===c.id && !tocadaAMano});
   });
-  const bankForPill=bank==="efectivo"?dailyBankEnt:bank;
-  const meta=[
-    {id:"bank",testId:"ap-bank",label:bankForPill?entOf(bankForPill).label:t("ap_bank_none"),
-      lead:bankForPill?React.createElement(Mono,{ent:bankForPill,size:18}):React.createElement("span",null,"🏦"),on:bankOpen,
-      onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); setCurOpen(false); }},
-    {id:"cash",testId:"ap-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bank==="efectivo",disabled:!hasEfectivo,
-      onClick:function(){ setBank(function(b){ return b==="efectivo"?dailyBankEnt:"efectivo"; }); setBankOpen(false); setCalOpen(false); }},
-    {id:"date",testId:"ap-date",label:fmtIsoCorto(date),lead:React.createElement("span",null,"📅"),on:calOpen,
-      onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); }}
-  ];
+  const payMode=bank==="efectivo"?"cash":(nc?"transfer":"card");
+  /* Lo que escribe cada opción es lo que hoy guardaba cada mando (DIS-03): salir de Efectivo vuelve
+     al banco de gasto diario, como al apagar el 💶. Efectivo deja `noCard` en falso, que es lo que
+     llevaba siempre un gasto en efectivo apuntado normal: la misma clave de reglas de categoría
+     (`catRuleKey`) y el mismo redondeo que hasta ahora (propuesta en la nota del 15/11). */
+  const onPayMode=function(m){
+    if(m==="cash"){ setBank("efectivo"); setNc(false); }
+    else { if(bank==="efectivo") setBank(dailyBankEnt); setNc(m==="transfer"); }
+    setBankOpen(false); setCalOpen(false); setCurOpen(false);
+  };
+  const payRow=React.createElement(ExpensePayRow,{income:kind==="ingreso",mode:payMode,onMode:onPayMode,cashDisabled:!hasEfectivo,
+    // En un ingreso se queda como estaba: la píldora del banco enseña el diario aunque vaya a efectivo.
+    bankEnt:kind==="ingreso"&&bank==="efectivo"?dailyBankEnt:bank,bankOn:bankOpen,testPrefix:"ap",
+    onBank:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); setCurOpen(false); }});
   const afterMeta=React.createElement(React.Fragment,null,
-    kind==="gasto" && React.createElement("button",{className:"v4-chip"+(nc?" on":""),"data-testid":"ap-payment",onClick:function(){ setNc(!nc); }},t(nc?"g_nocard":"g_card")),
     curOpen && React.createElement("div",{className:"v4-chips wrap","aria-label":t("ap_cur_lbl")},
       curChips.map(function(c){ return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),
         onClick:function(){ pickCur(c); setCurOpen(false); }},(CUR_SYM[c]||c)+" "+c); })),
@@ -5090,13 +5101,22 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
         React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),
           onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); },
           amount:(raw||"0"),amountEmpty:!raw,currency:entrySym,onCurrency:function(){ setCurOpen(function(v){ return !v; }); setCalOpen(false); setBankOpen(false); },
-          focused:true,concept:note,onConcept:setNote,fxHint:fxHint,meta:meta,afterMeta:afterMeta,
+          focused:true,concept:note,onConcept:setNote,fxHint:fxHint,payRow:payRow,afterMeta:afterMeta,
           onConceptFocus:function(){
             const el=swipe.sheetRef.current;
             // px del propio CSS de la hoja (dentro del zoom del body), que es lo que se le vuelve a poner.
             setKbAlto(el?parseFloat(getComputedStyle(el).height)||0:0);
             setConceptoFoco(true);
-          },onConceptBlur:function(){ setConceptoFoco(false); setKbAlto(0); },kb:conceptoFoco,
+          },onConceptBlur:function(){
+            const suelta=function(){ setConceptoFoco(false); setKbAlto(0); };
+            if(!dedoRef.current){ suelta(); return; }
+            /* Blur por un toque en la propia hoja (una categoría, el chip ✨…): si el teclado numérico
+               vuelve antes del `click`, la hoja crece, lo tocado se mueve y el click cae en otra
+               cosa. Se espera a que ese toque termine. */
+            const fin=function(){ document.removeEventListener("click",fin,true); clearTimeout(tm); setTimeout(suelta,0); };
+            document.addEventListener("click",fin,true);
+            const tm=setTimeout(fin,600);
+          },kb:conceptoFoco,
           categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
           numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catMore:true,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",

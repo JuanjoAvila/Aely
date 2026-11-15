@@ -3077,14 +3077,30 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("div",{className:"v4-ficha-trace-copy"},
       React.createElement("div",{className:"v4-ficha-trace-title"},tf("f_from_bank",{bank:bk?entOf(bk).label:t("bp_hist_bank_unknown")})),
       React.createElement("div",{className:"v4-ficha-trace-sub"},tf("f_from_bank_sub",{date:traceDate,raw:traceRaw}))));
-  const meta=[
-    {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
-      on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",
-      onClick:function(){ if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; } setBank(exp,bk==="efectivo"?null:"efectivo"); }},
-    {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
-      onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
-  ];
+  /* La forma de pago en un segmentado (DIS-03): cada toque escribe por el camino de siempre y solo
+     lo que cambia. Tarjeta ↔ Bizum es `setCardFlag` (también en los del banco, como la fila de antes);
+     Efectivo es `setBank` y no toca `noCard`, como la píldora 💶; salir de Efectivo deja el gasto
+     sin banco, como al apagarla, y el banco se elige en su píldora. */
+  const payMode=bk==="efectivo"?"cash":(exp.noCard?"transfer":"card");
+  const onPayMode=function(m){
+    if(m==="cash"||(isIncome&&payMode==="cash")){
+      if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; }
+      setBank(exp,m==="cash"?"efectivo":null);
+      if(m==="cash"||isIncome) return;
+    }
+    const nc=m==="transfer";
+    if(payMode==="cash"){
+      if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; }
+      // La marca, después de que la nube confirme el banco: el cambio de banco se descarta si la
+      // fila cambia entre medias, y la marca la cambiaría.
+      Promise.resolve(setBank(exp,null)).then(function(ok){ if(ok&&!!exp.noCard!==nc) setCardFlag(exp,nc); });
+      return;
+    }
+    if(!!exp.noCard!==nc) setCardFlag(exp,nc);
+  };
+  const payRow=React.createElement(ExpensePayRow,{income:isIncome,mode:payMode,onMode:onPayMode,bankEnt:bk,bankOn:bankOpen,
+    bankLocked:auto,cashLocked:auto,onLocked:lockedToast,testPrefix:"exp",
+    onBank:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }});
   const splitPair=gemeloSeparadoDe(state,exp);
   const autoPair=gemeloAutomaticoDe(state,exp);
   const paired=splitPair?React.createElement("div",{className:"hint"},React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-auto-rejoin",onClick:function(){separarGemelo(exp,true);onClose(true);}},t("g_auto_rejoin"))):autoPair&&React.createElement("div",{className:"hint","data-testid":"exp-auto-paired"},
@@ -3212,8 +3228,6 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       if(auto){ lockedToast(); return; }
       const income=!editExp.income; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
     }},React.createElement("span",null,t("f_income_row")),React.createElement("span",{className:"value"},editExp.income?"✓":t("f_no")),React.createElement("span",{className:"chev"},"›")),
-    !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-payment",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-      React.createElement("span",null,t(exp.noCard?"g_nocard":"g_card")),React.createElement("span",{className:"chev"},"›")),
     cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
       React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")),React.createElement("span",{className:"chev"},"›"))
   );
@@ -3254,7 +3268,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           },dateLabel:fmtIsoCorto(dateIso),onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); },
           amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:!auto,
           concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
-          meta:meta,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
+          payRow:payRow,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )

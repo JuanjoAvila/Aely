@@ -2676,19 +2676,47 @@ function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
       )
     ),document.body);
 }
+/* «¿Cómo pagaste?» en una sola fila (DIS-03, 15/11). Antes eran tres mandos sueltos —píldora del
+   banco, píldora 💶 y el chip «Con tarjeta» que al tocarlo pasaba a «Bizum o transferencia»— y se
+   podía guardar a la vez efectivo, «con tarjeta» y Sabadell a la vista. Guarda los mismos campos de
+   siempre: Tarjeta = banco y sin `noCard`; Efectivo = `ent:"efectivo"`; Bizum/transf. = banco y
+   `noCard`. Quien lo usa decide qué escribe cada toque (`onMode`): aquí solo se pinta.
+   Un ingreso no tiene forma de pago: conserva las dos píldoras de siempre (banco y efectivo).
+   La píldora del banco no desaparece con Efectivo: se apaga sin ocupar otra cosa, para que la fila
+   no salte al cambiar. */
+function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onBank, bankLocked, cashLocked, onLocked, testPrefix}){
+  const p=testPrefix||"expense";
+  const bankPill=function(hidden){
+    return React.createElement("button",{type:"button",className:"v4-ficha-meta-pill v4-ficha-pay-bank"+(bankOn?" on":"")+(bankLocked?" locked":"")+(hidden?" off":""),
+      "data-testid":p+"-bank","aria-hidden":hidden?"true":null,tabIndex:hidden?-1:null,onClick:hidden?undefined:(bankLocked?onLocked:onBank)},
+      bankEnt?React.createElement(Mono,{ent:bankEnt,size:18}):React.createElement("span",null,"🏦"),
+      React.createElement("span",null,bankEnt?entOf(bankEnt).label:t("ap_bank_none")));
+  };
+  if(income){
+    return React.createElement("div",{className:"v4-ficha-pay income"},bankPill(false),
+      React.createElement("button",{type:"button",disabled:!!cashDisabled,
+        className:"v4-ficha-meta-pill"+(mode==="cash"?" on":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked":""),
+        "data-testid":p+"-efectivo",onClick:cashDisabled?undefined:function(){ onMode(mode==="cash"?"card":"cash"); }},
+        React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))));
+  }
+  const opt=function(id,label,testId,disabled){
+    const on=mode===id;
+    return React.createElement("button",{type:"button",className:"v4-seg-btn"+(on?" on":""),"aria-pressed":on,disabled:!!disabled,
+      "data-testid":testId,onClick:function(){ if(!on){ mcTickHaptic(); onMode(id); } }},React.createElement("span",null,label));
+  };
+  return React.createElement("div",{className:"v4-ficha-pay"},
+    React.createElement("div",{className:"v4-seg",role:"group","aria-label":t("ap_pay_aria")},
+      opt("card",t("ap_pay_card"),p+"-pay-card"),
+      opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
+      opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
+    bankPill(mode==="cash"));
+}
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
-  onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint, meta,
+  onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb}){
+  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow}){
   const isIn=kind==="ingreso";
-  const metaBlock=React.createElement(React.Fragment,{key:"meta"},
-    React.createElement("div",{className:"v4-ficha-meta"},(meta||[]).map(function(m){
-      return React.createElement("button",{key:m.id,type:"button",disabled:!!m.disabled,
-        className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":"")+(m.disabled?" disabled":""),
-        "data-testid":m.testId,onClick:m.disabled?undefined:(m.locked?onLocked:m.onClick)},m.lead||null,
-        React.createElement("span",null,m.label));
-    })),
-    afterMeta||null);
+  const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
   // `catMore` (Apuntar): sin cabecera; «Más» va de última baldosa y ahorra la fila del título.
   const catsBlock=!isIn && React.createElement(React.Fragment,{key:"cats"},
     !catMore && React.createElement("div",{className:"v4-ficha-cat-title"},
@@ -2702,7 +2730,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
-        React.createElement("button",{type:"button",className:"v4-ficha-date",onClick:onDate},dateLabel)),
+        // La fecha se cambia aquí: la píldora 📅 repetía lo mismo con otras mayúsculas (DIS-03/04).
+        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel)),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
