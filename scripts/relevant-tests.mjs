@@ -310,6 +310,10 @@ export const E2E_MAP = [
   { file: "src/modules/01-i18n.js", specs: ["e2e/lo-descuento-undo.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  // DIS-26: única puerta para amortizar (tarjeta) y su línea viva de cuotas en el diálogo.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   // Tanda 6: resumen del mes cerrado (`planRecibosMesCerrado`, 08, sobre `planChargesMonth` y
   // `paymentEvidenceUI`), vista del mes siguiente y primer uso (14, con `rp4VistoEnBanco` sobre
