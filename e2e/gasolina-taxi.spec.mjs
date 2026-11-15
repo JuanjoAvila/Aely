@@ -11,7 +11,7 @@ async function open(page){
 async function entry(page,merchant,category,amount){
   await page.locator(".botnav-fab").click();
   const sheet=page.locator(".v4-exp-sheet");
-  await sheet.locator(".v4-exp-name").fill(merchant);
+  await sheet.locator(".v4-exp-name").fill(merchant); await sheet.locator(".v4-exp-name").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
   await expect(sheet.locator('[data-testid="ap-cat-'+category+'"]').first()).toHaveAttribute("aria-pressed","true");
   for(const digit of String(amount)) await sheet.locator(".v4-keys").getByRole("button",{name:digit,exact:true}).click();
   await sheet.locator(".v4-cta").click(); await expect(sheet).toHaveCount(0);
@@ -34,7 +34,7 @@ for(const lang of ["es","en","ca"]){
     await expect(cats).toHaveCount(0);
     // Una elección expresa no se mueve aunque el concepto tenga una sugerencia distinta.
     const sheet=page.locator(".v4-exp-sheet");
-    await sheet.locator(".v4-exp-name").fill("Gasolinera elegida como taxi");
+    await sheet.locator(".v4-exp-name").fill("Gasolinera elegida como taxi"); await sheet.locator(".v4-exp-name").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
     // Dejar vencer la sugerencia de400ms: comprobar antes ocultaría una elección pisada después.
     await page.waitForTimeout(650);
     await expect(sheet.locator('[data-testid="ap-cat-taxi"]')).toHaveAttribute("aria-pressed","true");

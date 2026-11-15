@@ -15,7 +15,7 @@ async function record(page,merchant,category,amount,manual=false){
     await sheet.locator('[data-testid="ap-cat-more"]').click();
     await page.locator('[data-testid="expense-all-cat-'+category+'"]').click();
   }
-  await sheet.locator(".v4-exp-name").fill(merchant);
+  await sheet.locator(".v4-exp-name").fill(merchant); await sheet.locator(".v4-exp-name").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
   // Esperar la sugerencia evita que una elección manual aparentemente correcta se pise tarde.
   if(manual) await page.waitForTimeout(650);
   await expect(sheet.locator('[data-testid="ap-cat-'+category+'"]').first()).toHaveAttribute("aria-pressed","true");
@@ -36,7 +36,7 @@ for(const lang of ["es","en","ca"]){
     }
     for(const cat of ["taxi","gasolina","parking","transporte","tasas"])await expect(cats.locator('[data-testid="expense-all-cat-'+cat+'"]')).toHaveCount(1);
     await cats.locator('[data-testid="expense-all-cat-multas"]').click();
-    const sheet=page.locator(".v4-exp-sheet");await sheet.locator(".v4-exp-name").fill("Zona azul elegida como multa");
+    const sheet=page.locator(".v4-exp-sheet");await sheet.locator(".v4-exp-name").fill("Zona azul elegida como multa"); await sheet.locator(".v4-exp-name").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
     await page.waitForTimeout(650);await expect(sheet.locator('[data-testid="ap-cat-multas"]')).toHaveAttribute("aria-pressed","true");
     await sheet.locator(".v4-keys").getByRole("button",{name:"5",exact:true}).click();await sheet.locator(".v4-cta").click();await expect(sheet).toHaveCount(0);
     for(const [cat,merchant,amount] of entries)await record(page,merchant,cat,amount);

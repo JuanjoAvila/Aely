@@ -126,7 +126,7 @@ test("Bizum es forma de pago: el gasto conserva Salud como categoría real", asy
 
   await page.locator(".botnav-fab").click();
   const sheet = page.locator(".v4-exp-sheet");
-  await sheet.locator(".v4-exp-name").fill("Fisio");
+  await sheet.locator(".v4-exp-name").fill("Fisio"); await sheet.locator(".v4-exp-name").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
   await sheet.locator('[data-testid="ap-payment"]').click();
   await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Bizum o transferencia/);
 
@@ -217,7 +217,7 @@ test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ p
   for (const d of ["1", "5", "0"]) {
     await sheet.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
   }
-  await sheet.locator(".v4-input").fill("Café Estambul");
+  await sheet.locator(".v4-input").fill("Café Estambul"); await sheet.locator(".v4-input").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
   await sheet.locator(".v4-cta").click();
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 

@@ -12,7 +12,10 @@
  *          hoja a pantalla completa.
  *  DIS-07  Con la letra Enorme el zoom multiplicaba el 88dvh y la hoja se salía por arriba: sin asa,
  *          sin Gasto/Ingreso y sin ninguna categoría a la vista.
- *  DIS-06  La hoja tapaba la línea de resumen de Gastos y la cifra del fondo competía con el importe. */
+ *  DIS-06  La hoja tapaba la línea de resumen de Gastos y la cifra del fondo competía con el importe.
+ *  DIS-05  Escribiendo el concepto, el teclado numérico (o el del sistema) tapaba el campo. Aquí se
+ *          simulan los dos casos de Android —la WebView que se encoge y el teclado que se pone
+ *          encima—; la prueba de verdad es en el móvil (la de escritorio no tiene teclado). */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -32,8 +35,13 @@ async function abreApuntar(page, { w, h, letra }) {
   await page.locator(".botnav-fab").click();
   const hoja = page.locator(".v4-exp-sheet");
   await expect(hoja.locator(".v4-keys button")).toHaveCount(12);
-  // Fin de la entrada de la hoja (sheetup, 420 ms): a mitad todo está aún más abajo.
-  await page.waitForTimeout(600);
+  // Fin de la entrada de la hoja (sheetup, 420 ms): a mitad todo está aún más abajo. Con la máquina
+  // cargada 600 ms fijos no bastaban: se espera a que la hoja no tenga animaciones vivas.
+  await page.waitForTimeout(450);
+  await page.waitForFunction(() => {
+    const s = document.querySelector(".v4-exp-sheet");
+    return !!s && s.getAnimations().length === 0;
+  });
   return hoja;
 }
 
@@ -139,6 +147,72 @@ for (const [w, h] of TAMANOS) for (const letra of LETRAS) {
       await expect(hoja.locator('[data-testid="ap-cat-mascotas"]')).toHaveAttribute("aria-pressed", "true");
       await expect(hoja.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(5);
     });
+  });
+}
+
+// Lo que se ve de un elemento: su centro cae en él y por encima de `limite` (el teclado del sistema).
+const seVe = (page, sel, limite) => page.evaluate(([sel, limite]) => {
+  const el = document.querySelector(sel), r = el.getBoundingClientRect();
+  const x = r.left + r.width / 2, y = r.top + r.height / 2;
+  if (r.top < 0 || r.bottom > (limite == null ? innerHeight : limite)) return false;
+  const h = document.elementFromPoint(x, y);
+  return !!h && (h === el || el.contains(h));
+}, [sel, limite]);
+
+for (const [w, h] of TAMANOS) for (const letra of LETRAS) {
+  test(`DIS-05 ${w}×${h}, letra ${letra}: la WebView se encoge y el concepto sigue a la vista; «Listo» no guarda`, async ({ page }) => {
+    const hoja = await abreApuntar(page, { w, h, letra });
+    const antes = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]").length);
+    await hoja.getByRole("button", { name: "7", exact: true }).click();
+    await hoja.locator(".v4-ficha-concept").click();
+    // El teclado del sistema se lleva el 45 % de abajo (adjustResize).
+    await page.setViewportSize({ width: w, height: Math.round(h * 0.55) });
+    await page.waitForTimeout(400);
+    await expect(hoja.locator(".v4-ficha-concept")).toBeFocused();
+    await expect(hoja.locator(".v4-keys")).toBeHidden();
+    await expect(hoja.locator(".v4-cta")).toHaveText(/^(Listo)$/);
+    expect(await seVe(page, ".v4-exp-sheet .v4-ficha-concept")).toBe(true);
+    await hoja.locator(".v4-ficha-concept").pressSequentially("Pan");
+    await hoja.locator('[data-testid="ap-kb-done"]').click();
+    await expect(hoja.locator(".v4-ficha-concept")).not.toBeFocused();
+    await page.setViewportSize({ width: w, height: h });
+    await page.waitForTimeout(400);
+    await expect(hoja.locator(".v4-cta")).toContainText("7");
+    const m = await mideHoja(page);
+    expect(m.tapadas).toEqual([]);
+    expect(m.boton).toBe(true);
+    await expect(hoja.locator(".v4-ficha-concept")).toHaveValue("Pan");
+    // «Listo» solo cierra el teclado: el gasto no se ha guardado.
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]").length)).toBe(antes);
+  });
+}
+
+for (const letra of LETRAS) {
+  test(`DIS-05 390×844, letra ${letra}: con el teclado encima (sin encoger) la hoja se sube sobre él`, async ({ page }) => {
+    const hoja = await abreApuntar(page, { w: 390, h: 844, letra });
+    // visualViewport de mentira: el teclado ocupa 320 px de abajo y la ventana no cambia.
+    await page.evaluate(() => {
+      const ev = new EventTarget();
+      const vv = { height: innerHeight, offsetTop: 0, scale: 1,
+        addEventListener: ev.addEventListener.bind(ev), removeEventListener: ev.removeEventListener.bind(ev) };
+      Object.defineProperty(window, "visualViewport", { configurable: true, get: () => vv });
+      window.__teclado = (px) => { vv.height = innerHeight - px; ev.dispatchEvent(new Event("resize")); };
+    });
+    await hoja.locator(".v4-ficha-concept").click();
+    await page.evaluate(() => window.__teclado(320));
+    await page.waitForTimeout(450);
+    const limite = 844 - 320;
+    expect(await seVe(page, ".v4-exp-sheet .v4-ficha-concept", limite)).toBe(true);
+    expect(await seVe(page, ".v4-exp-sheet .v4-cta", limite)).toBe(true);
+    // Y el asa no se sale por arriba al subir.
+    expect((await mideHoja(page)).asaArriba).toBeGreaterThanOrEqual(0);
+    // Enter = Listo: se cierra el teclado y la hoja vuelve abajo.
+    await hoja.locator(".v4-ficha-concept").press("Enter");
+    await expect(hoja.locator(".v4-ficha-concept")).not.toBeFocused();
+    await page.waitForTimeout(450);
+    expect(await hoja.evaluate((el) => getComputedStyle(el).marginBottom)).toBe("0px");
+    await expect(hoja.locator(".v4-keys button")).toHaveCount(12);
+    expect((await mideHoja(page)).tapadas).toEqual([]);
   });
 }
 

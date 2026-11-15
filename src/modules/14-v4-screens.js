@@ -4864,6 +4864,15 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const [iaPara,setIaPara]=useState(null);
   const [iaCat,setIaCat]=useState(null);
   const [sugKw,setSugKw]=useState(null);
+  /* Escribiendo el concepto (DIS-05, 15/11): el teclado del sistema tapaba el campo, o el teclado
+     numérico pegado abajo lo tapaba a él, y se escribía a ciegas. Con el foco en el concepto el
+     numérico se esconde, el botón pasa a «Listo» y la hoja se sube sobre el teclado del sistema. */
+  const [conceptoFoco,setConceptoFoco]=useState(false);
+  const [kbPad,setKbPad]=useState(0);
+  /* Alto de la hoja al tocar el concepto. Sin fijarlo, al esconder el numérico la hoja encogía
+     250 px de golpe: el campo se iba de debajo del dedo y el toque acababa en el velo, que la cierra. */
+  const [kbAlto,setKbAlto]=useState(0);
+  const listoAt=useRef(0);
   const noteRef=useRef(note); noteRef.current=note;
   const tocadaRef=useRef(tocadaAMano); tocadaRef.current=tocadaAMano;
   const iaParaRef=useRef(iaPara); iaParaRef.current=iaPara;
@@ -4894,6 +4903,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
+      setConceptoFoco(false); setKbPad(0); setKbAlto(0);
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
       try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
@@ -4931,6 +4941,28 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
+  /* Si el teclado se superpone sin encoger la WebView, lo que tapa es lo que sobra entre el alto de
+     la ventana y el de visualViewport: la hoja se sube eso (como la ayuda, 16-help-assistant). Si
+     la WebView se encoge, ese hueco es 0 y basta con haber escondido el teclado numérico. */
+  useEffect(function(){
+    if(!open || !conceptoFoco) { setKbPad(0); return undefined; }
+    const sync=function(){
+      try{
+        const vv=window.visualViewport;
+        if(!vv){ setKbPad(0); return; }
+        const pad=Math.max(0, window.innerHeight-(vv.height+vv.offsetTop));
+        setKbPad(pad>24?Math.round(pad):0);
+      }catch(e){ setKbPad(0); }
+    };
+    sync();
+    const vv=window.visualViewport;
+    if(vv){ vv.addEventListener("resize",sync); vv.addEventListener("scroll",sync); }
+    window.addEventListener("resize",sync);
+    return function(){
+      if(vv){ vv.removeEventListener("resize",sync); vv.removeEventListener("scroll",sync); }
+      window.removeEventListener("resize",sync);
+    };
+  },[open, conceptoFoco]);
   // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
   const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
   useBackClose(!!open&&!ensayo, swipe.close);
@@ -4970,6 +5002,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     });
   };
   const save=function(){
+    // El toque en «Listo» quita el foco y el botón vuelve a ser «Apuntar» bajo el mismo dedo: ese
+    // mismo toque no puede acabar guardando.
+    if(Date.now()-listoAt.current<500) return;
     if(!(amt>0)){ showToast(t("v4_apuntar_need")); return; }
     if(entryCur!=="EUR"){
       const r=tbl[entryCur];
@@ -5047,16 +5082,30 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const ctaAmount=NF.format(amt)+(entrySym.length>1?" ":"")+entrySym;
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
-      React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+      React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
+        // En px de pantalla: dentro del body con zoom, el margen se multiplicaría.
+        style:conceptoFoco?Object.assign(kbAlto?{height:kbAlto+"px"}:{},
+          kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))",maxHeight:"calc((100dvh - "+kbPad+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),
           onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); },
           amount:(raw||"0"),amountEmpty:!raw,currency:entrySym,onCurrency:function(){ setCurOpen(function(v){ return !v; }); setCalOpen(false); setBankOpen(false); },
           focused:true,concept:note,onConcept:setNote,fxHint:fxHint,meta:meta,afterMeta:afterMeta,
+          onConceptFocus:function(){
+            const el=swipe.sheetRef.current;
+            // px del propio CSS de la hoja (dentro del zoom del body), que es lo que se le vuelve a poner.
+            setKbAlto(el?parseFloat(getComputedStyle(el).height)||0:0);
+            setConceptoFoco(true);
+          },onConceptBlur:function(){ setConceptoFoco(false); setKbAlto(0); },kb:conceptoFoco,
           categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
           numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catMore:true,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
-          footer:React.createElement("button",{className:"v4-cta",onClick:save},kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
+          footer:conceptoFoco
+            // Sin quitar el foco al apretar (mousedown): así el toque lo resuelve «Listo», no el blur.
+            ? React.createElement("button",{key:"listo",className:"v4-cta","data-testid":"ap-kb-done",
+                onMouseDown:function(e){ e.preventDefault(); listoAt.current=Date.now(); },
+                onClick:function(){ listoAt.current=Date.now(); try{ document.activeElement&&document.activeElement.blur(); }catch(e){} }},t("f_kb_done"))
+            : React.createElement("button",{key:"cta",className:"v4-cta",onClick:save},kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
       )
     ),document.body);
   return React.createElement(React.Fragment,null,main,
