@@ -27462,6 +27462,9 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const total=state.debts.reduce((a,d)=>a+debtBalance(d),0);
   const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
   const addDebt=()=>{
+    // La hoja baja animada con el formulario aún vivo: un segundo toque daba otra deuda igual
+    // (revisión de dinero 235, M1). Desde el primer alta hasta que se desmonta, no se vuelve a crear.
+    if(addedRef.current) return;
     const v=parseFloat(String(form.value).replace(',','.'))||0;
     const months=parseInt(form.months,10)||0;
     const balloon=parseFloat(String(form.balloon).replace(',','.'))||0;
@@ -27944,14 +27947,17 @@ function Goals({state, set, totals, showToast}){
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);
   const [dlCal,setDlCal]=useState(false);
-  const addCloser=useRef(null);
-  const closeAdd=function(){ if(addCloser.current) addCloser.current(); else { setAdding(false); setForm(blank); } };
+  const addCloser=useRef(null), sentRef=useRef(false);
+  const closeAdd=function(){ if(addCloser.current) addCloser.current(); else { sentRef.current=false; setAdding(false); setForm(blank); } };
   const campoMeta=function(key,label,ph){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(ph?"":" num"),inputMode:ph?undefined:"decimal",placeholder:ph?t(ph):undefined,value:form[key],"data-goal-add":key,
       onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
 
   const addGoal=function(){
+    // Igual que addDebt: mientras la hoja baja, otro toque no crea otra meta (revisión 235, M1).
+    if(sentRef.current) return;
     const tg=parseFloat(String(form.target).replace(',','.'))||0; if(tg<=0) return;
+    sentRef.current=true;
     const sv=parseFloat(String(form.saved).replace(',','.'))||0;
     const mo=parseFloat(String(form.monthly).replace(',','.'))||0;
     const done=sv>=tg;
@@ -28029,7 +28035,7 @@ function Goals({state, set, totals, showToast}){
     /* Nueva meta en su hoja, con etiquetas y el calendario de la app en vez del selector de mes
        nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
        selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
-    adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ setAdding(false); setDlCal(false); setForm(blank); }},
+    adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ sentRef.current=false; setAdding(false); setDlCal(false); setForm(blank); }},
       React.createElement("div",{className:"add-form","data-testid":"goal-add-form"},
         campoMeta("name","plan_edit_name","gl_name_ph"),
         emojiPicker(form.emoji,function(e){ setForm(Object.assign({},form,{emoji:e})); }),
@@ -31112,7 +31118,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="1b14748fdf9e1ad1e98e380b71fd48c6993495c12a81f888971934e75b7c2039";
+var _rnSha="814f9a8fd386f63bfbe11e45c73369aef36b2bfd02d786e09e8225807b23489e";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

@@ -104,3 +104,47 @@ test("cerrar la hoja de meta descarta, como el viejo «Cancelar»", async ({ pag
   await page.getByRole("button", { name: "+ Nueva meta de ahorro", exact: true }).click();
   await expect(hoja.getByTestId("goal-add-form").getByLabel("Objetivo €", { exact: true })).toHaveValue("");
 });
+
+/* Revisión de dinero 235 (M1): la hoja baja animada y el formulario sigue vivo mientras tanto, así
+   que un segundo o tercer toque en el botón volvía a dar de alta (3 toques → 3 deudas; la base, 1).
+   Los toques van seguidos dentro de la página, sin esperar a Playwright, que es lo que hace un dedo. */
+async function tresToques(boton) {
+  await boton.evaluate((b) => { b.click(); b.click(); b.click(); });
+}
+
+test("★ triple toque en «Añadir deuda» crea UNA deuda", async ({ page }) => {
+  await abrePlan(page, "Deudas");
+  await page.getByRole("button", { name: "Añadir deuda", exact: true }).click();
+  const hoja = page.locator(".v4-sheet.plan-edit-sheet");
+  const f = hoja.getByTestId("debt-add-form");
+  await f.getByLabel("Importe €", { exact: true }).fill("900");
+  await f.getByLabel("Cuota al mes (€)", { exact: true }).fill("100");
+  await tresToques(f.getByRole("button", { name: "Añadir deuda", exact: true }));
+  await expect(hoja).toHaveCount(0);
+  await page.waitForTimeout(400);
+  expect(((await estado(page)).debts || []).length).toBe(1);
+  // Y la siguiente alta, con la hoja nueva, vuelve a funcionar.
+  await page.getByRole("button", { name: "Añadir deuda", exact: true }).click();
+  await f.getByLabel("Importe €", { exact: true }).fill("500");
+  await f.getByLabel("Cuota al mes (€)", { exact: true }).fill("50");
+  await f.getByRole("button", { name: "Añadir deuda", exact: true }).click();
+  await expect(hoja).toHaveCount(0);
+  await expect.poll(async () => ((await estado(page)).debts || []).length).toBe(2);
+});
+
+test("★ triple toque en «Crear meta» crea UNA meta", async ({ page }) => {
+  await abrePlan(page, "Metas");
+  await page.getByRole("button", { name: "+ Nueva meta de ahorro", exact: true }).click();
+  const hoja = page.locator(".v4-sheet.plan-edit-sheet");
+  const f = hoja.getByTestId("goal-add-form");
+  await f.getByLabel("Objetivo €", { exact: true }).fill("800");
+  await tresToques(f.getByRole("button", { name: "Crear meta", exact: true }));
+  await expect(hoja).toHaveCount(0);
+  await page.waitForTimeout(400);
+  expect(((await estado(page)).goals || []).length).toBe(1);
+  await page.getByRole("button", { name: /Nueva meta|Crear mi primera meta/ }).first().click();
+  await f.getByLabel("Objetivo €", { exact: true }).fill("300");
+  await f.getByRole("button", { name: "Crear meta", exact: true }).click();
+  await expect(hoja).toHaveCount(0);
+  await expect.poll(async () => ((await estado(page)).goals || []).length).toBe(2);
+});
