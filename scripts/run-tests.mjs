@@ -106,6 +106,7 @@ const steps = [
   ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
   ["plazos-deuda", ["node", "tests/plazos-deuda.test.mjs"]],
   ["deuda-ultima-cuota", ["node", "tests/deuda-ultima-cuota.test.mjs"]],
+  ["deuda-ultima-marca", ["node", "tests/deuda-ultima-marca.test.mjs"]],
   ["payment-evidence-ui", ["node", "tests/payment-evidence-ui.test.mjs"]],
   ["payment-presentation", ["node", "tests/payment-presentation.test.mjs"]],
 

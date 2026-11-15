@@ -912,6 +912,32 @@ function debtBalloonIn(d, y, m){ if(!d || !(d.balloon>0) || d.months==null) retu
 function debtBalance(d){ if(!d || d.value==null) return 0; return debtBalanceAfter(d, debtPaidCount(d)); }
 // ¿la cuota sigue cobrándose este mes? Una financiación (con `months` = plazo) deja de
 // cobrar al acabar el plazo o al llegar el saldo a 0. Sin plazo (hipoteca/préstamo): mientras quede saldo.
+/* ¿Es (y, m 1-12) el mes de la ÚLTIMA cuota de un plazo? Pagada la última, el saldo es 0 y la deuda
+   deja de estar activa; pero el cargo de ese mes sigue siendo su cuota (revisión de dinero 234, H-A2). */
+function debtUltimaCuotaEn(d, y, m){
+  if(!d||!(Number(d.monthly)>0)||d.months==null||!(d.months>=1)) return false;
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow();
+  return y*12+(m-1)===anchor+d.months-1;
+}
+/* Para el motor que reconoce cuotas en lo que trae el banco: la deuda activa, o una cuya última cuota
+   cae este mes o el anterior hace pocos días (el banco a veces apunta el cargo con retraso). Sin esto el
+   cargo de la última, que deja el saldo a 0, entraba como gasto. Que el cargo sea de un mes del plazo
+   lo mira `debtCuotaDelPlazo`. */
+const DEBT_GRACIA_DIAS=10;
+function debtCuotaReciente(d){
+  if(debtActive(d)) return true;
+  if(!d||!(Number(d.monthly)>0)||d.months==null||!(d.months>=1)) return false;
+  const p=madridYmdParts(Date.now()), now=ymAbs(p.y,p.m-1), last=((typeof d.asOf==="number")?d.asOf:ymNow())+d.months-1;
+  return now===last||(now===last+1&&p.d<=DEBT_GRACIA_DIAS);
+}
+// ¿La clave «id|año-mes» de una cuota cae dentro del plazo? (sin plazo, siempre).
+function debtCuotaDelPlazo(d, key){
+  if(!d||d.months==null) return true;
+  const mm=/\|(\d+)-(\d+)$/.exec(String(key||""));
+  if(!mm) return true;
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow();
+  return Number(mm[1])*12+Number(mm[2])-1<=anchor+d.months-1;
+}
 function debtActive(d){ if(!d || !d.monthly) return false; const bal=debtBalance(d); if(d.months!=null){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return ymNow()>=anchor && (ymNow()-anchor) < d.months && bal>0.005; } return bal>0.005; }
 /* ¿Se cobra la cuota en el mes (y, m 1-12) que se mira? Con el ancla en este mes o antes es `debtActive`
    tal cual (mira hoy, como siempre). Solo una compra a plazos que aún no ha empezado (ancla futura,

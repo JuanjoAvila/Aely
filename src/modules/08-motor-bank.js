@@ -515,7 +515,7 @@ function fixedPaymentFeedClear(s,identity){
 function fixedPaymentContenders(s,y,m){
   return (s.fixed||[]).filter(function(f){ return occursIn(f,m,y); }).map(function(f){
     return fixedPaymentContender(f,y,m);
-  }).concat((s.debts||[]).filter(debtActive).map(function(d){
+  }).concat((s.debts||[]).filter(function(d){ return debtActive(d)||debtUltimaCuotaEn(d,y,m); }).map(function(d){
     return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d)),debt:d};
   }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
     return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount,day:cleanDay(o.day)};
@@ -1335,7 +1335,7 @@ function paymentEvidenceUI(s,y,m,today){
     if(tx&&x.extId&&tx.id&&String(x.extId)!==String(tx.id)) return;
     add(x,"fixed",f);
   });
-  (s.debts||[]).filter(debtActive).forEach(function(d){
+  (s.debts||[]).filter(function(d){ return debtActive(d)||debtUltimaCuotaEn(d,y,m); }).forEach(function(d){
     var x=debtPaymentState(s,d,y,m,today).expense,ok=!!x&&current(x);
     confirmed["debt_"+d.id]=ok;confirmed["balloon_"+d.id]=ok;
     if(ok) add(x,"debt",d);
@@ -3827,7 +3827,7 @@ function importObExpenses(s, txs, links){
   const modeledByEnt={};
   const pushModeled=function(ent,name,amount,debtId,otro,id){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null,otro:otro,id:id||null}); };
   (s.fixed||[]).forEach(function(f){ chargeMonths(f).concat(ym).forEach(function(mm){ pushModeled(accOf(f), f.name, occAmountIn(f,mm,yy), 0, mm!==ym||!occursIn(f,ym,yy), f.id); }); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", debtCuotaIn(d,yy,ym)+debtBalloonIn(d,yy,ym), d.id); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d)||debtUltimaCuotaEn(d,yy,ym)) pushModeled(d.account||"sabadell", d.name||"Cuota", debtCuotaIn(d,yy,ym)+debtBalloonIn(d,yy,ym), d.id); });
   (s.oneoffs||[]).forEach(function(o){ pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0, 0, !oneoffOccurs(o,yy,ym), o.id); });
   /* QUÉ casó, no solo SI casó (4.21.0). Una DEUDA casada entra y `marcarCuotasDeDeuda` la pone
      en «Deudas», fuera del gastado. Un Fijo o un puntual casado entra con `reciboId` (12/10/2026):
@@ -4397,7 +4397,8 @@ function cuotaAliasKey(e){
 const CUOTA_ALIAS_DIAS=15;
 function cuotasDeDeudaPorMarcar(s){
   const todas=((s&&s.debts)||[]).filter(function(d){ return d && d.id; });
-  const debts=todas.filter(function(d){ return debtActive(d); });
+  // La última cuota se reconoce aunque ya haya dejado el saldo a 0 (revisión de dinero 234, H-A2).
+  const debts=todas.filter(function(d){ return debtCuotaReciente(d); });
   const alias=(s&&s.cuotaAlias)||{};
   const hayAlias=Object.keys(alias).length>0;
   if(!debts.length && !hayAlias) return [];
@@ -4420,7 +4421,7 @@ function cuotasDeDeudaPorMarcar(s){
     const ent=expenseBankOf(e);
     if(!neutra) debts.forEach(function(d){
       const c=cuotaCasa(d, ent, e.amount||0, e.obName!=null?e.obName:(e.merchant||""), ms);
-      if(c) cands.push({ e:e, d:d, key:c.key, score:c.score });
+      if(c && debtCuotaDelPlazo(d, c.key)) cands.push({ e:e, d:d, key:c.key, score:c.score });
     });
     const ak=hayAlias && cuotaAliasKey(e);
     const da=ak && alias[ak] && todas.find(function(x){ return x.id===alias[ak]; });
@@ -5837,7 +5838,7 @@ function histSignSuspectByBank(cands){
    y lo que entra en este lote, y solo dentro de la ventana de `CUOTA_MESES`.
    Solo mira candidatos que de otro modo entrarían nuevos. → { índice: debtId }. */
 function histCuotasDeDeuda(cands, state, saltar){
-  const debts=((state&&state.debts)||[]).filter(function(d){ return d && d.id && debtActive(d); });
+  const debts=((state&&state.debts)||[]).filter(function(d){ return d && d.id && debtCuotaReciente(d); });
   const out={};
   if(!debts.length) return out;
   const desde=cuotaDesdeMs();
@@ -5849,7 +5850,7 @@ function histCuotasDeDeuda(cands, state, saltar){
     if(!(ms>=desde)) return;
     debts.forEach(function(d){
       const c=cuotaCasa(d, x.ent, Math.abs(x.amount||0), x.merchant||"", ms);
-      if(c) posibles.push({ i:i, d:d, key:c.key, score:c.score });
+      if(c && debtCuotaDelPlazo(d, c.key)) posibles.push({ i:i, d:d, key:c.key, score:c.score });
     });
   });
   posibles.sort(function(a,b){ return a.score-b.score; });
