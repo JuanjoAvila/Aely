@@ -26,8 +26,9 @@ async function ready(p){await expect(p.locator('.botnav')).toBeVisible();await d
 async function openChild(p){await p.getByRole('button',{name:/Ver todas tus inversiones/}).click();await expect(child(p)).toBeVisible();}
 async function local(p,cur){await child(p).locator('.curtoggle').getByRole('button',{name:({EUR:'€',USD:'$',GBP:'£'})[cur],exact:true}).click();}
 async function global(p,cur){
+ // Desde DIS-40 cada desplegable es una fila (`.set-sub`) de la tarjeta de su grupo: se busca la fila, no la tarjeta.
  await p.evaluate(()=>window.dispatchEvent(new CustomEvent('mc-open-settings')));const s=p.locator('.settings-push.open').filter({has:p.locator('button.set-row')});
- const card=s.locator('.set-card').filter({hasText:'Moneda de visualización'});if(!await card.locator(':scope > .collapsible.open').count())await card.locator(':scope > button').click();
+ const card=s.locator('.set-card > .set-sub').filter({hasText:'Moneda de visualización'});await expect(card).toHaveCount(1);if(!await card.locator(':scope > .collapsible.open').count())await card.locator(':scope > button').click();
  const row=s.locator('button.set-row').filter({hasText:'Moneda de visualización'}).first();if(!await row.locator('.sr-chev.open').count())await row.click();
  await s.getByRole('button',{name:({EUR:'€ Euro',USD:'$ Dólar',GBP:'£ Libra'})[cur],exact:true}).click();await s.locator('.settings-push-h button.back').click();await expect(s).toHaveCount(0);
 }
