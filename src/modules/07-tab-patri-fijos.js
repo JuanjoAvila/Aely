@@ -867,13 +867,49 @@ const debtAmort=(d)=> d && d.amort!=null ? d.amort : ((d&&d.monthly)||0);
 // su día (ej. financias el 599/4 con día 26 y hoy es 28 → el 1er pago del 26 ya cuenta).
 // Un ancla en un mes que aún no ha llegado es una compra a plazos cuya 1.ª cuota cae ese mes («¿Y si gasto…?»
 // › «A plazos», 11/11/2026): hasta entonces no hay nada pagado. Las altas de Deudas nunca anclan en el futuro.
-function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+// Con plazo, nunca más de `months`: pasado el plazo no se cobra nada, así que tampoco se paga nada
+// (sin tope el saldo seguía bajando solo, sin ningún cobro; revisión externa 15/11/2026).
+function debtPaidCount(d){ const n=debtCuotasDesdeAncla(d); return d.months!=null?Math.min(n,Math.max(0,d.months)):n; }
+/* Lo mismo SIN tope: las cuotas que han vencido desde el ancla. Lo usan solo editar y amortizar, que
+   re-anclan una deuda ya vencida con saldo (dato heredado) contando desde hoy: con el tope, el plazo
+   nuevo quedaba antes de hoy y la deuda no volvía a cobrar nunca. */
+function debtCuotasDesdeAncla(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+/* LA ÚLTIMA CUOTA SE LLEVA EL REDONDEO (revisión externa 15/11/2026). La cuota se guarda redondeada al
+   céntimo y se cobraba igual los n meses: 600,03 en 12 sumaba 600,00 y dejaba 0,03 debidos para
+   siempre; 1.199,99 en 7 cobraba 1.200,01. En céntimos, la última amortiza lo que falta: principal
+   (value − pago final) − (n − 1) × amort. Devuelve cuánto se aparta de `amort` (céntimos, con signo).
+   null = no aplica: sin plazo, o un saldo que el plazo no cubre ni de lejos (más de un céntimo por
+   cuota de diferencia, dato heredado): eso no es redondeo y darlo por pagado sería inventar. Una
+   última parcial tras amortizar (350 con cuota 100 → 100, 100, 100 y 50) sí aplica. */
+function debtUltimaAjuste(d){
+  if(!d||d.months==null||!(d.months>=1)) return null;
+  const n=d.months, A=Math.round(debtAmort(d)*100), P=Math.round((Number(d.value)||0)*100)-Math.round((Number(d.balloon)||0)*100);
+  if(!(A>0)||!(P>0)) return null;
+  const last=P-(n-1)*A;
+  return last>0&&last<=A+n?last-A:null;
+}
+// Saldo tras `n` cuotas pagadas. Con el ajuste de la última, acabado el plazo no queda nada.
+function debtBalanceAfter(d, n){
+  if(d.months!=null){ n=Math.min(n,d.months); if(n>=d.months&&debtUltimaAjuste(d)!=null) return 0; }
+  let b=d.value - debtAmort(d)*n; if(d.balloon>0 && d.months!=null && n>=d.months) b-=d.balloon; return Math.max(0, b);
+}
+/* La cuota en EFECTIVO del mes (y, m 1-12; sin mes, el de hoy): `monthly`, salvo la última de un plazo,
+   que lleva el ajuste. Solo cuando la cuota ES lo que amortiza (financiación al 0 %): si difieren
+   (intereses, préstamo familiar que paga 197 y baja 250) lo que el banco cobre el último mes no lo
+   sabemos y se queda la cuota de siempre. El pago final va aparte (`debtBalloonIn`). */
+function debtCuotaIn(d, y, m){
+  const q=Number(d&&d.monthly)||0;
+  if(!(q>0)||d.months==null||Math.round(debtAmort(d)*100)!==Math.round(q*100)) return q;
+  if(y==null){ const p=madridYmdParts(Date.now()); y=p.y; m=p.m; }
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(), adj=debtUltimaAjuste(d);
+  return adj!=null&&(y*12+(m-1))===anchor+d.months-1 ? (Math.round(q*100)+adj)/100 : q;
+}
 // Financiación tipo coche: además de entrada (downPayment, ya pagada = informativa) y cuotas,
 // hay un PAGO FINAL (balloon) en el último mes del plazo. debtBalloonIn(d,y,m): balloon si (y,m 1-12)
 // es ese último mes; 0 si no. La amort lineal ya se fija a (value−balloon)/months al crear la deuda,
 // así el saldo baja con las cuotas y el balloon limpia el resto al final.
 function debtBalloonIn(d, y, m){ if(!d || !(d.balloon>0) || d.months==null) return 0; const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return (y*12+(m-1))===(anchor+d.months-1) ? d.balloon : 0; }
-function debtBalance(d){ if(!d || d.value==null) return 0; let b=d.value - debtAmort(d)*debtPaidCount(d); if(d.balloon>0 && d.months!=null && debtPaidCount(d)>=d.months) b-=d.balloon; return Math.max(0, b); }
+function debtBalance(d){ if(!d || d.value==null) return 0; return debtBalanceAfter(d, debtPaidCount(d)); }
 // ¿la cuota sigue cobrándose este mes? Una financiación (con `months` = plazo) deja de
 // cobrar al acabar el plazo o al llegar el saldo a 0. Sin plazo (hipoteca/préstamo): mientras quede saldo.
 function debtActive(d){ if(!d || !d.monthly) return false; const bal=debtBalance(d); if(d.months!=null){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return ymNow()>=anchor && (ymNow()-anchor) < d.months && bal>0.005; } return bal>0.005; }
@@ -898,7 +934,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
   let net=0;
   (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s)) && !fixedPagadoFuera(s,e,y,m,t)) net -= occAmountIn(e,m,y); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.
   (s.flows||[]).forEach(function(f){

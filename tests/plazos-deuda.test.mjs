@@ -64,7 +64,8 @@ test("plazo no válido (0, 1 o más de 120) o nada que financiar: no hay deuda",
 
 test("las deudas de siempre (ancla en este mes o antes) cuentan igual que antes",()=>{
   // Oráculo de la regla de siempre: meses desde el ancla, más la de este mes si su día ya pasó.
-  const viejo=d=>Math.max(0,ahora-d.asOf)+(d.months!=null&&(d.day||1)<=dia?1:0);
+  // Con plazo, nunca más de `months` (tope de la revisión externa 15/11/2026: «e» ya acabó).
+  const viejo=d=>Math.min(d.months,Math.max(0,ahora-d.asOf)+(d.months!=null&&(d.day||1)<=dia?1:0));
   for(const d of [
     {id:"a",value:1200,monthly:100,months:12,asOf:ahora,day:1},
     {id:"b",value:1200,monthly:100,months:12,asOf:ahora,day:28},

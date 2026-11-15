@@ -65,6 +65,12 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // La última cuota de un plazo se lleva el redondeo (revisión externa 15/11/2026): Recibos y Deudas.
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
   // Textos que contradecían la pantalla (auditoría 14/11/2026): portada de Plan sencillo, «libres
   // de» del ciclo, metas en Inicio sencillo, <html lang>, tipo de cambio y candado sin diálogo nativo.
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/textos-claros.spec.mjs"] },

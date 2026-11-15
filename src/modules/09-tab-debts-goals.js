@@ -28,7 +28,7 @@ function debtEditAmortDePlazo(d,form){
   if(!debtEditAmortable(d)||form.amort===undefined||planEditNumber(form.apr,true)>0) return null;
   const amort=planEditNumber(form.amort,true),monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true),balance=planEditNumber(form.balance);
   if(!(amort>0)||!(monthly>=0)||Math.round(amort*100)===Math.round(monthly*100)||months==null||!Number.isInteger(months)||!(balance>0)) return null;
-  const remaining=months-debtPaidCount(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
+  const remaining=months-debtCuotasDesdeAncla(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
   if(!(remaining>0)||principal<=0) return null;
   return String(Math.ceil(principal/remaining)/100);
 }
@@ -77,7 +77,7 @@ function debtEditResult(d,form){
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
   // Cambiar lo que baja re-ancla `value` (si no, el saldo de hoy cambiaría hacia atrás: value − amort×pagadas).
   if(amountChanged||quotaChanged||dayChanged||termChanged||amortChanged){
-    const am=debtAmort(next),paid=debtPaidCount(next);
+    const am=debtAmort(next),paid=debtCuotasDesdeAncla(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
     // También al tocar SOLO la cuota que amortiza: antes se alargaba el plazo en silencio y una cuota
@@ -127,7 +127,7 @@ function debtEditExtension(d,form){
   if(d.amort==null&&(d.apr>0||planEditNumber(form.apr,true)>0)) return {error:"db_extend_unknown"};
   const next=Object.assign({},d,{monthly:+monthly.toFixed(2),day:planEditNumber(form.day)});
   if(d.amort!=null&&Math.abs(d.amort-(d.monthly||0))<=0.005) next.amort=next.monthly;
-  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtPaidCount(next));
+  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtCuotasDesdeAncla(next));
   if(!Number.isSafeInteger(n)||n<=months||debtEditResult(d,Object.assign({},form,{months:String(n)})).error) return null;
   return {months:n};
 }
@@ -494,7 +494,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const [form,setForm]=useState({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""});
   const banks=(function(){ const b=[]; (state.accounts||[]).forEach(a=>{ if(b.indexOf(a.ent)<0) b.push(a.ent); }); ["sabadell","trade_republic","familia"].forEach(x=>{ if(b.indexOf(x)<0) b.push(x); }); return b; })();
   const total=state.debts.reduce((a,d)=>a+debtBalance(d),0);
-  const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
+  const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d):0),0);
   const addDebt=()=>{
     const v=parseFloat(String(form.value).replace(',','.'))||0;
     const months=parseInt(form.months,10)||0;
@@ -579,10 +579,10 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
         const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});   // el ancla no se toca: el pendiente baja justo lo amortizado
         if(remaining<=0.005){
-          if(x.months!=null) o.months=debtPaidCount(x);
+          if(x.months!=null) o.months=debtCuotasDesdeAncla(x);
           delete o.balloon;
           o.settledAt=new Date().toISOString();
-        }else if(x.months!=null){ const am=debtAmort(x); if(am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=debtPaidCount(x)+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); } }
+        }else if(x.months!=null){ const am=debtAmort(x); if(am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=debtCuotasDesdeAncla(x)+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); } }
         changed=true; return o;
       });
       return changed?Object.assign({},s,{debts:debts}):s;

@@ -105,6 +105,7 @@ const steps = [
   ["supabase-workflow", ["node", "tests/supabase-workflow.test.mjs"]],
   ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
   ["plazos-deuda", ["node", "tests/plazos-deuda.test.mjs"]],
+  ["deuda-ultima-cuota", ["node", "tests/deuda-ultima-cuota.test.mjs"]],
   ["payment-evidence-ui", ["node", "tests/payment-evidence-ui.test.mjs"]],
   ["payment-presentation", ["node", "tests/payment-presentation.test.mjs"]],
 

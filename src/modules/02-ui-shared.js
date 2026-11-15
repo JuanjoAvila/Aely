@@ -1191,7 +1191,9 @@ function netWorthDebtPolicy(state, today, current){
       value=Number(d.value)-debtAmort(d)*paidToday;
       for(let k=n;k<paidToday;k++) value=(value+Number(d.monthly))/(1+rate);
     }
-    if(d.balloon>0&&d.months!=null&&n>=d.months) value-=d.balloon;
+    // Con plazo, el mismo cuadro que `debtBalance`: tope de n cuotas y la última con el redondeo
+    // (sin él, 600,03 en 12 se quedaba en 0,03 y pasado el plazo seguía bajando; revisión 15/11/2026).
+    if(d.months!=null) value=debtBalanceAfter(d,n);
     if(n<0&&d.original>0) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));
     return Math.max(0,value);
   };

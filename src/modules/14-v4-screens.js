@@ -1984,7 +1984,7 @@ function reciboCargoTexto(x){ return String((x&&(x.merchant||x.obName))||""); }
 function deudaCargoEnlazado(s, d, y, m, today){
   if(!d) return null;
   const st=debtPaymentState(s,d,y,m,today);
-  if(st.expense) return {x:st.expense, acredita:true, motivo:null, cuota:(Number(d.monthly)||0)+debtBalloonIn(d,y,m)};
+  if(st.expense) return {x:st.expense, acredita:true, motivo:null, cuota:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m)};
   const fin=new Date(y,m-1,today,23,59,59).getTime(), borrados=expenseDeletedSet(s);
   // La misma ventana que usa el motor para atar un cargo a la cuota de un mes.
   const filas=(s.expenses||[]).filter(function(x){
@@ -1995,7 +1995,7 @@ function deudaCargoEnlazado(s, d, y, m, today){
     return c.key===y+"-"+m&&c.dias<=CUOTA_ALIAS_DIAS;
   }).sort(function(a,b){ return dateMs(String(b.date).slice(0,10))-dateMs(String(a.date).slice(0,10)); });
   if(!filas.length) return null;
-  const x=filas[0], cuota=(Number(d.monthly)||0)+debtBalloonIn(d,y,m);
+  const x=filas[0], cuota=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
   const motivo=cleanDay(dayOf(d))==null?"sin_dia":Math.round(cuota*100)!==Math.round(Number(x.amount)*100)?"importe":"banco";
   return {x:x, acredita:false, motivo:motivo, cuota:cuota};
 }

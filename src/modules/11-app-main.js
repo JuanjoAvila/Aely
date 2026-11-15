@@ -2511,7 +2511,7 @@ function App(){
     // recibos»: con `amount×FREQ_M` un recibo de importe distinto por cobro (seguro 172,05 + 166,94)
     // ignoraba su `schedule` y la cabecera no cuadraba con la suma de sus grupos (beta 4.26.150).
     const fijosVar=state.fixed.reduce((a,e)=>a+fixedMonthlyOf(e),0);
-    const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
+    const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d,curYear,curMonth):0),0);
     const fijosMensual=fijosVar+cuotas;
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
     // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---
@@ -2541,7 +2541,7 @@ function App(){
       chargesByBank[b]=(chargesByBank[b]||0)+extra;
       if(!isPaidIn(e,curMonth,today,curYear,state)&&!fixedPagadoFuera(state,e,curYear,curMonth,today)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
     });
-    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
+    state.debts.forEach(d=>{ if(debtActive(d)) acc(debtCuotaIn(d,curYear,curMonth)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
@@ -2891,7 +2891,7 @@ function App(){
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
-      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)};
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d)};
       c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
@@ -2948,7 +2948,7 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        const msg=messageOf("debt_"+d.id,d.name,d.monthly);
+        const msg=messageOf("debt_"+d.id,d.name,debtCuotaIn(d,cy,cm));
         notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });
     };
