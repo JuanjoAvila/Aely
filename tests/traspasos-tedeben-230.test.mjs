@@ -215,7 +215,9 @@ function suite(c){
     const a=(id,quien)=>fila(id,"sabadell","2026-10-30",400,quien,{concept:"TRANSFERENCIA A "+quien.toUpperCase()});
     assert.deepEqual(salen(estado({settings:perfil,flows:[A_MI],expenses:[a("h1","Pedro Sastre Ruano")]})),[],"hermano");
     assert.deepEqual(salen(estado({settings:perfil,flows:[A_MI],expenses:[a("t1","Leo Marc Garcia")]})),[],"tocayo");
-    assert.deepEqual(salen(estado({settings:perfil,flows:[A_MI],expenses:[a("y1","Leo Sastre Ruano")]})),["y1"],"nombre de pila y los dos apellidos");
+    // Sin el segundo nombre ya no vale (revisión del 15/11/2026): un hermano de nombre compuesto también la cumplía.
+    assert.deepEqual(salen(estado({settings:perfil,flows:[A_MI],expenses:[a("y1","Leo Sastre Ruano")]})),[],"nombre de pila y los dos apellidos");
+    assert.deepEqual(salen(estado({settings:perfil,flows:[A_MI],expenses:[a("y2","Leo Marc Sastre Ruano")]})),["y2"],"el nombre entero");
   });
   caso("A6 · la pata de llegada sola no basta: el alquiler al casero con 700 € entrando en otro banco",()=>{
     dia(12);
@@ -273,9 +275,9 @@ const MUTANTES=[
   ["C · la gemela se queda el adelanto del mes anterior",'&&(!gem||String(x.date).slice(0,7)===ym)',''],
   ["C · dos gemelas comparten un pago",'&&!usados.has(String(x.id))&&','&&'],
   ["A · pareja sin mirar que sea la única",'return salidas.length===1&&salidas[0]===e&&','return salidas.length>=1&&'],
-  ["A · basta un traspaso previsto, aunque no vaya a su nombre",'if(tuyo&&previsto(e,null)) return true;','if(previsto(e,null)) return true;'],
+  ["A · basta un traspaso previsto, aunque no vaya a su nombre",'if(tuyo&&previsto(e,null,true)) return true;','if(previsto(e,null,true)) return true;'],
   ["A · la pata de llegada sola basta",'&&(tuyo||previsto(e,expenseBankOf(l)))',''],
-  ["A · dos palabras del titular bastan",'w.every(esta)||w.length>=3&&esta(w[0])&&esta(w[w.length-2])&&esta(w[w.length-1])','w.filter(esta).length>=2'],
+  ["A · dos palabras del titular bastan",'.replace(TRASPASO_A_RE,""))===w;','.replace(TRASPASO_A_RE,"")).split(" ").filter(function(k){ return w.split(" ").indexOf(k)>=0; }).length>=2;'],
   ["A · traspaso previsto de cualquier día",'Math.abs(r-pl)<=FLOW_ADELANTO;','true;'],
   ["A · no respeta su «Otros»",'ov==="otros"||reciboVetado','reciboVetado'],
   ["A · no respeta que la devolviera a «Otros»",'||reciboVetado(s,TRASPASO_NO,k)) return false;',') return false;'],
