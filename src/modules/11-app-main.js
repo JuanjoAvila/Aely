@@ -3985,6 +3985,26 @@ function App(){
     if(!id) return;
     setMountedTabs(function(m){ return m[id]? m : Object.assign({},m,{[id]:true}); });
   },[tab, tabIds.join("|")]);
+  /* La franja de banco caído de Inicio (DIS-23) llega por evento y no por prop de Dashboard:
+     así ni su firma ni `goInversiones` (que vigila nav-indicator) cambian. Aterriza como
+     «Abrir en Cartera ›»: Cartera arriba y se baja hasta los avisos con el `scrollTop` de la
+     propia página, sin `scrollIntoView`, que movería el carrusel de pestañas. Sin deps a
+     propósito: el manejador ve siempre el `goTabTop` y las pestañas del último render. */
+  useEffect(function(){
+    const h=function(){
+      const i=tabIds.indexOf("cartera");
+      if(i<0) return;
+      goTabTop(i);
+      requestAnimationFrame(function(){
+        const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
+        const sec=pg&&pg.querySelector(".v4-bank-issues");
+        if(!sec) return;
+        pg.scrollTop=Math.max(0,pg.scrollTop+sec.getBoundingClientRect().top-pg.getBoundingClientRect().top-12);
+      });
+    };
+    window.addEventListener("mc-go-bank-issues",h);
+    return function(){ window.removeEventListener("mc-go-bank-issues",h); };
+  });
   // Tras el primer pintado: NO montar vecinas en auto. Montar ±1 al toque/swipe (prepMountTab)
   // evitaba un segundo hitch a ~900 ms junto con WhatsNew (feedback 2026-07-16).
   //

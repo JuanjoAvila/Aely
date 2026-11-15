@@ -404,6 +404,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
       )
     ),
+    // Un banco caído deja el patrimonio de aquí desfasado: se dice aquí también (DIS-23).
+    React.createElement(AvisoBancoFranja,{issues:state.bankIssues}),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash
        nadie las ve (misma trampa que el count-up). prefers-reduced-motion: sin brillo (CSS). */

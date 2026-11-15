@@ -156,6 +156,67 @@ function HelpTip({text}){
   );
 }
 
+/* ---------- Avisos de banco caído (`state.bankIssues`) ----------
+   Los textos de cada caso salen de aquí para que Inicio y Cartera digan lo mismo.
+   · «noacct» = enlazado pero el banco no devuelve ninguna cuenta: el texto de «permiso caducado»
+     ahí despistaba, porque no hay ningún permiso que renovar (2026-07-24).
+   · «pending» = se quedó a medio autorizar en el banco. No es un permiso caducado —nunca llegó a
+     haberlo— ni un enlace sin cuentas: el viaje al banco no terminó. Hasta el 11/9 este caso no
+     llegaba siquiera a la app (ver `bankIssuesOf`) y su CaixaBank se quedó ahí semanas sin aviso.
+   · TRADE REPUBLIC ENTRA POR DOS PUERTAS, Y SE ROMPEN POR SEPARADO (petición suya, 10/9). Esto es
+     el permiso de Open Banking (sus COMPRAS con tarjeta, se arregla con el OAuth del banco); la
+     sesión con PIN + SMS de la API propia (POSICIONES y EFECTIVO) tiene su banner aparte en
+     Cartera. Cuando los dos decían «Trade Republic» no había forma de saber cuál tocar. */
+function avisoBancoTxt(is){
+  const lbl=is.ent?entOf(is.ent).label:(is.aspsp||"🏦");
+  const noacct=is.kind==="noacct", pend=is.kind==="pending", esTR=is.ent==="trade_republic";
+  return {
+    titulo: esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(pend?"bk_issue_pending":(noacct?"bk_issue_noacct":"bk_issue"),{bank:lbl}),
+    sub: esTR ? t("bk_tr_ob_sub") : t(pend?"bk_issue_pending_sub":(noacct?"bk_issue_noacct_sub":"bk_issue_sub")),
+    cta: esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl}),
+    // El botón de la fila es corto; en TR no puede decir «Reconectar» como el del PIN + SMS
+    // («Reconectar Trade Republic», banner de al lado): «Renovar» casa con «permiso caducado».
+    btn: esTR ? t("bk_tr_ob_btn") : t("bank_reconnect")
+  };
+}
+/* UNA fila por banco dentro de una sola tarjeta (diseño 233, DIS-24). Antes cada banco era una
+   tarjeta de ~105 px con párrafo y botón a todo el ancho: con dos bancos caídos las cuentas
+   quedaban fuera de la primera pantalla de Cartera. La explicación sigue ahí, plegada: se abre
+   tocando la fila (o su «?»). El «Reconectar» llama a lo mismo que antes, solo cambia dónde va. */
+function AvisosBanco({issues, onReconnect}){
+  const [abierto,setAbierto]=useState(null);
+  if(!issues||!issues.length) return null;
+  return React.createElement("div",{className:"v4-card v4-bank-issues"},
+    issues.map(function(is){
+      const x=avisoBancoTxt(is), open=abierto===is.aspsp;
+      return React.createElement("div",{key:"bi_"+is.aspsp,className:"v4-bank-issue"+(open?" open":"")},
+        React.createElement("div",{className:"v4-bank-issue-row"},
+          React.createElement("button",{type:"button",className:"v4-bank-issue-info","aria-expanded":open,
+              onClick:function(){ setAbierto(open?null:is.aspsp); }},
+            React.createElement(Mono,{ent:is.ent,size:28}),
+            React.createElement("span",{className:"v4-bank-issue-t"},x.titulo),
+            React.createElement("span",{className:"v4-bank-issue-q","aria-hidden":true},"?")),
+          onReconnect && React.createElement("button",{type:"button",className:"btn btn-primary v4-bank-issue-cta","aria-label":x.cta,
+            onClick:function(){ onReconnect(is.aspsp); }}, x.btn)),
+        // Plegado con alto animado (grid 0fr → 1fr): abrir no da saltos (feedback 28/10).
+        React.createElement("div",{className:"v4-bank-issue-sub","aria-hidden":!open},
+          React.createElement("div",null,React.createElement("p",null,x.sub))));
+    }));
+}
+/* La misma lectura en Inicio, en una franja (DIS-23): el patrimonio de Inicio puede estar
+   desfasado y solo lo decía Cartera. Solo `state.bankIssues`, sin pedir nada nuevo a la nube.
+   Tocarla lleva a los avisos de Cartera, donde está el arreglo. */
+function AvisoBancoFranja({issues}){
+  if(!issues||!issues.length) return null;
+  const uno=issues.length===1;
+  return React.createElement("button",{type:"button",className:"v4-bank-strip rise","data-testid":"inicio-aviso-banco",
+    // Por evento (lo recoge App): ver «La franja de banco caído» en 11-app-main.
+    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-go-bank-issues")); }catch(e){} }},
+    uno?React.createElement(Mono,{ent:issues[0].ent,size:24}):null,
+    React.createElement("span",{className:"v4-bank-strip-t"}, uno?avisoBancoTxt(issues[0]).titulo:tf("ini_bank_issue_many",{n:issues.length})),
+    React.createElement("span",{className:"v4-bank-strip-cta"}, t("ini_bank_issue_cta")+" ›"));
+}
+
 /* ============================================================
    INFORME DEL MES — imagen 1080×1350 (para compartir por WhatsApp/IG) con los
    colores del tema activo. Todo en el dispositivo (canvas → share/descarga).

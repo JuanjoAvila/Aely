@@ -160,9 +160,9 @@ test("Cartera: un banco caducado saca el banner con su botón de reconectar", as
   const banner = page.locator(".v4-bank-issue");
   await expect(banner).toHaveCount(1);
   await expect(banner).toContainText(/necesita tu permiso|needs your permission|necessita el teu perm/i);
-  await expect(banner.getByRole("button")).toBeVisible();
-  // El botón dice «Reconectar …» a secas: el candado abierto se retiró (feedback 18/9).
-  await expect(banner.getByRole("button")).not.toContainText("🔓");
+  await expect(banner.locator(".v4-bank-issue-cta")).toBeVisible();
+  // El botón dice «Reconectar» a secas: el candado abierto se retiró (feedback 18/9).
+  await expect(banner.locator(".v4-bank-issue-cta")).not.toContainText("🔓");
 });
 
 test("Cartera: un banco enlazado SIN cuentas dice lo suyo, no «permiso caducado»", async ({ page }) => {

@@ -923,6 +923,34 @@
   .v4-inicio-head{display:flex;align-items:center;justify-content:space-between;padding:12px 2px 4px;}
   .v4-inicio-date{font-size:14px;color:var(--muted-2);font-weight:600;}
   .v4-inicio-hi{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.2px;margin-top:2px;}
+  /* Avisos de banco caído (diseño 233, DIS-23/24). En Cartera, UNA tarjeta con una fila por banco
+     (con dos bancos caídos, las tarjetas de antes sacaban las cuentas de la primera pantalla); la
+     explicación se despliega con alto animado. En Inicio, una franja en tan que avisa sin alarmar:
+     allí no se arregla nada, solo lleva a Cartera. */
+  .v4-bank-issues{margin-top:10px;padding:2px 12px;border:1px solid color-mix(in srgb,var(--coral) 45%,transparent);
+    background:color-mix(in srgb,var(--coral) 8%,transparent);}
+  .v4-bank-issue + .v4-bank-issue{border-top:1px solid var(--line-soft);}
+  .v4-bank-issue-row{display:flex;align-items:center;gap:8px;min-height:54px;}
+  .v4-bank-issue-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:44px;padding:0;
+    background:none;border:none;color:var(--text);text-align:left;cursor:pointer;}
+  .v4-bank-issue-t{flex:1;min-width:0;font-size:14px;font-weight:800;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .v4-bank-issue-q{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    font-size:12px;font-weight:800;color:var(--muted);border:1px solid var(--line);}
+  /* 36 px de dibujo y 44 de dedo: el `::after` agranda la zona sin agrandar el botón. */
+  .v4-bank-issue-cta{flex:0 0 auto;position:relative;height:36px;padding:0 14px;font-size:13px;border-radius:11px;}
+  .v4-bank-issue-cta::after{content:"";position:absolute;inset:-4px -2px;}
+  .v4-bank-issue-sub{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.32,.72,0,1);}
+  .v4-bank-issue.open .v4-bank-issue-sub{grid-template-rows:1fr;}
+  .v4-bank-issue-sub > div{min-height:0;overflow:hidden;}
+  .v4-bank-issue-sub p{margin:0;padding:0 0 12px 38px;font-size:12.5px;color:var(--muted);line-height:1.45;}
+  html.reduce-motion .v4-bank-issue-sub{transition:none;}
+  .v4-bank-strip{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;margin-top:8px;padding:8px 12px;
+    border-radius:12px;background:color-mix(in srgb,var(--tan) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--tan) 40%,transparent);color:var(--text);
+    font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
+  .v4-bank-strip-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .v4-bank-strip-cta{flex:0 0 auto;color:var(--tan);font-weight:800;}
   .v4-hero{text-align:center;padding:22px 0 8px;}
   .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
   .v42-net{position:relative;}
