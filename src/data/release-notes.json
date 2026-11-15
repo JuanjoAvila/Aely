@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.234",
+    "d": "2026-11-15",
+    "t": {
+      "es": "Deudas a plazos que cuadran al céntimo y traspasos mejor reconocidos",
+      "en": "Instalment debts that add up to the cent and better-recognised transfers",
+      "ca": "Deutes a terminis que quadren al cèntim i traspassos més ben reconeguts"
+    },
+    "items": {
+      "es": [
+        "La última cuota de una deuda a plazos cuadra al céntimo con lo que falta, y su cargo del banco cuenta en Deudas, no como gasto.",
+        "Amortizar o corregir una deuda que ya ha pasado su último plazo deja justo lo que queda, sin dar por pagada una cuota que no ha llegado.",
+        "Un pago a otra persona ya no se toma por un traspaso entre tus cuentas solo porque el nombre se parezca al tuyo."
+      ],
+      "en": [
+        "The last instalment of a debt paid in instalments matches what is left to the cent, and its bank charge counts under Debts, not as spending.",
+        "Paying down or correcting a debt that is past its last instalment leaves exactly what is still owed, without counting an instalment that hasn't arrived as paid.",
+        "A payment to someone else is no longer taken for a transfer between your own accounts just because the name looks like yours."
+      ],
+      "ca": [
+        "L'última quota d'un deute a terminis quadra al cèntim amb el que falta, i el seu càrrec del banc compta a Deutes, no com a despesa.",
+        "Amortitzar o corregir un deute que ja ha passat el seu últim termini deixa just el que queda, sense donar per pagada una quota que no ha arribat.",
+        "Un pagament a una altra persona ja no es pren per un traspàs entre els teus comptes només perquè el nom s'assembli al teu."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "dinero-234",
+        "t": {
+          "es": "Deudas a plazos, Recibos y pagos a otras personas en Gastos",
+          "en": "Instalment debts, Bills and payments to other people in Spending",
+          "ca": "Deutes a terminis, Rebuts i pagaments a altres persones a Despeses"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Deudas: mira tus deudas a plazos, sobre todo las que ya terminaste de pagar y las que ya pasaron su último plazo. BIEN: las que acabaste salen a 0 o como terminadas, sin céntimos sueltos; si alguna ya pasó su último plazo y sale con algo pendiente, es lo que de verdad te queda por pagar; las que siguen en curso tienen el mismo pendiente que ayer. MAL: una deuda acabada se queda con unos céntimos pendientes, una que ya pasó su plazo sale con una cifra que no debes, o una en curso cambia de pendiente sin haber pagado nada.",
+            "2. Plan → Recibos, este mes. Si alguna deuda a plazos paga este mes su última cuota, abre esa cuota (si no hay ninguna, salta este paso). BIEN: el importe es justo lo que te falta de esa deuda, al céntimo, aunque difiera unos céntimos de las cuotas de antes; las demás cuotas siguen igual. MAL: la última cuota sale con el importe de siempre y la deuda se queda con céntimos pendientes, o cambia el importe de una cuota que no es la última.",
+            "3. Gastos: busca una transferencia o un Bizum que hayas hecho a otra persona desde hoy (si no hay ninguno, salta este paso). Mira también un traspaso de verdad entre dos cuentas tuyas, si lo hay. BIEN: el pago a otra persona sale como gasto, no como traspaso, aunque se llame parecido a ti; el traspaso entre tus cuentas sigue como traspaso. MAL: el pago a otra persona aparece como traspaso y no cuenta en lo gastado, o tu traspaso entre cuentas pasa a contar como gasto."
+          ],
+          "en": [
+            "1. Plan → Debts: look at your instalment debts, especially the ones you have finished paying and the ones past their last instalment. RIGHT: the finished ones show 0 or as finished, with no stray cents; if one is past its last instalment and shows something outstanding, that is what you really still owe; the ones still running show the same outstanding amount as yesterday. WRONG: a finished debt keeps a few cents outstanding, one past its term shows an amount you don't owe, or a running one changes its outstanding amount without you paying anything.",
+            "2. Plan → Bills, this month. If an instalment debt pays its last instalment this month, open that instalment (if there is none, skip this step). RIGHT: the amount is exactly what is left on that debt, to the cent, even if it differs by a few cents from the earlier instalments; the other instalments stay the same. WRONG: the last instalment shows the usual amount and the debt keeps a few cents outstanding, or the amount of an instalment that isn't the last one changes.",
+            "3. Spending: look for a transfer or a Bizum you have made to someone else from today on (if there is none, skip this step). Also look at a real transfer between two of your own accounts, if there is one. RIGHT: the payment to someone else shows as spending, not as a transfer, even if their name looks like yours; the transfer between your accounts is still a transfer. WRONG: the payment to someone else shows as a transfer and doesn't count as spent, or your transfer between accounts starts counting as spending."
+          ],
+          "ca": [
+            "1. Pla → Deutes: mira els teus deutes a terminis, sobretot els que ja has acabat de pagar i els que ja han passat el seu últim termini. BÉ: els que has acabat surten a 0 o com a acabats, sense cèntims solts; si algun ja ha passat el seu últim termini i surt amb alguna cosa pendent, és el que de debò et queda per pagar; els que continuen en curs tenen el mateix pendent que ahir. MALAMENT: un deute acabat es queda amb uns cèntims pendents, un que ja ha passat el termini surt amb una xifra que no deus, o un en curs canvia de pendent sense haver pagat res.",
+            "2. Pla → Rebuts, aquest mes. Si algun deute a terminis paga aquest mes la seva última quota, obre aquesta quota (si no n'hi ha cap, salta aquest pas). BÉ: l'import és just el que et falta d'aquest deute, al cèntim, encara que difereixi uns cèntims de les quotes d'abans; les altres quotes continuen igual. MALAMENT: l'última quota surt amb l'import de sempre i el deute es queda amb cèntims pendents, o canvia l'import d'una quota que no és l'última.",
+            "3. Despeses: busca una transferència o un Bizum que hagis fet a una altra persona des d'avui (si no n'hi ha cap, salta aquest pas). Mira també un traspàs de debò entre dos comptes teus, si n'hi ha. BÉ: el pagament a una altra persona surt com a despesa, no com a traspàs, encara que el nom s'assembli al teu; el traspàs entre els teus comptes continua com a traspàs. MALAMENT: el pagament a una altra persona apareix com a traspàs i no compta en el que has gastat, o el teu traspàs entre comptes passa a comptar com a despesa."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.233",
     "d": "2026-11-14",
     "t": {
@@ -27,45 +80,7 @@
         "Els avisos d'error surten en el teu idioma i amb paraules clares, el tipus de canvi va amb quatre decimals i diversos botons petits són més fàcils de tocar."
       ]
     },
-    "tandas": [
-      {
-        "id": "auditorias-233",
-        "t": {
-          "es": "Apuntar, tema Claro, textos de Inicio y Plan, Deudas, ficha de un gasto y Cartera",
-          "en": "Adding, Light theme, Home and Plan wording, Debts, an expense's card and Portfolio",
-          "ca": "Apuntar, tema Clar, textos d'Inici i del Pla, Deutes, fitxa d'una despesa i Cartera"
-        },
-        "items": {
-          "es": [
-            "1. Abre la app, espera unos segundos y toca «+»; escribe 10 sin mover la hoja y ciérrala tocando fuera, por arriba. BIEN: la hoja sube de una vez, sin quedarse parada al empezar; todas las teclas (también la coma, el 0 y borrar) y el botón «Apuntar» se ven y responden sin deslizar; al tocar fuera se cierra y no se abre nada de lo de detrás. MAL: una fila de teclas queda tapada por el botón, la hoja da un salto al escribir la primera cifra, tarda en arrancar, o al cerrarla se toca algo de la pantalla de detrás.",
-            "2. Ajustes → Apariencia → tema «Claro» (y luego vuelve al tuyo y míralo también). Recorre Gastos, Plan → Recibos → «Todos ›» y Cartera. BIEN: las fechas y los textos grises, la categoría bajo cada movimiento, «del banco», «+ Añadir» y los textos verdes se leen sin esfuerzo, y los botones verdes llevan el texto bien visible. MAL: algún texto tan claro que cuesta leerlo, o un botón verde cuyo texto no se distingue.",
-            "3. Inicio → «Este ciclo». BIEN: junto al anillo pone lo que queda seguido de «libres de» y el límite; si hay un recibo cuyo cargo no ha llegado, el aviso se llama «Para revisar» y dice «No ha llegado», las mismas palabras que en Plan → Recibos. MAL: pone «de» a secas, o el aviso usa otras palabras que Recibos.",
-            "4. Ajustes → activa «Modo sencillo», abre Plan y después Inicio; luego déjalo como lo tenías. BIEN: bajo la cifra de Plan, la frase dice de qué banco salen esos recibos; Inicio no enseña «Tus metas» ni ofrece crear una. MAL: la frase habla de un saldo sin decir de qué banco, sale un texto sin sentido en su lugar, o Inicio ofrece metas que llevan a Recibos.",
-            "5. Plan → Deudas; abre una deuda → Editar, deja vacío un dato obligatorio y toca Guardar (después cancela). BIEN: el total y los saldos van en el color normal del texto y la barra de lo amortizado en verde, sin rojo; la hoja se desliza suave hasta el aviso de lo que falta. MAL: las cifras en rojo, o la hoja salta de golpe hasta el aviso.",
-            "6. Gastos: espera un momento y toca un movimiento; ciérralo y abre otro. Mira también la cifra grande de arriba. BIEN: la ficha sube igual de suave la primera vez que las siguientes, con los datos del movimiento tocado; los dígitos de la cifra van juntos, sin hueco alrededor del 1 o del 7. MAL: la primera ficha se queda parada un instante antes de subir, al tocar fuera se abre otro movimiento, o la cifra sale con un hueco entre dígitos.",
-            "7. Inicio: toca la «i» junto a tu patrimonio. Cartera: toca las píldoras de colores bajo la barra y, en Inversiones, lee la nota del tipo de cambio. BIEN: la «i» y cada píldora responden a la primera aunque no aciertes en el centro, sin activar la de al lado; el tipo de cambio sale con cuatro decimales como mucho y con coma. MAL: hay que tocar varias veces, se activa otra píldora, o el tipo de cambio sale con una ristra de decimales."
-          ],
-          "en": [
-            "1. Open the app, wait a few seconds and tap \"+\"; type 10 without moving the sheet and close it by tapping outside, above it. RIGHT: the sheet rises in one go, without stalling at the start; every key (the comma, the 0 and delete too) and the \"Add\" button show and respond without scrolling; tapping outside closes it and nothing behind opens. WRONG: a row of keys is covered by the button, the sheet jumps when you type the first digit, it is slow to start, or closing it taps something on the screen behind.",
-            "2. Settings → Look & feel → \"Light\" theme (then go back to yours and check it too). Go through Spending, Plan → Bills → \"All ›\" and Portfolio. RIGHT: dates and grey text, the category under each movement, \"from the bank\", \"+ Add\" and green text read easily, and green buttons have clearly visible text. WRONG: some text so pale it is hard to read, or a green button whose text you can't make out.",
-            "3. Home → \"This cycle\". RIGHT: next to the ring it shows what is left followed by \"left of\" and the limit; if a bill's charge hasn't arrived, the notice is called \"To review\" and says \"Hasn't arrived\", the same words as Plan → Bills. WRONG: it just says \"of\", or the notice uses different words from Bills.",
-            "4. Settings → turn on \"Simple mode\", open Plan and then Home; afterwards leave it as you had it. RIGHT: under the Plan figure, the sentence says which bank those bills come out of; Home doesn't show \"Your goals\" or offer to create one. WRONG: the sentence talks about a balance without saying which bank, a meaningless text shows instead, or Home offers goals that lead to Bills.",
-            "5. Plan → Debts; open a debt → Edit, leave a required field empty and tap Save (then cancel). RIGHT: the total and the balances are in the normal text colour and the paid-off bar is green, no red; the sheet glides smoothly to the notice about what is missing. WRONG: figures in red, or the sheet jumps straight to the notice.",
-            "6. Spending: wait a moment and tap a movement; close it and open another. Also look at the big figure at the top. RIGHT: the card rises as smoothly the first time as the next ones, with the details of the movement you tapped; the digits of the figure sit together, with no gap around the 1 or the 7. WRONG: the first card stalls for a moment before rising, tapping outside opens another movement, or the figure shows a gap between digits.",
-            "7. Home: tap the \"i\" next to your net worth. Portfolio: tap the coloured pills under the bar and, in Investments, read the exchange-rate note. RIGHT: the \"i\" and each pill respond first time even if you miss the centre, without triggering the one next to it; the exchange rate shows four decimals at most. WRONG: you have to tap several times, another pill is triggered, or the exchange rate shows a long string of decimals."
-          ],
-          "ca": [
-            "1. Obre l'app, espera uns segons i toca «+»; escriu 10 sense moure el full i tanca'l tocant fora, per dalt. BÉ: el full puja d'un cop, sense quedar-se aturat en començar; totes les tecles (també la coma, el 0 i esborrar) i el botó «Apuntar» es veuen i responen sense lliscar; en tocar fora es tanca i no s'obre res del que hi ha al darrere. MALAMENT: una fila de tecles queda tapada pel botó, el full fa un salt en escriure la primera xifra, triga a arrencar, o en tancar-lo es toca alguna cosa de la pantalla del darrere.",
-            "2. Configuració → Aparença → tema «Clar» (i després torna al teu i mira'l també). Recorre Despeses, Pla → Rebuts → «Tots ›» i Cartera. BÉ: les dates i els textos grisos, la categoria sota cada moviment, «del banc», «+ Afegir» i els textos verds es llegeixen sense esforç, i els botons verds porten el text ben visible. MALAMENT: algun text tan clar que costa de llegir, o un botó verd amb un text que no es distingeix.",
-            "3. Inici → «Aquest cicle». BÉ: al costat de l'anell hi posa el que queda seguit de «lliures de» i el límit; si hi ha un rebut amb el càrrec que no ha arribat, l'avís es diu «Per revisar» i diu «No ha arribat», les mateixes paraules que a Pla → Rebuts. MALAMENT: hi posa «de» tot sol, o l'avís fa servir altres paraules que Rebuts.",
-            "4. Configuració → activa «Mode senzill», obre el Pla i després Inici; després deixa-ho com ho tenies. BÉ: sota la xifra del Pla, la frase diu de quin banc surten aquests rebuts; Inici no mostra «Les teves metes» ni ofereix crear-ne cap. MALAMENT: la frase parla d'un saldo sense dir de quin banc, hi surt un text sense sentit, o Inici ofereix metes que porten a Rebuts.",
-            "5. Pla → Deutes; obre un deute → Editar, deixa buida una dada obligatòria i toca Desar (després cancel·la). BÉ: el total i els saldos van en el color normal del text i la barra de l'amortitzat en verd, sense vermell; el full llisca suau fins a l'avís del que falta. MALAMENT: les xifres en vermell, o el full salta de cop fins a l'avís.",
-            "6. Despeses: espera un moment i toca un moviment; tanca'l i obre'n un altre. Mira també la xifra gran de dalt. BÉ: la fitxa puja igual de suau la primera vegada que les següents, amb les dades del moviment tocat; els dígits de la xifra van junts, sense buit al voltant de l'1 o del 7. MALAMENT: la primera fitxa es queda aturada un instant abans de pujar, en tocar fora s'obre un altre moviment, o la xifra surt amb un buit entre dígits.",
-            "7. Inici: toca la «i» al costat del teu patrimoni. Cartera: toca les píndoles de colors sota la barra i, a Inversions, llegeix la nota del tipus de canvi. BÉ: la «i» i cada píndola responen a la primera encara que no encertis el centre, sense activar la del costat; el tipus de canvi surt amb quatre decimals com a molt i amb coma. MALAMENT: cal tocar diverses vegades, s'activa una altra píndola, o el tipus de canvi surt amb una tirallonga de decimals."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.232",
