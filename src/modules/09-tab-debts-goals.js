@@ -122,7 +122,13 @@ function debtEditResult(d,form){
     if(quotaChanged&&!(next.monthly>0)&&balance>0.005) return {error:"db_edit_quota_zero"};
     if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
-    else{
+    else if(next.months!=null&&paid>=next.months&&!termChanged){
+      /* Plazo ya VENCIDO (dato heredado con pendiente): se corrige lo que se debe y el plazo se queda.
+         Alargarlo desde las cuotas sin tope la reactivaba y, con el día de cargo pasado, Recibos daba
+         por PAGADA una cuota de este mes sin cargo y el neto del banco restaba 100 (revisión de dinero
+         234, R2-1). Igual que `deudaAmortizada`. */
+      next.value=+(balance+am*next.months+(next.balloon>0?next.balloon:0)).toFixed(2);
+    }else{
       // Saldo/día también cambian la proyección: mantener el plazo dejaba principal huérfano.
       // Con la cuota que amortiza no se recalcula: ya se validó contra el plazo que el usuario ve.
       // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,

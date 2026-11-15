@@ -143,6 +143,17 @@ for(const hace of [23,12]){
     assert.equal(c.debtBalance(t),0);assert.ok(t.settledAt,"amortizarlo todo sí la liquida");
   });
 }
+test("editar el saldo de una vencida (pendiente 100 → 80) no la reactiva ni inventa una cuota pagada (R2-1)",()=>{
+  const d={id:"ve",name:"Heredada sintética",value:1300,original:1300,monthly:100,amort:100,months:12,day:1,account:"sabadell",asOf:ahora-23};
+  const r=c.debtEditResult(d,Object.assign(c.debtEditDraft(d),{balance:"80"}));
+  assert.equal(r.error,undefined);
+  const n=r.item;
+  assert.equal(cts(c.debtBalance(n)),8000,"debe 80");
+  assert.equal(n.months,12,"el plazo se queda");
+  assert.equal(c.debtActive(n),false,"sigue vencida");
+  assert.equal(cobroMes(estado([n]),n,ahora,dia),0,"Recibos no da nada por pagado este mes");
+  assert.equal(c.monthNetForAccount(estado([n]),"sabadell",y,m,null),0,"el banco no resta nada");
+});
 test("vencida con pago final ya contado: amortizar parte deja el resto y liquidarla la deja a 0",()=>{
   const d={id:"vb",name:"Coche heredado sintético",value:1500,original:1500,monthly:100,months:12,balloon:100,day:1,account:"sabadell",asOf:ahora-15};
   assert.equal(cts(c.debtBalance(d)),20000);
