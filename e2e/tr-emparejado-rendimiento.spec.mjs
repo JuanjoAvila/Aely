@@ -41,6 +41,10 @@ for(const pairs of [380,5708])test("CPU6: 20000 filas y "+pairs+" pares, categor
  }
  console.log(JSON.stringify({trPairCpu6:result}));await info.attach("cpu6-"+pairs+".json",{body:JSON.stringify(result,null,2),contentType:"application/json"});
  expect(result.sources.candidate.stable).toBe(true);
- expect(result.sources.candidate.categoryMs).toBeLessThan(result.sources.nogo228.categoryMs*0.35);
+ // Con 380 pares la candidata da 0,27-0,41 de la NO-GO en la CI con el MISMO código
+ // (reconcileGemelosAutomaticos idéntico de la 223 a la 233): el 0,35 caía en mitad de ese ruido
+ // y la primera pasada ya salía roja en la 223, la 226 y la 233. Volver a la NO-GO da ~1,0, así
+ // que 0,5 la sigue cazando. Con 5.708 pares la razón es ~0,005 (15/11/2026).
+ expect(result.sources.candidate.categoryMs).toBeLessThan(result.sources.nogo228.categoryMs*0.5);
  expect(result.sources.candidate.emptySyncMs).toBeLessThan(result.sources.nogo228.emptySyncMs*0.35);
 });
