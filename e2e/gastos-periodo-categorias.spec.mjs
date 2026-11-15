@@ -35,7 +35,8 @@ const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):tx
 async function check(page, expected, spent, lang){
   await gastosSeccion(page,"cats");
   await expect(cats(page)).toHaveCount(Object.keys(expected).length);
-  for(const [id,amount] of Object.entries(expected)) await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+" €");
+  // Con céntimos, el mismo formato que la cifra de arriba (diseño 235, DIS-17: «113 €» frente a «112,50 €»).
+  for(const [id,amount] of Object.entries(expected)) await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(cifra(lang,amount+",00 €"));
   await expect(gastosCifra(page)).toHaveText(cifra(lang,spent+",00 €"));
   await gastosSeccion(page,"movs");
   await expect(gastosCifra(page)).toHaveText(cifra(lang,spent+",00 €"));
@@ -125,7 +126,7 @@ test("Mi ciclo: un apunte futuro queda fuera de lista y categorías",async({page
 async function checkFiltrado(page, expected, spent, movs){
   await gastosSeccion(page,"cats");
   await expect(cats(page)).toHaveCount(Object.keys(expected).length);
-  for(const [id,amount] of Object.entries(expected)) await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+" €");
+  for(const [id,amount] of Object.entries(expected)) await expect(gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+",00 €");
   await expect(gastosCifra(page)).toHaveText(spent+",00 €");
   await gastosSeccion(page,"movs");
   await expect(gastosCifra(page)).toHaveText(movs);

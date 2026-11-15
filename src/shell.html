@@ -1630,6 +1630,7 @@
   .gx-head.compact .gx-status{transform:translateY(-12px);}
   .gx-status-sub{margin-top:0;font-size:13px;color:var(--muted-2);}
   .gx-tail{font-weight:600;}
+  .gx-hasta{color:var(--mint);font-weight:700;}
   .gx-tone-coral{color:var(--coral);}
   .gx-tone-mint{color:var(--mint);}
   /* Meses: aparecen al bajar y quedan fijos (SPEC §2.1). La pastilla del mes activo es UNA capa
@@ -1638,16 +1639,12 @@
     display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
     transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
   .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
-  /* La pastilla activa va en MENTA, como el icono de sección activo: en gris oscuro casi no se
+  /* La pastilla activa va en MENTA, como la sección activa: en gris oscuro casi no se
      distinguía en qué mes (o ciclo) estabas («que se note que estás en un mes u otro», 25/10). */
   .gx-mes-pasti{position:absolute;left:0;top:4px;height:36px;border-radius:18px;background:var(--mint);transition:transform .24s var(--ease);}
   .gx-mes{position:relative;flex:0 0 auto;height:36px;padding:0 14px;border:0;border-radius:18px;background:transparent;color:var(--muted);
     font:600 15px 'Manrope',sans-serif;white-space:nowrap;cursor:pointer;}
   .gx-mes.on{color:var(--on-mint);font-weight:700;}
-  /* Título con los tres iconos de sección a la derecha (SPEC §2.1): el activo relleno en menta.
-     La fila mide lo mismo que el título de antes (8 + 30 + 10 px): los iconos de 44 px se comen
-     los márgenes. Si la cabecera creciera, el buscador (que se queda el dedo, `stopSwipe`) bajaría
-     a la franja por la que se desliza entre pestañas y los e2e de gestos perderían su sitio. */
   .gx-titulo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0;min-height:44px;}
   .gx-titulo .v4-title{margin:0;min-width:0;}
   .v4-plan-cab{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 14px;}
@@ -1656,11 +1653,17 @@
     background:transparent;color:var(--muted);cursor:pointer;transition:color .2s var(--ease),background .2s var(--ease);}
   .v4-ojo.on{color:var(--mint-bright);background:var(--surface);}
   .v4-ojo:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
-  .gx-secciones{display:flex;gap:8px;flex:0 0 auto;}
-  .gx-sec{position:relative;width:44px;height:44px;border-radius:22px;padding:0;display:flex;align-items:center;justify-content:center;
-    border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;
-    transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease);}
-  .gx-sec.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  /* Secciones de Gastos: el segmentado de Plan, algo más bajo (40 px de dibujo); el `::after`
+     devuelve los 44 px de dedo. Cada botón mide lo que su texto
+     («Suscripciones» con su globito no cabe en un tercio a 360 px) y, con letra enorme, se corta
+     con puntos antes que partir la fila. */
+  .gx-seg{margin:0 0 12px;}
+  .gx-seg .gx-sec{position:relative;flex:1 1 auto;min-width:0;min-height:40px;flex-direction:row;gap:6px;padding:4px 6px;font-size:13px;
+    border:0;background:transparent;cursor:pointer;transition:background-color .2s var(--ease),color .2s var(--ease);}
+  .gx-seg .gx-sec::after{content:"";position:absolute;inset:-2px 0;}
+  .gx-seg .gx-sec.on{background:var(--mint);color:var(--on-mint);}
+  .gx-sec-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gx-seg .gx-sec-globo{position:static;flex:none;}
   .gx-sec-globo{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:9px;
     background:var(--tan);color:var(--on-mint);font:800 11px 'Manrope',sans-serif;display:flex;align-items:center;justify-content:center;}
   /* En Claro `--on-mint` es blanco y sobre el ocre daba 3,2:1; el texto oscuro del tema, 5,6. */
@@ -2368,6 +2371,8 @@
   .gx-list .sentinel{align-items:start;padding-top:8px;box-sizing:border-box;}
   .empty{text-align:center;padding:34px 20px;color:var(--muted);}
   .empty .ttl{font-weight:700;color:var(--text);margin-bottom:6px;}
+  .gx-vacio-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px;}
+  .gx-vacio-acts .btn{min-height:44px;}
 
   .mono{border-radius:11px;display:grid;place-items:center;font-size:12.5px;font-weight:800;flex:0 0 auto;border:1px solid;letter-spacing:.3px;}
   .row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line-soft);}

@@ -1707,7 +1707,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     });
     const cicloYm=ciclos?cicloKey(cicloPas||ciclos[ciclos.length-1]):null;
     // Bajando en Mi ciclo, lo sumado va del inicio del ciclo al día de debajo: «24 sep – 2 oct».
-    const cicloHasta=function(k,d){ return cicloRango?cicloTxt(new Date(Math.floor(k/10000),Math.floor(k/100)%100-1,k%100).getTime()):tf("gv5_cycle_upto",{d:d}); };
+    /* Bajando, la cifra deja de ser el total y la línea lo dice DELANTE y en menta («hasta el 20 ·
+       gastado en septiembre», diseño 235 DIS-16): al final de la frase se cortaba con puntos a 360 px
+       y en gris no se notaba que la cifra había cambiado. `hasta` va aparte para pintarlo así. */
+    const cicloHasta=function(k,d){ return cicloRango?{pre:cicloTxt(new Date(Math.floor(k/10000),Math.floor(k/100)%100-1,k%100).getTime())}:{pre:t("gv5_cycle"),hasta:tf("gv5_hasta",{d:d})}; };
     /* CON FILTRO DE CATEGORÍA (SPEC §3): la cifra es lo de esa categoría en ese mes, con la regla
        del desglose (la misma cifra que su fila en Categorías), y bajando, hasta el día de arriba.
        La línea cuenta los movimientos que suman y compara con la MISMA categoría el mes anterior:
@@ -1758,8 +1761,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       const fline=function(k, ym){
         if(k===mesesLista.newestK && ym===mesesLista.newestYm) return ftop;
         const c=gastosCumDia(fc,k,months?ym:undefined), d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase();
-        return {n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c),
-          pre:months?tf("gv5_upto",{mes:mesDe(ym),d:k%100}):preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d})};
+        return Object.assign({n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c)},
+          months?{pre:tf("gv5_spent_in",{mes:mesDe(ym)}),hasta:tf("gv5_hasta_dia",{d:k%100})}:preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})});
       };
       if(catFil){
         const fmeses=ciclosFila||mesesPres;
@@ -1778,12 +1781,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
           return {n:shownOf(v), pre:tf("gv5_closed",{mes:mesDe(ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:ym, sub:subDe(m)};
         }
         const c=gastosCumDia(cifra,k,ym);
-        return {n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_upto_net":"gv5_upto",{mes:mesDe(ym),d:k%100}), ym:ym, sub:subDe(c)};
+        return {n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_net_in":"gv5_spent_in",{mes:mesDe(ym)}), hasta:tf("gv5_hasta_dia",{d:k%100}), ym:ym, sub:subDe(c)};
       }
       if(k===mesesLista.newestK && ym===mesesLista.newestYm) return top;
       const d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase(), c=gastosCumDia(cifra,k);
-      return {n:shownOf(gastosValor(c,mode)), sub:subDe(c),
-        pre:preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
+      return Object.assign({n:shownOf(gastosValor(c,mode)), sub:subDe(c), ym:null},
+        preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})});
     };
     const meses=preset==="months"?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
     return {top:top, line:line, meses:meses, fijos:false, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
@@ -2007,7 +2010,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     setCicloSel(null);
   };
   // Elegir periodo en Filtros (o «Restablecer») vuelve al ciclo en curso.
-  const ponPreset=useCallback(function(p){ setCicloSel(null); setPreset(p); },[]);
+  /* Volver al ciclo en curso desde uno pasado (Filtros → periodo o Restablecer) es volver arriba,
+     como al tocar el ciclo en curso en la fila. Si no, con una lista corta el scroll se quedaba en
+     el tope de la del ciclo pasado y la cabecera hablaba del último día en vez del ciclo entero. */
+  const ponPreset=useCallback(function(p){
+    if(cicloSelRef.current!=null){ const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"}); }
+    setCicloSel(null); setPreset(p);
+  },[]);
   useEffect(function(){ if(preset!=="cycle") setCicloSel(null); },[preset]);
 
   // Resumen de filtros activos, para el botón "Filtros" (badge) y la línea de chips debajo.
@@ -2100,8 +2109,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const ciclosAlBajar=!!(cabVista.ciclos && !cabVista.fijos);
   return React.createElement("div",{className:"v4-screen gx-root"+(ciclosAlBajar?" gx-ciclos-al-bajar":""),ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
     React.createElement(GastosCabecera,{rootRef:rootRef, cab:cabVista, meses:cabVista.meses, fijos:cabVista.fijos,
-      onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
+      onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef,
       onInfo:secc==="subs"&&heavyOk?abreSubInfo:null}),
+    /* Las secciones van FUERA de la cabecera fija, como el segmentado de Plan: dentro la estirarían
+       también encogida, y con ella bajarían la raya de los días, la fila de meses y la franja por la
+       que se desliza entre pestañas. Cambiar de sección ya vuelve arriba (`irASecc`). */
+    React.createElement(GxSecciones,{secc:secc, onSecc:irASecc, nSubs:novelSubs.length}),
     capa("movs", React.createElement(React.Fragment,null,
       React.createElement("div",{className:"filters"},
         // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
@@ -2167,7 +2180,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
               React.createElement("span",{className:"gx-cat-txt"},
                 React.createElement("span",{className:"v4-gastos-cat-row"},
                   React.createElement("span",{className:"v4-gastos-cat-name"}, catName(row.id)),
-                  React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+                  React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur(row.spent))),
                 lim>0
                   ? React.createElement(React.Fragment,null,
                       React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
@@ -2345,9 +2358,17 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
               // preselección automática (2026-08-17: todos los marcados, no solo el principal).
               const sinFiltros=!q.trim() && !sel.length && !bucketSel.length && bankSelIsDefault;
                             const esVacioNormal=sinFiltros && hayHistorico && preset==="cycle";
-              return React.createElement("div",{className:"empty"},
+              // El texto decía «apunta uno» y no había por dónde (diseño 235, DIS-18): las dos
+              // puertas debajo, las mismas que el + y que Cartera. Conectar, solo sin bancos.
+              const sinBancos=!(state.obAccounts||[]).length;
+              return React.createElement("div",{className:"empty","data-testid":"gastos-vacio"},
                 React.createElement("div",{className:"ttl"}, esVacioNormal?t("g_empty_period_t"):t("g_empty_t")),
-                esVacioNormal?t("g_empty_period_d"):t("g_empty_d"));
+                esVacioNormal?t("g_empty_period_d"):t("g_empty_d"),
+                !esVacioNormal && React.createElement("div",{className:"gx-vacio-acts"},
+                  React.createElement("button",{type:"button",className:"btn btn-primary","data-testid":"gastos-vacio-apuntar",
+                    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-apuntar")); }catch(e){} }},t("g_empty_add")),
+                  sinBancos && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"gastos-vacio-banco",
+                    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},t("v4_noup_cta"))));
             })()
           : dias.map(function(d){
               const tot=totalDia(d.k,d.ym);
@@ -2462,7 +2483,7 @@ function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMese
    `opacity` sobre una caja de alto fijo: bajar no recoloca nada de la lista. El scroll se lee en
    un `requestAnimationFrame` y el día se busca por bisección entre los encabezados ya pintados,
    así cada frame cuesta unas pocas lecturas aunque haya meses enteros cargados. */
-function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe, diasRef, saltoForzadoRef, secc, onSecc, nSubs, onInfo}){
+function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe, diasRef, saltoForzadoRef, onInfo}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
   // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
@@ -2499,8 +2520,11 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       let k=at>=0?+els[at].getAttribute("data-gx-day"):null, ym=at>=0?els[at].getAttribute("data-gx-ym"):null;
       // El salto a un mes del final (ver `saltaADia`): en el tope manda el día pedido. Se olvida al
       // salir del tope ya llegado, o si no llega (un dedo cortó el scroll suave).
+      // Y también si ese día ya no está en la lista (otro ciclo, Restablecer): el scroll podía
+      // seguir en el mismo tope y la cabecera se quedaba con un día de otra lista y su cifra a 0.
       const sf=saltoForzadoRef&&saltoForzadoRef.current;
-      if(sf){
+      if(sf && !root.querySelector('[data-gx-day="'+sf.k+'"][data-gx-ym="'+sf.ym+'"]')) saltoForzadoRef.current=null;
+      else if(sf){
         if(Math.abs(host.scrollTop-sf.st)<=2){ sf.llego=true; k=sf.k; ym=sf.ym; }
         else if(sf.llego || Date.now()-sf.t>1500) saltoForzadoRef.current=null;
       }
@@ -2536,10 +2560,10 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
   return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":"")+(fijos?" meses-fijos":""),ref:headRef,
       "data-gx-vista":vista.k==null?"":vista.k+"|"+vista.ym},
     React.createElement("div",{className:"gx-titulo"},
-      React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
-      React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
+      React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title"))),
     React.createElement(GxCifra,{n:line.n}),
     React.createElement("div",{className:"gx-status"+(onInfo?" con-info":""),"data-testid":"gastos-estado"},
+      line.hasta ? React.createElement(React.Fragment,null,React.createElement("span",{className:"gx-hasta"},line.hasta)," · ") : null,
       React.createElement("span",null,line.pre),
       line.tail ? React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"gx-tail"+tone},line.tail)) : null,
       // La «i» de Suscripciones (SPEC §6.3), la misma que la de la gráfica de Inicio. La letra la
@@ -2557,24 +2581,18 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
   );
 }
 function l10nKeyOf(){ return CURLANG+"|"+DISP.sym; }
-/* LOS TRES ICONOS DE SECCIÓN (SPEC §2.1): Movimientos (líneas), Categorías (barras) y
-   Suscripciones (reloj con flecha = «se repite»), con el globito de las que esperan decisión.
-   Son pestañas de verdad (`role="tab"`, `aria-selected`) y cada una dice su nombre: el icono solo
-   no se entiende con un lector de pantalla. */
-const GX_SECC_ICO={
-  movs:["M4 7h16M4 12h12M4 17h8"],
-  cats:["M6 20v-6M12 20V4M18 20v-10"],
-  subs:["M3.5 12a8.5 8.5 0 1 0 2.5-6","M3 3v4h4","M12 8v4l3 2"]
-};
+/* LAS TRES SECCIONES, CON SU NOMBRE (diseño 235, DIS-15): eran tres iconos sueltos junto al título
+   y el reloj no se leía como «suscripciones». Ahora es el mismo segmentado que Plan, con el globito
+   de las que esperan decisión junto a Suscripciones. Siguen siendo pestañas de verdad (`role="tab"`,
+   `aria-selected`, `data-gx-tab`), que es por donde las buscan el tirón y los e2e. */
 function GxSecciones({secc, onSecc, nSubs}){
-  return React.createElement("div",{className:"gx-secciones",role:"tablist","aria-label":t("gv5_secciones")},
+  return React.createElement("div",{className:"v4-seg gx-seg",role:"tablist","aria-label":t("gv5_secciones")},
     GX_SECC.map(function(id){
       const on=secc===id, globo=id==="subs"&&nSubs>0;
       return React.createElement("button",{key:id,type:"button",role:"tab","aria-selected":on,"data-gx-tab":id,
-          className:"gx-sec"+(on?" on":""),"aria-label":t(GX_SECC_TXT[id])+(globo?" · "+tf("gv5_subs_globo",{n:nSubs}):""),
+          className:"v4-seg-btn gx-sec"+(on?" on":""),"aria-label":t(GX_SECC_TXT[id])+(globo?" · "+tf("gv5_subs_globo",{n:nSubs}):""),
           onClick:function(){ onSecc(id); }},
-        React.createElement("svg",{"aria-hidden":true,width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
-          GX_SECC_ICO[id].map(function(d){ return React.createElement("path",{key:d,d:d}); })),
+        React.createElement("span",{className:"gx-sec-txt"},t(GX_SECC_TXT[id])),
         globo && React.createElement("span",{className:"gx-sec-globo num","aria-hidden":true,"data-testid":"gastos-subs-globo"},nSubs>99?"99+":nSubs));
     }));
 }

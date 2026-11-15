@@ -64,7 +64,8 @@ test("al bajar, la cifra es lo gastado hasta el día que queda debajo; un mes ce
   await abre(page);
   await aGastos(page);
   await gastosBajaAlDia(page, "2026-09-20");
-  await expect(gastosEstado(page)).toHaveText("gastado en septiembre hasta el 20");
+  // Delante y en menta (diseño 235, DIS-16): la cifra ya no es el total del mes.
+  await expect(gastosEstado(page)).toHaveText("hasta el 20 · gastado en septiembre");
   await expect(gastosCifra(page), "10 (35) + 20 (30)").toHaveText("65,00 €");
   await expect(gastosRoot(page).locator(".gx-head")).toHaveClass(/compact/);
   // Los meses aparecen fijos al bajar, con septiembre marcado.

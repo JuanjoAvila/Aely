@@ -29,7 +29,7 @@ async function check(page,ym,total,names,amounts){
   // Gastos v5 (tanda 2): el desglose vive en la sección Categorías.
   await gastosSeccion(page,"cats");
   await expect(gastosRoot(page).locator('.v4-gastos-cat')).toHaveCount(Object.keys(amounts).length);
-  for(const [cat,n]of Object.entries(amounts))await expect.poll(async()=> (await gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+cat+'"] .v4-gastos-cat-amt').innerText()).replace(/\D/g,'')).toBe(String(n));
+  for(const [cat,n]of Object.entries(amounts))await expect.poll(async()=> (await gastosRoot(page).locator('.v4-gastos-cat[data-cat="'+cat+'"] .v4-gastos-cat-amt').innerText()).replace(/\D/g,'')).toBe(String(n*100));
   await gastosSeccion(page,"movs");
 }
 /* Una preferencia real, de ida y vuelta: poner un límite a una categoría y quitarlo. Antes era

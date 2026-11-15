@@ -368,6 +368,9 @@ export const E2E_MAP = [
     "e2e/cifras-coherentes.spec.mjs",
     // Gastos v5 tanda 2: secciones, tirón con un solo toque, Categorías y Suscripciones como antes.
     "e2e/gastos-v5-secciones.spec.mjs",
+    // Diseño 235 (lote de menores): secciones con nombre, «hasta el N» en menta, Categorías con
+    // céntimos, el vacío con sus dos puertas y el importe «12,50» de la ficha Modificar.
+    "e2e/gastos-menores-235.spec.mjs",
     // Gastos v5 tanda 3: tocar una categoría filtra (píldora, cifra de la categoría, meses fijos) y
     // el límite por pulsación larga o por el chip del filtro, la misma hoja.
     "e2e/gastos-v5-filtro.spec.mjs",
