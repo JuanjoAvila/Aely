@@ -1722,16 +1722,17 @@
   .gx-list .v4-mov .nm-title{font-size:16px;font-weight:600;}
   .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
   .gx-list .v4-mov .meta{font-size:13px;}
-  .gx-list .v4-mov .am{font-size:19px;font-weight:600;}
-  /* «fecha · banco» en UNA línea aunque el móvil lleve la letra grande (captura suya de la beta
-     4.26.164, 24/10: el WebView escala el texto y no las cajas, y «24/10 ·» y «Trade Republic» se
-     partían en dos líneas con el punto huérfano: la regla general `.v4-mov .meta` deja que la fila
-     se parta). La fecha y los puntos no ceden; el banco y la
-     marca de recibo se recortan con puntos suspensivos. El importe tampoco cede ni se parte: es
-     lo que se viene a leer. */
+  /* 17 y no 19: más grande que el nombre (16) robaba el ancho que necesita el comercio y gritaba
+     más que él (auditoría de diseño 233, DIS-14). */
+  .gx-list .v4-mov .am{font-size:17px;font-weight:600;}
+  /* «banco · recibo» en UNA línea aunque el móvil lleve la letra grande (captura suya de la beta
+     4.26.164, 24/10: el WebView escala el texto y no las cajas, y la línea se partía con el punto
+     huérfano: la regla general `.v4-mov .meta` deja que la fila se parta). El punto no cede; el
+     banco y la marca de recibo se recortan con puntos suspensivos. El importe tampoco cede ni se
+     parte: es lo que se viene a leer. */
   .gx-list .v4-mov .meta{flex-wrap:nowrap;align-items:center;min-width:0;white-space:nowrap;overflow:hidden;}
   .gx-list .v4-mov .meta > span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .gx-list .v4-mov .meta > span:first-child,.gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
+  .gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
   .gx-list .v4-mov .am{flex:0 0 auto;white-space:nowrap;}
   /* Nombre y categoría en UNA línea cada uno (su «modo normal la letra», 25/10/2026): a 393 px la
      columna del nombre se quedaba en ~130 px entre el icono, los tres huecos de 14, el importe y el

@@ -379,6 +379,8 @@ export const E2E_MAP = [
     "e2e/gastos-fila-salto.spec.mjs",
     // Y el asa de ordenar ya no se come el desliz hacia Plan (solo se queda el vertical).
     "e2e/gastos-asa-desliz.spec.mjs",
+    // Diseño 233 (DIS-13/14): la fila sin fecha, banco solo si hay varios y asa solo donde se ordena.
+    "e2e/gastos-fila.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",

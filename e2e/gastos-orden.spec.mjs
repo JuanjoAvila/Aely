@@ -27,6 +27,9 @@ test("Gastos: se arrastran dentro del mismo día y el orden persiste", async ({ 
 
   const rows=page.locator(".v4-gastos-list button.v4-mov");
   await expect(rows).toHaveCount(2);
+  // Los dos son del mismo día: hay con qué ordenar, así que los dos llevan asa (DIS-14: un día con
+  // un solo movimiento ya no la pinta; eso lo prueba `gastos-fila`).
+  await expect(page.locator(".v4-gastos-list button.v4-mov .v4-mov-drag")).toHaveCount(2);
   await expect(rows.nth(0)).toContainText("Segundo");
   /* Las filas a media pantalla: ni bajo la barra de abajo ni bajo la cabecera fija de Gastos v5
      (al fondo del todo, con el hueco final de la lista, quedaban tapadas por la cabecera). */

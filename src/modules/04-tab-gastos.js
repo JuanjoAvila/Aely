@@ -2280,15 +2280,22 @@ function mcSinSeleccionHastaSoltar(){
 const GastosLista=React.memo(function GastosLista({filtered, visible, state, cifra, mode, q, sel, bucketSel, bankSelIsDefault, preset, hayHistorico,
     dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, onGoInversiones, simple, l10nKey, sentinelRefCb}){
   const shown=filtered.slice(0,visible);
-  /* A LA FILA SE LE PASA EL NÚMERO, NO EL `Date` (2026-07-27, y esto llevaba roto desde siempre).
-     `parseDate` cachea los MILISEGUNDOS pero devuelve `new Date(ms)`: un objeto NUEVO en cada
-     llamada. Como la fecha viajaba a `MovRow` como prop, la comparación superficial de
-     `React.memo` fallaba SIEMPRE por esa prop —da igual que el gasto sea idéntico—, así que
-     cualquier re-render de Gastos repintaba las doce filas. Se cuidó que `onOpen` fuera estable
-     (ahí al lado está el comentario) y la fecha se coló por debajo.
-     Se vio saliendo de Deudas hacia Gastos: el perfilador ponía `MovRow` como la función más cara
-     de la app en ese gesto. Con un número, la comparación acierta y la fila solo se rehace cuando
-     cambia de verdad; el `Date` se construye DENTRO, que es donde se usa para formatear. */
+  /* A `MovRow` NUNCA un `Date` ni otro objeto nuevo por render (2026-07-27): `parseDate` devuelve
+     `new Date(ms)` en cada llamada y, cuando la fecha viajaba como prop, el `React.memo` fallaba
+     SIEMPRE y cualquier re-render de Gastos repintaba todas las filas (el perfilador la ponía como
+     la función más cara saliendo de Deudas). Hoy la fila ya no pinta fecha (DIS-13) y solo recibe
+     strings y booleanos. */
+  /* Banco en la fila solo si en lo filtrado hay más de uno: con uno solo, «Sabadell» en cada
+     tarjeta no distingue nada (DIS-13). Sobre `filtered` entero, no sobre lo pintado: que cargar
+     otra tanda no haga aparecer el banco en las filas de arriba. */
+  const variosBancos=useMemo(function(){
+    let uno=null;
+    for(let i=0;i<filtered.length;i++){
+      const b=expenseBankOf(filtered[i]); if(!b) continue;
+      if(uno===null) uno=b; else if(b!==uno) return true;
+    }
+    return false;
+  },[filtered]);
   /* GASTOS v5 · LOS DÍAS (SPEC §4.2 y §4.4). Cada gasto en su tarjeta y, por día, los cargos del
      banco que pagan una cuota o van a una meta o a un bróker en UNA fila gris desplegable (los recibos, sueltos y
      atenuados desde el 26/10/2026): se siguen viendo (4.26.122:
@@ -2365,8 +2372,8 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                   React.createElement("span",{className:"gx-dia-t"},etiquetaDia(d)),
                   tot && React.createElement("span",{className:"gx-dia-tot num","data-testid":"gastos-dia-total"},tot)),
                 d.rows.map(function(g){
-                  return React.createElement(MovRow,{key:g.e.id||g.ms, e:g.e, ms:g.ms, l:g.l, onOpen:openDetail, l10n:l10nKey,
-                    bucket:g.bucket,recibo:g.recibo,dragging:!!(dragExpense&&dragExpense.from===g.e.id),
+                  return React.createElement(MovRow,{key:g.e.id||g.ms, e:g.e, l:g.l, onOpen:openDetail, l10n:l10nKey,
+                    bucket:g.bucket,recibo:g.recibo,conBanco:variosBancos,reordenable:d.rows.length>1,dragging:!!(dragExpense&&dragExpense.from===g.e.id),
                     dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
                     onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag});
                 }),
@@ -2718,11 +2725,8 @@ function SyncHora({lastSync}){
    `l10n` (idioma|símbolo de moneda) es un prop a posta: catName/entOf/eur leen globales que memo
    no puede ver, así que sin él cambiar de idioma o de moneda dejaría las filas en el idioma viejo.
    `onOpen` tiene que ser ESTABLE (useCallback) o el memo no sirve de nada. */
-const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
-  // `ms` y no un `Date`: ver el porqué donde se construyen los grupos. El objeto se crea aquí,
-  // que es la única línea que lo necesita, y solo cuando la fila se pinta de verdad.
+const MovRow=React.memo(function MovRow({e, l, onOpen, bucket, recibo, conBanco, reordenable, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
   // `bucket` (string) lo pasa el padre: si se pasara `state` entero, el memo no acertaría nunca.
-  const d=new Date(ms);
   const c=catOf(e.category);
   const isIncome=e.amount<0;
   const bk=expenseBankOf(e);
@@ -2737,6 +2741,11 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   // aportación, igual: a qué meta va.
   // Una aportación a un bróker dice adónde fue si se sabe (`inversionEtiqueta`); si no, «no es un gasto».
   const skipTxt=!skip?"":(bucket==="recibo"||bucket==="meta"||(bucket==="neutra"&&recibo)?recibo:t("g_skip_"+bucket));
+  /* Sin fecha: la fila siempre va bajo la cabecera de su día, y «22/9 · Sabadell» debajo de
+     «mar 22 sept» repetía lo mismo (auditoría de diseño 233, DIS-13). El banco solo si en lo que
+     se ve hay más de uno (`conBanco`); y si no queda nada que decir, la línea ni se pinta. */
+  const banco=conBanco&&bk?(entOf(bk).label||entOf(bk).mono):"";
+  const meta=[banco,skipTxt].filter(Boolean);
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
@@ -2750,21 +2759,17 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
       // El color de la categoría va como variable y lo pinta el CSS: en el tema Claro, el pastel tal
       // cual sobre blanco no se leía (1,9:1, auditoría 14/11) y ahí se oscurece (ver `.nm-cat`).
       React.createElement("div",{className:"nm-cat",style:{"--cat":c.color}}, l||catName(e.category)),
-      React.createElement("div",{className:"meta"},
-        React.createElement("span",null,gxFecha(d,"dm")),
-        bk?React.createElement(React.Fragment,null,
-          React.createElement("span",{className:"sep"},"·"),
-          React.createElement("span",null,entOf(bk).label||entOf(bk).mono)
-        ):null,
-        skip?React.createElement(React.Fragment,null,
-          React.createElement("span",{className:"sep"},"·"),
-          React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt)
-        ):null
-      )
+      meta.length?React.createElement("div",{className:"meta"},
+        banco?React.createElement("span",null,banco):null,
+        banco&&skipTxt?React.createElement("span",{className:"sep"},"·"):null,
+        skipTxt?React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt):null
+      ):null
     ),
     React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount))),
-    React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"y","aria-label":t("drag_hint"),title:t("drag_hint"),
-      onTouchStart:function(ev){ onDragStart(ev,e); },onTouchMove:onDragMove,onTouchEnd:onDragEnd,onTouchCancel:onDragEnd},"⠿")
+    /* El asa solo donde hay con qué ordenar: un día con un único movimiento le quitaba ~28 px al
+       nombre para nada (DIS-14). Sin asa, el toque abre la ficha y el desliz cambia de pestaña. */
+    reordenable?React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"y","aria-label":t("drag_hint"),title:t("drag_hint"),
+      onTouchStart:function(ev){ onDragStart(ev,e); },onTouchMove:onDragMove,onTouchEnd:onDragEnd,onTouchCancel:onDragEnd},"⠿"):null
   );
 });
 
