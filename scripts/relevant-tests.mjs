@@ -534,6 +534,9 @@ export const CROSSCUTTING = [
   /* Igual de transversal: el teclado de Apuntar cabe o no según el CSS global de las hojas, y el
      contraste de `--muted-2` y del menta de Claro sale de los tokens de `shell.html`. */
   "e2e/apuntar-teclado-visible.spec.mjs",
+  /* Rediseño de Apuntar (auditoría 15/11): importe, alto de la hoja y letra Enorme dependen del
+     CSS global de las hojas y del zoom del body, no solo de la pantalla de Gastos. */
+  "e2e/apuntar-rediseno.spec.mjs",
   // INC-2709-12: el + de Cyberpunk por encima de la corriente de la barra, en todas las pestañas.
   "e2e/cyber-fab.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",

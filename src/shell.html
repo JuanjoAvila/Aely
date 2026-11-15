@@ -252,6 +252,12 @@
   html.smalltext body{zoom:0.92;}
   html.bigtext body{zoom:1.12;}
   html.hugetext body{zoom:1.26;}
+  /* El mismo zoom como variable, para lo que mide contra la pantalla (vw, dvh) desde dentro del
+     body: esas unidades también salen multiplicadas por el zoom. Con «Enorme» el importe de
+     Apuntar (13vw) no cabía en su fila y un 12345,67 salía cortado (15/11). */
+  html.smalltext{--zoom:0.92;}
+  html.bigtext{--zoom:1.12;}
+  html.hugetext{--zoom:1.26;}
   /* El `zoom` en body escala también el alto de la app (100dvh), así que la barra inferior
      (bottom:0) se quedaba flotando arriba con «Pequeña» (o se salía por abajo con «Enorme»).
      Se compensa: alto = 100dvh / zoom → tras el zoom vuelve a ser exactamente la pantalla,
@@ -1862,7 +1868,7 @@
   .v4-ficha-date{min-height:44px;padding:0 4px;color:var(--muted-2);font-size:12.5px;font-weight:700;text-transform:capitalize;}
   .v4-ficha-amount-row{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:1px;}
   .v4-ficha-amount{min-height:58px;max-width:calc(100% - 82px);border:0;background:transparent;color:var(--text);
-    font-size:clamp(40px,13vw,56px);font-weight:550;font-variation-settings:"opsz" 40;letter-spacing:-2px;
+    font-size:clamp(40px,calc(13vw / var(--zoom,1)),56px);font-weight:550;font-variation-settings:"opsz" 40;letter-spacing:-2px;
     font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0;}
   /* `empty` es también la clase GLOBAL de estado vacío (padding 34px 20px): con el importe a cero la
      cifra medía 107 px y al teclear la primera tecla bajaba a 58, así que la hoja daba un salto y el
@@ -2074,7 +2080,12 @@
   html.sheet-open .page{overscroll-behavior:none;}
   /* Aparte y solo con `sheet-shell-off` (ver `mcSheetLock`): `touch-action` se hereda. */
   html.sheet-shell-off .page{touch-action:none;}
-  .v4-apuntar-amt{text-align:center;font-size:34px;font-weight:550;letter-spacing:-1px;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
+  .v4-apuntar-amt{text-align:center;font-weight:550;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
+  /* El tamaño solo para quien no es la ficha (aportar a una meta). En Apuntar y Modificar el botón
+     lleva también `.v4-ficha-amount`, y esta regla, que va después con la misma especificidad, le
+     pisaba el clamp: el importe salía a 34 px, más chico que la cifra de Gastos que queda detrás
+     (auditoría de diseño 15/11, DIS-02). */
+  .v4-apuntar-amt:not(.v4-ficha-amount){font-size:34px;letter-spacing:-1px;}
   .v4-input{width:100%;background:var(--sur);border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px;font-size:15px;color:var(--text);margin-bottom:10px;}
   .v4-input:focus{border-color:var(--mint);outline:none;}
   /* P12 — los carruseles cortaban en seco y no se veia que habia mas a la derecha. La tabbar ya
