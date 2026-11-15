@@ -1041,7 +1041,7 @@ test("salir a probar y volver: el panel se reabre solo y a la misma altura", asy
 
 test("cerrar el panel A PROPÓSITO no lo reabre la próxima vez", async ({ page }) => {
   const panel = await panelConDosTandas(page);
-  await panel.getByRole("button", { name: /‹ Ajustes/ }).click();
+  await panel.locator(".sub-push-h .back").click();
   expect(await page.evaluate(() => localStorage.getItem("_betaPanelAbierto"))).toBeNull();
   expect(await page.evaluate(() => betaDebeReabrirse())).toBe(false);
 });
@@ -1566,7 +1566,7 @@ for(const lang of ["es","en","ca"])test(`contador activo: archivo109 no añade p
     const afterScroll=localStorage.getItem(BETA_ABIERTO_KEY)===null;
     wrap.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,pointerType:"touch"}));
     const afterPointer=localStorage.getItem(BETA_ABIERTO_KEY)!==null;
-    const close=Array.from(wrap.querySelectorAll("button")).find(el=>el.textContent==="‹ Ajustes");
+    const close=wrap.querySelector(".sub-push-h .back");
     if(!close)throw new Error("Falta el cierre del panel");
     close.click();
     wrap.dispatchEvent(new Event("scroll",{bubbles:true}));

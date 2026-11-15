@@ -2428,7 +2428,6 @@ Object.assign(LANG.ca,{
 // --- Privacidad in-app (2026-07-17: antes abría privacy.html en _blank → «muy arriba» bajo el
 // notch y «cuesta tirar para atrás». Ahora es un panel dentro de la app, con safe-area y gesto atrás). ---
 Object.assign(LANG.es,{
-  st_back_settings:"Ajustes",
   pv_title:"Privacidad y datos", pv_updated:"Última actualización: 15 jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"Qué datos guardamos",
   pv_s1:["Tu cartera: cuentas, inversiones, deudas, presupuesto y ajustes (en el móvil y, si inicias sesión, en Supabase).","Gastos: importe, comercio, categoría y fecha.","Conexiones bancarias: estado del enlace Open Banking y tokens de sesión cifrados. No guardamos la contraseña del banco.","MyInvestor: tokens de sesión cifrados tras conectar. La contraseña solo se usa al entrar y no se almacena.","Telemetría mínima (opcional): versión, plataforma y errores — sin datos financieros."],
@@ -2440,7 +2439,6 @@ Object.assign(LANG.es,{
   pv_s4:"Para dudas sobre privacidad: juanjo.avila.chavero@gmail.com",
 });
 Object.assign(LANG.en,{
-  st_back_settings:"Settings",
   pv_title:"Privacy & data", pv_updated:"Last updated: 15 Jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"What we store",
   pv_s1:["Your portfolio: accounts, investments, debts, budget and settings (on the phone and, if you sign in, in Supabase).","Expenses: amount, merchant, category and date.","Bank connections: Open Banking link status and encrypted session tokens. We never store your bank password.","MyInvestor: encrypted session tokens after connecting. The password is only used to sign in and is not stored.","Minimal telemetry (optional): version, platform and errors — no financial data."],
@@ -2452,7 +2450,6 @@ Object.assign(LANG.en,{
   pv_s4:"Privacy questions: juanjo.avila.chavero@gmail.com",
 });
 Object.assign(LANG.ca,{
-  st_back_settings:"Configuració",
   pv_title:"Privacitat i dades", pv_updated:"Última actualització: 15 jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"Quines dades desem",
   pv_s1:["La teva cartera: comptes, inversions, deutes, pressupost i ajustos (al mòbil i, si inicies sessió, a Supabase).","Despeses: import, comerç, categoria i data.","Connexions bancàries: estat de l'enllaç Open Banking i tokens de sessió xifrats. No desem la contrasenya del banc.","MyInvestor: tokens de sessió xifrats després de connectar. La contrasenya només s'usa en entrar i no es desa.","Telemetria mínima (opcional): versió, plataforma i errors — sense dades financeres."],
@@ -2480,7 +2477,7 @@ Object.assign(LANG.es,{
 // --- Open Banking · sección "Mis bancos" (multibanco) ---
 Object.assign(LANG.es,{
   bp_title:"Mis bancos", bp_intro:"Solo lectura · el permiso se renueva cada ~3 meses.",
-  bp_manage:"Gestionar mis bancos", bp_close:"Ajustes", bp_back:"Mis bancos",
+  bp_manage:"Gestionar mis bancos",
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae los últimos meses de {banks} a Gastos. Los recibos fijos, solo si los marcas.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya está en tu Plan · se cuenta una sola vez",
@@ -2545,7 +2542,7 @@ Object.assign(LANG.es,{
 });
 Object.assign(LANG.en,{
   bp_title:"My banks", bp_intro:"Read-only · consent renews every ~3 months.",
-  bp_manage:"Manage my banks", bp_close:"Settings", bp_back:"My banks",
+  bp_manage:"Manage my banks",
   bp_empty:"You haven't connected any bank yet.", bp_add:"Connect a bank",
   bp_hist_pickbank:"Choose which bank to query. Initially, only daily-spending banks are selected.",
   bp_hist_btn:"Import history", bp_hist_title:"Import history", bp_hist_sub:"Brings recent months from {banks} into Spending. Recurring bills only if you mark them.", bp_hist_m:"{n} month(s)", bp_hist_search:"Find transactions", bp_hist_searching:"Searching…", bp_hist_none:"No new transactions in that period (or they're all logged already). Remember: the bank only shows ~90 days.", bp_hist_all_logged:"Accounts shared by {bank}: {accounts}. Transactions supplied: {n}, all already logged. If another account is missing, reconnect the bank and select it; if it still does not appear, the bank is not sharing it with Aely.", bp_hist_view_logged:"View them in Spending", bp_hist_found:"{n} transactions · check and pick destination", bp_hist_notcard:"not a card purchase", bp_hist_import:"Import {n}", bp_hist_done:"✓ {n} imported", bp_hist_as_gasto:"🛒 Spend", bp_hist_as_recibo:"🧾 Bill", bp_hist_as_ingreso:"💰 Income", bp_hist_recibo:"Bill", bp_hist_done_g:"✓ {n} in Spending", bp_hist_done_i:"✓ {n} income", bp_hist_done_r:"✓ {n} bills", bp_hist_dup:"already in your Plan · counted once",
@@ -2610,7 +2607,7 @@ Object.assign(LANG.en,{
 });
 Object.assign(LANG.ca,{
   bp_title:"Els meus bancs", bp_intro:"Només lectura · el permís es renova cada ~3 mesos.",
-  bp_manage:"Gestiona els meus bancs", bp_close:"Configuració", bp_back:"Els meus bancs",
+  bp_manage:"Gestiona els meus bancs",
   bp_empty:"Encara no has connectat cap banc.", bp_add:"Connecta un banc",
   bp_hist_pickbank:"Tria quin banc vols consultar. D'entrada, només estan marcats els bancs de despesa diària.",
   bp_hist_btn:"Importar històric", bp_hist_title:"Importar històric", bp_hist_sub:"Porta els últims mesos de {banks} a Despeses. Els rebuts fixos, només si els marques.", bp_hist_m:"{n} mes(os)", bp_hist_search:"Cerca moviments", bp_hist_searching:"Cercant…", bp_hist_none:"No hi ha moviments nous en aquest període (o ja estan tots apuntats). Recorda: el banc només deixa veure ~90 dies.", bp_hist_all_logged:"Comptes compartits per {bank}: {accounts}. Moviments lliurats: {n}, tots ja apuntats. Si falta un altre compte, torna a connectar el banc i selecciona'l; si encara no apareix, el banc no l'està compartint amb Aely.", bp_hist_view_logged:"Veure'ls a Despeses", bp_hist_found:"{n} moviments · marca i tria destinació", bp_hist_notcard:"no és targeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importats", bp_hist_as_gasto:"🛒 Despesa", bp_hist_as_recibo:"🧾 Rebut", bp_hist_as_ingreso:"💰 Ingrés", bp_hist_recibo:"Rebut", bp_hist_done_g:"✓ {n} a Despeses", bp_hist_done_i:"✓ {n} ingressos", bp_hist_done_r:"✓ {n} rebuts", bp_hist_dup:"ja és al teu Pla · es compta una sola vegada",

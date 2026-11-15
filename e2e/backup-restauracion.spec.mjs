@@ -124,7 +124,7 @@ test("cerrar antes de terminar descarga ignora su resultado",async({page})=>{
     new Promise(resolve=>{release=()=>query(q).then(resolve);}):query(q);
   await page.getByRole("button",{name:"Ver copia",exact:true}).click();
   await expect.poll(()=>!!release).toBe(true);
-  await page.getByRole("button",{name:"‹ Ajustes",exact:true}).click();await release();
+  await page.locator(".sub-push-h .back").click();await release();
   await expect(page.locator(".bk-preview")).toHaveCount(0);expect(await halves(page)).toEqual(before);
 });
 

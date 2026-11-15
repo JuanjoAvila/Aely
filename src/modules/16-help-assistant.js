@@ -403,7 +403,8 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"aely-help-sheet-h"},
         React.createElement("h1",{id:"help-title",className:"serif"}, t("help_title")),
-        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:requestClose},"‹")),
+        // Es una hoja: se cierra con una X, no con el «‹» de las pantallas (auditoría de diseño 15/11).
+        React.createElement("button",{type:"button",className:"aely-help-x","data-act":"back","aria-label":t("au_close"),onClick:requestClose},"✕")),
       React.createElement("div",{className:"aely-help-body v4-sheet-body"},
         React.createElement("p",{className:"hint aely-help-intro"}, t("help_intro")),
         remoteOk && React.createElement("p",{className:"hint aely-help-remote-status","data-testid":"help-remote-status"}, t("help_remote_status_on")),
