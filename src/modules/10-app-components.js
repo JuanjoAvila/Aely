@@ -2683,7 +2683,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   };
   return React.createElement(React.Fragment,null,
     React.createElement("div",{className:"v4-set-profile"},
-      React.createElement("div",{className:"v4-set-av"}, (meEmail||"MC").slice(0,2).toUpperCase()),
+      React.createElement("div",{className:"v4-set-av"}, avatarIniciales(profileOf(state).fullName, meEmail)),
       React.createElement("div",{style:{minWidth:0,flex:1}},
         React.createElement("div",{style:{fontWeight:800,fontSize:16}}, meEmail?meEmail.split("@")[0]:"Aely"),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:2}}, meEmail||t("v4_set_profile_local")),

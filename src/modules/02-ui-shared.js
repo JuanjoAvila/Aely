@@ -1024,6 +1024,32 @@ function mcInicioFillHaptic(e){
   }catch(err){}
 }
 
+/* Iniciales del avatar, UNA regla para Inicio y Ajustes: cada sitio tenía la suya y la misma
+   persona salía «EE» en Inicio y «E2» en Ajustes, o «MC» (el nombre viejo de la app) sin correo
+   (auditoría de diseño 15/11/2026). Sin nombre se usa la parte del correo antes de la arroba. */
+function avatarIniciales(nombre, email){
+  let base=String(nombre||"").trim();
+  if(!base){ const em=String(email||""); base=(em.indexOf("@")>0?em.split("@")[0]:em).replace(/[._-]+/g," ").trim(); }
+  const partes=base.split(/\s+/).filter(Boolean);
+  if(!partes.length) return "A";
+  return (partes[0].charAt(0)+(partes.length>1?partes[1].charAt(0):"")).toUpperCase();
+}
+
+/* Sin una sola cuenta, inversión, bien, deuda ni movimiento, «0,00 €» en grande no es una cifra:
+   es una pantalla vacía que parece un saldo (auditoría de diseño 15/11/2026). Inicio y Cartera
+   cambian la cifra por la salida: añadir la primera cuenta. */
+function mcSinNada(s){
+  const vacio=function(k){ return !(s&&s[k]&&s[k].length); };
+  return vacio("accounts")&&vacio("obAccounts")&&vacio("investments")&&vacio("assets")&&vacio("debts")&&vacio("expenses");
+}
+function PrimeraCuentaHero(){
+  return React.createElement("div",{className:"v4-first-acc","data-testid":"hero-first-acc"},
+    React.createElement("div",{className:"v4-first-acc-t serif","data-tour":"hero-amt"}, t("v4_net_first_acc")),
+    React.createElement("button",{type:"button",className:"btn btn-primary",onClick:function(){
+      try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){}
+    }}, t("v4_noup_cta")));
+}
+
 /* Cifra con transición compartida (B2). Ya NO cuenta desde 0: mientras la pestaña entraba
    deslizándose (`ready` aún en false) Cartera pintaba «0,00 €», y en «Tus recibos» quien tocaba un
    grupo antes de los 950 ms se quedaba viendo una cifra a medias (1518,65 por 1526,87, vídeo de la

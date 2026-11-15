@@ -4673,18 +4673,21 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
   const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
+  // Sin nada que sumar, ni cifra ni barra ni «Deudas 0 €» en coral: la salida (mcSinNada). Y una
+  // deuda de cero nunca va en coral, que es el color de lo que se debe.
+  const sinNada=mcSinNada(state);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
       React.createElement(FxNotice,{missing:totals.fxMissing}),
-      React.createElement(CarteraHeroAmt,{target:heroTarget}),
-      React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
+      sinNada ? React.createElement(PrimeraCuentaHero) : React.createElement(CarteraHeroAmt,{target:heroTarget}),
+      !sinNada && React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});
         })
       ),
-      React.createElement("div",{className:"v4-legend"},
+      !sinNada && React.createElement("div",{className:"v4-legend"},
         parts.map(function(x){
           const on=!!selParts[x.k];
           return React.createElement("button",{key:x.k,type:"button",className:"v4-legend-btn"+(on?"":" off"),
@@ -4692,9 +4695,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
             React.createElement("b",{style:{background:x.color}}), x.lab+" "+eur0(x.v));
         })
       ),
-      allOn && React.createElement("div",{style:{marginTop:12,fontSize:13,color:"var(--muted)"}},
+      allOn && !sinNada && React.createElement("div",{style:{marginTop:12,fontSize:13,color:"var(--muted)"}},
         t("v4_debts_foot_a"),
-        React.createElement("span",{style:{color:"var(--coral)",fontWeight:700}}, " "+eur0(-(totals.debtTotal||0))+" "),
+        React.createElement("span",{style:{color:(totals.debtTotal||0)>0?"var(--coral)":"var(--text)",fontWeight:700}}, " "+eur0(-(totals.debtTotal||0))+" "),
         t("v4_debts_foot_b"))
     ),
     // Banners de reconexión: el arreglo a UN toque, en la pantalla donde se VE el problema.
@@ -5076,11 +5079,7 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     if(email&&email.indexOf("@")>0) return email.split("@")[0].replace(/[._]/g," ");
     return "";
   })();
-  const initials=(function(){
-    const src=nameGuess||"MC";
-    const parts=src.trim().split(/\s+/);
-    return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
-  })();
+  const initials=avatarIniciales(nameGuess, email);
   const handleShow=p.handle ? (p.handle.charAt(0)==="@"?p.handle:("@"+p.handle)) : "@"+(email?email.split("@")[0]:"micartera");
   const patch=function(key,val){
     set(function(s){

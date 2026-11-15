@@ -118,7 +118,8 @@ test("usuario nuevo: ni veredicto, ni periodos, ni líneas en la i", async ({ pa
   await seedLoggedInDashboard(page, { accounts: [], obAccounts: [], investments: [], assets: [], debts: [], expenses: [], budget: 0, invHistory: [], accountBalanceHistory: {} });
   await page.goto("/"); await page.waitForFunction(() => !document.getElementById("mc-load")); await dismissNews(page);
   const hero = page.getByTestId("inicio-net-current");
-  await expect(hero).toContainText("Tu histórico empieza hoy");
+  // Sin una sola cuenta la cifra deja sitio a la primera cuenta (diseño 15/11/2026).
+  await expect(hero).toContainText("Añade tu primera cuenta");
   await expect(hero.getByTestId("inicio-net-delta")).toHaveCount(0);
   await expect(hero.locator(".v42-net-ranges button")).toHaveCount(0);
   await expect(hero.locator("svg")).toHaveCount(0);

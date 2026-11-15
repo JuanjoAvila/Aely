@@ -73,6 +73,7 @@ const steps = [
   ["fin11-absorption-pending", ["node", "--test", "--test-concurrency=1", "tests/fin11-absorption-pending.test.mjs"]],
   ["ux16-haptics", ["node", "--test", "tests/ux16-haptics.test.mjs"]],
   ["countup-no-baja", ["node", "--test", "tests/countup-no-baja.test.mjs"]],
+  ["avatar-iniciales", ["node", "--test", "tests/avatar-iniciales.test.mjs"]],
   ["ux16-ajustador", ["node", "--test", "tests/ux16-ajustador.test.mjs"]],
   ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
   ["fin37-debt-startday-once", ["node", "tests/fin37-debt-startday-once.test.mjs"]],

@@ -950,7 +950,10 @@
   .v42-net-ranges button[aria-pressed="true"]{background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint);}
   .v42-cycle-section{margin-top:22px;}
   .v42-cycle-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px;font-size:14px;font-weight:700;}
-  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;}
+  /* 44 px de dedo como `.v4-section-h button.link`; el margen negativo devuelve el alto que gana
+     para que la cabecera no crezca (medía 20 px de alto, auditoría 15/11); el -2 de la derecha
+     anula el margen de la cabecera y alinea el texto con el de las demás secciones. */
+  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;min-height:44px;padding:10px 8px;margin:-10px -2px -10px 0;}
   .v42-cycle{gap:14px;padding:14px 16px;cursor:pointer;}
   .v42-cycle-ring{position:relative;width:76px;height:76px;flex:0 0 auto;}
   .v42-cycle-percent{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;padding-top:25px;font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;line-height:1;color:var(--text);}
@@ -994,6 +997,17 @@
   /* «En noviembre» junto a «Próximos cargos» cuando lo que se ve es del mes que viene. */
   .v4-upcoming-mes{margin-left:8px;color:var(--muted);font-weight:600;font-size:13px;}
   .v4-section .v4-mov{min-height:60px;}
+  .v4-first-acc{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:12px;}
+  .v4-card-hero .v4-first-acc{align-items:flex-start;}
+  .v4-first-acc-t{font-size:26px;font-weight:550;letter-spacing:-.4px;line-height:1.15;}
+  .v4-first-acc .btn{min-height:48px;padding:0 22px;}
+  .v4-nogoal-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:0 14px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;
+    color:var(--text);font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:transform .12s var(--ease),background .12s var(--ease);}
+  .v4-nogoal-row:active{transform:scale(.995);background:var(--sur2);}
+  .v4-nogoal-row .em{font-size:22px;line-height:1;}
+  .v4-nogoal-row .tx{flex:1;min-width:0;}
+  .v4-nogoal-row .chev{color:var(--muted);font-size:20px;line-height:1;}
+  @media (prefers-reduced-motion:reduce){ .v4-nogoal-row:active{transform:none;} }
   .v4-charge{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-soft);}
   .v4-charge:first-child{border-top:none;}
   .v4-charge .dt{width:44px;text-align:center;flex:0 0 auto;}
@@ -1438,6 +1452,10 @@
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
+  /* «Últimos movimientos» ya va dentro de su tarjeta: con fondo y borde propios cada fila era una
+     tarjeta dentro de otra (auditoría 15/11). Filas planas con raya, como «Próximos cargos». */
+  .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
      Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
@@ -1475,6 +1493,7 @@
   }
   html[data-theme="light"] .dc-badge,
   html[data-theme="light"] .v4-section-h button.link,
+  html[data-theme="light"] .v42-cycle-head .link,
   html[data-theme="light"] .v4-avatar,
   html[data-theme="light"] .pr6-mes-nav,
   html[data-theme="light"] .pr6-pill-ok,
@@ -2761,7 +2780,11 @@
 .aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
 .aely-help-entry{margin:6px 0 10px;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
-.aely-help-entry-mini{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+.aely-help-entry-mini{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+/* El dibujo sigue en 36 px; el dedo necesita 44 (auditoría 15/11). -5 y no -4: el inset cuenta desde
+   dentro del borde de 1 px (con -4 quedaba en 42). Cabe en el hueco de 8 px que lo
+   separa del avatar sin pisarlo. */
+.aely-help-entry-mini::before{content:"";position:absolute;inset:-5px;}
 .aely-help-consent{margin-top:12px;padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);}
 .aely-help-remote-status{margin:0 0 8px;font-size:12px;}
 @media (prefers-reduced-motion:reduce){

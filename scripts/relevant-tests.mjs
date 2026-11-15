@@ -304,6 +304,12 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
+  // Menores de diseño de Inicio (235): «?» y enlaces de 44 px, movimientos planos, fila de metas,
+  // iniciales únicas (Inicio, Perfil, Ajustes), letra de «Pregúntame» y la primera cuenta en vacío.
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/16-help-assistant.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-grafica-reservas.spec.mjs", "e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
