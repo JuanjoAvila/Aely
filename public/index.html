@@ -25238,13 +25238,19 @@ function marcarIntentoTraspaso(e){ traspasoIntentos.set(traspasoPropioClave(e),D
    el banco: `obName` si él lo renombró, si no el comercio), nunca el concepto ni la nota: ahí sale también el
    ORDENANTE —«TRANSFERENCIA DE <titular>» en el alquiler al casero— o lo que él escribió («pago a Pedro, de
    <titular>»). Y sin la variante «nombre de pila + dos apellidos»: un hermano con nombre compuesto la cumple
-   (revisión externa del 15/11/2026, ALTA: las tres convertían un gasto real en traspaso y lo subían). */
-const TRASPASO_A_RE=/^(?:transferencias?|transfer|traspasos?|transf)(?: (?:emitida|inmediata|sepa|nacional|ordinaria|periodica))* (?:a favor de|a|to|para) /;
+   (revisión externa del 15/11/2026, ALTA: las tres convertían un gasto real en traspaso y lo subían).
+   Lo que el banco añade alrededor no es nombre: «TRANSFERENCIA REALIZADA A …» delante y «REF 123» detrás se
+   quitan; una inicial («LEO M SASTRE RUANO») sigue sin casar, mejor un traspaso sin marcar que un gasto perdido.
+   Sin acreedor el banco pone el concepto de título: si es SOLO el nombre (sin «transferencia a»), lo pudo
+   escribir él en un pago a otro, así que no basta (necesita la otra pata). Re-revisión del 15/11. */
+const TRASPASO_A_RE=/^(?:transferencias?|transfer|traspasos?|transf)(?: (?:emitida|realizada|enviada|ordenada|inmediata|sepa|nacional|internacional|ordinaria|periodica|online))* (?:a favor de|a|to|para) /;
+const TRASPASO_COLA_RE=/(?: (?:ref|referencia|num))?(?: [a-z]*\d[a-z0-9]*)+$|(?: ref| referencia)$/;
 function aNombreDelTitular(s,e){
   const palabras=function(x){ return recNorm(x).split(" ").filter(function(k){ return k.length>=2&&!DEBEN_PALABRAS_NO[k]; }).sort().join(" "); };
   const w=palabras(s.settings&&s.settings.profile&&s.settings.profile.fullName);
-  const benef=e&&(e.obName!=null&&String(e.obName).trim()?e.obName:e.merchant);
-  return w.indexOf(" ")>0&&palabras(recNorm(benef).replace(TRASPASO_A_RE,""))===w;
+  const benef=recNorm(e&&(e.obName!=null&&String(e.obName).trim()?e.obName:e.merchant)), sinPre=benef.replace(TRASPASO_A_RE,"");
+  if(!(w.indexOf(" ")>0&&palabras(sinPre.replace(TRASPASO_COLA_RE,""))===w)) return false;
+  return sinPre!==benef||benef!==recNorm(e.concept)&&benef!==recNorm(String(e.note||"").split(" · ")[0]);
 }
 function salidasTraspasoPropio(s){
   const n=new Date(), exps=(s&&s.expenses)||[], deleted=expenseDeletedSet(s), Y=n.getFullYear(), M=n.getMonth()+1;

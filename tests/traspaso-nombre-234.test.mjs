@@ -75,6 +75,23 @@ function suite(c){
     const de=fila("p1d","2026-10-30",400,"TRANSFERENCIA DE LEO SASTRE RUANO");
     assert.deepEqual(salen(estado({expenses:[de]})),[]);
   });
+  caso("P3 · lo que el banco pone alrededor del nombre: «realizada a» delante y la referencia detrás",()=>{
+    const pre=fila("p3","2026-10-30",400,"TRANSFERENCIA REALIZADA A LEO SASTRE RUANO REF 123",{concept:"TRANSFERENCIA REALIZADA A LEO SASTRE RUANO REF 123"});
+    assert.deepEqual(salen(estado({expenses:[pre]})),["p3"]);
+    const cola=fila("p3b","2026-10-30",400,"LEO SASTRE RUANO REF: 4567",{concept:"TRASPASO MENSUAL"});
+    assert.deepEqual(salen(estado({expenses:[cola]})),["p3b"]);
+    // Una inicial no es el nombre entero: mejor sin marcar que un gasto perdido.
+    const ini=fila("p3c","2026-10-30",400,"LEO M SASTRE RUANO",{concept:"TRASPASO MENSUAL"});
+    assert.deepEqual(salen(estado({expenses:[ini]},"Leo Marc Sastre Ruano")),[]);
+  });
+  caso("B1 · sin acreedor, un concepto que es SOLO su nombre no basta: hace falta la otra pata",()=>{
+    const sola=fila("b1","2026-10-30",400,"LEO SASTRE RUANO",{concept:"LEO SASTRE RUANO",note:"LEO SASTRE RUANO · TRANSFERENCIA EMITIDA"});
+    assert.deepEqual(salen(estado({expenses:[sola]})),[]);
+    const nube=fila("b1n","2026-10-30",400,"LEO SASTRE RUANO",{note:"LEO SASTRE RUANO · TRANSFERENCIA EMITIDA"});
+    assert.deepEqual(salen(estado({expenses:[nube]})),[],"la fila de la nube no trae concepto: lo dice la nota");
+    const llega={id:"b1l",ent:"myinvestor",date:"2026-10-31",amount:-400,merchant:"Traspaso recibido",source:"ob",status:"BOOK",category:"traspaso"};
+    assert.deepEqual(salen(estado({expenses:[sola,llega]})),["b1"],"con su otra pata, sí");
+  });
   caso("P2 · con la otra pata al céntimo entre esos dos bancos sigue bastando, aunque varíe del previsto",()=>{
     const sale=fila("p2","2026-10-30",1180,"Transferencia emitida");
     const llega={id:"p2l",ent:"trade_republic",date:"2026-10-30",amount:-1180,merchant:"Traspaso recibido",source:"ob",status:"BOOK",category:"traspaso"};
@@ -106,8 +123,9 @@ function suite(c){
 
 // La regla de antes de la 234, tal cual estaba (0184ef82c): la limpieza la necesita para saber qué marcaba.
 const A_LA_VIEJA=[
-  [`const benef=e&&(e.obName!=null&&String(e.obName).trim()?e.obName:e.merchant);
-  return w.indexOf(" ")>0&&palabras(recNorm(benef).replace(TRASPASO_A_RE,""))===w;`,
+  [`const benef=recNorm(e&&(e.obName!=null&&String(e.obName).trim()?e.obName:e.merchant)), sinPre=benef.replace(TRASPASO_A_RE,"");
+  if(!(w.indexOf(" ")>0&&palabras(sinPre.replace(TRASPASO_COLA_RE,""))===w)) return false;
+  return sinPre!==benef||benef!==recNorm(e.concept)&&benef!==recNorm(String(e.note||"").split(" · ")[0]);`,
    `const txt=" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ";
   if(DEBEN_PROPIO.test(txt)) return true;
   const v=recNorm(s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(x){ return x.length>=2&&!DEBEN_PALABRAS_NO[x]; });
@@ -127,8 +145,12 @@ assert.deepEqual(reales,[],"el motor de verdad pasa todos los casos");
 console.log("traspaso-nombre-234: casos OK");
 
 const MUTANTES=[
-  ["el nombre en el concepto o la nota vuelve a contar",'const benef=e&&(e.obName!=null&&String(e.obName).trim()?e.obName:e.merchant);','const benef=e&&[e.merchant,e.obName,e.concept,e.note].join(" ");'],
-  ["sin exigir el nombre ENTERO y solo",'.replace(TRASPASO_A_RE,""))===w;','.replace(TRASPASO_A_RE,"")).indexOf(w.split(" ")[0])>=0;'],
+  ["el nombre en el concepto o la nota vuelve a contar",'if(!(w.indexOf(" ")>0&&palabras(sinPre.replace(TRASPASO_COLA_RE,""))===w)) return false;','if(w.indexOf(" ")>0&&w.split(" ").every(function(k){ return (" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ").indexOf(" "+k+" ")>=0; })) return true;'],
+  ["sin exigir el nombre ENTERO y solo",'palabras(sinPre.replace(TRASPASO_COLA_RE,""))===w','palabras(sinPre.replace(TRASPASO_COLA_RE,"")).indexOf(w.split(" ")[0])>=0'],
+  ["la referencia detrás impide casar",'palabras(sinPre.replace(TRASPASO_COLA_RE,""))','palabras(sinPre)'],
+  ["«realizada a» delante impide casar",'(?: (?:emitida|realizada|','(?: (?:emitida|'],
+  ["el concepto que es solo su nombre basta",'return sinPre!==benef||benef!==recNorm(e.concept)&&','return true||benef!==recNorm(e.concept)&&'],
+  ["la nota de la nube no cuenta como concepto",'&&benef!==recNorm(String(e.note||"").split(" · ")[0]);',';'],
   ["«de <titular>» pasa por beneficiario",'(?:a favor de|a|to|para) /','(?:a favor de|a|de|to|para) /'],
   ["sin el céntimo en el traspaso previsto",'if(tuyo&&previsto(e,null,true)) return true;','if(tuyo&&previsto(e,null,false)) return true;'],
   ["el céntimo también le quita la otra pata",'(exacto||!recAmtClose(want,Number(e.amount)))','(true)'],

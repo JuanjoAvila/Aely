@@ -277,7 +277,7 @@ const MUTANTES=[
   ["A · pareja sin mirar que sea la única",'return salidas.length===1&&salidas[0]===e&&','return salidas.length>=1&&'],
   ["A · basta un traspaso previsto, aunque no vaya a su nombre",'if(tuyo&&previsto(e,null,true)) return true;','if(previsto(e,null,true)) return true;'],
   ["A · la pata de llegada sola basta",'&&(tuyo||previsto(e,expenseBankOf(l)))',''],
-  ["A · dos palabras del titular bastan",'.replace(TRASPASO_A_RE,""))===w;','.replace(TRASPASO_A_RE,"")).split(" ").filter(function(k){ return w.split(" ").indexOf(k)>=0; }).length>=2;'],
+  ["A · dos palabras del titular bastan",'palabras(sinPre.replace(TRASPASO_COLA_RE,""))===w','sinPre.split(" ").filter(function(k){ return w.split(" ").indexOf(k)>=0; }).length>=2'],
   ["A · traspaso previsto de cualquier día",'Math.abs(r-pl)<=FLOW_ADELANTO;','true;'],
   ["A · no respeta su «Otros»",'ov==="otros"||reciboVetado','reciboVetado'],
   ["A · no respeta que la devolviera a «Otros»",'||reciboVetado(s,TRASPASO_NO,k)) return false;',') return false;'],
