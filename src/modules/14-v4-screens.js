@@ -4594,8 +4594,10 @@ function CarteraHeroAmt({target}){
   const [carteraOn,setCarteraOn]=useState(false);
   useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
   const ph=eurParts(useCountUp(target, carteraOn));
-  return React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-    ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},ph.sep+ph.dec+" "+ph.sym));
+  // Tamaño en `.cartera-hero-amt` (--fs-hero): con 40 px en línea era la única cifra grande
+  // distinta de Inicio, Gastos y Plan (DIS-38).
+  return React.createElement("div",{className:"serif num cartera-hero-amt"},
+    ph.ent, React.createElement("span",null,ph.sep+ph.dec+" "+ph.sym));
 }
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
@@ -4743,13 +4745,16 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
        cuenta y está en el sitio donde el usuario ya sabe buscarlo («⇅ Ordenar secciones» al pie).
        Se inventó un mecanismo nuevo cero: el que había ya hacía justo esto (hoy solo lo usa Cartera). */
     React.createElement(OrderableSections,{tab:"cartera",state:state,set:set,items:[
+      /* La cabecera de Cuentas y la de Bienes las pinta `Wealth` (`titulo`): su acción («Editar»,
+         «Añadir») depende de estado que vive allí, y tiene que ir a la derecha del título como
+         la del resto de bloques (DIS-32). Aquí solo se le pasan los iconos de bancos. */
       { id:"cuentas", label:t("v4_cuentas"), el:React.createElement(React.Fragment,null,
-        React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}},
-          React.createElement("span",null, t("v4_cuentas")),
+        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
+          onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy,titulo:t("v4_cuentas"),
           /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
              bancos» escritos, el título se partía en dos líneas en su móvil. Llevan su `title` y
              su `aria-label`, así que no se pierde el nombre para quien lo necesite. */
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:7,flex:"0 0 auto"}},
+          iconos:React.createElement(React.Fragment,null,
             // Sync a demanda: el auto-sync al abrir la app se retiró (los bancos veían «bot» y
             // caducaban la conexión cada dos por tres — feedback 2026-07-18).
             state.hasBankLink && onBankSync && React.createElement("button",{type:"button",
@@ -4770,23 +4775,22 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M5 10v8M10 10v8M14 10v5M19 10v3"}),
                 React.createElement("path",{d:"M3 20h11"}),
                 React.createElement("path",{d:"M18 16v6M15 19h6"})))
-          )
-        ),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
-          onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy})
+          )})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
       { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
-        React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes"})
+        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes",titulo:t("pt_goods")})
       ) },
       // `data-cartera-sec`: aquí aterriza «Abrir en Cartera ›» de la fila gris de Inversiones de
       // Gastos (`goInversiones`, 11-app-main), aunque el bloque se haya reordenado.
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
-        React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast}),
-        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
+        React.createElement("div",{className:"v4-sec-h v4-section-h"},
+          React.createElement("span",null, t("v4_inversiones")),
+          // El nombre largo se queda en el aria-label: «Ver todo» a secas no dice de qué.
+          React.createElement("button",{type:"button",className:"link",ref:invLinkRef,"aria-label":t("iv_see_all"),
+            onClick:function(){ setInvTools(true); }}, t("v4_ver_todo"))),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
       ) }
     ]}),
     // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla

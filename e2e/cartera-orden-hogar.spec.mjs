@@ -60,7 +60,12 @@ test("Cartera se puede reordenar y el orden se guarda en el estado", async ({ pa
   const titulos = pantalla.locator(".v4-sec-h");
   await expect(titulos.first()).toContainText("Tus cuentas");
 
+  const ordenar = pantalla.locator(".v4-sec-order");
+  // Botón fantasma de 44 px como mínimo, no texto suelto (DIS-32, auditoría de diseño 233).
+  expect((await ordenar.boundingBox()).height).toBeGreaterThanOrEqual(44);
   await pantalla.getByRole("button", { name: /Ordenar secciones/i }).click();
+  // Una sola marca al ordenar: `done` ya trae «✓» y el botón le ponía otra delante (DIS-36).
+  await expect(ordenar).toHaveText("Listo ✓");
   // En modo orden, cada bloque enseña su etiqueta y sus flechas. Bienes va APARTE de las cuentas
   // (feedback 2026-07-25: «¿por qué has metido bienes junto con mis cuentas?»).
   const bloques = pantalla.locator(".wedit");

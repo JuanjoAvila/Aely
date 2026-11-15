@@ -10,7 +10,7 @@
    aprender nada nuevo. Tampoco hay «Guardar»: cada cambio se guarda al vuelo, como en el resto.
    Y lo que rechazó de la primera maqueta: meter todo en una cartilla única («separado como está
    me gusta ya») y la flecha al lado del importe. */
-function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada, onBankSync, onReconnectBank, bankBusy}){
+function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada, onBankSync, onReconnectBank, bankBusy, onCajero, onEntrada}){
   const [borrando,setBorrando]=React.useState(false);
   const [saldo,setSaldo]=React.useState("");
   const [corrigiendo,setCorrigiendo]=React.useState(false);
@@ -194,8 +194,14 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                   })),
                 React.createElement("div",{className:"v4-account-spark-foot"},
                   React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
-            : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
-          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(balanceDate?" · "+tf("pt_ficha_sync",{x:new Date(balanceDate).toLocaleString()}):""))
+            : null,
+          /* UNA línea de notas bajo el saldo (DIS-37, auditoría de diseño 233): «Su histórico empieza
+             hoy» y «lo pone el banco» eran dos textos sueltos de 11-12 px que se leían como restos. */
+          (function(){
+            const nota=[conectada?t("pt_ficha_banco"):"", (missingFx||history.length<2)?t("ac_spark_new"):"",
+              conectada&&balanceDate?tf("pt_ficha_sync",{x:new Date(balanceDate).toLocaleString()}):""].filter(Boolean).join(" · ");
+            return nota && React.createElement("div",{className:"v4-account-lock"},nota);
+          })()
         ),
         React.createElement("div",{className:"v4-account-share",style:{padding:"14px 0 2px"}},
           React.createElement("div",{className:"v4-ficha-k"}, t("ac_share_q")),
@@ -217,6 +223,10 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
               }}, t(legacyDec?"ac_legacy_undo":"ac_legacy_decide")))
         ),
         React.createElement("div",{className:"v4-account-actions"},
+          /* Sacar del cajero y entrada de efectivo viven en la ficha del Efectivo (DIS-32, auditoría
+             de diseño 233): sueltas bajo la lista de cuentas eran dos píldoras sin dueño. */
+          efectivo && onCajero && React.createElement("button",{type:"button",className:"v4-account-action","data-act":"ef-cajero",onClick:onCajero},t("ef_cajero_btn")),
+          efectivo && onEntrada && React.createElement("button",{type:"button",className:"v4-account-action","data-act":"ef-entrada",onClick:onEntrada},t("ef_in_btn")),
           !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){
             if(corrigiendo) guardaSaldo(); else cambiaSaldo(""); setCorrigiendo(function(v){ return !v; });
           }},corrigiendo?t("done"):t("ac_fix_balance")),
@@ -323,7 +333,7 @@ function AssetSheet({asset,set,onClose}){
     )),document.body);
 }
 
-function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
+function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   const [sheetAsset,setSheetAsset]=useState(null);
@@ -496,14 +506,22 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
       const rowDragging=!!(dragAcc&&dragAcc.from===rowKey);
       const rowOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
       return React.createElement("button",{className:"v4-mov"+(rowDragging?" dragging":"")+(rowOver?" drag-over":""),key:rowKey,type:"button",
-        "data-account-key":rowKey,"data-account-id":a.id,"aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a)),
+        "data-account-key":rowKey,"data-account-id":a.id,"aria-label":[a.name,entOf(a.ent).label].filter(function(x,i,l){ return x&&l.indexOf(x)===i; }).join(" · ")+" · "+eur(shownAcc(a)),
         title:t("drag_hint"),
         onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:a.ent,size:44})),
-        React.createElement("div",{className:"nm"},
-          React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
-          React.createElement("div",{className:"meta"}, [roleLab(a),a.name,shareMeta(a,"account")].filter(Boolean).join(" · ")||"—")
-        ),
+        /* Título = la cuenta y debajo, en UNA línea, banco y uso (DIS-33, auditoría de diseño 233):
+           estas filas ponían el banco de título y las de Open Banking la cuenta, así que en la
+           misma lista se leían al revés según de dónde viniera cada una. */
+        (function(){
+          const banco=entOf(a.ent).label, tit=a.name||banco, rol=roleLab(a);
+          const meta=[banco!==tit?banco:"", rol!==a.name?rol:"", shareMeta(a,"account")].filter(Boolean).join(" · ");
+          return React.createElement("div",{className:"nm"},
+            // El nombre se recorta antes que la marca «del banco»: con un nombre largo la marca
+            // saltaba sola a otra línea.
+            React.createElement("div",{className:"v4-meta-row"},React.createElement("span",{className:"v4-meta-1l"},tit), isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
+            React.createElement("div",{className:"meta v4-meta-row"}, React.createElement("span",{className:"v4-meta-1l"},meta||"—")));
+        })(),
         React.createElement("div",{className:"am num"},eur(shownAcc(a)))
       );
     };
@@ -606,22 +624,26 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
        bloque, así que el piso y el coche viajaban pegados a las cuentas del banco y no se podían
        colocar por separado. `parte` los separa sin duplicar nada: sin `parte` sigue pintando los
        dos, que es como lo usa el resto de la app. */
+    const verEditar=(state.obAccounts||[]).length>0 || accEd.editing;
     return React.createElement("div",null,
+      titulo && parte==="cuentas" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
+        React.createElement("span",null,titulo),
+        React.createElement("div",{className:"v4-sec-acts"},
+          /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
+             veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
+             (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
+             se deja el botón para poder Guardar. */
+          verEditar && React.createElement("button",{type:"button",className:"link","data-act":"acc-edit",onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
+          iconos)),
+      titulo && parte==="bienes" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
+        React.createElement("span",null,titulo),
+        React.createElement("button",{type:"button",className:"link","data-act":"asset-add","aria-label":t("goods_add"),onClick:function(){setSheetAsset({});}},t("pf_add"))),
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list",ref:bindListDrag},
         React.createElement(FxNotice,{missing:(state.obAccounts||[]).filter(function(o){ return toEurAmt(o.value,o.cur,state)==null; }).length}),
         orderedAccountRows.map(function(row){
           return row.kind==="account" ? accRow(row.item,row.key) : obRow(row.item,row.key);
         }),
-        /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
-           veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
-           (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
-           se deja el botón para poder Guardar. */
-        ((state.obAccounts||[]).length>0 || accEd.editing) && React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
-        !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn")),
-        cashAcc && React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",margin:"8px 4px"}},
-          React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doSaqueCajero}, t("ef_cajero_btn")),
-          React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doEntradaEfectivo}, t("ef_in_btn"))
-        )
+        !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn"))
       ),
       // La ficha de la cuenta que esté abierta. Portal a `body`, así que da igual dónde se monte.
       React.createElement(AccountSheet,{
@@ -631,7 +653,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         rolVista:sheetRow&&sheetRow.kind==="account"?rolVistaOf(sheetRow.item):null,
         saldoMostrado:function(a){ return a&&a._obKey?a.value:shownAcc(a); },
         sincronizada:function(a){ return !!(a&&a._obKey)||isSynced(a); },
-        onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy
+        onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy,
+        onCajero:doSaqueCajero, onEntrada:doEntradaEfectivo
       }),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
       // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
@@ -699,7 +722,6 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         })
       ),
       parte!=="cuentas" && React.createElement(React.Fragment,null,
-        React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){setSheetAsset({});}},t("goods_add")),
         sheetAsset&&React.createElement(AssetSheet,{asset:sheetAsset,set:set,onClose:function(){setSheetAsset(null);}})
       )
     );

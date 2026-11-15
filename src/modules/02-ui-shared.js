@@ -2473,11 +2473,13 @@ function OrderableSections({tab, state, set, items, onMove}){
         React.createElement("div",{className:"wedit-body"},it.el)
       );
     }),
+    /* Botón fantasma a todo el ancho, el mismo en reposo y ordenando (auditoría de diseño 233,
+       DIS-32/36): antes era texto suelto gris y, al ordenar, «✓ Listo ✓» con la marca dos veces
+       porque `done` ya la lleva. */
     real.length>1 && React.createElement("button",{
-      className:"btn btn-ghost btn-block",
-      style:ordering?{marginTop:10}:{marginTop:10,fontSize:12.5,color:"var(--muted-2)",border:"none",background:"none"},
+      type:"button",className:"btn btn-ghost btn-block v4-sec-order",
       onClick:function(){ setOrdering(!ordering); }
-    }, ordering?("✓ "+t("done")):t("sec_order"))
+    }, ordering?t("done"):t("sec_order"))
   );
 }
 

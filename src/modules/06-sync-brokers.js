@@ -1029,17 +1029,21 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
 
   if(fullMode){
     const lastTime=lastPriceMs?new Date(lastPriceMs).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"}):t("iv_never");
+    // Sin precios todavía no hay «Actualizado …» que decir: salía «Actualizado sin actualizar».
+    const lastUpd=lastPriceMs?tf("iv_updated",{time:lastTime}):t("iv_never_full");
     const staleDay=lastPriceMs?new Date(lastPriceMs).toLocaleDateString(loc(),{weekday:"long"}):"—";
     const heroBase=completeCost?Math.max(0,Math.min(costTotal,total)):Math.max(total,1);
     const heroGain=completeCost?Math.max(0,gainTotal):0;
     const heroSum=Math.max(1,heroBase+heroGain);
     return React.createElement("div",{className:"v4-investments-full",ref:brokerDrag.bind},
       React.createElement("section",{className:"v4-card v4-card-hero rise","data-inv-hero":"1",style:{padding:20}},
-        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+        /* La moneda va DEBAJO de la cifra (DIS-35, auditoría de diseño 233): a su lado le robaba
+           el ancho y «5.200,00 €» se partía en dos líneas a 360 px. */
+        React.createElement("div",null,
           React.createElement("div",null,
             React.createElement("div",{className:"v4-micro"},t("iv_now")),
-            React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},f2(shownTotal))),
-          React.createElement("div",{className:"curtoggle","aria-label":t("iv_currency")},
+            React.createElement("div",{className:"serif num","data-inv-total":"1",style:{fontSize:"clamp(30px,10.5vw,40px)",fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6,whiteSpace:"nowrap"}},f2(shownTotal))),
+          React.createElement("div",{className:"curtoggle","aria-label":t("iv_currency"),style:{marginTop:12}},
             ["EUR","USD","GBP"].concat(["EUR","USD","GBP"].includes(invCur)?[]:[invCur]).map(function(c){
               return React.createElement("button",{key:c,type:"button",className:"curbtn"+(invCur===c?" on":""),"aria-label":CUR_SYM[c]||c,"aria-pressed":invCur===c,onClick:function(){ setInvCur(c); }},CUR_SYM[c]||c); }))),
         React.createElement(FxNotice,{missing:missingFx+(displayMissing?1:0)}),
@@ -1053,11 +1057,11 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
                 React.createElement("span",null,React.createElement("b",{style:{background:"var(--cream)"}}),tf("iv_put",{amount:f2(costTotal)})),
                 React.createElement("span",null,React.createElement("b",{style:{background:gainTotal>=0?"var(--mint)":"var(--coral)"}}),tf(gainTotal>=0?"iv_gained":"iv_lost",{amount:f2(Math.abs(gainTotal))}))),
               React.createElement("div",{style:{fontSize:13,fontWeight:750,color:gainTotal>=0?"var(--mint)":"var(--coral)",marginTop:10}},
-                tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2),time:lastTime})))
+                tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2),upd:lastUpd})))
           : React.createElement("div",{className:"hint",style:{marginTop:12}},
               state.investments.length>0 && React.createElement("div",{className:"v4-legend"},React.createElement("span",null,React.createElement("b",{style:{background:"var(--muted-2)"}}),t("iv_gain_unknown"))),
               !missingFx && React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
-              state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
+              state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},lastUpd),
               state.investments.length>0&&!missingFx && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
         React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?Number(fx).toLocaleString(loc(),{maximumFractionDigits:4}):"—"}))),
 
@@ -1110,7 +1114,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
+              React.createElement("div",{className:"meta"},items.length===1?t("v4_inv_position"):tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
             React.createElement("div",{style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{className:"am num"},f0(o.v)),
               brokerCostComplete && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),
@@ -1186,7 +1190,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"}, tf("v4_inv_positions",{n:items.length}),sub==null&&React.createElement("div",{className:"hint"},t("fx_unconverted")))
+              React.createElement("div",{className:"meta"}, items.length===1?t("v4_inv_position"):tf("v4_inv_positions",{n:items.length}),sub==null&&React.createElement("div",{className:"hint"},t("fx_unconverted")))
             ),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
               React.createElement("div",{className:"am num"}, f0(sub)),
@@ -1201,8 +1205,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         }),
         // Editar a mano en discreto, al pie de la lista (feedback 2026-07-18): normalmente los
         // números entran solos por los brókers; esto es el plan B para cuadrar algo puntual.
-        state.investments.length>0 && React.createElement("div",{style:{display:"flex",gap:8,margin:"8px 4px 0"}},
-          React.createElement("button",{type:"button",className:"edit-link"+(editing?" save":""),onClick:function(){ editing?save():start(); }}, editing?t("inv_save"):("✎ "+t("inv_editmanual"))),
+        // En reposo es un enlace como las demás acciones de Cartera, no un chip (DIS-32).
+        state.investments.length>0 && React.createElement("div",{className:"v4-inv-tools",style:{display:"flex",gap:8,margin:"8px 4px 0"}},
+          React.createElement("button",{type:"button",className:editing?"edit-link save":"link","data-act":"inv-manual",onClick:function(){ editing?save():start(); }}, editing?t("inv_save"):("✎ "+t("inv_editmanual"))),
           editing && React.createElement("button",{type:"button",className:"edit-link",style:{background:"transparent",color:"var(--muted)"},onClick:cancel}, t("inv_cancel"))
         )
       ),
