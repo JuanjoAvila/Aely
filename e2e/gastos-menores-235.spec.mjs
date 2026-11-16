@@ -107,7 +107,7 @@ test("DIS-10 y DIS-12: la ficha precarga «12,50» sin guardar nada y «Todas �
   await gastosAbreGasto(page, "Café manual");
   const ficha = page.locator('.v4-exp-sheet [data-testid="exp"]');
   await expect(ficha.locator(".v4-ficha-amount")).toHaveText("12,50");
-  await expect(ficha.locator(".v4-ficha-cat-title button")).toHaveText("Todas ›");
+  await expect(ficha.locator(".v4-ficha-cat-title .v4-ficha-todas")).toHaveText("Todas ›");
   // El guardado espera 350 ms tras un cambio de importe: pasado eso, sigue igual que antes.
   await page.waitForTimeout(900);
   expect(await guardado()).toEqual(antes);

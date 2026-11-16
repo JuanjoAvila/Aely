@@ -336,8 +336,11 @@ const NOTA_FILA234="    React.createElement(\"button\",{type:\"button\",classNam
 const NOTA_PANEL235="    note:React.createElement(\"div\",{className:\"v4-ficha-adjust-open\"},";
 // El panel de la deuda ya no cierra un Fragment con su fila: el final del bloque de plan-recibos-qa pierde un paréntesis.
 const DEUDA_FIN234="catName(\"deudas\"))); }))),",DEUDA_FIN235="catName(\"deudas\"))); })),";
-const aRemate235=u=>{if(!u)return u;if(u.file==="src/modules/01-i18n.js"&&TRAZA_REMATE[u.from])return {...u,from:TRAZA_REMATE[u.from]};if(u.file==="src/modules/04-tab-gastos.js"&&u.from==="  const receiptDate="&&u.to===NOTA_FILA234)return {...u,to:NOTA_PANEL235};if(u.file==="src/modules/04-tab-gastos.js"&&u.to===DEUDA_FIN234)return {...u,to:DEUDA_FIN235};return u;};
-const desdeRemate235=u=>{if(!u)return u;const viejo=Object.keys(TRAZA_REMATE).find(k=>TRAZA_REMATE[k]===u.from);if(u.file==="src/modules/01-i18n.js"&&viejo)return {...u,from:viejo};if(u.file==="src/modules/04-tab-gastos.js"&&u.from==="  const receiptDate="&&u.to===NOTA_PANEL235)return {...u,to:NOTA_FILA234};if(u.file==="src/modules/04-tab-gastos.js"&&u.to===DEUDA_FIN235)return {...u,to:DEUDA_FIN234};return u;};
+// Segunda vuelta (16/11): la retirada deja de ser un botón en los avisos y pasa a baldosa de la fila de ajustes;
+// su bloque son ahora sus avisos (`retiradaEn`…), hasta `debtOptions` como antes.
+const RETIRADA_234={from:"    canRecognizeWithdrawal(exp) &&",to:"  const debtOptions="},RETIRADA_235={from:"  const retiradaEn=",to:"  const debtOptions="};
+const aRemate235=u=>{if(!u)return u;if(u.file==="src/modules/01-i18n.js"&&TRAZA_REMATE[u.from])return {...u,from:TRAZA_REMATE[u.from]};if(u.file==="src/modules/04-tab-gastos.js"&&u.from==="  const receiptDate="&&u.to===NOTA_FILA234)return {...u,to:NOTA_PANEL235};if(u.file==="src/modules/04-tab-gastos.js"&&u.to===DEUDA_FIN234)return {...u,to:DEUDA_FIN235};if(u.file==="src/modules/04-tab-gastos.js"&&u.from===RETIRADA_234.from&&u.to===RETIRADA_234.to)return {...u,...RETIRADA_235};return u;};
+const desdeRemate235=u=>{if(!u)return u;const viejo=Object.keys(TRAZA_REMATE).find(k=>TRAZA_REMATE[k]===u.from);if(u.file==="src/modules/01-i18n.js"&&viejo)return {...u,from:viejo};if(u.file==="src/modules/04-tab-gastos.js"&&u.from==="  const receiptDate="&&u.to===NOTA_PANEL235)return {...u,to:NOTA_FILA234};if(u.file==="src/modules/04-tab-gastos.js"&&u.to===DEUDA_FIN235)return {...u,to:DEUDA_FIN234};if(u.file==="src/modules/04-tab-gastos.js"&&u.from===RETIRADA_235.from&&u.to===RETIRADA_235.to)return {...u,...RETIRADA_234};return u;};
 const sinCompras135=u=>u&&u.members?{...u,members:u.members.filter(m=>m!=="deleteExpense"&&m!=="logEvent")}:u;
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
@@ -6600,7 +6603,8 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
 // gastos-v5-secciones y gastos-v5-ciclos-metas-inversiones vuelven a ser los de la 234 sin reancla. Y tres reanclas nuevas:
 //   · inc-2909-03-retirada: además del pago, su bloque de textos empieza en f_locked_toast (f_trace_missing ya no existe);
 //   · inc-3009-01-cargos y recibos-cargo-unico: los recibos de la ficha terminan en el panel de la nota (la fila ya no existe);
-//   · plan-recibos-qa: el panel de la cuota de deuda ya no cierra el Fragment de su fila (un paréntesis menos al final).
+//   · plan-recibos-qa: el panel de la cuota de deuda ya no cierra el Fragment de su fila (un paréntesis menos al final);
+//   · inc-2909-03-retirada (segunda vuelta): la retirada es una baldosa; su bloque son ahora sus avisos.
 // El ancla CSS del pago de diseno-235 pasa a `.v4-ficha-pay{position:relative;display:flex;` (el selector de bancos va encima).
 test("Catálogo235 conserva dinero-234 sin veredicto, abre diseno-235, reancla lo que el diseño movió y hace crecer el registro con el cierre de lectores",()=>{
   const nueva="diseno-235",anterior="dinero-234";
@@ -6652,8 +6656,8 @@ test("Catálogo235 conserva dinero-234 sin veredicto, abre diseno-235, reancla l
   // Lo que se quita es lo que ya no existe; lo nuevo existe una sola vez. Con el remate vuelven los iconos de sección (y sus
   // comentarios) y el segmentado de secciones no queda: las anclas de la 234 vuelven a ser las buenas.
   assert.equal(/\bGX_SECC_ICO\b/.test(source(G0)),true,"GX_SECC_ICO vuelve a Gastos (remate)");
-  for(const [f,a] of [[SH,SECC_NEW],[SH,PAST_NEW],[G0,"    {id:\"cash\",testId:\"exp-efectivo\""],[I18N,"f_trace_missing"],[G0,NOTA_FILA234]])assert.equal(source(f).includes(a),false,"el ancla vieja ya no existe: "+a);
-  for(const [f,a] of [[SH,SECC_OLD],[SH,PAST_OLD],[G0,"  const payMode=bk===\"efectivo\""],[V07,BIENES_H.from],[V07,BIENES_H.to],[G0,NOTA_PANEL235],...Object.values(TRAZA_REMATE).map(a=>[I18N,a])])assert.equal(source(f).split(a).length,2,"ancla nueva inequívoca: "+a);
+  for(const [f,a] of [[SH,SECC_NEW],[SH,PAST_NEW],[G0,"    {id:\"cash\",testId:\"exp-efectivo\""],[I18N,"f_trace_missing"],[G0,NOTA_FILA234],[G0,RETIRADA_234.from]])assert.equal(source(f).includes(a),false,"el ancla vieja ya no existe: "+a);
+  for(const [f,a] of [[SH,SECC_OLD],[SH,PAST_OLD],[G0,"  const payMode=bk===\"efectivo\""],[V07,BIENES_H.from],[V07,BIENES_H.to],[G0,NOTA_PANEL235],[G0,RETIRADA_235.from],[G0,RETIRADA_235.to],...Object.values(TRAZA_REMATE).map(a=>[I18N,a])])assert.equal(source(f).split(a).length,2,"ancla nueva inequívoca: "+a);
   const fns=logicFunctions(source),dat=logicData(source);
   const cierre=(web0)=>{
     let web=web0.slice();

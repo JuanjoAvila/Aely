@@ -2036,6 +2036,10 @@
   .v4-ficha-meta-pill.disabled{opacity:.45;cursor:default;}
   .v4-ficha-cat-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;font-size:11px;font-weight:800;
     letter-spacing:1.1px;text-transform:uppercase;color:var(--muted-2);}
+  .v4-ficha-cat-acts{display:flex;align-items:center;gap:2px;}
+  /* ✨ Sugerir categoría, al lado de «Todas ›»: una acción, no una fila más (16/11). */
+  .v4-ficha-cat-title .v4-ficha-ia{min-width:40px;margin:-12px -4px -12px 0;padding:0;font-size:16px;letter-spacing:0;}
+  .v4-ficha-cat-title .v4-ficha-ia:disabled{opacity:.45;}
   .v4-ficha-cat-title button{min-height:44px;margin:-12px -4px -12px 0;padding:0 4px;color:var(--mint);font-size:12px;font-weight:800;
     letter-spacing:0;text-transform:none;}
   .v4-ficha-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:12px;}
@@ -2044,18 +2048,21 @@
   .v4-ficha-cat.on{background:rgba(108,198,136,.16);border-color:var(--mint-deep);color:var(--text);}
   .v4-ficha-cat-icon{font-size:19px;line-height:1;overflow:visible !important;}
   .v4-ficha-cat-sheet{max-height:calc(80dvh / var(--zoom,1));}
-  /* Recibo, deuda, meta y nota en chips de una línea (16/11): las filas con «No ›» parecían un
-     formulario pegado debajo de la hoja. 40 px de dibujo y el `::after` hasta los 44 de dedo. */
-  .v4-ficha-adjust{margin:2px 0 10px;}
-  .v4-ficha-adjust-chips{display:flex;flex-wrap:wrap;gap:7px;}
-  .v4-ficha-adjust-row{position:relative;max-width:100%;min-height:40px;padding:0 12px;border-radius:14px;display:inline-flex;align-items:center;gap:6px;
-    background:var(--sur);border:1px solid var(--line-soft);color:var(--muted);font-size:12.5px;font-weight:750;
-    transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
-  .v4-ficha-adjust-row::after{content:"";position:absolute;inset:-2px 0;}
-  .v4-ficha-adjust-row .ic{font-size:15px;line-height:1;}
-  .v4-ficha-adjust-row .value{min-width:0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .v4-ficha-adjust-row.set{color:var(--text);}
-  .v4-ficha-adjust-row.on{background:color-mix(in srgb,var(--mint) 12%,var(--sur));border-color:var(--mint-deep);color:var(--mint);}
+  /* Recibo, deuda, meta, nota y retirada: UNA fila de baldosas iguales a las de categoría (16/11).
+     Separadas de las categorías por un filete fino: son otra pregunta. Lo que llevan (el nombre del
+     recibo, la nota) se lee en dos líneas como mucho. */
+  .v4-ficha-adjust{margin:2px 0 10px;padding-top:12px;border-top:1px solid var(--line-soft);}
+  .v4-ficha-ajustes{margin-bottom:0;}
+  .v4-ficha-ajuste{transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
+  /* El nombre de una baldosa (categoría o ajuste) no toca el borde: a 360 «Supermercado» llenaba la
+     baldosa de lado a lado. Se parte con guion y, como mucho, en tres líneas. */
+  .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;}
+  .v4-ficha-ajuste:disabled{cursor:default;}
+  .v4-ficha-ajuste:disabled:not(.on){opacity:.45;}
+  .v4-ficha-avisos{margin:10px 2px 0;display:flex;flex-direction:column;gap:4px;}
+  /* El teclado de Modificar baja bajo el importe al tocarlo (16/11). */
+  .v4-ficha-teclado .v4-keys{margin:6px 0 10px;}
   .v4-ficha-fold{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .26s var(--ease),opacity .2s ease;}
   .v4-ficha-fold.open{grid-template-rows:1fr;opacity:1;}
   .v4-ficha-fold-in{min-height:0;overflow:hidden;padding:0 2px;margin:0 -2px;}
@@ -2067,8 +2074,10 @@
     padding:10px 12px;border-radius:14px;background:var(--sur);border:1px solid var(--line);
     box-shadow:0 6px 18px rgba(0,0,0,.28);color:var(--muted);font-size:12px;line-height:1.35;}
   .v4-ficha-aviso .btn{flex:0 0 auto;min-height:36px;padding:0 12px;}
-  .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
-  .v4-ficha-saved{color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.2;}
+  .v4-ficha-del{flex:none;min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;white-space:nowrap;}
+  /* A 360 «Borrar gasto» se partía en dos líneas: no se parte; el aviso del centro, si no cabe, va en
+     dos líneas equilibradas (nunca cortado). */
+  .v4-ficha-saved{flex:1 1 auto;min-width:0;color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.25;text-wrap:balance;}
   .v4-ficha-done{min-height:44px;padding:0 16px;border-radius:14px;background:var(--mint);color:var(--on-mint);font-size:13px;font-weight:850;white-space:nowrap;}
   /* Ficha de cuenta v4.1: el saldo gana la jerarquía y el histórico solo aparece cuando se puede
      reconstruir con movimientos reales. Son piezas del sheet, no una tarjeta ajena dentro de él. */
@@ -8764,7 +8773,7 @@ const LANG = {
     f_cat_all:"Todas ›", f_cat_more:"Más", f_kb_done:"Listo", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_debt_row:"Es la cuota de una deuda", f_no:"No",
-    f_adj_recibo:"Recibo", f_adj_deuda:"Deuda", f_adj_meta:"Meta",
+    f_adj_recibo:"Recibo", f_adj_deuda:"Deuda", f_adj_meta:"Meta", f_adj_retirada:"Retirada",
     f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Puedes deshacerlo.",
     f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.", f_receipt_diag:"Copiar diagnóstico",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
@@ -8772,7 +8781,6 @@ const LANG = {
     f_receipt_possible_same:"Puede ser el mismo cargo que {name} del {date}", f_receipt_other_payment:"Es otro pago",
     f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_quiza:"Parece el cargo de tu recibo «{name}»: por eso aquí no suma otra vez. Si no lo es, dilo y contará como un gasto más.", f_recibo_no:"No es este recibo", f_recibo_si:"Sí, es este recibo",
     f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
-    f_withdraw_fields:"La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.",
     f_withdraw_action:"Es una retirada de efectivo",
     f_withdraw_title:"¿Es una retirada de efectivo?",
     f_withdraw_sub:"Estos {x} pasarán a Traspaso y dejarán de contar como gasto. El importe y el origen bancario se conservan. No se sumará dinero al efectivo.",
@@ -13803,14 +13811,20 @@ function useDespliegue(open){
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow}){
+  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, catAction}){
   const isIn=kind==="ingreso";
+  /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
+     ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Sale plegándose
+     bajo el importe al tocarlo y se recoge al volver a tocarlo. Apuntar lo sigue llevando fijo. */
+  const plegado=numpadOpen!==undefined;
+  const teclado=useDespliegue(!!numpadOpen);
   const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
   // `catMore` (Apuntar): sin cabecera; «Más» va de última baldosa y ahorra la fila del título.
   const catsBlock=!isIn && React.createElement(React.Fragment,{key:"cats"},
     !catMore && React.createElement("div",{className:"v4-ficha-cat-title"},
       React.createElement("span",null,t("f_cat")),
-      React.createElement("button",{type:"button",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
+      React.createElement("span",{className:"v4-ficha-cat-acts"},catAction||null,
+        React.createElement("button",{type:"button",className:"v4-ficha-todas",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
     React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
       onMore:catMore?onAllCategories:null}));
   return React.createElement(React.Fragment,null,
@@ -13823,7 +13837,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel)),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
-          "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
+          "aria-label":t("f_amount_aria"),"aria-expanded":plegado&&!locked?!!numpadOpen:null,onClick:locked?onLocked:(onAmount||undefined)},amount),
         /* Un candado en vez de la tarjeta «Lo trajo una notificación…» (16/11, «eso a la persona le da
            igual»): basta para ver que el importe del banco no se toca; al tocarlo, el aviso de siempre. */
         React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
@@ -13832,6 +13846,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
           locked && React.createElement("svg",{"aria-hidden":true,width:12,height:12,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("rect",{x:5,y:11,width:14,height:10,rx:2}),React.createElement("path",{d:"M8 11V8a4 4 0 0 1 8 0v3"})))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
+      plegado && teclado.vivo && React.createElement("div",{className:"v4-ficha-fold v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
+        React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
         enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
@@ -13841,7 +13857,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
       adjustments||null,
-      numpad||null
+      plegado?null:(numpad||null)
     ),
     footer||null
   );
@@ -17699,6 +17715,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const [bankOpen,setBankOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(null);
+  // El teclado del importe, plegado hasta que se toca el importe (16/11).
+  const [editaImporte,setEditaImporte]=useState(false);
   // Lo que se pinta mientras el desplegable se cierra: sin él, el hueco se vaciaba antes de plegarse.
   const ultimoAjusteRef=useRef(null);
   const despliegue=useDespliegue(!!adjustOpen);
@@ -17713,7 +17731,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return expenseTopCategoryPick(fichaCatsBase,exp&&exp.category,catList);
   },[fichaCatsBase,exp&&exp.category,catList]);
   useEffect(function(){
-    if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); }
+    if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); setEditaImporte(false); }
   },[abierto,exp&&exp.id]);
   // Modificar no tiene botón Guardar. El pequeño debounce evita una escritura del histórico por
   // cada dígito sin convertir «se guarda al momento» en «se guarda al cerrar».
@@ -17811,17 +17829,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         transferOffer.check().then(function(ready){if(ready&&transferLive.current.plan===transferPlan)recognizeOwnTransfer(exp);});
       }},t("f_owntransfer_title")),
     ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},React.createElement("div",null,t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),ownTransferStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
-    canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
-      React.createElement("div",null,t("f_withdraw_fields")),
-      exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
-        disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
-        onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
-      exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
-      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
-      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
-      withdrawalConfirmedUI(exp)&&React.createElement("div",null,t("f_withdraw_cash_limit")),
-      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
-        t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
+    null);
+  /* La retirada de efectivo es una baldosa más de la fila de ajustes (16/11: el botón grande «Es una
+     retirada de efectivo» y su frase de ayuda «quedaban fatal»). Aquí debajo solo lo que pasa: en
+     curso, ya hecha, bloqueada por un recibo o sin confirmar. Lo que guarda es lo de siempre. */
+  const retiradaEn=withdrawalStatus&&withdrawalStatus.id===exp.id?withdrawalStatus:null;
+  const retiradaAvisos=canRecognizeWithdrawal(exp)?[
+      exp.category==="traspaso" && React.createElement("div",{key:"n","data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
+      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{key:"b","data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      retiradaEn && retiradaEn.status==="done" && retiradaEn.receiptUndone && React.createElement("div",{key:"u",role:"status"},t("f_withdraw_receipt_undone")),
+      withdrawalConfirmedUI(exp)&&React.createElement("div",{key:"l"},t("f_withdraw_cash_limit")),
+      retiradaEn && retiradaEn.status!=="done" && React.createElement("div",{key:"s",role:"status"},t(retiradaEn.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))
+    ].filter(Boolean):[];
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
   // Metas a las que se puede aportar: las abiertas, y la que ya tiene aunque esté cumplida.
   const metaActual=exp.goalId?(state.goals||[]).find(function(g){ return g&&g.id===exp.goalId; }):null;
@@ -17844,18 +17863,19 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   });
   // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo (cuarta revisión).
   const receiptPuntuales=(state.oneoffs||[]).filter(vetadoAqui);
-  /* Lo de debajo de las categorías, en chips de una línea (16/11: las filas «Paga un recibo · No ›»
-     y «Nota · Sin nota ›» «no me molan nada»). Cada chip dice qué es o, si ya tiene algo, el qué
-     («Luz», la nota…), y abre su panel debajo, plegándose suave. El nombre largo va para el lector.
+  /* Lo de debajo de las categorías, en UNA fila de baldosas como las de categoría (16/11: las filas
+     «Paga un recibo · No ›» primero y los chips en dos filas desiguales después «no me molan nada»).
+     Cada baldosa dice qué es o, si ya tiene algo, el qué («Luz», la nota…), se marca como la
+     categoría elegida y abre su panel debajo, plegándose suave. El nombre largo va para el lector.
      Lo que guarda cada panel es lo de siempre: aquí solo cambia cómo se llega. */
   const sinMarca=t("f_no");
   const reciboVal=expensePaymentLabelUI(state,exp,"fixed",paymentRelation), deudaVal=expensePaymentLabelUI(state,exp,"debt",paymentRelation);
   const metaVal=metaActual?(metaActual.name||""):(exp.goalId?t("g_meta_borrada"):null);
-  const chip=function(id,testId,icon,label,aria,value){
-    const on=adjustOpen===id;
-    return React.createElement("button",{key:id,type:"button",className:"v4-ficha-adjust-row"+(value?" set":"")+(on?" on":""),"data-testid":testId,
-        "aria-label":aria+(value?": "+value:""),"aria-expanded":on,onClick:function(){ setAdjustOpen(on?null:id); }},
-      React.createElement("span",{className:"ic","aria-hidden":"true"},icon),
+  const baldosa=function(id,testId,icon,label,aria,value){
+    const abierta=adjustOpen===id;
+    return React.createElement("button",{key:id,type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(value||abierta?" on":""),"data-testid":testId,
+        "aria-label":aria+(value?": "+value:""),"aria-expanded":abierta,onClick:function(){ setEditaImporte(false); setAdjustOpen(abierta?null:id); }},
+      React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},icon),
       value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",null,label));
   };
   // Con marca de recibo el chip sale siempre: si no, «No es este recibo» quedaba inalcanzable
@@ -17869,7 +17889,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const conMeta=!isIncome&&metaRowOn;
   const paneles={
     receipt:conRecibo&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
-        React.createElement("div",{className:"hint"},t("f_receipt_hint")),
+        // Sin nada que elegir, una sola línea: la de que no hay recibos (antes iban las dos frases).
+        (receiptOptions.length>0||receiptPuntuales.length>0||!!reciboConfirmable||!!receiptLinked||!!reciboDe)&&React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
           // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
           // (es lo que pide el aviso de la retirada), y solo entonces se ofrece confirmar otro.
@@ -17899,16 +17920,24 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   };
   if(adjustOpen) ultimoAjusteRef.current=adjustOpen;
   const panelVisto=despliegue.vivo?paneles[adjustOpen||ultimoAjusteRef.current]:null;
+  const baldosas=[
+    conRecibo&&baldosa("receipt","exp-receipt","🧾",t("f_adj_recibo"),t("f_receipt_row"),reciboVal===sinMarca?null:reciboVal),
+    conDeuda&&baldosa("debt","exp-debt",DEUDA_CAT.icon,t("f_adj_deuda"),t("f_debt_row"),deudaVal===sinMarca?null:deudaVal),
+    conMeta&&baldosa("meta","exp-meta",metaActual&&metaActual.emoji||"🎯",t("f_adj_meta"),t("f_meta_row"),metaVal),
+    baldosa("note","exp-note","📝",t("f_note_row"),t("f_note_row"),editExp.note||null),
+    // Ya hecha, la baldosa se queda marcada y quieta: el estado lo dice el aviso de debajo.
+    canRecognizeWithdrawal(exp)&&React.createElement("button",{key:"retirada",type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(exp.category==="traspaso"?" on":""),
+        "data-testid":"exp-withdrawal","aria-label":t("f_withdraw_action"),"aria-pressed":exp.category==="traspaso",
+        disabled:exp.category==="traspaso"||!canRecognizeWithdrawal(exp,state)||!!(retiradaEn&&retiradaEn.status==="pending"),
+        onClick:function(){ recognizeWithdrawal(exp); }},
+      React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},"🏧"),
+      React.createElement("span",null,t("f_adj_retirada")))
+  ].filter(Boolean);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    React.createElement("div",{className:"v4-ficha-adjust-chips"},
-      conRecibo&&chip("receipt","exp-receipt","🧾",t("f_adj_recibo"),t("f_receipt_row"),reciboVal===sinMarca?null:reciboVal),
-      conDeuda&&chip("debt","exp-debt",DEUDA_CAT.icon,t("f_adj_deuda"),t("f_debt_row"),deudaVal===sinMarca?null:deudaVal),
-      conMeta&&chip("meta","exp-meta",metaActual&&metaActual.emoji||"🎯",t("f_adj_meta"),t("f_meta_row"),metaVal),
-      chip("note","exp-note","📝",t("f_note_row"),t("f_note_row"),editExp.note||null),
-      // «Es un ingreso, no un gasto» ya no va aquí (DIS-11, 15/11/2026): repetía el Gasto/Ingreso de
-      // arriba con el mismo `saveEdit({income})`. Un mando por decisión; el guardado no cambia.
-      cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
-        React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")))),
+    /* Una sola fila y sin huecos: tres, cuatro o cinco baldosas ocupan el ancho entero; una o dos
+       (un ingreso: la nota) se quedan del ancho de una categoría, alineadas a la izquierda. */
+    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes",style:{gridTemplateColumns:"repeat("+(baldosas.length>=3?baldosas.length:4)+",minmax(0,1fr))"}},baldosas),
+    retiradaAvisos.length>0 && React.createElement("div",{className:"hint v4-ficha-avisos","data-testid":"exp-withdrawal-info"},retiradaAvisos),
     panelVisto && React.createElement("div",{className:"v4-ficha-fold"+(despliegue.dentro&&adjustOpen?" open":"")},
       React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},adjustOpen?null:{"aria-hidden":"true",inert:""}),panelVisto)),
     exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
@@ -17949,10 +17978,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
             if(auto){ lockedToast(); return; }
             const income=k==="ingreso"; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
           },dateLabel:fmtIsoCorto(dateIso),onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); },
-          amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:!auto,
+          amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:editaImporte&&!auto,
           concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
           payRow:payRow,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
+          catAction:cloud.enabled()&&!isIncome?React.createElement("button",{type:"button",className:"v4-ficha-ia","data-testid":"exp-ai",
+            "aria-label":aiBusy?t("ai_cat_busy"):t("ai_cat_btn"),"aria-busy":aiBusy?"true":null,disabled:aiBusy,onClick:function(){ suggestAi(exp); }},"✨"):null,
+          numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
     ),document.body);
@@ -31956,7 +31988,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a71609761f13567388b1508a59331f45e02f8ec0a117a941a7b950cdc7159f83";
+var _rnSha="5a8ba590ec60fbdffd36b069d3a3ff2565c60c023744a53c1a53d244414e991a";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

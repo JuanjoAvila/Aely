@@ -33,7 +33,7 @@ async function abreFicha(page) {
 
 test("★ Gasto/Ingreso de arriba guarda lo mismo que la fila vieja, y la fila ya no está", async ({ page }) => {
   const sheet = await abreFicha(page);
-  await expect(sheet.locator(".v4-ficha-adjust-row").filter({ hasText: /ingreso/i })).toHaveCount(0);
+  await expect(sheet.locator(".v4-ficha-ajuste").filter({ hasText: /ingreso/i })).toHaveCount(0);
   const seg = sheet.locator(".v4-ficha-seg .v4-seg-btn");
   await seg.nth(1).click();
   await expect(seg.nth(1)).toHaveClass(/\bon\b/);

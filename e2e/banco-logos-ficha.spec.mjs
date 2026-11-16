@@ -7,7 +7,10 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
      y la hoja cabe entera a 360×740 y 393×851. Lo elegido se guarda en `ent` como antes.
    · Ficha de un movimiento: el mismo selector; sin la tarjeta «Lo trajo una notificación…», con un
      candado junto al importe, y el importe y el banco del banco siguen bloqueados.
-   · Recibo, deuda, meta y nota son chips: abren su panel y la nota se guarda igual. */
+   · Recibo, deuda, meta, nota y retirada son UNA fila de baldosas como las de categoría: abren su
+     panel y la nota se guarda igual. Sin frases de ayuda; ✨ junto a «Todas ›».
+   · El teclado del importe no está puesto: en uno del banco nunca sale, en uno a mano baja al tocar
+     el importe y se recoge al volver a tocarlo (16/11). */
 test.use({ hasTouch: true, isMobile: true });
 
 const HOY = new Date().toISOString().slice(0, 10);
@@ -160,9 +163,19 @@ test("Ficha: del banco sin tarjeta de origen, con candado y bloqueada; a mano, b
     await expect(hoja).not.toContainText("Lo trajo una notificación");
     await expect(hoja.getByTestId("exp-trace")).toHaveCount(0);
     await expect(hoja.getByTestId("exp-locked")).toBeVisible();
-    // El dinero sigue bloqueado: el importe no se teclea y el banco no abre selector.
+    // El dinero sigue bloqueado: no hay teclado, tocar el importe solo avisa y el banco no abre selector.
     const antes = await de(id);
-    await hoja.locator(".v4-keys").getByRole("button", { name: "9", exact: true }).click();
+    await expect(hoja.locator(".v4-keys")).toHaveCount(0);
+    await expect(hoja).not.toContainText("La categoría se puede corregir");
+    await hoja.locator(".v4-ficha-amount").click();
+    await expect(page.locator(".toast").filter({ hasText: /El banco fija/ }).first()).toBeVisible();
+    await expect(hoja.locator(".v4-keys")).toHaveCount(0);
+    // La retirada, una baldosa más de la fila (en el cargo; un ingreso no la tiene).
+    await expect(hoja.getByTestId("exp-withdrawal")).toHaveCount(id === "del-banco" ? 1 : 0);
+    if (id === "del-banco") {
+      await expect(hoja.getByTestId("exp-withdrawal")).toHaveClass(/v4-ficha-cat/);
+      await expect(hoja.getByTestId("exp-withdrawal")).toHaveAttribute("aria-label", "Es una retirada de efectivo");
+    }
     await hoja.getByTestId("exp-bank").click();
     await expect(page.locator(".toast").filter({ hasText: /El banco fija/ }).first()).toBeVisible();
     await expect(hoja.getByTestId("exp-bank-list")).toHaveCount(0);
@@ -186,14 +199,37 @@ test("Ficha: del banco sin tarjeta de origen, con candado y bloqueada; a mano, b
   await expect.poll(async () => (await de(MANO)).ent).toBe("trade_republic");
   await expect(hoja.getByTestId("exp-bank")).toContainText("Trade Republic");
 
-  // Chips de debajo: la nota se abre en su sitio, se guarda y el chip pasa a enseñarla.
-  await expect(hoja.locator(".v4-ficha-adjust-row .chev")).toHaveCount(0);
+  // Teclado: plegado al abrir; baja bajo el importe al tocarlo, teclea, y se recoge.
+  await expect(hoja.locator(".v4-keys")).toHaveCount(0);
+  await hoja.locator(".v4-ficha-amount").click();
+  await expect(hoja.locator(".v4-ficha-teclado")).toHaveClass(/open/);
+  const bajo = await hoja.evaluate((s) => s.querySelector(".v4-ficha-teclado").getBoundingClientRect().top - s.querySelector(".v4-ficha-amount").getBoundingClientRect().bottom);
+  expect(bajo, "el teclado sale justo bajo el importe").toBeLessThan(30);
+  await hoja.locator(".v4-ficha-teclado .v4-keys").getByRole("button", { name: "5", exact: true }).click();
+  await expect.poll(async () => (await de(MANO)).amount, "lo tecleado se guarda").not.toBe(20);
+  await hoja.locator(".v4-ficha-amount").click();
+  await expect(hoja.locator(".v4-keys")).toHaveCount(0);
+
+  // Ajustes: UNA fila de baldosas iguales a las de categoría, y ✨ junto a «Todas ›».
+  const filas = await hoja.evaluate((s) => {
+    const aj = [...s.querySelectorAll(".v4-ficha-ajustes > .v4-ficha-cat")].map((b) => b.getBoundingClientRect());
+    const cat = s.querySelector(".v4-ficha-cats:not(.v4-ficha-ajustes) .v4-ficha-cat").getBoundingClientRect();
+    const sw = s.getBoundingClientRect().right;
+    return { n: aj.length, tops: new Set(aj.map((r) => Math.round(r.top))).size, alto: Math.min(...aj.map((r) => r.height)), altoCat: cat.height,
+      dentro: aj.every((r) => r.right <= sw + 0.5), ia: !!s.querySelector(".v4-ficha-cat-title .v4-ficha-ia") };
+  });
+  expect(filas.n, "a mano y sin recibos ni deudas: solo la nota").toBeGreaterThanOrEqual(1);
+  expect(filas.tops, "una sola fila").toBe(1);
+  expect(Math.abs(filas.alto - filas.altoCat), "mismo alto que una categoría").toBeLessThan(1);
+  expect(filas.dentro).toBe(true);
+  await expect(hoja.locator(".v4-ficha-adjust-row")).toHaveCount(0);
   await hoja.getByTestId("exp-note").click();
   await expect(hoja.locator(".v4-ficha-fold")).toHaveClass(/open/);
   await hoja.locator(".v4-exp-note-in").fill("Para la cena");
   await hoja.locator(".v4-exp-note-in").press("Tab");
   await expect.poll(async () => (await de(MANO)).note).toBe("Para la cena");
   await expect(hoja.getByTestId("exp-note-value")).toHaveText("Para la cena");
+  await expect(hoja.getByTestId("exp-note")).toHaveClass(/\bon\b/);
   await hoja.getByTestId("exp-note").click();
   await expect(hoja.locator(".v4-ficha-fold")).toHaveCount(0);
 });
