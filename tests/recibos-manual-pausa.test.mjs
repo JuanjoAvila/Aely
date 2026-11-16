@@ -41,8 +41,9 @@ if(mutant){const pair=mutations[mutant];assert.ok(pair,'mutante conocido');if(ba
 const app=read('src/modules/11-app-main.js'),accounts=read('src/modules/07-tab-patri-fijos.js'),shared=read('src/modules/02-ui-shared.js');
 const js=JSON.parse(read('src/build-order.json')).map(f=>f==='00-core.js'?core:f==='08-motor-bank.js'?bank:read('src/modules/'+f)).join('\n');
 const html=read('src/shell.html').replace('<!--MC_APP_SCRIPT-->',()=>js);
-const writer=accounts.slice(accounts.indexOf('  const valorDesdeTecleado=function'),accounts.indexOf('  // Cartera pinta cuentas y bienes planos'));
-const editable=shared.slice(shared.indexOf('function useEditable('),shared.indexOf('/* Cuentas y brókers comparten el mismo HOLD'));
+// El editor desplegable de cuentas (`accEd`) se quitó el 16/11/2026: la ficha es la única vía
+// de escribir un saldo a mano, así que el escritor real es solo `guardarSaldoDe`.
+const writer=accounts.slice(accounts.indexOf('  /* Guardar el saldo de UNA cuenta'),accounts.indexOf('  // Cartera pinta cuentas y bienes planos'));
 const setter=app.slice(app.indexOf('  const set=useCallback('),app.indexOf('  // En el propio commit'));
 const callback=read('src/modules/14-v4-screens.js').split('\n').find(x=>x.includes('if(f&&!pagado) pausaChips.push'));
 const cents=v=>Math.round(Number(v)*100),copy=v=>JSON.parse(JSON.stringify(v));
@@ -78,13 +79,11 @@ function harness(s=fixture(),baseline=false){
  c.Date=class extends Date{constructor(...a){super(...(a.length?a:[now]));}static now(){return now;}};
  c.setStateRaw=fn=>{h.s=fn(h.s);};
  h.set=vm.runInContext('(function(){'+setter+'return set;})()',c);c.set=h.set;
- c.useEditable=vm.runInNewContext('('+editable+')',{useState(init){const i=h.cursor++;if(!(i in h.slots))h.slots[i]=typeof init==='function'?init():init;return[h.slots[i],v=>{h.slots[i]=typeof v==='function'?v(h.slots[i]):v;}];}});
- h.render=()=>{c.state=h.s;c.set=h.set;c.totals=c.insumosSaldoGasto(h.s);c.pn=a=>c.totals.paidNetByBank[a.ent]||0;c.spentOwn=a=>c.totals.spentByBank[a.ent]||0;c.ruM=c.totals.roundup;c.miM=c.totals.monthlyInvest;c.shownAcc=a=>c.saldoCuentaMostrada(a,c.totals);h.cursor=0;return vm.runInContext('(function(){'+writer+'return{save:guardarSaldoDe,editor:accEd};})()',c);};
+ h.render=()=>{c.state=h.s;c.set=h.set;c.totals=c.insumosSaldoGasto(h.s);c.shownAcc=a=>c.saldoCuentaMostrada(a,c.totals);h.cursor=0;return vm.runInContext('(function(){'+writer+'return{save:guardarSaldoDe};})()',c);};
  h.shown=(id='a')=>cents(c.saldoCuentaMostrada(h.s.accounts.find(a=>a.id===id),c.insumosSaldoGasto(h.s)));
  const pause=baseline?vm.runInContext('('+baselinePausa+')',c):c.fixedPausa;
  h.pause=(from=2026*12+10,until=from+1)=>{tick();h.set(s=>pause(s,'f',from,until));};
  h.read=(v=1000)=>{tick();h.render().save('a',v);assert.equal(h.shown(),cents(v));};
- h.legacy=v=>{let w=h.render();w.editor.start();w=h.render();w.editor.setDraft(d=>Object.assign({},d,{a:String(v)}));tick();h.render().editor.save();};
  return h;
 }
 function beforeDue(account={},receipt={}){clock('2026-10-01T12:00:00Z');const h=harness(fixture(account,receipt));h.read();clock('2026-10-18T12:00:00Z');return h;}
@@ -124,7 +123,7 @@ await check('legado, mismo día, posterior, futuro y día inválido mantienen sa
 });
 await check('roundtrip de CADA exclusión coincide con la base independiente y no cobra dos veces',()=>{
  const cur=2026*12+10;
- for(const mode of ['sin sello','sello legado','conectada','TR nativo','edición legacy','dos cuentas'])for(const target of [[0,0],[cur+1,cur+2],[cur-2,cur]]){
+ for(const mode of ['sin sello','sello legado','conectada','TR nativo','dos cuentas'])for(const target of [[0,0],[cur+1,cur+2],[cur-2,cur]]){
   clock('2026-10-18T12:00:00Z');
   const s=fixture({value:1000});
   if(mode==='sello legado')s.accounts[0].saldoLeidoAt='2026-10-01T12:00:00Z';
@@ -132,7 +131,6 @@ await check('roundtrip de CADA exclusión coincide con la base independiente y n
   if(mode==='TR nativo'){s.accounts[0].ent='trade_republic';s.fixed[0].account='trade_republic';s.settings.brokersOn=['trade_republic'];}
   if(mode==='dos cuentas')s.accounts.push({id:'b',ent:'sabadell',role:'fijos',value:400});
   const h=harness(copy(s)),base=harness(copy(s),true);
-  if(mode==='edición legacy'){const at=now;h.legacy('987,01');now=at;base.legacy('987,01');}
   const before=copy(h.s.accounts),expectedShown=mode==='dos cuentas'?97402:98701;
   assert.equal(base.shown(),expectedShown,mode+' partida de base');assert.equal(h.shown(),expectedShown,mode+' partida');
   h.pause();base.pause();assert.deepEqual(copy(h.s.accounts),copy(base.s.accounts),mode+' pausa vs base');assert.equal(base.shown(),expectedShown,mode+' pausa de base');assert.equal(h.shown(),expectedShown,mode+' pausa');assert.equal(h.shown(),base.shown(),mode+' mostrado pausado vs base');
@@ -211,11 +209,6 @@ await check('edición ajena invalida una vez, sin resurrección ni clonar cuenta
  const h=beforeDue(),a=h.s.accounts,proof=h.s.manualBalanceReads;tick();h.set(s=>Object.assign({},s,{note:'edición ajena'}));assert.equal(h.s.accounts,a);assert.equal(h.s.manualBalanceReads,undefined);h.pause();assert.equal(h.shown(),98701);
  const old=beforeDue();old.s=Object.assign({},old.s,{_savedAt:now});assert.equal(old.c.manualBalanceRead(old.s,'a'),null);tick();old.set(s=>Object.assign({},s,{note:'otra'}));assert.equal(old.s.manualBalanceReads,undefined);assert.ok(proof);
 });
-await check('editor legacy real: lectura nueva, confirmación idéntica y filas conectadas',()=>{
- const h=beforeDue();clock('2026-10-10T12:00:00Z');h.legacy('1234,56');assert.equal(h.shown(),123456);assert.equal(h.s.accounts[0].saldoLeidoAt,new Date(now).toISOString());h.pause();assert.equal(h.shown(),123456);
- const same=beforeDue();same.legacy('987,01');assert.equal(same.s.manualBalanceReads,undefined);assert.equal(same.s.accounts[0].saldoLeidoAt,new Date(now).toISOString());same.pause();assert.equal(same.shown(),98701);
- clock('2026-10-01T12:00:00Z');const linked=harness(fixture({bankUid:'SYNTHETIC',value:1000}));const account=linked.s.accounts[0];linked.legacy('2000');assert.equal(linked.s.accounts[0],account);assert.equal(account.saldoLeidoAt,undefined);
-});
 await check('ficha: confirmar la misma cifra sella lectura t3 sin cambiar base R2',()=>{
  for(const at of ['2026-10-18T12:00:00Z','2026-10-18T23:30:00Z','2026-10-19T12:00:00Z']){
   const h=beforeDue(),base=cents(h.s.accounts[0].value),shown=h.shown(),old=h.s.accounts[0].saldoLeidoAt;clock(at);h.read(shown/100);
@@ -232,7 +225,6 @@ await check('writer viejo real conserva sello; vínculo de estado detecta base i
 await check('corregir saldo sigue disponible en TR nativo y adoptadas sin identidad OB',()=>{
  for(const extra of [{ent:'trade_republic'},{balSaldo:1000},{balanceAt:'2026-10-01T00:00:00Z'}]){
   clock('2026-10-10T12:00:00Z');const s=fixture(extra,{account:extra.ent||'sabadell'});if(extra.ent)s.settings.brokersOn=['trade_republic'];const h=harness(s);h.read(500);assert.equal(h.shown(),50000);assert.equal(h.s.accounts[0].saldoLeidoAt,new Date(now).toISOString());assert.equal(h.s.manualBalanceReads,undefined,'guardar no equivale a acreditar lectura manual');h.pause();assert.equal(h.shown(),50000);
-  h.legacy('600,25');assert.equal(h.shown(),60025);assert.equal(h.s.manualBalanceReads,undefined);
  }
 });
 await check('fresh inverse y objetivo esperado del render',()=>{

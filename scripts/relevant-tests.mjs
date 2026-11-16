@@ -197,6 +197,13 @@ export const E2E_MAP = [
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/cartera-acciones.spec.mjs", "e2e/cartera-inversiones.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/cartera-acciones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/cartera-acciones.spec.mjs"] },
+  // Cartera sin «Editar»: el valor a mano se pone tocando la posición y la cuenta se edita en
+  // su ficha (16/11/2026). El orden guardado de bloques lo lee 14 con `secOrderOf` (02).
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/cartera-puertas.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/cartera-puertas.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/cartera-puertas.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/cartera-puertas.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/cartera-orden-hogar.spec.mjs", "e2e/textos-claros.spec.mjs"] },
   // La cifra grande (`useCountUp`) en Inicio, Cartera y «Tus recibos», y la mensualidad de los
   // recibos con importe por cobro (`fixedMonthlyOf`) que leen los totales y Hogar (4.26.150).
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },

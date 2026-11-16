@@ -246,7 +246,6 @@
   .ask-btns{display:flex;gap:8px;margin-top:14px;}
   .ask-btns .btn{flex:1;margin:0;}
   /* Roles de cuenta (Patrimonio → Editar) */
-  .rolechips{display:flex;gap:6px;padding:0 0 10px 50px;}
   .rchip{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:9px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--muted);}
   .rchip.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
   /* El badge flotante de reCAPTCHA (lo inyecta el script de Google al intentar el captcha de
@@ -850,7 +849,7 @@
   .pr6-row:focus-visible, .pr6-rev:focus-visible, .pr6-prow:focus-visible, .pr6-pill:focus-visible,
   .pr6-mes-nav:focus-visible, .pr6-more:focus-visible, .pr6-paid-h:focus-visible, .pr6-cta:focus-visible,
   .pr6-btn:focus-visible, .pr6-cand:focus-visible, .pr6-back:focus-visible, .pr6-cerr-x:focus-visible,
-  .v4-section-h button.link:focus-visible, .v4-inv-tools button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .v4-section-h button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .botnav-fab-slot{flex:1;display:flex;justify-content:center;}
   .botnav-fab{width:58px;height:58px;border-radius:50%;margin-top:-26px;border:none;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
@@ -1031,7 +1030,7 @@
   .v4-budget-txt .ph{font-size:14.5px;color:var(--muted);line-height:1.45;margin-top:6px;text-wrap:pretty;}
   .v4-section{margin-top:22px;}
   .v4-section-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:15px;font-weight:800;}
-  .v4-section-h button.link,.v4-inv-tools button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
+  .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
   /* «En noviembre» junto a «Próximos cargos» cuando lo que se ve es del mes que viene. */
   .v4-upcoming-mes{margin-left:8px;color:var(--muted);font-weight:600;font-size:13px;}
   .v4-section .v4-mov{min-height:60px;}
@@ -1534,7 +1533,6 @@
   html[data-theme="light"] .v4-section-h button.link,
   html[data-theme="light"] .v42-cycle-head .link,
   html[data-theme="light"] .v4-avatar,
-  html[data-theme="light"] .v4-inv-tools button.link,
   html[data-theme="light"] .pr6-mes-nav,
   html[data-theme="light"] .pr6-pill-ok,
   html[data-theme="light"] .pr6-more,
@@ -1558,7 +1556,6 @@
   html[data-theme="light"] .v4-charge .am.pos,
   html[data-theme="light"] .v4-mov .am.pos,
   html[data-theme="light"] .helpq:active,
-  html[data-theme="light"] .edit-link:not(.save),
   html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
   html[data-theme="light"] .v4-link-mini,
   html[data-theme="light"] .v4-goal-pct{
@@ -2514,6 +2511,11 @@
   .row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line-soft);}
   .row:last-child{border-bottom:none;}
   .row .rl{display:flex;align-items:center;gap:12px;min-width:0;}
+  /* Posición sin cotización en Cartera: la fila entera es el botón para poner su valor. */
+  .row.inv-row-tap{width:100%;background:none;border-width:0 0 1px;border-style:solid;border-color:var(--line-soft);color:inherit;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .15s var(--ease);}
+  .row.inv-row-tap:last-child{border-bottom-width:0;}
+  .row.inv-row-tap:active{opacity:.6;}
+  .row.inv-row-tap:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:8px;}
   .row .ric{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:0 0 auto;background:var(--surface-2);border:1px solid var(--line-soft);}
   .row .rname{font-weight:600;font-size:14px;}
   .row .rsub{font-size:11.5px;color:var(--muted-2);margin-top:1px;}
@@ -2735,7 +2737,6 @@
      del título, como en Inicio. El margen negativo le da 44 px de dedo sin engordar el título. */
   .v4-sec-h.v4-section-h{margin:22px 0 10px;}
   .v4-sec-h.v4-section-h button.link{margin:-10px -8px;}
-  .v4-sec-order{min-height:44px;margin-top:10px;}
   .cartera-hero-amt{font-size:var(--fs-hero);font-weight:550;letter-spacing:-1px;line-height:1.05;margin-top:6px;white-space:nowrap;}
   .cartera-hero-amt>span{font-size:23px;color:var(--muted);}
   .v4-ic-mini:disabled{opacity:.5;}
@@ -2770,15 +2771,6 @@
   .swx.on{background:var(--mint);border-color:var(--mint);}
   .swx::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
   .swx.on::after{left:24px;}
-  .wedit{border:1px dashed var(--line);border-radius:16px;padding:8px;margin-bottom:12px;background:var(--bg-2);}
-  .wedit.off{opacity:.5;}
-  .wedit-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding:0 2px;}
-  .wedit-lbl{font-size:12.5px;font-weight:700;color:var(--muted);}
-  .wedit-btns{display:flex;gap:6px;align-items:center;}
-  .wedit-btns button{font-size:12px;font-weight:700;padding:5px 9px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line-soft);color:var(--text);}
-  .wedit-btns button:disabled{opacity:.35;}
-  .wedit-btns button.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
-  .wedit-body{pointer-events:none;}
   .ex-del{font-size:12px;color:var(--muted-2);background:transparent;border:none;padding:4px 6px;opacity:.55;}
   .ex-del:hover{opacity:1;color:var(--coral);}
 
@@ -2825,10 +2817,6 @@
   @media (prefers-reduced-motion:reduce){.spin{display:none;}}
   @keyframes sp{to{transform:rotate(360deg);}}
 
-  .edit-link{font-size:12.5px;font-weight:700;color:var(--mint);padding:5px 9px;border-radius:9px;background:rgba(95,208,138,.10);position:relative;}
-  /* «Editar» mide 27 px de alto; el toque llega a 45 sin agrandar la píldora (auditoría 14/11). */
-  .edit-link::after{content:"";position:absolute;inset:-9px -2px;}
-  .edit-link.save{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
 
   .hint{font-size:12px;color:var(--muted-2);margin-top:10px;line-height:1.5;}
   .sync-note{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted-2);margin-top:10px;}

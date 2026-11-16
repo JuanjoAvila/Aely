@@ -4719,15 +4719,14 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       // nunca un OAuth de Enable Banking.
       React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:10,height:46},onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:"trade_republic"}})); }catch(e){} }}, t("bk_tr_cta"))
     ),
-    /* BLOQUES ORDENABLES (petición 2026-07-25: «poder ordenar las cosas de la tab de cartera»).
-       `OrderableSections` guarda el orden en settings.secOrder.cartera, así que viaja con la
-       cuenta y está en el sitio donde el usuario ya sabe buscarlo («⇅ Ordenar secciones» al pie).
-       Se inventó un mecanismo nuevo cero: el que había ya hacía justo esto (hoy solo lo usa Cartera). */
-    React.createElement(OrderableSections,{tab:"cartera",state:state,set:set,items:[
+    /* BLOQUES EN EL ORDEN GUARDADO. «⇅ Ordenar secciones» se retiró (16/11/2026, petición suya:
+       un botón más al pie que no usaba), pero el orden que ya tuviera en settings.secOrder.cartera
+       se respeta: quitar el botón no debe recolocarle la pantalla. */
+    (function(){ const items=[
       /* La cabecera de Cuentas y la de Bienes las pinta `Wealth` (`titulo`): su acción («Editar»,
          «Añadir») depende de estado que vive allí, y tiene que ir a la derecha del título como
          la del resto de bloques (DIS-32). Aquí solo se le pasan los iconos de bancos. */
-      { id:"cuentas", label:t("v4_cuentas"), el:React.createElement(React.Fragment,null,
+      { id:"cuentas", el:React.createElement(React.Fragment,null,
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
           onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy,titulo:t("v4_cuentas"),
           /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
@@ -4756,14 +4755,13 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M18 16v6M15 19h6"})))
           )})
       ) },
-      // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
-      // colocarlos donde le apetezca (feedback 2026-07-25).
-      { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
+      // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco (feedback 2026-07-25).
+      { id:"bienes", el:React.createElement(React.Fragment,null,
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes",titulo:t("pt_goods")})
       ) },
       // `data-cartera-sec`: aquí aterriza «Abrir en Cartera ›» de la fila gris de Inversiones de
-      // Gastos (`goInversiones`, 11-app-main), aunque el bloque se haya reordenado.
-      !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
+      // Gastos (`goInversiones`, 11-app-main), aunque el orden guardado lo coloque en otro sitio.
+      !simple && { id:"inversiones", el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h v4-section-h"},
           React.createElement("span",null, t("v4_inversiones")),
           // El nombre largo se queda en el aria-label: «Ver todo» a secas no dice de qué.
@@ -4771,9 +4769,14 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
             onClick:function(){ setInvTools(true); }}, t("v4_all"))),
         React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
       ) }
-    ]}),
-    // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
-    // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
+    ].filter(function(i){ return i && i.el; });
+      const byId={}; items.forEach(function(i){ byId[i.id]=i; });
+      return secOrderOf(state,"cartera",items.map(function(i){ return i.id; })).map(function(id){
+        return React.createElement(React.Fragment,{key:id},byId[id].el);
+      });
+    })(),
+    // La hija vive FUERA de los bloques: es un portal, no una sección, y meterla dentro la
+    // desmontaría si cambia el orden (cerrándose sola a media consulta).
     !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,showToast:showToast})
   );
 }

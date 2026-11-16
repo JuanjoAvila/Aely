@@ -334,7 +334,6 @@ function AssetSheet({asset,set,onClose}){
 }
 
 function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){
-  const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   const [sheetAsset,setSheetAsset]=useState(null);
   const [balanceReady,setBalanceReady]=React.useState(function(){ return !!window.__mcBootReady; });
@@ -352,17 +351,14 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
   const removeAccount=(id)=>{
-    setDelAcc("");
     set(function(s){
       const a=(s.accounts||[]).find(function(x){ return x.id===id; });
       if(a && isEfectivoEnt(a)) return removeEfectivoAccount(s, id);
       return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })});
     });
   };
-  const pn=(i)=> (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0;   // movimientos ya ocurridos este mes
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)
   const miM=totals.monthlyInvestThisMonth||0;                               // aporte periódico del mes (idem)
-  const spentOwn=(i)=> (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0;
   const shownAcc=(i)=> saldoCuentaMostrada(i, {
     injTR:totals.injTR||0, spentByBank:totals.spentByBank||{}, paidNetByBank:totals.paidNetByBank||{},
     roundup:ruM, monthlyInvest:miM
@@ -385,28 +381,9 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
       return all!==s.accountBalanceHistory?Object.assign({},s,{accountBalanceHistory:all}):s;
     },false);
   },[parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
-  /* LA FÓRMULA INVERSA DEL SALDO, EN UN SOLO SITIO. Editas el SALDO REAL de hoy y por dentro se
-     guarda la base (inicio de mes) correcta; `valueDesdeSaldo` (00-core) es la que despeja.
-     ⚠ Vive aquí con nombre propio porque la usan DOS pantallas: el editor de toda la vida
-     (`accEd`, que sigue sirviendo a la vista legacy) y la ficha nueva de cada cuenta. Escribirla
-     dos veces es exactamente el fallo que el 11/9 le pintó a su padre 455,50 € donde el banco
-     decía 26,46 — la misma regla vivía en SEIS sitios y solo se migraron cinco.
-     Ver [[misma-regla-en-dos-sitios]]. */
-  const valorDesdeTecleado=function(i,typed){
-    if(accDaily(i)) return valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
-    if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
-    return (typed - pn(i));
-  };
-  const accEd=useEditable(state.accounts,it=>set(function(s){
-    return manualBalanceWrite(s,it.filter(function(a){return Object.prototype.hasOwnProperty.call(a,MANUAL_BALANCE_TYPED);}).map(function(a){return Object.assign({id:a.id},a[MANUAL_BALANCE_TYPED]);}));
-  }),{
-    display:  i => shownAcc(i),
-    toStored: valorDesdeTecleado,
-    // El importe viaja privado hasta el updater: allí se despeja contra el estado fresco.
-    extra: function(i,typed){return {[MANUAL_BALANCE_TYPED]:{typed:typed,expected:manualBalanceTarget(i)}};}
-  });
-  /* Guardar el saldo de UNA cuenta (lo que hace la ficha). Mismo camino que el editor de siempre:
-     misma fórmula, mismo `set`. */
+  /* Guardar el saldo de UNA cuenta (lo que hace la ficha). La base de inicio de mes la despeja
+     `manualBalanceWrite` contra el estado fresco, no aquí: la misma regla en dos sitios es lo que
+     el 11/9 le pintó a su padre 455,50 € donde el banco decía 26,46 ([[misma-regla-en-dos-sitios]]). */
   const guardarSaldoDe=function(id, tecleado){
     const expected=manualBalanceTarget((state.accounts||[]).find(function(a){return a.id===id;}));
     set(function(s){
@@ -592,18 +569,6 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     // los extras. En un extra, «Gasto diario» = expenseBanks + dailyOnlyBanks (recibos fuera);
     // «Todo» = expenseBanks sin dailyOnly (recibos y gasto diario a la vez).
     // `pickRole` vive arriba (antes de las filas): lo usa también la ficha.
-    const roleChips=function(a){
-      const dy=dailyEffOf(a), fx=fixedEffOf(a);
-      const on={fijos:fx&&!dy, diario:dy&&!fx, ambos:fx&&dy};
-      const roles=isEfectivoEnt(a) ? [["diario","rl_diario"]] : [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]];
-      return React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
-        roles.map(function(rr){
-          return React.createElement("button",{key:rr[0],className:"rchip"+(on[rr[0]]?" on":""),onClick:function(){ pickRole(a, rr[0]); }}, t(rr[1]));
-        }),
-        React.createElement("button",{className:"ex-del",style:{marginLeft:"auto"},title:t("pt_acc_del"),onClick:function(){ setDelAcc(a.id); }},"🗑")
-      );
-    };
-    const anySynced=state.accounts.some(isSynced)||(state.obAccounts||[]).length>0;
     const orderedAccountRows=accountRowsInOrder(state);
     const sheetRow=orderedAccountRows.find(function(r){ return r.key===sheetAcc; })||null;
     const sheetCuenta=sheetRow&&sheetRow.kind==="ob" ? (function(){
@@ -624,16 +589,13 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
        bloque, así que el piso y el coche viajaban pegados a las cuentas del banco y no se podían
        colocar por separado. `parte` los separa sin duplicar nada: sin `parte` sigue pintando los
        dos, que es como lo usa el resto de la app. */
-    const verEditar=(state.obAccounts||[]).length>0 || accEd.editing;
     return React.createElement("div",null,
       titulo && parte==="cuentas" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
         React.createElement("span",null,titulo),
         React.createElement("div",{className:"v4-sec-acts"},
-          /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
-             veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
-             (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
-             se deja el botón para poder Guardar. */
-          verEditar && React.createElement("button",{type:"button",className:"link","data-act":"acc-edit",onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
+          /* Sin «Editar» (16/11/2026, petición suya): la ficha de cada fila ya cubre nombre, saldo,
+             rol, parte suya y quitarla, también en las cuentas EXTRA de Open Banking (darles rol las
+             promociona, `pickSheetRole`). El editor desplegable que abría solo era un duplicado. */
           iconos)),
       titulo && parte==="bienes" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
         React.createElement("span",null,titulo),
@@ -656,55 +618,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy,
         onCajero:doSaqueCajero, onEntrada:doEntradaEfectivo
       }),
-      // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
-      // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
-      accEd.editing && React.createElement("div",{className:"add-form",style:{marginTop:8}},
-        state.accounts.map(function(a){
-          const synced=isSynced(a);
-          return React.createElement("div",{key:a.id,style:{borderBottom:"1px solid var(--line-soft)",paddingBottom:8}},
-            React.createElement("div",{className:"af-row",style:{alignItems:"center"}},
-              React.createElement("span",{style:{flex:"0 0 auto",fontWeight:700}},entOf(a.ent).label),
-              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:a.name||"",placeholder:t("pt_name_ph"),
-                onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }}),
-              synced
-                ? React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(shownAcc(a)))
-                : React.createElement("input",{className:"af-in num",style:{width:104,flex:"0 0 auto"},value:accEd.draft[a.id],inputMode:"decimal",
-                    onChange:function(e){const v=e.target.value;accEd.setDraft(function(d){return Object.assign({},d,{[a.id]:v});});}})
-            ),
-            roleChips(a),
-            delAcc===a.id && React.createElement("div",{className:"rolechips",style:{alignItems:"center",flexWrap:"wrap",padding:"4px 0"}},
-              React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",flex:"1 1 100%",marginBottom:2}}, t("pt_acc_del_q")),
-              React.createElement("button",{className:"rchip",style:{color:"var(--coral)",borderColor:"var(--coral)"},onClick:function(){ removeAccount(a.id); }}, t("pt_acc_del_yes")),
-              React.createElement("button",{className:"rchip",onClick:function(){ setDelAcc(""); }}, t("pt_acc_del_no"))
-            )
-          );
-        }),
-        // Cuentas extra del banco: nombre editable + darles rol las promociona (como en v3).
-        (state.obAccounts||[]).map(function(o){
-          const custom=(state.obLabels||{})[o.key]; const disp=(custom!=null&&custom!=="")?custom:niceObName(o);
-          return React.createElement("div",{key:"obed_"+o.key,style:{borderBottom:"1px solid var(--line-soft)",paddingBottom:8}},
-            React.createElement("div",{className:"af-row",style:{alignItems:"center"}},
-              React.createElement("span",{style:{flex:"0 0 auto",fontWeight:700}},entOf(o.ent).label),
-              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:custom!=null?custom:disp,placeholder:disp,
-                onChange:function(e){ const v=e.target.value; set(function(s){ const ob=Object.assign({},s.obLabels); ob[o.key]=v; return Object.assign({},s,{obLabels:ob}); }); }}),
-              React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, fxAmountText(o.value||0,o.cur||"EUR",state))
-            ),
-            o.ent && React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
-              [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-                return React.createElement("button",{key:rr[0],className:"rchip",disabled:toEurAmt(o.value,o.cur,state)==null,onClick:function(){
-                  const nid=uid();
-                  set(function(s){ return promoteObAccount(s, totals, o.key, rr[0], nid); });
-                  accEd.setDraft(function(d){ const nd=Object.assign({},d); nd[nid]=+toEurAmt(o.value||0, o.cur||"EUR", state).toFixed(2); return nd; });
-                }}, t(rr[1]));
-              })
-            )
-          );
-        }),
-        anySynced && React.createElement("div",{className:"hint"}, t("v4_acc_locked")),
-        React.createElement("div",{className:"hint"}, t("rl_hint"))
-      ),
       parte!=="cuentas" && (state.assets||[]).length>0 && React.createElement(React.Fragment,null,
-        // El título solo cuando van juntos: en Cartera lo pone el bloque ordenable, y repetirlo
+        // El título solo cuando van juntos: en Cartera lo pone la cabecera del bloque (`titulo`), y repetirlo
         // dejaría «Bienes» dos veces seguidas.
         parte!=="bienes" && React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         state.assets.map(function(a){

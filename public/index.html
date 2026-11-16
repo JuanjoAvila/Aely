@@ -246,7 +246,6 @@
   .ask-btns{display:flex;gap:8px;margin-top:14px;}
   .ask-btns .btn{flex:1;margin:0;}
   /* Roles de cuenta (Patrimonio → Editar) */
-  .rolechips{display:flex;gap:6px;padding:0 0 10px 50px;}
   .rchip{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:9px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--muted);}
   .rchip.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
   /* El badge flotante de reCAPTCHA (lo inyecta el script de Google al intentar el captcha de
@@ -850,7 +849,7 @@
   .pr6-row:focus-visible, .pr6-rev:focus-visible, .pr6-prow:focus-visible, .pr6-pill:focus-visible,
   .pr6-mes-nav:focus-visible, .pr6-more:focus-visible, .pr6-paid-h:focus-visible, .pr6-cta:focus-visible,
   .pr6-btn:focus-visible, .pr6-cand:focus-visible, .pr6-back:focus-visible, .pr6-cerr-x:focus-visible,
-  .v4-section-h button.link:focus-visible, .v4-inv-tools button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .v4-section-h button.link:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .botnav-fab-slot{flex:1;display:flex;justify-content:center;}
   .botnav-fab{width:58px;height:58px;border-radius:50%;margin-top:-26px;border:none;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
@@ -1031,7 +1030,7 @@
   .v4-budget-txt .ph{font-size:14.5px;color:var(--muted);line-height:1.45;margin-top:6px;text-wrap:pretty;}
   .v4-section{margin-top:22px;}
   .v4-section-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:15px;font-weight:800;}
-  .v4-section-h button.link,.v4-inv-tools button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
+  .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
   /* «En noviembre» junto a «Próximos cargos» cuando lo que se ve es del mes que viene. */
   .v4-upcoming-mes{margin-left:8px;color:var(--muted);font-weight:600;font-size:13px;}
   .v4-section .v4-mov{min-height:60px;}
@@ -1534,7 +1533,6 @@
   html[data-theme="light"] .v4-section-h button.link,
   html[data-theme="light"] .v42-cycle-head .link,
   html[data-theme="light"] .v4-avatar,
-  html[data-theme="light"] .v4-inv-tools button.link,
   html[data-theme="light"] .pr6-mes-nav,
   html[data-theme="light"] .pr6-pill-ok,
   html[data-theme="light"] .pr6-more,
@@ -1558,7 +1556,6 @@
   html[data-theme="light"] .v4-charge .am.pos,
   html[data-theme="light"] .v4-mov .am.pos,
   html[data-theme="light"] .helpq:active,
-  html[data-theme="light"] .edit-link:not(.save),
   html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
   html[data-theme="light"] .v4-link-mini,
   html[data-theme="light"] .v4-goal-pct{
@@ -2514,6 +2511,11 @@
   .row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line-soft);}
   .row:last-child{border-bottom:none;}
   .row .rl{display:flex;align-items:center;gap:12px;min-width:0;}
+  /* Posición sin cotización en Cartera: la fila entera es el botón para poner su valor. */
+  .row.inv-row-tap{width:100%;background:none;border-width:0 0 1px;border-style:solid;border-color:var(--line-soft);color:inherit;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .15s var(--ease);}
+  .row.inv-row-tap:last-child{border-bottom-width:0;}
+  .row.inv-row-tap:active{opacity:.6;}
+  .row.inv-row-tap:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:8px;}
   .row .ric{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:0 0 auto;background:var(--surface-2);border:1px solid var(--line-soft);}
   .row .rname{font-weight:600;font-size:14px;}
   .row .rsub{font-size:11.5px;color:var(--muted-2);margin-top:1px;}
@@ -2735,7 +2737,6 @@
      del título, como en Inicio. El margen negativo le da 44 px de dedo sin engordar el título. */
   .v4-sec-h.v4-section-h{margin:22px 0 10px;}
   .v4-sec-h.v4-section-h button.link{margin:-10px -8px;}
-  .v4-sec-order{min-height:44px;margin-top:10px;}
   .cartera-hero-amt{font-size:var(--fs-hero);font-weight:550;letter-spacing:-1px;line-height:1.05;margin-top:6px;white-space:nowrap;}
   .cartera-hero-amt>span{font-size:23px;color:var(--muted);}
   .v4-ic-mini:disabled{opacity:.5;}
@@ -2770,15 +2771,6 @@
   .swx.on{background:var(--mint);border-color:var(--mint);}
   .swx::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
   .swx.on::after{left:24px;}
-  .wedit{border:1px dashed var(--line);border-radius:16px;padding:8px;margin-bottom:12px;background:var(--bg-2);}
-  .wedit.off{opacity:.5;}
-  .wedit-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding:0 2px;}
-  .wedit-lbl{font-size:12.5px;font-weight:700;color:var(--muted);}
-  .wedit-btns{display:flex;gap:6px;align-items:center;}
-  .wedit-btns button{font-size:12px;font-weight:700;padding:5px 9px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line-soft);color:var(--text);}
-  .wedit-btns button:disabled{opacity:.35;}
-  .wedit-btns button.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
-  .wedit-body{pointer-events:none;}
   .ex-del{font-size:12px;color:var(--muted-2);background:transparent;border:none;padding:4px 6px;opacity:.55;}
   .ex-del:hover{opacity:1;color:var(--coral);}
 
@@ -2825,10 +2817,6 @@
   @media (prefers-reduced-motion:reduce){.spin{display:none;}}
   @keyframes sp{to{transform:rotate(360deg);}}
 
-  .edit-link{font-size:12.5px;font-weight:700;color:var(--mint);padding:5px 9px;border-radius:9px;background:rgba(95,208,138,.10);position:relative;}
-  /* «Editar» mide 27 px de alto; el toque llega a 45 sin agrandar la píldora (auditoría 14/11). */
-  .edit-link::after{content:"";position:absolute;inset:-9px -2px;}
-  .edit-link.save{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
 
   .hint{font-size:12px;color:var(--muted-2);margin-top:10px;line-height:1.5;}
   .sync-note{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted-2);margin-top:10px;}
@@ -8960,8 +8948,7 @@ Object.assign(LANG.es,{
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Conectar banco", ac_sync_now:"↻ Sincronizar ahora", ac_reconnect:"⚠ Reconectar", ac_role_q:"¿Para qué la usas?",
   ac_role_fijos:"Para los recibos", ac_role_fijos_d:"De aquí salen la luz, el móvil y el alquiler.", ac_role_diario:"Para el día a día", ac_role_diario_d:"Con esta pagas el súper y los bares.", ac_role_ambos:"Las dos cosas", ac_role_ambos_d:"Recibos y día a día salen de aquí.", ac_last_movs:"Lo último de esta cuenta", ac_last_bank:"Lo último de {bank}", ac_see_all:"Ver todo ›", ac_change_sign:"Cambiar signo",
   st_stale:"datos del {day}",
-  rl_fijos:"🏦 Recibos", rl_diario:"🛒 Gasto diario", rl_ambos:"🔁 Todo",
-  rl_hint:"Recibos: pagos fijos · Gasto diario: compras del día, en uno o varios bancos · Todo: ambas.",
+  rl_fijos:"🏦 Recibos", rl_diario:"🛒 Gasto diario",
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
@@ -9100,7 +9087,7 @@ Object.assign(LANG.es,{
   g_edited:"✓ Gasto corregido",
   rec_hide:"Ocultar aviso",
   pt_name_ph:"Nombre (ej. Personal)",
-  pt_acc_del:"Quitar cuenta", pt_acc_del_q:"¿Quitar esta cuenta del patrimonio?", pt_acc_del_yes:"Sí, quitar", pt_acc_del_no:"Cancelar", 
+  pt_acc_del_q:"¿Quitar esta cuenta del patrimonio?", pt_acc_del_yes:"Sí, quitar", pt_acc_del_no:"Cancelar", 
   ef_create_btn:"+ Efectivo",
   ef_create_title:"¿Cuánto llevas en efectivo?",
   ef_create_sub:"Cuenta el dinero de la cartera. Se suma al patrimonio y puedes gastar desde ella.",
@@ -9265,7 +9252,6 @@ Object.assign(LANG.es,{
   sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
   st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con nómina reconocida, Gastos va de nómina a nómina; si no, por mes natural.",
   sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
-  sec_order:"⇅ Ordenar secciones", 
   g_syncing:"Sincronizando…",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
   ap_pay_card:"Tarjeta", ap_pay_cash:"Efectivo", ap_pay_transfer:"Bizum/transf.", ap_pay_aria:"Forma de pago",
@@ -9293,11 +9279,8 @@ Object.assign(LANG.es,{
 
 /* --- Diccionario: Inversiones, Proyección, Patrimonio, Deudas y login --- */
 Object.assign(LANG.es,{
-  inv_save:"Guardar", inv_cancel:"Cancelar", inv_editmanual:"Editar a mano",
-  inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
+  inv_save:"Guardar", inv_cancel:"Cancelar",
   inv_proj:"Proyección de tu ahorro", inv_proj_sub:"Interés compuesto",
-  inv_hint_edit:"Escribe el valor actual de cada posición; el % se calcula solo.",
-  inv_hint_view:"Sin precio automático (fondos, oro…): usa «Editar a mano». Dólar→euro: {fx}.",
   inv_sold_part:"Vendí parte →", inv_value:"Valor", inv_invested:"Invertido", inv_sell_prompt:"¿Qué % de «{name}» has vendido?",
   inv_sell_sub:"Pon el porcentaje (30 = un 30 %). Se ajustan valor, coste y participaciones, y el líquido se apunta como vendido.",
   inv_delete:"Borrar", inv_delete_confirm:"¿Borrar «{name}» de tu cartera?", inv_delete_sub:"Esto no toca tu bróker: solo la quita de la app.",
@@ -13370,7 +13353,7 @@ function useListLongPress(selector, attribute, enabled, onMove){
     const onTS=function(e){
       const btn=e.target.closest&&e.target.closest(selector);
       if(!btn||!node.contains(btn)) return;
-      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
+      if(e.target.closest&&e.target.closest(".v4-link-mini,a,input")) return;
       const tch=e.touches&&e.touches[0]; if(!tch) return;
       const id=btn.getAttribute(attribute);
       const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
@@ -13430,10 +13413,9 @@ function useListLongPress(selector, attribute, enabled, onMove){
   return {bind:bindListDrag,drag:drag,suppressClickRef:suppressClickRef};
 }
 
-/* Secciones ordenables por pestaña (petición 2026-07-11): como el orden de widgets del Resumen,
-   pero para los bloques de Cartera (las fichas de las demás pestañas se retiraron). El orden se guarda en
-   settings.secOrder[tab]; onMove opcional para pestañas cuyo orden vive en los propios datos
-   (deudas, metas → se reordena el array del estado y sincroniza igual que todo lo demás). */
+/* Orden guardado por clave en settings.secOrder[tab] (viaja con la cuenta). Hoy solo lo escriben
+   los brókers («inv», arrastrando su fila); el de los bloques de Cartera ya no se edita desde que se
+   quitó «⇅ Ordenar secciones» (16/11/2026), pero se sigue leyendo para no recolocarle la pantalla. */
 function secOrderOf(s, tab, allIds){
   const stored=(((s&&s.settings)||{}).secOrder||{})[tab];
   const saved=(Array.isArray(stored)?stored:[]).filter(function(id,i,a){ return allIds.indexOf(id)>=0&&a.indexOf(id)===i; });
@@ -13451,42 +13433,6 @@ function brokerGroupsInOrder(s, groups){
   return secOrderOf(s,"inv",groups.map(function(g){ return g[0]; })).map(function(id){
     return groups.find(function(g){ return g[0]===id; });
   });
-}
-function OrderableSections({tab, state, set, items, onMove}){
-  const [ordering,setOrdering]=useState(false);
-  const real=(items||[]).filter(function(i){ return i && i.el; });
-  const allIds=real.map(function(i){ return i.id; });
-  const order=onMove?allIds:secOrderOf(state,tab,allIds);
-  const map={}; real.forEach(function(i){ map[i.id]=i; });
-  const move=function(id,dir){
-    if(onMove) return onMove(id,dir);
-    set(function(s){
-      const o=secOrderOf(s,tab,allIds); const i=o.indexOf(id), j=i+dir;
-      if(i<0||j<0||j>=o.length) return s;
-      return moveSectionInList(s,tab,allIds,id,o[j]);
-    });
-  };
-  return React.createElement(React.Fragment,null,
-    order.map(function(id,idx){
-      const it=map[id]; if(!it) return null;
-      if(!ordering) return React.createElement(React.Fragment,{key:id},it.el);
-      return React.createElement("div",{key:id,className:"wedit"},
-        React.createElement("div",{className:"wedit-bar"},
-          React.createElement("span",{className:"wedit-lbl"},it.label),
-          React.createElement("div",{className:"wedit-btns"},
-            React.createElement("button",{disabled:idx===0,onClick:function(){ move(id,-1); }},"↑"),
-            React.createElement("button",{disabled:idx===order.length-1,onClick:function(){ move(id,1); }},"↓"))),
-        React.createElement("div",{className:"wedit-body"},it.el)
-      );
-    }),
-    /* Botón fantasma a todo el ancho, el mismo en reposo y ordenando (auditoría de diseño 233,
-       DIS-32/36): antes era texto suelto gris y, al ordenar, «✓ Listo ✓» con la marca dos veces
-       porque `done` ya la lleva. */
-    real.length>1 && React.createElement("button",{
-      type:"button",className:"btn btn-ghost btn-block v4-sec-order",
-      onClick:function(){ setOrdering(!ordering); }
-    }, ordering?t("done"):t("sec_order"))
-  );
 }
 
 /* Cabecera de una tarjeta de bróker (TR / MyInvestor / CSV de Revolut), pulsable para plegar.
@@ -19251,11 +19197,15 @@ function TRSync({state, set, totals, open, onToggle}){
   );
 }
 
-function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDelete}){
+function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDelete, onValue}){
   const eurVal=(it)=> invValueEur(it, st);
   const show=fmt||eur;   // moneda local de la tab (fallback a €)
   return items.map(function(it){
-    return React.createElement("div",{className:"row",key:it.id,"data-inv-position":it.id},
+    // Solo se toca lo que no tiene cotización: con ticker el valor lo pone el precio y lo
+    // tecleado se perdería en la siguiente actualización.
+    const tap=!editing&&onValue&&!it.ticker;
+    return React.createElement(tap?"button":"div",Object.assign({className:"row"+(tap?" inv-row-tap":""),key:it.id,"data-inv-position":it.id},
+      tap?{type:"button",onClick:function(){ onValue(it); }}:null),
       React.createElement("div",{className:"rl"},
         React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
         React.createElement("div",null,
@@ -19804,13 +19754,31 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     );
   }
 
+  /* PONER EL VALOR DE UNA POSICIÓN TOCÁNDOLA (16/11/2026). «✎ Editar a mano» al pie de la lista y
+     su pista gris se quitaron a petición suya; lo que solo se hacía desde ahí —cuadrar a mano lo
+     que no tiene precio automático (fondos, oro…)— vive ahora en la propia fila: se toca y se
+     escribe lo que vale hoy. Vender una parte, borrar o tocar lo invertido siguen en «Ver todo»,
+     en la ficha de cada bróker. */
+  const pedirValor=function(it){
+    askText({ title:it.name, ph:CUR_SYM[it.cur||"EUR"]||it.cur, ok:t("inv_save"),
+      value:it.value==null?"":Number(it.value).toLocaleString(loc(),{useGrouping:false,maximumFractionDigits:2}) })
+      .then(function(raw){
+        if(raw==null) return;   // null = canceló
+        // «1.350,50» es mil trescientos: con coma decimal, los puntos son de miles.
+        const txt=String(raw).replace(/\s/g,""), v=parseFloat(txt.indexOf(",")>=0?txt.replace(/\./g,"").replace(",","."):txt);
+        if(!isFinite(v)||v<0){ if(showToast) showToast("⚠ "+t("g_invalid")); return; }
+        const value=+v.toFixed(2);
+        set(function(s){
+          const cur=(s.investments||[]).find(function(i){ return i.id===it.id; });
+          if(!cur||cur.value===value) return s;
+          return Object.assign({},s,{investments:s.investments.map(function(i){
+            return i.id===it.id?Object.assign({},i,{value:value,manualUpdatedAt:new Date().toISOString()}):i;
+          })});
+        });
+      });
+  };
   return React.createElement("div",null,
     React.createElement(FxNotice,{missing:missingFx}),
-
-    editing && React.createElement("div",{className:"costtoggle",onClick:()=>setShowCost(!showCost)},
-      React.createElement("span",{className:"cbx"+(showCost?" on":"")}, showCost?"\u2713":""),
-      React.createElement("span",null,t("inv_alsoinvested"))
-    ),
     // En Cartera: mismas fichas que «Tus cuentas» (v4-mov). El resumen completo
     // vive en su pantalla hija para no montar dos veces toda la herramienta antigua.
     React.createElement(React.Fragment,null,
@@ -19819,11 +19787,10 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
         if(items.length===0) return null;
         const sub=byBroker[g[0]].v;
-        // Editando: todos los brókers desplegados con sus inputs (si no, había que ir uno a uno).
-        const open=editing||!!brokerOpen[g[0]];
+        const open=!!brokerOpen[g[0]];
         return React.createElement(React.Fragment,{key:g[0]},
           React.createElement("button",{type:"button",className:brokerRowClass(g[0]),"data-broker-key":g[0],
-            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
+            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
@@ -19837,23 +19804,12 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
           // .v4-inv-drop: el mismo «rise» suave del resto de la app — antes las posiciones
           // aparecían de golpe al desplegar el bróker (feedback 2026-07-21).
           open && React.createElement("div",{className:"v4-inv-drop",style:{padding:"0 2px 8px"}},
-            React.createElement(InvRows,{items:items,st:state,fmt:f2,editing:editing,showCost:editing&&showCost,draft:draft,setF:setF,onSell:onSell,onDelete:onDelete}))
+            React.createElement(InvRows,{items:items,st:state,fmt:f2,onValue:pedirValor}))
         );
-        }),
-        // Editar a mano en discreto, al pie de la lista (feedback 2026-07-18): normalmente los
-        // números entran solos por los brókers; esto es el plan B para cuadrar algo puntual.
-        // En reposo es un enlace como las demás acciones de Cartera, no un chip (DIS-32).
-        state.investments.length>0 && React.createElement("div",{className:"v4-inv-tools",style:{display:"flex",gap:8,margin:"8px 4px 0"}},
-          React.createElement("button",{type:"button",className:editing?"edit-link save":"link","data-act":"inv-manual",onClick:function(){ editing?save():start(); }}, editing?t("inv_save"):("✎ "+t("inv_editmanual"))),
-          editing && React.createElement("button",{type:"button",className:"edit-link",style:{background:"transparent",color:"var(--muted)"},onClick:cancel}, t("inv_cancel"))
-        )
+        })
       ),
       React.createElement("div",{style:{marginTop:12}},React.createElement(InvestmentRewards,{state:state,set:set}))
-    ),
-    React.createElement("div",{className:"hint",style:{padding:"0 4px"}}, editing
-      ? t("inv_hint_edit")
-      // El tipo con 4 decimales y la coma de cada idioma: salía «0.904813608397» (auditoría 14/11/2026).
-      : tf("inv_hint_view",{fx:fx>0?Number(fx).toLocaleString(loc(),{maximumFractionDigits:4}):"—"}))
+    )
   );
 }
 
@@ -20193,7 +20149,6 @@ function AssetSheet({asset,set,onClose}){
 }
 
 function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){
-  const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   const [sheetAsset,setSheetAsset]=useState(null);
   const [balanceReady,setBalanceReady]=React.useState(function(){ return !!window.__mcBootReady; });
@@ -20211,17 +20166,14 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
   const removeAccount=(id)=>{
-    setDelAcc("");
     set(function(s){
       const a=(s.accounts||[]).find(function(x){ return x.id===id; });
       if(a && isEfectivoEnt(a)) return removeEfectivoAccount(s, id);
       return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })});
     });
   };
-  const pn=(i)=> (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0;   // movimientos ya ocurridos este mes
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)
   const miM=totals.monthlyInvestThisMonth||0;                               // aporte periódico del mes (idem)
-  const spentOwn=(i)=> (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0;
   const shownAcc=(i)=> saldoCuentaMostrada(i, {
     injTR:totals.injTR||0, spentByBank:totals.spentByBank||{}, paidNetByBank:totals.paidNetByBank||{},
     roundup:ruM, monthlyInvest:miM
@@ -20244,28 +20196,9 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
       return all!==s.accountBalanceHistory?Object.assign({},s,{accountBalanceHistory:all}):s;
     },false);
   },[parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
-  /* LA FÓRMULA INVERSA DEL SALDO, EN UN SOLO SITIO. Editas el SALDO REAL de hoy y por dentro se
-     guarda la base (inicio de mes) correcta; `valueDesdeSaldo` (00-core) es la que despeja.
-     ⚠ Vive aquí con nombre propio porque la usan DOS pantallas: el editor de toda la vida
-     (`accEd`, que sigue sirviendo a la vista legacy) y la ficha nueva de cada cuenta. Escribirla
-     dos veces es exactamente el fallo que el 11/9 le pintó a su padre 455,50 € donde el banco
-     decía 26,46 — la misma regla vivía en SEIS sitios y solo se migraron cinco.
-     Ver [[misma-regla-en-dos-sitios]]. */
-  const valorDesdeTecleado=function(i,typed){
-    if(accDaily(i)) return valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
-    if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
-    return (typed - pn(i));
-  };
-  const accEd=useEditable(state.accounts,it=>set(function(s){
-    return manualBalanceWrite(s,it.filter(function(a){return Object.prototype.hasOwnProperty.call(a,MANUAL_BALANCE_TYPED);}).map(function(a){return Object.assign({id:a.id},a[MANUAL_BALANCE_TYPED]);}));
-  }),{
-    display:  i => shownAcc(i),
-    toStored: valorDesdeTecleado,
-    // El importe viaja privado hasta el updater: allí se despeja contra el estado fresco.
-    extra: function(i,typed){return {[MANUAL_BALANCE_TYPED]:{typed:typed,expected:manualBalanceTarget(i)}};}
-  });
-  /* Guardar el saldo de UNA cuenta (lo que hace la ficha). Mismo camino que el editor de siempre:
-     misma fórmula, mismo `set`. */
+  /* Guardar el saldo de UNA cuenta (lo que hace la ficha). La base de inicio de mes la despeja
+     `manualBalanceWrite` contra el estado fresco, no aquí: la misma regla en dos sitios es lo que
+     el 11/9 le pintó a su padre 455,50 € donde el banco decía 26,46 ([[misma-regla-en-dos-sitios]]). */
   const guardarSaldoDe=function(id, tecleado){
     const expected=manualBalanceTarget((state.accounts||[]).find(function(a){return a.id===id;}));
     set(function(s){
@@ -20451,18 +20384,6 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     // los extras. En un extra, «Gasto diario» = expenseBanks + dailyOnlyBanks (recibos fuera);
     // «Todo» = expenseBanks sin dailyOnly (recibos y gasto diario a la vez).
     // `pickRole` vive arriba (antes de las filas): lo usa también la ficha.
-    const roleChips=function(a){
-      const dy=dailyEffOf(a), fx=fixedEffOf(a);
-      const on={fijos:fx&&!dy, diario:dy&&!fx, ambos:fx&&dy};
-      const roles=isEfectivoEnt(a) ? [["diario","rl_diario"]] : [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]];
-      return React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
-        roles.map(function(rr){
-          return React.createElement("button",{key:rr[0],className:"rchip"+(on[rr[0]]?" on":""),onClick:function(){ pickRole(a, rr[0]); }}, t(rr[1]));
-        }),
-        React.createElement("button",{className:"ex-del",style:{marginLeft:"auto"},title:t("pt_acc_del"),onClick:function(){ setDelAcc(a.id); }},"🗑")
-      );
-    };
-    const anySynced=state.accounts.some(isSynced)||(state.obAccounts||[]).length>0;
     const orderedAccountRows=accountRowsInOrder(state);
     const sheetRow=orderedAccountRows.find(function(r){ return r.key===sheetAcc; })||null;
     const sheetCuenta=sheetRow&&sheetRow.kind==="ob" ? (function(){
@@ -20483,16 +20404,13 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
        bloque, así que el piso y el coche viajaban pegados a las cuentas del banco y no se podían
        colocar por separado. `parte` los separa sin duplicar nada: sin `parte` sigue pintando los
        dos, que es como lo usa el resto de la app. */
-    const verEditar=(state.obAccounts||[]).length>0 || accEd.editing;
     return React.createElement("div",null,
       titulo && parte==="cuentas" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
         React.createElement("span",null,titulo),
         React.createElement("div",{className:"v4-sec-acts"},
-          /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
-             veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
-             (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
-             se deja el botón para poder Guardar. */
-          verEditar && React.createElement("button",{type:"button",className:"link","data-act":"acc-edit",onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
+          /* Sin «Editar» (16/11/2026, petición suya): la ficha de cada fila ya cubre nombre, saldo,
+             rol, parte suya y quitarla, también en las cuentas EXTRA de Open Banking (darles rol las
+             promociona, `pickSheetRole`). El editor desplegable que abría solo era un duplicado. */
           iconos)),
       titulo && parte==="bienes" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
         React.createElement("span",null,titulo),
@@ -20515,55 +20433,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy,
         onCajero:doSaqueCajero, onEntrada:doEntradaEfectivo
       }),
-      // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
-      // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
-      accEd.editing && React.createElement("div",{className:"add-form",style:{marginTop:8}},
-        state.accounts.map(function(a){
-          const synced=isSynced(a);
-          return React.createElement("div",{key:a.id,style:{borderBottom:"1px solid var(--line-soft)",paddingBottom:8}},
-            React.createElement("div",{className:"af-row",style:{alignItems:"center"}},
-              React.createElement("span",{style:{flex:"0 0 auto",fontWeight:700}},entOf(a.ent).label),
-              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:a.name||"",placeholder:t("pt_name_ph"),
-                onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }}),
-              synced
-                ? React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(shownAcc(a)))
-                : React.createElement("input",{className:"af-in num",style:{width:104,flex:"0 0 auto"},value:accEd.draft[a.id],inputMode:"decimal",
-                    onChange:function(e){const v=e.target.value;accEd.setDraft(function(d){return Object.assign({},d,{[a.id]:v});});}})
-            ),
-            roleChips(a),
-            delAcc===a.id && React.createElement("div",{className:"rolechips",style:{alignItems:"center",flexWrap:"wrap",padding:"4px 0"}},
-              React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",flex:"1 1 100%",marginBottom:2}}, t("pt_acc_del_q")),
-              React.createElement("button",{className:"rchip",style:{color:"var(--coral)",borderColor:"var(--coral)"},onClick:function(){ removeAccount(a.id); }}, t("pt_acc_del_yes")),
-              React.createElement("button",{className:"rchip",onClick:function(){ setDelAcc(""); }}, t("pt_acc_del_no"))
-            )
-          );
-        }),
-        // Cuentas extra del banco: nombre editable + darles rol las promociona (como en v3).
-        (state.obAccounts||[]).map(function(o){
-          const custom=(state.obLabels||{})[o.key]; const disp=(custom!=null&&custom!=="")?custom:niceObName(o);
-          return React.createElement("div",{key:"obed_"+o.key,style:{borderBottom:"1px solid var(--line-soft)",paddingBottom:8}},
-            React.createElement("div",{className:"af-row",style:{alignItems:"center"}},
-              React.createElement("span",{style:{flex:"0 0 auto",fontWeight:700}},entOf(o.ent).label),
-              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:custom!=null?custom:disp,placeholder:disp,
-                onChange:function(e){ const v=e.target.value; set(function(s){ const ob=Object.assign({},s.obLabels); ob[o.key]=v; return Object.assign({},s,{obLabels:ob}); }); }}),
-              React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, fxAmountText(o.value||0,o.cur||"EUR",state))
-            ),
-            o.ent && React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
-              [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-                return React.createElement("button",{key:rr[0],className:"rchip",disabled:toEurAmt(o.value,o.cur,state)==null,onClick:function(){
-                  const nid=uid();
-                  set(function(s){ return promoteObAccount(s, totals, o.key, rr[0], nid); });
-                  accEd.setDraft(function(d){ const nd=Object.assign({},d); nd[nid]=+toEurAmt(o.value||0, o.cur||"EUR", state).toFixed(2); return nd; });
-                }}, t(rr[1]));
-              })
-            )
-          );
-        }),
-        anySynced && React.createElement("div",{className:"hint"}, t("v4_acc_locked")),
-        React.createElement("div",{className:"hint"}, t("rl_hint"))
-      ),
       parte!=="cuentas" && (state.assets||[]).length>0 && React.createElement(React.Fragment,null,
-        // El título solo cuando van juntos: en Cartera lo pone el bloque ordenable, y repetirlo
+        // El título solo cuando van juntos: en Cartera lo pone la cabecera del bloque (`titulo`), y repetirlo
         // dejaría «Bienes» dos veces seguidas.
         parte!=="bienes" && React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         state.assets.map(function(a){
@@ -31956,7 +31827,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a71609761f13567388b1508a59331f45e02f8ec0a117a941a7b950cdc7159f83";
+var _rnSha="cab40e643c51e5d1232eea02c2bdbe5f6aa7903cbdcdf602eeb6473101cbe947";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -38209,15 +38080,14 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       // nunca un OAuth de Enable Banking.
       React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:10,height:46},onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:"trade_republic"}})); }catch(e){} }}, t("bk_tr_cta"))
     ),
-    /* BLOQUES ORDENABLES (petición 2026-07-25: «poder ordenar las cosas de la tab de cartera»).
-       `OrderableSections` guarda el orden en settings.secOrder.cartera, así que viaja con la
-       cuenta y está en el sitio donde el usuario ya sabe buscarlo («⇅ Ordenar secciones» al pie).
-       Se inventó un mecanismo nuevo cero: el que había ya hacía justo esto (hoy solo lo usa Cartera). */
-    React.createElement(OrderableSections,{tab:"cartera",state:state,set:set,items:[
+    /* BLOQUES EN EL ORDEN GUARDADO. «⇅ Ordenar secciones» se retiró (16/11/2026, petición suya:
+       un botón más al pie que no usaba), pero el orden que ya tuviera en settings.secOrder.cartera
+       se respeta: quitar el botón no debe recolocarle la pantalla. */
+    (function(){ const items=[
       /* La cabecera de Cuentas y la de Bienes las pinta `Wealth` (`titulo`): su acción («Editar»,
          «Añadir») depende de estado que vive allí, y tiene que ir a la derecha del título como
          la del resto de bloques (DIS-32). Aquí solo se le pasan los iconos de bancos. */
-      { id:"cuentas", label:t("v4_cuentas"), el:React.createElement(React.Fragment,null,
+      { id:"cuentas", el:React.createElement(React.Fragment,null,
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
           onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy,titulo:t("v4_cuentas"),
           /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
@@ -38246,14 +38116,13 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M18 16v6M15 19h6"})))
           )})
       ) },
-      // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
-      // colocarlos donde le apetezca (feedback 2026-07-25).
-      { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
+      // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco (feedback 2026-07-25).
+      { id:"bienes", el:React.createElement(React.Fragment,null,
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes",titulo:t("pt_goods")})
       ) },
       // `data-cartera-sec`: aquí aterriza «Abrir en Cartera ›» de la fila gris de Inversiones de
-      // Gastos (`goInversiones`, 11-app-main), aunque el bloque se haya reordenado.
-      !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
+      // Gastos (`goInversiones`, 11-app-main), aunque el orden guardado lo coloque en otro sitio.
+      !simple && { id:"inversiones", el:React.createElement("div",{className:"rise","data-cartera-sec":"inversiones",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h v4-section-h"},
           React.createElement("span",null, t("v4_inversiones")),
           // El nombre largo se queda en el aria-label: «Ver todo» a secas no dice de qué.
@@ -38261,9 +38130,14 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
             onClick:function(){ setInvTools(true); }}, t("v4_all"))),
         React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
       ) }
-    ]}),
-    // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
-    // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
+    ].filter(function(i){ return i && i.el; });
+      const byId={}; items.forEach(function(i){ byId[i.id]=i; });
+      return secOrderOf(state,"cartera",items.map(function(i){ return i.id; })).map(function(id){
+        return React.createElement(React.Fragment,{key:id},byId[id].el);
+      });
+    })(),
+    // La hija vive FUERA de los bloques: es un portal, no una sección, y meterla dentro la
+    // desmontaría si cambia el orden (cerrándose sola a media consulta).
     !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,showToast:showToast})
   );
 }

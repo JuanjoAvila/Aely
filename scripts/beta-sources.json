@@ -72775,10 +72775,6 @@
         "function": "brokerGroupsInOrder"
       },
       {
-        "file": "src/modules/02-ui-shared.js",
-        "function": "OrderableSections"
-      },
-      {
         "file": "src/modules/06-sync-brokers.js",
         "function": "Investments"
       },
@@ -113145,7 +113141,7 @@
       },
       {
         "file": "src/modules/14-v4-screens.js",
-        "from": "      !simple && { id:\"inversiones\", label:t(\"v4_inversiones\"), el:React.createElement(\"div\",{className:\"rise\",\"data-cartera-sec\":\"inversiones\"",
+        "from": "      !simple && { id:\"inversiones\", el:React.createElement(\"div\",{className:\"rise\",\"data-cartera-sec\":\"inversiones\"",
         "to": "\n"
       },
       {
@@ -170329,11 +170325,6 @@
       {
         "file": "src/shell.html",
         "from": "  .v4-legend:has(>.v4-legend-btn){",
-        "to": "}"
-      },
-      {
-        "file": "src/shell.html",
-        "from": "  .edit-link::after{",
         "to": "}"
       },
       {

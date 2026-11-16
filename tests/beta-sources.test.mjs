@@ -1087,7 +1087,7 @@ test("Splash117 conserva descriptor vivo, mutantes y retirada del panel",()=>{
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>nl(read(f)),id="bienes-completo",before=betaRevision(id,source).web;
   for(const [file,from,to] of [
-    ["src/modules/14-v4-screens.js",'{ id:"bienes", label:t("pt_goods")','(state.assets||[]).length>0 && { id:"bienes", label:t("pt_goods")'],
+    ["src/modules/14-v4-screens.js",'{ id:"bienes", el:','(state.assets||[]).length>0 && { id:"bienes", el:'],
     ["src/modules/07-tab-patri-fijos.js",'setSheetAsset({});','setSheetAsset(null);'],
     ["src/modules/07-tab-patri-fijos.js",'if(!valid) return;','if(false) return;'],
     ["src/modules/07-tab-patri-fijos.js",'if(!ok) return;','if(false) return;'],
@@ -6638,15 +6638,20 @@ test("Catálogo235 conserva dinero-234 sin veredicto, abre diseno-235, reancla l
   assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),nueva],"el descriptor nuevo, el último");
   const SECC_OLD="  /* Título con los tres iconos de sección a la derecha (SPEC §2.1)",SECC_NEW="  /* Secciones de Gastos: el segmentado de Plan, algo más bajo (40 px de dibujo); el `::after`";
   const PAST_OLD="  /* La pastilla activa va en MENTA, como el icono de sección activo:",PAST_NEW="  /* La pastilla activa va en MENTA, como la sección activa: en gris oscuro casi no se";
+  const INV_OLD="      !simple && { id:\"inversiones\", label:t(\"v4_inversiones\"), el:React.createElement(\"div\",{className:\"rise\",\"data-cartera-sec\":\"inversiones\"",INV_NEW=INV_OLD.replace(" label:t(\"v4_inversiones\"),","");
   const BIENES_H={file:V07,from:"      titulo && parte===\"bienes\" && React.createElement(\"div\",{className:\"v4-sec-h v4-section-h\"},",to:"      parte!==\"bienes\" && React.createElement(\"div\",{className:\"v4-card-list\",ref:bindListDrag},"};
   const reancla={
     "inc-2909-03-retirada":w=>w.map(aPago235).map(aRemate235),
     "inc-3009-01-cargos":w=>w.map(aRemate235),
     "recibos-cargo-unico":w=>w.map(aRemate235),
     "plan-recibos-qa":w=>w.map(aRemate235),
+    "gastos-v5-ciclos-metas-inversiones":w=>w.map(u=>u.file===V14&&u.from===INV_OLD?{...u,from:INV_NEW}:u),
     "bienes-completo":w=>w.concat([BIENES_H]),
     "inicio-patrimonio-flujos":w=>w.concat([{file:V02,function:"mcSinNada"}]),
-    "auditorias-233":w=>w.filter(u=>!(u.file==="src/modules/00-core.js"&&(u.function==="gestureAxis"||u.data==="GEST_LEAD"||u.data==="GEST_MAX"))),
+    "auditorias-233":w=>w.filter(u=>!(u.file==="src/modules/00-core.js"&&(u.function==="gestureAxis"||u.data==="GEST_LEAD"||u.data==="GEST_MAX"))&&!(u.file===SH&&u.from==="  .edit-link::after{")),
+    // Cartera sin «Editar» (16/11/2026): fuera «Ordenar secciones» (`OrderableSections` ya no existe) y el
+    // `.edit-link` del pie de inversiones; el bloque de Inversiones pierde su `label`, que solo leía el orden.
+    "cartera-ordenar-brokers":w=>w.filter(u=>!(u.file===V02&&u.function==="OrderableSections")),
   };
   for(const [k,f] of Object.entries(reancla))assert.notDeepEqual(f(integrated[k].web),integrated[k].web,k+": el reanclado cambia algo");
   // Lo que se quita es lo que ya no existe; lo nuevo existe una sola vez. Con el remate vuelven los iconos de sección (y sus
