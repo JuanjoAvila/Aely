@@ -2076,11 +2076,8 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   return React.createElement("div",{className:"v4-screen gx-root"+(ciclosAlBajar?" gx-ciclos-al-bajar":""),ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
     React.createElement(GastosCabecera,{rootRef:rootRef, cab:cabVista, meses:cabVista.meses, fijos:cabVista.fijos,
       onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef,
+      secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
       onInfo:secc==="subs"&&heavyOk?abreSubInfo:null}),
-    /* Las secciones van FUERA de la cabecera fija, como el segmentado de Plan: dentro la estirarían
-       también encogida, y con ella bajarían la raya de los días, la fila de meses y la franja por la
-       que se desliza entre pestañas. Cambiar de sección ya vuelve arriba (`irASecc`). */
-    React.createElement(GxSecciones,{secc:secc, onSecc:irASecc, nSubs:novelSubs.length}),
     capa("movs", React.createElement(React.Fragment,null,
       React.createElement("div",{className:"filters"},
         // Filtros vive PEGADO al buscador (2026-08-05): los dos acotan la misma lista de abajo,
@@ -2454,7 +2451,7 @@ function gxRayaExtra(compact, conMeses, fijos){ return !compact||fijos?0:conMese
    `opacity` sobre una caja de alto fijo: bajar no recoloca nada de la lista. El scroll se lee en
    un `requestAnimationFrame` y el día se busca por bisección entre los encabezados ya pintados,
    así cada frame cuesta unas pocas lecturas aunque haya meses enteros cargados. */
-function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe, diasRef, saltoForzadoRef, onInfo}){
+function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe, diasRef, saltoForzadoRef, secc, onSecc, nSubs, onInfo}){
   const [vista,setVista]=useState({k:null, ym:null, compact:false});
   const headRef=useRef(null), mesesRef=useRef(null), calcRef=useRef(null);
   // El cálculo vive en un efecto montado una vez: lee si hay meses por ref, no por cierre viejo.
@@ -2531,7 +2528,8 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
   return React.createElement("div",{className:"gx-head"+(vista.compact?" compact":"")+(meses?" con-meses":"")+(fijos?" meses-fijos":""),ref:headRef,
       "data-gx-vista":vista.k==null?"":vista.k+"|"+vista.ym},
     React.createElement("div",{className:"gx-titulo"},
-      React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title"))),
+      React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
+      React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
     React.createElement(GxCifra,{n:line.n}),
     React.createElement("div",{className:"gx-status"+(onInfo?" con-info":""),"data-testid":"gastos-estado"},
       line.hasta ? React.createElement(React.Fragment,null,React.createElement("span",{className:"gx-hasta"},line.hasta)," · ") : null,
@@ -2552,18 +2550,25 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
   );
 }
 function l10nKeyOf(){ return CURLANG+"|"+DISP.sym; }
-/* LAS TRES SECCIONES, CON SU NOMBRE (diseño 235, DIS-15): eran tres iconos sueltos junto al título
-   y el reloj no se leía como «suscripciones». Ahora es el mismo segmentado que Plan, con el globito
-   de las que esperan decisión junto a Suscripciones. Siguen siendo pestañas de verdad (`role="tab"`,
-   `aria-selected`, `data-gx-tab`), que es por donde las buscan el tirón y los e2e. */
+/* LOS TRES ICONOS DE SECCIÓN (SPEC §2.1): Movimientos (líneas), Categorías (barras) y
+   Suscripciones (reloj con flecha = «se repite»), con el globito de las que esperan decisión.
+   Son pestañas de verdad (`role="tab"`, `aria-selected`) y cada una dice su nombre: el icono solo
+   no se entiende con un lector de pantalla. La 235 los cambió por un segmentado con texto debajo
+   del título y el dueño pidió volver a los iconos de arriba (16/11: «no me gusta así»). */
+const GX_SECC_ICO={
+  movs:["M4 7h16M4 12h12M4 17h8"],
+  cats:["M6 20v-6M12 20V4M18 20v-10"],
+  subs:["M3.5 12a8.5 8.5 0 1 0 2.5-6","M3 3v4h4","M12 8v4l3 2"]
+};
 function GxSecciones({secc, onSecc, nSubs}){
-  return React.createElement("div",{className:"v4-seg gx-seg",role:"tablist","aria-label":t("gv5_secciones")},
+  return React.createElement("div",{className:"gx-secciones",role:"tablist","aria-label":t("gv5_secciones")},
     GX_SECC.map(function(id){
       const on=secc===id, globo=id==="subs"&&nSubs>0;
       return React.createElement("button",{key:id,type:"button",role:"tab","aria-selected":on,"data-gx-tab":id,
-          className:"v4-seg-btn gx-sec"+(on?" on":""),"aria-label":t(GX_SECC_TXT[id])+(globo?" · "+tf("gv5_subs_globo",{n:nSubs}):""),
+          className:"gx-sec"+(on?" on":""),"aria-label":t(GX_SECC_TXT[id])+(globo?" · "+tf("gv5_subs_globo",{n:nSubs}):""),
           onClick:function(){ onSecc(id); }},
-        React.createElement("span",{className:"gx-sec-txt"},t(GX_SECC_TXT[id])),
+        React.createElement("svg",{"aria-hidden":true,width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"},
+          GX_SECC_ICO[id].map(function(d){ return React.createElement("path",{key:d,d:d}); })),
         globo && React.createElement("span",{className:"gx-sec-globo num","aria-hidden":true,"data-testid":"gastos-subs-globo"},nSubs>99?"99+":nSubs));
     }));
 }
@@ -3220,6 +3225,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const [bankOpen,setBankOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(null);
+  // Lo que se pinta mientras el desplegable se cierra: sin él, el hueco se vaciaba antes de plegarse.
+  const ultimoAjusteRef=useRef(null);
+  const despliegue=useDespliegue(!!adjustOpen);
   const auto=!!(exp && exp.source && exp.source!=="manual");
   const catList=useMemo(()=>XC.concat(exp&&exp.category==="bizum"?[CAT.bizum]:[],INVERSION_CAT,TRASPASO_CAT),[exp&&exp.category]);
   // ExpenseDetailSheet permanece premontado: esta pasada O(n) ocurre al preparar Gastos, no al
@@ -3257,22 +3265,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
     return out;
   })();
-  const traceRaw=String(exp.rawText||exp.notificationText||exp.raw||"").trim()||t("f_trace_missing");
-  const traceDate=(function(){
-    const d=exp.notifiedAt||exp.createdAt;
-    if(!d) return fmtIsoCorto(exp.date);
-    const parsed=new Date(d);
-    return isNaN(parsed.getTime())?fmtIsoCorto(exp.date):parsed.toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-  })();
   const fxHint=(exp.origCur&&exp.origAmount>0) ? (
     NF.format(Math.abs(exp.origAmount))+" "+(CUR_SYM[exp.origCur]||exp.origCur)+" · "+
     tf("f_fx_eq",{x:NF.format(Math.abs(exp.amount))+" €",date:fmtIsoCorto(state.fxDate||exp.date)})
   ) : null;
-  const trace=auto && React.createElement("div",{className:"v4-ficha-trace","data-testid":"exp-trace"},
-    bk?React.createElement(Mono,{ent:bk,size:34}):React.createElement("div",{className:"mono",style:{width:34,height:34}},"🏦"),
-    React.createElement("div",{className:"v4-ficha-trace-copy"},
-      React.createElement("div",{className:"v4-ficha-trace-title"},tf("f_from_bank",{bank:bk?entOf(bk).label:t("bp_hist_bank_unknown")})),
-      React.createElement("div",{className:"v4-ficha-trace-sub"},tf("f_from_bank_sub",{date:traceDate,raw:traceRaw}))));
   /* La forma de pago en un segmentado (DIS-03): cada toque escribe por el camino de siempre y solo
      lo que cambia. Tarjeta ↔ Bizum es `setCardFlag` (también en los del banco, como la fila de antes);
      Efectivo es `setBank`. Salir de Efectivo va al mismo banco que en Apuntar: el de gasto diario
@@ -3301,7 +3297,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     if(!!exp.noCard!==nc) setCardFlag(exp,nc);
   };
   const payRow=React.createElement(ExpensePayRow,{income:isIncome,mode:payMode,onMode:onPayMode,bankEnt:bk,bankOn:bankOpen,
-    bankLocked:auto,cashLocked:auto,onLocked:lockedToast,testPrefix:"exp",
+    bankLocked:auto,cashLocked:auto,onLocked:lockedToast,testPrefix:"exp",bankOpts:bankOpts,
+    // «Sin banco» por `setBank` a secas, como la lista de antes; un banco, por `aBanco` (Bizum en el sobre).
+    onPickBank:function(b){ setBankOpen(false); if(b==null) setBank(exp,null); else if(b!==bk) aBanco(b); },
     onBank:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }});
   const splitPair=gemeloSeparadoDe(state,exp);
   const autoPair=gemeloAutomaticoDe(state,exp);
@@ -3325,11 +3323,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no"))));
   const afterMeta=React.createElement(React.Fragment,null,
     calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
-    bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
-      React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
-      bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
-        onClick:function(){ aBanco(b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate,paired,reciboAviso,
+    duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
       incomePlan.category==="ingreso"&&React.createElement("div",{className:"hint"},t("f_incomeown_income_hint")),
@@ -3376,13 +3370,31 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   });
   // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo (cuarta revisión).
   const receiptPuntuales=(state.oneoffs||[]).filter(vetadoAqui);
-  const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
-    // cuando la marca venía de un puntual o la categoría era neutra.
-    !isIncome&&!exp.possibleDup&&(exp.reciboId||reciboDe||receiptPuntuales.length>0||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
-      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
-        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value","data-testid":"exp-receipt-value"},expensePaymentLabelUI(state,exp,"fixed",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
-      adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
+  /* Lo de debajo de las categorías, en chips de una línea (16/11: las filas «Paga un recibo · No ›»
+     y «Nota · Sin nota ›» «no me molan nada»). Cada chip dice qué es o, si ya tiene algo, el qué
+     («Luz», la nota…), y abre su panel debajo, plegándose suave. El nombre largo va para el lector.
+     Lo que guarda cada panel es lo de siempre: aquí solo cambia cómo se llega. */
+  const sinMarca=t("f_no");
+  const reciboVal=expensePaymentLabelUI(state,exp,"fixed",paymentRelation), deudaVal=expensePaymentLabelUI(state,exp,"debt",paymentRelation);
+  const metaVal=metaActual?(metaActual.name||""):(exp.goalId?t("g_meta_borrada"):null);
+  const chip=function(id,testId,icon,label,aria,value){
+    const on=adjustOpen===id;
+    return React.createElement("button",{key:id,type:"button",className:"v4-ficha-adjust-row"+(value?" set":"")+(on?" on":""),"data-testid":testId,
+        "aria-label":aria+(value?": "+value:""),"aria-expanded":on,onClick:function(){ setAdjustOpen(on?null:id); }},
+      React.createElement("span",{className:"ic","aria-hidden":"true"},icon),
+      value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",null,label));
+  };
+  // Con marca de recibo el chip sale siempre: si no, «No es este recibo» quedaba inalcanzable
+  // cuando la marca venía de un puntual o la categoría era neutra.
+  const conRecibo=!isIncome&&!exp.possibleDup&&(exp.reciboId||reciboDe||receiptPuntuales.length>0||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0));
+  const conDeuda=!isIncome&&(exp.debtId||debtOptions.length>0);
+  /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
+     los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
+     explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está
+     «Aportar» en la meta, y esta marca solo sabe viajar en las filas del banco. */
+  const conMeta=!isIncome&&metaRowOn;
+  const paneles={
+    receipt:conRecibo&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
         React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
           // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
@@ -3396,40 +3408,37 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
             onClick:function(){ setReceipt(exp,o.id); }},o.name+" · "+eur(o.amount)); })),
         !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")),
         (mcChannel()==="beta"||diagDebug)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-receipt-diag",style:{fontSize:12,padding:"4px 10px",marginTop:8},
-          onClick:function(){ copiarTexto(reciboDiagText(state,exp),showToast); }},t("f_receipt_diag")))),
-    React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
-      React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
-    adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
-      React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),
+          onClick:function(){ copiarTexto(reciboDiagText(state,exp),showToast); }},t("f_receipt_diag"))),
+    note:React.createElement("div",{className:"v4-ficha-adjust-open"},
+      React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),autoFocus:true,
         onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
         onBlur:function(){ saveNote(exp,editExp.note); },"aria-label":t("v4_exp_note")})),
-    exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
-      t("g_note_unconfirmed")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveNote(exp,exp.note);}},t("g_note_retry"))),
-    !isIncome && (exp.debtId||debtOptions.length>0) && React.createElement(React.Fragment,null,
-      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="debt"?null:"debt"); }},
-        React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
-      adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
+    debt:conDeuda&&React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
         debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
-          "data-manual":on&&exp.debtManual?"1":null,onClick:function(){ if(!on||!exp.debtManual) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
-    /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
-       los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
-       explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está
-       «Aportar» en la meta, y esta marca solo sabe viajar en las filas del banco. */
-    !isIncome && metaRowOn && React.createElement(React.Fragment,null,
-      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-meta",onClick:function(){ setAdjustOpen(adjustOpen==="meta"?null:"meta"); }},
-        React.createElement("span",null,t("f_meta_row")),
-        React.createElement("span",{className:"value","data-testid":"exp-meta-value"},metaActual?((metaActual.emoji||"🎯")+" "+(metaActual.name||"")):(exp.goalId?t("g_meta_borrada"):t("f_no"))),
-        React.createElement("span",{className:"chev"},"›")),
-      adjustOpen==="meta" && React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-meta-options"},
+          "data-manual":on&&exp.debtManual?"1":null,onClick:function(){ if(!on||!exp.debtManual) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); })),
+    meta:conMeta&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-meta-options"},
         React.createElement("div",{className:"hint"},t(metaOtraMarca?"f_meta_otra":(metaOpciones.length||exp.goalId)?"f_meta_hint":"f_meta_ninguna")),
         !metaOtraMarca && React.createElement("div",{className:"v4-chips wrap"},
           metaOpciones.map(function(g){ const on=exp.goalId===g.id; return React.createElement("button",{key:g.id,type:"button",className:"v4-chip"+(on?" on":""),"data-testid":"exp-meta-"+g.id,"aria-pressed":on,
             onClick:function(){ if(!on) setMeta(exp,g.id); }},(g.emoji||"🎯")+" "+(String(g.name||"").trim()||t("v4_plan_metas"))); }),
-          exp.goalId && React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-meta-quitar",onClick:function(){ setMeta(exp,null); }},t("f_meta_quitar"))))),
-    // «Es un ingreso, no un gasto» ya no va aquí (DIS-11, 15/11/2026): repetía el Gasto/Ingreso de
-    // arriba con el mismo `saveEdit({income})`. Un mando por decisión; el guardado no cambia.
-    cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
-      React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")),React.createElement("span",{className:"chev"},"›"))
+          exp.goalId && React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-meta-quitar",onClick:function(){ setMeta(exp,null); }},t("f_meta_quitar"))))
+  };
+  if(adjustOpen) ultimoAjusteRef.current=adjustOpen;
+  const panelVisto=despliegue.vivo?paneles[adjustOpen||ultimoAjusteRef.current]:null;
+  const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
+    React.createElement("div",{className:"v4-ficha-adjust-chips"},
+      conRecibo&&chip("receipt","exp-receipt","🧾",t("f_adj_recibo"),t("f_receipt_row"),reciboVal===sinMarca?null:reciboVal),
+      conDeuda&&chip("debt","exp-debt",DEUDA_CAT.icon,t("f_adj_deuda"),t("f_debt_row"),deudaVal===sinMarca?null:deudaVal),
+      conMeta&&chip("meta","exp-meta",metaActual&&metaActual.emoji||"🎯",t("f_adj_meta"),t("f_meta_row"),metaVal),
+      chip("note","exp-note","📝",t("f_note_row"),t("f_note_row"),editExp.note||null),
+      // «Es un ingreso, no un gasto» ya no va aquí (DIS-11, 15/11/2026): repetía el Gasto/Ingreso de
+      // arriba con el mismo `saveEdit({income})`. Un mando por decisión; el guardado no cambia.
+      cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
+        React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")))),
+    panelVisto && React.createElement("div",{className:"v4-ficha-fold"+(despliegue.dentro&&adjustOpen?" open":"")},
+      React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},adjustOpen?null:{"aria-hidden":"true",inert:""}),panelVisto)),
+    exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
+      t("g_note_unconfirmed")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveNote(exp,exp.note);}},t("g_note_retry")))
   );
   const amountChange=auto?function(){ lockedToast(); }:function(updater){
     setEditExp(function(p){ const v=typeof updater==="function"?updater(p.amount):updater; return Object.assign({},p,{amount:v}); });

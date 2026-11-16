@@ -314,7 +314,7 @@ test("cuota marcada a mano en Gastos con otro importe antes de su día: pagada e
   // Él lo marca en Gastos: «Es la cuota de…» → Préstamo coche.
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await page.locator(".v4-gastos-list-body button.v4-mov").filter({ hasText: "FINANC XYZ" }).click();
-  await page.locator(".v4-ficha-adjust-row").filter({ hasText: "Es la cuota" }).click();
+  await page.locator(".v4-exp-sheet").getByTestId("exp-debt").click();
   await page.locator('.v4-exp-sheet [data-testid="exp-cuota-de"] button.v4-chip').filter({ hasText: "Préstamo coche" }).click();
   await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
   await expect(page.locator(".v4-sheet-back")).toHaveCount(0);
@@ -354,7 +354,7 @@ test("enlazada por el motor con otro importe: tocar su chip encendido la confirm
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await page.locator(".page-scroll-host .gx-root .gx-gris[data-gris=\"deuda\"] .gx-gris-h").first().click();
   await page.locator(".page-scroll-host .gx-root .gx-gris[data-gris=\"deuda\"] button").filter({ hasText: "PRESTAMO COCHE" }).first().click();
-  await page.locator(".v4-ficha-adjust-row").filter({ hasText: "Es la cuota" }).click();
+  await page.locator(".v4-exp-sheet").getByTestId("exp-debt").click();
   const chip = page.locator('.v4-exp-sheet [data-testid="exp-cuota-de"] button.v4-chip').filter({ hasText: "Préstamo coche" });
   await expect(chip).toHaveClass(/on/);
   await expect(chip).not.toHaveAttribute("data-manual", "1");

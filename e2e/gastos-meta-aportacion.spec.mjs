@@ -61,7 +61,8 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
 
   // Ficha → «Es aportación a una meta» → Viaje, y confirma diciendo qué cambia.
   await fila(page, "TRASPASO HUCHA").click();
-  await expect(page.getByTestId("exp-meta-value")).toHaveText("No");
+  await expect(page.getByTestId("exp-meta")).toHaveText("🎯Meta");
+  await expect(page.getByTestId("exp-meta-value")).toHaveCount(0);
   await page.getByTestId("exp-meta").click();
   await page.getByTestId("exp-meta-viaje").click();
   const dlg = page.getByRole("dialog");
@@ -71,7 +72,9 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
   await expect(dlg.locator(".ts-hint")).toContainText("contaría dos veces");
   await dlg.getByRole("button", { name: "Sí, es para la meta" }).click();
   await expect(page.getByTestId("exp-meta-viaje")).toHaveClass(/on/);
-  await expect(page.getByTestId("exp-meta-value")).toHaveText("✈️ Viaje");
+  await expect(page.getByTestId("exp-meta-value")).toHaveText("Viaje");
+  await expect(page.getByTestId("exp-meta")).toHaveAttribute("aria-label", "Es aportación a una meta: Viaje");
+  await expect(page.getByTestId("exp-meta").locator(".ic")).toHaveText("✈️");
   await cierraFicha(page);
 
   // La fila gris de Metas del día 20, y la cifra y el día sin los 250.
@@ -104,7 +107,8 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
   await (await gastosGrisFila(page, "TRASPASO HUCHA")).click();
   await page.getByTestId("exp-meta").click();
   await page.getByTestId("exp-meta-quitar").click();
-  await expect(page.getByTestId("exp-meta-value")).toHaveText("No");
+  await expect(page.getByTestId("exp-meta-value")).toHaveCount(0);
+  await expect(page.getByTestId("exp-meta")).toHaveText("🎯Meta");
   await cierraFicha(page);
   await expect(grisMeta(page)).toHaveCount(0);
   await expect(fila(page, "TRASPASO HUCHA")).toHaveCount(1);

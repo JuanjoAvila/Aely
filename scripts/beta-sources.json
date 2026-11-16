@@ -560,7 +560,7 @@
       {
         "file": "src/modules/04-tab-gastos.js",
         "from": "  const receiptDate=",
-        "to": "    React.createElement(\"button\",{type:\"button\",className:\"v4-ficha-adjust-row\",onClick:function(){ setAdjustOpen(adjustOpen===\"note\""
+        "to": "    note:React.createElement(\"div\",{className:\"v4-ficha-adjust-open\"},"
       },
       {
         "file": "src/modules/14-v4-screens.js",
@@ -15387,17 +15387,17 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "    f_trace_missing:\"— texto original no disponible\",",
+        "from": "    f_locked_toast:\"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.\",",
         "to": "    f_fx_eq:"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "    f_trace_missing:\"— original text unavailable\",",
+        "from": "    f_locked_toast:\"The bank sets the amount, account and money direction. You can correct the category here.\",",
         "to": "    f_fx_eq:"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "    f_trace_missing:\"— text original no disponible\",",
+        "from": "    f_locked_toast:\"El banc fixa l'import, el compte i si entren o surten diners. La categoria sí que es pot corregir aquí.\",",
         "to": "    f_fx_eq:"
       },
       {
@@ -39250,7 +39250,7 @@
       {
         "file": "src/modules/04-tab-gastos.js",
         "from": "  const receiptDate=",
-        "to": "    React.createElement(\"button\",{type:\"button\",className:\"v4-ficha-adjust-row\",onClick:function(){ setAdjustOpen(adjustOpen===\"note\""
+        "to": "    note:React.createElement(\"div\",{className:\"v4-ficha-adjust-open\"},"
       },
       {
         "file": "src/modules/14-v4-screens.js",
@@ -104563,6 +104563,10 @@
       },
       {
         "file": "src/modules/04-tab-gastos.js",
+        "data": "GX_SECC_ICO"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
         "data": "GX_OCULTO"
       },
       {
@@ -104594,7 +104598,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  /* Secciones de Gastos: el segmentado de Plan, algo más bajo (40 px de dibujo); el `::after`",
+        "from": "  /* Título con los tres iconos de sección a la derecha (SPEC §2.1)",
         "to": "  /* Días: encabezado con el total que cuenta"
       },
       {
@@ -113156,8 +113160,8 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  /* La pastilla activa va en MENTA, como la sección activa: en gris oscuro casi no se",
-        "to": "  /* Secciones de Gastos: el segmentado de Plan, algo más bajo (40 px de dibujo); el `::after`"
+        "from": "  /* La pastilla activa va en MENTA, como el icono de sección activo:",
+        "to": "  /* Título con los tres iconos de sección a la derecha (SPEC §2.1)"
       },
       {
         "file": "src/shell.html",
@@ -140131,7 +140135,7 @@
       {
         "file": "src/modules/04-tab-gastos.js",
         "from": "debtOptions.map(function(d){ const on=exp.category===\"deudas\"&&exp.debtId===d.id;",
-        "to": "catName(\"deudas\"))); }))),",
+        "to": "catName(\"deudas\"))); })),",
         "includeTo": true
       },
       {
@@ -174718,7 +174722,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .v4-ficha-pay{display:flex;",
+        "from": "  .v4-ficha-pay{position:relative;display:flex;",
         "to": "}"
       },
       {
@@ -174753,10 +174757,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isEfectivoEnt"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "entOf"
       },
       {
         "file": "src/modules/00-core.js",
@@ -174817,6 +174817,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "planCoverPickBank"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -176492,10 +176496,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "ENT"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "data": "OB_ABSORBED_MAX"
       },
       {
@@ -176525,6 +176525,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
       },
       {
         "file": "src/modules/00-core.js",
