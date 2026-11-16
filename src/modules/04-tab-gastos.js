@@ -3225,6 +3225,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const [bankOpen,setBankOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(null);
+  // El teclado del importe, plegado hasta que se toca el importe (16/11).
+  const [editaImporte,setEditaImporte]=useState(false);
   // Lo que se pinta mientras el desplegable se cierra: sin él, el hueco se vaciaba antes de plegarse.
   const ultimoAjusteRef=useRef(null);
   const despliegue=useDespliegue(!!adjustOpen);
@@ -3239,7 +3241,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return expenseTopCategoryPick(fichaCatsBase,exp&&exp.category,catList);
   },[fichaCatsBase,exp&&exp.category,catList]);
   useEffect(function(){
-    if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); }
+    if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); setEditaImporte(false); }
   },[abierto,exp&&exp.id]);
   // Modificar no tiene botón Guardar. El pequeño debounce evita una escritura del histórico por
   // cada dígito sin convertir «se guarda al momento» en «se guarda al cerrar».
@@ -3337,17 +3339,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         transferOffer.check().then(function(ready){if(ready&&transferLive.current.plan===transferPlan)recognizeOwnTransfer(exp);});
       }},t("f_owntransfer_title")),
     ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},React.createElement("div",null,t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),ownTransferStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
-    canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
-      React.createElement("div",null,t("f_withdraw_fields")),
-      exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
-        disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
-        onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
-      exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
-      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
-      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
-      withdrawalConfirmedUI(exp)&&React.createElement("div",null,t("f_withdraw_cash_limit")),
-      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
-        t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
+    null);
+  /* La retirada de efectivo es una baldosa más de la fila de ajustes (16/11: el botón grande «Es una
+     retirada de efectivo» y su frase de ayuda «quedaban fatal»). Aquí debajo solo lo que pasa: en
+     curso, ya hecha, bloqueada por un recibo o sin confirmar. Lo que guarda es lo de siempre. */
+  const retiradaEn=withdrawalStatus&&withdrawalStatus.id===exp.id?withdrawalStatus:null;
+  const retiradaAvisos=canRecognizeWithdrawal(exp)?[
+      exp.category==="traspaso" && React.createElement("div",{key:"n","data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
+      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{key:"b","data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      retiradaEn && retiradaEn.status==="done" && retiradaEn.receiptUndone && React.createElement("div",{key:"u",role:"status"},t("f_withdraw_receipt_undone")),
+      withdrawalConfirmedUI(exp)&&React.createElement("div",{key:"l"},t("f_withdraw_cash_limit")),
+      retiradaEn && retiradaEn.status!=="done" && React.createElement("div",{key:"s",role:"status"},t(retiradaEn.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))
+    ].filter(Boolean):[];
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
   // Metas a las que se puede aportar: las abiertas, y la que ya tiene aunque esté cumplida.
   const metaActual=exp.goalId?(state.goals||[]).find(function(g){ return g&&g.id===exp.goalId; }):null;
@@ -3370,18 +3373,19 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   });
   // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo (cuarta revisión).
   const receiptPuntuales=(state.oneoffs||[]).filter(vetadoAqui);
-  /* Lo de debajo de las categorías, en chips de una línea (16/11: las filas «Paga un recibo · No ›»
-     y «Nota · Sin nota ›» «no me molan nada»). Cada chip dice qué es o, si ya tiene algo, el qué
-     («Luz», la nota…), y abre su panel debajo, plegándose suave. El nombre largo va para el lector.
+  /* Lo de debajo de las categorías, en UNA fila de baldosas como las de categoría (16/11: las filas
+     «Paga un recibo · No ›» primero y los chips en dos filas desiguales después «no me molan nada»).
+     Cada baldosa dice qué es o, si ya tiene algo, el qué («Luz», la nota…), se marca como la
+     categoría elegida y abre su panel debajo, plegándose suave. El nombre largo va para el lector.
      Lo que guarda cada panel es lo de siempre: aquí solo cambia cómo se llega. */
   const sinMarca=t("f_no");
   const reciboVal=expensePaymentLabelUI(state,exp,"fixed",paymentRelation), deudaVal=expensePaymentLabelUI(state,exp,"debt",paymentRelation);
   const metaVal=metaActual?(metaActual.name||""):(exp.goalId?t("g_meta_borrada"):null);
-  const chip=function(id,testId,icon,label,aria,value){
-    const on=adjustOpen===id;
-    return React.createElement("button",{key:id,type:"button",className:"v4-ficha-adjust-row"+(value?" set":"")+(on?" on":""),"data-testid":testId,
-        "aria-label":aria+(value?": "+value:""),"aria-expanded":on,onClick:function(){ setAdjustOpen(on?null:id); }},
-      React.createElement("span",{className:"ic","aria-hidden":"true"},icon),
+  const baldosa=function(id,testId,icon,label,aria,value){
+    const abierta=adjustOpen===id;
+    return React.createElement("button",{key:id,type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(value||abierta?" on":""),"data-testid":testId,
+        "aria-label":aria+(value?": "+value:""),"aria-expanded":abierta,onClick:function(){ setEditaImporte(false); setAdjustOpen(abierta?null:id); }},
+      React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},icon),
       value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",null,label));
   };
   // Con marca de recibo el chip sale siempre: si no, «No es este recibo» quedaba inalcanzable
@@ -3395,7 +3399,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const conMeta=!isIncome&&metaRowOn;
   const paneles={
     receipt:conRecibo&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
-        React.createElement("div",{className:"hint"},t("f_receipt_hint")),
+        // Sin nada que elegir, una sola línea: la de que no hay recibos (antes iban las dos frases).
+        (receiptOptions.length>0||receiptPuntuales.length>0||!!reciboConfirmable||!!receiptLinked||!!reciboDe)&&React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
           // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
           // (es lo que pide el aviso de la retirada), y solo entonces se ofrece confirmar otro.
@@ -3425,16 +3430,24 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   };
   if(adjustOpen) ultimoAjusteRef.current=adjustOpen;
   const panelVisto=despliegue.vivo?paneles[adjustOpen||ultimoAjusteRef.current]:null;
+  const baldosas=[
+    conRecibo&&baldosa("receipt","exp-receipt","🧾",t("f_adj_recibo"),t("f_receipt_row"),reciboVal===sinMarca?null:reciboVal),
+    conDeuda&&baldosa("debt","exp-debt",DEUDA_CAT.icon,t("f_adj_deuda"),t("f_debt_row"),deudaVal===sinMarca?null:deudaVal),
+    conMeta&&baldosa("meta","exp-meta",metaActual&&metaActual.emoji||"🎯",t("f_adj_meta"),t("f_meta_row"),metaVal),
+    baldosa("note","exp-note","📝",t("f_note_row"),t("f_note_row"),editExp.note||null),
+    // Ya hecha, la baldosa se queda marcada y quieta: el estado lo dice el aviso de debajo.
+    canRecognizeWithdrawal(exp)&&React.createElement("button",{key:"retirada",type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(exp.category==="traspaso"?" on":""),
+        "data-testid":"exp-withdrawal","aria-label":t("f_withdraw_action"),"aria-pressed":exp.category==="traspaso",
+        disabled:exp.category==="traspaso"||!canRecognizeWithdrawal(exp,state)||!!(retiradaEn&&retiradaEn.status==="pending"),
+        onClick:function(){ recognizeWithdrawal(exp); }},
+      React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},"🏧"),
+      React.createElement("span",null,t("f_adj_retirada")))
+  ].filter(Boolean);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    React.createElement("div",{className:"v4-ficha-adjust-chips"},
-      conRecibo&&chip("receipt","exp-receipt","🧾",t("f_adj_recibo"),t("f_receipt_row"),reciboVal===sinMarca?null:reciboVal),
-      conDeuda&&chip("debt","exp-debt",DEUDA_CAT.icon,t("f_adj_deuda"),t("f_debt_row"),deudaVal===sinMarca?null:deudaVal),
-      conMeta&&chip("meta","exp-meta",metaActual&&metaActual.emoji||"🎯",t("f_adj_meta"),t("f_meta_row"),metaVal),
-      chip("note","exp-note","📝",t("f_note_row"),t("f_note_row"),editExp.note||null),
-      // «Es un ingreso, no un gasto» ya no va aquí (DIS-11, 15/11/2026): repetía el Gasto/Ingreso de
-      // arriba con el mismo `saveEdit({income})`. Un mando por decisión; el guardado no cambia.
-      cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
-        React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")))),
+    /* Una sola fila y sin huecos: tres, cuatro o cinco baldosas ocupan el ancho entero; una o dos
+       (un ingreso: la nota) se quedan del ancho de una categoría, alineadas a la izquierda. */
+    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes",style:{gridTemplateColumns:"repeat("+(baldosas.length>=3?baldosas.length:4)+",minmax(0,1fr))"}},baldosas),
+    retiradaAvisos.length>0 && React.createElement("div",{className:"hint v4-ficha-avisos","data-testid":"exp-withdrawal-info"},retiradaAvisos),
     panelVisto && React.createElement("div",{className:"v4-ficha-fold"+(despliegue.dentro&&adjustOpen?" open":"")},
       React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},adjustOpen?null:{"aria-hidden":"true",inert:""}),panelVisto)),
     exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
@@ -3475,10 +3488,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
             if(auto){ lockedToast(); return; }
             const income=k==="ingreso"; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
           },dateLabel:fmtIsoCorto(dateIso),onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); },
-          amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:!auto,
+          amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:editaImporte&&!auto,
           concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
           payRow:payRow,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
+          catAction:cloud.enabled()&&!isIncome?React.createElement("button",{type:"button",className:"v4-ficha-ia","data-testid":"exp-ai",
+            "aria-label":aiBusy?t("ai_cat_busy"):t("ai_cat_btn"),"aria-busy":aiBusy?"true":null,disabled:aiBusy,onClick:function(){ suggestAi(exp); }},"✨"):null,
+          numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
     ),document.body);

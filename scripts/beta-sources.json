@@ -15486,7 +15486,7 @@
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "from": "    canRecognizeWithdrawal(exp) &&",
+        "from": "  const retiradaEn=",
         "to": "  const debtOptions="
       },
       {

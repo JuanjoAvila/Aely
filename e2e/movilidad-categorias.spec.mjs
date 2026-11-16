@@ -81,7 +81,7 @@ for(const lang of ["es","en","ca"]){
     }
     // La ficha y Apuntar usan el mismo catálogo; corregir solo esta fila no cambia otras.
     await page.locator(".v4-gastos-list-body button.v4-mov").click();
-    await page.locator('.v4-exp-sheet .v4-ficha-cat-title button').click();
+    await page.locator('.v4-exp-sheet .v4-ficha-cat-title .v4-ficha-todas').click();
     await page.locator('[data-testid="expense-all-cat-zona_azul"]').click();
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.find(e=>e.id==="peajes").category)).toBe("zona_azul");
     // El SW sirve el mismo artefacto offline; esperar control impide confundir una caída de red con la app.

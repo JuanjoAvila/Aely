@@ -2033,6 +2033,10 @@
   .v4-ficha-meta-pill.disabled{opacity:.45;cursor:default;}
   .v4-ficha-cat-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;font-size:11px;font-weight:800;
     letter-spacing:1.1px;text-transform:uppercase;color:var(--muted-2);}
+  .v4-ficha-cat-acts{display:flex;align-items:center;gap:2px;}
+  /* ✨ Sugerir categoría, al lado de «Todas ›»: una acción, no una fila más (16/11). */
+  .v4-ficha-cat-title .v4-ficha-ia{min-width:40px;margin:-12px -4px -12px 0;padding:0;font-size:16px;letter-spacing:0;}
+  .v4-ficha-cat-title .v4-ficha-ia:disabled{opacity:.45;}
   .v4-ficha-cat-title button{min-height:44px;margin:-12px -4px -12px 0;padding:0 4px;color:var(--mint);font-size:12px;font-weight:800;
     letter-spacing:0;text-transform:none;}
   .v4-ficha-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:12px;}
@@ -2041,18 +2045,21 @@
   .v4-ficha-cat.on{background:rgba(108,198,136,.16);border-color:var(--mint-deep);color:var(--text);}
   .v4-ficha-cat-icon{font-size:19px;line-height:1;overflow:visible !important;}
   .v4-ficha-cat-sheet{max-height:calc(80dvh / var(--zoom,1));}
-  /* Recibo, deuda, meta y nota en chips de una línea (16/11): las filas con «No ›» parecían un
-     formulario pegado debajo de la hoja. 40 px de dibujo y el `::after` hasta los 44 de dedo. */
-  .v4-ficha-adjust{margin:2px 0 10px;}
-  .v4-ficha-adjust-chips{display:flex;flex-wrap:wrap;gap:7px;}
-  .v4-ficha-adjust-row{position:relative;max-width:100%;min-height:40px;padding:0 12px;border-radius:14px;display:inline-flex;align-items:center;gap:6px;
-    background:var(--sur);border:1px solid var(--line-soft);color:var(--muted);font-size:12.5px;font-weight:750;
-    transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
-  .v4-ficha-adjust-row::after{content:"";position:absolute;inset:-2px 0;}
-  .v4-ficha-adjust-row .ic{font-size:15px;line-height:1;}
-  .v4-ficha-adjust-row .value{min-width:0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .v4-ficha-adjust-row.set{color:var(--text);}
-  .v4-ficha-adjust-row.on{background:color-mix(in srgb,var(--mint) 12%,var(--sur));border-color:var(--mint-deep);color:var(--mint);}
+  /* Recibo, deuda, meta, nota y retirada: UNA fila de baldosas iguales a las de categoría (16/11).
+     Separadas de las categorías por un filete fino: son otra pregunta. Lo que llevan (el nombre del
+     recibo, la nota) se lee en dos líneas como mucho. */
+  .v4-ficha-adjust{margin:2px 0 10px;padding-top:12px;border-top:1px solid var(--line-soft);}
+  .v4-ficha-ajustes{margin-bottom:0;}
+  .v4-ficha-ajuste{transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
+  /* El nombre de una baldosa (categoría o ajuste) no toca el borde: a 360 «Supermercado» llenaba la
+     baldosa de lado a lado. Se parte con guion y, como mucho, en tres líneas. */
+  .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;}
+  .v4-ficha-ajuste:disabled{cursor:default;}
+  .v4-ficha-ajuste:disabled:not(.on){opacity:.45;}
+  .v4-ficha-avisos{margin:10px 2px 0;display:flex;flex-direction:column;gap:4px;}
+  /* El teclado de Modificar baja bajo el importe al tocarlo (16/11). */
+  .v4-ficha-teclado .v4-keys{margin:6px 0 10px;}
   .v4-ficha-fold{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .26s var(--ease),opacity .2s ease;}
   .v4-ficha-fold.open{grid-template-rows:1fr;opacity:1;}
   .v4-ficha-fold-in{min-height:0;overflow:hidden;padding:0 2px;margin:0 -2px;}
@@ -2064,8 +2071,10 @@
     padding:10px 12px;border-radius:14px;background:var(--sur);border:1px solid var(--line);
     box-shadow:0 6px 18px rgba(0,0,0,.28);color:var(--muted);font-size:12px;line-height:1.35;}
   .v4-ficha-aviso .btn{flex:0 0 auto;min-height:36px;padding:0 12px;}
-  .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
-  .v4-ficha-saved{color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.2;}
+  .v4-ficha-del{flex:none;min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;white-space:nowrap;}
+  /* A 360 «Borrar gasto» se partía en dos líneas: no se parte; el aviso del centro, si no cabe, va en
+     dos líneas equilibradas (nunca cortado). */
+  .v4-ficha-saved{flex:1 1 auto;min-width:0;color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.25;text-wrap:balance;}
   .v4-ficha-done{min-height:44px;padding:0 16px;border-radius:14px;background:var(--mint);color:var(--on-mint);font-size:13px;font-weight:850;white-space:nowrap;}
   /* Ficha de cuenta v4.1: el saldo gana la jerarquía y el histórico solo aparece cuando se puede
      reconstruir con movimientos reales. Son piezas del sheet, no una tarjeta ajena dentro de él. */

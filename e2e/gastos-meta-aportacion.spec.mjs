@@ -74,7 +74,8 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
   await expect(page.getByTestId("exp-meta-viaje")).toHaveClass(/on/);
   await expect(page.getByTestId("exp-meta-value")).toHaveText("Viaje");
   await expect(page.getByTestId("exp-meta")).toHaveAttribute("aria-label", "Es aportación a una meta: Viaje");
-  await expect(page.getByTestId("exp-meta").locator(".ic")).toHaveText("✈️");
+  await expect(page.getByTestId("exp-meta").locator(".v4-ficha-cat-icon")).toHaveText("✈️");
+  await expect(page.getByTestId("exp-meta")).toHaveClass(/\bon\b/);
   await cierraFicha(page);
 
   // La fila gris de Metas del día 20, y la cifra y el día sin los 250.

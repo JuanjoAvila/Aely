@@ -2832,14 +2832,20 @@ function useDespliegue(open){
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow}){
+  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, catAction}){
   const isIn=kind==="ingreso";
+  /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
+     ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Sale plegándose
+     bajo el importe al tocarlo y se recoge al volver a tocarlo. Apuntar lo sigue llevando fijo. */
+  const plegado=numpadOpen!==undefined;
+  const teclado=useDespliegue(!!numpadOpen);
   const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
   // `catMore` (Apuntar): sin cabecera; «Más» va de última baldosa y ahorra la fila del título.
   const catsBlock=!isIn && React.createElement(React.Fragment,{key:"cats"},
     !catMore && React.createElement("div",{className:"v4-ficha-cat-title"},
       React.createElement("span",null,t("f_cat")),
-      React.createElement("button",{type:"button",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
+      React.createElement("span",{className:"v4-ficha-cat-acts"},catAction||null,
+        React.createElement("button",{type:"button",className:"v4-ficha-todas",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
     React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
       onMore:catMore?onAllCategories:null}));
   return React.createElement(React.Fragment,null,
@@ -2852,7 +2858,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel)),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
-          "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
+          "aria-label":t("f_amount_aria"),"aria-expanded":plegado&&!locked?!!numpadOpen:null,onClick:locked?onLocked:(onAmount||undefined)},amount),
         /* Un candado en vez de la tarjeta «Lo trajo una notificación…» (16/11, «eso a la persona le da
            igual»): basta para ver que el importe del banco no se toca; al tocarlo, el aviso de siempre. */
         React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
@@ -2861,6 +2867,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
           locked && React.createElement("svg",{"aria-hidden":true,width:12,height:12,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("rect",{x:5,y:11,width:14,height:10,rx:2}),React.createElement("path",{d:"M8 11V8a4 4 0 0 1 8 0v3"})))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
+      plegado && teclado.vivo && React.createElement("div",{className:"v4-ficha-fold v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
+        React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
         enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
@@ -2870,7 +2878,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
       adjustments||null,
-      numpad||null
+      plegado?null:(numpad||null)
     ),
     footer||null
   );

@@ -172,7 +172,7 @@ test("un Bizum antiguo no cambia solo y se puede pasar a su categoría real", as
   const sheet=page.locator('.v4-exp-sheet');
   await expect(sheet.locator('[data-testid="exp-cat-bizum"]')).toHaveClass(/on/);
   await expect(sheet.locator('[data-testid="exp-pay-transfer"]')).toHaveAttribute("aria-pressed", "true");
-  await sheet.locator(".v4-ficha-cat-title button").click();
+  await sheet.locator(".v4-ficha-cat-title .v4-ficha-todas").click();
   const categorySheet=page.locator(".v4-ficha-cat-sheet");
   await expect(categorySheet.locator('[data-testid="expense-all-cat-bizum"]')).toHaveClass(/on/);
   await categorySheet.locator('[data-testid="expense-all-cat-bares"]').click();
