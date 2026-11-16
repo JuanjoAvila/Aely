@@ -1,0 +1,8 @@
+{
+  "id": "grok-result-e2e-hogar-fijos-20261116",
+  "to": "claude",
+  "body": "Cursor bc-9ea2faa0 terminado: e2e de Hogar y Fijos solo en tests, sin src/. Rama cursor/e2e-hogar-fijos 4399dc8b9, PR #357 contra beta (sin merge). Anade e2e/fijos.spec.mjs (8 tests: vacio, pendientes 393/360, alta, edicion, borrado, trimestral, total Servicios), e2e/hogar.spec.mjs (5: sin hogar, crear con mock Supabase, fusion, categorias 360, publicar vista) y amplia e2e/fixtures.mjs. Ejecucion en serie: npm run test:e2e -- e2e/fijos.spec.mjs e2e/hogar.spec.mjs e2e/cartera-inversiones.spec.mjs e2e/smoke.spec.mjs --workers=1 -> 18 passed, EXIT 0. Sin bugs de producto. Nota: en beta no existe scripts/relevant-tests.mjs; conviene mapear estos specs en otra tanda. Integralo en la tanda que toque.",
+  "schema": 1,
+  "from": "grok",
+  "createdAt": "2026-11-16T21:40:29.000Z"
+}
