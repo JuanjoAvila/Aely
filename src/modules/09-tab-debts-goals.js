@@ -49,8 +49,16 @@ function deudaAmortizada(x, bal, amt){
     // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
     if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
     o.settledAt=new Date().toISOString();
-  }else if(x.months!=null&&!vencida&&am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=paid+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); }
+  }else if(x.months!=null&&!vencida&&am>0){ const n=cuotasQueQuedan(remaining-(x.balloon||0),am); o.months=paid+(n>0?n:(x.balloon>0?1:0)); }
   return o;
+}
+/* Cuotas de `am` que hacen falta para `viaM`, contadas en CÉNTIMOS. En euros, 72,45 / 10,35 da
+   7,000000000000001 y el `ceil` sumaba una cuota fantasma que alargaba el plazo un mes (y el asesor
+   contaba una cuota menos recortada); restar un pago final también deja ese polvo de coma flotante.
+   0 = no queda nada que pagar con cuotas (por debajo de medio céntimo, también). */
+function cuotasQueQuedan(viaM, am){
+  const v=Math.round(viaM*100), a=Math.round(am*100);
+  return v>0&&a>0?Math.ceil(v/a):0;
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -449,8 +457,8 @@ function amortRecorte(d,amt){
   const am=debtAmort(d);
   if(d.months==null || !(am>0)) return null;
   const leftNow=debtLeft(d), nb=+(debtBalance(d)-amt).toFixed(2);
-  const viaM=Math.max(0, nb-(d.balloon||0));
-  const leftNew=viaM>0?Math.ceil(viaM/am):((d.balloon>0&&nb>0.005)?1:0);
+  const n=cuotasQueQuedan(nb-(d.balloon||0),am);
+  const leftNew=n>0?n:((d.balloon>0&&nb>0.005)?1:0);
   return {leftNow:leftNow, leftNew:leftNew, cut:Math.max(0,(leftNow||0)-leftNew)};
 }
 function AmortAdvisor({state, onEdit}){
