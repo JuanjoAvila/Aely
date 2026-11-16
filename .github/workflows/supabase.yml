@@ -78,7 +78,7 @@ jobs:
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           supabase link --project-ref "${{ vars.SUPABASE_PROJECT_REF }}" --password "$DB_PASSWORD"
-          supabase db push --include-all --password "$DB_PASSWORD"
+          supabase db push --include-all --password "$DB_PASSWORD" --yes
 
       - name: Desplegar Edge Functions
         if: steps.gate.outputs.skip != 'true'
@@ -89,4 +89,6 @@ jobs:
         run: |
           # Una única función evita activar otras que aún no están publicadas.
           echo "Desplegando SOLO $FN"
-          supabase functions deploy "$FN" --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
+          # --yes: la CLI (latest) pide confirmación desde nov. 2026 y en Actions no hay terminal:
+          # sin él abortaba sin cambiar nada (run 43714083769). El alcance ya lo fija $FN.
+          supabase functions deploy "$FN" --project-ref "${{ vars.SUPABASE_PROJECT_REF }}" --yes
