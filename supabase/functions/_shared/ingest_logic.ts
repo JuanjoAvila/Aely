@@ -251,7 +251,26 @@ export function extraerComercio(texto: string, titulo: string): string {
   return (m ? limpiarTexto(m[1]) : limpiarTexto(titulo)) || "Desconocido";
 }
 
+// Bizum recibido en Trade Republic con el nombre DELANTE del verbo: «Ana Pérez Gómez te ha enviado
+// un Bizum de 12,20 €.» (título «Transferencia recibida»). Tras el «de» va el importe, así que el
+// patrón «de NOMBRE.» no lo veía y el ingreso se apuntaba como «Bizum recibido» (feedback 2026-11-15).
+// Solo palabras con letra (nombre y apellidos, y la inicial con punto: «Ana M. Pérez») pegadas al
+// inicio de la frase, para no coger nada que no sea una persona: sin nombre claro, o con más de
+// 6 palabras, devolvemos "" y se queda el genérico. Los límites de palabra NO usan \b: sin la
+// bandera u una tilde lo corta y «Elías» pasaba por «El» + «ías» (revisión 2026-11-16).
+// El lookbehind evita arrancar justo detrás de una inicial («M. Pérez» no es una frase nueva).
+const PALABRA_NOMBRE = "(?:\\p{L}\\.|\\p{L}[\\p{L}'’\\-]*)";
+const NOMBRE_ANTES_DEL_VERBO = new RegExp(
+  "(?:^|(?<!(?:^|\\s)\\p{L})[.!?]\\s+)(" + PALABRA_NOMBRE + "(?:\\s+" + PALABRA_NOMBRE + "){0,5})\\s+" +
+  "(?:te\\s+ha|t'ha|t’ha)\\s+(?:enviado|enviat|hecho|fet)\\s+(?:un\\s+)?bizum(?![\\p{L}\\d])", "iu");
+const NO_ES_PERSONA = /^(?:trade\s+republic|has|he|se|tu|tus|te|un|una|el|la|hola|bizum|banco)(?![\p{L}'’\-])/iu;
+const sinTildes = (x: string) => x.normalize("NFD").replace(/\p{M}/gu, "");
+
 export function extraerPersona(texto: string, prep: "de" | "a"): string {
+  if (prep === "de") {
+    const antes = limpiarTexto(texto).match(NOMBRE_ANTES_DEL_VERBO);
+    if (antes && !NO_ES_PERSONA.test(sinTildes(antes[1]))) return limpiarTexto(antes[1]);
+  }
   const re = new RegExp("\\b" + prep + "\\s+([^.\\d€]+?)\\s*(?:por\\s+bizum)?\\s*[.!]?$", "i");
   const m = limpiarTexto(texto).match(re);
   return m ? limpiarTexto(m[1]) : "";

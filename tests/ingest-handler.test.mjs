@@ -279,5 +279,14 @@ await t("ingest del baseline conserva multas/zona azul/peajes elegidos en retry 
   const conflict=await post(manual,body,priorClassifier);assert.equal(conflict.status,503);assert.equal(conflict.data.ok,false);assert.equal(manual.rows.length,1);assert.equal(manual.rows[0].cat,cat);
  }
 });
+await t("handler completo: Bizum recibido con el nombre delante acaba en comercio «Bizum de X»",async()=>{
+ const now=Date.now();
+ const env=fakeDb({});
+ const r=await post(env,{fuente:"tr",titulo:"Transferencia recibida",texto:"Elías Romero Vidal te ha enviado un Bizum de 12,20 €.",fecha:String(now),evento:"bizum-nombre"});
+ assert.equal(r.data.ok,true);assert.equal(r.data.tipo,"ingreso");
+ assert.equal(r.data.comercio,"Bizum de Elías Romero Vidal");assert.equal(r.data.importe,-12.2);
+ const sin=await post(fakeDb({}),{fuente:"tr",titulo:"Transferencia recibida",texto:"Has recibido un Bizum de 12,20 €.",fecha:String(now),evento:"bizum-sin-nombre"});
+ assert.equal(sin.data.comercio,"Bizum recibido");
+});
 if (failures) process.exitCode = 1;
 else console.log("  ok");
