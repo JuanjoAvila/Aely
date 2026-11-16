@@ -41,8 +41,17 @@ test("Inicio: un banco caído dice cuál y lleva a sus avisos en Cartera", async
     const el = [...document.querySelectorAll(".v4-bank-issues")].find((x) => { const r = x.getBoundingClientRect(); return r.left >= 0 && r.left < innerWidth; });
     return el ? Math.round(el.getBoundingClientRect().top) : -1;
   })).toBeGreaterThanOrEqual(0);
-  const top = await page.evaluate(() => [...document.querySelectorAll(".v4-bank-issues")].map((x) => x.getBoundingClientRect()).find((r) => r.left >= 0 && r.left < innerWidth).top);
-  expect(top).toBeLessThan(200);
+  // Arriba del todo o, si la página no da para tanto (con pocas cuentas Cartera es corta desde el lote 235), bajada
+  // hasta el final: lo que no vale es quedarse a medias con los avisos más abajo de lo que se podía subir.
+  const pos = () => page.evaluate(() => {
+    const el = [...document.querySelectorAll(".v4-bank-issues")].find((x) => { const r = x.getBoundingClientRect(); return r.left >= 0 && r.left < innerWidth; });
+    let pg = el.parentElement;
+    while (pg && !/(auto|scroll)/.test(getComputedStyle(pg).overflowY)) pg = pg.parentElement;
+    const r = el.getBoundingClientRect();
+    return { ok: r.top < 200 || (!!pg && pg.scrollTop >= pg.scrollHeight - pg.clientHeight - 1), bottom: r.bottom };
+  });
+  await expect.poll(async () => (await pos()).ok, "arriba, o la página bajada hasta el final").toBe(true);
+  expect((await pos()).bottom).toBeLessThanOrEqual(844);
 });
 
 test("Inicio: con dos bancos caídos los cuenta", async ({ page }) => {

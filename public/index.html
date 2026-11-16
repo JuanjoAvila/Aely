@@ -13572,9 +13572,12 @@ function numPadDecSep(){
 }
 // Importe que se precarga en la ficha para editarlo: con decimales, siempre dos («12,50», no
 // «12,5» como salía con `String`, diseño 235 DIS-10); entero, sin ellos («12»). Sin miles, para que
-// el teclado y `parseNumPadRaw` lo lean igual que lo tecleado.
+// el teclado y `parseNumPadRaw` lo lean igual que lo tecleado. Con MÁS de dos decimales (el cambio
+// de una divisa, 12,345) va tal cual: redondeado, guardar la ficha sin tocar el importe lo reescribía
+// y borraba origAmount/origCur (revisión de dinero 235).
 function montoEditable(x){
   const n=Math.abs(Number(x)||0);
+  if(Math.round(n*100)/100!==n) return String(n).replace(".",numDecSep());
   return (Math.round(n*100)%100===0?String(Math.round(n)):n.toFixed(2)).replace(".",numDecSep());
 }
 function parseNumPadRaw(raw){
@@ -31870,7 +31873,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="eacfff3dd01f60349c5451471a76b15f20dcac63526267d100b5efe22d3658ea";
+var _rnSha="1f6413a0e5274b3778c0c214414e8f5281e14594b4860149fb4293c45d15e89d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

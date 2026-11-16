@@ -1,5 +1,70 @@
 [
   {
+    "v": "4.26.235",
+    "d": "2026-11-16",
+    "t": {
+      "es": "Apuntar sin deslizar, Gastos que se ordena con el dedo y Ajustes más claros",
+      "en": "Adding without scrolling, Spending you reorder with your finger and clearer Settings",
+      "ca": "Apuntar sense lliscar, Despeses que s'ordena amb el dit i una Configuració més clara"
+    },
+    "items": {
+      "es": [
+        "Apuntar un gasto cabe en la pantalla sin deslizar: el importe se ve grande, el concepto se escribe sin que lo tape el teclado y la forma de pago se elige en un solo sitio: Tarjeta, Efectivo o Bizum.",
+        "En Gastos, para cambiar el orden de los movimientos de un día basta con mantener el dedo encima y arrastrarlo; la fila ya no repite la fecha del día.",
+        "Ajustes se ordena en cuatro grupos, y un banco que necesita tu permiso avisa con una franja en Inicio y una fila propia en Cartera.",
+        "En Deudas, el simulador de amortizar solo informa: para amortizar está «Amortizar ahora», que te dice cuántas cuotas te quitas. Añadir una deuda o una meta se hace en su propia hoja, con el calendario de la app."
+      ],
+      "en": [
+        "Adding an expense fits on the screen without scrolling: the amount is shown large, you can type what it was without the keyboard covering it, and the payment method is chosen in one place: Card, Cash or Bizum.",
+        "In Spending, to change the order of a day's transactions just hold your finger on one and drag it; the row no longer repeats the day's date.",
+        "Settings is arranged in four groups, and a bank that needs your permission tells you with a strip on Home and its own row in Portfolio.",
+        "In Debts, the pay-down simulator only informs: to pay down there is «Pay down now», which tells you how many payments you drop. Adding a debt or a goal happens in its own sheet, with the app's calendar."
+      ],
+      "ca": [
+        "Apuntar una despesa cap a la pantalla sense lliscar: l'import es veu gran, el concepte s'escriu sense que el tapi el teclat i la forma de pagament es tria en un sol lloc: Targeta, Efectiu o Bizum.",
+        "A Despeses, per canviar l'ordre dels moviments d'un dia n'hi ha prou de mantenir el dit a sobre i arrossegar-lo; la fila ja no repeteix la data del dia.",
+        "La Configuració s'ordena en quatre grups, i un banc que necessita el teu permís avisa amb una franja a Inici i una fila pròpia a Cartera.",
+        "A Deutes, el simulador d'amortitzar només informa: per amortitzar hi ha «Amortitza ara», que et diu quantes quotes et treus. Afegir un deute o una meta es fa en el seu propi full, amb el calendari de l'app."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "diseno-235",
+        "t": {
+          "es": "Apuntar, Gastos, Amortizar, Ajustes y avisos de banco",
+          "en": "Adding, Spending, Paying down, Settings and bank alerts",
+          "ca": "Apuntar, Despeses, Amortitzar, Configuració i avisos de banc"
+        },
+        "items": {
+          "es": [
+            "1. Apuntar (el botón + de abajo): teclea un importe largo, por ejemplo 1234,56; después toca el concepto y escribe algo. BIEN: el importe se ve grande y entero; al tocar el concepto se esconde el teclado de números, el botón pasa a decir «Listo» y lo que escribes se ve por encima del teclado del móvil; la hoja cabe entera sin deslizarla. MAL: el importe sale pequeño o cortado, el teclado del móvil tapa el concepto, o hay que deslizar la hoja para llegar al botón de apuntar.",
+            "2. En esa misma hoja elige cómo pagaste (Tarjeta, Efectivo o Bizum/transf.), apunta el gasto y ábrelo luego en Gastos. BIEN: solo queda marcada la opción que tocaste; con Efectivo no sale ningún banco y con Tarjeta o Bizum sale tu banco de siempre; la ficha del gasto enseña la misma opción, y para pasarlo a ingreso solo está el Gasto/Ingreso de arriba. MAL: quedan dos opciones marcadas, con Efectivo aparece un banco, la ficha dice otra forma de pago o sigue saliendo la fila «Es un ingreso, no un gasto».",
+            "3. Gastos, en un día con dos o más movimientos: mantén el dedo medio segundo sobre uno, arrástralo por encima de otro del mismo día y suelta. Luego toca un movimiento una sola vez y, por último, desliza de lado sobre la lista. BIEN: la fila se levanta, las demás se apartan y al soltar se queda en su sitio nuevo, también al salir y volver; un toque corto abre su ficha; deslizar de lado cambia de pestaña. MAL: la fila no se levanta o vuelve a su sitio, el toque corto no abre la ficha, mantener y soltar sin mover la abre, o deslizar de lado no cambia de pestaña.",
+            "4. Plan → Deudas: abre «¿Cuándo amortizar?» y mira lo que cuenta; después toca «💸 Amortizar ahora» en una deuda, teclea un importe y cancela sin confirmar. BIEN: «¿Cuándo amortizar?» solo cuenta qué pasaría y no tiene ningún botón para amortizar; el cuadro de «Amortizar ahora» dice «Te quitas N cuotas» y el número cambia según tecleas. MAL: el simulador tiene un botón que amortiza, o el cuadro no dice cuántas cuotas te quitas.",
+            "5. Ajustes: mira cómo está ordenado y abre tres filas cualquiera (por ejemplo Apariencia, tus bancos y la copia de seguridad); luego busca «copia» en el buscador. BIEN: cuatro grupos, Cómo se ve, Dinero y bancos, Datos y Cuenta y privacidad, y cada fila abre lo de siempre; el buscador la encuentra. MAL: falta alguna opción de antes, una fila abre otra cosa o el buscador no la encuentra.",
+            "6. Avisos de banco, solo si algún banco necesita tu permiso (si no, salta este paso): mira Inicio y toca «Revisar ›»; en Cartera, toca la fila de ese banco. BIEN: Inicio enseña una sola franja bajo el saludo con el banco (o cuántos bancos) y «Revisar ›» te lleva a Cartera, a los avisos; en Cartera hay una fila por banco con su logo y «Reconectar», y al tocarla se despliega la explicación. MAL: no sale la franja, «Revisar ›» lleva a otro sitio, o en Cartera salen tarjetas grandes repetidas."
+          ],
+          "en": [
+            "1. Add (the + button at the bottom): type a long amount, for example 1234.56; then tap what it was and type something. RIGHT: the amount is shown large and whole; when you tap the description the number keypad hides, the button changes to «Done» and what you type shows above the phone's keyboard; the sheet fits without scrolling. WRONG: the amount is small or cut off, the phone's keyboard covers the description, or you have to scroll the sheet to reach the add button.",
+            "2. In that same sheet choose how you paid (Card, Cash or Bizum/transfer), add the expense and then open it in Spending. RIGHT: only the option you tapped stays selected; with Cash no bank shows and with Card or Bizum your usual bank shows; the expense's details show the same option, and to turn it into income there is only the Expense/Income switch at the top. WRONG: two options stay selected, a bank shows with Cash, the details show another payment method, or the «It's income, not an expense» row is still there.",
+            "3. Spending, on a day with two or more transactions: hold your finger on one for half a second, drag it over another one from the same day and let go. Then tap a transaction just once and, finally, swipe sideways over the list. RIGHT: the row lifts, the others move aside and when you let go it stays in its new place, also after leaving and coming back; a short tap opens its details; swiping sideways changes tab. WRONG: the row doesn't lift or goes back to its place, a short tap doesn't open the details, holding and letting go without moving opens them, or swiping sideways doesn't change tab.",
+            "4. Plan → Debts: open «When to pay down?» and look at what it says; then tap «💸 Pay down now» on a debt, type an amount and cancel without confirming. RIGHT: «When to pay down?» only tells you what would happen and has no button to pay down; the «Pay down now» box says «You drop N payments» and the number changes as you type. WRONG: the simulator has a button that pays down, or the box doesn't say how many payments you drop.",
+            "5. Settings: look at how it is arranged and open any three rows (for example Appearance, your banks and the backup); then search for «backup» in the search box. RIGHT: four groups, How it looks, Money and banks, Data and Account and privacy, and each row opens what it always did; the search finds it. WRONG: an option from before is missing, a row opens something else or the search doesn't find it.",
+            "6. Bank alerts, only if a bank needs your permission (if not, skip this step): look at Home and tap «Review ›»; in Portfolio, tap that bank's row. RIGHT: Home shows a single strip under the greeting with the bank (or how many banks) and «Review ›» takes you to Portfolio, to the alerts; in Portfolio there is one row per bank with its logo and «Reconnect», and tapping it unfolds the explanation. WRONG: the strip doesn't show, «Review ›» goes somewhere else, or Portfolio shows repeated big cards."
+          ],
+          "ca": [
+            "1. Apuntar (el botó + de baix): tecleja un import llarg, per exemple 1234,56; després toca el concepte i escriu alguna cosa. BÉ: l'import es veu gran i sencer; en tocar el concepte s'amaga el teclat de números, el botó passa a dir «Fet» i el que escrius es veu per sobre del teclat del mòbil; el full hi cap sencer sense lliscar-lo. MALAMENT: l'import surt petit o tallat, el teclat del mòbil tapa el concepte, o cal lliscar el full per arribar al botó d'apuntar.",
+            "2. En aquest mateix full tria com has pagat (Targeta, Efectiu o Bizum/transf.), apunta la despesa i obre-la després a Despeses. BÉ: només queda marcada l'opció que has tocat; amb Efectiu no surt cap banc i amb Targeta o Bizum surt el teu banc de sempre; la fitxa de la despesa ensenya la mateixa opció, i per passar-la a ingrés només hi ha el Despesa/Ingrés de dalt. MALAMENT: queden dues opcions marcades, amb Efectiu apareix un banc, la fitxa diu una altra forma de pagament o encara surt la fila «És un ingrés, no una despesa».",
+            "3. Despeses, en un dia amb dos o més moviments: mantén el dit mig segon sobre un, arrossega'l per sobre d'un altre del mateix dia i deixa'l anar. Després toca un moviment una sola vegada i, per acabar, llisca de costat sobre la llista. BÉ: la fila s'aixeca, les altres s'aparten i en deixar-la es queda al seu lloc nou, també en sortir i tornar; un toc curt obre la seva fitxa; lliscar de costat canvia de pestanya. MALAMENT: la fila no s'aixeca o torna al seu lloc, el toc curt no obre la fitxa, mantenir i deixar anar sense moure l'obre, o lliscar de costat no canvia de pestanya.",
+            "4. Pla → Deutes: obre «Quan amortitzar?» i mira què explica; després toca «💸 Amortitza ara» en un deute, tecleja un import i cancel·la sense confirmar. BÉ: «Quan amortitzar?» només explica què passaria i no té cap botó per amortitzar; el quadre d'«Amortitza ara» diu «Et treus N quotes» i el número canvia mentre tecleges. MALAMENT: el simulador té un botó que amortitza, o el quadre no diu quantes quotes et treus.",
+            "5. Configuració: mira com està ordenada i obre tres files qualssevol (per exemple Aparença, els teus bancs i la còpia de seguretat); després busca «còpia» al cercador. BÉ: quatre grups, Com es veu, Diners i bancs, Dades i Compte i privadesa, i cada fila obre el de sempre; el cercador la troba. MALAMENT: falta alguna opció d'abans, una fila obre una altra cosa o el cercador no la troba.",
+            "6. Avisos de banc, només si algun banc necessita el teu permís (si no, salta aquest pas): mira Inici i toca «Revisa ›»; a Cartera, toca la fila d'aquest banc. BÉ: Inici ensenya una sola franja sota la salutació amb el banc (o quants bancs) i «Revisa ›» et porta a Cartera, als avisos; a Cartera hi ha una fila per banc amb el seu logo i «Reconnecta», i en tocar-la es desplega l'explicació. MALAMENT: no surt la franja, «Revisa ›» porta a un altre lloc, o a Cartera surten targetes grans repetides."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.234",
     "d": "2026-11-15",
     "t": {
