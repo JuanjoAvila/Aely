@@ -171,7 +171,7 @@ const SB = [
   ["Saveback invertido", "¡Has recibido 12,96 € de Saveback y se han invertido!"],
   ["Saveback invested", "You received 12,96 € Saveback and it was invested."],
   ["Saveback invertit", "Has rebut 12,96 € de Saveback i s'han invertit."],
-  ["Trade Republic", "Tu cashback de 12,96 € se ha invertido"],
+  ["Trade Republic", "Tu Saveback de 12,96 € se ha invertido"],
 ];
 
 Deno.test("recompensas: round up en es/en/ca entra como inversión", () => {
@@ -182,7 +182,7 @@ Deno.test("recompensas: round up en es/en/ca entra como inversión", () => {
   }
 });
 
-Deno.test("recompensas: saveback y cashback en es/en/ca entran como inversión", () => {
+Deno.test("recompensas: saveback en es/en/ca entra como inversión", () => {
   for (const [ti, tx] of SB) {
     assertEquals(clasificar(tx, ti), "inversion", tx);
     assertEquals(recompensaTR(tx, ti), "saveback", tx);
@@ -203,6 +203,52 @@ Deno.test("recompensas: un aviso de lo que AÚN no se ha invertido no se apunta"
   assertEquals(recompensaTR("Your Saveback of 3,20 € will be invested on the 2nd", "Saveback"), null);
   assertEquals(recompensaTR("Activa el Round up y redondea tus compras", "Round up"), null);
   assertEquals(clasificar("Tu Saveback de 3,20 € se invertirá el día 2", "Saveback"), "ignorado");
+});
+
+// Revisión de dinero 236 (P2-C): ante la duda NO es recompensa. Ninguna de estas es una inversión
+// hecha; apuntarla restaría o sumaría dinero que no se ha movido y luego contaría dos veces.
+Deno.test("recompensas: futuros en plural, gerundios y en/ca no se apuntan", () => {
+  for (const [tx, ti] of [
+    ["Has recibido 12,96 € de Saveback que se invertirán el día 2", "Saveback"],
+    ["Has rebut 12,96 € de Saveback que s'invertiran el dia 2", "Saveback"],
+    ["Your round up of €3.20 is being invested", "Round up"],
+    ["Your round up of €3.20 is going to be invested on Monday", "Round up"],
+    ["You have earned €3.20 Saveback, which we'll invest on the 2nd", "Saveback"],
+    ["Tu Round up de 3,20 € está pendiente de invertirse", "Round up"],
+  ]) {
+    assertEquals(recompensaTR(tx, ti), null, tx);
+    assertEquals(clasificar(tx, ti), "ignorado", tx);
+  }
+});
+
+Deno.test("recompensas: negadas, canceladas o fallidas no se apuntan", () => {
+  for (const tx of [
+    "Tu Saveback de 3,20 € no se ha invertido por fondos insuficientes",
+    "Se ha cancelado tu Saveback invertido de 3,20 €",
+    "Your Round up of €3.20 could not be invested",
+    "Round up invested failed: 3,20 €",
+  ]) assertEquals(recompensaTR(tx, "Trade Republic"), null, tx);
+});
+
+Deno.test("recompensas: un cashback al efectivo no es Saveback, y una compra con redondeo es la compra", () => {
+  // «cashback» va al efectivo, no al fondo: fuera de recompensas (sigue siendo ruido).
+  assertEquals(recompensaTR("Has recibido 5,00 € de cashback por tu compra en Amazon", "Trade Republic"), null);
+  assertEquals(recompensaTR("Tu cashback de 12,96 € se ha invertido", "Trade Republic"), null);
+  // Una compra que menciona su redondeo: no es Round up (perdería la compra y subiría 4,50 la posición).
+  assertEquals(recompensaTR("Compra de 4,50 € en ROUND UP CAFE. Has ahorrado 0,50 € con redondeo invertido", "Trade Republic"), null);
+  // Sin el verbo invertir en pasado no basta con «recibido» o «ahorrado».
+  assertEquals(recompensaTR("Has recibido 12,96 € de Saveback", "Saveback"), null);
+  assertEquals(recompensaTR("Has ahorrado 12,96 € con Round up", "Round up"), null);
+  // Los dos productos en la misma frase: no se sabe a qué posición va.
+  assertEquals(recompensaTR("Round up y Saveback invertidos: 3,20 €", "Trade Republic"), null);
+});
+
+Deno.test("extraerImporte: € delante con coma de miles (inglés)", () => {
+  assertEquals(extraerImporte("You saved and invested €1,234.56 with Round up"), 1234.56);
+  assertEquals(extraerImporte("You saved and invested €12.96 with Round up"), 12.96);
+  // Los formatos de siempre no cambian.
+  assertEquals(extraerImporte("Has pagado 1.234,56 € en Mercadona"), 1234.56);
+  assertEquals(extraerImporte("Has pagado 0,04 € en Mercadona"), 0.04);
 });
 
 Deno.test("recompensas: no se confunden con otras notificaciones de TR", () => {

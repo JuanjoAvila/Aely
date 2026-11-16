@@ -65,7 +65,7 @@ const tr = (s) => s.accounts.find((a) => a.id === "tr");
 function patrimonio(s) {
   const ins = ctx.insumosSaldoGasto(s);
   const liquid = s.accounts.reduce((a, acc) => a + ctx.saldoCuentaMostrada(acc, ins), 0);
-  const invested = s.investments.reduce((a, i) => a + i.value, 0) + ins.roundup + ins.saveback;
+  const invested = s.investments.reduce((a, i) => a + i.value, 0) + ins.roundup + ins.saveback + ins.rewardsPending;
   return { liquid: +liquid.toFixed(2), invested: +invested.toFixed(2), neto: +(liquid + invested).toFixed(2), ins };
 }
 const gastado = (s) => +s.expenses.filter((e) => ctx.expenseCountsBudget(e, s) && e.amount > 0).reduce((a, e) => a + e.amount, 0).toFixed(2);
@@ -101,17 +101,34 @@ t("suma a la posición elegida (aportación y coste), una sola vez", () => {
   assert.equal(ctx.aplicarRecompensasTR(s1, NOW + 60000), s1);
 });
 
-t("sin destino: se apunta igual y no toca ninguna posición; elegirlo luego no la sube hacia atrás", () => {
-  const s0 = conAvisos(base());
-  s0.accounts = s0.accounts.map((a) => a.id === "tr" ? Object.assign({}, a, { rewardInv: "", savebackInv: "" }) : a);
-  const s1 = ctx.aplicarRecompensasTR(s0, NOW);
+/* Revisión 236, P2-D: sin destino el dinero sigue siendo suyo. Queda pendiente, contado como invertido
+   (el patrimonio no baja), y se suma UNA vez a la posición cuando la elige. */
+t("sin destino: queda pendiente sin bajar el patrimonio; al elegirla se suma una vez", () => {
+  const sinDestino = (s) => Object.assign({}, s, { accounts: s.accounts.map((a) => a.id === "tr" ? Object.assign({}, a, { rewardInv: "", savebackInv: "" }) : a) });
+  const antes = patrimonio(sinDestino(base()));
+  const s1 = ctx.aplicarRecompensasTR(sinDestino(conAvisos(base())), NOW);
   assert.equal(inv(s1, "ftse").value, 1000);
   assert.equal(inv(s1, "acwi").value, 500);
-  assert.equal(s1.trRecompensas[RU.id].inv, null);
+  assert.equal((s1.trRecompensas || {})[RU.id], undefined, "no se da por decidido");
+  assert.equal(ctx.recompensasPendientes(s1, NOW), 14.19);
+  const durante = patrimonio(s1);
+  // Round up: −12,96 de efectivo y +12,96 pendiente; Saveback: +1,23 (en vez de su estimación). Nunca baja.
+  assert.equal(+(durante.neto - antes.neto + antes.ins.saveback).toFixed(2), 1.23);
   const pista = ctx.inversionEtiqueta(s1, RU);
   assert.ok(pista && !/Fondo/.test(pista), "la pista para elegirla, sin inventar destino: " + pista);
+  // Elige destino: se suma una vez y deja de estar pendiente; el patrimonio no se mueve.
   const s2 = Object.assign({}, s1, { accounts: s1.accounts.map((a) => a.id === "tr" ? Object.assign({}, a, { rewardInv: "ftse" }) : a) });
-  assert.equal(ctx.aplicarRecompensasTR(s2, NOW), s2);
+  const s3 = ctx.aplicarRecompensasTR(s2, NOW);
+  // El Saveback sigue con "" (ninguno a propósito): solo el Round up pasa a la posición.
+  assert.equal(inv(s3, "ftse").value, 1012.96);
+  assert.equal(ctx.recompensasPendientes(s3, NOW), 1.23);
+  assert.equal(ctx.aplicarRecompensasTR(s3, NOW), s3);
+  assert.equal(patrimonio(s3).neto, durante.neto);
+  assert.ok(/Fondo Mundo Uno/.test(ctx.inversionEtiqueta(s3, RU)));
+});
+t("sin ninguna posición en Cartera no se pide elegir nada", () => {
+  const s = Object.assign(conAvisos(base()), { investments: [] });
+  assert.equal(ctx.inversionEtiqueta(s, RU), "");
 });
 
 t("el Saveback sin destino propio va al de siempre (`rewardInv`); \"\" es ninguno a propósito", () => {
@@ -191,6 +208,75 @@ t("el banco trae después el abono y la retirada del Saveback: los dos neutros, 
   assert.equal(patrimonio(s).neto, neto0);
   s = ctx.aplicarRecompensasTR(s, NOW);
   assert.equal(inv(s, "acwi").value, pos0);
+});
+
+/* Revisión 236, P1-B. La ficha (04-tab-gastos `setCat`) ya no compra con `applyInvestBuy` en un aviso:
+   al sacarlo de Inversión llama a `revertirRecompensa`, y al volver lo suma el efecto, una vez. Aquí se
+   reproduce esa secuencia con las mismas funciones puras. */
+const conCat = (s, id, cat) => Object.assign({}, s, { expenses: s.expenses.map((e) => e.id === id ? Object.assign({}, e, { category: cat }) : e) });
+t("Inversión → Otros → Inversión: la posición acaba sumada una sola vez", () => {
+  let s = ctx.aplicarRecompensasTR(conAvisos(base()), NOW);
+  assert.equal(inv(s, "ftse").value, 1012.96);
+  // Sale de Inversión: lo sumado vuelve y la fila deja de ser un aviso.
+  s = conCat(ctx.revertirRecompensa(s, RU.id), RU.id, "otros");
+  assert.equal(inv(s, "ftse").value, 1000);
+  assert.equal(inv(s, "ftse").shares, 10);
+  assert.equal(s.trRecompensas[RU.id], undefined);
+  assert.equal(ctx.aplicarRecompensasTR(s, NOW), s, "en Otros no se suma");
+  // Vuelve a Inversión: la ficha no compra (es un aviso); lo suma la pasada, una vez.
+  s = ctx.aplicarRecompensasTR(conCat(s, RU.id, "inversion"), NOW);
+  assert.equal(inv(s, "ftse").value, 1012.96);
+  assert.equal(ctx.aplicarRecompensasTR(s, NOW), s);
+});
+t("marcar a mano como Inversión el «Movimiento» del banco con aviso vivo no compra", () => {
+  const s = ctx.aplicarRecompensasTR(conAvisos(base()), NOW);
+  const mov = { id: uuid(40), date: iso(0, "12:00"), amount: 12.96, merchant: "Movimiento", obName: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" };
+  assert.equal(ctx.avisoRecompensaGemelo(s, mov), true);
+  assert.equal(ctx.avisoRecompensaGemelo(s, Object.assign({}, mov, { amount: 13.5 })), false, "otro importe sí es otra cosa");
+  assert.equal(ctx.avisoRecompensaGemelo(s, Object.assign({}, mov, { ent: "sabadell" })), false);
+});
+t("borrar el aviso (lápida, en este u otro móvil) devuelve lo que sumó", () => {
+  let s = ctx.aplicarRecompensasTR(conAvisos(base()), NOW);
+  const key = ctx.expenseDeletionKey(RU);
+  s = Object.assign({}, s, { expenses: s.expenses.filter((e) => e.id !== RU.id), deleted: (s.deleted || []).concat([key]) });
+  s = ctx.aplicarRecompensasTR(s, NOW);
+  assert.equal(inv(s, "ftse").value, 1000);
+  assert.equal(s.trRecompensas[RU.id], undefined);
+  assert.equal(ctx.aplicarRecompensasTR(s, NOW), s);
+  // Ni el efectivo ni la posición recuerdan el Round up borrado: igual que si solo hubiera llegado el Saveback.
+  const soloSb = ctx.aplicarRecompensasTR(Object.assign(base(), { expenses: base().expenses.concat([SB]) }), NOW);
+  assert.equal(patrimonio(s).neto, patrimonio(soloSb).neto);
+});
+
+/* Revisión 236, P2-E. TR sin Open Banking: el cierre de noviembre estima el Saveback y lo compra; el 2/12
+   llega el aviso real con ese mismo dinero. Sin arreglo se sumaba dos veces. Ahora el primer aviso
+   deshace la estimación de ese cierre y, desde entonces, no se estima más. */
+t("primer aviso real tras un cierre estimado: lo paga el aviso, no los dos; y no se estima más", () => {
+  const ahora = new Date();
+  const prev = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 10, 12);
+  const prevKey = prev.getFullYear() + "-" + String(prev.getMonth() + 1).padStart(2, "0");
+  const compra = { id: uuid(50), date: prev.toISOString(), amount: 9.04, merchant: "Super Ejemplo", category: "super", source: "macrodroid", ent: "trade_republic" };
+  // Cierre del mes anterior sin avisos: estima 1,92 de redondeo y 0,09 de saveback, todo a «ftse».
+  const cerrado = ctx.reconcileTR(Object.assign(base(), { trAnchor: prevKey, expenses: [compra] }));
+  assert.equal(inv(cerrado, "ftse").value, 1002.01);
+  assert.equal(tr(cerrado).value, +(1000 - 9.04 - 1.92).toFixed(2));
+  assert.equal(tr(cerrado).trCierreEstimado.saveback.eur, 0.09);
+  // Llegan este mes los avisos reales del mes cerrado (redondeo 2,10 y saveback 0,10).
+  const ru = Object.assign({}, RU, { id: uuid(51), amount: 2.1, date: iso(-0, "08:00") });
+  const sb = Object.assign({}, SB, { id: uuid(52), amount: 0.1, date: iso(-0, "08:05") });
+  let s = Object.assign({}, cerrado, { expenses: cerrado.expenses.concat([ru, sb]) });
+  s = ctx.aplicarRecompensasTR(s, NOW);
+  // Fuera lo estimado (2,01), dentro lo real: «ftse» suma el Round up; «acwi» el Saveback.
+  assert.equal(inv(s, "ftse").value, +(1000 + 2.1).toFixed(2));
+  assert.equal(inv(s, "acwi").value, 500.1);
+  // El efectivo: se devuelve la estimación del redondeo (1,92); el real lo resta su fila al pintar.
+  assert.equal(tr(s).value, +(1000 - 9.04).toFixed(2));
+  assert.ok(tr(s).trAvisosDesde.roundup && tr(s).trAvisosDesde.saveback);
+  // Desde ahí, ni con la ventana de avisos vacía se vuelve a estimar.
+  const sinFilas = Object.assign({}, s, { expenses: [compra] });
+  const est = ctx.recompensasEstimadas(sinFilas, tr(sinFilas), [Object.assign({}, compra, { date: new Date().toISOString() })], +new Date(new Date().getFullYear(), new Date().getMonth(), 1), true);
+  assert.equal(JSON.stringify(est), JSON.stringify({ ru: 0, sb: 0 }));
+  assert.equal(ctx.aplicarRecompensasTR(s, NOW), s);
 });
 
 t("cierre de mes: con avisos reales no se simula otra vez el redondeo ni el saveback", () => {

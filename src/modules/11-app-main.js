@@ -1852,12 +1852,24 @@ function App(){
   },[state.expenses, state.debts, state.cuotaNo, state.cuotaAlias]);
 
   /* Round up / Saveback que avisa TR → a su posición, una sola vez (16/11/2026, `aplicarRecompensasTR`).
-     Llegan por cualquier vía que traiga gastos (pull, otro móvil); la pasada devuelve el mismo estado
-     si no hay nada nuevo, así que no entra en bucle. Cuenta como edición: la cartera tiene que viajar. */
+     Llegan por cualquier vía que traiga gastos (pull, otro móvil) y la pasada devuelve el mismo estado
+     si no hay nada nuevo. Cambia la cartera, así que NUNCA sobre una foto vieja: primero se baja el
+     estado de la nube y solo si ese pull termina bien se aplica, encima de lo bajado (revisión 236,
+     P1-A). Es el patrón de `reservaMensualAlVolver`: el estado gana entero por `_savedAt`, y escribir
+     sobre una copia atrasada la haría «más nueva» y pisaría lo editado desde otro móvil (el +18,09 del
+     15/9). Un vuelo a la vez; si el pull falla, se reintenta con el siguiente cambio. */
+  const recompensasVuelo=useRef(false);
   useEffect(function(){
+    if(recompensasVuelo.current) return;
     if(aplicarRecompensasTR(stateRef.current, Date.now())===stateRef.current) return;
-    set(function(prev){ return aplicarRecompensasTR(prev, Date.now()); });
-  },[state.expenses, state.accounts, state.investments]);
+    const aplica=function(){ set(function(prev){ return aplicarRecompensasTR(prev, Date.now()); }); };
+    if(!cloud.enabled()){ aplica(); return; }
+    if(!sessionRef.current) return;
+    recompensasVuelo.current=true;
+    const fin=function(){ recompensasVuelo.current=false; };
+    syncFromCloud(sessionRef.current);
+    (pullOkRef.current||Promise.resolve(false)).then(function(ok){ fin(); if(ok) aplica(); },fin);
+  },[state.expenses, state.accounts, state.investments, state.deleted, state.trRecompensas]);
 
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);
@@ -2519,7 +2531,8 @@ function App(){
     const liquid=state.accounts.reduce((a,i)=> a + dynBal(i)*accountShareOf(state,i,"account"), 0) + obLiquid;
     const investedBase=state.investments.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
     const investedCost=state.investments.reduce((a,i)=>a+(invCostEur(i, state)||0),0);
-    const invested=investedBase + roundupThisMonth + savebackThisMonth + monthlyInvestThisMonth;
+    const rewardsPending=ins.rewardsPending;
+    const invested=investedBase + roundupThisMonth + savebackThisMonth + monthlyInvestThisMonth + rewardsPending;
     const assetsTotal=state.assets.reduce((a,i)=>a+i.value,0);
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
     const activos=liquid+invested+assetsTotal;
@@ -2610,7 +2623,7 @@ function App(){
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
-    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,transferInByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),rewardsPending,liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,transferInByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -2618,7 +2631,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
-     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,calendarDay]);
+     state.trRewardsTotal,state.trRecompensas,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){

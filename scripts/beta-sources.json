@@ -1929,7 +1929,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -3779,7 +3795,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "native": [
@@ -5459,7 +5491,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "native": [
@@ -8116,7 +8164,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "native": [
@@ -9796,7 +9860,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "native": [
@@ -12225,7 +12305,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -15448,7 +15544,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -16982,6 +17094,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
@@ -16990,7 +17106,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -18655,7 +18783,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "native": [
@@ -21145,7 +21289,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -21158,6 +21318,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -22979,7 +23147,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -25698,7 +25882,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -25711,6 +25911,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "edge": [
@@ -28088,7 +28296,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -28101,6 +28325,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -29980,7 +30212,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -29993,6 +30241,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -34500,6 +34756,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -34512,7 +34772,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -36192,7 +36464,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "native": [
@@ -37578,6 +37866,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
@@ -37586,7 +37878,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -39251,7 +39555,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "native": [
@@ -40991,7 +41311,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -42370,6 +42706,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
@@ -42378,7 +42718,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "edge": [
@@ -44420,11 +44772,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "edge": [
@@ -45987,6 +46355,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -45999,7 +46371,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -48487,7 +48871,31 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "edge": [
@@ -50199,6 +50607,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -50211,7 +50623,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -51785,11 +52209,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -54016,11 +54456,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -55277,6 +55733,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
@@ -55285,7 +55745,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -55858,6 +56330,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -55869,12 +56345,24 @@
         "function": "savebackOf"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
         "file": "src/modules/00-core.js",
         "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -57780,11 +58268,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "edge": [
@@ -61426,7 +61930,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -61439,6 +61959,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -66826,6 +67354,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -66838,7 +67370,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -69044,6 +69588,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -69056,7 +69604,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -72277,7 +72837,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -72290,6 +72866,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -74741,6 +75325,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -74753,7 +75341,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -78875,6 +79475,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -78887,7 +79491,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -80761,7 +81377,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -80770,6 +81402,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -82232,6 +82872,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -82244,7 +82888,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -84957,6 +85613,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -84969,7 +85629,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -89186,7 +89858,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -89194,7 +89878,15 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -91744,6 +92436,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -91752,11 +92448,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -93378,7 +94090,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -93391,6 +94119,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -98236,6 +98972,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -98248,7 +98988,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -99991,7 +100743,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -100004,6 +100772,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "edge": [
@@ -105414,7 +106190,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -105427,6 +106219,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -107437,11 +108237,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -107454,6 +108270,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -109116,7 +109940,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -109129,6 +109969,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -110786,7 +111634,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -110799,6 +111663,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -112452,7 +113324,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -112465,6 +113353,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -114034,11 +114930,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -115846,11 +116758,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -115863,6 +116791,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -117664,11 +118600,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasReales"
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -119329,11 +120281,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -119346,6 +120314,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -121070,11 +122046,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -121087,6 +122079,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -124408,11 +125408,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -124425,6 +125441,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -126390,7 +127414,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -126403,6 +127443,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -128212,6 +129260,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -128224,7 +129276,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -129881,6 +130945,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -129893,7 +130961,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -131636,6 +132716,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -131648,7 +132732,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -134871,6 +135967,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -134883,7 +135983,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -136227,6 +137339,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -136239,7 +137355,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -139783,6 +140911,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -139795,7 +140927,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -143169,6 +144313,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -143181,7 +144329,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -145107,6 +146267,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -145119,7 +146283,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -147013,6 +148189,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -147025,7 +148205,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -149445,6 +150637,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -149457,7 +150653,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -152219,6 +153427,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -152231,7 +153443,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -153929,7 +155153,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -153942,6 +155182,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -155355,6 +156603,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -155367,7 +156619,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -157181,6 +158445,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -157193,7 +158461,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -159630,6 +160910,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -159642,7 +160926,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -161295,7 +162591,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -161308,6 +162620,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -163204,6 +164524,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -163216,7 +164540,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -165098,6 +166434,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -165110,7 +166450,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -167000,6 +168352,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
@@ -167012,7 +168368,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -169357,7 +170725,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -169370,6 +170754,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -171738,7 +173130,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -171751,6 +173159,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -174067,7 +175483,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -174080,6 +175512,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -176217,7 +177657,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -176230,6 +177686,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -176613,6 +178077,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catStaleAfter"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -177055,10 +178531,6 @@
         "function": "_pdMs"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensaDe"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "function": "repartoDelMes"
       },
@@ -177289,6 +178761,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
       },
       {
         "file": "src/modules/00-core.js",
@@ -177919,6 +179395,10 @@
         "function": "gastoDelMesPorBanco"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "saldoCuentaGasto"
       },
@@ -178203,6 +179683,10 @@
         "data": "ownTransferRecent"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_NO"
       },
@@ -178283,10 +179767,6 @@
         "data": "_pdCache"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "data": "RECOMPENSA_POR_NOMBRE"
-      },
-      {
         "file": "src/modules/00-core.js",
         "data": "_mcDivisaCols"
       },
@@ -178341,6 +179821,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -178437,6 +179921,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
       },
       {
         "file": "src/modules/08-motor-bank.js",

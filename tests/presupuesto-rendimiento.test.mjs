@@ -377,7 +377,9 @@ const PRESUPUESTO = {
   // Round up y Saveback de TR (236, 16/11): el aviso entra en Inversión, suma una vez a la posición elegida y la
   // estimación deja paso a lo real; selector por tipo con logos. Medido sobre la 235 sin sello: ~1930 / 530 KiB.
   // Es lógica de dinero que pidió el dueño; SUBE (mandato 11/10) al mínimo con margen para el sello: 1931 / 531 KiB.
-  minificado: 1931 * 1024,
+  // Revisión de dinero 236 (pull antes de aplicar, deshacer al recategorizar o borrar, pendientes sin destino,
+  // primer aviso que deshace el cierre estimado): ~1934 KiB medidos. +4 KiB, solo al crudo; gzip sigue en 531.
+  minificado: 1935 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

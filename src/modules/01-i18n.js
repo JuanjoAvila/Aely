@@ -3061,13 +3061,13 @@ function inversionEtiqueta(s, e){
   const porId=function(id){ return id ? invs.find(function(i){ return i && i.id===id; }) : null; };
   const comprada=porId(e.investInvId);
   if(comprada&&comprada.name) return tf("g_inv_dest",{ name:comprada.name });
-  /* Round up / Saveback de TR (16/11/2026): la posición a la que se sumó, o la pista para elegirla.
-     Ya decidido sin destino, no se inventa uno: «sin posición». */
+  /* Round up / Saveback de TR (16/11/2026): la posición a la que se sumó o se sumará, o la pista para
+     elegirla (sumará entonces, una vez). Sin ninguna posición en Cartera no hay nada que pedir. */
   const rk=recompensaDe(e);
   if(rk){
     const fila=s&&s.trRecompensas&&s.trRecompensas[e.id];
     const dest=fila ? porId(fila.inv) : destinoRecompensa(s, rk);
-    return dest&&dest.name ? tf("g_inv_dest",{ name:dest.name }) : t("rw_pick");
+    return dest&&dest.name ? tf("g_inv_dest",{ name:dest.name }) : (invs.length ? t("rw_pick") : "");
   }
   const txt=(String(e.merchant||"")+" "+String(e.note||"")+" "+String(e.obName||"")).toLowerCase();
   const ents=["trade_republic","myinvestor"];
@@ -3116,7 +3116,9 @@ function insumosSaldoGasto(state){
   accounts.forEach(function(a){ if(accFixed(a)) paidNetByBank[a.ent]=(paidNetByBank[a.ent]||0)+monthNetForAccount(state,a.ent,curYear,curMonth,today); });
   const spentByBank=gastoDelMesPorBanco(thisMonthExp, trAcc&&trAcc.ent);
   return { trAcc:trAcc, thisMonthExp:thisMonthExp, injTR:injTR, roundup:roundup, saveback:saveback, monthlyInvest:monthlyInvest,
-    spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today };
+    spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today,
+    // Avisos de TR aún sin posición: tuyos, cuentan como invertidos hasta aplicarse (`recompensasPendientes`).
+    rewardsPending:recompensasPendientes(state, Date.now()) };
 }
 function applyAccountRole(s, totals, id, r){
   const pn=function(i){ return (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0; };
@@ -3230,16 +3232,25 @@ function reconcileTR(s){
       const ru = rec.ru, sb = rec.sb;
       if(ru>0) acc.value = +(acc.value - ru).toFixed(2);             // el round-up abandona el efectivo
       const contrib = ru + sb;                                       // total que entra a la inversión (€)
+      /* Lo estimado en ESTE cierre, por tipo (revisión 236, P2-E): si el primer aviso real de TR llega
+         después con el dinero de este mismo mes, `aplicarRecompensasTR` lo deshace con estas cifras
+         exactas y lo paga el aviso, en vez de contarlo dos veces. */
+      const est = { ym:key };
+      if(ru>0) est.roundup = { eur:ru, inv:null, c:0, sh:0 };
+      if(sb>0) est.saveback = { eur:sb, inv:null, c:0, sh:0 };
       if(contrib>0 && acc.rewardInv){
         const inv = s.investments && s.investments.find(function(i){ return i.id===acc.rewardInv; });
         if(inv){
           const cInv = inv.cur==="USD" ? contrib/(s.fx||1) : contrib;   // a la moneda de la inversión
-          if(inv.shares>0 && inv.value>0) inv.shares = +(inv.shares + cInv/(inv.value/inv.shares)).toFixed(6);
+          const precio = (inv.shares>0 && inv.value>0) ? inv.value/inv.shares : 0;
+          if(precio) inv.shares = +(inv.shares + cInv/precio).toFixed(6);
           inv.value = +((inv.value||0)+cInv).toFixed(2);
           inv.cost  = +((inv.cost||0)+cInv).toFixed(2);
+          ["roundup","saveback"].forEach(function(k){ const x=est[k]; if(!x) return; x.inv=inv.id; x.c=+(cInv*x.eur/contrib).toFixed(6); x.sh=precio?+(x.c/precio).toFixed(6):0; });
         }
         s.trRewardsTotal = +(((s.trRewardsTotal||0)+contrib)).toFixed(2);   // acumulado histórico (€)
       }
+      if(est.roundup || est.saveback) acc.trCierreEstimado = est; else delete acc.trCierreEstimado;
       // Aporte periódico a inversión (plan de ahorro, p.ej. 50€/mes al FTSE): sale del efectivo y
       // compra participaciones en su destino (por defecto el mismo del round-up).
       const mi = acc.monthlyInvest||0;
@@ -3311,18 +3322,31 @@ function recompensaDe(e){
   if(!e || e.category!=="inversion" || e.source!=="macrodroid" || expenseBankOf(e)!=="trade_republic") return null;
   return RECOMPENSA_POR_NOMBRE[String(e.obName!=null?e.obName:(e.merchant||"")).trim().toLowerCase()]||null;
 }
+/* Las filas de aviso, una vez por array de gastos: el histórico entero se recorre solo cuando cambia
+   (lo leen el saldo, Cartera, el reto y el efecto que las aplica). → [{e, k, ms}]. */
+const filasRecompensaCache=new WeakMap();
+function filasRecompensa(state){
+  const exps=state&&state.expenses;
+  if(!Array.isArray(exps)) return [];
+  let out=filasRecompensaCache.get(exps);
+  if(out) return out;
+  out=[];
+  exps.forEach(function(e){ if(!e || e.category!=="inversion") return; const k=recompensaDe(e); if(k) out.push({ e:e, k:k, ms:dateMs(e.date) }); });
+  filasRecompensaCache.set(exps, out);
+  return out;
+}
 /* Lo que avisó TR en una ventana: {roundup:€, saveback:€, hay:{roundup,saveback}}. `hay` mira 40 días
    antes de `desde` porque TR invierte el redondeo de un mes ya entrado el siguiente. */
 function recompensasReales(state, ent, desdeMs, hastaMs){
   const out={ roundup:0, saveback:0, hay:{} };
   if(!state || ent!=="trade_republic") return out;
+  const filas=filasRecompensa(state);
+  if(!filas.length) return out;
   const del=expenseDeletedSet(state);
-  (state.expenses||[]).forEach(function(e){
-    if(!e || e.category!=="inversion") return;
-    const k=recompensaDe(e); if(!k || e.possibleDup || expenseIsTombstoned(e,del)) return;
-    const ms=dateMs(e.date);
-    if(ms>=desdeMs-40*864e5) out.hay[k]=true;
-    if(ms>=desdeMs && ms<hastaMs) out[k]=+(out[k]+(Number(e.amount)||0)).toFixed(2);
+  filas.forEach(function(f){
+    if(f.e.possibleDup || expenseIsTombstoned(f.e,del)) return;
+    if(f.ms>=desdeMs-40*864e5) out.hay[f.k]=true;
+    if(f.ms>=desdeMs && f.ms<hastaMs) out[f.k]=+(out[f.k]+(Number(f.e.amount)||0)).toFixed(2);
   });
   return out;
 }
@@ -3331,16 +3355,18 @@ function recompensasReales(state, ent, desdeMs, hastaMs){
    1. Compras de CUALQUIER banco y el efectivo («roundup/saveback contando cash y otros bancos»): TR solo
       redondea lo pagado con SU tarjeta. Ahora: lo de ese banco y lo apuntado a mano sin banco.
    2. Con el aviso real de TR, la estimación seguía restando del saldo y sumando al patrimonio: el mismo
-      dinero dos veces. Si ese mes hay avisos reales de un tipo, su estimación es 0 y manda lo real.
+      dinero dos veces. Desde el PRIMER aviso real de un tipo (`trAvisosDesde`, que no caduca) su
+      estimación es 0 para siempre; la ventana de 40 días cubre lo que aún no se ha aplicado.
    `manual`: el importe que él tecleó en Cartera, que gana a la estimación (no a lo real).
    → {ru, sb} en euros. */
 function recompensasEstimadas(state, acc, gastos, mesMs, manual){
   if(!acc) return { ru:0, sb:0 };
   const d=new Date(mesMs), sig=+new Date(d.getFullYear(), d.getMonth()+1, 1);
-  const reales=recompensasReales(state, acc.ent, mesMs, sig);
+  const reales=recompensasReales(state, acc.ent, mesMs, sig), desde=acc.trAvisosDesde||{};
+  const real=function(k){ return !!(reales.hay[k] || desde[k]); };
   const propias=(gastos||[]).filter(function(e){ const b=expenseBankOf(e); return b ? b===acc.ent : accDaily(acc); });
-  const ru=reales.hay.roundup ? 0 : (manual && acc.roundupManual!=null ? acc.roundupManual : roundupOf(propias, acc.roundup||0));
-  const sb=reales.hay.saveback ? 0 : (manual && acc.savebackManual!=null ? acc.savebackManual : (acc.saveback ? savebackOf(propias) : 0));
+  const ru=real("roundup") ? 0 : (manual && acc.roundupManual!=null ? acc.roundupManual : roundupOf(propias, acc.roundup||0));
+  const sb=real("saveback") ? 0 : (manual && acc.savebackManual!=null ? acc.savebackManual : (acc.saveback ? savebackOf(propias) : 0));
   return { ru:ru, sb:sb };
 }
 /* A qué posición va cada uno. Round up → `rewardInv` (el mismo destino de siempre); Saveback →
@@ -3351,47 +3377,100 @@ function destinoRecompensa(state, k){
   const id=k==="saveback" && acc.savebackInv!=null ? acc.savebackInv : acc.rewardInv;
   return id ? ((state.investments||[]).find(function(i){ return i && i.id===id; })||null) : null;
 }
+const RECOMPENSA_VENTANA_MS=120*864e5;
+/* Avisos que aún no están en ninguna posición (sin destino elegido, o sin tipo de cambio para una en
+   dólares). Siguen siendo tuyos: el patrimonio los cuenta como invertidos hasta que se apliquen, para
+   que un Round up sin destino no lo baje (revisión de dinero 236, P2-D). → euros. */
+function recompensasPendientes(state, nowMs){
+  const led=(state&&state.trRecompensas)||{}, filas=filasRecompensa(state);
+  if(!filas.length) return 0;
+  const del=expenseDeletedSet(state);
+  let n=0;
+  filas.forEach(function(f){
+    if(led[f.e.id] || f.e.possibleDup || f.e.pending || !(Number(f.e.amount)>0) || !(f.ms>=nowMs-RECOMPENSA_VENTANA_MS) || expenseIsTombstoned(f.e,del)) return;
+    n+=Number(f.e.amount);
+  });
+  return +n.toFixed(2);
+}
+/* Deshace lo que sumó un aviso a su posición (`reverseInvestBuy` con lo que se guardó, no recalculado):
+   al sacarlo de Inversión o al borrarlo (revisión 236, P1-B). Lo que ya traía el puente de TR no se
+   sumó, así que no se resta; su marca se queda para no sumarlo si vuelve a Inversión. */
+function revertirRecompensa(state, id){
+  const led=state&&state.trRecompensas, f=led&&led[id];
+  if(!f || f.puente) return state;
+  const s=f.inv ? reverseInvestBuy(state, f.inv, f.sh, f.c, f.eur) : state;
+  const nuevo=Object.assign({},led); delete nuevo[id];
+  return Object.assign({},s,{ trRecompensas:nuevo });
+}
+/* ¿Hay un aviso vivo de TR para este apunte del banco? Mismo banco y céntimo en ±3 días. Si él marca a
+   mano como Inversión ese «Movimiento», el dinero ya lo sumó el aviso: no se compra otra vez (P1-B). */
+function avisoRecompensaGemelo(state, e){
+  if(!e || !esFilaDeBanco(e) || expenseBankOf(e)!=="trade_republic") return false;
+  const c=Math.round(Number(e.amount)*100), ms=dateMs(e.date), del=expenseDeletedSet(state);
+  return filasRecompensa(state).some(function(f){
+    return Math.round(Number(f.e.amount)*100)===c && Math.abs(f.ms-ms)<=3*864e5 && !expenseIsTombstoned(f.e,del);
+  });
+}
 /* SUMAR CADA AVISO A SU POSICIÓN, UNA SOLA VEZ (16/11/2026). Aportación y coste suben lo mismo (y las
-   participaciones al precio de hoy), igual que `applyInvestBuy`. Lo ya decidido vive en
+   participaciones al precio de hoy), igual que `applyInvestBuy`. Lo ya sumado vive en
    `trRecompensas[id de la fila]`, que viaja con la cartera en el mismo estado: un segundo móvil, un
-   pull o reabrir la app no lo vuelven a sumar.
-   · Sin destino al llegar: se apunta igual, no toca ninguna posición, y elegirlo después no la sube
-     hacia atrás (pudo haberla cuadrado él a mano).
+   pull o reabrir la app no lo vuelven a sumar. Lo llama un efecto SOLO tras un pull de estado bueno
+   (11-app-main), para no escribir encima de una cartera vieja.
+   · Sin destino (o sin cambio para una posición en dólares): queda pendiente, contado como invertido
+     (`recompensasPendientes`), y se aplica una vez cuando lo haya.
    · Si el puente de TR leyó la posición DESPUÉS del aviso (`brokerAt`), su cifra ya lo incluye.
-   · Un posible repetido espera a que se resuelva.
+   · Un posible repetido espera a que se resuelva. Un aviso borrado (lápida) devuelve lo que sumó.
+   · El PRIMER aviso de cada tipo apaga para siempre su estimación (`trAvisosDesde`) y deshace la del
+     último cierre de mes (`trCierreEstimado`): ese dinero lo paga ahora el aviso real (P2-E).
    Pura; devuelve el MISMO estado si no hay nada nuevo (corre en un efecto con cada cambio). */
 function aplicarRecompensasTR(state, nowMs){
-  const exps=(state&&state.expenses)||[];
-  const desde=nowMs-45*864e5;
-  const prev=state.trRecompensas||{};
+  const filas=filasRecompensa(state), prev=(state&&state.trRecompensas)||{};
+  if(!filas.length && !Object.keys(prev).length) return state;
+  const desde=nowMs-RECOMPENSA_VENTANA_MS, del=expenseDeletedSet(state);
   let led=null, s=state;
-  const del=expenseDeletedSet(state);
-  exps.forEach(function(e){
-    if(!e || e.category!=="inversion" || prev[e.id] || (led&&led[e.id])) return;
-    const k=recompensaDe(e);
-    if(!k || e.possibleDup || e.pending || !(Number(e.amount)>0) || expenseIsTombstoned(e,del)) return;
-    const ms=dateMs(e.date); if(!(ms>=desde)) return;
-    if(!led) led=Object.assign({},prev);
-    const eur=+Number(e.amount).toFixed(2);
-    const inv=destinoRecompensa(s, k);
-    const fila={ k:k, d:ms, eur:eur, inv:null, sh:0, c:0 };
-    if(inv && inv.brokerAt && inv.brokerAt>=ms){ fila.inv=inv.id; fila.puente=true; }
-    else if(inv){
-      const c=fromEurAmt(eur, inv.cur||"EUR", s);
-      if(c!=null){
-        const sh=(inv.shares>0 && inv.value>0) ? +(c/(inv.value/inv.shares)).toFixed(6) : 0;
-        const nuevo=Object.assign({},inv,{ shares:+(((inv.shares||0)+sh)).toFixed(6), value:+(((inv.value||0)+c)).toFixed(2), cost:+(((inv.cost||0)+c)).toFixed(2) });
-        s=Object.assign({},s,{ investments:(s.investments||[]).map(function(i){ return i.id===inv.id?nuevo:i; }),
-          trRewardsTotal:+(((s.trRewardsTotal||0)+eur)).toFixed(2) });
-        fila.inv=inv.id; fila.sh=sh; fila.c=c;
-      }
-    }
-    led[e.id]=fila;
+  const libro=function(){ if(!led) led=Object.assign({},prev); return led; };
+  // Borrado en cualquier móvil: su lápida devuelve lo sumado.
+  Object.keys(prev).forEach(function(id){
+    const f=prev[id];
+    if(f && f.x && !f.puente && expenseIsTombstoned(f.x,del)){ s=revertirRecompensa(Object.assign({},s,{trRecompensas:libro()}), id); led=s.trRecompensas; }
   });
-  if(!led) return state;
-  // Lo de hace más de 120 días ya no se vuelve a mirar (la ventana es de 45): fuera, para que no crezca.
-  Object.keys(led).forEach(function(id){ if(!(led[id] && led[id].d>=nowMs-120*864e5)) delete led[id]; });
-  return Object.assign({},s,{ trRecompensas:led });
+  const accIx=(s.accounts||[]).findIndex(function(a){ return a && a.ent==="trade_republic"; });
+  filas.forEach(function(f){
+    const e=f.e, k=f.k, ms=f.ms;
+    if(prev[e.id] || (led&&led[e.id]) || e.possibleDup || e.pending || !(Number(e.amount)>0) || !(ms>=desde) || expenseIsTombstoned(e,del)) return;
+    const acc=accIx>=0 ? s.accounts[accIx] : null;
+    if(acc && !(acc.trAvisosDesde&&acc.trAvisosDesde[k])){
+      const a=Object.assign({},acc,{ trAvisosDesde:Object.assign({},acc.trAvisosDesde,(function(){ const o={}; o[k]=ms; return o; })()) });
+      const ce=a.trCierreEstimado, est=ce&&ce[k];
+      // El cierre del mes anterior al aviso (o de su mismo mes) estimó este dinero: fuera, lo paga el aviso.
+      const mesAviso=mkOf(new Date(ms)), mesAntes=mkOf(new Date(new Date(ms).getFullYear(), new Date(ms).getMonth()-1, 1));
+      if(est && (ce.ym===mesAviso || ce.ym===mesAntes)){
+        if(k==="roundup") a.value=+((a.value||0)+est.eur).toFixed(2);
+        if(est.inv && est.c) s=reverseInvestBuy(s, est.inv, est.sh, est.c, est.eur);
+        const resto=Object.assign({},ce); delete resto[k]; a.trCierreEstimado=resto;
+      }
+      s=Object.assign({},s,{ accounts:s.accounts.map(function(x,i){ return i===accIx?a:x; }) });
+    }
+    const inv=destinoRecompensa(s, k);
+    if(!inv) return;
+    const eur=+Number(e.amount).toFixed(2);
+    const x={ id:e.id, date:e.date, amount:e.amount, merchant:e.merchant, source:e.source, ent:e.ent, obName:e.obName };
+    if(inv.brokerAt && inv.brokerAt>=ms){ libro()[e.id]={ k:k, d:ms, eur:eur, inv:inv.id, sh:0, c:0, puente:true, x:x }; return; }
+    const c=fromEurAmt(eur, inv.cur||"EUR", s);
+    if(c==null) return;
+    const sh=(inv.shares>0 && inv.value>0) ? +(c/(inv.value/inv.shares)).toFixed(6) : 0;
+    const nuevo=Object.assign({},inv,{ shares:+(((inv.shares||0)+sh)).toFixed(6), value:+(((inv.value||0)+c)).toFixed(2), cost:+(((inv.cost||0)+c)).toFixed(2) });
+    s=Object.assign({},s,{ investments:(s.investments||[]).map(function(i){ return i.id===inv.id?nuevo:i; }),
+      trRewardsTotal:+(((s.trRewardsTotal||0)+eur)).toFixed(2) });
+    libro()[e.id]={ k:k, d:ms, eur:eur, inv:inv.id, sh:sh, c:c, x:x };
+  });
+  if(!led && s===state) return state;
+  if(led){
+    // Pasado el año ya no se vuelve a mirar (la ventana es de 120 días): fuera, para que no crezca.
+    Object.keys(led).forEach(function(id){ if(!(led[id] && led[id].d>=nowMs-365*864e5)) delete led[id]; });
+    s=Object.assign({},s,{ trRecompensas:led });
+  }
+  return s;
 }
 
 /* ---- Metas de ahorro (#15): helpers de progreso/previsión + celebración ---- */

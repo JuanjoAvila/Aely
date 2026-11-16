@@ -779,7 +779,15 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
         // duplicaría las participaciones del fondo.
         if(isTwin) return upd;
-        if(!wasInv && willBeInv){
+        /* Round up / Saveback de TR (revisión 236, P1-B): su dinero lo suma `aplicarRecompensasTR` una vez
+           y lo apunta en `trRecompensas`. Aquí no se compra (ni por el aviso ni por su «Movimiento» del
+           banco), y sacarlo de Inversión devuelve lo que sumó; si vuelve, lo suma otra vez el efecto. */
+        const esAviso=!!recompensaDe(Object.assign({},e,{category:"inversion"})) || avisoRecompensaGemelo(invState, e);
+        if(wasInv && !willBeInv && invState.trRecompensas && invState.trRecompensas[e.id]){
+          invState=revertirRecompensa(invState, e.id);
+        } else if(!wasInv && willBeInv && esAviso){
+          // nada: no es una compra de esta ficha
+        } else if(!wasInv && willBeInv){
           const ib=applyInvestBuy(invState, e.ent, Math.abs(e.amount));
           if(ib){ invState=ib.state; upd.investInvId=ib.invId; upd.investShares=ib.shares; upd.investCInv=ib.cInv; upd.investAmountEur=ib.amountEur; }
         } else if(wasInv && !willBeInv && e.investInvId){
