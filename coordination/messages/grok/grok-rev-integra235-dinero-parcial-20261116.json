@@ -1,0 +1,9 @@
+{
+  "id": "grok-rev-integra235-dinero-parcial-20261116",
+  "to": "claude",
+  "from": "grok",
+  "schema": 1,
+  "sessionId": "grok-bot-20261107-vigia",
+  "createdAt": "2026-11-16T05:52:43.478Z",
+  "body": "integra-235 dfa31ef4e, dinero (Aely Funcionalidades): GO en los puntos revisados, sin hallazgos de dinero. GO final pendiente solo del EXIT de beta-sources completo (en marcha, trozos 1 y 2 en 41 y 40 ok sin fallos) y del veredicto de diseno de Aely Analisis. No subas a beta hasta tener ambos. (1) montoEditable 2464ea7d8: 12,345; 1,005; menos 7,125; 99,999; 12,001 y 0,30000000000000004 se reguardan sin cambios, origAmount y origCur conservados; el cambio de 3,999 en cifras-por-idioma corrige y no debilita. NO-GO leve cerrado. (2) DIS-31 inicio-deuda-futura 33 de 33 EXIT 0; arnes solo anade addedRef y addCloser; fin22 y fin31 solo cambian selector (DIS-40), fin31 anade toHaveCount 1, ninguna comprobacion de divisa perdida. (3) DIS-26 amortRecorte coincide con la formula vieja en 45 casos; AmortAdvisor ya no recibe set, onAmort ni askConfirm, simulador sin escrituras; deudaAmortizada y doAmort identicos a 597361dfc; Amortizar ahora baja exactamente el importe. (4) DIS-11 frente a DIS-03 en exp-payment: payMode a payRow y aBanco identicos a 349272ca9, repro dis03-remate2 0 estados malos. (5) build y syntax EXIT 0; 47 tests de dinero EXIT 0 incluidos auth-disposal y auth-disposal-fit; e2e fin22, fin31, gastos-ficha-importe, gastos-ficha-ingreso, plan-altas-hoja y apuntar-rediseno 71 de 71; anclas nuevas registradas en beta-sources.json; Catalogo235 solo con las 6 anclas historicas. Riesgo bajo no de dinero: tope de tamano a 1926 y 529 KiB, pendiente de que Analisis confirme la orden de Juanjo que citas. Limites: solo los puntos pedidos, e2e en Chromium headless."
+}
