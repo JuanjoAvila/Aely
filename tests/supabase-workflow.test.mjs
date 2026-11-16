@@ -96,7 +96,15 @@ try {
   const r = run(mock + validate + "\n" + migrate);
   assert.equal(r.status, 0);
   assert.match(r.stdout, /MOCK <link>/);
-  assert.match(r.stdout, /MOCK <db> <push> <--include-all>/);
+  assert.match(r.stdout, /MOCK <db> <push> <--remote> <--include-all> <--password> <ficticia> <--yes>/);
+  // Un fallo del SQL no puede salir en verde: el paso final lo convierte en error del job.
+  assert.match(step("Aplicar migraciones"), /id: migrar\n/);
+  assert.match(step("Aplicar migraciones"), /continue-on-error: true/);
+  assert.match(step("Resultado de migraciones"), /if: always\(\) && steps.migrar.outcome == 'failure'/);
+  const fin = run(script("Resultado de migraciones"));
+  assert.notEqual(fin.status, 0);
+  assert.match(fin.stdout, /::error::/);
+  assert.ok(steps.findIndex(s => s.name === "Resultado de migraciones") > steps.findIndex(s => s.name === "Desplegar Edge Functions"));
   console.log("✅ supabase-workflow: evento manual, " + functions.length + " funciones válidas, " + invalid.length + " entradas rechazadas, gate y argumentos con CLI simulado");
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });

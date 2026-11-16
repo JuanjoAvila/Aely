@@ -69,8 +69,13 @@ jobs:
 
       # Requiere migraciones=si y contraseña. --include-all conserva la ruta histórica;
       # el registro remoto puede diferir del repo: revisar el SQL antes de autorizarlo.
-      # continue-on-error permite seguir con la función; verde no acredita éxito del SQL.
+      # --remote apunta al proyecto enlazado por `link`: sin flag de destino la CLI actual empuja a
+      # la base LOCAL (por defecto) y falla en Actions; --linked sigue vivo pero deprecado (se
+      # quita en v4). --password solo vale junto a --remote. --yes: no hay terminal que confirme.
+      # continue-on-error deja seguir con la función; el fallo NO se pierde: lo recoge el último
+      # paso («Resultado de migraciones»), que pone el job en rojo.
       - name: Aplicar migraciones
+        id: migrar
         if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.migrate == 'true'
         continue-on-error: true
         env:
@@ -78,7 +83,7 @@ jobs:
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           supabase link --project-ref "${{ vars.SUPABASE_PROJECT_REF }}" --password "$DB_PASSWORD"
-          supabase db push --include-all --password "$DB_PASSWORD" --yes
+          supabase db push --remote --include-all --password "$DB_PASSWORD" --yes
 
       - name: Desplegar Edge Functions
         if: steps.gate.outputs.skip != 'true'
@@ -92,3 +97,12 @@ jobs:
           # --yes: la CLI (latest) pide confirmación desde nov. 2026 y en Actions no hay terminal:
           # sin él abortaba sin cambiar nada (run 43714083769). El alcance ya lo fija $FN.
           supabase functions deploy "$FN" --project-ref "${{ vars.SUPABASE_PROJECT_REF }}" --yes
+
+      # Antes un fallo del SQL salía en verde (continue-on-error) y la función se desplegaba como
+      # si nada. Ahora se despliega igual, pero el job acaba en rojo con una anotación visible.
+      - name: Resultado de migraciones
+        if: always() && steps.migrar.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::error::Las migraciones han FALLADO: el SQL no está aplicado (la función sí se ha desplegado). Revisa el log del paso «Aplicar migraciones»."
+          exit 1

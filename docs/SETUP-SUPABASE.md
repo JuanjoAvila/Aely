@@ -498,6 +498,16 @@ Opción rápida (recomendada la primera vez): **SQL Editor → New query**, pega
 
 (En CI, `SUPABASE_DB_PASSWORD` solo habilita migraciones si se selecciona expresamente `migraciones=si` al lanzar el workflow manual; revisar previamente el SQL.)
 
+**Migraciones por CI (`supabase.yml`, 16/11/2026).** El paso «Aplicar migraciones» hace `supabase link` y
+`supabase db push --remote --include-all --password … --yes`. Según la referencia de la CLI
+(<https://supabase.com/docs/reference/cli/supabase-db-push>), sin flag de destino `db push` apunta a la base
+LOCAL; `--remote` apunta al proyecto enlazado, `--password` sigue vigente pero solo junto a `--remote`,
+`--yes` es global y obligatorio sin terminal, y `--linked`/`--db-url`/`--project-ref` siguen en v3 pero
+deprecados (se quitan en v4). Antes el paso llevaba `continue-on-error` y un fallo del SQL salía en verde:
+ahora la función se despliega igualmente, pero el paso final «Resultado de migraciones» emite
+`::error::` y pone el job en rojo. Rojo con función desplegada = SQL sin aplicar.
+`tests/supabase-workflow.test.mjs` lo vigila.
+
 ### Migración 0019 — límite de peticiones y caducidad del `state` (4.10.0)
 
 `0019_rate_limit.sql` añade la tabla `rate_limits` (sin políticas RLS a propósito: NADIE llega desde
