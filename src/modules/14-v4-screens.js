@@ -4859,6 +4859,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      250 px de golpe: el campo se iba de debajo del dedo y el toque acababa en el velo, que la cierra. */
   const [kbAlto,setKbAlto]=useState(0);
   const listoAt=useRef(0);
+  /* Mientras la hoja baja tras guardar, el botón sigue debajo del dedo: un doble toque rápido
+     apuntaba DOS gastos (encargo 236, P2-1). Como `addedRef` de las deudas: se suelta al reabrir. */
+  const guardadoRef=useRef(false);
   // Dedo puesto mientras se escribe: el blur de un toque en la hoja llega en el `mousedown`.
   const dedoRef=useRef(false);
   const noteRef=useRef(note); noteRef.current=note;
@@ -4888,6 +4891,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   useEffect(function(){
     // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
     if(open&&!ensayo){
+      guardadoRef.current=false;
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
@@ -4998,12 +5002,13 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const save=function(){
     // El toque en «Listo» quita el foco y el botón vuelve a ser «Apuntar» bajo el mismo dedo: ese
     // mismo toque no puede acabar guardando.
-    if(Date.now()-listoAt.current<500) return;
+    if(Date.now()-listoAt.current<500||guardadoRef.current) return;
     if(!(amt>0)){ showToast(t("v4_apuntar_need")); return; }
     if(entryCur!=="EUR"){
       const r=tbl[entryCur];
       if(!(r>0)){ showToast(t("fx_no_rate")); return; }
     }
+    guardadoRef.current=true;
     try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
     const isIn=kind==="ingreso";
     // Guardamos en € (base de la app); lo tecleado iba en entryCur.
