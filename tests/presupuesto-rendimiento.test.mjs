@@ -367,7 +367,14 @@ const PRESUPUESTO = {
   // Lote 235 menores (15/11): 1.949.731 B con sello, 35 sobre el tope. Se quitan del tema claro
   // ocho selectores que ya no lleva ningún elemento (dc-badge, v4-pill, recap-v, v4-pace-marks,
   // tab-add, icon-btn): 1.949.449 B, quedan 247. El tope no se mueve.
-  minificado: 1904 * 1024,
+  // Integración 4.26.235 (16/11): junta las nueve ramas del diseño 235 (+20 KB de producto). Lo que suma cada una sobre su
+  // base, minificado JS + CSS: Apuntar DIS-01/02/03/05 +7,2 KB, Gastos con pulsación larga +5,3 KB, lote de menores +4,8 KB,
+  // avisos de banco +4,0 KB, Ajustes en cuatro grupos +0,4 KB, DIS-11/31 −0,7 KB, DIS-26 −0,2 KB (y el arreglo de
+  // montoEditable, +62 B). Buscado código y CSS muerto de verdad: no llega a 1 KB, y lo poco que hay lo leen tests o el
+  // registro. Medido sin sello: 1.970.260 B minificado y 540.571 B gzip (1924,1 / 527,9 KiB). SUBE (el dueño fijó el 11/10
+  // que el tope de tamaño no bloquea producto: se sube al mínimo medido, como en Inicio v4.2 y la PR 204) a 1926 / 529 KiB,
+  // con el margen justo para el sello.
+  minificado: 1926 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -407,7 +414,7 @@ const PRESUPUESTO = {
   // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
   // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
   // dueño; SUBE (mandato 11/10) a 524 KiB.
-  gzip: 522 * 1024, // ver el comentario de minificado (520 KiB medidos el 14/11/2026).
+  gzip: 529 * 1024, // ver el comentario de minificado (527,9 KiB medidos el 16/11/2026 en la integración 4.26.235).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
