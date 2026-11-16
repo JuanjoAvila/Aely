@@ -549,7 +549,7 @@ export const E2E_MAP = [
     "e2e/inicio-cargos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",
-    "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
+    "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-doble-toque.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs", "e2e/perfil-sin-datos-banco.spec.mjs",

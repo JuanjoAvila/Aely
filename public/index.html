@@ -27784,8 +27784,16 @@ function deudaAmortizada(x, bal, amt){
     // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
     if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
     o.settledAt=new Date().toISOString();
-  }else if(x.months!=null&&!vencida&&am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=paid+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); }
+  }else if(x.months!=null&&!vencida&&am>0){ const n=cuotasQueQuedan(remaining-(x.balloon||0),am); o.months=paid+(n>0?n:(x.balloon>0?1:0)); }
   return o;
+}
+/* Cuotas de `am` que hacen falta para `viaM`, contadas en CÉNTIMOS. En euros, 72,45 / 10,35 da
+   7,000000000000001 y el `ceil` sumaba una cuota fantasma que alargaba el plazo un mes (y el asesor
+   contaba una cuota menos recortada); restar un pago final también deja ese polvo de coma flotante.
+   0 = no queda nada que pagar con cuotas (por debajo de medio céntimo, también). */
+function cuotasQueQuedan(viaM, am){
+  const v=Math.round(viaM*100), a=Math.round(am*100);
+  return v>0&&a>0?Math.ceil(v/a):0;
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -28184,8 +28192,8 @@ function amortRecorte(d,amt){
   const am=debtAmort(d);
   if(d.months==null || !(am>0)) return null;
   const leftNow=debtLeft(d), nb=+(debtBalance(d)-amt).toFixed(2);
-  const viaM=Math.max(0, nb-(d.balloon||0));
-  const leftNew=viaM>0?Math.ceil(viaM/am):((d.balloon>0&&nb>0.005)?1:0);
+  const n=cuotasQueQuedan(nb-(d.balloon||0),am);
+  const leftNew=n>0?n:((d.balloon>0&&nb>0.005)?1:0);
   return {leftNow:leftNow, leftNew:leftNew, cut:Math.max(0,(leftNow||0)-leftNew)};
 }
 function AmortAdvisor({state, onEdit}){
@@ -31927,7 +31935,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b2259ac2b687dd6dd096aa9a6e5155aaeca21659a7a4b9e0ba3da381cfe52de7";
+var _rnSha="a35fef2eb6f76a7834f3aa07fb65df29d219aa51123918b3169b1ef1ab554fa5";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -38350,6 +38358,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      250 px de golpe: el campo se iba de debajo del dedo y el toque acababa en el velo, que la cierra. */
   const [kbAlto,setKbAlto]=useState(0);
   const listoAt=useRef(0);
+  /* Mientras la hoja baja tras guardar, el botón sigue debajo del dedo: un doble toque rápido
+     apuntaba DOS gastos (encargo 236, P2-1). Como `addedRef` de las deudas: se suelta al reabrir. */
+  const guardadoRef=useRef(false);
   // Dedo puesto mientras se escribe: el blur de un toque en la hoja llega en el `mousedown`.
   const dedoRef=useRef(false);
   const noteRef=useRef(note); noteRef.current=note;
@@ -38375,6 +38386,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   useEffect(function(){
     // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
     if(open&&!ensayo){
+      guardadoRef.current=false;
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
@@ -38485,12 +38497,13 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const save=function(){
     // El toque en «Listo» quita el foco y el botón vuelve a ser «Apuntar» bajo el mismo dedo: ese
     // mismo toque no puede acabar guardando.
-    if(Date.now()-listoAt.current<500) return;
+    if(Date.now()-listoAt.current<500||guardadoRef.current) return;
     if(!(amt>0)){ showToast(t("v4_apuntar_need")); return; }
     if(entryCur!=="EUR"){
       const r=tbl[entryCur];
       if(!(r>0)){ showToast(t("fx_no_rate")); return; }
     }
+    guardadoRef.current=true;
     try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
     const isIn=kind==="ingreso";
     // Guardamos en € (base de la app); lo tecleado iba en entryCur.
