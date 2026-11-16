@@ -38,9 +38,14 @@ for (const tm of TEMAS) for (const mv of MOVS) {
     await page.waitForTimeout(1100);
     const box = await page.evaluate(() => {
       const r = document.querySelector(".botnav-fab").getBoundingClientRect();
-      return { x: Math.floor(r.left) - 4, y: Math.floor(r.top) - 4, width: Math.ceil(r.width) + 8, height: Math.ceil(r.height) + 8 };
+      const x = Math.floor(r.left) - 4, y = Math.floor(r.top) - 4;
+      return { x, y, width: Math.ceil(r.width) + 8, height: Math.ceil(r.height) + 8,
+        cx: r.left + r.width / 2 - x, cy: r.top + r.height / 2 - y, r: r.width / 2 + 1 };
     });
-    const medir = async () => fabPixels(decodePng(await page.screenshot({ clip: box })));
+    // Solo dentro del círculo del FAB en reposo (ver `fabPixels`): lo que asoma por las esquinas
+    // del recorte es la página, no el FAB.
+    const circulo = { cx: box.cx, cy: box.cy, r: box.r, w: box.width };
+    const medir = async () => fabPixels(decodePng(await page.screenshot({ clip: { x: box.x, y: box.y, width: box.width, height: box.height } })), circulo);
     const completo = await medir();
     expect(completo, "el FAB visible tiene que pintar un círculo medible").toBeGreaterThan(1500);
 

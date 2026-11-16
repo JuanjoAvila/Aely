@@ -35,7 +35,9 @@ const PASOS = [
   { sel: '.botnav-tab[data-tour="gastos"]' },
   { sel: ".botnav-fab", round: true },
   { sel: '.botnav-tab[data-tour="plan"]' },
-  { sel: ".v4-seg" },
+  // El de Plan (`data-seg`): desde la 235 Gastos también lleva un `.v4-seg` (sus secciones) y,
+  // premontado a la izquierda, `.first()` medía ese y no el que enseña el tour.
+  { sel: ".v4-seg:has(> .v4-seg-btn[data-seg])" },
   { sel: '.botnav-tab[data-tour="cartera"]' },
   { sel: ".v4-avatar, [data-tour='avatar']", round: true },
   { tipOnly: true },

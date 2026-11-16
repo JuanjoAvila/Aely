@@ -23,9 +23,21 @@ export function decodePng(buf) {
 }
 // Píxel de FAB: lo que se aleja del color de fondo del recorte (esquina). Umbral alto: la sombra
 // del FAB es tenue y no debe contar como círculo.
-export function fabPixels(png) {
+// `circulo` ({cx, cy, r, w} en px CSS del recorte, w = su ancho) cuenta solo dentro del círculo: el
+// recorte es cuadrado y por las esquinas asoma lo que haya detrás. Desde la 235 la fila «Ponte una
+// meta» de Inicio queda justo bajo el borde de arriba del FAB en reposo; su texto blanco contaba
+// como círculo en la medida de referencia y, al desplazarse con el gesto, parecía que el FAB
+// había perdido un 2 % (16/11/2026).
+export function fabPixels(png, circulo) {
   const bg = [png.px[0], png.px[1], png.px[2]];
+  const k = circulo ? png.w / circulo.w : 1;
   let n = 0;
-  for (let i = 0; i < png.px.length; i += 4) { const d = Math.abs(png.px[i] - bg[0]) + Math.abs(png.px[i + 1] - bg[1]) + Math.abs(png.px[i + 2] - bg[2]); if (d > 150) n++; }
+  for (let i = 0; i < png.px.length; i += 4) {
+    if (circulo) {
+      const p = i / 4, x = (p % png.w) / k - circulo.cx, y = Math.floor(p / png.w) / k - circulo.cy;
+      if (x * x + y * y > circulo.r * circulo.r) continue;
+    }
+    const d = Math.abs(png.px[i] - bg[0]) + Math.abs(png.px[i + 1] - bg[1]) + Math.abs(png.px[i + 2] - bg[2]); if (d > 150) n++;
+  }
   return n;
 }
