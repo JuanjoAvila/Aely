@@ -182,13 +182,15 @@ test("reducir movimiento cierra la ficha sin esperar una animación invisible", 
   await expect(page.locator("html")).not.toHaveClass(/sheet-open/);
 });
 
-test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe y banco", async ({ page }) => {
+test("ficha v4.1: un movimiento automático lleva candado y bloquea importe y banco", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
 
   await fila(page, "Mercadona").click();
   const sheet = page.locator(".v4-exp-sheet");
-  await expect(sheet.locator('[data-testid="exp-trace"]')).toBeVisible();
+  await expect(sheet.getByTestId("exp-locked")).toBeVisible();
+  await expect(sheet.getByTestId("exp-trace")).toHaveCount(0);
+  await expect(sheet).not.toContainText("Lo trajo una notificación");
   await expect(sheet.locator('[data-testid="exp-bank"]')).toHaveClass(/locked/);
   await expect(sheet.locator(".v4-ficha-foot .v4-cta")).toHaveCount(0);
   await expect(sheet.locator(".v4-ficha-saved")).toContainText("Se guarda al momento");

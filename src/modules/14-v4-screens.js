@@ -4869,7 +4869,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const bankOpts=useMemo(function(){
     const seen={}; const out=[];
     (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
-    // El sobre tiene chip propio al lado de 📅; fuera de la lista del 🏦 para no duplicarlo.
+    // El sobre ya es «Efectivo» en el segmentado: fuera de los logos para no duplicarlo.
     return out.filter(function(e){ return e!=="efectivo"; });
   },[state.accounts]);
   const hasEfectivo=useMemo(function(){
@@ -4881,10 +4881,6 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       || (state.accounts||[]).find(function(a){ return a && accDaily(a); });
     return (d&&d.ent)||null;
   },[state.accounts]);
-  const bankChipLabel=function(ent){
-    if(ent==null) return t("ap_bank_none");
-    return (isEfectivoEnt(ent)?"💶 ":"🏦 ")+entOf(ent).label;
-  };
   useEffect(function(){
     // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
     if(open&&!ensayo){
@@ -5062,17 +5058,14 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   };
   const payRow=React.createElement(ExpensePayRow,{income:kind==="ingreso",mode:payMode,onMode:onPayMode,cashDisabled:!hasEfectivo,
     // En un ingreso se queda como estaba: la píldora del banco enseña el diario aunque vaya a efectivo.
-    bankEnt:kind==="ingreso"&&bank==="efectivo"?dailyBankEnt:bank,bankOn:bankOpen,testPrefix:"ap",
+    bankEnt:kind==="ingreso"&&bank==="efectivo"?dailyBankEnt:bank,bankOn:bankOpen,testPrefix:"ap",bankOpts:bankOpts,
+    onPickBank:function(b){ setBank(b); setBankOpen(false); },
     onBank:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); setCurOpen(false); }});
   const afterMeta=React.createElement(React.Fragment,null,
     curOpen && React.createElement("div",{className:"v4-chips wrap","aria-label":t("ap_cur_lbl")},
       curChips.map(function(c){ return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),
         onClick:function(){ pickCur(c); setCurOpen(false); }},(CUR_SYM[c]||c)+" "+c); })),
     calOpen && React.createElement(McCal,{value:date,onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
-    bankOpen && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"ap-bank-list"},
-      React.createElement("button",{type:"button",className:"v4-chip"+(bank==null?" on":""),onClick:function(){ setBank(null); setBankOpen(false); }},t("ap_bank_none")),
-      bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),
-        onClick:function(){ setBank(b); setBankOpen(false); }},bankChipLabel(b)); })),
     chipIA && kind==="gasto" && React.createElement("div",{className:"v4-chips",style:{marginBottom:4}},
       React.createElement("button",{type:"button",className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
         onClick:function(){ pickCat(chipIA); }},"✨ "+catName(chipIA)))

@@ -326,6 +326,18 @@ const sinConfirmar211=u=>{if(!u)return u;if(u.members&&u.members.length>=1&&u.me
 const pago235=u=>u&&u.file==="src/modules/04-tab-gastos.js"&&u.from==="  const payMode=bk===\"efectivo\""?{...u,from:"    {id:\"cash\",testId:\"exp-efectivo\"",to:"    {id:\"date\",testId:\"exp-date\""}:u;
 // Y al revés, para contrastar el registro de la 232 con la fuente viva: su ancla vieja ya no existe.
 const aPago235=u=>u&&u.file==="src/modules/04-tab-gastos.js"&&u.from==="    {id:\"cash\",testId:\"exp-efectivo\""?{...u,from:"  const payMode=bk===\"efectivo\"",to:"  const payRow=React.createElement(ExpensePayRow"}:u;
+// Remate de la 235 (16/11, petición del dueño): la ficha pierde la tarjeta «Lo trajo una notificación…» (fuera f_trace_missing,
+// el ancla de textos de inc-2909-03-retirada pasa a la línea siguiente, f_locked_toast) y sus filas pasan a chips (la fila de la
+// nota ya no existe: el bloque de los recibos de inc-3009-01-cargos y recibos-cargo-unico termina en el panel de la nota).
+const TRAZA_REMATE={"    f_trace_missing:\"— texto original no disponible\",":"    f_locked_toast:\"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.\",",
+  "    f_trace_missing:\"— original text unavailable\",":"    f_locked_toast:\"The bank sets the amount, account and money direction. You can correct the category here.\",",
+  "    f_trace_missing:\"— text original no disponible\",":"    f_locked_toast:\"El banc fixa l'import, el compte i si entren o surten diners. La categoria sí que es pot corregir aquí.\","};
+const NOTA_FILA234="    React.createElement(\"button\",{type:\"button\",className:\"v4-ficha-adjust-row\",onClick:function(){ setAdjustOpen(adjustOpen===\"note\"";
+const NOTA_PANEL235="    note:React.createElement(\"div\",{className:\"v4-ficha-adjust-open\"},";
+// El panel de la deuda ya no cierra un Fragment con su fila: el final del bloque de plan-recibos-qa pierde un paréntesis.
+const DEUDA_FIN234="catName(\"deudas\"))); }))),",DEUDA_FIN235="catName(\"deudas\"))); })),";
+const aRemate235=u=>{if(!u)return u;if(u.file==="src/modules/01-i18n.js"&&TRAZA_REMATE[u.from])return {...u,from:TRAZA_REMATE[u.from]};if(u.file==="src/modules/04-tab-gastos.js"&&u.from==="  const receiptDate="&&u.to===NOTA_FILA234)return {...u,to:NOTA_PANEL235};if(u.file==="src/modules/04-tab-gastos.js"&&u.to===DEUDA_FIN234)return {...u,to:DEUDA_FIN235};return u;};
+const desdeRemate235=u=>{if(!u)return u;const viejo=Object.keys(TRAZA_REMATE).find(k=>TRAZA_REMATE[k]===u.from);if(u.file==="src/modules/01-i18n.js"&&viejo)return {...u,from:viejo};if(u.file==="src/modules/04-tab-gastos.js"&&u.from==="  const receiptDate="&&u.to===NOTA_PANEL235)return {...u,to:NOTA_FILA234};if(u.file==="src/modules/04-tab-gastos.js"&&u.to===DEUDA_FIN235)return {...u,to:DEUDA_FIN234};return u;};
 const sinCompras135=u=>u&&u.members?{...u,members:u.members.filter(m=>m!=="deleteExpense"&&m!=="logEvent")}:u;
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
@@ -448,7 +460,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
   assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado","vibracion-suave-ronda-3","plan-por-confirmar-prestamo-youtube","vuelta-sin-tiron","deuda-bajar-cuota-alarga-plazo","cartera-ordenar-brokers","youtube-enlazar-recibo","vibracion-ajustador","pestanas-swipe-rapido","gestionar-plan-sin-ola","renombrar-y-notas-seguras","gestionar-plan-ola","vibracion-ajustador-r2","gestionar-plan-ola-r2","vibracion-r3","youtube-diagnostico","renombrar-lista-al-momento","recibos-cifra-cuadra","cartera-sin-lagazo","renombrar-sin-cobertura","vibracion-r4","youtube-ficha-reconoce","vibracion-r5","vibracion-r6","youtube-r4","recibos-meses-a-mano","gastos-dos-bancos","cartera-moneda","categoria-coche","deuda-nueva-desde-su-dia","gastos-v5-movimientos","gastos-v5-secciones","gastos-v5-filtro","gastos-v5-subs","gastos-v5-filtros-hoja","sync-dos-moviles","gastos-v5-ciclos-metas-inversiones","plan-dos-moviles","gastos-lag-ciclos","inicio-mes-futuro","gastos-lag-ciclos-r3","recibo-vinculo-saldo","gastos-meses-letra-nombres","gastos-recibo-fila-textos-cortos","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","widget-pasado-del-limite","widget-se-actualiza-solo","inicio-anillo-usado","plan-recibos-v6-t1","deuda-ir-suave","plan-recibos-v6-t2","gastos-renombrar-otro-banco","gastos-renombrar-traspaso","recibos-anual-inversiones-eur","plan-recibos-t3","fin28-aviso-enlace-manual","tr-login-v2","barra-gastos-carga","inicio-traspasos","plan-recibos-t4","gastos-filtros-icono","plan-recibos-guardar-pagado","informe-mes-limite-del-mes","plan-recibos-qa","plan-recibos-t5","plan-recibos-t6","pro03-aviso-te-llega","deuda-ponle-dia","tr-inversion-mensual","deuda-lo-descuento","traspaso-propio-confirmado","recibo-anual-mes","plan-velo-fundido","recibo-quitar-deshacer","deuda-tae-con-descuento","recibo-cargo-pendiente","traspaso-ingreso-manual","recibos-zona-pulida","recibos-retoques-229","recibos-230","plan-gastos-231","plan-gastos-232","auditorias-233","dinero-234","diseno-235"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143, la144, la145, la146, la147, la148, la149, la150, la151, la152 y la153, sin retirar historia120");
-  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).filter(u=>!(u&&u.function==="removeFixedById")).map(limpieza129).map(retirada164).map(retirada166).map(retirada167).map(retirada169).filter(Boolean))assert.ok(scopes[key].web.map(pago235).map(sinCanSet213).map(sinIngreso212).map(desde199).map(desde198).map(sinMeta172).map(sinMensual208).map(sinConfirmar211).map(sinTraspaso210).some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).filter(u=>!(u&&u.function==="removeFixedById")).map(limpieza129).map(retirada164).map(retirada166).map(retirada167).map(retirada169).filter(Boolean))assert.ok(scopes[key].web.map(desdeRemate235).map(pago235).map(sinCanSet213).map(sinIngreso212).map(desde199).map(desde198).map(sinMeta172).map(sinMensual208).map(sinConfirmar211).map(sinTraspaso210).some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))||JSON.stringify(sinFin19(sinMetodo122(s)))===JSON.stringify(sinMetodo122(part))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -6584,9 +6596,15 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
 //   · inicio-patrimonio-flujos: Inicio decide la cifra o la salida de «primera cuenta» con mcSinNada (02), que el cierre por
 //     defecto no recorre y el test de Inicio v4.2 exige vigilado: crece con esa unidad;
 //   · auditorias-233: sin gestureAxis, GEST_LEAD ni GEST_MAX, que solo leía el asa de Gastos (DIS-14 la quitó; 7f3b70296).
+// Remate (16/11, el dueño mira la beta): DIS-15 se deshace —vuelven GX_SECC_ICO y los comentarios CSS de los iconos—, así que
+// gastos-v5-secciones y gastos-v5-ciclos-metas-inversiones vuelven a ser los de la 234 sin reancla. Y tres reanclas nuevas:
+//   · inc-2909-03-retirada: además del pago, su bloque de textos empieza en f_locked_toast (f_trace_missing ya no existe);
+//   · inc-3009-01-cargos y recibos-cargo-unico: los recibos de la ficha terminan en el panel de la nota (la fila ya no existe);
+//   · plan-recibos-qa: el panel de la cuota de deuda ya no cierra el Fragment de su fila (un paréntesis menos al final).
+// El ancla CSS del pago de diseno-235 pasa a `.v4-ficha-pay{position:relative;display:flex;` (el selector de bancos va encima).
 test("Catálogo235 conserva dinero-234 sin veredicto, abre diseno-235, reancla lo que el diseño movió y hace crecer el registro con el cierre de lectores",()=>{
   const nueva="diseno-235",anterior="dinero-234";
-  const V14="src/modules/14-v4-screens.js",V02="src/modules/02-ui-shared.js",V03="src/modules/03-tab-dash.js",V05="src/modules/05-dialogs-inv.js",V07="src/modules/07-tab-patri-fijos.js",V09="src/modules/09-tab-debts-goals.js",V10="src/modules/10-app-components.js",G0="src/modules/04-tab-gastos.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/";
+  const V14="src/modules/14-v4-screens.js",V02="src/modules/02-ui-shared.js",V03="src/modules/03-tab-dash.js",V05="src/modules/05-dialogs-inv.js",V07="src/modules/07-tab-patri-fijos.js",V09="src/modules/09-tab-debts-goals.js",V10="src/modules/10-app-components.js",G0="src/modules/04-tab-gastos.js",SH="src/shell.html",I18N="src/modules/01-i18n.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta234("scripts/beta-sources.json")),before=JSON.parse(sourceBeta234("src/data/release-notes.json"));
   const source=f=>nl(read(f)),old=f=>nl(sourceBeta234(f));
   assert.equal(before[0].v,"4.26.234");
@@ -6622,18 +6640,20 @@ test("Catálogo235 conserva dinero-234 sin veredicto, abre diseno-235, reancla l
   const PAST_OLD="  /* La pastilla activa va en MENTA, como el icono de sección activo:",PAST_NEW="  /* La pastilla activa va en MENTA, como la sección activa: en gris oscuro casi no se";
   const BIENES_H={file:V07,from:"      titulo && parte===\"bienes\" && React.createElement(\"div\",{className:\"v4-sec-h v4-section-h\"},",to:"      parte!==\"bienes\" && React.createElement(\"div\",{className:\"v4-card-list\",ref:bindListDrag},"};
   const reancla={
-    "inc-2909-03-retirada":w=>w.map(aPago235),
-    "gastos-v5-secciones":w=>w.filter(u=>!(u.file===G0&&u.data==="GX_SECC_ICO")).map(u=>u.file===SH&&u.from===SECC_OLD?{...u,from:SECC_NEW}:u),
-    "gastos-v5-ciclos-metas-inversiones":w=>w.map(u=>u.file===SH&&u.from===PAST_OLD&&u.to===SECC_OLD?{...u,from:PAST_NEW,to:SECC_NEW}:u),
+    "inc-2909-03-retirada":w=>w.map(aPago235).map(aRemate235),
+    "inc-3009-01-cargos":w=>w.map(aRemate235),
+    "recibos-cargo-unico":w=>w.map(aRemate235),
+    "plan-recibos-qa":w=>w.map(aRemate235),
     "bienes-completo":w=>w.concat([BIENES_H]),
     "inicio-patrimonio-flujos":w=>w.concat([{file:V02,function:"mcSinNada"}]),
     "auditorias-233":w=>w.filter(u=>!(u.file==="src/modules/00-core.js"&&(u.function==="gestureAxis"||u.data==="GEST_LEAD"||u.data==="GEST_MAX"))),
   };
   for(const [k,f] of Object.entries(reancla))assert.notDeepEqual(f(integrated[k].web),integrated[k].web,k+": el reanclado cambia algo");
-  // Lo que se quita es lo que ya no existe: los iconos de sección y los comentarios viejos; lo nuevo existe una sola vez.
-  assert.equal(/\bGX_SECC_ICO\b/.test(source(G0)),false,"GX_SECC_ICO ya no existe en Gastos");
-  for(const a of [SECC_OLD,PAST_OLD,"    {id:\"cash\",testId:\"exp-efectivo\""])assert.equal(source(a.includes("cash")?G0:SH).includes(a),false,"el ancla vieja ya no existe: "+a);
-  for(const [f,a] of [[SH,SECC_NEW],[SH,PAST_NEW],[G0,"  const payMode=bk===\"efectivo\""],[V07,BIENES_H.from],[V07,BIENES_H.to]])assert.equal(source(f).split(a).length,2,"ancla nueva inequívoca: "+a);
+  // Lo que se quita es lo que ya no existe; lo nuevo existe una sola vez. Con el remate vuelven los iconos de sección (y sus
+  // comentarios) y el segmentado de secciones no queda: las anclas de la 234 vuelven a ser las buenas.
+  assert.equal(/\bGX_SECC_ICO\b/.test(source(G0)),true,"GX_SECC_ICO vuelve a Gastos (remate)");
+  for(const [f,a] of [[SH,SECC_NEW],[SH,PAST_NEW],[G0,"    {id:\"cash\",testId:\"exp-efectivo\""],[I18N,"f_trace_missing"],[G0,NOTA_FILA234]])assert.equal(source(f).includes(a),false,"el ancla vieja ya no existe: "+a);
+  for(const [f,a] of [[SH,SECC_OLD],[SH,PAST_OLD],[G0,"  const payMode=bk===\"efectivo\""],[V07,BIENES_H.from],[V07,BIENES_H.to],[G0,NOTA_PANEL235],...Object.values(TRAZA_REMATE).map(a=>[I18N,a])])assert.equal(source(f).split(a).length,2,"ancla nueva inequívoca: "+a);
   const fns=logicFunctions(source),dat=logicData(source);
   const cierre=(web0)=>{
     let web=web0.slice();
@@ -6673,7 +6693,7 @@ test("Catálogo235 conserva dinero-234 sin veredicto, abre diseno-235, reancla l
   const propias=[...fn(V14,["ApuntarSheet","CarteraTab","PlanTab"]),...fn(G0,["Expenses","ExpenseDetailSheet","gxReorden"]),{file:G0,data:"MovRow"},
     ...fn(V02,["ExpensePayRow","ExpenseCategoryGrid","expenseTopCategoryRanking","expenseTopCategoryPick","montoEditable","avisoBancoTxt","AvisosBanco","AvisoBancoFranja"]),
     ...fn(V03,["Dashboard"]),...fn(V09,["Debts","AmortAdvisor","amortRecorte","Goals","PlanEditSheet"]),...fn(V05,["AskHost"]),...fn(V10,["SettingsPanel"]),
-    ...["  .v4-ficha-amount{min-height:58px;","  .v4-ficha-body[data-testid=\"ap\"][data-kb=\"1\"] > .v4-keys{display:none;","  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid=\"ap\"]){transition:","  .v4-ficha-body[data-testid=\"ap\"] > .v4-keys{position:sticky;","  .v4-ficha-pay{display:flex;","  .gx-reorden .v4-mov{will-change:transform;","  .v4-bank-issues{margin-top:10px;","  .v4-bank-issue-sub{display:grid;","  .v4-bank-strip{display:flex;"].map(css),G];
+    ...["  .v4-ficha-amount{min-height:58px;","  .v4-ficha-body[data-testid=\"ap\"][data-kb=\"1\"] > .v4-keys{display:none;","  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid=\"ap\"]){transition:","  .v4-ficha-body[data-testid=\"ap\"] > .v4-keys{position:sticky;","  .v4-ficha-pay{position:relative;display:flex;","  .gx-reorden .v4-mov{will-change:transform;","  .v4-bank-issues{margin-top:10px;","  .v4-bank-issue-sub{display:grid;","  .v4-bank-strip{display:flex;"].map(css),G];
   {
     const ahora=scopes[nueva];
     assert.deepEqual(Object.keys(ahora),["web","unidades"],nueva+": claves");assert.equal(ahora.unidades,true);

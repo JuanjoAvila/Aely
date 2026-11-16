@@ -3,7 +3,7 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosRoot, ga
 
 /* DISEÑO 235, LOTE DE MENORES DE GASTOS. Render puro (AGENTS §7): cada prueba abre la pantalla de
    verdad y mira el DOM, no el código.
-   · DIS-15: las secciones son un segmentado con su nombre (no tres iconos), con 44 px de dedo;
+   · DIS-15 (deshecho el 16/11): las secciones vuelven a ser tres iconos junto al título;
    · DIS-16: bajando, la línea de estado dice DELANTE y en menta «hasta el N»;
    · DIS-17: Categorías con céntimos, como la cifra de arriba;
    · DIS-18: el vacío ofrece Apuntar y, sin bancos, Conectar;
@@ -36,25 +36,34 @@ async function abre(page, overrides = {}) {
   await expect(gastosRoot(page)).toBeVisible();
 }
 
-test("DIS-15: secciones con su nombre en un segmentado, enteras a 360 y con 44 px de dedo", async ({ page }) => {
+/* DIS-15 se deshizo a petición del dueño (16/11: «deja los iconos de movimiento y demás arriba
+   como estaba»): las secciones vuelven a ser tres iconos de 44 px junto al título, dentro de la
+   cabecera. Se vigila que sigan ahí, con su nombre para el lector, y que cada uno cambie de sección
+   tocándolo de verdad (no por el helper, que podría ir por otro camino). */
+test("DIS-15 deshecho: tres iconos junto al título, 44 px de dedo, y cada uno cambia de sección", async ({ page }) => {
   await abre(page);
-  const tabs = gastosRoot(page).locator('.gx-seg [role="tab"]');
-  await expect(tabs).toHaveText(["Movimientos", "Categorías", "Suscripciones"]);
-  await expect(gastosRoot(page).locator('.gx-seg [role="tab"] svg')).toHaveCount(0);
-  const medidas = await tabs.evaluateAll((els) => els.map((el) => {
-    const r = el.getBoundingClientRect(), txt = el.querySelector(".gx-sec-txt");
-    // El borde ampliado (`::after`) tiene que seguir siendo el botón: 44 px de alto en total.
-    const arriba = document.elementFromPoint(r.left + r.width / 2, r.top - 1), abajo = document.elementFromPoint(r.left + r.width / 2, r.bottom + 1);
-    const af = getComputedStyle(el, "::after");
-    return { alto: el.offsetHeight - parseFloat(af.top) - parseFloat(af.bottom), ext: el.contains(arriba) && el.contains(abajo), cortado: txt.scrollWidth > txt.clientWidth + 1 };
-  }));
+  const tabs = gastosRoot(page).locator('.gx-titulo .gx-secciones [role="tab"]');
+  await expect(tabs).toHaveCount(3);
+  await expect(gastosRoot(page).locator(".gx-seg")).toHaveCount(0);
+  await expect(tabs.locator("svg")).toHaveCount(3);
+  await expect(tabs.nth(0)).toHaveAttribute("aria-label", "Movimientos");
+  await expect(tabs.nth(1)).toHaveAttribute("aria-label", "Categorías");
+  await expect(tabs.nth(2)).toHaveAttribute("aria-label", "Suscripciones");
+  const medidas = await tabs.evaluateAll((els) => {
+    const h1 = document.querySelector(".gx-root .gx-titulo .v4-title").getBoundingClientRect();
+    return els.map((el) => { const r = el.getBoundingClientRect(); return { w: r.width, h: r.height, misma: Math.abs((r.top + r.bottom) / 2 - (h1.top + h1.bottom) / 2) < 12 }; });
+  });
   for (const m of medidas) {
-    expect(m.alto, "dibujo + borde ampliado, en px CSS").toBeGreaterThanOrEqual(44);
-    expect(m.ext, "el ::after amplía el área táctil").toBe(true);
-    expect(m.cortado, "el nombre cabe entero a 360").toBe(false);
+    expect(m.w, "ancho de dedo").toBeGreaterThanOrEqual(44);
+    expect(m.h, "alto de dedo").toBeGreaterThanOrEqual(44);
+    expect(m.misma, "en la fila del título").toBe(true);
   }
-  await gastosSeccion(page, "subs");
-  await expect(gastosRoot(page).locator('[data-gx-tab="subs"]')).toHaveClass(/\bon\b/);
+  for (const id of ["cats", "subs", "movs"]) {
+    await gastosRoot(page).locator('.gx-titulo [data-gx-tab="' + id + '"]').click();
+    await expect(gastosRoot(page)).toHaveAttribute("data-secc", id);
+    await expect(gastosRoot(page).locator('[data-gx-tab="' + id + '"]')).toHaveAttribute("aria-selected", "true");
+    await expect(gastosRoot(page).locator('[data-gx-secc="' + id + '"]')).toHaveAttribute("aria-hidden", "false");
+  }
 });
 
 test("DIS-16 y DIS-17: bajando, «hasta el 20» delante y en menta; Categorías con céntimos", async ({ page }) => {

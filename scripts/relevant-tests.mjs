@@ -403,7 +403,7 @@ export const E2E_MAP = [
     "e2e/cifras-coherentes.spec.mjs",
     // Gastos v5 tanda 2: secciones, tirón con un solo toque, Categorías y Suscripciones como antes.
     "e2e/gastos-v5-secciones.spec.mjs",
-    // Diseño 235 (lote de menores): secciones con nombre, «hasta el N» en menta, Categorías con
+    // Diseño 235 (lote de menores): secciones otra vez en iconos (16/11), «hasta el N» en menta, Categorías con
     // céntimos, el vacío con sus dos puertas y el importe «12,50» de la ficha Modificar.
     "e2e/gastos-menores-235.spec.mjs",
     // Gastos v5 tanda 3: tocar una categoría filtra (píldora, cifra de la categoría, meses fijos) y
@@ -580,6 +580,9 @@ export const CROSSCUTTING = [
   /* Rediseño de Apuntar (auditoría 15/11): importe, alto de la hoja y letra Enorme dependen del
      CSS global de las hojas y del zoom del body, no solo de la pantalla de Gastos. */
   "e2e/apuntar-rediseno.spec.mjs",
+  /* Remate 235 (16/11): el banco con logos en la fila del pago es de 02 y lo usan Apuntar (14) y la
+     ficha (04); la ficha pierde la tarjeta de origen y sus filas pasan a chips. */
+  "e2e/banco-logos-ficha.spec.mjs",
   // INC-2709-12: el + de Cyberpunk por encima de la corriente de la barra, en todas las pestañas.
   "e2e/cyber-fab.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",

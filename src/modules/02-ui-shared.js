@@ -2793,33 +2793,78 @@ function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
    `noCard`. Quien lo usa decide qué escribe cada toque (`onMode`): aquí solo se pinta.
    Un ingreso no tiene forma de pago: conserva las dos píldoras de siempre (banco y efectivo).
    La píldora del banco no desaparece con Efectivo: se apaga sin ocupar otra cosa, para que la fila
-   no salte al cambiar. */
-function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onBank, bankLocked, cashLocked, onLocked, testPrefix}){
+   no salte al cambiar.
+   El banco se elige EN LA MISMA FILA (16/11): al tocar la píldora, la fila se funde y en su sitio
+   entran los logos. Antes se desplegaba debajo una lista de chips con 🏦 que empujaba las categorías
+   bajo el teclado de golpe, y la píldora cortaba el nombre («Sab…»). Así no cambia el alto de la
+   hoja, no se tapa nada, y en un gasto basta el logo (el nombre lo lleva para el lector). */
+function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onBank, bankOpts, onPickBank, bankLocked, cashLocked, onLocked, testPrefix}){
   const p=testPrefix||"expense";
+  const elige=useDespliegue(!!bankOn&&!bankLocked&&(bankOpts||[]).length>0);
   const bankPill=function(hidden){
     return React.createElement("button",{type:"button",className:"v4-ficha-meta-pill v4-ficha-pay-bank"+(bankOn?" on":"")+(bankLocked?" locked":"")+(hidden?" off":""),
-      "data-testid":p+"-bank","aria-hidden":hidden?"true":null,tabIndex:hidden?-1:null,onClick:hidden?undefined:(bankLocked?onLocked:onBank)},
-      bankEnt?React.createElement(Mono,{ent:bankEnt,size:18}):React.createElement("span",null,"🏦"),
-      React.createElement("span",null,bankEnt?entOf(bankEnt).label:t("ap_bank_none")));
+      "data-testid":p+"-bank","aria-hidden":hidden?"true":null,tabIndex:hidden?-1:null,"aria-expanded":hidden||bankLocked?null:!!bankOn,
+      onClick:hidden?undefined:(bankLocked?onLocked:onBank)},
+      React.createElement(BancoIcono,{ent:bankEnt,size:22}),
+      React.createElement("span",{className:"v4-bank-nom"},bankEnt?entOf(bankEnt).label:t("ap_bank_none")));
   };
+  /* Tocar un logo elige y cierra; tocar el que ya está elegido solo cierra. «Sin banco» va al final:
+     es lo menos habitual y, con texto, ocupa lo que dos logos. */
+  const picker=elige.vivo && React.createElement("div",{className:"v4-bankpick"+(elige.dentro?" dentro":""),role:"group",
+      "aria-label":t("ap_bank"),"data-testid":p+"-bank-list"},
+    (bankOpts||[]).map(function(b){
+      const on=bankEnt===b;
+      return React.createElement("button",{key:b,type:"button",className:"v4-bankpick-op"+(on?" on":""),"aria-pressed":on,
+        "aria-label":entOf(b).label,title:entOf(b).label,onClick:function(){ mcTickHaptic(); onPickBank(b); }},
+        React.createElement(BancoIcono,{ent:b,size:30}));
+    }),
+    React.createElement("button",{type:"button",className:"v4-bankpick-op sin"+(!bankEnt?" on":""),"aria-pressed":!bankEnt,
+      onClick:function(){ mcTickHaptic(); onPickBank(null); }},t("ap_bank_none")));
+  const cls="v4-ficha-pay"+(income?" income":"")+(elige.dentro?" eligiendo":"");
   if(income){
-    return React.createElement("div",{className:"v4-ficha-pay income"},bankPill(false),
+    return React.createElement("div",{className:cls},bankPill(false),
       React.createElement("button",{type:"button",disabled:!!cashDisabled,
         className:"v4-ficha-meta-pill"+(mode==="cash"?" on":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked":""),
         "data-testid":p+"-efectivo",onClick:cashDisabled?undefined:function(){ onMode(mode==="cash"?"card":"cash"); }},
-        React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))));
+        React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))),
+      picker);
   }
   const opt=function(id,label,testId,disabled){
     const on=mode===id;
     return React.createElement("button",{type:"button",className:"v4-seg-btn"+(on?" on":""),"aria-pressed":on,disabled:!!disabled,
       "data-testid":testId,onClick:function(){ if(!on){ mcTickHaptic(); onMode(id); } }},React.createElement("span",null,label));
   };
-  return React.createElement("div",{className:"v4-ficha-pay"},
+  return React.createElement("div",{className:cls},
     React.createElement("div",{className:"v4-seg",role:"group","aria-label":t("ap_pay_aria")},
       opt("card",t("ap_pay_card"),p+"-pay-card"),
       opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
       opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
-    bankPill(mode==="cash"));
+    bankPill(mode==="cash"),
+    picker);
+}
+/* El logo del banco, o un círculo vacío si no hay banco: el 🏦 genérico parecía un banco más. */
+function BancoIcono({ent, size}){
+  if(ent) return React.createElement(Mono,{ent:ent,size:size});
+  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}});
+}
+/* Montar con entrada y salida suaves: `vivo` monta, `dentro` pone la clase que anima. Al cerrar se
+   espera a que acabe la transición antes de desmontar; con «reducir movimiento», sin esperar. */
+function useDespliegue(open){
+  const [vivo,setVivo]=useState(open);
+  const [dentro,setDentro]=useState(open);
+  useEffect(function(){
+    if(open){
+      setVivo(true);
+      // Dos frames: el primero pinta el estado de salida, el segundo dispara la transición.
+      let r2=0;
+      const r1=requestAnimationFrame(function(){ r2=requestAnimationFrame(function(){ setDentro(true); }); });
+      return function(){ cancelAnimationFrame(r1); cancelAnimationFrame(r2); };
+    }
+    setDentro(false);
+    const tm=setTimeout(function(){ setVivo(false); },mcReduced()?0:260);
+    return function(){ clearTimeout(tm); };
+  },[open]);
+  return {vivo:vivo, dentro:dentro};
 }
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
@@ -2845,8 +2890,13 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
+        /* Un candado en vez de la tarjeta «Lo trajo una notificación…» (16/11, «eso a la persona le da
+           igual»): basta para ver que el importe del banco no se toca; al tocarlo, el aviso de siempre. */
         React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
-          onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
+          "aria-label":locked?t("f_locked_toast"):null,"data-testid":locked?(testPrefix||"expense")+"-locked":null,
+          onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"),
+          locked && React.createElement("svg",{"aria-hidden":true,width:12,height:12,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
+            React.createElement("rect",{x:5,y:11,width:14,height:10,rx:2}),React.createElement("path",{d:"M8 11V8a4 4 0 0 1 8 0v3"})))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
