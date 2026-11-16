@@ -1854,11 +1854,13 @@ const cloud = (function(){
     // `body` es `{recoverGaps:true}`: avisa al servidor de que este cliente guarda también lo
     // anterior a la ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es
     // `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
+    // Cada lectura, a mano o sola, entra en el tope diario de la sola (`bankAutoToca`, 08).
     async bankSync(body){
-      if(!sb) throw new Error("nube no disponible");
+      if(!sb) throw new Error("nube no disponible"); bankAutoCuenta();
       const {data,error}=await sb.functions.invoke('bank-sync',{ body });
-      if(error) throw error;
-      if(!data || !data.ok) throw new Error((data&&data.error)||"sync falló");
+      if(error){ if(bankRateLimited(error)) bankAutoPausa(); throw error; }
+      if(!data || !data.ok){ if(data&&data.error==="rate_limit") bankAutoPausa(); throw new Error((data&&data.error)||"sync falló"); }
+      if(bankAutoFrena(data.links)) bankAutoPausa();
       return data;   // { ok, dryRun, links:[{aspsp, iban, balances, transactions}] }
     },
     // IMPORTAR HISTÓRICO: trae movimientos desde dateFrom (YYYY-MM-DD, tope PSD2 ~90 días).
@@ -1867,8 +1869,9 @@ const cloud = (function(){
       if(!sb) throw new Error("nube no disponible");
       const body={ dateFrom:dateFrom };
       if(Array.isArray(aspsps)) body.aspsps=aspsps;
+      bankAutoCuenta();
       const {data,error}=await sb.functions.invoke('bank-sync',{ body:body });
-      if(error) throw error;
+      if(error){ if(bankRateLimited(error)) bankAutoPausa(); throw error; }
       if(!data || !data.ok) throw new Error((data&&data.error)||"histórico falló");
       return data;
     },

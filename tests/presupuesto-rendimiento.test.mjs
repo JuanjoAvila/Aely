@@ -377,7 +377,10 @@ const PRESUPUESTO = {
   // Remate de la 235 (16/11, petición del dueño): el banco con logos en la fila del pago (Apuntar y ficha), los chips
   // de recibo/deuda/meta/nota con su pliegue y el candado del importe, menos la tarjeta de origen: +1.905 B minificado
   // (1.972.165 B sin sello, 59 bajo el tope y el sello no cabía). Sube 1 KiB, a 1927; el gzip sigue dentro.
-  minificado: 1927 * 1024,
+  // Lectura sola del banco al entrar (orden del dueño, 16/11/2026): el tope por horas y por día, el contador en
+  // `cloud.bankSync` y el efecto de App. Medido: 1.973.317 B minificado (1.093 sobre 1926 KiB) y 541.340 B gzip, que
+  // sigue dentro. Misma regla del 11/10: sube el minificado a 1928 KiB; el gzip no se toca.
+  minificado: 1928 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

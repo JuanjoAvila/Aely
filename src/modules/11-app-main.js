@@ -1059,8 +1059,8 @@ function App(){
 
   // CAPA 2 — Open Banking: lee el saldo del banco y re-ancla el motor (= editar el saldo a mano,
   // pero con el número real). opts.manual = avisa siempre (botón "Actualizar saldo").
-  // (Los throttles de auto-sync BANK_SYNC_THROTTLE/BANK_FG_MIN se retiraron el 2026-07-18
-  //  junto con el propio auto-sync: el banco solo se consulta a demanda.)
+  // opts.auto = la lectura sola al entrar (16/11/2026, `bankAutoToca`): calla los fallos, que ya
+  // pinta el banner de bancos, y solo cuenta lo que ha entrado.
   /* Al sincronizar A MANO se lanzan a la vez bancos y brókers y cada uno tenía su toast: ganaba el
      último en acabar y el otro no se veía nunca («si actualizo… no me dice nada», 12/9). Con
      `opts.collect` cada uno deja su aviso en la lista y `sincronizarAMano` enseña UNO solo. */
@@ -1251,7 +1251,7 @@ function App(){
           const okN=Object.keys(okEnts).filter(function(e){ return !issues.some(function(is){ return is.ent===e; }); });
           if(okN.length) avisaSync(opts, okN.length===1 ? tf("bank_upd_one",{bank:entOf(okN[0]).label, x:eur((preview.synced.filter(function(x){ return x.ent===okN[0]; })[0]||{}).bal||0)}) : tf("bank_upd_n",{n:okN.length}));
         }
-        avisaSync(opts.manual?opts:null, "⚠ "+msg);
+        if(!opts.auto) avisaSync(opts.manual?opts:null, "⚠ "+msg);
         if(opts.manual){
           const nat=natPlugin();
           if(nat&&nat.showNotification){
@@ -1279,7 +1279,7 @@ function App(){
         if(opts.manual) avisaSync(opts, "⚠ "+t("bank_sync_sin_nube"));
         return;
       }
-      if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
+      if(opts.manual || (!opts.auto && navigator.onLine!==false)) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
     }).finally(function(){
       bankSyncing.current=false;
       /* AVISA DE QUE LA LISTA DE BANCOS HA CAMBIADO (2026-09-12, reportado por el desde la app:
@@ -1306,6 +1306,45 @@ function App(){
     flushPersist();
     obAckSave(p.at, p.ack, state.expenses);
   },[state.lastBankSync]);
+
+  /* LOS BANCOS AL DÍA SIN TOCAR NADA (16/11/2026, orden del dueño). Al arrancar y al volver a
+     primer plano se mira si toca leer el banco; el tope (6 h y 3 al día contando las tuyas, pausa
+     hasta mañana tras un 429 o un permiso rechazado) lo decide `bankAutoToca` (08). Va en idle y
+     con margen tras el arranque para no sumar trabajo al primer pintado, y `runBankSync` ya espera
+     al pull de la nube y no se solapa (`bankSyncing`). El modo pruebas no la lanza: leer el banco
+     gasta su cupo PSD2 real. */
+  useEffect(function(){
+    if(!uid) return;
+    let tmr=null, parado=false;
+    // Se decide DESPUÉS del pull: `lastBankSync` viaja en la nube y otro móvil puede haber leído ya.
+    const toca=function(){
+      const s=stateRef.current||{};
+      return !parado && document.visibilityState!=="hidden" && !!s.hasBankLink && !mcSandbox() && bankAutoToca(bankAutoLee(), s.lastBankSync, Date.now());
+    };
+    const intenta=function(){
+      if(!toca()) return;
+      Promise.resolve(pullOkRef.current).then(function(){
+        if(toca()) mcScheduleIdle(function(){ if(toca()) runBankSync({auto:true}); }, 4000);
+      });
+    };
+    const onVis=function(){
+      if(document.visibilityState!=="visible") return;
+      clearTimeout(tmr); tmr=setTimeout(intenta, 1500);
+    };
+    tmr=setTimeout(intenta, 3000);
+    document.addEventListener("visibilitychange", onVis);
+    // La APK avisa también por Capacitor (como el efecto de primer plano); el temporizador junta los dos.
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub;
+    if(A&&A.addListener){
+      try{ sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(st&&st.isActive&&!parado) onVis(); })); sub.catch(function(){}); }catch(e){}
+    }
+    return function(){
+      parado=true; clearTimeout(tmr);
+      document.removeEventListener("visibilitychange", onVis);
+      if(sub) sub.then(function(h){ return h&&h.remove&&h.remove(); }).catch(function(){});
+    };
+  },[uid]);
 
   /* ── Auto-refresh de brókers al abrir (petición 2026-07-15: «que se actualicen solos») ──
      SILENCIOSO a propósito y CONSERVADOR: solo re-ancla las posiciones que YA están mapeadas
@@ -1580,7 +1619,7 @@ function App(){
   },[uploadState,uid]);
 
   // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
-  // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
+  // Los bancos OB no se leen aquí (van con su tope, `bankAutoToca`); esta lectura no gasta su cupo PSD2.
   /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
      proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
      para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
@@ -1610,11 +1649,8 @@ function App(){
       const read=cloudReadRef.current;
       if(!read||read.owner!==uid||!read.ready)syncFromCloud(sessionRef.current);
       else syncCloudExpenses().catch(function(){});
-      // (2026-07-18) Aquí había un bankSync automático al volver a primer plano. RETIRADO:
-      // cada apertura disparaba una consulta PSD2 desatendida y los bancos (Caixa, Sabadell)
-      // acababan tumbando el consentimiento por «uso robótico». Ahora el banco se sincroniza
-      // SOLO cuando lo pides: botón «Sincronizar bancos» en Cartera, «Actualizar» en Mis
-      // bancos, o la noti del banco (ajuste st_banksync_notif, que sí es un evento real).
+      // El banco NO se lee aquí: cada vuelta leyéndolo tumbó consentimientos por «uso robótico»
+      // (2026-07-18). La lectura sola al entrar va en su propio efecto, con tope (16/11/2026).
       // APK: ping pendiente del listener de notis de banco (si la app estaba en frío).
       const nat=natPlugin();
       if(nat&&nat.consumeBankSyncPing){

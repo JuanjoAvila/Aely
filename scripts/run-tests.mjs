@@ -197,6 +197,7 @@ const steps = [
   ["bank-callback-state", ["node", "tests/bank-callback-state.test.mjs"]],
   ["bank-confirm", ["node", "tests/bank-confirm.test.mjs"]],
   ["bank-rate-client", ["node", "tests/bank-rate-client.test.mjs"]],
+  ["bank-autosync", ["node", "tests/bank-autosync.test.mjs"]],
   ["bank-download-incomplete", ["node", "tests/bank-download-incomplete.test.mjs"]],
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
   ["bank-sync-acuse", ["node", "tests/bank-sync-acuse.test.mjs"]],

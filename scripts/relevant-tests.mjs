@@ -65,6 +65,11 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Lectura sola del banco al entrar, con tope (orden del dueño, 16/11/2026): el tope vive en 08,
+  // el contador en `cloud.bankSync` (00) y el efecto que la lanza en App (11).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
   // La última cuota de un plazo se lleva el redondeo (revisión externa 15/11/2026): Recibos y Deudas.
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },

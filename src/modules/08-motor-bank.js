@@ -5576,6 +5576,57 @@ function bankRateRemember(bank){
     localStorage.setItem("_bankRateUntil",JSON.stringify(map));
   }catch(e){}
 }
+/* SINCRONIZAR AL ENTRAR, CON TOPE (16/11/2026, orden del dueño: «que sincronice las cuentas al
+   entrar en la app… si entras seguido, que no se pueda»). Enable Banking no recibe cabeceras de
+   usuario presente, así que PSD2 trata TODA lectura como desatendida, también la del botón: unas
+   cuatro al día por cuenta. Pasarse es lo que en julio (4.1.0) hizo que Caixa y Sabadell tumbaran
+   el consentimiento por «uso robótico»: entonces se leía en cada apertura con 30-90 min de margen.
+   Por eso se apunta CADA lectura de este móvil (`cloud.bankSync`/`bankSyncHistory`) y la sola
+   solo sale si la última fue hace 6 h y hoy van menos de 3: con una a mano detrás, cuatro como
+   mucho. Un 429 o un permiso rechazado la paran hasta mañana (día de Madrid): reintentar en bucle
+   contra un banco que ya dijo que no es justo lo que lee como robot. Vive en localStorage para
+   que matar la app no reinicie la cuenta; no viaja a la nube. */
+const BANK_AUTO_GAP_MS=6*60*60*1000;
+const BANK_AUTO_MAX_DIA=3;
+function bankAutoDia(ms){ const p=madridYmdParts(ms); return p.ym+"-"+String(p.d).padStart(2,"0"); }
+function bankAutoLimpio(reg){
+  reg=reg&&typeof reg==="object"?reg:{};
+  const n=Number(reg.n), at=Number(reg.at);
+  return {dia:typeof reg.dia==="string"?reg.dia:"", n:isFinite(n)&&n>0?n:0, at:isFinite(at)&&at>0?at:0, pausa:typeof reg.pausa==="string"?reg.pausa:""};
+}
+/* `lastOk` es `lastBankSync` (la última respuesta buena, que además llega de la nube si leyó otro
+   móvil). Sin ninguna lectura previa no sale sola: un banco recién conectado ya sincroniza al
+   volver de autorizar. Un reloj que retrocedió deja la marca en el futuro: dentro de las 6 h
+   espera; más allá es una marca rota y decide el tope del día, que sigue contando. */
+function bankAutoToca(reg, lastOk, now){
+  reg=bankAutoLimpio(reg);
+  const hoy=bankAutoDia(now);
+  if(reg.pausa===hoy) return false;
+  if(reg.dia===hoy && reg.n>=BANK_AUTO_MAX_DIA) return false;
+  const ref=Math.max(Number(lastOk)||0, reg.at);
+  if(!ref) return false;
+  return now-ref>=BANK_AUTO_GAP_MS || ref-now>BANK_AUTO_GAP_MS;
+}
+function bankAutoAnota(reg, now){
+  reg=bankAutoLimpio(reg);
+  const hoy=bankAutoDia(now);
+  return {dia:hoy, n:(reg.dia===hoy?reg.n:0)+1, at:now, pausa:reg.pausa};
+}
+function bankAutoPara(reg, now){ return Object.assign(bankAutoLimpio(reg),{pausa:bankAutoDia(now)}); }
+/* Lo que el banco contestó en ESTA lectura: cupo agotado o permiso rechazado. Un enlace que ya
+   estaba caducado no cuenta: la Edge no lo consulta, así que no gasta nada y no debe apagar la
+   lectura sola de los demás bancos hasta que lo reconectes. */
+function bankAutoFrena(links){
+  return (links||[]).some(function(l){
+    if(!l) return false;
+    const codes=[l.error,l.failureCode].concat((l.accounts||[]).reduce(function(acc,a){ return a?acc.concat([a.error,a.transactionError,a.failureCode]):acc; },[]));
+    return codes.some(function(c){ return /^(eb_)?(429|401|403)$|rate_limit|EXPIRED_SESSION|REVOKED_SESSION|CLOSED_SESSION|PSU_ACTION_REQUIRED/i.test(String(c||"")); });
+  });
+}
+function bankAutoLee(){ try{ return bankAutoLimpio(JSON.parse(localStorage.getItem("_bankAutoSync")||"{}")); }catch(e){ return bankAutoLimpio(null); } }
+function bankAutoGuarda(reg){ try{ localStorage.setItem("_bankAutoSync",JSON.stringify(reg)); }catch(e){} }
+function bankAutoCuenta(){ bankAutoGuarda(bankAutoAnota(bankAutoLee(),Date.now())); }
+function bankAutoPausa(){ bankAutoGuarda(bankAutoPara(bankAutoLee(),Date.now())); }
 /* UN BANCO POR PETICION (17/9/2026). `bank-sync` tiene un reloj global de 60 s. Al poner los
    enlaces en cola para no provocar 429, el segundo heredaba lo que hubiese dejado el primero:
    Sabadell podia completar sus paginas y Caixa ni siquiera recibia una llamada. La cola sigue

@@ -269,9 +269,14 @@ otra IA, eso **no existe**.
   respuesta es «ninguno», añade uno (ver `e2e/cartera-inversiones.spec.mjs` como plantilla:
   siembra estado con `seedLoggedInDashboard(page, overrides)` de `e2e/fixtures.mjs`, navega a la
   pantalla real y asere contra selectores del DOM, no contra el código fuente).
-- **Open Banking se sincroniza SOLO a demanda** (4.1.0): no reintroduzcas syncs al abrir o al
-  volver a primer plano — los bancos lo leen como bot y caducan el consentimiento. El detalle
-  de qué syncs siguen vivos está en docs/ARQUITECTURA.md.
+- **Open Banking se lee solo al entrar, pero CON TOPE** (orden del dueño, 16/11/2026: «que
+  sincronice las cuentas al entrar… si entras seguido, que no se pueda»). De la 4.1.0 a entonces
+  fue SOLO a demanda, porque leer en cada apertura (30-90 min de margen) hizo que Caixa y
+  Sabadell caducaran el consentimiento por «uso robótico». PSD2 sin usuario presente da ~4
+  lecturas al día por cuenta y Enable Banking cuenta TODAS como desatendidas, también el botón.
+  Por eso la lectura sola pasa por `bankAutoToca` (08): 6 h desde la última, 3 al día contando
+  las manuales, y hasta mañana tras un 429 o un permiso rechazado. **No añadas otro disparador
+  que se salte ese tope** ni bajes la N sin contar lecturas reales. Detalle en docs/ARQUITECTURA.md.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (10-app-components).
   Lógica nueva de updates → al hook, no a efectos sueltos en App.
 
