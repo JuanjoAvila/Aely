@@ -3,8 +3,9 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 /* CARTERA CON UN SOLO PATRÓN DE ACCIONES (auditoría de diseño 233, lote de menores).
  * DIS-32: había cinco estilos de botón secundario en la misma pantalla. Ahora la acción de cada
- *   bloque es un enlace a la derecha de su título, el efectivo se mueve desde su ficha y
- *   «Ordenar secciones» es un botón fantasma a todo el ancho.
+ *   bloque es un enlace a la derecha de su título y el efectivo se mueve desde su ficha.
+ *   (16/11/2026: fuera «Editar» de cuentas, «Editar a mano» de inversiones y «Ordenar secciones»;
+ *   sus caminos nuevos los vigila `cartera-puertas`.)
  * DIS-33: unas filas ponían el banco de título y otras la cuenta; ahora siempre la cuenta, con
  *   banco y uso debajo en una línea.
  * DIS-48: el icono de «Conectar cuentas» dibuja 31 px pero tiene 44 de dedo.
@@ -50,7 +51,8 @@ test("cada bloque lleva su acción como enlace junto al título, y el efectivo s
   await abrirCartera(page, { obAccounts: [{ key: "ob1", ent: "sabadell", name: "Ahorro", value: 50, cur: "EUR" }] });
   const pantalla = page.locator(".page .v4-screen");
 
-  await enlaceEnCabecera(page, "Tus cuentas", "Editar");
+  // Sin «Editar» en Tus cuentas aunque haya cuentas EXTRA del banco: la ficha de cada fila lo cubre.
+  await expect(page.locator('.page [data-act="acc-edit"]')).toHaveCount(0);
   await enlaceEnCabecera(page, "Bienes", "Añadir");
   const verTodo = await enlaceEnCabecera(page, "Tus inversiones", "Ver todo");
   await expect(verTodo).toHaveAccessibleName("Ver todas tus inversiones");
@@ -58,8 +60,9 @@ test("cada bloque lleva su acción como enlace junto al título, y el efectivo s
   await expect(pantalla.getByText("Saqué del cajero", { exact: true })).toHaveCount(0);
   await expect(pantalla.getByText("Entró efectivo", { exact: true })).toHaveCount(0);
   await expect(pantalla.locator(".btn-ghost").filter({ hasText: "Añadir bien" })).toHaveCount(0);
-  // «Editar a mano» es un enlace, no un chip.
-  await expect(pantalla.locator('[data-act="inv-manual"]')).toHaveClass(/\blink\b/);
+  // Ni «Editar a mano» ni su pista gris al pie de las inversiones.
+  await expect(pantalla.locator('[data-act="inv-manual"]')).toHaveCount(0);
+  await expect(pantalla.getByText(/Sin precio automático/)).toHaveCount(0);
 
   // «Añadir» abre la misma hoja de alta de bienes.
   await page.getByRole("button", { name: "Añadir bien", exact: true }).click();

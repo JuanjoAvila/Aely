@@ -614,11 +614,15 @@ function TRSync({state, set, totals, open, onToggle}){
   );
 }
 
-function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDelete}){
+function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDelete, onValue}){
   const eurVal=(it)=> invValueEur(it, st);
   const show=fmt||eur;   // moneda local de la tab (fallback a €)
   return items.map(function(it){
-    return React.createElement("div",{className:"row",key:it.id,"data-inv-position":it.id},
+    // Solo se toca lo que no tiene cotización: con ticker el valor lo pone el precio y lo
+    // tecleado se perdería en la siguiente actualización.
+    const tap=!editing&&onValue&&!it.ticker;
+    return React.createElement(tap?"button":"div",Object.assign({className:"row"+(tap?" inv-row-tap":""),key:it.id,"data-inv-position":it.id},
+      tap?{type:"button",onClick:function(){ onValue(it); }}:null),
       React.createElement("div",{className:"rl"},
         React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
         React.createElement("div",null,
@@ -1167,13 +1171,31 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     );
   }
 
+  /* PONER EL VALOR DE UNA POSICIÓN TOCÁNDOLA (16/11/2026). «✎ Editar a mano» al pie de la lista y
+     su pista gris se quitaron a petición suya; lo que solo se hacía desde ahí —cuadrar a mano lo
+     que no tiene precio automático (fondos, oro…)— vive ahora en la propia fila: se toca y se
+     escribe lo que vale hoy. Vender una parte, borrar o tocar lo invertido siguen en «Ver todo»,
+     en la ficha de cada bróker. */
+  const pedirValor=function(it){
+    askText({ title:it.name, ph:CUR_SYM[it.cur||"EUR"]||it.cur, ok:t("inv_save"),
+      value:it.value==null?"":Number(it.value).toLocaleString(loc(),{useGrouping:false,maximumFractionDigits:2}) })
+      .then(function(raw){
+        if(raw==null) return;   // null = canceló
+        // «1.350,50» es mil trescientos: con coma decimal, los puntos son de miles.
+        const txt=String(raw).replace(/\s/g,""), v=parseFloat(txt.indexOf(",")>=0?txt.replace(/\./g,"").replace(",","."):txt);
+        if(!isFinite(v)||v<0){ if(showToast) showToast("⚠ "+t("g_invalid")); return; }
+        const value=+v.toFixed(2);
+        set(function(s){
+          const cur=(s.investments||[]).find(function(i){ return i.id===it.id; });
+          if(!cur||cur.value===value) return s;
+          return Object.assign({},s,{investments:s.investments.map(function(i){
+            return i.id===it.id?Object.assign({},i,{value:value,manualUpdatedAt:new Date().toISOString()}):i;
+          })});
+        });
+      });
+  };
   return React.createElement("div",null,
     React.createElement(FxNotice,{missing:missingFx}),
-
-    editing && React.createElement("div",{className:"costtoggle",onClick:()=>setShowCost(!showCost)},
-      React.createElement("span",{className:"cbx"+(showCost?" on":"")}, showCost?"\u2713":""),
-      React.createElement("span",null,t("inv_alsoinvested"))
-    ),
     // En Cartera: mismas fichas que «Tus cuentas» (v4-mov). El resumen completo
     // vive en su pantalla hija para no montar dos veces toda la herramienta antigua.
     React.createElement(React.Fragment,null,
@@ -1182,11 +1204,10 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
         if(items.length===0) return null;
         const sub=byBroker[g[0]].v;
-        // Editando: todos los brókers desplegados con sus inputs (si no, había que ir uno a uno).
-        const open=editing||!!brokerOpen[g[0]];
+        const open=!!brokerOpen[g[0]];
         return React.createElement(React.Fragment,{key:g[0]},
           React.createElement("button",{type:"button",className:brokerRowClass(g[0]),"data-broker-key":g[0],
-            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
+            onClick:function(){ if(Date.now()<brokerDrag.suppressClickRef.current) return; setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
@@ -1200,23 +1221,12 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
           // .v4-inv-drop: el mismo «rise» suave del resto de la app — antes las posiciones
           // aparecían de golpe al desplegar el bróker (feedback 2026-07-21).
           open && React.createElement("div",{className:"v4-inv-drop",style:{padding:"0 2px 8px"}},
-            React.createElement(InvRows,{items:items,st:state,fmt:f2,editing:editing,showCost:editing&&showCost,draft:draft,setF:setF,onSell:onSell,onDelete:onDelete}))
+            React.createElement(InvRows,{items:items,st:state,fmt:f2,onValue:pedirValor}))
         );
-        }),
-        // Editar a mano en discreto, al pie de la lista (feedback 2026-07-18): normalmente los
-        // números entran solos por los brókers; esto es el plan B para cuadrar algo puntual.
-        // En reposo es un enlace como las demás acciones de Cartera, no un chip (DIS-32).
-        state.investments.length>0 && React.createElement("div",{className:"v4-inv-tools",style:{display:"flex",gap:8,margin:"8px 4px 0"}},
-          React.createElement("button",{type:"button",className:editing?"edit-link save":"link","data-act":"inv-manual",onClick:function(){ editing?save():start(); }}, editing?t("inv_save"):("✎ "+t("inv_editmanual"))),
-          editing && React.createElement("button",{type:"button",className:"edit-link",style:{background:"transparent",color:"var(--muted)"},onClick:cancel}, t("inv_cancel"))
-        )
+        })
       ),
       React.createElement("div",{style:{marginTop:12}},React.createElement(InvestmentRewards,{state:state,set:set}))
-    ),
-    React.createElement("div",{className:"hint",style:{padding:"0 4px"}}, editing
-      ? t("inv_hint_edit")
-      // El tipo con 4 decimales y la coma de cada idioma: salía «0.904813608397» (auditoría 14/11/2026).
-      : tf("inv_hint_view",{fx:fx>0?Number(fx).toLocaleString(loc(),{maximumFractionDigits:4}):"—"}))
+    )
   );
 }
 

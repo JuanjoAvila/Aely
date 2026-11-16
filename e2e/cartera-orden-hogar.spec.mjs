@@ -52,44 +52,23 @@ test("se llega a Hogar desde el perfil, y se abre de verdad", async ({ page }) =
   await expect(page.getByText(/🏠 Hogar y gastos compartidos/)).toBeVisible({ timeout: 5_000 });
 });
 
-test("Cartera se puede reordenar y el orden se guarda en el estado", async ({ page }) => {
-  await abrirApp(page);
+/* «⇅ Ordenar secciones» se quitó (16/11/2026, petición suya). Lo que hay que blindar ahora es
+   que el orden que ya tuviera guardado se siga respetando: quitar el botón no debe recolocarle la
+   pantalla. */
+test("Cartera sin «Ordenar secciones» y respetando el orden que ya estaba guardado", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments: INVERSIONES,
+    assets: [{ id: "a1", kind: "coche", name: "Coche", value: 9000 }],
+    settings: { secOrder: { cartera: ["inversiones", "bienes", "cuentas"] } },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
   await irACartera(page);
 
-  const pantalla = page.locator(".v4-screen");
-  const titulos = pantalla.locator(".v4-sec-h");
-  await expect(titulos.first()).toContainText("Tus cuentas");
-
-  const ordenar = pantalla.locator(".v4-sec-order");
-  // Botón fantasma de 44 px como mínimo, no texto suelto (DIS-32, auditoría de diseño 233).
-  expect((await ordenar.boundingBox()).height).toBeGreaterThanOrEqual(44);
-  await pantalla.getByRole("button", { name: /Ordenar secciones/i }).click();
-  // Una sola marca al ordenar: `done` ya trae «✓» y el botón le ponía otra delante (DIS-36).
-  await expect(ordenar).toHaveText("Listo ✓");
-  // En modo orden, cada bloque enseña su etiqueta y sus flechas. Bienes va APARTE de las cuentas
-  // (feedback 2026-07-25: «¿por qué has metido bienes junto con mis cuentas?»).
-  const bloques = pantalla.locator(".wedit");
-  await expect(bloques).toHaveCount(3);
-  await expect(bloques.nth(0).locator(".wedit-lbl")).toContainText("Tus cuentas");
-  await expect(bloques.nth(1).locator(".wedit-lbl")).toContainText("Bienes");
-  await expect(bloques.nth(2).locator(".wedit-lbl")).toContainText("inversiones");
-
-  await bloques.first().locator(".wedit-btns button").nth(1).click();   // ↓
-  await expect(pantalla.locator(".wedit .wedit-lbl").first()).toContainText("Bienes");
-
-  /* Y sobrevive a cerrar la app: el orden vive en settings.secOrder, que se guarda y sincroniza
-     como todo lo demás. Se busca por TODAS las claves porque desde la 4.8.0 el estado se guarda
-     partido, y clavar aquí el nombre de una clave sería atarse a un detalle de almacenamiento. */
-  await page.waitForTimeout(700);   // el guardado va con debounce (400 ms)
-  const guardado = await page.evaluate(() => {
-    for (let i = 0; i < localStorage.length; i++) {
-      try {
-        const o = JSON.parse(localStorage.getItem(localStorage.key(i)));
-        const v = o && o.settings && o.settings.secOrder && o.settings.secOrder.cartera;
-        if (v) return v;
-      } catch (e) { /* claves que no son JSON */ }
-    }
-    return null;
-  });
-  expect(guardado).toEqual(["bienes", "cuentas", "inversiones"]);
+  const pantalla = page.locator(".v4-screen").filter({ has: page.locator('[data-cartera-sec="inversiones"]') });
+  await expect(pantalla.getByRole("button", { name: /Ordenar secciones/i })).toHaveCount(0);
+  await expect(pantalla.locator(".v4-sec-order")).toHaveCount(0);
+  const titulos = pantalla.locator(".v4-section-h > span:first-child");
+  await expect(titulos).toHaveText([/inversiones/, /Bienes/, /Tus cuentas/]);
 });

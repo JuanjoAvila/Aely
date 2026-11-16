@@ -2436,7 +2436,7 @@ function useListLongPress(selector, attribute, enabled, onMove){
     const onTS=function(e){
       const btn=e.target.closest&&e.target.closest(selector);
       if(!btn||!node.contains(btn)) return;
-      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
+      if(e.target.closest&&e.target.closest(".v4-link-mini,a,input")) return;
       const tch=e.touches&&e.touches[0]; if(!tch) return;
       const id=btn.getAttribute(attribute);
       const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
@@ -2496,10 +2496,9 @@ function useListLongPress(selector, attribute, enabled, onMove){
   return {bind:bindListDrag,drag:drag,suppressClickRef:suppressClickRef};
 }
 
-/* Secciones ordenables por pestaña (petición 2026-07-11): como el orden de widgets del Resumen,
-   pero para los bloques de Cartera (las fichas de las demás pestañas se retiraron). El orden se guarda en
-   settings.secOrder[tab]; onMove opcional para pestañas cuyo orden vive en los propios datos
-   (deudas, metas → se reordena el array del estado y sincroniza igual que todo lo demás). */
+/* Orden guardado por clave en settings.secOrder[tab] (viaja con la cuenta). Hoy solo lo escriben
+   los brókers («inv», arrastrando su fila); el de los bloques de Cartera ya no se edita desde que se
+   quitó «⇅ Ordenar secciones» (16/11/2026), pero se sigue leyendo para no recolocarle la pantalla. */
 function secOrderOf(s, tab, allIds){
   const stored=(((s&&s.settings)||{}).secOrder||{})[tab];
   const saved=(Array.isArray(stored)?stored:[]).filter(function(id,i,a){ return allIds.indexOf(id)>=0&&a.indexOf(id)===i; });
@@ -2517,42 +2516,6 @@ function brokerGroupsInOrder(s, groups){
   return secOrderOf(s,"inv",groups.map(function(g){ return g[0]; })).map(function(id){
     return groups.find(function(g){ return g[0]===id; });
   });
-}
-function OrderableSections({tab, state, set, items, onMove}){
-  const [ordering,setOrdering]=useState(false);
-  const real=(items||[]).filter(function(i){ return i && i.el; });
-  const allIds=real.map(function(i){ return i.id; });
-  const order=onMove?allIds:secOrderOf(state,tab,allIds);
-  const map={}; real.forEach(function(i){ map[i.id]=i; });
-  const move=function(id,dir){
-    if(onMove) return onMove(id,dir);
-    set(function(s){
-      const o=secOrderOf(s,tab,allIds); const i=o.indexOf(id), j=i+dir;
-      if(i<0||j<0||j>=o.length) return s;
-      return moveSectionInList(s,tab,allIds,id,o[j]);
-    });
-  };
-  return React.createElement(React.Fragment,null,
-    order.map(function(id,idx){
-      const it=map[id]; if(!it) return null;
-      if(!ordering) return React.createElement(React.Fragment,{key:id},it.el);
-      return React.createElement("div",{key:id,className:"wedit"},
-        React.createElement("div",{className:"wedit-bar"},
-          React.createElement("span",{className:"wedit-lbl"},it.label),
-          React.createElement("div",{className:"wedit-btns"},
-            React.createElement("button",{disabled:idx===0,onClick:function(){ move(id,-1); }},"↑"),
-            React.createElement("button",{disabled:idx===order.length-1,onClick:function(){ move(id,1); }},"↓"))),
-        React.createElement("div",{className:"wedit-body"},it.el)
-      );
-    }),
-    /* Botón fantasma a todo el ancho, el mismo en reposo y ordenando (auditoría de diseño 233,
-       DIS-32/36): antes era texto suelto gris y, al ordenar, «✓ Listo ✓» con la marca dos veces
-       porque `done` ya la lleva. */
-    real.length>1 && React.createElement("button",{
-      type:"button",className:"btn btn-ghost btn-block v4-sec-order",
-      onClick:function(){ setOrdering(!ordering); }
-    }, ordering?t("done"):t("sec_order"))
-  );
 }
 
 /* Cabecera de una tarjeta de bróker (TR / MyInvestor / CSV de Revolut), pulsable para plegar.
