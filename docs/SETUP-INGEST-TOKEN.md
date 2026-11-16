@@ -1,6 +1,6 @@
 # Rotación del token de ingest (legacy)
 
-> Para usuarios nuevos o la pareja: **no hace falta este documento**. Cada persona genera su token en **Ajustes → Notificaciones → Apuntar aquí mis gastos de Trade Republic**. Eso crea una fila en `ingest_tokens` y el lector Android usa esa URL automáticamente.
+> Para usuarios nuevos o la pareja: **no hace falta este documento**. Cada persona genera su token en **Ajustes → Notificaciones → Apuntar mis compras solas**. Eso crea una fila en `ingest_tokens` y el lector Android usa esa URL automáticamente.
 
 Este documento cubre el **secreto legacy** `INGEST_TOKEN` + `INGEST_USER_ID` (single-user, MacroDroid antiguo o builds muy viejos del APK).
 
@@ -27,7 +27,7 @@ Este documento cubre el **secreto legacy** `INGEST_TOKEN` + `INGEST_USER_ID` (si
    - Redeploy de la función `ingest` si hace falta (push a `main` ya lo hace en CI)
 
 3. **Actualiza quien envía gastos**
-   - **App nativa (recomendado):** Ajustes → activa «Apuntar aquí mis gastos de TR» (genera token propio en `ingest_tokens`; el legacy deja de usarse).
+   - **App nativa (recomendado):** Ajustes → Notificaciones → activa «Apuntar mis compras solas» (genera token propio en `ingest_tokens`; el legacy deja de usarse).
    - **MacroDroid (jubilado):** cambia la URL del POST a  
      `https://<PROJECT_REF>.supabase.co/functions/v1/ingest?token=<NUEVO_TOKEN>`
    - **APK muy antiguo** con `BuildConfig.INGEST_URL` fijo: recompila con el token nuevo o migra al toggle multiusuario.

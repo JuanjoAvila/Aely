@@ -2529,7 +2529,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   };
   // ¿El lector de gastos TR tiene acceso a notificaciones? (se pierde al reinstalar la app).
   // Se re-chequea al volver a la app (visibilitychange): al activar el permiso y volver, el aviso se quita solo.
-  const [notifOk,setNotifOk]=useState(true);
+  // null = aún no se sabe: la fila de Notificaciones no pinta «Activo» antes de preguntar al móvil.
+  const [notifOk,setNotifOk]=useState(null);
   useEffect(function(){
     const check=function(){
       const nat=natPlugin();
@@ -2867,7 +2868,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     })(),
     (function(){
       const nat=natPlugin();
-      if(!nat || !nat.setNotifPrefs) return null;
+      if(!nat || (!nat.setNotifPrefs && !nat.notifAccess)) return null;
       const on=!(state.settings&&state.settings.trNotifyConfirm===false);
       const bankSyncOn=!!(state.settings&&state.settings.bankSyncOnNotif===true);
       const ingOn=!!(state.settings&&state.settings.trIngest);
@@ -2892,15 +2893,46 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         }
       };
       const aiOn=!!(state.settings&&state.settings.aiCat);
-      return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications apunte automatico gastos trade republic avisos banco sync caixabank sabadell ia ai categoria",null,
-        row("tring",ingOn?"🟢":"⚪",t("st_tring"),null,toggleIng, sw(ingOn)),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_tring_hint")),
-        row("trnotif",on?"🔔":"🔕",t("st_trnotif"),null,function(){ setS({trNotifyConfirm:!on}); }, sw(on)),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_trnotif_hint")),
-        row("banksync",bankSyncOn?"🏦":"🔕",t("st_banksync_notif"),null,function(){ setS({bankSyncOnNotif:!bankSyncOn}); }, sw(bankSyncOn)),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_banksync_notif_hint")),
-        row("aicat",aiOn?"✨":"⚪",t("st_aicat"),null,function(){ setS({aiCat:!aiOn}); }, sw(aiOn)),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_aicat_hint"))
+      /* NOTIFICACIONES, rehecha el 16/11 («hiper cutre», suyo): eran cuatro interruptores iguales con
+         un párrafo debajo de cada uno y el permiso, que es lo que decide si algo funciona, en una caja
+         roja FUERA del grupo, entre secciones. Ahora el permiso es la primera fila y se ve sin abrir
+         (valor del grupo); debajo, lo que se lee y lo que te avisa, una línea por fila como mucho.
+         Mismas claves de ajustes y mismas llamadas nativas que antes. */
+      const permiso=notifOk==null?null:React.createElement("span",{className:"nt-st"+(notifOk?" ok":" ko")},t(notifOk?"nt_on":"nt_off"));
+      const abrirAcceso=function(){ if(nat.openNotifAccess){ try{ nat.openNotifAccess().catch(function(){}); }catch(e){} } };
+      // Logos de los bancos que se sincronizan al llegar su aviso: los conectados por Open Banking.
+      const bancos=[];
+      (bankLinks||[]).forEach(function(l){
+        const e=typeof entFromAspsp==="function"?entFromAspsp(l&&l.aspsp_name):null;
+        if(e && bancos.indexOf(e)<0) bancos.push(e);
+      });
+      const logos=function(ents){
+        return React.createElement("span",{className:"nt-logos"}, ents.slice(0,4).map(function(e){ return React.createElement(Mono,{key:e,ent:e,size:16}); }));
+      };
+      // Fila con una línea de apoyo bajo el título (sin párrafos: una línea útil o nada).
+      const fila=function(k,icon,label,sub,onClick,right){
+        return React.createElement("button",{key:k,type:"button",className:"set-row nt-row","data-nt":k,onClick:onClick},
+          React.createElement("span",{className:"sr-ic"},icon),
+          React.createElement("span",{className:"sr-tx"},
+            React.createElement("span",{className:"sr-lb"},label),
+            sub && React.createElement("span",{className:"sr-sub"},sub)),
+          right);
+      };
+      return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications permiso acceso apunte automatico gastos trade republic google wallet avisos banco sync caixabank sabadell ia ai categoria",permiso,
+        nat.notifAccess && fila("access","🔐",t("nt_access"),null,abrirAcceso,
+          // El estado ya lo dice la cabecera del grupo; aquí, sin permiso, lo que toca: activarlo.
+          React.createElement(React.Fragment,null,
+            notifOk===false?React.createElement("span",{className:"nt-fix"},t("nt_fix")):permiso,
+            React.createElement("span",{className:"sr-chev"},"›"))),
+        notifOk===false && row("narestr","❔",t("nt_restricted_q"),null,function(){ toggleExp("narestr"); }),
+        notifOk===false && expand==="narestr" && React.createElement("div",{className:"set-exp hint"}, t("na_restricted")),
+        React.createElement("div",{className:"sc-title"},t("nt_sec_read")),
+        fila("tring",React.createElement(Mono,{ent:"trade_republic",size:24}),t("st_tring"),t("st_tring_hint"),toggleIng,sw(ingOn)),
+        nat.setNotifPrefs && fila("banksync","🏦",t("st_banksync_notif"),
+          React.createElement(React.Fragment,null,bancos.length?logos(bancos):null,t("st_banksync_notif_hint")),function(){ setS({bankSyncOnNotif:!bankSyncOn}); },sw(bankSyncOn)),
+        React.createElement("div",{className:"sc-title"},t("nt_sec_tell")),
+        nat.setNotifPrefs && fila("trnotif","🔔",t("st_trnotif"),t("st_trnotif_hint"),function(){ setS({trNotifyConfirm:!on}); },sw(on)),
+        fila("aicat","✨",t("st_aicat"),t("st_aicat_hint"),function(){ setS({aiCat:!aiOn}); },sw(aiOn))
       );
     })(),
     natPlugin() && grp("widget","💳",t("st_widget_bank"),"widget banco bank cuenta tarjeta puedes gastar",null,
@@ -2917,11 +2949,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",padding:"0 14px 10px"}}, t("st_mode_hint")),
       onTour && row("tour","🎓",t("v4_set_tour"),null,onTour)
     )),
-    !notifOk && React.createElement("div",{className:"alarmbox",style:{marginTop:14}},
-      t("na_body"),
-      React.createElement("button",{style:Object.assign({},btn,{marginTop:10}),onClick:function(){ const nat=natPlugin(); if(nat&&nat.openNotifAccess){ try{ nat.openNotifAccess().catch(function(){}); }catch(e){} } }},t("na_fix")),
-      React.createElement("div",{style:{fontSize:11.5,lineHeight:1.5,marginTop:10,opacity:.85}}, t("na_restricted"))
-    ),
     manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); setTrExpired(!!(r&&r.authExpired)||(typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); }).catch(function(){}); } }}), document.body),
     // (Hogar y gastos compartidos se movió FUERA de Ajustes 2026-07-18: es una funcionalidad de
     //  la app, no un ajuste. Ahora se abre desde Cartera → «Hogar y gastos compartidos».)

@@ -2649,6 +2649,21 @@
   .set-row .sr-ic{font-size:17px;flex:0 0 22px;text-align:center;line-height:1;}
   .set-row .sr-lb{flex:1;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;}
   .set-row .sr-val{color:var(--muted);font-size:12.5px;font-weight:600;flex:0 1 42%;max-width:42%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  /* Notificaciones (16/11): título + una línea de apoyo, logo del banco en el hueco del icono y el
+     permiso como estado con punto, que se lee igual en la fila del grupo y dentro. */
+  .set-row .sr-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .set-row .sr-sub{font-size:12px;font-weight:600;color:var(--muted);line-height:1.35;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .nt-row .sr-ic{flex:0 0 24px;display:flex;justify-content:center;}
+  .nt-row .sr-ic .mono{font-size:9px;}
+  .nt-logos{display:inline-flex;}
+  .nt-logos .mono+.mono{margin-left:-4px;}
+  .nt-row .mono-logo{box-shadow:0 0 0 1px var(--line);}
+  .nt-logos .mono{box-shadow:0 0 0 1px var(--line),0 0 0 2.5px var(--sur);}
+  .nt-fix{font-size:13px;font-weight:800;color:var(--mint);}
+  .nt-st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap;}
+  .nt-st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .nt-st.ok{color:var(--mint);}
+  .nt-st.ko{color:var(--coral);}
   .v4-chips.wrap{flex-wrap:wrap;}
   .v4-sheet.dragging{transition:none !important;}
   .v4-sheet-back.lock{overscroll-behavior:none;touch-action:none;}

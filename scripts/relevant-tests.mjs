@@ -520,6 +520,8 @@ export const E2E_MAP = [
     "e2e/tr-iguales-ordinal.spec.mjs",
     // Diseño 233 (DIS-40): cada entrada de Ajustes abre lo suyo y el buscador las encuentra.
     "e2e/ajustes-puertas.spec.mjs",
+    // Notificaciones rehecha (16/11): cada interruptor sigue guardando su clave y el permiso abre Android.
+    "e2e/ajustes-notificaciones.spec.mjs",
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },

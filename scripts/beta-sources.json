@@ -175351,6 +175351,10 @@
         "function": "mcRandomToken"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankAccounts"
       },
@@ -175381,10 +175385,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mcResetSandbox"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "entFromAspsp"
       },
       {
         "file": "src/modules/00-core.js",
