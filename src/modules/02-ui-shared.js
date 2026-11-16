@@ -2662,9 +2662,12 @@ function numPadDecSep(){
 }
 // Importe que se precarga en la ficha para editarlo: con decimales, siempre dos («12,50», no
 // «12,5» como salía con `String`, diseño 235 DIS-10); entero, sin ellos («12»). Sin miles, para que
-// el teclado y `parseNumPadRaw` lo lean igual que lo tecleado.
+// el teclado y `parseNumPadRaw` lo lean igual que lo tecleado. Con MÁS de dos decimales (el cambio
+// de una divisa, 12,345) va tal cual: redondeado, guardar la ficha sin tocar el importe lo reescribía
+// y borraba origAmount/origCur (revisión de dinero 235).
 function montoEditable(x){
   const n=Math.abs(Number(x)||0);
+  if(Math.round(n*100)/100!==n) return String(n).replace(".",numDecSep());
   return (Math.round(n*100)%100===0?String(Math.round(n)):n.toFixed(2)).replace(".",numDecSep());
 }
 function parseNumPadRaw(raw){

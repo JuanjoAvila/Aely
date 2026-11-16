@@ -71,9 +71,11 @@ caso("lo tecleado se lee igual con punto o con coma, en cualquier idioma",()=>{
 caso("el importe de la ficha Modificar: «12,50», «12» y «0,10», y vuelve a ser el mismo número",()=>{
   for(const lang of ["es","en","ca"]){
     const sep=lang==="en"?".":",";
-    for(const [x,txt] of [[12.5,"12"+sep+"50"],[12,"12"],[0.1,"0"+sep+"10"],[-12.5,"12"+sep+"50"],[1234.56,"1234"+sep+"56"],[3.999,"4"]]){
+    for(const [x,txt] of [[12.5,"12"+sep+"50"],[12,"12"],[0.1,"0"+sep+"10"],[-12.5,"12"+sep+"50"],[1234.56,"1234"+sep+"56"],[3.999,"3"+sep+"999"],[12.345,"12"+sep+"345"],[1.005,"1"+sep+"005"],[-7.125,"7"+sep+"125"],[99.999,"99"+sep+"999"]]){
       assert.equal(en(lang,"montoEditable("+x+")"),txt,lang+" "+x);
-      const v=Math.round(Math.abs(x)*100)/100;
+      // Más de dos decimales (el cambio de una divisa) se precargan TAL CUAL: redondearlos hacía que guardar la ficha
+      // sin tocar el importe lo reescribiera y borrara origAmount/origCur (revisión de dinero 235, NO-GO leve).
+      const v=Math.abs(x);
       assert.equal(en(lang,"parseNumPadRaw(montoEditable("+x+"))"),v,lang+" "+x+" se relee igual");
       assert.equal(en(lang,"parseFloat(String(montoEditable("+x+")).replace(',','.'))"),v,lang+" "+x+" como lo lee saveEdit");
     }
