@@ -110,3 +110,47 @@ Deno.test("extraerPersona: sin nombre claro devuelve vacío", () => {
   assertEquals(extraerPersona("Trade Republic te ha enviado un Bizum de 3 €.", "de"), "");
   assertEquals(extraerPersona("Te ha enviado un Bizum de 3 €.", "de"), "");
 });
+
+// ---- Revisión 2026-11-16: tildes, iniciales, palabras de más y variantes de la frase ----
+Deno.test("extraerPersona: nombres que EMPIEZAN como una palabra excluida no se pierden", () => {
+  for (const n of ["Elías Romero", "Teófilo", "Tuñón", "Seún", "Hector Lara", "Unai", "Laia Roca"]) {
+    assertEquals(extraerPersona(n + " te ha enviado un Bizum de 12,20 €.", "de"), n);
+  }
+});
+
+Deno.test("extraerPersona: «Él», «Té», «Tú» y «Sé» con tilde NO son un nombre", () => {
+  for (const n of ["Él", "Té", "Tú", "Sé", "Tú mismo"]) {
+    assertEquals(extraerPersona(n + " te ha enviado un Bizum de 12,20 €.", "de"), "");
+  }
+});
+
+Deno.test("extraerPersona: inicial con punto, nombre completo o vacío (nunca solo el apellido)", () => {
+  assertEquals(extraerPersona("Ana M. Pérez te ha enviado un Bizum de 12,20 €.", "de"), "Ana M. Pérez");
+  assertEquals(
+    extraerPersona("Ana M. Pérez Gómez de la Torre Ruiz te ha enviado un Bizum de 12,20 €.", "de"), "");
+});
+
+Deno.test("extraerPersona: siete o más palabras, vacío", () => {
+  assertEquals(extraerPersona("Uno Dos Tres Cuatro Cinco Seis Siete te ha enviado un Bizum de 1 €.", "de"), "");
+  assertEquals(extraerPersona("Uno Dos Tres Cuatro Cinco Seis te ha enviado un Bizum de 1 €.", "de"),
+    "Uno Dos Tres Cuatro Cinco Seis");
+});
+
+Deno.test("extraerPersona: apóstrofo tipográfico, mayúsculas y minúsculas", () => {
+  assertEquals(extraerPersona("Joan O’Brien t’ha enviat un Bizum de 5 €.", "de"), "Joan O’Brien");
+  assertEquals(extraerPersona("ANA PÉREZ TE HA ENVIADO UN BIZUM DE 5 €.", "de"), "ANA PÉREZ");
+  assertEquals(extraerPersona("ana pérez te ha enviado un bizum de 5 €.", "de"), "ana pérez");
+});
+
+Deno.test("extraerPersona: concepto o emoji detrás, «te ha hecho» y sin «un»", () => {
+  assertEquals(extraerPersona("Ana Pérez te ha enviado un Bizum de 12,20 € por la cena 🎉", "de"), "Ana Pérez");
+  assertEquals(extraerPersona("Ana Pérez te ha enviado un Bizum de 12,20 €. Concepto: «cena»", "de"), "Ana Pérez");
+  assertEquals(extraerPersona("Ana Pérez te ha hecho un Bizum de 12,20 €.", "de"), "Ana Pérez");
+  assertEquals(extraerPersona("Ana Pérez te ha enviado Bizum de 12,20 €.", "de"), "Ana Pérez");
+});
+
+Deno.test("extraerPersona: la frase nueva con «a», o una transferencia que no es Bizum, vacío", () => {
+  assertEquals(extraerPersona("Ana Pérez te ha enviado un Bizum de 12,20 €.", "a"), "");
+  assertEquals(extraerPersona("Ana Pérez te ha enviado una transferencia de 12,20 €.", "de"), "");
+  assertEquals(extraerPersona("Ana Pérez te ha enviado un Bizumero de 12,20 €.", "de"), "");
+});
