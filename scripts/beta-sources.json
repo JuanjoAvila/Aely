@@ -15301,6 +15301,54 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoToca"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_MAX_DIA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_GAP_MS"
       }
     ],
     "unidades": true
@@ -31965,6 +32013,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -34201,6 +34289,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -37235,6 +37363,54 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoToca"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_MAX_DIA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_GAP_MS"
       }
     ],
     "unidades": true
@@ -41967,6 +42143,54 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoToca"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_MAX_DIA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_GAP_MS"
       }
     ],
     "edge": [
@@ -43997,6 +44221,54 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoToca"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_MAX_DIA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_GAP_MS"
       }
     ],
     "edge": [
@@ -48024,6 +48296,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "edge": [
@@ -51290,6 +51602,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "accountKeysHuella"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -53505,6 +53857,54 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoToca"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_MAX_DIA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_GAP_MS"
       }
     ],
     "unidades": true
@@ -57209,6 +57609,54 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoToca"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_MAX_DIA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_GAP_MS"
       }
     ],
     "edge": [
@@ -59131,6 +59579,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -60843,6 +61331,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -62273,6 +62801,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -63624,6 +64192,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -64875,6 +65483,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -66215,6 +66863,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -67169,6 +67857,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -68413,6 +69141,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -69859,6 +70627,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -71626,6 +72434,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -72752,6 +73600,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -74070,6 +74958,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -75447,6 +76375,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -76759,6 +77727,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "native": [
@@ -78184,6 +79192,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -80050,6 +81098,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "accountKeysHuella"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -81505,6 +82593,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -82821,6 +83949,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "native": [
@@ -84210,6 +85378,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -86008,6 +87216,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -88411,6 +89659,54 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoToca"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_MAX_DIA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_GAP_MS"
       }
     ],
     "unidades": true
@@ -90949,6 +92245,54 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoToca"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_MAX_DIA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "BANK_AUTO_GAP_MS"
       }
     ],
     "unidades": true
@@ -92563,6 +93907,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -93887,6 +95271,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "native": [
@@ -94902,6 +96326,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -96143,6 +97607,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -97401,6 +98905,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -99136,6 +100680,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "edge": [
@@ -100309,6 +101893,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -101519,6 +103143,46 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "textSizeOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "edge": [
@@ -102837,6 +104501,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "flowVetoId"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -104531,6 +106235,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -106534,6 +108278,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -108189,6 +109973,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -109839,6 +111663,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -111485,6 +113349,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -116633,6 +118537,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -118286,6 +120230,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -120003,6 +121987,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -123305,6 +125329,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -125263,6 +127327,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -127065,6 +129169,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -128714,6 +130858,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -130449,6 +132633,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -131685,6 +133909,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "edge": [
@@ -133656,6 +135920,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -134992,6 +137296,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoEsAlias"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -136143,6 +138487,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "native": [
@@ -138520,6 +140904,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "patchFlowById"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -139681,6 +142105,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -141878,6 +144342,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -143796,6 +146300,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -145682,6 +148226,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -148094,6 +150678,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -150840,6 +153464,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoEsAlias"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -153936,6 +156600,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -155742,6 +158446,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -156848,6 +159592,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -158171,6 +160955,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoEsAlias"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -161705,6 +164529,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -163579,6 +166443,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -165461,6 +168365,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -167798,6 +170742,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -170159,6 +173143,46 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -172468,6 +175492,46 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "textSizeOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -174598,6 +177662,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true
@@ -176871,6 +179975,22 @@
         "function": "perfilSinDatosBanco"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "mcLogEvent"
       },
@@ -176901,6 +180021,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
       }
     ],
     "unidades": true

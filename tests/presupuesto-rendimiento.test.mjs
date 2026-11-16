@@ -374,7 +374,10 @@ const PRESUPUESTO = {
   // registro. Medido sin sello: 1.970.260 B minificado y 540.571 B gzip (1924,1 / 527,9 KiB). SUBE (el dueño fijó el 11/10
   // que el tope de tamaño no bloquea producto: se sube al mínimo medido, como en Inicio v4.2 y la PR 204) a 1926 / 529 KiB,
   // con el margen justo para el sello.
-  minificado: 1926 * 1024,
+  // Lectura sola del banco al entrar (orden del dueño, 16/11/2026): el tope por horas y por día, el contador en
+  // `cloud.bankSync` y el efecto de App. Medido: 1.973.317 B minificado (1.093 sobre 1926 KiB) y 541.340 B gzip, que
+  // sigue dentro. Misma regla del 11/10: sube el minificado a 1928 KiB; el gzip no se toca.
+  minificado: 1928 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

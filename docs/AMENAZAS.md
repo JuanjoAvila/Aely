@@ -36,7 +36,7 @@ seguridad no puede depender de que nadie mire el código.
 | 10 | **Secretos en el repo** | ✅ | Repo público y ni una clave dentro. Los CSV de extractos están en `.gitignore`. El espejo de la memoria (`npm run memoria`) **aborta** si algo sensible sobrevive al filtro. |
 | 11 | **Bundle OTA manipulado** | ⚠ | Se descarga de GitHub por HTTPS y solo avanza de versión (`_mcNewerVer`). No hay firma propia: quien controlara la cuenta de GitHub podría publicar un bundle. Se asume — es la misma confianza que ya se le da al repo. |
 | 12 | **Móvil perdido o prestado** | ✅ | Bloqueo por huella opcional (Ajustes → Cuenta). Sin él, quien tenga el móvil desbloqueado ve la cartera: igual que cualquier app de banco sin PIN propio. |
-| 13 | **Un banco corta el acceso por «uso robótico»** | ✅ | No es seguridad, pero se comporta igual de mal: desde la 4.1.0 **no hay auto-sync** al abrir ni al volver a primer plano. Los syncs vivos están listados en `ARQUITECTURA.md`. |
+| 13 | **Un banco corta el acceso por «uso robótico»** | ✅ | No es seguridad, pero se comporta igual de mal: desde el 16/11/2026 la lectura sola al entrar lleva tope (6 h, 3 al día contando las manuales, pausa hasta mañana tras un 429 o un permiso rechazado). Los syncs vivos están listados en `ARQUITECTURA.md`. |
 
 ## Lo que sale de aquí (y va al ROADMAP)
 

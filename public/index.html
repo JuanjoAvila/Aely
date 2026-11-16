@@ -5137,11 +5137,13 @@ const cloud = (function(){
     // `body` es `{recoverGaps:true}`: avisa al servidor de que este cliente guarda también lo
     // anterior a la ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es
     // `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
+    // Cada lectura, a mano o sola, entra en el tope diario de la sola (`bankAutoToca`, 08).
     async bankSync(body){
-      if(!sb) throw new Error("nube no disponible");
+      if(!sb) throw new Error("nube no disponible"); bankAutoCuenta();
       const {data,error}=await sb.functions.invoke('bank-sync',{ body });
-      if(error) throw error;
-      if(!data || !data.ok) throw new Error((data&&data.error)||"sync falló");
+      if(error){ if(bankRateLimited(error)) bankAutoPausa(); throw error; }
+      if(!data || !data.ok){ if(data&&data.error==="rate_limit") bankAutoPausa(); throw new Error((data&&data.error)||"sync falló"); }
+      if(bankAutoFrena(data.links)) bankAutoPausa();
       return data;   // { ok, dryRun, links:[{aspsp, iban, balances, transactions}] }
     },
     // IMPORTAR HISTÓRICO: trae movimientos desde dateFrom (YYYY-MM-DD, tope PSD2 ~90 días).
@@ -5150,8 +5152,9 @@ const cloud = (function(){
       if(!sb) throw new Error("nube no disponible");
       const body={ dateFrom:dateFrom };
       if(Array.isArray(aspsps)) body.aspsps=aspsps;
+      bankAutoCuenta();
       const {data,error}=await sb.functions.invoke('bank-sync',{ body:body });
-      if(error) throw error;
+      if(error){ if(bankRateLimited(error)) bankAutoPausa(); throw error; }
       if(!data || !data.ok) throw new Error((data&&data.error)||"histórico falló");
       return data;
     },
@@ -26351,6 +26354,57 @@ function bankRateRemember(bank){
     localStorage.setItem("_bankRateUntil",JSON.stringify(map));
   }catch(e){}
 }
+/* SINCRONIZAR AL ENTRAR, CON TOPE (16/11/2026, orden del dueño: «que sincronice las cuentas al
+   entrar en la app… si entras seguido, que no se pueda»). Enable Banking no recibe cabeceras de
+   usuario presente, así que PSD2 trata TODA lectura como desatendida, también la del botón: unas
+   cuatro al día por cuenta. Pasarse es lo que en julio (4.1.0) hizo que Caixa y Sabadell tumbaran
+   el consentimiento por «uso robótico»: entonces se leía en cada apertura con 30-90 min de margen.
+   Por eso se apunta CADA lectura de este móvil (`cloud.bankSync`/`bankSyncHistory`) y la sola
+   solo sale si la última fue hace 6 h y hoy van menos de 3: con una a mano detrás, cuatro como
+   mucho. Un 429 o un permiso rechazado la paran hasta mañana (día de Madrid): reintentar en bucle
+   contra un banco que ya dijo que no es justo lo que lee como robot. Vive en localStorage para
+   que matar la app no reinicie la cuenta; no viaja a la nube. */
+const BANK_AUTO_GAP_MS=6*60*60*1000;
+const BANK_AUTO_MAX_DIA=3;
+function bankAutoDia(ms){ const p=madridYmdParts(ms); return p.ym+"-"+String(p.d).padStart(2,"0"); }
+function bankAutoLimpio(reg){
+  reg=reg&&typeof reg==="object"?reg:{};
+  const n=Number(reg.n), at=Number(reg.at);
+  return {dia:typeof reg.dia==="string"?reg.dia:"", n:isFinite(n)&&n>0?n:0, at:isFinite(at)&&at>0?at:0, pausa:typeof reg.pausa==="string"?reg.pausa:""};
+}
+/* `lastOk` es `lastBankSync` (la última respuesta buena, que además llega de la nube si leyó otro
+   móvil). Sin ninguna lectura previa no sale sola: un banco recién conectado ya sincroniza al
+   volver de autorizar. Un reloj que retrocedió deja la marca en el futuro: dentro de las 6 h
+   espera; más allá es una marca rota y decide el tope del día, que sigue contando. */
+function bankAutoToca(reg, lastOk, now){
+  reg=bankAutoLimpio(reg);
+  const hoy=bankAutoDia(now);
+  if(reg.pausa===hoy) return false;
+  if(reg.dia===hoy && reg.n>=BANK_AUTO_MAX_DIA) return false;
+  const ref=Math.max(Number(lastOk)||0, reg.at);
+  if(!ref) return false;
+  return now-ref>=BANK_AUTO_GAP_MS || ref-now>BANK_AUTO_GAP_MS;
+}
+function bankAutoAnota(reg, now){
+  reg=bankAutoLimpio(reg);
+  const hoy=bankAutoDia(now);
+  return {dia:hoy, n:(reg.dia===hoy?reg.n:0)+1, at:now, pausa:reg.pausa};
+}
+function bankAutoPara(reg, now){ return Object.assign(bankAutoLimpio(reg),{pausa:bankAutoDia(now)}); }
+/* Lo que el banco contestó en ESTA lectura: cupo agotado o permiso rechazado. Un enlace que ya
+   estaba caducado no cuenta: la Edge no lo consulta, así que no gasta nada y no debe apagar la
+   lectura sola de los demás bancos hasta que lo reconectes. */
+function bankAutoFrena(links){
+  return (links||[]).some(function(l){
+    if(!l) return false;
+    const codes=[l.error,l.failureCode].concat((l.accounts||[]).reduce(function(acc,a){ return a?acc.concat([a.error,a.transactionError,a.failureCode]):acc; },[]));
+    return codes.some(function(c){ return /^(eb_)?(429|401|403)$|rate_limit|EXPIRED_SESSION|REVOKED_SESSION|CLOSED_SESSION|PSU_ACTION_REQUIRED/i.test(String(c||"")); });
+  });
+}
+function bankAutoLee(){ try{ return bankAutoLimpio(JSON.parse(localStorage.getItem("_bankAutoSync")||"{}")); }catch(e){ return bankAutoLimpio(null); } }
+function bankAutoGuarda(reg){ try{ localStorage.setItem("_bankAutoSync",JSON.stringify(reg)); }catch(e){} }
+function bankAutoCuenta(){ bankAutoGuarda(bankAutoAnota(bankAutoLee(),Date.now())); }
+function bankAutoPausa(){ bankAutoGuarda(bankAutoPara(bankAutoLee(),Date.now())); }
 /* UN BANCO POR PETICION (17/9/2026). `bank-sync` tiene un reloj global de 60 s. Al poner los
    enlaces en cola para no provocar 429, el segundo heredaba lo que hubiese dejado el primero:
    Sabadell podia completar sus paginas y Caixa ni siquiera recibia una llamada. La cola sigue
@@ -31873,7 +31927,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="1f6413a0e5274b3778c0c214414e8f5281e14594b4860149fb4293c45d15e89d";
+var _rnSha="9e2adb9d32dca740ceb4e1b0d7e030e083eea8866731102a1109276888fdcb32";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -40226,8 +40280,8 @@ function App(){
 
   // CAPA 2 — Open Banking: lee el saldo del banco y re-ancla el motor (= editar el saldo a mano,
   // pero con el número real). opts.manual = avisa siempre (botón "Actualizar saldo").
-  // (Los throttles de auto-sync BANK_SYNC_THROTTLE/BANK_FG_MIN se retiraron el 2026-07-18
-  //  junto con el propio auto-sync: el banco solo se consulta a demanda.)
+  // opts.auto = la lectura sola al entrar (16/11/2026, `bankAutoToca`): calla los fallos, que ya
+  // pinta el banner de bancos, y solo cuenta lo que ha entrado.
   /* Al sincronizar A MANO se lanzan a la vez bancos y brókers y cada uno tenía su toast: ganaba el
      último en acabar y el otro no se veía nunca («si actualizo… no me dice nada», 12/9). Con
      `opts.collect` cada uno deja su aviso en la lista y `sincronizarAMano` enseña UNO solo. */
@@ -40418,7 +40472,7 @@ function App(){
           const okN=Object.keys(okEnts).filter(function(e){ return !issues.some(function(is){ return is.ent===e; }); });
           if(okN.length) avisaSync(opts, okN.length===1 ? tf("bank_upd_one",{bank:entOf(okN[0]).label, x:eur((preview.synced.filter(function(x){ return x.ent===okN[0]; })[0]||{}).bal||0)}) : tf("bank_upd_n",{n:okN.length}));
         }
-        avisaSync(opts.manual?opts:null, "⚠ "+msg);
+        if(!opts.auto) avisaSync(opts.manual?opts:null, "⚠ "+msg);
         if(opts.manual){
           const nat=natPlugin();
           if(nat&&nat.showNotification){
@@ -40446,7 +40500,7 @@ function App(){
         if(opts.manual) avisaSync(opts, "⚠ "+t("bank_sync_sin_nube"));
         return;
       }
-      if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
+      if(opts.manual || (!opts.auto && navigator.onLine!==false)) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
     }).finally(function(){
       bankSyncing.current=false;
       /* AVISA DE QUE LA LISTA DE BANCOS HA CAMBIADO (2026-09-12, reportado por el desde la app:
@@ -40473,6 +40527,45 @@ function App(){
     flushPersist();
     obAckSave(p.at, p.ack, state.expenses);
   },[state.lastBankSync]);
+
+  /* LOS BANCOS AL DÍA SIN TOCAR NADA (16/11/2026, orden del dueño). Al arrancar y al volver a
+     primer plano se mira si toca leer el banco; el tope (6 h y 3 al día contando las tuyas, pausa
+     hasta mañana tras un 429 o un permiso rechazado) lo decide `bankAutoToca` (08). Va en idle y
+     con margen tras el arranque para no sumar trabajo al primer pintado, y `runBankSync` ya espera
+     al pull de la nube y no se solapa (`bankSyncing`). El modo pruebas no la lanza: leer el banco
+     gasta su cupo PSD2 real. */
+  useEffect(function(){
+    if(!uid) return;
+    let tmr=null, parado=false;
+    // Se decide DESPUÉS del pull: `lastBankSync` viaja en la nube y otro móvil puede haber leído ya.
+    const toca=function(){
+      const s=stateRef.current||{};
+      return !parado && document.visibilityState!=="hidden" && !!s.hasBankLink && !mcSandbox() && bankAutoToca(bankAutoLee(), s.lastBankSync, Date.now());
+    };
+    const intenta=function(){
+      if(!toca()) return;
+      Promise.resolve(pullOkRef.current).then(function(){
+        if(toca()) mcScheduleIdle(function(){ if(toca()) runBankSync({auto:true}); }, 4000);
+      });
+    };
+    const onVis=function(){
+      if(document.visibilityState!=="visible") return;
+      clearTimeout(tmr); tmr=setTimeout(intenta, 1500);
+    };
+    tmr=setTimeout(intenta, 3000);
+    document.addEventListener("visibilitychange", onVis);
+    // La APK avisa también por Capacitor (como el efecto de primer plano); el temporizador junta los dos.
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub;
+    if(A&&A.addListener){
+      try{ sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(st&&st.isActive&&!parado) onVis(); })); sub.catch(function(){}); }catch(e){}
+    }
+    return function(){
+      parado=true; clearTimeout(tmr);
+      document.removeEventListener("visibilitychange", onVis);
+      if(sub) sub.then(function(h){ return h&&h.remove&&h.remove(); }).catch(function(){});
+    };
+  },[uid]);
 
   /* ── Auto-refresh de brókers al abrir (petición 2026-07-15: «que se actualicen solos») ──
      SILENCIOSO a propósito y CONSERVADOR: solo re-ancla las posiciones que YA están mapeadas
@@ -40747,7 +40840,7 @@ function App(){
   },[uploadState,uid]);
 
   // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
-  // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
+  // Los bancos OB no se leen aquí (van con su tope, `bankAutoToca`); esta lectura no gasta su cupo PSD2.
   /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
      proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
      para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
@@ -40777,11 +40870,8 @@ function App(){
       const read=cloudReadRef.current;
       if(!read||read.owner!==uid||!read.ready)syncFromCloud(sessionRef.current);
       else syncCloudExpenses().catch(function(){});
-      // (2026-07-18) Aquí había un bankSync automático al volver a primer plano. RETIRADO:
-      // cada apertura disparaba una consulta PSD2 desatendida y los bancos (Caixa, Sabadell)
-      // acababan tumbando el consentimiento por «uso robótico». Ahora el banco se sincroniza
-      // SOLO cuando lo pides: botón «Sincronizar bancos» en Cartera, «Actualizar» en Mis
-      // bancos, o la noti del banco (ajuste st_banksync_notif, que sí es un evento real).
+      // El banco NO se lee aquí: cada vuelta leyéndolo tumbó consentimientos por «uso robótico»
+      // (2026-07-18). La lectura sola al entrar va en su propio efecto, con tope (16/11/2026).
       // APK: ping pendiente del listener de notis de banco (si la app estaba en frío).
       const nat=natPlugin();
       if(nat&&nat.consumeBankSyncPing){
