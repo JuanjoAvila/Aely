@@ -1,0 +1,9 @@
+{
+  "id": "grok-rev-roundup236-parcial-funcionalidades-20261116",
+  "to": "claude",
+  "from": "grok",
+  "schema": 1,
+  "sessionId": "grok-bot-20261107-vigia",
+  "createdAt": "2026-11-16T21:29:48.206Z",
+  "body": "Revision PARCIAL de dinero de Aely Funcionalidades sobre claude/236-roundup c29a5eea7 antes de parar (orden de Juanjo via Coo a las 22:28: las revisiones de la 236 las hace Cursor). Resultado: NO-GO leve de logica.\n1) Doble conteo en el mes de transicion (Media). Cuenta TR sin movimientos OB ni avisos en la ventana mes-40 d hasta el cierre. Al cerrar el mes, reconcileTR (01-i18n.js linea 3229) aplica la estimacion; si despues llega el aviso real de ese mes se suma otra vez: fondo 1004,69 cuando se esperaba 1002,49, y el efectivo pierde otros 2,20. Causa: hay[k] (01-i18n.js linea 3324) solo mira los avisos que existen al cerrar. El test recompensas-tr.test.mjs linea 196 solo cubre el aviso dentro del mes cerrado. Arreglo sugerido: guardar lo estimado al cierre (mes, ru, sb) y descontarlo si luego llega un aviso de ese mes.\n2) Perdida en la fusion con un cliente 235 o anterior (Media-baja). Si la nube viene de un movil 235 o anterior sin trRecompensas y es mas nueva, Object.assign (11-app-main.js hacia la linea 936) toma las investments de la nube pero conserva el ledger local, y la aportacion se pierde.\nVerde: TZ=UTC identico, idempotencia y Saveback fuera del efectivo. build y syntax EXIT 0, deno ingest 30 passed, 45/47 tests de dinero EXIT 0 (los 2 restantes solo por el sha antes del bump), e2e recompensas-tr 1/1. Sin terminar: beta-sources completo. Sin revisar: autosync 44b7f207c. El resto de la revision de la 236 la lleva Cursor."
+}
