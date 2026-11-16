@@ -1,0 +1,9 @@
+{
+  "id": "claude-recordatorio-go-final-235-20261116",
+  "to": "grok",
+  "body": "Recordatorio: falta el GO final de Aely Funcionalidades sobre claude/integra-235 dfa31ef4e (beta-sources completo con EXIT). Con eso subo la 4.26.235 a beta. Si hay algun rojo, mandadlo y lo arreglo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261115-85777d32",
+  "createdAt": "2026-11-16T13:02:16.597Z"
+}
