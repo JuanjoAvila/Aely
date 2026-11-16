@@ -127,7 +127,8 @@ Deno.test("extraerPersona: «Él», «Té», «Tú» y «Sé» con tilde NO son 
 Deno.test("extraerPersona: inicial con punto, nombre completo o vacío (nunca solo el apellido)", () => {
   assertEquals(extraerPersona("Ana M. Pérez te ha enviado un Bizum de 12,20 €.", "de"), "Ana M. Pérez");
   assertEquals(
-    extraerPersona("Ana M. Pérez Gómez de la Torre Ruiz te ha enviado un Bizum de 12,20 €.", "de"), "");
+    extraerPersona("Ana M. Pérez Gómez de la Torre Ruiz te ha enviado un Bizum de 12,20 €.", "de"),
+    "Ana M. Pérez Gómez de la Torre Ruiz");
 });
 
 Deno.test("extraerPersona: siete o más palabras, vacío", () => {
@@ -153,4 +154,35 @@ Deno.test("extraerPersona: la frase nueva con «a», o una transferencia que no 
   assertEquals(extraerPersona("Ana Pérez te ha enviado un Bizum de 12,20 €.", "a"), "");
   assertEquals(extraerPersona("Ana Pérez te ha enviado una transferencia de 12,20 €.", "de"), "");
   assertEquals(extraerPersona("Ana Pérez te ha enviado un Bizumero de 12,20 €.", "de"), "");
+});
+
+// ---- Restos del parser de nombres (2026-11-16): partículas, nombres extranjeros, largos ----
+Deno.test("extraerPersona: partículas y nombres de origen extranjero", () => {
+  for (const n of ["El Hadji Diop", "De la Fuente", "Mª José García", "Jean-Luc Picard", "Sean O'Connor",
+    "Maria d'Alba", "Ana de los Santos"]) {
+    assertEquals(extraerPersona(n + " te ha enviado un Bizum de 12,20 €.", "de"), n);
+  }
+  assertEquals(extraerPersona("Aïcha El Amrani t'ha enviat un Bizum de 5 €.", "de"), "Aïcha El Amrani");
+});
+
+Deno.test("extraerPersona: el formato «de NOMBRE» también con partículas y extranjeros", () => {
+  assertEquals(extraerPersona("Has recibido 20 € de De la Fuente por bizum", "de"), "De la Fuente");
+  assertEquals(extraerPersona("Has recibido 20 € de Mª José.", "de"), "Mª José");
+  assertEquals(extraerPersona("Has enviado 5 € a Jean-Luc O'Connor por bizum", "a"), "Jean-Luc O'Connor");
+});
+
+Deno.test("extraerPersona: nombres largos hasta 6 palabras «de verdad» y 10 en total", () => {
+  assertEquals(extraerPersona("María del Carmen Pérez de la Torre y Ruiz te ha enviado un Bizum de 1 €.", "de"),
+    "María del Carmen Pérez de la Torre y Ruiz");
+  // Siete palabras sin partículas: eso ya es una frase, no un nombre.
+  assertEquals(extraerPersona("Uno Dos Tres Cuatro Cinco Seis Siete te ha enviado un Bizum de 1 €.", "de"), "");
+  // Once tokens: pasa del tope total aunque casi todo sean partículas.
+  assertEquals(extraerPersona("Ana de la de la de la de la de Torre te ha enviado un Bizum de 1 €.", "de"), "");
+});
+
+Deno.test("extraerPersona: «El banco», «La empresa» y compañía NO son personas aunque lleven mayúscula", () => {
+  for (const n of ["El banco", "El Banco", "EL BANCO", "La empresa", "La Empresa", "El hadji", "el Hadji Diop", "El", "La",
+    "Trade Republic", "Hola Ana", "Él Hadji"]) {
+    assertEquals(extraerPersona(n + " te ha enviado un Bizum de 12,20 €.", "de"), "");
+  }
 });

@@ -255,21 +255,43 @@ export function extraerComercio(texto: string, titulo: string): string {
 // un Bizum de 12,20 €.» (título «Transferencia recibida»). Tras el «de» va el importe, así que el
 // patrón «de NOMBRE.» no lo veía y el ingreso se apuntaba como «Bizum recibido» (feedback 2026-11-15).
 // Solo palabras con letra (nombre y apellidos, y la inicial con punto: «Ana M. Pérez») pegadas al
-// inicio de la frase, para no coger nada que no sea una persona: sin nombre claro, o con más de
-// 6 palabras, devolvemos "" y se queda el genérico. Los límites de palabra NO usan \b: sin la
+// inicio de la frase, para no coger nada que no sea una persona: sin nombre claro, o demasiado
+// largo, devolvemos "" y se queda el genérico. Los límites de palabra NO usan la marca de límite de palabra del regex: sin la
 // bandera u una tilde lo corta y «Elías» pasaba por «El» + «ías» (revisión 2026-11-16).
 // El lookbehind evita arrancar justo detrás de una inicial («M. Pérez» no es una frase nueva).
+//
+// TOPE DE LARGO (restos 2026-11-16): un nombre completo con partículas («Ana María Pérez Gómez de la
+// Torre Ruiz») pasaba de 6 palabras y se tiraba, dejando el genérico «Bizum recibido». Las partículas
+// (de, del, la, los, y, i, van, bin…) son enlaces, no nombres: no cuentan para el tope de 6 palabras
+// de verdad, y el total se limita a 10 tokens. Una frase suelta sigue sin colarse porque tiene que
+// ocupar TODO el inicio de la frase hasta el verbo.
 const PALABRA_NOMBRE = "(?:\\p{L}\\.|\\p{L}[\\p{L}'’\\-]*)";
 const NOMBRE_ANTES_DEL_VERBO = new RegExp(
-  "(?:^|(?<!(?:^|\\s)\\p{L})[.!?]\\s+)(" + PALABRA_NOMBRE + "(?:\\s+" + PALABRA_NOMBRE + "){0,5})\\s+" +
+  "(?:^|(?<!(?:^|\\s)\\p{L})[.!?]\\s+)(" + PALABRA_NOMBRE + "(?:\\s+" + PALABRA_NOMBRE + "){0,9})\\s+" +
   "(?:te\\s+ha|t'ha|t’ha)\\s+(?:enviado|enviat|hecho|fet)\\s+(?:un\\s+)?bizum(?![\\p{L}\\d])", "iu");
 const NO_ES_PERSONA = /^(?:trade\s+republic|has|he|se|tu|tus|te|un|una|el|la|hola|bizum|banco)(?![\p{L}'’\-])/iu;
+const PARTICULA = /^(?:de|del|dels|d'|d’|la|las|les|los|el|y|i|e|da|das|do|van|von|der|den|bin|ben|al|di|le)$/i;
+const MAX_PALABRAS_NOMBRE = 6;
+// «El Hadji Diop», «La Rosa»: «el»/«la» abren un nombre real cuando lo que sigue es otro nombre propio
+// con mayúscula; «El banco te ha enviado…» o «La empresa…» no. En TODO MAYÚSCULAS la mayúscula no
+// distingue, por eso además la lista de genéricos.
+const GENERICO_TRAS_ARTICULO = /^(?:banco|bank|empresa|compania|app|aplicacion|usuario|cliente|titular|cuenta|persona|amigo|amiga)$/i;
 const sinTildes = (x: string) => x.normalize("NFD").replace(/\p{M}/gu, "");
+
+function nombreValido(nombre: string): boolean {
+  const toks = nombre.split(/\s+/);
+  if (NO_ES_PERSONA.test(sinTildes(nombre))) {
+    // Única excepción: artículo (sin tilde: «Él» sigue fuera) + nombre propio con mayúscula.
+    const abre = /^(?:El|La|EL|LA)$/.test(toks[0]);
+    if (!abre || toks.length < 2 || !/^\p{Lu}/u.test(toks[1]) || GENERICO_TRAS_ARTICULO.test(sinTildes(toks[1]))) return false;
+  }
+  return toks.filter((w) => !PARTICULA.test(w)).length <= MAX_PALABRAS_NOMBRE;
+}
 
 export function extraerPersona(texto: string, prep: "de" | "a"): string {
   if (prep === "de") {
     const antes = limpiarTexto(texto).match(NOMBRE_ANTES_DEL_VERBO);
-    if (antes && !NO_ES_PERSONA.test(sinTildes(antes[1]))) return limpiarTexto(antes[1]);
+    if (antes && nombreValido(antes[1])) return limpiarTexto(antes[1]);
   }
   const re = new RegExp("\\b" + prep + "\\s+([^.\\d€]+?)\\s*(?:por\\s+bizum)?\\s*[.!]?$", "i");
   const m = limpiarTexto(texto).match(re);
