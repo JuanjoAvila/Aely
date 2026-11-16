@@ -65,6 +65,10 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Round up y Saveback de TR (16/11/2026): el destino por tipo en Cartera y que la posición suba una vez.
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/recompensas-tr.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recompensas-tr.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recompensas-tr.spec.mjs"] },
   // La última cuota de un plazo se lleva el redondeo (revisión externa 15/11/2026): Recibos y Deudas.
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },

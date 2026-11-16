@@ -1851,6 +1851,14 @@ function App(){
     });
   },[state.expenses, state.debts, state.cuotaNo, state.cuotaAlias]);
 
+  /* Round up / Saveback que avisa TR → a su posición, una sola vez (16/11/2026, `aplicarRecompensasTR`).
+     Llegan por cualquier vía que traiga gastos (pull, otro móvil); la pasada devuelve el mismo estado
+     si no hay nada nuevo, así que no entra en bucle. Cuenta como edición: la cartera tiene que viajar. */
+  useEffect(function(){
+    if(aplicarRecompensasTR(stateRef.current, Date.now())===stateRef.current) return;
+    set(function(prev){ return aplicarRecompensasTR(prev, Date.now()); });
+  },[state.expenses, state.accounts, state.investments]);
+
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);
   const [drawerOpen,setDrawerOpen]=useState(false);
@@ -2488,7 +2496,7 @@ function App(){
     const trAcc=ins.trAcc;
     const injTR=ins.injTR;
     const roundupThisMonth=ins.roundup;
-    const savebackThisMonth = trAcc ? ((trAcc.savebackManual!=null)?trAcc.savebackManual:(trAcc.saveback?savebackOf(thisMonthExp):0)) : 0;
+    const savebackThisMonth=ins.saveback;
     // Aporte periódico a inversión (plan de ahorro TR, p.ej. 50€/mes al FTSE): sale del efectivo
     // y compra participaciones. Igual que el round-up, se muestra restado en vivo y se persiste al cerrar mes.
     const monthlyInvestThisMonth=ins.monthlyInvest;

@@ -153,6 +153,7 @@ function makeHandler(db, classifier=logic, code=handlerJs) {
     "bancosDeGastoDiario", "cuentaParaPresupuesto", "filasComoLaApp", "inicioDeMesMs", "statsDelMes",
     "widgetSnapshot", "widgetStart", "readWidgetRows",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
+    "NOMBRE_RECOMPENSA", "recompensaTR",
   ];
   new Function(...names, code)(
     Deno, () => db, classifier.categorizar, classifier.clasificarConMotivo, logic.extraerComercio,
@@ -165,6 +166,7 @@ function makeHandler(db, classifier=logic, code=handlerJs) {
     widgetBudget.widgetSnapshot, widgetBudget.widgetStart, widgetBudget.readWidgetRows,
     entrada.INGEST_MAX_BODY, entrada.INGEST_MAX_COMERCIO, entrada.INGEST_MAX_NOTA,
     entrada.INGEST_MAX_TEXTO, entrada.recortar, entrada.timingSafeEqual,
+    logic.NOMBRE_RECOMPENSA, logic.recompensaTR,
   );
   return handler;
 }

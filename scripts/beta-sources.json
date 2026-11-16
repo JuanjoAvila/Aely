@@ -1910,6 +1910,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -3740,6 +3760,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "native": [
@@ -5400,6 +5440,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "native": [
@@ -6400,6 +6460,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "native": [
@@ -8029,6 +8097,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "flowFilaOtroBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "native": [
@@ -9689,6 +9777,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "native": [
@@ -12098,6 +12206,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -15301,6 +15429,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -16823,6 +16971,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -18468,6 +18636,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "native": [
@@ -20950,6 +21138,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -21835,6 +22043,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "textSizeOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -22756,6 +22972,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -23596,6 +23820,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "NF_ES"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -25459,6 +25691,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "textSizeOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -27829,6 +28081,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -29701,6 +29973,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -34201,6 +34493,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -35861,6 +36173,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "native": [
@@ -37235,6 +37567,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -38880,6 +39232,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "native": [
@@ -40600,6 +40972,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -41967,6 +42359,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -43997,6 +44409,22 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -45552,6 +45980,26 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "mcSinNada"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -48024,6 +48472,22 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -49728,6 +50192,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -51290,6 +51774,22 @@
       {
         "file": "src/modules/00-core.js",
         "function": "accountKeysHuella"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -53505,6 +54005,22 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -54750,6 +55266,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -55315,6 +55851,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -57209,6 +57769,22 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -60843,6 +61419,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -61104,6 +61700,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -66215,6 +66819,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -68413,6 +69037,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -71626,6 +72270,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -74070,6 +74734,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -78184,6 +78868,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -80050,6 +80754,22 @@
       {
         "file": "src/modules/00-core.js",
         "function": "accountKeysHuella"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -81505,6 +82225,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -84210,6 +84950,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -88411,6 +89171,30 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "aplicarRecompensasTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -90949,6 +91733,30 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "aplicarRecompensasTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -92563,6 +93371,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -97401,6 +98229,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -99136,6 +99984,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -101519,6 +102387,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "textSizeOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -104531,6 +105407,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -106534,6 +107430,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -108189,6 +109109,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -109839,6 +110779,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -111485,6 +112445,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -113043,6 +114023,22 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -114843,6 +115839,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -116633,6 +117653,22 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -118286,6 +119322,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -120003,6 +121063,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -121339,6 +122423,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -123305,6 +124401,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -125263,6 +126383,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -127065,6 +128205,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -128714,6 +129874,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -130449,6 +131629,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -131685,6 +132885,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "edge": [
@@ -133656,6 +134864,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -134992,6 +136220,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoEsAlias"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -136948,6 +138196,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -138520,6 +139776,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "patchFlowById"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -140046,6 +141322,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -141878,6 +143162,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -143796,6 +145100,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -145682,6 +147006,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -148094,6 +149438,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -149215,6 +150579,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -150840,6 +152212,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoEsAlias"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -152530,6 +153922,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -153936,6 +155348,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -155742,6 +157174,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -158171,6 +159623,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoEsAlias"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -159816,6 +161288,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -161705,6 +163197,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -163579,6 +165091,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -165461,6 +166993,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -167798,6 +169350,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -170159,6 +171731,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -172468,6 +174060,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "textSizeOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -174598,6 +176210,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -175421,6 +177053,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -176276,7 +177912,7 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "function": "roundupOf"
+        "function": "recompensasEstimadas"
       },
       {
         "file": "src/modules/00-core.js",
@@ -176368,11 +178004,15 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "function": "isCardSpend"
+        "function": "recompensasReales"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "function": "spareOf"
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -176397,6 +178037,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "obAbsorbedStorageKey"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
       },
       {
         "file": "src/modules/00-core.js",
@@ -176633,6 +178281,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       },
       {
         "file": "src/modules/00-core.js",

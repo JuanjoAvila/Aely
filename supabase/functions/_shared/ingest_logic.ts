@@ -162,7 +162,32 @@ export function categorizar(comercio: string): string {
   return mobilityCategoryOfNewMerchant(comercio, "otros");
 }
 
-export type Tipo = "gasto" | "gasto_nocard" | "ingreso" | "ignorado";
+export type Tipo = "gasto" | "gasto_nocard" | "ingreso" | "inversion" | "ignorado";
+
+/* EL ROUND UP Y EL SAVEBACK DE TRADE REPUBLIC SE APUNTAN (petición suya, 16/11/2026: «¡Has ahorrado e
+   invertido 12,96 € en Round up!»). Hasta hoy eran ruido y se tiraban: el dinero acababa en el fondo y la
+   app solo lo veía días después, como un «Movimiento» sin nombre del banco. Ahora entran en Inversión con
+   un nombre FIJO —«Round up» o «Saveback»—, que es lo que la app lee para saber a qué posición va cada
+   uno y para emparejarlo con lo que luego traiga el banco (el nombre va también en `ob_name`, así que
+   renombrar la fila no le quita lo que es).
+   Solo lo YA invertido: un «se invertirá el día 2» es un aviso, no dinero movido, y apuntarlo dejaría dos
+   filas cuando llegue el de verdad. Por eso se exige el verbo en pasado y se descarta el futuro. Aquí se
+   mira la frase ENTERA: «Round up» va justo detrás del « en », donde en una compra iría el comercio. */
+export type Recompensa = "roundup" | "saveback";
+export const NOMBRE_RECOMPENSA: Record<Recompensa, string> = { roundup: "Round up", saveback: "Saveback" };
+const RE_ROUNDUP = /\b(round[\s-]?ups?|redondeos?|arrodoniments?|aufrunden|rundung)\b/;
+const RE_SAVEBACK = /\b(saveback|cashback)\b/;
+const RE_HECHO = /\b(invertid[oa]s?|invertit|invested|investiert|ahorrad[oa]s?|estalviat|saved|recibid[oa]s?|rebut|received|earned|abonad[oa]s?)\b/;
+const RE_FUTURO = /\b(se invertira|invertiremos|s'invertira|will be invested|wird investiert|se abonara|recibiras|rebras|you will)\b/;
+export function recompensaTR(texto: string, titulo: string): Recompensa | null {
+  const t = norm(limpiarTexto(titulo + " " + texto));
+  if (RE_FUTURO.test(t) || !RE_HECHO.test(t)) return null;
+  // Una compra con tarjeta que menciona su redondeo sigue siendo la compra.
+  if (COMPRA_TARJETA.test(t)) return null;
+  if (RE_SAVEBACK.test(t)) return "saveback";
+  if (RE_ROUNDUP.test(t)) return "roundup";
+  return null;
+}
 
 /**
  * De qué app venía la notificación. Cambia DÓNDE se puede buscar, no solo cómo se parsea.
@@ -196,6 +221,8 @@ export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuent
      entero por la otra puerta: un «BAR STOP» o un «CÓDIGO BCN» en el título de Wallet se
      descartaría como ruido. Con `wallet` el título se deja fuera de las dos búsquedas. */
   const escaneable = fuente === "wallet" ? "" : titulo;
+  // Antes que el ruido: «saveback», «redondeo» e «invertido» están en esa lista. Solo de TR.
+  if (fuente === "tr" && recompensaTR(texto, titulo)) return { tipo: "inversion", motivo: null };
   const t = norm(escaneable + " " + texto);
   const IGNORAR = [
     "interes", "dividendo", "rendimiento", "rentabilidad",

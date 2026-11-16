@@ -374,7 +374,10 @@ const PRESUPUESTO = {
   // registro. Medido sin sello: 1.970.260 B minificado y 540.571 B gzip (1924,1 / 527,9 KiB). SUBE (el dueño fijó el 11/10
   // que el tope de tamaño no bloquea producto: se sube al mínimo medido, como en Inicio v4.2 y la PR 204) a 1926 / 529 KiB,
   // con el margen justo para el sello.
-  minificado: 1926 * 1024,
+  // Round up y Saveback de TR (236, 16/11): el aviso entra en Inversión, suma una vez a la posición elegida y la
+  // estimación deja paso a lo real; selector por tipo con logos. Medido sobre la 235 sin sello: ~1930 / 530 KiB.
+  // Es lógica de dinero que pidió el dueño; SUBE (mandato 11/10) al mínimo con margen para el sello: 1931 / 531 KiB.
+  minificado: 1931 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -414,7 +417,7 @@ const PRESUPUESTO = {
   // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
   // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
   // dueño; SUBE (mandato 11/10) a 524 KiB.
-  gzip: 529 * 1024, // ver el comentario de minificado (527,9 KiB medidos el 16/11/2026 en la integración 4.26.235).
+  gzip: 531 * 1024, // ver el comentario de minificado (~530 KiB medidos el 16/11/2026 con la 236 sobre la 235).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

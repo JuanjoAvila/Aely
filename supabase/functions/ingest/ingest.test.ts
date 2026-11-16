@@ -1,6 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
   categorizar, clasificar, extraerComercio, extraerConcepto, extraerImporte, extraerPersona, limpiarTexto,
+  recompensaTR,
 } from "../_shared/ingest_logic.ts";
 
 // ---- El bar del padre y el gasto de Splau (2026-08-06) ----
@@ -15,7 +16,9 @@ Deno.test("el nombre del comercio NO se mira buscando ruido", () => {
 });
 
 Deno.test("…y el ruido de TR se sigue tirando igual", () => {
-  assertEquals(clasificar("Se ha invertido tu redondeo de 0,42 € en iShares Core", ""), "ignorado");
+  // El redondeo YA invertido dejó de ser ruido el 16/11/2026: entra en Inversión (ver abajo).
+  assertEquals(clasificar("Se ha invertido tu redondeo de 0,42 € en iShares Core", ""), "inversion");
+  assertEquals(clasificar("Tus intereses de 3,10 € ya están en tu cuenta", ""), "ignorado");
   assertEquals(clasificar("Tu plan de inversión ha ejecutado 50 € en Vanguard", ""), "ignorado");
   assertEquals(clasificar("Nuevo inicio de sesión en tu cuenta", ""), "ignorado");
 });
@@ -153,4 +156,65 @@ Deno.test("extraerPersona: la frase nueva con «a», o una transferencia que no 
   assertEquals(extraerPersona("Ana Pérez te ha enviado un Bizum de 12,20 €.", "a"), "");
   assertEquals(extraerPersona("Ana Pérez te ha enviado una transferencia de 12,20 €.", "de"), "");
   assertEquals(extraerPersona("Ana Pérez te ha enviado un Bizumero de 12,20 €.", "de"), "");
+});
+
+// ---- Round up y Saveback de TR (16/11/2026) ----
+// Antes se tiraban como ruido; ahora entran en Inversión y la app los suma a la posición elegida.
+// Frases inventadas con la forma de las reales (título + texto), en los tres idiomas de la app.
+const RU = [
+  ["Round up Invertido", "¡Has ahorrado e invertido 12,96 € en Round up!"],
+  ["Round up invested", "You saved and invested 12,96 € with Round up!"],
+  ["Round up invertit", "Has estalviat i invertit 12,96 € amb Round up!"],
+  ["Trade Republic", "Se ha invertido tu redondeo de 12,96 € en tu plan"],
+];
+const SB = [
+  ["Saveback invertido", "¡Has recibido 12,96 € de Saveback y se han invertido!"],
+  ["Saveback invested", "You received 12,96 € Saveback and it was invested."],
+  ["Saveback invertit", "Has rebut 12,96 € de Saveback i s'han invertit."],
+  ["Trade Republic", "Tu cashback de 12,96 € se ha invertido"],
+];
+
+Deno.test("recompensas: round up en es/en/ca entra como inversión", () => {
+  for (const [ti, tx] of RU) {
+    assertEquals(clasificar(tx, ti), "inversion", tx);
+    assertEquals(recompensaTR(tx, ti), "roundup", tx);
+    assertEquals(extraerImporte(tx), 12.96, tx);
+  }
+});
+
+Deno.test("recompensas: saveback y cashback en es/en/ca entran como inversión", () => {
+  for (const [ti, tx] of SB) {
+    assertEquals(clasificar(tx, ti), "inversion", tx);
+    assertEquals(recompensaTR(tx, ti), "saveback", tx);
+    assertEquals(extraerImporte(tx), 12.96, tx);
+  }
+});
+
+Deno.test("recompensas: importes con miles, céntimos sueltos y redondos", () => {
+  assertEquals(extraerImporte("¡Has ahorrado e invertido 1.234,56 € en Round up!"), 1234.56);
+  assertEquals(extraerImporte("¡Has ahorrado e invertido 0,04 € en Round up!"), 0.04);
+  assertEquals(extraerImporte("¡Has recibido 15,00 € de Saveback y se han invertido!"), 15);
+  assertEquals(recompensaTR("¡Has ahorrado e invertido 0,04 € en Round up!", "Round up Invertido"), "roundup");
+});
+
+Deno.test("recompensas: un aviso de lo que AÚN no se ha invertido no se apunta", () => {
+  // Apuntarlo dejaría dos filas cuando llegue el de verdad.
+  assertEquals(recompensaTR("Tu Saveback de 3,20 € se invertirá el día 2", "Saveback"), null);
+  assertEquals(recompensaTR("Your Saveback of 3,20 € will be invested on the 2nd", "Saveback"), null);
+  assertEquals(recompensaTR("Activa el Round up y redondea tus compras", "Round up"), null);
+  assertEquals(clasificar("Tu Saveback de 3,20 € se invertirá el día 2", "Saveback"), "ignorado");
+});
+
+Deno.test("recompensas: no se confunden con otras notificaciones de TR", () => {
+  // Compra con tarjeta, aunque el comercio se llame así, sigue siendo un gasto.
+  assertEquals(recompensaTR("Has gastado 12,96 € en Mercadona", "Trade Republic"), null);
+  assertEquals(clasificar("Has gastado 12,96 € en ROUND UP BAR", "Trade Republic"), "gasto");
+  assertEquals(clasificar("Has pagado 4,50 € en CASHBACK STORE", "Trade Republic"), "gasto");
+  // Bizum recibido: ingreso, no recompensa.
+  assertEquals(recompensaTR("Has recibido 12,96 € de María por bizum", "Trade Republic"), null);
+  assertEquals(clasificar("Has recibido 12,96 € de María por bizum", "Trade Republic"), "ingreso");
+  // Un plan de inversión sin redondeo ni saveback sigue siendo ruido.
+  assertEquals(clasificar("Tu plan de inversión ha ejecutado 50 € en Vanguard", ""), "ignorado");
+  // Wallet nunca trae recompensas de TR: su título es el comercio.
+  assertEquals(clasificar("12,96 € con Trade Republic Visa Card", "ROUND UP INVESTED BAR", "wallet"), "gasto");
 });

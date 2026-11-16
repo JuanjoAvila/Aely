@@ -512,7 +512,8 @@ function TRSync({state, set, totals, open, onToggle}){
       const next=Object.assign({},s,{investments:s.investments.map(function(i){
         const po=pos.find(function(p){ return map[p.isin]===i.id; });
         if(!po) return i;
-        const patch={shares:po.shares, isin:po.isin};
+        // `brokerAt`: desde aquí la cifra es la de TR; un Round up avisado antes ya va dentro (`aplicarRecompensasTR`).
+        const patch={shares:po.shares, isin:po.isin, brokerAt:Date.now()};
         // dato EN VIVO de TR (€). Si la posición se muestra en $, se convierte con el cambio del BCE.
         if(po.value!=null){ const native=fromEurAmt(po.value,i.cur||"EUR",state); if(native!=null) patch.value=native; }
         if(po.cost!=null){ const native=fromEurAmt(po.cost,i.cur||"EUR",state); if(native!=null) patch.cost=native; }
@@ -726,6 +727,30 @@ function Projection({invested, defMonthly, state, currency, fmt, fmt0}){
   );
 }
 
+/* A QUÉ POSICIÓN VA CADA AVISO DE TR (16/11/2026): una fila para el Round up y otra para el Saveback,
+   con el logo de cada posición. Tocar la elegida la quita (se apunta igual, sin sumar a ninguna).
+   Escribe en la cuenta de TR, que es donde lo lee `destinoRecompensa`. */
+function DestinoRecompensas({state,set}){
+  const tr=state.accounts.find(function(a){ return a.ent==="trade_republic"; });
+  if(!tr || !state.investments.length) return null;
+  const pon=function(patch){ set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(a){ return a.id===tr.id?Object.assign({},a,patch):a; })}); }); };
+  const fila=function(k){
+    const actual=destinoRecompensa(state, k), campo=k==="roundup"?"rewardInv":"savebackInv";
+    return React.createElement("div",{key:k,className:"rw-dest","data-rw":k,style:{display:"flex",alignItems:"center",gap:8,margin:"0 0 8px"}},
+      React.createElement("div",{className:"mlabel",style:{flex:"0 0 74px",textAlign:"left",margin:0}}, t(k==="roundup"?"rw_ru":"rw_sb")),
+      React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",flex:1}},
+        state.investments.map(function(i){
+          const on=!!actual && actual.id===i.id;
+          return React.createElement("button",{key:i.id,type:"button",className:"chip"+(on?" active":""),"aria-pressed":on,title:i.name,
+            style:{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px 5px 5px"},
+            onClick:function(){ const p={}; p[campo]=on?"":i.id; pon(p); }},
+            React.createElement(LogoInv,{nombre:i.name,ent:i.ent,kind:i.kind,size:20}),
+            React.createElement("span",{style:{maxWidth:110,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}, i.name));
+        })));
+  };
+  return React.createElement("div",{style:{marginBottom:6}}, fila("roundup"), fila("saveback"));
+}
+
 function InvestmentRewards({state,set}){
   const trAcc=state.accounts.find(function(a){ return a.spendFrom; });
   const monthStartMs=+startOfMonth();
@@ -733,7 +758,9 @@ function InvestmentRewards({state,set}){
   // dentro de Herramientas; al traerlo a la portada no podemos recorrer todo el histórico en cada
   // render. La referencia de expenses solo cambia cuando de verdad cambia el historial.
   const rewardsAuto=useMemo(function(){
-    return recompensasDelMes(state, trAcc, monthStartMs);
+    // `hay`: TR ya avisó de lo real este mes; entonces lo tecleado a mano no manda (`recompensasEstimadas`).
+    const d=new Date(monthStartMs);
+    return Object.assign({hay:trAcc?recompensasReales(state, trAcc.ent, monthStartMs, +new Date(d.getFullYear(), d.getMonth()+1, 1)).hay:{}}, recompensasDelMes(state, trAcc, monthStartMs));
   },[state.expenses,state.fixed,state.oneoffs,state.reciboNo,monthStartMs,trAcc&&trAcc.roundup,trAcc&&trAcc.saveback]);
   if(!trAcc) return null;
   const setTr=function(patch){ set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(a){ return a.spendFrom?Object.assign({},a,patch):a; })}); }); };
@@ -741,7 +768,7 @@ function InvestmentRewards({state,set}){
   const numOrNull=function(v){ v=String(v).trim(); return v===""?null:(parseFloat(v.replace(',','.'))||0); };
   const mult=trAcc.roundup||0;
   const ruAuto=rewardsAuto.ru, sbAuto=rewardsAuto.sb;
-  const ru=(trAcc.roundupManual!=null)?trAcc.roundupManual:ruAuto, sb=(trAcc.savebackManual!=null)?trAcc.savebackManual:sbAuto, tot=state.trRewardsTotal||0;
+  const ru=(trAcc.roundupManual!=null&&!rewardsAuto.hay.roundup)?trAcc.roundupManual:ruAuto, sb=(trAcc.savebackManual!=null&&!rewardsAuto.hay.saveback)?trAcc.savebackManual:sbAuto, tot=state.trRewardsTotal||0;
   const iv=state.investments.find(function(i){ return i.id===trAcc.rewardInv; });
   const invName=iv?iv.name:t("ru_pick");
   return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):(mult>0?tf("ru_sub_on",{m:mult}):t("ru_sub_off")),dot:"#E6C36A",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
@@ -749,9 +776,7 @@ function InvestmentRewards({state,set}){
     React.createElement("div",{className:"curtoggle",style:{flexWrap:"wrap",justifyContent:"flex-start"}},
       RU_MULTS.map(function(m){ return React.createElement("button",{key:m,type:"button",className:"curbtn inv-tap"+(mult===m?" on":""),onClick:function(){ setTr({roundup:m}); }}, m===0?t("ru_off"):"×"+m); })),
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",margin:"12px 0 6px"}},t("ru_dest")),
-    React.createElement("select",{className:"af-in",value:trAcc.rewardInv||"",onChange:function(e){ setTr({rewardInv:e.target.value}); }},
-      React.createElement("option",{value:""},t("ru_pick")),
-      state.investments.map(function(i){ return React.createElement("option",{key:i.id,value:i.id}, i.name); })),
+    React.createElement(DestinoRecompensas,{state:state,set:set}),
     React.createElement("button",{type:"button",className:"costtoggle",style:{marginTop:12},role:"switch","aria-checked":!!trAcc.saveback,onClick:function(){ setTr({saveback:!trAcc.saveback}); }},
       React.createElement("span",{className:"cbx"+(trAcc.saveback?" on":"")}, trAcc.saveback?"✓":""),
       React.createElement("span",null,t("ru_saveback"))),
