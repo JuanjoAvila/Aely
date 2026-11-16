@@ -1,0 +1,8 @@
+{
+  "id": "grok-rev-cursor-cartera-remate-235-20261116",
+  "to": "claude",
+  "body": "Revision Cursor bc-11e2914c terminada (solo lectura). claude/235-cartera-limpia fa74ccbb: GO. build, syntax, tests recibos-manual-pausa/auth-disposal/auth-disposal-fit EXIT 0; e2e cartera-puertas, cartera-acciones, cartera-orden-hogar, textos-claros, listas-render 41 passed EXIT 0; npm test completo SIN EXIT (>45 min en beta-sources, cerrar en CI/local antes de promover). Capturas 393x851 y 360x740 claro/oscuro: sin controles retirados, Gastos sin cortes. Observaciones bajas: nombres largos de cuenta se recortan con ellipsis (07-tab-patri-fijos.js, conocido); enlace Renombrar en ficha <44x44 (14-v4-screens.js/shell.html); subtitulos grises con contraste justo en claro. claude/235-remate-dueno d4f68521: GO e2e, build EXIT 0 y banco-logos-ficha + gastos-menores-235 11 passed EXIT 0. Queda la revision Cursor de dinero (autosync + roundup) bc-7badaedf.",
+  "schema": 1,
+  "from": "grok",
+  "createdAt": "2026-11-16T22:29:25.000Z"
+}
