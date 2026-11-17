@@ -132,17 +132,20 @@ test("editar la nómina desde la hoja: el primer número sustituye, el día se m
 });
 
 test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píldora e Inicio cuadran", async ({ page }) => {
-  // Decisión del dueño (revisión t3, B1). 800 €; Teléfono 30 del día 8 sin cargo del banco, Luz 300
-  // (15), Coche 200 (18) y Seguro 400 (25): 800 − 30 hoy − 300 − 200 − 400 = −130 el 25. Antes el
-  // recorrido daba el Teléfono por cobrado por fecha y decía «Pasa 100 €» con 930 € por pagar.
-  const recibos = await abrePlan(page, { accounts: cuenta(800),
+  // Decisión del dueño (revisión t3, B1). 800 € de base del mes; Teléfono 30 del día 8 sin cargo del
+  // banco, Luz 300 (15), Coche 200 (18) y Seguro 400 (25). Sembrado ya anclado (`_dynBalAnchored`):
+  // si la carga lo anclara, «Tienes hoy» no restaría el Teléfono y no se vería el caso (revisión de la
+  // 237, H2). El saldo mostrado ya lo resta por calendario (770); el recorrido lo cobra hoy y devuelve
+  // lo ya restado en su fila: 770 − 930 + 30 = −130 el 25, lo mismo que pide B1, sin restarlo dos veces.
+  const recibos = await abrePlan(page, { accounts: cuenta(800), _dynBalAnchored: true,
     fixed: [recibo("tel", "Teléfono", 30, 8), recibo("luz", "Luz", 300, 15), recibo("coche", "Coche", 200, 18), recibo("seg", "Seguro", 400, 25)] });
   await expect(recibos.getByTestId("plan-summary").locator(".pr6-big")).toHaveText("930,00 €");
   await expect(recibos.getByTestId("plan-llega")).toHaveText("Falta 130 €");
   const hoja = await abreLlega(page, recibos);
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
-  await expect(sab).toContainText("Tienes hoy800,00 €");
+  await expect(sab).toContainText("Tienes hoy770,00 €");
   await expect(sab).toContainText("Recibos que faltan− 930,00 €");
+  await expect(sab).toContainText("Sin cobrar, ya restado del saldo+ 30,00 €");
   await expect(sab.getByTestId("llega-cifra")).toHaveText("te faltan130,00 €");
   await expect(sab.getByTestId("llega-tip")).toHaveText("Pasa 130 € a Sabadell antes del 25");
   // Inicio: el mismo saldo y el Teléfono en «Para revisar» como «No ha llegado», por su importe.
@@ -150,21 +153,22 @@ test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píl
   await expect(hoja).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   const inicio = page.locator(".page-live").filter({ hasText: "Para revisar" });
-  await expect(inicio).toContainText("800,00 €");
+  await expect(inicio).toContainText("770,00 €");
   await expect(inicio).toContainText(/Teléfono\s*Sabadell · No ha llegado\s*30,00 €/);
-  expect(await saldoVisto(page)).toEqual([800]);
+  expect(await saldoVisto(page)).toEqual([770]);
   // El mínimo que usa Inicio (`totals.minByBank`, el del widget y el mínimo diario) sale de la
   // misma lista de eventos que la hoja: −130 desde el mismo saldo.
-  const min = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return minWalk(800, pendingWalkEvents(s, 2026, 10, 10).filter((e) => e.bank === "sabadell")).min; });
+  const min = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return minWalk(saldoCuentaMostrada(s.accounts[0], i), pendingWalkEvents(s, 2026, 10, 10).filter((e) => e.bank === "sabadell")).min; });
   expect(Math.round(min * 100)).toBe(-13000);
 });
 
 /* Revisión t3, segunda y tercera vuelta (28/10). 500 €, Luz 300 del día 5 que Plan pinta pagada,
    Seguro 150 del 20. Si el saldo es el del banco (lectura en `obBalAt`), cualquier cobro ya está
-   en él: 500 − 150 = 350. En una cuenta a mano, solo lo que movió el saldo mostrado (el gasto
-   marca confirmada); un aviso de Wallet, un BOOK o un gasto del banco sin enlazar no, y la Luz sigue restando HOY:
-   500 − 300 − 150 = 50. En todos, el simulador («¿Me lo puedo permitir?») recorre la misma lista
-   que la hoja y da el mismo mínimo. */
+   en él: 500 − 150 = 350. En una cuenta a mano también: su saldo mostrado es `value + paidNet` y
+   `paidNet` ya resta la Luz por calendario (día 5, hoy 10), así que «Tienes hoy 500» ya la lleva y
+   restarla otra vez en «Pagado, aún sin restar del saldo» la contaba dos veces (ronda 237, que
+   corrige lo que aquí fijaba la revisión t3: 500 − 300 − 150 = 50). En todos, el simulador
+   («¿Me lo puedo permitir?») recorre la misma lista que la hoja y da el mismo mínimo. */
 // Cuenta re-anclada por la sincronización (uid del banco) y su lectura de hoy.
 const LECTURA = { obBalAt: { "Banco Sabadell": "2026-10-10T08:00:00Z" }, accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 500, bankUid: "sab-1" }] };
 const BOOK = { bankTx: [{ id: "t1", ent: "sabadell", date: "2026-10-05", amount: 300, merchant: "Luz casa", status: "BOOK" }] };
@@ -174,9 +178,9 @@ for (const [como, extra, cifra, luz] of [
   ["BOOK con saldo del banco", Object.assign({}, BOOK, LECTURA), "lo más justo, el 20350,00 €"],
   ["Wallet con saldo del banco", Object.assign({}, WALLET, LECTURA), "lo más justo, el 20350,00 €"],
   ["marca confirmada en cuenta a mano", {}, "lo más justo, el 20350,00 €", { paidYm: 2026 * 12 + 10, paidDay: 5 }],
-  ["gasto del banco sin enlazar en cuenta a mano", OBEXP, "lo más justo, el 2050,00 €"],
-  ["Wallet en cuenta a mano", WALLET, "lo más justo, el 2050,00 €"],
-  ["BOOK sin fila en cuenta a mano", BOOK, "lo más justo, el 2050,00 €"],
+  ["gasto del banco sin enlazar en cuenta a mano", OBEXP, "lo más justo, el 20350,00 €"],
+  ["Wallet en cuenta a mano", WALLET, "lo más justo, el 20350,00 €"],
+  ["BOOK sin fila en cuenta a mano", BOOK, "lo más justo, el 20350,00 €"],
 ]) test("recibo cobrado por " + como + ": hoja y simulador dicen lo mismo", async ({ page }) => {
   const recibos = await abrePlan(page, Object.assign({
     fixed: [Object.assign(recibo("luz", "Luz casa", 300, 5), { category: "recibos" }, luz), recibo("seg", "Seguro hogar", 150, 20)] }, extra));
@@ -196,14 +200,16 @@ for (const [como, extra, cifra, luz] of [
 /* Revisión t3, R4: Trade Republic. Su saldo lo trae el puente nativo (`applyTrCash`), que sella la
    lectura en la cuenta (`saldoLeidoAt`); para estados de antes del sello vale `lastTrSync` si el
    puente manda. Spotify 300 € del día 5 ya cobrado en TR (Plan: «cargo de Trade Republic»), Seguro
-   150 € del 20: 500 − 150 = 350. Leído ANTES del pago (día 3), el cobro aún no está en el saldo y
-   sigue restando, con su fila: 50. Hoja y simulador, iguales. */
+   150 € del 20: 500 − 150 = 350. Leído ANTES de su día (el 3), el saldo mostrado lo resta por
+   calendario al cruzar el 5 (`paidNet`), así que tampoco se resta otra vez: 350 (ronda 237; antes,
+   50). Leído el MISMO día por la mañana, al anclar ya se sumó el `paidNet` con el Spotify dentro:
+   ese sí sigue restando, con su fila (R5-1). Hoja y simulador, iguales. */
 const TR = (extraCuenta) => [Object.assign({ id: "tr", ent: "trade_republic", role: "fijos", value: 500 }, extraCuenta)];
 const spotify = { expenses: [{ id: "x1", date: "2026-10-05", merchant: "Spotify casa", amount: 300, ent: "trade_republic", category: "recibos", source: "tr" }] };
 for (const [como, extra, cifra] of [
   ["lectura del puente sellada hoy", { accounts: TR({ saldoLeidoAt: "2026-10-10T08:00:00Z" }) }, "lo más justo, el 20350,00 €"],
   ["estado de antes del sello (lastTrSync)", { accounts: TR(), lastTrSync: "2026-10-10T08:00:00Z", settings: Object.assign({}, settings, { brokersOn: ["trade_republic"] }) }, "lo más justo, el 20350,00 €"],
-  ["lectura anterior al cobro", { accounts: TR({ saldoLeidoAt: "2026-10-03T08:00:00Z" }) }, "lo más justo, el 2050,00 €"],
+  ["lectura anterior al cobro", { accounts: TR({ saldoLeidoAt: "2026-10-03T08:00:00Z" }) }, "lo más justo, el 20350,00 €"],
   // R5-1: sellada a primera hora del mismo día del cobro (las 7:30 del 5): la prueba solo trae el
   // día, así que el cargo de la tarde puede no estar dentro. Sigue restando hasta el día siguiente.
   ["lectura de la mañana del mismo día del cobro", { accounts: TR({ saldoLeidoAt: "2026-10-05T05:30:00Z" }) }, "lo más justo, el 2050,00 €"],
@@ -222,7 +228,8 @@ for (const [como, extra, cifra] of [
 });
 
 test("vencido sin cobro: el simulador dice lo mismo que la hoja", async ({ page }) => {
-  const recibos = await abrePlan(page, { fixed: [recibo("luz", "Luz casa", 300, 5), recibo("seg", "Seguro hogar", 150, 20)] });
+  // Ya anclado (H2 de la 237): «Tienes hoy» 200 ya resta la Luz por calendario y la hoja la devuelve.
+  const recibos = await abrePlan(page, { _dynBalAnchored: true, fixed: [recibo("luz", "Luz casa", 300, 5), recibo("seg", "Seguro hogar", 150, 20)] });
   const hoja = await abreLlega(page, recibos);
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
   await expect(sab).toContainText("Recibos que faltan− 450,00 €");

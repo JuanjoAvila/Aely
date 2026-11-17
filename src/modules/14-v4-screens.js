@@ -643,7 +643,9 @@ function planRecibosBancos(totals, pack, gasto){
     // Pagados según Plan pero aún no restados del saldo (cuenta a mano sin lectura posterior):
     // el recorrido los cobra, así que la hoja los enseña en su fila (revisión t3, R4-1).
     const sinRestar=evs.reduce(function(s,e){ return e.sinRestar?s-e.amt:s; },0);
-    const b={bank:bank, known:false, bal:null, pend:Number(pack.pendingByBank[bank])||0, sinRestar:sinRestar, min:null, minDay:null, shortDay:null, falta:0,
+    // Sin cobro pero ya restado del «Tienes hoy» por calendario: se devuelve en su fila (revisión 237, H2).
+    const yaRestado=evs.reduce(function(s,e){ return e.yaRestado?s+e.amt:s; },0);
+    const b={bank:bank, known:false, bal:null, pend:Number(pack.pendingByBank[bank])||0, sinRestar:sinRestar, yaRestado:yaRestado, min:null, minDay:null, shortDay:null, falta:0,
       flows:evs.filter(function(e){ return e.id!=null&&(e.kind==="income"||e.kind==="transfer")&&e.day<=ultimo; })};
     /* `minByBank` arranca en `bankBal[b]||0` también para un banco sin cuenta: con un recibo en
        un banco que no tienes dado de alta salía «Falta 200 €» inventado (revisión 28/10/2026).
@@ -1809,6 +1811,7 @@ function LlegaSheet({state, set, totals, pack, onClose, ensayo}){
           fila("hoy",t("pr6_tienes_hoy"),b.known?eur(b.bal):"—"),
           fila("rec",t("pr6_faltan_recibos"),"− "+eur(b.pend)),
           b.sinRestar>0.005&&fila("sinr",t("pr6_sin_restar"),"− "+eur(b.sinRestar)),
+          b.yaRestado>0.005&&fila("yares",t("pr6_ya_restado"),"+ "+eur(b.yaRestado)),
           b.flows.map(flujoRow),
           b.known&&b.min<-0.005&&React.createElement("div",{className:"pr6-ll-tip","data-testid":"llega-tip"},
             React.createElement("svg",{width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true"},React.createElement("path",{d:"M5 12h14M13 6l6 6-6 6"})),
