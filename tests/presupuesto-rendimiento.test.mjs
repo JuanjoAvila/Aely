@@ -399,6 +399,10 @@ const PRESUPUESTO = {
   // sola del banco y los menores de dinero, sin el Round up de TR (va a la 237), con el sello y la nota de la versión: 1.978.120 B
   // minificado y 543.037 B gzip. Mismo mandato del 11/10 (el tamaño no bloquea producto): los topes, al mínimo medido,
   // 1932 / 531 KiB.
+  // Diseño 237 (17/11, Gastos): detección de suscripciones por cobro y periodo (era el «913 € al mes» con el súper
+  // y la cuota del coche), fila de movimientos igual que Inicio, fundido de la tira de meses y lupa de línea: +3.989 B
+  // minificado y +1.209 B gzip sobre la 4.26.235 (1.974.237 / 542.306 B sin sello; quedaban 35 B y −610 B). Misma
+  // regla del 11/10: sube al mínimo medido, 1929 KiB y 530 KiB.
   minificado: 1932 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

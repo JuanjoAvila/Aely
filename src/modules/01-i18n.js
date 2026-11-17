@@ -1761,9 +1761,11 @@ Object.assign(LANG.es,{gv5_cats_hint:"Toca para filtrar · mantén pulsado para 
   gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
 // Gastos v5, tanda 4: Suscripciones como bandeja con su ficha (SPEC §6.1, §6.3 y §6.4).
 Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:"Qué aparece aquí", gv5_sub_i_que:"Cobros que se repiten y que todavía no están en Recibos.",
-  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"Mismo comercio, importe parecido, tres meses o más y un cobro reciente.",
+  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"Mismo comercio y mismo importe, cada semana, mes o año. El súper, la gasolina y los bares no cuentan.",
   gv5_sub_i_hacer_t:"Qué puedes hacer", gv5_sub_i_hacer:"Pásala a Recibos (se apunta en tu cuenta de Recibos), márcala como dada de baja o déjala como gasto normal.", gv5_sub_i_ok:"Entendido",
-  gv5_sub_seguidos:"{n} meses seguidos", gv5_sub_de:"{n} de {m} meses", gv5_sub_almes:"al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
+  gv5_sub_seguidos:"{n} meses seguidos", gv5_sub_de:"{n} de {m} meses", gv5_sub_almes:"al mes",
+  gv5_sub_sem_seguidas:"{n} semanas seguidas", gv5_sub_anios_seguidos:"{n} años seguidos", gv5_sub_cadames:"Cada mes", gv5_sub_cadasem:"Cada semana", gv5_sub_cadaanio:"Cada año",
+  gv5_sub_alasem:"a la semana", gv5_sub_alanio:"al año", gv5_sub_dia_sem:"Cada {d}", gv5_sub_dia_anio:"Se cobra el {d}", gv5_sub_eqmes:"{x} al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
   gv5_sub_dia:"Se cobra el día {d}", gv5_sub_sinbanco:"banco: — (apuntada a mano)", gv5_sub_ultimos:"Últimos cobros",
   gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.", gv5_sub_fijo:"Si es un gasto fijo, pásalo a Recibos y lo tendrás en Plan con los demás.",
   gv5_sub_importe:"Importe para Recibos", gv5_sub_recibos:"Pasar a Recibos",
@@ -1775,9 +1777,11 @@ Object.assign(LANG.en,{gv5_cats_hint:"Tap to filter · hold to set a limit",
   gv5_fil_n:"{n} transactions", gv5_fil_n1:"1 transaction", gv5_fil_quitar:"Remove the {x} filter",
   gv5_fil_lim_poner:"Set limit", gv5_fil_lim:"Limit {x}", gv5_fil_quedan:"{x} left", gv5_fil_pasado:"{x} over"});
 Object.assign(LANG.en,{gv5_sub_info:"Detected subscriptions", gv5_sub_i_que_t:"What shows up here", gv5_sub_i_que:"Charges that repeat and aren't in Bills yet.",
-  gv5_sub_i_como_t:"How they're detected", gv5_sub_i_como:"Same shop, similar amount, three months or more and a recent charge.",
+  gv5_sub_i_como_t:"How they're detected", gv5_sub_i_como:"Same shop and same amount, every week, month or year. Groceries, fuel and bars don't count.",
   gv5_sub_i_hacer_t:"What you can do", gv5_sub_i_hacer:"Move it to Bills (it goes on your Bills account), mark it cancelled or leave it as a normal expense.", gv5_sub_i_ok:"Got it",
-  gv5_sub_seguidos:"{n} months in a row", gv5_sub_de:"{n} of {m} months", gv5_sub_almes:"a month", gv5_sub_vuelve:"It charged again after you cancelled it",
+  gv5_sub_seguidos:"{n} months in a row", gv5_sub_de:"{n} of {m} months", gv5_sub_almes:"a month",
+  gv5_sub_sem_seguidas:"{n} weeks in a row", gv5_sub_anios_seguidos:"{n} years in a row", gv5_sub_cadames:"Every month", gv5_sub_cadasem:"Every week", gv5_sub_cadaanio:"Every year",
+  gv5_sub_alasem:"a week", gv5_sub_alanio:"a year", gv5_sub_dia_sem:"Every {d}", gv5_sub_dia_anio:"Charged on {d}", gv5_sub_eqmes:"{x} a month", gv5_sub_vuelve:"It charged again after you cancelled it",
   gv5_sub_dia:"Charged on day {d}", gv5_sub_sinbanco:"bank: — (added by hand)", gv5_sub_ultimos:"Latest charges",
   gv5_sub_anio:"About {y} a year.", gv5_sub_anio_si:"About {y} a year if it's charged every month.", gv5_sub_fijo:"If it's a fixed expense, move it to Bills and you'll see it in Plan with the rest.",
   gv5_sub_importe:"Amount for Bills", gv5_sub_recibos:"Move to Bills",
@@ -1789,9 +1793,11 @@ Object.assign(LANG.ca,{gv5_cats_hint:"Toca per filtrar · mantén premut per al 
   gv5_fil_n:"{n} moviments", gv5_fil_n1:"1 moviment", gv5_fil_quitar:"Treu el filtre de {x}",
   gv5_fil_lim_poner:"Posa un límit", gv5_fil_lim:"Límit {x}", gv5_fil_quedan:"en queden {x}", gv5_fil_pasado:"{x} de més"});
 Object.assign(LANG.ca,{gv5_sub_info:"Subscripcions detectades", gv5_sub_i_que_t:"Què hi apareix", gv5_sub_i_que:"Càrrecs que es repeteixen i que encara no són a Rebuts.",
-  gv5_sub_i_como_t:"Com es detecten", gv5_sub_i_como:"Mateix comerç, import semblant, tres mesos o més i un càrrec recent.",
+  gv5_sub_i_como_t:"Com es detecten", gv5_sub_i_como:"Mateix comerç i mateix import, cada setmana, mes o any. El súper, la benzina i els bars no compten.",
   gv5_sub_i_hacer_t:"Què hi pots fer", gv5_sub_i_hacer:"Passa-la a Rebuts (s'apunta al teu compte de Rebuts), marca-la com a donada de baixa o deixa-la com a despesa normal.", gv5_sub_i_ok:"Entesos",
-  gv5_sub_seguidos:"{n} mesos seguits", gv5_sub_de:"{n} de {m} mesos", gv5_sub_almes:"al mes", gv5_sub_vuelve:"Ha tornat a cobrar després de donar-la de baixa",
+  gv5_sub_seguidos:"{n} mesos seguits", gv5_sub_de:"{n} de {m} mesos", gv5_sub_almes:"al mes",
+  gv5_sub_sem_seguidas:"{n} setmanes seguides", gv5_sub_anios_seguidos:"{n} anys seguits", gv5_sub_cadames:"Cada mes", gv5_sub_cadasem:"Cada setmana", gv5_sub_cadaanio:"Cada any",
+  gv5_sub_alasem:"a la setmana", gv5_sub_alanio:"l'any", gv5_sub_dia_sem:"Cada {d}", gv5_sub_dia_anio:"Es cobra el {d}", gv5_sub_eqmes:"{x} al mes", gv5_sub_vuelve:"Ha tornat a cobrar després de donar-la de baixa",
   gv5_sub_dia:"Es cobra el dia {d}", gv5_sub_sinbanco:"banc: — (apuntada a mà)", gv5_sub_ultimos:"Últims càrrecs",
   gv5_sub_anio:"Uns {y} l'any.", gv5_sub_anio_si:"Uns {y} l'any si es cobra cada mes.", gv5_sub_fijo:"Si és una despesa fixa, passa-la a Rebuts i la tindràs al Pla amb les altres.",
   gv5_sub_importe:"Import per a Rebuts", gv5_sub_recibos:"Passa a Rebuts",
@@ -1839,7 +1845,7 @@ Object.assign(LANG.es,{
   g_bk_cuenta:"Día a día", g_bk_ingreso:"Ingresos",
   g_bk_neutra:"Inversión y traspasos", g_bk_otrobanco:"De otros bancos",
   g_bk_title:"Qué contar",
-  g_allbanks:"Todos los bancos", g_bank_manual:"A mano", g_bank_ob:"del banco",
+  g_allbanks:"Todos los bancos", g_bank_manual:"A mano",
   g_filters:"Filtros",
   g_filters_search:"Buscar categoría…", g_filters_cats:"Categorías", g_filters_banks:"bancos",
   g_filters_clear:"Limpiar",
@@ -1892,7 +1898,7 @@ Object.assign(LANG.en,{
   g_bk_cuenta:"Day to day", g_bk_ingreso:"Income",
   g_bk_neutra:"Investing and transfers", g_bk_otrobanco:"From other banks",
   g_bk_title:"What to count",
-  g_allbanks:"All banks", g_bank_manual:"Manual", g_bank_ob:"from the bank",
+  g_allbanks:"All banks", g_bank_manual:"Manual",
   g_filters:"Filters",
   g_filters_search:"Search category…", g_filters_cats:"Categories", g_filters_banks:"banks",
   g_filters_clear:"Clear",
@@ -1944,7 +1950,7 @@ Object.assign(LANG.ca,{
   g_bk_cuenta:"Dia a dia", g_bk_ingreso:"Ingressos",
   g_bk_neutra:"Inversió i traspassos", g_bk_otrobanco:"D'altres bancs",
   g_bk_title:"Què comptar",
-  g_allbanks:"Tots els bancs", g_bank_manual:"A mà", g_bank_ob:"del banc",
+  g_allbanks:"Tots els bancs", g_bank_manual:"A mà",
   g_filters:"Filtres",
   g_filters_search:"Cerca categoria…", g_filters_cats:"Categories", g_filters_banks:"bancs",
   g_filters_clear:"Netejar",
@@ -3341,40 +3347,105 @@ function celebrate(){
 const RU_GOAL=30;                       // €/mes objetivo de round-up+saveback (reto)
 const GM_LEVELS=[0,250,1000,3000,8000]; // umbrales de savedScore por nivel
 function median(arr){ const a=(arr||[]).slice().sort(function(x,y){return x-y;}); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; }
-// Detector de SUSCRIPCIONES / cargos recurrentes: mismo comercio en ≥3 meses distintos con importe
-// estable (≥60% dentro de ±25% de la mediana). Devuelve {key,name,cat,amount,months,last,active,yearly,span,ult,lastMs}.
+/* Detector de SUSCRIPCIONES: el mismo cobro que se repite con un periodo fijo. Se mira CADA cobro,
+   no lo que suma el mes: antes se agrupaba por suma mensual y quien va al súper cada semana gasta
+   parecido cada mes, así que Mercadona, Repsol, el bar y hasta la cuota del coche salían como
+   «5 meses seguidos» y la bandeja decía 913 € al mes (auditoría de diseño 237, P1-3). Ahora, por
+   comercio:
+   · los cobros se juntan por IMPORTE casi igual (±10 %, mínimo 0,50 €: una subida de 12,99 a
+     13,99 sigue siendo la misma). Así Apple con iCloud y Music son dos, y Prime no se pierde entre
+     las compras de Amazon con el mismo nombre;
+   · cada grupo tiene que repetirse con PERIODO regular, semana, mes o año, con la holgura del
+     banco al apuntar (`PERIODOS`) y como mucho la mitad de los periodos sin cobro;
+   · fuera lo que nunca es una suscripción: ingresos, cuotas de deuda (`debtId`, ya restan en el
+     Plan), lo enlazado a un recibo (`reciboId`), traspasos e inversiones, posibles duplicados y el
+     gasto diario (`NO_CAT`): el súper o la gasolina pueden caer un mes 50 € justos y no son
+     una suscripción.
+   Lo que ya es un recibo por nombre o por el motor de pagos lo quita la vista (`subsDeRecibos`).
+   Devuelve {key,mkey,name,cat,per,amount,mensual,yearly,months,span,last,active,ult,lastMs}:
+   `amount` es lo de CADA cobro (la mediana de los tres últimos), `mensual` lo que pesa al mes,
+   `months`/`span` los cobros y los periodos del primero al último (iguales = ninguno saltado). */
 function detectSubscriptions(expenses){
-  const now=new Date();
+  /* Las reglas van DENTRO de la función: el registro de la beta vigila lo que lee cada una, y un
+     ayudante o una tabla global nuevos la dejarían «sin vigilar» en todas las tandas que la usan. */
+  // Nunca son una suscripción: el gasto diario, lo que mueve tu dinero (traspaso, inversión, cuota
+  // de deuda) y los ingresos.
+  const NO_CAT={ super:1, pan:1, bares:1, gasolina:1, heladeria:1, taxi:1, parking:1, zona_azul:1, peajes:1,
+    ingreso:1, traspaso:1, inversion:1, deudas:1 };
+  // Periodo en días, holgura del banco al apuntar, cobros mínimos, periodos que puede saltar seguidos
+  // y cuánto puede pasar desde el último para seguir viva. El mes va primero: un cobro cada 28 días
+  // es un mes, no cuatro semanas.
+  const PERIODOS=[
+    {per:"mes",    d:30.44, tol:5,  min:3, salto:3, viva:0},
+    {per:"semana", d:7,     tol:2,  min:4, salto:1, viva:21},
+    {per:"anio",   d:365.25,tol:20, min:2, salto:1, viva:400}
+  ];
+  const periodo=function(ms){
+    for(let i=0;i<PERIODOS.length;i++){
+      const p=PERIODOS[i];
+      if(ms.length<p.min) continue;
+      let slots=1, ok=true;
+      for(let j=1;j<ms.length && ok;j++){
+        const d=(ms[j]-ms[j-1])/864e5, k=Math.round(d/p.d);
+        if(k<1 || k>p.salto || Math.abs(d-k*p.d)>p.tol+(k-1)) ok=false;
+        slots+=k;
+      }
+      if(ok && ms.length*2>=slots) return {p:p, slots:slots};
+    }
+    return null;
+  };
+  const now=new Date(), nowMs=now.getTime();
   const activeCut=mk(now.getFullYear(), now.getMonth()-2);   // visto en los últimos ~2 meses = sigue activa
   const groups={};
   (expenses||[]).forEach(function(e){
-    if(!(e.amount>0)) return; const k=catKey(e.merchant); if(!k) return;
+    if(!e || !(e.amount>0)) return; const k=catKey(e.merchant); if(!k) return;
     // Lo que ya es un recibo del Plan no se vuelve a proponer como suscripción nueva. Aquí no
     // hay estado a mano: vale la marca a secas, que es solo una sugerencia que deja de salir.
-    if(e.reciboId) return;
-    const mkey=mkOf(parseDate(e.date));
-    const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,byMonth:{},ult:[]});
-    g.byMonth[mkey]=(g.byMonth[mkey]||0)+e.amount; g.name=e.merchant||g.name; g.cat=e.category;
-    // Los tres cobros más recientes, para su ficha (Gastos v5): fechas, día y banco salen de
-    // cargos reales, no de la mediana. Se guarda la referencia, sin copiar el histórico.
-    const ms=dateMs(e.date), u=g.ult;
-    if(u.length<3 || ms>u[u.length-1].ms){ u.push({ms:ms,amount:e.amount,e:e}); u.sort(function(a,b){ return b.ms-a.ms; }); if(u.length>3) u.pop(); }
+    if(e.reciboId || e.debtId || e.possibleDup || e.autoGemelo) return;
+    if(NO_CAT[e.category]) return;
+    const ms=dateMs(e.date); if(!isFinite(ms)) return;
+    const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,lastMs:-Infinity,rows:[]});
+    // Nombre y categoría, los del cobro más reciente (el orden del histórico no está garantizado).
+    if(ms>=g.lastMs){ g.lastMs=ms; g.name=e.merchant||g.name; g.cat=e.category; }
+    g.rows.push({ms:ms,amount:e.amount,e:e});
   });
   const subs=[];
   Object.keys(groups).forEach(function(k){
-    const g=groups[k]; const months=Object.keys(g.byMonth).sort(); if(months.length<3) return;
-    const amts=months.map(function(m){ return g.byMonth[m]; });
-    const med=median(amts); if(med<=0) return;
-    const consistent=amts.filter(function(a){ return Math.abs(a-med)<=Math.max(1,med*0.25); }).length;
-    if(consistent < Math.ceil(months.length*0.6)) return;
-    const last=months[months.length-1];
-    // `span`: meses de calendario del primero al último. Igual a `months` = todos seguidos; si
-    // no, la ficha no puede afirmar «cada mes» (y lo del año es la mediana × 12, como siempre).
-    const ym=function(m){ return +m.slice(0,4)*12 + +m.slice(5); };
-    subs.push({ key:k, name:g.name, cat:g.cat, amount:+med.toFixed(2), months:months.length, last:last, active:last>=activeCut, yearly:Math.round(med*12),
-      span:ym(last)-ym(months[0])+1, ult:g.ult, lastMs:g.ult[0].ms });
+    const g=groups[k];
+    // Grupos por importe: cada cobro va con el primero (el más barato) al que se parece.
+    const grupos=[];
+    g.rows.slice().sort(function(a,b){ return a.amount-b.amount; }).forEach(function(x){
+      const gr=grupos[grupos.length-1];
+      if(gr && x.amount<=gr.base+Math.max(0.5,gr.base*0.10)) gr.rows.push(x);
+      else grupos.push({base:x.amount, rows:[x]});
+    });
+    const hallados=[];
+    grupos.forEach(function(gr){
+      const rows=gr.rows.sort(function(a,b){ return a.ms-b.ms; });
+      // Dos cobros el mismo día no son dos periodos: cuenta uno.
+      const ms=[]; rows.forEach(function(x){ if(!ms.length || x.ms-ms[ms.length-1]>864e5/2) ms.push(x.ms); });
+      const r=periodo(ms); if(!r) return;
+      // Los tres cobros más recientes, para su ficha (Gastos v5): fechas, día y banco salen de
+      // cargos reales. Se guarda la referencia, sin copiar el histórico.
+      const ult=rows.slice(-3).reverse(), p=r.p;
+      const lastMs=ult[0].ms, last=mkOf(parseDate(ult[0].e.date));
+      const amount=+median(ult.map(function(x){ return x.amount; })).toFixed(2);
+      const active=p.viva ? nowMs-lastMs<=p.viva*864e5 : last>=activeCut;
+      const porAnio=p.per==="mes"?12:p.per==="semana"?52:1;
+      hallados.push({ mkey:k, name:g.name, cat:g.cat, per:p.per, amount:amount, mensual:+(amount*porAnio/12).toFixed(2),
+        yearly:Math.round(amount*porAnio), months:ms.length, span:r.slots, last:last, active:active, ult:ult, lastMs:lastMs });
+    });
+    // La clave de siempre (`catKey`, la que guardan «descartar» y «dada de baja») para la más cara;
+    // si el mismo comercio cobra otra, la suya lleva el importe para no pisarse.
+    hallados.sort(function(a,b){ return b.mensual-a.mensual; }).forEach(function(sp,i){
+      sp.key=i?k+"#"+Math.round(sp.amount*100):k;
+      subs.push(sp);
+    });
   });
-  return subs.sort(function(a,b){ return b.amount-a.amount; });
+  // Por periodo (mes, semana, año) y dentro de cada uno de más a menos: la tarjeta enseña lo de
+  // cada cobro, y un anual de 39,99 € entre dos mensuales de 2 y 5 € parecía mal ordenado.
+  const rango={mes:0,semana:1,anio:2};
+  return subs.sort(function(a,b){ return rango[a.per]-rango[b.per] || b.amount-a.amount; });
 }
 /* Presupuesto por mes: no se usa el tope actual para juzgar meses antiguos. Antes ese atajo
    convertía cualquier cambio de presupuesto en una racha falsa (feedback 18/9). */

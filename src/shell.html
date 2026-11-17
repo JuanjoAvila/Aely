@@ -1497,6 +1497,10 @@
      tarjeta dentro de otra (auditoría 15/11). Filas planas con raya, como «Próximos cargos». */
   .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
   .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
+  /* La misma fila que Gastos (237, P2-5): nombre a 16/600, «Categoría · Banco» a 13 en gris. */
+  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .meta{font-size:13px;margin-top:3px;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .am{font-weight:600;white-space:nowrap;}
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
      Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
@@ -1654,7 +1658,12 @@
   .gx-tone-mint{color:var(--mint);}
   /* Meses: aparecen al bajar y quedan fijos (SPEC §2.1). La pastilla del mes activo es UNA capa
      que se desliza con `transform` (referencia del dueño, 20/10). */
+  /* Fundido en el borde por el que queda tira (237, P2-6): sin él, «agosto» cortado contra el
+     borde parecía un fallo y no una tira que se desliza. Los anchos los pone el JS según el
+     scroll (`--gx-fi`/`--gx-fd`, ver `GastosCabecera`): en el extremo, cero. */
   .gx-meses{position:absolute;left:0;right:0;top:calc(100% - 12px);height:48px;padding:4px 18px 8px;box-sizing:border-box;
+    -webkit-mask-image:linear-gradient(to right,transparent,#000 var(--gx-fi,0px),#000 calc(100% - var(--gx-fd,0px)),transparent);
+    mask-image:linear-gradient(to right,transparent,#000 var(--gx-fi,0px),#000 calc(100% - var(--gx-fd,0px)),transparent);
     display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
     transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
   .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
@@ -1733,6 +1742,7 @@
   .gx-sub-am{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;}
   .gx-sub-am .num{font-size:19px;font-weight:600;}
   .gx-sub-mes{font-size:12px;color:var(--muted);}
+  .gx-sub-am .gx-sub-eq{font-size:12px;color:var(--muted);}
   .gx-status.con-info{display:flex;align-items:center;gap:8px;overflow:visible;}
   .gx-info{flex:0 0 auto;}
   .gx-info::after{content:"i";}
@@ -1761,15 +1771,29 @@
      pantalla no se recorren ni se pintan: deslizar con 600 filas cuesta lo mismo que con 12.
      La nota del 13/9 de 04-tab-gastos.js lo descartaba («layouts ×3») con un alto fijo; con el
      alto estimado por día (`altoEst`) y `auto` la lista mide lo de verdad. */
-  .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;content-visibility:auto;}
-  .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
+  .gx-dia{display:flex;flex-direction:column;padding-top:18px;content-visibility:auto;}
+  .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 10px;}
   .gx-dia-t{font-size:17px;font-weight:700;color:var(--text);}
   .gx-dia-tot{font-size:15px;color:var(--muted);}
-  .gx-list .v4-mov{margin-top:0;gap:10px;padding:14px 12px 14px 14px;border-radius:20px;}
-  .gx-list .v4-mov .tile{width:44px;height:44px;border-radius:22px;font-size:20px;}
+  /* LOS MOVIMIENTOS DEL DÍA EN UN BLOQUE, como «Últimos movimientos» de Inicio (237, P2-5): una
+     tarjeta por día con rayas entre filas, no una tarjeta por gasto. La raya va en el fondo
+     (sangrada 14 px, como la de Inicio) y no en un pseudo-elemento: `::before`/`::after` son la
+     sombra y el brillo de la fila que se levanta al ordenar (`.gx-alza`). */
+  .gx-list .v4-mov{margin-top:0;gap:12px;padding:10px 14px;min-height:66px;box-sizing:border-box;border-radius:0;border-width:0 1px;
+    background:linear-gradient(var(--line-soft),var(--line-soft)) 14px 100%/calc(100% - 28px) 1px no-repeat,var(--sur);}
+  .gx-list .gx-dia-h + .v4-mov{border-top-width:1px;border-radius:18px 18px 0 0;}
+  .gx-list .v4-mov:not(:has(+ .v4-mov)){border-bottom-width:1px;border-bottom-left-radius:18px;border-bottom-right-radius:18px;background:var(--sur);}
+  .gx-list .v4-mov.v4-mov-skip{border-style:solid;}
+  .gx-list .v4-mov.gx-alza{border-width:1px;border-radius:18px;}
+  .gx-list .gx-dia > .gx-gris{margin-top:6px;}
   .gx-list .v4-mov .nm-title{font-size:16px;font-weight:600;}
-  .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
-  .gx-list .v4-mov .meta{font-size:13px;}
+  /* «Categoría · Banco» sin cortar ninguna de las dos: si a 360 no caben en una línea, el banco
+     baja entero a la siguiente; el punto se queda al final de la primera, no empezando la otra. */
+  .gx-list .v4-mov .nm-sub{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:4px;min-width:0;margin-top:3px;
+    font-size:13px;font-weight:400;line-height:1.3;color:var(--muted);}
+  .gx-list .v4-mov .nm-cat{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gx-list .v4-mov .nm-sub > .meta{display:flex;gap:0 4px;max-width:100%;margin:0;font-size:13px;}
+  .gx-list .v4-mov .nm-cat:has(+ .meta)::after{content:" ·";color:var(--muted-2);}
   /* 17 y no 19: más grande que el nombre (16) robaba el ancho que necesita el comercio y gritaba
      más que él (auditoría de diseño 233, DIS-14). */
   .gx-list .v4-mov .am{font-size:17px;font-weight:600;}
@@ -1789,7 +1813,7 @@
      10 y el relleno lateral a 14/12 (arriba, en `.gx-list .v4-mov`; la letra se queda la del
      diseño) y, si aun así no cabe, se recorta con puntos suspensivos: una fila de dos líneas por
      gasto duplicaba la lista. */
-  .gx-list .v4-mov .nm-title,.gx-list .v4-mov .nm-cat{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gx-list .v4-mov .nm-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   /* ORDENAR EL DÍA CON PULSACIÓN LARGA (15/11/2026, ver `gxReorden` en 04-tab-gastos.js). Los
      muelles los mueve JS escribiendo solo `transform`; aquí no se anima nada de layout. La sombra
      y el brillo van en pseudo-elementos que solo cambian de OPACIDAD: animar `box-shadow` repinta
@@ -2432,10 +2456,6 @@
      de un vistazo (petición 2026-07-24). */
   .v4-mov .nm-note{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.3;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .v4-mov .nm-cat{font-size:12.5px;font-weight:650;margin-top:2px;line-height:1.2;color:var(--cat,var(--muted));}
-  /* Los colores de categoría son pasteles pensados para fondo oscuro: en Claro se mezclan con
-     --text, que conserva el tono y deja el peor (Ocio) en 4,8:1 sobre blanco (antes 1,7). */
-  html[data-theme="light"] .v4-mov .nm-cat{color:color-mix(in srgb,var(--cat,var(--muted)) 45%,var(--text));}
   .v4-banks .bk-sec{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);margin:18px 2px 8px;}
   .v4-banks .v4-mov{margin-bottom:8px;}
   .v4-banks .bk-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;padding:0 2px;}
@@ -2501,7 +2521,7 @@
 
   .filters{margin-bottom:14px;}
   .searchbar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;margin-bottom:9px;}
-  .searchbar-ic{font-size:13px;opacity:.7;}
+  .searchbar-ic{flex:0 0 auto;color:var(--muted);}
   .searchbar-in{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:inherit;}
   .searchbar-in::-webkit-search-cancel-button{display:none;}
   .searchbar-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;}

@@ -1497,6 +1497,10 @@
      tarjeta dentro de otra (auditoría 15/11). Filas planas con raya, como «Próximos cargos». */
   .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
   .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
+  /* La misma fila que Gastos (237, P2-5): nombre a 16/600, «Categoría · Banco» a 13 en gris. */
+  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .meta{font-size:13px;margin-top:3px;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .am{font-weight:600;white-space:nowrap;}
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
      Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
@@ -1654,7 +1658,12 @@
   .gx-tone-mint{color:var(--mint);}
   /* Meses: aparecen al bajar y quedan fijos (SPEC §2.1). La pastilla del mes activo es UNA capa
      que se desliza con `transform` (referencia del dueño, 20/10). */
+  /* Fundido en el borde por el que queda tira (237, P2-6): sin él, «agosto» cortado contra el
+     borde parecía un fallo y no una tira que se desliza. Los anchos los pone el JS según el
+     scroll (`--gx-fi`/`--gx-fd`, ver `GastosCabecera`): en el extremo, cero. */
   .gx-meses{position:absolute;left:0;right:0;top:calc(100% - 12px);height:48px;padding:4px 18px 8px;box-sizing:border-box;
+    -webkit-mask-image:linear-gradient(to right,transparent,#000 var(--gx-fi,0px),#000 calc(100% - var(--gx-fd,0px)),transparent);
+    mask-image:linear-gradient(to right,transparent,#000 var(--gx-fi,0px),#000 calc(100% - var(--gx-fd,0px)),transparent);
     display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
     transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
   .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
@@ -1733,6 +1742,7 @@
   .gx-sub-am{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;}
   .gx-sub-am .num{font-size:19px;font-weight:600;}
   .gx-sub-mes{font-size:12px;color:var(--muted);}
+  .gx-sub-am .gx-sub-eq{font-size:12px;color:var(--muted);}
   .gx-status.con-info{display:flex;align-items:center;gap:8px;overflow:visible;}
   .gx-info{flex:0 0 auto;}
   .gx-info::after{content:"i";}
@@ -1761,15 +1771,29 @@
      pantalla no se recorren ni se pintan: deslizar con 600 filas cuesta lo mismo que con 12.
      La nota del 13/9 de 04-tab-gastos.js lo descartaba («layouts ×3») con un alto fijo; con el
      alto estimado por día (`altoEst`) y `auto` la lista mide lo de verdad. */
-  .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;content-visibility:auto;}
-  .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
+  .gx-dia{display:flex;flex-direction:column;padding-top:18px;content-visibility:auto;}
+  .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 10px;}
   .gx-dia-t{font-size:17px;font-weight:700;color:var(--text);}
   .gx-dia-tot{font-size:15px;color:var(--muted);}
-  .gx-list .v4-mov{margin-top:0;gap:10px;padding:14px 12px 14px 14px;border-radius:20px;}
-  .gx-list .v4-mov .tile{width:44px;height:44px;border-radius:22px;font-size:20px;}
+  /* LOS MOVIMIENTOS DEL DÍA EN UN BLOQUE, como «Últimos movimientos» de Inicio (237, P2-5): una
+     tarjeta por día con rayas entre filas, no una tarjeta por gasto. La raya va en el fondo
+     (sangrada 14 px, como la de Inicio) y no en un pseudo-elemento: `::before`/`::after` son la
+     sombra y el brillo de la fila que se levanta al ordenar (`.gx-alza`). */
+  .gx-list .v4-mov{margin-top:0;gap:12px;padding:10px 14px;min-height:66px;box-sizing:border-box;border-radius:0;border-width:0 1px;
+    background:linear-gradient(var(--line-soft),var(--line-soft)) 14px 100%/calc(100% - 28px) 1px no-repeat,var(--sur);}
+  .gx-list .gx-dia-h + .v4-mov{border-top-width:1px;border-radius:18px 18px 0 0;}
+  .gx-list .v4-mov:not(:has(+ .v4-mov)){border-bottom-width:1px;border-bottom-left-radius:18px;border-bottom-right-radius:18px;background:var(--sur);}
+  .gx-list .v4-mov.v4-mov-skip{border-style:solid;}
+  .gx-list .v4-mov.gx-alza{border-width:1px;border-radius:18px;}
+  .gx-list .gx-dia > .gx-gris{margin-top:6px;}
   .gx-list .v4-mov .nm-title{font-size:16px;font-weight:600;}
-  .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
-  .gx-list .v4-mov .meta{font-size:13px;}
+  /* «Categoría · Banco» sin cortar ninguna de las dos: si a 360 no caben en una línea, el banco
+     baja entero a la siguiente; el punto se queda al final de la primera, no empezando la otra. */
+  .gx-list .v4-mov .nm-sub{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:4px;min-width:0;margin-top:3px;
+    font-size:13px;font-weight:400;line-height:1.3;color:var(--muted);}
+  .gx-list .v4-mov .nm-cat{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gx-list .v4-mov .nm-sub > .meta{display:flex;gap:0 4px;max-width:100%;margin:0;font-size:13px;}
+  .gx-list .v4-mov .nm-cat:has(+ .meta)::after{content:" ·";color:var(--muted-2);}
   /* 17 y no 19: más grande que el nombre (16) robaba el ancho que necesita el comercio y gritaba
      más que él (auditoría de diseño 233, DIS-14). */
   .gx-list .v4-mov .am{font-size:17px;font-weight:600;}
@@ -1789,7 +1813,7 @@
      10 y el relleno lateral a 14/12 (arriba, en `.gx-list .v4-mov`; la letra se queda la del
      diseño) y, si aun así no cabe, se recorta con puntos suspensivos: una fila de dos líneas por
      gasto duplicaba la lista. */
-  .gx-list .v4-mov .nm-title,.gx-list .v4-mov .nm-cat{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gx-list .v4-mov .nm-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   /* ORDENAR EL DÍA CON PULSACIÓN LARGA (15/11/2026, ver `gxReorden` en 04-tab-gastos.js). Los
      muelles los mueve JS escribiendo solo `transform`; aquí no se anima nada de layout. La sombra
      y el brillo van en pseudo-elementos que solo cambian de OPACIDAD: animar `box-shadow` repinta
@@ -2432,10 +2456,6 @@
      de un vistazo (petición 2026-07-24). */
   .v4-mov .nm-note{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.3;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .v4-mov .nm-cat{font-size:12.5px;font-weight:650;margin-top:2px;line-height:1.2;color:var(--cat,var(--muted));}
-  /* Los colores de categoría son pasteles pensados para fondo oscuro: en Claro se mezclan con
-     --text, que conserva el tono y deja el peor (Ocio) en 4,8:1 sobre blanco (antes 1,7). */
-  html[data-theme="light"] .v4-mov .nm-cat{color:color-mix(in srgb,var(--cat,var(--muted)) 45%,var(--text));}
   .v4-banks .bk-sec{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);margin:18px 2px 8px;}
   .v4-banks .v4-mov{margin-bottom:8px;}
   .v4-banks .bk-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;padding:0 2px;}
@@ -2501,7 +2521,7 @@
 
   .filters{margin-bottom:14px;}
   .searchbar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;margin-bottom:9px;}
-  .searchbar-ic{font-size:13px;opacity:.7;}
+  .searchbar-ic{flex:0 0 auto;color:var(--muted);}
   .searchbar-in{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:inherit;}
   .searchbar-in::-webkit-search-cancel-button{display:none;}
   .searchbar-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;}
@@ -9245,9 +9265,11 @@ Object.assign(LANG.es,{gv5_cats_hint:"Toca para filtrar · mantén pulsado para 
   gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
 // Gastos v5, tanda 4: Suscripciones como bandeja con su ficha (SPEC §6.1, §6.3 y §6.4).
 Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:"Qué aparece aquí", gv5_sub_i_que:"Cobros que se repiten y que todavía no están en Recibos.",
-  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"Mismo comercio, importe parecido, tres meses o más y un cobro reciente.",
+  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"Mismo comercio y mismo importe, cada semana, mes o año. El súper, la gasolina y los bares no cuentan.",
   gv5_sub_i_hacer_t:"Qué puedes hacer", gv5_sub_i_hacer:"Pásala a Recibos (se apunta en tu cuenta de Recibos), márcala como dada de baja o déjala como gasto normal.", gv5_sub_i_ok:"Entendido",
-  gv5_sub_seguidos:"{n} meses seguidos", gv5_sub_de:"{n} de {m} meses", gv5_sub_almes:"al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
+  gv5_sub_seguidos:"{n} meses seguidos", gv5_sub_de:"{n} de {m} meses", gv5_sub_almes:"al mes",
+  gv5_sub_sem_seguidas:"{n} semanas seguidas", gv5_sub_anios_seguidos:"{n} años seguidos", gv5_sub_cadames:"Cada mes", gv5_sub_cadasem:"Cada semana", gv5_sub_cadaanio:"Cada año",
+  gv5_sub_alasem:"a la semana", gv5_sub_alanio:"al año", gv5_sub_dia_sem:"Cada {d}", gv5_sub_dia_anio:"Se cobra el {d}", gv5_sub_eqmes:"{x} al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
   gv5_sub_dia:"Se cobra el día {d}", gv5_sub_sinbanco:"banco: — (apuntada a mano)", gv5_sub_ultimos:"Últimos cobros",
   gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.", gv5_sub_fijo:"Si es un gasto fijo, pásalo a Recibos y lo tendrás en Plan con los demás.",
   gv5_sub_importe:"Importe para Recibos", gv5_sub_recibos:"Pasar a Recibos",
@@ -9297,7 +9319,7 @@ Object.assign(LANG.es,{
   g_bk_cuenta:"Día a día", g_bk_ingreso:"Ingresos",
   g_bk_neutra:"Inversión y traspasos", g_bk_otrobanco:"De otros bancos",
   g_bk_title:"Qué contar",
-  g_allbanks:"Todos los bancos", g_bank_manual:"A mano", g_bank_ob:"del banco",
+  g_allbanks:"Todos los bancos", g_bank_manual:"A mano",
   g_filters:"Filtros",
   g_filters_search:"Buscar categoría…", g_filters_cats:"Categorías", g_filters_banks:"bancos",
   g_filters_clear:"Limpiar",
@@ -10219,40 +10241,105 @@ function celebrate(){
 const RU_GOAL=30;                       // €/mes objetivo de round-up+saveback (reto)
 const GM_LEVELS=[0,250,1000,3000,8000]; // umbrales de savedScore por nivel
 function median(arr){ const a=(arr||[]).slice().sort(function(x,y){return x-y;}); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; }
-// Detector de SUSCRIPCIONES / cargos recurrentes: mismo comercio en ≥3 meses distintos con importe
-// estable (≥60% dentro de ±25% de la mediana). Devuelve {key,name,cat,amount,months,last,active,yearly,span,ult,lastMs}.
+/* Detector de SUSCRIPCIONES: el mismo cobro que se repite con un periodo fijo. Se mira CADA cobro,
+   no lo que suma el mes: antes se agrupaba por suma mensual y quien va al súper cada semana gasta
+   parecido cada mes, así que Mercadona, Repsol, el bar y hasta la cuota del coche salían como
+   «5 meses seguidos» y la bandeja decía 913 € al mes (auditoría de diseño 237, P1-3). Ahora, por
+   comercio:
+   · los cobros se juntan por IMPORTE casi igual (±10 %, mínimo 0,50 €: una subida de 12,99 a
+     13,99 sigue siendo la misma). Así Apple con iCloud y Music son dos, y Prime no se pierde entre
+     las compras de Amazon con el mismo nombre;
+   · cada grupo tiene que repetirse con PERIODO regular, semana, mes o año, con la holgura del
+     banco al apuntar (`PERIODOS`) y como mucho la mitad de los periodos sin cobro;
+   · fuera lo que nunca es una suscripción: ingresos, cuotas de deuda (`debtId`, ya restan en el
+     Plan), lo enlazado a un recibo (`reciboId`), traspasos e inversiones, posibles duplicados y el
+     gasto diario (`NO_CAT`): el súper o la gasolina pueden caer un mes 50 € justos y no son
+     una suscripción.
+   Lo que ya es un recibo por nombre o por el motor de pagos lo quita la vista (`subsDeRecibos`).
+   Devuelve {key,mkey,name,cat,per,amount,mensual,yearly,months,span,last,active,ult,lastMs}:
+   `amount` es lo de CADA cobro (la mediana de los tres últimos), `mensual` lo que pesa al mes,
+   `months`/`span` los cobros y los periodos del primero al último (iguales = ninguno saltado). */
 function detectSubscriptions(expenses){
-  const now=new Date();
+  /* Las reglas van DENTRO de la función: el registro de la beta vigila lo que lee cada una, y un
+     ayudante o una tabla global nuevos la dejarían «sin vigilar» en todas las tandas que la usan. */
+  // Nunca son una suscripción: el gasto diario, lo que mueve tu dinero (traspaso, inversión, cuota
+  // de deuda) y los ingresos.
+  const NO_CAT={ super:1, pan:1, bares:1, gasolina:1, heladeria:1, taxi:1, parking:1, zona_azul:1, peajes:1,
+    ingreso:1, traspaso:1, inversion:1, deudas:1 };
+  // Periodo en días, holgura del banco al apuntar, cobros mínimos, periodos que puede saltar seguidos
+  // y cuánto puede pasar desde el último para seguir viva. El mes va primero: un cobro cada 28 días
+  // es un mes, no cuatro semanas.
+  const PERIODOS=[
+    {per:"mes",    d:30.44, tol:5,  min:3, salto:3, viva:0},
+    {per:"semana", d:7,     tol:2,  min:4, salto:1, viva:21},
+    {per:"anio",   d:365.25,tol:20, min:2, salto:1, viva:400}
+  ];
+  const periodo=function(ms){
+    for(let i=0;i<PERIODOS.length;i++){
+      const p=PERIODOS[i];
+      if(ms.length<p.min) continue;
+      let slots=1, ok=true;
+      for(let j=1;j<ms.length && ok;j++){
+        const d=(ms[j]-ms[j-1])/864e5, k=Math.round(d/p.d);
+        if(k<1 || k>p.salto || Math.abs(d-k*p.d)>p.tol+(k-1)) ok=false;
+        slots+=k;
+      }
+      if(ok && ms.length*2>=slots) return {p:p, slots:slots};
+    }
+    return null;
+  };
+  const now=new Date(), nowMs=now.getTime();
   const activeCut=mk(now.getFullYear(), now.getMonth()-2);   // visto en los últimos ~2 meses = sigue activa
   const groups={};
   (expenses||[]).forEach(function(e){
-    if(!(e.amount>0)) return; const k=catKey(e.merchant); if(!k) return;
+    if(!e || !(e.amount>0)) return; const k=catKey(e.merchant); if(!k) return;
     // Lo que ya es un recibo del Plan no se vuelve a proponer como suscripción nueva. Aquí no
     // hay estado a mano: vale la marca a secas, que es solo una sugerencia que deja de salir.
-    if(e.reciboId) return;
-    const mkey=mkOf(parseDate(e.date));
-    const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,byMonth:{},ult:[]});
-    g.byMonth[mkey]=(g.byMonth[mkey]||0)+e.amount; g.name=e.merchant||g.name; g.cat=e.category;
-    // Los tres cobros más recientes, para su ficha (Gastos v5): fechas, día y banco salen de
-    // cargos reales, no de la mediana. Se guarda la referencia, sin copiar el histórico.
-    const ms=dateMs(e.date), u=g.ult;
-    if(u.length<3 || ms>u[u.length-1].ms){ u.push({ms:ms,amount:e.amount,e:e}); u.sort(function(a,b){ return b.ms-a.ms; }); if(u.length>3) u.pop(); }
+    if(e.reciboId || e.debtId || e.possibleDup || e.autoGemelo) return;
+    if(NO_CAT[e.category]) return;
+    const ms=dateMs(e.date); if(!isFinite(ms)) return;
+    const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,lastMs:-Infinity,rows:[]});
+    // Nombre y categoría, los del cobro más reciente (el orden del histórico no está garantizado).
+    if(ms>=g.lastMs){ g.lastMs=ms; g.name=e.merchant||g.name; g.cat=e.category; }
+    g.rows.push({ms:ms,amount:e.amount,e:e});
   });
   const subs=[];
   Object.keys(groups).forEach(function(k){
-    const g=groups[k]; const months=Object.keys(g.byMonth).sort(); if(months.length<3) return;
-    const amts=months.map(function(m){ return g.byMonth[m]; });
-    const med=median(amts); if(med<=0) return;
-    const consistent=amts.filter(function(a){ return Math.abs(a-med)<=Math.max(1,med*0.25); }).length;
-    if(consistent < Math.ceil(months.length*0.6)) return;
-    const last=months[months.length-1];
-    // `span`: meses de calendario del primero al último. Igual a `months` = todos seguidos; si
-    // no, la ficha no puede afirmar «cada mes» (y lo del año es la mediana × 12, como siempre).
-    const ym=function(m){ return +m.slice(0,4)*12 + +m.slice(5); };
-    subs.push({ key:k, name:g.name, cat:g.cat, amount:+med.toFixed(2), months:months.length, last:last, active:last>=activeCut, yearly:Math.round(med*12),
-      span:ym(last)-ym(months[0])+1, ult:g.ult, lastMs:g.ult[0].ms });
+    const g=groups[k];
+    // Grupos por importe: cada cobro va con el primero (el más barato) al que se parece.
+    const grupos=[];
+    g.rows.slice().sort(function(a,b){ return a.amount-b.amount; }).forEach(function(x){
+      const gr=grupos[grupos.length-1];
+      if(gr && x.amount<=gr.base+Math.max(0.5,gr.base*0.10)) gr.rows.push(x);
+      else grupos.push({base:x.amount, rows:[x]});
+    });
+    const hallados=[];
+    grupos.forEach(function(gr){
+      const rows=gr.rows.sort(function(a,b){ return a.ms-b.ms; });
+      // Dos cobros el mismo día no son dos periodos: cuenta uno.
+      const ms=[]; rows.forEach(function(x){ if(!ms.length || x.ms-ms[ms.length-1]>864e5/2) ms.push(x.ms); });
+      const r=periodo(ms); if(!r) return;
+      // Los tres cobros más recientes, para su ficha (Gastos v5): fechas, día y banco salen de
+      // cargos reales. Se guarda la referencia, sin copiar el histórico.
+      const ult=rows.slice(-3).reverse(), p=r.p;
+      const lastMs=ult[0].ms, last=mkOf(parseDate(ult[0].e.date));
+      const amount=+median(ult.map(function(x){ return x.amount; })).toFixed(2);
+      const active=p.viva ? nowMs-lastMs<=p.viva*864e5 : last>=activeCut;
+      const porAnio=p.per==="mes"?12:p.per==="semana"?52:1;
+      hallados.push({ mkey:k, name:g.name, cat:g.cat, per:p.per, amount:amount, mensual:+(amount*porAnio/12).toFixed(2),
+        yearly:Math.round(amount*porAnio), months:ms.length, span:r.slots, last:last, active:active, ult:ult, lastMs:lastMs });
+    });
+    // La clave de siempre (`catKey`, la que guardan «descartar» y «dada de baja») para la más cara;
+    // si el mismo comercio cobra otra, la suya lleva el importe para no pisarse.
+    hallados.sort(function(a,b){ return b.mensual-a.mensual; }).forEach(function(sp,i){
+      sp.key=i?k+"#"+Math.round(sp.amount*100):k;
+      subs.push(sp);
+    });
   });
-  return subs.sort(function(a,b){ return b.amount-a.amount; });
+  // Por periodo (mes, semana, año) y dentro de cada uno de más a menos: la tarjeta enseña lo de
+  // cada cobro, y un anual de 39,99 € entre dos mensuales de 2 y 5 € parecía mal ordenado.
+  const rango={mes:0,semana:1,anio:2};
+  return subs.sort(function(a,b){ return rango[a.per]-rango[b.per] || b.amount-a.amount; });
 }
 /* Presupuesto por mes: no se usa el tope actual para juzgar meses antiguos. Antes ese atajo
    convertía cualquier cambio de presupuesto en una racha falsa (feedback 18/9). */
@@ -14632,7 +14719,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
                 React.createElement("div",{className:"tile",style:{background:(c.color||"#5FD08A")+"22"}}, c.icon||"📦"),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
                   React.createElement("div",{className:"nm"}, e.merchant||catName(e.category)),
-                  React.createElement("div",{className:"meta"}, catName(e.category)+(e.source&&String(e.source).indexOf("ob:")===0?" · "+t("g_bank_ob"):"")+(recibo?" · "+recibo:""))
+                  React.createElement("div",{className:"meta"}, catName(e.category)+(recibo?" · "+recibo:""))
                 ),
                 React.createElement("div",{className:"am num"+(pos?" pos":"")}, (pos?"+":"")+eur(Math.abs(e.amount)))
               );
@@ -14844,22 +14931,33 @@ function gastosMesVentana(ym){
 
 /* SUSCRIPCIONES COMO BANDEJA (Gastos v5, SPEC §6): cada detectada es una tarjeta y al tocarla sale
    su ficha con los últimos cobros y las tres decisiones. Las cifras son las de la detección de
-   siempre (`detectSubscriptions`: mediana al mes, mediana × 12 al año); fechas, día y banco salen
-   de los cargos reales que guarda (`ult`). «Seguidos» solo si no falta ningún mes entre el primero
-   y el último: un cobro cada dos meses no puede salir como «cada mes». */
-function gxSubFrec(sp){ return sp.span===sp.months?tf("gv5_sub_seguidos",{n:sp.months}):tf("gv5_sub_de",{n:sp.months,m:sp.span}); }
+   siempre (`detectSubscriptions`: lo de cada cobro y su periodo, semana, mes o año); fechas, día y
+   banco salen de los cargos reales que guarda (`ult`). «Seguidos» solo si no falta ningún mes entre
+   el primero y el último: un cobro cada dos meses no puede salir como «cada mes». */
+function gxSubFrec(sp){
+  if(sp.per==="semana") return tf("gv5_sub_sem_seguidas",{n:sp.months});
+  if(sp.per==="anio") return tf("gv5_sub_anios_seguidos",{n:sp.months});
+  return sp.span===sp.months?tf("gv5_sub_seguidos",{n:sp.months}):tf("gv5_sub_de",{n:sp.months,m:sp.span});
+}
 function gxSubBanco(sp){ const bk=sp.ult&&sp.ult[0]?expenseBankOf(sp.ult[0].e):null; return bk?(entOf(bk).label||entOf(bk).mono):null; }
 const GxSubTarjeta=React.memo(function GxSubTarjeta({sp, vuelve, onOpen}){
   const c=catOf(sp.cat), bk=gxSubBanco(sp);
+  /* Solo el periodo: «6 meses seguidos · CaixaBank» no cabía a 360 y se comía el banco (237,
+     P1-6). La cuenta exacta sigue en la ficha; un mes saltado sí se dice aquí. */
+  const cada=sp.per==="semana"?t("gv5_sub_cadasem"):sp.per==="anio"?t("gv5_sub_cadaanio")
+    :sp.span===sp.months?t("gv5_sub_cadames"):tf("gv5_sub_de",{n:sp.months,m:sp.span});
   return React.createElement("button",{type:"button",className:"gx-sub","data-sub":sp.key,onClick:function(){ onOpen(sp.key); }},
     React.createElement("span",{className:"gx-sub-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
     React.createElement("span",{className:"gx-sub-txt"},
       React.createElement("span",{className:"gx-sub-nm"},sp.name),
-      React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp)+(bk?" · "+bk:"")),
+      React.createElement("span",{className:"gx-sub-meta"},cada+(bk?" · "+bk:"")),
       vuelve&&React.createElement("span",{className:"gx-sub-vuelve"},t("gv5_sub_vuelve"))),
+    // Sin «al mes» en cada fila: ya lo dice la cabecera y el periodo va a la izquierda (P1-6). La
+    // semanal y la anual sí dicen lo que pesan al mes: es lo que suma la cifra de arriba, y sin eso
+    // las filas no cuadraban con ella (crítica de diseño 237).
     React.createElement("span",{className:"gx-sub-am"},
       React.createElement("span",{className:"num serif"},eur(sp.amount)),
-      React.createElement("span",{className:"gx-sub-mes"},t("gv5_sub_almes"))));
+      sp.per&&sp.per!=="mes"&&React.createElement("span",{className:"gx-sub-eq num"},tf("gv5_sub_eqmes",{x:eur(sp.mensual)}))));
 });
 /* Ficha de una suscripción (SPEC §6.4). `f` = {sp, vuelve}, una FOTO de la tarjeta tocada: la
    acción la quita de la bandeja y la hoja tiene que poder cerrarse con su animación enseñando
@@ -14875,7 +14973,12 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
   if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",numDecSep())});
   useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
   if(!open) return null;
-  const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0];
+  const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0], f0=parseDate(u0.e.date);
+  const porPer=t(sp.per==="semana"?"gv5_sub_alasem":sp.per==="anio"?"gv5_sub_alanio":"gv5_sub_almes");
+  // Cuándo se cobra, según el periodo: el día del mes, el día de la semana o la fecha del año.
+  const cuando=sp.per==="semana"?tf("gv5_sub_dia_sem",{d:f0.toLocaleDateString(loc(),{weekday:"long"})})
+    :sp.per==="anio"?tf("gv5_sub_dia_anio",{d:f0.toLocaleDateString(loc(),{day:"numeric",month:"long"})})
+    :tf("gv5_sub_dia",{d:f0.getDate()});
   const tras=function(p){ Promise.resolve(p).then(function(ok){ if(ok!==false) swipe.close(); }); };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
@@ -14886,11 +14989,11 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
           React.createElement("span",{className:"gx-sub-ic gx-subf-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
           React.createElement("div",{className:"gx-sub-txt"},
             React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"gx-subf-nm"},sp.name),
-            React.createElement("span",{className:"gx-sub-meta"},tf("gv5_sub_dia",{d:parseDate(u0.e.date).getDate()})+" · "+(bk||t("gv5_sub_sinbanco"))),
+            React.createElement("span",{className:"gx-sub-meta"},cuando+" · "+(bk||t("gv5_sub_sinbanco"))),
             React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp))),
           React.createElement("span",{className:"gx-sub-am"},
             React.createElement("span",{className:"num serif gx-subf-amt"},eur(sp.amount)),
-            React.createElement("span",{className:"gx-sub-mes"},t("gv5_sub_almes")))),
+            React.createElement("span",{className:"gx-sub-mes"},porPer))),
         f.vuelve&&React.createElement("div",{className:"gx-sub-vuelve gx-subf-vuelve"},t("gv5_sub_vuelve")),
         React.createElement("div",{className:"gx-subf-et"},t("gv5_sub_ultimos")),
         React.createElement("div",{className:"gx-subf-hist"},
@@ -14900,13 +15003,13 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
               React.createElement("span",{className:"num gx-subf-fila-am"},eur(x.amount)));
           })),
         React.createElement("p",{className:"gx-subf-anio"},
-          tf(sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})+" "+t("gv5_sub_fijo")),
+          tf(sp.per!=="mes"||sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})+" "+t("gv5_sub_fijo")),
         React.createElement("label",{className:"gx-subf-imp"},
           React.createElement("span",null,t("gv5_sub_importe")),
           React.createElement("span",{className:"num"},
             React.createElement("input",{type:"text",inputMode:"decimal",value:amt.v,"data-testid":"sub-importe",
               onChange:function(e){ setAmt({k:sp.key, v:e.target.value}); }}),
-            " € "+t("gv5_sub_almes"))),
+            " € "+porPer)),
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-sub-accion":"recibos",
           onClick:function(){ onRecibos(sp, amt.v); swipe.close(); }}, t("gv5_sub_recibos")),
         React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-sub-accion":"baja",
@@ -16085,8 +16188,11 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     const useAmt=parseFloat(String(amtTxt).replace(",","."))||sp.amount;
     const acc=(state.accounts||[]).find(function(a){ return accRole(a)==="fijos"; })||(state.accounts||[]).find(function(a){ return accRole(a)==="ambos"; });
     // Con su mes de alta: el resumen del mes cerrado de Plan no lo cuenta en meses de antes.
-    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" });
-    const dd=parseDate(sp.ult[0].e.date).getDate(); if(dd>=1&&dd<=31) it.day=dd;
+    // Con su periodo: un anual apuntado «al mes» contaría doce veces lo que se paga (237).
+    const f0=parseDate(sp.ult[0].e.date), freq=sp.per==="semana"?"semana":sp.per==="anio"?"anual":"mes";
+    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:freq, account:(acc&&acc.ent)||"sabadell" });
+    if(freq==="anual") it.months=[f0.getMonth()+1];
+    const dd=f0.getDate(); if(freq!=="semana"&&dd>=1&&dd<=31) it.day=dd;
     set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
     showToast(tf("gv5_sub_recibos_ok",{n:sp.name,b:entOf((acc&&acc.ent)||"sabadell").label}));
   };
@@ -16403,7 +16509,8 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   /* La cabecera de las otras secciones (SPEC §3): Categorías enseña el gasto del periodo y su
      margen (el mismo que arriba en Movimientos); Suscripciones, lo que suman al mes las que
      esperan decisión. No dependen del día visible: su `line` es siempre la misma. */
-  const subsMes=novelSubs.reduce(function(a,sp){ return a+(Number(sp.amount)||0); },0);
+  // Lo que pesa al mes cada una (`mensual`): un anual suma su doceava parte, no el cobro entero.
+  const subsMes=novelSubs.reduce(function(a,sp){ return a+(Number(sp.mensual)||0); },0);
   const cabSecc=useMemo(function(){
     let top;
     if(secc==="cats" && !catsActual){
@@ -16730,7 +16837,9 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
         // filtrado: va aparte, al pie de la lista (tanda 2).
         React.createElement("div",{style:{display:"flex",gap:8,marginBottom:9}},
           React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},stopSwipe),
-            React.createElement("span",{className:"searchbar-ic"},"🔍"),
+            // Lupa de línea, la de «Tus recibos»: el 🔍 de color era el único emoji del cromo de Gastos (237, P2-7).
+            React.createElement("svg",{className:"searchbar-ic",width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+              React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
             React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
             q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
           ),
@@ -16773,7 +16882,6 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
        «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
     capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
       // Sin la pista no se adivina que tocar filtra y que mantener pulsado pone el límite.
-      catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("gv5_cats_hint")),
       catBreakdown.length===0
         ? React.createElement("div",{className:"empty"},t("gv5_cats_vacio"))
         : React.createElement("div",{className:"gx-cats-lista"},catBreakdown.map(function(row){
@@ -17022,9 +17130,10 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
    Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
 const GX_MESES_SOBRE=36;
 /* Altos (px) con los que se estima un día de Movimientos antes de pintarlo: cabecera del día
-   (padding 18 + título), fila normal (~90 con la línea de abajo + hueco de 6; medido con
-   Pixel 5) y franja gris cerrada (48 + 2 de borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
-const GX_DIA_CAB=46, GX_FILA_ALTO=96, GX_GRIS_ALTO=56;
+   (padding 18 + título + 10 hasta el bloque), fila de dos líneas en el bloque del día (67, sin
+   hueco: medido a 393 y 412; a 360 la que baja el banco mide 78) y franja gris cerrada (48 + 2 de
+   borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
+const GX_DIA_CAB=54, GX_FILA_ALTO=68, GX_GRIS_ALTO=56;
 /* Paginación de Movimientos (ver «LA PAGINACIÓN DE LA LISTA», punto 3): filas por tanda, a
    cuántos px del final de lo pintado se pide la siguiente y cuántas filas estimadas mide el
    colchón de debajo. Tandas pequeñas y pedidas con margen = cada pintado es corto y el fling
@@ -17164,6 +17273,21 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       if(Math.abs(box.scrollLeft-want)>2) box.scrollTo({left:Math.max(0,want),behavior:mcReduced()?"auto":"smooth"});
     }
   },[ymSel, vista.compact, fijos, meses&&meses.length, l10nKeyOf()]);
+  /* Fundido solo en el borde por el que queda tira (237, P2-6): «agosto» cortado contra el borde
+     parecía un fallo. En el extremo no hay fundido, o apagaría la pastilla del mes en curso. Se
+     escribe en el estilo, sin estado: deslizar la tira no repinta la cabecera. */
+  const hayMeses=!!meses;
+  useEffect(function(){
+    const box=mesesRef.current; if(!box) return;
+    const bordes=function(){
+      const fin=box.scrollWidth-box.clientWidth-box.scrollLeft;
+      box.style.setProperty("--gx-fi",box.scrollLeft>1?"40px":"0px");
+      box.style.setProperty("--gx-fd",fin>1?"40px":"0px");
+    };
+    bordes();
+    box.addEventListener("scroll",bordes,{passive:true});
+    return function(){ box.removeEventListener("scroll",bordes); };
+  },[hayMeses, meses&&meses.length]);
   const tone=line.tone?" gx-tone-"+line.tone:"";
   const mesesVis=vista.compact||!!fijos;
   // `data-gx-vista` (el día que manda en la cabecera) es para los e2e: al final de la lista ya no
@@ -17592,21 +17716,24 @@ const MovRow=React.memo(function MovRow({e, l, onOpen, bucket, recibo, conBanco,
       "aria-label":reordenable?[shownName||"—",l||catName(e.category),importe,t("g_mov_reorden")].join(" · "):null,
       className:"v4-mov"+(skip?" v4-mov-skip":""),
       onClick:function(){ onOpen(e); },style:skip?{opacity:.72}:null},
-    React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
+    /* La MISMA fila que «Últimos movimientos» de Inicio (237, P2-5): el color de la categoría solo
+       en la baldosa, y debajo del nombre una línea gris «Categoría · Banco». Antes eran tres líneas
+       con la categoría en color: cabían cinco filas por pantalla y el mismo gasto se veía distinto
+       en cada pestaña. */
+    React.createElement("div",{className:"tile",style:{background:c.color+"22"}},c.icon),
     React.createElement("div",{className:"nm"},
       // Renombrado en vuelo: la lista enseña ya el nombre nuevo, igual que la ficha, sin tocar
       // `merchant` (eso solo cambia con el ack del servidor). En cuarentena vuelve al guardado.
       React.createElement("div",{className:"nm-title"}, shownName||"—",
         pendingName&&renameAvisoVisible(e.renamePending)?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
-      // El color de la categoría va como variable y lo pinta el CSS: en el tema Claro, el pastel tal
-      // cual sobre blanco no se leía (1,9:1, auditoría 14/11) y ahí se oscurece (ver `.nm-cat`).
-      React.createElement("div",{className:"nm-cat",style:{"--cat":c.color}}, l||catName(e.category)),
-      meta.length?React.createElement("div",{className:"meta"},
-        banco?React.createElement("span",null,banco):null,
-        banco&&skipTxt?React.createElement("span",{className:"sep"},"·"):null,
-        skipTxt?React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt):null
-      ):null
+      React.createElement("div",{className:"nm-sub"},
+        React.createElement("span",{className:"nm-cat"}, l||catName(e.category)),
+        meta.length?React.createElement("span",{className:"meta"},
+          banco?React.createElement("span",null,banco):null,
+          banco&&skipTxt?React.createElement("span",{className:"sep"},"·"):null,
+          skipTxt?React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt):null
+        ):null)
     ),
     React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, importe)
   );
@@ -17724,7 +17851,9 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
           React.createElement("div",{id:"gastos-filter-cats-body",className:"v4-filter-cats-body","aria-hidden":!filterCatsOpen},
             React.createElement("div",{className:"v4-filter-cats-inner"},
               React.createElement("div",{className:"searchbar",style:{margin:"12px 0"}},
-                React.createElement("span",{className:"searchbar-ic"},"🔍"),
+                // Lupa de línea, como en el buscador de Movimientos (237, P2-7).
+                React.createElement("svg",{className:"searchbar-ic",width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+                  React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
                 React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_filters_search"),value:qCat,onChange:function(e){ setQCat(e.target.value); }}),
                 qCat && React.createElement("button",{className:"searchbar-x",type:"button",onClick:function(){ setQCat(""); }},"✕")
               ),
@@ -25199,9 +25328,11 @@ function subsDeRecibos(s, nowMs){
   if(ids.size) (s.expenses||[]).forEach(function(x){ if(x&&ids.has(x.id)) add(x); });
   return keys;
 }
+// Por comercio (`mkey`): si uno que cobra dos cosas ya es recibo, no se propone ninguna de las dos.
 function subEsRecibo(s, sp, keys){
-  if(keys&&keys.has(sp.key)) return true;
-  return (s.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
+  const k=sp.mkey||sp.key;
+  if(keys&&keys.has(k)) return true;
+  return (s.fixed||[]).some(function(f){ return catKey(f.name)===k; });
 }
 // Identidad del cargo con el que el motor da por pagado un recibo; null si no es con ninguno.
 function reciboPagadoCon(st){
@@ -32259,7 +32390,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="e4cf857257fd48aa8996ac59f5f0f85dcba007343c220fe6b4e704a7e3f2f496";
+var _rnSha="92f3e5af1565b2008dd7d42a0ff76ebc68d1b560511a6bcaf3abb2581aa7a9d8";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -37399,8 +37530,10 @@ function rp4VistoEnBanco(state, max){
   // agua salía aquí con su cargo del mes ya en «Ya pagados» (11/11/2026).
   const subs=detectSubscriptions(ex), enlazados=subs.length?subsDeRecibos(state):null;
   return subs.filter(function(g){
-    if(!g.active||!(g.amount>0)||!g.ult.length) return false;
-    if(enlazados&&enlazados.has(g.key)) return false;
+    // Solo lo mensual: lo que se propone aquí se apunta como recibo de cada mes, y un antivirus
+    // anual de 39,99 € no son 39,99 € al mes (237).
+    if(!g.active||g.per!=="mes"||!(g.amount>0)||!g.ult.length) return false;
+    if(enlazados&&enlazados.has(g.mkey)) return false;
     return !fx.some(function(f){ return recNameMatch(f.name,g.name)||recNameMatch(g.name,f.name); });
   }).slice(0,max===0?Infinity:(max||3)).map(function(g){
     const e=g.ult[0].e;

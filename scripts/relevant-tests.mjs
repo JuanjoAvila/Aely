@@ -440,6 +440,9 @@ export const E2E_MAP = [
     "e2e/gastos-v5-filtro.spec.mjs",
     // Gastos v5 tanda 4: Suscripciones como bandeja, su ficha, la «i» y las tres acciones.
     "e2e/gastos-v5-subs.spec.mjs",
+    // Diseño 237 (P1-3/P1-6): con un extracto realista solo salen las suscripciones de verdad
+    // (ni súper, ni gasolina, ni bar, ni deuda), la cifra es lo que pesan al mes y a 360 no se corta nada.
+    "e2e/gastos-suscripciones-deteccion.spec.mjs",
     // Gastos v5 tanda 5: la hoja de Filtros definitiva (cuatro apartados, «Ver N», Restablecer, «Las N»).
     "e2e/gastos-v5-filtros.spec.mjs",
     // «Es aportación a la meta X»: ficha, fila gris de Metas, cifra sin ella y progreso en Plan.

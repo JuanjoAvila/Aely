@@ -115785,7 +115785,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .gx-list .v4-mov{margin-top:0;gap:10px;",
+        "from": "  .gx-list .v4-mov{margin-top:0;gap:12px;",
         "to": "\n"
       },
       {
@@ -174392,12 +174392,12 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .v4-mov .nm-cat{",
+        "from": "  .gx-list .v4-mov .nm-cat{",
         "to": "}"
       },
       {
         "file": "src/shell.html",
-        "from": "  html[data-theme=\"light\"] .v4-mov .nm-cat{",
+        "from": "  .gx-list .v4-mov .nm-cat:has(+ .meta)::after{",
         "to": "}"
       },
       {

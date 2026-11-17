@@ -41,18 +41,20 @@ const ficha = (page) => page.locator('[data-sheet="sub-ficha"]');
 const globo = (page) => gastosRoot(page).getByTestId("gastos-subs-globo");
 const guardado = (page) => page.evaluate(() => mcLoadRaw(mcStateKey()));
 
-test("bandeja: una tarjeta por suscripción con frecuencia, banco e importe al mes; globito y cifra cuadran", async ({ page }) => {
+test("bandeja: una tarjeta por suscripción con periodo, banco e importe; globito y cifra cuadran", async ({ page }) => {
   await abre(page);
   await expect(globo(page)).toHaveText("3");
   await gastosSeccion(page, "subs");
   await expect(tarjetas(page)).toHaveCount(3);
   // Orden de la detección: de mayor a menor importe.
   await expect(tarjetas(page).locator(".gx-sub-nm")).toHaveText(["Revista", "Netflix", "Club"]);
-  await expect(tarjeta(page, "Netflix").locator(".gx-sub-meta")).toHaveText("4 meses seguidos · Trade Republic");
+  // La tarjeta dice el periodo; la cuenta exacta («4 meses seguidos») va en la ficha (237, P1-6).
+  await expect(tarjeta(page, "Netflix").locator(".gx-sub-meta")).toHaveText("Cada mes · Trade Republic");
   await expect(tarjeta(page, "Revista").locator(".gx-sub-meta")).toHaveText("3 de 5 meses · Sabadell");
   // Sin banco no se inventa uno.
-  await expect(tarjeta(page, "Club").locator(".gx-sub-meta")).toHaveText("3 meses seguidos");
-  await expect(tarjeta(page, "Netflix").locator(".gx-sub-am")).toHaveText("12,99 €al mes");
+  await expect(tarjeta(page, "Club").locator(".gx-sub-meta")).toHaveText("Cada mes");
+  // Sin «al mes» en cada fila: ya lo dice la cabecera.
+  await expect(tarjeta(page, "Netflix").locator(".gx-sub-am")).toHaveText("12,99 €");
   // La cifra es lo que suman al mes las pendientes: 30 + 12,99 + 8.
   await expect(gastosCifra(page)).toHaveText("50,99 €");
   await expect(gastosEstado(page)).toHaveText("al mes · 3 por revisar");
