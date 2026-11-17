@@ -390,7 +390,9 @@ const PRESUPUESTO = {
   // caben, los ajustes como chips y la cabecera con la elegida tocable: +1.657 B (1.979.627 sin sello). Sube a 1934.
   // Sexta vuelta (17/11, crítico de la v5): filas medidas con el alto máximo teórico y el borde de Apuntar que no
   // parte la línea de resumen: +1.224 B (1.980.851 sin sello). Sube a 1935.
-  minificado: 1935 * 1024,
+  // Ajuste final de la v6 (17/11): el borde de la ficha tampoco parte lo que hay detrás (sube o baja lo justo):
+  // +582 B (1.981.433 sin sello). Sube a 1936.
+  minificado: 1936 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

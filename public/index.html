@@ -13905,7 +13905,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       if(tile) filaAltoRef.current=tile.getBoundingClientRect().height/zoom;
       const b=body.getBoundingClientRect(), tb=title.getBoundingClientRect();
       // Lo que ocupan el asa, el pie y los rellenos no cambia con las filas: el cuerpo, a su máximo, es el resto.
-      const marco=hoja.getBoundingClientRect().height/zoom-body.clientHeight;
+      const marco=hoja.getBoundingClientRect().height/zoom-body.clientHeight-rellenoExtraRef.current;
       const cuerpoMax=(parseFloat(getComputedStyle(hoja).maxHeight)||hoja.getBoundingClientRect().height/zoom)-marco;
       const libre=cuerpoMax-keys.offsetHeight-(tb.bottom-b.top)/zoom-8-12;
       const n=Math.max(0,Math.min(catRows||2,Math.floor((libre+7)/(filaAltoRef.current+7))));
@@ -13936,26 +13936,48 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     window.addEventListener("resize",mide);
     return function(){ window.removeEventListener("resize",mide); };
   },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
-  /* Apuntar sobre Gastos: si el borde de la hoja cae justo encima de la línea de resumen («gastado en
-     septiembre · …»), la parte por la mitad (crítico de la v5, a 393). Se sube el borde lo justo para
-     que la tape entera, con relleno arriba, sin pasar del alto máximo. Con `offsetTop`: durante la
-     entrada la hoja aún va desplazada y su rectángulo mentiría. */
-  const rellenoBaseRef=useRef(null);
+  /* El borde de la hoja no parte por la mitad lo que hay detrás (crítico de la v5: en Apuntar a 393,
+     la línea «gastado en septiembre · …»; y en la ficha, el total a 360 o un movimiento a 412). Si el
+     borde cae dentro de un texto de la pantalla de detrás, sube lo justo para taparlo entero, con
+     relleno arriba y sin pasar del alto máximo; si al subir cae en otro, otra vez (pocas). Con
+     `offsetTop`: durante la entrada la hoja aún va desplazada y su rectángulo mentiría. */
+  const rellenoBaseRef=useRef(null), rellenoExtraRef=useRef(0);
+  const textoPartido=function(y){
+    /* Los textos (hojas del árbol con letra) de la pantalla de detrás que el borde, a la altura y,
+       corta por dentro. Se recorre podando por alto (no con elementsFromPoint: con una hoja abierta la
+       app no recibe toques y no aparecería). */
+    let peor=null;
+    const mira=function(el){
+      const r=el.getBoundingClientRect();
+      if(r.height<=0||y<r.top||y>r.bottom||r.right<=0||r.left>=window.innerWidth) return;
+      if(el.childElementCount===0){ if((el.textContent||"").trim()&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
+      for(let c=el.firstElementChild;c;c=c.nextElementSibling) mira(c);
+    };
+    document.querySelectorAll(".page-scroll-host").forEach(mira);
+    return peor;
+  };
   useLayoutEffect(function(){
-    if(!catRowsMax) return;
-    const body=bodyRef.current, hoja=body&&body.parentElement; if(!hoja) return;
+    const body=bodyRef.current, hoja=body&&body.parentElement; if(!hoja) return undefined;
     if(rellenoBaseRef.current==null) rellenoBaseRef.current=parseFloat(getComputedStyle(hoja).paddingTop)||0;
+    const maxPropio=hoja.style.maxHeight;
     const ajusta=function(){
-      hoja.style.paddingTop="";
-      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1, arriba=hoja.offsetTop*zoom;
-      let extra=0;
-      document.querySelectorAll('.page-scroll-host [data-testid="gastos-estado"],.page-scroll-host [data-testid="gastos-desglose"]').forEach(function(l){
-        const r=l.getBoundingClientRect();
-        if(r.height>0&&r.right>0&&r.left<window.innerWidth&&arriba>r.top-4&&arriba<r.bottom+4) extra=Math.max(extra,arriba-(r.top-6));
-      });
-      const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, alto=hoja.offsetHeight;
-      extra=Math.min(extra/zoom,Math.max(0,max-alto));
-      if(extra>0) hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px";
+      hoja.style.paddingTop=""; hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
+      const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, base=hoja.offsetHeight, top0=hoja.offsetTop*zoom;
+      let extra=0, bajar=0;
+      for(let i=0;i<4;i++){
+        const y=top0-extra*zoom, r=textoPartido(y); if(!r) break;
+        const mas=(y-(r.top-6))/zoom;
+        // Si para taparlo habría que pasar del alto máximo, el borde baja hasta dejarlo entero encima.
+        if(extra+mas>max-base){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
+        extra+=mas;
+      }
+      if(extra>0){ hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px"; rellenoExtraRef.current=extra; }
+      // Bajar acorta la hoja y su cuerpo pasa a desplazarse: vale en la ficha, no en Apuntar, que cabe entera (DIS-01).
+      else if(plegado&&bajar>0&&bajar<base*0.25){
+        hoja.style.maxHeight=(base-bajar)+"px";
+        if(textoPartido(hoja.offsetTop*zoom)) hoja.style.maxHeight=maxPropio;
+      }
     };
     ajusta();
     // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
@@ -13963,7 +13985,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     hoja.addEventListener("animationend",ajusta);
     window.addEventListener("resize",ajusta);
     return function(){ clearTimeout(tm); hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",ajusta); };
-  },[catRowsMax,filasAuto]);
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo]);
   const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;

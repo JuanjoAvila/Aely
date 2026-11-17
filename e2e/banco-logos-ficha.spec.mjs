@@ -465,3 +465,43 @@ for (const [w, h] of [[393, 851], [412, 915]]) {
     expect(m.pegado, "el teclado, justo encima del pie").toBeLessThan(4);
   });
 }
+
+/* Último ajuste de la v6: el borde de la hoja no parte por la mitad ningún texto de la pantalla de
+   detrás (el total a 360, un movimiento a 412, la línea de resumen a 393), en Apuntar y en las fichas,
+   con y sin teclado. O lo tapa entero, o lo deja entero encima (2 px de tolerancia en la caja). */
+const bordeCorta = (page) => page.evaluate(() => {
+  const y = document.querySelector(".v4-exp-sheet").getBoundingClientRect().top; let corta = null;
+  const mira = (el) => { const r = el.getBoundingClientRect(); if (r.height <= 0 || y < r.top || y > r.bottom || r.right <= 0 || r.left >= innerWidth) return;
+    if (el.childElementCount === 0) { if ((el.textContent || "").trim() && y > r.top + 2 && y < r.bottom - 2) corta = el.textContent.trim().slice(0, 40); return; }
+    for (let c = el.firstElementChild; c; c = c.nextElementSibling) mira(c); };
+  document.querySelectorAll(".page-scroll-host").forEach(mira); return corta;
+});
+const DETRAS = Object.assign({}, CARGADA, { expenses: [
+  { id: "b1", date: HOY, amount: 23.4, merchant: "Mercadona", category: "super", source: "ob", ent: "trade_republic", obAcc: "ob-tr" },
+  { id: "m1", date: HOY, amount: 3.2, merchant: "Café", category: "bares", source: "manual", ent: "sabadell" },
+  { id: "bi", date: HOY, amount: -25, merchant: "Bizum de Ana", category: "ingreso", source: "ob", ent: "sabadell", obAcc: "ob-sab" },
+  { id: "mi", date: HOY, amount: -40, merchant: "Venta Wallapop", category: "ingreso", source: "manual", ent: "trade_republic" }] });
+for (const [w, h] of [[360, 740], [393, 851], [412, 915]]) {
+  test(`el borde de la hoja no corta lo de detrás (Apuntar y fichas, con y sin teclado), ${w}×${h}`, async ({ page }) => {
+    await arranca(page, w, h, DETRAS);
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await page.waitForTimeout(400);
+    const cortes = [];
+    await page.locator(".botnav-fab").click(); await page.waitForTimeout(900);
+    cortes.push(["Apuntar", await bordeCorta(page)]);
+    await page.goBack(); await expect(page.locator(".v4-exp-sheet")).toHaveCount(0);
+    for (const n of ["Mercadona", "Café", "Bizum de Ana", "Venta Wallapop"]) {
+      await gastosAbreGasto(page, n);
+      const hoja = page.locator(".v4-exp-sheet");
+      await page.waitForTimeout(700);
+      cortes.push([n, await bordeCorta(page)]);
+      if (n === "Café" || n === "Venta Wallapop") {
+        await hoja.locator(".v4-ficha-amount").click(); await page.waitForTimeout(700);
+        cortes.push([n + " con teclado", await bordeCorta(page)]);
+        await hoja.locator(".v4-ficha-amount").click(); await page.waitForTimeout(500);
+      }
+      await hoja.locator(".v4-ficha-done").click(); await expect(hoja).toHaveCount(0); await page.waitForTimeout(300);
+    }
+    expect(cortes.filter(([, c]) => c)).toEqual([]);
+  });
+}
