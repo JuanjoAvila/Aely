@@ -3310,7 +3310,8 @@ function goalEta(g, monthlySaving){
     if(m>0 && m>=need) return {text:tf("gl_eta_ok",{x:eur0(rem),m:dl}), cls:"ok"};
     return {text:tf("gl_eta_behind",{x:eur0(need)}), cls:"warn"};
   }
-  if(m>0){ const months=Math.max(1,Math.ceil(rem/m)); return {text:tf("gl_eta",{x:eur0(m),when:monthYearIn(months)}), cls:""}; }
+  // En céntimos, como las cuotas de deuda: 72,45 a 10,35 al mes son 7 meses, no 8 (revisión 237).
+  if(Math.round(m*100)>0){ const months=Math.max(1,cuotasQueQuedan(rem,m)); return {text:tf("gl_eta",{x:eur0(m),when:monthYearIn(months)}), cls:""}; }
   return {text:t("gl_eta_nosaving"), cls:""};
 }
 // confeti DOM: ligero, se autolimpia. Para celebrar una meta cumplida.

@@ -10188,7 +10188,8 @@ function goalEta(g, monthlySaving){
     if(m>0 && m>=need) return {text:tf("gl_eta_ok",{x:eur0(rem),m:dl}), cls:"ok"};
     return {text:tf("gl_eta_behind",{x:eur0(need)}), cls:"warn"};
   }
-  if(m>0){ const months=Math.max(1,Math.ceil(rem/m)); return {text:tf("gl_eta",{x:eur0(m),when:monthYearIn(months)}), cls:""}; }
+  // En céntimos, como las cuotas de deuda: 72,45 a 10,35 al mes son 7 meses, no 8 (revisión 237).
+  if(Math.round(m*100)>0){ const months=Math.max(1,cuotasQueQuedan(rem,m)); return {text:tf("gl_eta",{x:eur0(m),when:monthYearIn(months)}), cls:""}; }
   return {text:t("gl_eta_nosaving"), cls:""};
 }
 // confeti DOM: ligero, se autolimpia. Para celebrar una meta cumplida.
@@ -27513,7 +27514,9 @@ function billsCuotasEnAno(d, curMonth, curYear){
   const cur=curYear*12+curMonth-1, anchor=(typeof d.asOf==="number")?d.asOf:cur;
   if(d.months!=null) return Math.min(12,Math.max(0,anchor+d.months-cur));
   const a=debtAmort(d);
-  return a>0?Math.min(12,Math.max(0,Math.ceil(debtBalance(d)/a-1e-9))):12;
+  // En céntimos (`cuotasQueQuedan`), como el resto de cuentas de cuotas: el `-1e-9` en euros era un parche.
+  // Bajada de menos de medio céntimo: no hay fin que contar y sigue cobrando todo el año, como `debtLeftInfo` (rev. 237 R2).
+  return Math.round(a*100)>0?Math.min(12,cuotasQueQuedan(debtBalance(d),a)):12;
 }
 // Día de referencia para mirar si un mes ya está pagado: hoy si es el mes en curso; si no, su último día.
 function billsHoyDe(y, m){
@@ -27905,6 +27908,13 @@ function patchDebtFields(set, id, patch){
     return Object.assign({},s,{debts:(s.debts||[]).map(function(d){
       if(d.id!==id) return d;
       const n=Object.assign({},d,patch);
+      /* Dinero al céntimo, como Editar deuda: una bajada de 10,354 hacía que el saldo (valor − bajada ×
+         pagadas) arrastrase milésimas y el plazo, contado en céntimos, dejaba de cuadrar (revisión 237).
+         Si los céntimos son los de lo guardado se queda lo guardado: una deuda heredada de 33,333 pasaba a
+         33,33 sin re-anclar (eso solo mira céntimos) y el pendiente subía de 333,33 a 333,39 con solo tocar
+         el campo (rev. 237 R1). */
+      ["monthly","amort"].forEach(function(k){ if(typeof patch[k]!=="number"||!isFinite(patch[k])) return;
+        const c=Math.round(patch[k]*100); n[k]=typeof d[k]==="number"&&Math.round(d[k]*100)===c?d[k]:c/100; });
       if(!n.day) delete n.day;
       if(!(n.amort>0) || Math.abs((n.amort||0)-(n.monthly||0))<0.005) delete n.amort;
       /* El saldo de hoy es value − bajada × pagadas: cambiar la bajada sin re-anclar movía el saldo
@@ -27975,7 +27985,9 @@ function deudaAmortizada(x, bal, amt){
     // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
     if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
     o.settledAt=new Date().toISOString();
-  }else if(x.months!=null&&!vencida&&am>0){ const n=cuotasQueQuedan(remaining-(x.balloon||0),am); o.months=paid+(n>0?n:(x.balloon>0?1:0)); }
+  /* Una bajada de menos de medio céntimo no cuenta cuotas: el plazo se quedaba en las ya pagadas con
+     saldo pendiente. Como `debtEditMonths`, sin cuotas que contar el plazo no se toca (revisión 237). */
+  }else if(x.months!=null&&!vencida&&Math.round(am*100)>0){ const n=cuotasQueQuedan(remaining-(x.balloon||0),am); o.months=paid+(n>0?n:(x.balloon>0?1:0)); }
   return o;
 }
 /* Cuotas de `am` que hacen falta para `viaM`, contadas en CÉNTIMOS. En euros, 72,45 / 10,35 da
@@ -27985,6 +27997,17 @@ function deudaAmortizada(x, bal, amt){
 function cuotasQueQuedan(viaM, am){
   const v=Math.round(viaM*100), a=Math.round(am*100);
   return v>0&&a>0?Math.ceil(v/a):0;
+}
+/* Cuotas que quedan {n,tot}: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
+   a mano) se ESTIMA con el ritmo de amortización actual. Contadas en céntimos como el resto: en euros,
+   72,45 con cuota de 10,35 eran 8 y la fecha de fin salía un mes tarde (revisión 237). Una bajada que
+   no llega a medio céntimo no cuenta nada: null, como `debtEditMonths`, mejor que un «acabas» inventado. */
+function debtLeftInfo(d){
+  const left=debtLeft(d);
+  if(left!=null) return {n:left, tot:d.months||left};
+  const am=debtAmort(d), bal=debtBalance(d);
+  if(!(Math.round(am*100)>0) || !(bal>0.005)) return null;
+  return {n:cuotasQueQuedan(bal,am), tot:cuotasQueQuedan(d.original||bal,am)};
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -28381,7 +28404,8 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
 // cuenten lo mismo. null si la deuda no tiene plazo (no hay cuotas que contar).
 function amortRecorte(d,amt){
   const am=debtAmort(d);
-  if(d.months==null || !(am>0)) return null;
+  // Bajada por debajo de medio céntimo: no hay cuotas que contar (ver `deudaAmortizada`).
+  if(d.months==null || !(Math.round(am*100)>0)) return null;
   const leftNow=debtLeft(d), nb=+(debtBalance(d)-amt).toFixed(2);
   const n=cuotasQueQuedan(nb-(d.balloon||0),am);
   const leftNew=n>0?n:((d.balloon>0&&nb>0.005)?1:0);
@@ -28588,13 +28612,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   };
   // Cuotas que quedan: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
   // a mano) se ESTIMA con el ritmo de amortización actual. Devuelve {n,tot} o null.
-  const leftInfo=function(d){
-    const left=debtLeft(d);
-    if(left!=null) return {n:left, tot:d.months||left};
-    const am=debtAmort(d), bal=debtBalance(d);
-    if(!(am>0) || !(bal>0.005)) return null;
-    return {n:Math.ceil(bal/am), tot:Math.ceil((d.original||bal)/am)};
-  };
+  const leftInfo=debtLeftInfo;
   const endsLabel=function(d){
     // Mismo texto para TODAS las deudas (feedback 2026-07-21: el «a este ritmo acabas ~» de
     // hipoteca/préstamo cantaba distinto del «acabas en» de las financiaciones). La fecha sin
@@ -32126,7 +32144,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="79e1ce5309f1ab19e490b0b603ce83e7b74ccfa7057f0792eb841d9cccd9aacc";
+var _rnSha="034b5720ace588b389b251e14d5dc2a61e4e2d09dbc6ac8a1f64376920cc2f3d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -37065,12 +37083,16 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
   const saveAmt=function(e){
     const b=e.currentTarget;
     if(locked||hasSched||b.disabled) return;
-    const n=parseNumPadRaw(amount);
+    // Al céntimo, como el resto de entradas de dinero: 10,354 descuadraba cuotas y saldos (revisión 237).
+    const n=Math.round(parseNumPadRaw(amount)*100)/100;
     if(!amount.trim()) return;
     // La ficha se cerraba en el mismo toque y «Guardado» apenas llegaba a verse. Sellar primero
     // evita un segundo set si el usuario repite el toque y deja una confirmación breve en su sitio.
     b.disabled=true;
     b.textContent="✓ "+gbTxt("gb_save_ok");
+    // Sin cambio no se escribe: redondear un importe heredado de tres decimales movía el saldo (rev. 237 R1).
+    const prev=row.kind==="debt"?item.monthly:row.kind==="flow"?Math.abs(item.amount):item.amount;
+    if(typeof prev==="number"&&Math.round(prev*100)===Math.round((row.kind==="flow"?Math.abs(n):n)*100)){ setTimeout(function(){ if(b.isConnected) swipe.close(); },650); return; }
     if(row.kind==="fixed") patchFixedById(set,item.id,{amount:n});
     else if(row.kind==="flow") patchFlowById(set,item.id,{amount:Math.abs(n)});
     else if(row.kind==="oneoff") patchOneoffById(set,item.id,{amount:n});
@@ -37088,7 +37110,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
   const saveReview=function(){
     const patch=Object.assign({},reviewPatch);
     if(!name.trim()||day!==""&&cleanDay(day)==null){setReviewError("plan_edit_invalid");return;}
-    if(amount.trim()&&!hasSched){const n=parseNumPadRaw(amount);if(!Number.isFinite(n)){setReviewError("plan_edit_invalid");return;}patch.amount=n;}
+    if(amount.trim()&&!hasSched){const n=Math.round(parseNumPadRaw(amount)*100)/100;if(!Number.isFinite(n)){setReviewError("plan_edit_invalid");return;}patch.amount=n;}
     reviewCommit.save(planFixedReviewResult(state,row.item,review,patch));
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
@@ -37144,7 +37166,10 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
         React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_account")),
         bankListButtons(banks, account, function(b){ setAccount(b); const p=row.kind==="flow"?(item.kind==="income"?{to:b}:{from:b}):{account:b}; saveMeta(p); })),
       row.kind==="debt"&&simple && React.createElement("input",{className:"v4-bills-search",style:{marginTop:8},value:amort,placeholder:t("fj_amort"),
-        onChange:function(e){ setAmort(e.target.value); }, onBlur:function(){ const n=parseFloat(String(amort).replace(",",".")); if(isFinite(n)) saveMeta({amort:n}); }}),
+        onChange:function(e){ setAmort(e.target.value); }, onBlur:function(){ const n=parseFloat(String(amort).replace(",",".")); if(!isFinite(n)) return;
+          // Tocar el campo sin cambiar nada no escribe (rev. 237 R1): lo guardado se queda tal cual.
+          if(item.amort!=null&&Math.round(item.amort*100)===Math.round(n*100)) return;
+          const c=Math.round(n*100)/100; setAmort(String(c)); saveMeta({amort:c}); }}),
       review&&["cat","category"].filter(function(k){return review.fields.indexOf(k)>=0;}).map(function(k){return React.createElement("label",{key:k},t("plan_conflict_category"),React.createElement("input",{className:"v4-bills-search",value:reviewPatch[k]==null?"":String(reviewPatch[k]),onChange:function(e){saveMeta({[k]:e.target.value});}}));}),
       (reviewError||reviewCommit.error)&&React.createElement("div",{role:"alert",className:"hint"},t(reviewError||reviewCommit.error)),
       review&&React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:reviewCommit.pending,onClick:saveReview},t("db_savechanges")),

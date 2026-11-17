@@ -49,7 +49,9 @@ function deudaAmortizada(x, bal, amt){
     // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
     if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
     o.settledAt=new Date().toISOString();
-  }else if(x.months!=null&&!vencida&&am>0){ const n=cuotasQueQuedan(remaining-(x.balloon||0),am); o.months=paid+(n>0?n:(x.balloon>0?1:0)); }
+  /* Una bajada de menos de medio céntimo no cuenta cuotas: el plazo se quedaba en las ya pagadas con
+     saldo pendiente. Como `debtEditMonths`, sin cuotas que contar el plazo no se toca (revisión 237). */
+  }else if(x.months!=null&&!vencida&&Math.round(am*100)>0){ const n=cuotasQueQuedan(remaining-(x.balloon||0),am); o.months=paid+(n>0?n:(x.balloon>0?1:0)); }
   return o;
 }
 /* Cuotas de `am` que hacen falta para `viaM`, contadas en CÉNTIMOS. En euros, 72,45 / 10,35 da
@@ -59,6 +61,17 @@ function deudaAmortizada(x, bal, amt){
 function cuotasQueQuedan(viaM, am){
   const v=Math.round(viaM*100), a=Math.round(am*100);
   return v>0&&a>0?Math.ceil(v/a):0;
+}
+/* Cuotas que quedan {n,tot}: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
+   a mano) se ESTIMA con el ritmo de amortización actual. Contadas en céntimos como el resto: en euros,
+   72,45 con cuota de 10,35 eran 8 y la fecha de fin salía un mes tarde (revisión 237). Una bajada que
+   no llega a medio céntimo no cuenta nada: null, como `debtEditMonths`, mejor que un «acabas» inventado. */
+function debtLeftInfo(d){
+  const left=debtLeft(d);
+  if(left!=null) return {n:left, tot:d.months||left};
+  const am=debtAmort(d), bal=debtBalance(d);
+  if(!(Math.round(am*100)>0) || !(bal>0.005)) return null;
+  return {n:cuotasQueQuedan(bal,am), tot:cuotasQueQuedan(d.original||bal,am)};
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -455,7 +468,8 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
 // cuenten lo mismo. null si la deuda no tiene plazo (no hay cuotas que contar).
 function amortRecorte(d,amt){
   const am=debtAmort(d);
-  if(d.months==null || !(am>0)) return null;
+  // Bajada por debajo de medio céntimo: no hay cuotas que contar (ver `deudaAmortizada`).
+  if(d.months==null || !(Math.round(am*100)>0)) return null;
   const leftNow=debtLeft(d), nb=+(debtBalance(d)-amt).toFixed(2);
   const n=cuotasQueQuedan(nb-(d.balloon||0),am);
   const leftNew=n>0?n:((d.balloon>0&&nb>0.005)?1:0);
@@ -662,13 +676,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   };
   // Cuotas que quedan: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
   // a mano) se ESTIMA con el ritmo de amortización actual. Devuelve {n,tot} o null.
-  const leftInfo=function(d){
-    const left=debtLeft(d);
-    if(left!=null) return {n:left, tot:d.months||left};
-    const am=debtAmort(d), bal=debtBalance(d);
-    if(!(am>0) || !(bal>0.005)) return null;
-    return {n:Math.ceil(bal/am), tot:Math.ceil((d.original||bal)/am)};
-  };
+  const leftInfo=debtLeftInfo;
   const endsLabel=function(d){
     // Mismo texto para TODAS las deudas (feedback 2026-07-21: el «a este ritmo acabas ~» de
     // hipoteca/préstamo cantaba distinto del «acabas en» de las financiaciones). La fecha sin

@@ -326,6 +326,8 @@ export const E2E_MAP = [
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
   { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
+  // Revisión 237: fecha de fin de una deuda sin plazo contada en céntimos (`debtLeftInfo`).
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-fin-centimos.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   // Tanda 6: resumen del mes cerrado (`planRecibosMesCerrado`, 08, sobre `planChargesMonth` y
   // `paymentEvidenceUI`), vista del mes siguiente y primer uso (14, con `rp4VistoEnBanco` sobre
