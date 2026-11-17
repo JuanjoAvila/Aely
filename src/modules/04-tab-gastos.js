@@ -3386,7 +3386,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return React.createElement("button",{key:id,type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(value||abierta?" on":""),"data-testid":testId,
         "aria-label":aria+(value?": "+value:""),"aria-expanded":abierta,onClick:function(){ setEditaImporte(false); setAdjustOpen(abierta?null:id); }},
       React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},icon),
-      value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",null,label));
+      value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",{style:{"--lw":etiquetaLw(label)}},label));
   };
   // Con marca de recibo el chip sale siempre: si no, «No es este recibo» quedaba inalcanzable
   // cuando la marca venía de un puntual o la categoría era neutra.
@@ -3441,7 +3441,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         disabled:exp.category==="traspaso"||!canRecognizeWithdrawal(exp,state)||!!(retiradaEn&&retiradaEn.status==="pending"),
         onClick:function(){ recognizeWithdrawal(exp); }},
       React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},"🏧"),
-      React.createElement("span",null,t("f_adj_retirada")))
+      React.createElement("span",{style:{"--lw":etiquetaLw(t("f_adj_retirada"))}},t("f_adj_retirada")))
   ].filter(Boolean);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     /* Una sola fila y sin huecos: tres, cuatro o cinco baldosas ocupan el ancho entero; una o dos
@@ -3494,7 +3494,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
           catAction:cloud.enabled()&&!isIncome?React.createElement("button",{type:"button",className:"v4-ficha-ia","data-testid":"exp-ai",
             "aria-label":aiBusy?t("ai_cat_busy"):t("ai_cat_btn"),"aria-busy":aiBusy?"true":null,disabled:aiBusy,onClick:function(){ suggestAi(exp); }},"✨"):null,
-          numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },
+          numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },onCloseNumpad:function(){ setEditaImporte(false); },
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
     ),document.body);

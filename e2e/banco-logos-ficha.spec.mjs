@@ -9,8 +9,9 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
      candado junto al importe, y el importe y el banco del banco siguen bloqueados.
    · Recibo, deuda, meta, nota y retirada son UNA fila de baldosas como las de categoría: abren su
      panel y la nota se guarda igual. Sin frases de ayuda; ✨ junto a «Todas ›».
-   · El teclado del importe no está puesto: en uno del banco nunca sale, en uno a mano baja al tocar
-     el importe y se recoge al volver a tocarlo (16/11). */
+   · El teclado del importe no está puesto: en uno del banco nunca sale; en uno a mano sube ABAJO, bajo
+     las categorías y encima del pie, al tocar el importe, y se recoge al volver a tocarlo o al tocar
+     otra cosa. Ninguna baldosa visible pisa el pie (16/11). */
 test.use({ hasTouch: true, isMobile: true });
 
 const HOY = new Date().toISOString().slice(0, 10);
@@ -199,16 +200,41 @@ test("Ficha: del banco sin tarjeta de origen, con candado y bloqueada; a mano, b
   await expect.poll(async () => (await de(MANO)).ent).toBe("trade_republic");
   await expect(hoja.getByTestId("exp-bank")).toContainText("Trade Republic");
 
-  // Teclado: plegado al abrir; baja bajo el importe al tocarlo, teclea, y se recoge.
+  // Teclado: plegado al abrir; al tocar el importe sube abajo del todo, sobre el pie y bajo las categorías.
+  const pisaPie = () => hoja.evaluate((s) => {
+    const cuerpo = s.querySelector(".v4-sheet-body").getBoundingClientRect(), pie = s.querySelector(".v4-ficha-foot").getBoundingClientRect();
+    // Lo visible de cada baldosa es lo que cae dentro del cuerpo con scroll; eso no puede tocar el pie.
+    return [...s.querySelectorAll(".v4-ficha-cat")].map((el) => el.getBoundingClientRect())
+      .map((r) => ({ top: Math.max(r.top, cuerpo.top), bottom: Math.min(r.bottom, cuerpo.bottom) }))
+      .filter((r) => r.bottom > r.top).some((r) => r.bottom > pie.top + 0.5);
+  });
+  expect(await pisaPie(), "ninguna baldosa visible pisa el pie (cerrado)").toBe(false);
   await expect(hoja.locator(".v4-keys")).toHaveCount(0);
   await hoja.locator(".v4-ficha-amount").click();
   await expect(hoja.locator(".v4-ficha-teclado")).toHaveClass(/open/);
-  const bajo = await hoja.evaluate((s) => s.querySelector(".v4-ficha-teclado").getBoundingClientRect().top - s.querySelector(".v4-ficha-amount").getBoundingClientRect().bottom);
-  expect(bajo, "el teclado sale justo bajo el importe").toBeLessThan(30);
+  await page.waitForTimeout(400);
+  const sitio = await hoja.evaluate((s) => {
+    const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), pie = s.querySelector(".v4-ficha-foot").getBoundingClientRect();
+    return { sobrePie: k.bottom <= pie.top + 1, pegado: pie.top - k.bottom < 4, despues: !!(s.querySelector(".v4-ficha-adjust").compareDocumentPosition(s.querySelector(".v4-ficha-teclado")) & Node.DOCUMENT_POSITION_FOLLOWING) };
+  });
+  expect(sitio, "abajo del todo, pegado encima del pie y detrás de categorías y ajustes").toEqual({ sobrePie: true, pegado: true, despues: true });
+  expect(await pisaPie(), "ninguna baldosa visible pisa el pie (abierto)").toBe(false);
+  // Desplazando hasta el final, lo último queda entero encima del teclado.
+  const fin = await hoja.evaluate((s) => { const b = s.querySelector(".v4-sheet-body"); b.scrollTop = b.scrollHeight;
+    const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), aj = [...s.querySelectorAll(".v4-ficha-ajustes .v4-ficha-cat")].map((e) => e.getBoundingClientRect());
+    return aj.every((r) => r.bottom <= k.top + 0.5); });
+  expect(fin, "con el teclado, lo de arriba se alcanza entero").toBe(true);
+  await hoja.locator(".v4-sheet-body").evaluate((b) => { b.scrollTop = 0; });
   await hoja.locator(".v4-ficha-teclado .v4-keys").getByRole("button", { name: "5", exact: true }).click();
   await expect.poll(async () => (await de(MANO)).amount, "lo tecleado se guarda").not.toBe(20);
   await hoja.locator(".v4-ficha-amount").click();
   await expect(hoja.locator(".v4-keys")).toHaveCount(0);
+  // Tocar otra cosa (el concepto) también lo recoge.
+  await hoja.locator(".v4-ficha-amount").click();
+  await expect(hoja.locator(".v4-ficha-teclado")).toHaveClass(/open/);
+  await hoja.locator(".v4-ficha-concept").click();
+  await expect(hoja.locator(".v4-keys")).toHaveCount(0);
+  await hoja.locator(".v4-ficha-concept").blur();
 
   // Ajustes: UNA fila de baldosas iguales a las de categoría, y ✨ junto a «Todas ›».
   const filas = await hoja.evaluate((s) => {
@@ -233,3 +259,47 @@ test("Ficha: del banco sin tarjeta de origen, con candado y bloqueada; a mano, b
   await hoja.getByTestId("exp-note").click();
   await expect(hoja.locator(".v4-ficha-fold")).toHaveCount(0);
 });
+
+/* Auditoría 237 (P1-2): las etiquetas de las baldosas partían palabras con guion («Supermer-cado»,
+   «Trans-porte») o las cortaban con puntos («restauran…»). Ninguna palabra puede partirse ni salirse
+   de su baldosa, ni en Apuntar (cinco columnas) ni en la ficha (cuatro), a 360, 393 y 412. */
+const palabrasEnteras = (page) => page.evaluate(() => {
+  const malas = [];
+  for (const tile of document.querySelectorAll(".v4-exp-sheet .v4-ficha-cat")) {
+    const sp = tile.querySelector(":scope > span:last-child");
+    if (!sp || !sp.firstChild || sp.classList.contains("value")) continue;
+    const cs = getComputedStyle(sp), tr = tile.getBoundingClientRect();
+    if (cs.hyphens !== "none" || cs.textOverflow === "ellipsis") malas.push(sp.textContent + ": estilo");
+    const txt = sp.firstChild.textContent;
+    let i = 0;
+    for (const w of txt.split(/(\s+)/)) {
+      if (w.trim()) {
+        const r = document.createRange(); r.setStart(sp.firstChild, i); r.setEnd(sp.firstChild, i + w.length);
+        const rects = [...r.getClientRects()].filter((x) => x.width > 0);
+        if (rects.length !== 1) malas.push(txt + ": «" + w + "» partida");
+        else if (rects[0].left < tr.left - 0.5 || rects[0].right > tr.right + 0.5) malas.push(txt + ": «" + w + "» se sale");
+      }
+      i += w.length;
+    }
+    if (sp.scrollHeight > sp.clientHeight + 1) malas.push(txt + ": cortada por abajo");
+  }
+  return malas;
+});
+const LARGAS = ["ia", "bares", "super", "transporte", "tasas"].flatMap((cat, k) => Array.from({ length: 6 - k }, (_, j) => (
+  { id: "l" + k + j, date: HOY, amount: 5 + j, merchant: "Gasto " + cat + j, category: cat, source: "manual", ent: "sabadell" })));
+for (const [w, h] of [[360, 740], [393, 851], [412, 915]]) {
+  test(`etiquetas de baldosa sin palabras partidas ni cortadas, Apuntar y ficha, ${w}×${h}`, async ({ page }) => {
+    await arranca(page, w, h, { expenses: LARGAS });
+    const hoja = await abreApuntar(page);
+    await expect(hoja.getByTestId("ap-cat-ia")).toBeVisible();
+    expect(await palabrasEnteras(page), "Apuntar").toEqual([]);
+    await page.goBack().catch(() => {});
+    await expect(hoja).toHaveCount(0);
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await page.locator('[data-expense-id="l00"]').evaluate((el) => el.click());
+    const ficha = page.locator(".v4-exp-sheet");
+    await expect(ficha.getByTestId("exp-cat-ia")).toBeVisible();
+    for (const id of ["ia", "bares", "super", "transporte", "tasas"]) await expect(ficha.getByTestId("exp-cat-" + id)).toHaveCount(1);
+    expect(await palabrasEnteras(page), "ficha").toEqual([]);
+  });
+}

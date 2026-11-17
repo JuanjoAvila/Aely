@@ -2755,6 +2755,12 @@ function expenseTopCategoryPick(ranked, currentId, catalog, n){
   }
   return top;
 }
+/* Letras de la palabra más larga de una etiqueta de baldosa: el CSS encoge la letra lo justo para
+   que esa palabra quepa entera en el ancho de la baldosa (auditoría 237, P1-2: con el guion
+   automático salían «Supermer-cado» y «restauran…»). Las de dos palabras van en dos líneas. */
+function etiquetaLw(txt){
+  return String(txt||"").split(/\s+/).reduce(function(m,w){ return Math.max(m,w.length); },1);
+}
 function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix, onMore}){
   return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
     (items||[]).map(function(c){
@@ -2762,7 +2768,7 @@ function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix,
       return React.createElement("button",{key:c.id,type:"button",className:"v4-ficha-cat"+(on?" on":""),
         "data-testid":(testPrefix||"expense-cat")+"-"+c.id,"aria-pressed":on,onClick:function(){ onPick(c.id); }},
         React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
-        React.createElement("span",null,(c.label||catName(c.id))+(c.suggested?" ✨":"")));
+        React.createElement("span",{style:{"--lw":etiquetaLw(c.label||catName(c.id))}},(c.label||catName(c.id))+(c.suggested?" ✨":"")));
     }),
     onMore && React.createElement("button",{key:"_more",type:"button",className:"v4-ficha-cat more",
       "data-testid":(testPrefix||"expense-cat")+"-more",onClick:onMore},
@@ -2869,11 +2875,13 @@ function useDespliegue(open){
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, catAction}){
+  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction}){
   const isIn=kind==="ingreso";
   /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
-     ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Sale plegándose
-     bajo el importe al tocarlo y se recoge al volver a tocarlo. Apuntar lo sigue llevando fijo. */
+     ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Al tocar el importe
+     sube ABAJO del todo, pegado al pie como en Apuntar (bajo el importe le pareció «horrible»), y se
+     recoge al volver a tocarlo o al tocar cualquier otra cosa de la ficha. Va en el flujo, al final:
+     lo de arriba sigue alcanzándose entero desplazando la ficha. */
   const plegado=numpadOpen!==undefined;
   const teclado=useDespliegue(!!numpadOpen);
   const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
@@ -2886,7 +2894,12 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
       onMore:catMore?onAllCategories:null}));
   return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha","data-kb":kb?"1":null},
+    React.createElement("div",{className:"v4-sheet-body v4-ficha-body"+(plegado?" v4-ficha-plegable"+(numpadOpen?" con-teclado":""):""),
+        "data-testid":testPrefix||"expense-ficha","data-kb":kb?"1":null,
+        // En el click y no antes: si se recogiera en el `pointerdown`, lo tocado se movería bajo el dedo.
+        onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
+          if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado"))) onCloseNumpad();
+        }:undefined},
       React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
@@ -2904,8 +2917,6 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
           locked && React.createElement("svg",{"aria-hidden":true,width:12,height:12,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("rect",{x:5,y:11,width:14,height:10,rx:2}),React.createElement("path",{d:"M8 11V8a4 4 0 0 1 8 0v3"})))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
-      plegado && teclado.vivo && React.createElement("div",{className:"v4-ficha-fold v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
-        React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
         enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
@@ -2915,7 +2926,10 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
       adjustments||null,
-      plegado?null:(numpad||null)
+      plegado
+        ? (teclado.vivo && React.createElement("div",{className:"v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
+            React.createElement("div",Object.assign({className:"v4-ficha-teclado-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)))
+        : (numpad||null)
     ),
     footer||null
   );

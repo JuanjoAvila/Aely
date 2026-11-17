@@ -1937,8 +1937,6 @@
   /* En cinco columnas «Supermercado» no cabe en una línea y se cortaba por los dos lados: se parte
      con guion (hay `lang` en <html>) y, como mucho, en dos líneas. */
   .v4-ficha-body[data-testid="ap"] .v4-ficha-cat{padding:6px 2px;}
-  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;
-    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
   .v4-ficha-cat.more{color:var(--mint);}
   /* Móvil bajo: la hoja de Apuntar ocupa la pantalla (menos la barra de estado) en vez del 88 %, y
      el asa y el pie se aprietan un poco: ahí cada fila que cabe es una que no hay que buscar. */
@@ -2054,15 +2052,36 @@
   .v4-ficha-adjust{margin:2px 0 10px;padding-top:12px;border-top:1px solid var(--line-soft);}
   .v4-ficha-ajustes{margin-bottom:0;}
   .v4-ficha-ajuste{transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
-  /* El nombre de una baldosa (categoría o ajuste) no toca el borde: a 360 «Supermercado» llenaba la
-     baldosa de lado a lado. Se parte con guion y, como mucho, en tres líneas. */
-  .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;
-    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;}
+  /* El nombre de una baldosa (categoría o ajuste) nunca se parte ni se corta (auditoría 237, P1-2:
+     salían «Supermer-cado», «Trans-porte» y «restauran…»). Sin guion ni puntos: la letra encoge lo
+     justo para que su palabra más larga (`--lw`, en letras) quepa en el ancho de la baldosa
+     (`cqi`), y las de dos palabras van en dos líneas. 0,62 em por letra es lo que mide Manrope 700
+     de media en mayúscula inicial + minúsculas, con margen. */
+  .v4-ficha-cat{container-type:inline-size;}
+  .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:none;hyphens:none;overflow-wrap:normal;word-break:normal;
+    font-size:min(10.5px, calc((100cqi - 6px) / (var(--lw, 8) * .62)));}
+  .v4-ficha-ajuste > .value{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;}
   .v4-ficha-ajuste:disabled{cursor:default;}
   .v4-ficha-ajuste:disabled:not(.on){opacity:.45;}
   .v4-ficha-avisos{margin:10px 2px 0;display:flex;flex-direction:column;gap:4px;}
-  /* El teclado de Modificar baja bajo el importe al tocarlo (16/11). */
-  .v4-ficha-teclado .v4-keys{margin:6px 0 10px;}
+  /* El teclado de Modificar (16/11): abajo del todo, pegado al pie como el de Apuntar, y sube con
+     su alto (filas de rejilla) a la vez que las teclas entran desde abajo. Sobre lo que queda debajo,
+     un degradado del fondo: lo que se desplaza por detrás se funde en vez de cortarse en seco. */
+  .v4-ficha-teclado{position:sticky;bottom:0;z-index:1;display:grid;grid-template-rows:0fr;background:var(--bg-2);
+    margin:0 -1px;padding:0 1px;transition:grid-template-rows .3s var(--ease);}
+  .v4-ficha-teclado.open{grid-template-rows:1fr;}
+  .v4-ficha-teclado::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:22px;pointer-events:none;
+    background:linear-gradient(to bottom,transparent,var(--bg-2));opacity:0;transition:opacity .2s ease;}
+  .v4-ficha-teclado.open::before{opacity:1;}
+  .v4-ficha-teclado-in{min-height:0;overflow:hidden;}
+  .v4-ficha-teclado .v4-keys{margin:0;padding:8px 0 4px;gap:6px;transform:translateY(24px);opacity:0;
+    transition:transform .3s var(--ease),opacity .22s ease;}
+  .v4-ficha-teclado.open .v4-keys{transform:none;opacity:1;}
+  /* Con el teclado recogido, lo que sigue por debajo del borde se funde (no se ve media fila cortada)
+     y el final de la ficha deja ese mismo aire para que lo último no quede nunca bajo el degradado. */
+  .v4-ficha-plegable:not(.con-teclado){-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);padding-bottom:26px;}
+  @media (prefers-reduced-motion:reduce){ .v4-ficha-teclado,.v4-ficha-teclado .v4-keys{transition:none;} }
   .v4-ficha-fold{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .26s var(--ease),opacity .2s ease;}
   .v4-ficha-fold.open{grid-template-rows:1fr;opacity:1;}
   .v4-ficha-fold-in{min-height:0;overflow:hidden;padding:0 2px;margin:0 -2px;}
