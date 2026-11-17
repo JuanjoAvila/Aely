@@ -44,34 +44,37 @@
     "v": "4.26.237",
     "d": "2026-11-17",
     "t": {
-      "es": "Recibos y Gastos más claros, suscripciones de verdad y cuentas al céntimo",
-      "en": "Clearer Bills and Spending, real subscriptions and figures to the cent",
-      "ca": "Rebuts i Despeses més clars, subscripcions de debò i comptes al cèntim"
+      "es": "Bancos al día, Apuntar sin deslizar y cuentas al céntimo",
+      "en": "Banks up to date, adding without scrolling and figures to the cent",
+      "ca": "Bancs al dia, apuntar sense lliscar i comptes al cèntim"
     },
     "items": {
       "es": [
-        "Recibos y Cartera se leen enteros en cualquier móvil: lo que no cabe baja a la línea siguiente en vez de cortarse.",
-        "Suscripciones solo enseña cobros que se repiten de verdad, cada semana, mes o año. El súper, la gasolina, los bares y las cuotas de una deuda ya no cuentan, y una anual pasa a Recibos como anual.",
-        "La lista de Gastos se parece a la de Inicio: los movimientos de cada día van juntos, y la tira de meses se difumina por el lado en el que quedan más.",
-        "«¿Te llega?» ya no resta dos veces un recibo que ya está descontado del saldo, y en un recibo compartido cuenta también la parte de los demás. La luz que el banco cobra sin decir «recibo» se reconoce por la compañía.",
-        "Deudas y metas cuentan las cuotas y la fecha de fin al céntimo: ya no sale una cuota de más ni el final un mes tarde.",
-        "En Cartera, en «Round up y Saveback», eliges a qué posición de Trade Republic va cada uno."
+        "Apuntar un gasto cabe en la pantalla sin deslizar: el importe se ve grande, el teclado no tapa el concepto, la forma de pago se elige en un solo sitio y el banco, tocando su logo. Un doble toque ya no lo guarda dos veces.",
+        "Tus bancos se ponen al día solos al abrir la app, unas pocas veces al día como mucho, y un banco que necesita tu permiso avisa con una franja en Inicio y una fila propia en Cartera.",
+        "En Gastos, los movimientos de cada día van juntos, como en Inicio, y para cambiarlos de orden basta con mantener el dedo encima y arrastrar. Suscripciones solo enseña cobros que se repiten de verdad: el súper, la gasolina o las cuotas de una deuda ya no cuentan.",
+        "Deudas y metas cuadran al céntimo: la última cuota, las que te quedan al amortizar y la fecha de fin salen exactas. «Amortizar ahora» te dice cuántas cuotas te quitas, y añadir una deuda o una meta se hace en su propia hoja.",
+        "«¿Te llega?» ya no resta dos veces un recibo que ya está descontado del saldo, y en un recibo compartido cuenta también la parte de los demás. Un pago a otra persona ya no se toma por un traspaso entre tus cuentas.",
+        "Recibos y Cartera se leen enteros en cualquier móvil. En Cartera, el valor de un fondo o del oro y cada cuenta se cambian tocándolos, y en «Round up y Saveback» eliges a qué posición de Trade Republic va cada uno.",
+        "La ficha de un movimiento es más limpia, Gastos recupera sus iconos de sección y Notificaciones enseña de un vistazo si la app puede leer los avisos y qué lee."
       ],
       "en": [
-        "Bills and Portfolio read in full on any phone: whatever doesn't fit moves to the next line instead of being cut off.",
-        "Subscriptions only shows charges that really repeat, every week, month or year. Groceries, fuel, bars and debt instalments no longer count, and a yearly one moves to Bills as yearly.",
-        "The Spending list looks like the one on Home: each day's transactions go together, and the month strip fades on the side where there are more.",
-        "«Will it cover?» no longer subtracts twice a bill that is already taken off the balance, and a shared bill also counts the others' share. Electricity charged without the word «bill» is recognised by the company.",
-        "Debts and goals count instalments and the end date to the cent: no extra instalment and no end date a month late.",
-        "In Portfolio, under «Round up and Saveback», you choose which Trade Republic position each one goes to."
+        "Adding an expense fits on the screen without scrolling: the amount is shown large, the keyboard doesn't cover what it was, the payment method is chosen in one place and the bank by tapping its logo. A double tap no longer saves it twice.",
+        "Your banks update on their own when you open the app, a few times a day at most, and a bank that needs your permission tells you with a strip on Home and its own row in Portfolio.",
+        "In Spending, each day's transactions go together, as on Home, and to reorder them just hold your finger on one and drag it. Subscriptions only shows charges that really repeat: groceries, fuel or debt instalments no longer count.",
+        "Debts and goals add up to the cent: the last instalment, the ones you have left when you pay down and the end date come out exact. «Pay down now» tells you how many payments you drop, and adding a debt or a goal happens in its own sheet.",
+        "«Will it cover?» no longer subtracts twice a bill that is already taken off the balance, and a shared bill also counts the others' share. A payment to someone else is no longer taken for a transfer between your own accounts.",
+        "Bills and Portfolio read in full on any phone. In Portfolio, the value of a fund or of gold and each account are changed by tapping them, and under «Round up and Saveback» you choose which Trade Republic position each one goes to.",
+        "A transaction's details are cleaner, Spending gets back its section icons and Notifications shows at a glance whether the app can read alerts and what it reads."
       ],
       "ca": [
-        "Rebuts i Cartera es llegeixen sencers a qualsevol mòbil: el que no hi cap baixa a la línia següent en lloc de tallar-se.",
-        "Subscripcions només ensenya càrrecs que es repeteixen de debò, cada setmana, mes o any. El súper, la benzina, els bars i les quotes d'un deute ja no compten, i una d'anual passa a Rebuts com a anual.",
-        "La llista de Despeses s'assembla a la d'Inici: els moviments de cada dia van junts, i la tira de mesos s'esvaeix pel costat on en queden més.",
-        "«T'arriba?» ja no resta dues vegades un rebut que ja està descomptat del saldo, i en un rebut compartit compta també la part dels altres. La llum que el banc cobra sense dir «rebut» es reconeix per la companyia.",
-        "Deutes i metes compten les quotes i la data de final al cèntim: ja no surt una quota de més ni el final un mes tard.",
-        "A Cartera, a «Round up i Saveback», tries a quina posició de Trade Republic va cadascun."
+        "Apuntar una despesa cap a la pantalla sense lliscar: l'import es veu gran, el teclat no tapa el concepte, la forma de pagament es tria en un sol lloc i el banc, tocant-ne el logo. Un doble toc ja no la desa dues vegades.",
+        "Els teus bancs es posen al dia sols en obrir l'app, unes poques vegades al dia com a molt, i un banc que necessita el teu permís avisa amb una franja a Inici i una fila pròpia a Cartera.",
+        "A Despeses, els moviments de cada dia van junts, com a Inici, i per canviar-ne l'ordre n'hi ha prou de mantenir el dit a sobre i arrossegar-lo. Subscripcions només ensenya càrrecs que es repeteixen de debò: el súper, la benzina o les quotes d'un deute ja no compten.",
+        "Deutes i metes quadren al cèntim: l'última quota, les que et queden en amortitzar i la data de final surten exactes. «Amortitza ara» et diu quantes quotes et treus, i afegir un deute o una meta es fa en el seu propi full.",
+        "«T'arriba?» ja no resta dues vegades un rebut que ja està descomptat del saldo, i en un rebut compartit compta també la part dels altres. Un pagament a una altra persona ja no es pren per un traspàs entre els teus comptes.",
+        "Rebuts i Cartera es llegeixen sencers a qualsevol mòbil. A Cartera, el valor d'un fons o de l'or i cada compte es canvien tocant-los, i a «Round up i Saveback» tries a quina posició de Trade Republic va cadascun.",
+        "La fitxa d'un moviment és més neta, Despeses recupera les icones de secció i Notificacions ensenya d'un cop d'ull si l'app pot llegir els avisos i què llegeix."
       ]
     },
     "tandas": []
@@ -203,25 +206,37 @@
     "v": "4.26.232",
     "d": "2026-11-13",
     "t": {
-      "es": "«Te deben» y lo que entra reconocen pagos a otro banco, y «Ver menos» que sube",
-      "en": "\"You're owed\" and income recognise payments to another bank, and \"See less\" that glides up",
-      "ca": "«Et deuen» i el que entra reconeixen pagaments a un altre banc, i «Veure menys» que puja"
+      "es": "Recibos a fondo, quién te debe y traspasos entre tus cuentas",
+      "en": "Bills in depth, who owes you and transfers between your accounts",
+      "ca": "Rebuts a fons, qui et deu i traspassos entre els teus comptes"
     },
     "items": {
       "es": [
-        "«Te deben» y lo que entra reconocen el pago aunque llegue a otro de tus bancos o con el nombre completo de quien te paga.",
-        "En Tus recibos, «Ver menos» en una lista larga sube la pantalla con ella hasta el principio de la sección, en un solo movimiento.",
-        "El total de «Se te van cada mes» vuelve a verse siempre, y el número del botón de Filtros en Gastos ya no sale cortado."
+        "Recibos, renovado: das de alta un recibo paso a paso con los cargos que se repiten en tu banco, y «Tus recibos» reúne todo lo que se te va al mes o al año, con buscador y secciones. Si pagaste uno en efectivo o por Bizum, «Lo pagué de otra forma» lo da por pagado.",
+        "Puedes apuntar la prueba gratis y la permanencia de cada recibo; pausar un recibo solo quita sus meses, y con la app actualizada el aviso de la víspera dice cuánto se cobra y lo que te queda en ese banco.",
+        "Si el banco cobra un recibo con otro nombre o un importe algo distinto, te pregunta si es ese antes de tocar ninguna cifra; un cargo ya no paga dos recibos y los domiciliados se marcan como pagados solos.",
+        "Recibos compartidos con personas: ves solo tu parte, y «Te deben» reconoce lo que te pagan aunque llegue a otro de tus bancos o paguen de menos.",
+        "El dinero que pasas entre tus cuentas sale en Traspasos y no cuenta como gasto, y la nómina y lo que esperas cobrar se enlazan solos con su movimiento cuando llegan.",
+        "Un ojo nuevo en Plan tapa todas las cifras, también en los avisos del móvil; y en Deudas, la cuota y lo que baja la deuda cuadran sin sorpresas.",
+        "Y más: Trade Republic reconoce tu aportación mensual, los filtros de Gastos tienen icono nuevo, las hojas y listas se abren suaves y sin tirones, y las importaciones del banco van más rápido."
       ],
       "en": [
-        "\"You're owed\" and expected income now recognise a payment even if it reaches another of your banks or comes with the payer's full name.",
-        "In Your bills, \"See less\" on a long list now takes the screen back up to the start of the section in one motion.",
-        "The \"Goes out every month\" total always shows again, and the number on the Filters button in Spending is no longer cut off."
+        "Bills, renewed: you add a bill step by step with the charges that repeat at your bank, and “Your bills” gathers everything that goes out each month or year, with a search box and sections. If you paid one in cash or by Bizum, “I paid it another way” marks it as paid.",
+        "You can note each bill's free trial and minimum term; pausing a bill only removes its months, and with the app updated the reminder the day before says how much is charged and what you have left at that bank.",
+        "If the bank charges a bill under another name or a slightly different amount, it asks you whether it is that bill before changing any figure; one charge no longer pays two bills, and direct debits are marked as paid on their own.",
+        "Bills shared with people: you see only your share, and “You're owed” spots what you are paid even if it lands in another of your banks or someone pays short.",
+        "Money you move between your accounts shows under Transfers and doesn't count as spending, and your salary and what you expect to receive link to their movement on their own when they arrive.",
+        "A new eye in Plan hides every figure, also in phone notifications; and in Debts, the instalment and how much the debt goes down add up without surprises.",
+        "And more: Trade Republic recognises your monthly contribution, Spending filters have a new icon, sheets and lists open smoothly without stutters, and bank imports are faster."
       ],
       "ca": [
-        "«Et deuen» i el que entra reconeixen el pagament encara que arribi a un altre dels teus bancs o amb el nom complet de qui et paga.",
-        "A Els teus rebuts, «Veure menys» en una llista llarga puja la pantalla amb ella fins al principi de la secció, en un sol moviment.",
-        "El total de «Se't van cada mes» es torna a veure sempre, i el número del botó de Filtres a Despeses ja no surt retallat."
+        "Rebuts, renovat: dones d'alta un rebut pas a pas amb els càrrecs que es repeteixen al teu banc, i «Els teus rebuts» reuneix tot el que se't va al mes o a l'any, amb cercador i seccions. Si en vas pagar un en efectiu o per Bizum, «Ho vaig pagar d'una altra manera» el dona per pagat.",
+        "Pots apuntar la prova gratuïta i la permanència de cada rebut; pausar un rebut només en treu els seus mesos, i amb l'app actualitzada l'avís de la vigília diu quant es cobra i el que et queda en aquest banc.",
+        "Si el banc cobra un rebut amb un altre nom o un import una mica diferent, et pregunta si és aquest abans de tocar cap xifra; un càrrec ja no paga dos rebuts i els domiciliats es marquen com a pagats sols.",
+        "Rebuts compartits amb persones: veus només la teva part, i «Et deuen» reconeix el que et paguen encara que arribi a un altre dels teus bancs o et paguin de menys.",
+        "Els diners que passes entre els teus comptes surten a Traspassos i no compten com a despesa, i la nòmina i el que esperes cobrar s'enllacen sols amb el seu moviment quan arriben.",
+        "Un ull nou a Pla amaga totes les xifres, també als avisos del mòbil; i a Deutes, la quota i el que baixa el deute quadren sense sorpreses.",
+        "I més: Trade Republic reconeix la teva aportació mensual, els filtres de Despeses tenen icona nova, els fulls i les llistes s'obren suaus i sense estrebades, i les importacions del banc van més de pressa."
       ]
     },
     "tandas": []
@@ -1451,25 +1466,37 @@
     "v": "4.26.182",
     "d": "2026-10-26",
     "t": {
-      "es": "Cada recibo, como un movimiento más, y textos más cortos y claros",
-      "en": "Each bill as one more movement, and shorter, clearer texts",
-      "ca": "Cada rebut, com un moviment més, i textos més curts i clars"
+      "es": "Gastos renovado, dos móviles sin pisarse y cuentas que cuadran",
+      "en": "A renewed Spending screen, two phones in step and figures that add up",
+      "ca": "Despeses renovades, dos mòbils sense trepitjar-se i comptes que quadren"
     },
     "items": {
       "es": [
-        "En Gastos, cada recibo se ve como un movimiento más, en gris, y al tocarlo se abre su ficha.",
-        "Textos más cortos y claros en toda la app.",
-        "En Plan, la sección de lo que falta por pagar vuelve a llamarse «Pendiente»."
+        "Gastos, renovado: arriba ves cuánto llevas gastado y cuánto te queda, cada gasto va en su tarjeta con el total del día, y al bajar aparecen los meses y los ciclos para saltar a uno con un toque. Los recibos salen como un movimiento más, en gris, y se abren con un toque.",
+        "Gastos tiene tres secciones: tus movimientos, tus categorías (toca una para ver solo sus gastos del mes o mantenla pulsada para ponerle un límite) y las suscripciones, cada una con su tarjeta para pasarla a Recibos o marcarla como dada de baja.",
+        "Filtros nuevos: eliges el periodo, qué contar, tus bancos y tus categorías, y te dice cuántos movimientos vas a ver. Ya no hace falta «Actualizar gastos»: los gastos llegan solos al abrir la app y al volver a ella. En Mi ciclo salen sus fechas y tus ciclos anteriores.",
+        "Un gasto se puede marcar como dinero para una de tus metas: deja de contar en el mes y suma a lo ahorrado de la meta. Las aportaciones a tus inversiones salen agrupadas aparte y tampoco cuentan como gasto.",
+        "Si usas la app en dos móviles, lo que cambias en uno ya no se pierde ni lo pisa el otro: los cambios en recibos y deudas se juntan, y si los dos tocan lo mismo eliges tú. Lo hecho sin conexión se sube al volver la red, y el idioma cambia solo en el otro móvil.",
+        "Cuentas que cuadran: dos compras iguales el mismo día en bancos distintos cuentan las dos, un gasto con fecha del mes que viene se queda en su mes, un recibo pagado con tarjeta a fin de mes cuenta en su mes y una financiación nueva no baja la gráfica de Inicio antes de darla de alta.",
+        "Y además: nueva categoría Coche para taller, ITV, ruedas y lavado; la moneda que eliges también llega a los brókers de Cartera; los tamaños de letra tienen nombres nuevos; textos más cortos y claros, y si la conexión se queda colgada la app se recupera sola."
       ],
       "en": [
-        "In Spending, each bill looks like one more movement, in grey, and tapping it opens its detail.",
-        "Shorter, clearer texts across the whole app.",
-        "In Plan, the section for what is still to pay is called \"Pending\" again."
+        "Spending, renewed: at the top you see how much you have spent and how much is left, each expense has its own card with the day's total, and as you scroll the months and cycles appear so you can jump to one with a tap. Bills show up as one more movement, in grey, and open with a tap.",
+        "Spending has three sections: your transactions, your categories (tap one to see only its spending for the month, or hold it to set a limit) and your subscriptions, each with its own card to move it to Bills or mark it as cancelled.",
+        "New filters: pick the period, what to count, your banks and your categories, and it tells you how many transactions you will see. «Refresh expenses» is no longer needed: expenses come in on their own when you open the app and when you come back to it. My cycle shows its dates and your previous cycles.",
+        "An expense can be marked as money for one of your goals: it stops counting for the month and adds to what the goal has saved. Contributions to your investments are grouped separately and do not count as spending either.",
+        "If you use the app on two phones, what you change on one is no longer lost or overwritten by the other: changes to bills and debts are combined, and if both change the same thing you choose. What you do offline goes up when you are back online, and the language changes on its own on the other phone.",
+        "Figures that add up: two identical purchases on the same day at different banks both count, an expense dated next month stays in its own month, a bill paid by card at the end of the month counts in its own month, and a new loan no longer lowers the Home chart before you add it.",
+        "Also: a new Car category for garage, MOT, tyres and car wash; the currency you choose now reaches the brokers in Portfolio; the text sizes have new names; shorter, clearer texts, and if the connection hangs the app recovers on its own."
       ],
       "ca": [
-        "A Despeses, cada rebut es veu com un moviment més, en gris, i en tocar-lo s'obre la seva fitxa.",
-        "Textos més curts i clars a tota l'app.",
-        "A Pla, la secció del que falta per pagar torna a dir-se «Pendent»."
+        "Despeses, renovades: a dalt veus quant portes gastat i quant et queda, cada despesa va a la seva targeta amb el total del dia, i en baixar apareixen els mesos i els cicles per saltar a un amb un toc. Els rebuts surten com un moviment més, en gris, i s'obren amb un toc.",
+        "Despeses té tres seccions: els teus moviments, les teves categories (toca'n una per veure només les seves despeses del mes o mantén-la premuda per posar-li un límit) i les subscripcions, cadascuna amb la seva targeta per passar-la a Rebuts o marcar-la com a donada de baixa.",
+        "Filtres nous: tries el període, què comptar, els teus bancs i les teves categories, i et diu quants moviments veuràs. Ja no cal «Actualitza les despeses»: les despeses arriben soles en obrir l'app i en tornar-hi. A El meu cicle surten les seves dates i els teus cicles anteriors.",
+        "Una despesa es pot marcar com a diners per a una de les teves metes: deixa de comptar al mes i suma al que porta estalviat la meta. Les aportacions a les teves inversions surten agrupades a part i tampoc compten com a despesa.",
+        "Si fas servir l'app en dos mòbils, el que canvies en un ja no es perd ni el trepitja l'altre: els canvis en rebuts i deutes s'ajunten, i si tots dos toquen el mateix tries tu. El que fas sense connexió es puja en tornar la xarxa, i l'idioma canvia sol a l'altre mòbil.",
+        "Comptes que quadren: dues compres iguals el mateix dia en bancs diferents compten les dues, una despesa amb data del mes que ve es queda al seu mes, un rebut pagat amb targeta a final de mes compta al seu mes i un finançament nou no abaixa la gràfica d'Inici abans de donar-lo d'alta.",
+        "I a més: nova categoria Cotxe per a taller, ITV, rodes i rentat; la moneda que tries també arriba als bròquers de Cartera; les mides de lletra tenen noms nous; textos més curts i clars, i si la connexió es queda penjada l'app es recupera sola."
       ]
     },
     "tandas": []
@@ -2054,28 +2081,43 @@
     "v": "4.26.159",
     "d": "2026-10-20",
     "t": {
-      "es": "Recibos de solo algunos meses: la cuenta del mes y el alta, bien",
-      "en": "Bills charged only some months: the monthly figure and the sign-up preview, right",
-      "ca": "Rebuts de només alguns mesos: el compte del mes i l'alta, bé"
+      "es": "Deudas y Metas más fáciles de corregir, recibos que cuadran, vibración suave y una app más fluida",
+      "en": "Debts and Goals easier to fix, bills that add up, gentle vibration and a smoother app",
+      "ca": "Deutes i Metes més fàcils de corregir, rebuts que quadren, vibració suau i una app més fluida"
     },
     "items": {
       "es": [
-        "Los recibos que se cobran solo en algunos meses cuentan lo justo cada mes.",
-        "Al dar de alta un recibo anual en varios meses se ve bien cuánto se cobra.",
-        "Los recibos de siempre no cambian ni un céntimo.",
-        "Un mismo cargo ya no puede marcar como pagados dos recibos del mismo importe."
+        "En Plan, cada deuda y cada meta se abre en su propia hoja para corregirla. Si la cuota y el plazo no cuadran con lo que queda por pagar, la app te avisa, y si bajas la cuota te ofrece alargar el plazo con un toque. Una financiación que empieza más adelante ya no cuenta como deuda antes de su fecha.",
+        "Las hojas y las fichas se abren y se cierran suaves, también con el gesto de atrás. Con el teclado abierto, el primer «atrás» solo lo esconde y no pierdes lo que habías escrito.",
+        "Vibración suave al llegar al final de una lista, mientras se rellena el anillo de Mi ciclo, al cambiar entre Recibos, Deudas y Metas y al recorrer la gráfica de Inicio. Respeta la vibración táctil del móvil, y para notarla hay que instalar la actualización de la app que se ofrece.",
+        "Recibos: en Plan, un recibo o una cuota solo salen como pagados cuando se ve el cargo; si solo ha pasado la fecha, salen «Por confirmar». La ficha de un gasto dice qué recibo o qué deuda paga, reconoce su recibo aunque el banco lo apunte unos días después, y un recibo se puede enlazar a mano. Un mismo cargo ya no puede dar por pagados dos recibos.",
+        "Los recibos que se cobran solo en algunos meses, o que no son mensuales como los seguros semestrales, cuentan lo justo cada mes, y «Se te van cada mes» cuadra con la suma de sus grupos. Al dar de alta un recibo se ve bien cuánto se cobra cada vez y en qué meses.",
+        "Renombrar gastos y notas es más seguro: el nombre nuevo sale al momento en la lista, no vuelve una nota antigua ni aparece repetido, y sin conexión se guarda solo al volver la red.",
+        "Menos cosas contadas dos veces: una compra que el banco manda como pendiente y reaparece otro día, una nómina apuntada a mano que también llega del banco y los movimientos de dos cuentas del mismo banco. Una devolución ya no se confunde con su compra.",
+        "La app va más fluida al abrirla, al volver a ella, al ir a Cartera y al deslizar rápido entre pestañas. En Gestionar plan vuelve la ola al llegar al final y la lista ya no se mueve al tocar una categoría.",
+        "Y además: puedes ordenar tus brókers manteniéndolos pulsados y arrastrándolos, en Gastos el botón «Actualizar gastos» explica lo que hace, Mi ciclo dice «<1 %» cuando queda muy poco margen y Metas no pierde lo que se guarda desde dos móviles a la vez."
       ],
       "en": [
-        "Bills charged only in some months count exactly their share each month.",
-        "When adding a yearly bill charged in several months, you can see correctly how much is charged.",
-        "Your usual bills do not change by a single cent.",
-        "A single charge can no longer mark two bills of the same amount as paid."
+        "In Plan, each debt and each goal opens in its own sheet so you can fix it. If the instalment and the term do not match what is left to pay, the app warns you, and if you lower the instalment it offers to extend the term with one tap. A loan that starts later no longer counts as debt before its start date.",
+        "Sheets and cards open and close smoothly, also with the back gesture. With the keyboard open, the first «back» only hides it and you do not lose what you typed.",
+        "Gentle vibration when you reach the end of a list, while the My cycle ring fills up, when you switch between Bills, Debts and Goals and when you move along the Home chart. It respects your phone's touch vibration setting, and to feel it you need to install the app update it offers.",
+        "Bills: in Plan, a bill or an instalment only shows as paid once its charge is seen; if only the date has passed, it shows as «To confirm». A transaction's card says which bill or debt it pays, recognises its bill even if the bank records it a few days later, and a bill can be linked by hand. A single charge can no longer mark two bills as paid.",
+        "Bills charged only in some months, or that are not monthly such as half-yearly insurance, count just what they should each month, and «Goes out every month» (monthly total) matches the sum of its groups. When you add a bill you can see how much is charged each time and in which months.",
+        "Renaming transactions and notes is safer: the new name shows right away in the list, an old note does not come back and nothing appears twice, and without a connection it is saved on its own when the network returns.",
+        "Fewer things counted twice: a purchase the bank sends as pending and that shows up again another day, a salary entered by hand that also arrives from the bank, and the transactions of two accounts at the same bank. A refund is no longer mixed up with its purchase.",
+        "The app is smoother when you open it, when you come back to it, when you go to Portfolio and when you swipe quickly between tabs. In Manage plan the ripple is back when you reach the end, and the list no longer moves when you tap a category.",
+        "Also: you can reorder your brokers by holding and dragging them, the «Refresh expenses» button in Spending explains what it does, My cycle says «<1 %» when there is very little margin left, and Goals no longer loses what is saved from two phones at once."
       ],
       "ca": [
-        "Els rebuts que es cobren només alguns mesos compten el just cada mes.",
-        "En donar d'alta un rebut anual en diversos mesos es veu bé quant es cobra.",
-        "Els rebuts de sempre no canvien ni un cèntim.",
-        "Un mateix càrrec ja no pot marcar com a pagats dos rebuts del mateix import."
+        "A Pla, cada deute i cada meta s'obre en el seu propi full per corregir-lo. Si la quota i el termini no quadren amb el que queda per pagar, l'app t'avisa, i si baixes la quota t'ofereix allargar el termini amb un toc. Un finançament que comença més endavant ja no compta com a deute abans de la seva data.",
+        "Els fulls i les fitxes s'obren i es tanquen suaus, també amb el gest d'enrere. Amb el teclat obert, el primer «enrere» només l'amaga i no perds el que havies escrit.",
+        "Vibració suau en arribar al final d'una llista, mentre s'omple l'anell de El meu cicle, en canviar entre Rebuts, Deutes i Metes i en recórrer la gràfica d'Inici. Respecta la vibració tàctil del mòbil, i per notar-la cal instal·lar l'actualització de l'app que s'ofereix.",
+        "Rebuts: a Pla, un rebut o una quota només surten com a pagats quan es veu el càrrec; si només ha passat la data, surten «Per confirmar». La fitxa d'una despesa diu quin rebut o quin deute paga, reconeix el seu rebut encara que el banc l'apunti uns dies després, i un rebut es pot enllaçar a mà. Un mateix càrrec ja no pot donar per pagats dos rebuts.",
+        "Els rebuts que es cobren només en alguns mesos, o que no són mensuals com les assegurances semestrals, compten el just cada mes, i «Se't van cada mes» quadra amb la suma dels seus grups. En donar d'alta un rebut es veu bé quant es cobra cada vegada i en quins mesos.",
+        "Canviar el nom de despeses i notes és més segur: el nom nou surt al moment a la llista, no torna una nota antiga ni apareix repetit, i sense connexió es desa sol en tornar la xarxa.",
+        "Menys coses comptades dues vegades: una compra que el banc envia com a pendent i reapareix un altre dia, una nòmina apuntada a mà que també arriba del banc i els moviments de dos comptes del mateix banc. Una devolució ja no es confon amb la seva compra.",
+        "L'app va més fluida en obrir-la, en tornar-hi, en anar a Cartera i en lliscar ràpid entre pestanyes. A Gestionar pla torna l'ona en arribar al final i la llista ja no es mou en tocar una categoria.",
+        "I a més: pots ordenar els teus bròkers mantenint-los premuts i arrossegant-los, a Despeses el botó «Actualitza les despeses» explica què fa, El meu cicle diu «<1 %» quan queda molt poc marge i Metes no perd el que es desa des de dos mòbils alhora."
       ]
     },
     "tandas": []
