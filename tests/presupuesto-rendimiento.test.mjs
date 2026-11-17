@@ -395,7 +395,11 @@ const PRESUPUESTO = {
   // parte la línea de resumen: +1.224 B (1.980.851 sin sello). Sube a 1935.
   // Ajuste final de la v6 (17/11): el borde de la ficha tampoco parte lo que hay detrás (sube o baja lo justo):
   // +582 B (1.981.433 sin sello). Sube a 1936.
-  minificado: 1936 * 1024,
+  // Integración 4.26.236 (17/11): el remate de la 235 en sus siete vueltas, Cartera sin «Editar», Notificaciones, la lectura
+  // sola del banco y los menores de dinero, sin el Round up de TR (va a la 237), con el sello y la nota de la versión: 1.978.120 B
+  // minificado y 543.037 B gzip. Mismo mandato del 11/10 (el tamaño no bloquea producto): los topes, al mínimo medido,
+  // 1932 / 531 KiB.
+  minificado: 1932 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
