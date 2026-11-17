@@ -62,7 +62,8 @@ async function mideHoja(page) {
     const hoja = document.querySelector(".v4-exp-sheet");
     const cuerpo = hoja.querySelector(".v4-sheet-body");
     const teclas = [...hoja.querySelectorAll(".v4-keys button")];
-    const cats = [...hoja.querySelectorAll(".v4-ficha-cats .v4-ficha-cat")];
+    // «Todas ›» al final de la fila (letra Muy grande o Enorme) no es una categoría.
+    const cats = [...hoja.querySelectorAll(".v4-ficha-cats .v4-ficha-cat:not(.v4-ficha-todas-tile)")];
     const resumen = [...document.querySelectorAll('.page-scroll-host [data-testid="gastos-estado"],.page-scroll-host [data-testid="gastos-desglose"]')]
       .map((e) => e.getBoundingClientRect()).filter((r) => r.height > 0);
     return {
@@ -84,6 +85,7 @@ async function mideHoja(page) {
       filasPago: new Set([...hoja.querySelectorAll(".v4-ficha-pay > *")].map((c) => { const r = c.getBoundingClientRect(); return Math.round((r.top + r.bottom) / 2); })).size,
       hojaAlto: hoja.getBoundingClientRect().height,
       resumenAbajo: resumen.length ? Math.max(...resumen.map((r) => r.bottom)) : null,
+      resumenArriba: resumen.length ? Math.min(...resumen.map((r) => r.top)) : null,
     };
   });
 }
@@ -125,16 +127,22 @@ for (const [w, h] of TAMANOS) for (const letra of LETRAS) {
       // Las teclas no se encogen: 56 px en pantalla también con la letra Enorme (no 56 × zoom).
       expect(m.teclaAlto).toBeGreaterThanOrEqual(55.5);
       expect(m.teclaAlto).toBeLessThan(57);
-      expect(m.nCats).toBe(5);
-      expect(m.ultimaCat).toBe("ap-cat-more");
-      expect(m.filas).toBe(1);
+      // Tres categorías (a 12 px no caben cuatro en un móvil) y «Todas ›» en la cabecera, como en la
+      // ficha: la baldosa «Más» se fue en el remate de la 235.
+      // Una fila de tres; dos (seis) donde caben enteras por alto, a 390 y 412 con letra normal
+      // (crítico de la v4). Con letra Enorme, una fila que se desliza.
+      const filasEsperadas = h >= 800 && letra === "normal" ? 2 : 1;
+      expect(m.nCats).toBe(3 * filasEsperadas);
+      // (Con letra Muy grande o Enorme va al final de la fila que se desliza, no en la cabecera.)
+      await expect(page.locator(".v4-exp-sheet [data-testid=ap-cat-more]")).toHaveCount(1);
+      expect(m.filas).toBe(filasEsperadas);
       if (letra === "huge") {
         // Con Enorme las categorías son una fila que se desliza: al menos una se lee entera.
         expect(m.nombresVisibles).toBeGreaterThanOrEqual(1);
       } else {
         // Importe, concepto, pago, categorías con su nombre, teclas y botón, sin deslizar nada.
         expect(m.sobra, "sin scroll en el cuerpo").toBeLessThanOrEqual(1);
-        expect(m.nombresVisibles).toBe(5);
+        expect(m.nombresVisibles).toBe(3 * filasEsperadas);
         // El segmentado y la píldora del banco caben en una sola fila.
         expect(m.filasPago).toBe(1);
         // Móvil bajo: la hoja ocupa la pantalla entera menos un respiro arriba.
@@ -153,7 +161,7 @@ for (const [w, h] of TAMANOS) for (const letra of LETRAS) {
       await todas.locator('[data-testid="expense-all-cat-mascotas"]').click();
       await expect(todas).toHaveCount(0);
       await expect(hoja.locator('[data-testid="ap-cat-mascotas"]')).toHaveAttribute("aria-pressed", "true");
-      await expect(hoja.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(5);
+      await expect(hoja.locator(".v4-ficha-cats .v4-ficha-cat:not(.v4-ficha-todas-tile)")).toHaveCount(h >= 800 && letra === "normal" ? 6 : 3);
     });
   });
 }
@@ -224,17 +232,26 @@ for (const letra of LETRAS) {
   });
 }
 
+// 719 px con dos filas, +13 cuando el borde sube para no partir la línea de resumen (crítico de la v5): 732.
+const TOPE_DIS06_390 = 735;
 test.describe("390×844 y 412×915 sobre Gastos", () => {
   for (const [w, h] of [[390, 844], [412, 915]]) {
-    test(`DIS-06 ${w}×${h}: la hoja empieza por debajo de la línea de resumen y el velo apaga más el fondo`, async ({ page }) => {
+    test(`DIS-06 ${w}×${h}: la hoja con dos filas de categorías cabe sin deslizar, dentro de su tope, y el velo apaga más el fondo`, async ({ page }) => {
       await abreApuntar(page, { w, h, letra: "normal" });
       const m = await mideHoja(page);
+      /* DIS-06 pedía la hoja por debajo de la línea de resumen, ≤ 660 px a 390×844. Con la segunda fila
+         de categorías (remate de la 235, crítico de la v4: seis sugerencias donde caben, como la ficha)
+         ya no puede: la fila son ~64 px, y se prefirió tener la cuarta categoría a un toque antes que
+         ver el resumen detrás. El tope sube lo justo, al alto medido con las dos filas, y lo que no
+         cambia: la hoja no pasa de su máximo (88 %) ni se sale por arriba, y el velo. */
       expect(m.resumenAbajo).not.toBeNull();
-      expect(m.hojaArriba).toBeGreaterThan(m.resumenAbajo);
-      // Lo que pedía la auditoría, medido a 390×844: ≤ 660 px de alto y el borde por debajo de y=175.
-      // A 412 el importe es más grande (13vw) y la hoja mide unos 664, pero empieza en y≈250.
-      if (w === 390) expect(m.hojaAlto).toBeLessThanOrEqual(660.5);
-      expect(m.hojaArriba).toBeGreaterThanOrEqual(175);
+      expect(m.sobra, "cabe sin deslizar").toBeLessThanOrEqual(1);
+      if (w === 390) expect(m.hojaAlto).toBeLessThanOrEqual(TOPE_DIS06_390);
+      expect(m.hojaAlto).toBeLessThanOrEqual(h * 0.88 + 0.5);
+      expect(m.hojaArriba).toBeGreaterThanOrEqual(h * 0.12 - 0.5);
+      // El borde de la hoja no parte la línea de resumen por la mitad (crítico de la v5, a 393): o la
+      // deja entera encima, o la tapa entera.
+      expect(m.hojaArriba > m.resumenArriba - 2 && m.hojaArriba < m.resumenAbajo + 2, "el borde no corta el resumen").toBe(false);
       const velo = await page.evaluate(() => getComputedStyle(document.querySelector(".v4-exp-sheet").parentElement, "::before").backgroundColor);
       expect(velo).toBe("rgba(8, 28, 20, 0.33)");
     });

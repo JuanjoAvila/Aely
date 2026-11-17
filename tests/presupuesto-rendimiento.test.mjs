@@ -383,7 +383,19 @@ const PRESUPUESTO = {
   // Segunda vuelta del remate (16/11, la ficha «horrible» a ojos del dueño): teclado plegable bajo el importe, la
   // retirada como baldosa, una fila de baldosas de ajustes y ✨ junto a «Todas ›»: +1.378 B (1.973.543 B sin sello,
   // 295 por encima). Sube 1 KiB más, a 1928; el gzip sigue dentro (541.575 de 541.696).
-  minificado: 1928 * 1024,
+  // Tercera vuelta (16-17/11): el teclado de Modificar abajo con su degradado, la máscara de borde de la ficha y las
+  // etiquetas de baldosa que encogen en vez de partirse (auditoría 237, P1-2): +1.483 B (1.975.026 B sin sello) y
+  // 541.943 B gzip, 247 por encima. Suben a 1930 / 530 KiB (el dueño fijó el 11/10 que el tope no bloquea producto).
+  // Cuarta vuelta (17/11, el crítico de la v3): filas enteras con el teclado abierto (medida y recorte), rejilla de
+  // 3/4 columnas con etiquetas a 12 px, «Todas ›» en la cabecera de Apuntar y la cuenta del ingreso marcada:
+  // +2.944 B (1.977.970 sin sello) y 542.683 B gzip. Suben a 1933 / 531 KiB.
+  // Quinta vuelta (17/11, crítico de la v4): la hoja con su alto máximo al teclear, Apuntar con dos filas donde
+  // caben, los ajustes como chips y la cabecera con la elegida tocable: +1.657 B (1.979.627 sin sello). Sube a 1934.
+  // Sexta vuelta (17/11, crítico de la v5): filas medidas con el alto máximo teórico y el borde de Apuntar que no
+  // parte la línea de resumen: +1.224 B (1.980.851 sin sello). Sube a 1935.
+  // Ajuste final de la v6 (17/11): el borde de la ficha tampoco parte lo que hay detrás (sube o baja lo justo):
+  // +582 B (1.981.433 sin sello). Sube a 1936.
+  minificado: 1936 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -423,7 +435,7 @@ const PRESUPUESTO = {
   // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
   // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
   // dueño; SUBE (mandato 11/10) a 524 KiB.
-  gzip: 529 * 1024, // ver el comentario de minificado (527,9 KiB medidos el 16/11/2026 en la integración 4.26.235).
+  gzip: 531 * 1024, // ver el comentario de minificado (527,9 KiB medidos el 16/11/2026 en la integración 4.26.235).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

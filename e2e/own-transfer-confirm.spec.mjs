@@ -363,14 +363,14 @@ for(const mode of ['zero','error','hold'])test(`cuota manual conserva aplicació
   expect(row.debtId).toBe(quotaDebt.id);expect(row.debtManual).toBe(true);expect(row.category).toBe('deudas');
   expect(Object.values(result.state.cuotaAlias||{})).toContain(quotaDebt.id);
   await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
-  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Se guarda al momento ✓');
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Guardado ✓');
 });
 for(const mode of ['zero','error','lostAck'])test(`cuota automática sin acuse no avisa en una fila no tocada (${mode})`,async({page})=>{
   const sheet=await open(page,{mode,debts:[{...quotaDebt,monthly:80}]});
   await expect.poll(async()=>(await saved(page)).expenses.find(e=>e.id===out.id).debtId).toBe(quotaDebt.id);
   expect((await saved(page)).expenses.find(e=>e.id===out.id).category).toBe('deudas');
   await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
-  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Se guarda al momento ✓');
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Guardado ✓');
 });
 for(const decision of ['yes','no'])test(`modo pruebas permite traspaso ${decision} sin escribir cartera real ni nube`,async({page})=>{
   const sheet=await open(page,{sandbox:true}),before=await saved(page);
@@ -442,7 +442,7 @@ test('error manual A no avisa en cuota automática B no tocada',async({page})=>{
   const sheet=await showRow(page,autoB.merchant);
   await expect(sheet.getByTestId('exp-source-save-status')).toHaveCount(0);
   await expect(sheet.getByTestId('exp-source-refresh')).toHaveCount(0);
-  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Se guarda al momento ✓');
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Guardado ✓');
   expect((await saved(page)).expenses.find(e=>e.id===autoB.id).debtId).toBe(quotaDebt.id);
 });
 for(const decision of ['yes','no'])test(`R4 traspaso ${decision} ACK perdido recupera con pull y reapertura`,async({page})=>{
@@ -467,7 +467,7 @@ for(const decision of ['yes','no'])test(`R4 traspaso ${decision} pull antes del 
   await page.evaluate(()=>{window.__own.mode='lostAck';window.__own.release();});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   await expect(sheet.getByTestId('exp-own-transfer-status')).toHaveCount(0);
-  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Se guarda al momento ✓');
+  await expect(page.locator('.v4-exp-sheet .v4-ficha-saved')).toHaveText('Guardado ✓');
   await expect(page.getByText('Sin confirmar',{exact:true})).toHaveCount(0);
 });
 test('R4 traspaso no limpia un conflicto semántico al actualizar',async({page})=>{

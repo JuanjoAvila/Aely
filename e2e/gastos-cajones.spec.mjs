@@ -193,7 +193,7 @@ test("ficha v4.1: un movimiento automático lleva candado y bloquea importe y ba
   await expect(sheet).not.toContainText("Lo trajo una notificación");
   await expect(sheet.locator('[data-testid="exp-bank"]')).toHaveClass(/locked/);
   await expect(sheet.locator(".v4-ficha-foot .v4-cta")).toHaveCount(0);
-  await expect(sheet.locator(".v4-ficha-saved")).toContainText("Se guarda al momento");
+  await expect(sheet.locator(".v4-ficha-saved")).toHaveText("Guardado ✓");
   await expect(sheet.locator(".v4-ficha-done")).toBeVisible();
 
   const before = await sheet.locator(".v4-ficha-amount").innerText();

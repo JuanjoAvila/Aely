@@ -1922,21 +1922,25 @@
   .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1);}
   .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:4px 0 8px;gap:6px;background:var(--bg-2);}
   /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
-     (56 px, las pidió él): una sola fila de categorías con «Más» al final y sin la cabecera
-     «Categoría · Las 32», y algo menos de aire alrededor del importe y del teclado. El relleno del
+     (56 px, las pidió él): una sola fila de categorías, y algo menos de aire alrededor del importe
+     y del teclado. Desde el remate de la 235, «Todas ›» va en la cabecera como en la ficha (la
+     baldosa «Más» le quitaba una columna a las etiquetas). El relleno del
      importe es el mismo vacío y escrito: si no, la hoja salta al teclear la primera cifra (D1). */
   .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{padding:2px 0 6px;line-height:1.15;}
-  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:6px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{gap:6px;margin-bottom:4px;}
+  /* La cabecera «CATEGORÍA … Todas ›» y las etiquetas a 12 px en dos líneas suman ~25 px: se recuperan
+     apretando lo que sobraba, para que a 360×640 siga sin deslizarse y a 390×844 no pase de 660. */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat-title{margin-bottom:2px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat-title button{min-height:36px;margin:-10px -4px -10px 0;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats .v4-ficha-cat{min-height:54px;padding:4px 2px;gap:2px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-concept.v4-input{padding-bottom:6px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-head{margin-bottom:3px;}
   /* Los últimos px para que a 360×640 no quede ni un deslizamiento y a 390×844 la hoja no pase de
      660 (DIS-01/06): sin ellos sobraban 3 y 5 px respectivamente. */
-  .v4-ficha-body[data-testid="ap"] .v4-ficha-pay{margin-bottom:10px;}
-  .v4-ficha-body[data-testid="ap"] .v4-ficha-focus{margin-bottom:6px;}
-  /* En cinco columnas «Supermercado» no cabe en una línea y se cortaba por los dos lados: se parte
-     con guion (hay `lang` en <html>) y, como mucho, en dos líneas. */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-pay{margin-bottom:5px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-focus{margin-bottom:4px;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-cat{padding:6px 2px;}
-  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;
-    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
-  .v4-ficha-cat.more{color:var(--mint);}
+  .v4-ficha-todas-tile{color:var(--mint);}
   /* Móvil bajo: la hoja de Apuntar ocupa la pantalla (menos la barra de estado) en vez del 88 %, y
      el asa y el pie se aprietan un poco: ahí cada fila que cabe es una que no hay que buscar. */
   @media (max-height:700px){
@@ -2031,6 +2035,9 @@
   .v4-ficha-meta-pill span{overflow:hidden;text-overflow:ellipsis;}
   .v4-ficha-meta-pill.on{background:rgba(95,208,138,.12);border-color:var(--mint-deep);color:var(--mint);}
   .v4-ficha-meta-pill.disabled{opacity:.45;cursor:default;}
+  /* Ingreso: la cuenta elegida, rellena como «Tarjeta» en un gasto; del banco, el efectivo apagado. */
+  .v4-ficha-pay.income > .v4-ficha-meta-pill.sel{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .v4-ficha-pay.income > .v4-ficha-meta-pill.bloqueada{opacity:.45;}
   .v4-ficha-cat-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;font-size:11px;font-weight:800;
     letter-spacing:1.1px;text-transform:uppercase;color:var(--muted-2);}
   .v4-ficha-cat-acts{display:flex;align-items:center;gap:2px;}
@@ -2039,7 +2046,10 @@
   .v4-ficha-cat-title .v4-ficha-ia:disabled{opacity:.45;}
   .v4-ficha-cat-title button{min-height:44px;margin:-12px -4px -12px 0;padding:0 4px;color:var(--mint);font-size:12px;font-weight:800;
     letter-spacing:0;text-transform:none;}
-  .v4-ficha-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:12px;}
+  /* Tres columnas y cuatro solo desde 460 px (`useCatCols` usa la misma media): en un móvil, con la
+     etiqueta a 12 px, «Supermercado» no cabe entera en cuatro ni a 412 px. */
+  .v4-ficha-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px;}
+  @media (min-width:460px){ .v4-ficha-cats{grid-template-columns:repeat(4,minmax(0,1fr));} }
   .v4-ficha-cat{min-height:62px;padding:6px 3px;border-radius:15px;background:var(--sur);border:1px solid var(--line-soft);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:700;line-height:1.1;overflow:hidden;}
   .v4-ficha-cat.on{background:rgba(108,198,136,.16);border-color:var(--mint-deep);color:var(--text);}
@@ -2051,15 +2061,41 @@
   .v4-ficha-adjust{margin:2px 0 10px;padding-top:12px;border-top:1px solid var(--line-soft);}
   .v4-ficha-ajustes{margin-bottom:0;}
   .v4-ficha-ajuste{transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
-  /* El nombre de una baldosa (categoría o ajuste) no toca el borde: a 360 «Supermercado» llenaba la
-     baldosa de lado a lado. Se parte con guion y, como mucho, en tres líneas. */
-  .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:break-word;
-    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;}
+  /* El nombre de una baldosa (categoría o ajuste): UN solo tamaño, 12 px, nunca partido ni cortado
+     (auditoría 237, P1-2, y el crítico de la v3: «Supermer-cado», «restauran…» y letras encogidas a
+     7 px). Si una palabra no cabiera, se cambia la rejilla, no la letra. */
+  .v4-ficha-cat > span:last-child{max-width:100%;font-size:12px;line-height:1.15;-webkit-hyphens:none;hyphens:none;overflow-wrap:normal;word-break:normal;}
+  /* Ajustes: chips de unos 40 px, icono y texto en línea, en la rejilla de las categorías; uno solo
+     (la nota de un ingreso) ocupa la fila entera. */
+  .v4-ficha-ajustes > .v4-ficha-cat{min-height:40px;padding:6px 8px;flex-direction:row;justify-content:flex-start;gap:6px;border-radius:13px;}
+  .v4-ficha-ajustes > .v4-ficha-cat .v4-ficha-cat-icon{font-size:16px;}
+  .v4-ficha-ajustes > .v4-ficha-cat > span:last-child{text-align:left;}
+  .v4-ficha-ajustes.solo{display:block;}
+  .v4-ficha-ajustes.solo > .v4-ficha-cat{width:100%;justify-content:center;}
+  /* Con el teclado sin sitio para ninguna fila, la cabecera es la elegida: toda la línea abre el selector. */
+  .v4-ficha-cat-t{min-width:0;}
+  .v4-ficha-cat-title-btn{width:100%;min-height:44px;margin-top:-8px;margin-bottom:0;padding:0 2px;background:transparent;border:0;cursor:pointer;}
+  .v4-ficha-cat-elegida{min-width:0;color:var(--text);font-size:13px;letter-spacing:0;text-transform:none;font-weight:750;}
+  .v4-ficha-cat-title-btn .v4-ficha-todas{flex:none;color:var(--mint);font-size:12px;font-weight:800;letter-spacing:0;text-transform:none;}
+  .v4-ficha-ajuste > .value{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;}
   .v4-ficha-ajuste:disabled{cursor:default;}
   .v4-ficha-ajuste:disabled:not(.on){opacity:.45;}
   .v4-ficha-avisos{margin:10px 2px 0;display:flex;flex-direction:column;gap:4px;}
-  /* El teclado de Modificar baja bajo el importe al tocarlo (16/11). */
-  .v4-ficha-teclado .v4-keys{margin:6px 0 10px;}
+  /* El teclado de Modificar (16/11): abajo del todo, pegado al pie como el de Apuntar, y sube con
+     su alto (filas de rejilla) a la vez que las teclas entran desde abajo. Encima solo quedan filas
+     enteras (ver `filasTeclado`), así que no hace falta fundir nada por detrás. */
+  .v4-ficha-teclado{position:sticky;bottom:0;z-index:1;display:grid;grid-template-rows:0fr;background:var(--bg-2);
+    margin:0 -1px;padding:0 1px;transition:grid-template-rows .3s var(--ease);}
+  .v4-ficha-teclado.open{grid-template-rows:1fr;}
+  .v4-ficha-teclado-in{min-height:0;overflow:hidden;}
+  .v4-ficha-teclado .v4-keys{margin:0;padding:8px 0 4px;gap:6px;transform:translateY(24px);opacity:0;
+    transition:transform .3s var(--ease),opacity .22s ease;}
+  .v4-ficha-teclado.open .v4-keys{transform:none;opacity:1;}
+  /* Con el teclado recogido, lo que sigue por debajo del borde se funde (no se ve media fila cortada)
+     y el final de la ficha deja ese mismo aire para que lo último no quede nunca bajo el degradado. */
+  .v4-ficha-plegable:not(.con-teclado){-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);padding-bottom:26px;}
+  @media (prefers-reduced-motion:reduce){ .v4-ficha-teclado,.v4-ficha-teclado .v4-keys{transition:none;} }
   .v4-ficha-fold{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .26s var(--ease),opacity .2s ease;}
   .v4-ficha-fold.open{grid-template-rows:1fr;opacity:1;}
   .v4-ficha-fold-in{min-height:0;overflow:hidden;padding:0 2px;margin:0 -2px;}
@@ -2072,8 +2108,8 @@
     box-shadow:0 6px 18px rgba(0,0,0,.28);color:var(--muted);font-size:12px;line-height:1.35;}
   .v4-ficha-aviso .btn{flex:0 0 auto;min-height:36px;padding:0 12px;}
   .v4-ficha-del{flex:none;min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;white-space:nowrap;}
-  /* A 360 «Borrar gasto» se partía en dos líneas: no se parte; el aviso del centro, si no cabe, va en
-     dos líneas equilibradas (nunca cortado). */
+  /* A 360 «Borrar gasto» y «Se guarda al momento ✓» se partían: el aviso es ahora «Guardado ✓», en
+     una línea; los de estado (más largos y de paso), si no caben, en dos líneas equilibradas. */
   .v4-ficha-saved{flex:1 1 auto;min-width:0;color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.25;text-wrap:balance;}
   .v4-ficha-done{min-height:44px;padding:0 16px;border-radius:14px;background:var(--mint);color:var(--on-mint);font-size:13px;font-weight:850;white-space:nowrap;}
   /* Ficha de cuenta v4.1: el saldo gana la jerarquía y el histórico solo aparece cuando se puede

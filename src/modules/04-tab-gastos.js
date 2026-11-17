@@ -3444,9 +3444,11 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("span",null,t("f_adj_retirada")))
   ].filter(Boolean);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    /* Una sola fila y sin huecos: tres, cuatro o cinco baldosas ocupan el ancho entero; una o dos
-       (un ingreso: la nota) se quedan del ancho de una categoría, alineadas a la izquierda. */
-    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes",style:{gridTemplateColumns:"repeat("+(baldosas.length>=3?baldosas.length:4)+",minmax(0,1fr))"}},baldosas),
+    /* La misma rejilla que las categorías (tres o cuatro columnas, a la izquierda), pero en chips
+       de unos 40 px con icono y texto en línea: no son categorías y no necesitan baldosa alta (crítico
+       de la v4: a 360 la segunda fila de baldosas quedaba partida bajo el pie). Una sola (la nota de
+       un ingreso) ocupa la fila entera. */
+    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes"+(baldosas.length===1?" solo":"")},baldosas),
     retiradaAvisos.length>0 && React.createElement("div",{className:"hint v4-ficha-avisos","data-testid":"exp-withdrawal-info"},retiradaAvisos),
     panelVisto && React.createElement("div",{className:"v4-ficha-fold"+(despliegue.dentro&&adjustOpen?" open":"")},
       React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},adjustOpen?null:{"aria-hidden":"true",inert:""}),panelVisto)),
@@ -3473,7 +3475,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry")));
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     renameAviso,
-    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
+    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t(isIncome?"f_del_in":"f_del")),
     React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
@@ -3494,7 +3496,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
           catAction:cloud.enabled()&&!isIncome?React.createElement("button",{type:"button",className:"v4-ficha-ia","data-testid":"exp-ai",
             "aria-label":aiBusy?t("ai_cat_busy"):t("ai_cat_btn"),"aria-busy":aiBusy?"true":null,disabled:aiBusy,onClick:function(){ suggestAi(exp); }},"✨"):null,
-          numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },
+          numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },onCloseNumpad:function(){ setEditaImporte(false); },
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
     ),document.body);

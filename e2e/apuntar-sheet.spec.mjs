@@ -62,7 +62,7 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 });
 
-test("Apuntar usa la ficha v4.1: cabecera compacta, forma de pago en una fila, una fila de cuatro categorías con «Más» y CTA con importe", async ({ page }) => {
+test("Apuntar usa la ficha v4.1: cabecera compacta, forma de pago en una fila, una fila de categorías con «Todas ›» y CTA con importe", async ({ page }) => {
   await seedLoggedInDashboard(page);
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -78,10 +78,12 @@ test("Apuntar usa la ficha v4.1: cabecera compacta, forma de pago en una fila, u
   await expect(sheet.locator(".v4-ficha-pay .v4-ficha-meta-pill")).toHaveCount(1);
   await expect(sheet.locator(".v4-ficha-head [data-testid=\"ap-date\"]")).toBeVisible();
   await expect(sheet.locator('[data-testid="ap-efectivo"]')).toBeDisabled();
-  // Una sola fila (DIS-01, 15/11): las cuatro más usadas y «Más», que abre el catálogo entero.
-  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(5);
-  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat").last()).toHaveAttribute("data-testid", "ap-cat-more");
-  await expect(sheet.locator(".v4-ficha-cat-title")).toHaveCount(0);
+  // Una sola fila (DIS-01, 15/11): las tres más usadas (a 12 px no caben cuatro en un móvil) y,
+  // desde el remate de la 235, «Todas ›» en la cabecera, que abre el catálogo entero.
+  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(3);
+  // «Todas ›» va en la cabecera, como en la ficha (ya no es la última baldosa).
+  await expect(sheet.locator(".v4-ficha-cat-title [data-testid=ap-cat-more]")).toBeVisible();
+  await expect(sheet.locator(".v4-ficha-cats [data-testid=ap-cat-more]")).toHaveCount(0);
   await expect(sheet.locator(".v4-keys")).toBeVisible();
   await expect(sheet.locator('[data-testid="ap-pay-card"]')).toHaveAttribute("aria-pressed", "true");
   await expect(sheet.locator('[data-testid="ap-pay-card"]')).toContainText(/Tarjeta/);

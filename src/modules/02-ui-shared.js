@@ -2718,7 +2718,31 @@ function expenseTopCategoryPick(ranked, currentId, catalog, n){
   }
   return top;
 }
-function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix, onMore}){
+/* Columnas de las rejillas de baldosas: tres, y cuatro solo desde 460 px, la misma media que usa el
+   CSS (`.v4-ficha-cats`). Con la etiqueta a 12 px, sin encoger ni partir, «Supermercado» NO cabe en
+   cuatro columnas ni a 412 px (medido en el e2e de etiquetas): la rejilla cede, la letra no
+   (auditoría 237, P1-2, y el crítico de la v3). */
+const CAT_COLS_Q="(min-width:460px)";
+function useCatCols(){
+  const mq=function(){ try{ return window.matchMedia(CAT_COLS_Q).matches; }catch(e){ return false; } };
+  const [cols,setCols]=useState(function(){ return mq()?4:3; });
+  useEffect(function(){
+    const on=function(){ setCols(mq()?4:3); };
+    window.addEventListener("resize",on);
+    return function(){ window.removeEventListener("resize",on); };
+  },[]);
+  return cols;
+}
+// Los n primeros, sin que se quede fuera la elegida (si no cabe, ocupa el último hueco).
+function catsRecorta(items, n, elegida){
+  const out=(items||[]).slice(0,Math.max(0,n));
+  if(n>0 && elegida && !out.some(function(c){ return c.id===elegida; })){
+    const c=(items||[]).find(function(x){ return x.id===elegida; });
+    if(c) out[out.length-1]=c;
+  }
+  return out;
+}
+function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix, fin}){
   return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
     (items||[]).map(function(c){
       const on=selectedMany ? selectedMany.indexOf(c.id)!==-1 : selected===c.id;
@@ -2727,10 +2751,7 @@ function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix,
         React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
         React.createElement("span",null,(c.label||catName(c.id))+(c.suggested?" ✨":"")));
     }),
-    onMore && React.createElement("button",{key:"_more",type:"button",className:"v4-ficha-cat more",
-      "data-testid":(testPrefix||"expense-cat")+"-more",onClick:onMore},
-      React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},"⋯"),
-      React.createElement("span",null,t("f_cat_more")))
+    fin||null
   );
 }
 function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
@@ -2765,8 +2786,12 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
   const p=testPrefix||"expense";
   const elige=useDespliegue(!!bankOn&&!bankLocked&&(bankOpts||[]).length>0);
   const bankPill=function(hidden){
-    return React.createElement("button",{type:"button",className:"v4-ficha-meta-pill v4-ficha-pay-bank"+(bankOn?" on":"")+(bankLocked?" locked":"")+(hidden?" off":""),
+    /* En un ingreso la cuenta elegida se ve SIEMPRE (crítico de la v3: banco y efectivo iban los dos
+       apagados y no se sabía a qué cuenta entraba el dinero): rellena como «Tarjeta» en un gasto. */
+    const sel=!!income&&mode!=="cash";
+    return React.createElement("button",{type:"button",className:"v4-ficha-meta-pill v4-ficha-pay-bank"+(bankOn?" on":"")+(sel?" sel":"")+(bankLocked?" locked":"")+(hidden?" off":""),
       "data-testid":p+"-bank","aria-hidden":hidden?"true":null,tabIndex:hidden?-1:null,"aria-expanded":hidden||bankLocked?null:!!bankOn,
+      "aria-pressed":income?sel:null,
       onClick:hidden?undefined:(bankLocked?onLocked:onBank)},
       React.createElement(BancoIcono,{ent:bankEnt,size:22}),
       React.createElement("span",{className:"v4-bank-nom"},bankEnt?entOf(bankEnt).label:t("ap_bank_none")));
@@ -2787,8 +2812,9 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
   if(income){
     return React.createElement("div",{className:cls},bankPill(false),
       React.createElement("button",{type:"button",disabled:!!cashDisabled,
-        className:"v4-ficha-meta-pill"+(mode==="cash"?" on":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked":""),
-        "data-testid":p+"-efectivo",onClick:cashDisabled?undefined:function(){ onMode(mode==="cash"?"card":"cash"); }},
+        // Del banco, la cuenta no se cambia: el efectivo se queda visiblemente apagado.
+        className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
+        "data-testid":p+"-efectivo","aria-pressed":mode==="cash",onClick:cashDisabled?undefined:function(){ onMode(mode==="cash"?"card":"cash"); }},
         React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))),
       picker);
   }
@@ -2832,24 +2858,149 @@ function useDespliegue(open){
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, catAction}){
+  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction, todasEnFila, catRowsMax}){
   const isIn=kind==="ingreso";
   /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
-     ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Sale plegándose
-     bajo el importe al tocarlo y se recoge al volver a tocarlo. Apuntar lo sigue llevando fijo. */
+     ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Al tocar el importe
+     sube ABAJO del todo, pegado al pie como en Apuntar (bajo el importe le pareció «horrible»), y se
+     recoge al volver a tocarlo o al tocar cualquier otra cosa de la ficha. Va en el flujo, al final:
+     lo de arriba sigue alcanzándose entero desplazando la ficha. */
   const plegado=numpadOpen!==undefined;
+  const conTeclado=plegado&&!!numpadOpen;
   const teclado=useDespliegue(!!numpadOpen);
+  const cols=useCatCols();
+  const bodyRef=useRef(null), filaAltoRef=useRef(66);
+  /* Con el teclado abierto, entre «CATEGORÍA» y el teclado solo van FILAS ENTERAS de baldosas (el
+     crítico de la v3: asomaban medias filas «como una franja rota»). El hueco se mide con el alto
+     MÁXIMO TEÓRICO de la hoja (su max-height menos el asa y el pie), no con la hoja tal cual: medido
+     con la hoja ya encogida, cada fila quitada achicaba el hueco siguiente y a 393 acababa en cero
+     (crítico de la v4). Y la hoja sigue ajustada a su contenido, con el teclado justo debajo: fijarla
+     a su alto máximo dejaba huecos vacíos de hasta 215 px encima del teclado (crítico de la v5).
+     Caben floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
+  const [filasTeclado,setFilasTeclado]=useState(null);
+  useLayoutEffect(function(){
+    if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
+    const mide=function(){
+      const body=bodyRef.current; if(!body) return;
+      const keys=body.querySelector(".v4-ficha-teclado .v4-keys"), title=body.querySelector(".v4-ficha-cat-title");
+      if(!keys||!title) return;
+      body.scrollTop=0;
+      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1, hoja=body.parentElement;
+      const tile=body.querySelector(".v4-ficha-cats .v4-ficha-cat");
+      if(tile) filaAltoRef.current=tile.getBoundingClientRect().height/zoom;
+      const b=body.getBoundingClientRect(), tb=title.getBoundingClientRect();
+      // Lo que ocupan el asa, el pie y los rellenos no cambia con las filas: el cuerpo, a su máximo, es el resto.
+      const marco=hoja.getBoundingClientRect().height/zoom-body.clientHeight-rellenoExtraRef.current;
+      const cuerpoMax=(parseFloat(getComputedStyle(hoja).maxHeight)||hoja.getBoundingClientRect().height/zoom)-marco;
+      const libre=cuerpoMax-keys.offsetHeight-(tb.bottom-b.top)/zoom-8-12;
+      const n=Math.max(0,Math.min(catRows||2,Math.floor((libre+7)/(filaAltoRef.current+7))));
+      setFilasTeclado(function(v){ return v===n?v:n; });
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[conTeclado,teclado.vivo,cols,(categoryItems||[]).length]);
+  /* Apuntar (`catRowsMax`): una fila, y dos si caben enteras en el alto que le queda a la hoja hasta
+     su máximo (a 393 y 412 sí; a 360 no). La misma medida de filas enteras que la ficha. */
+  const [filasAuto,setFilasAuto]=useState(1);
+  useLayoutEffect(function(){
+    if(!catRowsMax||todasEnFila) return undefined;
+    const mide=function(){
+      const body=bodyRef.current, hoja=body&&body.parentElement; if(!hoja) return;
+      const tile=body.querySelector(".v4-ficha-cats .v4-ficha-cat");
+      if(tile) filaAltoRef.current=tile.getBoundingClientRect().height;
+      const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, alto=hoja.getBoundingClientRect().height/(parseFloat(getComputedStyle(document.body).zoom)||1);
+      setFilasAuto(function(v){
+        const fila=filaAltoRef.current+6, sobra=max-alto, desborda=body.scrollHeight-body.clientHeight>1;
+        if(desborda&&v>1) return v-1;
+        if(!desborda&&v<catRowsMax&&sobra>=fila) return v+1;
+        return v;
+      });
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
+  /* El borde de la hoja no parte por la mitad lo que hay detrás (crítico de la v5: en Apuntar a 393,
+     la línea «gastado en septiembre · …»; y en la ficha, el total a 360 o un movimiento a 412). Si el
+     borde cae dentro de un texto de la pantalla de detrás, sube lo justo para taparlo entero, con
+     relleno arriba y sin pasar del alto máximo; si al subir cae en otro, otra vez (pocas). Con
+     `offsetTop`: durante la entrada la hoja aún va desplazada y su rectángulo mentiría. */
+  const rellenoBaseRef=useRef(null), rellenoExtraRef=useRef(0);
+  const textoPartido=function(y){
+    /* Los textos (hojas del árbol con letra) de la pantalla de detrás que el borde, a la altura y,
+       corta por dentro. Se recorre podando por alto (no con elementsFromPoint: con una hoja abierta la
+       app no recibe toques y no aparecería). */
+    let peor=null;
+    const mira=function(el){
+      const r=el.getBoundingClientRect();
+      if(r.height<=0||y<r.top||y>r.bottom||r.right<=0||r.left>=window.innerWidth) return;
+      if(el.childElementCount===0){ if((el.textContent||"").trim()&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
+      for(let c=el.firstElementChild;c;c=c.nextElementSibling) mira(c);
+    };
+    document.querySelectorAll(".page-scroll-host").forEach(mira);
+    return peor;
+  };
+  useLayoutEffect(function(){
+    const body=bodyRef.current, hoja=body&&body.parentElement; if(!hoja) return undefined;
+    if(rellenoBaseRef.current==null) rellenoBaseRef.current=parseFloat(getComputedStyle(hoja).paddingTop)||0;
+    const maxPropio=hoja.style.maxHeight;
+    const ajusta=function(){
+      hoja.style.paddingTop=""; hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
+      const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, base=hoja.offsetHeight, top0=hoja.offsetTop*zoom;
+      let extra=0, bajar=0;
+      for(let i=0;i<4;i++){
+        const y=top0-extra*zoom, r=textoPartido(y); if(!r) break;
+        const mas=(y-(r.top-6))/zoom;
+        // Si para taparlo habría que pasar del alto máximo, el borde baja hasta dejarlo entero encima.
+        if(extra+mas>max-base){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
+        extra+=mas;
+      }
+      if(extra>0){ hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px"; rellenoExtraRef.current=extra; }
+      // Bajar acorta la hoja y su cuerpo pasa a desplazarse: vale en la ficha, no en Apuntar, que cabe entera (DIS-01).
+      else if(plegado&&bajar>0&&bajar<base*0.25){
+        hoja.style.maxHeight=(base-bajar)+"px";
+        if(textoPartido(hoja.offsetTop*zoom)) hoja.style.maxHeight=maxPropio;
+      }
+    };
+    ajusta();
+    // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
+    const tm=setTimeout(ajusta,480);
+    hoja.addEventListener("animationend",ajusta);
+    window.addEventListener("resize",ajusta);
+    return function(){ clearTimeout(tm); hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",ajusta); };
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo]);
+  const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
+  const visibles=catsRecorta(categoryItems,filas*cols,category);
+  const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
   const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
-  // `catMore` (Apuntar): sin cabecera; «Más» va de última baldosa y ahorra la fila del título.
+  // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
+  const todasBtn=function(cls,hijos){
+    return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
+  };
   const catsBlock=!isIn && React.createElement(React.Fragment,{key:"cats"},
-    !catMore && React.createElement("div",{className:"v4-ficha-cat-title"},
-      React.createElement("span",null,t("f_cat")),
-      React.createElement("span",{className:"v4-ficha-cat-acts"},catAction||null,
-        React.createElement("button",{type:"button",className:"v4-ficha-todas",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
-    React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
-      onMore:catMore?onAllCategories:null}));
+    /* Sin sitio para ninguna fila, la cabecera ES la elegida, y toda la línea abre el selector. Sin
+       «CATEGORÍA ·» delante: el icono y el nombre ya lo dicen, y así «Inteligencia artificial» cabe
+       entera a 360 (crítico de la v4). */
+    !todasEnFila && elegida && React.createElement("button",{type:"button",className:"v4-ficha-cat-title v4-ficha-cat-title-btn",
+        "data-testid":(testPrefix||"expense")+"-cat-elegida",onClick:onAllCategories},
+      React.createElement("span",{className:"v4-ficha-cat-elegida"},(elegida.icon||"")+" "+(elegida.label||catName(elegida.id))),
+      React.createElement("span",{className:"v4-ficha-todas"},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
+    !todasEnFila && !elegida && React.createElement("div",{className:"v4-ficha-cat-title"},
+      React.createElement("span",{className:"v4-ficha-cat-t"},t("f_cat")),
+      React.createElement("span",{className:"v4-ficha-cat-acts"},conTeclado?null:(catAction||null),
+        todasBtn("v4-ficha-todas",tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
+    visibles.length>0 && React.createElement(ExpenseCategoryGrid,{items:visibles,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
+      fin:todasEnFila?todasBtn("v4-ficha-cat v4-ficha-todas-tile",[React.createElement("span",{key:"i",className:"v4-ficha-cat-icon","aria-hidden":"true"},"⋯"),
+        React.createElement("span",{key:"t"},tf("f_cat_all",{n:(allCategoryItems||[]).length}))]):null}));
   return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha","data-kb":kb?"1":null},
+    React.createElement("div",{className:"v4-sheet-body v4-ficha-body"+(plegado?" v4-ficha-plegable"+(numpadOpen?" con-teclado":""):""),
+        "data-testid":testPrefix||"expense-ficha","data-kb":kb?"1":null,ref:bodyRef,
+        // En el click y no antes: si se recogiera en el `pointerdown`, lo tocado se movería bajo el dedo.
+        onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
+          if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado,.v4-ficha-cat-title-btn"))) onCloseNumpad();
+        }:undefined},
       React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
@@ -2867,8 +3018,6 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
           locked && React.createElement("svg",{"aria-hidden":true,width:12,height:12,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("rect",{x:5,y:11,width:14,height:10,rx:2}),React.createElement("path",{d:"M8 11V8a4 4 0 0 1 8 0v3"})))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
-      plegado && teclado.vivo && React.createElement("div",{className:"v4-ficha-fold v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
-        React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
         enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
@@ -2877,8 +3026,12 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       /* Con letra Muy grande o Enorme no cabe todo encima del teclado: las categorías, que se tocan
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
-      adjustments||null,
-      plegado?null:(numpad||null)
+      // Las baldosas de ajustes se apartan mientras se teclea el importe: vuelven al cerrar el teclado.
+      conTeclado?null:(adjustments||null),
+      plegado
+        ? (teclado.vivo && React.createElement("div",{className:"v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
+            React.createElement("div",Object.assign({className:"v4-ficha-teclado-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)))
+        : (numpad||null)
     ),
     footer||null
   );
