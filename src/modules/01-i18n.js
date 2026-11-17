@@ -3402,7 +3402,9 @@ function recompensasPendientes(state, nowMs){
    sumó, así que no se resta; su marca se queda para no sumarlo si vuelve a Inversión. */
 function revertirRecompensa(state, id){
   const led=state&&state.trRecompensas, f=led&&led[id];
-  if(!f || f.puente) return state;
+  // Una entrada compactada (más de un año, sin `inv` ni `x`) tampoco: borrarla haría que el aviso
+  // volviera a contar como pendiente con la posición ya sumada (re-revisión 236).
+  if(!f || f.puente || (!f.inv && !f.x)) return state;
   const s=f.inv ? reverseInvestBuy(state, f.inv, f.sh, f.c, f.eur) : state;
   const nuevo=Object.assign({},led); delete nuevo[id];
   return Object.assign({},s,{ trRecompensas:nuevo });
@@ -3450,7 +3452,11 @@ function aplicarRecompensasTR(state, nowMs){
       if(JSON.stringify(x)!==JSON.stringify(f.x)) libro()[id]=Object.assign({},f,{ x:x });
       return;
     }
-    if(!f.puente && expenseIsTombstoned(f.x,del)){ s=revertirRecompensa(Object.assign({},s,{trRecompensas:libro()}), id); led=s.trRecompensas; }
+    // Renombrada y borrada sin una pasada entre medias, la lápida lleva el nombre nuevo: vale una del
+    // mismo día e importe, porque la fila ya falta por id (re-revisión 236).
+    const pre=String(f.x.date).slice(0,10)+"|"+f.x.amount+"|";
+    const lapida=expenseIsTombstoned(f.x,del) || (state.deleted||[]).some(function(k){ return typeof k==="string" && k.indexOf(pre)===0; });
+    if(!f.puente && lapida){ s=revertirRecompensa(Object.assign({},s,{trRecompensas:libro()}), id); led=s.trRecompensas; }
   });
   const accIx=(s.accounts||[]).findIndex(function(a){ return a && a.ent==="trade_republic"; });
   filas.forEach(function(f){

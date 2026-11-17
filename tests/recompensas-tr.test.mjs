@@ -265,6 +265,26 @@ t("renombrar el aviso y luego borrarlo devuelve lo sumado (también con una pasa
     assert.equal(patrimonio(s2).neto, soloBase());
   }
 });
+t("renombrar y borrar SIN pasada entre medias (sin conexión) también devuelve lo sumado", () => {
+  const s1 = ctx.aplicarRecompensasTR(Object.assign(base(), { expenses: base().expenses.concat([RU]) }), NOW);
+  const renombrada = Object.assign({}, RU, { merchant: "Calderilla" });
+  const ren = Object.assign({}, s1, { expenses: s1.expenses.map((e) => e.id === RU.id ? renombrada : e) });
+  const s2 = ctx.aplicarRecompensasTR(borra(ren, renombrada), NOW);
+  assert.equal(inv(s2, "ftse").value, 1000);
+  assert.equal(patrimonio(s2).neto, soloBase());
+  assert.equal(ctx.aplicarRecompensasTR(s2, NOW), s2);
+});
+t("un aviso de más de un año (entrada compactada) que sale y vuelve a Inversión no cuenta otra vez", () => {
+  const viejo = Object.assign({}, RU, { id: uuid(33), date: new Date(NOW - 400 * 864e5).toISOString() });
+  const s0 = Object.assign(base(), { expenses: base().expenses.concat([viejo]), trRecompensas: {} });
+  s0.trRecompensas[viejo.id] = { k: "roundup", d: Date.parse(viejo.date) };   // ya sumado hace un año, compactado
+  assert.equal(ctx.recompensasPendientes(s0, NOW), 0);
+  // Sale de Inversión (la ficha llama a revertirRecompensa) y vuelve: la entrada se conserva.
+  const fuera = ctx.revertirRecompensa(s0, viejo.id);
+  assert.equal(fuera, s0, "sin inv ni copia no hay nada que deshacer ni que borrar");
+  assert.ok(fuera.trRecompensas[viejo.id]);
+  assert.equal(ctx.recompensasPendientes(fuera, NOW), 0, "al volver no aparece como pendiente");
+});
 t("con identidad nativa (evento del lector), borrar devuelve lo sumado", () => {
   const RUn = Object.assign({}, RU, { id: uuid(30), nativeTwin: true, ingestEventId: "tr:trade_republic:sintetico" });
   const n1 = ctx.aplicarRecompensasTR(Object.assign(base(), { expenses: base().expenses.concat([RUn]) }), NOW);
