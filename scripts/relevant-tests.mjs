@@ -154,6 +154,13 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
+  // Recibos y Cartera sin nada cortado a 360/393/412 px (auditoría de diseño 237): subfilas por
+  // trozos (`mcTrozos`, 07), cuándo bajo el importe, píldoras en fila, leyenda y bienes de Cartera.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
   // Tus recibos de tres en tres, sin «¿Me lo puedo permitir?», el aviso de duplicado y filas compactas (11/11/2026).
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },

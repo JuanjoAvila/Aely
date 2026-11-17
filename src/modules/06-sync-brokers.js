@@ -748,7 +748,7 @@ function InvestmentRewards({state,set}){
   const ru=(trAcc.roundupManual!=null)?trAcc.roundupManual:ruAuto, sb=(trAcc.savebackManual!=null)?trAcc.savebackManual:sbAuto, tot=state.trRewardsTotal||0;
   const iv=state.investments.find(function(i){ return i.id===trAcc.rewardInv; });
   const invName=iv?iv.name:t("ru_pick");
-  return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):(mult>0?tf("ru_sub_on",{m:mult}):t("ru_sub_off")),dot:"#E6C36A",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
+  return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):(mult>0?tf("ru_sub_on",{m:mult}):t("ru_sub_off")),dot:mult>0?"#E6C36A":"var(--muted-2)",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",marginBottom:6}},t("ru_mult")),
     React.createElement("div",{className:"curtoggle",style:{flexWrap:"wrap",justifyContent:"flex-start"}},
       RU_MULTS.map(function(m){ return React.createElement("button",{key:m,type:"button",className:"curbtn inv-tap"+(mult===m?" on":""),onClick:function(){ setTr({roundup:m}); }}, m===0?t("ru_off"):"×"+m); })),
@@ -1214,7 +1214,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
               React.createElement("div",{className:"meta"}, items.length===1?t("v4_inv_position"):tf("v4_inv_positions",{n:items.length}),sub==null&&React.createElement("div",{className:"hint"},t("fx_unconverted")))
             ),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
-              React.createElement("div",{className:"am num"}, f0(sub)),
+              // En Cartera con céntimos, como las cuentas de encima (auditoría de diseño 237, P2-9); la
+              // pantalla de Inversiones sigue redondeando, que va en la moneda que elijas allí.
+              React.createElement("div",{className:"am num"}, fullMode?f0(sub):f2(sub)),
               React.createElement(I.chev,{className:"chev"+(open?" open":"")})
             )
           ),

@@ -884,19 +884,23 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      El importe del cargo sigue en el aria-label y en la ficha. */
   const enlazadoTxt=function(x){
     const f=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(enlaces[x.id].x.date||""));
-    return f?tf("pr6_enlazado_d",{d:Number(f[3])+" "+pr6Mes(Number(f[1])*12+Number(f[2]))}):t("pr6_enlazado");
+    // Espacio duro: a 360 px «del 5» y «nov» se separaban en dos renglones (237).
+    return f?tf("pr6_enlazado_d",{d:Number(f[3])+"\u00a0"+pr6Mes(Number(f[1])*12+Number(f[2]))}):t("pr6_enlazado");
   };
-  const subOf=function(x){
+  /* La línea de debajo del nombre, en trozos: «categoría», «banco», «falta su parte»… Se pinta con
+     `mcTrozos`, que parte ENTRE trozos y nunca dentro de uno: con elipsis a 360 px se leía «Sabadell ·
+     f…» y nadie sabía qué faltaba (auditoría de diseño 237, P1-1). */
+  const subPartes=function(x){
     /* Con lo descontado de otro recibo, «pagas 197 € + 53 € de Pepephone» ya dice que es una cuota:
        delante de «cuota de deuda ·» la línea se iba a tres renglones (auditoría 9/11, P2-1). */
     if(x.kind==="debt"||x.kind==="balloon") return enlaces[x.id]
-      ? enlazadoTxt(x)+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
-      : (x.descuento?pr6PagasMas(x):t("pr6_cuota")+" · "+entOf(x.bank).label);
+      ? [enlazadoTxt(x),x.descuento?pr6PagasMas(x):entOf(x.bank).label]
+      : (x.descuento?[pr6PagasMas(x)]:[t("pr6_cuota"),entOf(x.bank).label]);
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
     const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
-    return (cat?cat+" · ":"")+entOf(x.bank).label
-      +(x.teDeben?" · "+pr6TeHanPagado(x.teDeben):"");
+    return [cat,entOf(x.bank).label,x.teDeben?pr6TeHanPagado(x.teDeben):""].filter(Boolean);
   };
+  const subOf=function(x){ return subPartes(x).join(" · "); };
   // Días que faltan; en la vista del mes siguiente, contados de calendario hasta ese día.
   const diasHasta=function(x){
     if(x.day==null) return null;
@@ -910,6 +914,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     if(n===1) return t("pr6_manana");
     if(n>1) return tf("pr6_en_dias",{n:n});
     return n===-1?t("pr6_tocaba_ayer"):tf("pr6_tocaba",{n:-n});
+  };
+  // El importe y, debajo, cuándo toca: la columna derecha de la fila (P1-1).
+  const pr6AmCuando=function(am,x,n){
+    return React.createElement("span",{className:"pr6-am"}, am,
+      x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x)));
   };
   const esVariable=function(x){ const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; }); return !!(f&&f.variable); };
   const plegado=function(open){ return open?null:{"aria-hidden":"true",inert:""}; };
@@ -935,14 +944,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        /* Un renglón: «categoría · banco · en 14 días». Con tres (nombre, banco y cuándo sueltos) cada
-           fila medía 93 px a 412 y una cuota llegaba a cuatro («las tarjetas son enormes», 11/11/2026).
-           Lo que no cabe se acorta por delante; cuándo se queda entero, que es lo que se mira. */
-        React.createElement("span",{className:"sub pr6-sub-cat"},
-          React.createElement("span",{className:"pr6-cat"}, subOf(x)),
-          x.day!=null&&React.createElement("span",{className:"pr6-bk pr6-when"+(n!=null&&n<=1?" soon":"")}, "· "+cuando(x)))),
-      // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
-      React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))));
+        /* «categoría · banco» a la izquierda y «cuándo» debajo del importe, como Suscripciones (auditoría
+           de diseño 237, P1-1): en un solo renglón con todo, lo de delante se cortaba en todos los
+           tamaños. Si aun así no cabe, baja de renglón entre trozos; cortado, nunca. */
+        React.createElement("span",{className:"sub pr6-sub-cat"}, mcTrozos(subPartes(x),"pr6-cat"))),
+      pr6AmCuando(React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))),x,n));
     return withDayPrompt(x,fila);
   };
   /* «No ha llegado» en la fila, como la SPEC (§2.3) y el prototipo: «tocaba hace 8 días» obligaba a
@@ -1015,10 +1021,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"m"}, monthShort((x.dayMes||month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name),
-        React.createElement("span",{className:"sub pr6-sub-cat"},
-          React.createElement("span",{className:"pr6-cat"}, flowSub(x)),
-          x.day!=null&&React.createElement("span",{className:"pr6-bk pr6-when"+(n!=null&&n<=1?" soon":"")}, "· "+cuando(x)))),
-      React.createElement("span",{className:"am num"+(x.kind==="income"?" pos":"")}, flowAmt(x)));
+        React.createElement("span",{className:"sub pr6-sub-cat"}, mcTrozos(flowSub(x).split(" · "),"pr6-cat"))),
+      pr6AmCuando(React.createElement("span",{className:"am num"+(x.kind==="income"?" pos":"")}, flowAmt(x)),x,n));
   };
   /* Lo que se ve en cada fila y el total de la cabecera salen de la MISMA cifra (su prueba de la 230:
      el total de arriba no era la suma de las filas): de una entrada con movimiento, lo que trajo el banco,
@@ -1187,10 +1191,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
         /* Una sola línea, como el prototipo: «Previsto» y el chevron la partían en dos con la letra
-           del sistema al 110 % (su captura del 9/11). Lo que se cobró distinto ya lo dice su fila. */
+           del sistema al 110 % (su captura del 9/11). Lo que se cobró distinto ya lo dice su fila.
+           Solo la flecha, sin «Ver»/«Ocultar»: como «Ver los 5 ⌄», y esos 52 px eran los que cortaban
+           «Ya ha entra…» a 393 (auditoría de diseño 237, P1-1). */
         React.createElement("span",{className:"pr6-paid-t"}, React.createElement("span",{className:"pr6-paid-l"}, t("pr6_ya_pagados")),React.createElement("span",{className:"pr6-n"},"· "+v.paid.length)),
         React.createElement("span",{className:"pr6-paid-amt num"}, eur(v.paidTotal)),
-        React.createElement("span",{className:"pr6-paid-v","aria-hidden":"true"}, paidOpen?t("pr6_ocultar"):t("pr6_ver")),
         pr6Chev()),
       React.createElement("div",{className:"pr6-fold"+(paidOpen?" open":""),id:"pr6-paid-list"},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(paidOpen)), v.paid.map(paidRow), pausados.map(pausadoRow)))),
@@ -1213,7 +1218,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
         React.createElement("span",{className:"pr6-paid-t"}, React.createElement("span",{className:"pr6-paid-l"}, t("fl_ya_entrado")),React.createElement("span",{className:"pr6-n"},"· "+flowsDone.length)),
         React.createElement("span",{className:"pr6-paid-amt num","data-testid":"plan-entrado-total"}, entTotal>0?"+"+eur(entTotal):""),
-        React.createElement("span",{className:"pr6-paid-v","aria-hidden":"true"}, entOpen?t("pr6_ocultar"):t("pr6_ver")),
         pr6Chev()),
       React.createElement("div",{className:"pr6-fold"+(entOpen?" open":""),id:"pr6-ent-list"},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(entOpen)), flowsDone.map(entRow))))),
@@ -4706,6 +4710,8 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       !sinNada && React.createElement("div",{className:"v4-legend"},
         parts.map(function(x){
           const on=!!selParts[x.k];
+          // Punto y texto, sin cápsula: con ella «Bienes» bajaba solo a otro renglón a 393 y a 360
+          // iba una por renglón (auditoría de diseño 237, P2-9).
           return React.createElement("button",{key:x.k,type:"button",className:"v4-legend-btn"+(on?"":" off"),
             "aria-pressed":on,onClick:function(){ togglePart(x.k); }},
             React.createElement("b",{style:{background:x.color}}), x.lab+" "+eur0(x.v));
@@ -4736,8 +4742,8 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       { id:"cuentas", el:React.createElement(React.Fragment,null,
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
           onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy,titulo:t("v4_cuentas"),
-          /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
-             bancos» escritos, el título se partía en dos líneas en su móvil. Llevan su `title` y
+          /* Sincronizar es un icono y Conectar un «Añadir» corto (11/9 y 237): con «Conectar cuentas»
+             y «↻ Sincronizar bancos» escritos, el título se partía en dos líneas en su móvil. Llevan
              su `aria-label`, así que no se pierde el nombre para quien lo necesite. */
           iconos:React.createElement(React.Fragment,null,
             // Sync a demanda: el auto-sync al abrir la app se retiró (los bancos veían «bot» y
@@ -4752,14 +4758,13 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M21 21v-5h-5"}))),
             // Misma puerta que Inicio → Próximos cargos (11/9): sin esto solo se conectaba
             // desde ahí o desde Ajustes, y en Cartera → Tus cuentas no había forma.
-            React.createElement("button",{type:"button",className:"v4-ic-mini",
-              title:t("v4_connect_accounts"),"aria-label":t("v4_connect_accounts"),
+            /* «Añadir» en menta, como Bienes: el cuadrado con un banco y un «+» era el único botón-icono
+               suelto de las cabeceras de Cartera (auditoría de diseño 237, P2-8). El nombre largo
+               sigue en el aria-label. */
+            React.createElement("button",{type:"button",className:"link","data-act":"bank-add",
+              "aria-label":t("v4_connect_accounts"),
               onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},
-              React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2",strokeLinecap:"round",strokeLinejoin:"round"},
-                React.createElement("path",{d:"M3 9.5 12 4l9 5.5"}),
-                React.createElement("path",{d:"M5 10v8M10 10v8M14 10v5M19 10v3"}),
-                React.createElement("path",{d:"M3 20h11"}),
-                React.createElement("path",{d:"M18 16v6M15 19h6"})))
+              t("pf_add"))
           )})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco (feedback 2026-07-25).

@@ -57,7 +57,7 @@ test("Cartera › Inversiones: los tres brókers se pintan, en orden, con sus im
   await expect(lossPos.locator(".rvsub.neg")).toContainText(/−200(?:[.,]00)?\s*€\s*·\s*−20[.,]00%/);
   await expect(listaInv.locator('[data-inv-position="i5"] .rvsub')).toHaveCount(0);
   // El redondeo/Saveback no pertenecía al sheet que se retira: sigue en Cartera y operativo.
-  await expect(page.getByText(/Round-up & Saveback \(TR\)/).first()).toBeVisible();
+  await expect(page.getByText(/Redondeo de Trade Republic/).first()).toBeVisible();
 });
 
 test("Cartera › Inversiones: bróker sin posiciones no deja bloque fantasma", async ({ page }) => {

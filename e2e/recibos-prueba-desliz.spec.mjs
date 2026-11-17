@@ -316,7 +316,10 @@ test("a 360 px el aviso de la prueba gratis cabe en un renglón", async ({ page 
   expect(alto).toBeLessThan(linea * 1.5);
 });
 
-test("a 360 px: la permanencia en una línea y las dos píldoras del mismo ancho (auditoría 222, P2-7 y P2-8)", async ({ page }) => {
+/* Las píldoras, en FILA también a 360 (auditoría de diseño 237, P2-2): apiladas la tarjeta cambiaba de
+   forma según el móvil. «Te deben 14,95 €» entero no cabe en media fila a 360, así que esa toma lo justo
+   y la otra el resto; donde caben (412) miden lo mismo (`recibos-cartera-sin-cortes`). */
+test("a 360 px: la permanencia en una línea y las dos píldoras en fila y enteras (auditoría 222 P2-7, 237 P2-2)", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   // Con alguien que te debe, para que salgan las dos píldoras («Te llega» y «Te deben»).
   const fixed = datos().map((r) => r.id !== "agua" ? r : Object.assign({}, r, { bankAmount: 34.95, reparto: [{ id: "pe_pareja", n: "Pareja", via: "bizum", amt: 14.95 }] }));
@@ -325,7 +328,8 @@ test("a 360 px: la permanencia en una línea y las dos píldoras del mismo ancho
   await expect(why).toHaveText("Permanencia: nov 2026");
   const alto = await why.evaluate((e) => [e.getBoundingClientRect().height, parseFloat(getComputedStyle(e).lineHeight) || parseFloat(getComputedStyle(e).fontSize) * 1.4]);
   expect(alto[0]).toBeLessThan(alto[1] * 1.5);
-  const anchos = await recibos.locator(".pr6-pills .pr6-pill").evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().width)));
-  expect(anchos.length).toBe(2);
-  expect(Math.abs(anchos[0] - anchos[1])).toBeLessThanOrEqual(1);
+  const pills = await recibos.locator(".pr6-pills .pr6-pill").evaluateAll((els) => els.map((e) => ({ top: Math.round(e.getBoundingClientRect().top), cw: e.clientWidth, sw: e.scrollWidth })));
+  expect(pills.length).toBe(2);
+  expect(pills[0].top, "en la misma fila").toBe(pills[1].top);
+  for (const p of pills) expect(p.sw).toBeLessThanOrEqual(p.cw + 1);
 });

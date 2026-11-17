@@ -138,7 +138,7 @@ const LANG = {
     pr6_por_pagar:"Por pagar", pr6_ojo_ocultar:"Ocultar importes", pr6_ojo_ver:"Enseñar importes",
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     // Plan › Recibos v6 (SPEC docs/design/plan-recibos): una línea útil o nada.
-    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}", pr6_ver:"Ver", pr6_ocultar:"Ocultar",
+    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}",
     pr6_count:"{n} recibos", pr6_count_one:"1 recibo", pr6_count_week:"{n} esta semana", pr6_all_paid:"Todo pagado", pr6_nada:"Nada pendiente este mes",
     pr6_llega:"Te llega", pr6_falta:"Falta {x}", pr6_no_llegado:"No ha llegado",
     pr6_hoy:"hoy", pr6_manana:"mañana", pr6_en_dias:"en {n} días", pr6_tocaba_ayer:"tocaba ayer", pr6_tocaba:"tocaba hace {n} días",
@@ -476,7 +476,7 @@ const LANG = {
     v4s_row_from:"from {bank}", v4s_row_debt:"the {name} installment", v4s_row_income:"into {bank}", v4s_row_to:"moving to {bank}", v4s_row_invest:"setting aside to invest in {bank}",
     pr6_por_pagar:"To pay", pr6_ojo_ocultar:"Hide amounts", pr6_ojo_ver:"Show amounts",
     v4_ver_mas:"See more · {n}", v4_ver_menos:"See less",
-    pr6_revisar:"To review", pr6_ya_pagados:"Already paid", pr6_todos:"All", pr6_ver_los:"See all {n}", pr6_ver:"Show", pr6_ocultar:"Hide",
+    pr6_revisar:"To review", pr6_ya_pagados:"Already paid", pr6_todos:"All", pr6_ver_los:"See all {n}",
     pr6_count:"{n} bills", pr6_count_one:"1 bill", pr6_count_week:"{n} this week", pr6_all_paid:"All paid", pr6_nada:"Nothing left this month",
     pr6_llega:"You're covered", pr6_falta:"Short {x}", pr6_no_llegado:"Hasn't arrived",
     pr6_hoy:"today", pr6_manana:"tomorrow", pr6_en_dias:"in {n} days", pr6_tocaba_ayer:"due yesterday", pr6_tocaba:"due {n} days ago",
@@ -801,7 +801,7 @@ const LANG = {
     v4s_row_from:"surt de {bank}", v4s_row_debt:"la quota de {name}", v4s_row_income:"t'entra a {bank}", v4s_row_to:"el que passes a {bank}", v4s_row_invest:"el que apartes per invertir a {bank}",
     pr6_por_pagar:"Per pagar", pr6_ojo_ocultar:"Amagar imports", pr6_ojo_ver:"Mostrar imports",
     v4_ver_mas:"Veure més · {n}", v4_ver_menos:"Veure menys",
-    pr6_revisar:"Per revisar", pr6_ya_pagados:"Ja pagats", pr6_todos:"Tots", pr6_ver_los:"Veure'ls tots ({n})", pr6_ver:"Veure", pr6_ocultar:"Amagar",
+    pr6_revisar:"Per revisar", pr6_ya_pagados:"Ja pagats", pr6_todos:"Tots", pr6_ver_los:"Veure'ls tots ({n})",
     pr6_count:"{n} rebuts", pr6_count_one:"1 rebut", pr6_count_week:"{n} aquesta setmana", pr6_all_paid:"Tot pagat", pr6_nada:"Res pendent aquest mes",
     pr6_llega:"T'arriba", pr6_falta:"Falten {x}", pr6_no_llegado:"No ha arribat",
     pr6_hoy:"avui", pr6_manana:"demà", pr6_en_dias:"d'aquí a {n} dies", pr6_tocaba_ayer:"tocava ahir", pr6_tocaba:"tocava fa {n} dies",
@@ -1128,7 +1128,7 @@ Object.assign(LANG.es,{
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Conectar banco", ac_sync_now:"↻ Sincronizar ahora", ac_reconnect:"⚠ Reconectar", ac_role_q:"¿Para qué la usas?",
   ac_role_fijos:"Para los recibos", ac_role_fijos_d:"De aquí salen la luz, el móvil y el alquiler.", ac_role_diario:"Para el día a día", ac_role_diario_d:"Con esta pagas el súper y los bares.", ac_role_ambos:"Las dos cosas", ac_role_ambos_d:"Recibos y día a día salen de aquí.", ac_last_movs:"Lo último de esta cuenta", ac_last_bank:"Lo último de {bank}", ac_see_all:"Ver todo ›", ac_change_sign:"Cambiar signo",
   st_stale:"datos del {day}",
-  rl_fijos:"🏦 Recibos", rl_diario:"🛒 Gasto diario",
+  rl_fijos:"Recibos", rl_diario:"Diario",
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
@@ -1165,7 +1165,7 @@ Object.assign(LANG.en,{
   ac_fix_balance:"✏️ Fix balance", ac_connect:"🔗 Connect bank", ac_sync_now:"↻ Sync now", ac_reconnect:"⚠ Reconnect", ac_role_q:"What do you use it for?",
   ac_role_fijos:"For the bills", ac_role_fijos_d:"Power, phone and rent come out of here.", ac_role_diario:"For day to day", ac_role_diario_d:"This is the card you pay groceries and bars with.", ac_role_ambos:"Both", ac_role_ambos_d:"Bills and day to day come out of here.", ac_last_movs:"Latest from this account", ac_last_bank:"Latest from {bank}", ac_see_all:"See all ›", ac_change_sign:"Change sign",
   st_stale:"data from {day}",
-  rl_fijos:"🏦 Bills", rl_diario:"🛒 Daily spending",
+  rl_fijos:"Bills", rl_diario:"Daily",
   ob_imported:"🏦 {n} card purchases added to Spending",
   rp_btn:"📸 Month report (image)", rp_spent:"Spent this month", rp_of_budget:"of {b} budget ({p}%)",
   rp_top:"Top categories", rp_networth:"Net worth", rp_footer:"made with Aely",
@@ -1202,7 +1202,7 @@ Object.assign(LANG.ca,{
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Connectar banc", ac_sync_now:"↻ Sincronitzar ara", ac_reconnect:"⚠ Reconnectar", ac_role_q:"Per a què la fas servir?",
   ac_role_fijos:"Per als rebuts", ac_role_fijos_d:"D'aquí surten la llum, el mòbil i el lloguer.", ac_role_diario:"Per al dia a dia", ac_role_diario_d:"Amb aquesta pagues el súper i els bars.", ac_role_ambos:"Les dues coses", ac_role_ambos_d:"Rebuts i dia a dia surten d'aquí.", ac_last_movs:"L'últim d'aquest compte", ac_last_bank:"L'últim de {bank}", ac_see_all:"Veure-ho tot ›", ac_change_sign:"Canviar el signe",
   st_stale:"dades del {day}",
-  rl_fijos:"🏦 Rebuts", rl_diario:"🛒 Despesa diària",
+  rl_fijos:"Rebuts", rl_diario:"Diari",
   ob_imported:"🏦 {n} compres amb targeta afegides a Despeses",
   rp_btn:"📸 Informe del mes (imatge)", rp_spent:"Gastat aquest mes", rp_of_budget:"de {b} de pressupost ({p}%)",
   rp_top:"Top categories", rp_networth:"Patrimoni", rp_footer:"fet amb Aely",
@@ -1989,7 +1989,7 @@ Object.assign(LANG.es,{
   inv_sold_part:"Vendí parte →", inv_value:"Valor", inv_invested:"Invertido", inv_sell_prompt:"¿Qué % de «{name}» has vendido?",
   inv_sell_sub:"Pon el porcentaje (30 = un 30 %). Se ajustan valor, coste y participaciones, y el líquido se apunta como vendido.",
   inv_delete:"Borrar", inv_delete_confirm:"¿Borrar «{name}» de tu cartera?", inv_delete_sub:"Esto no toca tu bróker: solo la quita de la app.",
-  ru_title:"Round-up & Saveback (TR)", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
+  ru_title:"Redondeo de Trade Republic", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
   ru_title_simple:"Redondeo y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
   ru_hint_simple:"Redondea cada compra al euro e invierte la diferencia, más el 1 % que devuelve TR.",
   ru_mult:"Multiplicador del redondeo", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
@@ -2044,7 +2044,7 @@ Object.assign(LANG.en,{
   inv_sold_part:"Sold part →", inv_value:"Value", inv_invested:"Invested", inv_sell_prompt:"What % of “{name}” did you sell?",
   inv_sell_sub:"Enter the percentage (30 = 30 %). Value, cost and shares are adjusted, and the proceeds are logged as sold.",
   inv_delete:"Delete", inv_delete_confirm:"Delete “{name}” from your portfolio?", inv_delete_sub:"This doesn't touch your broker: it only removes it from the app.",
-  ru_title:"Round-up & Saveback (TR)", ru_sub_on:"round-up ×{m} on", ru_sub_off:"off",
+  ru_title:"Trade Republic round-up", ru_sub_on:"round-up ×{m} on", ru_sub_off:"off",
   ru_title_simple:"Round-ups & card reward", ru_sub_simple:"each purchase adds a little to your investing",
   ru_hint_simple:"Rounds each purchase up to the euro and invests the change, plus TR's 1% back.",
   ru_mult:"Round-up multiplier", ru_off:"Off", ru_dest:"Target investment", ru_pick:"Pick an investment…",
@@ -2099,7 +2099,7 @@ Object.assign(LANG.ca,{
   inv_sold_part:"He venut part →", inv_value:"Valor", inv_invested:"Invertit", inv_sell_prompt:"Quin % de «{name}» has venut?",
   inv_sell_sub:"Posa el percentatge (30 = un 30 %). S'ajusten valor, cost i participacions, i el líquid s'apunta com a venut.",
   inv_delete:"Esborra", inv_delete_confirm:"Esborrar «{name}» de la teva cartera?", inv_delete_sub:"Això no toca el teu bròker: només la treu de l'app.",
-  ru_title:"Round-up & Saveback (TR)", ru_sub_on:"arrodoniment ×{m} actiu", ru_sub_off:"desactivat",
+  ru_title:"Arrodoniment de Trade Republic", ru_sub_on:"arrodoniment ×{m} actiu", ru_sub_off:"desactivat",
   ru_title_simple:"Arrodoniment i regal per pagar", ru_sub_simple:"cada compra suma una miqueta a la teva inversió",
   ru_hint_simple:"Arrodoneix cada compra a l'euro i inverteix la diferència, més l'1 % que torna TR.",
   ru_mult:"Multiplicador de l'arrodoniment", ru_off:"No", ru_dest:"Inversió destí", ru_pick:"Tria una inversió…",
@@ -4247,7 +4247,7 @@ Object.assign(LANG.ca, {
 });
 // Plan › Recibos v6, tanda 5: personas, recibos compartidos, «Te deben» y «Lo descuento» (SPEC §5-§6).
 Object.assign(LANG.es,{
-  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya te ha pagado su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
+  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya pagó su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
   pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
   pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_deben_saldar:"Dar por pagado", pr6_deben_parcial:"pagó {a} · falta {b}", pr6_deben_via_dia:"{via} el {d}", pr6_te_lo_ha_pagado:"Te lo ha pagado", pr6_deben_pend:"pendiente",
   pe_title:"Personas", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
@@ -4259,7 +4259,7 @@ Object.assign(LANG.es,{
   rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda", pe_viejo_ajustar:"En {name} ajustarás las partes antes de guardar"
 });
 Object.assign(LANG.en,{
-  pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_su_parte_ok:"their share is paid", pr6_su_parte_falta:"their share is pending", pr6_tu_parte:"Your share {x}",
+  pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_su_parte_ok:"share paid", pr6_su_parte_falta:"share pending", pr6_tu_parte:"Your share {x}",
   pr6_te_deben:"You're owed {x}", pr6_te_deben_t:"You're owed", pr6_te_han_pagado_todos:"Everyone has paid you",
   pr6_ya_me_lo_ha_pagado:"They've paid me", pr6_deben_saldar:"Mark as paid", pr6_deben_parcial:"paid {a} · {b} left", pr6_deben_via_dia:"{via}, day {d}", pr6_te_lo_ha_pagado:"Paid you", pr6_deben_pend:"pending",
   pe_title:"People", pe_add:"Add a person", pe_nueva:"New person", pe_nombre:"Name",
@@ -4271,7 +4271,7 @@ Object.assign(LANG.en,{
   rp5_rehacer:"These shares no longer added up: check them and save", pe_viejo_ajustar:"You'll adjust the shares of {name} before saving"
 });
 Object.assign(LANG.ca,{
-  pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_su_parte_ok:"ja t'ha pagat la seva part", pr6_su_parte_falta:"falta la seva part", pr6_tu_parte:"La teva part {x}",
+  pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_su_parte_ok:"ja ha pagat la part", pr6_su_parte_falta:"falta la seva part", pr6_tu_parte:"La teva part {x}",
   pr6_te_deben:"Et deuen {x}", pr6_te_deben_t:"Et deuen", pr6_te_han_pagado_todos:"T'han pagat tots",
   pr6_ya_me_lo_ha_pagado:"Ja m'ho ha pagat", pr6_deben_saldar:"Dona-ho per pagat", pr6_deben_parcial:"ha pagat {a} · falta {b}", pr6_deben_via_dia:"{via} el dia {d}", pr6_te_lo_ha_pagado:"T'ho ha pagat", pr6_deben_pend:"pendent",
   pe_title:"Persones", pe_add:"Afegir una persona", pe_nueva:"Persona nova", pe_nombre:"Nom",

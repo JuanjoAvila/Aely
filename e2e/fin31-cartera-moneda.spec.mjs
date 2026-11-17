@@ -67,7 +67,8 @@ test('FIN31 missing FX: broker unknown and FIN06 partial totals, original rows s
  const before=await boot(p,'EUR',{});await capture(p,info,'missing-fx-base');
  await money(broker(p,'revolut').locator('.am'),'—');await expect(broker(p,'revolut')).toContainText('Sin conversión');
  await money(p.locator('.cartera-hero-amt'),'1.950,40 €');await expect(p.locator('.page [data-fx-incomplete]').first()).toBeVisible();
- await money(broker(p,'trade_republic').locator('.am'),'1.200 €');await money(broker(p,'sabadell').locator('.am'),'0 €');
+ // Fila de bróker de Cartera con céntimos, como las cuentas (auditoría de diseño 237, P2-9).
+ await money(broker(p,'trade_republic').locator('.am'),'1.200,40 €');await money(broker(p,'sabadell').locator('.am'),'0,00 €');
  await p.locator('.botnav-tab[data-tour="inicio"]').click();await money(p.locator('[data-testid="inicio-net-current"] [data-tour="hero-amt"]'),'—');await p.locator('.botnav-tab[data-tour="cartera"]').click();
  await openChild(p);await money(child(p).locator('[data-inv-hero] .serif'),'1.200,40 €');await expect(child(p).locator('[data-fx-incomplete]')).toContainText('Total incompleto');await money(child(p).locator('[data-broker-key="revolut"] .am'),'—');
  await child(p).locator('[data-broker-key="revolut"]').click();await expect(child(p).locator('[data-inv-position="rv-usd"]')).toContainText('200,00 USD · Sin conversión');
