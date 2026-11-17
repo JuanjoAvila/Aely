@@ -157,7 +157,8 @@ test("alta desde el buscador sin resultados: misma categoría e importe parecido
 });
 
 /* Filas de Recibos a 412 px (su OnePlus 13). Antes: fecha grande, nombre, banco y «en 14 días» en
-   renglones sueltos, y una cuota de deuda en cuatro. Ahora una línea de subtítulo con elipsis. */
+   renglones sueltos, y una cuota de deuda en cuatro. Ahora una línea de subtítulo y «cuándo» debajo
+   del importe (auditoría de diseño 237: con todo en el subtítulo, lo de delante se cortaba). */
 test("filas compactas a 412 px: una línea de subtítulo, también la cuota de deuda", async ({ page }) => {
   const recibos = await abrePlan(page, {
     fixed: [recibo("luz", "GC RE OCTOPUS ENERGY SL FACTURA", 52, 25, { category: "luz" }), recibo("gas", "Gas", 41, 25, { category: "gas" }),
@@ -169,15 +170,15 @@ test("filas compactas a 412 px: una línea de subtítulo, también la cuota de d
   await expect(filas.first()).toBeVisible();
   const medidas = await filas.evaluateAll((els) => els.map((e) => {
     const sub = e.querySelector(".sub"), lh = parseFloat(getComputedStyle(sub).lineHeight) || parseFloat(getComputedStyle(sub).fontSize) * 1.3;
-    return { id: e.getAttribute("data-recibo"), alto: Math.round(e.getBoundingClientRect().height), sub: sub.textContent, renglones: Math.round(sub.getBoundingClientRect().height / lh * 10) / 10 };
+    return { id: e.getAttribute("data-recibo"), alto: Math.round(e.getBoundingClientRect().height), sub: sub.textContent, cuando: (e.querySelector(".pr6-am .pr6-when") || {}).textContent, renglones: Math.round(sub.getBoundingClientRect().height / lh * 10) / 10 };
   }));
   test.info().annotations.push({ type: "altos-412", description: JSON.stringify(medidas) });
   for (const m of medidas) {
-    // Una sola línea de subtítulo, con «cuándo» dentro.
+    // Una sola línea de subtítulo; «cuándo», debajo del importe.
     expect(m.renglones, m.id + ": " + m.sub).toBeLessThanOrEqual(1.1);
-    expect(m.sub, m.id).toMatch(/en \d+ días|mañana|hoy/);
+    expect(m.cuando, m.id).toMatch(/en \d+ días|mañana|hoy/);
     // Como el prototipo: casilla de 56 px + 12 + 12 de relleno + borde, ≈ 82 px.
     expect(m.alto, m.id).toBeLessThanOrEqual(84);
   }
-  expect(medidas.find((m) => /^debt_/.test(m.id)).sub).toMatch(/^cuota · Trade Republic ?· en \d+ días$/);
+  expect(medidas.find((m) => /^debt_/.test(m.id)).sub).toBe("cuota · Trade Republic");
 });

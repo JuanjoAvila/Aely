@@ -895,15 +895,16 @@
   .v4-legend b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
   /* Leyenda de Cartera tocable: marca/desmarca liquidez·inversiones·bienes y el gráfico se
      recalcula (2026-07-18). Apagado = atenuado, sin cambiar el layout. */
-  .v4-legend-btn{display:inline-flex;align-items:center;padding:5px 9px;border-radius:11px;border:1px solid transparent;background:none;color:var(--muted);font-size:12.5px;font-weight:650;font-family:inherit;cursor:pointer;transition:opacity .2s,border-color .2s,background .2s;}
+  /* Punto y texto, sin cápsula (auditoría de diseño 237, P2-9): con el relleno y el borde de la
+     cápsula «Bienes» se quedaba solo en otro renglón a 393 y a 360 bajaban de una en una. */
+  .v4-legend-btn{display:inline-flex;align-items:center;padding:5px 0;border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:650;font-family:inherit;white-space:nowrap;cursor:pointer;transition:opacity .2s;}
   .v4-legend-btn b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
-  .v4-legend-btn:not(.off){border-color:var(--line-soft);background:var(--sur2);}
   .v4-legend-btn.off{opacity:.4;}
-  /* La píldora mide 29 px: el toque crece a 44 por arriba y por abajo, y entre filas se deja el
+  /* El botón mide 29 px: el toque crece a 44 por arriba y por abajo, y entre filas se deja el
      hueco justo para que el toque de una no pise el dibujo de la de abajo (auditoría 14/11). */
   .v4-legend-btn{position:relative;}
-  .v4-legend-btn::after{content:"";position:absolute;inset:-8.5px -3px;}
-  .v4-legend:has(>.v4-legend-btn){row-gap:15px;}
+  .v4-legend-btn::after{content:"";position:absolute;inset:-8.5px -8px;}
+  .v4-legend:has(>.v4-legend-btn){row-gap:15px;column-gap:18px;}
   .v4-seg{display:flex;gap:4px;background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:4px;margin-bottom:14px;}
   .v4-seg-btn{flex:1;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
   .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
@@ -1059,13 +1060,15 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Las dos miden lo mismo
-     (SPEC §2.2): parten de la mitad y, si una no cabe en ella (360 px, letra al 110 %), las dos bajan
-     a su renglón enteras en vez de quedar una ancha y otra estrecha (auditoría de la 222, P2-8) o de
-     perder la flecha o cortar la cifra (auditoría 4.26.218). En estrecho se aprieta el relleno. */
+  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. En FILA también a 360 y
+     393 (SPEC §2.2; auditoría de diseño 237, P2-2): apiladas, la tarjeta cambiaba de forma según el
+     móvil y empujaba «Para revisar» fuera del primer pantallazo. Las dos parten de cero y crecen igual
+     (mismo tamaño donde caben); si «Te deben 10,00 €» no cabe en la mitad, esa se queda con lo justo
+     para ir entera y la otra con el resto. Solo si las dos juntas no caben (letra del sistema muy
+     grande) bajan a su renglón, enteras: ni flecha perdida ni cifra cortada (auditoría 4.26.218). */
   .pr6-pills{display:flex;flex-wrap:wrap;gap:8px;container:pr6pildoras / inline-size;}
   @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill{padding:0 10px;gap:6px;} }
-  .pr6-pill{flex:1 1 calc(50% - 4px);min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
+  .pr6-pill{flex:1 1 0;min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
   .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
   /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */
@@ -1093,15 +1096,22 @@
   .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
   .pr6-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
-  .pr6-sub-cat{display:flex;min-width:0;white-space:nowrap;}
-  .pr6-cat{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-bk{flex:none;margin-left:.3em;}
-  .pr6-when{font-size:13px;font-weight:700;color:var(--muted);}
+  /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
+     renglón parte ENTRE trozos (`mcTrozos`, también en Cartera); cada trozo corto va entero. */
+  .pr6-sub-cat{display:block;min-width:0;}
+  .mc-pt{white-space:nowrap;}
+  /* Baldosa de los bienes: la caja de 44 de las cuentas, en superficie (el blanco es de los logos). */
+  .v4-mov .tile.v4-bien-tile{width:44px;height:44px;margin:0 1px;background:var(--surface-2);}
+  /* Columna derecha: el importe y, debajo, cuándo toca (como Suscripciones). */
+  .pr6-am{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+  .pr6-when{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;}
   .pr6-when.soon{color:var(--text);}
   /* 19 px y no --fs-row-amt: es la medida del SPEC de Recibos (docs/design/plan-recibos),
      que manda sobre la escala general (lote 235, DIS-38). */
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
-  .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
+  /* El motivo es una subfila más, como la de «Por pagar»: en negrita y blanco pesaba lo mismo que
+     el nombre (auditoría de diseño 237, P2-3). El icono y la sección ya dicen que hay que mirarlo. */
+  .pr6-rev .pr6-why{font-weight:500;color:var(--muted);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
   /* Recorta el pliegue, NO su contenido. Con la rejilla a menos de 1fr el navegador da a la caja
      f·alto y a la fila de dentro f·(f·alto): si recortaba `.pr6-fold-in`, lo visible crecía como f² y
@@ -1143,22 +1153,14 @@
   .pr6-paid{margin-top:14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;}
   .pr6-paid-h{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
   .pr6-tick{width:28px;height:28px;flex:none;border-radius:14px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
-  /* Una línea pase lo que pase (letra del sistema al 110 %, 360 px): si no cabe, se acorta la palabra
-     con «…» y el número de pagados, el importe y «Ver» se quedan enteros. */
-  .pr6-paid-t{flex:1;min-width:0;display:flex;align-items:baseline;white-space:nowrap;font-size:16px;font-weight:700;}
-  .pr6-paid-l{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  /* Una línea donde cabe; sin elipsis (auditoría de diseño 237: «Ya ha entra…»). Con la letra muy
+     grande el título baja de renglón entero antes que cortarse. */
+  .pr6-paid-t{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;font-size:16px;font-weight:700;}
+  .pr6-paid-l{white-space:nowrap;}
   .pr6-paid-t .pr6-n{flex:none;margin-left:4px;}
   .pr6-paid-amt{flex:none;white-space:nowrap;font-size:15px;font-weight:700;color:var(--muted);}
-  .pr6-paid-v{flex:none;min-width:52px;text-align:right;white-space:nowrap;font-size:14px;font-weight:700;color:var(--mint-bright);}
-  /* Donde «Ver» no cabe (360 px, o 412 px con la letra grande) la flecha ocupa su sitio: 14 px en vez
-     de 52 y se sigue viendo que se despliega. Medido en «em» para que la letra del sistema cuente. */
-  .pr6-paid{container:pr6pagados / inline-size;}
-  .pr6-paid-h .pr6-chev{display:none;color:var(--mint-bright);}
+  .pr6-paid-h .pr6-chev{display:block;color:var(--mint-bright);}
   .pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
-  @container pr6pagados (max-width:21.6em){
-    .pr6-paid-h .pr6-paid-v{display:none;}
-    .pr6-paid-h .pr6-chev{display:block;}
-  }
   .pr6-paid .pr6-fold{margin-top:0;}
   .pr6-paid .pr6-fold-in{gap:0;}
   .pr6-paid .v4-charge.pr6-prow{width:100%;padding:11px 16px;gap:12px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
@@ -1541,7 +1543,6 @@
   html[data-theme="light"] .pr6-mg-sec .pr6-row .am.pos,
   html[data-theme="light"] .pr6-tick,
   html[data-theme="light"] .pr6-baja,
-  html[data-theme="light"] .pr6-paid-v,
   html[data-theme="light"] .pr6-paid-h .pr6-chev,
   html[data-theme="light"] .pr6-ll-row .num.pos,
   html[data-theme="light"] .profile-handle,
@@ -2744,18 +2745,17 @@
   html.sheet-open .v4-sheet,html.sheet-open .v4-sheet-body,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
   html.sheet-open .v4-sheet-back{pointer-events:auto;}
   .v4-link-mini{display:inline-flex;align-items:center;gap:4px;margin-top:8px;min-height:44px;padding:10px 14px;border-radius:999px;border:none;background:rgba(95,208,138,.16);color:var(--mint);font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer;}
-  /* Los dos accesos de «Tus cuentas» (sincronizar y conectar), en icono (2026-09-11). Iban como
-     dos píldoras de texto y entre las tres cosas el título se partía en DOS líneas en su móvil:
-     «me falta lo de sincronizar y añadir cuenta quizás con iconos distintivos pequeños, y así
-     "tus cuentas" cabe entero y no en dos líneas». 31 px es el mínimo que sigue siendo cómodo de
-     tocar sin que la cabecera crezca. */
+  /* Sincronizar bancos, en icono (2026-09-11): con dos píldoras de texto el título de «Tus cuentas»
+     se partía en DOS líneas en su móvil. Conectar es ya un «Añadir» corto como el de Bienes
+     (auditoría de diseño 237, P2-8). 31 px es el mínimo que sigue siendo cómodo de tocar sin que
+     la cabecera crezca. */
   .v4-ic-mini{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
     background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;position:relative;}
   /* El dibujo sigue de 31 px; el dedo tiene 44 (DIS-48): 7,5 px por lado desde dentro del borde.
-     Por eso el hueco entre los dos iconos es de 13 px: con 7 el área del primero quedaba tapada
-     por la del segundo. */
+     Por eso el hueco con «Añadir» (que tiene 8 px de margen negativo) es de 16 px: así las dos áreas
+     de toque no se pisan. */
   .v4-ic-mini::after{content:"";position:absolute;inset:-7.5px;}
-  .v4-sec-acts{display:flex;align-items:center;gap:13px;flex:0 0 auto;}
+  .v4-sec-acts{display:flex;align-items:center;gap:16px;flex:0 0 auto;}
   .v4-ic-mini svg{width:16px;height:16px;display:block;}
   /* Un solo patrón para las acciones de cada bloque de Cartera (DIS-32): enlace a la derecha
      del título, como en Inicio. El margen negativo le da 44 px de dedo sin engordar el título. */
@@ -8672,7 +8672,7 @@ const LANG = {
     pr6_por_pagar:"Por pagar", pr6_ojo_ocultar:"Ocultar importes", pr6_ojo_ver:"Enseñar importes",
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     // Plan › Recibos v6 (SPEC docs/design/plan-recibos): una línea útil o nada.
-    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}", pr6_ver:"Ver", pr6_ocultar:"Ocultar",
+    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}",
     pr6_count:"{n} recibos", pr6_count_one:"1 recibo", pr6_count_week:"{n} esta semana", pr6_all_paid:"Todo pagado", pr6_nada:"Nada pendiente este mes",
     pr6_llega:"Te llega", pr6_falta:"Falta {x}", pr6_no_llegado:"No ha llegado",
     pr6_hoy:"hoy", pr6_manana:"mañana", pr6_en_dias:"en {n} días", pr6_tocaba_ayer:"tocaba ayer", pr6_tocaba:"tocaba hace {n} días",
@@ -8974,7 +8974,7 @@ Object.assign(LANG.es,{
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Conectar banco", ac_sync_now:"↻ Sincronizar ahora", ac_reconnect:"⚠ Reconectar", ac_role_q:"¿Para qué la usas?",
   ac_role_fijos:"Para los recibos", ac_role_fijos_d:"De aquí salen la luz, el móvil y el alquiler.", ac_role_diario:"Para el día a día", ac_role_diario_d:"Con esta pagas el súper y los bares.", ac_role_ambos:"Las dos cosas", ac_role_ambos_d:"Recibos y día a día salen de aquí.", ac_last_movs:"Lo último de esta cuenta", ac_last_bank:"Lo último de {bank}", ac_see_all:"Ver todo ›", ac_change_sign:"Cambiar signo",
   st_stale:"datos del {day}",
-  rl_fijos:"🏦 Recibos", rl_diario:"🛒 Gasto diario",
+  rl_fijos:"Recibos", rl_diario:"Diario",
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
@@ -9309,7 +9309,7 @@ Object.assign(LANG.es,{
   inv_sold_part:"Vendí parte →", inv_value:"Valor", inv_invested:"Invertido", inv_sell_prompt:"¿Qué % de «{name}» has vendido?",
   inv_sell_sub:"Pon el porcentaje (30 = un 30 %). Se ajustan valor, coste y participaciones, y el líquido se apunta como vendido.",
   inv_delete:"Borrar", inv_delete_confirm:"¿Borrar «{name}» de tu cartera?", inv_delete_sub:"Esto no toca tu bróker: solo la quita de la app.",
-  ru_title:"Round-up & Saveback (TR)", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
+  ru_title:"Redondeo de Trade Republic", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
   ru_title_simple:"Redondeo y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
   ru_hint_simple:"Redondea cada compra al euro e invierte la diferencia, más el 1 % que devuelve TR.",
   ru_mult:"Multiplicador del redondeo", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
@@ -10880,7 +10880,7 @@ Object.assign(LANG.es, {
 
 // Plan › Recibos v6, tanda 5: personas, recibos compartidos, «Te deben» y «Lo descuento» (SPEC §5-§6).
 Object.assign(LANG.es,{
-  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya te ha pagado su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
+  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya pagó su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
   pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
   pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_deben_saldar:"Dar por pagado", pr6_deben_parcial:"pagó {a} · falta {b}", pr6_deben_via_dia:"{via} el {d}", pr6_te_lo_ha_pagado:"Te lo ha pagado", pr6_deben_pend:"pendiente",
   pe_title:"Personas", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
@@ -19380,7 +19380,7 @@ function InvestmentRewards({state,set}){
   const ru=(trAcc.roundupManual!=null)?trAcc.roundupManual:ruAuto, sb=(trAcc.savebackManual!=null)?trAcc.savebackManual:sbAuto, tot=state.trRewardsTotal||0;
   const iv=state.investments.find(function(i){ return i.id===trAcc.rewardInv; });
   const invName=iv?iv.name:t("ru_pick");
-  return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):(mult>0?tf("ru_sub_on",{m:mult}):t("ru_sub_off")),dot:"#E6C36A",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
+  return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):(mult>0?tf("ru_sub_on",{m:mult}):t("ru_sub_off")),dot:mult>0?"#E6C36A":"var(--muted-2)",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",marginBottom:6}},t("ru_mult")),
     React.createElement("div",{className:"curtoggle",style:{flexWrap:"wrap",justifyContent:"flex-start"}},
       RU_MULTS.map(function(m){ return React.createElement("button",{key:m,type:"button",className:"curbtn inv-tap"+(mult===m?" on":""),onClick:function(){ setTr({roundup:m}); }}, m===0?t("ru_off"):"×"+m); })),
@@ -19846,7 +19846,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
               React.createElement("div",{className:"meta"}, items.length===1?t("v4_inv_position"):tf("v4_inv_positions",{n:items.length}),sub==null&&React.createElement("div",{className:"hint"},t("fx_unconverted")))
             ),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
-              React.createElement("div",{className:"am num"}, f0(sub)),
+              // En Cartera con céntimos, como las cuentas de encima (auditoría de diseño 237, P2-9); la
+              // pantalla de Inversiones sigue redondeando, que va en la moneda que elijas allí.
+              React.createElement("div",{className:"am num"}, fullMode?f0(sub):f2(sub)),
               React.createElement(I.chev,{className:"chev"+(open?" open":"")})
             )
           ),
@@ -20197,6 +20199,18 @@ function AssetSheet({asset,set,onClose}){
     )),document.body);
 }
 
+/* Trozos de una subfila («Recibos», «Sabadell», «falta su parte») separados por «·», en Plan ›
+   Recibos y en Cartera (auditoría de diseño 237: con elipsis se leía «Sabadell · f…»). El espacio va
+   FUERA de cada trozo para que el renglón solo pueda partir entre ellos; el «·» viaja con el trozo
+   de detrás, así nunca queda colgando al final. Uno largo («pagas 197 € + 53 € de Pepephone») sí
+   puede partir por sus espacios: si no, se saldría de la tarjeta. */
+function mcTrozos(partes, cls){
+  return React.createElement("span",{className:cls||"mc-trozos"},
+    partes.filter(Boolean).map(function(p,i){
+      return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
+        React.createElement("span",{className:String(p).length<=22?"mc-pt":null}, (i>0?"· ":"")+p));
+    }));
+}
 function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   const [sheetAsset,setSheetAsset]=useState(null);
@@ -20266,7 +20280,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     const fixedEffOf=function(a){ return accRole(a)==="ambos" || (accFixed(a) && !(dailyEffOf(a) && dailyOnlyEnts(state).indexOf(a.ent)>=0)); };
     const roleLab=function(a){
       const dy=dailyEffOf(a), fx=fixedEffOf(a);
-      if(dy&&fx) return t("rl_diario")+" · "+t("rl_fijos");
+      if(dy&&fx) return t("rl_diario")+" + "+t("rl_fijos");
       if(dy) return t("rl_diario");
       if(fx) return t("rl_fijos");
       return a.name||"";
@@ -20356,12 +20370,14 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
            misma lista se leían al revés según de dónde viniera cada una. */
         (function(){
           const banco=entOf(a.ent).label, tit=a.name||banco, rol=roleLab(a);
-          const meta=[banco!==tit?banco:"", rol!==a.name?rol:"", shareMeta(a,"account")].filter(Boolean).join(" · ");
+          const meta=[banco!==tit?banco:"", rol!==a.name?rol:"", shareMeta(a,"account")].filter(Boolean);
           return React.createElement("div",{className:"nm"},
             // El nombre se recorta antes que la marca «del banco»: con un nombre largo la marca
             // saltaba sola a otra línea.
             React.createElement("div",{className:"v4-meta-row"},React.createElement("span",{className:"v4-meta-1l"},tit), isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
-            React.createElement("div",{className:"meta v4-meta-row"}, React.createElement("span",{className:"v4-meta-1l"},meta||"—")));
+            /* Sin elipsis (auditoría de diseño 237, P1-5: «CaixaBank · 🛒 Gasto diario…»): trozos
+               enteros que bajan de renglón entre ellos si no caben, como las subfilas de Recibos. */
+            React.createElement("div",{className:"meta v4-meta-trozos"}, meta.length?mcTrozos(meta):"—"));
         })(),
         React.createElement("div",{className:"am num"},eur(shownAcc(a)))
       );
@@ -20491,7 +20507,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
             type:"button",
             style:{width:"100%",textAlign:"left",color:"var(--text)"},
             onClick:function(){ setSheetAsset(a); }},
-            React.createElement("div",{className:"tile"},a.kind==="piso"?"🏡":"🚙"),
+            // Baldosa de 44 como la de las cuentas: suelto, el emoji descuadraba el texto con las filas de arriba (237, P2-9).
+            React.createElement("div",{className:"tile v4-bien-tile"},a.kind==="piso"?"🏡":"🚙"),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,a.name),
               a.note && React.createElement("div",{className:"meta"},a.note)
@@ -31935,7 +31952,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a35fef2eb6f76a7834f3aa07fb65df29d219aa51123918b3169b1ef1ab554fa5";
+var _rnSha="86f09f7bdaf659be260660e8420b70fce2949c103a3f69e9013e2ed7070916f0";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -34380,19 +34397,23 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
      El importe del cargo sigue en el aria-label y en la ficha. */
   const enlazadoTxt=function(x){
     const f=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(enlaces[x.id].x.date||""));
-    return f?tf("pr6_enlazado_d",{d:Number(f[3])+" "+pr6Mes(Number(f[1])*12+Number(f[2]))}):t("pr6_enlazado");
+    // Espacio duro: a 360 px «del 5» y «nov» se separaban en dos renglones (237).
+    return f?tf("pr6_enlazado_d",{d:Number(f[3])+"\u00a0"+pr6Mes(Number(f[1])*12+Number(f[2]))}):t("pr6_enlazado");
   };
-  const subOf=function(x){
+  /* La línea de debajo del nombre, en trozos: «categoría», «banco», «falta su parte»… Se pinta con
+     `mcTrozos`, que parte ENTRE trozos y nunca dentro de uno: con elipsis a 360 px se leía «Sabadell ·
+     f…» y nadie sabía qué faltaba (auditoría de diseño 237, P1-1). */
+  const subPartes=function(x){
     /* Con lo descontado de otro recibo, «pagas 197 € + 53 € de Pepephone» ya dice que es una cuota:
        delante de «cuota de deuda ·» la línea se iba a tres renglones (auditoría 9/11, P2-1). */
     if(x.kind==="debt"||x.kind==="balloon") return enlaces[x.id]
-      ? enlazadoTxt(x)+" · "+(x.descuento?pr6PagasMas(x):entOf(x.bank).label)
-      : (x.descuento?pr6PagasMas(x):t("pr6_cuota")+" · "+entOf(x.bank).label);
+      ? [enlazadoTxt(x),x.descuento?pr6PagasMas(x):entOf(x.bank).label]
+      : (x.descuento?[pr6PagasMas(x)]:[t("pr6_cuota"),entOf(x.bank).label]);
     const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; });
     const cat=f&&f.category&&CAT[f.category]?pr6CatDe(catName(f.category),f.name):"";
-    return (cat?cat+" · ":"")+entOf(x.bank).label
-      +(x.teDeben?" · "+pr6TeHanPagado(x.teDeben):"");
+    return [cat,entOf(x.bank).label,x.teDeben?pr6TeHanPagado(x.teDeben):""].filter(Boolean);
   };
+  const subOf=function(x){ return subPartes(x).join(" · "); };
   // Días que faltan; en la vista del mes siguiente, contados de calendario hasta ese día.
   const diasHasta=function(x){
     if(x.day==null) return null;
@@ -34406,6 +34427,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     if(n===1) return t("pr6_manana");
     if(n>1) return tf("pr6_en_dias",{n:n});
     return n===-1?t("pr6_tocaba_ayer"):tf("pr6_tocaba",{n:-n});
+  };
+  // El importe y, debajo, cuándo toca: la columna derecha de la fila (P1-1).
+  const pr6AmCuando=function(am,x,n){
+    return React.createElement("span",{className:"pr6-am"}, am,
+      x.day!=null&&React.createElement("span",{className:"pr6-when"+(n!=null&&n<=1?" soon":"")}, cuando(x)));
   };
   const esVariable=function(x){ const f=/^fixed_/.test(String(x.id))&&(state.fixed||[]).find(function(e){ return "fixed_"+e.id===x.id; }); return !!(f&&f.variable); };
   const plegado=function(open){ return open?null:{"aria-hidden":"true",inert:""}; };
@@ -34431,14 +34457,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"m"}, monthShort((sig?sigM:month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name,React.createElement(PlanConflictDot,{record:conflictOf(x)})),
-        /* Un renglón: «categoría · banco · en 14 días». Con tres (nombre, banco y cuándo sueltos) cada
-           fila medía 93 px a 412 y una cuota llegaba a cuatro («las tarjetas son enormes», 11/11/2026).
-           Lo que no cabe se acorta por delante; cuándo se queda entero, que es lo que se mira. */
-        React.createElement("span",{className:"sub pr6-sub-cat"},
-          React.createElement("span",{className:"pr6-cat"}, subOf(x)),
-          x.day!=null&&React.createElement("span",{className:"pr6-bk pr6-when"+(n!=null&&n<=1?" soon":"")}, "· "+cuando(x)))),
-      // «Cambia cada mes» (alta por pasos): la cifra es una previsión, se marca con «≈».
-      React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))));
+        /* «categoría · banco» a la izquierda y «cuándo» debajo del importe, como Suscripciones (auditoría
+           de diseño 237, P1-1): en un solo renglón con todo, lo de delante se cortaba en todos los
+           tamaños. Si aun así no cabe, baja de renglón entre trozos; cortado, nunca. */
+        React.createElement("span",{className:"sub pr6-sub-cat"}, mcTrozos(subPartes(x),"pr6-cat"))),
+      pr6AmCuando(React.createElement("span",{className:"am num"}, (esVariable(x)?"≈ ":"")+eur(Math.abs(x.amount))),x,n));
     return withDayPrompt(x,fila);
   };
   /* «No ha llegado» en la fila, como la SPEC (§2.3) y el prototipo: «tocaba hace 8 días» obligaba a
@@ -34511,10 +34534,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("span",{className:"m"}, monthShort((x.dayMes||month)-1))),
       React.createElement("span",{className:"nm"},
         React.createElement("span",{className:"pr6-nm"}, x.name),
-        React.createElement("span",{className:"sub pr6-sub-cat"},
-          React.createElement("span",{className:"pr6-cat"}, flowSub(x)),
-          x.day!=null&&React.createElement("span",{className:"pr6-bk pr6-when"+(n!=null&&n<=1?" soon":"")}, "· "+cuando(x)))),
-      React.createElement("span",{className:"am num"+(x.kind==="income"?" pos":"")}, flowAmt(x)));
+        React.createElement("span",{className:"sub pr6-sub-cat"}, mcTrozos(flowSub(x).split(" · "),"pr6-cat"))),
+      pr6AmCuando(React.createElement("span",{className:"am num"+(x.kind==="income"?" pos":"")}, flowAmt(x)),x,n));
   };
   /* Lo que se ve en cada fila y el total de la cabecera salen de la MISMA cifra (su prueba de la 230:
      el total de arriba no era la suma de las filas): de una entrada con movimiento, lo que trajo el banco,
@@ -34683,10 +34704,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
         /* Una sola línea, como el prototipo: «Previsto» y el chevron la partían en dos con la letra
-           del sistema al 110 % (su captura del 9/11). Lo que se cobró distinto ya lo dice su fila. */
+           del sistema al 110 % (su captura del 9/11). Lo que se cobró distinto ya lo dice su fila.
+           Solo la flecha, sin «Ver»/«Ocultar»: como «Ver los 5 ⌄», y esos 52 px eran los que cortaban
+           «Ya ha entra…» a 393 (auditoría de diseño 237, P1-1). */
         React.createElement("span",{className:"pr6-paid-t"}, React.createElement("span",{className:"pr6-paid-l"}, t("pr6_ya_pagados")),React.createElement("span",{className:"pr6-n"},"· "+v.paid.length)),
         React.createElement("span",{className:"pr6-paid-amt num"}, eur(v.paidTotal)),
-        React.createElement("span",{className:"pr6-paid-v","aria-hidden":"true"}, paidOpen?t("pr6_ocultar"):t("pr6_ver")),
         pr6Chev()),
       React.createElement("div",{className:"pr6-fold"+(paidOpen?" open":""),id:"pr6-paid-list"},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(paidOpen)), v.paid.map(paidRow), pausados.map(pausadoRow)))),
@@ -34709,7 +34731,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
             React.createElement("path",{d:"M5 12.5l4.5 4.5L19 7.5"}))),
         React.createElement("span",{className:"pr6-paid-t"}, React.createElement("span",{className:"pr6-paid-l"}, t("fl_ya_entrado")),React.createElement("span",{className:"pr6-n"},"· "+flowsDone.length)),
         React.createElement("span",{className:"pr6-paid-amt num","data-testid":"plan-entrado-total"}, entTotal>0?"+"+eur(entTotal):""),
-        React.createElement("span",{className:"pr6-paid-v","aria-hidden":"true"}, entOpen?t("pr6_ocultar"):t("pr6_ver")),
         pr6Chev()),
       React.createElement("div",{className:"pr6-fold"+(entOpen?" open":""),id:"pr6-ent-list"},
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(entOpen)), flowsDone.map(entRow))))),
@@ -38195,6 +38216,8 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       !sinNada && React.createElement("div",{className:"v4-legend"},
         parts.map(function(x){
           const on=!!selParts[x.k];
+          // Punto y texto, sin cápsula: con ella «Bienes» bajaba solo a otro renglón a 393 y a 360
+          // iba una por renglón (auditoría de diseño 237, P2-9).
           return React.createElement("button",{key:x.k,type:"button",className:"v4-legend-btn"+(on?"":" off"),
             "aria-pressed":on,onClick:function(){ togglePart(x.k); }},
             React.createElement("b",{style:{background:x.color}}), x.lab+" "+eur0(x.v));
@@ -38225,8 +38248,8 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       { id:"cuentas", el:React.createElement(React.Fragment,null,
         React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
           onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy,titulo:t("v4_cuentas"),
-          /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
-             bancos» escritos, el título se partía en dos líneas en su móvil. Llevan su `title` y
+          /* Sincronizar es un icono y Conectar un «Añadir» corto (11/9 y 237): con «Conectar cuentas»
+             y «↻ Sincronizar bancos» escritos, el título se partía en dos líneas en su móvil. Llevan
              su `aria-label`, así que no se pierde el nombre para quien lo necesite. */
           iconos:React.createElement(React.Fragment,null,
             // Sync a demanda: el auto-sync al abrir la app se retiró (los bancos veían «bot» y
@@ -38241,14 +38264,13 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M21 21v-5h-5"}))),
             // Misma puerta que Inicio → Próximos cargos (11/9): sin esto solo se conectaba
             // desde ahí o desde Ajustes, y en Cartera → Tus cuentas no había forma.
-            React.createElement("button",{type:"button",className:"v4-ic-mini",
-              title:t("v4_connect_accounts"),"aria-label":t("v4_connect_accounts"),
+            /* «Añadir» en menta, como Bienes: el cuadrado con un banco y un «+» era el único botón-icono
+               suelto de las cabeceras de Cartera (auditoría de diseño 237, P2-8). El nombre largo
+               sigue en el aria-label. */
+            React.createElement("button",{type:"button",className:"link","data-act":"bank-add",
+              "aria-label":t("v4_connect_accounts"),
               onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},
-              React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2",strokeLinecap:"round",strokeLinejoin:"round"},
-                React.createElement("path",{d:"M3 9.5 12 4l9 5.5"}),
-                React.createElement("path",{d:"M5 10v8M10 10v8M14 10v5M19 10v3"}),
-                React.createElement("path",{d:"M3 20h11"}),
-                React.createElement("path",{d:"M18 16v6M15 19h6"})))
+              t("pf_add"))
           )})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco (feedback 2026-07-25).

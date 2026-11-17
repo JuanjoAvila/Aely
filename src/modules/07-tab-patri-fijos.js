@@ -333,6 +333,18 @@ function AssetSheet({asset,set,onClose}){
     )),document.body);
 }
 
+/* Trozos de una subfila («Recibos», «Sabadell», «falta su parte») separados por «·», en Plan ›
+   Recibos y en Cartera (auditoría de diseño 237: con elipsis se leía «Sabadell · f…»). El espacio va
+   FUERA de cada trozo para que el renglón solo pueda partir entre ellos; el «·» viaja con el trozo
+   de detrás, así nunca queda colgando al final. Uno largo («pagas 197 € + 53 € de Pepephone») sí
+   puede partir por sus espacios: si no, se saldría de la tarjeta. */
+function mcTrozos(partes, cls){
+  return React.createElement("span",{className:cls||"mc-trozos"},
+    partes.filter(Boolean).map(function(p,i){
+      return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
+        React.createElement("span",{className:String(p).length<=22?"mc-pt":null}, (i>0?"· ":"")+p));
+    }));
+}
 function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   const [sheetAsset,setSheetAsset]=useState(null);
@@ -402,7 +414,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     const fixedEffOf=function(a){ return accRole(a)==="ambos" || (accFixed(a) && !(dailyEffOf(a) && dailyOnlyEnts(state).indexOf(a.ent)>=0)); };
     const roleLab=function(a){
       const dy=dailyEffOf(a), fx=fixedEffOf(a);
-      if(dy&&fx) return t("rl_diario")+" · "+t("rl_fijos");
+      if(dy&&fx) return t("rl_diario")+" + "+t("rl_fijos");
       if(dy) return t("rl_diario");
       if(fx) return t("rl_fijos");
       return a.name||"";
@@ -492,12 +504,14 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
            misma lista se leían al revés según de dónde viniera cada una. */
         (function(){
           const banco=entOf(a.ent).label, tit=a.name||banco, rol=roleLab(a);
-          const meta=[banco!==tit?banco:"", rol!==a.name?rol:"", shareMeta(a,"account")].filter(Boolean).join(" · ");
+          const meta=[banco!==tit?banco:"", rol!==a.name?rol:"", shareMeta(a,"account")].filter(Boolean);
           return React.createElement("div",{className:"nm"},
             // El nombre se recorta antes que la marca «del banco»: con un nombre largo la marca
             // saltaba sola a otra línea.
             React.createElement("div",{className:"v4-meta-row"},React.createElement("span",{className:"v4-meta-1l"},tit), isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
-            React.createElement("div",{className:"meta v4-meta-row"}, React.createElement("span",{className:"v4-meta-1l"},meta||"—")));
+            /* Sin elipsis (auditoría de diseño 237, P1-5: «CaixaBank · 🛒 Gasto diario…»): trozos
+               enteros que bajan de renglón entre ellos si no caben, como las subfilas de Recibos. */
+            React.createElement("div",{className:"meta v4-meta-trozos"}, meta.length?mcTrozos(meta):"—"));
         })(),
         React.createElement("div",{className:"am num"},eur(shownAcc(a)))
       );
@@ -627,7 +641,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
             type:"button",
             style:{width:"100%",textAlign:"left",color:"var(--text)"},
             onClick:function(){ setSheetAsset(a); }},
-            React.createElement("div",{className:"tile"},a.kind==="piso"?"🏡":"🚙"),
+            // Baldosa de 44 como la de las cuentas: suelto, el emoji descuadraba el texto con las filas de arriba (237, P2-9).
+            React.createElement("div",{className:"tile v4-bien-tile"},a.kind==="piso"?"🏡":"🚙"),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,a.name),
               a.note && React.createElement("div",{className:"meta"},a.note)

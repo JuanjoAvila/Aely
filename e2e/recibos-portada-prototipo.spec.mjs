@@ -78,14 +78,12 @@ for (const vp of [{ width: 412, height: 915 }, { width: 360, height: 780 }]) {
         const [cw, sw] = await paid.locator(sel).evaluate((e) => [e.clientWidth, e.scrollWidth]);
         expect(sw).toBeLessThanOrEqual(cw + 1);
       }
-      // «Ver» como el prototipo donde cabe; donde no, la flecha en su sitio (nunca las dos, nunca ninguna).
-      const ver = await paid.locator(".pr6-paid-v").isVisible(), flecha = await paid.locator(".pr6-paid-h .pr6-chev").isVisible();
-      expect(ver !== flecha).toBe(true);
-      if (vp.width === 412 && !grande) expect(ver).toBe(true);
+      // Solo la flecha, en todos los tamaños: «Ver» se comía el sitio y cortaba «Ya ha entra…» (237).
+      await expect(paid.locator(".pr6-paid-h .pr6-chev")).toBeVisible();
+      await expect(h).not.toContainText(/Ver|Ocultar/);
     }
     await h.click();
     await expect(h).toHaveAttribute("aria-expanded", "true");
-    if (await paid.locator(".pr6-paid-v").isVisible()) await expect(paid.locator(".pr6-paid-v")).toHaveText("Ocultar");
   });
 }
 
@@ -99,10 +97,15 @@ test("portada: tres en «Para revisar», «Todos ›» abre la gestión y «Por 
 
   const due = recibos.getByTestId("plan-due");
   const basuras = due.locator('[data-recibo="fixed_bas"]');
-  // «categoría · banco · cuándo» en UN renglón (11/11/2026): lo de delante se acorta si no cabe; cuándo, no.
+  // «categoría · banco» a la izquierda y cuándo debajo del importe (auditoría de diseño 237, P1-1):
+  // en un renglón con todo, lo de delante se cortaba con «…». A 360 una categoría larga baja de
+  // renglón ENTRE trozos (como mucho dos), nunca cortada; a 412 va en uno (`recibos-tres-y-duplicado`).
   await expect(basuras.locator(".pr6-cat")).toHaveText("Impuestos y multas · Sabadell");
-  await expect(basuras.locator(".sub .pr6-when")).toHaveText("· en 5 días");
-  expect(await renglones(basuras.locator(".sub"))).toBeLessThan(1.5);
+  await expect(basuras.locator(".pr6-am .pr6-when")).toHaveText("en 5 días");
+  expect(await renglones(basuras.locator(".sub"))).toBeLessThan(2.5);
+  const [cw, sw] = await basuras.locator(".sub").evaluate((e) => [e.clientWidth, e.scrollWidth]);
+  expect(sw).toBeLessThanOrEqual(cw + 1);
+  expect(await basuras.locator(".mc-pt").evaluateAll((ps) => ps.every((p) => p.getClientRects().length === 1))).toBe(true);
   // Con una sola persona no sale «te han pagado 0 de 1».
   await expect(due.locator('[data-recibo="fixed_pepe"] .sub')).toContainText("falta su parte");
   await expect(due).not.toContainText("de 1");

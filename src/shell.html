@@ -895,15 +895,16 @@
   .v4-legend b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
   /* Leyenda de Cartera tocable: marca/desmarca liquidez·inversiones·bienes y el gráfico se
      recalcula (2026-07-18). Apagado = atenuado, sin cambiar el layout. */
-  .v4-legend-btn{display:inline-flex;align-items:center;padding:5px 9px;border-radius:11px;border:1px solid transparent;background:none;color:var(--muted);font-size:12.5px;font-weight:650;font-family:inherit;cursor:pointer;transition:opacity .2s,border-color .2s,background .2s;}
+  /* Punto y texto, sin cápsula (auditoría de diseño 237, P2-9): con el relleno y el borde de la
+     cápsula «Bienes» se quedaba solo en otro renglón a 393 y a 360 bajaban de una en una. */
+  .v4-legend-btn{display:inline-flex;align-items:center;padding:5px 0;border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:650;font-family:inherit;white-space:nowrap;cursor:pointer;transition:opacity .2s;}
   .v4-legend-btn b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
-  .v4-legend-btn:not(.off){border-color:var(--line-soft);background:var(--sur2);}
   .v4-legend-btn.off{opacity:.4;}
-  /* La píldora mide 29 px: el toque crece a 44 por arriba y por abajo, y entre filas se deja el
+  /* El botón mide 29 px: el toque crece a 44 por arriba y por abajo, y entre filas se deja el
      hueco justo para que el toque de una no pise el dibujo de la de abajo (auditoría 14/11). */
   .v4-legend-btn{position:relative;}
-  .v4-legend-btn::after{content:"";position:absolute;inset:-8.5px -3px;}
-  .v4-legend:has(>.v4-legend-btn){row-gap:15px;}
+  .v4-legend-btn::after{content:"";position:absolute;inset:-8.5px -8px;}
+  .v4-legend:has(>.v4-legend-btn){row-gap:15px;column-gap:18px;}
   .v4-seg{display:flex;gap:4px;background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:4px;margin-bottom:14px;}
   .v4-seg-btn{flex:1;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
   .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
@@ -1059,13 +1060,15 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Las dos miden lo mismo
-     (SPEC §2.2): parten de la mitad y, si una no cabe en ella (360 px, letra al 110 %), las dos bajan
-     a su renglón enteras en vez de quedar una ancha y otra estrecha (auditoría de la 222, P2-8) o de
-     perder la flecha o cortar la cifra (auditoría 4.26.218). En estrecho se aprieta el relleno. */
+  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. En FILA también a 360 y
+     393 (SPEC §2.2; auditoría de diseño 237, P2-2): apiladas, la tarjeta cambiaba de forma según el
+     móvil y empujaba «Para revisar» fuera del primer pantallazo. Las dos parten de cero y crecen igual
+     (mismo tamaño donde caben); si «Te deben 10,00 €» no cabe en la mitad, esa se queda con lo justo
+     para ir entera y la otra con el resto. Solo si las dos juntas no caben (letra del sistema muy
+     grande) bajan a su renglón, enteras: ni flecha perdida ni cifra cortada (auditoría 4.26.218). */
   .pr6-pills{display:flex;flex-wrap:wrap;gap:8px;container:pr6pildoras / inline-size;}
   @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill{padding:0 10px;gap:6px;} }
-  .pr6-pill{flex:1 1 calc(50% - 4px);min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
+  .pr6-pill{flex:1 1 0;min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
   .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
   /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */
@@ -1093,15 +1096,22 @@
   .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
   .pr6-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
-  .pr6-sub-cat{display:flex;min-width:0;white-space:nowrap;}
-  .pr6-cat{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-bk{flex:none;margin-left:.3em;}
-  .pr6-when{font-size:13px;font-weight:700;color:var(--muted);}
+  /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
+     renglón parte ENTRE trozos (`mcTrozos`, también en Cartera); cada trozo corto va entero. */
+  .pr6-sub-cat{display:block;min-width:0;}
+  .mc-pt{white-space:nowrap;}
+  /* Baldosa de los bienes: la caja de 44 de las cuentas, en superficie (el blanco es de los logos). */
+  .v4-mov .tile.v4-bien-tile{width:44px;height:44px;margin:0 1px;background:var(--surface-2);}
+  /* Columna derecha: el importe y, debajo, cuándo toca (como Suscripciones). */
+  .pr6-am{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+  .pr6-when{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;}
   .pr6-when.soon{color:var(--text);}
   /* 19 px y no --fs-row-amt: es la medida del SPEC de Recibos (docs/design/plan-recibos),
      que manda sobre la escala general (lote 235, DIS-38). */
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
-  .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
+  /* El motivo es una subfila más, como la de «Por pagar»: en negrita y blanco pesaba lo mismo que
+     el nombre (auditoría de diseño 237, P2-3). El icono y la sección ya dicen que hay que mirarlo. */
+  .pr6-rev .pr6-why{font-weight:500;color:var(--muted);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
   /* Recorta el pliegue, NO su contenido. Con la rejilla a menos de 1fr el navegador da a la caja
      f·alto y a la fila de dentro f·(f·alto): si recortaba `.pr6-fold-in`, lo visible crecía como f² y
@@ -1143,22 +1153,14 @@
   .pr6-paid{margin-top:14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;}
   .pr6-paid-h{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
   .pr6-tick{width:28px;height:28px;flex:none;border-radius:14px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
-  /* Una línea pase lo que pase (letra del sistema al 110 %, 360 px): si no cabe, se acorta la palabra
-     con «…» y el número de pagados, el importe y «Ver» se quedan enteros. */
-  .pr6-paid-t{flex:1;min-width:0;display:flex;align-items:baseline;white-space:nowrap;font-size:16px;font-weight:700;}
-  .pr6-paid-l{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  /* Una línea donde cabe; sin elipsis (auditoría de diseño 237: «Ya ha entra…»). Con la letra muy
+     grande el título baja de renglón entero antes que cortarse. */
+  .pr6-paid-t{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;font-size:16px;font-weight:700;}
+  .pr6-paid-l{white-space:nowrap;}
   .pr6-paid-t .pr6-n{flex:none;margin-left:4px;}
   .pr6-paid-amt{flex:none;white-space:nowrap;font-size:15px;font-weight:700;color:var(--muted);}
-  .pr6-paid-v{flex:none;min-width:52px;text-align:right;white-space:nowrap;font-size:14px;font-weight:700;color:var(--mint-bright);}
-  /* Donde «Ver» no cabe (360 px, o 412 px con la letra grande) la flecha ocupa su sitio: 14 px en vez
-     de 52 y se sigue viendo que se despliega. Medido en «em» para que la letra del sistema cuente. */
-  .pr6-paid{container:pr6pagados / inline-size;}
-  .pr6-paid-h .pr6-chev{display:none;color:var(--mint-bright);}
+  .pr6-paid-h .pr6-chev{display:block;color:var(--mint-bright);}
   .pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
-  @container pr6pagados (max-width:21.6em){
-    .pr6-paid-h .pr6-paid-v{display:none;}
-    .pr6-paid-h .pr6-chev{display:block;}
-  }
   .pr6-paid .pr6-fold{margin-top:0;}
   .pr6-paid .pr6-fold-in{gap:0;}
   .pr6-paid .v4-charge.pr6-prow{width:100%;padding:11px 16px;gap:12px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
@@ -1541,7 +1543,6 @@
   html[data-theme="light"] .pr6-mg-sec .pr6-row .am.pos,
   html[data-theme="light"] .pr6-tick,
   html[data-theme="light"] .pr6-baja,
-  html[data-theme="light"] .pr6-paid-v,
   html[data-theme="light"] .pr6-paid-h .pr6-chev,
   html[data-theme="light"] .pr6-ll-row .num.pos,
   html[data-theme="light"] .profile-handle,
@@ -2744,18 +2745,17 @@
   html.sheet-open .v4-sheet,html.sheet-open .v4-sheet-body,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
   html.sheet-open .v4-sheet-back{pointer-events:auto;}
   .v4-link-mini{display:inline-flex;align-items:center;gap:4px;margin-top:8px;min-height:44px;padding:10px 14px;border-radius:999px;border:none;background:rgba(95,208,138,.16);color:var(--mint);font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer;}
-  /* Los dos accesos de «Tus cuentas» (sincronizar y conectar), en icono (2026-09-11). Iban como
-     dos píldoras de texto y entre las tres cosas el título se partía en DOS líneas en su móvil:
-     «me falta lo de sincronizar y añadir cuenta quizás con iconos distintivos pequeños, y así
-     "tus cuentas" cabe entero y no en dos líneas». 31 px es el mínimo que sigue siendo cómodo de
-     tocar sin que la cabecera crezca. */
+  /* Sincronizar bancos, en icono (2026-09-11): con dos píldoras de texto el título de «Tus cuentas»
+     se partía en DOS líneas en su móvil. Conectar es ya un «Añadir» corto como el de Bienes
+     (auditoría de diseño 237, P2-8). 31 px es el mínimo que sigue siendo cómodo de tocar sin que
+     la cabecera crezca. */
   .v4-ic-mini{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
     background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;position:relative;}
   /* El dibujo sigue de 31 px; el dedo tiene 44 (DIS-48): 7,5 px por lado desde dentro del borde.
-     Por eso el hueco entre los dos iconos es de 13 px: con 7 el área del primero quedaba tapada
-     por la del segundo. */
+     Por eso el hueco con «Añadir» (que tiene 8 px de margen negativo) es de 16 px: así las dos áreas
+     de toque no se pisan. */
   .v4-ic-mini::after{content:"";position:absolute;inset:-7.5px;}
-  .v4-sec-acts{display:flex;align-items:center;gap:13px;flex:0 0 auto;}
+  .v4-sec-acts{display:flex;align-items:center;gap:16px;flex:0 0 auto;}
   .v4-ic-mini svg{width:16px;height:16px;display:block;}
   /* Un solo patrón para las acciones de cada bloque de Cartera (DIS-32): enlace a la derecha
      del título, como en Inicio. El margen negativo le da 44 px de dedo sin engordar el título. */

@@ -8,7 +8,8 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  *   sus caminos nuevos los vigila `cartera-puertas`.)
  * DIS-33: unas filas ponían el banco de título y otras la cuenta; ahora siempre la cuenta, con
  *   banco y uso debajo en una línea.
- * DIS-48: el icono de «Conectar cuentas» dibuja 31 px pero tiene 44 de dedo.
+ * DIS-48: el icono de sincronizar dibuja 31 px pero tiene 44 de dedo. «Conectar cuentas» es ya un
+ *   «Añadir» en texto, como Bienes (auditoría de diseño 237, P2-8).
  * DIS-38: la cifra grande de Cartera mide lo mismo que la de Inicio (--fs-hero). */
 
 const estado = {
@@ -97,21 +98,23 @@ test("la fila de cuenta pone la cuenta de título y banco y uso en una sola lín
   await expect(page.locator('.page [data-account-id="ef"] .meta')).not.toContainText("Efectivo");
 });
 
-test("el icono de Conectar cuentas tiene 44 px de dedo y la cifra grande mide lo de Inicio", async ({ page }) => {
+test("«Añadir» conecta cuentas, el icono de sincronizar tiene 44 px de dedo y la cifra grande mide lo de Inicio", async ({ page }) => {
   await abrirCartera(page);
-  const icono = page.locator('.page .v4-ic-mini[aria-label="Conectar cuentas"]');
+  // Mismo patrón que Bienes: texto en menta a la derecha del título, sin botón-icono suelto.
+  const anadir = page.locator('.page [data-act="bank-add"]');
+  await expect(anadir).toHaveText("Añadir");
+  await expect(anadir).toHaveAttribute("aria-label", "Conectar cuentas");
+  await expect(page.locator('.page .v4-ic-mini[aria-label="Conectar cuentas"]')).toHaveCount(0);
+  const icono = page.locator('.page .v4-ic-mini[aria-label="Sincronizar bancos"]');
   expect((await icono.boundingBox()).width).toBeLessThan(40);   // el dibujo no cambia
   // Medido dentro de la página y repetido hasta que el carrusel de pestañas se asienta: un
   // rectángulo tomado a media transición ya no está donde cae el punto.
   const toques = () => page.evaluate(() => {
     const dentro = (el, px, py) => { const hit = document.elementFromPoint(px, py); return !!hit && (hit === el || el.contains(hit)); };
-    const con = document.querySelector('.page .v4-ic-mini[aria-label="Conectar cuentas"]');
     const syn = document.querySelector('.page .v4-ic-mini[aria-label="Sincronizar bancos"]');
-    const r = con.getBoundingClientRect(), s = syn.getBoundingClientRect();
-    return [dentro(con, r.left - 6, r.top + r.height / 2), dentro(con, r.right + 6, r.top + r.height / 2),
-      dentro(con, r.left + r.width / 2, r.top - 6), dentro(con, r.left + r.width / 2, r.bottom + 6),
-      // El de sincronizar, a su lado, conserva también su borde derecho.
-      dentro(syn, s.right + 5, s.top + s.height / 2)];
+    const r = syn.getBoundingClientRect();
+    return [dentro(syn, r.left - 6, r.top + r.height / 2), dentro(syn, r.right + 5, r.top + r.height / 2),
+      dentro(syn, r.left + r.width / 2, r.top - 6), dentro(syn, r.left + r.width / 2, r.bottom + 6), true];
   });
   await expect.poll(toques).toEqual([true, true, true, true, true]);
 
