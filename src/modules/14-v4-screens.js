@@ -4887,6 +4887,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      el hueco vacío donde iba el numérico. */
   const [kbVista,setKbVista]=useState(false);
   const kbTokRef=useRef(0);
+  const [listoQueda,setListoQueda]=useState(false);
+  const listoQuedaRef=useRef(0);
   const listoAt=useRef(0);
   /* Mientras la hoja baja tras guardar, el botón sigue debajo del dedo: un doble toque rápido
      apuntaba DOS gastos (encargo 236, P2-1). Como `addedRef` de las deudas: se suelta al reabrir. */
@@ -4921,6 +4923,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
+      setListoQueda(false); clearTimeout(listoQuedaRef.current);
       altoSinTecladoRef.current=window.innerHeight||0;
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
@@ -5116,7 +5119,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
         // En px de pantalla: dentro del body con zoom, el margen se multiplicaría.
-        style:conceptoFoco&&(kbPad||vvAlto)?Object.assign({},
+        /* Sube y se recorta cuando ya se está compactando (`kbVista`): si el teclado llegaba antes, la hoja
+           entera subía o se recortaba con el numérico aún puesto. */
+        style:conceptoFoco&&kbVista&&(kbPad||vvAlto)?Object.assign({},
           kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))"}:null,
           vvAlto?{maxHeight:"calc(("+vvAlto+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
@@ -5135,7 +5140,12 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             // Foco sin toque (teclado físico, lector de pantalla): no llega ningún click.
             const tm=setTimeout(pon,400);
           },onConceptBlur:function(){
-            const suelta=function(){ kbTokRef.current++; setConceptoFoco(false); setKbVista(false); };
+            const suelta=function(){
+              kbTokRef.current++; setConceptoFoco(false); setKbVista(false);
+              // «Listo» no pasa a «Apuntar» hasta que vuelven el pago y el numérico (300 ms).
+              setListoQueda(true); clearTimeout(listoQuedaRef.current);
+              listoQuedaRef.current=setTimeout(function(){ setListoQueda(false); },mcReduced()?0:300);
+            };
             if(!dedoRef.current){ suelta(); return; }
             /* Blur por un toque en la propia hoja (una categoría, el chip ✨…): si el teclado numérico
                vuelve antes del `click`, la hoja crece, lo tocado se mueve y el click cae en otra
@@ -5154,7 +5164,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             ? React.createElement("button",{key:"listo",className:"v4-cta","data-testid":"ap-kb-done",
                 onMouseDown:function(e){ e.preventDefault(); listoAt.current=Date.now(); },
                 onClick:function(){ listoAt.current=Date.now(); try{ document.activeElement&&document.activeElement.blur(); }catch(e){} }},t("f_kb_done"))
-            : React.createElement("button",{key:"cta",className:"v4-cta",onClick:save},kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
+            /* Recién cerrado el teclado ya guarda (Intro y tocar ahí mismo apunta, como siempre); solo el
+               rótulo espera a que vuelvan el pago y el numérico. */
+            : React.createElement("button",{key:"cta",className:"v4-cta",onClick:save},listoQueda?t("f_kb_done"):kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
       )
     ),document.body);
   return React.createElement(React.Fragment,null,main,

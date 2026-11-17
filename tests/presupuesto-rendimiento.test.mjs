@@ -415,8 +415,10 @@ const PRESUPUESTO = {
   // Apuntar escribiendo el concepto (239, 17/11: el campo se iba por arriba y quedaba un hueco hasta «Listo»): pliegues
   // de cabecera, pago y numérico, tope de la hoja con el alto visible, el borde que no parte el buscador de detrás y la
   // baldosa del banco con «+»: 1.996.985 B minificado y 548.535 B gzip. Mismo mandato del 11/10: el minificado, al mínimo
-  // medido, 1951 KiB; el gzip sigue dentro.
-  minificado: 1951 * 1024,
+  // medido, 1951 KiB; el gzip sigue dentro. Segunda vuelta (filtro de diseño 239): el concepto en dos renglones,
+  // fundido antes del pliegue, el numérico sin pegar al fondo al recogerse y las filas medidas con la hoja quieta:
+  // 1.998.947 B minificado y 549.119 B gzip. Los dos, al mínimo medido: 1953 / 537 KiB.
+  minificado: 1953 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -456,7 +458,7 @@ const PRESUPUESTO = {
   // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
   // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
   // dueño; SUBE (mandato 11/10) a 524 KiB.
-  gzip: 536 * 1024, // ver el comentario de minificado (535,1 KiB medidos el 17/11/2026 en la integración 4.26.237).
+  gzip: 537 * 1024, // ver el comentario de minificado (536,2 KiB medidos el 17/11/2026 con el 239 del concepto).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

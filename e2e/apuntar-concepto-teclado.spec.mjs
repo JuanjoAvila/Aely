@@ -13,7 +13,8 @@
  *
  * Con el concepto enfocado: el campo se ve entero dentro de lo visible; nada de la hoja queda por
  * encima de la zona segura; entre lo último que se ve y «Listo» no hay hueco, y «Listo» va pegado al
- * teclado; la cabecera, el pago y el numérico se apartan. Al pulsar «Listo» todo vuelve. */
+ * teclado; la cabecera, el pago y el numérico se apartan. Al pulsar «Listo» todo vuelve. Un concepto
+ * largo se lee entero en dos renglones, escribiendo y después, sin trozos de letra ni «…» (filtro 239). */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -72,6 +73,15 @@ const mide = (page, abajo) => page.evaluate(([abajo, arriba]) => {
   };
 }, [abajo, SEGURO_ARRIBA]);
 
+// 45 caracteres: a 360 y a 412 no cabe en un renglón (antes: trozo de letra al escribir y «…» al terminar).
+const LARGO = "Pan con tomate y café en el bar de la esquina";
+const entero = (page) => page.evaluate(() => {
+  const el = document.querySelector(".v4-exp-sheet .v4-ficha-concept"), cs = getComputedStyle(el);
+  return { ancho: el.scrollWidth <= el.clientWidth + 1, alto: el.scrollHeight <= el.clientHeight + 1,
+    elipsis: cs.textOverflow === "ellipsis" && el.scrollWidth > el.clientWidth + 1,
+    renglones: Math.round((el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) / parseFloat(cs.lineHeight)) };
+});
+
 const TAMANOS = [[412, 915, 340], [360, 740, 290]];
 
 for (const [w, h, teclado] of TAMANOS) {
@@ -98,7 +108,7 @@ for (const [w, h, teclado] of TAMANOS) {
       await hoja.locator(".v4-ficha-concept").click();
       if (modo === "encoge") await page.setViewportSize({ width: w, height: h - teclado });
       else await page.evaluate((px) => window.__teclado(px), teclado);
-      await hoja.locator(".v4-ficha-concept").pressSequentially("Pan con tomate");
+      await hoja.locator(".v4-ficha-concept").pressSequentially(LARGO);
       await expect(hoja.locator(".v4-cta")).toHaveText("Listo");
       // Fin de los pliegues (300 ms) y del margen que sube la hoja (250 ms).
       await page.waitForTimeout(650);
@@ -116,13 +126,16 @@ for (const [w, h, teclado] of TAMANOS) {
       await expect(hoja.locator(".v4-ficha-head")).toBeHidden();
       await expect(hoja.locator(".v4-keys")).toBeHidden();
       await expect(hoja.locator(".v4-ficha-cats .v4-ficha-cat").first()).toBeVisible();
+      // Un concepto largo se lee entero mientras se escribe: dos renglones partidos entre palabras.
+      expect(await entero(page), "el concepto largo entero, sin cortes").toEqual({ ancho: true, alto: true, elipsis: false, renglones: 2 });
 
       // «Listo» cierra el teclado y todo vuelve, sin guardar nada.
       await hoja.locator('[data-testid="ap-kb-done"]').click();
       if (modo === "encoge") await page.setViewportSize({ width: w, height: h });
       else await page.evaluate(() => window.__teclado(0));
       await page.waitForTimeout(650);
-      await expect(hoja.locator(".v4-ficha-concept")).toHaveValue("Pan con tomate");
+      await expect(hoja.locator(".v4-ficha-concept")).toHaveValue(LARGO);
+      expect(await entero(page), "tras «Listo», el concepto largo entero, sin «…»").toEqual({ ancho: true, alto: true, elipsis: false, renglones: 2 });
       await expect(hoja.locator(".v4-keys button")).toHaveCount(12);
       await expect(hoja.locator(".v4-keys")).toBeVisible();
       await expect(hoja.locator('[data-testid="ap-pay-card"]')).toBeVisible();

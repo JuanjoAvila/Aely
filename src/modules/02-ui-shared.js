@@ -2882,6 +2882,22 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
      a su alto máximo dejaba huecos vacíos de hasta 215 px encima del teclado (crítico de la v5).
      Caben floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
   const [filasTeclado,setFilasTeclado]=useState(null);
+  // El área del concepto de Apuntar mide lo que su texto, hasta dos renglones (más allá, se desliza por dentro).
+  const conceptoRef=useRef(null);
+  useLayoutEffect(function(){
+    const el=conceptoRef.current; if(!el||el.tagName!=="TEXTAREA") return undefined;
+    const mide=function(){
+      const cs=getComputedStyle(el), lh=parseFloat(cs.lineHeight)||20;
+      const max=2*lh+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      el.style.height="auto";
+      const alto=el.scrollHeight;
+      el.style.height=Math.min(alto,max)+"px";
+      el.style.overflowY=alto>max+1?"auto":"hidden";
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[concept,kb,cols]);
   useLayoutEffect(function(){
     if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
     const mide=function(){
@@ -2907,6 +2923,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
   /* Apuntar (`catRowsMax`): una fila, y dos si caben enteras en el alto que le queda a la hoja hasta
      su máximo (a 393 y 412 sí; a 360 no). La misma medida de filas enteras que la ficha. */
   const [filasAuto,setFilasAuto]=useState(1);
+  const kbFilasRef=useRef(!!kb), kbCambioRef=useRef(0), filasAntesRef=useRef(null);
   useLayoutEffect(function(){
     if(!catRowsMax||todasEnFila) return undefined;
     const mide=function(){
@@ -2917,14 +2934,28 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       setFilasAuto(function(v){
         const fila=filaAltoRef.current+6, sobra=max-alto, desborda=body.scrollHeight-body.clientHeight>1;
         if(desborda&&v>1) return v-1;
-        if(!desborda&&v<catRowsMax&&sobra>=fila) return v+1;
+        // Escribiendo el concepto no se ganan filas: aparecerían de golpe con la hoja ya quieta.
+        if(!desborda&&v<catRowsMax&&sobra>=fila&&!kb) return v+1;
         return v;
       });
     };
-    mide();
-    window.addEventListener("resize",mide);
-    return function(){ window.removeEventListener("resize",mide); };
-  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
+    /* Mientras se pliega o despliega lo de Apuntar (el concepto con teclado, 300 ms) la hoja mide lo que
+       no es: medida a mitad, al volver de «Listo» quedaba una segunda fila que luego no cabía y asomaba
+       partida bajo el numérico (filtro de diseño 239, a 360). Se mide cuando ya está quieta. */
+    let tm=0;
+    if(kbFilasRef.current!==!!kb){
+      kbFilasRef.current=!!kb; kbCambioRef.current=Date.now();
+      // Al volver, de entrada las filas que había antes del teclado: una fila ganada con el teclado
+      // puesto no cabe con el numérico y se quedaba debajo de él hasta medir.
+      if(kb) filasAntesRef.current=filasAuto;
+      else if(filasAntesRef.current!=null&&filasAntesRef.current<filasAuto){ setFilasAuto(filasAntesRef.current); filasAntesRef.current=null; }
+    }
+    const resto=function(){ return 400-(Date.now()-kbCambioRef.current); };
+    const cuando=function(){ clearTimeout(tm); if(resto()>0) tm=setTimeout(mide,resto()); else mide(); };
+    cuando();
+    window.addEventListener("resize",cuando);
+    return function(){ clearTimeout(tm); window.removeEventListener("resize",cuando); };
+  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length,kb,concept]);
   /* El borde de la hoja no parte por la mitad lo que hay detrás (crítico de la v5: en Apuntar a 393,
      la línea «gastado en septiembre · …»; y en la ficha, el total a 360 o un movimiento a 412). Si el
      borde cae dentro de un texto de la pantalla de detrás, sube lo justo para taparlo entero, con
@@ -3059,10 +3090,15 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
           onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
-      React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
+      /* En Apuntar el concepto es un área de un renglón que crece a dos y parte entre palabras: en una
+         línea, un concepto largo dejaba un trozo de letra pegado al borde mientras se escribía y «…» al
+         terminar (filtro de diseño 239). Sigue siendo una línea de texto: Intro es «Listo» y un salto
+         pegado pasa a espacio. Modificar sigue con su campo de siempre. */
+      React.createElement(onConceptFocus?"textarea":"input",{className:"v4-input v4-exp-name v4-ficha-concept"+(onConceptFocus?" v4-ficha-concept-area":""),
+        value:concept||"",placeholder:t("f_concept_ph"),ref:conceptoRef,rows:onConceptFocus?1:undefined,
         enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
         onKeyDown:onConceptFocus?function(e){ if(e.key==="Enter"){ e.preventDefault(); e.target.blur(); } }:undefined,
-        onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
+        onChange:function(e){ onConcept(onConceptFocus?e.target.value.replace(/[\r\n]+/g," "):e.target.value); },onBlur:onConceptBlur}),
       /* Con letra Muy grande o Enorme no cabe todo encima del teclado: las categorías, que se tocan
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],

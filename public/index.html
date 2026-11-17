@@ -1947,11 +1947,16 @@
   /* Escribiendo el concepto (DIS-05, y su queja del 17/11): la cabecera, el pago y el numérico se
      recogen con su alto (`pliega` en ExpenseFichaLayout) y el importe se queda en pequeño; la hoja
      encoge con ellos y «Listo» queda pegado al teclado del sistema, sin el hueco del numérico. */
+  /* Primero se funden y luego se pliegan (y al volver, al revés): plegándose a la vez, a mitad se
+     veían tiras cortadas de «Gasto» y «Tarjeta» (filtro de diseño 239). */
   .v4-ficha-kbfold{display:grid;grid-template-rows:1fr;
-    transition:grid-template-rows .3s var(--ease),opacity .22s ease,visibility 0s;}
+    transition:grid-template-rows .3s var(--ease),opacity .2s ease-out .12s,visibility 0s;}
   .v4-ficha-kbfold-in{min-height:0;overflow:hidden;}
   .v4-ficha-body[data-kb="1"] .v4-ficha-kbfold{grid-template-rows:0fr;opacity:0;visibility:hidden;
-    transition:grid-template-rows .3s var(--ease),opacity .16s ease,visibility 0s .3s;}
+    transition:grid-template-rows .3s var(--ease) 60ms,opacity .1s ease-out,visibility 0s .36s;}
+  /* Recogiéndose, el numérico no va pegado al fondo: con el teclado encima la hoja se recorta y,
+     pegado, se montaba un instante sobre el concepto y el pago. */
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{transition:font-size .3s var(--ease),min-height .3s var(--ease);}
   .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-amount{font-size:30px;min-height:40px;}
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){padding-bottom:16px;}
@@ -2040,6 +2045,12 @@
   .v4-ficha-fx{text-align:center;color:var(--muted);font-size:12.5px;line-height:1.35;margin:-1px 0 7px;}
   /* El texto de ayuda largo con letra Enorme se cortaba a media palabra: puntos suspensivos. */
   .v4-ficha-concept.v4-input{text-overflow:ellipsis;font-size:17px;font-weight:700;padding:2px 10px 10px;margin:0;background:transparent;border:0;border-radius:0;text-align:center;}
+  /* Apuntar: el concepto crece a dos renglones y parte entre palabras, nunca con «…» (filtro de diseño 239). */
+  .v4-ficha-concept-area.v4-input{display:block;resize:none;overflow:hidden;text-overflow:clip;line-height:1.3;
+    white-space:pre-wrap;overflow-wrap:break-word;hyphens:none;font-family:inherit;scrollbar-width:none;}
+  .v4-ficha-concept-area::-webkit-scrollbar{display:none;}
+  /* Vacío, el texto de ayuda sigue en un renglón (con letra Enorme partido en dos empujaba las categorías). */
+  .v4-ficha-concept-area:placeholder-shown{white-space:nowrap;text-overflow:ellipsis;}
   /* Forma de pago (DIS-03): segmentado de 44 px y la píldora del banco al lado. La píldora parte de
      44 px y se estira con lo que sobre: si ni así cabe (letra Enorme a 360) baja a su propia línea. */
   .v4-ficha-pay{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 12px;}
@@ -14212,6 +14223,22 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
      a su alto máximo dejaba huecos vacíos de hasta 215 px encima del teclado (crítico de la v5).
      Caben floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
   const [filasTeclado,setFilasTeclado]=useState(null);
+  // El área del concepto de Apuntar mide lo que su texto, hasta dos renglones (más allá, se desliza por dentro).
+  const conceptoRef=useRef(null);
+  useLayoutEffect(function(){
+    const el=conceptoRef.current; if(!el||el.tagName!=="TEXTAREA") return undefined;
+    const mide=function(){
+      const cs=getComputedStyle(el), lh=parseFloat(cs.lineHeight)||20;
+      const max=2*lh+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      el.style.height="auto";
+      const alto=el.scrollHeight;
+      el.style.height=Math.min(alto,max)+"px";
+      el.style.overflowY=alto>max+1?"auto":"hidden";
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[concept,kb,cols]);
   useLayoutEffect(function(){
     if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
     const mide=function(){
@@ -14237,6 +14264,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
   /* Apuntar (`catRowsMax`): una fila, y dos si caben enteras en el alto que le queda a la hoja hasta
      su máximo (a 393 y 412 sí; a 360 no). La misma medida de filas enteras que la ficha. */
   const [filasAuto,setFilasAuto]=useState(1);
+  const kbFilasRef=useRef(!!kb), kbCambioRef=useRef(0), filasAntesRef=useRef(null);
   useLayoutEffect(function(){
     if(!catRowsMax||todasEnFila) return undefined;
     const mide=function(){
@@ -14247,14 +14275,28 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       setFilasAuto(function(v){
         const fila=filaAltoRef.current+6, sobra=max-alto, desborda=body.scrollHeight-body.clientHeight>1;
         if(desborda&&v>1) return v-1;
-        if(!desborda&&v<catRowsMax&&sobra>=fila) return v+1;
+        // Escribiendo el concepto no se ganan filas: aparecerían de golpe con la hoja ya quieta.
+        if(!desborda&&v<catRowsMax&&sobra>=fila&&!kb) return v+1;
         return v;
       });
     };
-    mide();
-    window.addEventListener("resize",mide);
-    return function(){ window.removeEventListener("resize",mide); };
-  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
+    /* Mientras se pliega o despliega lo de Apuntar (el concepto con teclado, 300 ms) la hoja mide lo que
+       no es: medida a mitad, al volver de «Listo» quedaba una segunda fila que luego no cabía y asomaba
+       partida bajo el numérico (filtro de diseño 239, a 360). Se mide cuando ya está quieta. */
+    let tm=0;
+    if(kbFilasRef.current!==!!kb){
+      kbFilasRef.current=!!kb; kbCambioRef.current=Date.now();
+      // Al volver, de entrada las filas que había antes del teclado: una fila ganada con el teclado
+      // puesto no cabe con el numérico y se quedaba debajo de él hasta medir.
+      if(kb) filasAntesRef.current=filasAuto;
+      else if(filasAntesRef.current!=null&&filasAntesRef.current<filasAuto){ setFilasAuto(filasAntesRef.current); filasAntesRef.current=null; }
+    }
+    const resto=function(){ return 400-(Date.now()-kbCambioRef.current); };
+    const cuando=function(){ clearTimeout(tm); if(resto()>0) tm=setTimeout(mide,resto()); else mide(); };
+    cuando();
+    window.addEventListener("resize",cuando);
+    return function(){ clearTimeout(tm); window.removeEventListener("resize",cuando); };
+  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length,kb,concept]);
   /* El borde de la hoja no parte por la mitad lo que hay detrás (crítico de la v5: en Apuntar a 393,
      la línea «gastado en septiembre · …»; y en la ficha, el total a 360 o un movimiento a 412). Si el
      borde cae dentro de un texto de la pantalla de detrás, sube lo justo para taparlo entero, con
@@ -14389,10 +14431,15 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
           onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
-      React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
+      /* En Apuntar el concepto es un área de un renglón que crece a dos y parte entre palabras: en una
+         línea, un concepto largo dejaba un trozo de letra pegado al borde mientras se escribía y «…» al
+         terminar (filtro de diseño 239). Sigue siendo una línea de texto: Intro es «Listo» y un salto
+         pegado pasa a espacio. Modificar sigue con su campo de siempre. */
+      React.createElement(onConceptFocus?"textarea":"input",{className:"v4-input v4-exp-name v4-ficha-concept"+(onConceptFocus?" v4-ficha-concept-area":""),
+        value:concept||"",placeholder:t("f_concept_ph"),ref:conceptoRef,rows:onConceptFocus?1:undefined,
         enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
         onKeyDown:onConceptFocus?function(e){ if(e.key==="Enter"){ e.preventDefault(); e.target.blur(); } }:undefined,
-        onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
+        onChange:function(e){ onConcept(onConceptFocus?e.target.value.replace(/[\r\n]+/g," "):e.target.value); },onBlur:onConceptBlur}),
       /* Con letra Muy grande o Enorme no cabe todo encima del teclado: las categorías, que se tocan
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
@@ -32768,7 +32815,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="19b2994bde0ff6e779558b8a1b250ea85d09a685136dc00163a9764366a3fead";
+var _rnSha="05a1d5176fcc2ea20e9d1e372d1ce7b92cb1cd7020cc9e8b697764f24ecc7024";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39216,6 +39263,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      el hueco vacío donde iba el numérico. */
   const [kbVista,setKbVista]=useState(false);
   const kbTokRef=useRef(0);
+  const [listoQueda,setListoQueda]=useState(false);
+  const listoQuedaRef=useRef(0);
   const listoAt=useRef(0);
   /* Mientras la hoja baja tras guardar, el botón sigue debajo del dedo: un doble toque rápido
      apuntaba DOS gastos (encargo 236, P2-1). Como `addedRef` de las deudas: se suelta al reabrir. */
@@ -39250,6 +39299,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
+      setListoQueda(false); clearTimeout(listoQuedaRef.current);
       altoSinTecladoRef.current=window.innerHeight||0;
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
@@ -39445,7 +39495,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
         // En px de pantalla: dentro del body con zoom, el margen se multiplicaría.
-        style:conceptoFoco&&(kbPad||vvAlto)?Object.assign({},
+        /* Sube y se recorta cuando ya se está compactando (`kbVista`): si el teclado llegaba antes, la hoja
+           entera subía o se recortaba con el numérico aún puesto. */
+        style:conceptoFoco&&kbVista&&(kbPad||vvAlto)?Object.assign({},
           kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))"}:null,
           vvAlto?{maxHeight:"calc(("+vvAlto+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
@@ -39464,7 +39516,12 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             // Foco sin toque (teclado físico, lector de pantalla): no llega ningún click.
             const tm=setTimeout(pon,400);
           },onConceptBlur:function(){
-            const suelta=function(){ kbTokRef.current++; setConceptoFoco(false); setKbVista(false); };
+            const suelta=function(){
+              kbTokRef.current++; setConceptoFoco(false); setKbVista(false);
+              // «Listo» no pasa a «Apuntar» hasta que vuelven el pago y el numérico (300 ms).
+              setListoQueda(true); clearTimeout(listoQuedaRef.current);
+              listoQuedaRef.current=setTimeout(function(){ setListoQueda(false); },mcReduced()?0:300);
+            };
             if(!dedoRef.current){ suelta(); return; }
             /* Blur por un toque en la propia hoja (una categoría, el chip ✨…): si el teclado numérico
                vuelve antes del `click`, la hoja crece, lo tocado se mueve y el click cae en otra
@@ -39483,7 +39540,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             ? React.createElement("button",{key:"listo",className:"v4-cta","data-testid":"ap-kb-done",
                 onMouseDown:function(e){ e.preventDefault(); listoAt.current=Date.now(); },
                 onClick:function(){ listoAt.current=Date.now(); try{ document.activeElement&&document.activeElement.blur(); }catch(e){} }},t("f_kb_done"))
-            : React.createElement("button",{key:"cta",className:"v4-cta",onClick:save},kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
+            /* Recién cerrado el teclado ya guarda (Intro y tocar ahí mismo apunta, como siempre); solo el
+               rótulo espera a que vuelvan el pago y el numérico. */
+            : React.createElement("button",{key:"cta",className:"v4-cta",onClick:save},listoQueda?t("f_kb_done"):kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
       )
     ),document.body);
   return React.createElement(React.Fragment,null,main,
