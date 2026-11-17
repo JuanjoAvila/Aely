@@ -110,7 +110,11 @@ test("el saldo enseña fin de mes y no inventa gráfico sin movimientos", async 
   await fila(page, "Revolut").click();
   await expect(ficha(page).locator(".v4-account-balance")).toContainText(/a fin de mes:|end of month:|a final de mes:/i);
   await expect(ficha(page).locator(".v4-account-spark")).toHaveCount(0);
-  await expect(ficha(page).locator(".v4-account-spark-new")).toContainText(/histórico empieza hoy|history starts today|històric comença avui/i);
+  // Una sola línea de notas, legible (DIS-37): ni dos textos sueltos ni letra de 10,5 px.
+  const nota = ficha(page).locator(".v4-account-lock");
+  await expect(nota).toHaveCount(1);
+  await expect(nota).toContainText(/gráfico desde hoy|chart from today|gràfic des d'avui/i);
+  expect(await nota.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(12.5);
 });
 
 test("no atribuye la previsión conjunta a una cuenta si el banco tiene dos", async ({ page }) => {
@@ -173,7 +177,7 @@ test("una cuenta CONECTADA enseña el saldo del banco, y no deja escribirlo", as
   await expect(ficha(page)).toBeVisible();
 
   await expect(ficha(page).locator("input.num"), "el saldo de una cuenta del banco no se teclea").toHaveCount(0);
-  await expect(ficha(page), "y se dice de quién es el número").toContainText(/lo pone el banco|set by the bank|ho posa el banc/i);
+  await expect(ficha(page), "y se dice de quién es el número").toContainText(/Saldo del banco|Bank balance|Saldo del banc/i);
   await expect(ficha(page), "sin candado visible (feedback 18/9)").not.toContainText("🔒");
   await expect(ficha(page).getByRole("button", { name: /Sincronizar ahora|Sync now|Sincronitzar ara/i })).toBeVisible();
 });

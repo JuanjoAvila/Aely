@@ -364,7 +364,55 @@ const PRESUPUESTO = {
   // (con sello). Topes a 1904 / 522: unos 6 y 2 KiB de aire, no los 22 y 4 que quedaban libres.
   // Integración 4.26.233 (las cinco ramas de la auditoría juntas): 1.944.230 B (1898,7 KiB) y 532.162 B
   // gzip (519,7 KiB) sin sello. Los topes se quedan: lo que suman diseño y saldos lo quita textos.
-  minificado: 1904 * 1024,
+  // Lote 235 menores (15/11): 1.949.731 B con sello, 35 sobre el tope. Se quitan del tema claro
+  // ocho selectores que ya no lleva ningún elemento (dc-badge, v4-pill, recap-v, v4-pace-marks,
+  // tab-add, icon-btn): 1.949.449 B, quedan 247. El tope no se mueve.
+  // Integración 4.26.235 (16/11): junta las nueve ramas del diseño 235 (+20 KB de producto). Lo que suma cada una sobre su
+  // base, minificado JS + CSS: Apuntar DIS-01/02/03/05 +7,2 KB, Gastos con pulsación larga +5,3 KB, lote de menores +4,8 KB,
+  // avisos de banco +4,0 KB, Ajustes en cuatro grupos +0,4 KB, DIS-11/31 −0,7 KB, DIS-26 −0,2 KB (y el arreglo de
+  // montoEditable, +62 B). Buscado código y CSS muerto de verdad: no llega a 1 KB, y lo poco que hay lo leen tests o el
+  // registro. Medido sin sello: 1.970.260 B minificado y 540.571 B gzip (1924,1 / 527,9 KiB). SUBE (el dueño fijó el 11/10
+  // que el tope de tamaño no bloquea producto: se sube al mínimo medido, como en Inicio v4.2 y la PR 204) a 1926 / 529 KiB,
+  // con el margen justo para el sello.
+  // Remate de la 235 (16/11, petición del dueño): el banco con logos en la fila del pago (Apuntar y ficha), los chips
+  // de recibo/deuda/meta/nota con su pliegue y el candado del importe, menos la tarjeta de origen: +1.905 B minificado
+  // (1.972.165 B sin sello, 59 bajo el tope y el sello no cabía). Sube 1 KiB, a 1927; el gzip sigue dentro.
+  // Lectura sola del banco al entrar (orden del dueño, 16/11/2026): el tope por horas y por día, el contador en
+  // `cloud.bankSync` y el efecto de App. Medido: 1.973.317 B minificado (1.093 sobre 1926 KiB) y 541.340 B gzip, que
+  // sigue dentro. Misma regla del 11/10: sube el minificado a 1928 KiB; el gzip no se toca.
+  // Segunda vuelta del remate (16/11, la ficha «horrible» a ojos del dueño): teclado plegable bajo el importe, la
+  // retirada como baldosa, una fila de baldosas de ajustes y ✨ junto a «Todas ›»: +1.378 B (1.973.543 B sin sello,
+  // 295 por encima). Sube 1 KiB más, a 1928; el gzip sigue dentro (541.575 de 541.696).
+  // Tercera vuelta (16-17/11): el teclado de Modificar abajo con su degradado, la máscara de borde de la ficha y las
+  // etiquetas de baldosa que encogen en vez de partirse (auditoría 237, P1-2): +1.483 B (1.975.026 B sin sello) y
+  // 541.943 B gzip, 247 por encima. Suben a 1930 / 530 KiB (el dueño fijó el 11/10 que el tope no bloquea producto).
+  // Cuarta vuelta (17/11, el crítico de la v3): filas enteras con el teclado abierto (medida y recorte), rejilla de
+  // 3/4 columnas con etiquetas a 12 px, «Todas ›» en la cabecera de Apuntar y la cuenta del ingreso marcada:
+  // +2.944 B (1.977.970 sin sello) y 542.683 B gzip. Suben a 1933 / 531 KiB.
+  // Quinta vuelta (17/11, crítico de la v4): la hoja con su alto máximo al teclear, Apuntar con dos filas donde
+  // caben, los ajustes como chips y la cabecera con la elegida tocable: +1.657 B (1.979.627 sin sello). Sube a 1934.
+  // Sexta vuelta (17/11, crítico de la v5): filas medidas con el alto máximo teórico y el borde de Apuntar que no
+  // parte la línea de resumen: +1.224 B (1.980.851 sin sello). Sube a 1935.
+  // Ajuste final de la v6 (17/11): el borde de la ficha tampoco parte lo que hay detrás (sube o baja lo justo):
+  // +582 B (1.981.433 sin sello). Sube a 1936.
+  // Integración 4.26.236 (17/11): el remate de la 235 en sus siete vueltas, Cartera sin «Editar», Notificaciones, la lectura
+  // sola del banco y los menores de dinero, sin el Round up de TR (va a la 237), con el sello y la nota de la versión: 1.978.120 B
+  // minificado y 543.037 B gzip. Mismo mandato del 11/10 (el tamaño no bloquea producto): los topes, al mínimo medido,
+  // 1932 / 531 KiB.
+  // Diseño 237 (17/11, Gastos): detección de suscripciones por cobro y periodo (era el «913 € al mes» con el súper
+  // y la cuota del coche), fila de movimientos igual que Inicio, fundido de la tira de meses y lupa de línea: +3.989 B
+  // minificado y +1.209 B gzip sobre la 4.26.235 (1.974.237 / 542.306 B sin sello; quedaban 35 B y −610 B). Misma
+  // regla del 11/10: sube al mínimo medido, 1929 KiB y 530 KiB.
+  // Round up y Saveback de TR (236, 16/11): el aviso entra en Inversión, suma una vez a la posición elegida y la
+  // estimación deja paso a lo real; selector por tipo con logos. Medido sobre la 235 sin sello: ~1930 / 530 KiB.
+  // Es lógica de dinero que pidió el dueño; SUBE (mandato 11/10) al mínimo con margen para el sello: 1931 / 531 KiB.
+  // Revisión de dinero 236 (pull antes de aplicar, deshacer al recategorizar o borrar, pendientes sin destino,
+  // primer aviso que deshace el cierre estimado): ~1934 KiB medidos. +4 KiB, solo al crudo; gzip sigue en 531.
+  // Integración 4.26.237 (17/11): las cuotas en céntimos, Recibos y Cartera sin cortes, el dinero de «¿Te llega?», Gastos con
+  // suscripciones por cobro y periodo, y el Round up y el Saveback de TR con su libro de avisos, con el sello y la nota de la versión
+  // (dos tandas) y el filtro de diseño: 1.994.176 B minificado y 547.935 B gzip. Mismo mandato del 11/10 (el tamaño no bloquea producto): los topes,
+  // al mínimo medido, 1948 / 536 KiB.
+  minificado: 1948 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -404,7 +452,7 @@ const PRESUPUESTO = {
   // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
   // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
   // dueño; SUBE (mandato 11/10) a 524 KiB.
-  gzip: 522 * 1024, // ver el comentario de minificado (520 KiB medidos el 14/11/2026).
+  gzip: 536 * 1024, // ver el comentario de minificado (535,1 KiB medidos el 17/11/2026 en la integración 4.26.237).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

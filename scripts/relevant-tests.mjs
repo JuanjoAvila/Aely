@@ -65,14 +65,49 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Lectura sola del banco al entrar, con tope (orden del dueño, 16/11/2026): el tope vive en 08,
+  // el contador en `cloud.bankSync` (00) y el efecto que la lanza en App (11).
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
+  // Round up y Saveback de TR (16/11/2026): el destino por tipo en Cartera y que la posición suba una vez.
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/recompensas-tr.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recompensas-tr.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recompensas-tr.spec.mjs"] },
+  // La última cuota de un plazo se lleva el redondeo (revisión externa 15/11/2026): Recibos y Deudas.
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/deuda-ultima-cuota.spec.mjs"] },
+  // Dos cuentas con la misma clave (R8, 15/11/2026): se separan al cargar y la gráfica no dobla el pasado.
+  { file: "src/modules/01-i18n.js", specs: ["e2e/cuentas-clave-repetida.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/cuentas-clave-repetida.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/cuentas-clave-repetida.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/cuentas-clave-repetida.spec.mjs"] },
   // Textos que contradecían la pantalla (auditoría 14/11/2026): portada de Plan sencillo, «libres
   // de» del ciclo, metas en Inicio sencillo, <html lang>, tipo de cambio y candado sin diálogo nativo.
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  // Diseño 233 (DIS-23/24): franja de banco caído en Inicio y avisos compactos en Cartera.
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/bancos-avisos-compactos.spec.mjs"] },
   { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/textos-claros.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/textos-claros.spec.mjs"] },
+  // Lote de menores del diseño 235: «‹» único de las subpantallas, X de Pregúntame, bienvenida con
+  // un solo botón principal y colores del tema en candado y panel de cuenta.
+  { file: "src/modules/10-app-components.js", specs: ["e2e/atras-y-bienvenida.spec.mjs", "e2e/backup-restauracion.spec.mjs"] },
+  { file: "src/modules/16-help-assistant.js", specs: ["e2e/atras-y-bienvenida.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
+  // DIS-31 y DIS-11 (15/11/2026): altas de deuda y meta en hoja, y el Gasto/Ingreso como único
+  // mando de la ficha. Tocan dinero: comparan lo guardado con lo que dejaba la base.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-altas-hoja.spec.mjs", "e2e/inicio-deuda-futura.spec.mjs", "e2e/fin36-debt-madrid-month.spec.mjs"] },
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/gastos-ficha-ingreso.spec.mjs", "e2e/gastos-ficha-importe.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/gastos-ficha-ingreso.spec.mjs", "e2e/gastos-ficha-importe.spec.mjs", "e2e/plan-altas-hoja.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/fin25-charge-months.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/fin27-book-charge-month.spec.mjs", "e2e/fin27-balance-reanchor.spec.mjs"] },
@@ -83,6 +118,11 @@ export const E2E_MAP = [
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin04-plan-three-way.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/fin04-plan-three-way.spec.mjs", "e2e/pr297-r2-plan-sync.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin28-manual-link-warning.spec.mjs", "e2e/fin04-plan-three-way.spec.mjs", "e2e/deudas-ir-suave.spec.mjs", "e2e/plan-seg-barra.spec.mjs"] },
+  // Plan, lote de menores de diseño (15/11): enlazado con fecha, cuotas con céntimos, iconos de deuda y Metas vacía.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-menores-235.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-menores-235.spec.mjs"] },
   // Velo de las hojas de Plan: fundido de entrada y de salida, mismo ritmo que el deslizamiento.
   { file: "src/shell.html", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
@@ -108,6 +148,14 @@ export const E2E_MAP = [
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
+  // «¿Te llega?» con la cifra justa: la luz sin «recibo» pagada y el recibo ya restado del saldo
+  // que no se resta otra vez (ronda 237). La regla vive en 07, 08 y 11; la hoja, en 14.
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
   // Portada como el prototipo: «Ya pagados» en una línea con la letra al 110 %, tres en «Para revisar»,
   // «Todos ›», «¿Y si gasto…?» y «¿Cuánto es?» sin aplastarse (auditoría 9/11). Lo que se mide es CSS.
   // Lo que entra y lo que mueves con el ciclo de un recibo (12/11/2026): sección, ficha y alta.
@@ -118,6 +166,13 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-portada-prototipo.spec.mjs"] },
+  // Recibos y Cartera sin nada cortado a 360/393/412 px (auditoría de diseño 237): subfilas por
+  // trozos (`mcTrozos`, 07), cuándo bajo el importe, píldoras en fila, leyenda y bienes de Cartera.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-cartera-sin-cortes.spec.mjs"] },
   // Tus recibos de tres en tres, sin «¿Me lo puedo permitir?», el aviso de duplicado y filas compactas (11/11/2026).
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-tres-y-duplicado.spec.mjs"] },
@@ -160,6 +215,19 @@ export const E2E_MAP = [
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/10-app-components.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/fin22-cartera-divisa.spec.mjs"] },
+  // Cartera con un solo patrón de acciones, filas cuenta/banco y áreas táctiles (lote 235).
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/cartera-acciones.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/cartera-acciones.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/cartera-acciones.spec.mjs", "e2e/cartera-inversiones.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/cartera-acciones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/cartera-acciones.spec.mjs"] },
+  // Cartera sin «Editar»: el valor a mano se pone tocando la posición y la cuenta se edita en
+  // su ficha (16/11/2026). El orden guardado de bloques lo lee 14 con `secOrderOf` (02).
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/cartera-puertas.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/cartera-puertas.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/cartera-puertas.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/cartera-puertas.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/cartera-orden-hogar.spec.mjs", "e2e/textos-claros.spec.mjs"] },
   // La cifra grande (`useCountUp`) en Inicio, Cartera y «Tus recibos», y la mensualidad de los
   // recibos con importe por cobro (`fixedMonthlyOf`) que leen los totales y Hogar (4.26.150).
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/cifra-sin-cero.spec.mjs", "e2e/recibos-cifra-estable.spec.mjs"] },
@@ -273,6 +341,12 @@ export const E2E_MAP = [
   { file: "src/modules/01-i18n.js", specs: ["e2e/lo-descuento-undo.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
+  // DIS-26: única puerta para amortizar (tarjeta) y su línea viva de cuotas en el diálogo.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/deudas-amortizar-puerta.spec.mjs"] },
+  // Revisión 237: fecha de fin de una deuda sin plazo contada en céntimos (`debtLeftInfo`).
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-fin-centimos.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
   // Tanda 6: resumen del mes cerrado (`planRecibosMesCerrado`, 08, sobre `planChargesMonth` y
   // `paymentEvidenceUI`), vista del mes siguiente y primer uso (14, con `rp4VistoEnBanco` sobre
@@ -304,6 +378,12 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/gastos-inversion-gris.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
+  // Menores de diseño de Inicio (235): «?» y enlaces de 44 px, movimientos planos, fila de metas,
+  // iniciales únicas (Inicio, Perfil, Ajustes), letra de «Pregúntame» y la primera cuenta en vacío.
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
+  { file: "src/modules/16-help-assistant.js", specs: ["e2e/inicio-menores-235.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-grafica-reservas.spec.mjs", "e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
@@ -356,11 +436,17 @@ export const E2E_MAP = [
     "e2e/cifras-coherentes.spec.mjs",
     // Gastos v5 tanda 2: secciones, tirón con un solo toque, Categorías y Suscripciones como antes.
     "e2e/gastos-v5-secciones.spec.mjs",
+    // Diseño 235 (lote de menores): secciones otra vez en iconos (16/11), «hasta el N» en menta, Categorías con
+    // céntimos, el vacío con sus dos puertas y el importe «12,50» de la ficha Modificar.
+    "e2e/gastos-menores-235.spec.mjs",
     // Gastos v5 tanda 3: tocar una categoría filtra (píldora, cifra de la categoría, meses fijos) y
     // el límite por pulsación larga o por el chip del filtro, la misma hoja.
     "e2e/gastos-v5-filtro.spec.mjs",
     // Gastos v5 tanda 4: Suscripciones como bandeja, su ficha, la «i» y las tres acciones.
     "e2e/gastos-v5-subs.spec.mjs",
+    // Diseño 237 (P1-3/P1-6): con un extracto realista solo salen las suscripciones de verdad
+    // (ni súper, ni gasolina, ni bar, ni deuda), la cifra es lo que pesan al mes y a 360 no se corta nada.
+    "e2e/gastos-suscripciones-deteccion.spec.mjs",
     // Gastos v5 tanda 5: la hoja de Filtros definitiva (cuatro apartados, «Ver N», Restablecer, «Las N»).
     "e2e/gastos-v5-filtros.spec.mjs",
     // «Es aportación a la meta X»: ficha, fila gris de Metas, cifra sin ella y progreso en Plan.
@@ -377,8 +463,10 @@ export const E2E_MAP = [
     "e2e/gastos-fling-sin-tope.spec.mjs",
     // Rechazo de la 173: tocar un mes o un ciclo de la fila deja SU primer día bajo la cabecera.
     "e2e/gastos-fila-salto.spec.mjs",
-    // Y el asa de ordenar ya no se come el desliz hacia Plan (solo se queda el vertical).
-    "e2e/gastos-asa-desliz.spec.mjs",
+    // Ordenar con pulsación larga no se come el desliz hacia Plan, el toque ni el scroll (15/11).
+    "e2e/gastos-pulsacion.spec.mjs",
+    // Diseño 233 (DIS-13/14): la fila sin fecha, banco solo si hay varios y sin asa.
+    "e2e/gastos-fila.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",
@@ -466,6 +554,10 @@ export const E2E_MAP = [
     "e2e/hist-visor.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     // El histórico da por apuntado lo contestado «es el mismo» (lápida o vínculo).
     "e2e/tr-iguales-ordinal.spec.mjs",
+    // Diseño 233 (DIS-40): cada entrada de Ajustes abre lo suyo y el buscador las encuentra.
+    "e2e/ajustes-puertas.spec.mjs",
+    // Notificaciones rehecha (16/11): cada interruptor sigue guardando su clave y el permiso abre Android.
+    "e2e/ajustes-notificaciones.spec.mjs",
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
@@ -481,7 +573,7 @@ export const E2E_MAP = [
     "e2e/inicio-cargos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",
-    "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
+    "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-doble-toque.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs", "e2e/perfil-sin-datos-banco.spec.mjs",
@@ -523,6 +615,12 @@ export const CROSSCUTTING = [
   /* Igual de transversal: el teclado de Apuntar cabe o no según el CSS global de las hojas, y el
      contraste de `--muted-2` y del menta de Claro sale de los tokens de `shell.html`. */
   "e2e/apuntar-teclado-visible.spec.mjs",
+  /* Rediseño de Apuntar (auditoría 15/11): importe, alto de la hoja y letra Enorme dependen del
+     CSS global de las hojas y del zoom del body, no solo de la pantalla de Gastos. */
+  "e2e/apuntar-rediseno.spec.mjs",
+  /* Remate 235 (16/11): el banco con logos en la fila del pago es de 02 y lo usan Apuntar (14) y la
+     ficha (04); la ficha pierde la tarjeta de origen y sus filas pasan a chips. */
+  "e2e/banco-logos-ficha.spec.mjs",
   // INC-2709-12: el + de Cyberpunk por encima de la corriente de la barra, en todas las pestañas.
   "e2e/cyber-fab.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",

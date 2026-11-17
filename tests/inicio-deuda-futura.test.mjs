@@ -28,8 +28,10 @@ function callbackBody(source,token){
 }
 function manualDebt(form,source=html){
   let state={debts:[]};
-  const fn=vm.runInContext("(function(form,set,showToast,setForm,setAdding){"+callbackBody(source,"const addDebt=()=>{")+"})",c);
-  fn({name:"Alta sintética",value:"600,03",monthly:"50,01",months:"12",day:"16",account:"sabadell",down:"",balloon:"",paid:"",...form},update=>{state=update(state);},()=>{},()=>{},()=>{});
+  // Desde DIS-31 (4.26.235) el alta va en hoja: el cuerpo lee `addedRef` (no repetir el alta mientras baja) y `addCloser`
+  // (cerrarla). Se pasan sin hoja montada, como en fin36: el mismo camino que cierra al instante.
+  const fn=vm.runInContext("(function(form,set,showToast,setForm,setAdding,addedRef,addCloser){"+callbackBody(source,"const addDebt=()=>{")+"})",c);
+  fn({name:"Alta sintética",value:"600,03",monthly:"50,01",months:"12",day:"16",account:"sabadell",down:"",balloon:"",paid:"",...form},update=>{state=update(state);},()=>{},()=>{},()=>{},{current:false},{current:null});
   assert.equal(state.debts.length,1);return state.debts[0];
 }
 // La compra a plazos de «¿Y si gasto…?» (`deudaAPlazos`, 4.26.229), con el reloj simulado de `c`: su 1.ª cuota

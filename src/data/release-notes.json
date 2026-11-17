@@ -1,5 +1,44 @@
 [
   {
+    "v": "4.26.237",
+    "d": "2026-11-17",
+    "t": {
+      "es": "Bancos al día, Apuntar sin deslizar y cuentas al céntimo",
+      "en": "Banks up to date, adding without scrolling and figures to the cent",
+      "ca": "Bancs al dia, apuntar sense lliscar i comptes al cèntim"
+    },
+    "items": {
+      "es": [
+        "Apuntar un gasto cabe en la pantalla sin deslizar: el importe se ve grande, el teclado no tapa el concepto, la forma de pago se elige en un solo sitio y el banco, tocando su logo. Un doble toque ya no lo guarda dos veces.",
+        "Tus bancos se ponen al día solos al abrir la app, unas pocas veces al día como mucho, y un banco que necesita tu permiso avisa con una franja en Inicio y una fila propia en Cartera.",
+        "En Gastos, los movimientos de cada día van juntos, como en Inicio, y para cambiarlos de orden basta con mantener el dedo encima y arrastrar. Suscripciones solo enseña cobros que se repiten de verdad: el súper, la gasolina o las cuotas de una deuda ya no cuentan.",
+        "Deudas y metas cuadran al céntimo: la última cuota, las que te quedan al amortizar y la fecha de fin salen exactas. «Amortizar ahora» te dice cuántas cuotas te quitas, y añadir una deuda o una meta se hace en su propia hoja.",
+        "«¿Te llega?» ya no resta dos veces un recibo que ya está descontado del saldo, y en un recibo compartido cuenta también la parte de los demás. Un pago a otra persona ya no se toma por un traspaso entre tus cuentas.",
+        "Recibos y Cartera se leen enteros en cualquier móvil. En Cartera, el valor de un fondo o del oro y cada cuenta se cambian tocándolos, y en «Round up y Saveback» eliges a qué posición de Trade Republic va cada uno.",
+        "La ficha de un movimiento es más limpia, Gastos recupera sus iconos de sección y Notificaciones enseña de un vistazo si la app puede leer los avisos y qué lee."
+      ],
+      "en": [
+        "Adding an expense fits on the screen without scrolling: the amount is shown large, the keyboard doesn't cover what it was, the payment method is chosen in one place and the bank by tapping its logo. A double tap no longer saves it twice.",
+        "Your banks update on their own when you open the app, a few times a day at most, and a bank that needs your permission tells you with a strip on Home and its own row in Portfolio.",
+        "In Spending, each day's transactions go together, as on Home, and to reorder them just hold your finger on one and drag it. Subscriptions only shows charges that really repeat: groceries, fuel or debt instalments no longer count.",
+        "Debts and goals add up to the cent: the last instalment, the ones you have left when you pay down and the end date come out exact. «Pay down now» tells you how many payments you drop, and adding a debt or a goal happens in its own sheet.",
+        "«Will it cover?» no longer subtracts twice a bill that is already taken off the balance, and a shared bill also counts the others' share. A payment to someone else is no longer taken for a transfer between your own accounts.",
+        "Bills and Portfolio read in full on any phone. In Portfolio, the value of a fund or of gold and each account are changed by tapping them, and under «Round up and Saveback» you choose which Trade Republic position each one goes to.",
+        "A transaction's details are cleaner, Spending gets back its section icons and Notifications shows at a glance whether the app can read alerts and what it reads."
+      ],
+      "ca": [
+        "Apuntar una despesa cap a la pantalla sense lliscar: l'import es veu gran, el teclat no tapa el concepte, la forma de pagament es tria en un sol lloc i el banc, tocant-ne el logo. Un doble toc ja no la desa dues vegades.",
+        "Els teus bancs es posen al dia sols en obrir l'app, unes poques vegades al dia com a molt, i un banc que necessita el teu permís avisa amb una franja a Inici i una fila pròpia a Cartera.",
+        "A Despeses, els moviments de cada dia van junts, com a Inici, i per canviar-ne l'ordre n'hi ha prou de mantenir el dit a sobre i arrossegar-lo. Subscripcions només ensenya càrrecs que es repeteixen de debò: el súper, la benzina o les quotes d'un deute ja no compten.",
+        "Deutes i metes quadren al cèntim: l'última quota, les que et queden en amortitzar i la data de final surten exactes. «Amortitza ara» et diu quantes quotes et treus, i afegir un deute o una meta es fa en el seu propi full.",
+        "«T'arriba?» ja no resta dues vegades un rebut que ja està descomptat del saldo, i en un rebut compartit compta també la part dels altres. Un pagament a una altra persona ja no es pren per un traspàs entre els teus comptes.",
+        "Rebuts i Cartera es llegeixen sencers a qualsevol mòbil. A Cartera, el valor d'un fons o de l'or i cada compte es canvien tocant-los, i a «Round up i Saveback» tries a quina posició de Trade Republic va cadascun.",
+        "La fitxa d'un moviment és més neta, Despeses recupera les icones de secció i Notificacions ensenya d'un cop d'ull si l'app pot llegir els avisos i què llegeix."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.233",
     "d": "2026-11-14",
     "t": {

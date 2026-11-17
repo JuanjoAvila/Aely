@@ -110,9 +110,11 @@ function LockScreen({onUnlock}){
     askConfirm({ title:t("lk_escape"), sub:t("lk_escape_sub"), ok:t("lk_escape_ok"), danger:true })
       .then(function(yes){ if(yes){ bio.disable(); onUnlock(); } });
   };
-  const link={background:"none",border:"none",color:"var(--muted-2)",cursor:"pointer",fontSize:"12px",marginTop:"10px",textDecoration:"underline"};
+  // Salida de emergencia como botón de texto de 44 px, no un enlace gris subrayado de 12 px que
+  // costaba ver y acertar (auditoría de diseño 15/11).
+  const link={background:"none",border:"none",color:"var(--muted)",cursor:"pointer",fontSize:"14px",fontWeight:600,minHeight:44,padding:"10px 16px",marginTop:"4px",fontFamily:"inherit"};
   return React.createElement("div",{style:wrap},
-    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"◎"),
+    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"color-mix(in srgb,var(--mint) 14%,transparent)",color:"var(--mint)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"◎"),
     React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Aely"),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:"14px"}}, err?t("lk_failed"):t("lk_unlock")),
     React.createElement("button",{style:btn,onClick:tryUnlock},t("lk_unlockbtn")),
@@ -132,10 +134,11 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
   const [bioOn,setBioOn]=useState(bio.enabled());
   // zIndex ALTO: debe quedar por encima del onboarding (z90) para que "Ya tengo cuenta" sea visible.
   const overlay={position:"fixed",inset:0,background:"rgba(0,0,0,.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:120,padding:"20px"};
-  const card={background:"#0F1A15",border:"1px solid #1e2b24",borderRadius:"18px",padding:"22px",width:"100%",maxWidth:"360px",color:"#E8F0EB",fontFamily:"Manrope, sans-serif"};
-  const inp={width:"100%",padding:"12px 14px",margin:"6px 0",borderRadius:"12px",border:"1px solid #2a3a31",background:"#0B1410",color:"#fff",fontSize:"16px",boxSizing:"border-box"};
-  const btn={width:"100%",padding:"12px",borderRadius:"12px",border:"none",background:"#5FD08A",color:"#06120C",fontWeight:700,fontSize:"15px",marginTop:"8px",cursor:"pointer"};
-  const link={background:"none",border:"none",color:"#9BD0E0",cursor:"pointer",fontSize:"13px",marginTop:"12px",padding:"4px",width:"100%"};
+  // Colores del tema y no fijos: con el tema Claro el panel salía oscuro sobre la app clara.
+  const card={background:"var(--surface)",border:"1px solid var(--line)",borderRadius:"18px",padding:"22px",width:"100%",maxWidth:"360px",color:"var(--text)",fontFamily:"Manrope, sans-serif"};
+  const inp={width:"100%",padding:"12px 14px",margin:"6px 0",borderRadius:"12px",border:"1px solid var(--line)",background:"var(--bg)",color:"var(--text)",fontSize:"16px",boxSizing:"border-box"};
+  const btn={width:"100%",padding:"12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"15px",marginTop:"8px",cursor:"pointer"};
+  const link={background:"none",border:"none",color:"var(--blue)",cursor:"pointer",fontSize:"13px",marginTop:"12px",padding:"4px",width:"100%"};
   const submit=function(){
     if(!email||!pass){ showToast(t("au_need")); return; }
     setBusy(true);
@@ -180,11 +183,11 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     return React.createElement("div",{style:overlay,onClick:onClose},
       React.createElement("div",{style:card,onClick:stop},
         React.createElement("div",{style:{fontWeight:700,fontSize:"17px"}},t("au_account")),
-        React.createElement("div",{style:{color:"#9fb3a8",fontSize:"13px",marginBottom:"16px"}},(session.user.email||"")),
+        React.createElement("div",{style:{color:"var(--muted)",fontSize:"13px",marginBottom:"16px"}},(session.user.email||"")),
         bio.supported()
-          ? React.createElement("button",{style:Object.assign({},btn,{background:bioOn?"#243b30":"#5FD08A",color:bioOn?"#cfe9da":"#06120C"}),onClick:toggleBio}, bioOn?t("au_bio_off"):t("au_bio_on"))
-          : React.createElement("div",{style:{color:"#E6C36A",fontSize:"12px",margin:"6px 0"}},t("au_nobio")),
-        React.createElement("button",{style:Object.assign({},btn,{background:"#3a2430",color:"#f3d0d8"}),onClick:function(){ cloud.signOut().then(function(){ showToast(t("au_signedout")); onClose(); }); }},t("au_signout")),
+          ? React.createElement("button",{style:Object.assign({},btn,{background:bioOn?"var(--surface-2)":"var(--mint)",color:bioOn?"var(--text)":"var(--on-mint)"}),onClick:toggleBio}, bioOn?t("au_bio_off"):t("au_bio_on"))
+          : React.createElement("div",{style:{color:"var(--tan)",fontSize:"12px",margin:"6px 0"}},t("au_nobio")),
+        React.createElement("button",{style:Object.assign({},btn,{background:"var(--coral-dim)",color:"var(--text)"}),onClick:function(){ cloud.signOut().then(function(){ showToast(t("au_signedout")); onClose(); }); }},t("au_signout")),
         React.createElement("button",{style:link,onClick:onClose},t("au_close"))
       )
     );
@@ -239,6 +242,14 @@ function SyncReportSheet({items,onClose}){
       React.createElement("button",{type:"button",className:"btn btn-primary",style:{width:"100%",marginTop:8},onClick:onClose},t("sync_result_close"))
     )
   );
+}
+/* Cabecera de las subpantallas de pantalla completa: «‹» redondo a la izquierda y el título al
+   lado, como Ajustes e Inversiones. Solo cambia el botón visible: cada pantalla sigue cerrando con
+   su propio onBack y su useBackClose (auditoría de diseño 15/11, seis botones atrás distintos). */
+function SubPushHead({onBack, title}){
+  return React.createElement("div",{className:"sub-push-h"},
+    React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onBack},"‹"),
+    React.createElement("h1",null, title));
 }
 function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks, goGastos}){
   const expEnts=expenseBankEnts(state);
@@ -576,7 +587,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   const canUndo=histCanUndo(state);
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const chip=function(n){ const on=months===n; return React.createElement("button",{key:n,onClick:function(){ setMonths(n); },style:{flex:1,padding:"9px 0",borderRadius:10,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)":"var(--surface)",color:on?"var(--on-mint)":"var(--text)",fontWeight:800,fontSize:13,cursor:"pointer"}}, tf("bp_hist_m",{n:n})); };
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
   const destChip=function(i,id,label,hint){
@@ -596,8 +606,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
     return "🗐 "+t(c.reason==="modeled"?"bp_hist_dup":"bp_hist_dupexist");
   };
   return React.createElement("div",{style:wrap,className:"hist-import"}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
-    React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px"}}, t("bp_hist_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:t("bp_hist_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}},
       allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_pickbank")),
     canUndo && React.createElement("button",{type:"button",onClick:doUndoLast,
@@ -903,7 +912,6 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
 
   const wrap={position:"fixed",inset:0,zIndex:95,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 14px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--mint)",fontSize:14,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:4};
   const pill=function(txt,col){ return React.createElement("span",{style:{fontSize:11,fontWeight:800,color:col,background:col+"1f",borderRadius:20,padding:"3px 9px",whiteSpace:"nowrap"}}, txt); };
   const mb={flex:"1 1 auto",minWidth:0,background:"var(--sur)",border:"1px solid var(--line-soft)",color:"var(--text)",borderRadius:12,padding:"10px 12px",fontSize:13,fontWeight:700,cursor:"pointer"};
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"linear-gradient(160deg,var(--mint-hi),var(--mint))",color:"var(--on-mint)",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:8};
@@ -918,8 +926,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
   // ---- vista PICKER (elegir banco de la lista real) ----
   if(picking){
     return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-      React.createElement("button",{style:back,onClick:function(){ setPicking(false); setQ(""); }}, "‹ "+t("bp_back")),
-      React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px",fontWeight:560}}, t("bp_pick_title")),
+      React.createElement(SubPushHead,{onBack:function(){ setPicking(false); setQ(""); },title:t("bp_pick_title")}),
       React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}}, t("bp_pick_sub")),
       React.createElement("input",{style:inp,placeholder:t("bp_search"),value:q,onChange:function(e){ setQ(e.target.value); },autoFocus:true}),
       loadingA && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,padding:"18px 2px"}}, t("bp_loading")),
@@ -948,8 +955,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
 
   // ---- vista PRINCIPAL (mis bancos conectados) ----
   return React.createElement("div",{className:"v4-banks",style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
-    React.createElement("div",{className:"serif",style:{fontSize:26,fontWeight:560,margin:"2px 0 4px"}}, t("bp_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:t("bp_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("bp_intro")),
     links===null && React.createElement("div",{style:{color:"var(--muted)",fontSize:13}}, "…"),
     links!==null && links.length===0 && React.createElement(React.Fragment,null,
@@ -1690,20 +1696,20 @@ function BetaReviewPanel({onClose, showToast}){
         setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict==="revoked"}); });
         showToast(verdict==="approved"?"✅ Aprobada · queda registrado":verdict==="revoked"?t("beta_revoked"):"⛔ Enviado · no se sube");
       })
-      .catch(function(e){ showToast("✕ No se pudo enviar: "+((e&&e.message)||e)); })
+      // El código y no el mensaje: el texto crudo del error puede traer datos de la petición y este
+      // aviso acaba en capturas que se comparten (revisión externa 234).
+      .catch(function(e){ showToast("✕ No se pudo enviar · "+mcLogCode(e)); })
       .finally(function(){ setBusy(false); });
   };
 
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const btn=function(on,color){ return {flex:1,background:on?color:"var(--surface-2)",color:on?"#06120C":"var(--text)",
     border:on?"none":"1px solid var(--line)",borderRadius:12,padding:"9px 6px",fontSize:13,fontWeight:800,cursor:"pointer"}; };
 
   return React.createElement("div",{style:wrap,className:"beta-review",ref:wrapRef,onScroll:recordarScroll,onPointerDown:tocar},
     React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:cerrarDeVerdad}, "‹ Ajustes"),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "🧪 Revisar la beta"),
+    React.createElement(SubPushHead,{onBack:cerrarDeVerdad,title:"🧪 Revisar la beta"}),
     // Y a la vista, no solo en el parte: si un fallo es del icono o del instalador, lo primero que
     // hay que saber es qué APK lleva puesta — y hasta ahora aquí solo salía la versión web.
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:4}},
@@ -1882,15 +1888,13 @@ function ActivityPanel({events, onReload, onClose}){
   useBackClose(true, onClose);   // gesto atrás del móvil: cierra esta pantalla
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const chip=function(on){ return {background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)",borderRadius:20,padding:"6px 13px",fontSize:12.5,fontWeight:700,cursor:"pointer"}; };
   const nErr=(events||[]).filter(function(ev){ return ev.kind==="error"; }).length;
   const nFb=(events||[]).filter(function(ev){ return ev.kind==="feedback"; }).length;
   const nBeta=(events||[]).filter(function(ev){ return ev.kind==="beta"; }).length;   // veredictos de beta probada en el móvil
   const list=(events||[]).filter(function(ev){ return flt==="all" || ev.kind===flt; });
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ Ajustes"),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "👁 Actividad"),
+    React.createElement(SubPushHead,{onBack:onClose,title:"👁 Actividad"}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}},
       events===null ? "Cargando…" : ((events||[]).length+" eventos · "+nErr+" error(es) · solo tú ves esto")),
     React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}},
@@ -1927,7 +1931,6 @@ function PrivacyPanel({onClose}){
   useBackClose(true, onClose);   // gesto atrás del móvil: cierra esta pantalla
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 32px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:560,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const card={background:"var(--sur)",border:"1px solid var(--line-soft)",borderRadius:18,padding:"6px 16px 14px",marginTop:14,boxShadow:"var(--shadow)"};
   const h2={fontSize:14.5,fontWeight:800,color:"var(--mint)",margin:"16px 0 8px",letterSpacing:.2};
   const pS={fontSize:14,lineHeight:1.6,color:"var(--text)",margin:0};
@@ -1940,8 +1943,7 @@ function PrivacyPanel({onClose}){
     );
   };
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, "🛡️ "+t("pv_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:"🛡️ "+t("pv_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:12.5,marginBottom:4}}, t("pv_updated")),
     sec(t("pv_s1_h"), t("pv_s1")),
     sec(t("pv_s2_h"), t("pv_s2")),
@@ -1957,10 +1959,8 @@ function SharedPanel({state, set, uid, totals, showToast, meEmail, onClose}){
   useBackClose(true, onClose);
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("v4_back")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 10px"}}, "🏠 "+t("st_shared")),
+    React.createElement(SubPushHead,{onBack:onClose,title:"🏠 "+t("st_shared")}),
     React.createElement(Shared,{state:state,set:set,uid:uid,totals:totals,showToast:showToast,meEmail:meEmail})
   ));
 }
@@ -1988,11 +1988,9 @@ function FeedbackPanel({state, set, showToast, onClose}){
   const delNote=function(id){ set(function(s){ return Object.assign({},s,{verNotes:(s.verNotes||[]).filter(function(n){ return n.id!==id; })}); }); };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const inp={width:"100%",minHeight:96,padding:"10px 12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:14,fontFamily:"'Manrope',sans-serif",boxSizing:"border-box",resize:"vertical"};
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, t("wn_fb_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:t("wn_fb_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}}, t("wn_fb_hint")),
     React.createElement("textarea",{style:inp,placeholder:t("wn_fb_ph"),value:fb,onChange:function(e){ setFb(e.target.value); }}),
     React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:!fb.trim()||sending,onClick:sendFb}, sending?"…":("💬 "+t("wn_fb_send"))),
@@ -2031,14 +2029,12 @@ function AutoBackupsPanel({state, showToast, uid, onClose}){
   };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const dayRow={display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:"12px 14px",borderRadius:12,border:"1px solid var(--line)",marginBottom:8};
   const fmtDay=function(d){ try{ return new Date(d+"T12:00:00").toLocaleDateString(loc(),{weekday:"short",day:"2-digit",month:"short"}); }catch(e){ return d; } };
   if(preview) return React.createElement("div",{className:"bk-preview",style:wrap},
     React.createElement(BackupRecoveryPreview,{snapshot:preview.data,current:state,day:preview.day,onClose:function(){ setPreview(null); }}));
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, t("bk_auto_title")),
+    React.createElement(SubPushHead,{onBack:onClose,title:t("bk_auto_title")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("bk_auto_hint")),
     days===null && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,padding:"18px 2px"}}, t("bp_loading")),
     days!==null && days.length===0 && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,padding:"18px 2px"}}, t("bk_auto_none")),
@@ -2274,7 +2270,6 @@ function CurConverterPanel({state, onClose, refreshFx}){
   const normQ=function(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const inp={width:"100%",padding:"10px 13px",borderRadius:12,border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:16,boxSizing:"border-box"};
   const segBtn=function(on){ return {padding:"7px 10px",borderRadius:20,fontSize:12.5,fontWeight:700,cursor:"pointer",background:on?"var(--mint)":"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",border:on?"none":"1px solid var(--line)"}; };
   const tbl=fxTableOf(state);
@@ -2306,8 +2301,7 @@ function CurConverterPanel({state, onClose, refreshFx}){
     return "1 "+(CUR_SYM[from]||from)+" = "+NF.format(one)+" "+(CUR_SYM[to]||to);
   })();
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "🔁 "+t("st_cur_convert")),
+    React.createElement(SubPushHead,{onBack:onClose,title:"🔁 "+t("st_cur_convert")}),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}}, t("st_cur_convert_hint")),
     !hasRates
       ? React.createElement("div",{style:{marginTop:4}},
@@ -2535,7 +2529,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   };
   // ¿El lector de gastos TR tiene acceso a notificaciones? (se pierde al reinstalar la app).
   // Se re-chequea al volver a la app (visibilitychange): al activar el permiso y volver, el aviso se quita solo.
-  const [notifOk,setNotifOk]=useState(true);
+  // null = aún no se sabe: la fila de Notificaciones no pinta «Activo» antes de preguntar al móvil.
+  const [notifOk,setNotifOk]=useState(null);
   useEffect(function(){
     const check=function(){
       const nat=natPlugin();
@@ -2670,7 +2665,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Despliegue ANIMADO con el patrón .collapsible (grid-rows): montar/desmontar en seco se
     // sentía «robótico» (feedback 2026-07-18). El contenido queda siempre montado (solo Ajustes,
     // coste asumible) y la altura transiciona suave en ambos sentidos.
-    return React.createElement("div",{className:"set-card"},
+    // Es una fila de la tarjeta de su `seccion`, no una tarjeta propia (DIS-40).
+    return React.createElement("div",{className:"set-sub"},
       React.createElement("button",{className:"set-row",onClick:function(){ toggleGrp(id); }},
         React.createElement("span",{className:"sr-ic"},icon),
         React.createElement("span",{className:"sr-lb",style:{fontWeight:800}},title),
@@ -2681,9 +2677,24 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       )
     );
   };
+  // Una fila suelta (sin desplegable) en la tarjeta de su grupo; el buscador la ve como a un grupo.
+  const suelta=function(k,icon,label,keywords,onClick){
+    const nq=normQ(q).trim();
+    if(nq && normQ(label+" "+(keywords||"")).indexOf(nq)<0) return null;
+    grpMatches++;
+    return React.createElement("div",{className:"set-sub"}, row(k,icon,label,null,onClick));
+  };
+  // Cabecera + UNA tarjeta con lo que quede tras el buscador; si no queda nada, ni la cabecera.
+  const seccion=function(titulo){
+    const kids=Array.prototype.slice.call(arguments,1).filter(Boolean);
+    if(!kids.length) return null;
+    return React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"v4-set-sec"},titulo),
+      React.createElement.apply(null,["div",{className:"set-card"}].concat(kids)));
+  };
   return React.createElement(React.Fragment,null,
     React.createElement("div",{className:"v4-set-profile"},
-      React.createElement("div",{className:"v4-set-av"}, (meEmail||"MC").slice(0,2).toUpperCase()),
+      React.createElement("div",{className:"v4-set-av"}, avatarIniciales(profileOf(state).fullName, meEmail)),
       React.createElement("div",{style:{minWidth:0,flex:1}},
         React.createElement("div",{style:{fontWeight:800,fontSize:16}}, meEmail?meEmail.split("@")[0]:"Aely"),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:2}}, meEmail||t("v4_set_profile_local")),
@@ -2697,7 +2708,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     }}, t("help_title")),
     React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
 
-    React.createElement("div",{className:"v4-set-sec"}, t("v4_set_appear")),
+    /* AJUSTES EN CUATRO GRUPOS (diseño 233, DIS-40, aprobado 15/11). Había siete cabeceras con una
+       sola fila que repetía su título («APARIENCIA › Apariencia») y cosas en grupos que no les
+       tocaban (la ayuda con IA en «Tu cuenta» junto a cerrar sesión, el informe del mes en
+       «Avanzado»). Ahora cada grupo es UNA tarjeta y cada desplegable de siempre es una fila suya.
+       Los ids de desplegables y filas no cambian. «Borrar mi cuenta» sigue la última de la suya. */
+    seccion(t("v4_set_g_look"),
     grp("general","🎨",t("v4_set_appear"),"idioma language tema theme color temática temporada mundial halloween navidad verano invierno pascua otoño otono primavera cyberpunk neon apariencia look",null,
       React.createElement("div",{className:"v4-theme-row","aria-label":t("theme")},
         THEMES.map(function(th){
@@ -2729,9 +2745,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             },style:segBtn(curLang===L[0])}, L[1]);
           })))
     ),
-
-    // ACCESIBILIDAD (justo debajo de Apariencia): tamaño de letra, reducir animaciones, contraste.
-    React.createElement("div",{className:"v4-set-sec"}, t("v4_set_a11y")),
     grp("a11y","♿",t("v4_set_a11y"),"accesibilidad letra grande tamaño texto contraste animaciones reduce motion accessibility",t("ts_"+curTextSize),
       React.createElement("div",{style:{padding:"6px 14px 4px"}},
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
@@ -2749,20 +2762,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         return React.createElement(React.Fragment,null,
           row("hicon",on?"🌗":"🌓",t("st_contrast"),null,function(){ applyContrast(!on); setS({hiContrast:!on}); }, sw(on)),
           React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_contrast_hint"))); })()
-    ),
-
-    // «Para empezar» reubicado justo bajo Apariencia/Accesibilidad (petición 2026-07-18).
-    React.createElement("div",{className:"v4-set-sec"}, t("v4_set_easy")),
-    grp("easy","🍃",t("v4_set_easy"),"modo sencillo simple mode tutorial tour empezar fácil easy start",null,
-      row("simple","🍃",t("st_simple_lbl"),null,function(){
-        const sim=!simOn;
-        setS({simpleMode:sim});
-      }, sw(simOn)),
-      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",padding:"0 14px 10px"}}, t("st_mode_hint")),
-      onTour && row("tour","🎓",t("v4_set_tour"),null,onTour)
-    ),
-
-    React.createElement("div",{className:"v4-set-sec"}, t("v4_set_money")),
+    )),
+    seccion(t("v4_set_g_money"),
     // Dinero: moneda de visualización (ahora SÍ convierte) + comparativa + cómo se ve el total
     // de gastos. Presupuesto y bancos de gasto diario viven en Resumen / Cartera (2026-08-05).
     grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts presupuesto nòmina nómina salario cobro ciclo payday budget",t("cur_"+curCur.toLowerCase()),
@@ -2837,8 +2838,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
       })
     ),
-
-    React.createElement("div",{className:"v4-set-sec"}, t("v4_set_conn")),
     cloud.enabled() && (function(){
       const links=bankLinks;
       // Issues de la última sync también cuentan: si no, el resumen decía «3 conectados» con
@@ -2867,17 +2866,9 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         row("banks","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
       );
     })(),
-    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); setTrExpired(!!(r&&r.authExpired)||(typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); }).catch(function(){}); } }}), document.body),
-    // (Hogar y gastos compartidos se movió FUERA de Ajustes 2026-07-18: es una funcionalidad de
-    //  la app, no un ajuste. Ahora se abre desde Cartera → «Hogar y gastos compartidos».)
-    !notifOk && React.createElement("div",{className:"alarmbox",style:{marginTop:14}},
-      t("na_body"),
-      React.createElement("button",{style:Object.assign({},btn,{marginTop:10}),onClick:function(){ const nat=natPlugin(); if(nat&&nat.openNotifAccess){ try{ nat.openNotifAccess().catch(function(){}); }catch(e){} } }},t("na_fix")),
-      React.createElement("div",{style:{fontSize:11.5,lineHeight:1.5,marginTop:10,opacity:.85}}, t("na_restricted"))
-    ),
     (function(){
       const nat=natPlugin();
-      if(!nat || !nat.setNotifPrefs) return null;
+      if(!nat || (!nat.setNotifPrefs && !nat.notifAccess)) return null;
       const on=!(state.settings&&state.settings.trNotifyConfirm===false);
       const bankSyncOn=!!(state.settings&&state.settings.bankSyncOnNotif===true);
       const ingOn=!!(state.settings&&state.settings.trIngest);
@@ -2902,38 +2893,66 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         }
       };
       const aiOn=!!(state.settings&&state.settings.aiCat);
-      return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications apunte automatico gastos trade republic avisos banco sync caixabank sabadell ia ai categoria",null,
-        row("tring",ingOn?"🟢":"⚪",t("st_tring"),null,toggleIng, sw(ingOn)),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_tring_hint")),
-        row("trnotif",on?"🔔":"🔕",t("st_trnotif"),null,function(){ setS({trNotifyConfirm:!on}); }, sw(on)),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_trnotif_hint")),
-        row("banksync",bankSyncOn?"🏦":"🔕",t("st_banksync_notif"),null,function(){ setS({bankSyncOnNotif:!bankSyncOn}); }, sw(bankSyncOn)),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_banksync_notif_hint")),
-        row("aicat",aiOn?"✨":"⚪",t("st_aicat"),null,function(){ setS({aiCat:!aiOn}); }, sw(aiOn)),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_aicat_hint"))
+      /* NOTIFICACIONES, rehecha el 16/11 («hiper cutre», suyo): eran cuatro interruptores iguales con
+         un párrafo debajo de cada uno y el permiso, que es lo que decide si algo funciona, en una caja
+         roja FUERA del grupo, entre secciones. Ahora el permiso es la primera fila y se ve sin abrir
+         (valor del grupo); debajo, lo que se lee y lo que te avisa, una línea por fila como mucho.
+         Mismas claves de ajustes y mismas llamadas nativas que antes. */
+      const permiso=notifOk==null?null:React.createElement("span",{className:"nt-st"+(notifOk?" ok":" ko")},t(notifOk?"nt_on":"nt_off"));
+      const abrirAcceso=function(){ if(nat.openNotifAccess){ try{ nat.openNotifAccess().catch(function(){}); }catch(e){} } };
+      // Logos de los bancos que se sincronizan al llegar su aviso: los conectados por Open Banking.
+      const bancos=[];
+      (bankLinks||[]).forEach(function(l){
+        const e=typeof entFromAspsp==="function"?entFromAspsp(l&&l.aspsp_name):null;
+        if(e && bancos.indexOf(e)<0) bancos.push(e);
+      });
+      const logos=function(ents){
+        return React.createElement("span",{className:"nt-logos"}, ents.slice(0,4).map(function(e){ return React.createElement(Mono,{key:e,ent:e,size:16}); }));
+      };
+      // Fila con una línea de apoyo bajo el título (sin párrafos: una línea útil o nada).
+      const fila=function(k,icon,label,sub,onClick,right){
+        return React.createElement("button",{key:k,type:"button",className:"set-row nt-row","data-nt":k,onClick:onClick},
+          React.createElement("span",{className:"sr-ic"},icon),
+          React.createElement("span",{className:"sr-tx"},
+            React.createElement("span",{className:"sr-lb"},label),
+            sub && React.createElement("span",{className:"sr-sub"},sub)),
+          right);
+      };
+      return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications permiso acceso apunte automatico gastos trade republic google wallet avisos banco sync caixabank sabadell ia ai categoria",permiso,
+        nat.notifAccess && fila("access","📲",t("nt_access"),null,abrirAcceso,
+          // El estado ya lo dice la cabecera del grupo; aquí, sin permiso, lo que toca: activarlo.
+          React.createElement(React.Fragment,null,
+            notifOk===false?React.createElement("span",{className:"nt-fix"},t("nt_fix")):permiso,
+            React.createElement("span",{className:"sr-chev"},"›"))),
+        notifOk===false && row("narestr","❔",t("nt_restricted_q"),null,function(){ toggleExp("narestr"); }),
+        notifOk===false && expand==="narestr" && React.createElement("div",{className:"set-exp hint"}, t("na_restricted")),
+        React.createElement("div",{className:"sc-title"},t("nt_sec_read")),
+        fila("tring",React.createElement(Mono,{ent:"trade_republic",size:24}),t("st_tring"),t("st_tring_hint"),toggleIng,sw(ingOn)),
+        nat.setNotifPrefs && fila("banksync","🏦",t("st_banksync_notif"),
+          React.createElement(React.Fragment,null,bancos.length?logos(bancos):null,t("st_banksync_notif_hint")),function(){ setS({bankSyncOnNotif:!bankSyncOn}); },sw(bankSyncOn)),
+        React.createElement("div",{className:"sc-title"},t("nt_sec_tell")),
+        nat.setNotifPrefs && fila("trnotif","🔔",t("st_trnotif"),t("st_trnotif_hint"),function(){ setS({trNotifyConfirm:!on}); },sw(on)),
+        fila("aicat","✨",t("st_aicat"),t("st_aicat_hint"),function(){ setS({aiCat:!aiOn}); },sw(aiOn))
       );
     })(),
-
-    React.createElement("div",{className:"v4-set-sec"}, t("v4_set_app")),
-    grp("news","✨",t("st_news"),"novedades news version sugerencias feedback historial whatsnew","v"+CONFIG.APP_VERSION,
-      row("news","✨",t("st_news_row"),null,function(){ setNewsOpen(true); }),
-      row("fb","💬",t("st_feedback"),null,function(){ setFbOpen(true); })
-    ),
-    newsOpen && React.createElement(WhatsNew,{onClose:function(){ setNewsOpen(false); },showToast:showToast,set:set,state:state}),
-    fbOpen && ReactDOM.createPortal(React.createElement(FeedbackPanel,{state:state,set:set,showToast:showToast,onClose:function(){ setFbOpen(false); }}), document.body),
     natPlugin() && grp("widget","💳",t("st_widget_bank"),"widget banco bank cuenta tarjeta puedes gastar",null,
       React.createElement("select",{className:"af-in","aria-label":t("st_widget_bank"),value:widgetBankAccounts(state).some(function(a){ return a.ent===(state.settings||{}).widgetBank; })?(state.settings||{}).widgetBank:"",onChange:function(e){ setS({widgetBank:e.target.value}); }},
         [""].concat(Array.from(new Set(widgetBankAccounts(state).map(function(a){ return a.ent; })))).map(function(e){ return React.createElement("option",{key:e,value:e},e?entOf(e).label:t("st_widget_auto")); })
       ),
       React.createElement("div",{className:"hint",style:{padding:12}},t("st_widget_bank_hint"))
     ),
-    natPlugin() && grp("updates","⬇️",t("st_updates"),"actualizar update version apk buscar widget",
-      apkVer ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer}) : tf("st_ver_web",{v:CONFIG.APP_VERSION}),
-      row("upd","⬇️",t("st_update"),
-        apkVer ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer}) : ("v"+CONFIG.APP_VERSION),
-        checkUpdates),
-      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_widget_hint"))
-    ),
+    grp("easy","🍃",t("v4_set_easy"),"modo sencillo simple mode tutorial tour empezar fácil easy start",null,
+      row("simple","🍃",t("st_simple_lbl"),null,function(){
+        const sim=!simOn;
+        setS({simpleMode:sim});
+      }, sw(simOn)),
+      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",padding:"0 14px 10px"}}, t("st_mode_hint")),
+      onTour && row("tour","🎓",t("v4_set_tour"),null,onTour)
+    )),
+    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); setTrExpired(!!(r&&r.authExpired)||(typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); }).catch(function(){}); } }}), document.body),
+    // (Hogar y gastos compartidos se movió FUERA de Ajustes 2026-07-18: es una funcionalidad de
+    //  la app, no un ajuste. Ahora se abre desde Cartera → «Hogar y gastos compartidos».)
+    seccion(t("v4_set_g_data"),
     /* IMPORTACIONES, todas juntas (2026-08-04). Desde tanda 4 el histórico vive SOLO aquí: se
        quitó el botón duplicado de «Mis bancos» (plan puertas + K). */
     grp("import","📥",t("st_imports"),"importar import excel hoja csv gastos historico banco extracto",null,
@@ -2947,6 +2966,22 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     cloud.enabled() && uid && grp("backup","🗄️",t("backup"),"copia seguridad backup restaurar automatica",null,
       row("autoback","🕐",t("bk_auto_title"),null,function(){ setAutoBackOpen(true); })
     ),
+      // Era lo único de «Avanzado»: es un resumen de tus datos, no una opción avanzada.
+      totals && suelta("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),"informe report mes month resumen",function(){ shareMonthReport(state, totals, showToast); }),
+    grp("news","✨",t("st_news"),"novedades news version sugerencias feedback historial whatsnew","v"+CONFIG.APP_VERSION,
+      row("news","✨",t("st_news_row"),null,function(){ setNewsOpen(true); }),
+      row("fb","💬",t("st_feedback"),null,function(){ setFbOpen(true); })
+    ),
+    natPlugin() && grp("updates","⬇️",t("st_updates"),"actualizar update version apk buscar widget",
+      apkVer ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer}) : tf("st_ver_web",{v:CONFIG.APP_VERSION}),
+      row("upd","⬇️",t("st_update"),
+        apkVer ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer}) : ("v"+CONFIG.APP_VERSION),
+        checkUpdates),
+      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_widget_hint"))
+    )),
+    newsOpen && React.createElement(WhatsNew,{onClose:function(){ setNewsOpen(false); },showToast:showToast,set:set,state:state}),
+    fbOpen && ReactDOM.createPortal(React.createElement(FeedbackPanel,{state:state,set:set,showToast:showToast,onClose:function(){ setFbOpen(false); }}), document.body),
+    seccion(t("v4_set_g_account"),
     cloud.enabled() && uid && grp("account","👤",t("st_account"),"cuenta privacidad borrar delete privacy huella biometria fingerprint cerrar sesion logout salir",null,
       meEmail && React.createElement("div",{style:{padding:"0 16px 10px",fontSize:12.5,color:"var(--muted)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}, meEmail),
       // Huella y cerrar sesión volvieron aquí (2026-07-18): con el rediseño solo existían
@@ -2954,7 +2989,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       bio.supported()
         ? row("biolock","◎",bioOn?t("au_bio_off"):t("au_bio_on"),null,toggleBio, sw(bioOn))
         : React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("au_nobio")),
-      row("signout","🚪",t("au_signout"),null,doSignOut),
       row("helpai","✨",t("help_remote_setting"),null,function(){
         var enabled=!!(state.settings&&state.settings.helpAiOk);
         if(enabled){ setS({helpAiOk:false,helpAiAsked:true}); return; }
@@ -2963,6 +2997,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       },sw(!!(state.settings&&state.settings.helpAiOk))),
       React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}},t("help_remote_setting_hint")),
       row("priv","🛡️",t("st_privacy"),null,function(){ setPrivOpen(true); }),
+      row("signout","🚪",t("au_signout"),null,doSignOut),
       row("delacc","🗑️",t("st_delete_acc"),null,function(){
         askConfirm({ title:t("st_delete_acc"), sub:t("st_delete_acc_sub"), ok:t("st_delete_acc_ok"), danger:true })
           .then(function(ok){
@@ -2977,16 +3012,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
               });
           });
       })
-    ),
-
-    React.createElement("div",{className:"v4-set-sec"}, t("v4_set_adv")),
-    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced vista gastos informe report customise",null,
-      // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
-      totals && row("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),null,function(){ shareMonthReport(state, totals, showToast); })
-    ),
+    )),
+    seccion(t("v4_set_adv"),
     // Solo en beta (o en la APK .debug de pruebas): es el banco donde él busca su vibración.
     ((typeof mcChannel==="function" && mcChannel()==="beta")||hapticDebug) &&
-      grp("vibra","📳",t("hv_title"),"vibracion vibration vibracio haptic",null,React.createElement(HapticTuner,{showToast:showToast})),
+      grp("vibra","📳",t("hv_title"),"vibracion vibration vibracio haptic",null,React.createElement(HapticTuner,{showToast:showToast}))),
 
     // Admin al FINAL (fuera del flujo diario). Sentry de prueba quitado: no aporta en móvil.
     // Sin traducir a propósito: es la consola privada del dueño, como «Actividad».
@@ -3167,9 +3197,12 @@ function Onboarding({set, onCloud, onSignup}){
             React.createElement("div",{className:"v4-ob-card-t"},t("v4_ob_"+c[0]+"t")),
             React.createElement("div",{className:"v4-ob-card-s"},t("v4_ob_"+c[0]+"s"))));
       })),
-    onCloud && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:18},onClick:onCloud},t("ob_haveacc")),
-    onSignup && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:onSignup},t("ob_signup")),
     React.createElement("button",{style:cta,onClick:function(){ setStep(1); }},t("ob2_go")+" →"),
+    // Empezar NO crea cuenta (solo termina la bienvenida en local): por eso «Crear cuenta nueva»
+    // sigue aquí, como enlace, igual que «Ya tengo cuenta».
+    (onCloud||onSignup) && React.createElement("div",{className:"v4-ob-links"},
+      onCloud && React.createElement("button",{type:"button",className:"v4-ob-link",onClick:onCloud},t("ob_haveacc")),
+      onSignup && React.createElement("button",{type:"button",className:"v4-ob-link",onClick:onSignup},t("ob_signup"))),
     dots
   ));
 
@@ -3367,6 +3400,9 @@ class ErrorBoundary extends React.Component{
     // Si la descarga falla, el aviso va en la propia pantalla: antes era un alert() nativo y en
     // inglés («Export error: …»), lo único fuera de los diálogos de la app (auditoría 14/11/2026).
     const self=this;
+    // El detalle del error iba en #5a6b62 (contraste 3,31 sobre este fondo). Va el valor de
+    // `--muted-2` del tema oscuro a pelo, no la variable: este fondo es oscuro en TODOS los temas y
+    // la variable del claro (#5F6F66) se quedaría corta aquí (revisión externa 234).
     const dl=function(){ try{ const snapshot=Object.assign({},mcLoadRaw(mcStateKey())||{});delete snapshot._planSync;const data=JSON.stringify(snapshot,null,2); const url=URL.createObjectURL(new Blob([data],{type:"application/json"})); const a=document.createElement("a"); a.href=url; a.download="aely-copia-"+new Date().toISOString().slice(0,10)+".json"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1000); }catch(e){ try{ console.error("Export:",mcLogCode(e)); }catch(_){} self.setState({dlFail:true}); } };
     return React.createElement("div",{style:wrap},
       React.createElement("div",{style:{fontSize:46}},"🛟"),
@@ -3375,7 +3411,7 @@ class ErrorBoundary extends React.Component{
       React.createElement("button",{style:btn,onClick:dl}, t("eb_export")),
       this.state.dlFail && React.createElement("div",{role:"alert",style:{color:"#E8F0EB",fontSize:13,maxWidth:340}}, t("eb_export_fail")),
       React.createElement("button",{style:btn2,onClick:function(){ try{ location.reload(); }catch(e){} }}, t("eb_reload")),
-      React.createElement("div",{style:{color:"#5a6b62",fontSize:11,maxWidth:340,marginTop:6,wordBreak:"break-word"}}, String((this.state.err&&this.state.err.message)||this.state.err||""))
+      React.createElement("div",{style:{color:"#80978A",fontSize:11,maxWidth:340,marginTop:6,wordBreak:"break-word"}}, String((this.state.err&&this.state.err.message)||this.state.err||""))
     );
   }
 }

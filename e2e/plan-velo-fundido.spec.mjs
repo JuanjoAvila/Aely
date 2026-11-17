@@ -63,7 +63,7 @@ async function grabar(page, kind) {
       const backs = document.querySelectorAll(".v4-sheet-back");
       const bk = backs.length ? backs[backs.length - 1] : null;
       const sh = bk && bk.querySelector(":scope > .v4-sheet");
-      const btn = document.querySelector(".v4-screen .v4-seg-btn.on");
+      const btn = document.querySelector(".v4-screen .v4-seg-btn[data-seg].on");
       const bs = btn ? getComputedStyle(btn) : null;
       const ps = btn && btn.parentElement ? getComputedStyle(btn.parentElement) : null;
       const a = bk ? alfaVelo(bk) : null;
@@ -161,7 +161,7 @@ test("¿Te llega?: el velo entra y sale con la hoja, y la pastilla no cambia de 
     await hojaQuieta(page);
     // La pastilla verde se ve a través del velo: quien recibe el toque es el velo, no la barra.
     const tapa = await page.evaluate(() => {
-      const b = document.querySelector(".v4-screen .v4-seg-btn.on");
+      const b = document.querySelector(".v4-screen .v4-seg-btn[data-seg].on");
       const r = b.getBoundingClientRect();
       const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return !!(hit && hit.closest && hit.closest(".v4-sheet-back"));

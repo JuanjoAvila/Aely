@@ -86,8 +86,10 @@ for (const lang of ["es", "en", "ca"]) {
       await expect(cards).toHaveCount(Math.min(count,3));
       for(let i=0;i<Math.min(count,3);i++) await expect(cards.nth(i)).toContainText(activas[i].name);
       await expect(cards.filter({hasText:"Objetivo terminado"})).toHaveCount(0);
-      const link=count? /Ver plan|See plan|Veure pla/:/Crear una meta|Create a goal|Crear un objectiu/;
-      await inicio.getByRole("button",{name:link}).click();
+      const link=count? /Ver todo|See all|Veure-ho tot/:/Ponte una meta de ahorro|Set a savings goal|Posa't un objectiu d'estalvi/;
+      // «Ver todo ›» es el mismo texto en cada sección de Inicio: el de las metas, en su sección.
+      const zona=count? inicio.locator(".v4-section").filter({has:page.locator(".v4-goal")}) : inicio;
+      await zona.getByRole("button",{name:link}).click();
       await expect(paginaActiva(page).locator(".v4-goal-card")).toHaveCount(todas.length);
       for(const g of todas) await expect(paginaActiva(page).locator(".v4-goal-card").filter({hasText:g.name}).first()).toBeVisible();
       const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).goals);
@@ -160,9 +162,9 @@ test("Cartera: un banco caducado saca el banner con su botón de reconectar", as
   const banner = page.locator(".v4-bank-issue");
   await expect(banner).toHaveCount(1);
   await expect(banner).toContainText(/necesita tu permiso|needs your permission|necessita el teu perm/i);
-  await expect(banner.getByRole("button")).toBeVisible();
-  // El botón dice «Reconectar …» a secas: el candado abierto se retiró (feedback 18/9).
-  await expect(banner.getByRole("button")).not.toContainText("🔓");
+  await expect(banner.locator(".v4-bank-issue-cta")).toBeVisible();
+  // El botón dice «Reconectar» a secas: el candado abierto se retiró (feedback 18/9).
+  await expect(banner.locator(".v4-bank-issue-cta")).not.toContainText("🔓");
 });
 
 test("Cartera: un banco enlazado SIN cuentas dice lo suyo, no «permiso caducado»", async ({ page }) => {

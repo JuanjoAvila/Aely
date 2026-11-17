@@ -78,21 +78,29 @@ for (const simple of [false, true]) {
     await abre(page, { goals: [], settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: simple } });
     const inicio = page.locator('.page-live').filter({ has: page.locator('[data-testid="inicio-recent"]') });
     await expect(inicio.locator('[data-testid="inicio-recent"]')).toBeVisible();
-    await expect(inicio.getByRole("button", { name: "Crear una meta" })).toHaveCount(simple ? 0 : 1);
+    await expect(inicio.getByRole("button", { name: "Ponte una meta de ahorro" })).toHaveCount(simple ? 0 : 1);
     await expect(inicio.locator(".v4-section-h", { hasText: "Tus metas" })).toHaveCount(simple ? 0 : 1);
   });
 }
 
 test("Inversiones: el dólar→euro con 4 decimales y coma", async ({ page }) => {
+  // El tipo vivo de frankfurter pisaba el sembrado (en la CI de la 235 salía 0,9079): se corta
+  // la red para que la cifra que se comprueba sea la nuestra.
+  await page.route("**/api.frankfurter.dev/**", (r) => r.abort());
   await abre(page, {
+    fx: 0.904813608397,
     investments: [{ id: "i1", ent: "revolut", name: "Acción ficticia", ticker: "FAKE", shares: 5, value: 900, cost: 700, cur: "USD" }],
     fxRates: { USD: 0.904813608397 },
   });
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  // La pista va en el bloque de Inversiones de la propia Cartera (no en la pantalla de «Ver todas»).
+  // La pista gris de Cartera se quitó (16/11/2026, petición suya); el tipo de cambio queda en
+  // «Ver todo» de Inversiones, y ahí se vigila la misma garantía de 4 decimales y coma.
   const bloque = page.locator('.page-live [data-cartera-sec="inversiones"]');
-  await expect(bloque).toContainText("Dólar→euro: 0,9048.");
-  await expect(bloque).not.toContainText("0.904813608397");
+  await expect(bloque).not.toContainText("Dólar→euro");
+  await bloque.getByRole("button", { name: "Ver todas tus inversiones" }).click();
+  const hija = page.locator("[data-inv-screen]");
+  await expect(hija).toContainText("Cambio dólar→euro: 0,9048.");
+  await expect(hija).not.toContainText("0.904813608397");
 });
 
 test("Candado: «No puedo desbloquear» pregunta con el diálogo de la app, no el nativo", async ({ page }) => {

@@ -12,10 +12,10 @@ async function open(page){
 async function record(page,merchant,category,amount,manual=false){
   await page.locator(".botnav-fab").click();const sheet=page.locator(".v4-exp-sheet");
   if(manual){
-    await sheet.locator(".v4-ficha-cat-title button").click();
+    await sheet.locator('[data-testid="ap-cat-more"]').click();
     await page.locator('[data-testid="expense-all-cat-'+category+'"]').click();
   }
-  await sheet.locator(".v4-exp-name").fill(merchant);
+  await sheet.locator(".v4-exp-name").fill(merchant); await sheet.locator(".v4-exp-name").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
   // Esperar la sugerencia evita que una elección manual aparentemente correcta se pise tarde.
   if(manual) await page.waitForTimeout(650);
   await expect(sheet.locator('[data-testid="ap-cat-'+category+'"]').first()).toHaveAttribute("aria-pressed","true");
@@ -28,7 +28,7 @@ for(const lang of ["es","en","ca"]){
   test(lang+": selector, iconos, altas y elección manual en DOM real",async({page})=>{
     await installFixtureClock(page);await seedLoggedInDashboard(page,{accounts,settings:settings(lang),expenses:[],budget:500,__seedOnce:true});
     await open(page);await page.locator(".botnav-fab").click();
-    await page.locator(".v4-exp-sheet .v4-ficha-cat-title button").click();
+    await page.locator('.v4-exp-sheet [data-testid="ap-cat-more"]').click();
     const cats=page.locator(".v4-ficha-cat-sheet");
     for(const [cat,, ,icon] of entries){
       await expect(cats.locator('[data-testid="expense-all-cat-'+cat+'"]')).toContainText(labels[lang][cat]);
@@ -36,7 +36,7 @@ for(const lang of ["es","en","ca"]){
     }
     for(const cat of ["taxi","gasolina","parking","transporte","tasas"])await expect(cats.locator('[data-testid="expense-all-cat-'+cat+'"]')).toHaveCount(1);
     await cats.locator('[data-testid="expense-all-cat-multas"]').click();
-    const sheet=page.locator(".v4-exp-sheet");await sheet.locator(".v4-exp-name").fill("Zona azul elegida como multa");
+    const sheet=page.locator(".v4-exp-sheet");await sheet.locator(".v4-exp-name").fill("Zona azul elegida como multa"); await sheet.locator(".v4-exp-name").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
     await page.waitForTimeout(650);await expect(sheet.locator('[data-testid="ap-cat-multas"]')).toHaveAttribute("aria-pressed","true");
     await sheet.locator(".v4-keys").getByRole("button",{name:"5",exact:true}).click();await sheet.locator(".v4-cta").click();await expect(sheet).toHaveCount(0);
     for(const [cat,merchant,amount] of entries)await record(page,merchant,cat,amount);
@@ -81,7 +81,7 @@ for(const lang of ["es","en","ca"]){
     }
     // La ficha y Apuntar usan el mismo catálogo; corregir solo esta fila no cambia otras.
     await page.locator(".v4-gastos-list-body button.v4-mov").click();
-    await page.locator('.v4-exp-sheet .v4-ficha-cat-title button').click();
+    await page.locator('.v4-exp-sheet .v4-ficha-cat-title .v4-ficha-todas').click();
     await page.locator('[data-testid="expense-all-cat-zona_azul"]').click();
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.find(e=>e.id==="peajes").category)).toBe("zona_azul");
     // El SW sirve el mismo artefacto offline; esperar control impide confundir una caída de red con la app.

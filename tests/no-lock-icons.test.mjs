@@ -13,6 +13,8 @@ const hits=[];
 for(const file of files){
   const txt=fs.readFileSync(file,"utf8");
   if(/[🔒🔓🔐]/u.test(txt)) hits.push(path.relative(root,file));
+  // También el candado DIBUJADO (el arco sobre el cuerpo): así se coló en la ficha de la 236.
+  if(/"M8 11V8a4 4 0 0 1 8 0v3"|"M7 11V7a5 5 0 0 1 10 0v4"/.test(txt)) hits.push(path.relative(root,file)+" (candado en SVG)");
 }
 /* Los textos de huella ya no empiezan por emoji: recortar «hasta el primer espacio» se comería
    «Activar»/«Desactivar» y la fila diría «desbloqueo con huella» sin verbo. */

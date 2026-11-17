@@ -1854,11 +1854,13 @@ const cloud = (function(){
     // `body` es `{recoverGaps:true}`: avisa al servidor de que este cliente guarda también lo
     // anterior a la ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es
     // `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
+    // Cada lectura, a mano o sola, entra en el tope diario de la sola (`bankAutoToca`, 08).
     async bankSync(body){
-      if(!sb) throw new Error("nube no disponible");
+      if(!sb) throw new Error("nube no disponible"); bankAutoCuenta();
       const {data,error}=await sb.functions.invoke('bank-sync',{ body });
-      if(error) throw error;
-      if(!data || !data.ok) throw new Error((data&&data.error)||"sync falló");
+      if(error){ if(bankRateLimited(error)) bankAutoPausa(); throw error; }
+      if(!data || !data.ok){ if(data&&data.error==="rate_limit") bankAutoPausa(); throw new Error((data&&data.error)||"sync falló"); }
+      if(bankAutoFrena(data.links)) bankAutoPausa();
       return data;   // { ok, dryRun, links:[{aspsp, iban, balances, transactions}] }
     },
     // IMPORTAR HISTÓRICO: trae movimientos desde dateFrom (YYYY-MM-DD, tope PSD2 ~90 días).
@@ -1867,8 +1869,9 @@ const cloud = (function(){
       if(!sb) throw new Error("nube no disponible");
       const body={ dateFrom:dateFrom };
       if(Array.isArray(aspsps)) body.aspsps=aspsps;
+      bankAutoCuenta();
       const {data,error}=await sb.functions.invoke('bank-sync',{ body:body });
-      if(error) throw error;
+      if(error){ if(bankRateLimited(error)) bankAutoPausa(); throw error; }
       if(!data || !data.ok) throw new Error((data&&data.error)||"histórico falló");
       return data;
     },
@@ -3807,6 +3810,64 @@ function accountRowsInOrder(state){
   order.forEach(function(k){ if(byKey[k]&&!seen[k]){ seen[k]=true; out.push(byKey[k]); } });
   rows.forEach(function(r){ if(!seen[r.key]) out.push(r); });
   return out;
+}
+/* UNA CLAVE POR CUENTA, AL CARGAR (revisión externa 15/11/2026, R8). Dos cuentas con la misma clave
+   leían la misma lista de cierres: con 1.000 y 500 hoy, la gráfica de patrimonio daba 2.000 en los días
+   pasados. Y desde la 233 una clave repetida no guarda cierres (`accountBalanceRows`), así que el error
+   se quedaba congelado. Aquí cada cuenta (de `accounts`) que comparte clave recibe una propia:
+   - TODAS las del choque, no «la de antes»: lo guardado bajo esa clave es de las dos mezclado y no se
+     sabe de quién es cada día. Se queda donde está, sin borrar ni repartir; desde hoy cada una apunta
+     el suyo y antes de su primer cierre la gráfica la mantiene con su saldo, como una cuenta nueva.
+   - Una de banco aún sin rol (`obAccounts`) conserva la suya: es el uid que manda el banco.
+   - Sin identificador («acc:», «ob:») no se toca: la 233 ya no le guarda cierres.
+   - Lo que él puso con la clave vieja sigue valiendo: el orden de la lista (las nuevas donde estaba la
+     vieja), la parte de la cuenta y, si la clave era el uid del banco («ob:»), ese uid en `bankUid`
+     para que sus movimientos sigan siendo suyos (`accountOwnsMovement`).
+   Idempotente: con las claves ya únicas devuelve el mismo objeto. La clave nueva sale del id y de una
+   huella de lo que no cambia entre móviles (banco, nombre, rol, IBAN/uid), NO del puesto en la lista:
+   con el puesto, dos móviles con las cuentas en otro orden cruzaban las claves y, con ellas, los
+   cierres (revisión de dinero 234, H-B2). Dos cuentas idénticas en todo eso son intercambiables y el
+   empate se resuelve por orden. */
+function accountKeysHuella(a){
+  const txt=[a.ent,a.name,a.role,a.bankIban,a.bankUid].map(function(x){ return x==null?"":String(x); }).join("|");
+  let h=0x811c9dc5;
+  for(let i=0;i<txt.length;i++){ h^=txt.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; }
+  return ("0000000"+h.toString(16)).slice(-8);
+}
+function accountKeysUnicas(state){
+  const accs=(state&&state.accounts)||[];
+  if(accs.length<2&&!(accs.length&&(state.obAccounts||[]).length)) return state;
+  const veces={};
+  accountRowsInOrder(Object.assign({},state,{settings:null})).forEach(function(r){ veces[r.key]=(veces[r.key]||0)+1; });
+  const choca=function(k){ return veces[k]>1&&k!=="acc:"&&k!=="ob:"; };
+  if(!accs.some(function(a){ return choca(accountOrderKeyOf(a,"account")); })) return state;
+  const usadas=Object.assign({},veces), nuevas={}, claveDe={};
+  accs.map(function(a,i){ return {a:a,i:i,vieja:accountOrderKeyOf(a,"account"),huella:accountKeysHuella(a)}; })
+    .filter(function(x){ return choca(x.vieja); })
+    .sort(function(x,y){ return x.huella<y.huella?-1:x.huella>y.huella?1:x.i-y.i; })
+    .forEach(function(x){
+      const raiz="acc:"+String(x.a.id)+"~"+x.huella;
+      let n=1, k=raiz;
+      while(usadas[k]) k=raiz+"~"+(++n);
+      usadas[k]=1; claveDe[x.i]=k; (nuevas[x.vieja]||(nuevas[x.vieja]=[])).push(k);
+    });
+  const accounts=accs.map(function(a,i){
+    const k=claveDe[i];
+    if(!k) return a;
+    const vieja=accountOrderKeyOf(a,"account"), o=Object.assign({},a,{accountOrderKey:k});
+    if(/^ob:./.test(vieja)&&!a.bankUid&&!a.bankIban) o.bankUid=vieja.slice(3);
+    return o;
+  });
+  const st=state.settings||{}, settings=Object.assign({},st);
+  // Si la vieja la sigue usando una de banco, esa se queda en su sitio, detrás de las nuevas.
+  const deBanco={}; (state.obAccounts||[]).forEach(function(o){ deBanco[accountOrderKeyOf(o,"ob")]=true; });
+  if(Array.isArray(st.accountListOrder)) settings.accountListOrder=st.accountListOrder.reduce(function(out,k){ return out.concat(nuevas[k]?nuevas[k].concat(deBanco[k]?[k]:[]):[k]); },[]);
+  if(st.accountShare){
+    const share=Object.assign({},st.accountShare);
+    Object.keys(nuevas).forEach(function(v){ if(share[v]!=null) nuevas[v].forEach(function(k){ share[k]=share[v]; }); });
+    settings.accountShare=share;
+  }
+  return Object.assign({},state,{accounts:accounts,settings:settings});
 }
 /* LA PARTE MÍA DE UNA CUENTA (14/10/2026). Una conjunta con la pareja contaba entera en el
    patrimonio: el saldo que la llenaron los dos salía como suyo y la gráfica de Inicio arrancaba

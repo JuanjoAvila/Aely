@@ -28,9 +28,50 @@ function debtEditAmortDePlazo(d,form){
   if(!debtEditAmortable(d)||form.amort===undefined||planEditNumber(form.apr,true)>0) return null;
   const amort=planEditNumber(form.amort,true),monthly=planEditNumber(form.monthly),months=planEditNumber(form.months,true),balance=planEditNumber(form.balance);
   if(!(amort>0)||!(monthly>=0)||Math.round(amort*100)===Math.round(monthly*100)||months==null||!Number.isInteger(months)||!(balance>0)) return null;
-  const remaining=months-debtPaidCount(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
+  const remaining=months-debtCuotasDesdeAncla(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
   if(!(remaining>0)||principal<=0) return null;
   return String(Math.ceil(principal/remaining)/100);
+}
+/* AMORTIZAR `amt` de una deuda cuyo pendiente era `bal` (lo que vio el diálogo) → la deuda nueva, o la
+   misma si no toca (un diálogo viejo o dos toques seguidos no amortizan dos veces). En curso, el ancla
+   no se mueve: baja `value` y el plazo se acorta. Con el plazo ya VENCIDO (dato heredado con pendiente)
+   solo baja `value` y el plazo se queda: acortarlo desde las cuotas sin tope dejaba un plazo más largo
+   que lo contado y el saldo salía 0 (1.300 en 12×100, debiendo 100, amortizar 50 pintaba 0,00 y los 50
+   desaparecían; revisión de dinero 234, H-A1). Alargarlo para cobrar el resto desde hoy tampoco: la
+   cuota de este mes, si su día ya pasó, saldría como pagada sin ningún cargo. */
+function deudaAmortizada(x, bal, amt){
+  const current=debtBalance(x);
+  if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
+  const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
+  const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});
+  const paid=debtCuotasDesdeAncla(x), vencida=x.months!=null&&paid>=x.months, am=debtAmort(x);
+  if(remaining<=0.005){
+    // Vencida, el plazo y el pago final ya están contados: quitarlos dejaría el pago final debido.
+    if(!vencida){ if(x.months!=null) o.months=paid; delete o.balloon; }
+    o.settledAt=new Date().toISOString();
+  /* Una bajada de menos de medio céntimo no cuenta cuotas: el plazo se quedaba en las ya pagadas con
+     saldo pendiente. Como `debtEditMonths`, sin cuotas que contar el plazo no se toca (revisión 237). */
+  }else if(x.months!=null&&!vencida&&Math.round(am*100)>0){ const n=cuotasQueQuedan(remaining-(x.balloon||0),am); o.months=paid+(n>0?n:(x.balloon>0?1:0)); }
+  return o;
+}
+/* Cuotas de `am` que hacen falta para `viaM`, contadas en CÉNTIMOS. En euros, 72,45 / 10,35 da
+   7,000000000000001 y el `ceil` sumaba una cuota fantasma que alargaba el plazo un mes (y el asesor
+   contaba una cuota menos recortada); restar un pago final también deja ese polvo de coma flotante.
+   0 = no queda nada que pagar con cuotas (por debajo de medio céntimo, también). */
+function cuotasQueQuedan(viaM, am){
+  const v=Math.round(viaM*100), a=Math.round(am*100);
+  return v>0&&a>0?Math.ceil(v/a):0;
+}
+/* Cuotas que quedan {n,tot}: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
+   a mano) se ESTIMA con el ritmo de amortización actual. Contadas en céntimos como el resto: en euros,
+   72,45 con cuota de 10,35 eran 8 y la fecha de fin salía un mes tarde (revisión 237). Una bajada que
+   no llega a medio céntimo no cuenta nada: null, como `debtEditMonths`, mejor que un «acabas» inventado. */
+function debtLeftInfo(d){
+  const left=debtLeft(d);
+  if(left!=null) return {n:left, tot:d.months||left};
+  const am=debtAmort(d), bal=debtBalance(d);
+  if(!(Math.round(am*100)>0) || !(bal>0.005)) return null;
+  return {n:cuotasQueQuedan(bal,am), tot:cuotasQueQuedan(d.original||bal,am)};
 }
 // Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
 function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
@@ -77,7 +118,7 @@ function debtEditResult(d,form){
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
   // Cambiar lo que baja re-ancla `value` (si no, el saldo de hoy cambiaría hacia atrás: value − amort×pagadas).
   if(amountChanged||quotaChanged||dayChanged||termChanged||amortChanged){
-    const am=debtAmort(next),paid=debtPaidCount(next);
+    const am=debtAmort(next),paid=debtCuotasDesdeAncla(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
     // También al tocar SOLO la cuota que amortiza: antes se alargaba el plazo en silencio y una cuota
@@ -102,7 +143,13 @@ function debtEditResult(d,form){
     if(quotaChanged&&!(next.monthly>0)&&balance>0.005) return {error:"db_edit_quota_zero"};
     if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
-    else{
+    else if(next.months!=null&&paid>=next.months&&!termChanged){
+      /* Plazo ya VENCIDO (dato heredado con pendiente): se corrige lo que se debe y el plazo se queda.
+         Alargarlo desde las cuotas sin tope la reactivaba y, con el día de cargo pasado, Recibos daba
+         por PAGADA una cuota de este mes sin cargo y el neto del banco restaba 100 (revisión de dinero
+         234, R2-1). Igual que `deudaAmortizada`. */
+      next.value=+(balance+am*next.months+(next.balloon>0?next.balloon:0)).toFixed(2);
+    }else{
       // Saldo/día también cambian la proyección: mantener el plazo dejaba principal huérfano.
       // Con la cuota que amortiza no se recalcula: ya se validó contra el plazo que el usuario ve.
       // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
@@ -127,7 +174,7 @@ function debtEditExtension(d,form){
   if(d.amort==null&&(d.apr>0||planEditNumber(form.apr,true)>0)) return {error:"db_extend_unknown"};
   const next=Object.assign({},d,{monthly:+monthly.toFixed(2),day:planEditNumber(form.day)});
   if(d.amort!=null&&Math.abs(d.amort-(d.monthly||0))<=0.005) next.amort=next.monthly;
-  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtPaidCount(next));
+  const n=debtEditMonths(next,planEditNumber(form.balance),debtAmort(next),debtCuotasDesdeAncla(next));
   if(!Number.isSafeInteger(n)||n<=months||debtEditResult(d,Object.assign({},form,{months:String(n)})).error) return null;
   return {months:n};
 }
@@ -414,8 +461,21 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
    estima intereses ahorrados, el coste de esperar y compara contra el efectivo remunerado
    (interestApr de las cuentas, p.ej. TR). Sin él, al menos simula cuántas cuotas te quitas.
    Los números usan el modelo lineal de la app (ver debtBalance): son una estimación honesta,
-   no la liquidación exacta del banco. */
-function AmortAdvisor({state, onEdit, onAmort}){
+   no la liquidación exacta del banco.
+   Solo informa: amortizar se hace desde «Amortizar ahora» de cada deuda (decisión DIS-26,
+   15/11/2026: dos puertas al mismo dinero eran una de más). */
+// Cuotas que quita un importe: la usan el asesor y el diálogo de amortizar, para que los dos
+// cuenten lo mismo. null si la deuda no tiene plazo (no hay cuotas que contar).
+function amortRecorte(d,amt){
+  const am=debtAmort(d);
+  // Bajada por debajo de medio céntimo: no hay cuotas que contar (ver `deudaAmortizada`).
+  if(d.months==null || !(Math.round(am*100)>0)) return null;
+  const leftNow=debtLeft(d), nb=+(debtBalance(d)-amt).toFixed(2);
+  const n=cuotasQueQuedan(nb-(d.balloon||0),am);
+  const leftNew=n>0?n:((d.balloon>0&&nb>0.005)?1:0);
+  return {leftNow:leftNow, leftNew:leftNew, cut:Math.max(0,(leftNow||0)-leftNew)};
+}
+function AmortAdvisor({state, onEdit}){
   const debts=(state.debts||[]).filter(function(d){ return debtBalance(d)>0.005; });
   const [selId,setSelId]=useState(null);
   const [amtStr,setAmtStr]=useState("500");
@@ -424,14 +484,7 @@ function AmortAdvisor({state, onEdit, onAmort}){
   const bal=debtBalance(d);
   const apr=d.apr!=null?d.apr:null;
   const amt=Math.min(Math.max(0,parseFloat(String(amtStr).replace(',','.'))||0), bal);
-  const am=debtAmort(d), leftNow=debtLeft(d);
-  const nb=+(bal-amt).toFixed(2);
-  let leftNew=null, cut=null;
-  if(d.months!=null && am>0){
-    const viaM=Math.max(0, nb-(d.balloon||0));
-    leftNew=viaM>0?Math.ceil(viaM/am):((d.balloon>0&&nb>0.005)?1:0);
-    cut=Math.max(0,(leftNow||0)-leftNew);
-  }
+  const rc=amortRecorte(d,amt), leftNow=rc?rc.leftNow:null, leftNew=rc?rc.leftNew:null, cut=rc?rc.cut:null;
   // El mes mostrado parte de Madrid, también cuando el dispositivo aún está en otro mes.
   const inMonths=function(k){ const p=madridYmdParts(Date.now()), m=p.m-1+k; return monthLong(m%12)+" "+(p.y+Math.floor(m/12)); };
   const r=(apr||0)/1200;
@@ -466,13 +519,18 @@ function AmortAdvisor({state, onEdit, onAmort}){
         : res("⚖️ "+tf("da_under_cash",{a:apr,b:cashApr}))),
       ranked.length>1 && res(tf("da_first",{name:ranked[0].name,p:ranked[0].apr}))
     ),
-    amt>0 && React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},onClick:function(){
-      askConfirm({ title:tf("da_apply_q",{x:eur0(amt),name:d.name}), sub:t("da_apply_sub"), ok:"💸 "+t("db_amortize") })
-        .then(function(yes){ if(yes) onAmort(d, amt); });
-    }}, tf("da_apply",{x:eur0(amt)})),
     React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("da_est"))
   );
 }
+// Trazos de 24 px como los de la barra de abajo (la casa es la misma de Inicio).
+const DEBT_ICO={
+  home:[["path",{d:"M3 10.5L12 3l9 7.5"}],["path",{d:"M5 10v10h14V10"}],["path",{d:"M10 20v-6h4v6"}]],
+  car:[["path",{d:"M3 16v-4l2.2-5.5h13.6L21 12v4z"}],["path",{d:"M3 12h18"}],["circle",{cx:7.5,cy:16.5,r:1.8}],["circle",{cx:16.5,cy:16.5,r:1.8}]],
+  phone:[["rect",{x:7,y:2.5,width:10,height:19,rx:2}],["path",{d:"M11 18h2"}]],
+  study:[["path",{d:"M2 9l10-5 10 5-10 5z"}],["path",{d:"M6 11v5c3 2.5 9 2.5 12 0v-5"}]],
+  card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
+};
+const DEBT_BLANK={name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""};
 function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
@@ -491,11 +549,18 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const orphaned=state._planSync&&state._planSync.owner===state._historyOwner?(state._planSync.conflicts||[]).filter(function(c){return c.kind==="debts"&&!state.debts.some(function(d){return d.id===c.id;});}):[];
   const recovering=!!(editingDebt&&reviewDebt&&!state.debts.some(function(d){return d.id===editingDebt.id;}));
   const [adding,setAdding]=useState(false);
-  const [form,setForm]=useState({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""});
+  const [form,setForm]=useState(DEBT_BLANK);
+  const addCloser=useRef(null), addedRef=useRef(false);
+  const campoDeuda=function(key,label,mode,ph){ return React.createElement("label",{key:key},t(label),
+    React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||undefined,placeholder:ph?t(ph):undefined,value:form[key],"data-debt-add":key,
+      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
   const banks=(function(){ const b=[]; (state.accounts||[]).forEach(a=>{ if(b.indexOf(a.ent)<0) b.push(a.ent); }); ["sabadell","trade_republic","familia"].forEach(x=>{ if(b.indexOf(x)<0) b.push(x); }); return b; })();
   const total=state.debts.reduce((a,d)=>a+debtBalance(d),0);
-  const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
+  const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d):0),0);
   const addDebt=()=>{
+    // La hoja baja animada con el formulario aún vivo: un segundo toque daba otra deuda igual
+    // (revisión de dinero 235, M1). Desde el primer alta hasta que se desmonta, no se vuelve a crear.
+    if(addedRef.current) return;
     const v=parseFloat(String(form.value).replace(',','.'))||0;
     const months=parseInt(form.months,10)||0;
     const balloon=parseFloat(String(form.balloon).replace(',','.'))||0;
@@ -518,7 +583,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     if(months>0) it.startMonth=it.asOf;
     if(months>0&&paid===0) it.startDay=netWorthDay(); // Con cuotas previas no conocemos el día de origen.
     set(s=>Object.assign({},s,{debts:s.debts.concat([it])}));
-    setForm({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""}); setAdding(false);
+    // Se vacía al terminar de bajar la hoja, no antes: si no, los campos se quedan en blanco a la vista.
+    addedRef.current=true; if(addCloser.current) addCloser.current(); else { addedRef.current=false; setForm(DEBT_BLANK); setAdding(false); }
     showToast(t("db_added"));
   };
   const delDebt=(d)=>{
@@ -563,7 +629,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     });
   };
   // amortización anticipada: baja el pendiente y acorta el plazo (misma cuota, menos meses).
-  // doAmort es la operación; amortize solo pregunta el importe. El asesor (#11) llama a doAmort.
+  // doAmort es la operación; amortize solo pregunta el importe.
   const doAmort=(d,rawAmt)=>{
     const bal=debtBalance(d);
     const amt=Math.min(rawAmt||0, bal);
@@ -573,16 +639,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       let changed=false;
       const debts=s.debts.map(function(x){
         if(x.id!==d.id) return x;
-        const current=debtBalance(x);
-        // Un diálogo viejo o dos toques seguidos no pueden amortizar dos veces el mismo importe.
-        if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
-        const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
-        const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});   // el ancla no se toca: el pendiente baja justo lo amortizado
-        if(remaining<=0.005){
-          if(x.months!=null) o.months=debtPaidCount(x);
-          delete o.balloon;
-          o.settledAt=new Date().toISOString();
-        }else if(x.months!=null){ const am=debtAmort(x); if(am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=debtPaidCount(x)+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); } }
+        const o=deudaAmortizada(x,bal,amt);
+        if(o===x) return x;
         changed=true; return o;
       });
       return changed?Object.assign({},s,{debts:debts}):s;
@@ -595,29 +653,30 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       ph:NF.format(0)+" €", ok:"💸 "+t("db_amortize"),
       // atajos: los importes redondos que quepan + «todo» para liquidarla de un toque
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
-        .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}])
+        .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}]),
+      // Lo que antes solo contaba el asesor (DIS-26): con el importe ya puesto, cuántas cuotas
+      // quita. Sin importe o sin plazo no hay cifra honesta que dar, y no se pinta nada.
+      live:function(raw){
+        const a=Math.min(parseFloat(String(raw).replace(',','.'))||0, bal);
+        const rc=a>0?amortRecorte(d,a):null;
+        return rc&&rc.cut>0?"📆 "+tf("db_amortize_cut",{n:rc.cut}):null;
+      }
     }).then(function(raw){
       if(raw==null) return;
       doAmort(d, parseFloat(String(raw).replace(',','.'))||0);
     });
   };
-  const debtEmoji=function(d){
+  /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
+     vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
+  const debtIco=function(d){
     const n=String(d.name||"").toLowerCase();
-    if(/coche|auto|car|seat|bmw/.test(n)) return "🚗";
-    if(/casa|hipo|piso|mort/.test(n)) return "🏠";
-    if(/móvil|movil|phone|móvil|iphone/.test(n)) return "📱";
-    if(/estudio|máster|master|uni/.test(n)) return "🎓";
-    return "💳";
+    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":"card";
+    return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
+      DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
   };
   // Cuotas que quedan: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
   // a mano) se ESTIMA con el ritmo de amortización actual. Devuelve {n,tot} o null.
-  const leftInfo=function(d){
-    const left=debtLeft(d);
-    if(left!=null) return {n:left, tot:d.months||left};
-    const am=debtAmort(d), bal=debtBalance(d);
-    if(!(am>0) || !(bal>0.005)) return null;
-    return {n:Math.ceil(bal/am), tot:Math.ceil((d.original||bal)/am)};
-  };
+  const leftInfo=debtLeftInfo;
   const endsLabel=function(d){
     // Mismo texto para TODAS las deudas (feedback 2026-07-21: el «a este ritmo acabas ~» de
     // hipoteca/préstamo cantaba distinto del «acabas en» de las financiaciones). La fecha sin
@@ -637,7 +696,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
       React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--text)"}},eur(total)),
-      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur0(monthly)}))
+      // Con céntimos, como la cuota de cada tarjeta y Recibos: «661 €» al lado de 660,85 parecía otra cifra (DIS-30).
+      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur(monthly)}))
     ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
       React.createElement("div",{className:"hint"},t("plan_deleted_while_editing")),
@@ -655,13 +715,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       const day=cleanDay(dayOf(d));
       return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
-          React.createElement("span",{className:"v4-debt-emoji"},debtEmoji(d)),
+          React.createElement("span",{className:"v4-debt-emoji v4-debt-ico"},debtIco(d)),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
           ),
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
-        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur0(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
+        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
         React.createElement(DebtDayPrompt,{debt:d,onOpen:openDay}),
         // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
         (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
@@ -691,31 +751,26 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       ); })
     ),
     React.createElement("div",{className:"v4-tip"},
-      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);},onAmort:doAmort})
+      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);}})
     ),
-    adding
-      ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
-          React.createElement("input",{className:"af-in",placeholder:t("db_concept"),value:form.name,onChange:function(e){ setForm(Object.assign({},form,{name:e.target.value})); }}),
-          React.createElement("div",{className:"af-row"},
-            React.createElement("input",{className:"af-in num",placeholder:t("db_amount"),inputMode:"decimal",value:form.value,onChange:function(e){ setForm(Object.assign({},form,{value:e.target.value})); }}),
-            React.createElement("input",{className:"af-in num",placeholder:t("db_quota_ph"),inputMode:"decimal",value:form.monthly,onChange:function(e){ setForm(Object.assign({},form,{monthly:e.target.value})); }})
-          ),
-          React.createElement("div",{className:"af-row"},
-            React.createElement("input",{className:"af-in num",placeholder:t("db_months_ph"),inputMode:"numeric",value:form.months,onChange:function(e){ setForm(Object.assign({},form,{months:e.target.value})); }}),
-            React.createElement("input",{className:"af-in num",placeholder:t("db_day_ph"),inputMode:"numeric",style:{maxWidth:80},value:form.day,onChange:function(e){ setForm(Object.assign({},form,{day:e.target.value})); }}),
-            React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); }))
-          ),
-          React.createElement("div",{className:"af-row"},
-            React.createElement("input",{className:"af-in num",placeholder:t("db_down_ph"),inputMode:"decimal",value:form.down,onChange:function(e){ setForm(Object.assign({},form,{down:e.target.value})); }}),
-            React.createElement("input",{className:"af-in num",placeholder:t("db_balloon_ph"),inputMode:"decimal",value:form.balloon,onChange:function(e){ setForm(Object.assign({},form,{balloon:e.target.value})); }})
-          ),
-          React.createElement("input",{className:"af-in num",placeholder:t("db_paid_ph"),inputMode:"numeric",value:form.paid,onChange:function(e){ setForm(Object.assign({},form,{paid:e.target.value})); }}),
-          React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_paid_hint")),
-          React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_financing_hint")),
-          React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
-          React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add"))
-        )
-      : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
+    /* Añadir deuda va en su hoja con una etiqueta encima de cada campo (DIS-31, 15/11/2026): abierto
+       dentro de la lista, el texto de ejemplo era la única pista y se cortaba («Cuota/mes € (vací…»).
+       Los campos, `addDebt` y lo que guarda son los de antes; solo cambia dónde se pinta. */
+    adding && React.createElement(PlanEditSheet,{title:t("db_add"),closer:addCloser,onClose:function(){
+        setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } }},
+      React.createElement("div",{className:"add-form","data-testid":"debt-add-form"},
+        campoDeuda("name","plan_edit_name",null,"db_concept"),
+        React.createElement("div",{className:"af-row"},campoDeuda("value","db_amount","decimal"),campoDeuda("monthly","plan_edit_quota","decimal","db_quota_ph")),
+        React.createElement("div",{className:"af-row"},campoDeuda("months","db_months_ph","numeric"),campoDeuda("day","db_day_ph","numeric")),
+        React.createElement("label",null,t("plan_conflict_account"),
+          React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); }))),
+        React.createElement("div",{className:"af-row"},campoDeuda("down","db_down_ph","decimal"),campoDeuda("balloon","db_balloon_ph","decimal")),
+        campoDeuda("paid","db_paid_ph","numeric"),
+        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_paid_hint")),
+        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_financing_hint")),
+        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
+        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
+    React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
     React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
     editor
   );
@@ -981,15 +1036,24 @@ function Goals({state, set, totals, showToast}){
   const [contribGoal,setContribGoal]=useState(null);   // meta abierta en la hoja de aportar
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);
+  const [dlCal,setDlCal]=useState(false);
+  const addCloser=useRef(null), sentRef=useRef(false);
+  const closeAdd=function(){ if(addCloser.current) addCloser.current(); else { sentRef.current=false; setAdding(false); setForm(blank); } };
+  const campoMeta=function(key,label,ph){ return React.createElement("label",{key:key},t(label),
+    React.createElement("input",{className:"af-in"+(ph?"":" num"),inputMode:ph?undefined:"decimal",placeholder:ph?t(ph):undefined,value:form[key],"data-goal-add":key,
+      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
 
   const addGoal=function(){
+    // Igual que addDebt: mientras la hoja baja, otro toque no crea otra meta (revisión 235, M1).
+    if(sentRef.current) return;
     const tg=parseFloat(String(form.target).replace(',','.'))||0; if(tg<=0) return;
+    sentRef.current=true;
     const sv=parseFloat(String(form.saved).replace(',','.'))||0;
     const mo=parseFloat(String(form.monthly).replace(',','.'))||0;
     const done=sv>=tg;
     const g={id:uid(),name:form.name||t("gl_newdefault"),emoji:form.emoji||"🎯",target:tg,saved:sv,deadline:form.deadline||null,monthly:mo>0?mo:null,color:"#5FD08A",createdAt:new Date().toISOString(),done:done,doneAt:done?new Date().toISOString():null};
     set(function(s){ return Object.assign({},s,{goals:(s.goals||[]).concat([g])}); });
-    setForm(blank); setAdding(false);
+    closeAdd();
   };
   // Aportar a una meta: hoja propia con teclado numérico in-app (como el + de gastos) y elección
   // de banco de origen — así no salta el teclado del sistema y no rompe la estética (2026-07-18).
@@ -1026,14 +1090,15 @@ function Goals({state, set, totals, showToast}){
   };
 
   return React.createElement("div",null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // Sin metas, «Ahorrado en metas 0,00 €» en grande era un cero que no decía nada (DIS-28).
+    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
       React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--mint)"}},eur(totalSaved)),
       totalTarget>0 && React.createElement("div",{style:{marginTop:10,fontSize:13.5,color:"var(--muted)"}},tf("gl_total_sub",{x:eur0(totalTarget)}))
     ),
     React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
-    goals.length===0 && !adding && React.createElement("div",{className:"empty"},
+    goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
 
     goals.map(function(g){
@@ -1058,20 +1123,24 @@ function Goals({state, set, totals, showToast}){
 
     React.createElement("div",{style:{marginTop:14}}, React.createElement(ReservaRules,{state:state,set:set})),
 
-    adding
-      ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
-          React.createElement("input",{className:"af-in",placeholder:t("gl_name_ph"),value:form.name,onChange:function(e){ setForm(Object.assign({},form,{name:e.target.value})); }}),
-          emojiPicker(form.emoji,function(e){ setForm(Object.assign({},form,{emoji:e})); }),
-          React.createElement("div",{className:"af-row"},
-            React.createElement("input",{className:"af-in num",placeholder:t("gl_target_ph"),inputMode:"decimal",value:form.target,onChange:function(e){ setForm(Object.assign({},form,{target:e.target.value})); }}),
-            React.createElement("input",{className:"af-in num",placeholder:t("gl_saved_ph"),inputMode:"decimal",value:form.saved,onChange:function(e){ setForm(Object.assign({},form,{saved:e.target.value})); }})
-          ),
-          React.createElement("label",{className:"goal-dl-lbl"},t("gl_deadline")),
-          React.createElement("input",{className:"af-in",type:"month",value:form.deadline,onChange:function(e){ setForm(Object.assign({},form,{deadline:e.target.value})); }}),
-          React.createElement("input",{className:"af-in num",placeholder:t("gl_monthly_ph"),inputMode:"decimal",value:form.monthly,onChange:function(e){ setForm(Object.assign({},form,{monthly:e.target.value})); }}),
-          React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")),
-          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setAdding(false); setForm(blank); }},t("gl_cancel"))
-        )
+    /* Nueva meta en su hoja, con etiquetas y el calendario de la app en vez del selector de mes
+       nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
+       selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
+    adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ sentRef.current=false; setAdding(false); setDlCal(false); setForm(blank); }},
+      React.createElement("div",{className:"add-form","data-testid":"goal-add-form"},
+        campoMeta("name","plan_edit_name","gl_name_ph"),
+        emojiPicker(form.emoji,function(e){ setForm(Object.assign({},form,{emoji:e})); }),
+        React.createElement("div",{className:"af-row"},campoMeta("target","gl_target_ph"),campoMeta("saved","gl_saved_ph")),
+        React.createElement("label",null,t("gl_deadline"),
+          React.createElement("button",{type:"button",className:"af-in","data-goal-add":"deadline","aria-expanded":dlCal,style:{display:"block",textAlign:"left",marginTop:5},
+            onClick:function(){ setDlCal(function(v){ return !v; }); }},form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"))),
+        dlCal && React.createElement(McCal,{value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ setForm(Object.assign({},form,{deadline:String(iso).slice(0,7)})); setDlCal(false); }}),
+        dlCal && form.deadline && React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ setForm(Object.assign({},form,{deadline:""})); setDlCal(false); }},t("gl_deadline_none")),
+        campoMeta("monthly","gl_monthly_ph"),
+        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")))),
+    goals.length===0
+      // La primera meta es LA acción de la pantalla vacía: botón principal, no el fantasma punteado.
+      ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first"))
       : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },

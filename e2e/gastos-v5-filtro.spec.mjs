@@ -70,8 +70,8 @@ test("tocar una categoría filtra Movimientos por ella y su mes; la cifra es la 
   await expect(gastosCifra(page)).toHaveText("100,00 €");
   await gastosSeccion(page, "cats");
   await expect(fila(page, "super")).toContainText("55");
-  // Pista acortada el 26/10/2026 (textos mínimos): dice lo mismo en una línea.
-  await expect(panel(page, "cats").locator(".hint")).toHaveText("Toca para filtrar · mantén pulsado para el límite");
+  // Sin la pista «Toca para filtrar…»: texto que sobraba (diseño 237, P1-7).
+  await expect(panel(page, "cats").locator(".hint")).toHaveCount(0);
   const antes = await vibraciones(page);
   await fila(page, "super").click();
 

@@ -725,7 +725,7 @@ El journal conserva eventos no cubiertos por la foto cloud. El parser tolera ind
 
 ## Apuntes iguales sin id y aviso reclamado una vez (rama `claude/tr-iguales-ordinal`, 12/10/2026)
 
-Un apunte de banco SIN id (Trade Republic por Open Banking: sin `entry_reference` ni comercio) tenía por identidad banco+día+importe con signo+nombre del banco, así que k apuntes iguales del mismo día se fundían en uno (5 bizums de 12 € → 1 fila, −48 €). Ahora el segundo igual y siguientes llevan `obOrd` (2, 3…); el primero no lleva nada y conserva EXACTAMENTE su clave, lápidas y filas de versiones anteriores incluidas. El ordinal se deriva de cuántos iguales trae el banco (ranuras 1..k, asignadas por contenido, no por posición): si tengo j y el banco trae k entran k−j; si trae menos no se borra nada. La regla vive en `obOrdinalOf`/`obOrdinalSufijo` (00-core) y la leen `keyOfExpense` (mezcla con la nube, lápidas, FIN-03), `importObExpenses` (clave del importador: `kOf`/`scopedKOf`), `expenseSourceForCloud`/`expenseFromRow` (viaje) y `claveComoLaApp`/`ordinalDeSource` en `_shared/presupuesto.ts` (widget). Los apuntes CON id no cambian; `reconcileObDupes` (cashback y, desde la 230, la salida de un traspaso tuyo: `salidasTraspasoPropio` pasa a «traspaso» una salida en «Otros» que el banco llama transferencia si va al nombre ENTERO del titular y casa con un traspaso previsto de ese banco ±7 días, o tiene su pata de llegada única y además va a su nombre o hay un traspaso previsto entre esos dos bancos; nunca lo que él dejó en «Otros» o sacó de traspaso (`traspasoNo|…` en `reciboNo`), lo rechazado, ni lo anterior al adelanto del mes pasado (sus últimos 7 días); se escribe con `setExpenseCat`, una vez cada 6 h si la nube no la acepta, así el widget cuenta igual) no lo necesita. El histórico (`histCandExisting`, clave por contenido 1:1) tampoco, pero sí mira las lápidas y los vínculos: un candidato cuya clave de ranura 1 tiene lápida en `deleted` o figura como `banco` en `gemelos` es «ya lo tienes apuntado» (`histCandLapidas`), no nuevo. Sin eso, lo contestado «es el mismo» volvía premarcado y entraba con lápida: invisible en la lista, pero restando del saldo de la cuenta diaria (`expenseCountsCash` no excluye lápidas a propósito: la base anclada puede incluirlas) y resubido en cada pull (el backfill de `syncCloudExpenses` ahora salta las filas con lápida).
+Un apunte de banco SIN id (Trade Republic por Open Banking: sin `entry_reference` ni comercio) tenía por identidad banco+día+importe con signo+nombre del banco, así que k apuntes iguales del mismo día se fundían en uno (5 bizums de 12 € → 1 fila, −48 €). Ahora el segundo igual y siguientes llevan `obOrd` (2, 3…); el primero no lleva nada y conserva EXACTAMENTE su clave, lápidas y filas de versiones anteriores incluidas. El ordinal se deriva de cuántos iguales trae el banco (ranuras 1..k, asignadas por contenido, no por posición): si tengo j y el banco trae k entran k−j; si trae menos no se borra nada. La regla vive en `obOrdinalOf`/`obOrdinalSufijo` (00-core) y la leen `keyOfExpense` (mezcla con la nube, lápidas, FIN-03), `importObExpenses` (clave del importador: `kOf`/`scopedKOf`), `expenseSourceForCloud`/`expenseFromRow` (viaje) y `claveComoLaApp`/`ordinalDeSource` en `_shared/presupuesto.ts` (widget). Los apuntes CON id no cambian; `reconcileObDupes` (cashback y, desde la 230, la salida de un traspaso tuyo: `salidasTraspasoPropio` pasa a «traspaso» una salida en «Otros» que el banco llama transferencia si su beneficiario (`obName` o comercio, nunca concepto ni nota) es el titular con su nombre ENTERO y casa al céntimo con un traspaso previsto de ese banco ±7 días, o tiene su pata de llegada única al céntimo y además su beneficiario es el titular o hay un traspaso previsto entre esos dos bancos (desde la 234: el nombre en otro texto o un importe aproximado sin la otra pata ya no bastan; se quitan «transferencia realizada a…» delante y la referencia detrás, y si no hay acreedor y el concepto es solo su nombre, hace falta la otra pata); nunca lo que él dejó en «Otros» o sacó de traspaso (`traspasoNo|…` en `reciboNo`), lo rechazado, ni lo anterior al adelanto del mes pasado (sus últimos 7 días); se escribe con `setExpenseCat`, una vez cada 6 h si la nube no la acepta, así el widget cuenta igual) no lo necesita. El histórico (`histCandExisting`, clave por contenido 1:1) tampoco, pero sí mira las lápidas y los vínculos: un candidato cuya clave de ranura 1 tiene lápida en `deleted` o figura como `banco` en `gemelos` es «ya lo tienes apuntado» (`histCandLapidas`), no nuevo. Sin eso, lo contestado «es el mismo» volvía premarcado y entraba con lápida: invisible en la lista, pero restando del saldo de la cuenta diaria (`expenseCountsCash` no excluye lápidas a propósito: la base anclada puede incluirlas) y resubido en cada pull (el backfill de `syncCloudExpenses` ahora salta las filas con lápida).
 
 Viaje: en `source` como último tramo `#n2` (`ob:trade_republic#dup#n2`), que un móvil o servidor anterior ignora (`split("#")[0]` sigue dando el banco y `[1]` la marca `dup`), y en `fecha` como mediodía + (ordinal−1) ms, porque el índice único de `expenses` es usuario+fecha+importe+comercio y sin ello la segunda fila igual chocaría y nunca subiría. Determinista: dos móviles que suban el mismo ordinal escriben la misma fila. Un móvil anterior funde las k filas al bajar (ve una, como hoy) y su importador no añade ninguna.
 
@@ -1296,17 +1296,43 @@ después también el origen confirmado por el servidor.
 
 Cotizaciones: Edge `prices` → Finnhub/Yahoo. FX: Frankfurter `EUR→USD,GBP,CHF` → `state.fxRates` (XXX→EUR) + `state.fx` (USD legado). Coste invertido editable ancla `costEur`. Moneda de visualización (`DISP`): EUR/USD/GBP/CHF desde 4.1.0; sin FX descargado se queda en € (nunca inventar tipo).
 
-### Open Banking: sync SOLO a demanda (v4.1.0)
+### Open Banking: lectura sola al entrar, con tope (16/11/2026; antes SOLO a demanda, v4.1.0)
 
-El auto-sync al abrir/volver a primer plano **se retiró**: una consulta PSD2 desatendida en
-cada apertura hacía que Caixa/Sabadell marcaran el consentimiento como uso robótico y lo
-caducaran «cada dos por tres» (feedback 2026-07-18). Syncs que siguen vivos, todos «con motivo»:
+En la 4.1.0 se retiró el auto-sync al abrir/volver a primer plano: con 30-90 min de margen, una
+consulta PSD2 desatendida en cada apertura hacía que Caixa/Sabadell marcaran el consentimiento
+como uso robótico y lo caducaran «cada dos por tres» (feedback 2026-07-18). El 16/11/2026 el
+dueño pidió volver a tenerlo al día sin tocar nada, «una vez al día o las que estén permitidas».
+
+Enable Banking no recibe cabeceras de usuario presente (`bank-sync` no manda `Psu-*`), así que
+PSD2 trata TODA lectura como desatendida, también la del botón: unas 4 al día por cuenta. El
+tope vive en el cliente (`08-motor-bank.js`, junto a `bankRateRemember`):
+
+- `cloud.bankSync` y `cloud.bankSyncHistory` (00) apuntan cada lectura de este móvil en
+  `localStorage._bankAutoSync` (`{dia, n, at, pausa}`, día de Madrid): manuales y solas.
+- `bankAutoToca(reg, lastBankSync, now)` deja salir la sola solo si la última lectura (la buena,
+  `lastBankSync`, que viaja en `app_state` desde otro móvil, o el último intento de este) fue hace
+  **6 h** o más y hoy van **menos de 3**. Con una a mano detrás, 4 como mucho. Sin ninguna
+  lectura previa no sale: el banco recién conectado ya sincroniza al volver de autorizar.
+- Un 429 (de la Edge o de un banco dentro de la respuesta), un 401/403 o una sesión terminada
+  (`bankAutoFrena`) ponen `pausa` = hoy: nada solo hasta mañana. Un enlace que ya estaba
+  caducado no pausa (la Edge no lo consulta). Un fallo de red cuenta el intento y espera 6 h.
+- El efecto de App (11, «LOS BANCOS AL DÍA SIN TOCAR NADA») mira al arrancar (3 s) y al volver a
+  primer plano (1,5 s, `visibilitychange` + `appStateChange`), decide después del pull de la nube
+  y lanza `runBankSync({auto:true})` en idle. `bankSyncing` impide dos a la vez; el modo pruebas
+  no la lanza. `opts.auto` calla los fallos (ya los pinta el banner de bancos) y solo avisa de los
+  movimientos que entran (`ob_imported`). Sin movimientos nuevos `importObExpenses` no crea
+  array de gastos: el histórico no se reescribe.
+- El botón manual no se bloquea nunca: el tope solo frena la sola.
+
+Disparadores:
 
 | Disparador | Dónde |
 |---|---|
+| Al entrar (arranque o primer plano) | con el tope de arriba |
 | Botón «↻ Sincronizar bancos» | Cartera, junto a «Tus cuentas» (visible con `hasBankLink`) |
 | «Actualizar» de un banco | Ajustes → Mis bancos |
 | Recién autorizado (`?bank=ok` / goto `bank\|ok`) | `11-app-main.js` |
+| Cambio del rol de un banco (`mc-bank-role-changed`) | `11-app-main.js` |
 | Noti del banco (evento real del usuario) | apagado por defecto; si se activa expresamente, presupuesto persistente de 1 cada 12 h |
 
 No hay lectura programada del banco: el único `pg_cron` es `myinvestor-keepalive`, que no lee

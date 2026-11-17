@@ -100,7 +100,7 @@ test("★ P10: en inglés la tecla pone «.» y escribe «.»", async ({ page })
   await keys.getByRole("button", { name: ".", exact: true }).click();
   await teclear(sheet, ["5", "0"]);
   await expect(sheet.locator(".v4-apuntar-amt")).toContainText("12.50");
-  await sheet.locator(".v4-input").fill("P10 decimal");
+  await sheet.locator(".v4-input").fill("P10 decimal"); await sheet.locator(".v4-input").press("Enter"); // «Listo»: el numérico vuelve (DIS-05)
   await sheet.locator(".v4-cta").click();
   await expect(page.locator(".v4-sheet")).toHaveCount(0, { timeout: 3_000 });
   const row = page.locator(".page.page-scroll-host .v4-gastos-list-body button[data-expense-id]")

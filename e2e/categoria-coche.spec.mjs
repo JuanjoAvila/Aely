@@ -13,7 +13,7 @@ for(const lang of ["es","en","ca"]){
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await page.locator(".botnav-fab").click();
     const sheet=page.locator(".v4-exp-sheet");
-    await sheet.locator(".v4-ficha-cat-title button").click();
+    await sheet.locator('[data-testid="ap-cat-more"]').click();
     const item=page.locator('.v4-ficha-cat-sheet [data-testid="expense-all-cat-coche"]');
     await expect(item).toContainText(label[lang]);
     await expect(item.locator(".v4-ficha-cat-icon")).toHaveText("🚗");

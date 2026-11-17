@@ -26,8 +26,9 @@ async function ready(p){await expect(p.locator('.botnav')).toBeVisible();await d
 async function openChild(p){await p.getByRole('button',{name:/Ver todas tus inversiones/}).click();await expect(child(p)).toBeVisible();}
 async function local(p,cur){await child(p).locator('.curtoggle').getByRole('button',{name:({EUR:'€',USD:'$',GBP:'£'})[cur],exact:true}).click();}
 async function global(p,cur){
+ // Desde DIS-40 cada desplegable es una fila (`.set-sub`) de la tarjeta de su grupo: se busca la fila, no la tarjeta.
  await p.evaluate(()=>window.dispatchEvent(new CustomEvent('mc-open-settings')));const s=p.locator('.settings-push.open').filter({has:p.locator('button.set-row')});
- const card=s.locator('.set-card').filter({hasText:'Moneda de visualización'});if(!await card.locator(':scope > .collapsible.open').count())await card.locator(':scope > button').click();
+ const card=s.locator('.set-card > .set-sub').filter({hasText:'Moneda de visualización'});await expect(card).toHaveCount(1);if(!await card.locator(':scope > .collapsible.open').count())await card.locator(':scope > button').click();
  const row=s.locator('button.set-row').filter({hasText:'Moneda de visualización'}).first();if(!await row.locator('.sr-chev.open').count())await row.click();
  await s.getByRole('button',{name:({EUR:'€ Euro',USD:'$ Dólar',GBP:'£ Libra'})[cur],exact:true}).click();await s.locator('.settings-push-h button.back').click();await expect(s).toHaveCount(0);
 }
@@ -66,7 +67,8 @@ test('FIN31 missing FX: broker unknown and FIN06 partial totals, original rows s
  const before=await boot(p,'EUR',{});await capture(p,info,'missing-fx-base');
  await money(broker(p,'revolut').locator('.am'),'—');await expect(broker(p,'revolut')).toContainText('Sin conversión');
  await money(p.locator('.cartera-hero-amt'),'1.950,40 €');await expect(p.locator('.page [data-fx-incomplete]').first()).toBeVisible();
- await money(broker(p,'trade_republic').locator('.am'),'1.200 €');await money(broker(p,'sabadell').locator('.am'),'0 €');
+ // Fila de bróker de Cartera con céntimos, como las cuentas (auditoría de diseño 237, P2-9).
+ await money(broker(p,'trade_republic').locator('.am'),'1.200,40 €');await money(broker(p,'sabadell').locator('.am'),'0,00 €');
  await p.locator('.botnav-tab[data-tour="inicio"]').click();await money(p.locator('[data-testid="inicio-net-current"] [data-tour="hero-amt"]'),'—');await p.locator('.botnav-tab[data-tour="cartera"]').click();
  await openChild(p);await money(child(p).locator('[data-inv-hero] .serif'),'1.200,40 €');await expect(child(p).locator('[data-fx-incomplete]')).toContainText('Total incompleto');await money(child(p).locator('[data-broker-key="revolut"] .am'),'—');
  await child(p).locator('[data-broker-key="revolut"]').click();await expect(child(p).locator('[data-inv-position="rv-usd"]')).toContainText('200,00 USD · Sin conversión');

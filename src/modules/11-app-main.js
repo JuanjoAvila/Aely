@@ -991,7 +991,8 @@ function App(){
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
           // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
-          const next=liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
+          // Y las claves de cuenta repetidas que traiga (R8, `accountKeysUnicas`): misma clave que al cargar.
+          const next=liberarReservasHuerfanas(accountKeysUnicas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate())));
           // Una lectura vieja no deshace el backup que este mismo titular ya terminó hoy.
           const backup=prev._historyOwner===u&&prev.lastBackup===new Date().toISOString().slice(0,10)?{lastBackup:prev.lastBackup}:null;
           return Object.assign({},planSyncDerived(next,prev),backup,{[cloudMergeKey.current]:{read:read}});
@@ -1058,8 +1059,8 @@ function App(){
 
   // CAPA 2 — Open Banking: lee el saldo del banco y re-ancla el motor (= editar el saldo a mano,
   // pero con el número real). opts.manual = avisa siempre (botón "Actualizar saldo").
-  // (Los throttles de auto-sync BANK_SYNC_THROTTLE/BANK_FG_MIN se retiraron el 2026-07-18
-  //  junto con el propio auto-sync: el banco solo se consulta a demanda.)
+  // opts.auto = la lectura sola al entrar (16/11/2026, `bankAutoToca`): calla los fallos, que ya
+  // pinta el banner de bancos, y solo cuenta lo que ha entrado.
   /* Al sincronizar A MANO se lanzan a la vez bancos y brókers y cada uno tenía su toast: ganaba el
      último en acabar y el otro no se veía nunca («si actualizo… no me dice nada», 12/9). Con
      `opts.collect` cada uno deja su aviso en la lista y `sincronizarAMano` enseña UNO solo. */
@@ -1250,7 +1251,7 @@ function App(){
           const okN=Object.keys(okEnts).filter(function(e){ return !issues.some(function(is){ return is.ent===e; }); });
           if(okN.length) avisaSync(opts, okN.length===1 ? tf("bank_upd_one",{bank:entOf(okN[0]).label, x:eur((preview.synced.filter(function(x){ return x.ent===okN[0]; })[0]||{}).bal||0)}) : tf("bank_upd_n",{n:okN.length}));
         }
-        avisaSync(opts.manual?opts:null, "⚠ "+msg);
+        if(!opts.auto) avisaSync(opts.manual?opts:null, "⚠ "+msg);
         if(opts.manual){
           const nat=natPlugin();
           if(nat&&nat.showNotification){
@@ -1278,7 +1279,7 @@ function App(){
         if(opts.manual) avisaSync(opts, "⚠ "+t("bank_sync_sin_nube"));
         return;
       }
-      if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
+      if(opts.manual || (!opts.auto && navigator.onLine!==false)) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
     }).finally(function(){
       bankSyncing.current=false;
       /* AVISA DE QUE LA LISTA DE BANCOS HA CAMBIADO (2026-09-12, reportado por el desde la app:
@@ -1305,6 +1306,45 @@ function App(){
     flushPersist();
     obAckSave(p.at, p.ack, state.expenses);
   },[state.lastBankSync]);
+
+  /* LOS BANCOS AL DÍA SIN TOCAR NADA (16/11/2026, orden del dueño). Al arrancar y al volver a
+     primer plano se mira si toca leer el banco; el tope (6 h y 3 al día contando las tuyas, pausa
+     hasta mañana tras un 429 o un permiso rechazado) lo decide `bankAutoToca` (08). Va en idle y
+     con margen tras el arranque para no sumar trabajo al primer pintado, y `runBankSync` ya espera
+     al pull de la nube y no se solapa (`bankSyncing`). El modo pruebas no la lanza: leer el banco
+     gasta su cupo PSD2 real. */
+  useEffect(function(){
+    if(!uid) return;
+    let tmr=null, parado=false;
+    // Se decide DESPUÉS del pull: `lastBankSync` viaja en la nube y otro móvil puede haber leído ya.
+    const toca=function(){
+      const s=stateRef.current||{};
+      return !parado && document.visibilityState!=="hidden" && !!s.hasBankLink && !mcSandbox() && bankAutoToca(bankAutoLee(), s.lastBankSync, Date.now());
+    };
+    const intenta=function(){
+      if(!toca()) return;
+      Promise.resolve(pullOkRef.current).then(function(){
+        if(toca()) mcScheduleIdle(function(){ if(toca()) runBankSync({auto:true}); }, 4000);
+      });
+    };
+    const onVis=function(){
+      if(document.visibilityState!=="visible") return;
+      clearTimeout(tmr); tmr=setTimeout(intenta, 1500);
+    };
+    tmr=setTimeout(intenta, 3000);
+    document.addEventListener("visibilitychange", onVis);
+    // La APK avisa también por Capacitor (como el efecto de primer plano); el temporizador junta los dos.
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub;
+    if(A&&A.addListener){
+      try{ sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(st&&st.isActive&&!parado) onVis(); })); sub.catch(function(){}); }catch(e){}
+    }
+    return function(){
+      parado=true; clearTimeout(tmr);
+      document.removeEventListener("visibilitychange", onVis);
+      if(sub) sub.then(function(h){ return h&&h.remove&&h.remove(); }).catch(function(){});
+    };
+  },[uid]);
 
   /* ── Auto-refresh de brókers al abrir (petición 2026-07-15: «que se actualicen solos») ──
      SILENCIOSO a propósito y CONSERVADOR: solo re-ancla las posiciones que YA están mapeadas
@@ -1579,7 +1619,7 @@ function App(){
   },[uploadState,uid]);
 
   // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
-  // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
+  // Los bancos OB no se leen aquí (van con su tope, `bankAutoToca`); esta lectura no gasta su cupo PSD2.
   /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
      proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
      para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
@@ -1609,11 +1649,8 @@ function App(){
       const read=cloudReadRef.current;
       if(!read||read.owner!==uid||!read.ready)syncFromCloud(sessionRef.current);
       else syncCloudExpenses().catch(function(){});
-      // (2026-07-18) Aquí había un bankSync automático al volver a primer plano. RETIRADO:
-      // cada apertura disparaba una consulta PSD2 desatendida y los bancos (Caixa, Sabadell)
-      // acababan tumbando el consentimiento por «uso robótico». Ahora el banco se sincroniza
-      // SOLO cuando lo pides: botón «Sincronizar bancos» en Cartera, «Actualizar» en Mis
-      // bancos, o la noti del banco (ajuste st_banksync_notif, que sí es un evento real).
+      // El banco NO se lee aquí: cada vuelta leyéndolo tumbó consentimientos por «uso robótico»
+      // (2026-07-18). La lectura sola al entrar va en su propio efecto, con tope (16/11/2026).
       // APK: ping pendiente del listener de notis de banco (si la app estaba en frío).
       const nat=natPlugin();
       if(nat&&nat.consumeBankSyncPing){
@@ -1850,6 +1887,26 @@ function App(){
     });
   },[state.expenses, state.debts, state.cuotaNo, state.cuotaAlias]);
 
+  /* Round up / Saveback que avisa TR → a su posición, una sola vez (16/11/2026, `aplicarRecompensasTR`).
+     Llegan por cualquier vía que traiga gastos (pull, otro móvil) y la pasada devuelve el mismo estado
+     si no hay nada nuevo. Cambia la cartera, así que NUNCA sobre una foto vieja: primero se baja el
+     estado de la nube y solo si ese pull termina bien se aplica, encima de lo bajado (revisión 236,
+     P1-A). Es el patrón de `reservaMensualAlVolver`: el estado gana entero por `_savedAt`, y escribir
+     sobre una copia atrasada la haría «más nueva» y pisaría lo editado desde otro móvil (el +18,09 del
+     15/9). Un vuelo a la vez; si el pull falla, se reintenta con el siguiente cambio. */
+  const recompensasVuelo=useRef(false);
+  useEffect(function(){
+    if(recompensasVuelo.current) return;
+    if(aplicarRecompensasTR(stateRef.current, Date.now())===stateRef.current) return;
+    const aplica=function(){ set(function(prev){ return aplicarRecompensasTR(prev, Date.now()); }); };
+    if(!cloud.enabled()){ aplica(); return; }
+    if(!sessionRef.current) return;
+    recompensasVuelo.current=true;
+    const fin=function(){ recompensasVuelo.current=false; };
+    syncFromCloud(sessionRef.current);
+    (pullOkRef.current||Promise.resolve(false)).then(function(ok){ fin(); if(ok) aplica(); },fin);
+  },[state.expenses, state.accounts, state.investments, state.deleted, state.trRecompensas]);
+
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);
   const [drawerOpen,setDrawerOpen]=useState(false);
@@ -1964,6 +2021,14 @@ function App(){
     };
     window.addEventListener("mc-open-banks",h);
     return function(){ window.removeEventListener("mc-open-banks",h); };
+  },[]);
+  // La misma hoja que el + desde dentro de una pantalla (el vacío de Gastos, diseño 235 DIS-18).
+  // Por evento y no por prop: la lista de Gastos es un `React.memo` y una función nueva en cada
+  // render lo dejaría de adorno.
+  useEffect(function(){
+    const h=function(){ setApuntarOpen(true); };
+    window.addEventListener("mc-open-apuntar",h);
+    return function(){ window.removeEventListener("mc-open-apuntar",h); };
   },[]);
   /* RESYNC AUTOMÁTICO AL CAMBIAR EL ROL DE UN BANCO (2026-08-01, su rechazo de la tanda
      `bancos`: «cambiar el banco de gasto diario... sigue sin salir en gastos es absurdo»).
@@ -2479,7 +2544,7 @@ function App(){
     const trAcc=ins.trAcc;
     const injTR=ins.injTR;
     const roundupThisMonth=ins.roundup;
-    const savebackThisMonth = trAcc ? ((trAcc.savebackManual!=null)?trAcc.savebackManual:(trAcc.saveback?savebackOf(thisMonthExp):0)) : 0;
+    const savebackThisMonth=ins.saveback;
     // Aporte periódico a inversión (plan de ahorro TR, p.ej. 50€/mes al FTSE): sale del efectivo
     // y compra participaciones. Igual que el round-up, se muestra restado en vivo y se persiste al cerrar mes.
     const monthlyInvestThisMonth=ins.monthlyInvest;
@@ -2502,7 +2567,8 @@ function App(){
     const liquid=state.accounts.reduce((a,i)=> a + dynBal(i)*accountShareOf(state,i,"account"), 0) + obLiquid;
     const investedBase=state.investments.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
     const investedCost=state.investments.reduce((a,i)=>a+(invCostEur(i, state)||0),0);
-    const invested=investedBase + roundupThisMonth + savebackThisMonth + monthlyInvestThisMonth;
+    const rewardsPending=ins.rewardsPending;
+    const invested=investedBase + roundupThisMonth + savebackThisMonth + monthlyInvestThisMonth + rewardsPending;
     const assetsTotal=state.assets.reduce((a,i)=>a+i.value,0);
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
     const activos=liquid+invested+assetsTotal;
@@ -2511,7 +2577,7 @@ function App(){
     // recibos»: con `amount×FREQ_M` un recibo de importe distinto por cobro (seguro 172,05 + 166,94)
     // ignoraba su `schedule` y la cabecera no cuadraba con la suma de sus grupos (beta 4.26.150).
     const fijosVar=state.fixed.reduce((a,e)=>a+fixedMonthlyOf(e),0);
-    const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
+    const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d,curYear,curMonth):0),0);
     const fijosMensual=fijosVar+cuotas;
     const ahorroMensual=state.aportaciones.reduce((a,x)=>a+x.amount,0);
     // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---
@@ -2541,7 +2607,7 @@ function App(){
       chargesByBank[b]=(chargesByBank[b]||0)+extra;
       if(!isPaidIn(e,curMonth,today,curYear,state)&&!fixedPagadoFuera(state,e,curYear,curMonth,today)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
     });
-    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
+    state.debts.forEach(d=>{ if(debtActive(d)) acc(debtCuotaIn(d,curYear,curMonth)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
@@ -2593,7 +2659,7 @@ function App(){
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
        toEurAmt/invValueEur → fx y fxRates). */
-    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,transferInByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),rewardsPending,liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,transferInByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -2601,7 +2667,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
-     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,calendarDay]);
+     state.trRewardsTotal,state.trRecompensas,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){
@@ -2891,7 +2957,7 @@ function App(){
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
-      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)};
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d)};
       c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
@@ -2948,7 +3014,7 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        const msg=messageOf("debt_"+d.id,d.name,d.monthly);
+        const msg=messageOf("debt_"+d.id,d.name,debtCuotaIn(d,cy,cm));
         notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });
     };
@@ -3159,9 +3225,6 @@ function App(){
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
-  // El dedo empezó en una zona `data-noswipe="y"` (el asa de ordenar de Gastos): suya en vertical,
-  // nuestra en horizontal. Ver `onMove`.
-  const soloX=useRef(false);
   /* PINTAR UNA VEZ POR FRAME, NO UNA POR `touchmove` (2026-09-10, medido en su OnePlus).
      Su queja, con sus palabras: «si desplazas fluido no se nota apenas, es ir LENTO y ahí se nota
      el tirón, no va super smooth». Y tenía razón otra vez: arrastrando despacio, el avance del
@@ -3446,15 +3509,13 @@ function App(){
        listener nativo en `.viewport` se dispara ANTES que los de React, así que el
        `stopPropagation` de `stopSwipe` ya no llegaría a tiempo: hay que mirarlo aquí.
          · `[data-noswipe]`: buscador y rango de fechas de Gastos, que lo piden explícitamente.
-           `data-noswipe="y"` (el asa de ordenar de Gastos) solo pide el vertical: en horizontal
-           sigue siendo cambiar de pestaña (rechazo de la beta 4.26.173, ver `startExpenseDrag`).
+           Ordenar los movimientos de Gastos NO va por aquí: es una pulsación larga que se queda el
+           dedo con `stopPropagation` solo cuando ya ha levantado la fila (ver `gxReorden`).
          · cualquier cosa con scroll horizontal propio (las filas de chips): el dedo es del
            navegador, no nuestro. Antes esto «funcionaba» de rebote —el navegador se quedaba el
            gesto porque no podíamos impedírselo— y ahora que sí podemos hay que ser explícitos. */
     const t=e.target;
-    const noSwipe=t&&t.closest?t.closest("[data-noswipe]"):null;
-    if(noSwipe && noSwipe.getAttribute("data-noswipe")!=="y") return;
-    soloX.current=!!noSwipe;
+    if(t&&t.closest&&t.closest("[data-noswipe]")) return;
     for(let el=t; el&&el!==document.body; el=el.parentElement){
       if(el.classList&&el.classList.contains("page")) break;
       if(el.scrollWidth>el.clientWidth+4){
@@ -3522,8 +3583,6 @@ function App(){
       // dedo es lo que hacía que una bajada con deriva lateral acabara cambiando de pestaña.
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
-      // En el asa, el vertical es ordenar: el gesto no es nuestro. Hasta aquí no se ha tocado nada.
-      if(soloX.current && eje!=="x"){ dragging.current=false; soloX.current=false; return; }
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
          leaveScrollHost + freezeShell matan scroll/ola. Una diagonal sigue siendo scroll/ola,
          también en el fondo; pero un horizontal inequívoco tiene que cambiar de pestaña sin
@@ -3991,6 +4050,26 @@ function App(){
     if(!id) return;
     setMountedTabs(function(m){ return m[id]? m : Object.assign({},m,{[id]:true}); });
   },[tab, tabIds.join("|")]);
+  /* La franja de banco caído de Inicio (DIS-23) llega por evento y no por prop de Dashboard:
+     así ni su firma ni `goInversiones` (que vigila nav-indicator) cambian. Aterriza como
+     «Abrir en Cartera ›»: Cartera arriba y se baja hasta los avisos con el `scrollTop` de la
+     propia página, sin `scrollIntoView`, que movería el carrusel de pestañas. Sin deps a
+     propósito: el manejador ve siempre el `goTabTop` y las pestañas del último render. */
+  useEffect(function(){
+    const h=function(){
+      const i=tabIds.indexOf("cartera");
+      if(i<0) return;
+      goTabTop(i);
+      requestAnimationFrame(function(){
+        const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
+        const sec=pg&&pg.querySelector(".v4-bank-issues");
+        if(!sec) return;
+        pg.scrollTop=Math.max(0,pg.scrollTop+sec.getBoundingClientRect().top-pg.getBoundingClientRect().top-12);
+      });
+    };
+    window.addEventListener("mc-go-bank-issues",h);
+    return function(){ window.removeEventListener("mc-go-bank-issues",h); };
+  });
   // Tras el primer pintado: NO montar vecinas en auto. Montar ±1 al toque/swipe (prepMountTab)
   // evitaba un segundo hitch a ~900 ms junto con WhatsNew (feedback 2026-07-16).
   //
@@ -4070,7 +4149,7 @@ function App(){
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
-    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,cancelSwipe:cancelSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,onRefreshExpenses:syncCloudExpenses,
+    if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,onRefreshExpenses:syncCloudExpenses,
       // «Abrir en Plan · Deudas/Metas» de las filas grises (Gastos v5): mismo camino que Inicio.
       // `debtId`: si todas las cuotas del bloque son de una misma deuda, se aterriza en su tarjeta.
       onGoPlan:function(seg,debtId){ if(seg) setPlanGoto({id:seg,ts:Date.now(),debtId:debtId}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); },

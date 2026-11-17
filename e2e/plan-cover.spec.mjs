@@ -391,7 +391,7 @@ test("Pregúntame abre Deudas en el segmented compacto", async ({ page }) => {
   await dialog.getByRole("button", { name: "Préstamos y cuotas", exact: true }).click();
   await dialog.getByRole("button", { name: "Abrir Deudas", exact: true }).click();
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour", "plan");
-  await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveAttribute("data-seg", "deudas");
+  await expect(page.locator('.page-live .v4-seg-btn[data-seg].on')).toHaveAttribute("data-seg", "deudas");
 });
 
 test("Modo sencillo: Ajustes › Dinero desde Inicio frío abre BillsManage vivo y un alta se ve", async ({ page }) => {

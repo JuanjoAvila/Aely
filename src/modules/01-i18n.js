@@ -99,7 +99,7 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
     // INC-0810 es: patrimonio de ahora.
-    v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
+    v4_hist_empty:"Tu histórico empieza hoy", v4_net_first_acc:"Añade tu primera cuenta", v4_net_unknown:"El total actual no está disponible.",
     v42_net_info_title:"Cómo se calcula", v42_net_chart:"Evolución del patrimonio",
     v42_net_i_flows:"Un traspaso resta sin entrada igual a otra cuenta propia en 3 días, enlace a bróker o aporte periódico coincidente. El cajero resta sin cuenta o bolsillo de efectivo.",
     v42_this_month:"Este mes", v42_remaining:"Te quedan", v42_cycle_under_one:"<1\u00a0%",
@@ -112,7 +112,7 @@ const LANG = {
     v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_1m:"frente al mismo día del mes pasado", v42_net_i_cmp_n:"frente al mismo día de hace {n} meses", v42_net_i_cmp_12:"frente al mismo día de hace un año", v42_net_i_cmp_all:"desde el principio",
     v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"libres de {x}", v42_cycle_excess_of:"de más · límite {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
-    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Sin un tope al mes no se puede saber cuánto te queda.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
+    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Sin un tope al mes no se puede saber cuánto te queda.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte una meta de ahorro",
     v4_upcoming:"Próximos cargos", v4_upcoming_in:"En {mes}", v4_upcoming_in_v:"En {mes}", 
     v4_payment_pending:"Por confirmar",
     v4_payment_pending_hint:"No cuenta en lo pendiente.",
@@ -121,7 +121,7 @@ const LANG = {
     v4_plan_transfers:"Traspasos previstos", f_link_unconfirmed:"{name} · sin confirmar",
     v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
-    v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
+    v4_all:"Ver todo ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
     v4_plan_left:"Queda por pagar en {month}",
     v4_plan_state_ok_h:"Vas bien este mes", v4_plan_state_warn_h:"Ojo este mes", v4_plan_state_bad_h:"Este mes se queda corto",
     v4_plan_state_ok:"{left} de recibos salen de {bank}: el día {day} bajarías a {min}, sin contar el día a día.",
@@ -138,7 +138,7 @@ const LANG = {
     pr6_por_pagar:"Por pagar", pr6_ojo_ocultar:"Ocultar importes", pr6_ojo_ver:"Enseñar importes",
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
     // Plan › Recibos v6 (SPEC docs/design/plan-recibos): una línea útil o nada.
-    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}", pr6_ver:"Ver", pr6_ocultar:"Ocultar",
+    pr6_revisar:"Para revisar", pr6_ya_pagados:"Ya pagados", pr6_todos:"Todos", pr6_ver_los:"Ver los {n}",
     pr6_count:"{n} recibos", pr6_count_one:"1 recibo", pr6_count_week:"{n} esta semana", pr6_all_paid:"Todo pagado", pr6_nada:"Nada pendiente este mes",
     pr6_llega:"Te llega", pr6_falta:"Falta {x}", pr6_no_llegado:"No ha llegado",
     pr6_hoy:"hoy", pr6_manana:"mañana", pr6_en_dias:"en {n} días", pr6_tocaba_ayer:"tocaba ayer", pr6_tocaba:"tocaba hace {n} días",
@@ -158,11 +158,11 @@ const LANG = {
     pr6_llega_t:"¿Te llega?", pr6_te_faltan:"te faltan", pr6_justo:"lo más justo, el {d}", pr6_justo_hoy:"lo más justo, hoy", pr6_justo_sin:"lo más justo",
     pr6_tienes_hoy:"Tienes hoy", pr6_faltan_recibos:"Recibos que faltan", pr6_dia_n:"{name} · día {d}",
     pr6_pasa:"Pasa {x} a {bank} antes del {d}", pr6_pasa_hoy:"Pasa {x} a {bank} hoy", pr6_pasa_sin:"Pasa {x} a {bank}",
-    pr6_enlazado_x:"Enlazado · {x}", pr6_ver_deuda:"Ver en Deudas", pr6_deuda_importe:"Se cobró {x} y la cuota es {y}.", pr6_deuda_sin_dia:"La cuota no tiene día de cobro.", pr6_deuda_sin_banco:"Aún no está en el extracto del banco.",
+    pr6_enlazado_x:"Enlazado · {x}", pr6_enlazado:"Enlazado", pr6_enlazado_d:"Enlazado al cargo del {d}", pr6_ver_deuda:"Ver en Deudas", pr6_deuda_importe:"Se cobró {x} y la cuota es {y}.", pr6_deuda_sin_dia:"La cuota no tiene día de cobro.", pr6_deuda_sin_banco:"Aún no está en el extracto del banco.",
     pr6_de_una_vez:"De una vez", pr6_a_plazos:"A plazos", pr6_meses_n:"{n} meses", pr6_meses:"Meses", pr6_meses_min:"De 2 a 120 meses", pr6_entrada:"Entrada", pr6_entrada_x:"Entrada {x}", pr6_cuota_hasta:"Sin intereses, hasta {d}", pr6_al_mes:"{x}/mes", pr6_plazos_que:"¿Qué compras?", pr6_crear_deuda:"Crear la deuda", pr6_colchon:"Colchón tras el gasto", pr6_colchon_de:"{bank} · mín. {x}",
     pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
-    pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
+    pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_ya_restado:"Sin cobrar, ya restado del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
     // Plan › Recibos v6, tanda 6: resumen del mes cerrado, vista del mes siguiente y primer uso.
     pr6c_titulo:"{mes} cerrado", pr6c_total:"{x} en recibos", pr6c_vs:"{d} vs. {mes}", pr6c_vs_sin_datos:"vs. {mes}: sin datos de {largo}", pr6c_vs_sin_recibos:"vs. {mes}: sin recibos en {largo}", pr6c_igual:"igual que {mes}",
     pr6c_sube:"{name}, más que {mes}", pr6c_subio:"{name} subió", pr6c_bajo:"{name} bajó", pr6c_no_llegaron:"Recibos que no llegaron", pr6c_cerrar:"Cerrar el resumen",
@@ -185,12 +185,12 @@ const LANG = {
     v4_gastos_cat_limit:"límite {x}",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Orientativo: no cambia tu presupuesto. Vacío o 0 = sin límite.",
     g_cat_budget_clear:"Quitar límite",
-    v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
+    v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones", v4_inv_position:"1 posición",
     v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
     v4_sync_broker_ok:"📈 {b} al día", v4_sync_brokers_ok:"📈 Brókers al día", v4_sync_broker_exp:"⚠ {b}: sesión caducada · reconecta en Ajustes → Bancos",
     ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
     cal_today:"Hoy", cal_prev:"Mes anterior", cal_next:"Mes siguiente",
-    bk_issue:"⚠ {bank} necesita tu permiso otra vez", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
+    bk_issue:"{bank} necesita tu permiso", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
     bk_issue_cta:"Reconectar {bank}", bk_tr_dead:"⚠ Trade Republic (inversiones): sesión caducada",
     // Aviso al sincronizar con algún banco caído (petición 2026-07-24): sale como notificación de
     // verdad y al tocarla lleva a Cartera → Mis bancos, que era lo que no se encontraba.
@@ -200,14 +200,16 @@ const LANG = {
     bk_notif_n:"{n} bancos necesitan que los reconectes · toca para verlos",
     bk_tr_notif_title:"Trade Republic está desconectado",
     bk_tr_notif_body:"La sesión caducó · toca para ver el aviso en Cartera",
-    bk_issue_pending:"⚠ {bank} se quedó a medio conectar", bk_issue_pending_sub:"Empezaste a conectarlo pero el banco no llegó a dar el permiso, así que no trae ni saldo ni movimientos. Vuelve a intentarlo desde aquí.", bk_notif_pending:"{bank} no llegó a conectarse · toca para terminar",
-    bk_issue_noacct:"⚠ {bank} está conectado a medias", bk_issue_noacct_sub:"El enlace existe pero el banco no da ninguna cuenta. Vuelve a conectarlo y elige las cuentas que quieres ver.",
+    bk_issue_pending:"{bank} se quedó a medio conectar", bk_issue_pending_sub:"Empezaste a conectarlo pero el banco no llegó a dar el permiso, así que no trae ni saldo ni movimientos. Vuelve a intentarlo desde aquí.", bk_notif_pending:"{bank} no llegó a conectarse · toca para terminar",
+    bk_issue_noacct:"{bank} está conectado a medias", bk_issue_noacct_sub:"El enlace existe pero el banco no da ninguna cuenta. Vuelve a conectarlo y elige las cuentas que quieres ver.",
     bk_tr_sub:"Su sesión caducó: las posiciones y el efectivo no se actualizan. Se reconecta aquí, en la app (PIN + código SMS) — no en la app de Trade Republic.",
     bk_tr_cta:"Reconectar Trade Republic",
-    bk_tr_ob:"⚠ Trade Republic (banco): permiso caducado",
-    bk_tr_ob_noacct:"⚠ Trade Republic (banco): no devuelve ninguna cuenta",
+    bk_tr_ob:"Trade Republic (banco): permiso caducado",
+    bk_tr_ob_noacct:"Trade Republic (banco): no devuelve ninguna cuenta",
     bk_tr_ob_sub:"Conexión de banco: trae tus compras con tarjeta. No afecta a tus posiciones ni al efectivo.",
     bk_tr_ob_cta:"Renovar el permiso del banco",
+    bk_tr_ob_btn:"Renovar",
+    ini_bank_issue_many:"{n} bancos necesitan atención", ini_bank_issue_cta:"Revisar",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
     goods_add:"Añadir bien", goods_name:"Nombre del bien", goods_value:"Valor en euros", goods_home:"Vivienda", goods_car:"Vehículo", goods_invalid:"Escribe un nombre y un valor válido, con hasta dos decimales.", goods_delete:"Borrar bien", goods_delete_q:"¿Borrar {name}?", goods_delete_sub:"Dejará de contar en el patrimonio. No se borran cuentas ni movimientos.",
@@ -215,12 +217,12 @@ const LANG = {
     v4_apuntar:"Apuntar", v4_gasto:"Gasto", v4_ingreso:"Ingreso", 
     v4_apuntar_need:"Pon un importe 🙂", v4_apuntar_ok:"✓ Gasto apuntado", v4_apuntar_ok_in:"✓ Ingreso apuntado",
     v4_back:"Volver",
-    v4_debts_hero:"Debes en total", v4_debts_sub:"{x}/mes en cuotas · bajando cada mes 📉",
+    v4_debts_hero:"Debes en total", v4_debts_sub:"{x}/mes en cuotas · bajando cada mes",
     v4_debts_ends:"acabas en {d}", v4_amort_now:"💸 Amortizar ahora",
     v4_debt_party_1:"🎉 {name}: ¡ÚLTIMA cuota este mes ({x})!", v4_debt_party_sub:"Después, {x}/mes libres para ti.",
     v4_goals_hero:"Ahorrado en metas", v4_goal_new:"+ Nueva meta de ahorro",
     v4_ob_skip:"Saltar", v4_ob_title1:"Bienvenido/a",
-    v4_ob_sub1:"La gracia no es tener 40 pantallas: es saber dónde estás cuando vas a gastar o decidir.",
+    v4_ob_sub1:"Tus cuentas, gastos y deudas en un sitio.",
     v4_ob_c1t:"Todo tu dinero",
     v4_ob_c1s:"Cuentas, deudas, fijos, metas e inversiones. El mapa entero, no solo el café del día.",
     v4_ob_c2t:"Se apunta solo",
@@ -232,26 +234,25 @@ const LANG = {
     v4_ob_demo1:"Mercadona", v4_ob_demo2:"Café",
     v4_ob_start:"Empezar con {x} €/mes",
     v4_set_profile_sync:"sincronizado ✓", v4_set_profile_local:"en este móvil",
-    v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil", v4_set_conn:"Conexiones",
-    v4_set_money:"Dinero", v4_set_app:"App",
+    v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil",
+    v4_set_money:"Dinero",
+    v4_set_g_look:"Cómo se ve", v4_set_g_money:"Dinero y bancos", v4_set_g_data:"Datos", v4_set_g_account:"Cuenta y privacidad",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
    hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Más toques cuanto más lleno esté el anillo.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
     v4_moved_cat:"Movido a {cat}", v4_cuota_confirmada:"Confirmada como cuota de {name}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
-    f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
-    f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
-    f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
+    f_cat_all:"Todas ›", f_kb_done:"Listo", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
+    f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Guardado ✓", f_del:"Borrar gasto", f_del_in:"Borrar ingreso",
+    f_note_row:"Nota", f_debt_row:"Es la cuota de una deuda", f_no:"No",
+    f_adj_recibo:"Recibo", f_adj_deuda:"Deuda", f_adj_meta:"Meta", f_adj_retirada:"Retirada",
     f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Puedes deshacerlo.",
     f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.", f_receipt_diag:"Copiar diagnóstico",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
     f_receipt_possible_same:"Puede ser el mismo cargo que {name} del {date}", f_receipt_other_payment:"Es otro pago",
     f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_quiza:"Parece el cargo de tu recibo «{name}»: por eso aquí no suma otra vez. Si no lo es, dilo y contará como un gasto más.", f_recibo_no:"No es este recibo", f_recibo_si:"Sí, es este recibo",
-    f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
-    f_trace_missing:"— texto original no disponible",
     f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
-    f_withdraw_fields:"La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.",
     f_withdraw_action:"Es una retirada de efectivo",
     f_withdraw_title:"¿Es una retirada de efectivo?",
     f_withdraw_sub:"Estos {x} pasarán a Traspaso y dejarán de contar como gasto. El importe y el origen bancario se conservan. No se sumará dinero al efectivo.",
@@ -306,10 +307,10 @@ const LANG = {
     wn_fb_title:"💬 ¿Algo que contar?", wn_fb_hint:"Sugerencias o errores: quedan guardados y llegan con tu versión.",
     wn_fb_ph:"Escribe la sugerencia o el error que has visto…", wn_fb_send:"Enviar", wn_fb_sent:"✓ Apuntado y enviado", wn_fb_offline:"✓ Apuntado en tus notas (no se pudo enviar; se queda guardado)",
     wn_yours:"Tus apuntes", wn_close:"¡Entendido!",
-    st_trnotif:"Avisar de cada gasto apuntado (TR)", st_trnotif_hint:"Apagado, no hay notificación por cada gasto. Los avisos de presupuesto siguen.",
-    st_tring:"Apuntar aquí mis gastos de Trade Republic", st_tring_hint:"Al activarlo, esta app lee las notificaciones de gasto de Trade Republic de ESTE móvil y las apunta en TU cuenta (no en la de nadie más). Cada persona lo activa en su propio teléfono. Solo lee la notificación; nunca entra en tu banco. Puedes apagarlo cuando quieras.", st_tring_on:"✓ Listo · tus compras con la tarjeta de Trade Republic entrarán solas en esta cuenta", st_tring_off:"Apuntado de Trade Republic desactivado", st_tring_nornd:"✕ Este navegador no puede generar una clave segura · no se activa (mejor eso que una clave adivinable)",
-    st_banksync_notif:"Al detectar aviso del banco, sincronizar movimientos", st_banksync_notif_hint:"Apagado por defecto: gasta el límite diario del banco. Como mucho, una cada 12 h.",
-    st_aicat:"Sugerir categoría (IA) en «Otros»", st_aicat_hint:"Si las palabras clave no saben la categoría, la IA te sugiere una. No envía el importe.",
+    st_trnotif:"Un aviso por cada gasto apuntado", st_trnotif_hint:"Los de presupuesto llegan igual",
+    st_tring:"Apuntar mis compras solas", st_tring_hint:"Trade Republic y Google Wallet de este móvil", st_tring_on:"✓ Listo · tus compras con la tarjeta de Trade Republic entrarán solas en esta cuenta", st_tring_off:"Apuntado de Trade Republic desactivado", st_tring_nornd:"✕ Este navegador no puede generar una clave segura · no se activa (mejor eso que una clave adivinable)",
+    st_banksync_notif:"Sincronizar al llegar un aviso del banco", st_banksync_notif_hint:"Como mucho cada 12 h",
+    st_aicat:"Sugerir categoría con IA", st_aicat_hint:"Solo en «Otros» · sin el importe",
     th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
     rp_saved:"✓ Informe guardado en Descargas (busca «mi-cartera-…png»)",
     rp_saved_notif:"📊 Informe del mes guardado en Descargas: {f}. Ábrelo desde tu app de Archivos o la galería.",
@@ -437,7 +438,7 @@ const LANG = {
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
     v4_money_total:"All your money", v4_of_month:"of month",
     // INC-0810 en: patrimonio de ahora.
-    v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
+    v4_hist_empty:"Your history starts today", v4_net_first_acc:"Add your first account", v4_net_unknown:"The current total is unavailable.",
     v42_net_info_title:"How it's worked out", v42_net_chart:"Net worth history",
     v42_net_i_flows:"A transfer is an outflow without an equal inflow in another own account within three days, a broker link or a matching regular contribution. ATM withdrawals reduce net worth without a cash account or pocket.",
     v42_this_month:"This month", v42_remaining:"Left to spend", v42_cycle_under_one:"<1%",
@@ -450,7 +451,7 @@ const LANG = {
     v42_net_when_1:"last month", v42_net_when_n:"{n} months ago", v42_net_when_12:"a year ago", v42_net_i_cmp:"Comparison", v42_net_i_cmp_1m:"against the same day last month", v42_net_i_cmp_n:"against the same day {n} months ago", v42_net_i_cmp_12:"against the same day a year ago", v42_net_i_cmp_all:"since the start",
     v42_this_cycle:"This cycle", v42_cycle_over:"You are {x} over budget", v42_cycle_start:"Cycle just started", v42_cycle_comfort:"Plenty of room", v42_cycle_good:"On track", v42_cycle_tight:"Getting tight", v42_cycle_slow:"Time to slow down", v42_cycle_of:"left of {x}", v42_cycle_excess_of:"over · limit {x}", v42_cycle_daily:"{x} a day", v42_cycle_day:"for 1 day", v42_cycle_days:"for {n} days",
     // INC-0810 en: fin del patrimonio de ahora.
-    v4_nobud_t:"Set a monthly budget", v4_nobud_p:"Without a monthly cap there's no way to know what's left.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"It tells you how much is left and when you'll get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
+    v4_nobud_t:"Set a monthly budget", v4_nobud_p:"Without a monthly cap there's no way to know what's left.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set a savings goal",
     v4_upcoming:"Upcoming", v4_upcoming_in:"In {mes}", v4_upcoming_in_v:"In {mes}", 
     v4_payment_pending:"To confirm",
     v4_payment_pending_hint:"Not counted as pending.",
@@ -459,7 +460,7 @@ const LANG = {
     v4_plan_transfers:"Planned transfers", f_link_unconfirmed:"{name} · unconfirmed",
     v4_charge_actual:"Charge {x}", v4_charge_expected:"Expected {x}",
     v4_your_goals:"Your goals", v4_recent:"Latest activity", v4_recent_empty:"No activity yet. Add the first one with +.",
-    v4_all:"All ›", v4_plan_title:"Your month plan", v4_plan_recibos:"Bills", v4_plan_deudas:"Debts", v4_plan_metas:"Goals",
+    v4_all:"See all ›", v4_plan_title:"Your month plan", v4_plan_recibos:"Bills", v4_plan_deudas:"Debts", v4_plan_metas:"Goals",
     v4_plan_left:"Still to pay in {month}",
     v4_plan_state_ok_h:"This month looks fine", v4_plan_state_warn_h:"Watch this month", v4_plan_state_bad_h:"This month falls short",
     v4_plan_state_ok:"{left} in bills comes out of {bank}: on day {day} you'd drop to {min}, before day-to-day spending.",
@@ -475,7 +476,7 @@ const LANG = {
     v4s_row_from:"from {bank}", v4s_row_debt:"the {name} installment", v4s_row_income:"into {bank}", v4s_row_to:"moving to {bank}", v4s_row_invest:"setting aside to invest in {bank}",
     pr6_por_pagar:"To pay", pr6_ojo_ocultar:"Hide amounts", pr6_ojo_ver:"Show amounts",
     v4_ver_mas:"See more · {n}", v4_ver_menos:"See less",
-    pr6_revisar:"To review", pr6_ya_pagados:"Already paid", pr6_todos:"All", pr6_ver_los:"See all {n}", pr6_ver:"Show", pr6_ocultar:"Hide",
+    pr6_revisar:"To review", pr6_ya_pagados:"Already paid", pr6_todos:"All", pr6_ver_los:"See all {n}",
     pr6_count:"{n} bills", pr6_count_one:"1 bill", pr6_count_week:"{n} this week", pr6_all_paid:"All paid", pr6_nada:"Nothing left this month",
     pr6_llega:"You're covered", pr6_falta:"Short {x}", pr6_no_llegado:"Hasn't arrived",
     pr6_hoy:"today", pr6_manana:"tomorrow", pr6_en_dias:"in {n} days", pr6_tocaba_ayer:"due yesterday", pr6_tocaba:"due {n} days ago",
@@ -495,11 +496,11 @@ const LANG = {
     pr6_llega_t:"Will it cover?", pr6_te_faltan:"short by", pr6_justo:"lowest on the {d}", pr6_justo_hoy:"lowest today", pr6_justo_sin:"lowest point",
     pr6_tienes_hoy:"You have today", pr6_faltan_recibos:"Bills to come", pr6_dia_n:"{name} · day {d}",
     pr6_pasa:"Move {x} to {bank} before the {d}", pr6_pasa_hoy:"Move {x} to {bank} today", pr6_pasa_sin:"Move {x} to {bank}",
-    pr6_enlazado_x:"Linked · {x}", pr6_ver_deuda:"See in Debts", pr6_deuda_importe:"{x} was charged and the payment is {y}.", pr6_deuda_sin_dia:"The payment has no charge day.", pr6_deuda_sin_banco:"Not in the bank statement yet.",
+    pr6_enlazado_x:"Linked · {x}", pr6_enlazado:"Linked", pr6_enlazado_d:"Linked to the {d} charge", pr6_ver_deuda:"See in Debts", pr6_deuda_importe:"{x} was charged and the payment is {y}.", pr6_deuda_sin_dia:"The payment has no charge day.", pr6_deuda_sin_banco:"Not in the bank statement yet.",
     pr6_de_una_vez:"All at once", pr6_a_plazos:"In instalments", pr6_meses_n:"{n} months", pr6_meses:"Months", pr6_meses_min:"2 to 120 months", pr6_entrada:"Down payment", pr6_entrada_x:"Down payment {x}", pr6_cuota_hasta:"Interest-free, until {d}", pr6_al_mes:"{x}/mo", pr6_plazos_que:"What are you buying?", pr6_crear_deuda:"Create the debt", pr6_colchon:"Cushion after spending", pr6_colchon_de:"{bank} · min. {x}",
     pr6_si_gasto:"What if I spend…?", pr6_importe:"Amount", pr6_si_llega:"Covered · {x} left", pr6_no_llega:"Not covered · short {x}",
     pr6_entra_en:"goes into {bank}", pr6_dia:"day {d}", pr6_dia_menos:"One day earlier", pr6_dia_mas:"One day later",
-    pr6_sin_restar:"Paid, not yet in the balance", pr6_fresh_now:"balance from just now", pr6_fresh_min:"balance from {n} min ago", pr6_fresh_h:"balance from {n} h ago", pr6_fresh_ayer:"balance from yesterday", pr6_fresh_d:"balance from {n} days ago", pr6_fresh_fecha:"balance from {x}",
+    pr6_sin_restar:"Paid, not yet in the balance", pr6_ya_restado:"Not charged, already in the balance", pr6_fresh_now:"balance from just now", pr6_fresh_min:"balance from {n} min ago", pr6_fresh_h:"balance from {n} h ago", pr6_fresh_ayer:"balance from yesterday", pr6_fresh_d:"balance from {n} days ago", pr6_fresh_fecha:"balance from {x}",
     // Plan › Bills v6, batch 6: closed-month summary, next-month view and first use.
     pr6c_titulo:"{mes} closed", pr6c_total:"{x} in bills", pr6c_vs:"{d} vs {mes}", pr6c_vs_sin_datos:"vs {mes}: no data for {largo}", pr6c_vs_sin_recibos:"vs {mes}: no bills in {largo}", pr6c_igual:"same as {mes}",
     pr6c_sube:"{name}, more than {mes}", pr6c_subio:"{name} went up", pr6c_bajo:"{name} went down", pr6c_no_llegaron:"Bills that didn't arrive", pr6c_cerrar:"Close the summary",
@@ -522,12 +523,12 @@ const LANG = {
     v4_gastos_cat_limit:"limit {x}",
     g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just a guide: it doesn't change your budget. Empty or 0 = no limit.",
     g_cat_budget_clear:"Remove limit",
-    v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_connect_accounts:"Connect accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
+    v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_connect_accounts:"Connect accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions", v4_inv_position:"1 position",
     v4_sync_banks:"Sync banks", v4_sync_banks_done:"✓ Banks synced",
     v4_sync_broker_ok:"📈 {b} up to date", v4_sync_brokers_ok:"📈 Brokers up to date", v4_sync_broker_exp:"⚠ {b}: session expired · reconnect in Settings → Banks",
     ap_bank:"Bank", ap_bank_none:"No bank", ap_date:"Date",
     cal_today:"Today", cal_prev:"Previous month", cal_next:"Next month",
-    bk_issue:"⚠ {bank} needs your permission again", bk_issue_sub:"The read consent expired (required every ~3 months): the balance may be stale. One tap fixes it.",
+    bk_issue:"{bank} needs your permission", bk_issue_sub:"The read consent expired (required every ~3 months): the balance may be stale. One tap fixes it.",
     bk_issue_cta:"Reconnect {bank}", bk_tr_dead:"⚠ Trade Republic (investments): session expired",
     bk_notif_title:"A bank needs reconnecting",
     bk_notif_one:"{bank} is asking for permission again · tap to see the warning",
@@ -535,14 +536,16 @@ const LANG = {
     bk_notif_n:"{n} banks need reconnecting · tap to see them",
     bk_tr_notif_title:"Trade Republic is disconnected",
     bk_tr_notif_body:"The session expired · tap to see the warning in Portfolio",
-    bk_issue_pending:"⚠ {bank} was left half-connected", bk_issue_pending_sub:"You started connecting it but the bank never granted permission, so it brings no balance and no transactions. Try again from here.", bk_notif_pending:"{bank} never finished connecting · tap to finish",
-    bk_issue_noacct:"⚠ {bank} is only half connected", bk_issue_noacct_sub:"The link exists but the bank returns no account. Connect it again and pick the accounts you want to see.",
+    bk_issue_pending:"{bank} was left half-connected", bk_issue_pending_sub:"You started connecting it but the bank never granted permission, so it brings no balance and no transactions. Try again from here.", bk_notif_pending:"{bank} never finished connecting · tap to finish",
+    bk_issue_noacct:"{bank} is only half connected", bk_issue_noacct_sub:"The link exists but the bank returns no account. Connect it again and pick the accounts you want to see.",
     bk_tr_sub:"Its session expired: positions and cash aren't updating. Reconnect HERE in the app (PIN + SMS code) — not in the Trade Republic app.",
     bk_tr_cta:"Reconnect Trade Republic",
-    bk_tr_ob:"⚠ Trade Republic (bank): permission expired",
-    bk_tr_ob_noacct:"⚠ Trade Republic (bank): returns no account",
+    bk_tr_ob:"Trade Republic (bank): permission expired",
+    bk_tr_ob_noacct:"Trade Republic (bank): returns no account",
     bk_tr_ob_sub:"Bank connection: brings your card purchases. Your positions and cash aren't affected.",
     bk_tr_ob_cta:"Renew the bank permission",
+    bk_tr_ob_btn:"Renew",
+    ini_bank_issue_many:"{n} banks need attention", ini_bank_issue_cta:"Review",
     v4_acc_locked:"Connected accounts get their balance from the bank; you can still change the name and role.",
     v4_sel_partial:"Selected", v4_edit_goods:"Edit assets",
     goods_add:"Add asset", goods_name:"Asset name", goods_value:"Value in euros", goods_home:"Home", goods_car:"Vehicle", goods_invalid:"Enter a name and a valid value with up to two decimal places.", goods_delete:"Delete asset", goods_delete_q:"Delete {name}?", goods_delete_sub:"It will no longer count towards net worth. Accounts and transactions are kept.",
@@ -550,12 +553,12 @@ const LANG = {
     v4_apuntar:"Add", v4_gasto:"Expense", v4_ingreso:"Income", 
     v4_apuntar_need:"Enter an amount 🙂", v4_apuntar_ok:"✓ Expense added", v4_apuntar_ok_in:"✓ Income added",
     v4_back:"Back",
-    v4_debts_hero:"You owe in total", v4_debts_sub:"{x}/mo in payments · going down each month 📉",
+    v4_debts_hero:"You owe in total", v4_debts_sub:"{x}/mo in payments · going down each month",
     v4_debts_ends:"done by {d}", v4_amort_now:"💸 Pay down now",
     v4_debt_party_1:"🎉 {name}: LAST instalment this month ({x})!", v4_debt_party_sub:"After that, {x}/mo back in your pocket.",
     v4_goals_hero:"Saved in goals", v4_goal_new:"+ New savings goal",
     v4_ob_skip:"Skip", v4_ob_title1:"Welcome",
-    v4_ob_sub1:"The point isn't having 40 screens: it's knowing where you stand when you're about to spend or decide.",
+    v4_ob_sub1:"Your accounts, spending and debts in one place.",
     v4_ob_c1t:"All of your money",
     v4_ob_c1s:"Accounts, debts, bills, goals and investments. The whole map, not just today's coffee.",
     v4_ob_c2t:"It logs itself",
@@ -567,26 +570,25 @@ const LANG = {
     v4_ob_demo1:"Groceries", v4_ob_demo2:"Coffee",
     v4_ob_start:"Start with {x} €/month",
     v4_set_profile_sync:"synced ✓", v4_set_profile_local:"on this phone",
-    v4_set_appear:"Look & feel", v4_set_easy:"Easy start", v4_set_conn:"Connections",
-    v4_set_money:"Money", v4_set_app:"App",
+    v4_set_appear:"Look & feel", v4_set_easy:"Easy start",
+    v4_set_money:"Money",
+    v4_set_g_look:"How it looks", v4_set_g_money:"Money and banks", v4_set_g_data:"Data", v4_set_g_account:"Account and privacy",
     v4_set_tour:"See the tour", v4_set_adv:"Advanced",
    hv_title:"Vibration", hv_usage:"Vibration type", hv_usage_hint:"If every strength feels the same when you try them, pick another type.", hv_u_touch:"Touch", hv_u_hardware:"Buttons", hv_u_media:"Media", hv_u_unknown:"Generic", hv_motor_amp:"Your phone adjusts both the strength and the rhythm of the vibration.", hv_motor_onoff:"Your phone cannot adjust strength: you will feel it as longer or shorter taps.", hv_intro:"Find the vibration you like. It is saved only on this phone.", hv_cycle:"My cycle (the ring on Home)", hv_cycle_hint:"More taps the fuller the ring.", hv_edge:"Reaching the top or bottom", hv_seg:"Switching between Bills, Debts and Goals", hv_tick:"Home chart cursor", hv_strength:"Strength", hv_length:"Length", hv_every:"Repeats every (if you keep pulling)", hv_try:"Try", hv_copy:"Copy values", hv_copied:"Values copied", hv_copy_fail:"Could not copy", hv_reset:"Back to defaults", hv_need_apk:"To feel these values, install the latest version of the app.", hv_no_native:"Vibration only works in the Android app.",
     v4_moved_cat:"Moved to {cat}", v4_cuota_confirmada:"Confirmed as the {name} payment", 
     v4_exp_del:"Delete", v4_exp_del_q:"Delete “{name}”?", v4_exp_del_sub:"You can recover it for 5 seconds.",
     f_amount_aria:"Amount", f_concept_ph:"Tap to add what it was", f_cat:"Category",
-    f_cat_all:"All {n} ›", f_cat_all_title:"All categories", f_meta_cash:"Cash", 
-    f_cta_add:"Add {x}", f_cta_add_in:"Add income of {x}", f_autosaved:"Saved as you go ✓", f_del:"Delete expense",
-    f_note_row:"Note", f_note_none:"No note", f_debt_row:"It's a debt instalment", f_income_row:"It's income, not an expense", f_no:"No",
+    f_cat_all:"All ›", f_kb_done:"Done", f_cat_all_title:"All categories", f_meta_cash:"Cash", 
+    f_cta_add:"Add {x}", f_cta_add_in:"Add income of {x}", f_autosaved:"Saved ✓", f_del:"Delete expense", f_del_in:"Delete income",
+    f_note_row:"Note", f_debt_row:"It's a debt instalment", f_no:"No",
+    f_adj_recibo:"Bill", f_adj_deuda:"Debt", f_adj_meta:"Goal", f_adj_retirada:"Withdrawal",
     f_receipt_row:"Pays a bill", f_receipt_hint:"Choose the bill this charge pays. You can undo it.",
     f_receipt_none:"No unpaid bills for that month can be linked to this charge.", f_receipt_diag:"Copy diagnostics",
     f_receipt_confirm:"Confirm payment of {name}", f_receipt_confirm_sub:"Charge: {merchant} · {amount} · {bank} · {date}. Expected: {expected} · {planned}. Confirm only if this charge pays the full bill, even if the amount has changed. Cancel for a partial payment. The expected amount, balance and budget stay unchanged.",
     f_receipt_yes:"Confirm full payment", f_receipt_unlink:"Undo link",
     f_receipt_possible_same:"This may be the same charge as {name} on {date}", f_receipt_other_payment:"It is another payment",
     f_recibo_marca:"This is the charge for your bill “{name}”: it’s already counted in your Plan and isn’t added again here.", f_recibo_quiza:"This looks like the charge for your bill “{name}”, so it isn’t added again here. If it isn’t, say so and it will count as regular spending.", f_recibo_no:"Not this bill", f_recibo_si:"Yes, it’s this bill",
-    f_from_bank:"This came from a {bank} notification", f_from_bank_sub:"{date} · “{raw}” · the bank sets the amount and account",
-    f_trace_missing:"— original text unavailable",
     f_locked_toast:"The bank sets the amount, account and money direction. You can correct the category here.",
-    f_withdraw_fields:"You can correct the category without changing the amount or bank account.",
     f_withdraw_action:"This is a cash withdrawal",
     f_withdraw_title:"Is this a cash withdrawal?",
     f_withdraw_sub:"These {x} will be marked as Transfer and stop counting as spending. The amount and bank origin stay the same. No money will be added to cash.",
@@ -635,10 +637,10 @@ const LANG = {
     wn_fb_title:"💬 Anything to share?", wn_fb_hint:"Suggestions or bugs: they're saved and sent with your version.",
     wn_fb_ph:"Write your suggestion or the bug you saw…", wn_fb_send:"Send", wn_fb_sent:"✓ Saved and sent", wn_fb_offline:"✓ Saved to your notes (couldn't send; it stays stored)",
     wn_yours:"Your notes", wn_close:"Got it!",
-    st_trnotif:"Notify every logged expense (TR)", st_trnotif_hint:"When off, no notification per expense. Budget alerts keep coming.",
-    st_tring:"Log my Trade Republic spending here", st_tring_hint:"When on, this app reads Trade Republic spending notifications on THIS phone and logs them into YOUR account (nobody else's). Each person turns it on on their own phone. It only reads the notification; it never touches your bank. You can turn it off anytime.", st_tring_on:"✓ Done · your Trade Republic card purchases will come in on their own into this account", st_tring_off:"Trade Republic logging turned off", st_tring_nornd:"✕ This browser can't generate a secure key · not enabling it (better than a guessable one)",
-    st_banksync_notif:"When a bank notification arrives, sync movements", st_banksync_notif_hint:"Off by default: uses the bank's daily allowance. At most once every 12 h.",
-    st_aicat:"Suggest category (AI) for “Other”", st_aicat_hint:"If keywords can't tell the category, AI suggests one. The amount is never sent.",
+    st_trnotif:"A notification for each logged expense", st_trnotif_hint:"Budget alerts still arrive",
+    st_tring:"Log my purchases automatically", st_tring_hint:"Trade Republic and Google Wallet on this phone", st_tring_on:"✓ Done · your Trade Republic card purchases will come in on their own into this account", st_tring_off:"Trade Republic logging turned off", st_tring_nornd:"✕ This browser can't generate a secure key · not enabling it (better than a guessable one)",
+    st_banksync_notif:"Sync when a bank notification arrives", st_banksync_notif_hint:"At most every 12 h",
+    st_aicat:"Suggest category with AI", st_aicat_hint:"Only for “Other” · amount never sent",
     th_green:"Green", th_dark:"Dark", th_light:"Light", th_blue:"Blue", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dollar", cur_gbp:"£ Pound", cur_chf:"CHF Swiss franc",
     rp_saved:"✓ Report saved to Downloads (look for “mi-cartera-…png”)",
     rp_saved_notif:"📊 Monthly report saved to Downloads: {f}. Open it from your Files app or gallery.",
@@ -761,7 +763,7 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Els teus diners en total", v4_of_month:"del mes",
     // INC-0810 ca: patrimonio de ahora.
-    v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
+    v4_hist_empty:"El teu històric comença avui", v4_net_first_acc:"Afegeix el teu primer compte", v4_net_unknown:"El total actual no està disponible.",
     v42_net_info_title:"Com es calcula", v42_net_chart:"Evolució del patrimoni",
     v42_net_i_flows:"Un traspàs resta sense entrada igual en un altre compte propi en tres dies, enllaç a bróker o aportació periòdica coincident. El caixer resta patrimoni sense compte o butxaca d'efectiu.",
     v42_this_month:"Aquest mes", v42_remaining:"Et queden", v42_cycle_under_one:"<1\u00a0%",
@@ -774,7 +776,7 @@ const LANG = {
     v42_net_when_1:"el mes passat", v42_net_when_n:"fa {n} mesos", v42_net_when_12:"fa un any", v42_net_i_cmp:"Comparació", v42_net_i_cmp_1m:"davant del mateix dia del mes passat", v42_net_i_cmp_n:"davant del mateix dia de fa {n} mesos", v42_net_i_cmp_12:"davant del mateix dia de fa un any", v42_net_i_cmp_all:"des del principi",
     v42_this_cycle:"Aquest cicle", v42_cycle_over:"T'has passat {x}", v42_cycle_start:"Cicle acabat de començar", v42_cycle_comfort:"Vas sobrat", v42_cycle_good:"Vas bé", v42_cycle_tight:"Vas justet", v42_cycle_slow:"Toca frenar una mica", v42_cycle_of:"lliures de {x}", v42_cycle_excess_of:"de més · límit {x}", v42_cycle_daily:"{x} al dia", v42_cycle_day:"durant 1 dia", v42_cycle_days:"durant {n} dies",
     // INC-0810 ca: fin del patrimonio de ahora.
-    v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"Sense un límit al mes no es pot saber quant et queda.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
+    v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"Sense un límit al mes no es pot saber quant et queda.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't un objectiu d'estalvi",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_in:"Al {mes}", v4_upcoming_in_v:"A l'{mes}", 
     v4_payment_pending:"Per confirmar",
     v4_payment_pending_hint:"No compta en el pendent.",
@@ -783,7 +785,7 @@ const LANG = {
     v4_plan_transfers:"Traspassos previstos", f_link_unconfirmed:"{name} · sense confirmar",
     v4_charge_actual:"Càrrec {x}", v4_charge_expected:"Previst {x}",
     v4_your_goals:"Les teves metes", v4_recent:"Últims moviments", v4_recent_empty:"Encara no hi ha moviments. Apunta el primer amb +.",
-    v4_all:"Tots ›", v4_plan_title:"El teu pla del mes", v4_plan_recibos:"Rebuts", v4_plan_deudas:"Deutes", v4_plan_metas:"Metes",
+    v4_all:"Veure-ho tot ›", v4_plan_title:"El teu pla del mes", v4_plan_recibos:"Rebuts", v4_plan_deudas:"Deutes", v4_plan_metas:"Metes",
     v4_plan_left:"Queda per pagar al {month}",
     v4_plan_state_ok_h:"Aquest mes va bé", v4_plan_state_warn_h:"Compte aquest mes", v4_plan_state_bad_h:"Aquest mes es queda curt",
     v4_plan_state_ok:"{left} de rebuts surten de {bank}: el dia {day} baixaries a {min}, sense comptar el dia a dia.",
@@ -799,7 +801,7 @@ const LANG = {
     v4s_row_from:"surt de {bank}", v4s_row_debt:"la quota de {name}", v4s_row_income:"t'entra a {bank}", v4s_row_to:"el que passes a {bank}", v4s_row_invest:"el que apartes per invertir a {bank}",
     pr6_por_pagar:"Per pagar", pr6_ojo_ocultar:"Amagar imports", pr6_ojo_ver:"Mostrar imports",
     v4_ver_mas:"Veure més · {n}", v4_ver_menos:"Veure menys",
-    pr6_revisar:"Per revisar", pr6_ya_pagados:"Ja pagats", pr6_todos:"Tots", pr6_ver_los:"Veure'ls tots ({n})", pr6_ver:"Veure", pr6_ocultar:"Amagar",
+    pr6_revisar:"Per revisar", pr6_ya_pagados:"Ja pagats", pr6_todos:"Tots", pr6_ver_los:"Veure'ls tots ({n})",
     pr6_count:"{n} rebuts", pr6_count_one:"1 rebut", pr6_count_week:"{n} aquesta setmana", pr6_all_paid:"Tot pagat", pr6_nada:"Res pendent aquest mes",
     pr6_llega:"T'arriba", pr6_falta:"Falten {x}", pr6_no_llegado:"No ha arribat",
     pr6_hoy:"avui", pr6_manana:"demà", pr6_en_dias:"d'aquí a {n} dies", pr6_tocaba_ayer:"tocava ahir", pr6_tocaba:"tocava fa {n} dies",
@@ -819,11 +821,11 @@ const LANG = {
     pr6_llega_t:"T'arriba?", pr6_te_faltan:"et falten", pr6_justo:"el més just, el {d}", pr6_justo_hoy:"el més just, avui", pr6_justo_sin:"el més just",
     pr6_tienes_hoy:"Tens avui", pr6_faltan_recibos:"Rebuts que falten", pr6_dia_n:"{name} · dia {d}",
     pr6_pasa:"Passa {x} a {bank} abans del {d}", pr6_pasa_hoy:"Passa {x} a {bank} avui", pr6_pasa_sin:"Passa {x} a {bank}",
-    pr6_enlazado_x:"Enllaçat · {x}", pr6_ver_deuda:"Veure a Deutes", pr6_deuda_importe:"Es va cobrar {x} i la quota és {y}.", pr6_deuda_sin_dia:"La quota no té dia de cobrament.", pr6_deuda_sin_banco:"Encara no és a l'extracte del banc.",
+    pr6_enlazado_x:"Enllaçat · {x}", pr6_enlazado:"Enllaçat", pr6_enlazado_d:"Enllaçat al càrrec del {d}", pr6_ver_deuda:"Veure a Deutes", pr6_deuda_importe:"Es va cobrar {x} i la quota és {y}.", pr6_deuda_sin_dia:"La quota no té dia de cobrament.", pr6_deuda_sin_banco:"Encara no és a l'extracte del banc.",
     pr6_de_una_vez:"D'un cop", pr6_a_plazos:"A terminis", pr6_meses_n:"{n} mesos", pr6_meses:"Mesos", pr6_meses_min:"De 2 a 120 mesos", pr6_entrada:"Entrada", pr6_entrada_x:"Entrada {x}", pr6_cuota_hasta:"Sense interessos, fins a {d}", pr6_al_mes:"{x}/mes", pr6_plazos_que:"Què compres?", pr6_crear_deuda:"Crear el deute", pr6_colchon:"Coixí després de la despesa", pr6_colchon_de:"{bank} · mín. {x}",
     pr6_si_gasto:"I si gasto…?", pr6_importe:"Import", pr6_si_llega:"Arriba · et queden {x}", pr6_no_llega:"No arriba · falten {x}",
     pr6_entra_en:"entra a {bank}", pr6_dia:"dia {d}", pr6_dia_menos:"Un dia abans", pr6_dia_mas:"Un dia després",
-    pr6_sin_restar:"Pagat, encara sense restar del saldo", pr6_fresh_now:"saldo d'ara", pr6_fresh_min:"saldo de fa {n} min", pr6_fresh_h:"saldo de fa {n} h", pr6_fresh_ayer:"saldo d'ahir", pr6_fresh_d:"saldo de fa {n} dies", pr6_fresh_fecha:"saldo del {x}",
+    pr6_sin_restar:"Pagat, encara sense restar del saldo", pr6_ya_restado:"Sense cobrar, ja restat del saldo", pr6_fresh_now:"saldo d'ara", pr6_fresh_min:"saldo de fa {n} min", pr6_fresh_h:"saldo de fa {n} h", pr6_fresh_ayer:"saldo d'ahir", pr6_fresh_d:"saldo de fa {n} dies", pr6_fresh_fecha:"saldo del {x}",
     // Pla › Rebuts v6, tanda 6: resum del mes tancat, vista del mes següent i primer ús.
     pr6c_titulo:"{mes} tancat", pr6c_total:"{x} en rebuts", pr6c_vs:"{d} vs. {mes}", pr6c_vs_sin_datos:"vs. {mes}: sense dades {largo}", pr6c_vs_sin_recibos:"vs. {mes}: sense rebuts {largo}", pr6c_igual:"igual que {mes}",
     pr6c_sube:"{name}, més que {mes}", pr6c_subio:"{name} ha pujat", pr6c_bajo:"{name} ha baixat", pr6c_no_llegaron:"Rebuts que no han arribat", pr6c_cerrar:"Tanca el resum",
@@ -846,12 +848,12 @@ const LANG = {
     v4_gastos_cat_limit:"límit {x}",
     g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Orientatiu: no canvia el pressupost. Buit o 0 = sense límit.",
     g_cat_budget_clear:"Treure límit",
-    v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_connect_accounts:"Connectar comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
+    v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_connect_accounts:"Connectar comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions", v4_inv_position:"1 posició",
     v4_sync_banks:"Sincronitza els bancs", v4_sync_banks_done:"✓ Bancs sincronitzats",
     v4_sync_broker_ok:"📈 {b} al dia", v4_sync_brokers_ok:"📈 Bròkers al dia", v4_sync_broker_exp:"⚠ {b}: sessió caducada · reconnecta a Configuració → Bancs",
     ap_bank:"Banc", ap_bank_none:"Sense banc", ap_date:"Data",
     cal_today:"Avui", cal_prev:"Mes anterior", cal_next:"Mes següent",
-    bk_issue:"⚠ {bank} necessita el teu permís altra vegada", bk_issue_sub:"El permís de lectura ha caducat (obligatori cada ~3 mesos): el saldo pot estar desfasat. Un toc i llest.",
+    bk_issue:"{bank} necessita el teu permís", bk_issue_sub:"El permís de lectura ha caducat (obligatori cada ~3 mesos): el saldo pot estar desfasat. Un toc i llest.",
     bk_issue_cta:"Reconnecta {bank}", bk_tr_dead:"⚠ Trade Republic (inversions): sessió caducada",
     bk_notif_title:"Un banc necessita que el reconnectis",
     bk_notif_one:"{bank} demana permís altra vegada · toca per veure l'avís",
@@ -859,14 +861,16 @@ const LANG = {
     bk_notif_n:"{n} bancs necessiten que els reconnectis · toca per veure'ls",
     bk_tr_notif_title:"Trade Republic està desconnectat",
     bk_tr_notif_body:"La sessió ha caducat · toca per veure l'avís a Cartera",
-    bk_issue_pending:"⚠ {bank} es va quedar a mig connectar", bk_issue_pending_sub:"Vas començar a connectar-lo però el banc no va arribar a donar el permís, així que no porta ni saldo ni moviments. Torna-ho a provar des d'aquí.", bk_notif_pending:"{bank} no va arribar a connectar-se · toca per acabar",
-    bk_issue_noacct:"⚠ {bank} està connectat a mitges", bk_issue_noacct_sub:"L'enllaç existeix però el banc no dóna cap compte. Torna a connectar-lo i tria els comptes que vulguis veure.",
+    bk_issue_pending:"{bank} es va quedar a mig connectar", bk_issue_pending_sub:"Vas començar a connectar-lo però el banc no va arribar a donar el permís, així que no porta ni saldo ni moviments. Torna-ho a provar des d'aquí.", bk_notif_pending:"{bank} no va arribar a connectar-se · toca per acabar",
+    bk_issue_noacct:"{bank} està connectat a mitges", bk_issue_noacct_sub:"L'enllaç existeix però el banc no dóna cap compte. Torna a connectar-lo i tria els comptes que vulguis veure.",
     bk_tr_sub:"La sessió ha caducat: posicions i efectiu no s'actualitzen. Es reconnecta AQUÍ, a l'app (PIN + codi SMS) — no a l'app de Trade Republic.",
     bk_tr_cta:"Reconnecta Trade Republic",
-    bk_tr_ob:"⚠ Trade Republic (banc): permís caducat",
-    bk_tr_ob_noacct:"⚠ Trade Republic (banc): no retorna cap compte",
+    bk_tr_ob:"Trade Republic (banc): permís caducat",
+    bk_tr_ob_noacct:"Trade Republic (banc): no retorna cap compte",
     bk_tr_ob_sub:"Connexió de banc: porta les compres amb targeta. No afecta les posicions ni l'efectiu.",
     bk_tr_ob_cta:"Renovar el permís del banc",
+    bk_tr_ob_btn:"Renova",
+    ini_bank_issue_many:"{n} bancs necessiten atenció", ini_bank_issue_cta:"Revisa",
     v4_acc_locked:"El saldo dels comptes connectats el porta el banc sol; el nom i el rol sí que els pots canviar.",
     v4_sel_partial:"Seleccionat", v4_edit_goods:"Edita els béns",
     goods_add:"Afegeix un bé", goods_name:"Nom del bé", goods_value:"Valor en euros", goods_home:"Habitatge", goods_car:"Vehicle", goods_invalid:"Escriu un nom i un valor vàlid, amb fins a dos decimals.", goods_delete:"Esborra el bé", goods_delete_q:"Vols esborrar {name}?", goods_delete_sub:"Deixarà de comptar en el patrimoni. No s'esborren comptes ni moviments.",
@@ -874,12 +878,12 @@ const LANG = {
     v4_apuntar:"Apuntar", v4_gasto:"Despesa", v4_ingreso:"Ingrés", 
     v4_apuntar_need:"Posa un import 🙂", v4_apuntar_ok:"✓ Despesa apuntada", v4_apuntar_ok_in:"✓ Ingrés apuntat",
     v4_back:"Tornar",
-    v4_debts_hero:"Deus en total", v4_debts_sub:"{x}/mes en quotes · baixant cada mes 📉",
+    v4_debts_hero:"Deus en total", v4_debts_sub:"{x}/mes en quotes · baixant cada mes",
     v4_debts_ends:"acabes el {d}", v4_amort_now:"💸 Amortitza ara",
     v4_debt_party_1:"🎉 {name}: ÚLTIMA quota aquest mes ({x})!", v4_debt_party_sub:"Després, {x}/mes lliures per a tu.",
     v4_goals_hero:"Estalviat en metes", v4_goal_new:"+ Nova meta d'estalvi",
     v4_ob_skip:"Salta", v4_ob_title1:"Benvingut/da",
-    v4_ob_sub1:"La gràcia no és tenir 40 pantalles: és saber on ets quan vas a gastar o a decidir.",
+    v4_ob_sub1:"Els teus comptes, despeses i deutes en un lloc.",
     v4_ob_c1t:"Tots els teus diners",
     v4_ob_c1s:"Comptes, deutes, fixos, objectius i inversions. El mapa sencer, no només el cafè del dia.",
     v4_ob_c2t:"S'apunta sol",
@@ -891,26 +895,25 @@ const LANG = {
     v4_ob_demo1:"Mercadona", v4_ob_demo2:"Cafè",
     v4_ob_start:"Comença amb {x} €/mes",
     v4_set_profile_sync:"sincronitzat ✓", v4_set_profile_local:"en aquest mòbil",
-    v4_set_appear:"Aparença", v4_set_easy:"Per començar fàcil", v4_set_conn:"Connexions",
-    v4_set_money:"Diners", v4_set_app:"App",
+    v4_set_appear:"Aparença", v4_set_easy:"Per començar fàcil",
+    v4_set_money:"Diners",
+    v4_set_g_look:"Com es veu", v4_set_g_money:"Diners i bancs", v4_set_g_data:"Dades", v4_set_g_account:"Compte i privadesa",
     v4_set_tour:"Veure el tutorial", v4_set_adv:"Avançat",
    hv_title:"Vibració", hv_usage:"Tipus de vibració", hv_usage_hint:"Si en provar totes les forces es noten igual, prova un altre tipus.", hv_u_touch:"Toc", hv_u_hardware:"Botons", hv_u_media:"Multimèdia", hv_u_unknown:"Genèrica", hv_motor_amp:"El teu mòbil ajusta la força i el ritme de la vibració.", hv_motor_onoff:"El teu mòbil no ajusta la força: es nota com tocs més llargs o més curts.", hv_intro:"Busca la vibració que t’agradi. Només es desa en aquest mòbil.", hv_cycle:"El meu cicle (l’anell d’Inici)", hv_cycle_hint:"Més tocs com més ple estigui l'anell.", hv_edge:"En arribar a dalt o a baix", hv_seg:"En canviar entre Rebuts, Deutes i Metes", hv_tick:"Cursor del gràfic d’Inici", hv_strength:"Força", hv_length:"Durada", hv_every:"Es repeteix cada (si continues estirant)", hv_try:"Provar", hv_copy:"Copiar valors", hv_copied:"Valors copiats", hv_copy_fail:"No s’han pogut copiar", hv_reset:"Tornar als de sèrie", hv_need_apk:"Per notar aquests valors cal instal·lar l’última versió de l’app.", hv_no_native:"La vibració només funciona a l’app d’Android.",
     v4_moved_cat:"Mogut a {cat}", v4_cuota_confirmada:"Confirmada com a quota de {name}", 
     v4_exp_del:"Esborra", v4_exp_del_q:"Vols esborrar «{name}»?", v4_exp_del_sub:"El podràs recuperar durant 5 segons.",
     f_amount_aria:"Import", f_concept_ph:"Toca per escriure el concepte", f_cat:"Categoria",
-    f_cat_all:"Les {n} ›", f_cat_all_title:"Totes les categories", f_meta_cash:"Efectiu", 
-    f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingrés de {x}", f_autosaved:"Es guarda al moment ✓", f_del:"Esborrar despesa",
-    f_note_row:"Nota", f_note_none:"Sense nota", f_debt_row:"És la quota d'un deute", f_income_row:"És un ingrés, no una despesa", f_no:"No",
+    f_cat_all:"Totes ›", f_kb_done:"Fet", f_cat_all_title:"Totes les categories", f_meta_cash:"Efectiu", 
+    f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingrés de {x}", f_autosaved:"Desat ✓", f_del:"Esborrar despesa", f_del_in:"Esborrar ingrés",
+    f_note_row:"Nota", f_debt_row:"És la quota d'un deute", f_no:"No",
+    f_adj_recibo:"Rebut", f_adj_deuda:"Deute", f_adj_meta:"Meta", f_adj_retirada:"Retirada",
     f_receipt_row:"Paga un rebut", f_receipt_hint:"Tria el rebut que paga aquest càrrec. Pots desfer-ho.",
     f_receipt_none:"No hi ha rebuts pendents d'aquell mes que es puguin vincular a aquest càrrec.", f_receipt_diag:"Copiar diagnòstic",
     f_receipt_confirm:"Confirmar pagament de {name}", f_receipt_confirm_sub:"Càrrec: {merchant} · {amount} · {bank} · {date}. Previst: {expected} · {planned}. Confirma només si aquest càrrec paga el rebut complet, encara que l'import hagi variat. Si és parcial, cancel·la. Es conserven l'import previst, el saldo i el pressupost.",
     f_receipt_yes:"Confirmar pagament complet", f_receipt_unlink:"Desfer vincle",
     f_receipt_possible_same:"Pot ser el mateix càrrec que {name} del {date}", f_receipt_other_payment:"És un altre pagament",
     f_recibo_marca:"És el càrrec del teu rebut «{name}»: ja està comptat al teu Pla i aquí no torna a sumar.", f_recibo_quiza:"Sembla el càrrec del teu rebut «{name}»: per això aquí no torna a sumar. Si no ho és, digues-ho i comptarà com una despesa més.", f_recibo_no:"No és aquest rebut", f_recibo_si:"Sí, és aquest rebut",
-    f_from_bank:"Ho va portar una notificació de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banc fixa l'import i el compte",
-    f_trace_missing:"— text original no disponible",
     f_locked_toast:"El banc fixa l'import, el compte i si entren o surten diners. La categoria sí que es pot corregir aquí.",
-    f_withdraw_fields:"La categoria es pot corregir sense canviar l'import ni el compte del banc.",
     f_withdraw_action:"És una retirada d'efectiu",
     f_withdraw_title:"És una retirada d'efectiu?",
     f_withdraw_sub:"Aquests {x} passaran a Traspàs i deixaran de comptar com a despesa. L'import i l'origen bancari es conserven. No se sumaran diners a l'efectiu.",
@@ -959,10 +962,10 @@ const LANG = {
     wn_fb_title:"💬 Alguna cosa a dir?", wn_fb_hint:"Suggeriments o errors: queden desats i arriben amb la teva versió.",
     wn_fb_ph:"Escriu el suggeriment o l'error que has vist…", wn_fb_send:"Envia", wn_fb_sent:"✓ Apuntat i enviat", wn_fb_offline:"✓ Apuntat a les teves notes (no s'ha pogut enviar; queda desat)",
     wn_yours:"Els teus apunts", wn_close:"Entesos!",
-    st_trnotif:"Avisar de cada despesa apuntada (TR)", st_trnotif_hint:"Apagat, no hi ha notificació per cada despesa. Els avisos de pressupost continuen.",
-    st_tring:"Apuntar aquí les meves despeses de Trade Republic", st_tring_hint:"En activar-ho, aquesta app llegeix les notificacions de despesa de Trade Republic d'AQUEST mòbil i les apunta al TEU compte (no al de ningú més). Cada persona ho activa al seu propi telèfon. Només llegeix la notificació; mai no entra al teu banc. El pots apagar quan vulguis.", st_tring_on:"✓ Fet · les teves compres amb la targeta de Trade Republic entraran soles en aquest compte", st_tring_off:"Apuntat de Trade Republic desactivat", st_tring_nornd:"✕ Aquest navegador no pot generar una clau segura · no s'activa (millor això que una clau endevinable)",
-    st_banksync_notif:"En detectar avís del banc, sincronitzar moviments", st_banksync_notif_hint:"Apagat per defecte: gasta el límit diari del banc. Com a màxim, una cada 12 h.",
-    st_aicat:"Suggerir categoria (IA) a «Altres»", st_aicat_hint:"Si les paraules clau no saben la categoria, l'IA te'n suggereix una. No envia l'import.",
+    st_trnotif:"Un avís per cada despesa apuntada", st_trnotif_hint:"Els de pressupost arriben igual",
+    st_tring:"Apuntar les meves compres soles", st_tring_hint:"Trade Republic i Google Wallet d'aquest mòbil", st_tring_on:"✓ Fet · les teves compres amb la targeta de Trade Republic entraran soles en aquest compte", st_tring_off:"Apuntat de Trade Republic desactivat", st_tring_nornd:"✕ Aquest navegador no pot generar una clau segura · no s'activa (millor això que una clau endevinable)",
+    st_banksync_notif:"Sincronitzar quan arribi un avís del banc", st_banksync_notif_hint:"Com a màxim cada 12 h",
+    st_aicat:"Suggerir categoria amb IA", st_aicat_hint:"Només a «Altres» · sense l'import",
     th_green:"Verd", th_dark:"Fosc", th_light:"Clar", th_blue:"Blau", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dòlar", cur_gbp:"£ Lliura", cur_chf:"CHF Franc suís",
     rp_saved:"✓ Informe desat a Baixades (busca «mi-cartera-…png»)",
     rp_saved_notif:"📊 Informe del mes desat a Baixades: {f}. Obre'l des de l'app d'Arxius o la galeria.",
@@ -1070,9 +1073,9 @@ Object.assign(LANG.es,{
   // INC-0410 es: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Cada regla aparta su importe del presupuesto y lo suma a la meta: al guardarla y cada mes. Las antiguas reparten cada ingreso si lo confirmas.",
   // INC-0410 es: límite de la ayuda del reparto.
-  ru_interest:"Interés del efectivo (% anual)",
+  ru_interest:"Interés anual (%)",
   ru_interest_hint:"TR paga un {p}% anual el día 1; la app lo suma al cerrar cada mes.",
-  h_ru:"Round-up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
+  h_ru:"Round up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
   h_recon:"Compara tus recibos y cuotas con lo que el banco ha cobrado y marca lo que no cuadra.",
 });
 Object.assign(LANG.en,{
@@ -1091,9 +1094,9 @@ Object.assign(LANG.en,{
   // INC-0410 en: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Each rule takes its amount from the budget and adds it to the goal: on save and every month. Older rules split each income if you confirm.",
   // INC-0410 en: límite de la ayuda del reparto.
-  ru_interest:"Cash interest (% p.a.)",
+  ru_interest:"Annual interest (%)",
   ru_interest_hint:"TR pays {p}% p.a. on the 1st; the app adds it at each month close.",
-  h_ru:"Round-up: TR rounds each card purchase up to the euro and invests it. Saveback: a 1% reward for paying by card.",
+  h_ru:"Round up: TR rounds each card purchase up to the euro and invests it. Saveback: a 1% reward for paying by card.",
   h_recon:"Compares your bills and instalments with what the bank charged and flags mismatches.",
 });
 Object.assign(LANG.ca,{
@@ -1112,21 +1115,20 @@ Object.assign(LANG.ca,{
   // INC-0410 ca: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Cada regla aparta el seu import del pressupost i el suma a l'objectiu: en desar-la i cada mes. Les antigues reparteixen cada ingrés si ho confirmes.",
   // INC-0410 ca: límite de la ayuda del reparto.
-  ru_interest:"Interès de l'efectiu (% anual)",
+  ru_interest:"Interès anual (%)",
   ru_interest_hint:"TR paga un {p}% anual el dia 1; l'app el suma en tancar cada mes.",
-  h_ru:"Round-up: TR arrodoneix cada compra amb targeta a l'euro i ho inverteix. Saveback: un 1 % de regal per pagar-hi.",
+  h_ru:"Round up: TR arrodoneix cada compra amb targeta a l'euro i ho inverteix. Saveback: un 1 % de regal per pagar-hi.",
   h_recon:"Compara els teus rebuts i quotes amb el que ha cobrat el banc i marca el que no quadra.",
 });
 /* Roles de cuenta + import OB + informe mensual */
 Object.assign(LANG.es,{
-  pt_ficha_saldo:"Saldo", pt_ficha_banco:"lo pone el banco", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}", ac_share_q:"Parte mía", ac_share_all:"Cuenta entera en tu patrimonio", ac_share_counts:"En tu patrimonio cuentan {x}", ac_share_change:"Cambiar", ac_share_title:"¿Qué parte de esta cuenta es tuya?", ac_share_sub:"En porcentaje, de 0 a 100. Solo cambia tu patrimonio: los gastos y el presupuesto siguen igual.", ac_share_ok:"Guardar", ac_share_bad:"Pon un número entre 0 y 100", ac_share_joint_hint:"Parece una cuenta con dos titulares. Si solo la mitad es tuya, pon 50 % y tu patrimonio contará solo tu parte.", pt_share_meta:"{n} % tuyo", ac_legacy_q:"{bank} tiene {n} movimientos antiguos que no dicen de qué cuenta salieron. ¿Son todos de esta cuenta?", ac_legacy_sub:"Se aplica a los {n} a la vez, también a los más grandes. Solo cambia tu patrimonio y su gráfica; puedes deshacerlo aquí mismo.", ac_legacy_yes:"Sí, son de esta cuenta", ac_legacy_no:"No, son de otra cuenta", ac_legacy_later:"Preguntar después", ac_legacy_decide:"Decidir", ac_legacy_undo:"Deshacer", ac_legacy_done_yes:"Los movimientos antiguos de {bank} sin cuenta cuentan como de esta cuenta.", ac_legacy_done_no:"Los movimientos antiguos de {bank} sin cuenta cuentan como de otra cuenta.", ac_legacy_done_other:"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.",
+  pt_ficha_saldo:"Saldo", pt_ficha_banco:"Saldo del banco", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}", ac_share_q:"Parte mía", ac_share_all:"Cuenta entera en tu patrimonio", ac_share_counts:"En tu patrimonio cuentan {x}", ac_share_change:"Cambiar", ac_share_title:"¿Qué parte de esta cuenta es tuya?", ac_share_sub:"En porcentaje, de 0 a 100. Solo cambia tu patrimonio: los gastos y el presupuesto siguen igual.", ac_share_ok:"Guardar", ac_share_bad:"Pon un número entre 0 y 100", ac_share_joint_hint:"Parece una cuenta con dos titulares. Si solo la mitad es tuya, pon 50 % y tu patrimonio contará solo tu parte.", pt_share_meta:"{n} % tuyo", ac_legacy_q:"{bank} tiene {n} movimientos antiguos que no dicen de qué cuenta salieron. ¿Son todos de esta cuenta?", ac_legacy_sub:"Se aplica a los {n} a la vez, también a los más grandes. Solo cambia tu patrimonio y su gráfica; puedes deshacerlo aquí mismo.", ac_legacy_yes:"Sí, son de esta cuenta", ac_legacy_no:"No, son de otra cuenta", ac_legacy_later:"Preguntar después", ac_legacy_decide:"Decidir", ac_legacy_undo:"Deshacer", ac_legacy_done_yes:"Los movimientos antiguos de {bank} sin cuenta cuentan como de esta cuenta.", ac_legacy_done_no:"Los movimientos antiguos de {bank} sin cuenta cuentan como de otra cuenta.", ac_legacy_done_other:"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.",
   ac_rename:"Renombrar", ac_manual_sub:"{bank} · la llevas a mano", ac_synced_sub:"{bank} · se actualiza sola", ac_balance_today:"SALDO DE HOY",
-  ac_delta_month:"↑ {x} este mes", ac_delta_month_down:"↓ {x} este mes", ac_eom:"a fin de mes: {x}", ac_spark_from:"hace 14 días", ac_spark_to:"hoy", ac_spark_new:"Su histórico empieza hoy",
+  ac_delta_month:"↑ {x} este mes", ac_delta_month_down:"↓ {x} este mes", ac_eom:"a fin de mes: {x}", ac_spark_from:"hace 14 días", ac_spark_to:"hoy", ac_spark_new:"gráfico desde hoy",
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Conectar banco", ac_sync_now:"↻ Sincronizar ahora", ac_reconnect:"⚠ Reconectar", ac_role_q:"¿Para qué la usas?",
   ac_role_fijos:"Para los recibos", ac_role_fijos_d:"De aquí salen la luz, el móvil y el alquiler.", ac_role_diario:"Para el día a día", ac_role_diario_d:"Con esta pagas el súper y los bares.", ac_role_ambos:"Las dos cosas", ac_role_ambos_d:"Recibos y día a día salen de aquí.", ac_last_movs:"Lo último de esta cuenta", ac_last_bank:"Lo último de {bank}", ac_see_all:"Ver todo ›", ac_change_sign:"Cambiar signo",
   st_stale:"datos del {day}",
-  rl_fijos:"🏦 Recibos", rl_diario:"🛒 Gasto diario", rl_ambos:"🔁 Todo",
-  rl_hint:"Recibos: pagos fijos · Gasto diario: compras del día, en uno o varios bancos · Todo: ambas.",
+  rl_fijos:"Recibos", rl_diario:"Diario",
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
@@ -1157,14 +1159,13 @@ Object.assign(LANG.es,{
   bn_100:"🚨 Presupuesto del mes agotado: {x} de {b}",
 });
 Object.assign(LANG.en,{
-  pt_ficha_saldo:"Balance", pt_ficha_banco:"set by the bank", pt_ficha_quitar:"Remove this account", pt_ficha_sync:"Last sync: {x}", ac_share_q:"My share", ac_share_all:"Counts in full in your net worth", ac_share_counts:"{x} count in your net worth", ac_share_change:"Change", ac_share_title:"How much of this account is yours?", ac_share_sub:"As a percentage, 0 to 100. Only your net worth changes: spending and budget stay the same.", ac_share_ok:"Save", ac_share_bad:"Enter a number from 0 to 100", ac_share_joint_hint:"This looks like an account with two holders. If only half is yours, set 50 % and your net worth will count only your share.", pt_share_meta:"{n} % yours", ac_legacy_q:"{bank} has {n} older movements that don't say which account they came from. Are they all from this account?", ac_legacy_sub:"It applies to all {n} at once, the biggest ones included. Only your net worth and its chart change; you can undo it right here.", ac_legacy_yes:"Yes, they're from this account", ac_legacy_no:"No, they're from another account", ac_legacy_later:"Ask me later", ac_legacy_decide:"Decide", ac_legacy_undo:"Undo", ac_legacy_done_yes:"Older {bank} movements with no account count as this account's.", ac_legacy_done_no:"Older {bank} movements with no account count as another account's.", ac_legacy_done_other:"You assigned older {bank} movements with no account to another account.",
+  pt_ficha_saldo:"Balance", pt_ficha_banco:"Bank balance", pt_ficha_quitar:"Remove this account", pt_ficha_sync:"Last sync: {x}", ac_share_q:"My share", ac_share_all:"Counts in full in your net worth", ac_share_counts:"{x} count in your net worth", ac_share_change:"Change", ac_share_title:"How much of this account is yours?", ac_share_sub:"As a percentage, 0 to 100. Only your net worth changes: spending and budget stay the same.", ac_share_ok:"Save", ac_share_bad:"Enter a number from 0 to 100", ac_share_joint_hint:"This looks like an account with two holders. If only half is yours, set 50 % and your net worth will count only your share.", pt_share_meta:"{n} % yours", ac_legacy_q:"{bank} has {n} older movements that don't say which account they came from. Are they all from this account?", ac_legacy_sub:"It applies to all {n} at once, the biggest ones included. Only your net worth and its chart change; you can undo it right here.", ac_legacy_yes:"Yes, they're from this account", ac_legacy_no:"No, they're from another account", ac_legacy_later:"Ask me later", ac_legacy_decide:"Decide", ac_legacy_undo:"Undo", ac_legacy_done_yes:"Older {bank} movements with no account count as this account's.", ac_legacy_done_no:"Older {bank} movements with no account count as another account's.", ac_legacy_done_other:"You assigned older {bank} movements with no account to another account.",
   ac_rename:"Rename", ac_manual_sub:"{bank} · you keep it by hand", ac_synced_sub:"{bank} · updates itself", ac_balance_today:"BALANCE TODAY",
-  ac_delta_month:"↑ {x} this month", ac_delta_month_down:"↓ {x} this month", ac_eom:"end of month: {x}", ac_spark_from:"14 days ago", ac_spark_to:"today", ac_spark_new:"Its history starts today",
+  ac_delta_month:"↑ {x} this month", ac_delta_month_down:"↓ {x} this month", ac_eom:"end of month: {x}", ac_spark_from:"14 days ago", ac_spark_to:"today", ac_spark_new:"chart from today",
   ac_fix_balance:"✏️ Fix balance", ac_connect:"🔗 Connect bank", ac_sync_now:"↻ Sync now", ac_reconnect:"⚠ Reconnect", ac_role_q:"What do you use it for?",
   ac_role_fijos:"For the bills", ac_role_fijos_d:"Power, phone and rent come out of here.", ac_role_diario:"For day to day", ac_role_diario_d:"This is the card you pay groceries and bars with.", ac_role_ambos:"Both", ac_role_ambos_d:"Bills and day to day come out of here.", ac_last_movs:"Latest from this account", ac_last_bank:"Latest from {bank}", ac_see_all:"See all ›", ac_change_sign:"Change sign",
   st_stale:"data from {day}",
-  rl_fijos:"🏦 Bills", rl_diario:"🛒 Daily spending", rl_ambos:"🔁 Everything",
-  rl_hint:"Bills: fixed payments · Daily spending: everyday purchases, on one or more banks · Everything: both.",
+  rl_fijos:"Bills", rl_diario:"Daily",
   ob_imported:"🏦 {n} card purchases added to Spending",
   rp_btn:"📸 Month report (image)", rp_spent:"Spent this month", rp_of_budget:"of {b} budget ({p}%)",
   rp_top:"Top categories", rp_networth:"Net worth", rp_footer:"made with Aely",
@@ -1195,14 +1196,13 @@ Object.assign(LANG.en,{
   bn_100:"🚨 Monthly budget spent: {x} of {b}",
 });
 Object.assign(LANG.ca,{
-  pt_ficha_saldo:"Saldo", pt_ficha_banco:"ho posa el banc", pt_ficha_quitar:"Treure aquest compte", pt_ficha_sync:"Ultima sincronitzacio: {x}", ac_share_q:"Part meva", ac_share_all:"Compta sencer al teu patrimoni", ac_share_counts:"Al teu patrimoni hi compten {x}", ac_share_change:"Canviar", ac_share_title:"Quina part d'aquest compte és teva?", ac_share_sub:"En percentatge, de 0 a 100. Només canvia el teu patrimoni: les despeses i el pressupost queden igual.", ac_share_ok:"Desa", ac_share_bad:"Posa un número entre 0 i 100", ac_share_joint_hint:"Sembla un compte amb dos titulars. Si només la meitat és teva, posa 50 % i el teu patrimoni comptarà només la teva part.", pt_share_meta:"{n} % teu", ac_legacy_q:"{bank} té {n} moviments antics que no diuen de quin compte van sortir. Són tots d'aquest compte?", ac_legacy_sub:"S'aplica als {n} alhora, també als més grans. Només canvia el teu patrimoni i la seva gràfica; ho pots desfer aquí mateix.", ac_legacy_yes:"Sí, són d'aquest compte", ac_legacy_no:"No, són d'un altre compte", ac_legacy_later:"Pregunta-m'ho després", ac_legacy_decide:"Decidir", ac_legacy_undo:"Desfer", ac_legacy_done_yes:"Els moviments antics de {bank} sense compte compten com d'aquest compte.", ac_legacy_done_no:"Els moviments antics de {bank} sense compte compten com d'un altre compte.", ac_legacy_done_other:"Els moviments antics de {bank} sense compte els vas assignar a un altre compte.",
+  pt_ficha_saldo:"Saldo", pt_ficha_banco:"Saldo del banc", pt_ficha_quitar:"Treure aquest compte", pt_ficha_sync:"Ultima sincronitzacio: {x}", ac_share_q:"Part meva", ac_share_all:"Compta sencer al teu patrimoni", ac_share_counts:"Al teu patrimoni hi compten {x}", ac_share_change:"Canviar", ac_share_title:"Quina part d'aquest compte és teva?", ac_share_sub:"En percentatge, de 0 a 100. Només canvia el teu patrimoni: les despeses i el pressupost queden igual.", ac_share_ok:"Desa", ac_share_bad:"Posa un número entre 0 i 100", ac_share_joint_hint:"Sembla un compte amb dos titulars. Si només la meitat és teva, posa 50 % i el teu patrimoni comptarà només la teva part.", pt_share_meta:"{n} % teu", ac_legacy_q:"{bank} té {n} moviments antics que no diuen de quin compte van sortir. Són tots d'aquest compte?", ac_legacy_sub:"S'aplica als {n} alhora, també als més grans. Només canvia el teu patrimoni i la seva gràfica; ho pots desfer aquí mateix.", ac_legacy_yes:"Sí, són d'aquest compte", ac_legacy_no:"No, són d'un altre compte", ac_legacy_later:"Pregunta-m'ho després", ac_legacy_decide:"Decidir", ac_legacy_undo:"Desfer", ac_legacy_done_yes:"Els moviments antics de {bank} sense compte compten com d'aquest compte.", ac_legacy_done_no:"Els moviments antics de {bank} sense compte compten com d'un altre compte.", ac_legacy_done_other:"Els moviments antics de {bank} sense compte els vas assignar a un altre compte.",
   ac_rename:"Reanomenar", ac_manual_sub:"{bank} · la portes a mà", ac_synced_sub:"{bank} · s'actualitza sola", ac_balance_today:"SALDO D'AVUI",
-  ac_delta_month:"↑ {x} aquest mes", ac_delta_month_down:"↓ {x} aquest mes", ac_eom:"a final de mes: {x}", ac_spark_from:"fa 14 dies", ac_spark_to:"avui", ac_spark_new:"El seu històric comença avui",
+  ac_delta_month:"↑ {x} aquest mes", ac_delta_month_down:"↓ {x} aquest mes", ac_eom:"a final de mes: {x}", ac_spark_from:"fa 14 dies", ac_spark_to:"avui", ac_spark_new:"gràfic des d'avui",
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Connectar banc", ac_sync_now:"↻ Sincronitzar ara", ac_reconnect:"⚠ Reconnectar", ac_role_q:"Per a què la fas servir?",
   ac_role_fijos:"Per als rebuts", ac_role_fijos_d:"D'aquí surten la llum, el mòbil i el lloguer.", ac_role_diario:"Per al dia a dia", ac_role_diario_d:"Amb aquesta pagues el súper i els bars.", ac_role_ambos:"Les dues coses", ac_role_ambos_d:"Rebuts i dia a dia surten d'aquí.", ac_last_movs:"L'últim d'aquest compte", ac_last_bank:"L'últim de {bank}", ac_see_all:"Veure-ho tot ›", ac_change_sign:"Canviar el signe",
   st_stale:"dades del {day}",
-  rl_fijos:"🏦 Rebuts", rl_diario:"🛒 Despesa diària", rl_ambos:"🔁 Tot",
-  rl_hint:"Rebuts: pagaments fixos · Despesa diària: compres del dia, a un o diversos bancs · Tot: les dues.",
+  rl_fijos:"Rebuts", rl_diario:"Diari",
   ob_imported:"🏦 {n} compres amb targeta afegides a Despeses",
   rp_btn:"📸 Informe del mes (imatge)", rp_spent:"Gastat aquest mes", rp_of_budget:"de {b} de pressupost ({p}%)",
   rp_top:"Top categories", rp_networth:"Patrimoni", rp_footer:"fet amb Aely",
@@ -1476,9 +1476,8 @@ Object.assign(LANG.es,{
   tr_hint:"Posiciones y efectivo al momento · solo lectura · conexión no oficial (puede pedir el 2FA).",
   tr_web_only:"Esta conexión funciona dentro de la app de Android (necesita un navegador real para el acceso seguro de TR). Ábrelo desde la app del móvil.",
   na_toast:"⚠ El apunte automático de gastos está desactivado — actívalo en Ajustes",
-  na_body:"⚠ El apunte automático de gastos (lector de notificaciones de TR) no tiene permiso — los gastos NO entran solos. Pasa al reinstalar la app: actívalo para Aely.",
-  na_fix:"Activar acceso a notificaciones",
-  na_restricted:"Si Android dice «acceso denegado» o «ajuste restringido» (pasa al instalar la app fuera de la Play Store): ve a Ajustes de Android → Aplicaciones → Aely → menú ⋮ (arriba a la derecha) → «Permitir ajustes restringidos», y vuelve a intentarlo. Es una sola vez.",
+  nt_access:"Acceso a notificaciones", nt_fix:"Activar", nt_on:"Activo", nt_off:"Sin permiso", nt_restricted_q:"¿Android no te deja?", nt_sec_read:"Lo que lee", nt_sec_tell:"Al apuntar un gasto",
+  na_restricted:"Ajustes de Android › Aplicaciones › Aely › ⋮ › «Permitir ajustes restringidos», y vuelve a probar.",
   tr_phone_ph:"Teléfono (+34…)", tr_pin_ph:"PIN de Trade Republic",
   tr_connect:"Conectar", tr_connecting:"Conectando…",
   tr_code_intro:"Mete el código de 4 dígitos que te ha llegado a la app de Trade Republic (o por SMS).",
@@ -1491,7 +1490,7 @@ Object.assign(LANG.es,{
   g_edited:"✓ Gasto corregido",
   rec_hide:"Ocultar aviso",
   pt_name_ph:"Nombre (ej. Personal)",
-  pt_acc_del:"Quitar cuenta", pt_acc_del_q:"¿Quitar esta cuenta del patrimonio?", pt_acc_del_yes:"Sí, quitar", pt_acc_del_no:"Cancelar", 
+  pt_acc_del_q:"¿Quitar esta cuenta del patrimonio?", pt_acc_del_yes:"Sí, quitar", pt_acc_del_no:"Cancelar", 
   ef_create_btn:"+ Efectivo",
   ef_create_title:"¿Cuánto llevas en efectivo?",
   ef_create_sub:"Cuenta el dinero de la cartera. Se suma al patrimonio y puedes gastar desde ella.",
@@ -1548,9 +1547,8 @@ Object.assign(LANG.en,{
   tr_hint:"Positions and cash in one tap · read-only · unofficial connection (may ask for 2FA).",
   tr_web_only:"This connection runs inside the Android app (it needs a real browser for TR's secure login). Open it from the mobile app.",
   na_toast:"⚠ Automatic expense capture is off — enable it in Settings",
-  na_body:"⚠ Automatic expense capture (TR notification reader) has no permission — expenses will NOT come in on their own. This happens after reinstalling: enable it for Aely.",
-  na_fix:"Enable notification access",
-  na_restricted:"If Android says \"access denied\" or \"restricted setting\" (happens when the app is installed outside the Play Store): go to Android Settings → Apps → Aely → ⋮ menu (top right) → \"Allow restricted settings\", then try again. One time only.",
+  nt_access:"Notification access", nt_fix:"Turn on", nt_on:"On", nt_off:"No access", nt_restricted_q:"Android won’t let you?", nt_sec_read:"What it reads", nt_sec_tell:"When an expense is logged",
+  na_restricted:"Android Settings › Apps › Aely › ⋮ › “Allow restricted settings”, then try again.",
   tr_phone_ph:"Phone (+34…)", tr_pin_ph:"Trade Republic PIN",
   tr_connect:"Connect", tr_connecting:"Connecting…",
   tr_code_intro:"Enter the 4-digit code sent to your Trade Republic app (or by SMS).",
@@ -1563,7 +1561,7 @@ Object.assign(LANG.en,{
   g_edited:"✓ Expense fixed",
   rec_hide:"Hide alert",
   pt_name_ph:"Name (e.g. Personal)",
-  pt_acc_del:"Remove account", pt_acc_del_q:"Remove this account from net worth?", pt_acc_del_yes:"Yes, remove", pt_acc_del_no:"Cancel", 
+  pt_acc_del_q:"Remove this account from net worth?", pt_acc_del_yes:"Yes, remove", pt_acc_del_no:"Cancel", 
   ef_create_btn:"+ Cash",
   ef_create_title:"How much cash do you have?",
   ef_create_sub:"Count the notes in your wallet. It adds to net worth and you can spend from it.",
@@ -1620,9 +1618,8 @@ Object.assign(LANG.ca,{
   tr_hint:"Posicions i efectiu a l'instant · només lectura · connexió no oficial (pot demanar el 2FA).",
   tr_web_only:"Aquesta connexió funciona dins l'app d'Android (necessita un navegador real per a l'accés segur de TR). Obre-ho des de l'app del mòbil.",
   na_toast:"⚠ L'apunt automàtic de despeses està desactivat — activa'l a Configuració",
-  na_body:"⚠ L'apunt automàtic de despeses (lector de notificacions de TR) no té permís — les despeses NO entren soles. Passa en reinstal·lar l'app: activa'l per a Aely.",
-  na_fix:"Activar accés a notificacions",
-  na_restricted:"Si Android diu «accés denegat» o «configuració restringida» (passa en instal·lar l'app fora de la Play Store): ves a Configuració d'Android → Aplicacions → Aely → menú ⋮ (a dalt a la dreta) → «Permet configuracions restringides», i torna-ho a provar. Només un cop.",
+  nt_access:"Accés a notificacions", nt_fix:"Activar", nt_on:"Actiu", nt_off:"Sense permís", nt_restricted_q:"Android no et deixa?", nt_sec_read:"El que llegeix", nt_sec_tell:"En apuntar una despesa",
+  na_restricted:"Configuració d'Android › Aplicacions › Aely › ⋮ › «Permet configuracions restringides», i torna-ho a provar.",
   tr_phone_ph:"Telèfon (+34…)", tr_pin_ph:"PIN de Trade Republic",
   tr_connect:"Connecta", tr_connecting:"Connectant…",
   tr_code_intro:"Posa el codi de 4 dígits que t'ha arribat a l'app de Trade Republic (o per SMS).",
@@ -1635,7 +1632,7 @@ Object.assign(LANG.ca,{
   g_edited:"✓ Despesa corregida",
   rec_hide:"Amaga l'avís",
   pt_name_ph:"Nom (ex. Personal)",
-  pt_acc_del:"Treu compte", pt_acc_del_q:"Treure aquest compte del patrimoni?", pt_acc_del_yes:"Sí, treu", pt_acc_del_no:"Cancel·la", 
+  pt_acc_del_q:"Treure aquest compte del patrimoni?", pt_acc_del_yes:"Sí, treu", pt_acc_del_no:"Cancel·la", 
   ef_create_btn:"+ Efectiu",
   ef_create_title:"Quant portes en efectiu?",
   ef_create_sub:"Compta els bitllets de la cartera. Suma al patrimoni i pots gastar-ne.",
@@ -1692,27 +1689,27 @@ Object.assign(LANG.ca,{
    grises y el periodo en Filtros. En minúscula a propósito: la línea de estado sigue a la cifra
    como una frase («gastado en octubre · 139 € por encima»). */
 Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {mes}",
-  gv5_upto:"gastado en {mes} hasta el {d}", gv5_upto_net:"balance de {mes} hasta el {d}",
+  gv5_hasta_dia:"hasta el {d}", gv5_hasta:"hasta el {d}",
   gv5_closed:"{mes} · cerrado", gv5_over:"{x} por encima", gv5_under:"{x} por debajo",
   gv5_more:"{x} más que en {mes}", gv5_less:"{x} menos que en {mes}", gv5_same:"igual que en {mes}",
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
-  gv5_cycle:"en tu ciclo", gv5_cycle_upto:"en tu ciclo hasta el {d}", gv5_period_upto:"{period} · hasta el {d}", gv5_all:"todo el histórico",
+  gv5_cycle:"en tu ciclo", gv5_all:"todo el histórico",
   gv5_no_cuentan:"{x} · no cuentan", gv5_traspasos:"Traspasos", gv5_plan_open:"Abrir en Plan · {x}", gv5_end:"Hasta aquí: {d}",
   gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
 Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {mes}",
-  gv5_upto:"spent in {mes} through day {d}", gv5_upto_net:"balance for {mes} through day {d}",
+  gv5_hasta_dia:"through day {d}", gv5_hasta:"through {d}",
   gv5_closed:"{mes} · closed", gv5_over:"{x} over", gv5_under:"{x} under",
   gv5_more:"{x} more than in {mes}", gv5_less:"{x} less than in {mes}", gv5_same:"same as in {mes}",
   gv5_more_sd:"{x} more than {mes} at this point", gv5_less_sd:"{x} less than {mes} at this point", gv5_same_sd:"same as {mes} at this point",
-  gv5_cycle:"in your cycle", gv5_cycle_upto:"in your cycle through {d}", gv5_period_upto:"{period} · through {d}", gv5_all:"all history",
+  gv5_cycle:"in your cycle", gv5_all:"all history",
   gv5_no_cuentan:"{x} · don't count", gv5_traspasos:"Transfers", gv5_plan_open:"Open in Plan · {x}", gv5_end:"That's everything: {d}",
   gv5_net_sub:"spent {g} · income {i}", gv5_meses:"Months", gv5_periodo:"Period", gv5_p_months:"Months", gv5_p_range:"Range"});
 Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {mes}",
-  gv5_upto:"gastat al {mes} fins al dia {d}", gv5_upto_net:"balanç al {mes} fins al dia {d}",
+  gv5_hasta_dia:"fins al dia {d}", gv5_hasta:"fins al {d}",
   gv5_closed:"{mes} · tancat", gv5_over:"{x} per sobre", gv5_under:"{x} per sota",
   gv5_more:"{x} més que al {mes}", gv5_less:"{x} menys que al {mes}", gv5_same:"igual que al {mes}",
   gv5_more_sd:"{x} més que al {mes} a aquestes alçades", gv5_less_sd:"{x} menys que al {mes} a aquestes alçades", gv5_same_sd:"igual que al {mes} a aquestes alçades",
-  gv5_cycle:"al teu cicle", gv5_cycle_upto:"al teu cicle fins al {d}", gv5_period_upto:"{period} · fins al {d}", gv5_all:"tot l'historial",
+  gv5_cycle:"al teu cicle", gv5_all:"tot l'historial",
   gv5_no_cuentan:"{x} · no compten", gv5_traspasos:"Traspassos", gv5_plan_open:"Obre al Pla · {x}", gv5_end:"Fins aquí: {d}",
   gv5_net_sub:"despeses {g} · ingressos {i}", gv5_meses:"Mesos", gv5_periodo:"Període", gv5_p_months:"Mesos", gv5_p_range:"Rang"});
 // «Es aportación a la meta X» en la ficha de un gasto y su fila gris de Metas (24/10/2026).
@@ -1745,6 +1742,10 @@ Object.assign(LANG.ca,{f_meta_row:"És una aportació a una meta", f_meta_hint:"
 Object.assign(LANG.es,{gv5_cartera_open:"Abrir en Cartera", g_inv_dest:"Inversión: {name}"});
 Object.assign(LANG.en,{gv5_cartera_open:"Open in Portfolio", g_inv_dest:"Investment: {name}"});
 Object.assign(LANG.ca,{gv5_cartera_open:"Obre a Cartera", g_inv_dest:"Inversió: {name}"});
+// Round up / Saveback de TR (16/11/2026): la pista cuando aún no tienen posición, y la fila del ajuste.
+Object.assign(LANG.es,{rw_pick:"Elige su posición en Cartera", rw_ru:"Round up", rw_sb:"Saveback"});
+Object.assign(LANG.en,{rw_pick:"Pick its position in Portfolio", rw_ru:"Round up", rw_sb:"Saveback"});
+Object.assign(LANG.ca,{rw_pick:"Tria'n la posició a Cartera", rw_ru:"Round up", rw_sb:"Saveback"});
 // Gastos v5, tanda 2: secciones (Movimientos / Categorías / Suscripciones) y sus cabeceras.
 Object.assign(LANG.es,{gv5_secciones:"Secciones de Gastos", gv5_sec_movs:"Movimientos", gv5_sec_cats:"Categorías", gv5_sec_subs:"Suscripciones",
   gv5_subs_globo:"{n} por revisar", gv5_cats_pre:"{period} por categoría",
@@ -1764,11 +1765,13 @@ Object.assign(LANG.es,{gv5_cats_hint:"Toca para filtrar · mantén pulsado para 
   gv5_fil_lim_poner:"Poner límite", gv5_fil_lim:"Límite {x}", gv5_fil_quedan:"quedan {x}", gv5_fil_pasado:"{x} de más"});
 // Gastos v5, tanda 4: Suscripciones como bandeja con su ficha (SPEC §6.1, §6.3 y §6.4).
 Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:"Qué aparece aquí", gv5_sub_i_que:"Cobros que se repiten y que todavía no están en Recibos.",
-  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"Mismo comercio, importe parecido, tres meses o más y un cobro reciente.",
+  gv5_sub_i_como_t:"Cómo se detectan", gv5_sub_i_como:"Mismo comercio y mismo importe, cada semana, mes o año. El súper, la gasolina y los bares no cuentan.",
   gv5_sub_i_hacer_t:"Qué puedes hacer", gv5_sub_i_hacer:"Pásala a Recibos (se apunta en tu cuenta de Recibos), márcala como dada de baja o déjala como gasto normal.", gv5_sub_i_ok:"Entendido",
-  gv5_sub_seguidos:"{n} meses seguidos", gv5_sub_de:"{n} de {m} meses", gv5_sub_almes:"al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
+  gv5_sub_seguidos:"{n} meses seguidos", gv5_sub_de:"{n} de {m} meses", gv5_sub_almes:"al mes",
+  gv5_sub_sem_seguidas:"{n} semanas seguidas", gv5_sub_anios_seguidos:"{n} años seguidos", gv5_sub_cadames:"Cada mes", gv5_sub_cadasem:"Cada semana", gv5_sub_cadaanio:"Cada año",
+  gv5_sub_alasem:"a la semana", gv5_sub_alanio:"al año", gv5_sub_dia_sem:"Cada {d}", gv5_sub_dia_anio:"Se cobra el {d}", gv5_sub_eqmes:"{x} al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
   gv5_sub_dia:"Se cobra el día {d}", gv5_sub_sinbanco:"banco: — (apuntada a mano)", gv5_sub_ultimos:"Últimos cobros",
-  gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.", gv5_sub_fijo:"Si es un gasto fijo, pásalo a Recibos y lo tendrás en Plan con los demás.",
+  gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.",
   gv5_sub_importe:"Importe para Recibos", gv5_sub_recibos:"Pasar a Recibos",
   gv5_sub_recibos_ok:"✓ «{n}» pasa a Recibos ({b})",
   gv5_sub_baja:"Ya la he dado de baja", gv5_sub_baja_q:"¿Ya has dado de baja «{n}»?", gv5_sub_baja_sub:"Sale de esta lista. Si vuelve a cobrarte, aparecerá otra vez con un aviso.",
@@ -1778,11 +1781,13 @@ Object.assign(LANG.en,{gv5_cats_hint:"Tap to filter · hold to set a limit",
   gv5_fil_n:"{n} transactions", gv5_fil_n1:"1 transaction", gv5_fil_quitar:"Remove the {x} filter",
   gv5_fil_lim_poner:"Set limit", gv5_fil_lim:"Limit {x}", gv5_fil_quedan:"{x} left", gv5_fil_pasado:"{x} over"});
 Object.assign(LANG.en,{gv5_sub_info:"Detected subscriptions", gv5_sub_i_que_t:"What shows up here", gv5_sub_i_que:"Charges that repeat and aren't in Bills yet.",
-  gv5_sub_i_como_t:"How they're detected", gv5_sub_i_como:"Same shop, similar amount, three months or more and a recent charge.",
+  gv5_sub_i_como_t:"How they're detected", gv5_sub_i_como:"Same shop and same amount, every week, month or year. Groceries, fuel and bars don't count.",
   gv5_sub_i_hacer_t:"What you can do", gv5_sub_i_hacer:"Move it to Bills (it goes on your Bills account), mark it cancelled or leave it as a normal expense.", gv5_sub_i_ok:"Got it",
-  gv5_sub_seguidos:"{n} months in a row", gv5_sub_de:"{n} of {m} months", gv5_sub_almes:"a month", gv5_sub_vuelve:"It charged again after you cancelled it",
+  gv5_sub_seguidos:"{n} months in a row", gv5_sub_de:"{n} of {m} months", gv5_sub_almes:"a month",
+  gv5_sub_sem_seguidas:"{n} weeks in a row", gv5_sub_anios_seguidos:"{n} years in a row", gv5_sub_cadames:"Every month", gv5_sub_cadasem:"Every week", gv5_sub_cadaanio:"Every year",
+  gv5_sub_alasem:"a week", gv5_sub_alanio:"a year", gv5_sub_dia_sem:"Every {d}", gv5_sub_dia_anio:"Charged on {d}", gv5_sub_eqmes:"{x} a month", gv5_sub_vuelve:"It charged again after you cancelled it",
   gv5_sub_dia:"Charged on day {d}", gv5_sub_sinbanco:"bank: — (added by hand)", gv5_sub_ultimos:"Latest charges",
-  gv5_sub_anio:"About {y} a year.", gv5_sub_anio_si:"About {y} a year if it's charged every month.", gv5_sub_fijo:"If it's a fixed expense, move it to Bills and you'll see it in Plan with the rest.",
+  gv5_sub_anio:"About {y} a year.", gv5_sub_anio_si:"About {y} a year if it's charged every month.",
   gv5_sub_importe:"Amount for Bills", gv5_sub_recibos:"Move to Bills",
   gv5_sub_recibos_ok:"✓ \"{n}\" moved to Bills ({b})",
   gv5_sub_baja:"I've cancelled it", gv5_sub_baja_q:"Have you cancelled \"{n}\"?", gv5_sub_baja_sub:"It leaves this list. If it charges you again, it'll come back with a warning.",
@@ -1792,11 +1797,13 @@ Object.assign(LANG.ca,{gv5_cats_hint:"Toca per filtrar · mantén premut per al 
   gv5_fil_n:"{n} moviments", gv5_fil_n1:"1 moviment", gv5_fil_quitar:"Treu el filtre de {x}",
   gv5_fil_lim_poner:"Posa un límit", gv5_fil_lim:"Límit {x}", gv5_fil_quedan:"en queden {x}", gv5_fil_pasado:"{x} de més"});
 Object.assign(LANG.ca,{gv5_sub_info:"Subscripcions detectades", gv5_sub_i_que_t:"Què hi apareix", gv5_sub_i_que:"Càrrecs que es repeteixen i que encara no són a Rebuts.",
-  gv5_sub_i_como_t:"Com es detecten", gv5_sub_i_como:"Mateix comerç, import semblant, tres mesos o més i un càrrec recent.",
+  gv5_sub_i_como_t:"Com es detecten", gv5_sub_i_como:"Mateix comerç i mateix import, cada setmana, mes o any. El súper, la benzina i els bars no compten.",
   gv5_sub_i_hacer_t:"Què hi pots fer", gv5_sub_i_hacer:"Passa-la a Rebuts (s'apunta al teu compte de Rebuts), marca-la com a donada de baixa o deixa-la com a despesa normal.", gv5_sub_i_ok:"Entesos",
-  gv5_sub_seguidos:"{n} mesos seguits", gv5_sub_de:"{n} de {m} mesos", gv5_sub_almes:"al mes", gv5_sub_vuelve:"Ha tornat a cobrar després de donar-la de baixa",
+  gv5_sub_seguidos:"{n} mesos seguits", gv5_sub_de:"{n} de {m} mesos", gv5_sub_almes:"al mes",
+  gv5_sub_sem_seguidas:"{n} setmanes seguides", gv5_sub_anios_seguidos:"{n} anys seguits", gv5_sub_cadames:"Cada mes", gv5_sub_cadasem:"Cada setmana", gv5_sub_cadaanio:"Cada any",
+  gv5_sub_alasem:"a la setmana", gv5_sub_alanio:"l'any", gv5_sub_dia_sem:"Cada {d}", gv5_sub_dia_anio:"Es cobra el {d}", gv5_sub_eqmes:"{x} al mes", gv5_sub_vuelve:"Ha tornat a cobrar després de donar-la de baixa",
   gv5_sub_dia:"Es cobra el dia {d}", gv5_sub_sinbanco:"banc: — (apuntada a mà)", gv5_sub_ultimos:"Últims càrrecs",
-  gv5_sub_anio:"Uns {y} l'any.", gv5_sub_anio_si:"Uns {y} l'any si es cobra cada mes.", gv5_sub_fijo:"Si és una despesa fixa, passa-la a Rebuts i la tindràs al Pla amb les altres.",
+  gv5_sub_anio:"Uns {y} l'any.", gv5_sub_anio_si:"Uns {y} l'any si es cobra cada mes.",
   gv5_sub_importe:"Import per a Rebuts", gv5_sub_recibos:"Passa a Rebuts",
   gv5_sub_recibos_ok:"✓ «{n}» passa a Rebuts ({b})",
   gv5_sub_baja:"Ja l'he donada de baixa", gv5_sub_baja_q:"Ja has donat de baixa «{n}»?", gv5_sub_baja_sub:"Surt d'aquesta llista. Si et torna a cobrar, tornarà a aparèixer amb un avís.",
@@ -1842,11 +1849,11 @@ Object.assign(LANG.es,{
   g_bk_cuenta:"Día a día", g_bk_ingreso:"Ingresos",
   g_bk_neutra:"Inversión y traspasos", g_bk_otrobanco:"De otros bancos",
   g_bk_title:"Qué contar",
-  g_allbanks:"Todos los bancos", g_bank_manual:"A mano", g_bank_ob:"del banco",
+  g_allbanks:"Todos los bancos", g_bank_manual:"A mano",
   g_filters:"Filtros",
   g_filters_search:"Buscar categoría…", g_filters_cats:"Categorías", g_filters_banks:"bancos",
   g_filters_clear:"Limpiar",
-  ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
+  ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría con IA» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
   g_cycle_budget_hint:"La nómina abre el ciclo. Los ingresos posteriores, incluidos Bizums y alquileres, aumentan el margen; traspasos no.",
   g_cycle_filter_hint:"Este filtro va del último cobro detectado a hoy; no cambia el presupuesto mensual.",
@@ -1858,11 +1865,10 @@ Object.assign(LANG.es,{
   sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
   st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con nómina reconocida, Gastos va de nómina a nómina; si no, por mes natural.",
   sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
-  sec_order:"⇅ Ordenar secciones", 
   g_syncing:"Sincronizando…",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
-  g_card:"Con tarjeta", g_nocard:"Bizum o transferencia",
-  g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
+  ap_pay_card:"Tarjeta", ap_pay_cash:"Efectivo", ap_pay_transfer:"Bizum/transf.", ap_pay_aria:"Forma de pago",
+  g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_empty_add:"Apuntar un gasto", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Irán apareciendo según sincronices o apuntes.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido",
   cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_multas:"Multas", cat_zona_azul:"Zona azul", cat_peajes:"Peajes", cat_coche:"Coche", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
@@ -1896,11 +1902,11 @@ Object.assign(LANG.en,{
   g_bk_cuenta:"Day to day", g_bk_ingreso:"Income",
   g_bk_neutra:"Investing and transfers", g_bk_otrobanco:"From other banks",
   g_bk_title:"What to count",
-  g_allbanks:"All banks", g_bank_manual:"Manual", g_bank_ob:"from the bank",
+  g_allbanks:"All banks", g_bank_manual:"Manual",
   g_filters:"Filters",
   g_filters_search:"Search category…", g_filters_cats:"Categories", g_filters_banks:"banks",
   g_filters_clear:"Clear",
-  ai_cat_btn:"✨ Suggest category", ai_cat_busy:"Thinking…", ai_cat_ok:"✓ Category: {c}", ai_cat_none:"No clear suggestion — pick by hand", ai_cat_off:"Turn on “Suggest category (AI)” in Settings → Notifications",
+  ai_cat_btn:"✨ Suggest category", ai_cat_busy:"Thinking…", ai_cat_ok:"✓ Category: {c}", ai_cat_none:"No clear suggestion — pick by hand", ai_cat_off:"Turn on “Suggest category with AI” in Settings → Notifications",
   g_cycle_from:"From {d} (payday, {x}) to today",
   g_cycle_budget_hint:"Pay starts the cycle. Later income, including Bizum payments and rent, raises money left; transfers do not.",
   g_cycle_filter_hint:"This filter runs from the last detected payment to today; it does not change the monthly budget.",
@@ -1912,11 +1918,10 @@ Object.assign(LANG.en,{
   sub_dismiss:"Not a subscription", sub_dismissed_ok:"Dismissed · won't show up here again",
   st_gview:"Expenses total", st_gview_split:"Spending & income", st_gview_split_d:"Spending up front; income and balance below.", st_gview_net:"Balance", st_gview_net_d:"Balance up front; spending and income below. Green if money's left, red if not.", st_budget_cycle:"Budget by pay cycle", st_budget_cycle_d:"With recognized pay, Spending runs payday to payday; otherwise by calendar month.",
   sv_title:"Monthly saving", sv_note:"Planning only: it doesn't move money or create transactions.", sv_saved:"Monthly saving saved", sv_name_aria:"Contribution name", sv_amount_aria:"Amount per month", sv_bank_aria:"Bank or broker", sv_del_aria:"Remove this contribution", sv_add:"Add contribution", sv_name_ph:"Name (e.g. MSCI World)", sv_empty:"No contributions yet. Tap «Edit» to add what you set aside each month.",
-  sec_order:"⇅ Reorder sections", 
   g_syncing:"Syncing…",
   g_lastsync:"Last sync: {d}", g_nosync:"Not synced yet",
-  g_card:"Card", g_nocard:"Bizum or transfer",
-  g_empty_t:"No expenses here", g_empty_d:"Change the filter, sync or add one.", g_loadmore:"Loading more…",
+  ap_pay_card:"Card", ap_pay_cash:"Cash", ap_pay_transfer:"Bizum/transfer", ap_pay_aria:"Payment method",
+  g_empty_t:"No expenses here", g_empty_d:"Change the filter, sync or add one.", g_empty_add:"Add an expense", g_loadmore:"Loading more…",
   g_empty_period_t:"No expenses yet this period", g_empty_period_d:"They'll show up as you sync or add them.",
   g_today:"Today", g_yesterday:"Yesterday", g_invalid:"Enter a valid amount",
   cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_gasolina:"Fuel", cat_taxi:"Taxi", cat_multas:"Fines", cat_zona_azul:"Blue zone", cat_peajes:"Tolls", cat_coche:"Car", cat_parking:"Parking", cat_agua:"Water", cat_luz:"Power", cat_gas:"Gas", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_bizum:"Bizum", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer", cat_deudas:"Debt payment",
@@ -1949,11 +1954,11 @@ Object.assign(LANG.ca,{
   g_bk_cuenta:"Dia a dia", g_bk_ingreso:"Ingressos",
   g_bk_neutra:"Inversió i traspassos", g_bk_otrobanco:"D'altres bancs",
   g_bk_title:"Què comptar",
-  g_allbanks:"Tots els bancs", g_bank_manual:"A mà", g_bank_ob:"del banc",
+  g_allbanks:"Tots els bancs", g_bank_manual:"A mà",
   g_filters:"Filtres",
   g_filters_search:"Cerca categoria…", g_filters_cats:"Categories", g_filters_banks:"bancs",
   g_filters_clear:"Netejar",
-  ai_cat_btn:"✨ Suggerir categoria", ai_cat_busy:"Pensant…", ai_cat_ok:"✓ Categoria: {c}", ai_cat_none:"No hi ha suggeriment clar — tria a mà", ai_cat_off:"Activa «Suggerir categoria (IA)» a Configuració → Notificacions",
+  ai_cat_btn:"✨ Suggerir categoria", ai_cat_busy:"Pensant…", ai_cat_ok:"✓ Categoria: {c}", ai_cat_none:"No hi ha suggeriment clar — tria a mà", ai_cat_off:"Activa «Suggerir categoria amb IA» a Configuració → Notificacions",
   g_cycle_from:"Del {d} (cobrament de {x}) a avui",
   g_cycle_budget_hint:"La nòmina obre el cicle. Els ingressos posteriors, inclosos Bizums i lloguers, augmenten el marge; traspassos no.",
   g_cycle_filter_hint:"Aquest filtre va de l'últim cobrament detectat a avui; no canvia el pressupost mensual.",
@@ -1965,11 +1970,10 @@ Object.assign(LANG.ca,{
   sub_dismiss:"No és una subscripció", sub_dismissed_ok:"Descartada · no tornarà a sortir aquí",
   st_gview:"Total de Despeses", st_gview_split:"Despeses i ingressos", st_gview_split_d:"Despeses en gran; ingressos i balanç a sota.", st_gview_net:"Balanç", st_gview_net_d:"El balanç en gran; despeses i ingressos a sota. Verd si en sobra, vermell si no.", st_budget_cycle:"Pressupost per cicle de cobrament", st_budget_cycle_d:"Amb nòmina reconeguda, Despeses va de nòmina a nòmina; si no, per mes natural.",
   sv_title:"Estalvi mensual", sv_note:"Només planifica: no mou diners ni crea moviments.", sv_saved:"Estalvi mensual desat", sv_name_aria:"Concepte de l’aportació", sv_amount_aria:"Import al mes", sv_bank_aria:"Banc o bròker", sv_del_aria:"Treu aquesta aportació", sv_add:"Afegeix aportació", sv_name_ph:"Concepte (p. ex. MSCI World)", sv_empty:"Encara no has apuntat aportacions. Toca «Edita» per afegir el que apartes cada mes.",
-  sec_order:"⇅ Ordena les seccions", 
   g_syncing:"Sincronitzant…",
   g_lastsync:"Última sincronització: {d}", g_nosync:"Encara sense sincronitzar",
-  g_card:"Amb targeta", g_nocard:"Bizum o transferència",
-  g_empty_t:"No hi ha despeses aquí", g_empty_d:"Canvia el filtre, sincronitza o apunta'n una.", g_loadmore:"Carregant més…",
+  ap_pay_card:"Targeta", ap_pay_cash:"Efectiu", ap_pay_transfer:"Bizum/transf.", ap_pay_aria:"Forma de pagament",
+  g_empty_t:"No hi ha despeses aquí", g_empty_d:"Canvia el filtre, sincronitza o apunta'n una.", g_empty_add:"Apunta una despesa", g_loadmore:"Carregant més…",
   g_empty_period_t:"Encara no hi ha despeses en aquest període", g_empty_period_d:"Aniran sortint a mesura que sincronitzis o apuntis.",
   g_today:"Avui", g_yesterday:"Ahir", g_invalid:"Posa un import vàlid",
   cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_gasolina:"Benzina", cat_taxi:"Taxi", cat_multas:"Multes", cat_zona_azul:"Zona blava", cat_peajes:"Peatges", cat_coche:"Cotxe", cat_parking:"Pàrquing", cat_agua:"Aigua", cat_luz:"Llum", cat_gas:"Gas", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_bizum:"Bizum", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs", cat_deudas:"Quota de deute",
@@ -1990,24 +1994,19 @@ Object.assign(LANG.ca,{
 
 /* --- Diccionario: Inversiones, Proyección, Patrimonio, Deudas y login --- */
 Object.assign(LANG.es,{
-  inv_save:"Guardar", inv_cancel:"Cancelar", inv_editmanual:"Editar a mano",
-  inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
+  inv_save:"Guardar", inv_cancel:"Cancelar",
   inv_proj:"Proyección de tu ahorro", inv_proj_sub:"Interés compuesto",
-  inv_hint_edit:"Escribe el valor actual de cada posición; el % se calcula solo.",
-  inv_hint_view:"Sin precio automático (fondos, oro…): usa «Editar a mano». Dólar→euro: {fx}.",
   inv_sold_part:"Vendí parte →", inv_value:"Valor", inv_invested:"Invertido", inv_sell_prompt:"¿Qué % de «{name}» has vendido?",
   inv_sell_sub:"Pon el porcentaje (30 = un 30 %). Se ajustan valor, coste y participaciones, y el líquido se apunta como vendido.",
   inv_delete:"Borrar", inv_delete_confirm:"¿Borrar «{name}» de tu cartera?", inv_delete_sub:"Esto no toca tu bróker: solo la quita de la app.",
-  ru_title:"Round-up & Saveback (TR)", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
-  ru_title_simple:"Redondeo y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
+  ru_title:"Round up y Saveback", ru_sub_on:"Round up ×{m}", ru_sub_off:"desactivado",
+  ru_title_simple:"Round up y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
   ru_hint_simple:"Redondea cada compra al euro e invierte la diferencia, más el 1 % que devuelve TR.",
-  ru_mult:"Multiplicador del redondeo", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
-  ru_saveback:"Saveback 1% (cashback de TR, máx 15€/mes)",
-  ru_month_ru:"Round-up ya invertido (este mes)", ru_month_sb:"Saveback ya invertido (este mes)", ru_total:"Aportado vía TR (total acumulado)",
+  ru_mult:"Multiplicador del Round up", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
+  ru_saveback:"Saveback del 1 %",
+  ru_month_ru:"Round up este mes", ru_month_sb:"Saveback este mes", ru_total:"Aportado en total",
   ru_plan:"Aporte periódico a inversión", ru_plan_amt:"Cada mes (€)", ru_plan_hint:"{x}/mes salen de tu efectivo de TR y compran {inv} (tu plan de ahorro). Así tu saldo de TR cuadra sin tocar nada.", 
-  ru_hint:"Sale de tu efectivo TR hacia {inv} al cerrar cada mes. Es una estimación.",
-  ru_hint_off:"Actívalo si usas Round-up o Saveback en TR, para que tu efectivo cuadre.",
-  ru_manual_hint:"Escribe el importe real de TR para corregir la estimación (vacío = automático).",
+  ru_sub_dest:"Round up → {name}", ru_vacio:"Vacío = automático",
   type_acciones:"Acciones", type_etf:"ETF", type_fondo:"Fondo indexado", type_materias:"Materias primas",
   pj_projvalue:"Valor proyectado", pj_contrib:"Tu contribución", pj_monthly:"Contribución mensual", pj_rate:"Interés anual %", pj_years:"Años",
   pj_gain:"Ganancia estimada en {y} años", pj_hint:"Sobre lo ya invertido ({x}). La banda es ±2% sobre el interés. Estimación, no garantía.",
@@ -2015,7 +2014,7 @@ Object.assign(LANG.es,{
   pt_goods:"Bienes", 
   db_quota:"Cuota {x}/mes", db_paidoff:"Amortizado {x} ({p}%)",
   db_pending:"Pendiente", db_delete:"Eliminar esta deuda", db_savechanges:"Guardar cambios",
-  db_concept:"Concepto (ej. Financiación móvil)", db_amount:"Importe €", db_quota_ph:"Cuota/mes € (vacío si 0%)", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
+  db_concept:"Ej.: financiación del móvil", db_amount:"Importe €", db_quota_ph:"Vacía si es al 0 %", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
   db_months_ph:"Plazo (meses)", db_day_ph:"Día", db_financing_hint:"Plazo en meses: la cuota se apunta sola y para al acabar. Al 0 % déjala vacía; con interés, pon la real.",
   db_down_ph:"Entrada € (opcional)", db_balloon_ph:"Pago final € (coche)", db_balloon_tag:"(pago final)", db_balloon_hint:"Coche con pago final: pon importe financiado, pago final y plazo; la cuota sale sola.", db_balloon_line:"Pago final: {x}", db_down_line:"Entrada: {x}",
   db_hint:"El saldo baja solo cada mes. Corrígelo aquí cuando tengas el real del banco.",
@@ -2037,8 +2036,7 @@ Object.assign(LANG.es,{
   da_beats_cash:"Amortizar te «renta» un {a}% garantizado, más que el {b}% de tu efectivo remunerado: sale a cuenta.",
   da_under_cash:"Ojo: tu efectivo remunerado da un {b}%, más que el {a}% de esta deuda. Matemáticamente gana el efectivo… aunque quitarte deuda también da paz.",
   da_first:"🥇 Con varias deudas, amortiza primero la de mayor interés: «{name}» ({p}%).",
-  da_apply:"💸 Amortizar {x} ahora",
-  da_apply_q:"¿Amortizar {x} de «{name}»?", da_apply_sub:"El pendiente baja y el plazo se acorta con la misma cuota.",
+  db_amortize_cut:"Te quitas {n} cuotas.",
   lk_unlock:"Desbloquea para continuar", lk_failed:"No se pudo verificar. Inténtalo de nuevo.", lk_unlockbtn:"Desbloquear con huella", lk_cant:"No puedo desbloquear",
   lk_escape:"¿Quitar el candado de huella?", lk_escape_sub:"Solo en este dispositivo. Podrás volver a activarlo desde tu cuenta.", lk_escape_ok:"Quitar el candado",
   au_account:"Tu cuenta", au_bio_off:"Desactivar desbloqueo con huella", au_bio_on:"Activar desbloqueo con huella", au_nobio:"Este dispositivo/navegador no soporta huella.",
@@ -2049,24 +2047,19 @@ Object.assign(LANG.es,{
   bk_auto_title:"Copias automáticas", bk_auto_hint:"Una copia al día, 30 días en la nube. Abrirlas no cambia tu cartera.", bk_auto_none:"Aún no hay copias guardadas.",
 });
 Object.assign(LANG.en,{
-  inv_save:"Save", inv_cancel:"Cancel", inv_editmanual:"Edit manually",
-  inv_alsoinvested:"Also adjust what's invested (if I bought or sold)",
+  inv_save:"Save", inv_cancel:"Cancel",
   inv_proj:"Your savings projection", inv_proj_sub:"Compound interest",
-  inv_hint_edit:"Type each position's current value; the % is calculated automatically.",
-  inv_hint_view:"No automatic price (funds, gold…)? Use «Edit manually». USD→EUR: {fx}.",
   inv_sold_part:"Sold part →", inv_value:"Value", inv_invested:"Invested", inv_sell_prompt:"What % of “{name}” did you sell?",
   inv_sell_sub:"Enter the percentage (30 = 30 %). Value, cost and shares are adjusted, and the proceeds are logged as sold.",
   inv_delete:"Delete", inv_delete_confirm:"Delete “{name}” from your portfolio?", inv_delete_sub:"This doesn't touch your broker: it only removes it from the app.",
-  ru_title:"Round-up & Saveback (TR)", ru_sub_on:"round-up ×{m} on", ru_sub_off:"off",
-  ru_title_simple:"Round-ups & card reward", ru_sub_simple:"each purchase adds a little to your investing",
+  ru_title:"Round up and Saveback", ru_sub_on:"Round up ×{m}", ru_sub_off:"off",
+  ru_title_simple:"Round up and card reward", ru_sub_simple:"each purchase adds a little to your investing",
   ru_hint_simple:"Rounds each purchase up to the euro and invests the change, plus TR's 1% back.",
-  ru_mult:"Round-up multiplier", ru_off:"Off", ru_dest:"Target investment", ru_pick:"Pick an investment…",
-  ru_saveback:"Saveback 1% (TR cashback, max €15/mo)",
-  ru_month_ru:"Round-up invested (this month)", ru_month_sb:"Saveback invested (this month)", ru_total:"Contributed via TR (running total)",
+  ru_mult:"Round up multiplier", ru_off:"Off", ru_dest:"Target investment", ru_pick:"Pick an investment…",
+  ru_saveback:"1% Saveback",
+  ru_month_ru:"Round up this month", ru_month_sb:"Saveback this month", ru_total:"Total contributed",
   ru_plan:"Recurring investment", ru_plan_amt:"Each month (€)", ru_plan_hint:"{x}/mo leave your TR cash and buy {inv} (your savings plan). This keeps your TR balance right with no manual tweaks.", 
-  ru_hint:"Leaves your TR cash towards {inv} at each month close. It's an estimate.",
-  ru_hint_off:"Turn it on if you use Round-up or Saveback in TR, so your cash matches.",
-  ru_manual_hint:"Type the real TR amount to correct the estimate (empty = automatic).",
+  ru_sub_dest:"Round up → {name}", ru_vacio:"Empty = automatic",
   type_acciones:"Stocks", type_etf:"ETF", type_fondo:"Index fund", type_materias:"Commodities",
   pj_projvalue:"Projected value", pj_contrib:"Your contribution", pj_monthly:"Monthly contribution", pj_rate:"Annual interest %", pj_years:"Years",
   pj_gain:"Estimated gain in {y} years", pj_hint:"On what's already invested ({x}). The band is ±2% on the rate. Estimate, not a guarantee.",
@@ -2074,7 +2067,7 @@ Object.assign(LANG.en,{
   pt_goods:"Property", 
   db_quota:"Payment {x}/mo", db_paidoff:"Paid off {x} ({p}%)",
   db_pending:"Outstanding", db_delete:"Delete this debt", db_savechanges:"Save changes",
-  db_concept:"What (e.g. Phone financing)", db_amount:"Amount €", db_quota_ph:"Payment/mo € (empty if 0%)", db_add:"Add debt", db_newdebt:"New debt", db_addedmanual:"Added manually",
+  db_concept:"E.g. phone financing", db_amount:"Amount €", db_quota_ph:"Empty if 0%", db_add:"Add debt", db_newdebt:"New debt", db_addedmanual:"Added manually",
   db_months_ph:"Term (months)", db_day_ph:"Day", db_financing_hint:"Term in months: the payment logs itself and stops at the end. At 0% leave it empty; with interest, enter the real one.",
   db_down_ph:"Down payment € (optional)", db_balloon_ph:"Final payment € (car)", db_balloon_tag:"(final payment)", db_balloon_hint:"Car with a final payment: enter financed amount, final payment and term; the payment is computed.", db_balloon_line:"Final payment: {x}", db_down_line:"Down payment: {x}",
   db_hint:"The balance drops on its own each month. Correct it here when you have the bank's real one.",
@@ -2096,8 +2089,7 @@ Object.assign(LANG.en,{
   da_beats_cash:"Paying down “earns” you a guaranteed {a}%, beating the {b}% on your cash: worth it.",
   da_under_cash:"Heads-up: your cash earns {b}%, more than this debt's {a}%. The math favours the cash… though killing debt buys peace of mind too.",
   da_first:"🥇 With several debts, pay down the highest interest first: “{name}” ({p}%).",
-  da_apply:"💸 Pay down {x} now",
-  da_apply_q:"Pay down {x} of “{name}”?", da_apply_sub:"The balance drops and the term shortens with the same payment.",
+  db_amortize_cut:"You drop {n} payments.",
   lk_unlock:"Unlock to continue", lk_failed:"Couldn't verify. Try again.", lk_unlockbtn:"Unlock with fingerprint", lk_cant:"I can't unlock",
   lk_escape:"Remove the fingerprint lock?", lk_escape_sub:"On this device only. You can re-enable it from your account.", lk_escape_ok:"Remove lock",
   au_account:"Your account", au_bio_off:"Turn off fingerprint unlock", au_bio_on:"Turn on fingerprint unlock", au_nobio:"This device/browser doesn't support fingerprint.",
@@ -2108,24 +2100,19 @@ Object.assign(LANG.en,{
   bk_auto_title:"Automatic backups", bk_auto_hint:"One backup a day, kept 30 days in the cloud. Opening them doesn't change your portfolio.", bk_auto_none:"No backups saved yet.",
 });
 Object.assign(LANG.ca,{
-  inv_save:"Desa", inv_cancel:"Cancel·la", inv_editmanual:"Edita a mà",
-  inv_alsoinvested:"Ajusta també l'invertit (si he comprat o venut)",
+  inv_save:"Desa", inv_cancel:"Cancel·la",
   inv_proj:"Projecció del teu estalvi", inv_proj_sub:"Interès compost",
-  inv_hint_edit:"Escriu el valor actual de cada posició; el % es calcula sol.",
-  inv_hint_view:"Sense preu automàtic (fons, or…): fes servir «Edita a mà». Dòlar→euro: {fx}.",
   inv_sold_part:"He venut part →", inv_value:"Valor", inv_invested:"Invertit", inv_sell_prompt:"Quin % de «{name}» has venut?",
   inv_sell_sub:"Posa el percentatge (30 = un 30 %). S'ajusten valor, cost i participacions, i el líquid s'apunta com a venut.",
   inv_delete:"Esborra", inv_delete_confirm:"Esborrar «{name}» de la teva cartera?", inv_delete_sub:"Això no toca el teu bròker: només la treu de l'app.",
-  ru_title:"Round-up & Saveback (TR)", ru_sub_on:"arrodoniment ×{m} actiu", ru_sub_off:"desactivat",
-  ru_title_simple:"Arrodoniment i regal per pagar", ru_sub_simple:"cada compra suma una miqueta a la teva inversió",
+  ru_title:"Round up i Saveback", ru_sub_on:"Round up ×{m}", ru_sub_off:"desactivat",
+  ru_title_simple:"Round up i regal per pagar", ru_sub_simple:"cada compra suma una miqueta a la teva inversió",
   ru_hint_simple:"Arrodoneix cada compra a l'euro i inverteix la diferència, més l'1 % que torna TR.",
-  ru_mult:"Multiplicador de l'arrodoniment", ru_off:"No", ru_dest:"Inversió destí", ru_pick:"Tria una inversió…",
-  ru_saveback:"Saveback 1% (cashback de TR, màx 15€/mes)",
-  ru_month_ru:"Arrodoniment ja invertit (aquest mes)", ru_month_sb:"Saveback ja invertit (aquest mes)", ru_total:"Aportat via TR (total acumulat)",
+  ru_mult:"Multiplicador del Round up", ru_off:"No", ru_dest:"Inversió destí", ru_pick:"Tria una inversió…",
+  ru_saveback:"Saveback de l'1 %",
+  ru_month_ru:"Round up aquest mes", ru_month_sb:"Saveback aquest mes", ru_total:"Aportat en total",
   ru_plan:"Aportació periòdica a inversió", ru_plan_amt:"Cada mes (€)", ru_plan_hint:"{x}/mes surten del teu efectiu de TR i compren {inv} (el teu pla d'estalvi). Així el teu saldo de TR quadra sense tocar res.", 
-  ru_hint:"Surt del teu efectiu TR cap a {inv} en tancar cada mes. És una estimació.",
-  ru_hint_off:"Activa'l si fas servir Round-up o Saveback a TR, perquè l'efectiu quadri.",
-  ru_manual_hint:"Escriu l'import real de TR per corregir l'estimació (buit = automàtic).",
+  ru_sub_dest:"Round up → {name}", ru_vacio:"Buit = automàtic",
   type_acciones:"Accions", type_etf:"ETF", type_fondo:"Fons indexat", type_materias:"Matèries primeres",
   pj_projvalue:"Valor projectat", pj_contrib:"La teva contribució", pj_monthly:"Contribució mensual", pj_rate:"Interès anual %", pj_years:"Anys",
   pj_gain:"Guany estimat en {y} anys", pj_hint:"Sobre el ja invertit ({x}). La banda és ±2% sobre l'interès. Estimació, no garantia.",
@@ -2133,7 +2120,7 @@ Object.assign(LANG.ca,{
   pt_goods:"Béns", 
   db_quota:"Quota {x}/mes", db_paidoff:"Amortitzat {x} ({p}%)",
   db_pending:"Pendent", db_delete:"Elimina aquest deute", db_savechanges:"Desa els canvis",
-  db_concept:"Concepte (ex. Finançament mòbil)", db_amount:"Import €", db_quota_ph:"Quota/mes € (buit si 0%)", db_add:"Afegeix deute", db_newdebt:"Nou deute", db_addedmanual:"Afegida manualment",
+  db_concept:"Ex.: finançament del mòbil", db_amount:"Import €", db_quota_ph:"Buida si és al 0 %", db_add:"Afegeix deute", db_newdebt:"Nou deute", db_addedmanual:"Afegida manualment",
   db_months_ph:"Termini (mesos)", db_day_ph:"Dia", db_financing_hint:"Termini en mesos: la quota s'apunta sola i s'atura en acabar. Al 0 % deixa-la buida; amb interès, posa la real.",
   db_down_ph:"Entrada € (opcional)", db_balloon_ph:"Pagament final € (cotxe)", db_balloon_tag:"(pagament final)", db_balloon_hint:"Cotxe amb pagament final: posa import finançat, pagament final i termini; la quota surt sola.", db_balloon_line:"Pagament final: {x}", db_down_line:"Entrada: {x}",
   db_hint:"El saldo baixa sol cada mes. Corregeix-lo aquí quan tinguis el real del banc.",
@@ -2155,8 +2142,7 @@ Object.assign(LANG.ca,{
   da_beats_cash:"Amortitzar et «renta» un {a}% garantit, més que el {b}% del teu efectiu remunerat: surt a compte.",
   da_under_cash:"Compte: el teu efectiu remunerat dona un {b}%, més que l'{a}% d'aquest deute. Matemàticament guanya l'efectiu… tot i que treure't deute també dona pau.",
   da_first:"🥇 Amb diversos deutes, amortitza primer el de més interès: «{name}» ({p}%).",
-  da_apply:"💸 Amortitza {x} ara",
-  da_apply_q:"Amortitzar {x} de «{name}»?", da_apply_sub:"El pendent baixa i el termini s'escurça amb la mateixa quota.",
+  db_amortize_cut:"Et treus {n} quotes.",
   lk_unlock:"Desbloqueja per continuar", lk_failed:"No s'ha pogut verificar. Torna-ho a provar.", lk_unlockbtn:"Desbloqueja amb empremta", lk_cant:"No puc desbloquejar",
   lk_escape:"Treure el bloqueig d'empremta?", lk_escape_sub:"Només en aquest dispositiu. Podràs tornar a activar-lo des del teu compte.", lk_escape_ok:"Treu el bloqueig",
   au_account:"El teu compte", au_bio_off:"Desactiva el desbloqueig amb empremta", au_bio_on:"Activa el desbloqueig amb empremta", au_nobio:"Aquest dispositiu/navegador no admet empremta.",
@@ -2172,7 +2158,7 @@ Object.assign(LANG.es,{
   tab_metas:"Metas", tab_logros:"Logros",
   gl_total_sub:"de {x} en total",
   gl_create:"Crear meta", gl_cancel:"Cancelar",
-  gl_name_ph:"Nombre (ej. Vacaciones)", gl_target_ph:"Objetivo €", gl_saved_ph:"Ya ahorrado €", gl_deadline:"Fecha límite (opcional)", gl_monthly_ph:"Aporte al mes € (opcional)",
+  gl_name_ph:"Ej.: vacaciones", gl_target_ph:"Objetivo €", gl_saved_ph:"Ya ahorrado €", gl_deadline:"Fecha límite (opcional)", gl_deadline_none:"Sin fecha", gl_monthly_ph:"Aporte al mes € (opcional)",
   gl_newdefault:"Mi meta",
   gl_contribute:"+ Aportar",
   gl_save:"Guardar cambios", gl_delete:"Eliminar meta", gl_of:"de",
@@ -2188,7 +2174,7 @@ Object.assign(LANG.es,{
   sh_people:"personas", sh_people_h:"Personas", sh_addperson_ph:"Añadir persona", sh_balances:"Quién debe a quién", sh_settled:"Todo saldado 🎉", sh_settled_short:"saldado", sh_pending:"{n} pago(s) pendiente(s)",
   sh_expenses:"Gastos del grupo", sh_noexp:"Aún no hay gastos. Añade el primero.", sh_paidby:"Pagó {who}", sh_addexp:"Añadir gasto", sh_exp:"Gasto", sh_exp_ph:"Concepto (ej. Cena)", sh_split:"¿Entre quién se reparte?",
   sh_back:"Grupos", sh_delgroup:"Borrar grupo", sh_delgroup_q:"¿Borrar este grupo y sus gastos?",
-  gl_empty_t:"Aún no tienes metas", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
+  gl_empty_t:"Aún no tienes metas", gl_first:"Crear mi primera meta", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
   rr_add:"+ Añadir regla", rr_save:"Guardar regla",
   // INC-0810 es: textos propios de edición de reglas, sin cambiar el contrato de alta.
   rr_edit:"Editar regla",
@@ -2231,7 +2217,7 @@ Object.assign(LANG.en,{
   tab_metas:"Goals", tab_logros:"Achievements",
   gl_total_sub:"of {x} total",
   gl_create:"Create goal", gl_cancel:"Cancel",
-  gl_name_ph:"Name (e.g. Holidays)", gl_target_ph:"Target €", gl_saved_ph:"Already saved €", gl_deadline:"Deadline (optional)", gl_monthly_ph:"Monthly amount € (optional)",
+  gl_name_ph:"E.g. holidays", gl_target_ph:"Target €", gl_saved_ph:"Already saved €", gl_deadline:"Deadline (optional)", gl_deadline_none:"No date", gl_monthly_ph:"Monthly amount € (optional)",
   gl_newdefault:"My goal",
   gl_contribute:"+ Add",
   gl_save:"Save changes", gl_delete:"Delete goal", gl_of:"of",
@@ -2247,7 +2233,7 @@ Object.assign(LANG.en,{
   sh_people:"people", sh_people_h:"People", sh_addperson_ph:"Add person", sh_balances:"Who owes whom", sh_settled:"All settled 🎉", sh_settled_short:"settled", sh_pending:"{n} payment(s) pending",
   sh_expenses:"Group expenses", sh_noexp:"No expenses yet. Add the first one.", sh_paidby:"Paid by {who}", sh_addexp:"Add expense", sh_exp:"Expense", sh_exp_ph:"What (e.g. Dinner)", sh_split:"Split between whom?",
   sh_back:"Groups", sh_delgroup:"Delete group", sh_delgroup_q:"Delete this group and its expenses?",
-  gl_empty_t:"No goals yet", gl_empty_d:"Create your first savings goal and watch it get closer each month.",
+  gl_empty_t:"No goals yet", gl_first:"Create my first goal", gl_empty_d:"Create your first savings goal and watch it get closer each month.",
   rr_add:"+ Add rule", rr_save:"Save rule",
   // INC-0810 en: textos propios de edición de reglas, sin cambiar el contrato de alta.
   rr_edit:"Edit rule",
@@ -2290,7 +2276,7 @@ Object.assign(LANG.ca,{
   tab_metas:"Objectius", tab_logros:"Assoliments",
   gl_total_sub:"de {x} en total",
   gl_create:"Crea objectiu", gl_cancel:"Cancel·la",
-  gl_name_ph:"Nom (ex. Vacances)", gl_target_ph:"Objectiu €", gl_saved_ph:"Ja estalviat €", gl_deadline:"Data límit (opcional)", gl_monthly_ph:"Aportació al mes € (opcional)",
+  gl_name_ph:"Ex.: vacances", gl_target_ph:"Objectiu €", gl_saved_ph:"Ja estalviat €", gl_deadline:"Data límit (opcional)", gl_deadline_none:"Sense data", gl_monthly_ph:"Aportació al mes € (opcional)",
   gl_newdefault:"El meu objectiu",
   gl_contribute:"+ Aporta",
   gl_save:"Desa els canvis", gl_delete:"Elimina objectiu", gl_of:"de",
@@ -2306,7 +2292,7 @@ Object.assign(LANG.ca,{
   sh_people:"persones", sh_people_h:"Persones", sh_addperson_ph:"Afegeix persona", sh_balances:"Qui deu a qui", sh_settled:"Tot saldat 🎉", sh_settled_short:"saldat", sh_pending:"{n} pagament(s) pendent(s)",
   sh_expenses:"Despeses del grup", sh_noexp:"Encara no hi ha despeses. Afegeix la primera.", sh_paidby:"Va pagar {who}", sh_addexp:"Afegeix despesa", sh_exp:"Despesa", sh_exp_ph:"Concepte (ex. Sopar)", sh_split:"Entre qui es reparteix?",
   sh_back:"Grups", sh_delgroup:"Esborra grup", sh_delgroup_q:"Esborrar aquest grup i les seves despeses?",
-  gl_empty_t:"Encara no tens objectius", gl_empty_d:"Crea el teu primer objectiu d'estalvi i mira com s'acosta cada mes.",
+  gl_empty_t:"Encara no tens objectius", gl_first:"Crear el meu primer objectiu", gl_empty_d:"Crea el teu primer objectiu d'estalvi i mira com s'acosta cada mes.",
   rr_add:"+ Afegir regla", rr_save:"Desar regla",
   // INC-0810 ca: textos propios de edición de reglas, sin cambiar el contrato de alta.
   rr_edit:"Edita la regla",
@@ -2428,7 +2414,6 @@ Object.assign(LANG.ca,{
 // --- Privacidad in-app (2026-07-17: antes abría privacy.html en _blank → «muy arriba» bajo el
 // notch y «cuesta tirar para atrás». Ahora es un panel dentro de la app, con safe-area y gesto atrás). ---
 Object.assign(LANG.es,{
-  st_back_settings:"Ajustes",
   pv_title:"Privacidad y datos", pv_updated:"Última actualización: 15 jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"Qué datos guardamos",
   pv_s1:["Tu cartera: cuentas, inversiones, deudas, presupuesto y ajustes (en el móvil y, si inicias sesión, en Supabase).","Gastos: importe, comercio, categoría y fecha.","Conexiones bancarias: estado del enlace Open Banking y tokens de sesión cifrados. No guardamos la contraseña del banco.","MyInvestor: tokens de sesión cifrados tras conectar. La contraseña solo se usa al entrar y no se almacena.","Telemetría mínima (opcional): versión, plataforma y errores — sin datos financieros."],
@@ -2440,7 +2425,6 @@ Object.assign(LANG.es,{
   pv_s4:"Para dudas sobre privacidad: juanjo.avila.chavero@gmail.com",
 });
 Object.assign(LANG.en,{
-  st_back_settings:"Settings",
   pv_title:"Privacy & data", pv_updated:"Last updated: 15 Jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"What we store",
   pv_s1:["Your portfolio: accounts, investments, debts, budget and settings (on the phone and, if you sign in, in Supabase).","Expenses: amount, merchant, category and date.","Bank connections: Open Banking link status and encrypted session tokens. We never store your bank password.","MyInvestor: encrypted session tokens after connecting. The password is only used to sign in and is not stored.","Minimal telemetry (optional): version, platform and errors — no financial data."],
@@ -2452,7 +2436,6 @@ Object.assign(LANG.en,{
   pv_s4:"Privacy questions: juanjo.avila.chavero@gmail.com",
 });
 Object.assign(LANG.ca,{
-  st_back_settings:"Configuració",
   pv_title:"Privacitat i dades", pv_updated:"Última actualització: 15 jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"Quines dades desem",
   pv_s1:["La teva cartera: comptes, inversions, deutes, pressupost i ajustos (al mòbil i, si inicies sessió, a Supabase).","Despeses: import, comerç, categoria i data.","Connexions bancàries: estat de l'enllaç Open Banking i tokens de sessió xifrats. No desem la contrasenya del banc.","MyInvestor: tokens de sessió xifrats després de connectar. La contrasenya només s'usa en entrar i no es desa.","Telemetria mínima (opcional): versió, plataforma i errors — sense dades financeres."],
@@ -2480,7 +2463,7 @@ Object.assign(LANG.es,{
 // --- Open Banking · sección "Mis bancos" (multibanco) ---
 Object.assign(LANG.es,{
   bp_title:"Mis bancos", bp_intro:"Solo lectura · el permiso se renueva cada ~3 meses.",
-  bp_manage:"Gestionar mis bancos", bp_close:"Ajustes", bp_back:"Mis bancos",
+  bp_manage:"Gestionar mis bancos",
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae los últimos meses de {banks} a Gastos. Los recibos fijos, solo si los marcas.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya está en tu Plan · se cuenta una sola vez",
@@ -2545,7 +2528,7 @@ Object.assign(LANG.es,{
 });
 Object.assign(LANG.en,{
   bp_title:"My banks", bp_intro:"Read-only · consent renews every ~3 months.",
-  bp_manage:"Manage my banks", bp_close:"Settings", bp_back:"My banks",
+  bp_manage:"Manage my banks",
   bp_empty:"You haven't connected any bank yet.", bp_add:"Connect a bank",
   bp_hist_pickbank:"Choose which bank to query. Initially, only daily-spending banks are selected.",
   bp_hist_btn:"Import history", bp_hist_title:"Import history", bp_hist_sub:"Brings recent months from {banks} into Spending. Recurring bills only if you mark them.", bp_hist_m:"{n} month(s)", bp_hist_search:"Find transactions", bp_hist_searching:"Searching…", bp_hist_none:"No new transactions in that period (or they're all logged already). Remember: the bank only shows ~90 days.", bp_hist_all_logged:"Accounts shared by {bank}: {accounts}. Transactions supplied: {n}, all already logged. If another account is missing, reconnect the bank and select it; if it still does not appear, the bank is not sharing it with Aely.", bp_hist_view_logged:"View them in Spending", bp_hist_found:"{n} transactions · check and pick destination", bp_hist_notcard:"not a card purchase", bp_hist_import:"Import {n}", bp_hist_done:"✓ {n} imported", bp_hist_as_gasto:"🛒 Spend", bp_hist_as_recibo:"🧾 Bill", bp_hist_as_ingreso:"💰 Income", bp_hist_recibo:"Bill", bp_hist_done_g:"✓ {n} in Spending", bp_hist_done_i:"✓ {n} income", bp_hist_done_r:"✓ {n} bills", bp_hist_dup:"already in your Plan · counted once",
@@ -2610,7 +2593,7 @@ Object.assign(LANG.en,{
 });
 Object.assign(LANG.ca,{
   bp_title:"Els meus bancs", bp_intro:"Només lectura · el permís es renova cada ~3 mesos.",
-  bp_manage:"Gestiona els meus bancs", bp_close:"Configuració", bp_back:"Els meus bancs",
+  bp_manage:"Gestiona els meus bancs",
   bp_empty:"Encara no has connectat cap banc.", bp_add:"Connecta un banc",
   bp_hist_pickbank:"Tria quin banc vols consultar. D'entrada, només estan marcats els bancs de despesa diària.",
   bp_hist_btn:"Importar històric", bp_hist_title:"Importar històric", bp_hist_sub:"Porta els últims mesos de {banks} a Despeses. Els rebuts fixos, només si els marques.", bp_hist_m:"{n} mes(os)", bp_hist_search:"Cerca moviments", bp_hist_searching:"Cercant…", bp_hist_none:"No hi ha moviments nous en aquest període (o ja estan tots apuntats). Recorda: el banc només deixa veure ~90 dies.", bp_hist_all_logged:"Comptes compartits per {bank}: {accounts}. Moviments lliurats: {n}, tots ja apuntats. Si falta un altre compte, torna a connectar el banc i selecciona'l; si encara no apareix, el banc no l'està compartint amb Aely.", bp_hist_view_logged:"Veure'ls a Despeses", bp_hist_found:"{n} moviments · marca i tria destinació", bp_hist_notcard:"no és targeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importats", bp_hist_as_gasto:"🛒 Despesa", bp_hist_as_recibo:"🧾 Rebut", bp_hist_as_ingreso:"💰 Ingrés", bp_hist_recibo:"Rebut", bp_hist_done_g:"✓ {n} a Despeses", bp_hist_done_i:"✓ {n} ingressos", bp_hist_done_r:"✓ {n} rebuts", bp_hist_dup:"ja és al teu Pla · es compta una sola vegada",
@@ -2727,7 +2710,7 @@ Object.assign(LANG.ca,{
 Object.assign(LANG.es,{
   iv_see_all:"Ver todas tus inversiones", iv_title:"Tus inversiones", iv_now:"VALEN AHORA", iv_currency:"Moneda de visualización",
   iv_put:"Pusiste {amount}", iv_gained:"Han ganado {amount}", iv_lost:"Han perdido {amount}",
-  iv_percent:"{pct}% desde que empezaste · Actualizado {time}", iv_updated:"Actualizado {time}", iv_never:"sin actualizar",
+  iv_percent:"{pct}% desde que empezaste · {upd}", iv_updated:"Actualizado {time}", iv_never:"sin actualizar", iv_never_full:"Sin actualizar todavía",
   iv_no_put:"Dime lo que pusiste y te diré cuánto han ganado.", iv_no_put_cta:"Añadir lo que puse",
   iv_where:"Dónde lo tienes", iv_refresh:"↻ Actualizar inversiones", iv_refreshing:"Sincronizando brókers y precios…", iv_broker_none:"Sin brókers conectados",
   iv_refresh_ok:"✓ Precios actualizados · {time}", iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar",
@@ -2740,7 +2723,7 @@ Object.assign(LANG.es,{
 Object.assign(LANG.en,{
   iv_see_all:"See all your investments", iv_title:"Your investments", iv_now:"WORTH NOW", iv_currency:"Display currency",
   iv_put:"You put in {amount}", iv_gained:"They gained {amount}", iv_lost:"They lost {amount}",
-  iv_percent:"{pct}% since you started · Updated {time}", iv_updated:"Updated {time}", iv_never:"not updated yet",
+  iv_percent:"{pct}% since you started · {upd}", iv_updated:"Updated {time}", iv_never:"not updated yet", iv_never_full:"Not updated yet",
   iv_no_put:"Tell me what you put in and I'll show you how much they gained.", iv_no_put_cta:"Add what I put in",
   iv_where:"Where you keep them", iv_refresh:"↻ Update investments", iv_refreshing:"Syncing brokers and prices…", iv_broker_none:"No brokers connected",
   iv_refresh_ok:"✓ Prices updated · {time}", iv_refresh_fail:"Prices could not be updated", iv_refresh_fail_sub:"Your latest data is still here ({time}). You can try again.", iv_retry:"Try again",
@@ -2753,7 +2736,7 @@ Object.assign(LANG.en,{
 Object.assign(LANG.ca,{
   iv_see_all:"Veure totes les inversions", iv_title:"Les teves inversions", iv_now:"VALEN ARA", iv_currency:"Moneda de visualització",
   iv_put:"Hi vas posar {amount}", iv_gained:"Han guanyat {amount}", iv_lost:"Han perdut {amount}",
-  iv_percent:"{pct}% des que vas començar · Actualitzat {time}", iv_updated:"Actualitzat {time}", iv_never:"sense actualitzar",
+  iv_percent:"{pct}% des que vas començar · {upd}", iv_updated:"Actualitzat {time}", iv_never:"sense actualitzar", iv_never_full:"Encara sense actualitzar",
   iv_no_put:"Digues-me què hi vas posar i et diré quant han guanyat.", iv_no_put_cta:"Afegir el que hi vaig posar",
   iv_where:"On ho tens", iv_refresh:"↻ Actualitzar inversions", iv_refreshing:"Sincronitzant bròkers i preus…", iv_broker_none:"Sense bròkers connectats",
   iv_refresh_ok:"✓ Preus actualitzats · {time}", iv_refresh_fail:"No s'han pogut actualitzar els preus", iv_refresh_fail_sub:"Conservem les últimes dades ({time}). Ho pots tornar a provar.", iv_retry:"Torna-ho a provar",
@@ -2935,6 +2918,8 @@ function expenseCountsCash(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
   if(e.possibleDup) return false;
+  // El Saveback que avisa TR no sale de tu efectivo: lo pone TR y va directo al fondo (`recompensaDe`).
+  if(e.category==="inversion" && recompensaDe(e)==="saveback") return false;
   /* El cargo de un recibo del Plan (`cargoDeRecibo`, 12/10/2026) se ve en la lista pero no mueve
      NINGUNA cifra, sea cual sea el rol del banco: el recibo ya resta por calendario
      (`monthNetForAccount`) y esta fila antes ni existía. Dejarla contar lo restaría dos veces
@@ -3052,6 +3037,15 @@ function inversionEtiqueta(s, e){
   const porId=function(id){ return id ? invs.find(function(i){ return i && i.id===id; }) : null; };
   const comprada=porId(e.investInvId);
   if(comprada&&comprada.name) return tf("g_inv_dest",{ name:comprada.name });
+  /* Round up / Saveback de TR (16/11/2026): la posición a la que se sumó o se sumará, o la pista para
+     elegirla (sumará entonces, una vez). Sin ninguna posición de TR no hay nada que pedir: el
+     selector solo ofrece las de TR (`posicionesTR`). */
+  const rk=recompensaDe(e);
+  if(rk){
+    const fila=s&&s.trRecompensas&&s.trRecompensas[e.id];
+    const dest=fila ? porId(fila.inv) : destinoRecompensa(s, rk);
+    return dest&&dest.name ? tf("g_inv_dest",{ name:dest.name }) : (posicionesTR(s).length ? t("rw_pick") : "");
+  }
   const txt=(String(e.merchant||"")+" "+String(e.note||"")+" "+String(e.obName||"")).toLowerCase();
   const ents=["trade_republic","myinvestor"];
   invs.forEach(function(i){ if(i && i.ent && ENT[i.ent] && ents.indexOf(i.ent)<0) ents.push(i.ent); });
@@ -3064,11 +3058,14 @@ function inversionEtiqueta(s, e){
   return premio&&premio.name ? tf("g_inv_dest",{ name:premio.name }) : "";
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
-   que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido). */
+   que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido).
+   Con aviso real de TR, lo que se enseña es lo avisado del mes, no la estimación. */
 function recompensasDelMes(state, trAcc, monthStartMs){
   if(!trAcc) return {ru:0,sb:0};
   const monthExp=((state&&state.expenses)||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs && !cargoDeRecibo(e, state); });
-  return {ru:roundupOf(monthExp,trAcc.roundup||0),sb:trAcc.saveback?savebackOf(monthExp):0};
+  const est=recompensasEstimadas(state, trAcc, monthExp, monthStartMs, false);
+  const d=new Date(monthStartMs), reales=recompensasReales(state, trAcc.ent, monthStartMs, +new Date(d.getFullYear(), d.getMonth()+1, 1));
+  return {ru:reales.hay.roundup?reales.roundup:est.ru, sb:reales.hay.saveback?reales.saveback:est.sb};
 }
 // Cambia el ROL de una cuenta re-anclando `value` para que el saldo mostrado no cambie (se
 // despeja value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario: si
@@ -3087,15 +3084,18 @@ function insumosSaldoGasto(state){
   });
   const trAcc=accounts.find(function(a){ return a.spendFrom; });
   const injTR=(trAcc && nominaYaEntro()) ? accInject(trAcc) : 0;
-  const roundup=trAcc ? ((trAcc.roundupManual!=null)?trAcc.roundupManual:roundupOf(thisMonthExp, trAcc.roundup||0)) : 0;
+  const rec=recompensasEstimadas(state, trAcc, thisMonthExp, +monthStart, true);
+  const roundup=rec.ru, saveback=rec.sb;
   const monthlyInvest=trAcc ? (trAcc.monthlyInvest||0) : 0;
   const now=new Date();
   const curMonth=now.getMonth()+1, curYear=now.getFullYear(), today=now.getDate();
   const paidNetByBank={};
   accounts.forEach(function(a){ if(accFixed(a)) paidNetByBank[a.ent]=(paidNetByBank[a.ent]||0)+monthNetForAccount(state,a.ent,curYear,curMonth,today); });
   const spentByBank=gastoDelMesPorBanco(thisMonthExp, trAcc&&trAcc.ent);
-  return { trAcc:trAcc, thisMonthExp:thisMonthExp, injTR:injTR, roundup:roundup, monthlyInvest:monthlyInvest,
-    spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today };
+  return { trAcc:trAcc, thisMonthExp:thisMonthExp, injTR:injTR, roundup:roundup, saveback:saveback, monthlyInvest:monthlyInvest,
+    spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today,
+    // Avisos de TR aún sin posición: tuyos, cuentan como invertidos hasta aplicarse (`recompensasPendientes`).
+    rewardsPending:recompensasPendientes(state, Date.now()) };
 }
 function applyAccountRole(s, totals, id, r){
   const pn=function(i){ return (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0; };
@@ -3172,7 +3172,8 @@ function reconcileTR(s){
     const key=mk(ay,am);
     // Sin el cargo de un recibo: `monthNetForAccount` ya lo arrastra más abajo, y con la fila
     // dentro una cuenta «para todo» lo restaba dos veces al cruzar de mes (revisión del 12/10/2026).
-    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && !cargoDeRecibo(e, s));
+    // Tampoco el Saveback que avisa TR: no salió del efectivo (`expenseCountsCash`, 16/11/2026).
+    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback");
     /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
        y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
        de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
@@ -3202,20 +3203,31 @@ function reconcileTR(s){
          tarjeta de bancos que no son de gasto diario y el saldo de TR daba un salto el día 1.
          Divergencia vieja, encontrada al revisar FIN-01 (9/9). Misma regla en los dos sitios. */
       const monthExpCash = monthExp.filter(function(e){ return expenseCountsCash(e, s); });
-      const ru = (acc.roundupManual!=null) ? acc.roundupManual : roundupOf(monthExpCash, acc.roundup||0);
-      const sb = (acc.savebackManual!=null) ? acc.savebackManual : (acc.saveback ? savebackOf(monthExpCash) : 0);
+      // Misma regla que en vivo (`recompensasEstimadas`): solo su banco, y nada si TR ya avisó de lo real
+      // (eso ya restó del efectivo y ya sumó a su posición: simularlo otra vez lo contaría dos veces).
+      const rec = recompensasEstimadas(s, acc, monthExpCash, +new Date(ay, am, 1), true);
+      const ru = rec.ru, sb = rec.sb;
       if(ru>0) acc.value = +(acc.value - ru).toFixed(2);             // el round-up abandona el efectivo
       const contrib = ru + sb;                                       // total que entra a la inversión (€)
+      /* Lo estimado en ESTE cierre, por tipo (revisión 236, P2-E): si el primer aviso real de TR llega
+         después con el dinero de este mismo mes, `aplicarRecompensasTR` lo deshace con estas cifras
+         exactas y lo paga el aviso, en vez de contarlo dos veces. */
+      const est = { ym:key, at:+now };
+      if(ru>0) est.roundup = { eur:ru, inv:null, c:0, sh:0 };
+      if(sb>0) est.saveback = { eur:sb, inv:null, c:0, sh:0 };
       if(contrib>0 && acc.rewardInv){
         const inv = s.investments && s.investments.find(function(i){ return i.id===acc.rewardInv; });
         if(inv){
           const cInv = inv.cur==="USD" ? contrib/(s.fx||1) : contrib;   // a la moneda de la inversión
-          if(inv.shares>0 && inv.value>0) inv.shares = +(inv.shares + cInv/(inv.value/inv.shares)).toFixed(6);
+          const precio = (inv.shares>0 && inv.value>0) ? inv.value/inv.shares : 0;
+          if(precio) inv.shares = +(inv.shares + cInv/precio).toFixed(6);
           inv.value = +((inv.value||0)+cInv).toFixed(2);
           inv.cost  = +((inv.cost||0)+cInv).toFixed(2);
+          ["roundup","saveback"].forEach(function(k){ const x=est[k]; if(!x) return; x.inv=inv.id; x.c=+(cInv*x.eur/contrib).toFixed(6); x.sh=precio?+(x.c/precio).toFixed(6):0; });
         }
         s.trRewardsTotal = +(((s.trRewardsTotal||0)+contrib)).toFixed(2);   // acumulado histórico (€)
       }
+      if(est.roundup || est.saveback) acc.trCierreEstimado = est; else delete acc.trCierreEstimado;
       // Aporte periódico a inversión (plan de ahorro, p.ej. 50€/mes al FTSE): sale del efectivo y
       // compra participaciones en su destino (por defecto el mismo del round-up).
       const mi = acc.monthlyInvest||0;
@@ -3263,12 +3275,213 @@ const FREQ_M = { mes:1, mensual:1, bimestral:1/2, trimestral:1/3, semestral:1/6,
 function spareOf(amt){ amt=Math.abs(amt||0); return +(Math.floor(amt)+1-amt).toFixed(2); }
 // Round-up/saveback SOLO cuentan compras con tarjeta: gasto real (amount>0) que no esté
 // marcado noCard (bizum/transferencia a personas, que TR no redondea ni bonifica).
-function isCardSpend(e){ return e && e.amount>0 && !e.noCard; }
+// Tampoco lo que ya es inversión, traspaso o cuota: no es una compra (el propio Round up que avisa TR
+// no puede redondearse a sí mismo).
+function isCardSpend(e){ return e && e.amount>0 && !e.noCard && !CAT_NEUTRAS[e.category]; }
 // Round-up total de una lista de gastos × multiplicador.
 function roundupOf(expenses, mult){ if(!mult||mult<=0) return 0; let s=0; (expenses||[]).forEach(function(e){ if(isCardSpend(e)) s+=spareOf(e.amount); }); return +(s*mult).toFixed(2); }
 // Saveback: 1% del gasto con tarjeta del periodo, tope 15€/mes (dinero gratis de TR).
 function savebackOf(expenses){ let g=0; (expenses||[]).forEach(function(e){ if(isCardSpend(e)) g+=e.amount; }); return +Math.min(15, g*0.01).toFixed(2); }
 const RU_MULTS=[0,2,3,5,10];
+
+/* ROUND UP Y SAVEBACK QUE AVISA TRADE REPUBLIC (16/11/2026, petición suya). `ingest` los apunta en
+   Inversión con nombre fijo («Round up» / «Saveback», también en `obName`, así que renombrar la fila no
+   le quita lo que es). Qué hace cada uno con el dinero, y por qué:
+   · Round up: es TU efectivo que TR manda al fondo. Sale del saldo (como la salida del banco, a la que
+     sustituye: el «Movimiento» sin nombre que trae luego el banco se empareja solo con él y deja de
+     contar). No es gasto: el gasto ya fueron las compras redondeadas. Patrimonio: −X efectivo +X fondo.
+   · Saveback: lo pone TR. Su banco lo abona y lo retira al día siguiente (CRDT + DBIT), así que tu
+     efectivo no cambia: esta fila NO cuenta en el saldo, ni como ingreso ni como gasto. Lo único que
+     cambia es el fondo (+X), y con él el patrimonio, una sola vez.
+   → "roundup" | "saveback" | null. Solo lo que llega por el aviso de TR, nunca un apunte a mano. */
+const RECOMPENSA_POR_NOMBRE={ "round up":"roundup", "saveback":"saveback" };
+function recompensaDe(e){
+  if(!e || e.category!=="inversion" || e.source!=="macrodroid" || expenseBankOf(e)!=="trade_republic") return null;
+  return RECOMPENSA_POR_NOMBRE[String(e.obName!=null?e.obName:(e.merchant||"")).trim().toLowerCase()]||null;
+}
+/* Las filas de aviso, una vez por array de gastos: el histórico entero se recorre solo cuando cambia
+   (lo leen el saldo, Cartera, el reto y el efecto que las aplica). → [{e, k, ms}]. */
+const filasRecompensaCache=new WeakMap();
+function filasRecompensa(state){
+  const exps=state&&state.expenses;
+  if(!Array.isArray(exps)) return [];
+  let out=filasRecompensaCache.get(exps);
+  if(out) return out;
+  out=[];
+  exps.forEach(function(e){ if(!e || e.category!=="inversion") return; const k=recompensaDe(e); if(k) out.push({ e:e, k:k, ms:dateMs(e.date) }); });
+  filasRecompensaCache.set(exps, out);
+  return out;
+}
+/* Lo que avisó TR en una ventana: {roundup:€, saveback:€, hay:{roundup,saveback}}. `hay` mira 40 días
+   antes de `desde` porque TR invierte el redondeo de un mes ya entrado el siguiente. */
+function recompensasReales(state, ent, desdeMs, hastaMs){
+  const out={ roundup:0, saveback:0, hay:{} };
+  if(!state || ent!=="trade_republic") return out;
+  const filas=filasRecompensa(state);
+  if(!filas.length) return out;
+  const del=expenseDeletedSet(state);
+  filas.forEach(function(f){
+    if(f.e.possibleDup || expenseIsTombstoned(f.e,del)) return;
+    if(f.ms>=desdeMs-40*864e5) out.hay[f.k]=true;
+    if(f.ms>=desdeMs && f.ms<hastaMs) out[f.k]=+(out[f.k]+(Number(f.e.amount)||0)).toFixed(2);
+  });
+  return out;
+}
+/* EL REDONDEO Y EL SAVEBACK ESTIMADOS, EN UN SOLO SITIO (16/11/2026). Vivían copiados en cinco
+   (saldo, re-anclaje del banco, cierre de mes, patrimonio y Cartera) y contaban mal dos cosas:
+   1. Compras de CUALQUIER banco y el efectivo («roundup/saveback contando cash y otros bancos»): TR solo
+      redondea lo pagado con SU tarjeta. Ahora: lo de ese banco y lo apuntado a mano sin banco.
+   2. Con el aviso real de TR, la estimación seguía restando del saldo y sumando al patrimonio: el mismo
+      dinero dos veces. Desde el PRIMER aviso real de un tipo (`trAvisosDesde`, que no caduca) su
+      estimación es 0 para siempre; la ventana de 40 días cubre lo que aún no se ha aplicado.
+   `manual`: el importe que él tecleó en Cartera, que gana a la estimación (no a lo real).
+   → {ru, sb} en euros. */
+function recompensasEstimadas(state, acc, gastos, mesMs, manual){
+  if(!acc) return { ru:0, sb:0 };
+  const d=new Date(mesMs), sig=+new Date(d.getFullYear(), d.getMonth()+1, 1);
+  const reales=recompensasReales(state, acc.ent, mesMs, sig), desde=acc.trAvisosDesde||{};
+  // `trAvisosDesde` es una FECHA: un mes que acabó más de 40 días antes del primer aviso no lo cubre
+  // ningún aviso (TR invierte lo de un mes ya entrado el siguiente), así que un cierre de puesta al día
+  // de esos meses sí estima.
+  const real=function(k){ return !!(reales.hay[k] || (desde[k] && sig>desde[k]-40*864e5)); };
+  const propias=(gastos||[]).filter(function(e){ const b=expenseBankOf(e); return b ? b===acc.ent : accDaily(acc); });
+  const ru=real("roundup") ? 0 : (manual && acc.roundupManual!=null ? acc.roundupManual : roundupOf(propias, acc.roundup||0));
+  const sb=real("saveback") ? 0 : (manual && acc.savebackManual!=null ? acc.savebackManual : (acc.saveback ? savebackOf(propias) : 0));
+  return { ru:ru, sb:sb };
+}
+/* A qué posición va cada uno. Round up → `rewardInv` (el mismo destino de siempre); Saveback →
+   `savebackInv`, y si nunca se eligió, el de siempre. "" = ninguno a propósito. */
+/* Solo una posición de TR puede recibirlos: TR invierte el redondeo en su casa, nunca en un fondo de
+   otro bróker. Un `rewardInv` que apunte a otro (lo dejaba elegir el ajuste viejo, sin filtrar) no es
+   destino: el aviso queda pendiente hasta elegir una de TR (filtro de diseño 237, F3). */
+function posicionesTR(state){
+  return ((state&&state.investments)||[]).filter(function(i){ return i && i.ent==="trade_republic"; });
+}
+function destinoRecompensa(state, k){
+  const acc=((state&&state.accounts)||[]).find(function(a){ return a && a.ent==="trade_republic"; });
+  if(!acc) return null;
+  const id=k==="saveback" && acc.savebackInv!=null ? acc.savebackInv : acc.rewardInv;
+  return id ? (posicionesTR(state).find(function(i){ return i.id===id; })||null) : null;
+}
+const RECOMPENSA_VENTANA_MS=120*864e5;
+/* Avisos que aún no están en ninguna posición (sin destino elegido, o sin tipo de cambio para una en
+   dólares). Siguen siendo tuyos: el patrimonio los cuenta como invertidos hasta que se apliquen, para
+   que un Round up sin destino no lo baje (revisión de dinero 236, P2-D). Sin límite de días: pasada la
+   ventana ya no se aplica solo, pero sigue siendo tuyo y el neto no cae de golpe. Lo ya aplicado nunca
+   cuenta aquí porque su entrada del libro no se borra (se compacta). → euros. */
+function recompensasPendientes(state, nowMs){
+  const led=(state&&state.trRecompensas)||{}, filas=filasRecompensa(state);
+  if(!filas.length) return 0;
+  const del=expenseDeletedSet(state);
+  let n=0;
+  filas.forEach(function(f){
+    if(led[f.e.id] || f.e.possibleDup || f.e.pending || !(Number(f.e.amount)>0) || expenseIsTombstoned(f.e,del)) return;
+    n+=Number(f.e.amount);
+  });
+  return +n.toFixed(2);
+}
+/* Deshace lo que sumó un aviso a su posición (`reverseInvestBuy` con lo que se guardó, no recalculado):
+   al sacarlo de Inversión o al borrarlo (revisión 236, P1-B). Lo que ya traía el puente de TR no se
+   sumó, así que no se resta; su marca se queda para no sumarlo si vuelve a Inversión. */
+function revertirRecompensa(state, id){
+  const led=state&&state.trRecompensas, f=led&&led[id];
+  // Una entrada compactada (más de un año, sin `inv` ni `x`) tampoco: borrarla haría que el aviso
+  // volviera a contar como pendiente con la posición ya sumada (re-revisión 236).
+  if(!f || f.puente || (!f.inv && !f.x)) return state;
+  const s=f.inv ? reverseInvestBuy(state, f.inv, f.sh, f.c, f.eur) : state;
+  const nuevo=Object.assign({},led); delete nuevo[id];
+  return Object.assign({},s,{ trRecompensas:nuevo });
+}
+/* ¿Hay un aviso vivo de TR para este apunte del banco? Mismo banco y céntimo en ±3 días. Si él marca a
+   mano como Inversión ese «Movimiento», el dinero ya lo sumó el aviso: no se compra otra vez (P1-B). */
+function avisoRecompensaGemelo(state, e){
+  if(!e || !esFilaDeBanco(e) || expenseBankOf(e)!=="trade_republic") return false;
+  const c=Math.round(Number(e.amount)*100), ms=dateMs(e.date), del=expenseDeletedSet(state);
+  return filasRecompensa(state).some(function(f){
+    return Math.round(Number(f.e.amount)*100)===c && Math.abs(f.ms-ms)<=3*864e5 && !expenseIsTombstoned(f.e,del);
+  });
+}
+/* SUMAR CADA AVISO A SU POSICIÓN, UNA SOLA VEZ (16/11/2026). Aportación y coste suben lo mismo (y las
+   participaciones al precio de hoy), igual que `applyInvestBuy`. Lo ya sumado vive en
+   `trRecompensas[id de la fila]`, que viaja con la cartera en el mismo estado: un segundo móvil, un
+   pull o reabrir la app no lo vuelven a sumar. Lo llama un efecto SOLO tras un pull de estado bueno
+   (11-app-main), para no escribir encima de una cartera vieja.
+   · Sin destino (o sin cambio para una posición en dólares): queda pendiente, contado como invertido
+     (`recompensasPendientes`), y se aplica una vez cuando lo haya.
+   · Si el puente de TR leyó la posición DESPUÉS del aviso (`brokerAt`), su cifra ya lo incluye.
+   · Un posible repetido espera a que se resuelva. Un aviso borrado (lápida) devuelve lo que sumó.
+   · El PRIMER aviso de cada tipo apaga para siempre su estimación (`trAvisosDesde`) y deshace la del
+     último cierre de mes (`trCierreEstimado`): ese dinero lo paga ahora el aviso real (P2-E).
+   Pura; devuelve el MISMO estado si no hay nada nuevo (corre en un efecto con cada cambio). */
+function aplicarRecompensasTR(state, nowMs){
+  const filas=filasRecompensa(state), prev=(state&&state.trRecompensas)||{};
+  if(!filas.length && !Object.keys(prev).length) return state;
+  const desde=nowMs-RECOMPENSA_VENTANA_MS, del=expenseDeletedSet(state);
+  let led=null, s=state;
+  const libro=function(){ if(!led) led=Object.assign({},prev); return led; };
+  /* Borrado en cualquier móvil: devuelve lo sumado. Se decide por ID, no por contenido (re-revisión 236,
+     P2-N): mientras la fila siga en los gastos NO se revierte —un «es el mismo» sobre un aviso repetido
+     deja una lápida con la misma clave que el vivo—, y su copia `x` se refresca entera en cada pasada
+     para que la lápida de un renombrado o de una identidad nativa case. Solo ausente por id y con
+     lápida se devuelve. Ausente es fiable: esto corre tras un pull completo. */
+  const vivas=new Map();
+  (state.expenses||[]).forEach(function(e){ if(e && e.id!=null) vivas.set(e.id, e); });
+  Object.keys(prev).forEach(function(id){
+    const f=prev[id];
+    if(!f || !f.x) return;
+    const viva=vivas.get(id);
+    if(viva){
+      const x=Object.assign({},viva);
+      if(JSON.stringify(x)!==JSON.stringify(f.x)) libro()[id]=Object.assign({},f,{ x:x });
+      return;
+    }
+    // Renombrada y borrada sin una pasada entre medias, la lápida lleva el nombre nuevo: vale una del
+    // mismo día e importe, porque la fila ya falta por id (re-revisión 236).
+    const pre=String(f.x.date).slice(0,10)+"|"+f.x.amount+"|";
+    const lapida=expenseIsTombstoned(f.x,del) || (state.deleted||[]).some(function(k){ return typeof k==="string" && k.indexOf(pre)===0; });
+    if(!f.puente && lapida){ s=revertirRecompensa(Object.assign({},s,{trRecompensas:libro()}), id); led=s.trRecompensas; }
+  });
+  const accIx=(s.accounts||[]).findIndex(function(a){ return a && a.ent==="trade_republic"; });
+  filas.forEach(function(f){
+    const e=f.e, k=f.k, ms=f.ms;
+    if(prev[e.id] || (led&&led[e.id]) || e.possibleDup || e.pending || !(Number(e.amount)>0) || !(ms>=desde) || expenseIsTombstoned(e,del)) return;
+    const acc=accIx>=0 ? s.accounts[accIx] : null;
+    if(acc && !(acc.trAvisosDesde&&acc.trAvisosDesde[k])){
+      const a=Object.assign({},acc,{ trAvisosDesde:Object.assign({},acc.trAvisosDesde,(function(){ const o={}; o[k]=ms; return o; })()) });
+      const ce=a.trCierreEstimado, est=ce&&ce[k];
+      // El cierre del mes anterior al aviso (o de su mismo mes) estimó este dinero: fuera, lo paga el aviso.
+      const mesAviso=mkOf(new Date(ms)), mesAntes=mkOf(new Date(new Date(ms).getFullYear(), new Date(ms).getMonth()-1, 1));
+      if(est && (ce.ym===mesAviso || ce.ym===mesAntes)){
+        if(k==="roundup") a.value=+((a.value||0)+est.eur).toFixed(2);
+        // Si el puente de TR reescribió esa posición después del cierre, lo estimado ya no está en ella.
+        const pos=est.inv && (s.investments||[]).find(function(i){ return i.id===est.inv; });
+        if(est.inv && est.c && !(pos && pos.brokerAt && ce.at && pos.brokerAt>=ce.at)) s=reverseInvestBuy(s, est.inv, est.sh, est.c, est.eur);
+        const resto=Object.assign({},ce); delete resto[k]; a.trCierreEstimado=resto;
+      }
+      s=Object.assign({},s,{ accounts:s.accounts.map(function(x,i){ return i===accIx?a:x; }) });
+    }
+    const inv=destinoRecompensa(s, k);
+    if(!inv) return;
+    const eur=+Number(e.amount).toFixed(2);
+    const x=Object.assign({},e);
+    if(inv.brokerAt && inv.brokerAt>=ms){ libro()[e.id]={ k:k, d:ms, eur:eur, inv:inv.id, sh:0, c:0, puente:true, x:x }; return; }
+    const c=fromEurAmt(eur, inv.cur||"EUR", s);
+    if(c==null) return;
+    const sh=(inv.shares>0 && inv.value>0) ? +(c/(inv.value/inv.shares)).toFixed(6) : 0;
+    const nuevo=Object.assign({},inv,{ shares:+(((inv.shares||0)+sh)).toFixed(6), value:+(((inv.value||0)+c)).toFixed(2), cost:+(((inv.cost||0)+c)).toFixed(2) });
+    s=Object.assign({},s,{ investments:(s.investments||[]).map(function(i){ return i.id===inv.id?nuevo:i; }),
+      trRewardsTotal:+(((s.trRewardsTotal||0)+eur)).toFixed(2) });
+    libro()[e.id]={ k:k, d:ms, eur:eur, inv:inv.id, sh:sh, c:c, x:x };
+  });
+  if(!led && s===state) return state;
+  if(led){
+    // Pasado el año ya no se deshace nada: se compacta a {k, d} para que no crezca, pero NO se borra
+    // (sin entrada, `recompensasPendientes` lo volvería a contar).
+    Object.keys(led).forEach(function(id){ const f=led[id]; if(f && !(f.d>=nowMs-365*864e5) && f.x) led[id]={ k:f.k, d:f.d }; });
+    s=Object.assign({},s,{ trRecompensas:led });
+  }
+  return s;
+}
 
 /* ---- Metas de ahorro (#15): helpers de progreso/previsión + celebración ---- */
 const GOAL_EMOJIS=["🎯","✈️","🏠","🚗","💍","🎓","🛟","🎮","💻","🏖️","🎁","💰","📱","🐱"];
@@ -3331,7 +3544,8 @@ function goalEta(g, monthlySaving){
     if(m>0 && m>=need) return {text:tf("gl_eta_ok",{x:eur0(rem),m:dl}), cls:"ok"};
     return {text:tf("gl_eta_behind",{x:eur0(need)}), cls:"warn"};
   }
-  if(m>0){ const months=Math.max(1,Math.ceil(rem/m)); return {text:tf("gl_eta",{x:eur0(m),when:monthYearIn(months)}), cls:""}; }
+  // En céntimos, como las cuotas de deuda: 72,45 a 10,35 al mes son 7 meses, no 8 (revisión 237).
+  if(Math.round(m*100)>0){ const months=Math.max(1,cuotasQueQuedan(rem,m)); return {text:tf("gl_eta",{x:eur0(m),when:monthYearIn(months)}), cls:""}; }
   return {text:t("gl_eta_nosaving"), cls:""};
 }
 // confeti DOM: ligero, se autolimpia. Para celebrar una meta cumplida.
@@ -3361,40 +3575,105 @@ function celebrate(){
 const RU_GOAL=30;                       // €/mes objetivo de round-up+saveback (reto)
 const GM_LEVELS=[0,250,1000,3000,8000]; // umbrales de savedScore por nivel
 function median(arr){ const a=(arr||[]).slice().sort(function(x,y){return x-y;}); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; }
-// Detector de SUSCRIPCIONES / cargos recurrentes: mismo comercio en ≥3 meses distintos con importe
-// estable (≥60% dentro de ±25% de la mediana). Devuelve {key,name,cat,amount,months,last,active,yearly,span,ult,lastMs}.
+/* Detector de SUSCRIPCIONES: el mismo cobro que se repite con un periodo fijo. Se mira CADA cobro,
+   no lo que suma el mes: antes se agrupaba por suma mensual y quien va al súper cada semana gasta
+   parecido cada mes, así que Mercadona, Repsol, el bar y hasta la cuota del coche salían como
+   «5 meses seguidos» y la bandeja decía 913 € al mes (auditoría de diseño 237, P1-3). Ahora, por
+   comercio:
+   · los cobros se juntan por IMPORTE casi igual (±10 %, mínimo 0,50 €: una subida de 12,99 a
+     13,99 sigue siendo la misma). Así Apple con iCloud y Music son dos, y Prime no se pierde entre
+     las compras de Amazon con el mismo nombre;
+   · cada grupo tiene que repetirse con PERIODO regular, semana, mes o año, con la holgura del
+     banco al apuntar (`PERIODOS`) y como mucho la mitad de los periodos sin cobro;
+   · fuera lo que nunca es una suscripción: ingresos, cuotas de deuda (`debtId`, ya restan en el
+     Plan), lo enlazado a un recibo (`reciboId`), traspasos e inversiones, posibles duplicados y el
+     gasto diario (`NO_CAT`): el súper o la gasolina pueden caer un mes 50 € justos y no son
+     una suscripción.
+   Lo que ya es un recibo por nombre o por el motor de pagos lo quita la vista (`subsDeRecibos`).
+   Devuelve {key,mkey,name,cat,per,amount,mensual,yearly,months,span,last,active,ult,lastMs}:
+   `amount` es lo de CADA cobro (la mediana de los tres últimos), `mensual` lo que pesa al mes,
+   `months`/`span` los cobros y los periodos del primero al último (iguales = ninguno saltado). */
 function detectSubscriptions(expenses){
-  const now=new Date();
+  /* Las reglas van DENTRO de la función: el registro de la beta vigila lo que lee cada una, y un
+     ayudante o una tabla global nuevos la dejarían «sin vigilar» en todas las tandas que la usan. */
+  // Nunca son una suscripción: el gasto diario, lo que mueve tu dinero (traspaso, inversión, cuota
+  // de deuda) y los ingresos.
+  const NO_CAT={ super:1, pan:1, bares:1, gasolina:1, heladeria:1, taxi:1, parking:1, zona_azul:1, peajes:1,
+    ingreso:1, traspaso:1, inversion:1, deudas:1 };
+  // Periodo en días, holgura del banco al apuntar, cobros mínimos, periodos que puede saltar seguidos
+  // y cuánto puede pasar desde el último para seguir viva. El mes va primero: un cobro cada 28 días
+  // es un mes, no cuatro semanas.
+  const PERIODOS=[
+    {per:"mes",    d:30.44, tol:5,  min:3, salto:3, viva:0},
+    {per:"semana", d:7,     tol:2,  min:4, salto:1, viva:21},
+    {per:"anio",   d:365.25,tol:20, min:2, salto:1, viva:400}
+  ];
+  const periodo=function(ms){
+    for(let i=0;i<PERIODOS.length;i++){
+      const p=PERIODOS[i];
+      if(ms.length<p.min) continue;
+      let slots=1, ok=true;
+      for(let j=1;j<ms.length && ok;j++){
+        const d=(ms[j]-ms[j-1])/864e5, k=Math.round(d/p.d);
+        if(k<1 || k>p.salto || Math.abs(d-k*p.d)>p.tol+(k-1)) ok=false;
+        slots+=k;
+      }
+      if(ok && ms.length*2>=slots) return {p:p, slots:slots};
+    }
+    return null;
+  };
+  const now=new Date(), nowMs=now.getTime();
   const activeCut=mk(now.getFullYear(), now.getMonth()-2);   // visto en los últimos ~2 meses = sigue activa
   const groups={};
   (expenses||[]).forEach(function(e){
-    if(!(e.amount>0)) return; const k=catKey(e.merchant); if(!k) return;
+    if(!e || !(e.amount>0)) return; const k=catKey(e.merchant); if(!k) return;
     // Lo que ya es un recibo del Plan no se vuelve a proponer como suscripción nueva. Aquí no
     // hay estado a mano: vale la marca a secas, que es solo una sugerencia que deja de salir.
-    if(e.reciboId) return;
-    const mkey=mkOf(parseDate(e.date));
-    const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,byMonth:{},ult:[]});
-    g.byMonth[mkey]=(g.byMonth[mkey]||0)+e.amount; g.name=e.merchant||g.name; g.cat=e.category;
-    // Los tres cobros más recientes, para su ficha (Gastos v5): fechas, día y banco salen de
-    // cargos reales, no de la mediana. Se guarda la referencia, sin copiar el histórico.
-    const ms=dateMs(e.date), u=g.ult;
-    if(u.length<3 || ms>u[u.length-1].ms){ u.push({ms:ms,amount:e.amount,e:e}); u.sort(function(a,b){ return b.ms-a.ms; }); if(u.length>3) u.pop(); }
+    if(e.reciboId || e.debtId || e.possibleDup || e.autoGemelo) return;
+    if(NO_CAT[e.category]) return;
+    const ms=dateMs(e.date); if(!isFinite(ms)) return;
+    const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,lastMs:-Infinity,rows:[]});
+    // Nombre y categoría, los del cobro más reciente (el orden del histórico no está garantizado).
+    if(ms>=g.lastMs){ g.lastMs=ms; g.name=e.merchant||g.name; g.cat=e.category; }
+    g.rows.push({ms:ms,amount:e.amount,e:e});
   });
   const subs=[];
   Object.keys(groups).forEach(function(k){
-    const g=groups[k]; const months=Object.keys(g.byMonth).sort(); if(months.length<3) return;
-    const amts=months.map(function(m){ return g.byMonth[m]; });
-    const med=median(amts); if(med<=0) return;
-    const consistent=amts.filter(function(a){ return Math.abs(a-med)<=Math.max(1,med*0.25); }).length;
-    if(consistent < Math.ceil(months.length*0.6)) return;
-    const last=months[months.length-1];
-    // `span`: meses de calendario del primero al último. Igual a `months` = todos seguidos; si
-    // no, la ficha no puede afirmar «cada mes» (y lo del año es la mediana × 12, como siempre).
-    const ym=function(m){ return +m.slice(0,4)*12 + +m.slice(5); };
-    subs.push({ key:k, name:g.name, cat:g.cat, amount:+med.toFixed(2), months:months.length, last:last, active:last>=activeCut, yearly:Math.round(med*12),
-      span:ym(last)-ym(months[0])+1, ult:g.ult, lastMs:g.ult[0].ms });
+    const g=groups[k];
+    // Grupos por importe: cada cobro va con el primero (el más barato) al que se parece.
+    const grupos=[];
+    g.rows.slice().sort(function(a,b){ return a.amount-b.amount; }).forEach(function(x){
+      const gr=grupos[grupos.length-1];
+      if(gr && x.amount<=gr.base+Math.max(0.5,gr.base*0.10)) gr.rows.push(x);
+      else grupos.push({base:x.amount, rows:[x]});
+    });
+    const hallados=[];
+    grupos.forEach(function(gr){
+      const rows=gr.rows.sort(function(a,b){ return a.ms-b.ms; });
+      // Dos cobros el mismo día no son dos periodos: cuenta uno.
+      const ms=[]; rows.forEach(function(x){ if(!ms.length || x.ms-ms[ms.length-1]>864e5/2) ms.push(x.ms); });
+      const r=periodo(ms); if(!r) return;
+      // Los tres cobros más recientes, para su ficha (Gastos v5): fechas, día y banco salen de
+      // cargos reales. Se guarda la referencia, sin copiar el histórico.
+      const ult=rows.slice(-3).reverse(), p=r.p;
+      const lastMs=ult[0].ms, last=mkOf(parseDate(ult[0].e.date));
+      const amount=+median(ult.map(function(x){ return x.amount; })).toFixed(2);
+      const active=p.viva ? nowMs-lastMs<=p.viva*864e5 : last>=activeCut;
+      const porAnio=p.per==="mes"?12:p.per==="semana"?52:1;
+      hallados.push({ mkey:k, name:g.name, cat:g.cat, per:p.per, amount:amount, mensual:+(amount*porAnio/12).toFixed(2),
+        yearly:Math.round(amount*porAnio), months:ms.length, span:r.slots, last:last, active:active, ult:ult, lastMs:lastMs });
+    });
+    // La clave de siempre (`catKey`, la que guardan «descartar» y «dada de baja») para la más cara;
+    // si el mismo comercio cobra otra, la suya lleva el importe para no pisarse.
+    hallados.sort(function(a,b){ return b.mensual-a.mensual; }).forEach(function(sp,i){
+      sp.key=i?k+"#"+Math.round(sp.amount*100):k;
+      subs.push(sp);
+    });
   });
-  return subs.sort(function(a,b){ return b.amount-a.amount; });
+  // Por periodo (mes, semana, año) y dentro de cada uno de más a menos: la tarjeta enseña lo de
+  // cada cobro, y un anual de 39,99 € entre dos mensuales de 2 y 5 € parecía mal ordenado.
+  const rango={mes:0,semana:1,anio:2};
+  return subs.sort(function(a,b){ return rango[a.per]-rango[b.per] || b.amount-a.amount; });
 }
 /* Presupuesto por mes: no se usa el tope actual para juzgar meses antiguos. Antes ese atajo
    convertía cualquier cambio de presupuesto en una racha falsa (feedback 18/9). */
@@ -3485,7 +3764,9 @@ function gamifOf(state, totals, budgetStreak){
   const bs=dashboardBudgetStats(state);
   const budget=bs.budget!=null?bs.budget:(state.budget||0);
   const spent=Math.max(0, bs.against||0);
-  const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0))).toFixed(2);
+  // Lo avisado por TR también cuenta (su estimación ya vale 0 entonces: no se suma dos veces).
+  const mes0=startOfMonth(), rr=recompensasReales(state, "trade_republic", +mes0, +new Date(mes0.getFullYear(), mes0.getMonth()+1, 1));
+  const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0)+rr.roundup+rr.saveback)).toFixed(2);
   const budgetReto={ id:"budget", spent:spent, budget:budget, margin:+(budget-spent).toFixed(2), done:budget>0&&spent<=budget, pct: budget>0?Math.min(100,spent/budget*100):0 };
   const ruReto={ id:"roundup", cur:ruCur, goal:RU_GOAL, done:ruCur>=RU_GOAL, pct:Math.min(100,ruCur/RU_GOAL*100) };
   const streak=budgetStreak||underBudgetStreak(state);
@@ -3903,6 +4184,9 @@ Object.assign(LANG.ca,{g_rename_pending:"Nom pendent de confirmar. Es conserva e
 Object.assign(LANG.es,{g_rename_paused:"No se ha podido confirmar el nombre. Sigue guardado en este dispositivo. Pulsa Reintentar cuando quieras volver a enviarlo."});
 Object.assign(LANG.en,{g_rename_paused:"The name could not be confirmed. It is still saved on this device. Tap Retry when you want to send it again."});
 Object.assign(LANG.ca,{g_rename_paused:"No s'ha pogut confirmar el nom. Continua desat en aquest dispositiu. Prem Torna-ho a provar quan el vulguis tornar a enviar."});
+Object.assign(LANG.es,{g_mov_reorden:"mantén pulsado para cambiar su orden en el día"});
+Object.assign(LANG.en,{g_mov_reorden:"press and hold to change its order within the day"});
+Object.assign(LANG.ca,{g_mov_reorden:"mantén premut per canviar-ne l'ordre dins del dia"});
 function loadState(){
   const saved = mcLoadRaw(mcStateKey());
   if(saved && saved.accounts){
@@ -3916,7 +4200,8 @@ function loadState(){
     if(saved.trasAbonoDesde==null) saved.trasAbonoDesde=sellarAbonoTraspasos({}).trasAbonoDesde;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
-    const now=new Date(), s=liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()))));
+    // Dos cuentas con la misma clave mezclaban sus cierres en la gráfica (R8, 15/11/2026): cada una la suya.
+    const now=new Date(), s=accountKeysUnicas(liberarReservasHuerfanas(perfilSinDatosBanco(reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate())))));
     if(writeBack || s!==seeded) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);
     applyA11y(s);
@@ -4263,7 +4548,7 @@ Object.assign(LANG.ca, {
 });
 // Plan › Recibos v6, tanda 5: personas, recibos compartidos, «Te deben» y «Lo descuento» (SPEC §5-§6).
 Object.assign(LANG.es,{
-  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya te ha pagado su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
+  pr6_pagas_mas:"pagas {a} + {b} de {from}", pr6_te_han_pagado:"te han pagado {a} de {n}", pr6_su_parte_ok:"ya pagó su parte", pr6_su_parte_falta:"falta su parte", pr6_tu_parte:"Tu parte {x}",
   pr6_te_deben:"Te deben {x}", pr6_te_deben_t:"Te deben", pr6_te_han_pagado_todos:"Te han pagado todos",
   pr6_ya_me_lo_ha_pagado:"Ya me lo ha pagado", pr6_deben_saldar:"Dar por pagado", pr6_deben_parcial:"pagó {a} · falta {b}", pr6_deben_via_dia:"{via} el {d}", pr6_te_lo_ha_pagado:"Te lo ha pagado", pr6_deben_pend:"pendiente",
   pe_title:"Personas", pe_add:"Añadir una persona", pe_nueva:"Nueva persona", pe_nombre:"Nombre",
@@ -4275,7 +4560,7 @@ Object.assign(LANG.es,{
   rp5_rehacer:"Estas partes ya no cuadraban: revísalas y guarda", pe_viejo_ajustar:"En {name} ajustarás las partes antes de guardar"
 });
 Object.assign(LANG.en,{
-  pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_su_parte_ok:"their share is paid", pr6_su_parte_falta:"their share is pending", pr6_tu_parte:"Your share {x}",
+  pr6_pagas_mas:"you pay {a} + {b} from {from}", pr6_te_han_pagado:"{a} of {n} have paid you", pr6_su_parte_ok:"share paid", pr6_su_parte_falta:"share pending", pr6_tu_parte:"Your share {x}",
   pr6_te_deben:"You're owed {x}", pr6_te_deben_t:"You're owed", pr6_te_han_pagado_todos:"Everyone has paid you",
   pr6_ya_me_lo_ha_pagado:"They've paid me", pr6_deben_saldar:"Mark as paid", pr6_deben_parcial:"paid {a} · {b} left", pr6_deben_via_dia:"{via}, day {d}", pr6_te_lo_ha_pagado:"Paid you", pr6_deben_pend:"pending",
   pe_title:"People", pe_add:"Add a person", pe_nueva:"New person", pe_nombre:"Name",
@@ -4287,7 +4572,7 @@ Object.assign(LANG.en,{
   rp5_rehacer:"These shares no longer added up: check them and save", pe_viejo_ajustar:"You'll adjust the shares of {name} before saving"
 });
 Object.assign(LANG.ca,{
-  pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_su_parte_ok:"ja t'ha pagat la seva part", pr6_su_parte_falta:"falta la seva part", pr6_tu_parte:"La teva part {x}",
+  pr6_pagas_mas:"pagues {a} + {b} de {from}", pr6_te_han_pagado:"t'han pagat {a} de {n}", pr6_su_parte_ok:"ja ha pagat la part", pr6_su_parte_falta:"falta la seva part", pr6_tu_parte:"La teva part {x}",
   pr6_te_deben:"Et deuen {x}", pr6_te_deben_t:"Et deuen", pr6_te_han_pagado_todos:"T'han pagat tots",
   pr6_ya_me_lo_ha_pagado:"Ja m'ho ha pagat", pr6_deben_saldar:"Dona-ho per pagat", pr6_deben_parcial:"ha pagat {a} · falta {b}", pr6_deben_via_dia:"{via} el dia {d}", pr6_te_lo_ha_pagado:"T'ho ha pagat", pr6_deben_pend:"pendent",
   pe_title:"Persones", pe_add:"Afegir una persona", pe_nueva:"Persona nova", pe_nombre:"Nom",

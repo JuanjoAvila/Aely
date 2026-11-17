@@ -64,7 +64,7 @@ for(const [topic,button,segment] of [["Ahorrar para una meta","Abrir Metas","Met
     await dialog.getByRole("button",{name:button,exact:true}).click();
     await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour","plan");
     const segId=segment==="Metas"?"metas":(segment==="Deudas"?"deudas":"recibos");
-    await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveAttribute("data-seg",segId);
+    await expect(page.locator('.page-live .v4-seg-btn[data-seg].on')).toHaveAttribute("data-seg",segId);
     if(cdp) await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});
   });
 }
@@ -184,7 +184,7 @@ test("los recibos pendientes cuadran con la cifra de Plan → Recibos",async({pa
   await expect(dialog.getByRole("status")).toContainText(/2 recibos.*100/);
   await dialog.getByRole("button",{name:"Abrir Recibos",exact:true}).click();
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour","plan");
-  await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveAttribute("data-seg","recibos");
+  await expect(page.locator('.page-live .v4-seg-btn[data-seg].on')).toHaveAttribute("data-seg","recibos");
   await expect(page.locator('.page-live .v4-screen > [data-seg="recibos"] .v4-card-hero')).toContainText(/100/);
 });
 

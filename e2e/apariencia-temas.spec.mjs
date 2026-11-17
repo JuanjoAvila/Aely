@@ -23,8 +23,9 @@ async function abrirAjustes(page) {
 }
 
 async function abrirApariencia(ajustes) {
-  // El grupo arranca plegado; su cabecera es la primera `.set-card` de Apariencia.
-  const cab = ajustes.locator(".set-card > .set-row").first();
+  // El grupo arranca plegado; su cabecera es la primera fila de la tarjeta «Cómo se ve» (desde el
+  // diseño 233, DIS-40, cada desplegable es una `.set-sub` dentro de la tarjeta de su grupo).
+  const cab = ajustes.locator(".set-card > .set-sub > .set-row").first();
   await cab.click();
   await expect(ajustes.locator(".set-card .collapsible.open").first()).toBeVisible();
 }

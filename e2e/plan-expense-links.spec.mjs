@@ -29,7 +29,7 @@ for(const kind of ['debt','receipt'])for(const missing of [false,true])test('R1 
   await openRound2(page,s);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await gastosAbreGasto(page,e.merchant);
-  const row=page.locator('.v4-exp-sheet .v4-ficha-adjust-row').filter({hasText:kind==='debt'?'Es la cuota de una deuda':'Paga un recibo'});
+  const row=page.locator('.v4-exp-sheet').getByTestId(kind==='debt'?'exp-debt':'exp-receipt');
   await expect(row.locator('.value')).toHaveText(missing?'—':(kind==='debt'?s.debts[0].name:s.fixed[0].name)+' · sin confirmar');
   if(kind==='debt'&&!missing){await row.click();await expect(page.getByTestId('exp-cuota-de').locator('.v4-chip.on')).toContainText(s.debts[0].name);}
   expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return expensePaymentRelationUI(s,s.expenses[0]);})).toBeNull();
@@ -124,7 +124,9 @@ for(const kind of ['debt','receipt','linked-debt'])test(kind+' payment evidence 
   await gastosAbreGasto(page,state.expenses[0].merchant);
   const sheet=page.locator('.v4-exp-sheet');await expect(sheet).toBeVisible();
   if(kind==='receipt')await expect.soft(page.getByTestId('exp-receipt-value')).toHaveText(name);
-  else await expect.soft(sheet.locator('.v4-ficha-adjust-row').filter({hasText:'Es la cuota de una deuda'}).locator('.value')).toHaveText(kind==='linked-debt'?name:'No');
+  else if(kind==='linked-debt')await expect.soft(sheet.getByTestId('exp-debt-value')).toHaveText(name);
+  // Sin cuota el chip no lleva valor (antes decía «No»): solo su nombre.
+  else {await expect.soft(sheet.getByTestId('exp-debt-value')).toHaveCount(0);await expect.soft(sheet.getByTestId('exp-debt')).toContainText('Deuda');}
   await expect.soft(sheet).not.toContainText('Esta retirada no suma dinero');
   if(kind==='receipt'){await page.getByTestId('exp-receipt').click();await expect(page.getByTestId('exp-receipt-value')).toHaveText(name);}
   await page.screenshot({path:info.outputPath('detail.png')});
@@ -169,7 +171,8 @@ for(const kind of ['marked','calendar','overdue'])test('INC-1810-04 '+kind+' cha
   if(kind==='calendar')await expect(page.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText('YouTube Premium');
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await gastosAbreGasto(page,'YOUTUBE PREMIUM');
-  await expect(page.getByTestId('exp-receipt-value')).toHaveText(kind==='marked'?'YouTube Premium · sin confirmar':'No');
+  if(kind==='marked')await expect(page.getByTestId('exp-receipt-value')).toHaveText('YouTube Premium · sin confirmar');
+  else {await expect(page.getByTestId('exp-receipt-value')).toHaveCount(0);await expect(page.getByTestId('exp-receipt')).toContainText('Recibo');}
   if(kind==='marked')await page.getByTestId('exp-recibo-si').click();
   else{await page.getByTestId('exp-receipt').click();await page.getByTestId('exp-receipt-receipt-synthetic').click();}
   const confirm=page.locator('.askback');

@@ -156,6 +156,67 @@ function HelpTip({text}){
   );
 }
 
+/* ---------- Avisos de banco caído (`state.bankIssues`) ----------
+   Los textos de cada caso salen de aquí para que Inicio y Cartera digan lo mismo.
+   · «noacct» = enlazado pero el banco no devuelve ninguna cuenta: el texto de «permiso caducado»
+     ahí despistaba, porque no hay ningún permiso que renovar (2026-07-24).
+   · «pending» = se quedó a medio autorizar en el banco. No es un permiso caducado —nunca llegó a
+     haberlo— ni un enlace sin cuentas: el viaje al banco no terminó. Hasta el 11/9 este caso no
+     llegaba siquiera a la app (ver `bankIssuesOf`) y su CaixaBank se quedó ahí semanas sin aviso.
+   · TRADE REPUBLIC ENTRA POR DOS PUERTAS, Y SE ROMPEN POR SEPARADO (petición suya, 10/9). Esto es
+     el permiso de Open Banking (sus COMPRAS con tarjeta, se arregla con el OAuth del banco); la
+     sesión con PIN + SMS de la API propia (POSICIONES y EFECTIVO) tiene su banner aparte en
+     Cartera. Cuando los dos decían «Trade Republic» no había forma de saber cuál tocar. */
+function avisoBancoTxt(is){
+  const lbl=is.ent?entOf(is.ent).label:(is.aspsp||"🏦");
+  const noacct=is.kind==="noacct", pend=is.kind==="pending", esTR=is.ent==="trade_republic";
+  return {
+    titulo: esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(pend?"bk_issue_pending":(noacct?"bk_issue_noacct":"bk_issue"),{bank:lbl}),
+    sub: esTR ? t("bk_tr_ob_sub") : t(pend?"bk_issue_pending_sub":(noacct?"bk_issue_noacct_sub":"bk_issue_sub")),
+    cta: esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl}),
+    // El botón de la fila es corto; en TR no puede decir «Reconectar» como el del PIN + SMS
+    // («Reconectar Trade Republic», banner de al lado): «Renovar» casa con «permiso caducado».
+    btn: esTR ? t("bk_tr_ob_btn") : t("bank_reconnect")
+  };
+}
+/* UNA fila por banco dentro de una sola tarjeta (diseño 233, DIS-24). Antes cada banco era una
+   tarjeta de ~105 px con párrafo y botón a todo el ancho: con dos bancos caídos las cuentas
+   quedaban fuera de la primera pantalla de Cartera. La explicación sigue ahí, plegada: se abre
+   tocando la fila (o su «?»). El «Reconectar» llama a lo mismo que antes, solo cambia dónde va. */
+function AvisosBanco({issues, onReconnect}){
+  const [abierto,setAbierto]=useState(null);
+  if(!issues||!issues.length) return null;
+  return React.createElement("div",{className:"v4-card v4-bank-issues"},
+    issues.map(function(is){
+      const x=avisoBancoTxt(is), open=abierto===is.aspsp;
+      return React.createElement("div",{key:"bi_"+is.aspsp,className:"v4-bank-issue"+(open?" open":"")},
+        React.createElement("div",{className:"v4-bank-issue-row"},
+          React.createElement("button",{type:"button",className:"v4-bank-issue-info","aria-expanded":open,
+              onClick:function(){ setAbierto(open?null:is.aspsp); }},
+            React.createElement(Mono,{ent:is.ent,size:28}),
+            React.createElement("span",{className:"v4-bank-issue-t"},x.titulo),
+            React.createElement("span",{className:"v4-bank-issue-q","aria-hidden":true},"?")),
+          onReconnect && React.createElement("button",{type:"button",className:"btn btn-primary v4-bank-issue-cta","aria-label":x.cta,
+            onClick:function(){ onReconnect(is.aspsp); }}, x.btn)),
+        // Plegado con alto animado (grid 0fr → 1fr): abrir no da saltos (feedback 28/10).
+        React.createElement("div",{className:"v4-bank-issue-sub","aria-hidden":!open},
+          React.createElement("div",null,React.createElement("p",null,x.sub))));
+    }));
+}
+/* La misma lectura en Inicio, en una franja (DIS-23): el patrimonio de Inicio puede estar
+   desfasado y solo lo decía Cartera. Solo `state.bankIssues`, sin pedir nada nuevo a la nube.
+   Tocarla lleva a los avisos de Cartera, donde está el arreglo. */
+function AvisoBancoFranja({issues}){
+  if(!issues||!issues.length) return null;
+  const uno=issues.length===1;
+  return React.createElement("button",{type:"button",className:"v4-bank-strip rise","data-testid":"inicio-aviso-banco",
+    // Por evento (lo recoge App): ver «La franja de banco caído» en 11-app-main.
+    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-go-bank-issues")); }catch(e){} }},
+    uno?React.createElement(Mono,{ent:issues[0].ent,size:24}):null,
+    React.createElement("span",{className:"v4-bank-strip-t"}, uno?avisoBancoTxt(issues[0]).titulo:tf("ini_bank_issue_many",{n:issues.length})),
+    React.createElement("span",{className:"v4-bank-strip-cta"}, t("ini_bank_issue_cta")+" ›"));
+}
+
 /* ============================================================
    INFORME DEL MES — imagen 1080×1350 (para compartir por WhatsApp/IG) con los
    colores del tema activo. Todo en el dispositivo (canvas → share/descarga).
@@ -1024,6 +1085,32 @@ function mcInicioFillHaptic(e){
   }catch(err){}
 }
 
+/* Iniciales del avatar, UNA regla para Inicio y Ajustes: cada sitio tenía la suya y la misma
+   persona salía «EE» en Inicio y «E2» en Ajustes, o «MC» (el nombre viejo de la app) sin correo
+   (auditoría de diseño 15/11/2026). Sin nombre se usa la parte del correo antes de la arroba. */
+function avatarIniciales(nombre, email){
+  let base=String(nombre||"").trim();
+  if(!base){ const em=String(email||""); base=(em.indexOf("@")>0?em.split("@")[0]:em).replace(/[._-]+/g," ").trim(); }
+  const partes=base.split(/\s+/).filter(Boolean);
+  if(!partes.length) return "A";
+  return (partes[0].charAt(0)+(partes.length>1?partes[1].charAt(0):"")).toUpperCase();
+}
+
+/* Sin una sola cuenta, inversión, bien, deuda ni movimiento, «0,00 €» en grande no es una cifra:
+   es una pantalla vacía que parece un saldo (auditoría de diseño 15/11/2026). Inicio y Cartera
+   cambian la cifra por la salida: añadir la primera cuenta. */
+function mcSinNada(s){
+  const vacio=function(k){ return !(s&&s[k]&&s[k].length); };
+  return vacio("accounts")&&vacio("obAccounts")&&vacio("investments")&&vacio("assets")&&vacio("debts")&&vacio("expenses");
+}
+function PrimeraCuentaHero(){
+  return React.createElement("div",{className:"v4-first-acc","data-testid":"hero-first-acc"},
+    React.createElement("div",{className:"v4-first-acc-t serif","data-tour":"hero-amt"}, t("v4_net_first_acc")),
+    React.createElement("button",{type:"button",className:"btn btn-primary",onClick:function(){
+      try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){}
+    }}, t("v4_noup_cta")));
+}
+
 /* Cifra con transición compartida (B2). Ya NO cuenta desde 0: mientras la pestaña entraba
    deslizándose (`ready` aún en false) Cartera pintaba «0,00 €», y en «Tus recibos» quien tocaba un
    grupo antes de los 950 ms se quedaba viendo una cifra a medias (1518,65 por 1526,87, vídeo de la
@@ -1191,7 +1278,9 @@ function netWorthDebtPolicy(state, today, current){
       value=Number(d.value)-debtAmort(d)*paidToday;
       for(let k=n;k<paidToday;k++) value=(value+Number(d.monthly))/(1+rate);
     }
-    if(d.balloon>0&&d.months!=null&&n>=d.months) value-=d.balloon;
+    // Con plazo, el mismo cuadro que `debtBalance`: tope de n cuotas y la última con el redondeo
+    // (sin él, 600,03 en 12 se quedaba en 0,03 y pasado el plazo seguía bajando; revisión 15/11/2026).
+    if(d.months!=null) value=debtBalanceAfter(d,n);
     if(n<0&&d.original>0) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));
     return Math.max(0,value);
   };
@@ -1229,8 +1318,10 @@ function settingsDeps(settings, keys){
    «no es este recibo», bancos descartados, Hogar…); con las dependencias estrechas un hueco así
    sería una cifra vieja. Se declaran todos los que leen ellas y su cierre de llamadas, y el
    guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
-   `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`). */
-const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trasAbonoDesde"];
+   `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`).
+   `trRecompensas` (4.26.237): el libro de avisos de TR decide qué Round up sigue pendiente y suma
+   al patrimonio de hoy (`rewardsPending`); sin declararlo, elegir destino dejaba la gráfica vieja. */
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trRecompensas","trasAbonoDesde"];
 const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
@@ -1287,7 +1378,11 @@ function netWorthSeries(state, options){
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
-  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{};
+  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{}, repetida=Object.create(null);
+  // Contadas sobre las listas, no sobre `rows`: con un orden guardado, dos filas con la misma clave se quedan en una.
+  {const n={};(state.accounts||[]).forEach(function(a){ const k=accountOrderKeyOf(a,"account");n[k]=(n[k]||0)+1; });
+   (state.obAccounts||[]).forEach(function(o){ const k=accountOrderKeyOf(o,"ob");n[k]=(n[k]||0)+1; });
+   Object.keys(n).forEach(function(k){ if(n[k]>1) repetida[k]=true; });}
   const ins=options.balanceInputs?Object.assign({},options.balanceInputs,{roundup:options.balanceInputs.roundupThisMonth,monthlyInvest:options.balanceInputs.monthlyInvestThisMonth}):insumosSaldoGasto(state);
   rows.forEach(function(r){ if(r.item.ent) owned[r.item.ent]=true; });
   // Solo cuenta su parte de cada cuenta (`accountShareOf`): el saldo de hoy, sus cierres y sus
@@ -1406,6 +1501,11 @@ function netWorthSeries(state, options){
       // entonces (sin flujos no hay nada que deshacer); la «i» lo declara.
       if(firstByBank[bank]&&!cash) later.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
     }else{
+      // Cierres bajo una clave que comparten dos cuentas: son de las dos mezclados y cada una los
+      // sumaba enteros (1.000 + 500 de hoy pintaban 2.000 en el pasado; revisión externa 15/11/2026).
+      // Al cargar ya se separan (`accountKeysUnicas`); si aun así llegan mezclados, el pasado no se
+      // sabe y no se pinta: sin gráfica y la cifra en «—», nunca una suma inventada.
+      if(points.length&&repetida[r.key]){ gaps.push({kind:"balance",unknown:true,name:r.item.name||bank}); return; }
       // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
       // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
       // efectivo con un cierre de hace dos semanas recortaba toda la serie a esa fecha (13/10).
@@ -1419,7 +1519,7 @@ function netWorthSeries(state, options){
   entries.forEach(function(e){if(!first||e.day<first)first=e.day;});
   const investments=clean(state.invHistory,"d","v"),hasInv=(state.investments||[]).length>0;
   if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })){gaps.push({kind:"investment",unknown:true});return done();}
-  const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(n,i){ return n+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0);
+  const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(n,i){ return n+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0)+(ins.rewardsPending||0);
   // Sin foto anterior, la inversión no recorta: se mantiene su primer valor conocido (la primera
   // foto, o el de hoy si no hay ninguna) menos las aportaciones propias entre medias, como un
   // bien heredado. Antes bastaba un bróker recién dado de alta para dejar Inicio sin gráfica.
@@ -2338,7 +2438,7 @@ function useListLongPress(selector, attribute, enabled, onMove){
     const onTS=function(e){
       const btn=e.target.closest&&e.target.closest(selector);
       if(!btn||!node.contains(btn)) return;
-      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
+      if(e.target.closest&&e.target.closest(".v4-link-mini,a,input")) return;
       const tch=e.touches&&e.touches[0]; if(!tch) return;
       const id=btn.getAttribute(attribute);
       const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
@@ -2398,10 +2498,9 @@ function useListLongPress(selector, attribute, enabled, onMove){
   return {bind:bindListDrag,drag:drag,suppressClickRef:suppressClickRef};
 }
 
-/* Secciones ordenables por pestaña (petición 2026-07-11): como el orden de widgets del Resumen,
-   pero para los bloques de Cartera (las fichas de las demás pestañas se retiraron). El orden se guarda en
-   settings.secOrder[tab]; onMove opcional para pestañas cuyo orden vive en los propios datos
-   (deudas, metas → se reordena el array del estado y sincroniza igual que todo lo demás). */
+/* Orden guardado por clave en settings.secOrder[tab] (viaja con la cuenta). Hoy solo lo escriben
+   los brókers («inv», arrastrando su fila); el de los bloques de Cartera ya no se edita desde que se
+   quitó «⇅ Ordenar secciones» (16/11/2026), pero se sigue leyendo para no recolocarle la pantalla. */
 function secOrderOf(s, tab, allIds){
   const stored=(((s&&s.settings)||{}).secOrder||{})[tab];
   const saved=(Array.isArray(stored)?stored:[]).filter(function(id,i,a){ return allIds.indexOf(id)>=0&&a.indexOf(id)===i; });
@@ -2419,40 +2518,6 @@ function brokerGroupsInOrder(s, groups){
   return secOrderOf(s,"inv",groups.map(function(g){ return g[0]; })).map(function(id){
     return groups.find(function(g){ return g[0]===id; });
   });
-}
-function OrderableSections({tab, state, set, items, onMove}){
-  const [ordering,setOrdering]=useState(false);
-  const real=(items||[]).filter(function(i){ return i && i.el; });
-  const allIds=real.map(function(i){ return i.id; });
-  const order=onMove?allIds:secOrderOf(state,tab,allIds);
-  const map={}; real.forEach(function(i){ map[i.id]=i; });
-  const move=function(id,dir){
-    if(onMove) return onMove(id,dir);
-    set(function(s){
-      const o=secOrderOf(s,tab,allIds); const i=o.indexOf(id), j=i+dir;
-      if(i<0||j<0||j>=o.length) return s;
-      return moveSectionInList(s,tab,allIds,id,o[j]);
-    });
-  };
-  return React.createElement(React.Fragment,null,
-    order.map(function(id,idx){
-      const it=map[id]; if(!it) return null;
-      if(!ordering) return React.createElement(React.Fragment,{key:id},it.el);
-      return React.createElement("div",{key:id,className:"wedit"},
-        React.createElement("div",{className:"wedit-bar"},
-          React.createElement("span",{className:"wedit-lbl"},it.label),
-          React.createElement("div",{className:"wedit-btns"},
-            React.createElement("button",{disabled:idx===0,onClick:function(){ move(id,-1); }},"↑"),
-            React.createElement("button",{disabled:idx===order.length-1,onClick:function(){ move(id,1); }},"↓"))),
-        React.createElement("div",{className:"wedit-body"},it.el)
-      );
-    }),
-    real.length>1 && React.createElement("button",{
-      className:"btn btn-ghost btn-block",
-      style:ordering?{marginTop:10}:{marginTop:10,fontSize:12.5,color:"var(--muted-2)",border:"none",background:"none"},
-      onClick:function(){ setOrdering(!ordering); }
-    }, ordering?("✓ "+t("done")):t("sec_order"))
-  );
 }
 
 /* Cabecera de una tarjeta de bróker (TR / MyInvestor / CSV de Revolut), pulsable para plegar.
@@ -2560,6 +2625,16 @@ function numPadDecSep(){
   // pintan (`numDecSep`, 00); el parseo de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
   return numDecSep();
 }
+// Importe que se precarga en la ficha para editarlo: con decimales, siempre dos («12,50», no
+// «12,5» como salía con `String`, diseño 235 DIS-10); entero, sin ellos («12»). Sin miles, para que
+// el teclado y `parseNumPadRaw` lo lean igual que lo tecleado. Con MÁS de dos decimales (el cambio
+// de una divisa, 12,345) va tal cual: redondeado, guardar la ficha sin tocar el importe lo reescribía
+// y borraba origAmount/origCur (revisión de dinero 235).
+function montoEditable(x){
+  const n=Math.abs(Number(x)||0);
+  if(Math.round(n*100)/100!==n) return String(n).replace(".",numDecSep());
+  return (Math.round(n*100)%100===0?String(Math.round(n)):n.toFixed(2)).replace(".",numDecSep());
+}
 function parseNumPadRaw(raw){
   // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.
   return parseFloat(String(raw||"").replace(",","."))||0;
@@ -2621,7 +2696,7 @@ function NumPad({value, onChange}){
 /* Anatomía común de Apuntar y Modificar (rediseño v4.1). Si cada ficha compone por su cuenta
    cabecera, importe, metadatos y categorías, vuelven a separarse en cuanto se toca una de ellas;
    por eso estas piezas viven en el módulo compartido y ambos modos pasan exactamente por aquí. */
-function expenseTopCategoryRanking(expenses, catalog){
+function expenseTopCategoryRanking(expenses, catalog, n){
   const all=(catalog||CATEGORIES).slice();
   const valid={}; all.forEach(function(c){ valid[c.id]=c; });
   const counts={}; const since=Date.now()-90*86400000;
@@ -2633,18 +2708,43 @@ function expenseTopCategoryRanking(expenses, catalog){
   const order={}; all.forEach(function(c,i){ order[c.id]=i; });
   return all.slice().sort(function(a,b){
     return (counts[b.id]||0)-(counts[a.id]||0) || order[a.id]-order[b.id];
-  }).slice(0,8);
+  }).slice(0,n||8);
 }
-function expenseTopCategoryPick(ranked, currentId, catalog){
+// `n` es el tope de la rejilla: Apuntar enseña 4 (una fila con «Más»), Modificar 8.
+function expenseTopCategoryPick(ranked, currentId, catalog, n){
   const all=(catalog||CATEGORIES), valid={};
   all.forEach(function(c){ valid[c.id]=c; });
   const top=(ranked||[]).slice();
   if(currentId && valid[currentId] && !top.some(function(c){ return c.id===currentId; })){
-    if(top.length>=8) top[top.length-1]=valid[currentId]; else top.push(valid[currentId]);
+    if(top.length>=(n||8)) top[top.length-1]=valid[currentId]; else top.push(valid[currentId]);
   }
   return top;
 }
-function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix}){
+/* Columnas de las rejillas de baldosas: tres, y cuatro solo desde 460 px, la misma media que usa el
+   CSS (`.v4-ficha-cats`). Con la etiqueta a 12 px, sin encoger ni partir, «Supermercado» NO cabe en
+   cuatro columnas ni a 412 px (medido en el e2e de etiquetas): la rejilla cede, la letra no
+   (auditoría 237, P1-2, y el crítico de la v3). */
+const CAT_COLS_Q="(min-width:460px)";
+function useCatCols(){
+  const mq=function(){ try{ return window.matchMedia(CAT_COLS_Q).matches; }catch(e){ return false; } };
+  const [cols,setCols]=useState(function(){ return mq()?4:3; });
+  useEffect(function(){
+    const on=function(){ setCols(mq()?4:3); };
+    window.addEventListener("resize",on);
+    return function(){ window.removeEventListener("resize",on); };
+  },[]);
+  return cols;
+}
+// Los n primeros, sin que se quede fuera la elegida (si no cabe, ocupa el último hueco).
+function catsRecorta(items, n, elegida){
+  const out=(items||[]).slice(0,Math.max(0,n));
+  if(n>0 && elegida && !out.some(function(c){ return c.id===elegida; })){
+    const c=(items||[]).find(function(x){ return x.id===elegida; });
+    if(c) out[out.length-1]=c;
+  }
+  return out;
+}
+function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix, fin}){
   return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
     (items||[]).map(function(c){
       const on=selectedMany ? selectedMany.indexOf(c.id)!==-1 : selected===c.id;
@@ -2652,7 +2752,8 @@ function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix}
         "data-testid":(testPrefix||"expense-cat")+"-"+c.id,"aria-pressed":on,onClick:function(){ onPick(c.id); }},
         React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
         React.createElement("span",null,(c.label||catName(c.id))+(c.suggested?" ✨":"")));
-    })
+    }),
+    fin||null
   );
 }
 function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
@@ -2671,41 +2772,267 @@ function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
       )
     ),document.body);
 }
+/* «¿Cómo pagaste?» en una sola fila (DIS-03, 15/11). Antes eran tres mandos sueltos —píldora del
+   banco, píldora 💶 y el chip «Con tarjeta» que al tocarlo pasaba a «Bizum o transferencia»— y se
+   podía guardar a la vez efectivo, «con tarjeta» y Sabadell a la vista. Guarda los mismos campos de
+   siempre: Tarjeta = banco y sin `noCard`; Efectivo = `ent:"efectivo"`; Bizum/transf. = banco y
+   `noCard`. Quien lo usa decide qué escribe cada toque (`onMode`): aquí solo se pinta.
+   Un ingreso no tiene forma de pago: conserva las dos píldoras de siempre (banco y efectivo).
+   La píldora del banco no desaparece con Efectivo: se apaga sin ocupar otra cosa, para que la fila
+   no salte al cambiar.
+   El banco se elige EN LA MISMA FILA (16/11): al tocar la píldora, la fila se funde y en su sitio
+   entran los logos. Antes se desplegaba debajo una lista de chips con 🏦 que empujaba las categorías
+   bajo el teclado de golpe, y la píldora cortaba el nombre («Sab…»). Así no cambia el alto de la
+   hoja, no se tapa nada, y en un gasto basta el logo (el nombre lo lleva para el lector). */
+function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onBank, bankOpts, onPickBank, bankLocked, cashLocked, onLocked, testPrefix}){
+  const p=testPrefix||"expense";
+  const elige=useDespliegue(!!bankOn&&!bankLocked&&(bankOpts||[]).length>0);
+  const bankPill=function(hidden){
+    /* En un ingreso la cuenta elegida se ve SIEMPRE (crítico de la v3: banco y efectivo iban los dos
+       apagados y no se sabía a qué cuenta entraba el dinero): rellena como «Tarjeta» en un gasto. */
+    const sel=!!income&&mode!=="cash";
+    return React.createElement("button",{type:"button",className:"v4-ficha-meta-pill v4-ficha-pay-bank"+(bankOn?" on":"")+(sel?" sel":"")+(bankLocked?" locked":"")+(hidden?" off":""),
+      "data-testid":p+"-bank","aria-hidden":hidden?"true":null,tabIndex:hidden?-1:null,"aria-expanded":hidden||bankLocked?null:!!bankOn,
+      "aria-pressed":income?sel:null,
+      onClick:hidden?undefined:(bankLocked?onLocked:onBank)},
+      React.createElement(BancoIcono,{ent:bankEnt,size:22}),
+      React.createElement("span",{className:"v4-bank-nom"},bankEnt?entOf(bankEnt).label:t("ap_bank_none")));
+  };
+  /* Tocar un logo elige y cierra; tocar el que ya está elegido solo cierra. «Sin banco» va al final:
+     es lo menos habitual y, con texto, ocupa lo que dos logos. */
+  const picker=elige.vivo && React.createElement("div",{className:"v4-bankpick"+(elige.dentro?" dentro":""),role:"group",
+      "aria-label":t("ap_bank"),"data-testid":p+"-bank-list"},
+    (bankOpts||[]).map(function(b){
+      const on=bankEnt===b;
+      return React.createElement("button",{key:b,type:"button",className:"v4-bankpick-op"+(on?" on":""),"aria-pressed":on,
+        "aria-label":entOf(b).label,title:entOf(b).label,onClick:function(){ mcTickHaptic(); onPickBank(b); }},
+        React.createElement(BancoIcono,{ent:b,size:30}));
+    }),
+    React.createElement("button",{type:"button",className:"v4-bankpick-op sin"+(!bankEnt?" on":""),"aria-pressed":!bankEnt,
+      onClick:function(){ mcTickHaptic(); onPickBank(null); }},t("ap_bank_none")));
+  const cls="v4-ficha-pay"+(income?" income":"")+(elige.dentro?" eligiendo":"");
+  if(income){
+    return React.createElement("div",{className:cls},bankPill(false),
+      React.createElement("button",{type:"button",disabled:!!cashDisabled,
+        // Del banco, la cuenta no se cambia: el efectivo se queda visiblemente apagado.
+        className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
+        "data-testid":p+"-efectivo","aria-pressed":mode==="cash",onClick:cashDisabled?undefined:function(){ onMode(mode==="cash"?"card":"cash"); }},
+        React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))),
+      picker);
+  }
+  const opt=function(id,label,testId,disabled){
+    const on=mode===id;
+    return React.createElement("button",{type:"button",className:"v4-seg-btn"+(on?" on":""),"aria-pressed":on,disabled:!!disabled,
+      "data-testid":testId,onClick:function(){ if(!on){ mcTickHaptic(); onMode(id); } }},React.createElement("span",null,label));
+  };
+  return React.createElement("div",{className:cls},
+    React.createElement("div",{className:"v4-seg",role:"group","aria-label":t("ap_pay_aria")},
+      opt("card",t("ap_pay_card"),p+"-pay-card"),
+      opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
+      opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
+    bankPill(mode==="cash"),
+    picker);
+}
+/* El logo del banco, o un círculo vacío si no hay banco: el 🏦 genérico parecía un banco más. */
+function BancoIcono({ent, size}){
+  if(ent) return React.createElement(Mono,{ent:ent,size:size});
+  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}});
+}
+/* Montar con entrada y salida suaves: `vivo` monta, `dentro` pone la clase que anima. Al cerrar se
+   espera a que acabe la transición antes de desmontar; con «reducir movimiento», sin esperar. */
+function useDespliegue(open){
+  const [vivo,setVivo]=useState(open);
+  const [dentro,setDentro]=useState(open);
+  useEffect(function(){
+    if(open){
+      setVivo(true);
+      // Dos frames: el primero pinta el estado de salida, el segundo dispara la transición.
+      let r2=0;
+      const r1=requestAnimationFrame(function(){ r2=requestAnimationFrame(function(){ setDentro(true); }); });
+      return function(){ cancelAnimationFrame(r1); cancelAnimationFrame(r2); };
+    }
+    setDentro(false);
+    const tm=setTimeout(function(){ setVivo(false); },mcReduced()?0:260);
+    return function(){ clearTimeout(tm); };
+  },[open]);
+  return {vivo:vivo, dentro:dentro};
+}
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
-  onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint, meta,
+  onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix}){
+  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction, todasEnFila, catRowsMax}){
   const isIn=kind==="ingreso";
+  /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
+     ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Al tocar el importe
+     sube ABAJO del todo, pegado al pie como en Apuntar (bajo el importe le pareció «horrible»), y se
+     recoge al volver a tocarlo o al tocar cualquier otra cosa de la ficha. Va en el flujo, al final:
+     lo de arriba sigue alcanzándose entero desplazando la ficha. */
+  const plegado=numpadOpen!==undefined;
+  const conTeclado=plegado&&!!numpadOpen;
+  const teclado=useDespliegue(!!numpadOpen);
+  const cols=useCatCols();
+  const bodyRef=useRef(null), filaAltoRef=useRef(66);
+  /* Con el teclado abierto, entre «CATEGORÍA» y el teclado solo van FILAS ENTERAS de baldosas (el
+     crítico de la v3: asomaban medias filas «como una franja rota»). El hueco se mide con el alto
+     MÁXIMO TEÓRICO de la hoja (su max-height menos el asa y el pie), no con la hoja tal cual: medido
+     con la hoja ya encogida, cada fila quitada achicaba el hueco siguiente y a 393 acababa en cero
+     (crítico de la v4). Y la hoja sigue ajustada a su contenido, con el teclado justo debajo: fijarla
+     a su alto máximo dejaba huecos vacíos de hasta 215 px encima del teclado (crítico de la v5).
+     Caben floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
+  const [filasTeclado,setFilasTeclado]=useState(null);
+  useLayoutEffect(function(){
+    if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
+    const mide=function(){
+      const body=bodyRef.current; if(!body) return;
+      const keys=body.querySelector(".v4-ficha-teclado .v4-keys"), title=body.querySelector(".v4-ficha-cat-title");
+      if(!keys||!title) return;
+      body.scrollTop=0;
+      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1, hoja=body.parentElement;
+      const tile=body.querySelector(".v4-ficha-cats .v4-ficha-cat");
+      if(tile) filaAltoRef.current=tile.getBoundingClientRect().height/zoom;
+      const b=body.getBoundingClientRect(), tb=title.getBoundingClientRect();
+      // Lo que ocupan el asa, el pie y los rellenos no cambia con las filas: el cuerpo, a su máximo, es el resto.
+      const marco=hoja.getBoundingClientRect().height/zoom-body.clientHeight-rellenoExtraRef.current;
+      const cuerpoMax=(parseFloat(getComputedStyle(hoja).maxHeight)||hoja.getBoundingClientRect().height/zoom)-marco;
+      const libre=cuerpoMax-keys.offsetHeight-(tb.bottom-b.top)/zoom-8-12;
+      const n=Math.max(0,Math.min(catRows||2,Math.floor((libre+7)/(filaAltoRef.current+7))));
+      setFilasTeclado(function(v){ return v===n?v:n; });
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[conTeclado,teclado.vivo,cols,(categoryItems||[]).length]);
+  /* Apuntar (`catRowsMax`): una fila, y dos si caben enteras en el alto que le queda a la hoja hasta
+     su máximo (a 393 y 412 sí; a 360 no). La misma medida de filas enteras que la ficha. */
+  const [filasAuto,setFilasAuto]=useState(1);
+  useLayoutEffect(function(){
+    if(!catRowsMax||todasEnFila) return undefined;
+    const mide=function(){
+      const body=bodyRef.current, hoja=body&&body.parentElement; if(!hoja) return;
+      const tile=body.querySelector(".v4-ficha-cats .v4-ficha-cat");
+      if(tile) filaAltoRef.current=tile.getBoundingClientRect().height;
+      const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, alto=hoja.getBoundingClientRect().height/(parseFloat(getComputedStyle(document.body).zoom)||1);
+      setFilasAuto(function(v){
+        const fila=filaAltoRef.current+6, sobra=max-alto, desborda=body.scrollHeight-body.clientHeight>1;
+        if(desborda&&v>1) return v-1;
+        if(!desborda&&v<catRowsMax&&sobra>=fila) return v+1;
+        return v;
+      });
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
+  /* El borde de la hoja no parte por la mitad lo que hay detrás (crítico de la v5: en Apuntar a 393,
+     la línea «gastado en septiembre · …»; y en la ficha, el total a 360 o un movimiento a 412). Si el
+     borde cae dentro de un texto de la pantalla de detrás, sube lo justo para taparlo entero, con
+     relleno arriba y sin pasar del alto máximo; si al subir cae en otro, otra vez (pocas). Con
+     `offsetTop`: durante la entrada la hoja aún va desplazada y su rectángulo mentiría. */
+  const rellenoBaseRef=useRef(null), rellenoExtraRef=useRef(0);
+  const textoPartido=function(y){
+    /* Los textos (hojas del árbol con letra) de la pantalla de detrás que el borde, a la altura y,
+       corta por dentro. Se recorre podando por alto (no con elementsFromPoint: con una hoja abierta la
+       app no recibe toques y no aparecería). */
+    let peor=null;
+    const mira=function(el){
+      const r=el.getBoundingClientRect();
+      if(r.height<=0||y<r.top||y>r.bottom||r.right<=0||r.left>=window.innerWidth) return;
+      if(el.childElementCount===0){ if((el.textContent||"").trim()&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
+      for(let c=el.firstElementChild;c;c=c.nextElementSibling) mira(c);
+    };
+    document.querySelectorAll(".page-scroll-host").forEach(mira);
+    return peor;
+  };
+  useLayoutEffect(function(){
+    const body=bodyRef.current, hoja=body&&body.parentElement; if(!hoja) return undefined;
+    if(rellenoBaseRef.current==null) rellenoBaseRef.current=parseFloat(getComputedStyle(hoja).paddingTop)||0;
+    const maxPropio=hoja.style.maxHeight;
+    const ajusta=function(){
+      hoja.style.paddingTop=""; hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
+      const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, base=hoja.offsetHeight, top0=hoja.offsetTop*zoom;
+      let extra=0, bajar=0;
+      for(let i=0;i<4;i++){
+        const y=top0-extra*zoom, r=textoPartido(y); if(!r) break;
+        const mas=(y-(r.top-6))/zoom;
+        // Si para taparlo habría que pasar del alto máximo, el borde baja hasta dejarlo entero encima.
+        if(extra+mas>max-base){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
+        extra+=mas;
+      }
+      if(extra>0){ hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px"; rellenoExtraRef.current=extra; }
+      // Bajar acorta la hoja y su cuerpo pasa a desplazarse: vale en la ficha, no en Apuntar, que cabe entera (DIS-01).
+      else if(plegado&&bajar>0&&bajar<base*0.25){
+        hoja.style.maxHeight=(base-bajar)+"px";
+        if(textoPartido(hoja.offsetTop*zoom)) hoja.style.maxHeight=maxPropio;
+      }
+    };
+    ajusta();
+    // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
+    const tm=setTimeout(ajusta,480);
+    hoja.addEventListener("animationend",ajusta);
+    window.addEventListener("resize",ajusta);
+    return function(){ clearTimeout(tm); hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",ajusta); };
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo]);
+  const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
+  const visibles=catsRecorta(categoryItems,filas*cols,category);
+  const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
+  const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
+  // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
+  const todasBtn=function(cls,hijos){
+    return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
+  };
+  const catsBlock=!isIn && React.createElement(React.Fragment,{key:"cats"},
+    /* Sin sitio para ninguna fila, la cabecera ES la elegida, y toda la línea abre el selector. Sin
+       «CATEGORÍA ·» delante: el icono y el nombre ya lo dicen, y así «Inteligencia artificial» cabe
+       entera a 360 (crítico de la v4). */
+    !todasEnFila && elegida && React.createElement("button",{type:"button",className:"v4-ficha-cat-title v4-ficha-cat-title-btn",
+        "data-testid":(testPrefix||"expense")+"-cat-elegida",onClick:onAllCategories},
+      React.createElement("span",{className:"v4-ficha-cat-elegida"},(elegida.icon||"")+" "+(elegida.label||catName(elegida.id))),
+      React.createElement("span",{className:"v4-ficha-todas"},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
+    !todasEnFila && !elegida && React.createElement("div",{className:"v4-ficha-cat-title"},
+      React.createElement("span",{className:"v4-ficha-cat-t"},t("f_cat")),
+      React.createElement("span",{className:"v4-ficha-cat-acts"},conTeclado?null:(catAction||null),
+        todasBtn("v4-ficha-todas",tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
+    visibles.length>0 && React.createElement(ExpenseCategoryGrid,{items:visibles,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
+      fin:todasEnFila?todasBtn("v4-ficha-cat v4-ficha-todas-tile",[React.createElement("span",{key:"i",className:"v4-ficha-cat-icon","aria-hidden":"true"},"⋯"),
+        React.createElement("span",{key:"t"},tf("f_cat_all",{n:(allCategoryItems||[]).length}))]):null}));
   return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha"},
+    React.createElement("div",{className:"v4-sheet-body v4-ficha-body"+(plegado?" v4-ficha-plegable"+(numpadOpen?" con-teclado":""):""),
+        "data-testid":testPrefix||"expense-ficha","data-kb":kb?"1":null,ref:bodyRef,
+        // En el click y no antes: si se recogiera en el `pointerdown`, lo tocado se movería bajo el dedo.
+        onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
+          if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado,.v4-ficha-cat-title-btn"))) onCloseNumpad();
+        }:undefined},
       React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
-        React.createElement("button",{type:"button",className:"v4-ficha-date",onClick:onDate},dateLabel)),
+        // La fecha se cambia aquí: la píldora 📅 repetía lo mismo con otras mayúsculas (DIS-03/04).
+        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel)),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
-          "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
+          "aria-label":t("f_amount_aria"),"aria-expanded":plegado&&!locked?!!numpadOpen:null,onClick:locked?onLocked:(onAmount||undefined)},amount),
+        /* Sin la tarjeta «Lo trajo una notificación…» (16/11, «eso a la persona le da igual») y sin
+           candado dibujado (los retiró de toda la app, 18/9): el importe del banco no se toca y, al
+           tocarlo, sale el aviso de siempre. */
         React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
+          "aria-label":locked?t("f_locked_toast"):null,"data-testid":locked?(testPrefix||"expense")+"-locked":null,
           onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
+        enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
+        onKeyDown:onConceptFocus?function(e){ if(e.key==="Enter"){ e.preventDefault(); e.target.blur(); } }:undefined,
         onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
-      React.createElement("div",{className:"v4-ficha-meta"},(meta||[]).map(function(m){
-        return React.createElement("button",{key:m.id,type:"button",disabled:!!m.disabled,
-          className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":"")+(m.disabled?" disabled":""),
-          "data-testid":m.testId,onClick:m.disabled?undefined:(m.locked?onLocked:m.onClick)},m.lead||null,
-          React.createElement("span",null,m.label));
-      })),
-      afterMeta||null,
-      !isIn && React.createElement(React.Fragment,null,
-        React.createElement("div",{className:"v4-ficha-cat-title"},
-          React.createElement("span",null,t("f_cat")),
-          React.createElement("button",{type:"button",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
-        React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat"})),
-      adjustments||null,
-      numpad||null
+      /* Con letra Muy grande o Enorme no cabe todo encima del teclado: las categorías, que se tocan
+         en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
+      catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
+      // Las baldosas de ajustes se apartan mientras se teclea el importe: vuelven al cerrar el teclado.
+      conTeclado?null:(adjustments||null),
+      plegado
+        ? (teclado.vivo && React.createElement("div",{className:"v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
+            React.createElement("div",Object.assign({className:"v4-ficha-teclado-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)))
+        : (numpad||null)
     ),
     footer||null
   );

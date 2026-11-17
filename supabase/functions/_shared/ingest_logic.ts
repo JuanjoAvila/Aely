@@ -162,7 +162,39 @@ export function categorizar(comercio: string): string {
   return mobilityCategoryOfNewMerchant(comercio, "otros");
 }
 
-export type Tipo = "gasto" | "gasto_nocard" | "ingreso" | "ignorado";
+export type Tipo = "gasto" | "gasto_nocard" | "ingreso" | "inversion" | "ignorado";
+
+/* EL ROUND UP Y EL SAVEBACK DE TRADE REPUBLIC SE APUNTAN (petición suya, 16/11/2026: «¡Has ahorrado e
+   invertido 12,96 € en Round up!»). Hasta hoy eran ruido y se tiraban: el dinero acababa en el fondo y la
+   app solo lo veía días después, como un «Movimiento» sin nombre del banco. Ahora entran en Inversión con
+   un nombre FIJO —«Round up» o «Saveback»—, que es lo que la app lee para saber a qué posición va cada
+   uno y para emparejarlo con lo que luego traiga el banco (el nombre va también en `ob_name`, así que
+   renombrar la fila no le quita lo que es).
+   Solo lo YA invertido, y con la forma que usa TR («¡Has ahorrado e invertido 12,96 € en Round up!»,
+   título «Round up Invertido»). Ante la duda NO es recompensa (revisión de dinero 236, P2-C): un aviso
+   de lo que se invertirá, uno cancelado o fallido, o un «cashback» que va al efectivo apuntados aquí
+   restarían o sumarían dinero que no se ha movido, y cuando llegara el de verdad contaría dos veces.
+   Por eso: el nombre del producto («Round up»/«redondeo», «Saveback» — «cashback» NO), el verbo
+   INVERTIR en pasado (ni «recibido» ni «ahorrado» bastan solos), ningún futuro o gerundio, ninguna
+   negación y nada que suene a compra («compra de», «pago de»…: esa compra es un gasto y se pierde).
+   Aquí se mira la frase ENTERA: «Round up» va justo detrás del « en », donde en una compra iría el
+   comercio. */
+export type Recompensa = "roundup" | "saveback";
+export const NOMBRE_RECOMPENSA: Record<Recompensa, string> = { roundup: "Round up", saveback: "Saveback" };
+const RE_ROUNDUP = /\b(round[\s-]?ups?|redondeos?|arrodoniments?)\b/;
+const RE_SAVEBACK = /\bsaveback\b/;
+const RE_INVERTIDO = /\b(invertid[oa]s?|invertit|invertits|invested)\b/;
+const RE_FUTURO = /\b(se invertir[aá]n?|invertiremos|s'invertir[aà]n?|invertira|invertiran|will be invested|will invest|we'?ll invest|is being invested|are being invested|being invested|going to be invested|to be invested|pending|pendiente|pendent|en curso|programad[oa]|recibiras|rebras|you will)\b/;
+const RE_NEGADO = /\b(no se ha|no se han|no ha sido|no han sido|no s'ha|no s'han|not invested|not been invested|wasn't|was not|could not|couldn't|cancelad[oa]s?|cancel·lat|cancelled|canceled|fallid[oa]|failed|rechazad[oa]|rejected|insuficiente|insufficient|error)\b/;
+const RE_COMPRA = /\b(compra de|compra en|pago de|pago en|pagament de|payment of|purchase|has gastado|has pagado|you spent|you paid|has gastat|has pagat)\b/;
+export function recompensaTR(texto: string, titulo: string): Recompensa | null {
+  const t = norm(limpiarTexto(titulo + " " + texto));
+  if (!RE_INVERTIDO.test(t) || RE_FUTURO.test(t) || RE_NEGADO.test(t) || RE_COMPRA.test(t)) return null;
+  const sb = RE_SAVEBACK.test(t), ru = RE_ROUNDUP.test(t);
+  // Los dos nombres a la vez: no se sabe a qué posición va. Mejor fuera.
+  if (sb === ru) return null;
+  return sb ? "saveback" : "roundup";
+}
 
 /**
  * De qué app venía la notificación. Cambia DÓNDE se puede buscar, no solo cómo se parsea.
@@ -196,6 +228,8 @@ export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuent
      entero por la otra puerta: un «BAR STOP» o un «CÓDIGO BCN» en el título de Wallet se
      descartaría como ruido. Con `wallet` el título se deja fuera de las dos búsquedas. */
   const escaneable = fuente === "wallet" ? "" : titulo;
+  // Antes que el ruido: «saveback», «redondeo» e «invertido» están en esa lista. Solo de TR.
+  if (fuente === "tr" && recompensaTR(texto, titulo)) return { tipo: "inversion", motivo: null };
   const t = norm(escaneable + " " + texto);
   const IGNORAR = [
     "interes", "dividendo", "rendimiento", "rentabilidad",
@@ -237,6 +271,9 @@ export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuent
 }
 
 export function extraerImporte(texto: string): number {
+  // «€1,234.56» (inglés, € delante y coma de miles): sin esto salía 1,234 → 1,23 (revisión 236, P3).
+  const m0 = (texto || "").match(/€\s*(\d{1,3}(?:,\d{3})+\.\d{1,2})(?!\d)/);
+  if (m0) return parseFloat(m0[1].replace(/,/g, ""));
   const m1 = (texto || "").match(/(\d+(?:\.\d{3})*[.,]\d+)\s*€/);
   if (m1) return parseFloat(m1[1].replace(/\.(?=\d{3})/g, "").replace(",", "."));
   const m2 = (texto || "").match(/(\d+[.,]\d+)/);
@@ -251,7 +288,48 @@ export function extraerComercio(texto: string, titulo: string): string {
   return (m ? limpiarTexto(m[1]) : limpiarTexto(titulo)) || "Desconocido";
 }
 
+// Bizum recibido en Trade Republic con el nombre DELANTE del verbo: «Ana Pérez Gómez te ha enviado
+// un Bizum de 12,20 €.» (título «Transferencia recibida»). Tras el «de» va el importe, así que el
+// patrón «de NOMBRE.» no lo veía y el ingreso se apuntaba como «Bizum recibido» (feedback 2026-11-15).
+// Solo palabras con letra (nombre y apellidos, y la inicial con punto: «Ana M. Pérez») pegadas al
+// inicio de la frase, para no coger nada que no sea una persona: sin nombre claro, o demasiado
+// largo, devolvemos "" y se queda el genérico. Los límites de palabra NO usan la marca de límite de palabra del regex: sin la
+// bandera u una tilde lo corta y «Elías» pasaba por «El» + «ías» (revisión 2026-11-16).
+// El lookbehind evita arrancar justo detrás de una inicial («M. Pérez» no es una frase nueva).
+//
+// TOPE DE LARGO (restos 2026-11-16): un nombre completo con partículas («Ana María Pérez Gómez de la
+// Torre Ruiz») pasaba de 6 palabras y se tiraba, dejando el genérico «Bizum recibido». Las partículas
+// (de, del, la, los, y, i, van, bin…) son enlaces, no nombres: no cuentan para el tope de 6 palabras
+// de verdad, y el total se limita a 10 tokens. Una frase suelta sigue sin colarse porque tiene que
+// ocupar TODO el inicio de la frase hasta el verbo.
+const PALABRA_NOMBRE = "(?:\\p{L}\\.|\\p{L}[\\p{L}'’\\-]*)";
+const NOMBRE_ANTES_DEL_VERBO = new RegExp(
+  "(?:^|(?<!(?:^|\\s)\\p{L})[.!?]\\s+)(" + PALABRA_NOMBRE + "(?:\\s+" + PALABRA_NOMBRE + "){0,9})\\s+" +
+  "(?:te\\s+ha|t'ha|t’ha)\\s+(?:enviado|enviat|hecho|fet)\\s+(?:un\\s+)?bizum(?![\\p{L}\\d])", "iu");
+const NO_ES_PERSONA = /^(?:trade\s+republic|has|he|se|tu|tus|te|un|una|el|la|hola|bizum|banco)(?![\p{L}'’\-])/iu;
+const PARTICULA = /^(?:de|del|dels|d'|d’|la|las|les|los|el|y|i|e|da|das|do|van|von|der|den|bin|ben|al|di|le)$/i;
+const MAX_PALABRAS_NOMBRE = 6;
+// «El Hadji Diop», «La Rosa»: «el»/«la» abren un nombre real cuando lo que sigue es otro nombre propio
+// con mayúscula; «El banco te ha enviado…» o «La empresa…» no. En TODO MAYÚSCULAS la mayúscula no
+// distingue, por eso además la lista de genéricos.
+const GENERICO_TRAS_ARTICULO = /^(?:banco|bank|empresa|compania|app|aplicacion|usuario|cliente|titular|cuenta|persona|amigo|amiga)$/i;
+const sinTildes = (x: string) => x.normalize("NFD").replace(/\p{M}/gu, "");
+
+function nombreValido(nombre: string): boolean {
+  const toks = nombre.split(/\s+/);
+  if (NO_ES_PERSONA.test(sinTildes(nombre))) {
+    // Única excepción: artículo (sin tilde: «Él» sigue fuera) + nombre propio con mayúscula.
+    const abre = /^(?:El|La|EL|LA)$/.test(toks[0]);
+    if (!abre || toks.length < 2 || !/^\p{Lu}/u.test(toks[1]) || GENERICO_TRAS_ARTICULO.test(sinTildes(toks[1]))) return false;
+  }
+  return toks.filter((w) => !PARTICULA.test(w)).length <= MAX_PALABRAS_NOMBRE;
+}
+
 export function extraerPersona(texto: string, prep: "de" | "a"): string {
+  if (prep === "de") {
+    const antes = limpiarTexto(texto).match(NOMBRE_ANTES_DEL_VERBO);
+    if (antes && nombreValido(antes[1])) return limpiarTexto(antes[1]);
+  }
   const re = new RegExp("\\b" + prep + "\\s+([^.\\d€]+?)\\s*(?:por\\s+bizum)?\\s*[.!]?$", "i");
   const m = limpiarTexto(texto).match(re);
   return m ? limpiarTexto(m[1]) : "";

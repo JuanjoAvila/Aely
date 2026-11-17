@@ -201,22 +201,33 @@ function gastosMesVentana(ym){
 
 /* SUSCRIPCIONES COMO BANDEJA (Gastos v5, SPEC §6): cada detectada es una tarjeta y al tocarla sale
    su ficha con los últimos cobros y las tres decisiones. Las cifras son las de la detección de
-   siempre (`detectSubscriptions`: mediana al mes, mediana × 12 al año); fechas, día y banco salen
-   de los cargos reales que guarda (`ult`). «Seguidos» solo si no falta ningún mes entre el primero
-   y el último: un cobro cada dos meses no puede salir como «cada mes». */
-function gxSubFrec(sp){ return sp.span===sp.months?tf("gv5_sub_seguidos",{n:sp.months}):tf("gv5_sub_de",{n:sp.months,m:sp.span}); }
+   siempre (`detectSubscriptions`: lo de cada cobro y su periodo, semana, mes o año); fechas, día y
+   banco salen de los cargos reales que guarda (`ult`). «Seguidos» solo si no falta ningún mes entre
+   el primero y el último: un cobro cada dos meses no puede salir como «cada mes». */
+function gxSubFrec(sp){
+  if(sp.per==="semana") return tf("gv5_sub_sem_seguidas",{n:sp.months});
+  if(sp.per==="anio") return tf("gv5_sub_anios_seguidos",{n:sp.months});
+  return sp.span===sp.months?tf("gv5_sub_seguidos",{n:sp.months}):tf("gv5_sub_de",{n:sp.months,m:sp.span});
+}
 function gxSubBanco(sp){ const bk=sp.ult&&sp.ult[0]?expenseBankOf(sp.ult[0].e):null; return bk?(entOf(bk).label||entOf(bk).mono):null; }
 const GxSubTarjeta=React.memo(function GxSubTarjeta({sp, vuelve, onOpen}){
   const c=catOf(sp.cat), bk=gxSubBanco(sp);
+  /* Solo el periodo: «6 meses seguidos · CaixaBank» no cabía a 360 y se comía el banco (237,
+     P1-6). La cuenta exacta sigue en la ficha; un mes saltado sí se dice aquí. */
+  const cada=sp.per==="semana"?t("gv5_sub_cadasem"):sp.per==="anio"?t("gv5_sub_cadaanio")
+    :sp.span===sp.months?t("gv5_sub_cadames"):tf("gv5_sub_de",{n:sp.months,m:sp.span});
   return React.createElement("button",{type:"button",className:"gx-sub","data-sub":sp.key,onClick:function(){ onOpen(sp.key); }},
     React.createElement("span",{className:"gx-sub-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
     React.createElement("span",{className:"gx-sub-txt"},
       React.createElement("span",{className:"gx-sub-nm"},sp.name),
-      React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp)+(bk?" · "+bk:"")),
+      React.createElement("span",{className:"gx-sub-meta"},cada+(bk?" · "+bk:"")),
       vuelve&&React.createElement("span",{className:"gx-sub-vuelve"},t("gv5_sub_vuelve"))),
+    // Sin «al mes» en cada fila: ya lo dice la cabecera y el periodo va a la izquierda (P1-6). La
+    // semanal y la anual sí dicen lo que pesan al mes: es lo que suma la cifra de arriba, y sin eso
+    // las filas no cuadraban con ella (crítica de diseño 237).
     React.createElement("span",{className:"gx-sub-am"},
       React.createElement("span",{className:"num serif"},eur(sp.amount)),
-      React.createElement("span",{className:"gx-sub-mes"},t("gv5_sub_almes"))));
+      sp.per&&sp.per!=="mes"&&React.createElement("span",{className:"gx-sub-eq num"},tf("gv5_sub_eqmes",{x:eur(sp.mensual)}))));
 });
 /* Ficha de una suscripción (SPEC §6.4). `f` = {sp, vuelve}, una FOTO de la tarjeta tocada: la
    acción la quita de la bandeja y la hoja tiene que poder cerrarse con su animación enseñando
@@ -232,22 +243,28 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
   if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",numDecSep())});
   useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
   if(!open) return null;
-  const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0];
+  const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0], f0=parseDate(u0.e.date);
+  const porPer=t(sp.per==="semana"?"gv5_sub_alasem":sp.per==="anio"?"gv5_sub_alanio":"gv5_sub_almes");
+  // Cuándo se cobra, según el periodo: el día del mes, el día de la semana o la fecha del año.
+  const cuando=sp.per==="semana"?tf("gv5_sub_dia_sem",{d:f0.toLocaleDateString(loc(),{weekday:"long"})})
+    :sp.per==="anio"?tf("gv5_sub_dia_anio",{d:f0.toLocaleDateString(loc(),{day:"numeric",month:"long"})})
+    :tf("gv5_sub_dia",{d:f0.getDate()});
   const tras=function(p){ Promise.resolve(p).then(function(ok){ if(ok!==false) swipe.close(); }); };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet gx-subf","data-sheet":"sub-ficha",role:"dialog","aria-modal":"true","aria-labelledby":titleId,ref:swipe.sheetRef,
-          style:{maxHeight:"90dvh"},onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+          style:{maxHeight:"calc(90dvh / var(--zoom,1))"},onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"gx-subf-cab"},
           React.createElement("span",{className:"gx-sub-ic gx-subf-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
           React.createElement("div",{className:"gx-sub-txt"},
             React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"gx-subf-nm"},sp.name),
-            React.createElement("span",{className:"gx-sub-meta"},tf("gv5_sub_dia",{d:parseDate(u0.e.date).getDate()})+" · "+(bk||t("gv5_sub_sinbanco"))),
-            React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp))),
+            // El cuándo solo en la primera línea y el banco con la racha en la segunda: juntos, a 360 el banco se cortaba.
+            React.createElement("span",{className:"gx-sub-meta"},cuando),
+            React.createElement("span",{className:"gx-sub-meta"},(bk||t("gv5_sub_sinbanco"))+" · "+gxSubFrec(sp))),
           React.createElement("span",{className:"gx-sub-am"},
             React.createElement("span",{className:"num serif gx-subf-amt"},eur(sp.amount)),
-            React.createElement("span",{className:"gx-sub-mes"},t("gv5_sub_almes")))),
+            React.createElement("span",{className:"gx-sub-mes"},porPer))),
         f.vuelve&&React.createElement("div",{className:"gx-sub-vuelve gx-subf-vuelve"},t("gv5_sub_vuelve")),
         React.createElement("div",{className:"gx-subf-et"},t("gv5_sub_ultimos")),
         React.createElement("div",{className:"gx-subf-hist"},
@@ -257,13 +274,13 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
               React.createElement("span",{className:"num gx-subf-fila-am"},eur(x.amount)));
           })),
         React.createElement("p",{className:"gx-subf-anio"},
-          tf(sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})+" "+t("gv5_sub_fijo")),
+          tf(sp.per!=="mes"||sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})),
         React.createElement("label",{className:"gx-subf-imp"},
           React.createElement("span",null,t("gv5_sub_importe")),
           React.createElement("span",{className:"num"},
             React.createElement("input",{type:"text",inputMode:"decimal",value:amt.v,"data-testid":"sub-importe",
               onChange:function(e){ setAmt({k:sp.key, v:e.target.value}); }}),
-            " € "+t("gv5_sub_almes"))),
+            " € "+porPer)),
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-sub-accion":"recibos",
           onClick:function(){ onRecibos(sp, amt.v); swipe.close(); }}, t("gv5_sub_recibos")),
         React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-sub-accion":"baja",
@@ -293,7 +310,7 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
-function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
+function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -383,8 +400,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const [q,setQ]=useState("");        // búsqueda por texto (comercio/categoría)
   const [filterOpen,setFilterOpen]=useState(false);
   const [visible,setVisible]=useState(CONFIG.PAGE_SIZE);
-  const [dragExpense,setDragExpense]=useState(null);
-  const dragExpenseRef=useRef(null);
   const suppressOpenRef=useRef(0);
   const [aiBusy,setAiBusy]=useState(false);
   const [undoDelete,setUndoDelete]=useState(null);
@@ -781,7 +796,15 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
         // duplicaría las participaciones del fondo.
         if(isTwin) return upd;
-        if(!wasInv && willBeInv){
+        /* Round up / Saveback de TR (revisión 236, P1-B): su dinero lo suma `aplicarRecompensasTR` una vez
+           y lo apunta en `trRecompensas`. Aquí no se compra (ni por el aviso ni por su «Movimiento» del
+           banco), y sacarlo de Inversión devuelve lo que sumó; si vuelve, lo suma otra vez el efecto. */
+        const esAviso=!!recompensaDe(Object.assign({},e,{category:"inversion"})) || avisoRecompensaGemelo(invState, e);
+        if(wasInv && !willBeInv && invState.trRecompensas && invState.trRecompensas[e.id]){
+          invState=revertirRecompensa(invState, e.id);
+        } else if(!wasInv && willBeInv && esAviso){
+          // nada: no es una compra de esta ficha
+        } else if(!wasInv && willBeInv){
           const ib=applyInvestBuy(invState, e.ent, Math.abs(e.amount));
           if(ib){ invState=ib.state; upd.investInvId=ib.invId; upd.investShares=ib.shares; upd.investCInv=ib.cInv; upd.investAmountEur=ib.amountEur; }
         } else if(wasInv && !willBeInv && e.investInvId){
@@ -1049,7 +1072,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       return true;
     }).sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
     if(cands[0]){
-      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:String(Math.abs(cands[0].amount)).replace('.',numDecSep()), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
+      setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:montoEditable(cands[0].amount), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
       if(clearFocus) clearFocus();
       return;
     }
@@ -1059,7 +1082,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // pareja 2026-07-10, punto 8). Si en 12s no aparece, abrimos el más reciente como antes.
     const tm=setTimeout(function(){
       const e=(state.expenses||[]).slice().sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); })[0];
-      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
+      if(e){ setDetailId(e.id); setEditExp({id:e.id, merchant:e.merchant||"", amount:montoEditable(e.amount), income:e.amount<0, date:String(e.date||"").slice(0,10)}); }
       if(clearFocus) clearFocus();
     }, 12000);
     return function(){ clearTimeout(tm); };
@@ -1083,7 +1106,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        vaciar el estado de edición era justo lo contrario. Ahora se deja sincronizado con lo
        guardado, que es lo que ese comentario prometía. */
     const sincroniza=function(e){
-      setEditExp({ id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()),
+      setEditExp({ id:e.id, merchant:e.merchant||"", amount:montoEditable(e.amount),
         income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10) });
     };
     const origDay=String(orig.date||"").slice(0,10);
@@ -1259,59 +1282,27 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
   },[lapidasDef,bounds,sel,bankSel,bucketSel,q,catFil,preset,madridDay,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
 
-  /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
-     convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
-     el DOM porque solo hay unas pocas filas visibles; `moveExpenseWithinDay` vuelve a comprobar
-     la fecha antes de guardar, así un dedo que cruce un separador nunca mezcla días.
-     ⚠ PERO EL ASA SOLO SE QUEDA EL DEDO EN VERTICAL (rechazo de la beta 4.26.173: «ahora ya no es
-     hacia Inicio sino hacia Plan»). El asa vive en el borde derecho de cada fila, justo donde el
-     pulgar empieza a deslizar hacia Plan. Antes reclamaba el toque entero: el carrusel no se movía
-     y el `setDragExpense` del toque y el del final repintaban la lista ENTERA dos veces, más caro
-     cuantas más filas hubiera bajadas (A/B en lag-gastos-r3: 100-150 ms por frame a CPU x6 con 670
-     filas, y sin cambiar de pestaña). Hacia Inicio el dedo empieza a la izquierda y nunca la
-     tocaba: de ahí que solo pasara hacia Plan. Ahora el toque solo marca la fila (por clase, sin
-     render) y el eje decide: en vertical empieza a ordenar; en horizontal se suelta y el carrusel
-     (que ve el asa como `data-noswipe="y"`) cambia de pestaña. */
-  const asaRef=useRef(null);
-  const startExpenseDrag=useCallback(function(ev,e){
-    ev.stopPropagation();
-    const p=ev.touches&&ev.touches[0]; if(!p) return;
-    const row=ev.currentTarget&&ev.currentTarget.closest?ev.currentTarget.closest(".v4-mov"):null;
-    if(row) row.classList.add("dragging");
-    asaRef.current={e:e, x:p.clientX, y:p.clientY, row:row};
-  },[]);
-  const sueltaAsa=function(){
-    const a=asaRef.current; asaRef.current=null;
-    if(a&&a.row&&!dragExpenseRef.current) a.row.classList.remove("dragging");
+  /* El asa reclamaba el dedo para ordenar y se fue: le robaba ancho al comercio en cada fila
+     (DIS-14). Ahora se REORDENA CON PULSACIÓN LARGA sobre la fila entera (petición del dueño,
+     15/11/2026: «que se pudiera mantener y se elevara y flotara mientras lo muevo e hiciera una
+     animación guapísima al reordenar»). La maquinaria vive en `gxReorden`, fuera del componente y
+     sin estado de React: aquí solo se le dice qué guardar. `moveExpenseWithinDay` vuelve a
+     comprobar el día antes de guardar.
+     (Este comentario empieza por «El asa reclama» a propósito: es el ancla con la que
+     scripts/beta-sources.json recorta el bloque de `filtered`, y ese registro no se reescribe.) */
+  const reordenaRef=useRef(null);
+  reordenaRef.current=function(desde,hasta){
+    set(function(s){ return moveExpenseWithinDay(s,desde,hasta); });
   };
-  const moveExpenseDrag=useCallback(function(ev){
-    if(!ev.touches||!ev.touches[0]) return;
-    const a=asaRef.current;
-    if(a && !dragExpenseRef.current){
-      // Mismo criterio de eje que el carrusel (`gestureAxis`): los dos deciden sobre el mismo dedo.
-      const eje=gestureAxis(ev.touches[0].clientX-a.x, ev.touches[0].clientY-a.y);
-      if(!eje) return;
-      if(eje!=="y"){ sueltaAsa(); return; }
-      cancelSwipe();
-      const nd={from:a.e.id,to:a.e.id,day:String(a.e.date||"").slice(0,10)};
-      dragExpenseRef.current=nd; setDragExpense(nd);
-    }
-    const d=dragExpenseRef.current; if(!d) return;
-    ev.stopPropagation();
-    const p=ev.touches[0], hit=document.elementFromPoint(p.clientX,p.clientY);
-    const row=hit&&hit.closest&&hit.closest("[data-expense-id]");
-    if(!row||row.getAttribute("data-expense-day")!==d.day) return;
-    const to=row.getAttribute("data-expense-id"); if(!to||to===d.to) return;
-    d.to=to; setDragExpense({from:d.from,to:d.to,day:d.day});
-  },[cancelSwipe]);
-  const endExpenseDrag=useCallback(function(){
-    sueltaAsa();
-    const d=dragExpenseRef.current;
-    // Un toque o un desliz horizontal no llegaron a ordenar: nada que repintar.
-    if(!d) return;
-    if(d&&d.from!==d.to){ suppressOpenRef.current=Date.now()+400; set(function(s){ return moveExpenseWithinDay(s,d.from,d.to); }); }
-    dragExpenseRef.current=null; setDragExpense(null);
-  },[set]);
+  const reordenLimpia=useRef(null);
+  const reordenRefCb=useCallback(function(node){
+    if(reordenLimpia.current){ reordenLimpia.current(); reordenLimpia.current=null; }
+    if(node) reordenLimpia.current=gxReorden(node,{
+      alSoltar:function(desde,hasta){ reordenaRef.current(desde,hasta); },
+      // Una pulsación larga que se suelta sin moverse no es un toque: que no abra la ficha.
+      calla:function(){ suppressOpenRef.current=Date.now()+450; }
+    });
+  },[]);
 
   // Las fechas elegidas mueven cabecera y categorías junto a la lista (reporte 2/10).
   // Buscar o filtrar bancos/categorías sigue explorando movimientos sin redefinir el límite.
@@ -1476,8 +1467,11 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     const useAmt=parseFloat(String(amtTxt).replace(",","."))||sp.amount;
     const acc=(state.accounts||[]).find(function(a){ return accRole(a)==="fijos"; })||(state.accounts||[]).find(function(a){ return accRole(a)==="ambos"; });
     // Con su mes de alta: el resumen del mes cerrado de Plan no lo cuenta en meses de antes.
-    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" });
-    const dd=parseDate(sp.ult[0].e.date).getDate(); if(dd>=1&&dd<=31) it.day=dd;
+    // Con su periodo: un anual apuntado «al mes» contaría doce veces lo que se paga (237).
+    const f0=parseDate(sp.ult[0].e.date), freq=sp.per==="semana"?"semana":sp.per==="anio"?"anual":"mes";
+    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:freq, account:(acc&&acc.ent)||"sabadell" });
+    if(freq==="anual") it.months=[f0.getMonth()+1];
+    const dd=f0.getDate(); if(freq!=="semana"&&dd>=1&&dd<=31) it.day=dd;
     set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
     showToast(tf("gv5_sub_recibos_ok",{n:sp.name,b:entOf((acc&&acc.ent)||"sabadell").label}));
   };
@@ -1609,7 +1603,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
   const editDe=function(e){
-    return {id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',numDecSep()), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)};
+    return {id:e.id, merchant:e.renamePending?e.renamePending.merchant:e.merchant||"", amount:montoEditable(e.amount), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)};
   };
   const openDetail=useCallback(function(e){
     if(Date.now()<suppressOpenRef.current) return;
@@ -1707,7 +1701,10 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     });
     const cicloYm=ciclos?cicloKey(cicloPas||ciclos[ciclos.length-1]):null;
     // Bajando en Mi ciclo, lo sumado va del inicio del ciclo al día de debajo: «24 sep – 2 oct».
-    const cicloHasta=function(k,d){ return cicloRango?cicloTxt(new Date(Math.floor(k/10000),Math.floor(k/100)%100-1,k%100).getTime()):tf("gv5_cycle_upto",{d:d}); };
+    /* Bajando, la cifra deja de ser el total y la línea lo dice DELANTE y en menta («hasta el 20 ·
+       gastado en septiembre», diseño 235 DIS-16): al final de la frase se cortaba con puntos a 360 px
+       y en gris no se notaba que la cifra había cambiado. `hasta` va aparte para pintarlo así. */
+    const cicloHasta=function(k,d){ return cicloRango?{pre:cicloTxt(new Date(Math.floor(k/10000),Math.floor(k/100)%100-1,k%100).getTime())}:{pre:t("gv5_cycle"),hasta:tf("gv5_hasta",{d:d})}; };
     /* CON FILTRO DE CATEGORÍA (SPEC §3): la cifra es lo de esa categoría en ese mes, con la regla
        del desglose (la misma cifra que su fila en Categorías), y bajando, hasta el día de arriba.
        La línea cuenta los movimientos que suman y compara con la MISMA categoría el mes anterior:
@@ -1758,8 +1755,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       const fline=function(k, ym){
         if(k===mesesLista.newestK && ym===mesesLista.newestYm) return ftop;
         const c=gastosCumDia(fc,k,months?ym:undefined), d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase();
-        return {n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c),
-          pre:months?tf("gv5_upto",{mes:mesDe(ym),d:k%100}):preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d})};
+        return Object.assign({n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c)},
+          months?{pre:tf("gv5_spent_in",{mes:mesDe(ym)}),hasta:tf("gv5_hasta_dia",{d:k%100})}:preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})});
       };
       if(catFil){
         const fmeses=ciclosFila||mesesPres;
@@ -1778,12 +1775,12 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
           return {n:shownOf(v), pre:tf("gv5_closed",{mes:mesDe(ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:ym, sub:subDe(m)};
         }
         const c=gastosCumDia(cifra,k,ym);
-        return {n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_upto_net":"gv5_upto",{mes:mesDe(ym),d:k%100}), ym:ym, sub:subDe(c)};
+        return {n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_net_in":"gv5_spent_in",{mes:mesDe(ym)}), hasta:tf("gv5_hasta_dia",{d:k%100}), ym:ym, sub:subDe(c)};
       }
       if(k===mesesLista.newestK && ym===mesesLista.newestYm) return top;
       const d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase(), c=gastosCumDia(cifra,k);
-      return {n:shownOf(gastosValor(c,mode)), sub:subDe(c),
-        pre:preset==="cycle"?cicloHasta(k,d):tf("gv5_period_upto",{period:monthSummary.periodLabel,d:d}), ym:null};
+      return Object.assign({n:shownOf(gastosValor(c,mode)), sub:subDe(c), ym:null},
+        preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})});
     };
     const meses=preset==="months"?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
     return {top:top, line:line, meses:meses, fijos:false, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
@@ -1791,7 +1788,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   /* La cabecera de las otras secciones (SPEC §3): Categorías enseña el gasto del periodo y su
      margen (el mismo que arriba en Movimientos); Suscripciones, lo que suman al mes las que
      esperan decisión. No dependen del día visible: su `line` es siempre la misma. */
-  const subsMes=novelSubs.reduce(function(a,sp){ return a+(Number(sp.amount)||0); },0);
+  // Lo que pesa al mes cada una (`mensual`): un anual suma su doceava parte, no el cobro entero.
+  const subsMes=novelSubs.reduce(function(a,sp){ return a+(Number(sp.mensual)||0); },0);
   const cabSecc=useMemo(function(){
     let top;
     if(secc==="cats" && !catsActual){
@@ -2007,7 +2005,13 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
     setCicloSel(null);
   };
   // Elegir periodo en Filtros (o «Restablecer») vuelve al ciclo en curso.
-  const ponPreset=useCallback(function(p){ setCicloSel(null); setPreset(p); },[]);
+  /* Volver al ciclo en curso desde uno pasado (Filtros → periodo o Restablecer) es volver arriba,
+     como al tocar el ciclo en curso en la fila. Si no, con una lista corta el scroll se quedaba en
+     el tope de la del ciclo pasado y la cabecera hablaba del último día en vez del ciclo entero. */
+  const ponPreset=useCallback(function(p){
+    if(cicloSelRef.current!=null){ const h=hostDe(); if(h && h.scrollTop>0) h.scrollTo({top:0, behavior:"auto"}); }
+    setCicloSel(null); setPreset(p);
+  },[]);
   useEffect(function(){ if(preset!=="cycle") setCicloSel(null); },[preset]);
 
   // Resumen de filtros activos, para el botón "Filtros" (badge) y la línea de chips debajo.
@@ -2100,7 +2104,8 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
   const ciclosAlBajar=!!(cabVista.ciclos && !cabVista.fijos);
   return React.createElement("div",{className:"v4-screen gx-root"+(ciclosAlBajar?" gx-ciclos-al-bajar":""),ref:rootRef,"data-periodo":preset,"data-secc":secc,"data-edge-capture":"1"},
     React.createElement(GastosCabecera,{rootRef:rootRef, cab:cabVista, meses:cabVista.meses, fijos:cabVista.fijos,
-      onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef, secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
+      onMes:cabVista.ciclos?eligeCiclo:cabVista.fijos?eligeMes:irAMes, mesesAria:cabVista.ciclos?"gv5_ciclos":"gv5_meses", stopSwipe:stopSwipe, diasRef:diasRef, saltoForzadoRef:saltoForzadoRef,
+      secc:secc, onSecc:irASecc, nSubs:novelSubs.length,
       onInfo:secc==="subs"&&heavyOk?abreSubInfo:null}),
     capa("movs", React.createElement(React.Fragment,null,
       React.createElement("div",{className:"filters"},
@@ -2111,7 +2116,9 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
         // filtrado: va aparte, al pie de la lista (tanda 2).
         React.createElement("div",{style:{display:"flex",gap:8,marginBottom:9}},
           React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},stopSwipe),
-            React.createElement("span",{className:"searchbar-ic"},"🔍"),
+            // Lupa de línea, la de «Tus recibos»: el 🔍 de color era el único emoji del cromo de Gastos (237, P2-7).
+            React.createElement("svg",{className:"searchbar-ic",width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+              React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
             React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
             q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
           ),
@@ -2140,7 +2147,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
       ),
       React.createElement(GastosLista,{filtered:filtered, visible:visible, state:state, cifra:cifraCat||cifraFil||cifra, mode:cifraCat?"split":cifraFil?"net":monthSummary.mode,
         q:q, sel:sel, bucketSel:bucketSel, bankSelIsDefault:bankSelIsDefault, preset:preset, hayHistorico:(expensesDef||[]).length>0,
-        dragExpense:dragExpense, openDetail:openDetail, startExpenseDrag:startExpenseDrag, moveExpenseDrag:moveExpenseDrag, endExpenseDrag:endExpenseDrag,
+        openDetail:openDetail, reordenRefCb:reordenRefCb,
         onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple, l10nKey:l10nKey, sentinelRefCb:sentinelRefCb}))),
     /* Movimientos acaba en «Hasta aquí», sin pie: el último día ya no necesita una pantalla vacía
        debajo para llegar a la cabecera (lo resuelve la raya de `GastosCabecera` al final de la
@@ -2154,7 +2161,6 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
        «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
     capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
       // Sin la pista no se adivina que tocar filtra y que mantener pulsado pone el límite.
-      catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("gv5_cats_hint")),
       catBreakdown.length===0
         ? React.createElement("div",{className:"empty"},t("gv5_cats_vacio"))
         : React.createElement("div",{className:"gx-cats-lista"},catBreakdown.map(function(row){
@@ -2167,7 +2173,7 @@ function Expenses({state, set, showToast, stopSwipe, cancelSwipe, focusExp, clea
               React.createElement("span",{className:"gx-cat-txt"},
                 React.createElement("span",{className:"v4-gastos-cat-row"},
                   React.createElement("span",{className:"v4-gastos-cat-name"}, catName(row.id)),
-                  React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+                  React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur(row.spent))),
                 lim>0
                   ? React.createElement(React.Fragment,null,
                       React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
@@ -2278,17 +2284,24 @@ function mcSinSeleccionHastaSoltar(){
    datos, los filtros o la tanda pintada: las callbacks van en `useCallback` y nada viaja como
    `Date`. Si añades una prop, que sea estable, o el memo queda de adorno. */
 const GastosLista=React.memo(function GastosLista({filtered, visible, state, cifra, mode, q, sel, bucketSel, bankSelIsDefault, preset, hayHistorico,
-    dragExpense, openDetail, startExpenseDrag, moveExpenseDrag, endExpenseDrag, onGoPlan, onGoInversiones, simple, l10nKey, sentinelRefCb}){
+    openDetail, reordenRefCb, onGoPlan, onGoInversiones, simple, l10nKey, sentinelRefCb}){
   const shown=filtered.slice(0,visible);
-  /* A LA FILA SE LE PASA EL NÚMERO, NO EL `Date` (2026-07-27, y esto llevaba roto desde siempre).
-     `parseDate` cachea los MILISEGUNDOS pero devuelve `new Date(ms)`: un objeto NUEVO en cada
-     llamada. Como la fecha viajaba a `MovRow` como prop, la comparación superficial de
-     `React.memo` fallaba SIEMPRE por esa prop —da igual que el gasto sea idéntico—, así que
-     cualquier re-render de Gastos repintaba las doce filas. Se cuidó que `onOpen` fuera estable
-     (ahí al lado está el comentario) y la fecha se coló por debajo.
-     Se vio saliendo de Deudas hacia Gastos: el perfilador ponía `MovRow` como la función más cara
-     de la app en ese gesto. Con un número, la comparación acierta y la fila solo se rehace cuando
-     cambia de verdad; el `Date` se construye DENTRO, que es donde se usa para formatear. */
+  /* A `MovRow` NUNCA un `Date` ni otro objeto nuevo por render (2026-07-27): `parseDate` devuelve
+     `new Date(ms)` en cada llamada y, cuando la fecha viajaba como prop, el `React.memo` fallaba
+     SIEMPRE y cualquier re-render de Gastos repintaba todas las filas (el perfilador la ponía como
+     la función más cara saliendo de Deudas). Hoy la fila ya no pinta fecha (DIS-13) y solo recibe
+     strings y booleanos. */
+  /* Banco en la fila solo si en lo filtrado hay más de uno: con uno solo, «Sabadell» en cada
+     tarjeta no distingue nada (DIS-13). Sobre `filtered` entero, no sobre lo pintado: que cargar
+     otra tanda no haga aparecer el banco en las filas de arriba. */
+  const variosBancos=useMemo(function(){
+    let uno=null;
+    for(let i=0;i<filtered.length;i++){
+      const b=expenseBankOf(filtered[i]); if(!b) continue;
+      if(uno===null) uno=b; else if(b!==uno) return true;
+    }
+    return false;
+  },[filtered]);
   /* GASTOS v5 · LOS DÍAS (SPEC §4.2 y §4.4). Cada gasto en su tarjeta y, por día, los cargos del
      banco que pagan una cuota o van a una meta o a un bróker en UNA fila gris desplegable (los recibos, sueltos y
      atenuados desde el 26/10/2026): se siguen viendo (4.26.122:
@@ -2332,7 +2345,7 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
     return (v<0?"+":"")+eur(Math.abs(v));
   };
   return (
-    React.createElement("div",{className:"v4-gastos-list gx-list",style:{marginTop:6}},
+    React.createElement("div",{className:"v4-gastos-list gx-list",ref:reordenRefCb,style:{marginTop:6}},
       React.createElement("div",{className:"v4-gastos-list-body"},
         shown.length===0
           ? (function(){
@@ -2345,9 +2358,17 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
               // preselección automática (2026-08-17: todos los marcados, no solo el principal).
               const sinFiltros=!q.trim() && !sel.length && !bucketSel.length && bankSelIsDefault;
                             const esVacioNormal=sinFiltros && hayHistorico && preset==="cycle";
-              return React.createElement("div",{className:"empty"},
+              // El texto decía «apunta uno» y no había por dónde (diseño 235, DIS-18): las dos
+              // puertas debajo, las mismas que el + y que Cartera. Conectar, solo sin bancos.
+              const sinBancos=!(state.obAccounts||[]).length;
+              return React.createElement("div",{className:"empty","data-testid":"gastos-vacio"},
                 React.createElement("div",{className:"ttl"}, esVacioNormal?t("g_empty_period_t"):t("g_empty_t")),
-                esVacioNormal?t("g_empty_period_d"):t("g_empty_d"));
+                esVacioNormal?t("g_empty_period_d"):t("g_empty_d"),
+                !esVacioNormal && React.createElement("div",{className:"gx-vacio-acts"},
+                  React.createElement("button",{type:"button",className:"btn btn-primary","data-testid":"gastos-vacio-apuntar",
+                    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-apuntar")); }catch(e){} }},t("g_empty_add")),
+                  sinBancos && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"gastos-vacio-banco",
+                    onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},t("v4_noup_cta"))));
             })()
           : dias.map(function(d){
               const tot=totalDia(d.k,d.ym);
@@ -2365,10 +2386,8 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
                   React.createElement("span",{className:"gx-dia-t"},etiquetaDia(d)),
                   tot && React.createElement("span",{className:"gx-dia-tot num","data-testid":"gastos-dia-total"},tot)),
                 d.rows.map(function(g){
-                  return React.createElement(MovRow,{key:g.e.id||g.ms, e:g.e, ms:g.ms, l:g.l, onOpen:openDetail, l10n:l10nKey,
-                    bucket:g.bucket,recibo:g.recibo,dragging:!!(dragExpense&&dragExpense.from===g.e.id),
-                    dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
-                    onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag});
+                  return React.createElement(MovRow,{key:g.e.id||g.ms, e:g.e, l:g.l, onOpen:openDetail, l10n:l10nKey,
+                    bucket:g.bucket,recibo:g.recibo,conBanco:variosBancos,reordenable:d.rows.length>1});
                 }),
                 d.gris.slice().sort(function(a,b){ return GX_GRIS[a.kind].ord-GX_GRIS[b.kind].ord; }).map(function(g){
                   return React.createElement(GastosGris,{key:d.k+"|"+g.kind, g:g, onOpen:openDetail, onGoPlan:onGoPlan, onGoInversiones:onGoInversiones, simple:simple});
@@ -2390,9 +2409,10 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
    Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
 const GX_MESES_SOBRE=36;
 /* Altos (px) con los que se estima un día de Movimientos antes de pintarlo: cabecera del día
-   (padding 18 + título), fila normal (~90 con la línea de abajo + hueco de 6; medido con
-   Pixel 5) y franja gris cerrada (48 + 2 de borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
-const GX_DIA_CAB=46, GX_FILA_ALTO=96, GX_GRIS_ALTO=56;
+   (padding 18 + título + 10 hasta el bloque), fila de dos líneas en el bloque del día (67, sin
+   hueco: medido a 393 y 412; a 360 la que baja el banco mide 78) y franja gris cerrada (48 + 2 de
+   borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
+const GX_DIA_CAB=54, GX_FILA_ALTO=68, GX_GRIS_ALTO=56;
 /* Paginación de Movimientos (ver «LA PAGINACIÓN DE LA LISTA», punto 3): filas por tanda, a
    cuántos px del final de lo pintado se pide la siguiente y cuántas filas estimadas mide el
    colchón de debajo. Tandas pequeñas y pedidas con margen = cada pintado es corto y el fling
@@ -2499,8 +2519,11 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       let k=at>=0?+els[at].getAttribute("data-gx-day"):null, ym=at>=0?els[at].getAttribute("data-gx-ym"):null;
       // El salto a un mes del final (ver `saltaADia`): en el tope manda el día pedido. Se olvida al
       // salir del tope ya llegado, o si no llega (un dedo cortó el scroll suave).
+      // Y también si ese día ya no está en la lista (otro ciclo, Restablecer): el scroll podía
+      // seguir en el mismo tope y la cabecera se quedaba con un día de otra lista y su cifra a 0.
       const sf=saltoForzadoRef&&saltoForzadoRef.current;
-      if(sf){
+      if(sf && !root.querySelector('[data-gx-day="'+sf.k+'"][data-gx-ym="'+sf.ym+'"]')) saltoForzadoRef.current=null;
+      else if(sf){
         if(Math.abs(host.scrollTop-sf.st)<=2){ sf.llego=true; k=sf.k; ym=sf.ym; }
         else if(sf.llego || Date.now()-sf.t>1500) saltoForzadoRef.current=null;
       }
@@ -2529,6 +2552,21 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       if(Math.abs(box.scrollLeft-want)>2) box.scrollTo({left:Math.max(0,want),behavior:mcReduced()?"auto":"smooth"});
     }
   },[ymSel, vista.compact, fijos, meses&&meses.length, l10nKeyOf()]);
+  /* Fundido solo en el borde por el que queda tira (237, P2-6): «agosto» cortado contra el borde
+     parecía un fallo. En el extremo no hay fundido, o apagaría la pastilla del mes en curso. Se
+     escribe en el estilo, sin estado: deslizar la tira no repinta la cabecera. */
+  const hayMeses=!!meses;
+  useEffect(function(){
+    const box=mesesRef.current; if(!box) return;
+    const bordes=function(){
+      const fin=box.scrollWidth-box.clientWidth-box.scrollLeft;
+      box.style.setProperty("--gx-fi",box.scrollLeft>1?"40px":"0px");
+      box.style.setProperty("--gx-fd",fin>1?"40px":"0px");
+    };
+    bordes();
+    box.addEventListener("scroll",bordes,{passive:true});
+    return function(){ box.removeEventListener("scroll",bordes); };
+  },[hayMeses, meses&&meses.length]);
   const tone=line.tone?" gx-tone-"+line.tone:"";
   const mesesVis=vista.compact||!!fijos;
   // `data-gx-vista` (el día que manda en la cabecera) es para los e2e: al final de la lista ya no
@@ -2540,6 +2578,7 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
     React.createElement(GxCifra,{n:line.n}),
     React.createElement("div",{className:"gx-status"+(onInfo?" con-info":""),"data-testid":"gastos-estado"},
+      line.hasta ? React.createElement(React.Fragment,null,React.createElement("span",{className:"gx-hasta"},line.hasta)," · ") : null,
       React.createElement("span",null,line.pre),
       line.tail ? React.createElement(React.Fragment,null," · ",React.createElement("span",{className:"gx-tail"+tone},line.tail)) : null,
       // La «i» de Suscripciones (SPEC §6.3), la misma que la de la gráfica de Inicio. La letra la
@@ -2560,7 +2599,8 @@ function l10nKeyOf(){ return CURLANG+"|"+DISP.sym; }
 /* LOS TRES ICONOS DE SECCIÓN (SPEC §2.1): Movimientos (líneas), Categorías (barras) y
    Suscripciones (reloj con flecha = «se repite»), con el globito de las que esperan decisión.
    Son pestañas de verdad (`role="tab"`, `aria-selected`) y cada una dice su nombre: el icono solo
-   no se entiende con un lector de pantalla. */
+   no se entiende con un lector de pantalla. La 235 los cambió por un segmentado con texto debajo
+   del título y el dueño pidió volver a los iconos de arriba (16/11: «no me gusta así»). */
 const GX_SECC_ICO={
   movs:["M4 7h16M4 12h12M4 17h8"],
   cats:["M6 20v-6M12 20V4M18 20v-10"],
@@ -2708,6 +2748,214 @@ function SyncHora({lastSync}){
     at?tf("g_lastsync",{d:new Date(at).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"));
 }
 
+/* ── PULSACIÓN LARGA PARA ORDENAR LOS MOVIMIENTOS DE UN DÍA (15/11/2026) ──
+   Mantener ~450 ms levanta la fila (vibra, crece, sombra y brillo del tema, el resto del día se
+   apaga); la fila sigue al dedo con un leve balanceo, las demás se apartan con muelles y al soltar
+   aterriza con un rebote en su hueco. Decisiones que no se ven leyendo el código:
+   · CERO setState hasta que todo está quieto. El asa anterior repintaba la lista entera al tocar y
+     al soltar, y con 670 filas bajadas eran 100-150 ms por frame a CPU ×6 (A/B lag-gastos-r3).
+     Aquí se lee el layout UNA vez, al levantar, y cada frame solo escribe `transform`.
+   · Listeners NATIVOS en la lista, no `onTouch*` de React: el carrusel escucha en `.viewport` con
+     listener nativo y React reparte desde la raíz, o sea DESPUÉS. Solo uno nativo dentro de la
+     lista llega antes y puede quedarse el dedo con `stopPropagation`.
+   · Mientras se espera no se reclama NADA: si el dedo se mueve más de GX_HOLD_TOL px la espera se
+     suelta y el dedo sigue siendo del scroll o del carrusel. Así no puede volver el rechazo de la
+     beta 4.26.173 (deslizar hacia Plan empezando en el borde derecho de una fila): ninguna zona de
+     la fila se queda el dedo antes de tiempo.
+   · Se guarda al ACABAR el aterrizaje, no al soltar, y con `flushSync`: React mueve los nodos justo
+     al sitio donde ya se ven y en el mismo frame se quitan los transform, sin salto. Guardar al
+     soltar metía el render de la lista en el primer frame del rebote. */
+const GX_HOLD_MS=450;   // lo que pidió: «mantener»; más corto se confunde con un toque lento
+const GX_HOLD_TOL=8;    // px de temblor tolerados esperando; por debajo de GEST_LEAD (12), así ni el
+                        // carrusel ni el scroll han decidido nada cuando la espera se suelta
+const GX_BORDE=72;      // px junto al borde visible donde empieza el auto-scroll
+// Muelle amortiguado (Euler semi-implícito): estable con el dt de un frame a 30-120 Hz.
+function gxMuelle(m,k,c,dt){ m.v+=(-k*(m.p-m.to)-c*m.v)*dt; m.p+=m.v*dt; }
+function gxQuieto(m,tol){ return Math.abs(m.p-m.to)<tol && Math.abs(m.v)<tol*10; }
+function gxReorden(lista, op){
+  let g=null, raf=0;
+  const html=document.documentElement;
+  // Sin menú del sistema mientras el dedo esté puesto en una fila (Android lo abre al mantener).
+  const sinMenu=function(ev){ if(g&&g.fase!=="aterriza") ev.preventDefault(); };
+  const limpia=function(gg){
+    cancelAnimationFrame(raf); raf=0;
+    if(!gg.R) return;
+    gg.R.forEach(function(r){ r.el.style.transform=""; });
+    gg.row.classList.remove("gx-alza","gx-aterriza");
+    gg.sec.classList.remove("gx-reorden","gx-suelta");
+    document.removeEventListener("visibilitychange",corta);
+  };
+  // La app se va a segundo plano con el dedo puesto: no llega ni touchend. Todo a su sitio, sin guardar.
+  const corta=function(){ if(g){ const gg=g; g=null; if(gg.timer) clearTimeout(gg.timer); limpia(gg); } };
+  const fin=function(){
+    const gg=g; g=null; raf=0;
+    const desde=gg.R[gg.from].id, hasta=gg.R[gg.to].id;
+    op.calla();
+    if(desde!==hasta){
+      ReactDOM.flushSync(function(){ op.alSoltar(desde,hasta); });
+    }
+    limpia(gg);
+  };
+  // Dónde acaba la fila arrastrada si se suelta ahora: alineada por arriba o por abajo con la que ocupa.
+  const destino=function(gg){
+    const a=gg.R[gg.from], b=gg.R[gg.to];
+    return gg.to>gg.from?b.top+b.h-a.top-a.h:b.top-a.top;
+  };
+  const frame=function(ts){
+    raf=0;
+    if(!g||!g.R) return;
+    const dt=g.tPrev?Math.min(0.034,Math.max(0.004,(ts-g.tPrev)/1000)):1/60;
+    g.tPrev=ts;
+    // Si el dedo se para, su velocidad se apaga sola: la fila deja de inclinarse y solo flota.
+    g.vy*=Math.exp(-dt*9);
+    const R=g.R, yo=R[g.from], ult=R[R.length-1], red=g.reduce;
+    if(g.fase==="arrastre"){
+      // Auto-scroll: solo mientras quede día por enseñar hacia ese lado (el orden no sale del día).
+      let v=0;
+      if(g.y<g.arriba+GX_BORDE && R[0].top-g.st<g.arriba-2) v=-Math.pow(Math.min(1,(g.arriba+GX_BORDE-g.y)/GX_BORDE),2)*1100;
+      else if(g.y>g.abajo-GX_BORDE && ult.top+ult.h-g.st>g.abajo+2) v=Math.pow(Math.min(1,(g.y-g.abajo+GX_BORDE)/GX_BORDE),2)*1100;
+      if(v){
+        const st=Math.max(0,Math.min(g.stMax,g.st+v*dt));
+        if(st!==g.st){ g.st=st; g.host.scrollTop=st; }
+      }
+      const min=R[0].top-yo.top, max=ult.top+ult.h-yo.top-yo.h;
+      let dy=(g.y+g.st)-(g.yA+g.stA);
+      // Pasado el primer o el último hueco del día la fila cede a un tercio: se nota el tope sin golpe seco.
+      if(dy<min) dy=min+(dy-min)/3; else if(dy>max) dy=max+(dy-max)/3;
+      g.ym.p=dy; g.ym.v=g.vy;
+      const c=yo.top+dy+yo.h/2;
+      let to=g.from;
+      for(let i=g.from+1;i<R.length;i++) if(c>R[i].top+R[i].h/2) to=i;
+      for(let i=g.from-1;i>=0;i--) if(c<R[i].top+R[i].h/2) to=i;
+      if(to!==g.to){
+        g.to=to;
+        const paso=yo.h+g.gap;
+        R.forEach(function(r,i){
+          r.m.to=(to>g.from&&i>g.from&&i<=to)?-paso:(to<g.from&&i>=to&&i<g.from)?paso:0;
+        });
+      }
+      g.rot.to=red?0:Math.max(-3,Math.min(3,g.vy/1500*2.6));
+    } else {
+      gxMuelle(g.ym,red?900:340,red?60:19,dt);
+    }
+    gxMuelle(g.sc,red?900:430,red?60:21,dt);
+    gxMuelle(g.rot,170,8.5,dt);
+    let quietos=gxQuieto(g.ym,0.4)&&gxQuieto(g.sc,0.002)&&gxQuieto(g.rot,0.05);
+    R.forEach(function(r){
+      if(r===yo) return;
+      gxMuelle(r.m,red?900:520,red?60:32,dt);
+      if(!gxQuieto(r.m,0.4)) quietos=false;
+      const s=Math.abs(r.m.p)<0.05&&r.m.to===0?"":"translate3d(0,"+r.m.p.toFixed(2)+"px,0)";
+      if(s!==r.s){ r.s=s; r.el.style.transform=s; }
+    });
+    // Un vaivén lento mientras flota, para que no parezca pegado al dedo con cola.
+    const vaiven=red||g.fase!=="arrastre"?0:Math.sin((ts-g.t0)/1000*2.6)*0.45;
+    yo.el.style.transform="translate3d(0,"+g.ym.p.toFixed(2)+"px,0) rotate("+(g.rot.p+vaiven).toFixed(3)+"deg) scale("+g.sc.p.toFixed(4)+")";
+    if(g.fase==="aterriza" && (quietos || ts-g.tSuelta>1200)){ fin(); return; }
+    raf=requestAnimationFrame(frame);
+  };
+  const levanta=function(){
+    if(!g||g.fase!=="espera") return;
+    g.timer=0;
+    const row=g.row, sec=g.sec, host=g.host;
+    // Si la página se movió durante la espera, era un scroll (o una inercia frenada tarde): nada.
+    if(!row.isConnected||html.classList.contains("sheet-open")||Math.abs(host.scrollTop-g.st0)>2){ g=null; return; }
+    const filas=Array.from(sec.querySelectorAll("button.v4-mov[data-reorden]"));
+    const from=filas.indexOf(row);
+    if(from<0||filas.length<2){ g=null; return; }
+    // La clase va ANTES de medir: quita `content-visibility` (su contención de pintado recortaría la
+    // sombra y la fila que se sale del día) y así lo medido ya es lo que se va a ver.
+    sec.classList.add("gx-reorden");
+    const st=host.scrollTop;
+    const hr=host.getBoundingClientRect();
+    let arriba=hr.top, abajo=hr.bottom;
+    // Lo visible de verdad: bajo la cabecera fija de Gastos y encima de la barra de abajo.
+    const cab=host.querySelector(".gx-head");
+    if(cab){ const r=cab.getBoundingClientRect(); if(r.bottom>arriba&&r.bottom<hr.top+hr.height/2) arriba=r.bottom; }
+    const nav=document.querySelector(".botnav");
+    if(nav){ const r=nav.getBoundingClientRect(); if(r.height>0&&r.top<abajo&&r.top>hr.top+hr.height/2) abajo=r.top; }
+    const R=filas.map(function(el){
+      const r=el.getBoundingClientRect();
+      return {el:el,id:el.getAttribute("data-expense-id"),top:r.top+st,h:r.height,m:{p:0,v:0,to:0}};
+    });
+    Object.assign(g,{fase:"arrastre",R:R,from:from,to:from,gap:Math.max(0,R[1].top-R[0].top-R[0].h),
+      st:st,stA:st,stMax:Math.max(0,host.scrollHeight-host.clientHeight),arriba:arriba,abajo:abajo,
+      yA:g.y,reduce:mcReduced(),t0:performance.now(),tPrev:0,ym:{p:0,v:0,to:0},rot:{p:0,v:0,to:0}});
+    g.sc={p:1,v:g.reduce?0:1.2,to:g.reduce?1.02:1.045};   // cuánto se levanta
+    row.classList.add("gx-alza");
+    document.addEventListener("visibilitychange",corta);
+    op.calla();
+    try{ navigator.vibrate&&navigator.vibrate(12); }catch(_){}
+    raf=requestAnimationFrame(frame);
+  };
+  const suelta=function(guardar){
+    g.fase="aterriza"; g.tSuelta=performance.now();
+    op.calla();
+    if(!guardar){
+      g.to=g.from;
+      g.R.forEach(function(r){ r.m.to=0; });
+    }
+    g.ym.to=destino(g); g.ym.v=g.reduce?0:g.vy*0.35;
+    g.sc.to=1; g.rot.to=0;
+    g.row.classList.add("gx-aterriza");
+    g.sec.classList.add("gx-suelta");   // el resto del día recupera el color mientras ella cae
+    if(!raf) raf=requestAnimationFrame(frame);
+  };
+  const ts=function(ev){
+    if(g){
+      /* Un arrastre que sigue «vivo» con un dedo NUEVO es que su touchend se perdió (si React quita
+         la fila de debajo del dedo, el evento ya no sube hasta la lista): se recoge, o ningún otro
+         gesto volvería a ordenar. Un segundo dedo o un toque durante el aterrizaje, se ignoran. */
+      if(g.fase==="arrastre"&&ev.touches&&ev.touches.length===1) corta();
+      else if(g.fase!=="espera") return;
+      else { clearTimeout(g.timer); g=null; }
+    }
+    if(!ev.touches||ev.touches.length!==1) return;   // con una hoja abierta lo descarta `levanta`
+    const row=ev.target.closest&&ev.target.closest("button.v4-mov[data-reorden]");
+    const sec=row&&row.closest(".gx-dia");
+    const host=sec&&sec.closest(".page"), p=ev.touches[0];
+    if(!host||!lista.contains(row)) return;
+    g={fase:"espera",row:row,sec:sec,host:host,x0:p.clientX,y0:p.clientY,x:p.clientX,y:p.clientY,
+      st0:host.scrollTop,vy:0};
+    g.timer=setTimeout(levanta,GX_HOLD_MS);
+  };
+  const tm=function(ev){
+    if(!g) return;
+    const p=ev.touches&&ev.touches[0]; if(!p) return;
+    if(g.fase==="espera"){
+      g.x=p.clientX; g.y=p.clientY;
+      if(Math.abs(p.clientX-g.x0)>GX_HOLD_TOL||Math.abs(p.clientY-g.y0)>GX_HOLD_TOL){ clearTimeout(g.timer); g=null; }
+      return;
+    }
+    if(g.fase!=="arrastre") return;
+    // El navegador ya se quedó el gesto como scroll: no pelearle el dedo, la fila vuelve a su sitio.
+    if(!ev.cancelable){ suelta(false); return; }
+    ev.preventDefault(); ev.stopPropagation();
+    const now=ev.timeStamp;
+    if(g.tm) g.vy=g.vy*0.6+(p.clientY-g.y)/Math.max(1,now-g.tm)*1000*0.4;
+    g.tm=now; g.x=p.clientX; g.y=p.clientY;
+    if(!raf) raf=requestAnimationFrame(frame);
+  };
+  const te=function(ev){
+    if(!g) return;
+    if(g.fase==="espera"){ clearTimeout(g.timer); g=null; return; }
+    if(g.fase==="arrastre" && !(ev.touches&&ev.touches.length)) suelta(ev.type!=="touchcancel");
+  };
+  lista.addEventListener("touchstart",ts,{passive:true});
+  lista.addEventListener("touchmove",tm,{passive:false});
+  lista.addEventListener("touchend",te,{passive:true});
+  lista.addEventListener("touchcancel",te,{passive:true});
+  lista.addEventListener("contextmenu",sinMenu);
+  return function(){
+    lista.removeEventListener("touchstart",ts);
+    lista.removeEventListener("touchmove",tm);
+    lista.removeEventListener("touchend",te);
+    lista.removeEventListener("touchcancel",te);
+    lista.removeEventListener("contextmenu",sinMenu);
+    if(g){ const gg=g; g=null; if(gg.timer) clearTimeout(gg.timer); limpia(gg); }
+  };
+}
+
 /* ---------- Fila del histórico ----------
    Va en React.memo a propósito. Antes se pintaba en línea dentro de Expenses, así que CUALQUIER
    cambio de estado (un toast, un sync de la nube, teclear en el buscador, el snapshot diario de
@@ -2718,11 +2966,8 @@ function SyncHora({lastSync}){
    `l10n` (idioma|símbolo de moneda) es un prop a posta: catName/entOf/eur leen globales que memo
    no puede ver, así que sin él cambiar de idioma o de moneda dejaría las filas en el idioma viejo.
    `onOpen` tiene que ser ESTABLE (useCallback) o el memo no sirve de nada. */
-const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
-  // `ms` y no un `Date`: ver el porqué donde se construyen los grupos. El objeto se crea aquí,
-  // que es la única línea que lo necesita, y solo cuando la fila se pinta de verdad.
+const MovRow=React.memo(function MovRow({e, l, onOpen, bucket, recibo, conBanco, reordenable}){
   // `bucket` (string) lo pasa el padre: si se pasara `state` entero, el memo no acertaría nunca.
-  const d=new Date(ms);
   const c=catOf(e.category);
   const isIncome=e.amount<0;
   const bk=expenseBankOf(e);
@@ -2737,34 +2982,39 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   // aportación, igual: a qué meta va.
   // Una aportación a un bróker dice adónde fue si se sabe (`inversionEtiqueta`); si no, «no es un gasto».
   const skipTxt=!skip?"":(bucket==="recibo"||bucket==="meta"||(bucket==="neutra"&&recibo)?recibo:t("g_skip_"+bucket));
-  return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
-      className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
-      onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
-    React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
+  /* Sin fecha: la fila siempre va bajo la cabecera de su día, y «22/9 · Sabadell» debajo de
+     «mar 22 sept» repetía lo mismo (auditoría de diseño 233, DIS-13). El banco solo si en lo que
+     se ve hay más de uno (`conBanco`); y si no queda nada que decir, la línea ni se pinta. */
+  const banco=conBanco&&bk?(entOf(bk).label||entOf(bk).mono):"";
+  const meta=[banco,skipTxt].filter(Boolean);
+  const importe=(isIncome?"+":"")+eur(Math.abs(e.amount));
+  /* Sin asa (DIS-14): en un día con más de un movimiento la fila ENTERA se mantiene pulsada para
+     ordenarla (`gxReorden`, que la reconoce por `data-reorden`). Como el gesto no se ve, lo dice
+     el nombre accesible, y solo donde es verdad. */
+  return React.createElement("button",{type:"button","data-expense-id":e.id,"data-reorden":reordenable?"1":null,
+      "aria-label":reordenable?[shownName||"—",l||catName(e.category),importe,t("g_mov_reorden")].join(" · "):null,
+      className:"v4-mov"+(skip?" v4-mov-skip":""),
+      onClick:function(){ onOpen(e); },style:skip?{opacity:.72}:null},
+    /* La MISMA fila que «Últimos movimientos» de Inicio (237, P2-5): el color de la categoría solo
+       en la baldosa, y debajo del nombre una línea gris «Categoría · Banco». Antes eran tres líneas
+       con la categoría en color: cabían cinco filas por pantalla y el mismo gasto se veía distinto
+       en cada pestaña. */
+    React.createElement("div",{className:"tile",style:{background:c.color+"22"}},c.icon),
     React.createElement("div",{className:"nm"},
       // Renombrado en vuelo: la lista enseña ya el nombre nuevo, igual que la ficha, sin tocar
       // `merchant` (eso solo cambia con el ack del servidor). En cuarentena vuelve al guardado.
       React.createElement("div",{className:"nm-title"}, shownName||"—",
         pendingName&&renameAvisoVisible(e.renamePending)?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
-      // El color de la categoría va como variable y lo pinta el CSS: en el tema Claro, el pastel tal
-      // cual sobre blanco no se leía (1,9:1, auditoría 14/11) y ahí se oscurece (ver `.nm-cat`).
-      React.createElement("div",{className:"nm-cat",style:{"--cat":c.color}}, l||catName(e.category)),
-      React.createElement("div",{className:"meta"},
-        React.createElement("span",null,gxFecha(d,"dm")),
-        bk?React.createElement(React.Fragment,null,
-          React.createElement("span",{className:"sep"},"·"),
-          React.createElement("span",null,entOf(bk).label||entOf(bk).mono)
-        ):null,
-        skip?React.createElement(React.Fragment,null,
-          React.createElement("span",{className:"sep"},"·"),
-          React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt)
-        ):null
-      )
+      React.createElement("div",{className:"nm-sub"},
+        React.createElement("span",{className:"nm-cat"}, l||catName(e.category)),
+        meta.length?React.createElement("span",{className:"meta"},
+          banco?React.createElement("span",null,banco):null,
+          banco&&skipTxt?React.createElement("span",{className:"sep"},"·"):null,
+          skipTxt?React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt):null
+        ):null)
     ),
-    React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount))),
-    React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"y","aria-label":t("drag_hint"),title:t("drag_hint"),
-      onTouchStart:function(ev){ onDragStart(ev,e); },onTouchMove:onDragMove,onTouchEnd:onDragEnd,onTouchCancel:onDragEnd},"⠿")
+    React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, importe)
   );
 });
 
@@ -2880,7 +3130,9 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
           React.createElement("div",{id:"gastos-filter-cats-body",className:"v4-filter-cats-body","aria-hidden":!filterCatsOpen},
             React.createElement("div",{className:"v4-filter-cats-inner"},
               React.createElement("div",{className:"searchbar",style:{margin:"12px 0"}},
-                React.createElement("span",{className:"searchbar-ic"},"🔍"),
+                // Lupa de línea, como en el buscador de Movimientos (237, P2-7).
+                React.createElement("svg",{className:"searchbar-ic",width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+                  React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
                 React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_filters_search"),value:qCat,onChange:function(e){ setQCat(e.target.value); }}),
                 qCat && React.createElement("button",{className:"searchbar-x",type:"button",onClick:function(){ setQCat(""); }},"✕")
               ),
@@ -3024,6 +3276,11 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const [bankOpen,setBankOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(null);
+  // El teclado del importe, plegado hasta que se toca el importe (16/11).
+  const [editaImporte,setEditaImporte]=useState(false);
+  // Lo que se pinta mientras el desplegable se cierra: sin él, el hueco se vaciaba antes de plegarse.
+  const ultimoAjusteRef=useRef(null);
+  const despliegue=useDespliegue(!!adjustOpen);
   const auto=!!(exp && exp.source && exp.source!=="manual");
   const catList=useMemo(()=>XC.concat(exp&&exp.category==="bizum"?[CAT.bizum]:[],INVERSION_CAT,TRASPASO_CAT),[exp&&exp.category]);
   // ExpenseDetailSheet permanece premontado: esta pasada O(n) ocurre al preparar Gastos, no al
@@ -3035,7 +3292,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return expenseTopCategoryPick(fichaCatsBase,exp&&exp.category,catList);
   },[fichaCatsBase,exp&&exp.category,catList]);
   useEffect(function(){
-    if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); }
+    if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); setEditaImporte(false); }
   },[abierto,exp&&exp.id]);
   // Modificar no tiene botón Guardar. El pequeño debounce evita una escritura del histórico por
   // cada dígito sin convertir «se guarda al momento» en «se guarda al cerrar».
@@ -3061,30 +3318,42 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
     return out;
   })();
-  const traceRaw=String(exp.rawText||exp.notificationText||exp.raw||"").trim()||t("f_trace_missing");
-  const traceDate=(function(){
-    const d=exp.notifiedAt||exp.createdAt;
-    if(!d) return fmtIsoCorto(exp.date);
-    const parsed=new Date(d);
-    return isNaN(parsed.getTime())?fmtIsoCorto(exp.date):parsed.toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-  })();
   const fxHint=(exp.origCur&&exp.origAmount>0) ? (
     NF.format(Math.abs(exp.origAmount))+" "+(CUR_SYM[exp.origCur]||exp.origCur)+" · "+
     tf("f_fx_eq",{x:NF.format(Math.abs(exp.amount))+" €",date:fmtIsoCorto(state.fxDate||exp.date)})
   ) : null;
-  const trace=auto && React.createElement("div",{className:"v4-ficha-trace","data-testid":"exp-trace"},
-    bk?React.createElement(Mono,{ent:bk,size:34}):React.createElement("div",{className:"mono",style:{width:34,height:34}},"🏦"),
-    React.createElement("div",{className:"v4-ficha-trace-copy"},
-      React.createElement("div",{className:"v4-ficha-trace-title"},tf("f_from_bank",{bank:bk?entOf(bk).label:t("bp_hist_bank_unknown")})),
-      React.createElement("div",{className:"v4-ficha-trace-sub"},tf("f_from_bank_sub",{date:traceDate,raw:traceRaw}))));
-  const meta=[
-    {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
-      on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",
-      onClick:function(){ if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; } setBank(exp,bk==="efectivo"?null:"efectivo"); }},
-    {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
-      onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
-  ];
+  /* La forma de pago en un segmentado (DIS-03): cada toque escribe por el camino de siempre y solo
+     lo que cambia. Tarjeta ↔ Bizum es `setCardFlag` (también en los del banco, como la fila de antes);
+     Efectivo es `setBank`. Salir de Efectivo va al mismo banco que en Apuntar: el de gasto diario
+     si no es el sobre, si no el primer banco que no sea efectivo, o ninguno. */
+  const payMode=bk==="efectivo"?"cash":(exp.noCard?"transfer":"card");
+  const cardBankEnt=(function(){
+    const d=(state.accounts||[]).find(function(a){ return a&&accDaily(a)&&!isEfectivoEnt(a); });
+    return (d&&d.ent)||bankOpts.filter(function(b){ return !isEfectivoEnt(b); })[0]||null;
+  })();
+  /* Cambiar de banco por su camino; si se llega al sobre (segmentado o lista de bancos), un Bizum
+     pierde la marca: en Efectivo no hay mando que la enseñe ni la quite, y escondida cambiaba su
+     clave de reglas (D3). La marca, siempre DESPUÉS de que la nube confirme el banco: el cambio de
+     banco se descarta si la fila cambia entre medias, y la marca la cambiaría. */
+  const aBanco=function(b,nc){
+    if(nc==null&&isEfectivoEnt(b)&&!isIncome) nc=false;
+    return Promise.resolve(setBank(exp,b)).then(function(ok){ if(ok&&nc!=null&&!!exp.noCard!==nc) setCardFlag(exp,nc); return ok; });
+  };
+  const onPayMode=function(m){
+    const sale=payMode==="cash";
+    if(m==="cash"||sale){
+      if(auto){ showToast(t(withdrawalConfirmedUI(exp)?"f_withdraw_cash_limit":"f_locked_toast")); return; }
+      aBanco(m==="cash"?"efectivo":cardBankEnt, isIncome?null:(m==="cash"?false:m==="transfer"));
+      return;
+    }
+    const nc=m==="transfer";
+    if(!!exp.noCard!==nc) setCardFlag(exp,nc);
+  };
+  const payRow=React.createElement(ExpensePayRow,{income:isIncome,mode:payMode,onMode:onPayMode,bankEnt:bk,bankOn:bankOpen,
+    bankLocked:auto,cashLocked:auto,onLocked:lockedToast,testPrefix:"exp",bankOpts:bankOpts,
+    // «Sin banco» por `setBank` a secas, como la lista de antes; un banco, por `aBanco` (Bizum en el sobre).
+    onPickBank:function(b){ setBankOpen(false); if(b==null) setBank(exp,null); else if(b!==bk) aBanco(b); },
+    onBank:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }});
   const splitPair=gemeloSeparadoDe(state,exp);
   const autoPair=gemeloAutomaticoDe(state,exp);
   const paired=splitPair?React.createElement("div",{className:"hint"},React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-auto-rejoin",onClick:function(){separarGemelo(exp,true);onClose(true);}},t("g_auto_rejoin"))):autoPair&&React.createElement("div",{className:"hint","data-testid":"exp-auto-paired"},
@@ -3107,11 +3376,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no"))));
   const afterMeta=React.createElement(React.Fragment,null,
     calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
-    bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
-      React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
-      bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
-        onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate,paired,reciboAviso,
+    duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
     incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
       incomePlan.category==="ingreso"&&React.createElement("div",{className:"hint"},t("f_incomeown_income_hint")),
@@ -3125,17 +3390,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         transferOffer.check().then(function(ready){if(ready&&transferLive.current.plan===transferPlan)recognizeOwnTransfer(exp);});
       }},t("f_owntransfer_title")),
     ownTransferStatus&&ownTransferStatus.id===exp.id&&ownTransferStatus.status!=="done"&&React.createElement("div",{role:"status","data-testid":"exp-own-transfer-status"},React.createElement("div",null,t(ownTransferStatus.status==="pending"?"f_owntransfer_pending":"f_owntransfer_error")),ownTransferStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-own-transfer-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
-    canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
-      React.createElement("div",null,t("f_withdraw_fields")),
-      exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
-        disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
-        onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
-      exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
-      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
-      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
-      withdrawalConfirmedUI(exp)&&React.createElement("div",null,t("f_withdraw_cash_limit")),
-      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
-        t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
+    null);
+  /* La retirada de efectivo es una baldosa más de la fila de ajustes (16/11: el botón grande «Es una
+     retirada de efectivo» y su frase de ayuda «quedaban fatal»). Aquí debajo solo lo que pasa: en
+     curso, ya hecha, bloqueada por un recibo o sin confirmar. Lo que guarda es lo de siempre. */
+  const retiradaEn=withdrawalStatus&&withdrawalStatus.id===exp.id?withdrawalStatus:null;
+  const retiradaAvisos=canRecognizeWithdrawal(exp)?[
+      exp.category==="traspaso" && React.createElement("div",{key:"n","data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
+      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{key:"b","data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      retiradaEn && retiradaEn.status==="done" && retiradaEn.receiptUndone && React.createElement("div",{key:"u",role:"status"},t("f_withdraw_receipt_undone")),
+      withdrawalConfirmedUI(exp)&&React.createElement("div",{key:"l"},t("f_withdraw_cash_limit")),
+      retiradaEn && retiradaEn.status!=="done" && React.createElement("div",{key:"s",role:"status"},t(retiradaEn.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))
+    ].filter(Boolean):[];
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
   // Metas a las que se puede aportar: las abiertas, y la que ya tiene aunque esté cumplida.
   const metaActual=exp.goalId?(state.goals||[]).find(function(g){ return g&&g.id===exp.goalId; }):null;
@@ -3158,14 +3424,34 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   });
   // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo (cuarta revisión).
   const receiptPuntuales=(state.oneoffs||[]).filter(vetadoAqui);
-  const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
-    // cuando la marca venía de un puntual o la categoría era neutra.
-    !isIncome&&!exp.possibleDup&&(exp.reciboId||reciboDe||receiptPuntuales.length>0||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
-      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
-        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value","data-testid":"exp-receipt-value"},expensePaymentLabelUI(state,exp,"fixed",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
-      adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
-        React.createElement("div",{className:"hint"},t("f_receipt_hint")),
+  /* Lo de debajo de las categorías, en UNA fila de baldosas como las de categoría (16/11: las filas
+     «Paga un recibo · No ›» primero y los chips en dos filas desiguales después «no me molan nada»).
+     Cada baldosa dice qué es o, si ya tiene algo, el qué («Luz», la nota…), se marca como la
+     categoría elegida y abre su panel debajo, plegándose suave. El nombre largo va para el lector.
+     Lo que guarda cada panel es lo de siempre: aquí solo cambia cómo se llega. */
+  const sinMarca=t("f_no");
+  const reciboVal=expensePaymentLabelUI(state,exp,"fixed",paymentRelation), deudaVal=expensePaymentLabelUI(state,exp,"debt",paymentRelation);
+  const metaVal=metaActual?(metaActual.name||""):(exp.goalId?t("g_meta_borrada"):null);
+  const baldosa=function(id,testId,icon,label,aria,value){
+    const abierta=adjustOpen===id;
+    return React.createElement("button",{key:id,type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(value||abierta?" on":""),"data-testid":testId,
+        "aria-label":aria+(value?": "+value:""),"aria-expanded":abierta,onClick:function(){ setEditaImporte(false); setAdjustOpen(abierta?null:id); }},
+      React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},icon),
+      value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",null,label));
+  };
+  // Con marca de recibo el chip sale siempre: si no, «No es este recibo» quedaba inalcanzable
+  // cuando la marca venía de un puntual o la categoría era neutra.
+  const conRecibo=!isIncome&&!exp.possibleDup&&(exp.reciboId||reciboDe||receiptPuntuales.length>0||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0));
+  const conDeuda=!isIncome&&(exp.debtId||debtOptions.length>0);
+  /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
+     los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
+     explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está
+     «Aportar» en la meta, y esta marca solo sabe viajar en las filas del banco. */
+  const conMeta=!isIncome&&metaRowOn;
+  const paneles={
+    receipt:conRecibo&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
+        // Sin nada que elegir, una sola línea: la de que no hay recibos (antes iban las dos frases).
+        (receiptOptions.length>0||receiptPuntuales.length>0||!!reciboConfirmable||!!receiptLinked||!!reciboDe)&&React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
           // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
           // (es lo que pide el aviso de la retirada), y solo entonces se ofrece confirmar otro.
@@ -3178,44 +3464,47 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
             onClick:function(){ setReceipt(exp,o.id); }},o.name+" · "+eur(o.amount)); })),
         !paymentRelation&&!receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")),
         (mcChannel()==="beta"||diagDebug)&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-receipt-diag",style:{fontSize:12,padding:"4px 10px",marginTop:8},
-          onClick:function(){ copiarTexto(reciboDiagText(state,exp),showToast); }},t("f_receipt_diag")))),
-    React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
-      React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
-    adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
-      React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),
+          onClick:function(){ copiarTexto(reciboDiagText(state,exp),showToast); }},t("f_receipt_diag"))),
+    note:React.createElement("div",{className:"v4-ficha-adjust-open"},
+      React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),autoFocus:true,
         onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
         onBlur:function(){ saveNote(exp,editExp.note); },"aria-label":t("v4_exp_note")})),
-    exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
-      t("g_note_unconfirmed")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveNote(exp,exp.note);}},t("g_note_retry"))),
-    !isIncome && (exp.debtId||debtOptions.length>0) && React.createElement(React.Fragment,null,
-      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="debt"?null:"debt"); }},
-        React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},expensePaymentLabelUI(state,exp,"debt",paymentRelation)),React.createElement("span",{className:"chev"},"›")),
-      adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
+    debt:conDeuda&&React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
         debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
-          "data-manual":on&&exp.debtManual?"1":null,onClick:function(){ if(!on||!exp.debtManual) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
-    /* «Es aportación a una meta» (24/10/2026). Sale en los cargos del banco que pueden llevarla y en
-       los que ya la llevan (si no, quitarla no tendría camino). En una cuota o un recibo se ve, pero
-       explica por qué no se puede: una marca por gasto. Un apunte a mano no la ofrece: para eso está
-       «Aportar» en la meta, y esta marca solo sabe viajar en las filas del banco. */
-    !isIncome && metaRowOn && React.createElement(React.Fragment,null,
-      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-meta",onClick:function(){ setAdjustOpen(adjustOpen==="meta"?null:"meta"); }},
-        React.createElement("span",null,t("f_meta_row")),
-        React.createElement("span",{className:"value","data-testid":"exp-meta-value"},metaActual?((metaActual.emoji||"🎯")+" "+(metaActual.name||"")):(exp.goalId?t("g_meta_borrada"):t("f_no"))),
-        React.createElement("span",{className:"chev"},"›")),
-      adjustOpen==="meta" && React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-meta-options"},
+          "data-manual":on&&exp.debtManual?"1":null,onClick:function(){ if(!on||!exp.debtManual) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); })),
+    meta:conMeta&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-meta-options"},
         React.createElement("div",{className:"hint"},t(metaOtraMarca?"f_meta_otra":(metaOpciones.length||exp.goalId)?"f_meta_hint":"f_meta_ninguna")),
         !metaOtraMarca && React.createElement("div",{className:"v4-chips wrap"},
           metaOpciones.map(function(g){ const on=exp.goalId===g.id; return React.createElement("button",{key:g.id,type:"button",className:"v4-chip"+(on?" on":""),"data-testid":"exp-meta-"+g.id,"aria-pressed":on,
             onClick:function(){ if(!on) setMeta(exp,g.id); }},(g.emoji||"🎯")+" "+(String(g.name||"").trim()||t("v4_plan_metas"))); }),
-          exp.goalId && React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-meta-quitar",onClick:function(){ setMeta(exp,null); }},t("f_meta_quitar"))))),
-    React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){
-      if(auto){ lockedToast(); return; }
-      const income=!editExp.income; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
-    }},React.createElement("span",null,t("f_income_row")),React.createElement("span",{className:"value"},editExp.income?"✓":t("f_no")),React.createElement("span",{className:"chev"},"›")),
-    !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-payment",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-      React.createElement("span",null,t(exp.noCard?"g_nocard":"g_card")),React.createElement("span",{className:"chev"},"›")),
-    cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
-      React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")),React.createElement("span",{className:"chev"},"›"))
+          exp.goalId && React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-meta-quitar",onClick:function(){ setMeta(exp,null); }},t("f_meta_quitar"))))
+  };
+  if(adjustOpen) ultimoAjusteRef.current=adjustOpen;
+  const panelVisto=despliegue.vivo?paneles[adjustOpen||ultimoAjusteRef.current]:null;
+  const baldosas=[
+    conRecibo&&baldosa("receipt","exp-receipt","🧾",t("f_adj_recibo"),t("f_receipt_row"),reciboVal===sinMarca?null:reciboVal),
+    conDeuda&&baldosa("debt","exp-debt",DEUDA_CAT.icon,t("f_adj_deuda"),t("f_debt_row"),deudaVal===sinMarca?null:deudaVal),
+    conMeta&&baldosa("meta","exp-meta",metaActual&&metaActual.emoji||"🎯",t("f_adj_meta"),t("f_meta_row"),metaVal),
+    baldosa("note","exp-note","📝",t("f_note_row"),t("f_note_row"),editExp.note||null),
+    // Ya hecha, la baldosa se queda marcada y quieta: el estado lo dice el aviso de debajo.
+    canRecognizeWithdrawal(exp)&&React.createElement("button",{key:"retirada",type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(exp.category==="traspaso"?" on":""),
+        "data-testid":"exp-withdrawal","aria-label":t("f_withdraw_action"),"aria-pressed":exp.category==="traspaso",
+        disabled:exp.category==="traspaso"||!canRecognizeWithdrawal(exp,state)||!!(retiradaEn&&retiradaEn.status==="pending"),
+        onClick:function(){ recognizeWithdrawal(exp); }},
+      React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},"🏧"),
+      React.createElement("span",null,t("f_adj_retirada")))
+  ].filter(Boolean);
+  const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
+    /* La misma rejilla que las categorías (tres o cuatro columnas, a la izquierda), pero en chips
+       de unos 40 px con icono y texto en línea: no son categorías y no necesitan baldosa alta (crítico
+       de la v4: a 360 la segunda fila de baldosas quedaba partida bajo el pie). Una sola (la nota de
+       un ingreso) ocupa la fila entera. */
+    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes"+(baldosas.length===1?" solo":"")},baldosas),
+    retiradaAvisos.length>0 && React.createElement("div",{className:"hint v4-ficha-avisos","data-testid":"exp-withdrawal-info"},retiradaAvisos),
+    panelVisto && React.createElement("div",{className:"v4-ficha-fold"+(despliegue.dentro&&adjustOpen?" open":"")},
+      React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},adjustOpen?null:{"aria-hidden":"true",inert:""}),panelVisto)),
+    exp.notePending&&React.createElement("div",{className:"hint",role:"status","data-testid":"expense-note-pending"},
+      t("g_note_unconfirmed")," ",React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveNote(exp,exp.note);}},t("g_note_retry")))
   );
   const amountChange=auto?function(){ lockedToast(); }:function(updater){
     setEditExp(function(p){ const v=typeof updater==="function"?updater(p.amount):updater; return Object.assign({},p,{amount:v}); });
@@ -3237,13 +3526,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry")));
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     renameAviso,
-    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
+    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t(isIncome?"f_del_in":"f_del")),
     React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
-      React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+      React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"calc(90dvh / var(--zoom,1))"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         trMonthlyProposal(state,exp,Date.now())&&React.createElement("div",{className:"hint",style:{padding:"8px 16px"},"data-testid":"tr-monthly-proposal"},
           React.createElement("span",null,t("tr_monthly_question")),
@@ -3252,10 +3541,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
             if(auto){ lockedToast(); return; }
             const income=k==="ingreso"; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
           },dateLabel:fmtIsoCorto(dateIso),onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); },
-          amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:!auto,
+          amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:editaImporte&&!auto,
           concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
-          meta:meta,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
+          payRow:payRow,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
+          catAction:cloud.enabled()&&!isIncome?React.createElement("button",{type:"button",className:"v4-ficha-ia","data-testid":"exp-ai",
+            "aria-label":aiBusy?t("ai_cat_busy"):t("ai_cat_btn"),"aria-busy":aiBusy?"true":null,disabled:aiBusy,onClick:function(){ suggestAi(exp); }},"✨"):null,
+          numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },onCloseNumpad:function(){ setEditaImporte(false); },
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
     ),document.body);

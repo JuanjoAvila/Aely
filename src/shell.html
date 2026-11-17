@@ -55,6 +55,10 @@
   @font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
   @font-face{font-family:'Fraunces';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
   @font-face{font-family:'Fraunces';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
+  /* Escala tipográfica común (DIS-38, auditoría de diseño 233): la cifra grande medía 46 px en
+     Inicio y 40 en Cartera, y los importes de fila 16, 17 o 19 según la pantalla. Fuera de los
+     temas porque no cambia con el color. */
+  :root{--fs-hero:46px;--fs-row-amt:17px;--fs-row-title:16px;}
   :root, html[data-theme="green"]{
     /* Aely brand tokens (docs/design/aely/AELY_BRAND_BRIEF.md, 2026-09-10).
        dark-first forestal + menta; success = --ok, danger = --coral. */
@@ -89,8 +93,11 @@
        Ningún verde da 4,5 a la vez con blanco y con negro encima: por eso todo texto sobre menta
        usa `--on-mint` (antes había un #08120C fijo en .btn-primary, chips y pastillas). */
     --mint:#1C7F4A; --mint-bright:#1E874F; --mint-hi:#1E874F; --mint-dim:#A8DDBE; --mint-deep:#A8DDBE; --on-mint:#FFFFFF;
-    --blue:#3E80C8; --tan:#B8890F; --cream:#5E5228;
-    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#CE4F37; --coral-dim:#F1D2CB;
+    /* Coral más hondo: #CE4F37 daba 4,38:1 sobre blanco y las deudas son texto (5,41 ahora). Bienes
+       en gris cálido, no oliva: el oliva se leía como un segundo verde junto a la liquidez
+       (auditoría 15/11). */
+    --blue:#3E80C8; --tan:#B8890F; --cream:#7A6F5A;
+    --text:#141F18; --muted:#53685B; --muted-2:#5F6F66; --coral:#B8432E; --coral-dim:#F1D2CB;
     --shadow:0 16px 34px -24px rgba(20,40,30,.35);
   }
   /* Azul (modo oscuro fresquito) */
@@ -173,7 +180,7 @@
      de la capa nativa. Lo que sí se comprueba en los e2e es la condición que la permite
      (`user-select` de la fila), y el veredicto de verdad es el suyo en el móvil. */
   button,.v4-mov,.v4-charge{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-  input,select{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
   /* La WebView puede seguir dibujando el indicador lateral aunque mida cero. `display:none`
      quita solo la barra visual: todas las superficies conservan overflow y gesto (feedback
      2026-09-23, también visible en Ajustes). Firefox/Chromium nuevo quedan cubiertos arriba. */
@@ -239,7 +246,6 @@
   .ask-btns{display:flex;gap:8px;margin-top:14px;}
   .ask-btns .btn{flex:1;margin:0;}
   /* Roles de cuenta (Patrimonio → Editar) */
-  .rolechips{display:flex;gap:6px;padding:0 0 10px 50px;}
   .rchip{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:9px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--muted);}
   .rchip.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
   /* El badge flotante de reCAPTCHA (lo inyecta el script de Google al intentar el captcha de
@@ -252,6 +258,12 @@
   html.smalltext body{zoom:0.92;}
   html.bigtext body{zoom:1.12;}
   html.hugetext body{zoom:1.26;}
+  /* El mismo zoom como variable, para lo que mide contra la pantalla (vw, dvh) desde dentro del
+     body: esas unidades también salen multiplicadas por el zoom. Con «Enorme» el importe de
+     Apuntar (13vw) no cabía en su fila y un 12345,67 salía cortado (15/11). */
+  html.smalltext{--zoom:0.92;}
+  html.bigtext{--zoom:1.12;}
+  html.hugetext{--zoom:1.26;}
   /* El `zoom` en body escala también el alto de la app (100dvh), así que la barra inferior
      (bottom:0) se quedaba flotando arriba con «Pequeña» (o se salía por abajo con «Enorme»).
      Se compensa: alto = 100dvh / zoom → tras el zoom vuelve a ser exactamente la pantalla,
@@ -883,15 +895,17 @@
   .v4-legend b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
   /* Leyenda de Cartera tocable: marca/desmarca liquidez·inversiones·bienes y el gráfico se
      recalcula (2026-07-18). Apagado = atenuado, sin cambiar el layout. */
-  .v4-legend-btn{display:inline-flex;align-items:center;padding:5px 9px;border-radius:11px;border:1px solid transparent;background:none;color:var(--muted);font-size:12.5px;font-weight:650;font-family:inherit;cursor:pointer;transition:opacity .2s,border-color .2s,background .2s;}
+  /* Punto y texto, sin cápsula (auditoría de diseño 237, P2-9): con el relleno y el borde de la
+     cápsula «Bienes» se quedaba solo en otro renglón a 393 y a 360 bajaban de una en una. */
+  .v4-legend-btn{display:inline-flex;align-items:center;padding:5px 0;border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:650;font-family:inherit;white-space:nowrap;cursor:pointer;transition:opacity .2s;}
   .v4-legend-btn b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
-  .v4-legend-btn:not(.off){border-color:var(--line-soft);background:var(--sur2);}
   .v4-legend-btn.off{opacity:.4;}
-  /* La píldora mide 29 px: el toque crece a 44 por arriba y por abajo, y entre filas se deja el
-     hueco justo para que el toque de una no pise el dibujo de la de abajo (auditoría 14/11). */
-  .v4-legend-btn{position:relative;}
-  .v4-legend-btn::after{content:"";position:absolute;inset:-8.5px -3px;}
-  .v4-legend:has(>.v4-legend-btn){row-gap:15px;}
+  /* Rejilla de dos columnas (filtro de diseño 237, F2b): en fila libre «Bienes» caía solo a otro
+     renglón, a 40 px, y parecía que faltaba algo; así va debajo de «Liquidez», alineado. El botón
+     mide 31 px y el toque crece a 44; entre filas solo se solapan unos px del toque, no el dibujo. */
+  .v4-legend-btn{position:relative;padding:6px 0;justify-self:start;}
+  .v4-legend-btn::after{content:"";position:absolute;inset:-6.5px -8px;}
+  .v4-legend:has(>.v4-legend-btn){display:grid;grid-template-columns:1fr 1fr;row-gap:4px;column-gap:18px;}
   .v4-seg{display:flex;gap:4px;background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:4px;margin-bottom:14px;}
   .v4-seg-btn{flex:1;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
   .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
@@ -917,11 +931,39 @@
   .v4-inicio-head{display:flex;align-items:center;justify-content:space-between;padding:12px 2px 4px;}
   .v4-inicio-date{font-size:14px;color:var(--muted-2);font-weight:600;}
   .v4-inicio-hi{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.2px;margin-top:2px;}
+  /* Avisos de banco caído (diseño 233, DIS-23/24). En Cartera, UNA tarjeta con una fila por banco
+     (con dos bancos caídos, las tarjetas de antes sacaban las cuentas de la primera pantalla); la
+     explicación se despliega con alto animado. En Inicio, una franja en tan que avisa sin alarmar:
+     allí no se arregla nada, solo lleva a Cartera. */
+  .v4-bank-issues{margin-top:10px;padding:2px 12px;border:1px solid color-mix(in srgb,var(--coral) 45%,transparent);
+    background:color-mix(in srgb,var(--coral) 8%,transparent);}
+  .v4-bank-issue + .v4-bank-issue{border-top:1px solid var(--line-soft);}
+  .v4-bank-issue-row{display:flex;align-items:center;gap:8px;min-height:54px;}
+  .v4-bank-issue-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:44px;padding:0;
+    background:none;border:none;color:var(--text);text-align:left;cursor:pointer;}
+  .v4-bank-issue-t{flex:1;min-width:0;font-size:14px;font-weight:800;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .v4-bank-issue-q{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    font-size:12px;font-weight:800;color:var(--muted);border:1px solid var(--line);}
+  /* 36 px de dibujo y 44 de dedo: el `::after` agranda la zona sin agrandar el botón. */
+  .v4-bank-issue-cta{flex:0 0 auto;position:relative;height:36px;padding:0 14px;font-size:13px;border-radius:11px;}
+  .v4-bank-issue-cta::after{content:"";position:absolute;inset:-4px -2px;}
+  .v4-bank-issue-sub{display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.32,.72,0,1);}
+  .v4-bank-issue.open .v4-bank-issue-sub{grid-template-rows:1fr;}
+  .v4-bank-issue-sub > div{min-height:0;overflow:hidden;}
+  .v4-bank-issue-sub p{margin:0;padding:0 0 12px 38px;font-size:12.5px;color:var(--muted);line-height:1.45;}
+  html.reduce-motion .v4-bank-issue-sub{transition:none;}
+  .v4-bank-strip{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;margin-top:8px;padding:8px 12px;
+    border-radius:12px;background:color-mix(in srgb,var(--tan) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--tan) 40%,transparent);color:var(--text);
+    font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
+  .v4-bank-strip-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .v4-bank-strip-cta{flex:0 0 auto;color:var(--tan);font-weight:800;}
   .v4-hero{text-align:center;padding:22px 0 8px;}
   .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
   .v42-net{position:relative;}
   .v42-net .v4-micro{font-size:11px;letter-spacing:2.4px;}
-  .v42-net .v4-hero-amt{font-size:46px;font-weight:560;margin-top:4px;}
+  .v42-net .v4-hero-amt{font-size:var(--fs-hero);font-weight:560;margin-top:4px;}
   .v42-net .v4-hero-amt>span{font-size:23px;color:var(--muted);}
   .v42-net-info{width:16px;height:16px;border-radius:50%;border:1px solid var(--muted-2);background:none;color:var(--muted);font-size:10px;position:relative;padding:0;}
   .v42-net-info:before{content:"";position:absolute;inset:-15px;}
@@ -947,7 +989,10 @@
   .v42-net-ranges button[aria-pressed="true"]{background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint);}
   .v42-cycle-section{margin-top:22px;}
   .v42-cycle-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px;font-size:14px;font-weight:700;}
-  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;}
+  /* 44 px de dedo como `.v4-section-h button.link`; el margen negativo devuelve el alto que gana
+     para que la cabecera no crezca (medía 20 px de alto, auditoría 15/11); el -2 de la derecha
+     anula el margen de la cabecera y alinea el texto con el de las demás secciones. */
+  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;min-height:44px;padding:10px 8px;margin:-10px -2px -10px 0;}
   .v42-cycle{gap:14px;padding:14px 16px;cursor:pointer;}
   .v42-cycle-ring{position:relative;width:76px;height:76px;flex:0 0 auto;}
   .v42-cycle-percent{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;padding-top:25px;font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;line-height:1;color:var(--text);}
@@ -991,6 +1036,17 @@
   /* «En noviembre» junto a «Próximos cargos» cuando lo que se ve es del mes que viene. */
   .v4-upcoming-mes{margin-left:8px;color:var(--muted);font-weight:600;font-size:13px;}
   .v4-section .v4-mov{min-height:60px;}
+  .v4-first-acc{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:12px;}
+  .v4-card-hero .v4-first-acc{align-items:flex-start;}
+  .v4-first-acc-t{font-size:26px;font-weight:550;letter-spacing:-.4px;line-height:1.15;}
+  .v4-first-acc .btn{min-height:48px;padding:0 22px;}
+  .v4-nogoal-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:0 14px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;
+    color:var(--text);font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:transform .12s var(--ease),background .12s var(--ease);}
+  .v4-nogoal-row:active{transform:scale(.995);background:var(--sur2);}
+  .v4-nogoal-row .em{font-size:22px;line-height:1;}
+  .v4-nogoal-row .tx{flex:1;min-width:0;}
+  .v4-nogoal-row .chev{color:var(--muted);font-size:20px;line-height:1;}
+  @media (prefers-reduced-motion:reduce){ .v4-nogoal-row:active{transform:none;} }
   .v4-charge{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-soft);}
   .v4-charge:first-child{border-top:none;}
   .v4-charge .dt{width:44px;text-align:center;flex:0 0 auto;}
@@ -998,20 +1054,22 @@
   .v4-charge .dt .m{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted-2);font-weight:700;margin-top:2px;}
   .v4-charge .nm{flex:1;min-width:0;font-weight:700;font-size:15px;}
   .v4-charge .sub{font-size:12.5px;color:var(--muted);font-weight:500;margin-top:2px;}
-  .v4-charge .am{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:550;font-variant-numeric:tabular-nums;}
+  .v4-charge .am{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;}
   .v4-charge .am.pos{color:var(--mint);}
   /* Plan › Recibos v6 (docs/design/plan-recibos/SPEC.md §2). Paleta texto/gris/menta: aquí no
      hay rojos ni amarillos de alarma, lo que hay que mirar ya va en «Para revisar». */
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. Las dos miden lo mismo
-     (SPEC §2.2): parten de la mitad y, si una no cabe en ella (360 px, letra al 110 %), las dos bajan
-     a su renglón enteras en vez de quedar una ancha y otra estrecha (auditoría de la 222, P2-8) o de
-     perder la flecha o cortar la cifra (auditoría 4.26.218). En estrecho se aprieta el relleno. */
+  /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. En FILA también a 360 y
+     393 (SPEC §2.2; auditoría de diseño 237, P2-2): apiladas, la tarjeta cambiaba de forma según el
+     móvil y empujaba «Para revisar» fuera del primer pantallazo. Las dos parten de cero y crecen igual
+     (mismo tamaño donde caben); si «Te deben 10,00 €» no cabe en la mitad, esa se queda con lo justo
+     para ir entera y la otra con el resto. Solo si las dos juntas no caben (letra del sistema muy
+     grande) bajan a su renglón, enteras: ni flecha perdida ni cifra cortada (auditoría 4.26.218). */
   .pr6-pills{display:flex;flex-wrap:wrap;gap:8px;container:pr6pildoras / inline-size;}
   @container pr6pildoras (max-width:19.5em){ .pr6-pills .pr6-pill{padding:0 10px;gap:6px;} }
-  .pr6-pill{flex:1 1 calc(50% - 4px);min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
+  .pr6-pill{flex:1 1 0;min-width:min(max-content,100%);display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:14px;
     background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;white-space:nowrap;}
   .pr6-pill-ok{color:var(--mint-bright);font-weight:700;}
   /* «Te llega» / «Falta X» es la respuesta clave de la tarjeta: un tinte suave del estado (solo tokens) la distingue de una fila. */
@@ -1039,13 +1097,22 @@
   .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
   .pr6-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
-  .pr6-sub-cat{display:flex;min-width:0;white-space:nowrap;}
-  .pr6-cat{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-bk{flex:none;margin-left:.3em;}
-  .pr6-when{font-size:13px;font-weight:700;color:var(--muted);}
+  /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
+     renglón parte ENTRE trozos (`mcTrozos`, también en Cartera); cada trozo corto va entero. */
+  .pr6-sub-cat{display:block;min-width:0;}
+  .mc-pt{white-space:nowrap;}
+  /* Baldosa de los bienes: la caja de 44 de las cuentas, en superficie (el blanco es de los logos). */
+  .v4-mov .tile.v4-bien-tile{width:44px;height:44px;margin:0 1px;background:var(--surface-2);}
+  /* Columna derecha: el importe y, debajo, cuándo toca (como Suscripciones). */
+  .pr6-am{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+  .pr6-when{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;}
   .pr6-when.soon{color:var(--text);}
+  /* 19 px y no --fs-row-amt: es la medida del SPEC de Recibos (docs/design/plan-recibos),
+     que manda sobre la escala general (lote 235, DIS-38). */
   .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
-  .pr6-rev .pr6-why{font-weight:700;color:var(--text);}
+  /* El motivo es una subfila más, como la de «Por pagar»: en negrita y blanco pesaba lo mismo que
+     el nombre (auditoría de diseño 237, P2-3). El icono y la sección ya dicen que hay que mirarlo. */
+  .pr6-rev .pr6-why{font-weight:500;color:var(--muted);}
   .pr6-ico{width:40px;height:40px;flex:none;border-radius:20px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--muted);}
   /* Recorta el pliegue, NO su contenido. Con la rejilla a menos de 1fr el navegador da a la caja
      f·alto y a la fila de dentro f·(f·alto): si recortaba `.pr6-fold-in`, lo visible crecía como f² y
@@ -1087,22 +1154,14 @@
   .pr6-paid{margin-top:14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;}
   .pr6-paid-h{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
   .pr6-tick{width:28px;height:28px;flex:none;border-radius:14px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
-  /* Una línea pase lo que pase (letra del sistema al 110 %, 360 px): si no cabe, se acorta la palabra
-     con «…» y el número de pagados, el importe y «Ver» se quedan enteros. */
-  .pr6-paid-t{flex:1;min-width:0;display:flex;align-items:baseline;white-space:nowrap;font-size:16px;font-weight:700;}
-  .pr6-paid-l{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  /* Una línea donde cabe; sin elipsis (auditoría de diseño 237: «Ya ha entra…»). Con la letra muy
+     grande el título baja de renglón entero antes que cortarse. */
+  .pr6-paid-t{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;font-size:16px;font-weight:700;}
+  .pr6-paid-l{white-space:nowrap;}
   .pr6-paid-t .pr6-n{flex:none;margin-left:4px;}
   .pr6-paid-amt{flex:none;white-space:nowrap;font-size:15px;font-weight:700;color:var(--muted);}
-  .pr6-paid-v{flex:none;min-width:52px;text-align:right;white-space:nowrap;font-size:14px;font-weight:700;color:var(--mint-bright);}
-  /* Donde «Ver» no cabe (360 px, o 412 px con la letra grande) la flecha ocupa su sitio: 14 px en vez
-     de 52 y se sigue viendo que se despliega. Medido en «em» para que la letra del sistema cuente. */
-  .pr6-paid{container:pr6pagados / inline-size;}
-  .pr6-paid-h .pr6-chev{display:none;color:var(--mint-bright);}
+  .pr6-paid-h .pr6-chev{display:block;color:var(--mint-bright);}
   .pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
-  @container pr6pagados (max-width:21.6em){
-    .pr6-paid-h .pr6-paid-v{display:none;}
-    .pr6-paid-h .pr6-chev{display:block;}
-  }
   .pr6-paid .pr6-fold{margin-top:0;}
   .pr6-paid .pr6-fold-in{gap:0;}
   .pr6-paid .v4-charge.pr6-prow{width:100%;padding:11px 16px;gap:12px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
@@ -1435,6 +1494,14 @@
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
+  /* «Últimos movimientos» ya va dentro de su tarjeta: con fondo y borde propios cada fila era una
+     tarjeta dentro de otra (auditoría 15/11). Filas planas con raya, como «Próximos cargos». */
+  .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
+  /* La misma fila que Gastos (237, P2-5): nombre a 16/600, «Categoría · Banco» a 13 en gris. */
+  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .meta{font-size:13px;margin-top:3px;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .am{font-weight:600;white-space:nowrap;}
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
      Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
@@ -1443,14 +1510,14 @@
   @media (prefers-reduced-motion:reduce){ .v4-charge:active,.v4-mov:active{transform:none;} }
   .v4-mov .tile{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:21px;flex:0 0 auto;}
   .v4-mov button.tile{border:1px solid var(--line-soft);}
-  .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:15.5px;}
+  .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:var(--fs-row-title);}
   .v4-mov .meta{font-size:12.5px;color:var(--muted);margin-top:2px;}
-  .v4-mov .am{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:550;font-variant-numeric:tabular-nums;}
+  .v4-mov .am{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;}
   .v4-mov .am.pos{color:var(--mint);}
   .v4-mov .am.muted{color:var(--muted-2);}
   .v4-mov.v4-mov-skip{border-style:dashed;}
   /* Tarjeta fantasma de estado vacio (P3/P4 del pulido v4): mismo borde punteado que ya usan
-     `.tab-add` y `.v4-mov-skip`. Una sola clase para los tres huecos, cero componentes nuevos. */
+     `.v4-mov-skip`. Una sola clase para los huecos, cero componentes nuevos. */
   .v4-empty{border:1px dashed var(--line);border-radius:20px;padding:22px 18px;text-align:center;}
   .v4-empty .em{font-size:34px;line-height:1;}
   .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;margin-top:8px;color:var(--text);}
@@ -1470,8 +1537,9 @@
   html[data-theme="light"]{
     --mint-ink:#1A6B3F;
   }
-  html[data-theme="light"] .dc-badge,
   html[data-theme="light"] .v4-section-h button.link,
+  html[data-theme="light"] .v42-cycle-head .link,
+  html[data-theme="light"] .v4-avatar,
   html[data-theme="light"] .pr6-mes-nav,
   html[data-theme="light"] .pr6-pill-ok,
   html[data-theme="light"] .pr6-more,
@@ -1480,51 +1548,35 @@
   html[data-theme="light"] .pr6-mg-sec .pr6-row .am.pos,
   html[data-theme="light"] .pr6-tick,
   html[data-theme="light"] .pr6-baja,
-  html[data-theme="light"] .pr6-paid-v,
   html[data-theme="light"] .pr6-paid-h .pr6-chev,
   html[data-theme="light"] .pr6-ll-row .num.pos,
   html[data-theme="light"] .profile-handle,
   html[data-theme="light"] .profile-row .pr-edit,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
-  html[data-theme="light"] .v4-pill,
   html[data-theme="light"] .hoja-marc-ok b,
   html[data-theme="light"] .chip.active,
   html[data-theme="light"] .v4-chip.on,
   html[data-theme="light"] .mc-cal-day.on,
   html[data-theme="light"] .pill.pos,
-  html[data-theme="light"] .recap-v.good,
-  html[data-theme="light"] .v4-pace-marks .mid,
   html[data-theme="light"] .v4-charge .am.pos,
   html[data-theme="light"] .v4-mov .am.pos,
   html[data-theme="light"] .helpq:active,
-  html[data-theme="light"] .tab-add:active,
-  html[data-theme="light"] .icon-btn,
-  html[data-theme="light"] .edit-link:not(.save),
   html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
   html[data-theme="light"] .v4-link-mini,
   html[data-theme="light"] .v4-goal-pct{
     color:var(--mint-ink);
   }
-  html[data-theme="light"] .v4-pill,
   html[data-theme="light"] .v4-chip.on,
   html[data-theme="light"] .chip.active,
   html[data-theme="light"] .mc-cal-day.on,
   html[data-theme="light"] .pill.pos,
-  html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"],
-  html[data-theme="light"] .dc-badge{
+  html[data-theme="light"] .v42-net-ranges button[aria-pressed="true"]{
     background:color-mix(in srgb, var(--mint-ink) 12%, transparent);
   }
   /* B3 active en claro: sur2 ya es verdoso; el scale se queda. */
-  /* Asa separada: tocar el resto sigue abriendo la ficha y deslizar en vertical sigue siendo
-     scroll. Solo el asa reclama el dedo para ordenar, sin activar el swipe entre pestañas. */
-  .v4-mov-drag{width:28px;height:44px;display:grid;place-items:center;flex:0 0 auto;margin:-4px -6px -4px 0;
-    color:var(--muted-2);font-size:22px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab;}
-  .v4-mov.dragging{opacity:.58;transform:scale(.985);border-color:var(--mint);}
-  .v4-mov.drag-over{border-color:var(--mint);box-shadow:0 0 0 2px rgba(95,208,138,.18);}
-  html.reduce-motion .v4-mov.dragging{transform:none;}
-  /* Cartera → Tus cuentas: long-press eleva la fila (12/9: «efecto chulo… smooth»). No reutilizar
-     el `.dragging` de Gastos (ese baja opacidad): aquí se LEVANTA. */
+  /* Cartera → Tus cuentas y brókers: long-press eleva la fila (12/9: «efecto chulo… smooth»).
+     Gastos ordena con su propio gesto, más vistoso (`.gx-alza`, más abajo). */
   :is(.v4-card-list,.v4-investments-full).reordering{touch-action:none;}
   :is(.v4-card-list,.v4-investments-full) button.v4-mov.dragging{
     opacity:1;z-index:2;position:relative;
@@ -1534,7 +1586,7 @@
     transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s ease;
   }
   :is(.v4-card-list,.v4-investments-full) button.v4-mov.drag-over{
-    border-color:var(--mint-dim);
+    border-color:var(--mint-dim);box-shadow:0 0 0 2px rgba(95,208,138,.18);
     background:rgba(95,208,138,.08);
   }
   html.reduce-motion :is(.v4-card-list,.v4-investments-full) button.v4-mov.dragging{
@@ -1602,11 +1654,17 @@
   .gx-head.compact .gx-status{transform:translateY(-12px);}
   .gx-status-sub{margin-top:0;font-size:13px;color:var(--muted-2);}
   .gx-tail{font-weight:600;}
+  .gx-hasta{color:var(--mint);font-weight:700;}
   .gx-tone-coral{color:var(--coral);}
   .gx-tone-mint{color:var(--mint);}
   /* Meses: aparecen al bajar y quedan fijos (SPEC §2.1). La pastilla del mes activo es UNA capa
      que se desliza con `transform` (referencia del dueño, 20/10). */
+  /* Fundido en el borde por el que queda tira (237, P2-6): sin él, «agosto» cortado contra el
+     borde parecía un fallo y no una tira que se desliza. Los anchos los pone el JS según el
+     scroll (`--gx-fi`/`--gx-fd`, ver `GastosCabecera`): en el extremo, cero. */
   .gx-meses{position:absolute;left:0;right:0;top:calc(100% - 12px);height:48px;padding:4px 18px 8px;box-sizing:border-box;
+    -webkit-mask-image:linear-gradient(to right,transparent,#000 var(--gx-fi,0px),#000 calc(100% - var(--gx-fd,0px)),transparent);
+    mask-image:linear-gradient(to right,transparent,#000 var(--gx-fi,0px),#000 calc(100% - var(--gx-fd,0px)),transparent);
     display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;opacity:0;visibility:hidden;pointer-events:none;
     transform:translateY(-6px);transition:opacity .2s var(--ease),transform .2s var(--ease),visibility 0s linear .2s;}
   .gx-head.compact .gx-meses{opacity:1;visibility:inherit;pointer-events:auto;transform:none;transition-delay:0s;}
@@ -1685,13 +1743,17 @@
   .gx-sub-am{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;}
   .gx-sub-am .num{font-size:19px;font-weight:600;}
   .gx-sub-mes{font-size:12px;color:var(--muted);}
+  .gx-sub-am .gx-sub-eq{font-size:12px;color:var(--muted);}
   .gx-status.con-info{display:flex;align-items:center;gap:8px;overflow:visible;}
   .gx-info{flex:0 0 auto;}
   .gx-info::after{content:"i";}
   .gx-subf{display:flex;flex-direction:column;gap:14px;}
   .gx-subf-cab{display:flex;align-items:center;gap:14px;}
   .gx-subf-ic{width:52px;height:52px;border-radius:26px;font-size:24px;}
-  .gx-subf-nm{margin:0;font-size:20px;font-weight:700;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* En la ficha nada se corta (filtro de diseño 237, F1): a 360 el nombre y «Se cobra el 1 de septiembre · Sab…» salían
+     con elipsis. El nombre baja a dos líneas y la meta parte entre palabras; el banco va en la segunda línea. */
+  .gx-subf-nm{margin:0;font-size:20px;font-weight:700;outline:none;overflow-wrap:normal;word-break:normal;}
+  .gx-subf-cab .gx-sub-meta{white-space:normal;overflow:visible;text-overflow:clip;}
   .gx-sub-am .gx-subf-amt{font-size:24px;}
   .gx-subf-et{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:-6px;}
   .gx-subf-hist{background:var(--bg);border-radius:16px;padding:4px 0;}
@@ -1713,25 +1775,40 @@
      pantalla no se recorren ni se pintan: deslizar con 600 filas cuesta lo mismo que con 12.
      La nota del 13/9 de 04-tab-gastos.js lo descartaba («layouts ×3») con un alto fijo; con el
      alto estimado por día (`altoEst`) y `auto` la lista mide lo de verdad. */
-  .gx-dia{display:flex;flex-direction:column;gap:6px;padding-top:18px;content-visibility:auto;}
-  .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 4px;}
+  .gx-dia{display:flex;flex-direction:column;padding-top:18px;content-visibility:auto;}
+  .gx-dia-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 4px 10px;}
   .gx-dia-t{font-size:17px;font-weight:700;color:var(--text);}
   .gx-dia-tot{font-size:15px;color:var(--muted);}
-  .gx-list .v4-mov{margin-top:0;gap:10px;padding:14px 12px 14px 14px;border-radius:20px;}
-  .gx-list .v4-mov .tile{width:44px;height:44px;border-radius:22px;font-size:20px;}
+  /* LOS MOVIMIENTOS DEL DÍA EN UN BLOQUE, como «Últimos movimientos» de Inicio (237, P2-5): una
+     tarjeta por día con rayas entre filas, no una tarjeta por gasto. La raya va en el fondo
+     (sangrada 14 px, como la de Inicio) y no en un pseudo-elemento: `::before`/`::after` son la
+     sombra y el brillo de la fila que se levanta al ordenar (`.gx-alza`). */
+  .gx-list .v4-mov{margin-top:0;gap:12px;padding:10px 14px;min-height:66px;box-sizing:border-box;border-radius:0;border-width:0 1px;
+    background:linear-gradient(var(--line-soft),var(--line-soft)) 14px 100%/calc(100% - 28px) 1px no-repeat,var(--sur);}
+  .gx-list .gx-dia-h + .v4-mov{border-top-width:1px;border-radius:18px 18px 0 0;}
+  .gx-list .v4-mov:not(:has(+ .v4-mov)){border-bottom-width:1px;border-bottom-left-radius:18px;border-bottom-right-radius:18px;background:var(--sur);}
+  .gx-list .v4-mov.v4-mov-skip{border-style:solid;}
+  .gx-list .v4-mov.gx-alza{border-width:1px;border-radius:18px;}
+  .gx-list .gx-dia > .gx-gris{margin-top:6px;}
   .gx-list .v4-mov .nm-title{font-size:16px;font-weight:600;}
-  .gx-list .v4-mov .nm-cat{font-size:14px;font-weight:500;}
-  .gx-list .v4-mov .meta{font-size:13px;}
-  .gx-list .v4-mov .am{font-size:19px;font-weight:600;}
-  /* «fecha · banco» en UNA línea aunque el móvil lleve la letra grande (captura suya de la beta
-     4.26.164, 24/10: el WebView escala el texto y no las cajas, y «24/10 ·» y «Trade Republic» se
-     partían en dos líneas con el punto huérfano: la regla general `.v4-mov .meta` deja que la fila
-     se parta). La fecha y los puntos no ceden; el banco y la
-     marca de recibo se recortan con puntos suspensivos. El importe tampoco cede ni se parte: es
-     lo que se viene a leer. */
+  /* «Categoría · Banco» sin cortar ninguna de las dos: si a 360 no caben en una línea, el banco
+     baja entero a la siguiente; el punto se queda al final de la primera, no empezando la otra. */
+  .gx-list .v4-mov .nm-sub{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:4px;min-width:0;margin-top:3px;
+    font-size:13px;font-weight:400;line-height:1.3;color:var(--muted);}
+  .gx-list .v4-mov .nm-cat{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gx-list .v4-mov .nm-sub > .meta{display:flex;gap:0 4px;max-width:100%;margin:0;font-size:13px;}
+  .gx-list .v4-mov .nm-cat:has(+ .meta)::after{content:" ·";color:var(--muted-2);}
+  /* 17 y no 19: más grande que el nombre (16) robaba el ancho que necesita el comercio y gritaba
+     más que él (auditoría de diseño 233, DIS-14). */
+  .gx-list .v4-mov .am{font-size:17px;font-weight:600;}
+  /* «banco · recibo» en UNA línea aunque el móvil lleve la letra grande (captura suya de la beta
+     4.26.164, 24/10: el WebView escala el texto y no las cajas, y la línea se partía con el punto
+     huérfano: la regla general `.v4-mov .meta` deja que la fila se parta). El punto no cede; el
+     banco y la marca de recibo se recortan con puntos suspensivos. El importe tampoco cede ni se
+     parte: es lo que se viene a leer. */
   .gx-list .v4-mov .meta{flex-wrap:nowrap;align-items:center;min-width:0;white-space:nowrap;overflow:hidden;}
   .gx-list .v4-mov .meta > span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .gx-list .v4-mov .meta > span:first-child,.gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
+  .gx-list .v4-mov .meta > .sep{flex:0 0 auto;}
   .gx-list .v4-mov .am{flex:0 0 auto;white-space:nowrap;}
   /* Nombre y categoría en UNA línea cada uno (su «modo normal la letra», 25/10/2026): a 393 px la
      columna del nombre se quedaba en ~130 px entre el icono, los tres huecos de 14, el importe y el
@@ -1740,7 +1817,29 @@
      10 y el relleno lateral a 14/12 (arriba, en `.gx-list .v4-mov`; la letra se queda la del
      diseño) y, si aun así no cabe, se recorta con puntos suspensivos: una fila de dos líneas por
      gasto duplicaba la lista. */
-  .gx-list .v4-mov .nm-title,.gx-list .v4-mov .nm-cat{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gx-list .v4-mov .nm-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* ORDENAR EL DÍA CON PULSACIÓN LARGA (15/11/2026, ver `gxReorden` en 04-tab-gastos.js). Los
+     muelles los mueve JS escribiendo solo `transform`; aquí no se anima nada de layout. La sombra
+     y el brillo van en pseudo-elementos que solo cambian de OPACIDAD: animar `box-shadow` repinta
+     la fila en cada frame, y la opacidad la resuelve el compositor.
+     · `content-visibility:visible` mientras dura: con `auto` el día lleva contención de pintado y
+       recortaría la sombra y la fila en cuanto asomara por el borde del día.
+     · `transition:none` en la que vuela: la de `:active` (.12s sobre transform) la haría ir con
+       retraso detrás del dedo.
+     · Con «reducir movimiento» no hace falta nada aquí: estos fundidos no mueven nada, y el
+       balanceo y el rebote ya los quita el JS. */
+  .gx-dia.gx-reorden{content-visibility:visible;}
+  .gx-reorden .v4-mov{will-change:transform;transition:opacity .22s var(--ease) !important;}
+  .gx-reorden:not(.gx-suelta) .v4-mov:not(.gx-alza){opacity:.5 !important;}
+  .gx-list .v4-mov.gx-alza{position:relative;z-index:3;opacity:1 !important;transition:none !important;
+    background:var(--sur2);border-color:var(--mint-dim);}
+  .gx-alza::before,.gx-alza::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;z-index:-1;
+    animation:gx-alza-in .3s var(--ease) both;}
+  .gx-alza::before{box-shadow:0 30px 50px -22px rgba(0,0,0,.6),0 12px 34px -12px color-mix(in srgb, var(--mint) 40%, transparent);}
+  .gx-alza::after{background:linear-gradient(125deg,color-mix(in srgb, var(--mint-hi) 16%, transparent),transparent 45%);}
+  .gx-alza.gx-aterriza::before,.gx-alza.gx-aterriza::after{animation:gx-alza-out .28s var(--ease) both;}
+  @keyframes gx-alza-in{from{opacity:0}to{opacity:1}}
+  @keyframes gx-alza-out{from{opacity:1}to{opacity:0}}
   /* Fila gris: recibos y cuotas del día, que no cuentan (SPEC §4.4). Sin flecha, a petición. */
   .gx-gris{border:1px dashed var(--sur2);border-radius:18px;overflow:hidden;}
   .gx-gris-h{width:100%;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 18px;border:0;background:transparent;
@@ -1805,6 +1904,9 @@
   .v4-sheet-back::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
     background:rgba(8,28,20,.28);opacity:var(--sheet-veil,1);will-change:opacity;
     animation:sheetveil .42s cubic-bezier(.22,.61,.36,1);}
+  /* Apuntar y Modificar: la cifra grande de Gastos o Inicio se leía a través del velo más que el
+     importe de la hoja (DIS-06, 15/11). Solo el tinte; lo que se anima sigue siendo la opacidad. */
+  .v4-sheet-back:has(>.v4-exp-sheet)::before{background:rgba(8,28,20,.33);}
   /* Hojas que se arrastran de lado con el dedo (Atrás por pasos): la capa del gesto existe desde que
      se abren. Si nacía al empezar a arrastrar y moría al soltar, la hoja se veía en blanco al volver
      a su sitio (vídeo del 7/11, «¿Cuándo se cobra?» → «¿Cuánto es?»). */
@@ -1814,7 +1916,9 @@
   .v4-sheet-back.v4-sheet-hold::before{animation:none;transition:none;opacity:var(--sheet-veil,1);}
   .v4-sheet-back.v4-sheet-out::before{will-change:opacity;
     transition:opacity var(--veil-ms,420ms) var(--veil-ease,cubic-bezier(.3,0,.2,1));opacity:0;}
-  .v4-sheet{width:100%;max-width:520px;max-height:88dvh;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
+  /* Alto en px de pantalla, no del body: con la letra Enorme el zoom multiplicaba el 88dvh y la hoja
+     se salía por arriba, sin asa ni Gasto/Ingreso y sin poder cerrarla deslizando (DIS-07, 15/11). */
+  .v4-sheet{width:100%;max-width:520px;max-height:calc(88dvh / var(--zoom,1));background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
     border-radius:26px 26px 0 0;
     /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
     overflow:auto;-webkit-overflow-scrolling:touch;
@@ -1840,7 +1944,56 @@
      - El teclado se pega al fondo del cuerpo: si en un móvil bajo no cabe todo, lo que se desliza
        por debajo son las categorías, nunca las teclas. Lleva el fondo de la hoja para taparlas. */
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"]){padding-bottom:max(34px,calc(14px + var(--safe-bottom)));}
-  .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:6px 0 10px;background:var(--bg-2);}
+  /* Escribiendo el concepto (DIS-05) el numérico sobra y tapaba el campo con la WebView encogida. */
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-keys{display:none;}
+  /* Y la hoja sube y baja con el teclado del sistema en vez de saltar (el margen lo pone el JS).
+     Solo Apuntar: Modificar comparte `.v4-exp-sheet` y no mueve el margen con el teclado. */
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1);}
+  .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:4px 0 8px;gap:6px;background:var(--bg-2);}
+  /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
+     (56 px, las pidió él): una sola fila de categorías, y algo menos de aire alrededor del importe
+     y del teclado. Desde el remate de la 235, «Todas ›» va en la cabecera como en la ficha (la
+     baldosa «Más» le quitaba una columna a las etiquetas). El relleno del
+     importe es el mismo vacío y escrito: si no, la hoja salta al teclear la primera cifra (D1). */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{padding:2px 0 6px;line-height:1.15;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{gap:6px;margin-bottom:4px;}
+  /* La cabecera «CATEGORÍA … Todas ›» y las etiquetas a 12 px en dos líneas suman ~25 px: se recuperan
+     apretando lo que sobraba, para que a 360×640 siga sin deslizarse y a 390×844 no pase de 660. */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat-title{margin-bottom:2px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat-title button{min-height:36px;margin:-10px -4px -10px 0;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats .v4-ficha-cat{min-height:54px;padding:4px 2px;gap:2px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-concept.v4-input{padding-bottom:6px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-head{margin-bottom:3px;}
+  /* Los últimos px para que a 360×640 no quede ni un deslizamiento y a 390×844 la hoja no pase de
+     660 (DIS-01/06): sin ellos sobraban 3 y 5 px respectivamente. */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-pay{margin-bottom:5px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-focus{margin-bottom:4px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat{padding:6px 2px;}
+  .v4-ficha-todas-tile{color:var(--mint);}
+  /* Móvil bajo: la hoja de Apuntar ocupa la pantalla (menos la barra de estado) en vez del 88 %, y
+     el asa y el pie se aprietan un poco: ahí cada fila que cabe es una que no hay que buscar. */
+  @media (max-height:700px){
+    .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){max-height:calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1));
+      padding-top:6px;padding-bottom:max(22px,calc(10px + var(--safe-bottom)));}
+    .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]) > .v4-sheet-handle{margin:4px auto 8px;}
+  }
+  /* Entre medias (360×740, el paso 1 del panel): con el 88 % sobraban 5 px y la hoja se deslizaba.
+     Con el 92 % cabe; a esa altura ya tapaba la línea de resumen igual, así que no se pierde nada. */
+  @media (min-height:701px) and (max-height:780px){
+    .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){max-height:calc(92dvh / var(--zoom,1));}
+  }
+  /* Letra Muy grande y Enorme (DIS-07): las teclas conservan su alto en pantalla (56 px reales,
+     no 56 × zoom) y las categorías van en una fila que se desliza de lado en vez de aplastarse. */
+  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys,
+  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys{gap:5px;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys button,
+  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys button{height:calc(56px / var(--zoom,1));}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{display:flex;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats::-webkit-scrollbar,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats::-webkit-scrollbar{display:none;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cat,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cat{flex:0 0 auto;min-width:72px;}
   .v4-sheet-handle{width:40px;height:5px;border-radius:4px;background:var(--line);margin:6px auto 14px;position:relative;flex:0 0 auto;cursor:grab;}
   .v4-sheet-handle::before{content:"";position:absolute;inset:-16px -48px;}
   .v4-sheet.dragging{transition:none;}
@@ -1862,7 +2015,7 @@
   .v4-ficha-date{min-height:44px;padding:0 4px;color:var(--muted-2);font-size:12.5px;font-weight:700;text-transform:capitalize;}
   .v4-ficha-amount-row{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:1px;}
   .v4-ficha-amount{min-height:58px;max-width:calc(100% - 82px);border:0;background:transparent;color:var(--text);
-    font-size:clamp(40px,13vw,56px);font-weight:550;font-variation-settings:"opsz" 40;letter-spacing:-2px;
+    font-size:clamp(40px,calc(13vw / var(--zoom,1)),56px);font-weight:550;font-variation-settings:"opsz" 40;letter-spacing:-2px;
     font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0;}
   /* `empty` es también la clase GLOBAL de estado vacío (padding 34px 20px): con el importe a cero la
      cifra medía 107 px y al teclear la primera tecla bajaba a 58, así que la hoja daba un salto y el
@@ -1870,39 +2023,111 @@
   .v4-ficha-amount.empty{color:var(--muted-2);padding:4px 0 10px;}
   .v4-ficha-currency{height:30px;min-width:58px;padding:0 9px;border-radius:15px;background:var(--sur);border:1px solid var(--line-soft);
     color:var(--text);font-size:12px;font-weight:800;white-space:nowrap;}
-  .v4-ficha-currency.locked{color:var(--muted);}
+  .v4-ficha-currency.locked{color:var(--muted);display:inline-flex;align-items:center;justify-content:center;gap:5px;}
   .v4-ficha-focus{width:96px;height:2px;border-radius:2px;background:var(--mint);margin:1px auto 7px;transform:scaleX(0);
     transition:transform .5s var(--ease);transform-origin:center;}
   .v4-ficha-focus.on{transform:scaleX(1);}
   .v4-ficha-fx{text-align:center;color:var(--muted);font-size:12.5px;line-height:1.35;margin:-1px 0 7px;}
-  .v4-ficha-concept.v4-input{font-size:17px;font-weight:700;padding:2px 10px 10px;margin:0;background:transparent;border:0;border-radius:0;text-align:center;}
-  .v4-ficha-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 12px;}
+  /* El texto de ayuda largo con letra Enorme se cortaba a media palabra: puntos suspensivos. */
+  .v4-ficha-concept.v4-input{text-overflow:ellipsis;font-size:17px;font-weight:700;padding:2px 10px 10px;margin:0;background:transparent;border:0;border-radius:0;text-align:center;}
+  /* Forma de pago (DIS-03): segmentado de 44 px y la píldora del banco al lado. La píldora parte de
+     44 px y se estira con lo que sobre: si ni así cabe (letra Enorme a 360) baja a su propia línea. */
+  .v4-ficha-pay{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 12px;}
+  .v4-ficha-pay > .v4-seg{flex:1 0 auto;margin:0;padding:3px;border-radius:14px;transition:opacity .2s var(--ease);}
+  .v4-ficha-pay .v4-seg-btn{min-height:36px;padding:0 8px;font-size:12.5px;border-radius:10px;white-space:nowrap;
+    transition:background-color .2s ease,color .2s ease;}
+  .v4-ficha-pay .v4-seg-btn:disabled{opacity:.45;cursor:default;}
+  .v4-ficha-pay > .v4-ficha-meta-pill{flex:0 0 52px;transition:opacity .2s ease,visibility 0s;}
+  .v4-ficha-pay.income > .v4-ficha-meta-pill{flex:1 1 0;}
+  /* En un gasto la píldora del banco es solo su logo: el nombre, para el lector (a 360 se cortaba
+     en «Sab…»). En un ingreso hay sitio y va entero. */
+  .v4-ficha-pay:not(.income) .v4-bank-nom{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+  /* Elegir banco: la fila se funde y en su sitio entran los logos (mismo alto: nada se mueve). Los
+     botones miden lo que las píldoras (40 px) y el anillo del elegido va por DENTRO: si sobresale de
+     la capa, el scroll lateral lo recorta y además le suma alto a la hoja (5 px a 360×740). */
+  .v4-ficha-pay.eligiendo > :not(.v4-bankpick){opacity:0 !important;pointer-events:none;}
+  .v4-bankpick{position:absolute;inset:0;padding:0 1px;z-index:1;display:flex;align-items:center;gap:7px;overflow-x:auto;scrollbar-width:none;
+    overscroll-behavior-x:contain;opacity:0;transform:translateX(16px);transition:opacity .22s var(--ease),transform .26s var(--ease);}
+  .v4-bankpick::-webkit-scrollbar{display:none;}
+  .v4-bankpick.dentro{opacity:1;transform:none;}
+  .v4-bankpick-op{position:relative;flex:0 0 auto;width:46px;height:40px;padding:0;border-radius:14px;display:grid;place-items:center;
+    background:var(--sur);border:1px solid var(--line-soft);transition:border-color .2s ease,box-shadow .2s ease;}
+  .v4-bankpick-op.on{border-color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint);}
+  .v4-bankpick-op.sin{width:auto;padding:0 12px;color:var(--muted);font-size:12px;font-weight:750;white-space:nowrap;}
+  .v4-bankpick-op.sin.on{color:var(--mint);}
+  .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px solid var(--line);}
+  @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;} }
+  /* Con Efectivo la píldora no se pinta, pero guarda su sitio: la fila no salta al cambiar. */
+  .v4-ficha-pay > .v4-ficha-meta-pill.off{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s .2s;}
   .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);
     display:flex;align-items:center;justify-content:center;gap:5px;color:var(--muted);font-size:11.5px;font-weight:750;white-space:nowrap;overflow:hidden;}
   .v4-ficha-meta-pill span{overflow:hidden;text-overflow:ellipsis;}
   .v4-ficha-meta-pill.on{background:rgba(95,208,138,.12);border-color:var(--mint-deep);color:var(--mint);}
-  .v4-ficha-meta-pill.locked{border-style:dashed;}
   .v4-ficha-meta-pill.disabled{opacity:.45;cursor:default;}
-  .v4-ficha-trace{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;margin:1px 0 14px;border-radius:18px;
-    background:rgba(127,181,232,.07);border:1px solid rgba(127,181,232,.28);}
-  .v4-ficha-trace-copy{min-width:0;flex:1;}
-  .v4-ficha-trace-title{color:var(--blue);font-size:13.5px;font-weight:800;line-height:1.3;margin-bottom:3px;}
-  .v4-ficha-trace-sub{color:var(--muted);font-size:12px;line-height:1.4;overflow-wrap:anywhere;}
+  /* Ingreso: la cuenta elegida, rellena como «Tarjeta» en un gasto; del banco, el efectivo apagado. */
+  .v4-ficha-pay.income > .v4-ficha-meta-pill.sel{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .v4-ficha-pay.income > .v4-ficha-meta-pill.bloqueada{opacity:.45;}
   .v4-ficha-cat-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;font-size:11px;font-weight:800;
     letter-spacing:1.1px;text-transform:uppercase;color:var(--muted-2);}
+  .v4-ficha-cat-acts{display:flex;align-items:center;gap:2px;}
+  /* ✨ Sugerir categoría, al lado de «Todas ›»: una acción, no una fila más (16/11). */
+  .v4-ficha-cat-title .v4-ficha-ia{min-width:40px;margin:-12px -4px -12px 0;padding:0;font-size:16px;letter-spacing:0;}
+  .v4-ficha-cat-title .v4-ficha-ia:disabled{opacity:.45;}
   .v4-ficha-cat-title button{min-height:44px;margin:-12px -4px -12px 0;padding:0 4px;color:var(--mint);font-size:12px;font-weight:800;
     letter-spacing:0;text-transform:none;}
-  .v4-ficha-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:12px;}
+  /* Tres columnas y cuatro solo desde 460 px (`useCatCols` usa la misma media): en un móvil, con la
+     etiqueta a 12 px, «Supermercado» no cabe entera en cuatro ni a 412 px. */
+  .v4-ficha-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px;}
+  @media (min-width:460px){ .v4-ficha-cats{grid-template-columns:repeat(4,minmax(0,1fr));} }
   .v4-ficha-cat{min-height:62px;padding:6px 3px;border-radius:15px;background:var(--sur);border:1px solid var(--line-soft);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:700;line-height:1.1;overflow:hidden;}
   .v4-ficha-cat.on{background:rgba(108,198,136,.16);border-color:var(--mint-deep);color:var(--text);}
   .v4-ficha-cat-icon{font-size:19px;line-height:1;overflow:visible !important;}
-  .v4-ficha-cat-sheet{max-height:80dvh;}
-  .v4-ficha-adjust{border-top:1px solid var(--line-soft);margin:4px 0 10px;}
-  .v4-ficha-adjust-row{width:100%;min-height:44px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line-soft);
-    color:var(--text);font-size:13px;text-align:left;}
-  .v4-ficha-adjust-row .value{margin-left:auto;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);}
-  .v4-ficha-adjust-row .chev{color:var(--muted-2);font-size:17px;}
+  .v4-ficha-cat-sheet{max-height:calc(80dvh / var(--zoom,1));}
+  /* Recibo, deuda, meta, nota y retirada: UNA fila de baldosas iguales a las de categoría (16/11).
+     Separadas de las categorías por un filete fino: son otra pregunta. Lo que llevan (el nombre del
+     recibo, la nota) se lee en dos líneas como mucho. */
+  .v4-ficha-adjust{margin:2px 0 10px;padding-top:12px;border-top:1px solid var(--line-soft);}
+  .v4-ficha-ajustes{margin-bottom:0;}
+  .v4-ficha-ajuste{transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
+  /* El nombre de una baldosa (categoría o ajuste): UN solo tamaño, 12 px, nunca partido ni cortado
+     (auditoría 237, P1-2, y el crítico de la v3: «Supermer-cado», «restauran…» y letras encogidas a
+     7 px). Si una palabra no cabiera, se cambia la rejilla, no la letra. */
+  .v4-ficha-cat > span:last-child{max-width:100%;font-size:12px;line-height:1.15;-webkit-hyphens:none;hyphens:none;overflow-wrap:normal;word-break:normal;}
+  /* Ajustes: chips de unos 40 px, icono y texto en línea, en la rejilla de las categorías; uno solo
+     (la nota de un ingreso) ocupa la fila entera. */
+  .v4-ficha-ajustes > .v4-ficha-cat{min-height:40px;padding:6px 8px;flex-direction:row;justify-content:flex-start;gap:6px;border-radius:13px;}
+  .v4-ficha-ajustes > .v4-ficha-cat .v4-ficha-cat-icon{font-size:16px;}
+  .v4-ficha-ajustes > .v4-ficha-cat > span:last-child{text-align:left;}
+  .v4-ficha-ajustes.solo{display:block;}
+  .v4-ficha-ajustes.solo > .v4-ficha-cat{width:100%;justify-content:center;}
+  /* Con el teclado sin sitio para ninguna fila, la cabecera es la elegida: toda la línea abre el selector. */
+  .v4-ficha-cat-t{min-width:0;}
+  .v4-ficha-cat-title-btn{width:100%;min-height:44px;margin-top:-8px;margin-bottom:0;padding:0 2px;background:transparent;border:0;cursor:pointer;}
+  .v4-ficha-cat-elegida{min-width:0;color:var(--text);font-size:13px;letter-spacing:0;text-transform:none;font-weight:750;}
+  .v4-ficha-cat-title-btn .v4-ficha-todas{flex:none;color:var(--mint);font-size:12px;font-weight:800;letter-spacing:0;text-transform:none;}
+  .v4-ficha-ajuste > .value{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;}
+  .v4-ficha-ajuste:disabled{cursor:default;}
+  .v4-ficha-ajuste:disabled:not(.on){opacity:.45;}
+  .v4-ficha-avisos{margin:10px 2px 0;display:flex;flex-direction:column;gap:4px;}
+  /* El teclado de Modificar (16/11): abajo del todo, pegado al pie como el de Apuntar, y sube con
+     su alto (filas de rejilla) a la vez que las teclas entran desde abajo. Encima solo quedan filas
+     enteras (ver `filasTeclado`), así que no hace falta fundir nada por detrás. */
+  .v4-ficha-teclado{position:sticky;bottom:0;z-index:1;display:grid;grid-template-rows:0fr;background:var(--bg-2);
+    margin:0 -1px;padding:0 1px;transition:grid-template-rows .3s var(--ease);}
+  .v4-ficha-teclado.open{grid-template-rows:1fr;}
+  .v4-ficha-teclado-in{min-height:0;overflow:hidden;}
+  .v4-ficha-teclado .v4-keys{margin:0;padding:8px 0 4px;gap:6px;transform:translateY(24px);opacity:0;
+    transition:transform .3s var(--ease),opacity .22s ease;}
+  .v4-ficha-teclado.open .v4-keys{transform:none;opacity:1;}
+  /* Con el teclado recogido, lo que sigue por debajo del borde se funde (no se ve media fila cortada)
+     y el final de la ficha deja ese mismo aire para que lo último no quede nunca bajo el degradado. */
+  .v4-ficha-plegable:not(.con-teclado){-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);padding-bottom:26px;}
+  @media (prefers-reduced-motion:reduce){ .v4-ficha-teclado,.v4-ficha-teclado .v4-keys{transition:none;} }
+  .v4-ficha-fold{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .26s var(--ease),opacity .2s ease;}
+  .v4-ficha-fold.open{grid-template-rows:1fr;opacity:1;}
+  .v4-ficha-fold-in{min-height:0;overflow:hidden;padding:0 2px;margin:0 -2px;}
   .v4-ficha-adjust-open{padding:9px 0 3px;}
   .v4-ficha-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;
     padding-top:8px;border-top:1px solid var(--line-soft);position:relative;}
@@ -1911,8 +2136,10 @@
     padding:10px 12px;border-radius:14px;background:var(--sur);border:1px solid var(--line);
     box-shadow:0 6px 18px rgba(0,0,0,.28);color:var(--muted);font-size:12px;line-height:1.35;}
   .v4-ficha-aviso .btn{flex:0 0 auto;min-height:36px;padding:0 12px;}
-  .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
-  .v4-ficha-saved{color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.2;}
+  .v4-ficha-del{flex:none;min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;white-space:nowrap;}
+  /* A 360 «Borrar gasto» y «Se guarda al momento ✓» se partían: el aviso es ahora «Guardado ✓», en
+     una línea; los de estado (más largos y de paso), si no caben, en dos líneas equilibradas. */
+  .v4-ficha-saved{flex:1 1 auto;min-width:0;color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.25;text-wrap:balance;}
   .v4-ficha-done{min-height:44px;padding:0 16px;border-radius:14px;background:var(--mint);color:var(--on-mint);font-size:13px;font-weight:850;white-space:nowrap;}
   /* Ficha de cuenta v4.1: el saldo gana la jerarquía y el histórico solo aparece cuando se puede
      reconstruir con movimientos reales. Son piezas del sheet, no una tarjeta ajena dentro de él. */
@@ -1934,10 +2161,17 @@
   .v4-account-spark i{display:block;min-height:5px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,var(--mint-hi),var(--mint));
     transform-origin:center bottom;animation:v4growup .55s var(--ease) both;}
   .v4-account-spark-foot{display:flex;justify-content:space-between;margin-top:5px;color:var(--muted-2);font-size:10.5px;font-weight:650;}
-  .v4-account-spark-new{margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:12px;}
-  .v4-account-lock{margin-top:10px;color:var(--muted-2);font-size:10.5px;font-weight:650;line-height:1.35;}
+  /* Una sola línea de notas bajo el saldo (DIS-37). La primera letra en mayúscula porque la
+     nota puede empezar por «gráfico desde hoy», que va en minúscula cuando sigue a otra. */
+  .v4-account-lock{margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:12.5px;line-height:1.4;}
+  .v4-account-lock::first-letter{text-transform:uppercase;}
   .v4-account-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;}
-  .v4-account-actions>button:only-child{grid-column:1/-1;}
+  .v4-account-actions>button:only-child,.v4-account-actions>button:last-child:nth-child(odd){grid-column:1/-1;}
+  /* Banco y uso de la cuenta en una sola línea (DIS-33): partida en dos parecía otra fila. */
+  .v4-meta-1l{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .v4-meta-row{display:flex;align-items:center;min-width:0;}
+  .v4-mov .meta.v4-meta-row{flex-wrap:nowrap;}
+  .v4-meta-row>:not(.v4-meta-1l){flex:0 0 auto;}
   .v4-account-action{min-height:46px;padding:8px 9px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);
     color:var(--text);font-size:12.5px;font-weight:800;line-height:1.2;}
   .v4-account-action.on{border-color:var(--mint);color:var(--mint);background:rgba(95,208,138,.1);}
@@ -2024,7 +2258,7 @@
   /* Un renglón y con elipsis, como en la portada: «Hogar · Sabadell · cada tres meses · compartido»
      partía la fila en dos a 412 px (11/11/2026). La frase entera va en el aria-label. */
   .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-mg-sec .pr6-row .am{font-size:17px;}
+  .pr6-mg-sec .pr6-row .am{font-size:var(--fs-row-amt);}
   .pr6-mg-sec .pr6-row .am.pos{color:var(--mint-bright);}
   .pr6-mg-sec .pr6-row.pr6-mg-off{opacity:.5;}
   .pr6-mg-ov{margin:24px 0 0;}
@@ -2074,7 +2308,12 @@
   html.sheet-open .page{overscroll-behavior:none;}
   /* Aparte y solo con `sheet-shell-off` (ver `mcSheetLock`): `touch-action` se hereda. */
   html.sheet-shell-off .page{touch-action:none;}
-  .v4-apuntar-amt{text-align:center;font-size:34px;font-weight:550;letter-spacing:-1px;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
+  .v4-apuntar-amt{text-align:center;font-weight:550;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
+  /* El tamaño solo para quien no es la ficha (aportar a una meta). En Apuntar y Modificar el botón
+     lleva también `.v4-ficha-amount`, y esta regla, que va después con la misma especificidad, le
+     pisaba el clamp: el importe salía a 34 px, más chico que la cifra de Gastos que queda detrás
+     (auditoría de diseño 15/11, DIS-02). */
+  .v4-apuntar-amt:not(.v4-ficha-amount){font-size:34px;letter-spacing:-1px;}
   .v4-input{width:100%;background:var(--sur);border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px;font-size:15px;color:var(--text);margin-bottom:10px;}
   .v4-input:focus{border-color:var(--mint);outline:none;}
   /* P12 — los carruseles cortaban en seco y no se veia que habia mas a la derecha. La tabbar ya
@@ -2135,8 +2374,14 @@
   .settings-push.mc-page-dragging{transition:none!important;will-change:transform,opacity;}
   @keyframes mcPageEnter{from{opacity:.62;clip-path:inset(0 0 0 12%)}to{opacity:1;clip-path:inset(0)}}
   .settings-push-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .settings-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);}
+  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
   .settings-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
+  /* Subpantallas de Ajustes (Privacidad, Hogar, Copias…): el mismo «‹» redondo que Ajustes, con el
+     título al lado. Antes cada una llevaba un «‹ Ajustes» o «‹ Volver» de texto azul y había seis
+     botones atrás distintos en la app (auditoría de diseño, 15/11). Clase propia y no
+     `settings-push-h`: los e2e buscan ese «‹» de Ajustes sin acotar y se encontrarían dos. */
+  .sub-push-h{display:flex;align-items:center;gap:10px;margin:0 0 6px;}
+  .sub-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:25px;font-weight:560;margin:0;min-width:0;line-height:1.15;}
 
   /* Perfil tipo Revolut (vídeo 2026-07-17, frame t_5_25): el panel ENTERO es una miniatura que
      CRECE desde el avatar (origin = centro del avatar, vars --pp-* medidas en JS) hasta llenar la
@@ -2209,16 +2454,12 @@
     animation:wn-in .48s cubic-bezier(.32,.72,0,1) both;}
   @keyframes wn-in{from{transform:translate3d(0,12%,0);opacity:0;}to{transform:none;opacity:1;}}
   .wn-panel .wn-inner{max-width:480px;margin:0 auto;}
-  .v4-mov .nm-title{font-weight:700;font-size:15.5px;line-height:1.25;}
+  .v4-mov .nm-title{font-weight:700;font-size:var(--fs-row-title);line-height:1.25;}
   /* Concepto del movimiento (mensaje del bizum / descripción del banco). Una sola línea con
      puntos suspensivos: el detalle completo está en la ficha, aquí solo hay que reconocerlo
      de un vistazo (petición 2026-07-24). */
   .v4-mov .nm-note{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.3;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .v4-mov .nm-cat{font-size:12.5px;font-weight:650;margin-top:2px;line-height:1.2;color:var(--cat,var(--muted));}
-  /* Los colores de categoría son pasteles pensados para fondo oscuro: en Claro se mezclan con
-     --text, que conserva el tono y deja el peor (Ocio) en 4,8:1 sobre blanco (antes 1,7). */
-  html[data-theme="light"] .v4-mov .nm-cat{color:color-mix(in srgb,var(--cat,var(--muted)) 45%,var(--text));}
   .v4-banks .bk-sec{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);margin:18px 2px 8px;}
   .v4-banks .v4-mov{margin-bottom:8px;}
   .v4-banks .bk-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;padding:0 2px;}
@@ -2284,7 +2525,7 @@
 
   .filters{margin-bottom:14px;}
   .searchbar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:9px 12px;margin-bottom:9px;}
-  .searchbar-ic{font-size:13px;opacity:.7;}
+  .searchbar-ic{flex:0 0 auto;color:var(--muted);}
   .searchbar-in{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:inherit;}
   .searchbar-in::-webkit-search-cancel-button{display:none;}
   .searchbar-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;}
@@ -2316,6 +2557,17 @@
   .curbtn{font-size:13px;font-weight:800;padding:4px 12px;border-radius:8px;background:transparent;color:var(--muted-2);border:none;cursor:pointer;}
   .curbtn.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
   .inv-tap{min-height:44px;}
+  /* Round up y Saveback (filtro de diseño 237, F3): el multiplicador a todo el ancho, como lo demás de
+     la tarjeta, y el destino como lista de opciones (antes píldoras cortadas en una fila con scroll). */
+  .ru-mult{display:flex;width:100%;box-sizing:border-box;}
+  .ru-mult .curbtn{flex:1 1 0;padding-left:4px;padding-right:4px;}
+  .rw-dest{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
+  .rw-dest-t{text-align:left;margin:0;}
+  .rw-opt{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line-soft);border-radius:14px;
+    background:transparent;color:var(--text);font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
+  .rw-opt.on{border-color:var(--mint);}
+  .rw-opt-nm{flex:1;min-width:0;line-height:1.3;}
+  .rw-opt-ck{flex:0 0 auto;width:16px;color:var(--mint);font-weight:800;text-align:center;}
   .v4-investments-full .curbtn,.v4-investments-full .v4-link-mini{min-height:44px;}
   .v4-investments-full .v4-field-label{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:10px;}
   .v4-investments-full .v4-field-label .af-in{display:block;min-height:44px;margin-top:5px;color:var(--text);font-weight:500;}
@@ -2333,16 +2585,24 @@
   .gx-list .sentinel{align-items:start;padding-top:8px;box-sizing:border-box;}
   .empty{text-align:center;padding:34px 20px;color:var(--muted);}
   .empty .ttl{font-weight:700;color:var(--text);margin-bottom:6px;}
+  .gx-vacio-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px;}
+  .gx-vacio-acts .btn{min-height:44px;}
 
   .mono{border-radius:11px;display:grid;place-items:center;font-size:12.5px;font-weight:800;flex:0 0 auto;border:1px solid;letter-spacing:.3px;}
   .row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line-soft);}
   .row:last-child{border-bottom:none;}
   .row .rl{display:flex;align-items:center;gap:12px;min-width:0;}
+  /* Posición sin cotización en Cartera: la fila entera es el botón para poner su valor. */
+  .row.inv-row-tap{width:100%;background:none;border-width:0 0 1px;border-style:solid;border-color:var(--line-soft);color:inherit;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .15s var(--ease);}
+  .row.inv-row-tap:last-child{border-bottom-width:0;}
+  .row.inv-row-tap:active{opacity:.6;}
+  .row.inv-row-tap:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:8px;}
   .row .ric{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:0 0 auto;background:var(--surface-2);border:1px solid var(--line-soft);}
   .row .rname{font-weight:600;font-size:14px;}
   .row .rsub{font-size:11.5px;color:var(--muted-2);margin-top:1px;}
   .row .rval{font-weight:700;text-align:right;}
-  .row .rval .rvsub{font-size:11px;color:var(--mint);font-weight:600;margin-top:1px;}
+  /* Importe y % de la rentabilidad en un renglón (filtro de diseño 237, F2c): partidos quedaban «+112,96 € ·» arriba y el % abajo. */
+  .row .rval .rvsub{font-size:11px;color:var(--mint);font-weight:600;margin-top:1px;white-space:nowrap;}
   .row .rval .rvsub.neg{color:var(--coral);}
   .editpair{display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
   .editpair label{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted-2);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
@@ -2407,6 +2667,8 @@
   .plan-item-open{width:100%;padding:0;border:0;background:none;color:var(--text);font-family:inherit;text-align:left;cursor:pointer;min-height:48px;}
   .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:anywhere;}
   .plan-item .v4-debt-emoji{font-size:22px;line-height:1.4;}
+  .v4-debt-ico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--muted);}
+  .plan-item .v4-debt-ico{line-height:1;margin-top:2px;}
   .plan-item-value{flex:0 0 auto;text-align:right;}
   .plan-item-edit{display:block;margin-top:4px;color:var(--mint);font-size:12px;font-weight:700;}
   .plan-debt-details{margin-top:9px;font-size:12px;}
@@ -2416,7 +2678,7 @@
   .plan-item .v4-debt-amort,.plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
   .plan-rule-row{gap:8px;padding:12px 0;align-items:center;}
   .plan-rule-row .sub-meta{line-height:1.45;}
-  .plan-edit-sheet{max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;}
+  .plan-edit-sheet{max-height:calc(90dvh / var(--zoom,1));overflow-y:auto;overscroll-behavior:contain;}
   .plan-edit-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
   .plan-edit-head h2{font-size:22px;font-weight:560;margin:0;}
   .plan-edit-sheet .add-form{padding:0;background:none;border:0;}
@@ -2426,6 +2688,7 @@
   .plan-edit-sheet [role="alert"]{color:var(--coral);}
   .plan-item-open:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:12px;}
   .v4-ghost-add{width:100%;margin-top:12px;min-height:52px;border-radius:18px;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;}
+  .v4-goal-first{margin-top:12px;min-height:48px;font-size:15px;}
   .v4-tip{margin-top:14px;padding:4px;border-radius:18px;background:rgba(230,195,106,.08);border:1px solid rgba(230,195,106,.3);}
   .v4-tip .card{background:transparent;border:none;box-shadow:none;}
   /* ⚠ «SALTAR» YA NO VA EN ABSOLUTO (11/9, él con dos fotos: «está pegadísimo al título y en la
@@ -2462,7 +2725,11 @@
   .v4-ob-card-ic{font-size:19px;line-height:1.25;flex:0 0 auto;}
   .v4-ob-card-tx{min-width:0;}
   .v4-ob-card-t{font-size:14.5px;font-weight:750;margin-bottom:2px;}
-  .v4-ob-card-s{font-size:12.5px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
+  .v4-ob-card-s{font-size:13px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
+  /* Bienvenida con UN botón principal (Empezar): entrar o crear cuenta van debajo como enlaces de
+     texto de 44 px. Con tres botones grandes no se sabía cuál era el camino (auditoría 15/11). */
+  .v4-ob-links{display:flex;flex-direction:column;align-items:stretch;margin-top:6px;}
+  .v4-ob-link{min-height:44px;background:none;border:none;color:var(--mint);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;padding:10px 8px;}
   .v4-ob-dots{display:flex;gap:6px;justify-content:center;margin:22px 0 0;}
   .v4-ob-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s var(--ease),background .3s;}
   .v4-ob-dots span.on{width:22px;background:var(--mint);}
@@ -2487,10 +2754,25 @@
   .v4-danger{width:100%;margin-top:10px;min-height:44px;border:none;border-radius:12px;background:rgba(226,112,95,.14);color:var(--coral);font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;}
   .v4-sheet .btn.btn-primary{min-height:46px;font-size:14.5px;border-radius:12px;}
   button.v4-mov{width:100%;border:1px solid var(--line-soft);background:var(--sur);color:inherit;font:inherit;text-align:left;cursor:pointer;}
-  .set-card>.set-row:first-child{border-top:none;}
+  .set-card>.set-row:first-child,.set-card>.set-sub:first-child>.set-row:first-child{border-top:none;}
   .set-row .sr-ic{font-size:17px;flex:0 0 22px;text-align:center;line-height:1;}
   .set-row .sr-lb{flex:1;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;}
   .set-row .sr-val{color:var(--muted);font-size:12.5px;font-weight:600;flex:0 1 42%;max-width:42%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  /* Notificaciones (16/11): título + una línea de apoyo, logo del banco en el hueco del icono y el
+     permiso como estado con punto, que se lee igual en la fila del grupo y dentro. */
+  .set-row .sr-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .set-row .sr-sub{font-size:12px;font-weight:600;color:var(--muted);line-height:1.35;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .nt-row .sr-ic{flex:0 0 24px;display:flex;justify-content:center;}
+  .nt-row .sr-ic .mono{font-size:9px;}
+  .nt-logos{display:inline-flex;}
+  .nt-logos .mono+.mono{margin-left:-4px;}
+  .nt-row .mono-logo{box-shadow:0 0 0 1px var(--line);}
+  .nt-logos .mono{box-shadow:0 0 0 1px var(--line),0 0 0 2.5px var(--sur);}
+  .nt-fix{font-size:13px;font-weight:800;color:var(--mint);}
+  .nt-st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap;}
+  .nt-st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .nt-st.ok{color:var(--mint);}
+  .nt-st.ko{color:var(--coral);}
   .v4-chips.wrap{flex-wrap:wrap;}
   .v4-sheet.dragging{transition:none !important;}
   .v4-sheet-back.lock{overscroll-behavior:none;touch-action:none;}
@@ -2535,14 +2817,24 @@
   html.sheet-open .v4-sheet,html.sheet-open .v4-sheet-body,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
   html.sheet-open .v4-sheet-back{pointer-events:auto;}
   .v4-link-mini{display:inline-flex;align-items:center;gap:4px;margin-top:8px;min-height:44px;padding:10px 14px;border-radius:999px;border:none;background:rgba(95,208,138,.16);color:var(--mint);font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer;}
-  /* Los dos accesos de «Tus cuentas» (sincronizar y conectar), en icono (2026-09-11). Iban como
-     dos píldoras de texto y entre las tres cosas el título se partía en DOS líneas en su móvil:
-     «me falta lo de sincronizar y añadir cuenta quizás con iconos distintivos pequeños, y así
-     "tus cuentas" cabe entero y no en dos líneas». 31 px es el mínimo que sigue siendo cómodo de
-     tocar sin que la cabecera crezca. */
+  /* Sincronizar bancos, en icono (2026-09-11): con dos píldoras de texto el título de «Tus cuentas»
+     se partía en DOS líneas en su móvil. Conectar es ya un «Añadir» corto como el de Bienes
+     (auditoría de diseño 237, P2-8). 31 px es el mínimo que sigue siendo cómodo de tocar sin que
+     la cabecera crezca. */
   .v4-ic-mini{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
-    background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;}
+    background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;position:relative;}
+  /* El dibujo sigue de 31 px; el dedo tiene 44 (DIS-48): 7,5 px por lado desde dentro del borde.
+     Por eso el hueco con «Añadir» (que tiene 8 px de margen negativo) es de 16 px: así las dos áreas
+     de toque no se pisan. */
+  .v4-ic-mini::after{content:"";position:absolute;inset:-7.5px;}
+  .v4-sec-acts{display:flex;align-items:center;gap:16px;flex:0 0 auto;}
   .v4-ic-mini svg{width:16px;height:16px;display:block;}
+  /* Un solo patrón para las acciones de cada bloque de Cartera (DIS-32): enlace a la derecha
+     del título, como en Inicio. El margen negativo le da 44 px de dedo sin engordar el título. */
+  .v4-sec-h.v4-section-h{margin:22px 0 10px;}
+  .v4-sec-h.v4-section-h button.link{margin:-10px -8px;}
+  .cartera-hero-amt{font-size:var(--fs-hero);font-weight:550;letter-spacing:-1px;line-height:1.05;margin-top:6px;white-space:nowrap;}
+  .cartera-hero-amt>span{font-size:23px;color:var(--muted);}
   .v4-ic-mini:disabled{opacity:.5;}
   .v4-ic-mini.girando svg{animation:mcSpin .9s linear infinite;transform-origin:50% 50%;}
   @keyframes mcSpin{to{transform:rotate(360deg)}}
@@ -2575,15 +2867,6 @@
   .swx.on{background:var(--mint);border-color:var(--mint);}
   .swx::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
   .swx.on::after{left:24px;}
-  .wedit{border:1px dashed var(--line);border-radius:16px;padding:8px;margin-bottom:12px;background:var(--bg-2);}
-  .wedit.off{opacity:.5;}
-  .wedit-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding:0 2px;}
-  .wedit-lbl{font-size:12.5px;font-weight:700;color:var(--muted);}
-  .wedit-btns{display:flex;gap:6px;align-items:center;}
-  .wedit-btns button{font-size:12px;font-weight:700;padding:5px 9px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line-soft);color:var(--text);}
-  .wedit-btns button:disabled{opacity:.35;}
-  .wedit-btns button.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
-  .wedit-body{pointer-events:none;}
   .ex-del{font-size:12px;color:var(--muted-2);background:transparent;border:none;padding:4px 6px;opacity:.55;}
   .ex-del:hover{opacity:1;color:var(--coral);}
 
@@ -2591,7 +2874,6 @@
   .goal-eta{font-size:12.5px;color:var(--muted);margin-top:9px;line-height:1.45;}
   .goal-eta.ok{color:var(--mint);} .goal-eta.warn{color:#E2A23F;}
   .goal-medal{font-size:11.5px;font-weight:700;color:#F2C14E;}
-  .goal-dl-lbl{font-size:11.5px;color:var(--muted-2);font-weight:600;margin:2px 2px -4px;}
   .emoji-pick{display:flex;flex-wrap:wrap;gap:6px;}
   .emoji-pick button{font-size:18px;line-height:1;padding:6px 8px;border-radius:10px;background:var(--bg-2);border:1px solid var(--line-soft);cursor:pointer;}
   .emoji-pick button.on{border-color:var(--mint);background:rgba(95,208,138,.16);}
@@ -2631,10 +2913,6 @@
   @media (prefers-reduced-motion:reduce){.spin{display:none;}}
   @keyframes sp{to{transform:rotate(360deg);}}
 
-  .edit-link{font-size:12.5px;font-weight:700;color:var(--mint);padding:5px 9px;border-radius:9px;background:rgba(95,208,138,.10);position:relative;}
-  /* «Editar» mide 27 px de alto; el toque llega a 45 sin agrandar la píldora (auditoría 14/11). */
-  .edit-link::after{content:"";position:absolute;inset:-9px -2px;}
-  .edit-link.save{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
 
   .hint{font-size:12px;color:var(--muted-2);margin-top:10px;line-height:1.5;}
   .sync-note{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted-2);margin-top:10px;}
@@ -2739,6 +3017,10 @@
 .v4-sheet.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;}
 .aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px;flex:0 0 auto;}
 .aely-help-sheet-h h1{font-size:20px;margin:0;font-weight:550;}
+.aely-help-x{position:relative;flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--line-soft);background:var(--sur);color:var(--muted);font-size:15px;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer;}
+/* Área de 44 px: el inset cuenta desde dentro del borde de 1 px (34 + 10 = 44), y los píxeles que
+   faltan de ancho crecen hacia el título y no hacia el borde derecho de la hoja. */
+.aely-help-x::before{content:"";position:absolute;inset:-5px -1px -5px -9px;}
 .aely-help-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   overscroll-behavior-y:none;scrollbar-width:none;padding:0 0 8px;}
 .aely-help-body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
@@ -2757,7 +3039,11 @@
 .aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
 .aely-help-entry{margin:6px 0 10px;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
-.aely-help-entry-mini{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+.aely-help-entry-mini{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+/* El dibujo sigue en 36 px; el dedo necesita 44 (auditoría 15/11). -5 y no -4: el inset cuenta desde
+   dentro del borde de 1 px (con -4 quedaba en 42). Cabe en el hueco de 8 px que lo
+   separa del avatar sin pisarlo. */
+.aely-help-entry-mini::before{content:"";position:absolute;inset:-5px;}
 .aely-help-consent{margin-top:12px;padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);}
 .aely-help-remote-status{margin:0 0 8px;font-size:12px;}
 @media (prefers-reduced-motion:reduce){

@@ -27,7 +27,7 @@ function decimalComponent(raw){
  ui.React.createElement=(type,props,...children)=>({type,props:props||{},children:children.flat(Infinity)});
  vm.runInNewContext(extractPureLogicSource(html),ui);
  const d={...debts[1],apr:2};let state={debts:[d],accounts:[],expenses:[]};
- const render=()=>{cursor=0;return ui.DebtEditSheet?ui.DebtEditSheet({debt:d,state,set:f=>{state=f(state);},onClose(){},onDelete(){},showToast(){}}):ui.AmortAdvisor({state,set:f=>{state=f(state);},onAmort(){}});};
+ const render=()=>{cursor=0;return ui.DebtEditSheet?ui.DebtEditSheet({debt:d,state,set:f=>{state=f(state);},onClose(){},onDelete(){},showToast(){}}):ui.AmortAdvisor({state,set:f=>{state=f(state);}});};
  const nodes=()=>{const all=[],walk=n=>{if(!n||typeof n!=="object")return;all.push(n);(n.children||[]).forEach(walk);};walk(render());return all;};
  const input=()=>nodes().find(n=>n.type==="input"&&(n.props["data-debt-field"]==="apr"||!ui.DebtEditSheet));
  input().props.onChange({target:{value:""}});

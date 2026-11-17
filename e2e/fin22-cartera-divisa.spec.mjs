@@ -12,7 +12,8 @@ const investments=[
 ];
 const norm=s=>s.replace(/[\u00a0\u202f]/g,' ').trim();
 // Oráculo independiente: 1 USD = 0,8 EUR; no llama al formateador ni al conversor del producto.
-const expected={EUR:{tr:'1.200 €',rv:'160 €',mi:'800 €',cash:'500,00 €',hero:'2.910,40 €',position:'1.200,40 €'},USD:{tr:'1.501 $',rv:'200 $',mi:'1.000 $',cash:'625,00 $',hero:'3.638,00 $',position:'1.500,50 $'}};
+// Las filas de bróker de Cartera llevan céntimos como las cuentas (auditoría de diseño 237, P2-9).
+const expected={EUR:{tr:'1.200,40 €',rv:'160,00 €',mi:'800,00 €',cash:'500,00 €',hero:'2.910,40 €',position:'1.200,40 €'},USD:{tr:'1.500,50 $',rv:'200,00 $',mi:'1.000,00 $',cash:'625,00 $',hero:'3.638,00 $',position:'1.500,50 $'}};
 const broker=(page,id)=>page.locator('.page [data-broker-key="'+id+'"]');
 async function stored(page){return page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('micartera_v3'));return {accounts:s.accounts,investments:s.investments,currency:s.settings.currency,fx:s.fx,fxRates:s.fxRates};});}
 async function open(page,currency='EUR',fx=0.8){
@@ -29,7 +30,8 @@ async function setCurrency(page,currency){
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('mc-open-settings')));
  const settings=page.locator('.settings-push.open').filter({has:page.locator('button.set-row')});
  const currencyRow=settings.locator('button.set-row').filter({hasText:/Moneda de visualización/}).first();
- const money=settings.locator('.set-card').filter({hasText:'Moneda de visualización'});
+ // Desde DIS-40 cada desplegable es una fila (`.set-sub`) de la tarjeta de su grupo: se busca la fila, no la tarjeta.
+ const money=settings.locator('.set-card > .set-sub').filter({hasText:'Moneda de visualización'});
  await expect(money).toHaveCount(1);
  // El acordeón conserva nodos montados dentro de una rejilla cerrada: isVisible no basta.
  if(!await money.locator(':scope > .collapsible.open').count())await money.locator(':scope > button').click();
@@ -90,7 +92,7 @@ test('FIN22 USD inicial y selector local de Inversiones no cambian la moneda de 
 
 test('FIN22 sin FX conserva el fallback EUR y los originales desconocidos',async({page},testInfo)=>{
  await open(page,'USD',null);
- await expect(broker(page,'trade_republic').locator('.am')).toHaveText('1.200 €');
+ await expect(broker(page,'trade_republic').locator('.am')).toHaveText('1.200,40 €');
  await expect(page.locator('[data-account-id="tr-cash"] .am')).toHaveText('500,00 €');
  await broker(page,'revolut').click();
  await expect(page.locator('.page [data-inv-position="rv-usd"]')).toContainText('200,00 USD · Sin conversión');

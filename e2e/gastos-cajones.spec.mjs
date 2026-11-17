@@ -182,25 +182,32 @@ test("reducir movimiento cierra la ficha sin esperar una animación invisible", 
   await expect(page.locator("html")).not.toHaveClass(/sheet-open/);
 });
 
-test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe y banco", async ({ page }) => {
+test("ficha v4.1: un movimiento automático lleva candado y bloquea importe y banco", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
 
   await fila(page, "Mercadona").click();
   const sheet = page.locator(".v4-exp-sheet");
-  await expect(sheet.locator('[data-testid="exp-trace"]')).toBeVisible();
+  await expect(sheet.getByTestId("exp-locked")).toBeVisible();
+  await expect(sheet.getByTestId("exp-trace")).toHaveCount(0);
+  await expect(sheet).not.toContainText("Lo trajo una notificación");
   await expect(sheet.locator('[data-testid="exp-bank"]')).toHaveClass(/locked/);
   await expect(sheet.locator(".v4-ficha-foot .v4-cta")).toHaveCount(0);
-  await expect(sheet.locator(".v4-ficha-saved")).toContainText("Se guarda al momento");
+  await expect(sheet.locator(".v4-ficha-saved")).toHaveText("Guardado ✓");
   await expect(sheet.locator(".v4-ficha-done")).toBeVisible();
 
   const before = await sheet.locator(".v4-ficha-amount").innerText();
-  await sheet.locator(".v4-keys").getByRole("button", { name: "9", exact: true }).click();
+  // Sin teclado en un movimiento del banco (16/11): tocar el importe solo explica por qué.
+  await expect(sheet.locator(".v4-keys")).toHaveCount(0);
+  await sheet.locator(".v4-ficha-amount").click();
   await expect(page.locator(".toast")).toHaveText("El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.");
   await expect(sheet.locator(".v4-ficha-amount")).toHaveText(before);
 
   // Regresión del vídeo 17/9: quien scrollea es el body interior. Una bajada cuando ya está
   // desplazado debe seguir moviendo contenido, no aplicar translate3d a toda la ficha.
+  // Sin teclado la ficha del banco ya cabe entera en un Pixel 5: en un móvil bajo sí se desplaza.
+  await page.setViewportSize({ width: 393, height: 560 });
+  await page.waitForTimeout(300);
   const body = sheet.locator(".v4-sheet-body");
   const scrolled = await body.evaluate((el) => {
     el.scrollTop = Math.min(260, Math.max(1, el.scrollHeight - el.clientHeight));

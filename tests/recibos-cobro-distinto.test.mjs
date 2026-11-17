@@ -96,7 +96,13 @@ test("un cargo que ya es otra cosa en Gastos no se pregunta",()=>{
 });
 
 test("solo un adeudo del banco del recibo, cerca de su día y con importe parecido",()=>{
-  assert.equal(cand(estado({bankTx:[tx({concept:""})]})),null,"ni la fila ni el extracto dicen que es un recibo");
+  // Ronda 237: sin la palabra, el comercio de la categoría del recibo (Iberdrola → luz) también lo
+  // dice; se pregunta. Sin categoría en el recibo, o con un comercio de otra, sigue sin decirlo.
+  assert.equal(cand(estado({bankTx:[tx({concept:""})]})).id,"e-b-luz","el comercio es de su categoría");
+  const sinCat=Object.assign({},luz,{category:undefined});
+  assert.equal(cand(estado({fixed:[sinCat],bankTx:[tx({concept:""})]}),sinCat),null,"ni la fila ni el extracto dicen que es un recibo");
+  const gas=Object.assign({},luz,{category:"gas"});
+  assert.equal(cand(estado({fixed:[gas],bankTx:[tx({concept:""})]}),gas),null,"un comercio de luz no dice que sea el recibo del gas");
   assert.equal(cand(estado({bankTx:[tx({concept:"TRANSFERENCIA RECIBO"})],expenses:[fila()]})),null,"transferencia");
   assert.equal(cand(estado({bankTx:[tx({card:true})],expenses:[fila({fila:{card:true}})]})),null,"tarjeta");
   assert.equal(cand(estado({bankTx:[tx({ent:"revolut"})],expenses:[fila({ent:"revolut"})]})),null,"otro banco");

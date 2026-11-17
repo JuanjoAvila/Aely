@@ -109,10 +109,12 @@ test("banco y tipo explican sus campos; Efectivo explica no operación y Traspas
     await expect(page.getByText(aviso,{exact:true})).toBeVisible();
   }
   await sheet.getByTestId("exp-efectivo").click();
-  await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText("La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.");
-  await expect(sheet.getByTestId("exp-withdrawal")).toHaveText("Es una retirada de efectivo");
-  await expect(sheet.getByTestId("exp-withdrawal-info")).not.toContainText("no suma dinero a Efectivo");
-  await sheet.locator('.v4-ficha-cat-title button').click();
+  // La retirada es una baldosa de la fila de ajustes, sin frase de ayuda (16/11).
+  await expect(sheet).not.toContainText("La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.");
+  await expect(sheet.getByTestId("exp-withdrawal")).toHaveAttribute("aria-label","Es una retirada de efectivo");
+  await expect(sheet.getByTestId("exp-withdrawal")).toHaveText("🏧Retirada");
+  await expect(sheet).not.toContainText("no suma dinero a Efectivo");
+  await sheet.locator('.v4-ficha-cat-title .v4-ficha-todas').click();
   await page.getByTestId("expense-all-cat-traspaso").click();
   await page.locator('.askback .btn-primary').click();
   await expect(sheet.getByTestId("exp-cat-traspaso")).toHaveAttribute("aria-pressed","true");
@@ -135,7 +137,7 @@ const cifra=(lang,txt)=>lang==="en"?txt.replace(/[.,]/g,(c)=>c==="."?",":"."):tx
 for(const lang of ["es","en","ca"])test(`cancelar, ACK, recarga y móvil B conservan la retirada (${lang})`,async({page,browser})=>{
   const sheet=await open(page,lang),txt=texts[lang];
   const action=sheet.getByTestId("exp-withdrawal");
-  await expect(action).toHaveText(txt.action);
+  await expect(action).toHaveAttribute("aria-label",txt.action);
   const before=await stored(page);
   // Gastos v5: la cifra de la cabecera es lo que cuenta contra el límite (antes, la barra).
   await expect(page.locator('.page-scroll-host [data-testid="gastos-cifra"]')).toHaveText(cifra(lang,"80,00 €"));
@@ -200,7 +202,7 @@ for(const lang of ["es","en","ca"])test(`vínculo de recibo bloquea ambas puerta
   const action=sheet.getByTestId("exp-withdrawal");await expect(action).toBeDisabled();
   const blocked=await page.evaluate(()=>t("f_withdraw_receipt_blocked"));
   await expect(sheet.getByTestId("exp-withdrawal-receipt-blocked")).toHaveText(blocked);
-  await sheet.locator('.v4-ficha-cat-title button').click();
+  await sheet.locator('.v4-ficha-cat-title .v4-ficha-todas').click();
   await page.getByTestId("expense-all-cat-traspaso").click();
   await expect(sheet.getByTestId("exp-cat-otros")).toHaveAttribute("aria-pressed","true");
   expect((await stored(page)).writes).toBe(0);
@@ -224,8 +226,7 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   const before=await stored(page);
   await sheet.getByTestId("exp-withdrawal").click();await page.locator('.askback .btn-primary').click();
   await expect.poll(async()=>(await stored(page)).writes).toBe(1);
-  const note=await page.evaluate(()=>t("f_note_row"));
-  await sheet.locator('.v4-ficha-adjust-row').filter({hasText:note}).click();
+  await sheet.getByTestId("exp-note").click();
   await sheet.locator('.v4-exp-note-in').fill("Nota sintética que provoca un CAS de metadatos");
   await sheet.getByTestId("exp-bank").click();
   await expect(sheet.getByTestId("exp-withdrawal-receipt-blocked")).toBeVisible();
@@ -249,7 +250,7 @@ test("vínculo tardío con UPDATE denegado conserva prueba A/B y categoría orig
   const sheet=await open(page,"es","lateReceiptError","otros",{fixed:[bill],bankTx:[],flows:[],oneoffs:[],debts:[]});
   await sheet.getByTestId("exp-withdrawal").click();await page.locator('.askback .btn-primary').click();
   await expect.poll(async()=>(await stored(page)).writes).toBe(1);
-  const note=await page.evaluate(()=>t("f_note_row"));await sheet.locator('.v4-ficha-adjust-row').filter({hasText:note}).click();
+  await sheet.getByTestId("exp-note").click();
   await sheet.locator('.v4-exp-note-in').fill("Nota sintética con confirmación fallida");await sheet.getByTestId("exp-bank").click();
   await expect(sheet.getByTestId("exp-withdrawal-receipt-blocked")).toBeVisible();
   await page.evaluate(()=>{window.__withdrawalFixture.releaseAck=true;});

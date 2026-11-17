@@ -98,7 +98,7 @@ function NetWorthInfoSheet({open, rows, onClose}){
       )
     ), document.body);
 }
-function NetWorthNow({tt, simple, series, splashGone}){
+function NetWorthNow({tt, simple, series, splashGone, vacio}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
   // dispara las lecturas de layout de navegación con el histórico grande.
   const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
@@ -164,6 +164,10 @@ function NetWorthNow({tt, simple, series, splashGone}){
   };
   const release=function(e){e.stopPropagation();clearTimeout(holdRef.current);gestureRef.current=null;cancelAnimationFrame(frameRef.current);frameRef.current=0;setTouch(null);};
   const id=React.useId();
+  if(vacio) return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current"},
+    React.createElement("div",{className:"v4-net-current-head"},
+      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth"))),
+    React.createElement(PrimeraCuentaHero));
   return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current",style:{"--v42-play":splashGone===false?"paused":"running"}},
     React.createElement("div",{className:"v4-net-current-head"},
       React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
@@ -264,11 +268,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     const first=nameGuess.trim().split(/\s+/)[0]||"";
     return first.charAt(0).toUpperCase()+first.slice(1);
   })();
-  const initials=(function(){
-    if(!nameGuess) return "MC";
-    const parts=nameGuess.trim().split(/\s+/);
-    return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
-  })();
+  const initials=avatarIniciales(profileOf(state).fullName||nameGuess, "");
 
   const seriesToday=netWorthDay();
   // Sólo un cambio financiero o de día justifica volver a recorrer el histórico
@@ -306,8 +306,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       if(!debtActive(d) || !(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       // Con «Lo descuento» la cuota es la tuya entera, como en Plan (pagas 197 € + 53 € del recibo).
-      const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt;
-      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((d.monthly+desc)*100)/100:d.monthly, pos:false});
+      const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt, q=debtCuotaIn(d,tt.curYear,cm);
+      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
     });
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
@@ -404,6 +404,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
       )
     ),
+    // Un banco caído deja el patrimonio de aquí desfasado: se dice aquí también (DIS-23).
+    React.createElement(AvisoBancoFranja,{issues:state.bankIssues}),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash
        nadie las ve (misma trampa que el count-up). prefers-reduced-motion: sin brillo (CSS). */
@@ -435,7 +437,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone, vacio:mcSinNada(state)}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
@@ -452,7 +454,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     !showSkel && state.budget>0 && React.createElement("div",{className:"v42-cycle-section"},
       React.createElement("div",{className:"v42-cycle-head"},
         React.createElement("span",null,t(bud.cycle?"v42_this_cycle":"v42_this_month")),
-        React.createElement("button",{type:"button",className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }},t("v4_see_gastos"))),
+        React.createElement("button",{type:"button",className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }},t("v4_all"))),
       /* El estado («Vas justito», «Te quedan…») dejó de pintarse en la tarjeta —molestaba al verlo un
          rato, feedback 2026-10-13— y lo dicen el color del anillo y el de la línea «al día». Sigue
          leyéndose entero para lectores de pantalla, con las mismas claves de texto de antes. */
@@ -520,7 +522,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
             tf(/^[aeiouàèéíòóú]/i.test(sigName)?"v4_upcoming_in_v":"v4_upcoming_in",{mes:sigName}))),
         // «Ver plan» fuerza el segmento Recibos: sin esto aterrizabas en el último subtab
         // usado (Deudas) — feedback 2026-07-18.
-        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }}, t("v4_see_plan"))
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }}, t("v4_all"))
       ),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         (upcoming.length>0?upcoming:nextUp).map(function(u,i){
@@ -544,7 +546,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         // Mismo nombre que en Plan › Recibos («Para revisar» / «No ha llegado»): antes Inicio decía
         // «Cargos vencidos» / «Sin pago acreditado» para el mismo recibo (auditoría 14/11/2026).
         React.createElement("span",null,t("pr6_revisar")),
-        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_see_plan"))),
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_all"))),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
           return React.createElement("div",{key:i,className:"v4-charge"},
@@ -556,20 +558,20 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
     // Modo sencillo: Plan no tiene Metas, así que «Crear una meta» y «Ver plan» llevaban a Recibos
     // (auditoría 14/11/2026). Fuera, igual que en Plan.
+    // Sin metas, una fila que se ve tocable: el vacío punteado ocupaba ~240 px y «Crear una meta»
+    // parecía texto (auditoría de diseño 15/11/2026).
     !showSkel && !simple && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_your_goals"))),
-      React.createElement("div",{className:"v4-empty"},
-        React.createElement("div",{className:"em"}, "🎯"),
-        React.createElement("div",{className:"ti"}, t("v4_nogoal_t")),
-        React.createElement("div",{className:"ph"}, t("v4_nogoal_p")),
-        React.createElement("button",{className:"btn cta",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_nogoal_cta"))
-      )
+      React.createElement("button",{type:"button",className:"v4-nogoal-row","data-testid":"inicio-nogoal",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }},
+        React.createElement("span",{className:"em","aria-hidden":"true"}, "🎯"),
+        React.createElement("span",{className:"tx"}, t("v4_nogoal_t")),
+        React.createElement("span",{className:"chev","aria-hidden":"true"}, "›"))
     ),
 
     !showSkel && !simple && goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_your_goals")),
-        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_see_plan"))
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_all"))
       ),
       // stopPropagation: el carrusel scrollea en horizontal y sin esto el gesto burbujeaba al
       // viewport y cambiaba de pestaña a la vez (feedback 2026-07-18, aparecía al crear metas).
@@ -612,7 +614,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
                 React.createElement("div",{className:"tile",style:{background:(c.color||"#5FD08A")+"22"}}, c.icon||"📦"),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
                   React.createElement("div",{className:"nm"}, e.merchant||catName(e.category)),
-                  React.createElement("div",{className:"meta"}, catName(e.category)+(e.source&&String(e.source).indexOf("ob:")===0?" · "+t("g_bank_ob"):"")+(recibo?" · "+recibo:""))
+                  React.createElement("div",{className:"meta"}, catName(e.category)+(recibo?" · "+recibo:""))
                 ),
                 React.createElement("div",{className:"am num"+(pos?" pos":"")}, (pos?"+":"")+eur(Math.abs(e.amount)))
               );

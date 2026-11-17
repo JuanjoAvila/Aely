@@ -55,7 +55,7 @@ no despliega ni acredita funciones vivas. El cambio de referencia entre días qu
 El único `pg_cron` es `myinvestor-keepalive` (0011). No existe cron de Open Banking ni de avisos:
 la lectura del banco el día del recibo (Recibos v6, SPEC §11.1) está pendiente de decisión del
 dueño, y los avisos de la víspera los dan el cliente y el `AlertCheckWorker` de la APK. Antes de
-programar cualquier lectura de `bank-sync`, ver «Open Banking: sync SOLO a demanda» en
+programar cualquier lectura de `bank-sync`, ver «Open Banking: lectura sola al entrar, con tope» en
 `docs/ARQUITECTURA.md`.
 
 ## Auditoría de seguridad 14/11 · ronda 233 en fuente, SIN desplegar

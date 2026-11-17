@@ -64,7 +64,8 @@ test("al bajar, la cifra es lo gastado hasta el día que queda debajo; un mes ce
   await abre(page);
   await aGastos(page);
   await gastosBajaAlDia(page, "2026-09-20");
-  await expect(gastosEstado(page)).toHaveText("gastado en septiembre hasta el 20");
+  // Delante y en menta (diseño 235, DIS-16): la cifra ya no es el total del mes.
+  await expect(gastosEstado(page)).toHaveText("hasta el 20 · gastado en septiembre");
   await expect(gastosCifra(page), "10 (35) + 20 (30)").toHaveText("65,00 €");
   await expect(gastosRoot(page).locator(".gx-head")).toHaveClass(/compact/);
   // Los meses aparecen fijos al bajar, con septiembre marcado.
@@ -96,11 +97,13 @@ test("tocar un mes salta a su primer día", async ({ page }) => {
 /* Su captura de la beta 4.26.164 (24/10), con la letra grande del sistema: «24/10 ·» y «Trade
    Republic» en dos líneas, un punto huérfano y la tarjeta el doble de alta. El WebView escala el
    TEXTO (textZoom) pero no las cajas: se imita multiplicando el tamaño de letra de cada nodo de la
-   tarjeta, que es lo que hace Android. «fecha · banco» tiene que quedar en UNA línea (con puntos
-   suspensivos si no cabe) y el importe entero, sin partirse. */
+   tarjeta, que es lo que hace Android. La línea del banco tiene que quedar en UNA línea (con puntos
+   suspensivos si no cabe) y el importe entero, sin partirse. Desde el diseño 233 (DIS-13) la fila
+   ya no lleva la fecha y el banco solo sale si hay más de uno: por eso van dos bancos de diario. */
 for (const zoom of [1.3, 1.6]) {
-  test(`con la letra del sistema al ${Math.round(zoom * 100)} %, «fecha · banco» va en una línea y el importe no se parte`, async ({ page }) => {
-    await abre(page, { expenses: [e("Amazon", "2026-09-26", 1239.59, "compras"), e("Barcelona Cooking Experience Sociedad Limitada", "2026-09-25", 44.22, "restaurantes")] });
+  test(`con la letra del sistema al ${Math.round(zoom * 100)} %, el banco va en una línea y el importe no se parte`, async ({ page }) => {
+    await abre(page, { settings: { ...base.settings, expenseBanks: ["trade_republic", "sabadell"] }, accounts: [...base.accounts, { id: "sab", ent: "sabadell", name: "Cuenta", value: 1000, role: "diario", spendFrom: true }],
+      expenses: [e("Amazon", "2026-09-26", 1239.59, "compras"), e("Barcelona Cooking Experience Sociedad Limitada", "2026-09-25", 44.22, "restaurantes", { ent: "sabadell" })] });
     await aGastos(page);
     const tarjetas = gastosRoot(page).locator("button.v4-mov");
     await expect(tarjetas).toHaveCount(2);

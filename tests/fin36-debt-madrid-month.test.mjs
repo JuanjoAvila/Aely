@@ -23,9 +23,12 @@ function context(iso,tz,source=html){
 }
 function manual(c,changes={},source=html){
   let state={debts:[]};
-  const add=vm.runInContext("(function(form,set,showToast,setForm,setAdding){"+body(source,"const addDebt=()=>{")+"})",c);
-  add({name:"FIN36 sintética",value:"1000",monthly:"100",months:"10",day:"5",paid:"0",account:"sabadell",down:"",balloon:"",...changes},update=>{state=update(state);},()=>{},()=>{},()=>{});
-  assert.equal(state.debts.length,1);return state.debts[0];
+  // Desde DIS-31 el alta va en hoja: el cuerpo lee `addedRef` (no repetir el alta mientras baja) y
+  // `addCloser` (cerrarla). Se pasan sin hoja montada, el mismo camino que cierra al instante.
+  const add=vm.runInContext("(function(form,set,showToast,setForm,setAdding,addedRef,addCloser){"+body(source,"const addDebt=()=>{")+"})",c);
+  const addedRef={current:false};
+  add({name:"FIN36 sintética",value:"1000",monthly:"100",months:"10",day:"5",paid:"0",account:"sabadell",down:"",balloon:"",...changes},update=>{state=update(state);},()=>{},()=>{},()=>{},addedRef,{current:null});
+  assert.equal(state.debts.length,1);assert.equal(addedRef.current,false,"sin hoja montada el alta no se queda bloqueada");return state.debts[0];
 }
 // La compra a plazos de «¿Y si gasto…?» (`deudaAPlazos`, 4.26.229): su 1.ª cuota cae el mes que viene, así
 // que al nacer no hay cuota del mes aunque su día ya haya pasado (revisión de dinero 229, P1-1).
@@ -107,7 +110,8 @@ try{
   assert.notEqual(calendar[0],local,"el mutante mensual cambia la fuente");
   const monthSource=html.replace(calendar[0],local),monthContext=context(cases[0].iso,"UTC",monthSource),monthDebt=manual(monthContext,{},monthSource);
   assert.notEqual(cents(monthContext.netWorthDebtPolicy({debts:[monthDebt]},cases[0].today).current),100000,"mutante mensual muere por saldo de Inicio sin current suministrado");checks++;
-  const charge=html.match(/function debtPaidCount\(d\)\{[^\n]+\}/);
+  // Desde el tope de cuotas (15/11/2026) el recuento vive en `debtCuotasDesdeAncla`; debtPaidCount lo acota.
+  const charge=html.match(/function debtCuotasDesdeAncla\(d\)\{[^\n]+\}/);
   assert.ok(charge,"cálculo real de pagos presente");
   assert.equal(charge[0].split("madridYmdParts(Date.now()).d").length,2,"punto diario único");
   const daySource=html.replace(charge[0],charge[0].replace("madridYmdParts(Date.now()).d","new Date().getDate()")),dayContext=context(cases[0].iso,"UTC",daySource),dayDebt=manual(dayContext,{},daySource);

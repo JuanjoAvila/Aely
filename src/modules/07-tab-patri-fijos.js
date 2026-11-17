@@ -10,7 +10,7 @@
    aprender nada nuevo. Tampoco hay «Guardar»: cada cambio se guarda al vuelo, como en el resto.
    Y lo que rechazó de la primera maqueta: meter todo en una cartilla única («separado como está
    me gusta ya») y la flecha al lado del importe. */
-function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada, onBankSync, onReconnectBank, bankBusy}){
+function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada, onBankSync, onReconnectBank, bankBusy, onCajero, onEntrada}){
   const [borrando,setBorrando]=React.useState(false);
   const [saldo,setSaldo]=React.useState("");
   const [corrigiendo,setCorrigiendo]=React.useState(false);
@@ -166,7 +166,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const staleDay=stale&&balanceDate?new Date(balanceDate).toLocaleDateString(loc(),staleAge>6*24*60*60*1000?{day:"numeric",month:"short"}:{weekday:"long"}):"";
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:cerrar},
-      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88dvh"}}, swipe.sheetTouch),
+      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"calc(88dvh / var(--zoom,1))"}}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"v4-account-head"},
           React.createElement(Mono,{ent:a.ent,size:44}),
@@ -194,8 +194,14 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                   })),
                 React.createElement("div",{className:"v4-account-spark-foot"},
                   React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
-            : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
-          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(balanceDate?" · "+tf("pt_ficha_sync",{x:new Date(balanceDate).toLocaleString()}):""))
+            : null,
+          /* UNA línea de notas bajo el saldo (DIS-37, auditoría de diseño 233): «Su histórico empieza
+             hoy» y «lo pone el banco» eran dos textos sueltos de 11-12 px que se leían como restos. */
+          (function(){
+            const nota=[conectada?t("pt_ficha_banco"):"", (missingFx||history.length<2)?t("ac_spark_new"):"",
+              conectada&&balanceDate?tf("pt_ficha_sync",{x:new Date(balanceDate).toLocaleString()}):""].filter(Boolean).join(" · ");
+            return nota && React.createElement("div",{className:"v4-account-lock"},nota);
+          })()
         ),
         React.createElement("div",{className:"v4-account-share",style:{padding:"14px 0 2px"}},
           React.createElement("div",{className:"v4-ficha-k"}, t("ac_share_q")),
@@ -217,6 +223,10 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
               }}, t(legacyDec?"ac_legacy_undo":"ac_legacy_decide")))
         ),
         React.createElement("div",{className:"v4-account-actions"},
+          /* Sacar del cajero y entrada de efectivo viven en la ficha del Efectivo (DIS-32, auditoría
+             de diseño 233): sueltas bajo la lista de cuentas eran dos píldoras sin dueño. */
+          efectivo && onCajero && React.createElement("button",{type:"button",className:"v4-account-action","data-act":"ef-cajero",onClick:onCajero},t("ef_cajero_btn")),
+          efectivo && onEntrada && React.createElement("button",{type:"button",className:"v4-account-action","data-act":"ef-entrada",onClick:onEntrada},t("ef_in_btn")),
           !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){
             if(corrigiendo) guardaSaldo(); else cambiaSaldo(""); setCorrigiendo(function(v){ return !v; });
           }},corrigiendo?t("done"):t("ac_fix_balance")),
@@ -323,8 +333,21 @@ function AssetSheet({asset,set,onClose}){
     )),document.body);
 }
 
-function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
-  const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
+/* Trozos de una subfila («Recibos», «Sabadell», «falta su parte») separados por «·», en Plan ›
+   Recibos y en Cartera (auditoría de diseño 237: con elipsis se leía «Sabadell · f…»). El espacio va
+   FUERA de cada trozo para que el renglón solo pueda partir entre ellos; el «·» va al FINAL del trozo
+   de delante, como en la fila de Gastos: delante del de detrás, a 360 un renglón empezaba por
+   «· Diario + Recibos» (filtro de diseño 237). Uno largo («pagas 197 € + 53 € de Pepephone») sí
+   puede partir por sus espacios: si no, se saldría de la tarjeta. */
+function mcTrozos(partes, cls){
+  const ps=partes.filter(Boolean);
+  return React.createElement("span",{className:cls||"mc-trozos"},
+    ps.map(function(p,i){
+      return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
+        React.createElement("span",{className:String(p).length<=22?"mc-pt":null}, p+(i<ps.length-1?" ·":"")));
+    }));
+}
+function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   const [sheetAsset,setSheetAsset]=useState(null);
   const [balanceReady,setBalanceReady]=React.useState(function(){ return !!window.__mcBootReady; });
@@ -342,17 +365,14 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
   const removeAccount=(id)=>{
-    setDelAcc("");
     set(function(s){
       const a=(s.accounts||[]).find(function(x){ return x.id===id; });
       if(a && isEfectivoEnt(a)) return removeEfectivoAccount(s, id);
       return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })});
     });
   };
-  const pn=(i)=> (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0;   // movimientos ya ocurridos este mes
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)
   const miM=totals.monthlyInvestThisMonth||0;                               // aporte periódico del mes (idem)
-  const spentOwn=(i)=> (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0;
   const shownAcc=(i)=> saldoCuentaMostrada(i, {
     injTR:totals.injTR||0, spentByBank:totals.spentByBank||{}, paidNetByBank:totals.paidNetByBank||{},
     roundup:ruM, monthlyInvest:miM
@@ -375,28 +395,9 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
       return all!==s.accountBalanceHistory?Object.assign({},s,{accountBalanceHistory:all}):s;
     },false);
   },[parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
-  /* LA FÓRMULA INVERSA DEL SALDO, EN UN SOLO SITIO. Editas el SALDO REAL de hoy y por dentro se
-     guarda la base (inicio de mes) correcta; `valueDesdeSaldo` (00-core) es la que despeja.
-     ⚠ Vive aquí con nombre propio porque la usan DOS pantallas: el editor de toda la vida
-     (`accEd`, que sigue sirviendo a la vista legacy) y la ficha nueva de cada cuenta. Escribirla
-     dos veces es exactamente el fallo que el 11/9 le pintó a su padre 455,50 € donde el banco
-     decía 26,46 — la misma regla vivía en SEIS sitios y solo se migraron cinco.
-     Ver [[misma-regla-en-dos-sitios]]. */
-  const valorDesdeTecleado=function(i,typed){
-    if(accDaily(i)) return valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
-    if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
-    return (typed - pn(i));
-  };
-  const accEd=useEditable(state.accounts,it=>set(function(s){
-    return manualBalanceWrite(s,it.filter(function(a){return Object.prototype.hasOwnProperty.call(a,MANUAL_BALANCE_TYPED);}).map(function(a){return Object.assign({id:a.id},a[MANUAL_BALANCE_TYPED]);}));
-  }),{
-    display:  i => shownAcc(i),
-    toStored: valorDesdeTecleado,
-    // El importe viaja privado hasta el updater: allí se despeja contra el estado fresco.
-    extra: function(i,typed){return {[MANUAL_BALANCE_TYPED]:{typed:typed,expected:manualBalanceTarget(i)}};}
-  });
-  /* Guardar el saldo de UNA cuenta (lo que hace la ficha). Mismo camino que el editor de siempre:
-     misma fórmula, mismo `set`. */
+  /* Guardar el saldo de UNA cuenta (lo que hace la ficha). La base de inicio de mes la despeja
+     `manualBalanceWrite` contra el estado fresco, no aquí: la misma regla en dos sitios es lo que
+     el 11/9 le pintó a su padre 455,50 € donde el banco decía 26,46 ([[misma-regla-en-dos-sitios]]). */
   const guardarSaldoDe=function(id, tecleado){
     const expected=manualBalanceTarget((state.accounts||[]).find(function(a){return a.id===id;}));
     set(function(s){
@@ -415,7 +416,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     const fixedEffOf=function(a){ return accRole(a)==="ambos" || (accFixed(a) && !(dailyEffOf(a) && dailyOnlyEnts(state).indexOf(a.ent)>=0)); };
     const roleLab=function(a){
       const dy=dailyEffOf(a), fx=fixedEffOf(a);
-      if(dy&&fx) return t("rl_diario")+" · "+t("rl_fijos");
+      if(dy&&fx) return t("rl_diario")+" + "+t("rl_fijos");
       if(dy) return t("rl_diario");
       if(fx) return t("rl_fijos");
       return a.name||"";
@@ -496,14 +497,24 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
       const rowDragging=!!(dragAcc&&dragAcc.from===rowKey);
       const rowOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
       return React.createElement("button",{className:"v4-mov"+(rowDragging?" dragging":"")+(rowOver?" drag-over":""),key:rowKey,type:"button",
-        "data-account-key":rowKey,"data-account-id":a.id,"aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a)),
+        "data-account-key":rowKey,"data-account-id":a.id,"aria-label":[a.name,entOf(a.ent).label].filter(function(x,i,l){ return x&&l.indexOf(x)===i; }).join(" · ")+" · "+eur(shownAcc(a)),
         title:t("drag_hint"),
         onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:a.ent,size:44})),
-        React.createElement("div",{className:"nm"},
-          React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
-          React.createElement("div",{className:"meta"}, [roleLab(a),a.name,shareMeta(a,"account")].filter(Boolean).join(" · ")||"—")
-        ),
+        /* Título = la cuenta y debajo, en UNA línea, banco y uso (DIS-33, auditoría de diseño 233):
+           estas filas ponían el banco de título y las de Open Banking la cuenta, así que en la
+           misma lista se leían al revés según de dónde viniera cada una. */
+        (function(){
+          const banco=entOf(a.ent).label, tit=a.name||banco, rol=roleLab(a);
+          const meta=[banco!==tit?banco:"", rol!==a.name?rol:"", shareMeta(a,"account")].filter(Boolean);
+          return React.createElement("div",{className:"nm"},
+            // El nombre se recorta antes que la marca «del banco»: con un nombre largo la marca
+            // saltaba sola a otra línea.
+            React.createElement("div",{className:"v4-meta-row"},React.createElement("span",{className:"v4-meta-1l"},tit), isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
+            /* Sin elipsis (auditoría de diseño 237, P1-5: «CaixaBank · 🛒 Gasto diario…»): trozos
+               enteros que bajan de renglón entre ellos si no caben, como las subfilas de Recibos. */
+            React.createElement("div",{className:"meta v4-meta-trozos"}, meta.length?mcTrozos(meta):"—"));
+        })(),
         React.createElement("div",{className:"am num"},eur(shownAcc(a)))
       );
     };
@@ -574,18 +585,6 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     // los extras. En un extra, «Gasto diario» = expenseBanks + dailyOnlyBanks (recibos fuera);
     // «Todo» = expenseBanks sin dailyOnly (recibos y gasto diario a la vez).
     // `pickRole` vive arriba (antes de las filas): lo usa también la ficha.
-    const roleChips=function(a){
-      const dy=dailyEffOf(a), fx=fixedEffOf(a);
-      const on={fijos:fx&&!dy, diario:dy&&!fx, ambos:fx&&dy};
-      const roles=isEfectivoEnt(a) ? [["diario","rl_diario"]] : [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]];
-      return React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
-        roles.map(function(rr){
-          return React.createElement("button",{key:rr[0],className:"rchip"+(on[rr[0]]?" on":""),onClick:function(){ pickRole(a, rr[0]); }}, t(rr[1]));
-        }),
-        React.createElement("button",{className:"ex-del",style:{marginLeft:"auto"},title:t("pt_acc_del"),onClick:function(){ setDelAcc(a.id); }},"🗑")
-      );
-    };
-    const anySynced=state.accounts.some(isSynced)||(state.obAccounts||[]).length>0;
     const orderedAccountRows=accountRowsInOrder(state);
     const sheetRow=orderedAccountRows.find(function(r){ return r.key===sheetAcc; })||null;
     const sheetCuenta=sheetRow&&sheetRow.kind==="ob" ? (function(){
@@ -607,21 +606,22 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
        colocar por separado. `parte` los separa sin duplicar nada: sin `parte` sigue pintando los
        dos, que es como lo usa el resto de la app. */
     return React.createElement("div",null,
+      titulo && parte==="cuentas" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
+        React.createElement("span",null,titulo),
+        React.createElement("div",{className:"v4-sec-acts"},
+          /* Sin «Editar» (16/11/2026, petición suya): la ficha de cada fila ya cubre nombre, saldo,
+             rol, parte suya y quitarla, también en las cuentas EXTRA de Open Banking (darles rol las
+             promociona, `pickSheetRole`). El editor desplegable que abría solo era un duplicado. */
+          iconos)),
+      titulo && parte==="bienes" && React.createElement("div",{className:"v4-sec-h v4-section-h"},
+        React.createElement("span",null,titulo),
+        React.createElement("button",{type:"button",className:"link","data-act":"asset-add","aria-label":t("goods_add"),onClick:function(){setSheetAsset({});}},t("pf_add"))),
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list",ref:bindListDrag},
         React.createElement(FxNotice,{missing:(state.obAccounts||[]).filter(function(o){ return toEurAmt(o.value,o.cur,state)==null; }).length}),
         orderedAccountRows.map(function(row){
           return row.kind==="account" ? accRow(row.item,row.key) : obRow(row.item,row.key);
         }),
-        /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
-           veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
-           (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
-           se deja el botón para poder Guardar. */
-        ((state.obAccounts||[]).length>0 || accEd.editing) && React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
-        !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn")),
-        cashAcc && React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",margin:"8px 4px"}},
-          React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doSaqueCajero}, t("ef_cajero_btn")),
-          React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doEntradaEfectivo}, t("ef_in_btn"))
-        )
+        !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn"))
       ),
       // La ficha de la cuenta que esté abierta. Portal a `body`, así que da igual dónde se monte.
       React.createElement(AccountSheet,{
@@ -631,57 +631,11 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         rolVista:sheetRow&&sheetRow.kind==="account"?rolVistaOf(sheetRow.item):null,
         saldoMostrado:function(a){ return a&&a._obKey?a.value:shownAcc(a); },
         sincronizada:function(a){ return !!(a&&a._obKey)||isSynced(a); },
-        onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy
+        onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy,
+        onCajero:doSaqueCajero, onEntrada:doEntradaEfectivo
       }),
-      // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
-      // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
-      accEd.editing && React.createElement("div",{className:"add-form",style:{marginTop:8}},
-        state.accounts.map(function(a){
-          const synced=isSynced(a);
-          return React.createElement("div",{key:a.id,style:{borderBottom:"1px solid var(--line-soft)",paddingBottom:8}},
-            React.createElement("div",{className:"af-row",style:{alignItems:"center"}},
-              React.createElement("span",{style:{flex:"0 0 auto",fontWeight:700}},entOf(a.ent).label),
-              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:a.name||"",placeholder:t("pt_name_ph"),
-                onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }}),
-              synced
-                ? React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(shownAcc(a)))
-                : React.createElement("input",{className:"af-in num",style:{width:104,flex:"0 0 auto"},value:accEd.draft[a.id],inputMode:"decimal",
-                    onChange:function(e){const v=e.target.value;accEd.setDraft(function(d){return Object.assign({},d,{[a.id]:v});});}})
-            ),
-            roleChips(a),
-            delAcc===a.id && React.createElement("div",{className:"rolechips",style:{alignItems:"center",flexWrap:"wrap",padding:"4px 0"}},
-              React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",flex:"1 1 100%",marginBottom:2}}, t("pt_acc_del_q")),
-              React.createElement("button",{className:"rchip",style:{color:"var(--coral)",borderColor:"var(--coral)"},onClick:function(){ removeAccount(a.id); }}, t("pt_acc_del_yes")),
-              React.createElement("button",{className:"rchip",onClick:function(){ setDelAcc(""); }}, t("pt_acc_del_no"))
-            )
-          );
-        }),
-        // Cuentas extra del banco: nombre editable + darles rol las promociona (como en v3).
-        (state.obAccounts||[]).map(function(o){
-          const custom=(state.obLabels||{})[o.key]; const disp=(custom!=null&&custom!=="")?custom:niceObName(o);
-          return React.createElement("div",{key:"obed_"+o.key,style:{borderBottom:"1px solid var(--line-soft)",paddingBottom:8}},
-            React.createElement("div",{className:"af-row",style:{alignItems:"center"}},
-              React.createElement("span",{style:{flex:"0 0 auto",fontWeight:700}},entOf(o.ent).label),
-              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:custom!=null?custom:disp,placeholder:disp,
-                onChange:function(e){ const v=e.target.value; set(function(s){ const ob=Object.assign({},s.obLabels); ob[o.key]=v; return Object.assign({},s,{obLabels:ob}); }); }}),
-              React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, fxAmountText(o.value||0,o.cur||"EUR",state))
-            ),
-            o.ent && React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
-              [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-                return React.createElement("button",{key:rr[0],className:"rchip",disabled:toEurAmt(o.value,o.cur,state)==null,onClick:function(){
-                  const nid=uid();
-                  set(function(s){ return promoteObAccount(s, totals, o.key, rr[0], nid); });
-                  accEd.setDraft(function(d){ const nd=Object.assign({},d); nd[nid]=+toEurAmt(o.value||0, o.cur||"EUR", state).toFixed(2); return nd; });
-                }}, t(rr[1]));
-              })
-            )
-          );
-        }),
-        anySynced && React.createElement("div",{className:"hint"}, t("v4_acc_locked")),
-        React.createElement("div",{className:"hint"}, t("rl_hint"))
-      ),
       parte!=="cuentas" && (state.assets||[]).length>0 && React.createElement(React.Fragment,null,
-        // El título solo cuando van juntos: en Cartera lo pone el bloque ordenable, y repetirlo
+        // El título solo cuando van juntos: en Cartera lo pone la cabecera del bloque (`titulo`), y repetirlo
         // dejaría «Bienes» dos veces seguidas.
         parte!=="bienes" && React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         state.assets.map(function(a){
@@ -689,7 +643,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
             type:"button",
             style:{width:"100%",textAlign:"left",color:"var(--text)"},
             onClick:function(){ setSheetAsset(a); }},
-            React.createElement("div",{className:"tile"},a.kind==="piso"?"🏡":"🚙"),
+            // Baldosa de 44 como la de las cuentas: suelto, el emoji descuadraba el texto con las filas de arriba (237, P2-9).
+            React.createElement("div",{className:"tile v4-bien-tile"},a.kind==="piso"?"🏡":"🚙"),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,a.name),
               a.note && React.createElement("div",{className:"meta"},a.note)
@@ -699,7 +654,6 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         })
       ),
       parte!=="cuentas" && React.createElement(React.Fragment,null,
-        React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){setSheetAsset({});}},t("goods_add")),
         sheetAsset&&React.createElement(AssetSheet,{asset:sheetAsset,set:set,onClose:function(){setSheetAsset(null);}})
       )
     );
@@ -829,6 +783,38 @@ function fixedMarcadoAMano(e,y,m){
 function fixedPagadoFuera(s,e,y,m,t){
   return !!s&&fixedMarcadoAMano(e,y,m)!=null&&!fixedPaymentEvidence(fixedPaymentState(s,e,y,m,t==null?new Date(y,m,0).getDate():t));
 }
+/* ¿YA LO RESTA EL SALDO QUE SE VE? (ronda 237). En una cuenta de recibos el saldo mostrado es
+   `value + paidNet`, y `paidNet` (`monthNetForAccount`) resta el recibo con ESTA regla. Antes
+   «¿Te llega?» decidía lo mismo con otra (`reciboEnElSaldo` sin el calendario) y, en una cuenta a
+   mano sin lectura del banco, un alquiler de 650 € ya restado del «Tienes hoy» volvía a restarse
+   en «Pagado, aún sin restar del saldo»: «Falta 34 €» donde lo justo eran 616,10 €. La usan el
+   saldo (`monthNetForAccount`) y el recorrido de «¿Te llega?» (`reciboEnElSaldo`): si una cambia,
+   cambian las dos. ⚠ Lo pendiente de `totals` (11) sigue con `isPaidIn` a secas: solo difiere con un
+   recibo en espera (`wait`) que el extracto ya dio por cobrado (`bp`). `bp` se calcula una vez por
+   mes; quien recorre todos los recibos lo pasa con `fixedSaldoBp`. */
+function fixedSaldoBp(s,y,m,t){
+  const ym=y*12+m;
+  return t!=null&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
+}
+function fixedRestaDelSaldo(s,e,y,m,t,bp){
+  const closed=(t==null);
+  if(!occursIn(e,m,y)||fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t)) return false;
+  if(bp===undefined) bp=fixedSaldoBp(s,y,m,t);
+  return (closed||!!(bp&&bp[e.id])||isPaidIn(e,m,t,y,s))&&!fixedPagadoFuera(s,e,y,m,t);
+}
+/* ¿El «Tienes hoy» de su banco lleva ya restado este recibo (TU parte, `occAmountIn`)? Solo en un
+   banco con cuenta de recibos (las de gasto diario no llevan `paidNet`) y con `fixedRestaDelSaldo`.
+   Con lectura del banco, al anclar se sumó el `paidNet` de ese momento: lo que el calendario ya daba
+   por cobrado al leer queda neutro, así que solo cuenta si cruzó su día DESPUÉS de la lectura (el
+   día de la lectura con el reloj del móvil, como `today`). Sirve igual para un recibo pagado que
+   para uno sin cobro (revisión de la 237, H2). ⚠ No sabe si al leer había un `wait` (H4) ni si el
+   banco ya lo cobró antes de su día y antes de leer (H3): en los dos el saldo mostrado resta de más. */
+function fixedEnSaldoMostrado(s,e,y,m,t,leidoMs,bp){
+  if(!(s.accounts||[]).some(function(a){ return a&&a.ent===accOf(e)&&accFixed(a); })||!fixedRestaDelSaldo(s,e,y,m,t,bp)) return false;
+  if(!(leidoMs>0)) return true;
+  const l=new Date(leidoMs),lm=l.getFullYear()*12+l.getMonth()+1,dd=dayIn(e,m,y);
+  return !(lm>y*12+m||lm===y*12+m&&dd!=null&&dd<=l.getDate());
+}
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
@@ -867,15 +853,77 @@ const debtAmort=(d)=> d && d.amort!=null ? d.amort : ((d&&d.monthly)||0);
 // su día (ej. financias el 599/4 con día 26 y hoy es 28 → el 1er pago del 26 ya cuenta).
 // Un ancla en un mes que aún no ha llegado es una compra a plazos cuya 1.ª cuota cae ese mes («¿Y si gasto…?»
 // › «A plazos», 11/11/2026): hasta entonces no hay nada pagado. Las altas de Deudas nunca anclan en el futuro.
-function debtPaidCount(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+// Con plazo, nunca más de `months`: pasado el plazo no se cobra nada, así que tampoco se paga nada
+// (sin tope el saldo seguía bajando solo, sin ningún cobro; revisión externa 15/11/2026).
+function debtPaidCount(d){ const n=debtCuotasDesdeAncla(d); return d.months!=null?Math.min(n,Math.max(0,d.months)):n; }
+/* Lo mismo SIN tope: las cuotas que han vencido desde el ancla. Lo usan solo editar y amortizar, que
+   re-anclan una deuda ya vencida con saldo (dato heredado) contando desde hoy: con el tope, el plazo
+   nuevo quedaba antes de hoy y la deuda no volvía a cobrar nunca. */
+function debtCuotasDesdeAncla(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+/* LA ÚLTIMA CUOTA SE LLEVA EL REDONDEO (revisión externa 15/11/2026). La cuota se guarda redondeada al
+   céntimo y se cobraba igual los n meses: 600,03 en 12 sumaba 600,00 y dejaba 0,03 debidos para
+   siempre; 1.199,99 en 7 cobraba 1.200,01. En céntimos, la última amortiza lo que falta: principal
+   (value − pago final) − (n − 1) × amort. Devuelve cuánto se aparta de `amort` (céntimos, con signo).
+   null = no aplica: sin plazo, o un saldo que el plazo no cubre ni de lejos (más de un céntimo por
+   cuota de diferencia, dato heredado): eso no es redondeo y darlo por pagado sería inventar. Una
+   última parcial tras amortizar (350 con cuota 100 → 100, 100, 100 y 50) sí aplica. */
+function debtUltimaAjuste(d){
+  if(!d||d.months==null||!(d.months>=1)) return null;
+  const n=d.months, A=Math.round(debtAmort(d)*100), P=Math.round((Number(d.value)||0)*100)-Math.round((Number(d.balloon)||0)*100);
+  if(!(A>0)||!(P>0)) return null;
+  const last=P-(n-1)*A;
+  return last>0&&last<=A+n?last-A:null;
+}
+// Saldo tras `n` cuotas pagadas. Con el ajuste de la última, acabado el plazo no queda nada.
+function debtBalanceAfter(d, n){
+  if(d.months!=null){ n=Math.min(n,d.months); if(n>=d.months&&debtUltimaAjuste(d)!=null) return 0; }
+  let b=d.value - debtAmort(d)*n; if(d.balloon>0 && d.months!=null && n>=d.months) b-=d.balloon; return Math.max(0, b);
+}
+/* La cuota en EFECTIVO del mes (y, m 1-12; sin mes, el de hoy): `monthly`, salvo la última de un plazo,
+   que lleva el ajuste. Solo cuando la cuota ES lo que amortiza (financiación al 0 %): si difieren
+   (intereses, préstamo familiar que paga 197 y baja 250) lo que el banco cobre el último mes no lo
+   sabemos y se queda la cuota de siempre. El pago final va aparte (`debtBalloonIn`). */
+function debtCuotaIn(d, y, m){
+  const q=Number(d&&d.monthly)||0;
+  if(!(q>0)||d.months==null||Math.round(debtAmort(d)*100)!==Math.round(q*100)) return q;
+  if(y==null){ const p=madridYmdParts(Date.now()); y=p.y; m=p.m; }
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(), adj=debtUltimaAjuste(d);
+  return adj!=null&&(y*12+(m-1))===anchor+d.months-1 ? (Math.round(q*100)+adj)/100 : q;
+}
 // Financiación tipo coche: además de entrada (downPayment, ya pagada = informativa) y cuotas,
 // hay un PAGO FINAL (balloon) en el último mes del plazo. debtBalloonIn(d,y,m): balloon si (y,m 1-12)
 // es ese último mes; 0 si no. La amort lineal ya se fija a (value−balloon)/months al crear la deuda,
 // así el saldo baja con las cuotas y el balloon limpia el resto al final.
 function debtBalloonIn(d, y, m){ if(!d || !(d.balloon>0) || d.months==null) return 0; const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return (y*12+(m-1))===(anchor+d.months-1) ? d.balloon : 0; }
-function debtBalance(d){ if(!d || d.value==null) return 0; let b=d.value - debtAmort(d)*debtPaidCount(d); if(d.balloon>0 && d.months!=null && debtPaidCount(d)>=d.months) b-=d.balloon; return Math.max(0, b); }
+function debtBalance(d){ if(!d || d.value==null) return 0; return debtBalanceAfter(d, debtPaidCount(d)); }
 // ¿la cuota sigue cobrándose este mes? Una financiación (con `months` = plazo) deja de
 // cobrar al acabar el plazo o al llegar el saldo a 0. Sin plazo (hipoteca/préstamo): mientras quede saldo.
+/* ¿Es (y, m 1-12) el mes de la ÚLTIMA cuota de un plazo? Pagada la última, el saldo es 0 y la deuda
+   deja de estar activa; pero el cargo de ese mes sigue siendo su cuota (revisión de dinero 234, H-A2). */
+function debtUltimaCuotaEn(d, y, m){
+  if(!d||!(Number(d.monthly)>0)||d.months==null||!(d.months>=1)) return false;
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow();
+  return y*12+(m-1)===anchor+d.months-1;
+}
+/* Para el motor que reconoce cuotas en lo que trae el banco: la deuda activa, o una cuya última cuota
+   cae este mes o el anterior hace pocos días (el banco a veces apunta el cargo con retraso). Sin esto el
+   cargo de la última, que deja el saldo a 0, entraba como gasto. Que el cargo sea de un mes del plazo
+   lo mira `debtCuotaDelPlazo`. */
+const DEBT_GRACIA_DIAS=10;
+function debtCuotaReciente(d){
+  if(debtActive(d)) return true;
+  if(!d||!(Number(d.monthly)>0)||d.months==null||!(d.months>=1)) return false;
+  const p=madridYmdParts(Date.now()), now=ymAbs(p.y,p.m-1), last=((typeof d.asOf==="number")?d.asOf:ymNow())+d.months-1;
+  return now===last||(now===last+1&&p.d<=DEBT_GRACIA_DIAS);
+}
+// ¿La clave «id|año-mes» de una cuota cae dentro del plazo? (sin plazo, siempre).
+function debtCuotaDelPlazo(d, key){
+  if(!d||d.months==null) return true;
+  const mm=/\|(\d+)-(\d+)$/.exec(String(key||""));
+  if(!mm) return true;
+  const anchor=(typeof d.asOf==="number")?d.asOf:ymNow();
+  return Number(mm[1])*12+Number(mm[2])-1<=anchor+d.months-1;
+}
 function debtActive(d){ if(!d || !d.monthly) return false; const bal=debtBalance(d); if(d.months!=null){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); return ymNow()>=anchor && (ymNow()-anchor) < d.months && bal>0.005; } return bal>0.005; }
 /* ¿Se cobra la cuota en el mes (y, m 1-12) que se mira? Con el ancla en este mes o antes es `debtActive`
    tal cual (mira hoy, como siempre). Solo una compra a plazos que aún no ha empezado (ancla futura,
@@ -895,10 +943,11 @@ function debtLeft(d){ if(!d || d.months==null) return null; return Math.max(0, d
 function monthNetForAccount(s, ent, y, m, t){
   const closed=(t==null);
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
-  const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
+  const bp=fixedSaldoBp(s,y,m,t);
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s)) && !fixedPagadoFuera(s,e,y,m,t)) net -= occAmountIn(e,m,y); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
+  // El recibo, con la regla compartida con «¿Te llega?» (`fixedRestaDelSaldo`).
+  (s.fixed||[]).forEach(function(e){ if(accOf(e)===ent && fixedRestaDelSaldo(s,e,y,m,t,bp)) net -= occAmountIn(e,m,y); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.
   (s.flows||[]).forEach(function(f){

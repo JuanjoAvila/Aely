@@ -97,7 +97,8 @@ for(const lang of ["es","en","ca"]){
     await page.locator(".askback").getByRole("button",{name:l.del,exact:true}).click();
     expect(await stored(page)).toEqual(before);
     await expect(page.getByRole("button",{name:l.add,exact:true})).toBeVisible();
-    await expect.poll(async()=>Number((await page.locator(".cartera-hero-amt").textContent()).replace(/\D/g,""))).toBe(0);
+    // Sin el último bien la cartera queda vacía: la cifra deja sitio a la primera cuenta (diseño 15/11/2026).
+    await expect(page.locator(".page-scroll-host .v4-card-hero [data-testid='hero-first-acc']")).toBeVisible();
     await page.reload();
     expect(await stored(page)).toEqual(before);
   });
