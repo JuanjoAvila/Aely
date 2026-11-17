@@ -131,6 +131,7 @@ mi-cartera/
 ├── tests/ingest-native-phase1.test.mjs # Marca nativa, ambos órdenes OB, UUID cloud, colisiones SHA y switch OFF (candidato)
 ├── tests/native-event-debounce.test.mjs # Listener/helper Java reales: ventana local por identidad y concurrencia
 ├── tests/fin29-30-*.test.mjs # Alias/borrado/backfill, writer real y paridad offline; R8 dirigido verde, revisión financiera pendiente
+├── e2e/apuntar-concepto-teclado.spec.mjs # Apuntar escribiendo el concepto: a la vista sobre el teclado, sin huecos, dos renglones y la baldosa del banco (239)
 ├── tests/recibos-238-fijos-dobles.test.mjs · e2e/recibos-238-fijos-dobles.spec.mjs # Dos cuentas de recibos en el mismo banco: el neto lo carga una, migración y pull (238)
 ├── tests/deudas-fin-centimos.test.mjs · tests/recibos-237-dinero.test.mjs · e2e/deudas-fin-centimos.spec.mjs · e2e/recibos-te-llega-dinero.spec.mjs # Cuotas en céntimos y el saldo de «¿Te llega?» (237)
 ├── tests/suscripciones-deteccion.test.mjs · e2e/gastos-suscripciones-deteccion.spec.mjs · e2e/recibos-cartera-sin-cortes.spec.mjs # Suscripciones por cobro y periodo; Recibos y Cartera sin cortes (237)
@@ -221,7 +222,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.238**, candidata de beta sobre la 4.26.237 (servida en beta y APROBADA el 17/11: `diseno-237`, `dinero-237`, `remate-236`, `diseno-235` y `dinero-234` se retiran con `tandas: []`), solo web y sin APK nueva (sigue la 4.26.206 / code64). Con dos cuentas de recibos en el mismo banco, el neto de los recibos lo carga una sola cuenta y cada recibo se resta una vez del saldo; una migración de una sola vez (`_netoUnaCuenta`) deja pintado lo de ayer y la marca viaja con las cuentas al bajar la nube. Tanda nueva `dinero-238` (un paso). Tamaño 1950,1/536,0 KiB, tope 1951/536 KiB (el tope no bloquea producto, regla del 11/10).
+Estado actual: **v4.26.239**, candidata de beta sobre la 4.26.238 (servida en beta y SIN veredicto: su tanda `dinero-238` sigue en el panel) con la producción 4.26.237 mezclada, solo web y sin APK nueva (sigue la 4.26.206 / code64). Apuntar con el concepto a la vista: al escribirlo, cabecera, pago y numérico se pliegan al compás del teclado, el concepto queda justo encima con «Listo» pegado y uno largo se lee entero en dos renglones; sin banco elegido, su baldosa lleva «+». Tanda nueva `concepto-239` (dos pasos). Tamaño 1956,0/537,4 KiB, tope 1957/538 KiB (el tope no bloquea producto, regla del 11/10).
 
 Producción actual: **v4.26.237** — producción con la ronda de beta 234 a 237 aprobada sobre la 4.26.233: Apuntar sin deslizar y sin doble guardado; bancos al día al abrir la app (con tope) y aviso del banco que pide permiso; Gastos con los movimientos de cada día juntos, reordenar con el dedo y Suscripciones solo con cobros que se repiten; Deudas y metas al céntimo y «Amortizar ahora»; «¿Te llega?» sin restar dos veces un recibo ya descontado; Recibos y Cartera sin cortes, Cartera que se edita tocando y el destino del Round up y el Saveback de TR. APK 4.26.206 / code64 desde la release estable `v4.26.206`; las Edge Functions de la ronda van aparte (sin desplegar con esta subida).
 
