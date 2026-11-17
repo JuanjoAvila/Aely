@@ -144,6 +144,14 @@ export const E2E_MAP = [
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-cobro-distinto.spec.mjs"] },
+  // «¿Te llega?» con la cifra justa: la luz sin «recibo» pagada y el recibo ya restado del saldo
+  // que no se resta otra vez (ronda 237). La regla vive en 07, 08 y 11; la hoja, en 14.
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
   // Portada como el prototipo: «Ya pagados» en una línea con la letra al 110 %, tres en «Para revisar»,
   // «Todos ›», «¿Y si gasto…?» y «¿Cuánto es?» sin aplastarse (auditoría 9/11). Lo que se mide es CSS.
   // Lo que entra y lo que mueves con el ciclo de un recibo (12/11/2026): sección, ficha y alta.

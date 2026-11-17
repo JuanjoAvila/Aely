@@ -781,6 +781,25 @@ function fixedMarcadoAMano(e,y,m){
 function fixedPagadoFuera(s,e,y,m,t){
   return !!s&&fixedMarcadoAMano(e,y,m)!=null&&!fixedPaymentEvidence(fixedPaymentState(s,e,y,m,t==null?new Date(y,m,0).getDate():t));
 }
+/* ¿YA LO RESTA EL SALDO QUE SE VE? (ronda 237). En una cuenta de recibos el saldo mostrado es
+   `value + paidNet`, y `paidNet` (`monthNetForAccount`) resta el recibo con ESTA regla. Antes
+   «¿Te llega?» decidía lo mismo con otra (`reciboEnElSaldo` sin el calendario) y, en una cuenta a
+   mano sin lectura del banco, un alquiler de 650 € ya restado del «Tienes hoy» volvía a restarse
+   en «Pagado, aún sin restar del saldo»: «Falta 34 €» donde lo justo eran 616,10 €. La usan el
+   saldo (`monthNetForAccount`) y el recorrido de «¿Te llega?» (`reciboEnElSaldo`): si una cambia,
+   cambian las dos. ⚠ Lo pendiente de `totals` (11) sigue con `isPaidIn` a secas: solo difiere con un
+   recibo en espera (`wait`) que el extracto ya dio por cobrado (`bp`). `bp` se calcula una vez por
+   mes; quien recorre todos los recibos lo pasa con `fixedSaldoBp`. */
+function fixedSaldoBp(s,y,m,t){
+  const ym=y*12+m;
+  return t!=null&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
+}
+function fixedRestaDelSaldo(s,e,y,m,t,bp){
+  const closed=(t==null);
+  if(!occursIn(e,m,y)||fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t)) return false;
+  if(bp===undefined) bp=fixedSaldoBp(s,y,m,t);
+  return (closed||!!(bp&&bp[e.id])||isPaidIn(e,m,t,y,s))&&!fixedPagadoFuera(s,e,y,m,t);
+}
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
@@ -909,9 +928,10 @@ function debtLeft(d){ if(!d || d.months==null) return null; return Math.max(0, d
 function monthNetForAccount(s, ent, y, m, t){
   const closed=(t==null);
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
-  const ym=y*12+m, bp=!closed&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
+  const bp=fixedSaldoBp(s,y,m,t);
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m,y) && !fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t) && (closed||bp&&bp[e.id]||isPaidIn(e,m,t,y,s)) && !fixedPagadoFuera(s,e,y,m,t)) net -= occAmountIn(e,m,y); });
+  // El recibo, con la regla compartida con «¿Te llega?» y `totals` (`fixedRestaDelSaldo`).
+  (s.fixed||[]).forEach(function(e){ if(accOf(e)===ent && fixedRestaDelSaldo(s,e,y,m,t,bp)) net -= occAmountIn(e,m,y); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.

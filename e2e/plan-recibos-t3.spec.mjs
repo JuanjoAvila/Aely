@@ -161,10 +161,11 @@ test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píl
 
 /* Revisión t3, segunda y tercera vuelta (28/10). 500 €, Luz 300 del día 5 que Plan pinta pagada,
    Seguro 150 del 20. Si el saldo es el del banco (lectura en `obBalAt`), cualquier cobro ya está
-   en él: 500 − 150 = 350. En una cuenta a mano, solo lo que movió el saldo mostrado (el gasto
-   marca confirmada); un aviso de Wallet, un BOOK o un gasto del banco sin enlazar no, y la Luz sigue restando HOY:
-   500 − 300 − 150 = 50. En todos, el simulador («¿Me lo puedo permitir?») recorre la misma lista
-   que la hoja y da el mismo mínimo. */
+   en él: 500 − 150 = 350. En una cuenta a mano también: su saldo mostrado es `value + paidNet` y
+   `paidNet` ya resta la Luz por calendario (día 5, hoy 10), así que «Tienes hoy 500» ya la lleva y
+   restarla otra vez en «Pagado, aún sin restar del saldo» la contaba dos veces (ronda 237, que
+   corrige lo que aquí fijaba la revisión t3: 500 − 300 − 150 = 50). En todos, el simulador
+   («¿Me lo puedo permitir?») recorre la misma lista que la hoja y da el mismo mínimo. */
 // Cuenta re-anclada por la sincronización (uid del banco) y su lectura de hoy.
 const LECTURA = { obBalAt: { "Banco Sabadell": "2026-10-10T08:00:00Z" }, accounts: [{ id: "bank", ent: "sabadell", role: "fijos", value: 500, bankUid: "sab-1" }] };
 const BOOK = { bankTx: [{ id: "t1", ent: "sabadell", date: "2026-10-05", amount: 300, merchant: "Luz casa", status: "BOOK" }] };
@@ -174,9 +175,9 @@ for (const [como, extra, cifra, luz] of [
   ["BOOK con saldo del banco", Object.assign({}, BOOK, LECTURA), "lo más justo, el 20350,00 €"],
   ["Wallet con saldo del banco", Object.assign({}, WALLET, LECTURA), "lo más justo, el 20350,00 €"],
   ["marca confirmada en cuenta a mano", {}, "lo más justo, el 20350,00 €", { paidYm: 2026 * 12 + 10, paidDay: 5 }],
-  ["gasto del banco sin enlazar en cuenta a mano", OBEXP, "lo más justo, el 2050,00 €"],
-  ["Wallet en cuenta a mano", WALLET, "lo más justo, el 2050,00 €"],
-  ["BOOK sin fila en cuenta a mano", BOOK, "lo más justo, el 2050,00 €"],
+  ["gasto del banco sin enlazar en cuenta a mano", OBEXP, "lo más justo, el 20350,00 €"],
+  ["Wallet en cuenta a mano", WALLET, "lo más justo, el 20350,00 €"],
+  ["BOOK sin fila en cuenta a mano", BOOK, "lo más justo, el 20350,00 €"],
 ]) test("recibo cobrado por " + como + ": hoja y simulador dicen lo mismo", async ({ page }) => {
   const recibos = await abrePlan(page, Object.assign({
     fixed: [Object.assign(recibo("luz", "Luz casa", 300, 5), { category: "recibos" }, luz), recibo("seg", "Seguro hogar", 150, 20)] }, extra));
@@ -196,14 +197,16 @@ for (const [como, extra, cifra, luz] of [
 /* Revisión t3, R4: Trade Republic. Su saldo lo trae el puente nativo (`applyTrCash`), que sella la
    lectura en la cuenta (`saldoLeidoAt`); para estados de antes del sello vale `lastTrSync` si el
    puente manda. Spotify 300 € del día 5 ya cobrado en TR (Plan: «cargo de Trade Republic»), Seguro
-   150 € del 20: 500 − 150 = 350. Leído ANTES del pago (día 3), el cobro aún no está en el saldo y
-   sigue restando, con su fila: 50. Hoja y simulador, iguales. */
+   150 € del 20: 500 − 150 = 350. Leído ANTES de su día (el 3), el saldo mostrado lo resta por
+   calendario al cruzar el 5 (`paidNet`), así que tampoco se resta otra vez: 350 (ronda 237; antes,
+   50). Leído el MISMO día por la mañana, al anclar ya se sumó el `paidNet` con el Spotify dentro:
+   ese sí sigue restando, con su fila (R5-1). Hoja y simulador, iguales. */
 const TR = (extraCuenta) => [Object.assign({ id: "tr", ent: "trade_republic", role: "fijos", value: 500 }, extraCuenta)];
 const spotify = { expenses: [{ id: "x1", date: "2026-10-05", merchant: "Spotify casa", amount: 300, ent: "trade_republic", category: "recibos", source: "tr" }] };
 for (const [como, extra, cifra] of [
   ["lectura del puente sellada hoy", { accounts: TR({ saldoLeidoAt: "2026-10-10T08:00:00Z" }) }, "lo más justo, el 20350,00 €"],
   ["estado de antes del sello (lastTrSync)", { accounts: TR(), lastTrSync: "2026-10-10T08:00:00Z", settings: Object.assign({}, settings, { brokersOn: ["trade_republic"] }) }, "lo más justo, el 20350,00 €"],
-  ["lectura anterior al cobro", { accounts: TR({ saldoLeidoAt: "2026-10-03T08:00:00Z" }) }, "lo más justo, el 2050,00 €"],
+  ["lectura anterior al cobro", { accounts: TR({ saldoLeidoAt: "2026-10-03T08:00:00Z" }) }, "lo más justo, el 20350,00 €"],
   // R5-1: sellada a primera hora del mismo día del cobro (las 7:30 del 5): la prueba solo trae el
   // día, así que el cargo de la tarde puede no estar dentro. Sigue restando hasta el día siguiente.
   ["lectura de la mañana del mismo día del cobro", { accounts: TR({ saldoLeidoAt: "2026-10-05T05:30:00Z" }) }, "lo más justo, el 2050,00 €"],
