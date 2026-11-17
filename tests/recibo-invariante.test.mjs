@@ -38,7 +38,25 @@ function carga(src){
   c.Date=class extends Date { constructor(...a){ super(...(a.length?a:[reloj.t])); } static now(){ return reloj.t; } };
   return {c,reloj};
 }
-const base=carga(deGit), cand=carga(disco);
+/* Tercera excepción (4.26.237, el Round up de TR con tres revisiones de dinero, c29a5eea7): el redondeo
+   estimado solo cuenta COMPRAS del propio banco. La referencia anclaba el saldo leído con el redondeo de
+   las compras de TODOS los bancos (y de cuotas y traspasos) y lo pintaba con el de las suyas, así que
+   justo después de leer el banco pintaba más que el banco: 462,67 con el banco en 461,47 en el amplio #1
+   (el redondeo ×2 de una compra de 34,40 en otro banco); la 237 pinta 461,47. Se le da a la referencia
+   esa regla, y solo esa (las tres llamadas a `roundupOf`/`savebackOf` e `isCardSpend`), y el resto del
+   invariante se sigue midiendo contra la 119 tal cual. */
+const REGLA_REDONDEO_237=[
+  ["src/modules/08-motor-bank.js","roundupOf(monthExp, a.roundup||0)","roundupOf(__propias237(monthExp, a), a.roundup||0)"],
+  ["src/modules/01-i18n.js","roundupOf(thisMonthExp, trAcc.roundup||0)","roundupOf(__propias237(thisMonthExp, trAcc), trAcc.roundup||0)"],
+  ["src/modules/01-i18n.js","roundupOf(monthExpCash, acc.roundup||0)","roundupOf(__propias237(monthExpCash, acc), acc.roundup||0)"],
+  ["src/modules/01-i18n.js","savebackOf(monthExpCash)","savebackOf(__propias237(monthExpCash, acc))"],
+  ["src/modules/01-i18n.js","function isCardSpend(e){ return e && e.amount>0 && !e.noCard; }","function isCardSpend(e){ return e && e.amount>0 && !e.noCard && !CAT_NEUTRAS[e.category]; }\nfunction __propias237(gastos, acc){ return (gastos||[]).filter(function(e){ const b=expenseBankOf(e); return b ? b===acc.ent : accDaily(acc); }); }"],
+];
+const deGit237=file=>REGLA_REDONDEO_237.filter(([f])=>f===file).reduce(function(txt,[,de,a]){
+  if(txt.split(de).length!==2) throw new Error("la referencia ya no tiene: "+de);
+  return txt.replace(de,()=>a);
+},deGit(file));
+const base=carga(deGit237), cand=carga(disco);
 const OCT28=new Date("2026-10-28T18:00:00+01:00").getTime(), NOV2=new Date("2026-11-02T10:00:00+01:00").getTime();
 const clon=x=>JSON.parse(JSON.stringify(x));
 const ASPSP={sabadell:"Banco de Sabadell",caixabank:"CaixaBank",bbva:"BBVA",ing:"ING"};
