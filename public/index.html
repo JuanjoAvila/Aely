@@ -2079,11 +2079,6 @@
   .v4-ficha-cat-t{min-width:0;}
   .v4-ficha-cat-title-btn{width:100%;min-height:44px;margin-top:-8px;margin-bottom:0;padding:0 2px;background:transparent;border:0;cursor:pointer;}
   .v4-ficha-cat-elegida{min-width:0;color:var(--text);font-size:13px;letter-spacing:0;text-transform:none;font-weight:750;}
-  /* Mientras se teclea, la ficha conserva su alto máximo: si encogiera, se medirían menos filas. */
-  .v4-exp-sheet:has(> .v4-ficha-body.con-teclado){height:calc(90dvh / var(--zoom,1));}
-  /* …y el teclado va pegado al pie aunque lo de arriba no llene la hoja (un ingreso no tiene categorías). */
-  .v4-ficha-body.con-teclado{display:flex;flex-direction:column;}
-  .v4-ficha-body.con-teclado > .v4-ficha-teclado{margin-top:auto;}
   .v4-ficha-cat-title-btn .v4-ficha-todas{flex:none;color:var(--mint);font-size:12px;font-weight:800;letter-spacing:0;text-transform:none;}
   .v4-ficha-ajuste > .value{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;}
   .v4-ficha-ajuste:disabled{cursor:default;}
@@ -13891,10 +13886,12 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
   const cols=useCatCols();
   const bodyRef=useRef(null), filaAltoRef=useRef(66);
   /* Con el teclado abierto, entre «CATEGORÍA» y el teclado solo van FILAS ENTERAS de baldosas (el
-     crítico de la v3: asomaban medias filas «como una franja rota»). La hoja mantiene su alto máximo
-     mientras se teclea (CSS, `.con-teclado`): medido con la hoja ya encogida al contenido, cada fila
-     quitada achicaba el hueco siguiente y a 393 acababa en cero (crítico de la v4). Caben
-     floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
+     crítico de la v3: asomaban medias filas «como una franja rota»). El hueco se mide con el alto
+     MÁXIMO TEÓRICO de la hoja (su max-height menos el asa y el pie), no con la hoja tal cual: medido
+     con la hoja ya encogida, cada fila quitada achicaba el hueco siguiente y a 393 acababa en cero
+     (crítico de la v4). Y la hoja sigue ajustada a su contenido, con el teclado justo debajo: fijarla
+     a su alto máximo dejaba huecos vacíos de hasta 215 px encima del teclado (crítico de la v5).
+     Caben floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
   const [filasTeclado,setFilasTeclado]=useState(null);
   useLayoutEffect(function(){
     if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
@@ -13903,10 +13900,14 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       const keys=body.querySelector(".v4-ficha-teclado .v4-keys"), title=body.querySelector(".v4-ficha-cat-title");
       if(!keys||!title) return;
       body.scrollTop=0;
+      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1, hoja=body.parentElement;
       const tile=body.querySelector(".v4-ficha-cats .v4-ficha-cat");
-      if(tile) filaAltoRef.current=tile.getBoundingClientRect().height;
+      if(tile) filaAltoRef.current=tile.getBoundingClientRect().height/zoom;
       const b=body.getBoundingClientRect(), tb=title.getBoundingClientRect();
-      const libre=body.clientHeight-keys.offsetHeight-(tb.bottom-b.top)-8-12;
+      // Lo que ocupan el asa, el pie y los rellenos no cambia con las filas: el cuerpo, a su máximo, es el resto.
+      const marco=hoja.getBoundingClientRect().height/zoom-body.clientHeight;
+      const cuerpoMax=(parseFloat(getComputedStyle(hoja).maxHeight)||hoja.getBoundingClientRect().height/zoom)-marco;
+      const libre=cuerpoMax-keys.offsetHeight-(tb.bottom-b.top)/zoom-8-12;
       const n=Math.max(0,Math.min(catRows||2,Math.floor((libre+7)/(filaAltoRef.current+7))));
       setFilasTeclado(function(v){ return v===n?v:n; });
     };
@@ -13935,6 +13936,34 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     window.addEventListener("resize",mide);
     return function(){ window.removeEventListener("resize",mide); };
   },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
+  /* Apuntar sobre Gastos: si el borde de la hoja cae justo encima de la línea de resumen («gastado en
+     septiembre · …»), la parte por la mitad (crítico de la v5, a 393). Se sube el borde lo justo para
+     que la tape entera, con relleno arriba, sin pasar del alto máximo. Con `offsetTop`: durante la
+     entrada la hoja aún va desplazada y su rectángulo mentiría. */
+  const rellenoBaseRef=useRef(null);
+  useLayoutEffect(function(){
+    if(!catRowsMax) return;
+    const body=bodyRef.current, hoja=body&&body.parentElement; if(!hoja) return;
+    if(rellenoBaseRef.current==null) rellenoBaseRef.current=parseFloat(getComputedStyle(hoja).paddingTop)||0;
+    const ajusta=function(){
+      hoja.style.paddingTop="";
+      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1, arriba=hoja.offsetTop*zoom;
+      let extra=0;
+      document.querySelectorAll('.page-scroll-host [data-testid="gastos-estado"],.page-scroll-host [data-testid="gastos-desglose"]').forEach(function(l){
+        const r=l.getBoundingClientRect();
+        if(r.height>0&&r.right>0&&r.left<window.innerWidth&&arriba>r.top-4&&arriba<r.bottom+4) extra=Math.max(extra,arriba-(r.top-6));
+      });
+      const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, alto=hoja.offsetHeight;
+      extra=Math.min(extra/zoom,Math.max(0,max-alto));
+      if(extra>0) hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px";
+    };
+    ajusta();
+    // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
+    const tm=setTimeout(ajusta,480);
+    hoja.addEventListener("animationend",ajusta);
+    window.addEventListener("resize",ajusta);
+    return function(){ clearTimeout(tm); hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",ajusta); };
+  },[catRowsMax,filasAuto]);
   const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;

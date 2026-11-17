@@ -85,6 +85,7 @@ async function mideHoja(page) {
       filasPago: new Set([...hoja.querySelectorAll(".v4-ficha-pay > *")].map((c) => { const r = c.getBoundingClientRect(); return Math.round((r.top + r.bottom) / 2); })).size,
       hojaAlto: hoja.getBoundingClientRect().height,
       resumenAbajo: resumen.length ? Math.max(...resumen.map((r) => r.bottom)) : null,
+      resumenArriba: resumen.length ? Math.min(...resumen.map((r) => r.top)) : null,
     };
   });
 }
@@ -231,7 +232,8 @@ for (const letra of LETRAS) {
   });
 }
 
-const TOPE_DIS06_390 = 730;
+// 719 px con dos filas, +13 cuando el borde sube para no partir la línea de resumen (crítico de la v5): 732.
+const TOPE_DIS06_390 = 735;
 test.describe("390×844 y 412×915 sobre Gastos", () => {
   for (const [w, h] of [[390, 844], [412, 915]]) {
     test(`DIS-06 ${w}×${h}: la hoja con dos filas de categorías cabe sin deslizar, dentro de su tope, y el velo apaga más el fondo`, async ({ page }) => {
@@ -247,6 +249,9 @@ test.describe("390×844 y 412×915 sobre Gastos", () => {
       if (w === 390) expect(m.hojaAlto).toBeLessThanOrEqual(TOPE_DIS06_390);
       expect(m.hojaAlto).toBeLessThanOrEqual(h * 0.88 + 0.5);
       expect(m.hojaArriba).toBeGreaterThanOrEqual(h * 0.12 - 0.5);
+      // El borde de la hoja no parte la línea de resumen por la mitad (crítico de la v5, a 393): o la
+      // deja entera encima, o la tapa entera.
+      expect(m.hojaArriba > m.resumenArriba - 2 && m.hojaArriba < m.resumenAbajo + 2, "el borde no corta el resumen").toBe(false);
       const velo = await page.evaluate(() => getComputedStyle(document.querySelector(".v4-exp-sheet").parentElement, "::before").backgroundColor);
       expect(velo).toBe("rgba(8, 28, 20, 0.33)");
     });

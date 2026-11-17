@@ -388,7 +388,9 @@ const PRESUPUESTO = {
   // +2.944 B (1.977.970 sin sello) y 542.683 B gzip. Suben a 1933 / 531 KiB.
   // Quinta vuelta (17/11, crítico de la v4): la hoja con su alto máximo al teclear, Apuntar con dos filas donde
   // caben, los ajustes como chips y la cabecera con la elegida tocable: +1.657 B (1.979.627 sin sello). Sube a 1934.
-  minificado: 1934 * 1024,
+  // Sexta vuelta (17/11, crítico de la v5): filas medidas con el alto máximo teórico y el borde de Apuntar que no
+  // parte la línea de resumen: +1.224 B (1.980.851 sin sello). Sube a 1935.
+  minificado: 1935 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

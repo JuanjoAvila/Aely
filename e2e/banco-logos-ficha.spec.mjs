@@ -330,17 +330,17 @@ for (const [w, h] of [[360, 740], [393, 851], [412, 915]]) {
     const m = await hoja.evaluate((s) => {
       const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), t = s.querySelector(".v4-ficha-cat-title").getBoundingClientRect();
       const tiles = [...s.querySelectorAll(".v4-ficha-cat")].map((e) => e.getBoundingClientRect());
-      const hojaEl = s.closest(".v4-exp-sheet") || s, hr = hojaEl.getBoundingClientRect();
-      return { n: tiles.length, enteras: tiles.every((r) => r.bottom <= k.top + 0.5 && r.top >= t.bottom - 0.5),
-        altoMax: Math.abs(hr.height - parseFloat(getComputedStyle(hojaEl).maxHeight)) < 1.5,
+            return { n: tiles.length, enteras: tiles.every((r) => r.bottom <= k.top + 0.5 && r.top >= t.bottom - 0.5),
+        // Lo que hay justo encima del teclado (la fila de baldosas, la cabecera o el pago) y su separación.
+        hueco: k.top - s.querySelector(".v4-ficha-teclado").previousElementSibling.getBoundingClientRect().bottom,
         ajustes: s.querySelectorAll(".v4-ficha-adjust").length, scroll: s.querySelector(".v4-sheet-body").scrollTop,
         elegida: (s.querySelector('[data-testid="exp-cat-elegida"]') || {}).textContent || "", bares: !!s.querySelector('[data-testid="exp-cat-bares"]') };
     });
     expect(m.enteras, "ninguna baldosa visible por debajo del borde del teclado ni encima de la cabecera").toBe(true);
     expect(m.ajustes).toBe(0);
     expect(m.scroll).toBe(0);
-    // La hoja conserva su alto máximo con el teclado (crítico de la v4: encogía y medía cero filas).
-    expect(m.altoMax, "la hoja no encoge al teclear").toBe(true);
+    // Sin huecos vacíos encima del teclado (crítico de la v5: la hoja fija a su alto máximo dejaba hasta 215 px).
+    expect(m.hueco, "separación entre el contenido y el teclado").toBeLessThanOrEqual(24);
     // A 393 y 412 cabe una fila entera de tres; solo a 360 no cabe ninguna.
     if (w >= 390) expect(m.n, "al menos una fila entera de tres").toBeGreaterThanOrEqual(3);
     // La elegida se ve siempre: o en su baldosa, o en la cabecera si no cabe ninguna fila.
@@ -448,3 +448,20 @@ test("cabecera con «Inteligencia artificial» elegida, a 360 con el teclado: en
   await cab.click();
   await expect(page.locator(".v4-ficha-cat-sheet")).toBeVisible();
 });
+
+// Crítico de la v5 (V1): en un ingreso (sin categorías) el teclado quedaba a ~215 px del pago a 412.
+for (const [w, h] of [[393, 851], [412, 915]]) {
+  test(`ingreso a mano con el teclado: sin hueco entre el pago y el teclado, ${w}×${h}`, async ({ page }) => {
+    await arranca(page, w, h, { expenses: [{ id: MANO, date: HOY, amount: -40, merchant: "Venta a mano", category: "ingreso", source: "manual", ent: "trade_republic" }] });
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await gastosAbreGasto(page, "Venta a mano");
+    const hoja = page.locator(".v4-exp-sheet");
+    await hoja.locator(".v4-ficha-amount").click();
+    await expect(hoja.locator(".v4-ficha-teclado")).toHaveClass(/open/);
+    await page.waitForTimeout(500);
+    const m = await hoja.evaluate((s) => { const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), pie = s.querySelector(".v4-ficha-foot").getBoundingClientRect();
+      return { hueco: k.top - s.querySelector(".v4-ficha-teclado").previousElementSibling.getBoundingClientRect().bottom, pegado: pie.top - k.bottom }; });
+    expect(m.hueco, "separación entre el pago y el teclado").toBeLessThanOrEqual(24);
+    expect(m.pegado, "el teclado, justo encima del pie").toBeLessThan(4);
+  });
+}

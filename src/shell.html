@@ -2079,11 +2079,6 @@
   .v4-ficha-cat-t{min-width:0;}
   .v4-ficha-cat-title-btn{width:100%;min-height:44px;margin-top:-8px;margin-bottom:0;padding:0 2px;background:transparent;border:0;cursor:pointer;}
   .v4-ficha-cat-elegida{min-width:0;color:var(--text);font-size:13px;letter-spacing:0;text-transform:none;font-weight:750;}
-  /* Mientras se teclea, la ficha conserva su alto máximo: si encogiera, se medirían menos filas. */
-  .v4-exp-sheet:has(> .v4-ficha-body.con-teclado){height:calc(90dvh / var(--zoom,1));}
-  /* …y el teclado va pegado al pie aunque lo de arriba no llene la hoja (un ingreso no tiene categorías). */
-  .v4-ficha-body.con-teclado{display:flex;flex-direction:column;}
-  .v4-ficha-body.con-teclado > .v4-ficha-teclado{margin-top:auto;}
   .v4-ficha-cat-title-btn .v4-ficha-todas{flex:none;color:var(--mint);font-size:12px;font-weight:800;letter-spacing:0;text-transform:none;}
   .v4-ficha-ajuste > .value{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;}
   .v4-ficha-ajuste:disabled{cursor:default;}
