@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.238",
+    "d": "2026-11-17",
+    "t": {
+      "es": "Cada recibo se resta una sola vez",
+      "en": "Each bill is taken off only once",
+      "ca": "Cada rebut es resta una sola vegada"
+    },
+    "items": {
+      "es": [
+        "Si tienes dos cuentas de recibos en el mismo banco, cada recibo se resta una sola vez del saldo."
+      ],
+      "en": [
+        "If you have two bill accounts at the same bank, each bill is taken off the balance only once."
+      ],
+      "ca": [
+        "Si tens dos comptes de rebuts al mateix banc, cada rebut es resta una sola vegada del saldo."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "dinero-238",
+        "t": {
+          "es": "Cuentas de recibos: cada recibo se resta una vez",
+          "en": "Bill accounts: each bill is taken off once",
+          "ca": "Comptes de rebuts: cada rebut es resta una vegada"
+        },
+        "items": {
+          "es": [
+            "1. Cartera: mira el saldo de cada una de tus cuentas de recibos y compáralo con el de tu banco (o con el que veías ayer). Después abre Plan → Recibos y, arriba, «¿Te llega?» de ese banco. BIEN: cada cuenta tiene el mismo saldo que ayer si no ha habido movimientos; en Recibos cada recibo sale una sola vez; «Tienes hoy» es la suma de lo que ves en Cartera para las cuentas de ese banco; si tienes dos cuentas de recibos en el mismo banco, un recibo ya pagado se resta una sola vez. MAL: una cuenta ha cambiado de saldo sin movimientos, un recibo sale dos veces, o «Tienes hoy» no cuadra con Cartera."
+          ],
+          "en": [
+            "1. Portfolio: look at the balance of each of your bill accounts and compare it with your bank's (or with what you saw yesterday). Then open Plan → Bills and, at the top, «Will it cover?» for that bank. RIGHT: each account has the same balance as yesterday if there have been no transactions; in Bills each bill shows up only once; «You have today» is the sum of what you see in Portfolio for that bank's accounts; if you have two bill accounts at the same bank, a bill already paid is taken off only once. WRONG: an account's balance changed with no transactions, a bill shows up twice, or «You have today» doesn't match Portfolio."
+          ],
+          "ca": [
+            "1. Cartera: mira el saldo de cadascun dels teus comptes de rebuts i compara'l amb el del teu banc (o amb el que veies ahir). Després obre Pla → Rebuts i, a dalt, «T'arriba?» d'aquell banc. BÉ: cada compte té el mateix saldo que ahir si no hi ha hagut moviments; a Rebuts cada rebut surt una sola vegada; «Tens avui» és la suma del que veus a Cartera per als comptes d'aquell banc; si tens dos comptes de rebuts al mateix banc, un rebut ja pagat es resta una sola vegada. MALAMENT: un compte ha canviat de saldo sense moviments, un rebut surt dues vegades, o «Tens avui» no quadra amb Cartera."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.237",
     "d": "2026-11-17",
     "t": {
@@ -33,61 +74,7 @@
         "A Cartera, a «Round up i Saveback», tries a quina posició de Trade Republic va cadascun."
       ]
     },
-    "tandas": [
-      {
-        "id": "diseno-237",
-        "t": {
-          "es": "Recibos, Cartera y Gastos: nada cortado y suscripciones de verdad",
-          "en": "Bills, Portfolio and Spending: nothing cut off and real subscriptions",
-          "ca": "Rebuts, Cartera i Despeses: res tallat i subscripcions de debò"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos: recorre la lista entera, también «Para revisar» y «Ya pagados» (tócalo para abrirlo y otra vez para cerrarlo), y mira «¿Te llega?» y «Te deben» si te salen. BIEN: en cada recibo la categoría y el banco van a la izquierda y el cuándo debajo del importe; si algo no cabe, baja entero a la línea siguiente; «Ya pagados» se abre y se cierra con la flecha; «¿Te llega?» y «Te deben» van uno al lado del otro. MAL: algún texto acaba en «…» o se sale de su tarjeta, un día queda separado de su mes, o las dos píldoras salen una encima de otra.",
-            "2. Cartera: mira «Tus cuentas», tus bienes y la leyenda de debajo del patrimonio, y despliega un bróker. BIEN: bajo cada cuenta pone su banco y para qué la usas en corto (por ejemplo «Diario + Recibos»), sin emojis ni cortes; «Añadir» va en menta como en los bienes; las cifras de los brókers llevan céntimos. MAL: algo cortado con «…», el uso de la cuenta con emojis, o falta el botón de añadir.",
-            "3. Gastos → Suscripciones: mira la lista y la cifra de arriba; abre una suscripción y, si tienes alguna anual, toca «Pasar a Recibos» en ella. BIEN: solo salen cobros que se repiten igual (plataformas, gimnasio, seguros…); no salen el súper, la gasolina, los bares ni las cuotas de una deuda; cada tarjeta dice cada cuánto («Cada mes», cada semana o cada año) y el banco, sin cortarse; la cifra de arriba es la suma de lo que pesa al mes cada tarjeta; una anual llega a Recibos como anual, en su mes. MAL: sale el súper, la gasolina o una cuota, la cifra no cuadra con las tarjetas, algo se corta, o una anual llega a Recibos como mensual.",
-            "4. Gastos → Movimientos: recorre la lista y desliza la tira de meses de arriba hasta un extremo y vuelve. BIEN: los movimientos de cada día van juntos en un bloque, cada uno en dos líneas con la categoría y el banco en gris y el color solo en el icono, como en Inicio; los buscadores llevan una lupa dibujada; la tira se difumina solo por el lado por el que quedan más meses y el mes en curso nunca sale apagado. MAL: filas cortadas o montadas, la categoría en color, el emoji de lupa, o el mes en curso apagado en el borde."
-          ],
-          "en": [
-            "1. Plan → Bills: go through the whole list, including «To review» and «Already paid» (tap it to open it and again to close it), and look at «Will it cover?» and «You're owed» if you have them. RIGHT: in each bill the category and the bank are on the left and the when is under the amount; if something doesn't fit, it moves whole to the next line; «Already paid» opens and closes with the arrow; «Will it cover?» and «You're owed» sit side by side. WRONG: some text ends in «…» or spills out of its card, a day is split from its month, or the two pills are stacked one on top of the other.",
-            "2. Portfolio: look at «Your accounts», your assets and the legend under your net worth, and expand a broker. RIGHT: under each account you see its bank and what you use it for, in short (for example «Daily + Bills»), with no emojis and nothing cut off; «Add» is in mint like in assets; broker figures show cents. WRONG: something cut off with «…», the account's use with emojis, or the add button is missing.",
-            "3. Spending → Subscriptions: look at the list and the figure at the top; open a subscription and, if you have a yearly one, tap «Move to Bills» on it. RIGHT: only charges that repeat the same show up (streaming, gym, insurance…); groceries, fuel, bars and debt instalments don't; each card says how often («Every month», every week or every year) and the bank, without being cut off; the figure at the top is the sum of what each card weighs per month; a yearly one reaches Bills as yearly, in its month. WRONG: groceries, fuel or an instalment show up, the figure doesn't match the cards, something is cut off, or a yearly one reaches Bills as monthly.",
-            "4. Spending → Transactions: go through the list and swipe the month strip at the top to one end and back. RIGHT: each day's transactions go together in one block, each on two lines with the category and the bank in grey and the colour only on the icon, like on Home; the search boxes have a drawn magnifier; the strip fades only on the side where there are more months and the current month never looks dimmed. WRONG: rows cut off or overlapping, the category in colour, the magnifier emoji, or the current month dimmed at the edge."
-          ],
-          "ca": [
-            "1. Pla → Rebuts: recorre la llista sencera, també «Per revisar» i «Ja pagats» (toca'l per obrir-lo i un altre cop per tancar-lo), i mira «T'arriba?» i «Et deuen» si et surten. BÉ: a cada rebut la categoria i el banc van a l'esquerra i el quan sota l'import; si alguna cosa no hi cap, baixa sencera a la línia següent; «Ja pagats» s'obre i es tanca amb la fletxa; «T'arriba?» i «Et deuen» van l'un al costat de l'altre. MALAMENT: algun text acaba en «…» o surt de la seva targeta, un dia queda separat del seu mes, o les dues píndoles surten l'una sobre l'altra.",
-            "2. Cartera: mira «Els teus comptes», els teus béns i la llegenda de sota el patrimoni, i desplega un bròquer. BÉ: sota cada compte hi diu el seu banc i per a què el fas servir en curt (per exemple «Diari + Rebuts»), sense emojis ni talls; «Afegeix» va en menta com als béns; les xifres dels bròquers porten cèntims. MALAMENT: alguna cosa tallada amb «…», l'ús del compte amb emojis, o falta el botó d'afegir.",
-            "3. Despeses → Subscripcions: mira la llista i la xifra de dalt; obre una subscripció i, si en tens alguna d'anual, toca «Passa a Rebuts». BÉ: només surten càrrecs que es repeteixen igual (plataformes, gimnàs, assegurances…); no surten el súper, la benzina, els bars ni les quotes d'un deute; cada targeta diu cada quant («Cada mes», cada setmana o cada any) i el banc, sense tallar-se; la xifra de dalt és la suma del que pesa al mes cada targeta; una d'anual arriba a Rebuts com a anual, al seu mes. MALAMENT: surt el súper, la benzina o una quota, la xifra no quadra amb les targetes, alguna cosa es talla, o una d'anual arriba a Rebuts com a mensual.",
-            "4. Despeses → Moviments: recorre la llista i llisca la tira de mesos de dalt fins a un extrem i torna. BÉ: els moviments de cada dia van junts en un bloc, cadascun en dues línies amb la categoria i el banc en gris i el color només a la icona, com a Inici; els cercadors porten una lupa dibuixada; la tira s'esvaeix només pel costat on queden més mesos i el mes en curs no surt mai apagat. MALAMENT: files tallades o encavalcades, la categoria en color, l'emoji de lupa, o el mes en curs apagat a la vora."
-          ]
-        }
-      },
-      {
-        "id": "dinero-237",
-        "t": {
-          "es": "¿Te llega?, deudas al céntimo y a qué posición va el Round up",
-          "en": "Will it cover?, debts to the cent and where the Round up goes",
-          "ca": "T'arriba?, deutes al cèntim i a quina posició va el Round up"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Recibos → «¿Te llega?»: abre la hoja de cada banco donde pagas recibos. BIEN: «Tienes hoy» es el mismo saldo que ves en Cartera para esa cuenta; un recibo ya cobrado y ya descontado de ese saldo no se vuelve a restar; si sale «Pagado, aún sin restar del saldo» o «Sin cobrar, ya restado del saldo», el saldo de hoy con esas filas da la cifra de abajo; si el banco ya te cobró este mes la luz, el gas o el agua, ese recibo sale pagado aunque el cargo solo lleve el nombre de la compañía. MAL: «Tienes hoy» no coincide con Cartera, un recibo ya cobrado se resta dos veces, las cuentas no cuadran, o la luz ya cobrada sigue saliendo como «No ha llegado».",
-            "2. Plan → Deudas: mira lo que dice cada deuda (las cuotas que quedan y cuándo acabas). Después, en Plan → Recibos, abre la cuota de una deuda, toca el importe, guárdalo sin cambiarlo y vuelve a Deudas. BIEN: las cuotas que quedan y el mes en que acabas cuadran con lo que te falta entre lo que pagas cada mes, sin una de más; tras guardar sin cambios, lo pendiente sigue igual al céntimo. MAL: sale una cuota de más o el final un mes tarde, o lo pendiente cambia unos céntimos sin haber tocado nada.",
-            "3. Cartera → «Round up y Saveback» (solo si tienes Trade Republic): ábrelo y, en «Inversión destino», toca una posición bajo Round up y otra (o la misma) bajo Saveback; cierra la app del todo y vuelve a abrirla. BIEN: bajo cada uno salen solo tus posiciones de Trade Republic, una debajo de otra, con su logo y el nombre entero; la que tocas lleva ✓ y la sigue llevando al volver; tocar la marcada la desmarca; la cabecera de la tarjeta dice adónde va el Round up; elegir no cambia el valor de ninguna posición ni tu patrimonio. MAL: sale una posición de otro bróker, algún nombre se corta, la elección no se guarda, la cabecera dice «desactivado» con una posición elegida, o al elegir cambia el valor de una posición o el patrimonio."
-          ],
-          "en": [
-            "1. Plan → Bills → «Will it cover?»: open the sheet for each bank you pay bills from. RIGHT: «You have today» is the same balance you see in Portfolio for that account; a bill already charged and already taken off that balance isn't subtracted again; if «Paid, not yet in the balance» or «Not charged, already in the balance» shows up, today's balance with those rows gives the figure at the bottom; if the bank already charged your electricity, gas or water this month, that bill shows as paid even if the charge only carries the company's name. WRONG: «You have today» doesn't match Portfolio, a bill already charged is subtracted twice, the numbers don't add up, or electricity already charged still shows as «Hasn't arrived».",
-            "2. Plan → Debts: look at what each debt says (the instalments left and when you finish). Then, in Plan → Bills, open a debt's instalment, tap the amount, save it without changing it and go back to Debts. RIGHT: the instalments left and the month you finish match what you still owe divided by what you pay each month, with no extra one; after saving without changes, the outstanding amount stays the same to the cent. WRONG: there's an extra instalment or the end is a month late, or the outstanding amount changes by a few cents without touching anything.",
-            "3. Portfolio → «Round up and Saveback» (only if you have Trade Republic): open it and, under «Target investment», tap a position under Round up and another one (or the same) under Saveback; close the app completely and open it again. RIGHT: under each one only your Trade Republic positions show up, one below the other, with their logo and full name; the one you tap has a ✓ and still has it when you come back; tapping the selected one unselects it; the card header says where the Round up goes; choosing doesn't change the value of any position or your net worth. WRONG: a position from another broker shows up, a name is cut off, the choice isn't kept, the header says «off» with a position chosen, or choosing changes the value of a position or your net worth."
-          ],
-          "ca": [
-            "1. Pla → Rebuts → «T'arriba?»: obre el full de cada banc on pagues rebuts. BÉ: «Tens avui» és el mateix saldo que veus a Cartera per a aquell compte; un rebut ja cobrat i ja descomptat d'aquest saldo no es torna a restar; si surt «Pagat, encara sense restar del saldo» o «Sense cobrar, ja restat del saldo», el saldo d'avui amb aquestes files dona la xifra de baix; si el banc ja t'ha cobrat aquest mes la llum, el gas o l'aigua, aquell rebut surt pagat encara que el càrrec només porti el nom de la companyia. MALAMENT: «Tens avui» no coincideix amb Cartera, un rebut ja cobrat es resta dues vegades, els comptes no quadren, o la llum ja cobrada continua sortint com a «No ha arribat».",
-            "2. Pla → Deutes: mira el que diu cada deute (les quotes que queden i quan acabes). Després, a Pla → Rebuts, obre la quota d'un deute, toca l'import, desa'l sense canviar-lo i torna a Deutes. BÉ: les quotes que queden i el mes en què acabes quadren amb el que et falta entre el que pagues cada mes, sense una de més; després de desar sense canvis, el pendent continua igual al cèntim. MALAMENT: surt una quota de més o el final un mes tard, o el pendent canvia uns cèntims sense haver tocat res.",
-            "3. Cartera → «Round up i Saveback» (només si tens Trade Republic): obre'l i, a «Inversió destí», toca una posició sota Round up i una altra (o la mateixa) sota Saveback; tanca l'app del tot i torna-la a obrir. BÉ: sota cadascun només surten les teves posicions de Trade Republic, l'una sota l'altra, amb el seu logo i el nom sencer; la que toques porta ✓ i la continua portant en tornar; tocar la marcada la desmarca; la capçalera de la targeta diu on va el Round up; triar no canvia el valor de cap posició ni el teu patrimoni. MALAMENT: surt una posició d'un altre bròquer, algun nom es talla, la tria no es desa, la capçalera diu «desactivat» amb una posició triada, o en triar canvia el valor d'una posició o el patrimoni."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.236",
@@ -123,42 +110,7 @@
         "Un doble toc a Apuntar ja no desa la despesa dues vegades. I en amortitzar un deute, les quotes que et queden surten exactes: un arrodoniment ja no n'afegia una de més."
       ]
     },
-    "tandas": [
-      {
-        "id": "remate-236",
-        "t": {
-          "es": "Bancos solos al abrir, banco con logos, ficha, Gastos, Cartera y Notificaciones",
-          "en": "Banks on their own when opening, banks with logos, details, Spending, Portfolio and Notifications",
-          "ca": "Bancs sols en obrir, banc amb logos, fitxa, Despeses, Cartera i Notificacions"
-        },
-        "items": {
-          "es": [
-            "1. Deja la app sin abrir más de 6 horas (por ejemplo, de la noche a la mañana), ábrela y no toques nada unos segundos; después ciérrala del todo y vuelve a abrirla enseguida. BIEN: si tu banco tenía movimientos nuevos, entran solos y sale «N movimientos nuevos»; si no tenía, no sale nada; al reabrir enseguida no vuelve a leer ni sale ningún aviso. MAL: tras más de 6 horas no entra algo que el banco ya tiene, sale un error del banco al abrir, o vuelve a leer cada vez que abres.",
-            "2. Apuntar (el botón + de abajo), con un gasto y luego con un ingreso: mira las categorías; toca el banco que sale junto a la forma de pago, elige otro banco y, en otro apunte, elige «Sin banco». BIEN: en un móvil normal salen dos filas de tres categorías y «Todas ›» arriba, sin baldosa «Más»; en el sitio del pago aparecen con un fundido suave los logos de tus bancos y «Sin banco», sin que la hoja cambie de alto ni se mueva nada; al tocar uno queda elegido y se cierra; en Gastos el apunte sale en el banco que elegiste, o sin banco. MAL: sale una baldosa «Más» o una fila a medias, sale 🏦 en lugar del logo, la hoja da un salto o algo queda tapado, o el apunte se guarda en otro banco.",
-            "3. Gastos: abre un gasto apuntado a mano y toca el importe; teclea algo y luego toca el concepto. Abre también un ingreso apuntado a mano y, por último, un gasto que trajo tu banco. BIEN: el teclado solo sale al tocar el importe, abajo del todo, encima de «Guardado ✓», y sobre él solo se ven filas enteras de categorías (si no cabe ninguna, la elegida va arriba con «Todas ›»); al tocar el concepto se recoge; las etiquetas se leen enteras, sin palabras partidas; Recibo, Deuda, Meta, Nota y, en un cargo de cajero, Retirada son chips pequeños; en el ingreso se ve marcada la cuenta en la que entra y abajo pone «Borrar ingreso»; en el del banco no sale nunca el teclado, el importe no se cambia (al tocarlo, sale un aviso) y no está la tarjeta «Lo trajo una notificación»; ningún texto queda cortado por el borde de la hoja. MAL: el teclado sale sin tocar el importe o en el del banco, se ven medias filas o palabras partidas, la cuenta del ingreso no se ve, el importe del banco se deja cambiar, o algo queda cortado.",
-            "4. Gastos: mira la fila del título y toca los tres iconos de sección, uno detrás de otro. BIEN: los tres iconos están junto al título y cada uno cambia de sección; mantener el dedo sobre un movimiento sigue sirviendo para ordenarlo. MAL: no están los iconos, alguno no cambia de sección, o ya no se puede ordenar con el dedo.",
-            "5. Cartera: busca «Ordenar secciones», «Editar a mano» y el «Editar» de Tus cuentas; despliega un bróker, toca una posición sin cotización (un fondo, el oro), pon un valor como 1.350,50 y guarda; después toca una de tus cuentas. BIEN: esos tres botones ya no están; tocar la posición abre un cuadro con su valor y al guardar se ve el nuevo, bien escrito; tocar la cuenta abre su ficha, donde se puede renombrar o cambiar su papel. MAL: sigue alguno de esos botones, la posición no se deja tocar, el valor sale mal o la cuenta no abre su ficha.",
-            "6. Ajustes → Notificaciones (en Dinero y bancos): mira la cabecera del grupo y ábrelo. BIEN: la cabecera dice «Activo» si la app puede leer los avisos (o «Sin permiso» si no puede); dentro hay dos apartados, «Lo que lee» y «Al apuntar un gasto», cada interruptor con una sola línea; los interruptores siguen como los tenías. MAL: falta un interruptor de antes, alguno ha cambiado solo, o la cabecera no cuadra con el permiso del móvil."
-          ],
-          "en": [
-            "1. Leave the app unopened for more than 6 hours (for example, overnight), open it and don't touch anything for a few seconds; then close it completely and open it again right away. RIGHT: if your bank had new transactions, they come in on their own and «N new transactions» shows; if it had none, nothing shows; reopening right away doesn't read again or show any alert. WRONG: after more than 6 hours something the bank already has doesn't come in, a bank error shows when opening, or it reads again every time you open.",
-            "2. Add (the + button at the bottom), with an expense and then with an income: look at the categories; tap the bank shown next to the payment method, pick another bank and, in another entry, pick «No bank». RIGHT: on a normal phone there are two rows of three categories and «All ›» at the top, with no «More» tile; where the payment is, your banks' logos and «No bank» fade in smoothly, without the sheet changing height or anything moving; tapping one selects it and closes; in Spending the entry shows in the bank you chose, or with no bank. WRONG: a «More» tile or a half row shows, 🏦 shows instead of the logo, the sheet jumps or something gets covered, or the entry is saved in another bank.",
-            "3. Spending: open an expense added by hand and tap the amount; type something and then tap the description. Also open an income added by hand and, finally, an expense that came from your bank. RIGHT: the keypad only shows when you tap the amount, at the very bottom, above «Saved ✓», and above it only whole rows of categories show (if none fits, the chosen one goes at the top with «All ›»); tapping the description folds it away; labels read whole, with no split words; Bill, Debt, Goal, Note and, on a cash machine charge, Withdrawal are small chips; in the income the account it goes into is shown selected and at the bottom it says «Delete income»; in the bank one the keypad never shows, the amount can't be changed (tapping it shows a notice) and the «This came from a notification» card isn't there; no text is cut by the edge of the sheet. WRONG: the keypad shows without tapping the amount or in the bank one, half rows or split words show, the income's account isn't shown, the bank amount can be changed, or something is cut off.",
-            "4. Spending: look at the title row and tap the three section icons, one after another. RIGHT: the three icons are next to the title and each one changes section; holding your finger on a transaction still lets you reorder it. WRONG: the icons aren't there, one doesn't change section, or you can no longer reorder with your finger.",
-            "5. Portfolio: look for «Reorder sections», «Edit manually» and the «Edit» of Your accounts; open a broker, tap a holding without a quote (a fund, gold), enter a value like 1,350.50 and save; then tap one of your accounts. RIGHT: those three buttons are gone; tapping the holding opens a box with its value and after saving the new one shows, correctly written; tapping the account opens its details, where you can rename it or change its role. WRONG: one of those buttons is still there, the holding can't be tapped, the value is wrong or the account doesn't open its details.",
-            "6. Settings → Notifications (in Money and banks): look at the group's header and open it. RIGHT: the header says «On» if the app can read alerts (or «No access» if it can't); inside there are two sections, «What it reads» and «When an expense is logged», each switch with a single line; the switches are as you had them. WRONG: a switch from before is missing, one changed on its own, or the header doesn't match the phone's permission."
-          ],
-          "ca": [
-            "1. Deixa l'app sense obrir més de 6 hores (per exemple, de la nit al matí), obre-la i no toquis res uns segons; després tanca-la del tot i torna-la a obrir de seguida. BÉ: si el teu banc tenia moviments nous, entren sols i surt «N moviments nous»; si no en tenia, no surt res; en tornar a obrir de seguida no torna a llegir ni surt cap avís. MALAMENT: després de més de 6 hores no entra una cosa que el banc ja té, surt un error del banc en obrir, o torna a llegir cada vegada que obres.",
-            "2. Apuntar (el botó + de baix), amb una despesa i després amb un ingrés: mira les categories; toca el banc que surt al costat de la forma de pagament, tria un altre banc i, en un altre apunt, tria «Sense banc». BÉ: en un mòbil normal surten dues files de tres categories i «Totes ›» a dalt, sense rajola «Més»; al lloc del pagament apareixen amb una fosa suau els logos dels teus bancs i «Sense banc», sense que el full canviï d'alçada ni es mogui res; en tocar-ne un queda triat i es tanca; a Despeses l'apunt surt al banc que has triat, o sense banc. MALAMENT: surt una rajola «Més» o una fila a mitges, surt 🏦 en lloc del logo, el full fa un salt o alguna cosa queda tapada, o l'apunt es desa en un altre banc.",
-            "3. Despeses: obre una despesa apuntada a mà i toca l'import; tecleja alguna cosa i després toca el concepte. Obre també un ingrés apuntat a mà i, per acabar, una despesa que ha portat el teu banc. BÉ: el teclat només surt en tocar l'import, a baix de tot, damunt de «Desat ✓», i sobre ell només es veuen files senceres de categories (si no en cap cap, la triada va a dalt amb «Totes ›»); en tocar el concepte es recull; les etiquetes es llegeixen senceres, sense paraules partides; Rebut, Deute, Meta, Nota i, en un càrrec de caixer, Retirada són xips petits; a l'ingrés es veu marcat el compte on entra i a baix posa «Esborrar ingrés»; a la del banc no surt mai el teclat, l'import no es canvia (en tocar-lo, surt un avís) i no hi ha la targeta «Ho va portar una notificació»; cap text queda tallat per la vora del full. MALAMENT: el teclat surt sense tocar l'import o a la del banc, es veuen mitges files o paraules partides, el compte de l'ingrés no es veu, l'import del banc es deixa canviar, o alguna cosa queda tallada.",
-            "4. Despeses: mira la fila del títol i toca les tres icones de secció, una darrere l'altra. BÉ: les tres icones són al costat del títol i cadascuna canvia de secció; mantenir el dit sobre un moviment encara serveix per ordenar-lo. MALAMENT: no hi ha les icones, alguna no canvia de secció, o ja no es pot ordenar amb el dit.",
-            "5. Cartera: busca «Ordena les seccions», «Edita a mà» i l'«Edita» de Els teus comptes; desplega un bròker, toca una posició sense cotització (un fons, l'or), posa un valor com 1.350,50 i desa; després toca un dels teus comptes. BÉ: aquests tres botons ja no hi són; tocar la posició obre un quadre amb el seu valor i en desar es veu el nou, ben escrit; tocar el compte n'obre la fitxa, on es pot reanomenar o canviar-ne el paper. MALAMENT: hi continua algun d'aquests botons, la posició no es deixa tocar, el valor surt malament o el compte no obre la fitxa.",
-            "6. Configuració → Notificacions (a Diners i bancs): mira la capçalera del grup i obre'l. BÉ: la capçalera diu «Actiu» si l'app pot llegir els avisos (o «Sense permís» si no pot); a dins hi ha dos apartats, «El que llegeix» i «En apuntar una despesa», cada interruptor amb una sola línia; els interruptors continuen com els tenies. MALAMENT: falta un interruptor d'abans, algun ha canviat sol, o la capçalera no quadra amb el permís del mòbil."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.235",
@@ -188,42 +140,7 @@
         "A Deutes, el simulador d'amortitzar només informa: per amortitzar hi ha «Amortitza ara», que et diu quantes quotes et treus. Afegir un deute o una meta es fa en el seu propi full, amb el calendari de l'app."
       ]
     },
-    "tandas": [
-      {
-        "id": "diseno-235",
-        "t": {
-          "es": "Apuntar, Gastos, Amortizar, Ajustes y avisos de banco",
-          "en": "Adding, Spending, Paying down, Settings and bank alerts",
-          "ca": "Apuntar, Despeses, Amortitzar, Configuració i avisos de banc"
-        },
-        "items": {
-          "es": [
-            "1. Apuntar (el botón + de abajo): teclea un importe largo, por ejemplo 1234,56; después toca el concepto y escribe algo. BIEN: el importe se ve grande y entero; al tocar el concepto se esconde el teclado de números, el botón pasa a decir «Listo» y lo que escribes se ve por encima del teclado del móvil; la hoja cabe entera sin deslizarla. MAL: el importe sale pequeño o cortado, el teclado del móvil tapa el concepto, o hay que deslizar la hoja para llegar al botón de apuntar.",
-            "2. En esa misma hoja elige cómo pagaste (Tarjeta, Efectivo o Bizum/transf.), apunta el gasto y ábrelo luego en Gastos. BIEN: solo queda marcada la opción que tocaste; con Efectivo no sale ningún banco y con Tarjeta o Bizum sale el logo de tu banco de siempre; la ficha del gasto enseña la misma opción, y para pasarlo a ingreso solo está el Gasto/Ingreso de arriba. MAL: quedan dos opciones marcadas, con Efectivo aparece un banco, la ficha dice otra forma de pago o sigue saliendo la fila «Es un ingreso, no un gasto».",
-            "3. Gastos, en un día con dos o más movimientos: mantén el dedo medio segundo sobre uno, arrástralo por encima de otro del mismo día y suelta. Luego toca un movimiento una sola vez y, por último, desliza de lado sobre la lista. BIEN: la fila se levanta, las demás se apartan y al soltar se queda en su sitio nuevo, también al salir y volver; un toque corto abre su ficha; deslizar de lado cambia de pestaña. MAL: la fila no se levanta o vuelve a su sitio, el toque corto no abre la ficha, mantener y soltar sin mover la abre, o deslizar de lado no cambia de pestaña.",
-            "4. Plan → Deudas: abre «¿Cuándo amortizar?» y mira lo que cuenta; después toca «💸 Amortizar ahora» en una deuda, teclea un importe y cancela sin confirmar. BIEN: «¿Cuándo amortizar?» solo cuenta qué pasaría y no tiene ningún botón para amortizar; el cuadro de «Amortizar ahora» dice «Te quitas N cuotas» y el número cambia según tecleas. MAL: el simulador tiene un botón que amortiza, o el cuadro no dice cuántas cuotas te quitas.",
-            "5. Ajustes: mira cómo está ordenado y abre tres filas cualquiera (por ejemplo Apariencia, tus bancos y la copia de seguridad); luego busca «copia» en el buscador. BIEN: cuatro grupos, Cómo se ve, Dinero y bancos, Datos y Cuenta y privacidad, y cada fila abre lo de siempre; el buscador la encuentra. MAL: falta alguna opción de antes, una fila abre otra cosa o el buscador no la encuentra.",
-            "6. Avisos de banco, solo si algún banco necesita tu permiso (si no, salta este paso): mira Inicio y toca «Revisar ›»; en Cartera, toca la fila de ese banco. BIEN: Inicio enseña una sola franja bajo el saludo con el banco (o cuántos bancos) y «Revisar ›» te lleva a Cartera, a los avisos; en Cartera hay una fila por banco con su logo y «Reconectar», y al tocarla se despliega la explicación. MAL: no sale la franja, «Revisar ›» lleva a otro sitio, o en Cartera salen tarjetas grandes repetidas."
-          ],
-          "en": [
-            "1. Add (the + button at the bottom): type a long amount, for example 1234.56; then tap what it was and type something. RIGHT: the amount is shown large and whole; when you tap the description the number keypad hides, the button changes to «Done» and what you type shows above the phone's keyboard; the sheet fits without scrolling. WRONG: the amount is small or cut off, the phone's keyboard covers the description, or you have to scroll the sheet to reach the add button.",
-            "2. In that same sheet choose how you paid (Card, Cash or Bizum/transfer), add the expense and then open it in Spending. RIGHT: only the option you tapped stays selected; with Cash no bank shows and with Card or Bizum your usual bank's logo shows; the expense's details show the same option, and to turn it into income there is only the Expense/Income switch at the top. WRONG: two options stay selected, a bank shows with Cash, the details show another payment method, or the «It's income, not an expense» row is still there.",
-            "3. Spending, on a day with two or more transactions: hold your finger on one for half a second, drag it over another one from the same day and let go. Then tap a transaction just once and, finally, swipe sideways over the list. RIGHT: the row lifts, the others move aside and when you let go it stays in its new place, also after leaving and coming back; a short tap opens its details; swiping sideways changes tab. WRONG: the row doesn't lift or goes back to its place, a short tap doesn't open the details, holding and letting go without moving opens them, or swiping sideways doesn't change tab.",
-            "4. Plan → Debts: open «When to pay down?» and look at what it says; then tap «💸 Pay down now» on a debt, type an amount and cancel without confirming. RIGHT: «When to pay down?» only tells you what would happen and has no button to pay down; the «Pay down now» box says «You drop N payments» and the number changes as you type. WRONG: the simulator has a button that pays down, or the box doesn't say how many payments you drop.",
-            "5. Settings: look at how it is arranged and open any three rows (for example Appearance, your banks and the backup); then search for «backup» in the search box. RIGHT: four groups, How it looks, Money and banks, Data and Account and privacy, and each row opens what it always did; the search finds it. WRONG: an option from before is missing, a row opens something else or the search doesn't find it.",
-            "6. Bank alerts, only if a bank needs your permission (if not, skip this step): look at Home and tap «Review ›»; in Portfolio, tap that bank's row. RIGHT: Home shows a single strip under the greeting with the bank (or how many banks) and «Review ›» takes you to Portfolio, to the alerts; in Portfolio there is one row per bank with its logo and «Reconnect», and tapping it unfolds the explanation. WRONG: the strip doesn't show, «Review ›» goes somewhere else, or Portfolio shows repeated big cards."
-          ],
-          "ca": [
-            "1. Apuntar (el botó + de baix): tecleja un import llarg, per exemple 1234,56; després toca el concepte i escriu alguna cosa. BÉ: l'import es veu gran i sencer; en tocar el concepte s'amaga el teclat de números, el botó passa a dir «Fet» i el que escrius es veu per sobre del teclat del mòbil; el full hi cap sencer sense lliscar-lo. MALAMENT: l'import surt petit o tallat, el teclat del mòbil tapa el concepte, o cal lliscar el full per arribar al botó d'apuntar.",
-            "2. En aquest mateix full tria com has pagat (Targeta, Efectiu o Bizum/transf.), apunta la despesa i obre-la després a Despeses. BÉ: només queda marcada l'opció que has tocat; amb Efectiu no surt cap banc i amb Targeta o Bizum surt el logo del teu banc de sempre; la fitxa de la despesa ensenya la mateixa opció, i per passar-la a ingrés només hi ha el Despesa/Ingrés de dalt. MALAMENT: queden dues opcions marcades, amb Efectiu apareix un banc, la fitxa diu una altra forma de pagament o encara surt la fila «És un ingrés, no una despesa».",
-            "3. Despeses, en un dia amb dos o més moviments: mantén el dit mig segon sobre un, arrossega'l per sobre d'un altre del mateix dia i deixa'l anar. Després toca un moviment una sola vegada i, per acabar, llisca de costat sobre la llista. BÉ: la fila s'aixeca, les altres s'aparten i en deixar-la es queda al seu lloc nou, també en sortir i tornar; un toc curt obre la seva fitxa; lliscar de costat canvia de pestanya. MALAMENT: la fila no s'aixeca o torna al seu lloc, el toc curt no obre la fitxa, mantenir i deixar anar sense moure l'obre, o lliscar de costat no canvia de pestanya.",
-            "4. Pla → Deutes: obre «Quan amortitzar?» i mira què explica; després toca «💸 Amortitza ara» en un deute, tecleja un import i cancel·la sense confirmar. BÉ: «Quan amortitzar?» només explica què passaria i no té cap botó per amortitzar; el quadre d'«Amortitza ara» diu «Et treus N quotes» i el número canvia mentre tecleges. MALAMENT: el simulador té un botó que amortitza, o el quadre no diu quantes quotes et treus.",
-            "5. Configuració: mira com està ordenada i obre tres files qualssevol (per exemple Aparença, els teus bancs i la còpia de seguretat); després busca «còpia» al cercador. BÉ: quatre grups, Com es veu, Diners i bancs, Dades i Compte i privadesa, i cada fila obre el de sempre; el cercador la troba. MALAMENT: falta alguna opció d'abans, una fila obre una altra cosa o el cercador no la troba.",
-            "6. Avisos de banc, només si algun banc necessita el teu permís (si no, salta aquest pas): mira Inici i toca «Revisa ›»; a Cartera, toca la fila d'aquest banc. BÉ: Inici ensenya una sola franja sota la salutació amb el banc (o quants bancs) i «Revisa ›» et porta a Cartera, als avisos; a Cartera hi ha una fila per banc amb el seu logo i «Reconnecta», i en tocar-la es desplega l'explicació. MALAMENT: no surt la franja, «Revisa ›» porta a un altre lloc, o a Cartera surten targetes grans repetides."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.234",
@@ -250,33 +167,7 @@
         "Un pagament a una altra persona ja no es pren per un traspàs entre els teus comptes només perquè el nom s'assembli al teu."
       ]
     },
-    "tandas": [
-      {
-        "id": "dinero-234",
-        "t": {
-          "es": "Deudas a plazos, Recibos y pagos a otras personas en Gastos",
-          "en": "Instalment debts, Bills and payments to other people in Spending",
-          "ca": "Deutes a terminis, Rebuts i pagaments a altres persones a Despeses"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Deudas: mira tus deudas a plazos, sobre todo las que ya terminaste de pagar y las que ya pasaron su último plazo. BIEN: las que acabaste salen a 0 o como terminadas, sin céntimos sueltos; si alguna ya pasó su último plazo y sale con algo pendiente, es lo que de verdad te queda por pagar; las que siguen en curso tienen el mismo pendiente que ayer. MAL: una deuda acabada se queda con unos céntimos pendientes, una que ya pasó su plazo sale con una cifra que no debes, o una en curso cambia de pendiente sin haber pagado nada.",
-            "2. Plan → Recibos, este mes. Si alguna deuda a plazos paga este mes su última cuota, abre esa cuota (si no hay ninguna, salta este paso). BIEN: el importe es justo lo que te falta de esa deuda, al céntimo, aunque difiera unos céntimos de las cuotas de antes; las demás cuotas siguen igual. MAL: la última cuota sale con el importe de siempre y la deuda se queda con céntimos pendientes, o cambia el importe de una cuota que no es la última.",
-            "3. Gastos: busca una transferencia o un Bizum que hayas hecho a otra persona desde hoy (si no hay ninguno, salta este paso). Mira también un traspaso de verdad entre dos cuentas tuyas, si lo hay. BIEN: el pago a otra persona sale como gasto, no como traspaso, aunque se llame parecido a ti; el traspaso entre tus cuentas sigue como traspaso. MAL: el pago a otra persona aparece como traspaso y no cuenta en lo gastado, o tu traspaso entre cuentas pasa a contar como gasto."
-          ],
-          "en": [
-            "1. Plan → Debts: look at your instalment debts, especially the ones you have finished paying and the ones past their last instalment. RIGHT: the finished ones show 0 or as finished, with no stray cents; if one is past its last instalment and shows something outstanding, that is what you really still owe; the ones still running show the same outstanding amount as yesterday. WRONG: a finished debt keeps a few cents outstanding, one past its term shows an amount you don't owe, or a running one changes its outstanding amount without you paying anything.",
-            "2. Plan → Bills, this month. If an instalment debt pays its last instalment this month, open that instalment (if there is none, skip this step). RIGHT: the amount is exactly what is left on that debt, to the cent, even if it differs by a few cents from the earlier instalments; the other instalments stay the same. WRONG: the last instalment shows the usual amount and the debt keeps a few cents outstanding, or the amount of an instalment that isn't the last one changes.",
-            "3. Spending: look for a transfer or a Bizum you have made to someone else from today on (if there is none, skip this step). Also look at a real transfer between two of your own accounts, if there is one. RIGHT: the payment to someone else shows as spending, not as a transfer, even if their name looks like yours; the transfer between your accounts is still a transfer. WRONG: the payment to someone else shows as a transfer and doesn't count as spent, or your transfer between accounts starts counting as spending."
-          ],
-          "ca": [
-            "1. Pla → Deutes: mira els teus deutes a terminis, sobretot els que ja has acabat de pagar i els que ja han passat el seu últim termini. BÉ: els que has acabat surten a 0 o com a acabats, sense cèntims solts; si algun ja ha passat el seu últim termini i surt amb alguna cosa pendent, és el que de debò et queda per pagar; els que continuen en curs tenen el mateix pendent que ahir. MALAMENT: un deute acabat es queda amb uns cèntims pendents, un que ja ha passat el termini surt amb una xifra que no deus, o un en curs canvia de pendent sense haver pagat res.",
-            "2. Pla → Rebuts, aquest mes. Si algun deute a terminis paga aquest mes la seva última quota, obre aquesta quota (si no n'hi ha cap, salta aquest pas). BÉ: l'import és just el que et falta d'aquest deute, al cèntim, encara que difereixi uns cèntims de les quotes d'abans; les altres quotes continuen igual. MALAMENT: l'última quota surt amb l'import de sempre i el deute es queda amb cèntims pendents, o canvia l'import d'una quota que no és l'última.",
-            "3. Despeses: busca una transferència o un Bizum que hagis fet a una altra persona des d'avui (si no n'hi ha cap, salta aquest pas). Mira també un traspàs de debò entre dos comptes teus, si n'hi ha. BÉ: el pagament a una altra persona surt com a despesa, no com a traspàs, encara que el nom s'assembli al teu; el traspàs entre els teus comptes continua com a traspàs. MALAMENT: el pagament a una altra persona apareix com a traspàs i no compta en el que has gastat, o el teu traspàs entre comptes passa a comptar com a despesa."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.233",
