@@ -89,5 +89,35 @@ test("la ficha de Recibos guarda la bajada y la cuota al céntimo",()=>{
   for(let k=0;k<=10;k++) assert.equal(cts(c.debtBalanceAfter(st.debts[0],k))/100,+c.debtBalanceAfter(st.debts[0],k).toFixed(2));
 });
 
+// R1 de la revisión: una deuda heredada con 33,333 (30 cuotas, 20 pagadas) no puede cambiar de saldo
+// porque alguien toque el campo y salga, ni por «Guardar» el importe sin cambiarlo.
+const heredada=(o)=>sinPlazo(Object.assign({value:999.99,original:999.99,monthly:40,amort:33.333,months:30,asOf:ahora-19},o));
+function parchea(d,patch){ let st={debts:[d]}; c.patchDebtFields(fn=>{ st=fn(st); },d.id,patch); return st.debts[0]; }
+
+test("R1: misma bajada al céntimo sobre una heredada de 33,333 no mueve el saldo",()=>{
+  for(const d of [heredada(),heredada({months:undefined})]){
+    const antes=c.debtBalance(d), o=parchea(d,{amort:33.33});
+    assert.equal(o.amort,33.333,"se queda lo guardado");
+    assert.equal(o.value,d.value);
+    assert.equal(c.debtBalance(o),antes);
+  }
+});
+
+test("R1: cuota ligada de 33,333 y Guardar sin cambiarla tampoco",()=>{
+  const d=heredada({monthly:33.333,amort:undefined}), o=parchea(d,{monthly:33.33});
+  assert.equal(o.monthly,33.333);
+  assert.equal(c.debtBalance(o),c.debtBalance(d));
+});
+
+test("R1: un cambio de verdad sí redondea y re-ancla sin mover el saldo de hoy",()=>{
+  const d=heredada(), o=parchea(d,{amort:30.004});
+  assert.equal(o.amort,30);
+  assert.equal(cts(c.debtBalance(o)),cts(c.debtBalance(d)));
+});
+
+test("R2: Recibos cuenta las 12 cuotas del año si la bajada no llega a medio céntimo",()=>{
+  assert.equal(c.billsCuotasEnAno(sinPlazo({value:500,monthly:100,amort:0.004}),m,y),12);
+});
+
 console.log(`\n${total} OK, ${fallos} fallos`);
 if(fallos) process.exit(1);

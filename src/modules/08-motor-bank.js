@@ -6494,7 +6494,8 @@ function billsCuotasEnAno(d, curMonth, curYear){
   if(d.months!=null) return Math.min(12,Math.max(0,anchor+d.months-cur));
   const a=debtAmort(d);
   // En céntimos (`cuotasQueQuedan`), como el resto de cuentas de cuotas: el `-1e-9` en euros era un parche.
-  return a>0?Math.min(12,cuotasQueQuedan(debtBalance(d),a)):12;
+  // Bajada de menos de medio céntimo: no hay fin que contar y sigue cobrando todo el año, como `debtLeftInfo` (rev. 237 R2).
+  return Math.round(a*100)>0?Math.min(12,cuotasQueQuedan(debtBalance(d),a)):12;
 }
 // Día de referencia para mirar si un mes ya está pagado: hoy si es el mes en curso; si no, su último día.
 function billsHoyDe(y, m){
@@ -6887,8 +6888,12 @@ function patchDebtFields(set, id, patch){
       if(d.id!==id) return d;
       const n=Object.assign({},d,patch);
       /* Dinero al céntimo, como Editar deuda: una bajada de 10,354 hacía que el saldo (valor − bajada ×
-         pagadas) arrastrase milésimas y el plazo, contado en céntimos, dejaba de cuadrar (revisión 237). */
-      ["monthly","amort"].forEach(function(k){ if(typeof patch[k]==="number"&&isFinite(patch[k])) n[k]=Math.round(patch[k]*100)/100; });
+         pagadas) arrastrase milésimas y el plazo, contado en céntimos, dejaba de cuadrar (revisión 237).
+         Si los céntimos son los de lo guardado se queda lo guardado: una deuda heredada de 33,333 pasaba a
+         33,33 sin re-anclar (eso solo mira céntimos) y el pendiente subía de 333,33 a 333,39 con solo tocar
+         el campo (rev. 237 R1). */
+      ["monthly","amort"].forEach(function(k){ if(typeof patch[k]!=="number"||!isFinite(patch[k])) return;
+        const c=Math.round(patch[k]*100); n[k]=typeof d[k]==="number"&&Math.round(d[k]*100)===c?d[k]:c/100; });
       if(!n.day) delete n.day;
       if(!(n.amort>0) || Math.abs((n.amort||0)-(n.monthly||0))<0.005) delete n.amort;
       /* El saldo de hoy es value − bajada × pagadas: cambiar la bajada sin re-anclar movía el saldo
