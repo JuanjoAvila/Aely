@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta } from "./fixtures.mjs";
 
 /* Dos cuentas de recibos del MISMO banco (ronda 238, revisión de dinero 237 R2). Datos inventados;
    reloj del 16/11/2026. Sabadell tiene la corriente (1.000) y la de ahorro (500), las dos «fijos»;
@@ -67,4 +67,34 @@ test("dos cuentas de recibos del mismo banco (" + nombre + "): el Teléfono se r
   expect(mins).toEqual([132000, 76000]);
   // La marca queda guardada: otra carga no vuelve a migrar.
   expect(await page.evaluate(() => mcLoadRaw(mcStateKey())._netoUnaCuenta)).toBe(true);
+});
+
+/* El pull de la nube al arrancar (revisión 238, segunda vuelta). Este móvil subió ayer, con la
+   versión vieja, las cuentas 1.030 / 560 sin marca; hoy arranca con la nueva y el mismo estado en
+   local y en la nube, con el mismo sello, así que el pull adopta la nube. Antes la marca local se
+   quedaba sobre las cuentas sin migrar de la nube: 1.000 / 560 en Cartera, y subido así. La nube es
+   el doble en página de `seedLoggedInDashboard`, sin cortar el camino del pull. */
+test("pull al arrancar: la nube sin marca no deshace la migración, y se sube migrado", async ({ page }) => {
+  test.info().annotations.push({ type: "own-clock" });
+  const ahora = new Date("2026-11-16T12:00:00+01:00");
+  await page.clock.install({ time: ahora });
+  await page.route("**/*", (x) => new URL(x.request().url()).hostname === "127.0.0.1" ? x.continue() : x.abort());
+  const ayer = JSON.parse(JSON.stringify(viejo));
+  delete ayer.__seedOnce;
+  ayer._savedAt = ahora.getTime() - 60_000;
+  ayer._historyOwner = "e2e-user";
+  await seedLoggedInDashboard(page, { ...JSON.parse(JSON.stringify(ayer)), __seedOnce: true,
+    __cloudRows: { app_state: [{ user_id: "e2e-user", data: JSON.parse(JSON.stringify(ayer)), updated_at: "2026-11-16T10:59:00Z" }] } });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  await esperaNubeQuieta(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await expect(page.locator('.page-live button.v4-mov[data-account-id="sb1"]')).toContainText("970,00 €");
+  await expect(page.locator('.page-live button.v4-mov[data-account-id="sb2"]')).toContainText("500,00 €");
+  const local = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return { marca: s._netoUnaCuenta, v: s.accounts.map((a) => a.value) }; });
+  expect(local).toEqual({ marca: true, v: [1000, 500, 800] });
+  // Lo que se sube a la nube: migrado y con su marca.
+  await expect.poll(() => page.evaluate(() => { const d = window.__e2eCloudRows.app_state[0].data; return { marca: d._netoUnaCuenta === true, v: d.accounts.map((a) => a.value) }; })).toEqual({ marca: true, v: [1000, 500, 800] });
 });

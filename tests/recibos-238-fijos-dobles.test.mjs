@@ -200,3 +200,49 @@ test("dos cuentas sin id del mismo banco: el neto lo carga una sola",()=>{
   assert.equal(c.llevaNetoDeBanco(s.accounts,s.accounts[1]),false);
   assert.equal(cents(totalsDe(s,"2026-11-16").bankBal.sabadell),147000);
 });
+
+// ---------- El pull de la nube al arrancar (revisión 238, segunda vuelta) ----------
+// Misma cadena que `syncFromCloud` (11-app-main): base del pull → cierre de mes → `seedFlows`.
+// `loadState` migra en local sin sellar `_savedAt`; la nube tiene las cuentas de ayer sin marca y el
+// mismo sello, así que gana la nube. Antes la marca local se quedaba y las cuentas sin migrar no se
+// migraban: 1.000/560 en vez de 970/500, y subido así.
+// El bloque REAL de último-que-escribe de `syncFromCloud` (como `ob-iguales-ordinal`), con los
+// helpers reales del bundle; `localNewer` sale de los `_savedAt` igual que en la app.
+const mPull=main.match(/const sameOwner=![^\n]*\n\s*const preferenceDeleted=[\s\S]*?if\(gem!==baseObj\.gemelos\) baseObj\.gemelos=gem;/);
+assert.ok(mPull,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
+assert.ok(mPull[0].includes("_netoUnaCuenta"),"la marca se decide dentro del bloque");
+const bloquePull=new Function("prev","cloudState","freshLogin","mergeExpenses","fusionarGemelos","opts","u","cloudPack","goalSyncPull","goalSyncCopy","expenseDeletedSet","planSyncPull",mPull[0]+"\nreturn baseObj;");
+const mezclaPull=(prev,nube)=>bloquePull(prev,nube,false,(p,n)=>({list:p}),c.fusionarGemelos,{},"e2e-user",{updated_at:"2026-11-16T10:59:00Z"},c.goalSyncPull,c.goalSyncCopy,c.expenseDeletedSet,c.planSyncPull);
+// Después, la misma cadena que la app: cierre de mes → `seedFlows`.
+const tirar=(prev,nube)=>c.seedFlows(c.reconcileTR(mezclaPull(json(prev),json(nube))));
+const ayerEnLaNube=()=>{ const acc=cuentas();acc[0].value=1030;acc[1].value=560; return Object.assign(sinMarca({accounts:acc}),{_savedAt:1000}); };
+
+test("pull: nube sin marca + local ya migrado → se migra una sola vez",()=>{
+  const nube=ayerEnLaNube(),prev=c.seedFlows(json(nube));
+  assert.deepEqual([pintado(prev).sb1,pintado(prev).sb2],[97000,50000],"el arranque local ya migró");
+  // Lo de antes: la marca local sobre las cuentas de la nube, sin migrar.
+  const antes=c.seedFlows(Object.assign({},json(prev),json(nube)));
+  assert.deepEqual([pintado(antes).sb1,pintado(antes).sb2],[100000,56000],"el fallo que se arregla");
+  const s=tirar(prev,nube);
+  assert.equal(s._netoUnaCuenta,true);
+  assert.deepEqual(pintado(s),pintado(prev),"lo mismo que el arranque local");
+  assert.deepEqual(json(s.accounts),json(prev.accounts),"mismos valores: no migra dos veces");
+  // Otro pull con lo ya migrado (la nube ya trae la marca): nada se mueve.
+  assert.deepEqual(json(tirar(s,s).accounts),json(s.accounts));
+});
+
+test("pull: nube con marca → no se toca nada",()=>{
+  const nube=c.seedFlows(json(ayerEnLaNube())),prev=json(nube);
+  prev.accounts[1].value=999;   // lo local pierde: manda la nube, tal cual
+  const s=tirar(prev,nube);
+  assert.deepEqual(json(s.accounts),json(nube.accounts));
+  assert.deepEqual([pintado(s).sb1,pintado(s).sb2],[97000,50000]);
+});
+
+test("pull: lo local más nuevo sube los valores migrados con su marca",()=>{
+  const nube=ayerEnLaNube(),prev=Object.assign(c.seedFlows(json(nube)),{_savedAt:2000});
+  const s=tirar(prev,nube);
+  assert.equal(s._netoUnaCuenta,true);
+  assert.deepEqual(json(s.accounts),json(prev.accounts));
+  assert.deepEqual([pintado(s).sb1,pintado(s).sb2],[97000,50000]);
+});
