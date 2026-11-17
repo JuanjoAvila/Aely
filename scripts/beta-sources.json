@@ -177201,7 +177201,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .v4-ficha-body[data-testid=\"ap\"] > .v4-keys{",
+        "from": "  .v4-ficha-body[data-testid=\"ap\"] .v4-ficha-kbfold.teclas .v4-keys{",
         "to": "}"
       },
       {
@@ -181826,7 +181826,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .v4-ficha-body[data-testid=\"ap\"][data-kb=\"1\"] > .v4-keys{display:none;",
+        "from": "  .v4-ficha-body[data-kb=\"1\"] .v4-ficha-kbfold{grid-template-rows:0fr;",
         "to": "}"
       },
       {
@@ -181836,7 +181836,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .v4-ficha-body[data-testid=\"ap\"] > .v4-keys{position:sticky;",
+        "from": "  .v4-ficha-body[data-testid=\"ap\"] > .v4-ficha-kbfold.teclas{position:sticky;",
         "to": "}"
       },
       {

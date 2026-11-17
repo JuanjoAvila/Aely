@@ -412,7 +412,11 @@ const PRESUPUESTO = {
   // suscripciones por cobro y periodo, y el Round up y el Saveback de TR con su libro de avisos, con el sello y la nota de la versión
   // (dos tandas) y el filtro de diseño: 1.994.176 B minificado y 547.935 B gzip. Mismo mandato del 11/10 (el tamaño no bloquea producto): los topes,
   // al mínimo medido, 1948 / 536 KiB.
-  minificado: 1948 * 1024,
+  // Apuntar escribiendo el concepto (239, 17/11: el campo se iba por arriba y quedaba un hueco hasta «Listo»): pliegues
+  // de cabecera, pago y numérico, tope de la hoja con el alto visible, el borde que no parte el buscador de detrás y la
+  // baldosa del banco con «+»: 1.996.985 B minificado y 548.535 B gzip. Mismo mandato del 11/10: el minificado, al mínimo
+  // medido, 1951 KiB; el gzip sigue dentro.
+  minificado: 1951 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

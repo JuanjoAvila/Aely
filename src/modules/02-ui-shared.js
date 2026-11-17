@@ -2811,8 +2811,10 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
     React.createElement("button",{type:"button",className:"v4-bankpick-op sin"+(!bankEnt?" on":""),"aria-pressed":!bankEnt,
       onClick:function(){ mcTickHaptic(); onPickBank(null); }},t("ap_bank_none")));
   const cls="v4-ficha-pay"+(income?" income":"")+(elige.dentro?" eligiendo":"");
+  // Sin ningún banco que elegir la píldora no abre nada: no se pinta.
+  const sinBancos=!bankEnt&&!bankLocked&&!(bankOpts||[]).length;
   if(income){
-    return React.createElement("div",{className:cls},bankPill(false),
+    return React.createElement("div",{className:cls},sinBancos?null:bankPill(false),
       React.createElement("button",{type:"button",disabled:!!cashDisabled,
         // Del banco, la cuenta no se cambia: el efectivo se queda visiblemente apagado.
         className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
@@ -2830,13 +2832,13 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
       opt("card",t("ap_pay_card"),p+"-pay-card"),
       opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
       opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
-    bankPill(mode==="cash"),
+    sinBancos?null:bankPill(mode==="cash"),
     picker);
 }
-/* El logo del banco, o un círculo vacío si no hay banco: el 🏦 genérico parecía un banco más. */
+/* El logo del banco, o un hueco con «+» si no hay banco: el 🏦 genérico parecía un banco más. */
 function BancoIcono({ent, size}){
   if(ent) return React.createElement(Mono,{ent:ent,size:size});
-  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}});
+  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}},"+");
 }
 /* Montar con entrada y salida suaves: `vivo` monta, `dentro` pone la clase que anima. Al cerrar se
    espera a que acabe la transición antes de desmontar; con «reducir movimiento», sin esperar. */
@@ -2937,7 +2939,10 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     const mira=function(el){
       const r=el.getBoundingClientRect();
       if(r.height<=0||y<r.top||y>r.bottom||r.right<=0||r.left>=window.innerWidth) return;
-      if(el.childElementCount===0){ if((el.textContent||"").trim()&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
+      // Un buscador también es letra: su texto de ayuda no está en `textContent` (el de Gastos, partido
+      // por la hoja con el teclado del sistema puesto, 17/11).
+      const letra=(el.textContent||"").trim()||(el.tagName==="INPUT"&&(el.value||el.placeholder));
+      if(el.childElementCount===0){ if(letra&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
       for(let c=el.firstElementChild;c;c=c.nextElementSibling) mira(c);
     };
     document.querySelectorAll(".page-scroll-host").forEach(mira);
@@ -2948,7 +2953,24 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     if(rellenoBaseRef.current==null) rellenoBaseRef.current=parseFloat(getComputedStyle(hoja).paddingTop)||0;
     const maxPropio=hoja.style.maxHeight;
     const ajusta=function(){
-      hoja.style.paddingTop=""; hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      const antes=hoja.style.paddingTop;
+      /* El tope de Apuntar con el teclado del sistema lo pone React (`vvAlto`): aquí solo se toca en
+         la ficha, que es la única que lo acorta. Si se reponía siempre, cada `resize` del teclado le
+         quitaba el tope a Apuntar y la hoja volvía a salirse por arriba. */
+      hoja.style.paddingTop=""; if(plegado) hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      mideBorde();
+      /* Escribiendo el concepto se mide cuando la hoja ya está quieta sobre el teclado, y el borde va
+         a su sitio deslizándose: de golpe se veía como un salto justo después de colocarse. */
+      if(kb&&antes!==hoja.style.paddingTop&&!mcReduced()){
+        const nuevo=hoja.style.paddingTop;
+        hoja.style.paddingTop=antes; void hoja.offsetHeight;
+        hoja.style.transition=getComputedStyle(hoja).transition+",padding-top .25s cubic-bezier(.22,.61,.36,1)";
+        hoja.style.paddingTop=nuevo;
+        clearTimeout(tmBorde); tmBorde=setTimeout(function(){ hoja.style.transition=""; },300);
+      }
+    };
+    let tmBorde=0, tmKb=0;
+    const mideBorde=function(){
       const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
       const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, base=hoja.offsetHeight, top0=hoja.offsetTop*zoom;
       let extra=0, bajar=0;
@@ -2966,17 +2988,34 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         if(textoPartido(hoja.offsetTop*zoom)) hoja.style.maxHeight=maxPropio;
       }
     };
-    ajusta();
+    // Con el teclado del sistema, una vez quietos los pliegues (300 ms) y el margen que sube la hoja (250 ms).
+    const programa=function(){ clearTimeout(tmKb); tmKb=setTimeout(ajusta,360); };
+    const vv=kb?window.visualViewport:null;
+    if(kb) programa(); else ajusta();
     // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
-    const tm=setTimeout(ajusta,480);
+    const tm=kb?0:setTimeout(ajusta,480);
     hoja.addEventListener("animationend",ajusta);
-    window.addEventListener("resize",ajusta);
-    return function(){ clearTimeout(tm); hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",ajusta); };
-  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo]);
+    window.addEventListener("resize",kb?programa:ajusta);
+    if(vv) vv.addEventListener("resize",programa);
+    return function(){
+      clearTimeout(tm); clearTimeout(tmKb); clearTimeout(tmBorde); hoja.style.transition="";
+      hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",kb?programa:ajusta);
+      if(vv) vv.removeEventListener("resize",programa);
+    };
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo,kb]);
   const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
-  const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
+  /* Apuntar con el concepto enfocado (`kb`): la cabecera, el pago y el numérico se recogen con su alto
+     (filas de rejilla, como el teclado de Modificar) y la hoja encoge con ellos, sin saltos. Mientras
+     se escribe solo queda lo útil: el importe en pequeño, el concepto, las categorías y la sugerencia
+     ✨ (queja del 17/11: «está todo como hyper apretado»). */
+  const pliega=function(cls,hijo){
+    if(!onConceptFocus||!hijo) return hijo||null;
+    return React.createElement("div",{className:"v4-ficha-kbfold"+(cls?" "+cls:""),"aria-hidden":kb?"true":null,inert:kb?"":undefined},
+      React.createElement("div",{className:"v4-ficha-kbfold-in"},hijo));
+  };
+  const metaBlock=React.createElement(React.Fragment,{key:"meta"},pliega(null,payRow),afterMeta||null);
   // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
   const todasBtn=function(cls,hijos){
     return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
@@ -3003,12 +3042,12 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
           if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado,.v4-ficha-cat-title-btn"))) onCloseNumpad();
         }:undefined},
-      React.createElement("div",{className:"v4-ficha-head"},
+      pliega(null,React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
         // La fecha se cambia aquí: la píldora 📅 repetía lo mismo con otras mayúsculas (DIS-03/04).
-        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel)),
+        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel))),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),"aria-expanded":plegado&&!locked?!!numpadOpen:null,onClick:locked?onLocked:(onAmount||undefined)},amount),
@@ -3032,7 +3071,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       plegado
         ? (teclado.vivo && React.createElement("div",{className:"v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
             React.createElement("div",Object.assign({className:"v4-ficha-teclado-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)))
-        : (numpad||null)
+        : pliega("teclas",numpad)
     ),
     footer||null
   );

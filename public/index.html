@@ -1944,12 +1944,22 @@
      - El teclado se pega al fondo del cuerpo: si en un móvil bajo no cabe todo, lo que se desliza
        por debajo son las categorías, nunca las teclas. Lleva el fondo de la hoja para taparlas. */
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"]){padding-bottom:max(34px,calc(14px + var(--safe-bottom)));}
-  /* Escribiendo el concepto (DIS-05) el numérico sobra y tapaba el campo con la WebView encogida. */
-  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-keys{display:none;}
+  /* Escribiendo el concepto (DIS-05, y su queja del 17/11): la cabecera, el pago y el numérico se
+     recogen con su alto (`pliega` en ExpenseFichaLayout) y el importe se queda en pequeño; la hoja
+     encoge con ellos y «Listo» queda pegado al teclado del sistema, sin el hueco del numérico. */
+  .v4-ficha-kbfold{display:grid;grid-template-rows:1fr;
+    transition:grid-template-rows .3s var(--ease),opacity .22s ease,visibility 0s;}
+  .v4-ficha-kbfold-in{min-height:0;overflow:hidden;}
+  .v4-ficha-body[data-kb="1"] .v4-ficha-kbfold{grid-template-rows:0fr;opacity:0;visibility:hidden;
+    transition:grid-template-rows .3s var(--ease),opacity .16s ease,visibility 0s .3s;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{transition:font-size .3s var(--ease),min-height .3s var(--ease);}
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-amount{font-size:30px;min-height:40px;}
+  .v4-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){padding-bottom:16px;}
   /* Y la hoja sube y baja con el teclado del sistema en vez de saltar (el margen lo pone el JS).
      Solo Apuntar: Modificar comparte `.v4-exp-sheet` y no mueve el margen con el teclado. */
-  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1);}
-  .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:4px 0 8px;gap:6px;background:var(--bg-2);}
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  .v4-ficha-body[data-testid="ap"] > .v4-ficha-kbfold.teclas{position:sticky;bottom:0;z-index:1;background:var(--bg-2);}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{margin:0;padding:4px 0 8px;gap:6px;}
   /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
      (56 px, las pidió él): una sola fila de categorías, y algo menos de aire alrededor del importe
      y del teclado. Desde el remate de la 235, «Todas ›» va en la cabecera como en la ficha (la
@@ -1984,10 +1994,10 @@
   }
   /* Letra Muy grande y Enorme (DIS-07): las teclas conservan su alto en pantalla (56 px reales,
      no 56 × zoom) y las categorías van en una fila que se desliza de lado en vez de aplastarse. */
-  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys,
-  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys{gap:5px;}
-  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys button,
-  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys button{height:calc(56px / var(--zoom,1));}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{gap:5px;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys button,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys button{height:calc(56px / var(--zoom,1));}
   html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats,
   html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{display:flex;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;}
   html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats::-webkit-scrollbar,
@@ -2055,8 +2065,12 @@
   .v4-bankpick-op.on{border-color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint);}
   .v4-bankpick-op.sin{width:auto;padding:0 12px;color:var(--muted);font-size:12px;font-weight:750;white-space:nowrap;}
   .v4-bankpick-op.sin.on{color:var(--mint);}
-  .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px solid var(--line);}
-  @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;} }
+  /* Sin banco elegido: un hueco punteado con «+» (el cuadro liso parecía un logo que no había cargado,
+     17/11). */
+  .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px dashed var(--muted-2);
+    display:grid;place-items:center;color:var(--muted);font-size:15px;font-weight:700;line-height:1;}
+  @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;}
+    .v4-ficha-body[data-kb] .v4-ficha-kbfold,.v4-ficha-body .v4-ficha-kbfold,.v4-ficha-body[data-testid] .v4-ficha-amount{transition:none;} }
   /* Con Efectivo la píldora no se pinta, pero guarda su sitio: la fila no salta al cambiar. */
   .v4-ficha-pay > .v4-ficha-meta-pill.off{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s .2s;}
   .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);
@@ -14127,8 +14141,10 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
     React.createElement("button",{type:"button",className:"v4-bankpick-op sin"+(!bankEnt?" on":""),"aria-pressed":!bankEnt,
       onClick:function(){ mcTickHaptic(); onPickBank(null); }},t("ap_bank_none")));
   const cls="v4-ficha-pay"+(income?" income":"")+(elige.dentro?" eligiendo":"");
+  // Sin ningún banco que elegir la píldora no abre nada: no se pinta.
+  const sinBancos=!bankEnt&&!bankLocked&&!(bankOpts||[]).length;
   if(income){
-    return React.createElement("div",{className:cls},bankPill(false),
+    return React.createElement("div",{className:cls},sinBancos?null:bankPill(false),
       React.createElement("button",{type:"button",disabled:!!cashDisabled,
         // Del banco, la cuenta no se cambia: el efectivo se queda visiblemente apagado.
         className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
@@ -14146,13 +14162,13 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
       opt("card",t("ap_pay_card"),p+"-pay-card"),
       opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
       opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
-    bankPill(mode==="cash"),
+    sinBancos?null:bankPill(mode==="cash"),
     picker);
 }
-/* El logo del banco, o un círculo vacío si no hay banco: el 🏦 genérico parecía un banco más. */
+/* El logo del banco, o un hueco con «+» si no hay banco: el 🏦 genérico parecía un banco más. */
 function BancoIcono({ent, size}){
   if(ent) return React.createElement(Mono,{ent:ent,size:size});
-  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}});
+  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}},"+");
 }
 /* Montar con entrada y salida suaves: `vivo` monta, `dentro` pone la clase que anima. Al cerrar se
    espera a que acabe la transición antes de desmontar; con «reducir movimiento», sin esperar. */
@@ -14253,7 +14269,10 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     const mira=function(el){
       const r=el.getBoundingClientRect();
       if(r.height<=0||y<r.top||y>r.bottom||r.right<=0||r.left>=window.innerWidth) return;
-      if(el.childElementCount===0){ if((el.textContent||"").trim()&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
+      // Un buscador también es letra: su texto de ayuda no está en `textContent` (el de Gastos, partido
+      // por la hoja con el teclado del sistema puesto, 17/11).
+      const letra=(el.textContent||"").trim()||(el.tagName==="INPUT"&&(el.value||el.placeholder));
+      if(el.childElementCount===0){ if(letra&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
       for(let c=el.firstElementChild;c;c=c.nextElementSibling) mira(c);
     };
     document.querySelectorAll(".page-scroll-host").forEach(mira);
@@ -14264,7 +14283,24 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     if(rellenoBaseRef.current==null) rellenoBaseRef.current=parseFloat(getComputedStyle(hoja).paddingTop)||0;
     const maxPropio=hoja.style.maxHeight;
     const ajusta=function(){
-      hoja.style.paddingTop=""; hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      const antes=hoja.style.paddingTop;
+      /* El tope de Apuntar con el teclado del sistema lo pone React (`vvAlto`): aquí solo se toca en
+         la ficha, que es la única que lo acorta. Si se reponía siempre, cada `resize` del teclado le
+         quitaba el tope a Apuntar y la hoja volvía a salirse por arriba. */
+      hoja.style.paddingTop=""; if(plegado) hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      mideBorde();
+      /* Escribiendo el concepto se mide cuando la hoja ya está quieta sobre el teclado, y el borde va
+         a su sitio deslizándose: de golpe se veía como un salto justo después de colocarse. */
+      if(kb&&antes!==hoja.style.paddingTop&&!mcReduced()){
+        const nuevo=hoja.style.paddingTop;
+        hoja.style.paddingTop=antes; void hoja.offsetHeight;
+        hoja.style.transition=getComputedStyle(hoja).transition+",padding-top .25s cubic-bezier(.22,.61,.36,1)";
+        hoja.style.paddingTop=nuevo;
+        clearTimeout(tmBorde); tmBorde=setTimeout(function(){ hoja.style.transition=""; },300);
+      }
+    };
+    let tmBorde=0, tmKb=0;
+    const mideBorde=function(){
       const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
       const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, base=hoja.offsetHeight, top0=hoja.offsetTop*zoom;
       let extra=0, bajar=0;
@@ -14282,17 +14318,34 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         if(textoPartido(hoja.offsetTop*zoom)) hoja.style.maxHeight=maxPropio;
       }
     };
-    ajusta();
+    // Con el teclado del sistema, una vez quietos los pliegues (300 ms) y el margen que sube la hoja (250 ms).
+    const programa=function(){ clearTimeout(tmKb); tmKb=setTimeout(ajusta,360); };
+    const vv=kb?window.visualViewport:null;
+    if(kb) programa(); else ajusta();
     // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
-    const tm=setTimeout(ajusta,480);
+    const tm=kb?0:setTimeout(ajusta,480);
     hoja.addEventListener("animationend",ajusta);
-    window.addEventListener("resize",ajusta);
-    return function(){ clearTimeout(tm); hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",ajusta); };
-  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo]);
+    window.addEventListener("resize",kb?programa:ajusta);
+    if(vv) vv.addEventListener("resize",programa);
+    return function(){
+      clearTimeout(tm); clearTimeout(tmKb); clearTimeout(tmBorde); hoja.style.transition="";
+      hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",kb?programa:ajusta);
+      if(vv) vv.removeEventListener("resize",programa);
+    };
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo,kb]);
   const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
-  const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
+  /* Apuntar con el concepto enfocado (`kb`): la cabecera, el pago y el numérico se recogen con su alto
+     (filas de rejilla, como el teclado de Modificar) y la hoja encoge con ellos, sin saltos. Mientras
+     se escribe solo queda lo útil: el importe en pequeño, el concepto, las categorías y la sugerencia
+     ✨ (queja del 17/11: «está todo como hyper apretado»). */
+  const pliega=function(cls,hijo){
+    if(!onConceptFocus||!hijo) return hijo||null;
+    return React.createElement("div",{className:"v4-ficha-kbfold"+(cls?" "+cls:""),"aria-hidden":kb?"true":null,inert:kb?"":undefined},
+      React.createElement("div",{className:"v4-ficha-kbfold-in"},hijo));
+  };
+  const metaBlock=React.createElement(React.Fragment,{key:"meta"},pliega(null,payRow),afterMeta||null);
   // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
   const todasBtn=function(cls,hijos){
     return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
@@ -14319,12 +14372,12 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
           if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado,.v4-ficha-cat-title-btn"))) onCloseNumpad();
         }:undefined},
-      React.createElement("div",{className:"v4-ficha-head"},
+      pliega(null,React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
         // La fecha se cambia aquí: la píldora 📅 repetía lo mismo con otras mayúsculas (DIS-03/04).
-        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel)),
+        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel))),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),"aria-expanded":plegado&&!locked?!!numpadOpen:null,onClick:locked?onLocked:(onAmount||undefined)},amount),
@@ -14348,7 +14401,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       plegado
         ? (teclado.vivo && React.createElement("div",{className:"v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
             React.createElement("div",Object.assign({className:"v4-ficha-teclado-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)))
-        : (numpad||null)
+        : pliega("teclas",numpad)
     ),
     footer||null
   );
@@ -32715,7 +32768,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="bf5eb0b23cb8c2ec20345d79828dab444c639d0ec4d1ad2fdac3468c109db236";
+var _rnSha="19b2994bde0ff6e779558b8a1b250ea85d09a685136dc00163a9764366a3fead";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39151,9 +39204,18 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      numérico se esconde, el botón pasa a «Listo» y la hoja se sube sobre el teclado del sistema. */
   const [conceptoFoco,setConceptoFoco]=useState(false);
   const [kbPad,setKbPad]=useState(0);
-  /* Alto de la hoja al tocar el concepto. Sin fijarlo, al esconder el numérico la hoja encogía
-     250 px de golpe: el campo se iba de debajo del dedo y el toque acababa en el velo, que la cierra. */
-  const [kbAlto,setKbAlto]=useState(0);
+  /* Alto visible con el teclado del sistema puesto (0 = sin teclado). El tope de la hoja sale de
+     aquí y no de `dvh`: en su OnePlus la WebView se encoge con el teclado pero `dvh` no, así que la
+     hoja conservaba su alto, se salía por arriba hasta la barra de estado y el concepto que se
+     estaba escribiendo quedaba fuera de la pantalla (queja del 17/11). */
+  const [vvAlto,setVvAlto]=useState(0);
+  const altoSinTecladoRef=useRef(0);
+  /* La hoja compacta (sin cabecera, pago ni numérico) entra DESPUÉS del toque que enfoca: si
+     encoge antes del `click`, el campo se va de debajo del dedo y el toque acaba en el velo, que la
+     cierra, o en una categoría. Antes se fijaba el alto entero de la hoja, y eso es lo que dejaba
+     el hueco vacío donde iba el numérico. */
+  const [kbVista,setKbVista]=useState(false);
+  const kbTokRef=useRef(0);
   const listoAt=useRef(0);
   /* Mientras la hoja baja tras guardar, el botón sigue debajo del dedo: un doble toque rápido
      apuntaba DOS gastos (encargo 236, P2-1). Como `addedRef` de las deudas: se suelta al reabrir. */
@@ -39187,7 +39249,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
-      setConceptoFoco(false); setKbPad(0); setKbAlto(0);
+      setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
+      altoSinTecladoRef.current=window.innerHeight||0;
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
       try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
@@ -39227,16 +39290,19 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   },[open, note, kind, aiOn]);
   /* Si el teclado se superpone sin encoger la WebView, lo que tapa es lo que sobra entre el alto de
      la ventana y el de visualViewport: la hoja se sube eso (como la ayuda, 16-help-assistant). Si
-     la WebView se encoge, ese hueco es 0 y basta con haber escondido el teclado numérico. */
+     la WebView se encoge, ese hueco es 0; en los dos casos el tope es el alto que queda a la vista. */
   useEffect(function(){
-    if(!open || !conceptoFoco) { setKbPad(0); return undefined; }
+    if(!open || !conceptoFoco) { setKbPad(0); setVvAlto(0); return undefined; }
     const sync=function(){
       try{
         const vv=window.visualViewport;
-        if(!vv){ setKbPad(0); return; }
-        const pad=Math.max(0, window.innerHeight-(vv.height+vv.offsetTop));
+        altoSinTecladoRef.current=Math.max(altoSinTecladoRef.current, window.innerHeight||0);
+        const visto=vv?vv.height:window.innerHeight;
+        const pad=vv?Math.max(0, window.innerHeight-(vv.height+vv.offsetTop)):0;
         setKbPad(pad>24?Math.round(pad):0);
-      }catch(e){ setKbPad(0); }
+        // Con teclado (encima o encogiendo la WebView), la hoja no pasa de lo que queda a la vista.
+        setVvAlto(altoSinTecladoRef.current-visto>80?Math.round(visto):0);
+      }catch(e){ setKbPad(0); setVvAlto(0); }
     };
     sync();
     const vv=window.visualViewport;
@@ -39379,20 +39445,26 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
         // En px de pantalla: dentro del body con zoom, el margen se multiplicaría.
-        style:conceptoFoco?Object.assign(kbAlto?{height:kbAlto+"px"}:{},
-          kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))",maxHeight:"calc((100dvh - "+kbPad+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
+        style:conceptoFoco&&(kbPad||vvAlto)?Object.assign({},
+          kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))"}:null,
+          vvAlto?{maxHeight:"calc(("+vvAlto+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),
           onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); },
           amount:(raw||"0"),amountEmpty:!raw,currency:entrySym,onCurrency:function(){ setCurOpen(function(v){ return !v; }); setCalOpen(false); setBankOpen(false); },
           focused:true,concept:note,onConcept:setNote,fxHint:fxHint,payRow:payRow,afterMeta:afterMeta,
           onConceptFocus:function(){
-            const el=swipe.sheetRef.current;
-            // px del propio CSS de la hoja (dentro del zoom del body), que es lo que se le vuelve a poner.
-            setKbAlto(el?parseFloat(getComputedStyle(el).height)||0:0);
-            setConceptoFoco(true);
+            setConceptoFoco(true); setCalOpen(false); setCurOpen(false); setBankOpen(false);
+            const tok=++kbTokRef.current;
+            const pon=function(){
+              document.removeEventListener("click",pon,true); clearTimeout(tm);
+              requestAnimationFrame(function(){ if(kbTokRef.current===tok) setKbVista(true); });
+            };
+            document.addEventListener("click",pon,true);
+            // Foco sin toque (teclado físico, lector de pantalla): no llega ningún click.
+            const tm=setTimeout(pon,400);
           },onConceptBlur:function(){
-            const suelta=function(){ setConceptoFoco(false); setKbAlto(0); };
+            const suelta=function(){ kbTokRef.current++; setConceptoFoco(false); setKbVista(false); };
             if(!dedoRef.current){ suelta(); return; }
             /* Blur por un toque en la propia hoja (una categoría, el chip ✨…): si el teclado numérico
                vuelve antes del `click`, la hoja crece, lo tocado se mueve y el click cae en otra
@@ -39400,7 +39472,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             const fin=function(){ document.removeEventListener("click",fin,true); clearTimeout(tm); setTimeout(suelta,0); };
             document.addEventListener("click",fin,true);
             const tm=setTimeout(fin,600);
-          },kb:conceptoFoco,
+          },kb:kbVista,
           categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
           numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catRowsMax:2,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",

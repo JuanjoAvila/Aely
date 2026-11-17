@@ -6647,7 +6647,7 @@ test("Catálogo237 conserva remate-236, diseno-235 y dinero-234 sin veredicto, a
   }
   // Lo que el paso 1 de diseno-237 da por desaparecido («Ver»/«Ocultar» de Ya pagados) no existe ya en la app.
   for(const key of ["pr6_ver","pr6_ocultar"])assert.equal(new RegExp("(?<![A-Za-z0-9_])"+key+":").test(textos),false,"ya no existe: "+key);
-  // Registro: los dos descriptores nuevos, los últimos; dos reanclas declaradas; el resto solo crece con el cierre de lectores exacto.
+  // Registro: los dos descriptores nuevos, los últimos; las reanclas, declaradas; el resto solo crece con el cierre de lectores exacto.
   const scopes=JSON.parse(source("scripts/beta-sources.json"));
   assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),...nuevas],"los descriptores nuevos, los últimos");
   // Diseño 237 (Gastos, 17/11): la fila de movimientos va en un bloque por día y la categoría deja su color (queda en la
@@ -6655,14 +6655,21 @@ test("Catálogo237 conserva remate-236, diseno-235 y dinero-234 sin veredicto, a
   const FILA237={"  .gx-list .v4-mov{margin-top:0;gap:10px;":"  .gx-list .v4-mov{margin-top:0;gap:12px;","  .v4-mov .nm-cat{":"  .gx-list .v4-mov .nm-cat{",
     "  html[data-theme=\"light\"] .v4-mov .nm-cat{":"  .gx-list .v4-mov .nm-cat:has(+ .meta)::after{"};
   const aFila237=u=>u.file===SH&&FILA237[u.from]?{...u,from:FILA237[u.from]}:u;
+  // Apuntar con el concepto enfocado (239, 17/11): el numérico va dentro de un pliegue que se recoge con su alto en vez de
+  // `display:none`, así que sus reglas pasan al pliegue.
+  const TECLAS239={"  .v4-ficha-body[data-testid=\"ap\"] > .v4-keys{":"  .v4-ficha-body[data-testid=\"ap\"] .v4-ficha-kbfold.teclas .v4-keys{",
+    "  .v4-ficha-body[data-testid=\"ap\"][data-kb=\"1\"] > .v4-keys{display:none;":"  .v4-ficha-body[data-kb=\"1\"] .v4-ficha-kbfold{grid-template-rows:0fr;",
+    "  .v4-ficha-body[data-testid=\"ap\"] > .v4-keys{position:sticky;":"  .v4-ficha-body[data-testid=\"ap\"] > .v4-ficha-kbfold.teclas{position:sticky;"};
+  const aTeclas239=u=>u.file===SH&&TECLAS239[u.from]?{...u,from:TECLAS239[u.from]}:u;
   const reancla={
     "gastos-v5-ciclos-metas-inversiones":w=>w.map(aFila237),
-    "auditorias-233":w=>w.map(aFila237),
+    "auditorias-233":w=>w.map(aFila237).map(aTeclas239),
+    "diseno-235":w=>w.map(aTeclas239),
   };
   for(const [k,f] of Object.entries(reancla))assert.notDeepEqual(f(integrated[k].web),integrated[k].web,k+": el reanclado cambia algo");
   // Lo que se quita es lo que ya no existe; lo nuevo existe una sola vez.
-  for(const a of Object.keys(FILA237))assert.equal(source(SH).includes(a),false,"el ancla vieja ya no existe: "+a);
-  for(const a of Object.values(FILA237))assert.equal(source(SH).split(a).length,2,"ancla nueva inequívoca: "+a);
+  for(const a of [...Object.keys(FILA237),...Object.keys(TECLAS239)])assert.equal(source(SH).includes(a),false,"el ancla vieja ya no existe: "+a);
+  for(const a of [...Object.values(FILA237),...Object.values(TECLAS239)])assert.equal(source(SH).split(a).length,2,"ancla nueva inequívoca: "+a);
   const fns=logicFunctions(source),dat=logicData(source);
   const cierre=(web0)=>{
     let web=web0.slice();

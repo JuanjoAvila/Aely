@@ -207,6 +207,11 @@ export const E2E_MAP = [
   { file: "src/modules/04-tab-gastos.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
+  // Apuntar escribiendo el concepto con el teclado del sistema (17/11): el campo a la vista, nada bajo
+  // la barra de estado y «Listo» pegado al teclado; y la baldosa del banco sin banco elegido.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
   // Cerrar Tus recibos de un desliz y seguir hacia otra pestaña sin que el carrusel se desplace de
   // lado (vídeo del dueño, 11/11): el foco que vuelve a «Todos» y el gesto de pestañas.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },

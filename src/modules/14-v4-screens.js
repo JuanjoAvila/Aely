@@ -4875,9 +4875,18 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      numérico se esconde, el botón pasa a «Listo» y la hoja se sube sobre el teclado del sistema. */
   const [conceptoFoco,setConceptoFoco]=useState(false);
   const [kbPad,setKbPad]=useState(0);
-  /* Alto de la hoja al tocar el concepto. Sin fijarlo, al esconder el numérico la hoja encogía
-     250 px de golpe: el campo se iba de debajo del dedo y el toque acababa en el velo, que la cierra. */
-  const [kbAlto,setKbAlto]=useState(0);
+  /* Alto visible con el teclado del sistema puesto (0 = sin teclado). El tope de la hoja sale de
+     aquí y no de `dvh`: en su OnePlus la WebView se encoge con el teclado pero `dvh` no, así que la
+     hoja conservaba su alto, se salía por arriba hasta la barra de estado y el concepto que se
+     estaba escribiendo quedaba fuera de la pantalla (queja del 17/11). */
+  const [vvAlto,setVvAlto]=useState(0);
+  const altoSinTecladoRef=useRef(0);
+  /* La hoja compacta (sin cabecera, pago ni numérico) entra DESPUÉS del toque que enfoca: si
+     encoge antes del `click`, el campo se va de debajo del dedo y el toque acaba en el velo, que la
+     cierra, o en una categoría. Antes se fijaba el alto entero de la hoja, y eso es lo que dejaba
+     el hueco vacío donde iba el numérico. */
+  const [kbVista,setKbVista]=useState(false);
+  const kbTokRef=useRef(0);
   const listoAt=useRef(0);
   /* Mientras la hoja baja tras guardar, el botón sigue debajo del dedo: un doble toque rápido
      apuntaba DOS gastos (encargo 236, P2-1). Como `addedRef` de las deudas: se suelta al reabrir. */
@@ -4911,7 +4920,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
-      setConceptoFoco(false); setKbPad(0); setKbAlto(0);
+      setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
+      altoSinTecladoRef.current=window.innerHeight||0;
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
       try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
@@ -4951,16 +4961,19 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   },[open, note, kind, aiOn]);
   /* Si el teclado se superpone sin encoger la WebView, lo que tapa es lo que sobra entre el alto de
      la ventana y el de visualViewport: la hoja se sube eso (como la ayuda, 16-help-assistant). Si
-     la WebView se encoge, ese hueco es 0 y basta con haber escondido el teclado numérico. */
+     la WebView se encoge, ese hueco es 0; en los dos casos el tope es el alto que queda a la vista. */
   useEffect(function(){
-    if(!open || !conceptoFoco) { setKbPad(0); return undefined; }
+    if(!open || !conceptoFoco) { setKbPad(0); setVvAlto(0); return undefined; }
     const sync=function(){
       try{
         const vv=window.visualViewport;
-        if(!vv){ setKbPad(0); return; }
-        const pad=Math.max(0, window.innerHeight-(vv.height+vv.offsetTop));
+        altoSinTecladoRef.current=Math.max(altoSinTecladoRef.current, window.innerHeight||0);
+        const visto=vv?vv.height:window.innerHeight;
+        const pad=vv?Math.max(0, window.innerHeight-(vv.height+vv.offsetTop)):0;
         setKbPad(pad>24?Math.round(pad):0);
-      }catch(e){ setKbPad(0); }
+        // Con teclado (encima o encogiendo la WebView), la hoja no pasa de lo que queda a la vista.
+        setVvAlto(altoSinTecladoRef.current-visto>80?Math.round(visto):0);
+      }catch(e){ setKbPad(0); setVvAlto(0); }
     };
     sync();
     const vv=window.visualViewport;
@@ -5103,20 +5116,26 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
         // En px de pantalla: dentro del body con zoom, el margen se multiplicaría.
-        style:conceptoFoco?Object.assign(kbAlto?{height:kbAlto+"px"}:{},
-          kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))",maxHeight:"calc((100dvh - "+kbPad+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
+        style:conceptoFoco&&(kbPad||vvAlto)?Object.assign({},
+          kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))"}:null,
+          vvAlto?{maxHeight:"calc(("+vvAlto+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),
           onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); },
           amount:(raw||"0"),amountEmpty:!raw,currency:entrySym,onCurrency:function(){ setCurOpen(function(v){ return !v; }); setCalOpen(false); setBankOpen(false); },
           focused:true,concept:note,onConcept:setNote,fxHint:fxHint,payRow:payRow,afterMeta:afterMeta,
           onConceptFocus:function(){
-            const el=swipe.sheetRef.current;
-            // px del propio CSS de la hoja (dentro del zoom del body), que es lo que se le vuelve a poner.
-            setKbAlto(el?parseFloat(getComputedStyle(el).height)||0:0);
-            setConceptoFoco(true);
+            setConceptoFoco(true); setCalOpen(false); setCurOpen(false); setBankOpen(false);
+            const tok=++kbTokRef.current;
+            const pon=function(){
+              document.removeEventListener("click",pon,true); clearTimeout(tm);
+              requestAnimationFrame(function(){ if(kbTokRef.current===tok) setKbVista(true); });
+            };
+            document.addEventListener("click",pon,true);
+            // Foco sin toque (teclado físico, lector de pantalla): no llega ningún click.
+            const tm=setTimeout(pon,400);
           },onConceptBlur:function(){
-            const suelta=function(){ setConceptoFoco(false); setKbAlto(0); };
+            const suelta=function(){ kbTokRef.current++; setConceptoFoco(false); setKbVista(false); };
             if(!dedoRef.current){ suelta(); return; }
             /* Blur por un toque en la propia hoja (una categoría, el chip ✨…): si el teclado numérico
                vuelve antes del `click`, la hoja crece, lo tocado se mueve y el click cae en otra
@@ -5124,7 +5143,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             const fin=function(){ document.removeEventListener("click",fin,true); clearTimeout(tm); setTimeout(suelta,0); };
             document.addEventListener("click",fin,true);
             const tm=setTimeout(fin,600);
-          },kb:conceptoFoco,
+          },kb:kbVista,
           categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
           numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catRowsMax:2,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
