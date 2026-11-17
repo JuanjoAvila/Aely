@@ -2919,7 +2919,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           right);
       };
       return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications permiso acceso apunte automatico gastos trade republic google wallet avisos banco sync caixabank sabadell ia ai categoria",permiso,
-        nat.notifAccess && fila("access","🔐",t("nt_access"),null,abrirAcceso,
+        nat.notifAccess && fila("access","📲",t("nt_access"),null,abrirAcceso,
           // El estado ya lo dice la cabecera del grupo; aquí, sin permiso, lo que toca: activarlo.
           React.createElement(React.Fragment,null,
             notifOk===false?React.createElement("span",{className:"nt-fix"},t("nt_fix")):permiso,
