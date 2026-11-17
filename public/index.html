@@ -13988,13 +13988,12 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),"aria-expanded":plegado&&!locked?!!numpadOpen:null,onClick:locked?onLocked:(onAmount||undefined)},amount),
-        /* Un candado en vez de la tarjeta «Lo trajo una notificación…» (16/11, «eso a la persona le da
-           igual»): basta para ver que el importe del banco no se toca; al tocarlo, el aviso de siempre. */
+        /* Sin la tarjeta «Lo trajo una notificación…» (16/11, «eso a la persona le da igual») y sin
+           candado dibujado (los retiró de toda la app, 18/9): el importe del banco no se toca y, al
+           tocarlo, sale el aviso de siempre. */
         React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
           "aria-label":locked?t("f_locked_toast"):null,"data-testid":locked?(testPrefix||"expense")+"-locked":null,
-          onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"),
-          locked && React.createElement("svg",{"aria-hidden":true,width:12,height:12,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round",strokeLinejoin:"round"},
-            React.createElement("rect",{x:5,y:11,width:14,height:10,rx:2}),React.createElement("path",{d:"M8 11V8a4 4 0 0 1 8 0v3"})))),
+          onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
@@ -32126,7 +32125,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="79e1ce5309f1ab19e490b0b603ce83e7b74ccfa7057f0792eb841d9cccd9aacc";
+var _rnSha="62d580a98608cadb36f0a5cba2df611fe36b2e0066c88ae7e4177b26dd394906";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32902,7 +32901,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           right);
       };
       return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications permiso acceso apunte automatico gastos trade republic google wallet avisos banco sync caixabank sabadell ia ai categoria",permiso,
-        nat.notifAccess && fila("access","🔐",t("nt_access"),null,abrirAcceso,
+        nat.notifAccess && fila("access","📲",t("nt_access"),null,abrirAcceso,
           // El estado ya lo dice la cabecera del grupo; aquí, sin permiso, lo que toca: activarlo.
           React.createElement(React.Fragment,null,
             notifOk===false?React.createElement("span",{className:"nt-fix"},t("nt_fix")):permiso,
