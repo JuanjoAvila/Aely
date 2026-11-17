@@ -383,7 +383,11 @@ const PRESUPUESTO = {
   // Segunda vuelta del remate (16/11, la ficha «horrible» a ojos del dueño): teclado plegable bajo el importe, la
   // retirada como baldosa, una fila de baldosas de ajustes y ✨ junto a «Todas ›»: +1.378 B (1.973.543 B sin sello,
   // 295 por encima). Sube 1 KiB más, a 1928; el gzip sigue dentro (541.575 de 541.696).
-  minificado: 1928 * 1024,
+  // Diseño 237 (17/11, Gastos): detección de suscripciones por cobro y periodo (era el «913 € al mes» con el súper
+  // y la cuota del coche), fila de movimientos igual que Inicio, fundido de la tira de meses y lupa de línea: +3.989 B
+  // minificado y +1.209 B gzip sobre la 4.26.235 (1.974.237 / 542.306 B sin sello; quedaban 35 B y −610 B). Misma
+  // regla del 11/10: sube al mínimo medido, 1929 KiB y 530 KiB.
+  minificado: 1929 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -423,7 +427,7 @@ const PRESUPUESTO = {
   // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
   // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
   // dueño; SUBE (mandato 11/10) a 524 KiB.
-  gzip: 529 * 1024, // ver el comentario de minificado (527,9 KiB medidos el 16/11/2026 en la integración 4.26.235).
+  gzip: 530 * 1024, // ver el comentario de minificado (529,6 KiB medidos el 17/11/2026 con el diseño 237 de Gastos).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

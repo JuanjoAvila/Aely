@@ -201,22 +201,33 @@ function gastosMesVentana(ym){
 
 /* SUSCRIPCIONES COMO BANDEJA (Gastos v5, SPEC §6): cada detectada es una tarjeta y al tocarla sale
    su ficha con los últimos cobros y las tres decisiones. Las cifras son las de la detección de
-   siempre (`detectSubscriptions`: mediana al mes, mediana × 12 al año); fechas, día y banco salen
-   de los cargos reales que guarda (`ult`). «Seguidos» solo si no falta ningún mes entre el primero
-   y el último: un cobro cada dos meses no puede salir como «cada mes». */
-function gxSubFrec(sp){ return sp.span===sp.months?tf("gv5_sub_seguidos",{n:sp.months}):tf("gv5_sub_de",{n:sp.months,m:sp.span}); }
+   siempre (`detectSubscriptions`: lo de cada cobro y su periodo, semana, mes o año); fechas, día y
+   banco salen de los cargos reales que guarda (`ult`). «Seguidos» solo si no falta ningún mes entre
+   el primero y el último: un cobro cada dos meses no puede salir como «cada mes». */
+function gxSubFrec(sp){
+  if(sp.per==="semana") return tf("gv5_sub_sem_seguidas",{n:sp.months});
+  if(sp.per==="anio") return tf("gv5_sub_anios_seguidos",{n:sp.months});
+  return sp.span===sp.months?tf("gv5_sub_seguidos",{n:sp.months}):tf("gv5_sub_de",{n:sp.months,m:sp.span});
+}
 function gxSubBanco(sp){ const bk=sp.ult&&sp.ult[0]?expenseBankOf(sp.ult[0].e):null; return bk?(entOf(bk).label||entOf(bk).mono):null; }
 const GxSubTarjeta=React.memo(function GxSubTarjeta({sp, vuelve, onOpen}){
   const c=catOf(sp.cat), bk=gxSubBanco(sp);
+  /* Solo el periodo: «6 meses seguidos · CaixaBank» no cabía a 360 y se comía el banco (237,
+     P1-6). La cuenta exacta sigue en la ficha; un mes saltado sí se dice aquí. */
+  const cada=sp.per==="semana"?t("gv5_sub_cadasem"):sp.per==="anio"?t("gv5_sub_cadaanio")
+    :sp.span===sp.months?t("gv5_sub_cadames"):tf("gv5_sub_de",{n:sp.months,m:sp.span});
   return React.createElement("button",{type:"button",className:"gx-sub","data-sub":sp.key,onClick:function(){ onOpen(sp.key); }},
     React.createElement("span",{className:"gx-sub-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
     React.createElement("span",{className:"gx-sub-txt"},
       React.createElement("span",{className:"gx-sub-nm"},sp.name),
-      React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp)+(bk?" · "+bk:"")),
+      React.createElement("span",{className:"gx-sub-meta"},cada+(bk?" · "+bk:"")),
       vuelve&&React.createElement("span",{className:"gx-sub-vuelve"},t("gv5_sub_vuelve"))),
+    // Sin «al mes» en cada fila: ya lo dice la cabecera y el periodo va a la izquierda (P1-6). La
+    // semanal y la anual sí dicen lo que pesan al mes: es lo que suma la cifra de arriba, y sin eso
+    // las filas no cuadraban con ella (crítica de diseño 237).
     React.createElement("span",{className:"gx-sub-am"},
       React.createElement("span",{className:"num serif"},eur(sp.amount)),
-      React.createElement("span",{className:"gx-sub-mes"},t("gv5_sub_almes"))));
+      sp.per&&sp.per!=="mes"&&React.createElement("span",{className:"gx-sub-eq num"},tf("gv5_sub_eqmes",{x:eur(sp.mensual)}))));
 });
 /* Ficha de una suscripción (SPEC §6.4). `f` = {sp, vuelve}, una FOTO de la tarjeta tocada: la
    acción la quita de la bandeja y la hoja tiene que poder cerrarse con su animación enseñando
@@ -232,7 +243,12 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
   if(sp && amt.k!==sp.key) setAmt({k:sp.key, v:String(sp.amount).replace(".",numDecSep())});
   useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
   if(!open) return null;
-  const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0];
+  const c=catOf(sp.cat), bk=gxSubBanco(sp), u0=sp.ult[0], f0=parseDate(u0.e.date);
+  const porPer=t(sp.per==="semana"?"gv5_sub_alasem":sp.per==="anio"?"gv5_sub_alanio":"gv5_sub_almes");
+  // Cuándo se cobra, según el periodo: el día del mes, el día de la semana o la fecha del año.
+  const cuando=sp.per==="semana"?tf("gv5_sub_dia_sem",{d:f0.toLocaleDateString(loc(),{weekday:"long"})})
+    :sp.per==="anio"?tf("gv5_sub_dia_anio",{d:f0.toLocaleDateString(loc(),{day:"numeric",month:"long"})})
+    :tf("gv5_sub_dia",{d:f0.getDate()});
   const tras=function(p){ Promise.resolve(p).then(function(ok){ if(ok!==false) swipe.close(); }); };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
@@ -243,11 +259,11 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
           React.createElement("span",{className:"gx-sub-ic gx-subf-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
           React.createElement("div",{className:"gx-sub-txt"},
             React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"gx-subf-nm"},sp.name),
-            React.createElement("span",{className:"gx-sub-meta"},tf("gv5_sub_dia",{d:parseDate(u0.e.date).getDate()})+" · "+(bk||t("gv5_sub_sinbanco"))),
+            React.createElement("span",{className:"gx-sub-meta"},cuando+" · "+(bk||t("gv5_sub_sinbanco"))),
             React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp))),
           React.createElement("span",{className:"gx-sub-am"},
             React.createElement("span",{className:"num serif gx-subf-amt"},eur(sp.amount)),
-            React.createElement("span",{className:"gx-sub-mes"},t("gv5_sub_almes")))),
+            React.createElement("span",{className:"gx-sub-mes"},porPer))),
         f.vuelve&&React.createElement("div",{className:"gx-sub-vuelve gx-subf-vuelve"},t("gv5_sub_vuelve")),
         React.createElement("div",{className:"gx-subf-et"},t("gv5_sub_ultimos")),
         React.createElement("div",{className:"gx-subf-hist"},
@@ -257,13 +273,13 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
               React.createElement("span",{className:"num gx-subf-fila-am"},eur(x.amount)));
           })),
         React.createElement("p",{className:"gx-subf-anio"},
-          tf(sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})+" "+t("gv5_sub_fijo")),
+          tf(sp.per!=="mes"||sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})+" "+t("gv5_sub_fijo")),
         React.createElement("label",{className:"gx-subf-imp"},
           React.createElement("span",null,t("gv5_sub_importe")),
           React.createElement("span",{className:"num"},
             React.createElement("input",{type:"text",inputMode:"decimal",value:amt.v,"data-testid":"sub-importe",
               onChange:function(e){ setAmt({k:sp.key, v:e.target.value}); }}),
-            " € "+t("gv5_sub_almes"))),
+            " € "+porPer)),
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-sub-accion":"recibos",
           onClick:function(){ onRecibos(sp, amt.v); swipe.close(); }}, t("gv5_sub_recibos")),
         React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-sub-accion":"baja",
@@ -1442,8 +1458,11 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     const useAmt=parseFloat(String(amtTxt).replace(",","."))||sp.amount;
     const acc=(state.accounts||[]).find(function(a){ return accRole(a)==="fijos"; })||(state.accounts||[]).find(function(a){ return accRole(a)==="ambos"; });
     // Con su mes de alta: el resumen del mes cerrado de Plan no lo cuenta en meses de antes.
-    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:"mes", account:(acc&&acc.ent)||"sabadell" });
-    const dd=parseDate(sp.ult[0].e.date).getDate(); if(dd>=1&&dd<=31) it.day=dd;
+    // Con su periodo: un anual apuntado «al mes» contaría doce veces lo que se paga (237).
+    const f0=parseDate(sp.ult[0].e.date), freq=sp.per==="semana"?"semana":sp.per==="anio"?"anual":"mes";
+    const it=conMesDeAlta({ id:uid(), name:sp.name, amount:useAmt, freq:freq, account:(acc&&acc.ent)||"sabadell" });
+    if(freq==="anual") it.months=[f0.getMonth()+1];
+    const dd=f0.getDate(); if(freq!=="semana"&&dd>=1&&dd<=31) it.day=dd;
     set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([it])}); });
     showToast(tf("gv5_sub_recibos_ok",{n:sp.name,b:entOf((acc&&acc.ent)||"sabadell").label}));
   };
@@ -1760,7 +1779,8 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   /* La cabecera de las otras secciones (SPEC §3): Categorías enseña el gasto del periodo y su
      margen (el mismo que arriba en Movimientos); Suscripciones, lo que suman al mes las que
      esperan decisión. No dependen del día visible: su `line` es siempre la misma. */
-  const subsMes=novelSubs.reduce(function(a,sp){ return a+(Number(sp.amount)||0); },0);
+  // Lo que pesa al mes cada una (`mensual`): un anual suma su doceava parte, no el cobro entero.
+  const subsMes=novelSubs.reduce(function(a,sp){ return a+(Number(sp.mensual)||0); },0);
   const cabSecc=useMemo(function(){
     let top;
     if(secc==="cats" && !catsActual){
@@ -2087,7 +2107,9 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
         // filtrado: va aparte, al pie de la lista (tanda 2).
         React.createElement("div",{style:{display:"flex",gap:8,marginBottom:9}},
           React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},stopSwipe),
-            React.createElement("span",{className:"searchbar-ic"},"🔍"),
+            // Lupa de línea, la de «Tus recibos»: el 🔍 de color era el único emoji del cromo de Gastos (237, P2-7).
+            React.createElement("svg",{className:"searchbar-ic",width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+              React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
             React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_search"),value:q,onChange:e=>setQ(e.target.value)}),
             q && React.createElement("button",{className:"searchbar-x",onClick:()=>setQ(""),title:"×"},"✕")
           ),
@@ -2130,7 +2152,6 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
        «es too much» de su pareja (10/9) era porque tapaba la lista, y aquí ya no tapa nada. */
     capa("cats", React.createElement("div",{className:"gx-cats","data-testid":"gastos-cats"},
       // Sin la pista no se adivina que tocar filtra y que mantener pulsado pone el límite.
-      catBreakdown.length>0 && React.createElement("p",{className:"hint"},t("gv5_cats_hint")),
       catBreakdown.length===0
         ? React.createElement("div",{className:"empty"},t("gv5_cats_vacio"))
         : React.createElement("div",{className:"gx-cats-lista"},catBreakdown.map(function(row){
@@ -2379,9 +2400,10 @@ const GastosLista=React.memo(function GastosLista({filtered, visible, state, cif
    Tiene que cuadrar con `.gx-head.compact.con-meses::before` y `.gx-meses` en shell.html. */
 const GX_MESES_SOBRE=36;
 /* Altos (px) con los que se estima un día de Movimientos antes de pintarlo: cabecera del día
-   (padding 18 + título), fila normal (~90 con la línea de abajo + hueco de 6; medido con
-   Pixel 5) y franja gris cerrada (48 + 2 de borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
-const GX_DIA_CAB=46, GX_FILA_ALTO=96, GX_GRIS_ALTO=56;
+   (padding 18 + título + 10 hasta el bloque), fila de dos líneas en el bloque del día (67, sin
+   hueco: medido a 393 y 412; a 360 la que baja el banco mide 78) y franja gris cerrada (48 + 2 de
+   borde + 6). Tienen que seguir a `.gx-dia`, `.gx-list .v4-mov` y `.gx-gris-h` en shell.html. */
+const GX_DIA_CAB=54, GX_FILA_ALTO=68, GX_GRIS_ALTO=56;
 /* Paginación de Movimientos (ver «LA PAGINACIÓN DE LA LISTA», punto 3): filas por tanda, a
    cuántos px del final de lo pintado se pide la siguiente y cuántas filas estimadas mide el
    colchón de debajo. Tandas pequeñas y pedidas con margen = cada pintado es corto y el fling
@@ -2521,6 +2543,21 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
       if(Math.abs(box.scrollLeft-want)>2) box.scrollTo({left:Math.max(0,want),behavior:mcReduced()?"auto":"smooth"});
     }
   },[ymSel, vista.compact, fijos, meses&&meses.length, l10nKeyOf()]);
+  /* Fundido solo en el borde por el que queda tira (237, P2-6): «agosto» cortado contra el borde
+     parecía un fallo. En el extremo no hay fundido, o apagaría la pastilla del mes en curso. Se
+     escribe en el estilo, sin estado: deslizar la tira no repinta la cabecera. */
+  const hayMeses=!!meses;
+  useEffect(function(){
+    const box=mesesRef.current; if(!box) return;
+    const bordes=function(){
+      const fin=box.scrollWidth-box.clientWidth-box.scrollLeft;
+      box.style.setProperty("--gx-fi",box.scrollLeft>1?"40px":"0px");
+      box.style.setProperty("--gx-fd",fin>1?"40px":"0px");
+    };
+    bordes();
+    box.addEventListener("scroll",bordes,{passive:true});
+    return function(){ box.removeEventListener("scroll",bordes); };
+  },[hayMeses, meses&&meses.length]);
   const tone=line.tone?" gx-tone-"+line.tone:"";
   const mesesVis=vista.compact||!!fijos;
   // `data-gx-vista` (el día que manda en la cabecera) es para los e2e: al final de la lista ya no
@@ -2949,21 +2986,24 @@ const MovRow=React.memo(function MovRow({e, l, onOpen, bucket, recibo, conBanco,
       "aria-label":reordenable?[shownName||"—",l||catName(e.category),importe,t("g_mov_reorden")].join(" · "):null,
       className:"v4-mov"+(skip?" v4-mov-skip":""),
       onClick:function(){ onOpen(e); },style:skip?{opacity:.72}:null},
-    React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
+    /* La MISMA fila que «Últimos movimientos» de Inicio (237, P2-5): el color de la categoría solo
+       en la baldosa, y debajo del nombre una línea gris «Categoría · Banco». Antes eran tres líneas
+       con la categoría en color: cabían cinco filas por pantalla y el mismo gasto se veía distinto
+       en cada pestaña. */
+    React.createElement("div",{className:"tile",style:{background:c.color+"22"}},c.icon),
     React.createElement("div",{className:"nm"},
       // Renombrado en vuelo: la lista enseña ya el nombre nuevo, igual que la ficha, sin tocar
       // `merchant` (eso solo cambia con el ack del servidor). En cuarentena vuelve al guardado.
       React.createElement("div",{className:"nm-title"}, shownName||"—",
         pendingName&&renameAvisoVisible(e.renamePending)?React.createElement("span",{"data-testid":"mov-rename-pending",role:"img",title:t("g_rename_pending"),"aria-label":t("g_rename_pending"),style:{marginLeft:6,opacity:.7}},"⏳"):null),
       note && React.createElement("div",{className:"nm-note"}, note),
-      // El color de la categoría va como variable y lo pinta el CSS: en el tema Claro, el pastel tal
-      // cual sobre blanco no se leía (1,9:1, auditoría 14/11) y ahí se oscurece (ver `.nm-cat`).
-      React.createElement("div",{className:"nm-cat",style:{"--cat":c.color}}, l||catName(e.category)),
-      meta.length?React.createElement("div",{className:"meta"},
-        banco?React.createElement("span",null,banco):null,
-        banco&&skipTxt?React.createElement("span",{className:"sep"},"·"):null,
-        skipTxt?React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt):null
-      ):null
+      React.createElement("div",{className:"nm-sub"},
+        React.createElement("span",{className:"nm-cat"}, l||catName(e.category)),
+        meta.length?React.createElement("span",{className:"meta"},
+          banco?React.createElement("span",null,banco):null,
+          banco&&skipTxt?React.createElement("span",{className:"sep"},"·"):null,
+          skipTxt?React.createElement("span",{style:{color:"var(--muted-2)"}}, skipTxt):null
+        ):null)
     ),
     React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, importe)
   );
@@ -3081,7 +3121,9 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
           React.createElement("div",{id:"gastos-filter-cats-body",className:"v4-filter-cats-body","aria-hidden":!filterCatsOpen},
             React.createElement("div",{className:"v4-filter-cats-inner"},
               React.createElement("div",{className:"searchbar",style:{margin:"12px 0"}},
-                React.createElement("span",{className:"searchbar-ic"},"🔍"),
+                // Lupa de línea, como en el buscador de Movimientos (237, P2-7).
+                React.createElement("svg",{className:"searchbar-ic",width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+                  React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
                 React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_filters_search"),value:qCat,onChange:function(e){ setQCat(e.target.value); }}),
                 qCat && React.createElement("button",{className:"searchbar-x",type:"button",onClick:function(){ setQCat(""); }},"✕")
               ),

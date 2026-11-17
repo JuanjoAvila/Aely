@@ -4114,9 +4114,11 @@ function subsDeRecibos(s, nowMs){
   if(ids.size) (s.expenses||[]).forEach(function(x){ if(x&&ids.has(x.id)) add(x); });
   return keys;
 }
+// Por comercio (`mkey`): si uno que cobra dos cosas ya es recibo, no se propone ninguna de las dos.
 function subEsRecibo(s, sp, keys){
-  if(keys&&keys.has(sp.key)) return true;
-  return (s.fixed||[]).some(function(f){ return catKey(f.name)===sp.key; });
+  const k=sp.mkey||sp.key;
+  if(keys&&keys.has(k)) return true;
+  return (s.fixed||[]).some(function(f){ return catKey(f.name)===k; });
 }
 // Identidad del cargo con el que el motor da por pagado un recibo; null si no es con ninguno.
 function reciboPagadoCon(st){

@@ -3565,8 +3565,10 @@ function rp4VistoEnBanco(state, max){
   // agua salía aquí con su cargo del mes ya en «Ya pagados» (11/11/2026).
   const subs=detectSubscriptions(ex), enlazados=subs.length?subsDeRecibos(state):null;
   return subs.filter(function(g){
-    if(!g.active||!(g.amount>0)||!g.ult.length) return false;
-    if(enlazados&&enlazados.has(g.key)) return false;
+    // Solo lo mensual: lo que se propone aquí se apunta como recibo de cada mes, y un antivirus
+    // anual de 39,99 € no son 39,99 € al mes (237).
+    if(!g.active||g.per!=="mes"||!(g.amount>0)||!g.ult.length) return false;
+    if(enlazados&&enlazados.has(g.mkey)) return false;
     return !fx.some(function(f){ return recNameMatch(f.name,g.name)||recNameMatch(g.name,f.name); });
   }).slice(0,max===0?Infinity:(max||3)).map(function(g){
     const e=g.ult[0].e;

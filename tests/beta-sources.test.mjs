@@ -6644,15 +6644,20 @@ test("Catálogo235 conserva dinero-234 sin veredicto, abre diseno-235, reancla l
   const PAST_OLD="  /* La pastilla activa va en MENTA, como el icono de sección activo:",PAST_NEW="  /* La pastilla activa va en MENTA, como la sección activa: en gris oscuro casi no se";
   const INV_OLD="      !simple && { id:\"inversiones\", label:t(\"v4_inversiones\"), el:React.createElement(\"div\",{className:\"rise\",\"data-cartera-sec\":\"inversiones\"",INV_NEW=INV_OLD.replace(" label:t(\"v4_inversiones\"),","");
   const BIENES_H={file:V07,from:"      titulo && parte===\"bienes\" && React.createElement(\"div\",{className:\"v4-sec-h v4-section-h\"},",to:"      parte!==\"bienes\" && React.createElement(\"div\",{className:\"v4-card-list\",ref:bindListDrag},"};
+  // Diseño 237 (Gastos, 17/11): la fila de movimientos va en un bloque por día y la categoría deja su color (queda en la
+  // baldosa). Las reglas de `.v4-mov .nm-cat` (y su versión del tema Claro) pasan a las de la línea «Categoría · Banco».
+  const FILA237={"  .gx-list .v4-mov{margin-top:0;gap:10px;":"  .gx-list .v4-mov{margin-top:0;gap:12px;","  .v4-mov .nm-cat{":"  .gx-list .v4-mov .nm-cat{",
+    "  html[data-theme=\"light\"] .v4-mov .nm-cat{":"  .gx-list .v4-mov .nm-cat:has(+ .meta)::after{"};
+  const aFila237=u=>u.file===SH&&FILA237[u.from]?{...u,from:FILA237[u.from]}:u;
   const reancla={
     "inc-2909-03-retirada":w=>w.map(aPago235).map(aRemate235),
     "inc-3009-01-cargos":w=>w.map(aRemate235),
     "recibos-cargo-unico":w=>w.map(aRemate235),
     "plan-recibos-qa":w=>w.map(aRemate235),
-    "gastos-v5-ciclos-metas-inversiones":w=>w.map(u=>u.file===V14&&u.from===INV_OLD?{...u,from:INV_NEW}:u),
+    "gastos-v5-ciclos-metas-inversiones":w=>w.map(u=>u.file===V14&&u.from===INV_OLD?{...u,from:INV_NEW}:u).map(aFila237),
     "bienes-completo":w=>w.concat([BIENES_H]),
     "inicio-patrimonio-flujos":w=>w.concat([{file:V02,function:"mcSinNada"}]),
-    "auditorias-233":w=>w.filter(u=>!(u.file==="src/modules/00-core.js"&&(u.function==="gestureAxis"||u.data==="GEST_LEAD"||u.data==="GEST_MAX"))&&!(u.file===SH&&u.from==="  .edit-link::after{")),
+    "auditorias-233":w=>w.filter(u=>!(u.file==="src/modules/00-core.js"&&(u.function==="gestureAxis"||u.data==="GEST_LEAD"||u.data==="GEST_MAX"))&&!(u.file===SH&&u.from==="  .edit-link::after{")).map(aFila237),
     // Cartera sin «Editar» (16/11/2026): fuera «Ordenar secciones» (`OrderableSections` ya no existe) y el
     // `.edit-link` del pie de inversiones; el bloque de Inversiones pierde su `label`, que solo leía el orden.
     "cartera-ordenar-brokers":w=>w.filter(u=>!(u.file===V02&&u.function==="OrderableSections")),
