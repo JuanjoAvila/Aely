@@ -132,17 +132,20 @@ test("editar la nómina desde la hoja: el primer número sustituye, el día se m
 });
 
 test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píldora e Inicio cuadran", async ({ page }) => {
-  // Decisión del dueño (revisión t3, B1). 800 €; Teléfono 30 del día 8 sin cargo del banco, Luz 300
-  // (15), Coche 200 (18) y Seguro 400 (25): 800 − 30 hoy − 300 − 200 − 400 = −130 el 25. Antes el
-  // recorrido daba el Teléfono por cobrado por fecha y decía «Pasa 100 €» con 930 € por pagar.
-  const recibos = await abrePlan(page, { accounts: cuenta(800),
+  // Decisión del dueño (revisión t3, B1). 800 € de base del mes; Teléfono 30 del día 8 sin cargo del
+  // banco, Luz 300 (15), Coche 200 (18) y Seguro 400 (25). Sembrado ya anclado (`_dynBalAnchored`):
+  // si la carga lo anclara, «Tienes hoy» no restaría el Teléfono y no se vería el caso (revisión de la
+  // 237, H2). El saldo mostrado ya lo resta por calendario (770); el recorrido lo cobra hoy y devuelve
+  // lo ya restado en su fila: 770 − 930 + 30 = −130 el 25, lo mismo que pide B1, sin restarlo dos veces.
+  const recibos = await abrePlan(page, { accounts: cuenta(800), _dynBalAnchored: true,
     fixed: [recibo("tel", "Teléfono", 30, 8), recibo("luz", "Luz", 300, 15), recibo("coche", "Coche", 200, 18), recibo("seg", "Seguro", 400, 25)] });
   await expect(recibos.getByTestId("plan-summary").locator(".pr6-big")).toHaveText("930,00 €");
   await expect(recibos.getByTestId("plan-llega")).toHaveText("Falta 130 €");
   const hoja = await abreLlega(page, recibos);
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
-  await expect(sab).toContainText("Tienes hoy800,00 €");
+  await expect(sab).toContainText("Tienes hoy770,00 €");
   await expect(sab).toContainText("Recibos que faltan− 930,00 €");
+  await expect(sab).toContainText("Sin cobrar, ya restado del saldo+ 30,00 €");
   await expect(sab.getByTestId("llega-cifra")).toHaveText("te faltan130,00 €");
   await expect(sab.getByTestId("llega-tip")).toHaveText("Pasa 130 € a Sabadell antes del 25");
   // Inicio: el mismo saldo y el Teléfono en «Para revisar» como «No ha llegado», por su importe.
@@ -150,12 +153,12 @@ test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píl
   await expect(hoja).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   const inicio = page.locator(".page-live").filter({ hasText: "Para revisar" });
-  await expect(inicio).toContainText("800,00 €");
+  await expect(inicio).toContainText("770,00 €");
   await expect(inicio).toContainText(/Teléfono\s*Sabadell · No ha llegado\s*30,00 €/);
-  expect(await saldoVisto(page)).toEqual([800]);
+  expect(await saldoVisto(page)).toEqual([770]);
   // El mínimo que usa Inicio (`totals.minByBank`, el del widget y el mínimo diario) sale de la
   // misma lista de eventos que la hoja: −130 desde el mismo saldo.
-  const min = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return minWalk(800, pendingWalkEvents(s, 2026, 10, 10).filter((e) => e.bank === "sabadell")).min; });
+  const min = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s); return minWalk(saldoCuentaMostrada(s.accounts[0], i), pendingWalkEvents(s, 2026, 10, 10).filter((e) => e.bank === "sabadell")).min; });
   expect(Math.round(min * 100)).toBe(-13000);
 });
 
@@ -225,7 +228,8 @@ for (const [como, extra, cifra] of [
 });
 
 test("vencido sin cobro: el simulador dice lo mismo que la hoja", async ({ page }) => {
-  const recibos = await abrePlan(page, { fixed: [recibo("luz", "Luz casa", 300, 5), recibo("seg", "Seguro hogar", 150, 20)] });
+  // Ya anclado (H2 de la 237): «Tienes hoy» 200 ya resta la Luz por calendario y la hoja la devuelve.
+  const recibos = await abrePlan(page, { _dynBalAnchored: true, fixed: [recibo("luz", "Luz casa", 300, 5), recibo("seg", "Seguro hogar", 150, 20)] });
   const hoja = await abreLlega(page, recibos);
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
   await expect(sab).toContainText("Recibos que faltan− 450,00 €");

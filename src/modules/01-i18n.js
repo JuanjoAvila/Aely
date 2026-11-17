@@ -162,7 +162,7 @@ const LANG = {
     pr6_de_una_vez:"De una vez", pr6_a_plazos:"A plazos", pr6_meses_n:"{n} meses", pr6_meses:"Meses", pr6_meses_min:"De 2 a 120 meses", pr6_entrada:"Entrada", pr6_entrada_x:"Entrada {x}", pr6_cuota_hasta:"Sin intereses, hasta {d}", pr6_al_mes:"{x}/mes", pr6_plazos_que:"¿Qué compras?", pr6_crear_deuda:"Crear la deuda", pr6_colchon:"Colchón tras el gasto", pr6_colchon_de:"{bank} · mín. {x}",
     pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
-    pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
+    pr6_sin_restar:"Pagado, aún sin restar del saldo", pr6_ya_restado:"Sin cobrar, ya restado del saldo", pr6_fresh_now:"saldo de ahora", pr6_fresh_min:"saldo de hace {n} min", pr6_fresh_h:"saldo de hace {n} h", pr6_fresh_ayer:"saldo de ayer", pr6_fresh_d:"saldo de hace {n} días", pr6_fresh_fecha:"saldo del {x}",
     // Plan › Recibos v6, tanda 6: resumen del mes cerrado, vista del mes siguiente y primer uso.
     pr6c_titulo:"{mes} cerrado", pr6c_total:"{x} en recibos", pr6c_vs:"{d} vs. {mes}", pr6c_vs_sin_datos:"vs. {mes}: sin datos de {largo}", pr6c_vs_sin_recibos:"vs. {mes}: sin recibos en {largo}", pr6c_igual:"igual que {mes}",
     pr6c_sube:"{name}, más que {mes}", pr6c_subio:"{name} subió", pr6c_bajo:"{name} bajó", pr6c_no_llegaron:"Recibos que no llegaron", pr6c_cerrar:"Cerrar el resumen",
@@ -500,7 +500,7 @@ const LANG = {
     pr6_de_una_vez:"All at once", pr6_a_plazos:"In instalments", pr6_meses_n:"{n} months", pr6_meses:"Months", pr6_meses_min:"2 to 120 months", pr6_entrada:"Down payment", pr6_entrada_x:"Down payment {x}", pr6_cuota_hasta:"Interest-free, until {d}", pr6_al_mes:"{x}/mo", pr6_plazos_que:"What are you buying?", pr6_crear_deuda:"Create the debt", pr6_colchon:"Cushion after spending", pr6_colchon_de:"{bank} · min. {x}",
     pr6_si_gasto:"What if I spend…?", pr6_importe:"Amount", pr6_si_llega:"Covered · {x} left", pr6_no_llega:"Not covered · short {x}",
     pr6_entra_en:"goes into {bank}", pr6_dia:"day {d}", pr6_dia_menos:"One day earlier", pr6_dia_mas:"One day later",
-    pr6_sin_restar:"Paid, not yet in the balance", pr6_fresh_now:"balance from just now", pr6_fresh_min:"balance from {n} min ago", pr6_fresh_h:"balance from {n} h ago", pr6_fresh_ayer:"balance from yesterday", pr6_fresh_d:"balance from {n} days ago", pr6_fresh_fecha:"balance from {x}",
+    pr6_sin_restar:"Paid, not yet in the balance", pr6_ya_restado:"Not charged, already in the balance", pr6_fresh_now:"balance from just now", pr6_fresh_min:"balance from {n} min ago", pr6_fresh_h:"balance from {n} h ago", pr6_fresh_ayer:"balance from yesterday", pr6_fresh_d:"balance from {n} days ago", pr6_fresh_fecha:"balance from {x}",
     // Plan › Bills v6, batch 6: closed-month summary, next-month view and first use.
     pr6c_titulo:"{mes} closed", pr6c_total:"{x} in bills", pr6c_vs:"{d} vs {mes}", pr6c_vs_sin_datos:"vs {mes}: no data for {largo}", pr6c_vs_sin_recibos:"vs {mes}: no bills in {largo}", pr6c_igual:"same as {mes}",
     pr6c_sube:"{name}, more than {mes}", pr6c_subio:"{name} went up", pr6c_bajo:"{name} went down", pr6c_no_llegaron:"Bills that didn't arrive", pr6c_cerrar:"Close the summary",
@@ -825,7 +825,7 @@ const LANG = {
     pr6_de_una_vez:"D'un cop", pr6_a_plazos:"A terminis", pr6_meses_n:"{n} mesos", pr6_meses:"Mesos", pr6_meses_min:"De 2 a 120 mesos", pr6_entrada:"Entrada", pr6_entrada_x:"Entrada {x}", pr6_cuota_hasta:"Sense interessos, fins a {d}", pr6_al_mes:"{x}/mes", pr6_plazos_que:"Què compres?", pr6_crear_deuda:"Crear el deute", pr6_colchon:"Coixí després de la despesa", pr6_colchon_de:"{bank} · mín. {x}",
     pr6_si_gasto:"I si gasto…?", pr6_importe:"Import", pr6_si_llega:"Arriba · et queden {x}", pr6_no_llega:"No arriba · falten {x}",
     pr6_entra_en:"entra a {bank}", pr6_dia:"dia {d}", pr6_dia_menos:"Un dia abans", pr6_dia_mas:"Un dia després",
-    pr6_sin_restar:"Pagat, encara sense restar del saldo", pr6_fresh_now:"saldo d'ara", pr6_fresh_min:"saldo de fa {n} min", pr6_fresh_h:"saldo de fa {n} h", pr6_fresh_ayer:"saldo d'ahir", pr6_fresh_d:"saldo de fa {n} dies", pr6_fresh_fecha:"saldo del {x}",
+    pr6_sin_restar:"Pagat, encara sense restar del saldo", pr6_ya_restado:"Sense cobrar, ja restat del saldo", pr6_fresh_now:"saldo d'ara", pr6_fresh_min:"saldo de fa {n} min", pr6_fresh_h:"saldo de fa {n} h", pr6_fresh_ayer:"saldo d'ahir", pr6_fresh_d:"saldo de fa {n} dies", pr6_fresh_fecha:"saldo del {x}",
     // Pla › Rebuts v6, tanda 6: resum del mes tancat, vista del mes següent i primer ús.
     pr6c_titulo:"{mes} tancat", pr6c_total:"{x} en rebuts", pr6c_vs:"{d} vs. {mes}", pr6c_vs_sin_datos:"vs. {mes}: sense dades {largo}", pr6c_vs_sin_recibos:"vs. {mes}: sense rebuts {largo}", pr6c_igual:"igual que {mes}",
     pr6c_sube:"{name}, més que {mes}", pr6c_subio:"{name} ha pujat", pr6c_bajo:"{name} ha baixat", pr6c_no_llegaron:"Rebuts que no han arribat", pr6c_cerrar:"Tanca el resum",

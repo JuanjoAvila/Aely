@@ -28,11 +28,13 @@ const estado = {
   settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell", "caixabank"] },
 };
 
-async function abreRecibos(page) {
+async function abreRecibos(page, cambia) {
   test.info().annotations.push({ type: "own-clock" });
   await page.clock.install({ time: new Date("2026-11-16T12:00:00+01:00") });
   await page.route("**/*", (x) => new URL(x.request().url()).hostname === "127.0.0.1" ? x.continue() : x.abort());
-  await seedLoggedInDashboard(page, JSON.parse(JSON.stringify(estado)));
+  const semilla = JSON.parse(JSON.stringify(estado));
+  if (cambia) cambia(semilla);
+  await seedLoggedInDashboard(page, semilla);
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await page.waitForFunction(() => !document.getElementById("mc-load"));
@@ -75,4 +77,31 @@ test("«¿Te llega?»: la luz sin «recibo» está pagada y el alquiler ya resta
     return [de("caixabank"), de("sabadell")];
   });
   expect(mins).toEqual([61610, 81574]);
+
+  // Cartera enseña el mismo «Tienes hoy» de cada cuenta (revisión de la 237, H7).
+  await page.locator(".v4-sheet-back").first().click({ position: { x: 20, y: 20 } });
+  await expect(hoja).toHaveCount(0);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await expect(page.locator('.page-live button.v4-mov[data-account-id="cxa"]')).toContainText("681,00 €");
+  await expect(page.locator('.page-live button.v4-mov[data-account-id="sab"]')).toContainText("845,74 €");
+});
+
+test("«¿Te llega?»: el alquiler sin cobro que ya resta «Tienes hoy» no se resta dos veces", async ({ page }) => {
+  // Revisión de la 237, H2: el alquiler va por transferencia al casero y no casa, así que queda sin
+  // prueba. Sigue siendo cargo de hoy (B1), pero «Tienes hoy» ya lo restó por calendario: se devuelve
+  // en su propia fila y la cifra vuelve a ser 616,10 €, no «Falta 34 €».
+  const recibos = await abreRecibos(page, (s) => { s.expenses = s.expenses.filter((x) => x.extId !== "t-alq"); });
+  await expect(recibos.getByTestId("plan-llega")).toHaveClass(/\bok\b/);
+  await expect(recibos.getByTestId("plan-llega")).not.toContainText("Falta");
+  await recibos.getByTestId("plan-llega").click();
+  const hoja = page.getByTestId("llega-sheet");
+  const cxa = hoja.locator('[data-testid="llega-banco"][data-bank="caixabank"]');
+  await expect(cxa).toContainText("Tienes hoy681,00 €");
+  await expect(cxa).toContainText("Recibos que faltan− 714,90 €");
+  await expect(cxa).toContainText("Sin cobrar, ya restado del saldo+ 650,00 €");
+  await expect(cxa.getByTestId("llega-cifra")).toHaveText("lo más justo, el 28616,10 €");
+  await page.locator(".v4-sheet-back").first().click({ position: { x: 20, y: 20 } });
+  await expect(hoja).toHaveCount(0);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await expect(page.locator('.page-live button.v4-mov[data-account-id="cxa"]')).toContainText("681,00 €");
 });

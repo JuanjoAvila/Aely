@@ -183,8 +183,65 @@ test("2 · cuenta de gasto diario: no resta el calendario sino el cargo de Gasto
   assert.equal(c.reciboEnElSaldo(estado({fixed:[netflix],expenses:[]}),netflix,Y,M,HOY,0,3,null,{paid:true,expense:null}),false);
 });
 
-test("2 · vencido SIN cobro: sigue siendo cargo de hoy (decisión del dueño, revisión t3 B1)",()=>{
-  const s=estado({expenses:[]});
+// ---------- Remate de la revisión (H1, H2, H5) ----------
+
+test("H2 · vencido SIN cobro: cargo de hoy (B1), pero lo ya restado del «Tienes hoy» se devuelve en su fila",()=>{
+  // El alquiler por transferencia a nombre del casero: no casa, queda sin prueba.
+  const s=estado({expenses:[]}),{out,llega}=bancos(s);
   assert.equal(pagado(s,alquiler).paid,false);
-  assert.ok(c.bankPendingEvents(s,"caixabank",Y,M,HOY).some(ev=>!ev.sinRestar&&ev.day===HOY&&cents(ev.amt)===-65000));
+  const evs=c.bankPendingEvents(s,"caixabank",Y,M,HOY);
+  assert.ok(evs.some(ev=>!ev.sinRestar&&!ev.yaRestado&&ev.day===HOY&&cents(ev.amt)===-65000),"sigue siendo cargo de hoy");
+  assert.ok(evs.some(ev=>ev.yaRestado&&cents(ev.amt)===65000),"y se devuelve lo que el saldo ya restó");
+  // 681 − (650 + 64,90) + 650 = 616,10: ya no «Falta 34 €». Tienes hoy − filas = cifra.
+  assert.deepEqual(out.caixabank,{bal:68100,pend:71490,sinRestar:0,min:61610});
+  assert.equal(cents(c.planRecibosBancos(totalsDe(s,"2026-11-16"),c.planChargesMonth(s,M,Y,HOY),null).find(b=>b.bank==="caixabank").yaRestado),65000);
+  assert.deepEqual(llega,{ok:true});
+});
+
+test("H2 · con lectura: solo se devuelve si el calendario lo restó DESPUÉS de leer",()=>{
+  // Sabadell leído el 2/11 y una luz del 8 sin cobro: el saldo mostrado la restó al cruzar el 8.
+  const sinLuz=estado({bankTx:[]});
+  assert.equal(pagado(sinLuz).paid,false);
+  assert.deepEqual(bancos(sinLuz).out.sabadell,{bal:84574,pend:8426,sinRestar:0,min:81574});
+  // Leído el 9 (ya con el día cruzado y sin cargo): el saldo del banco no lo lleva, resta una vez.
+  const leido9=estado({bankTx:[],obBalAt:{"Banco Sabadell":"2026-11-09T08:00:00Z"}});
+  assert.ok(!c.bankPendingEvents(leido9,"sabadell",Y,M,HOY).some(ev=>ev.yaRestado));
+  assert.equal(bancos(leido9).out.sabadell.min,bancos(leido9).out.sabadell.bal-8426);
+  // En una cuenta de gasto diario el calendario no resta: nada que devolver.
+  const gym={id:"gym",name:"Gimnasio",amount:40,day:3,account:"revolut",freq:"mes"};
+  assert.ok(!c.bankPendingEvents(estado({fixed:[luz,agua,alquiler,seguro,gym]}),"revolut",Y,M,HOY).some(ev=>ev.yaRestado));
+});
+
+test("H1 · recibo compartido: el saldo resta tu parte, el banco cobra el entero; la diferencia sigue sin restar",()=>{
+  // Luz de 100 a medias (tu parte 50) del día 8 en Sabadell; agua de 30 el 25.
+  const reparto=[{id:"p1",n:"Pareja",via:"bizum",amt:50}];
+  const comp=x=>Object.assign({},luz,{amount:50,bankAmount:100,reparto},x);
+  const cargo100=cargo({amount:100});
+  // Pagada con el BOOK y la lectura de antes del cargo (el 2): Tienes 900 − 50 = 850; faltan 50 + 30.
+  const book=estado({fixed:[comp(),agua,alquiler,seguro],bankTx:[cargo100]});
+  assert.equal(pagado(book,comp()).paid,true);
+  assert.deepEqual(bancos(book).out.sabadell,{bal:85000,pend:3000,sinRestar:5000,min:77000});
+  // Lectura posterior al cargo (el 9): el saldo del banco ya lleva los 100.
+  const leido=estado({fixed:[comp(),agua,alquiler,seguro],bankTx:[cargo100],obBalAt:{"Banco Sabadell":"2026-11-09T08:00:00Z"}});
+  assert.deepEqual(bancos(leido).out.sabadell,{bal:85000,pend:3000,sinRestar:0,min:82000});
+  // Marca a mano, sin lectura ni extracto: igual que el BOOK.
+  const mano=estado({fixed:[comp({paidYm:2026*12+11,paidDay:8}),agua,alquiler,seguro],bankTx:[],obBalAt:{}});
+  assert.deepEqual(bancos(mano).out.sabadell,{bal:85000,pend:3000,sinRestar:5000,min:77000});
+  // Y sin cobro: cargo de hoy por el entero, se devuelve tu parte ya restada.
+  const sinCobro=estado({fixed:[comp(),agua,alquiler,seguro],bankTx:[],obBalAt:{}});
+  assert.equal(bancos(sinCobro).out.sabadell.min,85000-10000-3000+5000);
+  // El segundo banco (CaixaBank) no se mueve con nada de esto.
+  for(const s of [book,leido,mano,sinCobro]) assert.equal(bancos(s).out.caixabank.min,61610);
+});
+
+test("H5 · casar por comercio solo en suministros y recibos, no en una categoría de tienda",()=>{
+  // La categoría de tienda que el código da a ese comercio (hoy «super»): el recibo la lleva igual.
+  const tienda=c.autoCategoryKw("amazon marketplace");
+  assert.ok(tienda&&!["luz","gas","agua","recibos","tasas","otros"].includes(tienda),"es de tienda: "+tienda);
+  const prime={id:"prime",name:"Suscripción",amount:4.99,day:8,account:"sabadell",category:tienda,freq:"mes"};
+  const compra=cargo({id:"t-amz",amount:4.99,merchant:"AMAZON MARKETPLACE",concept:"AMAZON MARKETPLACE"});
+  assert.equal(pagado(estado({fixed:[prime,agua],bankTx:[compra]}),prime).paid,false,"…pero una compra sin «recibo» no paga una suscripción de tienda");
+  for(const cat of ["luz","gas","agua","recibos","tasas"]) assert.equal(c.fixedPaymentComercioDelRecibo({merchant:"x"},{category:cat}),false,cat+": sin comercio de la categoría, no");
+  assert.equal(c.fixedPaymentComercioDelRecibo({merchant:"VODAFONE ESPANA SAU"},{category:"recibos"}),true,"teléfono");
+  assert.equal(c.fixedPaymentComercioDelRecibo({merchant:"CANAL DE ISABEL II"},{category:"agua"}),true,"agua");
 });

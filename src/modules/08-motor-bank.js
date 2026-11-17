@@ -566,11 +566,14 @@ const RECIBO_NO_ADEUDO_RE=/\b(transferencias?|transfer|traspasos?|transf|bizum|d
    tiene categoría y el comercio del cargo es, por las palabras fijas del código (`autoCategoryKw`,
    no las que aprende cada móvil, para que los dos digan lo mismo), de ESA categoría, vale como la
    palabra «recibo». Todo lo demás no cambia: céntimo exacto y día ±`CUOTA_DIAS` para pagar solo,
-   y ni tarjeta, ni cajero, ni transferencia, traspaso, bizum o devolución. Sin categoría en el
-   recibo, o con «otros» o una neutra, no hay comercio que compare. */
+   y ni tarjeta, ni cajero, ni transferencia, traspaso, bizum o devolución.
+   Solo en suministros y recibos de verdad (luz, gas, agua, teléfono e internet, tasas): la marca
+   `card` del extracto se saca por texto, y con un recibo de «compras» una compra con tarjeta mal
+   rotulada al céntimo pasaría por el recibo (revisión de la 237, H5). Sin categoría, o de otra, no
+   hay comercio que compare. */
 function fixedPaymentComercioDelRecibo(tx,c){
   var cat=c&&c.category;
-  if(!cat||cat==="otros"||cat==="ingreso"||CAT_NEUTRAS[cat]) return false;
+  if(!({luz:1,gas:1,agua:1,recibos:1,tasas:1})[cat]) return false;
   return [tx.merchant,tx.obName,tx.concept].some(function(t){ var n=recNorm(t);return n.length>=4&&autoCategoryKw(n)===cat; });
 }
 // Lo que el banco dice que NO es un adeudo manda sobre el comercio y sobre la palabra.
@@ -2719,10 +2722,28 @@ function pendingWalkEvents(state, y, m, today){
     // Pagado por otro lado: este banco ya no lo va a cobrar (misma regla que el saldo y los totales).
     if(fixedPagadoFuera(state,e,y,m,today)) return;
     const st=fixedPaymentState(state,e,y,m,today);
-    if(st.paid&&reciboEnElSaldo(state,e,y,m,today,leido[b],st.day,bp,st)) return;
     // El banco cobra el recibo entero aunque lo compartas: lo de los demás llega después (SPEC §6).
-    const banco=fixedCargoBanco(e,m,y);
-    evs.push(st.paid?{bank:b, day:hoy(dayIn(e,m,y)), amt:-banco, sinRestar:true}:{bank:b, day:hoy(dayIn(e,m,y)), amt:-banco});
+    const banco=fixedCargoBanco(e,m,y), dia=hoy(dayIn(e,m,y));
+    if(st.paid){
+      const dentro=reciboEnElSaldo(state,e,y,m,today,leido[b],st.day,bp,st);
+      /* Si lo lleva el `paidNet` de una cuenta de recibos y no una lectura del banco posterior al
+         cobro, el saldo mostrado resta solo TU parte: lo que el banco cobró de más sigue sin restar
+         (revisión de la 237, H1: una luz de 100 a medias daba un mínimo 50 € más alto de lo que hay). */
+      const dd=Number(st.day)>0?Number(st.day):1;
+      const leidoTras=leido[b]>0&&leido[b]>=new Date(y,m-1,dd+1).getTime();
+      const fija=(state.accounts||[]).some(function(x){ return x&&x.ent===b&&accFixed(x); });
+      const resto=!dentro?banco:fija&&!leidoTras?Math.round((banco-a)*100)/100:0;
+      if(resto>0.005) evs.push({bank:b, day:dia, amt:-resto, sinRestar:true});
+      return;
+    }
+    evs.push({bank:b, day:dia, amt:-banco});
+    /* Sin cobro, sigue siendo un cargo de hoy (B1). Pero si el «Tienes hoy» de una cuenta de recibos
+       ya restó tu parte por calendario (`fixedEnSaldoMostrado`), esa parte se devuelve para no restarla
+       dos veces: era el «Falta 34 €» con un alquiler por transferencia que no casa (revisión de la 237,
+       H2). Va el día −1, antes que todo (también de lo que no tiene día), para que no se cuele en el
+       mínimo, y en su propia fila de la hoja (`yaRestado`): «Tienes hoy − filas = cifra» se sigue
+       cumpliendo con el recibo en «Recibos que faltan». */
+    if(fixedEnSaldoMostrado(state,e,y,m,today,leido[b],bp)) evs.push({bank:b, day:-1, amt:a, yaRestado:true});
   });
   (state.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
@@ -2803,7 +2824,9 @@ function saldoLeidoDelBanco(state, bank){
    - En un banco solo de gasto diario, el cargo de Gastos que lo pagó si ya cuenta en el gastado.
    - Cobrado ANTES de su día o sin día, sin lectura posterior: el saldo mostrado aún no lo resta y
      el recorrido sí (lo fija `fixed-ispaidin`).
-   `bp`: el de `fixedSaldoBp`, para no recalcularlo por recibo; `st`, el de `fixedPaymentState`. */
+   `bp`: el de `fixedSaldoBp`, para no recalcularlo por recibo; `st`, el de `fixedPaymentState`.
+   Dice si está, no cuánto: en un compartido el `paidNet` solo lleva tu parte (lo resuelve
+   `pendingWalkEvents`, H1). */
 function reciboEnElSaldo(state, e, y, m, today, leidoMs, dia, bp, st){
   if(e.paidYm===y*12+m) return true;
   const p=fixedPaymentProof(state,e,y,m,today);
@@ -2818,12 +2841,8 @@ function reciboEnElSaldo(state, e, y, m, today, leidoMs, dia, bp, st){
     const x=st&&st.expense;
     return !!x&&expenseBankOf(x)===accOf(e)&&expenseCountsCash(x,state);
   }
-  if(!fixedRestaDelSaldo(state,e,y,m,today,bp)) return false;
-  if(!(leidoMs>0)) return true;
-  // El día de la lectura con el mismo reloj que `today` y que el `d+1` de arriba (el del móvil).
-  const l=new Date(leidoMs),lm=l.getFullYear()*12+l.getMonth()+1,dd=dayIn(e,m,y);
-  const alLeer=lm>y*12+m||lm===y*12+m&&dd!=null&&dd<=l.getDate();
-  return !alLeer;
+  // La misma regla que el saldo mostrado, con la lectura del banco (`fixedEnSaldoMostrado`, 07).
+  return fixedEnSaldoMostrado(state,e,y,m,today,leidoMs,bp);
 }
 // Los de un solo banco: la vista con la que las pruebas comprueban el recorrido de cada cuenta.
 function bankPendingEvents(state, bank, y, m, today){

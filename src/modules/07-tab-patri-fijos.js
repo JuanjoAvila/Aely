@@ -800,6 +800,19 @@ function fixedRestaDelSaldo(s,e,y,m,t,bp){
   if(bp===undefined) bp=fixedSaldoBp(s,y,m,t);
   return (closed||!!(bp&&bp[e.id])||isPaidIn(e,m,t,y,s))&&!fixedPagadoFuera(s,e,y,m,t);
 }
+/* ¿El «Tienes hoy» de su banco lleva ya restado este recibo (TU parte, `occAmountIn`)? Solo en un
+   banco con cuenta de recibos (las de gasto diario no llevan `paidNet`) y con `fixedRestaDelSaldo`.
+   Con lectura del banco, al anclar se sumó el `paidNet` de ese momento: lo que el calendario ya daba
+   por cobrado al leer queda neutro, así que solo cuenta si cruzó su día DESPUÉS de la lectura (el
+   día de la lectura con el reloj del móvil, como `today`). Sirve igual para un recibo pagado que
+   para uno sin cobro (revisión de la 237, H2). ⚠ No sabe si al leer había un `wait` (H4) ni si el
+   banco ya lo cobró antes de su día y antes de leer (H3): en los dos el saldo mostrado resta de más. */
+function fixedEnSaldoMostrado(s,e,y,m,t,leidoMs,bp){
+  if(!(s.accounts||[]).some(function(a){ return a&&a.ent===accOf(e)&&accFixed(a); })||!fixedRestaDelSaldo(s,e,y,m,t,bp)) return false;
+  if(!(leidoMs>0)) return true;
+  const l=new Date(leidoMs),lm=l.getFullYear()*12+l.getMonth()+1,dd=dayIn(e,m,y);
+  return !(lm>y*12+m||lm===y*12+m&&dd!=null&&dd<=l.getDate());
+}
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
@@ -930,7 +943,7 @@ function monthNetForAccount(s, ent, y, m, t){
   const hit=function(d){ return closed ? true : (d!=null && d<=t); };
   const bp=fixedSaldoBp(s,y,m,t);
   let net=0;
-  // El recibo, con la regla compartida con «¿Te llega?» y `totals` (`fixedRestaDelSaldo`).
+  // El recibo, con la regla compartida con «¿Te llega?» (`fixedRestaDelSaldo`).
   (s.fixed||[]).forEach(function(e){ if(accOf(e)===ent && fixedRestaDelSaldo(s,e,y,m,t,bp)) net -= occAmountIn(e,m,y); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
