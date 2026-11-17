@@ -4975,19 +4975,27 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
         const pad=vv?Math.max(0, window.innerHeight-(vv.height+vv.offsetTop)):0;
         setKbPad(pad>24?Math.round(pad):0);
         // Con teclado (encima o encogiendo la WebView), la hoja no pasa de lo que queda a la vista.
-        setVvAlto(altoSinTecladoRef.current-visto>80?Math.round(visto):0);
+        const hay=altoSinTecladoRef.current-visto>80;
+        setVvAlto(hay?Math.round(visto):0);
+        /* Con el teclado ya fuera, el toque que enfocó ha terminado: la hoja se compacta en el mismo
+           fotograma en que se recorta. Si se recortaba antes, se veía un instante a −142 px o con el
+           numérico montado (filtro de diseño 239, segunda vuelta). */
+        if(hay) setKbVista(true);
       }catch(e){ setKbPad(0); setVvAlto(0); }
     };
     sync();
+    /* Desde el evento, aplicado antes de pintar: con el render normal, el primer fotograma con la
+       ventana ya encogida salía con la hoja sin recortar. */
+    const alActo=function(){ try{ ReactDOM.flushSync(sync); }catch(e){ sync(); } };
     const vv=window.visualViewport;
-    if(vv){ vv.addEventListener("resize",sync); vv.addEventListener("scroll",sync); }
-    window.addEventListener("resize",sync);
+    if(vv){ vv.addEventListener("resize",alActo); vv.addEventListener("scroll",alActo); }
+    window.addEventListener("resize",alActo);
     const baja=function(){ dedoRef.current=true; }, sube=function(){ dedoRef.current=false; };
     document.addEventListener("pointerdown",baja,true); document.addEventListener("pointerup",sube,true);
     document.addEventListener("pointercancel",sube,true);
     return function(){
-      if(vv){ vv.removeEventListener("resize",sync); vv.removeEventListener("scroll",sync); }
-      window.removeEventListener("resize",sync);
+      if(vv){ vv.removeEventListener("resize",alActo); vv.removeEventListener("scroll",alActo); }
+      window.removeEventListener("resize",alActo);
       document.removeEventListener("pointerdown",baja,true); document.removeEventListener("pointerup",sube,true);
       document.removeEventListener("pointercancel",sube,true);
       dedoRef.current=false;

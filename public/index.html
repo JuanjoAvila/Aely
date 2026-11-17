@@ -1955,15 +1955,24 @@
   .v4-ficha-body[data-kb="1"] .v4-ficha-kbfold{grid-template-rows:0fr;opacity:0;visibility:hidden;
     transition:grid-template-rows .3s var(--ease) 60ms,opacity .1s ease-out,visibility 0s .36s;}
   /* Recogiéndose, el numérico no va pegado al fondo: con el teclado encima la hoja se recorta y,
-     pegado, se montaba un instante sobre el concepto y el pago. */
-  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;}
+     pegado, se montaba un instante sobre el concepto y el pago. Y se va de golpe: su sitio es justo el
+     que ocupa el teclado del sistema. Fundiéndose o plegándose, dejaba un hueco vacío de ~140 px sobre
+     «Listo» o la hoja recortada a media altura (filtro de diseño 239, segunda vuelta). Al volver sí
+     se despliega con la transición de siempre. */
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;transition:none;}
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold.abajo{transition:none;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{transition:font-size .3s var(--ease),min-height .3s var(--ease);}
   .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-amount{font-size:30px;min-height:40px;}
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){padding-bottom:16px;}
   /* Y la hoja sube y baja con el teclado del sistema en vez de saltar (el margen lo pone el JS).
      Solo Apuntar: Modificar comparte `.v4-exp-sheet` y no mueve el margen con el teclado. */
   .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
-  .v4-ficha-body[data-testid="ap"] > .v4-ficha-kbfold.teclas{position:sticky;bottom:0;z-index:1;background:var(--bg-2);}
+  /* El margen sube con el teclado, pero al irse baja de golpe: bajando a la vez que vuelven el pago y el
+     numérico, con letra Enorme la hoja se salía un instante por arriba (filtro de diseño 239). Con el
+     teclado puesto manda la regla de arriba; esta es la de volver. */
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]:not([data-kb])){transition:transform .3s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  .v4-ficha-body[data-testid="ap"] > .v4-ficha-kbfold.teclas{position:sticky;bottom:0;z-index:1;background:var(--bg-2);
+    transition:grid-template-rows .3s var(--ease),opacity .15s linear,visibility 0s;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{margin:0;padding:4px 0 8px;gap:6px;}
   /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
      (56 px, las pidió él): una sola fila de categorías, y algo menos de aire alrededor del importe
@@ -1996,6 +2005,17 @@
      Con el 92 % cabe; a esa altura ya tapaba la línea de resumen igual, así que no se pierde nada. */
   @media (min-height:701px) and (max-height:780px){
     .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){max-height:calc(92dvh / var(--zoom,1));}
+  }
+  /* Un concepto en dos renglones no puede costar una fila de categorías (a 393 se perdía la segunda tras
+     «Listo»): la hoja crece ese renglón, sin pasar nunca de la barra de estado. En móviles bajos ya va
+     a pantalla completa. */
+  @media (min-height:701px){
+    .v4-sheet.v4-exp-sheet:has(.v4-ficha-concept-area[data-renglones="2"]){
+      max-height:min(calc(88dvh / var(--zoom,1) + 24px),calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1)));}
+  }
+  @media (min-height:701px) and (max-height:780px){
+    .v4-sheet.v4-exp-sheet:has(.v4-ficha-concept-area[data-renglones="2"]){
+      max-height:min(calc(92dvh / var(--zoom,1) + 24px),calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1)));}
   }
   /* Letra Muy grande y Enorme (DIS-07): las teclas conservan su alto en pantalla (56 px reales,
      no 56 × zoom) y las categorías van en una fila que se desliza de lado en vez de aplastarse. */
@@ -2081,7 +2101,8 @@
   .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px dashed var(--muted-2);
     display:grid;place-items:center;color:var(--muted);font-size:15px;font-weight:700;line-height:1;}
   @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;}
-    .v4-ficha-body[data-kb] .v4-ficha-kbfold,.v4-ficha-body .v4-ficha-kbfold,.v4-ficha-body[data-testid] .v4-ficha-amount{transition:none;} }
+    .v4-ficha-body[data-kb] .v4-ficha-kbfold,.v4-ficha-body .v4-ficha-kbfold,.v4-ficha-body[data-testid] .v4-ficha-amount,
+    .v4-ficha-body[data-testid][data-kb] > .v4-ficha-kbfold.teclas,.v4-ficha-body[data-testid] > .v4-ficha-kbfold.teclas{transition:none;} }
   /* Con Efectivo la píldora no se pinta, pero guarda su sitio: la fila no salta al cambiar. */
   .v4-ficha-pay > .v4-ficha-meta-pill.off{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s .2s;}
   .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);
@@ -14234,6 +14255,9 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       const alto=el.scrollHeight;
       el.style.height=Math.min(alto,max)+"px";
       el.style.overflowY=alto>max+1?"auto":"hidden";
+      // La hoja de Apuntar crece ese renglón (shell.html) para no perder una fila de categorías.
+      const dos=alto>lh*1.5+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      if((el.getAttribute("data-renglones")==="2")!==dos) el.setAttribute("data-renglones",dos?"2":"1");
     };
     mide();
     window.addEventListener("resize",mide);
@@ -14350,7 +14374,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         const y=top0-extra*zoom, r=textoPartido(y); if(!r) break;
         const mas=(y-(r.top-6))/zoom;
         // Si para taparlo habría que pasar del alto máximo, el borde baja hasta dejarlo entero encima.
-        if(extra+mas>max-base){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
+        // Con el teclado, como mucho un renglón: más es una franja vacía sobre el asa (filtro 239, a 360 con Enorme).
+        if(extra+mas>Math.min(max-base,kb?28:Infinity)){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
         extra+=mas;
       }
       if(extra>0){ hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px"; rellenoExtraRef.current=extra; }
@@ -14374,7 +14399,9 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",kb?programa:ajusta);
       if(vv) vv.removeEventListener("resize",programa);
     };
-  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo,kb]);
+  // Escribiendo, el concepto que pasa a dos renglones vuelve a medir el borde: el relleno de arriba
+  // puesto con uno solo dejaba una franja vacía y tapaba las categorías (filtro 239, a 360 con Enorme).
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo,kb,kb?concept:null]);
   const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
@@ -14387,7 +14414,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     return React.createElement("div",{className:"v4-ficha-kbfold"+(cls?" "+cls:""),"aria-hidden":kb?"true":null,inert:kb?"":undefined},
       React.createElement("div",{className:"v4-ficha-kbfold-in"},hijo));
   };
-  const metaBlock=React.createElement(React.Fragment,{key:"meta"},pliega(null,payRow),afterMeta||null);
+  // Con las categorías delante, el pago queda pegado al numérico y se va con él (`abajo`, shell.html).
+  const metaBlock=React.createElement(React.Fragment,{key:"meta"},pliega(catsFirst?"abajo":null,payRow),afterMeta||null);
   // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
   const todasBtn=function(cls,hijos){
     return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
@@ -32815,7 +32843,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="05a1d5176fcc2ea20e9d1e372d1ce7b92cb1cd7020cc9e8b697764f24ecc7024";
+var _rnSha="40b62362e63059676001c056bd5f3de266fbaefed1373174596e247f23563bfe";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39351,19 +39379,27 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
         const pad=vv?Math.max(0, window.innerHeight-(vv.height+vv.offsetTop)):0;
         setKbPad(pad>24?Math.round(pad):0);
         // Con teclado (encima o encogiendo la WebView), la hoja no pasa de lo que queda a la vista.
-        setVvAlto(altoSinTecladoRef.current-visto>80?Math.round(visto):0);
+        const hay=altoSinTecladoRef.current-visto>80;
+        setVvAlto(hay?Math.round(visto):0);
+        /* Con el teclado ya fuera, el toque que enfocó ha terminado: la hoja se compacta en el mismo
+           fotograma en que se recorta. Si se recortaba antes, se veía un instante a −142 px o con el
+           numérico montado (filtro de diseño 239, segunda vuelta). */
+        if(hay) setKbVista(true);
       }catch(e){ setKbPad(0); setVvAlto(0); }
     };
     sync();
+    /* Desde el evento, aplicado antes de pintar: con el render normal, el primer fotograma con la
+       ventana ya encogida salía con la hoja sin recortar. */
+    const alActo=function(){ try{ ReactDOM.flushSync(sync); }catch(e){ sync(); } };
     const vv=window.visualViewport;
-    if(vv){ vv.addEventListener("resize",sync); vv.addEventListener("scroll",sync); }
-    window.addEventListener("resize",sync);
+    if(vv){ vv.addEventListener("resize",alActo); vv.addEventListener("scroll",alActo); }
+    window.addEventListener("resize",alActo);
     const baja=function(){ dedoRef.current=true; }, sube=function(){ dedoRef.current=false; };
     document.addEventListener("pointerdown",baja,true); document.addEventListener("pointerup",sube,true);
     document.addEventListener("pointercancel",sube,true);
     return function(){
-      if(vv){ vv.removeEventListener("resize",sync); vv.removeEventListener("scroll",sync); }
-      window.removeEventListener("resize",sync);
+      if(vv){ vv.removeEventListener("resize",alActo); vv.removeEventListener("scroll",alActo); }
+      window.removeEventListener("resize",alActo);
       document.removeEventListener("pointerdown",baja,true); document.removeEventListener("pointerup",sube,true);
       document.removeEventListener("pointercancel",sube,true);
       dedoRef.current=false;

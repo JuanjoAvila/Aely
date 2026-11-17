@@ -2893,6 +2893,9 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       const alto=el.scrollHeight;
       el.style.height=Math.min(alto,max)+"px";
       el.style.overflowY=alto>max+1?"auto":"hidden";
+      // La hoja de Apuntar crece ese renglón (shell.html) para no perder una fila de categorías.
+      const dos=alto>lh*1.5+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      if((el.getAttribute("data-renglones")==="2")!==dos) el.setAttribute("data-renglones",dos?"2":"1");
     };
     mide();
     window.addEventListener("resize",mide);
@@ -3009,7 +3012,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         const y=top0-extra*zoom, r=textoPartido(y); if(!r) break;
         const mas=(y-(r.top-6))/zoom;
         // Si para taparlo habría que pasar del alto máximo, el borde baja hasta dejarlo entero encima.
-        if(extra+mas>max-base){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
+        // Con el teclado, como mucho un renglón: más es una franja vacía sobre el asa (filtro 239, a 360 con Enorme).
+        if(extra+mas>Math.min(max-base,kb?28:Infinity)){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
         extra+=mas;
       }
       if(extra>0){ hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px"; rellenoExtraRef.current=extra; }
@@ -3033,7 +3037,9 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",kb?programa:ajusta);
       if(vv) vv.removeEventListener("resize",programa);
     };
-  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo,kb]);
+  // Escribiendo, el concepto que pasa a dos renglones vuelve a medir el borde: el relleno de arriba
+  // puesto con uno solo dejaba una franja vacía y tapaba las categorías (filtro 239, a 360 con Enorme).
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo,kb,kb?concept:null]);
   const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
@@ -3046,7 +3052,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     return React.createElement("div",{className:"v4-ficha-kbfold"+(cls?" "+cls:""),"aria-hidden":kb?"true":null,inert:kb?"":undefined},
       React.createElement("div",{className:"v4-ficha-kbfold-in"},hijo));
   };
-  const metaBlock=React.createElement(React.Fragment,{key:"meta"},pliega(null,payRow),afterMeta||null);
+  // Con las categorías delante, el pago queda pegado al numérico y se va con él (`abajo`, shell.html).
+  const metaBlock=React.createElement(React.Fragment,{key:"meta"},pliega(catsFirst?"abajo":null,payRow),afterMeta||null);
   // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
   const todasBtn=function(cls,hijos){
     return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);

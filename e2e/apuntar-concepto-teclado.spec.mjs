@@ -82,7 +82,25 @@ const entero = (page) => page.evaluate(() => {
     renglones: Math.round((el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)) / parseFloat(cs.lineHeight)) };
 });
 
-const TAMANOS = [[412, 915, 340], [360, 740, 290]];
+// Registro por fotograma (rAF) durante 700 ms al abrir el teclado: borde de la hoja, concepto, hueco antes de
+// «Listo» (lo último que se ve, con opacidad, encima de él) y «Listo» frente al borde visible. Una foto al final
+// no ve el hueco de ~140 px ni la hoja a −142 px que salían a mitad (filtro de diseño 239, segunda vuelta).
+const graba = (page) => page.evaluate(() => new Promise((ok) => {
+  const out = [], t0 = performance.now();
+  const f = () => {
+    const hoja = document.querySelector(".v4-exp-sheet"), c = hoja.querySelector(".v4-ficha-concept"), l = hoja.querySelector(".v4-cta");
+    const rl = l.getBoundingClientRect(), abajo = Math.min(innerHeight, window.visualViewport ? window.visualViewport.height : innerHeight);
+    const vis = [...hoja.querySelectorAll(".v4-ficha-body > *")].filter((el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      return r.height > 0.5 && +cs.opacity > 0.05 && cs.visibility !== "hidden" && r.bottom <= rl.top + 2; });
+    out.push({ t: performance.now() - t0, top: hoja.getBoundingClientRect().top, c: c.getBoundingClientRect().top,
+      hueco: rl.top - Math.max(0, ...vis.map((el) => el.getBoundingClientRect().bottom)), bajo: abajo - rl.bottom });
+    if (performance.now() - t0 < 700) requestAnimationFrame(f); else ok(out);
+  };
+  requestAnimationFrame(f);
+}));
+const nCats = (page) => page.locator(".v4-exp-sheet .v4-ficha-cats .v4-ficha-cat:visible").count();
+
+const TAMANOS = [[412, 915, 340], [393, 851, 323], [360, 740, 290]];
 
 for (const [w, h, teclado] of TAMANOS) {
   for (const modo of ["encoge", "encima"]) {
@@ -105,9 +123,22 @@ for (const [w, h, teclado] of TAMANOS) {
           window.__teclado = (px) => { vv.height = innerHeight - px; ev.dispatchEvent(new Event("resize")); };
         });
       }
+      const catsAntes = await nCats(page);
       await hoja.locator(".v4-ficha-concept").click();
+      const registro = graba(page);
       if (modo === "encoge") await page.setViewportSize({ width: w, height: h - teclado });
       else await page.evaluate((px) => window.__teclado(px), teclado);
+      const fr = await registro;
+      expect(fr.length).toBeGreaterThan(10);
+      // Con «Listo» ya a la vista: mientras sigue bajo el teclado, lo que haya encima tampoco se ve.
+      const peorHueco = fr.filter((x) => x.bajo >= -1).reduce((a, x) => (x.hueco > a.hueco ? x : a), { hueco: 0, t: 0 });
+      expect(peorHueco.hueco, "sin hueco antes de «Listo» en ningún fotograma (a los " + Math.round(peorHueco.t) + " ms)").toBeLessThanOrEqual(24);
+      expect(Math.min(...fr.map((x) => x.top)), "la hoja nunca sube bajo la barra de estado").toBeGreaterThanOrEqual(SEGURO_ARRIBA - 0.5);
+      // Ya subida (el teclado de verdad entra en ~250 ms; aquí aparece de golpe), «Listo» no queda bajo él.
+      expect(fr.filter((x) => x.t > 320 && x.bajo < -1).length, "«Listo» a la vista tras la subida").toBe(0);
+      // El concepto va hacia su sitio sin ir y volver.
+      const c0 = fr[0].c, c1 = fr[fr.length - 1].c, contra = c1 >= c0 ? c0 - Math.min(...fr.map((x) => x.c)) : Math.max(...fr.map((x) => x.c)) - c0;
+      expect(contra, "el concepto no se mueve en contra de su llegada").toBeLessThanOrEqual(40);
       await hoja.locator(".v4-ficha-concept").pressSequentially(LARGO);
       await expect(hoja.locator(".v4-cta")).toHaveText("Listo");
       // Fin de los pliegues (300 ms) y del margen que sube la hoja (250 ms).
@@ -128,6 +159,8 @@ for (const [w, h, teclado] of TAMANOS) {
       await expect(hoja.locator(".v4-ficha-cats .v4-ficha-cat").first()).toBeVisible();
       // Un concepto largo se lee entero mientras se escribe: dos renglones partidos entre palabras.
       expect(await entero(page), "el concepto largo entero, sin cortes").toEqual({ ancho: true, alto: true, elipsis: false, renglones: 2 });
+      const catsTeclado = await nCats(page);
+      expect(catsTeclado, "escribiendo, las mismas categorías que al abrir").toBe(catsAntes);
 
       // «Listo» cierra el teclado y todo vuelve, sin guardar nada.
       await hoja.locator('[data-testid="ap-kb-done"]').click();
@@ -141,6 +174,8 @@ for (const [w, h, teclado] of TAMANOS) {
       await expect(hoja.locator('[data-testid="ap-pay-card"]')).toBeVisible();
       await expect(hoja.locator(".v4-ficha-head")).toBeVisible();
       await expect(hoja.locator(".v4-cta")).toContainText("Apuntar");
+      // Con el concepto en dos renglones no se pierde ninguna fila (a 393 encima, de 6 pasaba a 3).
+      expect(await nCats(page), "tras «Listo», las mismas categorías que antes").toBe(catsTeclado);
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]").length)).toBe(0);
     });
   }

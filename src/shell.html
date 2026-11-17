@@ -1955,15 +1955,24 @@
   .v4-ficha-body[data-kb="1"] .v4-ficha-kbfold{grid-template-rows:0fr;opacity:0;visibility:hidden;
     transition:grid-template-rows .3s var(--ease) 60ms,opacity .1s ease-out,visibility 0s .36s;}
   /* Recogiéndose, el numérico no va pegado al fondo: con el teclado encima la hoja se recorta y,
-     pegado, se montaba un instante sobre el concepto y el pago. */
-  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;}
+     pegado, se montaba un instante sobre el concepto y el pago. Y se va de golpe: su sitio es justo el
+     que ocupa el teclado del sistema. Fundiéndose o plegándose, dejaba un hueco vacío de ~140 px sobre
+     «Listo» o la hoja recortada a media altura (filtro de diseño 239, segunda vuelta). Al volver sí
+     se despliega con la transición de siempre. */
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;transition:none;}
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold.abajo{transition:none;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{transition:font-size .3s var(--ease),min-height .3s var(--ease);}
   .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-amount{font-size:30px;min-height:40px;}
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){padding-bottom:16px;}
   /* Y la hoja sube y baja con el teclado del sistema en vez de saltar (el margen lo pone el JS).
      Solo Apuntar: Modificar comparte `.v4-exp-sheet` y no mueve el margen con el teclado. */
   .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
-  .v4-ficha-body[data-testid="ap"] > .v4-ficha-kbfold.teclas{position:sticky;bottom:0;z-index:1;background:var(--bg-2);}
+  /* El margen sube con el teclado, pero al irse baja de golpe: bajando a la vez que vuelven el pago y el
+     numérico, con letra Enorme la hoja se salía un instante por arriba (filtro de diseño 239). Con el
+     teclado puesto manda la regla de arriba; esta es la de volver. */
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]:not([data-kb])){transition:transform .3s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  .v4-ficha-body[data-testid="ap"] > .v4-ficha-kbfold.teclas{position:sticky;bottom:0;z-index:1;background:var(--bg-2);
+    transition:grid-template-rows .3s var(--ease),opacity .15s linear,visibility 0s;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{margin:0;padding:4px 0 8px;gap:6px;}
   /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
      (56 px, las pidió él): una sola fila de categorías, y algo menos de aire alrededor del importe
@@ -1996,6 +2005,17 @@
      Con el 92 % cabe; a esa altura ya tapaba la línea de resumen igual, así que no se pierde nada. */
   @media (min-height:701px) and (max-height:780px){
     .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){max-height:calc(92dvh / var(--zoom,1));}
+  }
+  /* Un concepto en dos renglones no puede costar una fila de categorías (a 393 se perdía la segunda tras
+     «Listo»): la hoja crece ese renglón, sin pasar nunca de la barra de estado. En móviles bajos ya va
+     a pantalla completa. */
+  @media (min-height:701px){
+    .v4-sheet.v4-exp-sheet:has(.v4-ficha-concept-area[data-renglones="2"]){
+      max-height:min(calc(88dvh / var(--zoom,1) + 24px),calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1)));}
+  }
+  @media (min-height:701px) and (max-height:780px){
+    .v4-sheet.v4-exp-sheet:has(.v4-ficha-concept-area[data-renglones="2"]){
+      max-height:min(calc(92dvh / var(--zoom,1) + 24px),calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1)));}
   }
   /* Letra Muy grande y Enorme (DIS-07): las teclas conservan su alto en pantalla (56 px reales,
      no 56 × zoom) y las categorías van en una fila que se desliza de lado en vez de aplastarse. */
@@ -2081,7 +2101,8 @@
   .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px dashed var(--muted-2);
     display:grid;place-items:center;color:var(--muted);font-size:15px;font-weight:700;line-height:1;}
   @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;}
-    .v4-ficha-body[data-kb] .v4-ficha-kbfold,.v4-ficha-body .v4-ficha-kbfold,.v4-ficha-body[data-testid] .v4-ficha-amount{transition:none;} }
+    .v4-ficha-body[data-kb] .v4-ficha-kbfold,.v4-ficha-body .v4-ficha-kbfold,.v4-ficha-body[data-testid] .v4-ficha-amount,
+    .v4-ficha-body[data-testid][data-kb] > .v4-ficha-kbfold.teclas,.v4-ficha-body[data-testid] > .v4-ficha-kbfold.teclas{transition:none;} }
   /* Con Efectivo la píldora no se pinta, pero guarda su sitio: la fila no salta al cambiar. */
   .v4-ficha-pay > .v4-ficha-meta-pill.off{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s .2s;}
   .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);

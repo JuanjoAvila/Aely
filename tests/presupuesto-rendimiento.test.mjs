@@ -417,8 +417,10 @@ const PRESUPUESTO = {
   // baldosa del banco con «+»: 1.996.985 B minificado y 548.535 B gzip. Mismo mandato del 11/10: el minificado, al mínimo
   // medido, 1951 KiB; el gzip sigue dentro. Segunda vuelta (filtro de diseño 239): el concepto en dos renglones,
   // fundido antes del pliegue, el numérico sin pegar al fondo al recogerse y las filas medidas con la hoja quieta:
-  // 1.998.947 B minificado y 549.119 B gzip. Los dos, al mínimo medido: 1953 / 537 KiB.
-  minificado: 1953 * 1024,
+  // 1.998.947 B minificado y 549.119 B gzip. Los dos, al mínimo medido: 1953 / 537 KiB. Tercera vuelta: el pliegue al
+  // compás del teclado (aplicado antes de pintar), la hoja que crece un renglón con el concepto en dos y el margen que
+  // baja de golpe: 2.000.210 B minificado y 549.424 B gzip. El minificado, a 1954 KiB.
+  minificado: 1954 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
