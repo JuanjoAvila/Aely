@@ -943,6 +943,14 @@ function App(){
           if(!planState)return Object.assign({},prev,{[cloudMergeKey.current]:{read:read,planInvalid:true}});
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState,planState);
+          /* La marca de la migración de la 238 (`_netoUnaCuenta`) va con las CUENTAS, no con quien gane
+             el resto. Si las cuentas vienen de la nube sin marca (las subió esta versión antes de migrar,
+             o un móvil viejo), la local no puede quedarse: `seedFlows` no las migraría y el arranque
+             pintaba 1.000/560 en vez de 970/500, y lo subía así (revisión 238, segunda vuelta). Una
+             cuenta migrada nunca viaja sin su marca, así que quitarla aquí no migra dos veces. */
+          if(!localNewer||goalState._goalSync.cloudOnly){
+            if(cloudState._netoUnaCuenta) baseObj._netoUnaCuenta=true; else delete baseObj._netoUnaCuenta;
+          }
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
           baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});

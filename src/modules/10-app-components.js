@@ -884,7 +884,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           if(ent){
             const accs=(next.accounts||[]);
             const quedan=accs.filter(function(a){ return !(a && a.ent===ent && a.bankIban); });
-            if(quedan.length!==accs.length) next=Object.assign({},next,{accounts:quedan});
+            // Si se va la que cargaba el neto del banco, la hermana a mano lo hereda sin cambiar de saldo (238).
+            if(quedan.length!==accs.length) next=conservaNetoDeBanco(next, Object.assign({},next,{accounts:quedan}));
           }
           /* Solo si lo ha pedido, y solo sacándolo de la lista de gasto diario: los gastos siguen
              enteros en `expenses` con su banco, así que volver a conectarlo lo deja como estaba. */

@@ -3089,8 +3089,17 @@ function insumosSaldoGasto(state){
   const monthlyInvest=trAcc ? (trAcc.monthlyInvest||0) : 0;
   const now=new Date();
   const curMonth=now.getMonth()+1, curYear=now.getFullYear(), today=now.getDate();
-  const paidNetByBank={};
-  accounts.forEach(function(a){ if(accFixed(a)) paidNetByBank[a.ent]=(paidNetByBank[a.ent]||0)+monthNetForAccount(state,a.ent,curYear,curMonth,today); });
+  // Un término por BANCO, no por cuenta: con dos cuentas de recibos del mismo banco se sumaba
+  // dos veces y además cada una se lo restaba entero (ronda 238). Lo carga `cuentaDelNetoDeBanco`.
+  const paidNetByBank={}, cuentaDe={};
+  accounts.forEach(function(a){
+    if(!accFixed(a)||Object.prototype.hasOwnProperty.call(cuentaDe,a.ent)) return;
+    // La primera = `cuentaDelNetoDeBanco`. Sin id, la propia cuenta: dos sin id no lo cargan las dos.
+    cuentaDe[a.ent]=a.id!=null?a.id:a;
+    paidNetByBank[a.ent]=monthNetForAccount(state,a.ent,curYear,curMonth,today);
+  });
+  // Sin enumerar: el mapa se recorre por banco en Plan y en los tests, y la marca no es un banco.
+  Object.defineProperty(paidNetByBank,"cuentaDe",{value:cuentaDe});
   const spentByBank=gastoDelMesPorBanco(thisMonthExp, trAcc&&trAcc.ent);
   return { trAcc:trAcc, thisMonthExp:thisMonthExp, injTR:injTR, roundup:roundup, saveback:saveback, monthlyInvest:monthlyInvest,
     spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today,
@@ -3098,7 +3107,7 @@ function insumosSaldoGasto(state){
     rewardsPending:recompensasPendientes(state, Date.now()) };
 }
 function applyAccountRole(s, totals, id, r){
-  const pn=function(i){ return (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0; };
+  const pn=function(i){ return paidNetDeCuenta(i, totals.paidNetByBank); };
   const ruM=totals.roundupThisMonth||0, miM=totals.monthlyInvestThisMonth||0;
   const spentOwn=function(i){ return (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0; };
   const spendBal=function(i){ return saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}); };
@@ -3119,11 +3128,11 @@ function applyAccountRole(s, totals, id, r){
      Y por eso sincronizar lo curaba: `applyBankBalances` vuelve a anclar contra el saldo REAL
      del banco, ya con el rol nuevo puesto.
 
-     Aquí se calcula el `paidNet` que tendrá la cuenta CON EL ROL NUEVO, con la misma suma que
-     hace `totals` (un término por cuenta `accFixed` de ese banco) para que las dos digan lo
-     mismo. ⚠ Esa suma cuenta DOBLE si un banco tiene dos cuentas fijas; es un defecto de fondo
-     anotado al backlog y se replica a propósito: divergir aquí sería el fallo de la regla en dos
-     sitios otra vez. Ver [[misma-regla-en-dos-sitios]]. */
+     Aquí se calcula el `paidNet` que tendrá la cuenta CON EL ROL NUEVO, con la misma regla que
+     `totals` (`paidNetDeCuenta` sobre `insumosSaldoGasto`). Ver [[misma-regla-en-dos-sitios]].
+     Y como el neto del banco lo carga UNA cuenta (`cuentaDelNetoDeBanco`, ronda 238), cambiar el
+     rol de una puede pasárselo a su hermana del mismo banco: esa también se re-ancla, o su saldo
+     saltaría el importe de los recibos ya cobrados sin haber tocado nada en ella. */
   const fijoTras=function(rr){ return rr==="fijos"||rr==="ambos"; };
   const rolTras=function(a){
     if(a.id===id) return r;
@@ -3143,17 +3152,74 @@ function applyAccountRole(s, totals, id, r){
   })});
   const ins=insumosSaldoGasto(sTras);
   const valueForRole=function(a,rr,shown){
-    const pnNuevo=fijoTras(rr)?((a.ent&&ins.paidNetByBank[a.ent])||0):0;
+    const pnNuevo=fijoTras(rr)?paidNetDeCuenta(a,ins.paidNetByBank):0;
     if(rr==="fijos") return +(shown - pnNuevo).toFixed(2);
     return valueDesdeSaldo({shown:shown, injTR:ins.injTR, spentOwn:(a.ent&&ins.spentByBank[a.ent])||0, roundup:ins.roundup, monthlyInvest:ins.monthlyInvest, ambos:rr==="ambos", paidNet:pnNuevo});
   };
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
     if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }
     if(r!=="fijos" && accDaily(a)) return Object.assign({},a,{role:"fijos", spendFrom:false, value:valueForRole(a,"fijos",shownOf(a))});
+    const rr=accRole(a);
+    if(Math.abs(pn(a)-(fijoTras(rr)?paidNetDeCuenta(a,ins.paidNetByBank):0))>0.005) return Object.assign({},a,{value:valueForRole(a,rr,shownOf(a))});
     return a;
   })});
 }
 function accFixed(a){ const r=accRole(a); return r==="fijos"||r==="ambos"; }    // participa en el motor de fijos
+/* Qué cuenta carga el neto del mes de su banco (`monthNetForAccount`): la PRIMERA de recibos de
+   ese banco en el orden guardado. Los recibos no dicen cuenta, solo banco, así que repartirlos
+   sería inventar; y la primera no cambia al promocionar otra cuenta del banco, que va al final.
+   Pintar, re-anclar y cerrar el mes tienen que elegir LA MISMA: si una suma y otra no, el saldo
+   salta (ronda 238). Con lectura del banco da igual cuál sea: al re-anclar cada una vuelve a
+   enseñar lo que dice su banco. */
+function cuentaDelNetoDeBanco(accounts, ent){
+  return (accounts||[]).find(function(a){ return a&&a.ent===ent&&accFixed(a); })||null;
+}
+function llevaNetoDeBanco(accounts, a){
+  const c=a&&cuentaDelNetoDeBanco(accounts,a.ent);
+  return !!c&&(c===a||(c.id!=null&&c.id===a.id));          // misma comparación que `paidNetDeCuenta`
+}
+/* MIGRACIÓN DE UNA VEZ (`_netoUnaCuenta`, ronda 238): los `value` guardados antes se anclaron con
+   la regla vieja, en la que cada cuenta de recibos pintaba k·N (k cuentas del banco, N su neto del
+   mes). Sin esto, al actualizar, la Ahorro de quien tecleó «500» con la versión vieja pasaba a
+   pintar 560 (revisión 238, P1). Se desplaza la base lo justo para que cada cuenta pinte HOY lo
+   mismo que ayer: v + k·N − (la que lo carga ? N : 0). Con una cuenta por banco k=1 y no se toca.
+   Un estado sin `_dynBalAnchored` guarda el saldo de hoy y lo ancla el bloque de abajo con la regla
+   nueva. Sin escribir a la nube: la marca viaja con el estado como las demás. */
+function migraNetoUnaCuenta(s){
+  if(!s||s._netoUnaCuenta) return s;
+  const accs=s.accounts||[];
+  if(s._dynBalAnchored){
+    const now=new Date(), cy=now.getFullYear(), cm=now.getMonth()+1, td=now.getDate(), k={}, N={};
+    accs.forEach(function(a){ if(a&&accFixed(a)) k[a.ent]=(k[a.ent]||0)+1; });
+    s.accounts=accs.map(function(a){
+      if(!a||!accFixed(a)||!(k[a.ent]>=2)) return a;
+      if(!Object.prototype.hasOwnProperty.call(N,a.ent)) N[a.ent]=monthNetForAccount(s,a.ent,cy,cm,td);
+      const d=+(k[a.ent]*N[a.ent]-(llevaNetoDeBanco(accs,a)?N[a.ent]:0)).toFixed(2);
+      return Math.abs(d)>0.005?Object.assign({},a,{value:+((a.value||0)+d).toFixed(2)}):a;
+    });
+  }
+  s._netoUnaCuenta=true;
+  return s;
+}
+/* Arrastrar una cuenta para ordenarla o borrar su hermana puede cambiar cuál carga el neto del
+   banco. Eso no es dinero que entre ni salga: cada cuenta que sigue conserva el saldo que
+   enseñaba, desplazando su base lo que cambia su parte del neto (como `keepShownAcrossFlows`). */
+function conservaNetoDeBanco(antes, despues){
+  if(!antes||!despues||antes.accounts===despues.accounts) return despues;
+  const pa=insumosSaldoGasto(antes).paidNetByBank, pd=insumosSaldoGasto(despues).paidNetByBank;
+  const previa={}; (antes.accounts||[]).forEach(function(a){ if(a&&a.id!=null) previa[a.id]=a; });
+  let cambia=false;
+  const accounts=(despues.accounts||[]).map(function(a){
+    // Sin id, la misma cuenta es el mismo objeto (borrar y reordenar no la copian).
+    const b=a&&(a.id!=null?previa[a.id]:((antes.accounts||[]).indexOf(a)>=0&&a));
+    if(!b||!accFixed(a)||!accFixed(b)) return a;
+    const diff=+(paidNetDeCuenta(b,pa)-paidNetDeCuenta(a,pd)).toFixed(2);
+    if(Math.abs(diff)<=0.005) return a;
+    cambia=true;
+    return Object.assign({},a,{value:+((a.value||0)+diff).toFixed(2)});
+  });
+  return cambia?Object.assign({},despues,{accounts:accounts}):despues;
+}
 // Inyección de nómina de la cuenta de gasto (€ que entran cada mes FUERA del sistema de flujos).
 // Antes era CONFIG.TR_INJECTION hardcodeado para todos; ahora es por cuenta (a.inject). Fallback
 // anclado al id de la cuenta TR del creador (patrón de migración por id) hasta que la semilla escriba el campo.
@@ -3165,6 +3231,10 @@ function reconcileTR(s){
   if(!acc) return s;
   const now=new Date();
   const cmKey=mkOf(now);
+  /* Un estado sin `_netoUnaCuenta` se ancló con la regla vieja: cierra sus meses también con ella
+     (el neto en cada cuenta) y `migraNetoUnaCuenta`, que corre justo después, lo pasa a la nueva
+     sin mover lo que se pinta. Si no, el primer arranque tras cambiar de mes saltaba. */
+  const cargaNeto=function(a){ return !s._netoUnaCuenta || llevaNetoDeBanco(s.accounts, a); };
   let anchor=s.trAnchor || cmKey;
   let [ay,am]=anchor.split("-").map(Number); am=am-1;
   let guard=0;
@@ -3185,7 +3255,9 @@ function reconcileTR(s){
     const spent=gastoPorBanco[acc.ent]||0;
     acc.value = acc.value + accInject(acc) - spent;                 // mes cerrado: + inyección de nómina − gasto
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
-    if(accRole(acc)==="ambos") acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
+    // Solo si es la que carga el neto de su banco (`cuentaDelNetoDeBanco`): es la misma que lo
+    // pinta durante el mes, y con dos cuentas del banco cada una lo arrastraba entero (ronda 238).
+    if(accRole(acc)==="ambos" && cargaNeto(acc)) acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
     // Round-up & Saveback (#19): al cerrar el mes, el round-up sale del efectivo y se abona
     // (junto al saveback, dinero gratis) a la inversión destino comprando participaciones.
     // SOLO si la cuenta no tiene ya movimientos reales de Open Banking (2026-08-03): desde que TR
@@ -3252,7 +3324,8 @@ function reconcileTR(s){
     // Demás bancos (Sabadell, etc.): arrastran su neto del mes cerrado (ingresos − fijos − cuotas − puntuales − transfers)
     s.accounts.forEach(function(a2){
       if(a2.spendFrom) return;
-      let v=(a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null);
+      // El neto lo arrastra la misma cuenta que lo pinta durante el mes (ronda 238).
+      let v=(a2.value||0) + (cargaNeto(a2) ? monthNetForAccount(s, a2.ent, ay, am+1, null) : 0);
       // El sobre de efectivo SÍ arrastra sus propias compras al cerrar: durante el mes
       // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia
       // arriba el día 1. Los demás bancos NO restan gastos a propósito (00-core, saldo mostrado:
@@ -3848,6 +3921,7 @@ function buildEmpty(){
     categoryBudgets: {},
     lastSync: null, lastPriceSync: null,
     onboarded: false, _dataVer: 6, trAnchor: mkOf(new Date()),
+    _netoUnaCuenta: true,   // nace con la regla de una cuenta por banco: nada que migrar (238)
   };
 }
 function migrate(s){
@@ -4098,13 +4172,15 @@ function seedFlows(s){
     // semilla única: materializa la inyección de nómina de TR como campo por cuenta (antes CONFIG global)
     if(!s._injectSeed){ s.accounts=s.accounts.map(function(a){ return (a.spendFrom && a.inject==null)?Object.assign({},a,{inject:CONFIG.TR_INJECTION}):a; }); s._injectSeed=true; }
   }
+  // Antes que el bloque de abajo: decide con `_dynBalAnchored` todavía sin tocar.
+  migraNetoUnaCuenta(s);
   // FIX v3.50: el saldo dinámico (v3.48) interpretó el `value` guardado como "inicio de mes" y volvió a
   // restar los cargos YA pagados de este mes → saldos disparados (Sabadell −3312 en vez de 147). Re-anclamos
   // UNA sola vez: el value guardado era el saldo de HOY, así que le sumamos de vuelta el neto ya ocurrido
   // (base = hoy − netoYaOcurrido) para que el saldo mostrado vuelva a ser el real y evolucione bien.
   if(!s._dynBalAnchored){
     const cy=new Date().getFullYear(), cm=new Date().getMonth()+1, td=new Date().getDate();
-    (s.accounts||[]).forEach(function(a){ if(!a.spendFrom){ a.value = +(((a.value||0) - monthNetForAccount(s, a.ent, cy, cm, td))).toFixed(2); } });
+    (s.accounts||[]).forEach(function(a){ if(!a.spendFrom && llevaNetoDeBanco(s.accounts, a)){ a.value = +(((a.value||0) - monthNetForAccount(s, a.ent, cy, cm, td))).toFixed(2); } });
     s._dynBalAnchored=true;
   }
   // deuda dinámica: ancla el saldo actual al mes de hoy si aún no tenía ancla (vale para todos)
@@ -4195,7 +4271,7 @@ function loadState(){
     if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored || saved.trasAbonoDesde==null;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored || !saved._netoUnaCuenta || saved.trasAbonoDesde==null;
     // Antes de cerrar meses: el sello decide qué traspasos abonan en su destino (`flowAbonaEn`, 08).
     if(saved.trasAbonoDesde==null) saved.trasAbonoDesde=sellarAbonoTraspasos({}).trasAbonoDesde;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
