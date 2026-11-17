@@ -43,8 +43,8 @@ function flowEarlyBankMatches(s,f,y,m,today){
   const planned=flowDay(f,y,m);
   if(planned==null) return [];
   const bank=f.to||"sabadell", ym=y+"-"+String(m).padStart(2,"0"), amount=Number(f.amount);
-  // El extracto va por entidad, no por cuenta. Dos cuentas de recibos del mismo banco
-  // comparten hoy paidNet y no permiten reanclar una nómina sin atribuirla a ambas.
+  // El extracto va por entidad, no por cuenta. Con dos cuentas de recibos del mismo banco no se
+  // sabe en cuál entró la nómina, y adelantarla movería el neto de la que lo carga sin pruebas.
   if((s.accounts||[]).filter(function(a){ return a.ent===bank && accFixed(a); }).length>1) return [];
   return (s.bankTx||[]).filter(function(tx){
     if(!tx||tx.ent!==bank||!(Number(tx.amount)<0)||String(tx.date||"").slice(0,7)!==ym) return false;
@@ -2501,7 +2501,10 @@ function promoteObAccount(s, totals, key, role, id){
   const now=new Date();
   const bal=toEurAmt(o.value||0, o.cur||"EUR", s);
   if(bal==null) return s;
-  const base=+((bal - monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate())).toFixed(2));
+  // Va al final: si el banco ya tiene una cuenta de recibos, el neto lo sigue cargando esa
+  // (`cuentaDelNetoDeBanco`) y esta enseña su saldo tal cual (ronda 238).
+  const lleva=!cuentaDelNetoDeBanco(s.accounts, o.ent);
+  const base=+((bal - (lleva ? monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate()) : 0)).toFixed(2));
   const name=((s.obLabels||{})[o.key]) || niceObName(o);
   /* Conserva la clave de orden de la fila OB: elegir un rol no debe mandar de golpe la cuenta al
      final de Cartera justo después de haberla colocado (rechazo CaixaBank 2026-09-16). */
@@ -2518,8 +2521,8 @@ function promoteObAccount(s, totals, key, role, id){
   const saved=((ns.settings||{}).accountListOrder)||[];
   if(!(ns.obAccounts||[]).length && Array.isArray(saved) && saved.length){
     const rows=accountRowsInOrder(ns), keys=rows.map(function(r){ return r.key; });
-    ns=Object.assign({},ns,{accounts:rows.map(function(r){ return r.item; }),
-      settings:Object.assign({},ns.settings,{accountListOrder:keys})});
+    ns=conservaNetoDeBanco(ns, Object.assign({},ns,{accounts:rows.map(function(r){ return r.item; }),
+      settings:Object.assign({},ns.settings,{accountListOrder:keys})}));
   }
   return ns;
 }
@@ -2649,10 +2652,13 @@ function applyBankBalances(s, links){
         // `spentM` sumaba TODOS los bancos del mes y, con rol diario/ambos, inflaba la base
         // (padre: Revolut 26 € del banco → 455 € en pantalla; 2026-09-11).
         const role=accRole(a);
+        // El neto del banco solo lo pinta la cuenta que lo carga (`cuentaDelNetoDeBanco`); las
+        // demás del mismo banco enseñan su `value` y se anclan al saldo tal cual (ronda 238).
+        const netoMes=llevaNetoDeBanco(accounts, a) ? monthNetForAccount(s, ent, cy, cm, td) : 0;
         let newBase;
         if(role==="fijos"){
           // Pintado: value + paidNet. paidNet = monthNetForAccount → base = bal − monthNet.
-          newBase=+((bal - monthNetForAccount(s, ent, cy, cm, td)).toFixed(2));
+          newBase=+((bal - netoMes).toFixed(2));
         } else {
           const ruMv=(a.roundupManual!=null)?a.roundupManual:roundupOf(monthExp, a.roundup||0);
           const miMv=a.monthlyInvest||0;
@@ -2661,7 +2667,7 @@ function applyBankBalances(s, links){
             shown:bal, injTR:injMv, spentOwn:porBanco[ent]||0,
             roundup:ruMv, monthlyInvest:miMv,
             ambos:role==="ambos",
-            paidNet:monthNetForAccount(s, ent, cy, cm, td)
+            paidNet:netoMes
           });
         }
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });

@@ -366,7 +366,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     set(function(s){
       const a=(s.accounts||[]).find(function(x){ return x.id===id; });
       if(a && isEfectivoEnt(a)) return removeEfectivoAccount(s, id);
-      return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })});
+      // Si se va la que cargaba el neto del banco, lo hereda su hermana sin cambiar de saldo (238).
+      return conservaNetoDeBanco(s, Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })}));
     });
   };
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)

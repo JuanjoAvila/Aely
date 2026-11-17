@@ -1912,12 +1912,24 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "unidades": true
@@ -3750,12 +3762,24 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "native": [
@@ -5418,12 +5442,24 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "native": [
@@ -8063,12 +8099,24 @@
         "function": "flowFilaOtroBanco"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "native": [
@@ -9731,12 +9779,24 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "native": [
@@ -12148,12 +12208,24 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "unidades": true
@@ -15359,6 +15431,22 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "conservaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -16937,12 +17025,24 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "unidades": true
@@ -18590,12 +18690,24 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "native": [
@@ -21130,6 +21242,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -25649,6 +25765,10 @@
         "function": "textSizeOf"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -26364,6 +26484,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       }
     ],
     "unidades": true
@@ -28025,6 +28149,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -29905,6 +30033,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -34491,6 +34623,10 @@
         "function": "fixedPaymentEvidence"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -36199,12 +36335,24 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "native": [
@@ -37601,6 +37749,14 @@
         "function": "bankAutoLee"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -37627,6 +37783,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -39282,12 +39442,24 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "native": [
@@ -41010,12 +41182,24 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "unidades": true
@@ -42405,6 +42589,14 @@
         "function": "bankAutoLee"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -42431,6 +42623,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -44479,6 +44675,14 @@
         "function": "bankAutoLee"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -44505,6 +44709,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -46080,6 +46288,10 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "mcSinNada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -48582,6 +48794,10 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -48598,12 +48814,20 @@
         "function": "bankAutoFrena"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -50334,6 +50558,10 @@
         "function": "fixedPaymentEvidence"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -51924,6 +52152,14 @@
         "function": "accountKeysHuella"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -51946,6 +52182,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -54195,6 +54435,14 @@
         "function": "bankAutoLee"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -54221,6 +54469,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -55488,6 +55740,22 @@
         "data": "RECIBO_NO_ADEUDO_RE"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "conservaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -56059,6 +56327,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       }
     ],
     "unidades": true
@@ -57963,6 +58235,14 @@
         "function": "bankAutoLee"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -57989,6 +58269,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -61691,6 +61975,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -67257,6 +67545,10 @@
         "data": "RECIBO_NO_ADEUDO_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -69565,6 +69857,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -72860,6 +73156,10 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -75394,6 +75694,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "conservaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -79654,6 +79966,10 @@
         "data": "RECIBO_NO_ADEUDO_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -81568,6 +81884,14 @@
         "function": "accountKeysHuella"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -81590,6 +81914,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -83069,6 +83397,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -85870,6 +86202,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -90205,6 +90541,14 @@
         "function": "bankAutoLee"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -90231,6 +90575,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -92799,6 +93147,14 @@
         "function": "bankAutoLee"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -92825,6 +93181,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -94459,6 +94819,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -99491,6 +99855,10 @@
         "data": "RECIBO_NO_ADEUDO_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -101272,6 +101640,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -106873,6 +107245,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -108928,6 +109304,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -110631,6 +111011,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -112329,6 +112713,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -114023,6 +114411,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -115629,12 +116021,24 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ],
     "unidades": true
@@ -117437,6 +117841,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -119235,6 +119643,14 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "llevaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -119257,6 +119673,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -120934,6 +121354,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -122699,6 +123123,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -126123,6 +126551,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -128129,6 +128561,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -129979,6 +130415,10 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -131674,6 +132114,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -133457,6 +133901,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -136762,6 +137210,18 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "conservaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -138146,6 +138606,10 @@
         "function": "reciboNoEsAlias"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -139343,6 +139807,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -141796,6 +142264,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "patchFlowById"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -145252,6 +145724,10 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -147218,6 +147694,10 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -149150,6 +149630,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -151638,6 +152122,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -154442,6 +154930,10 @@
         "function": "reciboNoEsAlias"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -156180,6 +156672,10 @@
         "function": "errTxt"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -157592,6 +158088,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -159446,6 +159946,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -161973,6 +162477,10 @@
         "function": "reciboNoEsAlias"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -163664,6 +164172,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -165561,6 +166073,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -167483,6 +167999,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -169413,6 +169933,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -171798,6 +172322,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -174209,6 +174737,10 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -176561,6 +177093,18 @@
         "function": "textSizeOf"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "conservaNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -178739,6 +179283,10 @@
         "function": "resolveCategory"
       },
       {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -180468,6 +181016,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
       },
       {
         "file": "src/modules/00-core.js",

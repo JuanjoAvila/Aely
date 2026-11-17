@@ -102,7 +102,9 @@ await check('R4: reanudar ID de RECIBO duplicado conserva todas las cuentas entr
   h.pause(...target);
   assert.deepEqual(copy(h.s.accounts),incoming.accounts,'CERO compensación en cualquier cuenta: '+label);
   assert.deepEqual(h.s.accounts.map(a=>cents(a.value)),values,'céntimos entrantes exactos: '+label);
-  assert.equal(h.shown(),extra==='mismo banco'?94804:97402,'proyección de los dos recibos sin sumar a la base: '+label);
+  // Con la segunda cuenta en el MISMO banco antes salía 948,04: los dos recibos (25,98) contados
+  // dos veces. El neto del banco lo carga una sola cuenta (ronda 238): igual que en otro banco.
+  assert.equal(h.shown(),97402,'proyección de los dos recibos sin sumar a la base: '+label);
   assert.equal(h.s.fixed.length,2);assert.ok(h.s.fixed.every(f=>!h.c.fixedPausedIn(f,2026,10)&&!f.manualPauseBalance),'reactiva ambas filas y consume origen');
   const resumed=h.s;h.pause(...target);assert.equal(h.s,resumed,'repetir no refecha ni compensa');
  }
@@ -131,7 +133,9 @@ await check('roundtrip de CADA exclusión coincide con la base independiente y n
   if(mode==='TR nativo'){s.accounts[0].ent='trade_republic';s.fixed[0].account='trade_republic';s.settings.brokersOn=['trade_republic'];}
   if(mode==='dos cuentas')s.accounts.push({id:'b',ent:'sabadell',role:'fijos',value:400});
   const h=harness(copy(s)),base=harness(copy(s),true);
-  const before=copy(h.s.accounts),expectedShown=mode==='dos cuentas'?97402:98701;
+  // «dos cuentas» esperaba 974,02: el recibo restado una vez por cada cuenta del banco. Desde la
+  // ronda 238 el neto lo carga solo la primera, así que la cuenta `a` pinta lo mismo que sola.
+  const before=copy(h.s.accounts),expectedShown=98701;
   assert.equal(base.shown(),expectedShown,mode+' partida de base');assert.equal(h.shown(),expectedShown,mode+' partida');
   h.pause();base.pause();assert.deepEqual(copy(h.s.accounts),copy(base.s.accounts),mode+' pausa vs base');assert.equal(base.shown(),expectedShown,mode+' pausa de base');assert.equal(h.shown(),expectedShown,mode+' pausa');assert.equal(h.shown(),base.shown(),mode+' mostrado pausado vs base');
   assert.equal(h.s.fixed[0].manualPauseBalance,undefined,mode+' no inventa origen manual');
