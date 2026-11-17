@@ -248,6 +248,57 @@ t("borrar el aviso (lápida, en este u otro móvil) devuelve lo que sumó", () =
   assert.equal(patrimonio(s).neto, patrimonio(soloSb).neto);
 });
 
+/* Re-revisión 236, P2-N: la reversión se decide por id, no por contenido. Los tres casos que la rompían. */
+const borra = (s, e) => Object.assign({}, s, { expenses: s.expenses.filter((x) => x.id !== e.id) }, ctx.lapidaPon(s, ctx.expenseDeletionKey(e)));
+const soloBase = () => patrimonio(ctx.aplicarRecompensasTR(base(), NOW)).neto;
+t("renombrar el aviso y luego borrarlo devuelve lo sumado (también con una pasada entre medias)", () => {
+  for (const conPasada of [false, true]) {
+    const s1 = ctx.aplicarRecompensasTR(Object.assign(base(), { expenses: base().expenses.concat([RU]) }), NOW);
+    let ren = Object.assign({}, s1, { expenses: s1.expenses.map((e) => e.id === RU.id ? Object.assign({}, e, { merchant: "Calderilla" }) : e) },
+      ctx.lapidasAlRenombrar(s1, RU, Object.assign({}, RU, { merchant: "Calderilla" })));
+    // Renombrar deja lápida con la clave vieja: la fila sigue por id y NO se revierte.
+    ren = ctx.aplicarRecompensasTR(ren, NOW);
+    assert.equal(inv(ren, "ftse").value, 1012.96, "renombrar no deshace la suma");
+    if (conPasada) assert.equal(ren.trRecompensas[RU.id].x.merchant, "Calderilla", "la copia se refresca con la fila entera");
+    const s2 = ctx.aplicarRecompensasTR(borra(ren, ren.expenses.find((e) => e.id === RU.id)), NOW);
+    assert.equal(inv(s2, "ftse").value, 1000);
+    assert.equal(patrimonio(s2).neto, soloBase());
+  }
+});
+t("con identidad nativa (evento del lector), borrar devuelve lo sumado", () => {
+  const RUn = Object.assign({}, RU, { id: uuid(30), nativeTwin: true, ingestEventId: "tr:trade_republic:sintetico" });
+  const n1 = ctx.aplicarRecompensasTR(Object.assign(base(), { expenses: base().expenses.concat([RUn]) }), NOW);
+  assert.equal(inv(n1, "ftse").value, 1012.96);
+  const n2 = ctx.aplicarRecompensasTR(borra(n1, RUn), NOW);
+  assert.equal(inv(n2, "ftse").value, 1000);
+  assert.equal(patrimonio(n2).neto, soloBase());
+});
+t("«es el mismo» sobre un aviso repetido no deshace el vivo", () => {
+  const DUP = Object.assign({}, RU, { id: uuid(31), possibleDup: true });
+  const d1 = ctx.aplicarRecompensasTR(Object.assign(base(), { expenses: base().expenses.concat([RU, DUP]) }), NOW);
+  assert.equal(inv(d1, "ftse").value, 1012.96, "el repetido no suma");
+  // La lápida del repetido tiene la MISMA clave que el vivo.
+  const d2 = ctx.aplicarRecompensasTR(borra(d1, DUP), NOW);
+  assert.equal(inv(d2, "ftse").value, 1012.96, "el vivo sigue sumado");
+  assert.ok(d2.trRecompensas[RU.id]);
+  assert.equal(ctx.aplicarRecompensasTR(d2, NOW), d2);
+});
+t("sin posición pasados 120 días el aviso sigue contando (el neto no cae de golpe)", () => {
+  const viejo = Object.assign({}, RU, { id: uuid(32), date: new Date(NOW - 200 * 864e5).toISOString() });
+  const s = Object.assign(base(), { expenses: base().expenses.concat([viejo]) });
+  s.accounts = s.accounts.map((a) => a.id === "tr" ? Object.assign({}, a, { rewardInv: "" }) : a);
+  assert.equal(ctx.recompensasPendientes(s, NOW), 12.96);
+});
+t("`trAvisosDesde` es una fecha: un cierre de puesta al día de meses muy anteriores sí estima", () => {
+  const acc = Object.assign({}, base().accounts[0], { trAvisosDesde: { roundup: NOW, saveback: NOW } });
+  const hace4 = new Date(new Date(NOW).getFullYear(), new Date(NOW).getMonth() - 4, 1);
+  const compra = { id: uuid(60), date: new Date(hace4.getTime() + 9 * 864e5).toISOString(), amount: 9.04, merchant: "Super Ejemplo", category: "super", source: "macrodroid", ent: "trade_republic" };
+  const viejo = ctx.recompensasEstimadas(base(), acc, [compra], +hace4, true);
+  assert.equal(JSON.stringify(viejo), JSON.stringify({ ru: 1.92, sb: 0.09 }));
+  const mes = new Date(new Date(NOW).getFullYear(), new Date(NOW).getMonth(), 1);
+  assert.equal(JSON.stringify(ctx.recompensasEstimadas(base(), acc, [compra], +mes, true)), JSON.stringify({ ru: 0, sb: 0 }));
+});
+
 /* Revisión 236, P2-E. TR sin Open Banking: el cierre de noviembre estima el Saveback y lo compra; el 2/12
    llega el aviso real con ese mismo dinero. Sin arreglo se sumaba dos veces. Ahora el primer aviso
    deshace la estimación de ese cierre y, desde entonces, no se estima más. */

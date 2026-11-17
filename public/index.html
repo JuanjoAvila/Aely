@@ -10021,7 +10021,7 @@ function reconcileTR(s){
       /* Lo estimado en ESTE cierre, por tipo (revisión 236, P2-E): si el primer aviso real de TR llega
          después con el dinero de este mismo mes, `aplicarRecompensasTR` lo deshace con estas cifras
          exactas y lo paga el aviso, en vez de contarlo dos veces. */
-      const est = { ym:key };
+      const est = { ym:key, at:+now };
       if(ru>0) est.roundup = { eur:ru, inv:null, c:0, sh:0 };
       if(sb>0) est.saveback = { eur:sb, inv:null, c:0, sh:0 };
       if(contrib>0 && acc.rewardInv){
@@ -10149,7 +10149,10 @@ function recompensasEstimadas(state, acc, gastos, mesMs, manual){
   if(!acc) return { ru:0, sb:0 };
   const d=new Date(mesMs), sig=+new Date(d.getFullYear(), d.getMonth()+1, 1);
   const reales=recompensasReales(state, acc.ent, mesMs, sig), desde=acc.trAvisosDesde||{};
-  const real=function(k){ return !!(reales.hay[k] || desde[k]); };
+  // `trAvisosDesde` es una FECHA: un mes que acabó más de 40 días antes del primer aviso no lo cubre
+  // ningún aviso (TR invierte lo de un mes ya entrado el siguiente), así que un cierre de puesta al día
+  // de esos meses sí estima.
+  const real=function(k){ return !!(reales.hay[k] || (desde[k] && sig>desde[k]-40*864e5)); };
   const propias=(gastos||[]).filter(function(e){ const b=expenseBankOf(e); return b ? b===acc.ent : accDaily(acc); });
   const ru=real("roundup") ? 0 : (manual && acc.roundupManual!=null ? acc.roundupManual : roundupOf(propias, acc.roundup||0));
   const sb=real("saveback") ? 0 : (manual && acc.savebackManual!=null ? acc.savebackManual : (acc.saveback ? savebackOf(propias) : 0));
@@ -10166,14 +10169,16 @@ function destinoRecompensa(state, k){
 const RECOMPENSA_VENTANA_MS=120*864e5;
 /* Avisos que aún no están en ninguna posición (sin destino elegido, o sin tipo de cambio para una en
    dólares). Siguen siendo tuyos: el patrimonio los cuenta como invertidos hasta que se apliquen, para
-   que un Round up sin destino no lo baje (revisión de dinero 236, P2-D). → euros. */
+   que un Round up sin destino no lo baje (revisión de dinero 236, P2-D). Sin límite de días: pasada la
+   ventana ya no se aplica solo, pero sigue siendo tuyo y el neto no cae de golpe. Lo ya aplicado nunca
+   cuenta aquí porque su entrada del libro no se borra (se compacta). → euros. */
 function recompensasPendientes(state, nowMs){
   const led=(state&&state.trRecompensas)||{}, filas=filasRecompensa(state);
   if(!filas.length) return 0;
   const del=expenseDeletedSet(state);
   let n=0;
   filas.forEach(function(f){
-    if(led[f.e.id] || f.e.possibleDup || f.e.pending || !(Number(f.e.amount)>0) || !(f.ms>=nowMs-RECOMPENSA_VENTANA_MS) || expenseIsTombstoned(f.e,del)) return;
+    if(led[f.e.id] || f.e.possibleDup || f.e.pending || !(Number(f.e.amount)>0) || expenseIsTombstoned(f.e,del)) return;
     n+=Number(f.e.amount);
   });
   return +n.toFixed(2);
@@ -10215,10 +10220,23 @@ function aplicarRecompensasTR(state, nowMs){
   const desde=nowMs-RECOMPENSA_VENTANA_MS, del=expenseDeletedSet(state);
   let led=null, s=state;
   const libro=function(){ if(!led) led=Object.assign({},prev); return led; };
-  // Borrado en cualquier móvil: su lápida devuelve lo sumado.
+  /* Borrado en cualquier móvil: devuelve lo sumado. Se decide por ID, no por contenido (re-revisión 236,
+     P2-N): mientras la fila siga en los gastos NO se revierte —un «es el mismo» sobre un aviso repetido
+     deja una lápida con la misma clave que el vivo—, y su copia `x` se refresca entera en cada pasada
+     para que la lápida de un renombrado o de una identidad nativa case. Solo ausente por id y con
+     lápida se devuelve. Ausente es fiable: esto corre tras un pull completo. */
+  const vivas=new Map();
+  (state.expenses||[]).forEach(function(e){ if(e && e.id!=null) vivas.set(e.id, e); });
   Object.keys(prev).forEach(function(id){
     const f=prev[id];
-    if(f && f.x && !f.puente && expenseIsTombstoned(f.x,del)){ s=revertirRecompensa(Object.assign({},s,{trRecompensas:libro()}), id); led=s.trRecompensas; }
+    if(!f || !f.x) return;
+    const viva=vivas.get(id);
+    if(viva){
+      const x=Object.assign({},viva);
+      if(JSON.stringify(x)!==JSON.stringify(f.x)) libro()[id]=Object.assign({},f,{ x:x });
+      return;
+    }
+    if(!f.puente && expenseIsTombstoned(f.x,del)){ s=revertirRecompensa(Object.assign({},s,{trRecompensas:libro()}), id); led=s.trRecompensas; }
   });
   const accIx=(s.accounts||[]).findIndex(function(a){ return a && a.ent==="trade_republic"; });
   filas.forEach(function(f){
@@ -10232,7 +10250,9 @@ function aplicarRecompensasTR(state, nowMs){
       const mesAviso=mkOf(new Date(ms)), mesAntes=mkOf(new Date(new Date(ms).getFullYear(), new Date(ms).getMonth()-1, 1));
       if(est && (ce.ym===mesAviso || ce.ym===mesAntes)){
         if(k==="roundup") a.value=+((a.value||0)+est.eur).toFixed(2);
-        if(est.inv && est.c) s=reverseInvestBuy(s, est.inv, est.sh, est.c, est.eur);
+        // Si el puente de TR reescribió esa posición después del cierre, lo estimado ya no está en ella.
+        const pos=est.inv && (s.investments||[]).find(function(i){ return i.id===est.inv; });
+        if(est.inv && est.c && !(pos && pos.brokerAt && ce.at && pos.brokerAt>=ce.at)) s=reverseInvestBuy(s, est.inv, est.sh, est.c, est.eur);
         const resto=Object.assign({},ce); delete resto[k]; a.trCierreEstimado=resto;
       }
       s=Object.assign({},s,{ accounts:s.accounts.map(function(x,i){ return i===accIx?a:x; }) });
@@ -10240,7 +10260,7 @@ function aplicarRecompensasTR(state, nowMs){
     const inv=destinoRecompensa(s, k);
     if(!inv) return;
     const eur=+Number(e.amount).toFixed(2);
-    const x={ id:e.id, date:e.date, amount:e.amount, merchant:e.merchant, source:e.source, ent:e.ent, obName:e.obName };
+    const x=Object.assign({},e);
     if(inv.brokerAt && inv.brokerAt>=ms){ libro()[e.id]={ k:k, d:ms, eur:eur, inv:inv.id, sh:0, c:0, puente:true, x:x }; return; }
     const c=fromEurAmt(eur, inv.cur||"EUR", s);
     if(c==null) return;
@@ -10252,8 +10272,9 @@ function aplicarRecompensasTR(state, nowMs){
   });
   if(!led && s===state) return state;
   if(led){
-    // Pasado el año ya no se vuelve a mirar (la ventana es de 120 días): fuera, para que no crezca.
-    Object.keys(led).forEach(function(id){ if(!(led[id] && led[id].d>=nowMs-365*864e5)) delete led[id]; });
+    // Pasado el año ya no se deshace nada: se compacta a {k, d} para que no crezca, pero NO se borra
+    // (sin entrada, `recompensasPendientes` lo volvería a contar).
+    Object.keys(led).forEach(function(id){ const f=led[id]; if(f && !(f.d>=nowMs-365*864e5) && f.x) led[id]={ k:f.k, d:f.d }; });
     s=Object.assign({},s,{ trRecompensas:led });
   }
   return s;
@@ -32137,7 +32158,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="1fbcb2116634044bf5f35496357992e01ece6be87b305bc6401ffa48f522ab7d";
+var _rnSha="f3bdadf3afe5a5eceeab0b11b17a89130ae626602cb8fe625d7760aa9b147010";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
