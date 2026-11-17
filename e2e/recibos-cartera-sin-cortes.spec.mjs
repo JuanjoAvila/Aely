@@ -88,6 +88,7 @@ for (const vp of [{ width: 360, height: 740 }, { width: 393, height: 851 }, { wi
     await expect(recibos.getByTestId("plan-entrado").locator(".pr6-paid-l")).toHaveText("Ya ha entrado");
 
     expect(await cortados(page, '.page-live [data-seg="recibos"] .pr6-sum, .page-live [data-seg="recibos"] .pr6-sec .v4-charge, .page-live [data-seg="recibos"] .pr6-paid-h')).toEqual([]);
+    expect(await puntoAlEmpezar(page, '.page-live [data-seg="recibos"] .pr6-sec .v4-charge')).toEqual([]);
   });
 
   test("Cartera sin cortes a " + vp.width + " px: uso de la cuenta sin emoji, leyenda y bienes con baldosa", async ({ page }) => {
@@ -103,5 +104,37 @@ for (const vp of [{ width: 360, height: 740 }, { width: 393, height: 851 }, { wi
     await expect(seat.locator(".am")).toHaveText("14.500 €");
     await expect(page.locator('.page-live [data-broker-key="trade_republic"] .am')).toHaveText("8.420,37 €");
     expect(await cortados(page, ".page-live .v4-legend, .page-live .v4-card-list button.v4-mov")).toEqual([]);
+    // Filtro de diseño 237, F2a: ningún renglón empieza por «·» (a 360 se leía «· Diario + Recibos»).
+    expect(await puntoAlEmpezar(page, ".page-live .v4-card-list button.v4-mov .meta")).toEqual([]);
+    // F2b: la leyenda en dos columnas; «Bienes» debajo de «Liquidez», alineado, sin el hueco de antes.
+    const ley = await page.locator(".page-live .v4-legend > .v4-legend-btn").evaluateAll((bs) => bs.map((b) => { const r = b.getBoundingClientRect(); return { l: Math.round(r.left), t: Math.round(r.top), h: Math.round(r.height) }; }));
+    expect(ley.length).toBe(3);
+    expect(ley[0].t, "Liquidez e Inversiones en la misma fila").toBe(ley[1].t);
+    expect(ley[2].l, "Bienes en la columna de Liquidez").toBe(ley[0].l);
+    expect(ley[2].t - (ley[0].t + ley[0].h), "sin el hueco de 40 px").toBeLessThanOrEqual(6);
+    // F2c: la rentabilidad de una posición en un solo renglón.
+    await page.locator('.page-live button.v4-mov[data-broker-key="trade_republic"]').click();
+    const rv = page.locator('.page-live [data-inv-position="i2"] .rvsub');
+    await expect(rv).toHaveText(/^\+1\.420,37 € · \+20,29\s?%$/);
+    const { h, lh } = await rv.evaluate((e) => ({ h: e.getBoundingClientRect().height, lh: parseFloat(getComputedStyle(e).fontSize) * 1.6 }));
+    expect(h, "un renglón").toBeLessThan(lh);
   });
+}
+
+/* Los «·» que empiezan renglón: el carácter anterior que no sea espacio está en otra línea (o no hay). */
+async function puntoAlEmpezar(page, sel) {
+  return page.evaluate((sel) => {
+    const out = [];
+    document.querySelectorAll(sel).forEach((root) => {
+      const chars = [];
+      const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) for (let i = 0; i < n.data.length; i++) if (n.data[i].trim()) chars.push([n, i]);
+      const top = (node, j) => { const r = document.createRange(); r.setStart(node, j); r.setEnd(node, j + 1); return r.getBoundingClientRect().top; };
+      chars.forEach(([n, i], k) => {
+        if (n.data[i] !== "·") return;
+        if (k === 0 || Math.abs(top(n, i) - top(chars[k - 1][0], chars[k - 1][1])) > 2) out.push(root.textContent.trim());
+      });
+    });
+    return out;
+  }, sel);
 }

@@ -89,7 +89,7 @@ test("ficha: día y banco del último cobro, los tres últimos cobros y lo del a
   await expect(f).toBeVisible();
   await expect(f.locator("h1")).toHaveText("Netflix");
   await expect(f.locator("h1")).toBeFocused();
-  await expect(f.locator(".gx-subf-cab .gx-sub-meta")).toHaveText(["Se cobra el día 14 · Trade Republic", "4 meses seguidos"]);
+  await expect(f.locator(".gx-subf-cab .gx-sub-meta")).toHaveText(["Se cobra el día 14", "Trade Republic · 4 meses seguidos"]);
   await expect(f.locator(".gx-subf-amt")).toHaveText("12,99 €");
   await expect(f.locator(".gx-subf-fila")).toHaveCount(3);
   await expect(f.locator(".gx-subf-fila").first()).toContainText("14 sept 2026");
@@ -109,7 +109,7 @@ test("ficha: día y banco del último cobro, los tres últimos cobros y lo del a
   await page.locator(".v4-sheet-back").click({ position: { x: 5, y: 5 } });
   await expect(f).toHaveCount(0);
   await tarjeta(page, "Club").click();
-  await expect(f.locator(".gx-subf-cab .gx-sub-meta").first()).toHaveText("Se cobra el día 20 · banco: — (apuntada a mano)");
+  await expect(f.locator(".gx-subf-cab .gx-sub-meta")).toHaveText(["Se cobra el día 20", /^banco: — \(apuntada a mano\) · /]);
 });
 
 test("Pasar a Recibos guarda el recibo con el importe corregido y el día, y la quita de la bandeja", async ({ page }) => {

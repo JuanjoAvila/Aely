@@ -900,11 +900,12 @@
   .v4-legend-btn{display:inline-flex;align-items:center;padding:5px 0;border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:650;font-family:inherit;white-space:nowrap;cursor:pointer;transition:opacity .2s;}
   .v4-legend-btn b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
   .v4-legend-btn.off{opacity:.4;}
-  /* El botón mide 29 px: el toque crece a 44 por arriba y por abajo, y entre filas se deja el
-     hueco justo para que el toque de una no pise el dibujo de la de abajo (auditoría 14/11). */
-  .v4-legend-btn{position:relative;}
-  .v4-legend-btn::after{content:"";position:absolute;inset:-8.5px -8px;}
-  .v4-legend:has(>.v4-legend-btn){row-gap:15px;column-gap:18px;}
+  /* Rejilla de dos columnas (filtro de diseño 237, F2b): en fila libre «Bienes» caía solo a otro
+     renglón, a 40 px, y parecía que faltaba algo; así va debajo de «Liquidez», alineado. El botón
+     mide 31 px y el toque crece a 44; entre filas solo se solapan unos px del toque, no el dibujo. */
+  .v4-legend-btn{position:relative;padding:6px 0;justify-self:start;}
+  .v4-legend-btn::after{content:"";position:absolute;inset:-6.5px -8px;}
+  .v4-legend:has(>.v4-legend-btn){display:grid;grid-template-columns:1fr 1fr;row-gap:4px;column-gap:18px;}
   .v4-seg{display:flex;gap:4px;background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:4px;margin-bottom:14px;}
   .v4-seg-btn{flex:1;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
   .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
@@ -1749,7 +1750,10 @@
   .gx-subf{display:flex;flex-direction:column;gap:14px;}
   .gx-subf-cab{display:flex;align-items:center;gap:14px;}
   .gx-subf-ic{width:52px;height:52px;border-radius:26px;font-size:24px;}
-  .gx-subf-nm{margin:0;font-size:20px;font-weight:700;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* En la ficha nada se corta (filtro de diseño 237, F1): a 360 el nombre y «Se cobra el 1 de septiembre · Sab…» salían
+     con elipsis. El nombre baja a dos líneas y la meta parte entre palabras; el banco va en la segunda línea. */
+  .gx-subf-nm{margin:0;font-size:20px;font-weight:700;outline:none;overflow-wrap:normal;word-break:normal;}
+  .gx-subf-cab .gx-sub-meta{white-space:normal;overflow:visible;text-overflow:clip;}
   .gx-sub-am .gx-subf-amt{font-size:24px;}
   .gx-subf-et{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:-6px;}
   .gx-subf-hist{background:var(--bg);border-radius:16px;padding:4px 0;}
@@ -2553,6 +2557,17 @@
   .curbtn{font-size:13px;font-weight:800;padding:4px 12px;border-radius:8px;background:transparent;color:var(--muted-2);border:none;cursor:pointer;}
   .curbtn.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
   .inv-tap{min-height:44px;}
+  /* Round up y Saveback (filtro de diseño 237, F3): el multiplicador a todo el ancho, como lo demás de
+     la tarjeta, y el destino como lista de opciones (antes píldoras cortadas en una fila con scroll). */
+  .ru-mult{display:flex;width:100%;box-sizing:border-box;}
+  .ru-mult .curbtn{flex:1 1 0;padding-left:4px;padding-right:4px;}
+  .rw-dest{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
+  .rw-dest-t{text-align:left;margin:0;}
+  .rw-opt{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line-soft);border-radius:14px;
+    background:transparent;color:var(--text);font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
+  .rw-opt.on{border-color:var(--mint);}
+  .rw-opt-nm{flex:1;min-width:0;line-height:1.3;}
+  .rw-opt-ck{flex:0 0 auto;width:16px;color:var(--mint);font-weight:800;text-align:center;}
   .v4-investments-full .curbtn,.v4-investments-full .v4-link-mini{min-height:44px;}
   .v4-investments-full .v4-field-label{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:10px;}
   .v4-investments-full .v4-field-label .af-in{display:block;min-height:44px;margin-top:5px;color:var(--text);font-weight:500;}
@@ -2586,7 +2601,8 @@
   .row .rname{font-weight:600;font-size:14px;}
   .row .rsub{font-size:11.5px;color:var(--muted-2);margin-top:1px;}
   .row .rval{font-weight:700;text-align:right;}
-  .row .rval .rvsub{font-size:11px;color:var(--mint);font-weight:600;margin-top:1px;}
+  /* Importe y % de la rentabilidad en un renglón (filtro de diseño 237, F2c): partidos quedaban «+112,96 € ·» arriba y el % abajo. */
+  .row .rval .rvsub{font-size:11px;color:var(--mint);font-weight:600;margin-top:1px;white-space:nowrap;}
   .row .rval .rvsub.neg{color:var(--coral);}
   .editpair{display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
   .editpair label{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted-2);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
@@ -9015,9 +9031,9 @@ Object.assign(LANG.es,{
   // INC-0410 es: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Cada regla aparta su importe del presupuesto y lo suma a la meta: al guardarla y cada mes. Las antiguas reparten cada ingreso si lo confirmas.",
   // INC-0410 es: límite de la ayuda del reparto.
-  ru_interest:"Interés del efectivo (% anual)",
+  ru_interest:"Interés anual (%)",
   ru_interest_hint:"TR paga un {p}% anual el día 1; la app lo suma al cerrar cada mes.",
-  h_ru:"Round-up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
+  h_ru:"Round up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
   h_recon:"Compara tus recibos y cuotas con lo que el banco ha cobrado y marca lo que no cuadra.",
 });
 
@@ -9275,7 +9291,7 @@ Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:
   gv5_sub_sem_seguidas:"{n} semanas seguidas", gv5_sub_anios_seguidos:"{n} años seguidos", gv5_sub_cadames:"Cada mes", gv5_sub_cadasem:"Cada semana", gv5_sub_cadaanio:"Cada año",
   gv5_sub_alasem:"a la semana", gv5_sub_alanio:"al año", gv5_sub_dia_sem:"Cada {d}", gv5_sub_dia_anio:"Se cobra el {d}", gv5_sub_eqmes:"{x} al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
   gv5_sub_dia:"Se cobra el día {d}", gv5_sub_sinbanco:"banco: — (apuntada a mano)", gv5_sub_ultimos:"Últimos cobros",
-  gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.", gv5_sub_fijo:"Si es un gasto fijo, pásalo a Recibos y lo tendrás en Plan con los demás.",
+  gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.",
   gv5_sub_importe:"Importe para Recibos", gv5_sub_recibos:"Pasar a Recibos",
   gv5_sub_recibos_ok:"✓ «{n}» pasa a Recibos ({b})",
   gv5_sub_baja:"Ya la he dado de baja", gv5_sub_baja_q:"¿Ya has dado de baja «{n}»?", gv5_sub_baja_sub:"Sale de esta lista. Si vuelve a cobrarte, aparecerá otra vez con un aviso.",
@@ -9371,16 +9387,14 @@ Object.assign(LANG.es,{
   inv_sold_part:"Vendí parte →", inv_value:"Valor", inv_invested:"Invertido", inv_sell_prompt:"¿Qué % de «{name}» has vendido?",
   inv_sell_sub:"Pon el porcentaje (30 = un 30 %). Se ajustan valor, coste y participaciones, y el líquido se apunta como vendido.",
   inv_delete:"Borrar", inv_delete_confirm:"¿Borrar «{name}» de tu cartera?", inv_delete_sub:"Esto no toca tu bróker: solo la quita de la app.",
-  ru_title:"Redondeo de Trade Republic", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
-  ru_title_simple:"Redondeo y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
+  ru_title:"Round up y Saveback", ru_sub_on:"Round up ×{m}", ru_sub_off:"desactivado",
+  ru_title_simple:"Round up y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
   ru_hint_simple:"Redondea cada compra al euro e invierte la diferencia, más el 1 % que devuelve TR.",
-  ru_mult:"Multiplicador del redondeo", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
-  ru_saveback:"Saveback 1% (cashback de TR, máx 15€/mes)",
-  ru_month_ru:"Round-up ya invertido (este mes)", ru_month_sb:"Saveback ya invertido (este mes)", ru_total:"Aportado vía TR (total acumulado)",
+  ru_mult:"Multiplicador del Round up", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
+  ru_saveback:"Saveback del 1 %",
+  ru_month_ru:"Round up este mes", ru_month_sb:"Saveback este mes", ru_total:"Aportado en total",
   ru_plan:"Aporte periódico a inversión", ru_plan_amt:"Cada mes (€)", ru_plan_hint:"{x}/mes salen de tu efectivo de TR y compran {inv} (tu plan de ahorro). Así tu saldo de TR cuadra sin tocar nada.", 
-  ru_hint:"Sale de tu efectivo TR hacia {inv} al cerrar cada mes. Es una estimación.",
-  ru_hint_off:"Actívalo si usas Round-up o Saveback en TR, para que tu efectivo cuadre.",
-  ru_manual_hint:"Escribe el importe real de TR para corregir la estimación (vacío = automático).",
+  ru_sub_dest:"Round up → {name}", ru_vacio:"Vacío = automático",
   type_acciones:"Acciones", type_etf:"ETF", type_fondo:"Fondo indexado", type_materias:"Materias primas",
   pj_projvalue:"Valor proyectado", pj_contrib:"Tu contribución", pj_monthly:"Contribución mensual", pj_rate:"Interés anual %", pj_years:"Años",
   pj_gain:"Ganancia estimada en {y} años", pj_hint:"Sobre lo ya invertido ({x}). La banda es ±2% sobre el interés. Estimación, no garantía.",
@@ -9938,12 +9952,13 @@ function inversionEtiqueta(s, e){
   const comprada=porId(e.investInvId);
   if(comprada&&comprada.name) return tf("g_inv_dest",{ name:comprada.name });
   /* Round up / Saveback de TR (16/11/2026): la posición a la que se sumó o se sumará, o la pista para
-     elegirla (sumará entonces, una vez). Sin ninguna posición en Cartera no hay nada que pedir. */
+     elegirla (sumará entonces, una vez). Sin ninguna posición de TR no hay nada que pedir: el
+     selector solo ofrece las de TR (`posicionesTR`). */
   const rk=recompensaDe(e);
   if(rk){
     const fila=s&&s.trRecompensas&&s.trRecompensas[e.id];
     const dest=fila ? porId(fila.inv) : destinoRecompensa(s, rk);
-    return dest&&dest.name ? tf("g_inv_dest",{ name:dest.name }) : (invs.length ? t("rw_pick") : "");
+    return dest&&dest.name ? tf("g_inv_dest",{ name:dest.name }) : (posicionesTR(s).length ? t("rw_pick") : "");
   }
   const txt=(String(e.merchant||"")+" "+String(e.note||"")+" "+String(e.obName||"")).toLowerCase();
   const ents=["trade_republic","myinvestor"];
@@ -10250,11 +10265,17 @@ function recompensasEstimadas(state, acc, gastos, mesMs, manual){
 }
 /* A qué posición va cada uno. Round up → `rewardInv` (el mismo destino de siempre); Saveback →
    `savebackInv`, y si nunca se eligió, el de siempre. "" = ninguno a propósito. */
+/* Solo una posición de TR puede recibirlos: TR invierte el redondeo en su casa, nunca en un fondo de
+   otro bróker. Un `rewardInv` que apunte a otro (lo dejaba elegir el ajuste viejo, sin filtrar) no es
+   destino: el aviso queda pendiente hasta elegir una de TR (filtro de diseño 237, F3). */
+function posicionesTR(state){
+  return ((state&&state.investments)||[]).filter(function(i){ return i && i.ent==="trade_republic"; });
+}
 function destinoRecompensa(state, k){
   const acc=((state&&state.accounts)||[]).find(function(a){ return a && a.ent==="trade_republic"; });
   if(!acc) return null;
   const id=k==="saveback" && acc.savebackInv!=null ? acc.savebackInv : acc.rewardInv;
-  return id ? ((state.investments||[]).find(function(i){ return i && i.id===id; })||null) : null;
+  return id ? (posicionesTR(state).find(function(i){ return i.id===id; })||null) : null;
 }
 const RECOMPENSA_VENTANA_MS=120*864e5;
 /* Avisos que aún no están en ninguna posición (sin destino elegido, o sin tipo de cambio para una en
@@ -15217,8 +15238,9 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
           React.createElement("span",{className:"gx-sub-ic gx-subf-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
           React.createElement("div",{className:"gx-sub-txt"},
             React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"gx-subf-nm"},sp.name),
-            React.createElement("span",{className:"gx-sub-meta"},cuando+" · "+(bk||t("gv5_sub_sinbanco"))),
-            React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp))),
+            // El cuándo solo en la primera línea y el banco con la racha en la segunda: juntos, a 360 el banco se cortaba.
+            React.createElement("span",{className:"gx-sub-meta"},cuando),
+            React.createElement("span",{className:"gx-sub-meta"},(bk||t("gv5_sub_sinbanco"))+" · "+gxSubFrec(sp))),
           React.createElement("span",{className:"gx-sub-am"},
             React.createElement("span",{className:"num serif gx-subf-amt"},eur(sp.amount)),
             React.createElement("span",{className:"gx-sub-mes"},porPer))),
@@ -15231,7 +15253,7 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
               React.createElement("span",{className:"num gx-subf-fila-am"},eur(x.amount)));
           })),
         React.createElement("p",{className:"gx-subf-anio"},
-          tf(sp.per!=="mes"||sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})+" "+t("gv5_sub_fijo")),
+          tf(sp.per!=="mes"||sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})),
         React.createElement("label",{className:"gx-subf-imp"},
           React.createElement("span",null,t("gv5_sub_importe")),
           React.createElement("span",{className:"num"},
@@ -19920,28 +19942,31 @@ function Projection({invested, defMonthly, state, currency, fmt, fmt0}){
   );
 }
 
-/* A QUÉ POSICIÓN VA CADA AVISO DE TR (16/11/2026): una fila para el Round up y otra para el Saveback,
+/* A QUÉ POSICIÓN VA CADA AVISO DE TR (16/11/2026): un grupo para el Round up y otro para el Saveback,
    con el logo de cada posición. Tocar la elegida la quita (se apunta igual, sin sumar a ninguna).
-   Escribe en la cuenta de TR, que es donde lo lee `destinoRecompensa`. */
+   Escribe en la cuenta de TR, que es donde lo lee `destinoRecompensa`. Solo posiciones de TR
+   (`posicionesTR`): TR no puede invertir el redondeo en un fondo de otro bróker, y el filtro de
+   diseño 237 lo vio ofreciendo uno de MyInvestor, escondido al final de una fila con scroll. Ahora
+   es una lista a todo el ancho, con el nombre entero y ✓ en la elegida. */
 function DestinoRecompensas({state,set}){
   const tr=state.accounts.find(function(a){ return a.ent==="trade_republic"; });
-  if(!tr || !state.investments.length) return null;
+  const pos=posicionesTR(state);
+  if(!tr || !pos.length) return null;
   const pon=function(patch){ set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(a){ return a.id===tr.id?Object.assign({},a,patch):a; })}); }); };
-  const fila=function(k){
+  const grupo=function(k){
     const actual=destinoRecompensa(state, k), campo=k==="roundup"?"rewardInv":"savebackInv";
-    return React.createElement("div",{key:k,className:"rw-dest","data-rw":k,style:{display:"flex",alignItems:"center",gap:8,margin:"0 0 8px"}},
-      React.createElement("div",{className:"mlabel",style:{flex:"0 0 74px",textAlign:"left",margin:0}}, t(k==="roundup"?"rw_ru":"rw_sb")),
-      React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",flex:1}},
-        state.investments.map(function(i){
-          const on=!!actual && actual.id===i.id;
-          return React.createElement("button",{key:i.id,type:"button",className:"chip"+(on?" active":""),"aria-pressed":on,title:i.name,
-            style:{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px 5px 5px"},
-            onClick:function(){ const p={}; p[campo]=on?"":i.id; pon(p); }},
-            React.createElement(LogoInv,{nombre:i.name,ent:i.ent,kind:i.kind,size:20}),
-            React.createElement("span",{style:{maxWidth:110,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}, i.name));
-        })));
+    return React.createElement("div",{key:k,className:"rw-dest","data-rw":k},
+      React.createElement("div",{className:"mlabel rw-dest-t"}, t(k==="roundup"?"rw_ru":"rw_sb")),
+      pos.map(function(i){
+        const on=!!actual && actual.id===i.id;
+        return React.createElement("button",{key:i.id,type:"button",className:"rw-opt"+(on?" on":""),"aria-pressed":on,
+          onClick:function(){ const p={}; p[campo]=on?"":i.id; pon(p); }},
+          React.createElement(LogoInv,{nombre:i.name,ent:i.ent,kind:i.kind,size:20}),
+          React.createElement("span",{className:"rw-opt-nm"}, i.name),
+          React.createElement("span",{className:"rw-opt-ck","aria-hidden":true}, on?"✓":""));
+      }));
   };
-  return React.createElement("div",{style:{marginBottom:6}}, fila("roundup"), fila("saveback"));
+  return React.createElement("div",{className:"rw-dests"}, grupo("roundup"), grupo("saveback"));
 }
 
 function InvestmentRewards({state,set}){
@@ -19964,9 +19989,14 @@ function InvestmentRewards({state,set}){
   const ru=(trAcc.roundupManual!=null&&!rewardsAuto.hay.roundup)?trAcc.roundupManual:ruAuto, sb=(trAcc.savebackManual!=null&&!rewardsAuto.hay.saveback)?trAcc.savebackManual:sbAuto, tot=state.trRewardsTotal||0;
   const iv=state.investments.find(function(i){ return i.id===trAcc.rewardInv; });
   const invName=iv?iv.name:t("ru_pick");
-  return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):(mult>0?tf("ru_sub_on",{m:mult}):t("ru_sub_off")),dot:mult>0?"#E6C36A":"var(--muted-2)",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
+  /* La cabecera dice adónde va: «desactivado» con un destino elegido se contradecía (filtro de
+     diseño 237, F3). «Desactivado» solo sin destino, sin multiplicador y sin Saveback. */
+  const dRu=destinoRecompensa(state,"roundup");
+  const sub=dRu?tf("ru_sub_dest",{name:dRu.name}):mult>0?tf("ru_sub_on",{m:mult}):trAcc.saveback?t("rw_sb"):t("ru_sub_off");
+  const activo=!!(dRu||mult>0||trAcc.saveback);
+  return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):sub,dot:activo?"var(--tan)":"var(--muted-2)",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",marginBottom:6}},t("ru_mult")),
-    React.createElement("div",{className:"curtoggle",style:{flexWrap:"wrap",justifyContent:"flex-start"}},
+    React.createElement("div",{className:"curtoggle ru-mult"},
       RU_MULTS.map(function(m){ return React.createElement("button",{key:m,type:"button",className:"curbtn inv-tap"+(mult===m?" on":""),onClick:function(){ setTr({roundup:m}); }}, m===0?t("ru_off"):"×"+m); })),
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",margin:"12px 0 6px"}},t("ru_dest")),
     React.createElement(DestinoRecompensas,{state:state,set:set}),
@@ -19993,7 +20023,8 @@ function InvestmentRewards({state,set}){
     React.createElement("div",{className:"ru-edit"},
       React.createElement("span",{className:"muted"},t("ru_total")),
       React.createElement("input",{className:"af-in num",style:{width:96,textAlign:"right",padding:"7px 9px"},inputMode:"decimal",placeholder:"0",value:tot||"",onChange:function(e){ setTot(parseFloat(String(e.target.value).replace(',','.'))||0); }})),
-    React.createElement("div",{className:"hint",style:{marginTop:8}}, SIMPLEMODE?t("ru_hint_simple"):((mult>0||trAcc.saveback?tf("ru_hint",{inv:invName}):t("ru_hint_off"))+" "+t("ru_manual_hint")))
+    // Una línea: los campos de arriba vacíos se calculan solos (filtro de diseño 237: eran tres renglones).
+    React.createElement("div",{className:"hint",style:{marginTop:8}}, SIMPLEMODE?t("ru_hint_simple"):t("ru_vacio"))
   );
 }
 
@@ -20783,14 +20814,16 @@ function AssetSheet({asset,set,onClose}){
 
 /* Trozos de una subfila («Recibos», «Sabadell», «falta su parte») separados por «·», en Plan ›
    Recibos y en Cartera (auditoría de diseño 237: con elipsis se leía «Sabadell · f…»). El espacio va
-   FUERA de cada trozo para que el renglón solo pueda partir entre ellos; el «·» viaja con el trozo
-   de detrás, así nunca queda colgando al final. Uno largo («pagas 197 € + 53 € de Pepephone») sí
+   FUERA de cada trozo para que el renglón solo pueda partir entre ellos; el «·» va al FINAL del trozo
+   de delante, como en la fila de Gastos: delante del de detrás, a 360 un renglón empezaba por
+   «· Diario + Recibos» (filtro de diseño 237). Uno largo («pagas 197 € + 53 € de Pepephone») sí
    puede partir por sus espacios: si no, se saldría de la tarjeta. */
 function mcTrozos(partes, cls){
+  const ps=partes.filter(Boolean);
   return React.createElement("span",{className:cls||"mc-trozos"},
-    partes.filter(Boolean).map(function(p,i){
+    ps.map(function(p,i){
       return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
-        React.createElement("span",{className:String(p).length<=22?"mc-pt":null}, (i>0?"· ":"")+p));
+        React.createElement("span",{className:String(p).length<=22?"mc-pt":null}, p+(i<ps.length-1?" ·":"")));
     }));
 }
 function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){
@@ -32680,7 +32713,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="80211ed7c73c9d6ce0f29c4f12466493e3172e88264073baad44d8768f56f871";
+var _rnSha="bf5eb0b23cb8c2ec20345d79828dab444c639d0ec4d1ad2fdac3468c109db236";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

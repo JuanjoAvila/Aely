@@ -1073,9 +1073,9 @@ Object.assign(LANG.es,{
   // INC-0410 es: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Cada regla aparta su importe del presupuesto y lo suma a la meta: al guardarla y cada mes. Las antiguas reparten cada ingreso si lo confirmas.",
   // INC-0410 es: límite de la ayuda del reparto.
-  ru_interest:"Interés del efectivo (% anual)",
+  ru_interest:"Interés anual (%)",
   ru_interest_hint:"TR paga un {p}% anual el día 1; la app lo suma al cerrar cada mes.",
-  h_ru:"Round-up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
+  h_ru:"Round up: TR redondea cada compra con tarjeta al euro y lo invierte. Saveback: un 1 % de regalo por pagar con ella.",
   h_recon:"Compara tus recibos y cuotas con lo que el banco ha cobrado y marca lo que no cuadra.",
 });
 Object.assign(LANG.en,{
@@ -1094,9 +1094,9 @@ Object.assign(LANG.en,{
   // INC-0410 en: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Each rule takes its amount from the budget and adds it to the goal: on save and every month. Older rules split each income if you confirm.",
   // INC-0410 en: límite de la ayuda del reparto.
-  ru_interest:"Cash interest (% p.a.)",
+  ru_interest:"Annual interest (%)",
   ru_interest_hint:"TR pays {p}% p.a. on the 1st; the app adds it at each month close.",
-  h_ru:"Round-up: TR rounds each card purchase up to the euro and invests it. Saveback: a 1% reward for paying by card.",
+  h_ru:"Round up: TR rounds each card purchase up to the euro and invests it. Saveback: a 1% reward for paying by card.",
   h_recon:"Compares your bills and instalments with what the bank charged and flags mismatches.",
 });
 Object.assign(LANG.ca,{
@@ -1115,9 +1115,9 @@ Object.assign(LANG.ca,{
   // INC-0410 ca: la ayuda de la tarjeta promete lo mismo que el reparto.
   h_reserva:"Cada regla aparta el seu import del pressupost i el suma a l'objectiu: en desar-la i cada mes. Les antigues reparteixen cada ingrés si ho confirmes.",
   // INC-0410 ca: límite de la ayuda del reparto.
-  ru_interest:"Interès de l'efectiu (% anual)",
+  ru_interest:"Interès anual (%)",
   ru_interest_hint:"TR paga un {p}% anual el dia 1; l'app el suma en tancar cada mes.",
-  h_ru:"Round-up: TR arrodoneix cada compra amb targeta a l'euro i ho inverteix. Saveback: un 1 % de regal per pagar-hi.",
+  h_ru:"Round up: TR arrodoneix cada compra amb targeta a l'euro i ho inverteix. Saveback: un 1 % de regal per pagar-hi.",
   h_recon:"Compara els teus rebuts i quotes amb el que ha cobrat el banc i marca el que no quadra.",
 });
 /* Roles de cuenta + import OB + informe mensual */
@@ -1771,7 +1771,7 @@ Object.assign(LANG.es,{gv5_sub_info:"Suscripciones detectadas", gv5_sub_i_que_t:
   gv5_sub_sem_seguidas:"{n} semanas seguidas", gv5_sub_anios_seguidos:"{n} años seguidos", gv5_sub_cadames:"Cada mes", gv5_sub_cadasem:"Cada semana", gv5_sub_cadaanio:"Cada año",
   gv5_sub_alasem:"a la semana", gv5_sub_alanio:"al año", gv5_sub_dia_sem:"Cada {d}", gv5_sub_dia_anio:"Se cobra el {d}", gv5_sub_eqmes:"{x} al mes", gv5_sub_vuelve:"Ha vuelto a cobrar después de darla de baja",
   gv5_sub_dia:"Se cobra el día {d}", gv5_sub_sinbanco:"banco: — (apuntada a mano)", gv5_sub_ultimos:"Últimos cobros",
-  gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.", gv5_sub_fijo:"Si es un gasto fijo, pásalo a Recibos y lo tendrás en Plan con los demás.",
+  gv5_sub_anio:"Unos {y} al año.", gv5_sub_anio_si:"Unos {y} al año si se cobra todos los meses.",
   gv5_sub_importe:"Importe para Recibos", gv5_sub_recibos:"Pasar a Recibos",
   gv5_sub_recibos_ok:"✓ «{n}» pasa a Recibos ({b})",
   gv5_sub_baja:"Ya la he dado de baja", gv5_sub_baja_q:"¿Ya has dado de baja «{n}»?", gv5_sub_baja_sub:"Sale de esta lista. Si vuelve a cobrarte, aparecerá otra vez con un aviso.",
@@ -1787,7 +1787,7 @@ Object.assign(LANG.en,{gv5_sub_info:"Detected subscriptions", gv5_sub_i_que_t:"W
   gv5_sub_sem_seguidas:"{n} weeks in a row", gv5_sub_anios_seguidos:"{n} years in a row", gv5_sub_cadames:"Every month", gv5_sub_cadasem:"Every week", gv5_sub_cadaanio:"Every year",
   gv5_sub_alasem:"a week", gv5_sub_alanio:"a year", gv5_sub_dia_sem:"Every {d}", gv5_sub_dia_anio:"Charged on {d}", gv5_sub_eqmes:"{x} a month", gv5_sub_vuelve:"It charged again after you cancelled it",
   gv5_sub_dia:"Charged on day {d}", gv5_sub_sinbanco:"bank: — (added by hand)", gv5_sub_ultimos:"Latest charges",
-  gv5_sub_anio:"About {y} a year.", gv5_sub_anio_si:"About {y} a year if it's charged every month.", gv5_sub_fijo:"If it's a fixed expense, move it to Bills and you'll see it in Plan with the rest.",
+  gv5_sub_anio:"About {y} a year.", gv5_sub_anio_si:"About {y} a year if it's charged every month.",
   gv5_sub_importe:"Amount for Bills", gv5_sub_recibos:"Move to Bills",
   gv5_sub_recibos_ok:"✓ \"{n}\" moved to Bills ({b})",
   gv5_sub_baja:"I've cancelled it", gv5_sub_baja_q:"Have you cancelled \"{n}\"?", gv5_sub_baja_sub:"It leaves this list. If it charges you again, it'll come back with a warning.",
@@ -1803,7 +1803,7 @@ Object.assign(LANG.ca,{gv5_sub_info:"Subscripcions detectades", gv5_sub_i_que_t:
   gv5_sub_sem_seguidas:"{n} setmanes seguides", gv5_sub_anios_seguidos:"{n} anys seguits", gv5_sub_cadames:"Cada mes", gv5_sub_cadasem:"Cada setmana", gv5_sub_cadaanio:"Cada any",
   gv5_sub_alasem:"a la setmana", gv5_sub_alanio:"l'any", gv5_sub_dia_sem:"Cada {d}", gv5_sub_dia_anio:"Es cobra el {d}", gv5_sub_eqmes:"{x} al mes", gv5_sub_vuelve:"Ha tornat a cobrar després de donar-la de baixa",
   gv5_sub_dia:"Es cobra el dia {d}", gv5_sub_sinbanco:"banc: — (apuntada a mà)", gv5_sub_ultimos:"Últims càrrecs",
-  gv5_sub_anio:"Uns {y} l'any.", gv5_sub_anio_si:"Uns {y} l'any si es cobra cada mes.", gv5_sub_fijo:"Si és una despesa fixa, passa-la a Rebuts i la tindràs al Pla amb les altres.",
+  gv5_sub_anio:"Uns {y} l'any.", gv5_sub_anio_si:"Uns {y} l'any si es cobra cada mes.",
   gv5_sub_importe:"Import per a Rebuts", gv5_sub_recibos:"Passa a Rebuts",
   gv5_sub_recibos_ok:"✓ «{n}» passa a Rebuts ({b})",
   gv5_sub_baja:"Ja l'he donada de baixa", gv5_sub_baja_q:"Ja has donat de baixa «{n}»?", gv5_sub_baja_sub:"Surt d'aquesta llista. Si et torna a cobrar, tornarà a aparèixer amb un avís.",
@@ -1999,16 +1999,14 @@ Object.assign(LANG.es,{
   inv_sold_part:"Vendí parte →", inv_value:"Valor", inv_invested:"Invertido", inv_sell_prompt:"¿Qué % de «{name}» has vendido?",
   inv_sell_sub:"Pon el porcentaje (30 = un 30 %). Se ajustan valor, coste y participaciones, y el líquido se apunta como vendido.",
   inv_delete:"Borrar", inv_delete_confirm:"¿Borrar «{name}» de tu cartera?", inv_delete_sub:"Esto no toca tu bróker: solo la quita de la app.",
-  ru_title:"Redondeo de Trade Republic", ru_sub_on:"redondeo ×{m} activo", ru_sub_off:"desactivado",
-  ru_title_simple:"Redondeo y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
+  ru_title:"Round up y Saveback", ru_sub_on:"Round up ×{m}", ru_sub_off:"desactivado",
+  ru_title_simple:"Round up y regalo por pagar", ru_sub_simple:"cada compra suma un poquito a tu inversión",
   ru_hint_simple:"Redondea cada compra al euro e invierte la diferencia, más el 1 % que devuelve TR.",
-  ru_mult:"Multiplicador del redondeo", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
-  ru_saveback:"Saveback 1% (cashback de TR, máx 15€/mes)",
-  ru_month_ru:"Round-up ya invertido (este mes)", ru_month_sb:"Saveback ya invertido (este mes)", ru_total:"Aportado vía TR (total acumulado)",
+  ru_mult:"Multiplicador del Round up", ru_off:"No", ru_dest:"Inversión destino", ru_pick:"Elige una inversión…",
+  ru_saveback:"Saveback del 1 %",
+  ru_month_ru:"Round up este mes", ru_month_sb:"Saveback este mes", ru_total:"Aportado en total",
   ru_plan:"Aporte periódico a inversión", ru_plan_amt:"Cada mes (€)", ru_plan_hint:"{x}/mes salen de tu efectivo de TR y compran {inv} (tu plan de ahorro). Así tu saldo de TR cuadra sin tocar nada.", 
-  ru_hint:"Sale de tu efectivo TR hacia {inv} al cerrar cada mes. Es una estimación.",
-  ru_hint_off:"Actívalo si usas Round-up o Saveback en TR, para que tu efectivo cuadre.",
-  ru_manual_hint:"Escribe el importe real de TR para corregir la estimación (vacío = automático).",
+  ru_sub_dest:"Round up → {name}", ru_vacio:"Vacío = automático",
   type_acciones:"Acciones", type_etf:"ETF", type_fondo:"Fondo indexado", type_materias:"Materias primas",
   pj_projvalue:"Valor proyectado", pj_contrib:"Tu contribución", pj_monthly:"Contribución mensual", pj_rate:"Interés anual %", pj_years:"Años",
   pj_gain:"Ganancia estimada en {y} años", pj_hint:"Sobre lo ya invertido ({x}). La banda es ±2% sobre el interés. Estimación, no garantía.",
@@ -2054,16 +2052,14 @@ Object.assign(LANG.en,{
   inv_sold_part:"Sold part →", inv_value:"Value", inv_invested:"Invested", inv_sell_prompt:"What % of “{name}” did you sell?",
   inv_sell_sub:"Enter the percentage (30 = 30 %). Value, cost and shares are adjusted, and the proceeds are logged as sold.",
   inv_delete:"Delete", inv_delete_confirm:"Delete “{name}” from your portfolio?", inv_delete_sub:"This doesn't touch your broker: it only removes it from the app.",
-  ru_title:"Trade Republic round-up", ru_sub_on:"round-up ×{m} on", ru_sub_off:"off",
-  ru_title_simple:"Round-ups & card reward", ru_sub_simple:"each purchase adds a little to your investing",
+  ru_title:"Round up and Saveback", ru_sub_on:"Round up ×{m}", ru_sub_off:"off",
+  ru_title_simple:"Round up and card reward", ru_sub_simple:"each purchase adds a little to your investing",
   ru_hint_simple:"Rounds each purchase up to the euro and invests the change, plus TR's 1% back.",
-  ru_mult:"Round-up multiplier", ru_off:"Off", ru_dest:"Target investment", ru_pick:"Pick an investment…",
-  ru_saveback:"Saveback 1% (TR cashback, max €15/mo)",
-  ru_month_ru:"Round-up invested (this month)", ru_month_sb:"Saveback invested (this month)", ru_total:"Contributed via TR (running total)",
+  ru_mult:"Round up multiplier", ru_off:"Off", ru_dest:"Target investment", ru_pick:"Pick an investment…",
+  ru_saveback:"1% Saveback",
+  ru_month_ru:"Round up this month", ru_month_sb:"Saveback this month", ru_total:"Total contributed",
   ru_plan:"Recurring investment", ru_plan_amt:"Each month (€)", ru_plan_hint:"{x}/mo leave your TR cash and buy {inv} (your savings plan). This keeps your TR balance right with no manual tweaks.", 
-  ru_hint:"Leaves your TR cash towards {inv} at each month close. It's an estimate.",
-  ru_hint_off:"Turn it on if you use Round-up or Saveback in TR, so your cash matches.",
-  ru_manual_hint:"Type the real TR amount to correct the estimate (empty = automatic).",
+  ru_sub_dest:"Round up → {name}", ru_vacio:"Empty = automatic",
   type_acciones:"Stocks", type_etf:"ETF", type_fondo:"Index fund", type_materias:"Commodities",
   pj_projvalue:"Projected value", pj_contrib:"Your contribution", pj_monthly:"Monthly contribution", pj_rate:"Annual interest %", pj_years:"Years",
   pj_gain:"Estimated gain in {y} years", pj_hint:"On what's already invested ({x}). The band is ±2% on the rate. Estimate, not a guarantee.",
@@ -2109,16 +2105,14 @@ Object.assign(LANG.ca,{
   inv_sold_part:"He venut part →", inv_value:"Valor", inv_invested:"Invertit", inv_sell_prompt:"Quin % de «{name}» has venut?",
   inv_sell_sub:"Posa el percentatge (30 = un 30 %). S'ajusten valor, cost i participacions, i el líquid s'apunta com a venut.",
   inv_delete:"Esborra", inv_delete_confirm:"Esborrar «{name}» de la teva cartera?", inv_delete_sub:"Això no toca el teu bròker: només la treu de l'app.",
-  ru_title:"Arrodoniment de Trade Republic", ru_sub_on:"arrodoniment ×{m} actiu", ru_sub_off:"desactivat",
-  ru_title_simple:"Arrodoniment i regal per pagar", ru_sub_simple:"cada compra suma una miqueta a la teva inversió",
+  ru_title:"Round up i Saveback", ru_sub_on:"Round up ×{m}", ru_sub_off:"desactivat",
+  ru_title_simple:"Round up i regal per pagar", ru_sub_simple:"cada compra suma una miqueta a la teva inversió",
   ru_hint_simple:"Arrodoneix cada compra a l'euro i inverteix la diferència, més l'1 % que torna TR.",
-  ru_mult:"Multiplicador de l'arrodoniment", ru_off:"No", ru_dest:"Inversió destí", ru_pick:"Tria una inversió…",
-  ru_saveback:"Saveback 1% (cashback de TR, màx 15€/mes)",
-  ru_month_ru:"Arrodoniment ja invertit (aquest mes)", ru_month_sb:"Saveback ja invertit (aquest mes)", ru_total:"Aportat via TR (total acumulat)",
+  ru_mult:"Multiplicador del Round up", ru_off:"No", ru_dest:"Inversió destí", ru_pick:"Tria una inversió…",
+  ru_saveback:"Saveback de l'1 %",
+  ru_month_ru:"Round up aquest mes", ru_month_sb:"Saveback aquest mes", ru_total:"Aportat en total",
   ru_plan:"Aportació periòdica a inversió", ru_plan_amt:"Cada mes (€)", ru_plan_hint:"{x}/mes surten del teu efectiu de TR i compren {inv} (el teu pla d'estalvi). Així el teu saldo de TR quadra sense tocar res.", 
-  ru_hint:"Surt del teu efectiu TR cap a {inv} en tancar cada mes. És una estimació.",
-  ru_hint_off:"Activa'l si fas servir Round-up o Saveback a TR, perquè l'efectiu quadri.",
-  ru_manual_hint:"Escriu l'import real de TR per corregir l'estimació (buit = automàtic).",
+  ru_sub_dest:"Round up → {name}", ru_vacio:"Buit = automàtic",
   type_acciones:"Accions", type_etf:"ETF", type_fondo:"Fons indexat", type_materias:"Matèries primeres",
   pj_projvalue:"Valor projectat", pj_contrib:"La teva contribució", pj_monthly:"Contribució mensual", pj_rate:"Interès anual %", pj_years:"Anys",
   pj_gain:"Guany estimat en {y} anys", pj_hint:"Sobre el ja invertit ({x}). La banda és ±2% sobre l'interès. Estimació, no garantia.",
@@ -3044,12 +3038,13 @@ function inversionEtiqueta(s, e){
   const comprada=porId(e.investInvId);
   if(comprada&&comprada.name) return tf("g_inv_dest",{ name:comprada.name });
   /* Round up / Saveback de TR (16/11/2026): la posición a la que se sumó o se sumará, o la pista para
-     elegirla (sumará entonces, una vez). Sin ninguna posición en Cartera no hay nada que pedir. */
+     elegirla (sumará entonces, una vez). Sin ninguna posición de TR no hay nada que pedir: el
+     selector solo ofrece las de TR (`posicionesTR`). */
   const rk=recompensaDe(e);
   if(rk){
     const fila=s&&s.trRecompensas&&s.trRecompensas[e.id];
     const dest=fila ? porId(fila.inv) : destinoRecompensa(s, rk);
-    return dest&&dest.name ? tf("g_inv_dest",{ name:dest.name }) : (invs.length ? t("rw_pick") : "");
+    return dest&&dest.name ? tf("g_inv_dest",{ name:dest.name }) : (posicionesTR(s).length ? t("rw_pick") : "");
   }
   const txt=(String(e.merchant||"")+" "+String(e.note||"")+" "+String(e.obName||"")).toLowerCase();
   const ents=["trade_republic","myinvestor"];
@@ -3356,11 +3351,17 @@ function recompensasEstimadas(state, acc, gastos, mesMs, manual){
 }
 /* A qué posición va cada uno. Round up → `rewardInv` (el mismo destino de siempre); Saveback →
    `savebackInv`, y si nunca se eligió, el de siempre. "" = ninguno a propósito. */
+/* Solo una posición de TR puede recibirlos: TR invierte el redondeo en su casa, nunca en un fondo de
+   otro bróker. Un `rewardInv` que apunte a otro (lo dejaba elegir el ajuste viejo, sin filtrar) no es
+   destino: el aviso queda pendiente hasta elegir una de TR (filtro de diseño 237, F3). */
+function posicionesTR(state){
+  return ((state&&state.investments)||[]).filter(function(i){ return i && i.ent==="trade_republic"; });
+}
 function destinoRecompensa(state, k){
   const acc=((state&&state.accounts)||[]).find(function(a){ return a && a.ent==="trade_republic"; });
   if(!acc) return null;
   const id=k==="saveback" && acc.savebackInv!=null ? acc.savebackInv : acc.rewardInv;
-  return id ? ((state.investments||[]).find(function(i){ return i && i.id===id; })||null) : null;
+  return id ? (posicionesTR(state).find(function(i){ return i.id===id; })||null) : null;
 }
 const RECOMPENSA_VENTANA_MS=120*864e5;
 /* Avisos que aún no están en ninguna posición (sin destino elegido, o sin tipo de cambio para una en

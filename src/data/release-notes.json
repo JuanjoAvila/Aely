@@ -1,5 +1,95 @@
 [
   {
+    "v": "4.26.237",
+    "d": "2026-11-17",
+    "t": {
+      "es": "Recibos y Gastos más claros, suscripciones de verdad y cuentas al céntimo",
+      "en": "Clearer Bills and Spending, real subscriptions and figures to the cent",
+      "ca": "Rebuts i Despeses més clars, subscripcions de debò i comptes al cèntim"
+    },
+    "items": {
+      "es": [
+        "Recibos y Cartera se leen enteros en cualquier móvil: lo que no cabe baja a la línea siguiente en vez de cortarse.",
+        "Suscripciones solo enseña cobros que se repiten de verdad, cada semana, mes o año. El súper, la gasolina, los bares y las cuotas de una deuda ya no cuentan, y una anual pasa a Recibos como anual.",
+        "La lista de Gastos se parece a la de Inicio: los movimientos de cada día van juntos, y la tira de meses se difumina por el lado en el que quedan más.",
+        "«¿Te llega?» ya no resta dos veces un recibo que ya está descontado del saldo, y en un recibo compartido cuenta también la parte de los demás. La luz que el banco cobra sin decir «recibo» se reconoce por la compañía.",
+        "Deudas y metas cuentan las cuotas y la fecha de fin al céntimo: ya no sale una cuota de más ni el final un mes tarde.",
+        "En Cartera, en «Round up y Saveback», eliges a qué posición de Trade Republic va cada uno."
+      ],
+      "en": [
+        "Bills and Portfolio read in full on any phone: whatever doesn't fit moves to the next line instead of being cut off.",
+        "Subscriptions only shows charges that really repeat, every week, month or year. Groceries, fuel, bars and debt instalments no longer count, and a yearly one moves to Bills as yearly.",
+        "The Spending list looks like the one on Home: each day's transactions go together, and the month strip fades on the side where there are more.",
+        "«Will it cover?» no longer subtracts twice a bill that is already taken off the balance, and a shared bill also counts the others' share. Electricity charged without the word «bill» is recognised by the company.",
+        "Debts and goals count instalments and the end date to the cent: no extra instalment and no end date a month late.",
+        "In Portfolio, under «Round up and Saveback», you choose which Trade Republic position each one goes to."
+      ],
+      "ca": [
+        "Rebuts i Cartera es llegeixen sencers a qualsevol mòbil: el que no hi cap baixa a la línia següent en lloc de tallar-se.",
+        "Subscripcions només ensenya càrrecs que es repeteixen de debò, cada setmana, mes o any. El súper, la benzina, els bars i les quotes d'un deute ja no compten, i una d'anual passa a Rebuts com a anual.",
+        "La llista de Despeses s'assembla a la d'Inici: els moviments de cada dia van junts, i la tira de mesos s'esvaeix pel costat on en queden més.",
+        "«T'arriba?» ja no resta dues vegades un rebut que ja està descomptat del saldo, i en un rebut compartit compta també la part dels altres. La llum que el banc cobra sense dir «rebut» es reconeix per la companyia.",
+        "Deutes i metes compten les quotes i la data de final al cèntim: ja no surt una quota de més ni el final un mes tard.",
+        "A Cartera, a «Round up i Saveback», tries a quina posició de Trade Republic va cadascun."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "diseno-237",
+        "t": {
+          "es": "Recibos, Cartera y Gastos: nada cortado y suscripciones de verdad",
+          "en": "Bills, Portfolio and Spending: nothing cut off and real subscriptions",
+          "ca": "Rebuts, Cartera i Despeses: res tallat i subscripcions de debò"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos: recorre la lista entera, también «Para revisar» y «Ya pagados» (tócalo para abrirlo y otra vez para cerrarlo), y mira «¿Te llega?» y «Te deben» si te salen. BIEN: en cada recibo la categoría y el banco van a la izquierda y el cuándo debajo del importe; si algo no cabe, baja entero a la línea siguiente; «Ya pagados» se abre y se cierra con la flecha; «¿Te llega?» y «Te deben» van uno al lado del otro. MAL: algún texto acaba en «…» o se sale de su tarjeta, un día queda separado de su mes, o las dos píldoras salen una encima de otra.",
+            "2. Cartera: mira «Tus cuentas», tus bienes y la leyenda de debajo del patrimonio, y despliega un bróker. BIEN: bajo cada cuenta pone su banco y para qué la usas en corto (por ejemplo «Diario + Recibos»), sin emojis ni cortes; «Añadir» va en menta como en los bienes; las cifras de los brókers llevan céntimos. MAL: algo cortado con «…», el uso de la cuenta con emojis, o falta el botón de añadir.",
+            "3. Gastos → Suscripciones: mira la lista y la cifra de arriba; abre una suscripción y, si tienes alguna anual, toca «Pasar a Recibos» en ella. BIEN: solo salen cobros que se repiten igual (plataformas, gimnasio, seguros…); no salen el súper, la gasolina, los bares ni las cuotas de una deuda; cada tarjeta dice cada cuánto («Cada mes», cada semana o cada año) y el banco, sin cortarse; la cifra de arriba es la suma de lo que pesa al mes cada tarjeta; una anual llega a Recibos como anual, en su mes. MAL: sale el súper, la gasolina o una cuota, la cifra no cuadra con las tarjetas, algo se corta, o una anual llega a Recibos como mensual.",
+            "4. Gastos → Movimientos: recorre la lista y desliza la tira de meses de arriba hasta un extremo y vuelve. BIEN: los movimientos de cada día van juntos en un bloque, cada uno en dos líneas con la categoría y el banco en gris y el color solo en el icono, como en Inicio; los buscadores llevan una lupa dibujada; la tira se difumina solo por el lado por el que quedan más meses y el mes en curso nunca sale apagado. MAL: filas cortadas o montadas, la categoría en color, el emoji de lupa, o el mes en curso apagado en el borde."
+          ],
+          "en": [
+            "1. Plan → Bills: go through the whole list, including «To review» and «Already paid» (tap it to open it and again to close it), and look at «Will it cover?» and «You're owed» if you have them. RIGHT: in each bill the category and the bank are on the left and the when is under the amount; if something doesn't fit, it moves whole to the next line; «Already paid» opens and closes with the arrow; «Will it cover?» and «You're owed» sit side by side. WRONG: some text ends in «…» or spills out of its card, a day is split from its month, or the two pills are stacked one on top of the other.",
+            "2. Portfolio: look at «Your accounts», your assets and the legend under your net worth, and expand a broker. RIGHT: under each account you see its bank and what you use it for, in short (for example «Daily + Bills»), with no emojis and nothing cut off; «Add» is in mint like in assets; broker figures show cents. WRONG: something cut off with «…», the account's use with emojis, or the add button is missing.",
+            "3. Spending → Subscriptions: look at the list and the figure at the top; open a subscription and, if you have a yearly one, tap «Move to Bills» on it. RIGHT: only charges that repeat the same show up (streaming, gym, insurance…); groceries, fuel, bars and debt instalments don't; each card says how often («Every month», every week or every year) and the bank, without being cut off; the figure at the top is the sum of what each card weighs per month; a yearly one reaches Bills as yearly, in its month. WRONG: groceries, fuel or an instalment show up, the figure doesn't match the cards, something is cut off, or a yearly one reaches Bills as monthly.",
+            "4. Spending → Transactions: go through the list and swipe the month strip at the top to one end and back. RIGHT: each day's transactions go together in one block, each on two lines with the category and the bank in grey and the colour only on the icon, like on Home; the search boxes have a drawn magnifier; the strip fades only on the side where there are more months and the current month never looks dimmed. WRONG: rows cut off or overlapping, the category in colour, the magnifier emoji, or the current month dimmed at the edge."
+          ],
+          "ca": [
+            "1. Pla → Rebuts: recorre la llista sencera, també «Per revisar» i «Ja pagats» (toca'l per obrir-lo i un altre cop per tancar-lo), i mira «T'arriba?» i «Et deuen» si et surten. BÉ: a cada rebut la categoria i el banc van a l'esquerra i el quan sota l'import; si alguna cosa no hi cap, baixa sencera a la línia següent; «Ja pagats» s'obre i es tanca amb la fletxa; «T'arriba?» i «Et deuen» van l'un al costat de l'altre. MALAMENT: algun text acaba en «…» o surt de la seva targeta, un dia queda separat del seu mes, o les dues píndoles surten l'una sobre l'altra.",
+            "2. Cartera: mira «Els teus comptes», els teus béns i la llegenda de sota el patrimoni, i desplega un bròquer. BÉ: sota cada compte hi diu el seu banc i per a què el fas servir en curt (per exemple «Diari + Rebuts»), sense emojis ni talls; «Afegeix» va en menta com als béns; les xifres dels bròquers porten cèntims. MALAMENT: alguna cosa tallada amb «…», l'ús del compte amb emojis, o falta el botó d'afegir.",
+            "3. Despeses → Subscripcions: mira la llista i la xifra de dalt; obre una subscripció i, si en tens alguna d'anual, toca «Passa a Rebuts». BÉ: només surten càrrecs que es repeteixen igual (plataformes, gimnàs, assegurances…); no surten el súper, la benzina, els bars ni les quotes d'un deute; cada targeta diu cada quant («Cada mes», cada setmana o cada any) i el banc, sense tallar-se; la xifra de dalt és la suma del que pesa al mes cada targeta; una d'anual arriba a Rebuts com a anual, al seu mes. MALAMENT: surt el súper, la benzina o una quota, la xifra no quadra amb les targetes, alguna cosa es talla, o una d'anual arriba a Rebuts com a mensual.",
+            "4. Despeses → Moviments: recorre la llista i llisca la tira de mesos de dalt fins a un extrem i torna. BÉ: els moviments de cada dia van junts en un bloc, cadascun en dues línies amb la categoria i el banc en gris i el color només a la icona, com a Inici; els cercadors porten una lupa dibuixada; la tira s'esvaeix només pel costat on queden més mesos i el mes en curs no surt mai apagat. MALAMENT: files tallades o encavalcades, la categoria en color, l'emoji de lupa, o el mes en curs apagat a la vora."
+          ]
+        }
+      },
+      {
+        "id": "dinero-237",
+        "t": {
+          "es": "¿Te llega?, deudas al céntimo y a qué posición va el Round up",
+          "en": "Will it cover?, debts to the cent and where the Round up goes",
+          "ca": "T'arriba?, deutes al cèntim i a quina posició va el Round up"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → «¿Te llega?»: abre la hoja de cada banco donde pagas recibos. BIEN: «Tienes hoy» es el mismo saldo que ves en Cartera para esa cuenta; un recibo ya cobrado y ya descontado de ese saldo no se vuelve a restar; si sale «Pagado, aún sin restar del saldo» o «Sin cobrar, ya restado del saldo», el saldo de hoy con esas filas da la cifra de abajo; si el banco ya te cobró este mes la luz, el gas o el agua, ese recibo sale pagado aunque el cargo solo lleve el nombre de la compañía. MAL: «Tienes hoy» no coincide con Cartera, un recibo ya cobrado se resta dos veces, las cuentas no cuadran, o la luz ya cobrada sigue saliendo como «No ha llegado».",
+            "2. Plan → Deudas: mira lo que dice cada deuda (las cuotas que quedan y cuándo acabas). Después, en Plan → Recibos, abre la cuota de una deuda, toca el importe, guárdalo sin cambiarlo y vuelve a Deudas. BIEN: las cuotas que quedan y el mes en que acabas cuadran con lo que te falta entre lo que pagas cada mes, sin una de más; tras guardar sin cambios, lo pendiente sigue igual al céntimo. MAL: sale una cuota de más o el final un mes tarde, o lo pendiente cambia unos céntimos sin haber tocado nada.",
+            "3. Cartera → «Round up y Saveback» (solo si tienes Trade Republic): ábrelo y, en «Inversión destino», toca una posición bajo Round up y otra (o la misma) bajo Saveback; cierra la app del todo y vuelve a abrirla. BIEN: bajo cada uno salen solo tus posiciones de Trade Republic, una debajo de otra, con su logo y el nombre entero; la que tocas lleva ✓ y la sigue llevando al volver; tocar la marcada la desmarca; la cabecera de la tarjeta dice adónde va el Round up; elegir no cambia el valor de ninguna posición ni tu patrimonio. MAL: sale una posición de otro bróker, algún nombre se corta, la elección no se guarda, la cabecera dice «desactivado» con una posición elegida, o al elegir cambia el valor de una posición o el patrimonio."
+          ],
+          "en": [
+            "1. Plan → Bills → «Will it cover?»: open the sheet for each bank you pay bills from. RIGHT: «You have today» is the same balance you see in Portfolio for that account; a bill already charged and already taken off that balance isn't subtracted again; if «Paid, not yet in the balance» or «Not charged, already in the balance» shows up, today's balance with those rows gives the figure at the bottom; if the bank already charged your electricity, gas or water this month, that bill shows as paid even if the charge only carries the company's name. WRONG: «You have today» doesn't match Portfolio, a bill already charged is subtracted twice, the numbers don't add up, or electricity already charged still shows as «Hasn't arrived».",
+            "2. Plan → Debts: look at what each debt says (the instalments left and when you finish). Then, in Plan → Bills, open a debt's instalment, tap the amount, save it without changing it and go back to Debts. RIGHT: the instalments left and the month you finish match what you still owe divided by what you pay each month, with no extra one; after saving without changes, the outstanding amount stays the same to the cent. WRONG: there's an extra instalment or the end is a month late, or the outstanding amount changes by a few cents without touching anything.",
+            "3. Portfolio → «Round up and Saveback» (only if you have Trade Republic): open it and, under «Target investment», tap a position under Round up and another one (or the same) under Saveback; close the app completely and open it again. RIGHT: under each one only your Trade Republic positions show up, one below the other, with their logo and full name; the one you tap has a ✓ and still has it when you come back; tapping the selected one unselects it; the card header says where the Round up goes; choosing doesn't change the value of any position or your net worth. WRONG: a position from another broker shows up, a name is cut off, the choice isn't kept, the header says «off» with a position chosen, or choosing changes the value of a position or your net worth."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → «T'arriba?»: obre el full de cada banc on pagues rebuts. BÉ: «Tens avui» és el mateix saldo que veus a Cartera per a aquell compte; un rebut ja cobrat i ja descomptat d'aquest saldo no es torna a restar; si surt «Pagat, encara sense restar del saldo» o «Sense cobrar, ja restat del saldo», el saldo d'avui amb aquestes files dona la xifra de baix; si el banc ja t'ha cobrat aquest mes la llum, el gas o l'aigua, aquell rebut surt pagat encara que el càrrec només porti el nom de la companyia. MALAMENT: «Tens avui» no coincideix amb Cartera, un rebut ja cobrat es resta dues vegades, els comptes no quadren, o la llum ja cobrada continua sortint com a «No ha arribat».",
+            "2. Pla → Deutes: mira el que diu cada deute (les quotes que queden i quan acabes). Després, a Pla → Rebuts, obre la quota d'un deute, toca l'import, desa'l sense canviar-lo i torna a Deutes. BÉ: les quotes que queden i el mes en què acabes quadren amb el que et falta entre el que pagues cada mes, sense una de més; després de desar sense canvis, el pendent continua igual al cèntim. MALAMENT: surt una quota de més o el final un mes tard, o el pendent canvia uns cèntims sense haver tocat res.",
+            "3. Cartera → «Round up i Saveback» (només si tens Trade Republic): obre'l i, a «Inversió destí», toca una posició sota Round up i una altra (o la mateixa) sota Saveback; tanca l'app del tot i torna-la a obrir. BÉ: sota cadascun només surten les teves posicions de Trade Republic, l'una sota l'altra, amb el seu logo i el nom sencer; la que toques porta ✓ i la continua portant en tornar; tocar la marcada la desmarca; la capçalera de la targeta diu on va el Round up; triar no canvia el valor de cap posició ni el teu patrimoni. MALAMENT: surt una posició d'un altre bròquer, algun nom es talla, la tria no es desa, la capçalera diu «desactivat» amb una posició triada, o en triar canvia el valor d'una posició o el patrimoni."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.236",
     "d": "2026-11-17",
     "t": {

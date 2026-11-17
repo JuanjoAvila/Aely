@@ -126,6 +126,28 @@ t("sin destino: queda pendiente sin bajar el patrimonio; al elegirla se suma una
   assert.equal(patrimonio(s3).neto, durante.neto);
   assert.ok(/Fondo Mundo Uno/.test(ctx.inversionEtiqueta(s3, RU)));
 });
+/* Filtro de diseño 237, F3: TR solo invierte en su casa. Un destino que apunte a una posición de otro
+   bróker (lo dejaba elegir el selector sin filtrar) no es destino: no se suma ahí, queda pendiente y
+   el patrimonio no se mueve; el selector solo ofrece las de TR. */
+t("una posición de otro bróker nunca es destino: queda pendiente y solo se ofrecen las de TR", () => {
+  const otra = { id: "mi1", ent: "myinvestor", name: "Fondo Otro Broker", shares: 4, value: 400, cost: 380, cur: "EUR" };
+  const conOtra = (s) => Object.assign({}, s, {
+    investments: s.investments.concat([otra]),
+    accounts: s.accounts.map((a) => a.id === "tr" ? Object.assign({}, a, { rewardInv: "mi1", savebackInv: "mi1" }) : a),
+  });
+  assert.deepEqual(ctx.posicionesTR(conOtra(base())).map((i) => i.id), ["ftse", "acwi"]);
+  assert.equal(ctx.destinoRecompensa(conOtra(base()), "roundup"), null);
+  assert.equal(ctx.destinoRecompensa(conOtra(base()), "saveback"), null);
+  const antes = patrimonio(conOtra(conAvisos(base())));
+  const s1 = ctx.aplicarRecompensasTR(conOtra(conAvisos(base())), NOW);
+  assert.deepEqual([inv(s1, "mi1").value, inv(s1, "ftse").value, inv(s1, "acwi").value], [400, 1000, 500]);
+  assert.equal(ctx.recompensasPendientes(s1, NOW), 14.19);
+  assert.equal(patrimonio(s1).neto, antes.neto);
+  // Con solo posiciones de otro bróker no se pide elegir nada (no hay ninguna que ofrecer).
+  const soloOtra = Object.assign(conOtra(conAvisos(base())), { investments: [otra] });
+  assert.equal(ctx.inversionEtiqueta(soloOtra, RU), "");
+});
+
 t("sin ninguna posición en Cartera no se pide elegir nada", () => {
   const s = Object.assign(conAvisos(base()), { investments: [] });
   assert.equal(ctx.inversionEtiqueta(s, RU), "");

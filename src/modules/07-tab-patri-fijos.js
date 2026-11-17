@@ -335,14 +335,16 @@ function AssetSheet({asset,set,onClose}){
 
 /* Trozos de una subfila («Recibos», «Sabadell», «falta su parte») separados por «·», en Plan ›
    Recibos y en Cartera (auditoría de diseño 237: con elipsis se leía «Sabadell · f…»). El espacio va
-   FUERA de cada trozo para que el renglón solo pueda partir entre ellos; el «·» viaja con el trozo
-   de detrás, así nunca queda colgando al final. Uno largo («pagas 197 € + 53 € de Pepephone») sí
+   FUERA de cada trozo para que el renglón solo pueda partir entre ellos; el «·» va al FINAL del trozo
+   de delante, como en la fila de Gastos: delante del de detrás, a 360 un renglón empezaba por
+   «· Diario + Recibos» (filtro de diseño 237). Uno largo («pagas 197 € + 53 € de Pepephone») sí
    puede partir por sus espacios: si no, se saldría de la tarjeta. */
 function mcTrozos(partes, cls){
+  const ps=partes.filter(Boolean);
   return React.createElement("span",{className:cls||"mc-trozos"},
-    partes.filter(Boolean).map(function(p,i){
+    ps.map(function(p,i){
       return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
-        React.createElement("span",{className:String(p).length<=22?"mc-pt":null}, (i>0?"· ":"")+p));
+        React.createElement("span",{className:String(p).length<=22?"mc-pt":null}, p+(i<ps.length-1?" ·":"")));
     }));
 }
 function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy, titulo, iconos}){

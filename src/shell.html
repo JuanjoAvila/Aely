@@ -900,11 +900,12 @@
   .v4-legend-btn{display:inline-flex;align-items:center;padding:5px 0;border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:650;font-family:inherit;white-space:nowrap;cursor:pointer;transition:opacity .2s;}
   .v4-legend-btn b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
   .v4-legend-btn.off{opacity:.4;}
-  /* El botón mide 29 px: el toque crece a 44 por arriba y por abajo, y entre filas se deja el
-     hueco justo para que el toque de una no pise el dibujo de la de abajo (auditoría 14/11). */
-  .v4-legend-btn{position:relative;}
-  .v4-legend-btn::after{content:"";position:absolute;inset:-8.5px -8px;}
-  .v4-legend:has(>.v4-legend-btn){row-gap:15px;column-gap:18px;}
+  /* Rejilla de dos columnas (filtro de diseño 237, F2b): en fila libre «Bienes» caía solo a otro
+     renglón, a 40 px, y parecía que faltaba algo; así va debajo de «Liquidez», alineado. El botón
+     mide 31 px y el toque crece a 44; entre filas solo se solapan unos px del toque, no el dibujo. */
+  .v4-legend-btn{position:relative;padding:6px 0;justify-self:start;}
+  .v4-legend-btn::after{content:"";position:absolute;inset:-6.5px -8px;}
+  .v4-legend:has(>.v4-legend-btn){display:grid;grid-template-columns:1fr 1fr;row-gap:4px;column-gap:18px;}
   .v4-seg{display:flex;gap:4px;background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:4px;margin-bottom:14px;}
   .v4-seg-btn{flex:1;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
   .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
@@ -1749,7 +1750,10 @@
   .gx-subf{display:flex;flex-direction:column;gap:14px;}
   .gx-subf-cab{display:flex;align-items:center;gap:14px;}
   .gx-subf-ic{width:52px;height:52px;border-radius:26px;font-size:24px;}
-  .gx-subf-nm{margin:0;font-size:20px;font-weight:700;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* En la ficha nada se corta (filtro de diseño 237, F1): a 360 el nombre y «Se cobra el 1 de septiembre · Sab…» salían
+     con elipsis. El nombre baja a dos líneas y la meta parte entre palabras; el banco va en la segunda línea. */
+  .gx-subf-nm{margin:0;font-size:20px;font-weight:700;outline:none;overflow-wrap:normal;word-break:normal;}
+  .gx-subf-cab .gx-sub-meta{white-space:normal;overflow:visible;text-overflow:clip;}
   .gx-sub-am .gx-subf-amt{font-size:24px;}
   .gx-subf-et{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:-6px;}
   .gx-subf-hist{background:var(--bg);border-radius:16px;padding:4px 0;}
@@ -2553,6 +2557,17 @@
   .curbtn{font-size:13px;font-weight:800;padding:4px 12px;border-radius:8px;background:transparent;color:var(--muted-2);border:none;cursor:pointer;}
   .curbtn.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
   .inv-tap{min-height:44px;}
+  /* Round up y Saveback (filtro de diseño 237, F3): el multiplicador a todo el ancho, como lo demás de
+     la tarjeta, y el destino como lista de opciones (antes píldoras cortadas en una fila con scroll). */
+  .ru-mult{display:flex;width:100%;box-sizing:border-box;}
+  .ru-mult .curbtn{flex:1 1 0;padding-left:4px;padding-right:4px;}
+  .rw-dest{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
+  .rw-dest-t{text-align:left;margin:0;}
+  .rw-opt{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line-soft);border-radius:14px;
+    background:transparent;color:var(--text);font:600 14px 'Manrope',sans-serif;text-align:left;cursor:pointer;}
+  .rw-opt.on{border-color:var(--mint);}
+  .rw-opt-nm{flex:1;min-width:0;line-height:1.3;}
+  .rw-opt-ck{flex:0 0 auto;width:16px;color:var(--mint);font-weight:800;text-align:center;}
   .v4-investments-full .curbtn,.v4-investments-full .v4-link-mini{min-height:44px;}
   .v4-investments-full .v4-field-label{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:10px;}
   .v4-investments-full .v4-field-label .af-in{display:block;min-height:44px;margin-top:5px;color:var(--text);font-weight:500;}
@@ -2586,7 +2601,8 @@
   .row .rname{font-weight:600;font-size:14px;}
   .row .rsub{font-size:11.5px;color:var(--muted-2);margin-top:1px;}
   .row .rval{font-weight:700;text-align:right;}
-  .row .rval .rvsub{font-size:11px;color:var(--mint);font-weight:600;margin-top:1px;}
+  /* Importe y % de la rentabilidad en un renglón (filtro de diseño 237, F2c): partidos quedaban «+112,96 € ·» arriba y el % abajo. */
+  .row .rval .rvsub{font-size:11px;color:var(--mint);font-weight:600;margin-top:1px;white-space:nowrap;}
   .row .rval .rvsub.neg{color:var(--coral);}
   .editpair{display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
   .editpair label{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted-2);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}

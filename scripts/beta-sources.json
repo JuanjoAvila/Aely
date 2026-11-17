@@ -1912,20 +1912,16 @@
         "data": "DEBEN_COMERCIO"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -1938,6 +1934,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -3782,20 +3786,16 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -3808,6 +3808,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -5482,20 +5490,16 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -5508,6 +5512,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -6522,16 +6534,16 @@
         "data": "RECIBO_NO_ADEUDO_RE"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -8167,20 +8179,16 @@
         "function": "flowFilaOtroBanco"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -8193,6 +8201,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -9867,20 +9883,16 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -9893,6 +9905,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -12316,20 +12336,16 @@
         "data": "DEBEN_COMERCIO"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -12342,6 +12358,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -15580,14 +15604,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -15624,6 +15640,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
       },
       {
@@ -15633,6 +15653,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -17169,14 +17197,6 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -17187,6 +17207,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -18854,20 +18882,16 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -18880,6 +18904,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -19742,6 +19774,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "expenseBankEnts"
       },
       {
@@ -19755,6 +19791,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       },
       {
         "file": "src/modules/00-core.js",
@@ -21428,14 +21468,6 @@
         "function": "errTxt"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -21454,6 +21486,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -26025,14 +26065,6 @@
         "function": "textSizeOf"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -26051,6 +26083,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -28443,14 +28483,6 @@
         "function": "errTxt"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -28469,6 +28501,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -30363,14 +30403,6 @@
         "function": "errTxt"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -30389,6 +30421,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -32720,14 +32760,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -32749,6 +32781,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -35004,14 +35044,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -35045,6 +35077,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -36727,20 +36767,16 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -36753,6 +36789,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -38162,14 +38206,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -38207,6 +38243,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -39874,20 +39918,16 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -39900,6 +39940,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -41634,20 +41682,16 @@
         "data": "DEBEN_COMERCIO"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -41660,6 +41704,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -43062,14 +43114,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -43107,6 +43151,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -45180,14 +45232,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLimpio"
       },
       {
@@ -45225,6 +45269,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -46798,6 +46850,18 @@
         "function": "mcSinNada"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -46806,8 +46870,28 @@
         "function": "fixedPaymentComercioDelRecibo"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       },
       {
         "file": "src/modules/00-core.js",
@@ -46824,38 +46908,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensasEstimadas"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensasPendientes"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensaDe"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensasReales"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "savebackOf"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "filasRecompensa"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "data": "RECOMPENSA_POR_NOMBRE"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -49347,14 +49399,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -49399,11 +49443,27 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -51118,6 +51178,18 @@
         "function": "fixedPaymentEvidence"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -51126,8 +51198,28 @@
         "function": "fixedPaymentComercioDelRecibo"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       },
       {
         "file": "src/modules/00-core.js",
@@ -51144,38 +51236,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensasEstimadas"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensasPendientes"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensaDe"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensasReales"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "savebackOf"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "filasRecompensa"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "data": "RECOMPENSA_POR_NOMBRE"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -52757,14 +52817,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -52798,6 +52850,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -55052,14 +55112,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLimpio"
       },
       {
@@ -55097,6 +55149,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -56360,14 +56420,6 @@
         "data": "RECIBO_NO_ADEUDO_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -56378,6 +56430,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -58916,14 +58976,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLimpio"
       },
       {
@@ -58961,6 +59013,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -60918,14 +60978,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -60947,6 +60999,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -62678,14 +62738,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -62727,6 +62779,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -64204,14 +64264,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -64233,6 +64285,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -65603,14 +65663,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -65632,6 +65684,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -66902,14 +66962,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -66931,6 +66983,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -68290,14 +68350,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -68331,6 +68383,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -69324,14 +69384,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -69353,6 +69405,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -70616,14 +70676,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -70657,6 +70709,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -72142,14 +72202,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -72171,6 +72223,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -73957,14 +74017,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -74006,6 +74058,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -75171,14 +75231,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -75200,6 +75252,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -76533,14 +76593,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -76574,6 +76626,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -77990,14 +78050,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -78019,6 +78071,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -79350,14 +79410,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -79379,6 +79431,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "native": [
@@ -80823,14 +80883,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -80864,6 +80916,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -82769,14 +82829,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -82818,6 +82870,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -84308,14 +84368,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -84349,6 +84401,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -85704,14 +85764,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -85733,6 +85785,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "native": [
@@ -87141,14 +87201,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -87182,6 +87234,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -89079,14 +89139,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -89108,6 +89160,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -91534,14 +91594,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLimpio"
       },
       {
@@ -91589,6 +91641,14 @@
         "function": "recompensasReales"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
         "file": "src/modules/01-i18n.js",
         "function": "filasRecompensa"
       },
@@ -91599,6 +91659,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -94172,14 +94236,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLimpio"
       },
       {
@@ -94227,6 +94283,14 @@
         "function": "recompensasReales"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
         "file": "src/modules/01-i18n.js",
         "function": "filasRecompensa"
       },
@@ -94237,6 +94301,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -95882,14 +95950,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -95931,6 +95991,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -97294,14 +97362,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -97323,6 +97383,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "native": [
@@ -98357,14 +98425,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -98386,6 +98446,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -99646,14 +99714,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -99675,6 +99735,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -100952,14 +101020,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -100993,6 +101053,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -102767,14 +102835,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -102816,6 +102876,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -104028,14 +104096,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -104057,6 +104117,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -105286,14 +105354,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -105319,6 +105379,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -106659,18 +106727,6 @@
         "function": "bankAutoFrena"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "expenseCountsCash"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
@@ -106687,10 +106743,6 @@
         "function": "bankAutoPara"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "expenseBankEnts"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLimpio"
       },
@@ -106700,7 +106752,31 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -108414,14 +108490,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -108463,6 +108531,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -110509,14 +110585,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -110562,6 +110630,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -112256,14 +112336,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -112305,6 +112377,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -113994,14 +114074,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -114043,6 +114115,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -115728,14 +115808,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -115777,6 +115849,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -117357,14 +117437,6 @@
         "data": "TRASPASO_COLA_RE"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -117375,6 +117447,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -119193,14 +119273,6 @@
         "function": "errTxt"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -119218,11 +119290,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -121052,14 +121136,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -121093,6 +121169,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -122781,14 +122865,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -122829,11 +122905,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -124590,14 +124678,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -124638,11 +124718,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -125153,6 +125245,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "cargoDeRecibo"
       },
       {
@@ -125166,6 +125262,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       },
       {
         "file": "src/modules/00-core.js",
@@ -126045,6 +126145,18 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -126055,6 +126167,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       },
       {
         "file": "src/modules/00-core.js",
@@ -126071,18 +126187,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensaDe"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "destinoRecompensa"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -128068,14 +128172,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -128116,11 +128212,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "recompensasEstimadas"
       },
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -130118,14 +130226,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -130167,6 +130267,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -132008,14 +132116,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -132049,6 +132149,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -133737,14 +133845,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -133778,6 +133878,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -135552,14 +135660,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -135593,6 +135693,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -136868,14 +136976,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -136901,6 +137001,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -138895,14 +139003,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -138936,6 +139036,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -140311,14 +140419,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -140352,6 +140452,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -141542,14 +141650,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -141571,6 +141671,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "native": [
@@ -142378,6 +142486,10 @@
         "data": "DEBEN_COMERCIO"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -142388,6 +142500,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
       },
       {
         "file": "src/modules/00-core.js",
@@ -142404,14 +142520,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensaDe"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "data": "RECOMPENSA_POR_NOMBRE"
       }
     ],
     "unidades": true
@@ -144003,14 +144111,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -144044,6 +144144,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -145244,14 +145352,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -145273,6 +145373,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -147497,14 +147605,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -147538,6 +147638,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -149495,14 +149603,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -149536,6 +149636,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -151461,14 +151569,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -151502,6 +151602,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -153981,14 +154089,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -154022,6 +154122,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -155165,16 +155273,16 @@
         "data": "RECIBO_NO_ADEUDO_RE"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensaDe"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -156823,14 +156931,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -156864,6 +156964,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -158576,14 +158684,6 @@
         "function": "errTxt"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -158602,6 +158702,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -160047,14 +160155,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -160088,6 +160188,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -161933,14 +162041,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -161974,6 +162074,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -163119,14 +163227,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -163148,6 +163248,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       }
     ],
     "unidades": true
@@ -164490,14 +164598,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoGuarda"
       },
       {
@@ -164531,6 +164631,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -166198,14 +166306,6 @@
         "function": "errTxt"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "recompensaDe"
       },
@@ -166224,6 +166324,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -168136,14 +168244,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
       {
@@ -168189,6 +168289,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -170090,14 +170198,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
       {
@@ -170143,6 +170243,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -172052,14 +172160,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
       {
@@ -172105,6 +172205,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -174469,14 +174577,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
       {
@@ -174534,6 +174634,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -176918,14 +177026,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
       {
@@ -176983,6 +177083,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -179310,14 +179418,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
       {
@@ -179375,6 +179475,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -181528,14 +181636,6 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
       {
@@ -181593,6 +181693,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -181996,18 +182104,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "catStaleAfter"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensaDe"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "avisoRecompensaGemelo"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "revertirRecompensa"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -182682,10 +182778,6 @@
         "function": "esGemeloCashback"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "filasRecompensa"
-      },
-      {
         "file": "src/modules/00-core.js",
         "function": "fromEurAmt"
       },
@@ -183307,27 +183399,15 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "function": "recompensasEstimadas"
+        "function": "roundupOf"
       },
       {
         "file": "src/modules/00-core.js",
         "function": "gastoDelMesPorBanco"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "function": "recompensasPendientes"
-      },
-      {
         "file": "src/modules/00-core.js",
         "function": "saldoCuentaGasto"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentNoAdeudo"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentComercioDelRecibo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -183411,15 +183491,11 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "function": "recompensasReales"
+        "function": "isCardSpend"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "function": "roundupOf"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "savebackOf"
+        "function": "spareOf"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -183444,14 +183520,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "obAbsorbedStorageKey"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "isCardSpend"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "spareOf"
       },
       {
         "file": "src/modules/00-core.js",
@@ -183610,10 +183678,6 @@
         "data": "ownTransferRecent"
       },
       {
-        "file": "src/modules/01-i18n.js",
-        "data": "RECOMPENSA_POR_NOMBRE"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_NO"
       },
@@ -183751,10 +183815,6 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "data": "filasRecompensaCache"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
         "data": "_metaAportesMemo"
       },
       {
@@ -183835,6 +183895,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "data": "teDebenMemo"
       },
       {
@@ -183844,10 +183908,6 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "data": "RECIBO_NO_ADEUDO_RE"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -184004,6 +184064,54 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
       }
     ],
     "unidades": true
@@ -185639,6 +185747,3895 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
+      }
+    ],
+    "unidades": true
+  },
+  "diseno-237": {
+    "web": [
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "PlanRecibos"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "CarteraTab"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "rp4VistoEnBanco"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "mcTrozos"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "Wealth"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "Investments"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "InvestmentRewards"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "Expenses"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "GastosCabecera"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "GastosFilterSheet"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "gxSubFrec"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "GxSubFicha"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "data": "GxSubTarjeta"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "data": "MovRow"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "data": "GX_DIA_CAB"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "data": "GX_FILA_ALTO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "detectSubscriptions"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subEsRecibo"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .pr6-pill{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .pr6-am{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .pr6-when{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .mc-pt{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-legend:has(>.v4-legend-btn){",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .gx-dia{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .gx-dia-h{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .searchbar-ic{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .gx-sub-am .gx-sub-eq{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .gx-subf-cab .gx-sub-meta{",
+        "to": "}"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planChargesMonth"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceUI"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planRecibosMesCerrado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planRecibosConFoto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPausa"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenMes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncConflict"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthShort"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthLong"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "subsDeRecibos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "moveAccountInList"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "removeEfectivoAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceTarget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceWrite"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "applyAccountRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountSharePct"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applySaqueCajero"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyEntradaEfectivo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ensureEfectivoAccount"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "niceObName"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxAmountText"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "toEurAmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountRowsInOrder"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "promoteObAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "invValueEur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "invCostEur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fromEurAmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasDelMes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcOnGastosActive"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseDeletionKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAutomaticoDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidaPon"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushGemelos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankDeletionLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "borrarGastoNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidaLevanta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "subirGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "resolvePossibleDup"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_errCloudMsg"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "unirGemeloAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "separarGemeloAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemelosCambiosNube"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyProposal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyConfirmed"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlySaveConfirmed"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "expenseSourceActionSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferOutgoingValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferPeer"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyIncomeOwnTransfer"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferWriteValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyOwnTransferDecision"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferPlan"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cargoDeRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyRecognizedWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "reconcileConfirmedWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catStaleAfter"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "avisoRecompensaGemelo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyInvestBuy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reverseInvestBuy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "traspasoPropioNoPon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "marcarCuotaAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "ackMetaWrite"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "marcarAportacionMeta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "metaAhorrado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "quitarCargoDeRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentManualLinkWarnings"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reponerCargoDeRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "linkFixedPayment"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "admiteMarcaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRenameSlow"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRenameAck"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRenameFailure"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "subeEdicionesDeGasto"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRenameDraft"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "rekeyFixedPaymentExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidasAlRenombrar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidasAlEditar"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "sameEntList"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBucket"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "sortExpensesForDisplay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "moveExpenseWithinDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "limiteDeStats"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categorySpentByMonth"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "numDecSep"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "conMesDeAlta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "errTxt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "renameAvisoVisible"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "mk"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "mkOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "median"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileGemelosAutomaticos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncEditState"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoDelMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoDescuentaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedCargoBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debtPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEstadoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "metaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboVetado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookSameRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cargoDeReciboFirme"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planRecibosMesFoto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planRecibosItems"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6MovMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6PorId"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "conSaldoMostrado"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenPersonasMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountOrderKeyOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "insumosSaldoGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcExpenseId"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseKnownIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloAvisoKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidasTope"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushDeleted"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obPolarity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "quitarGemeloDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloBancoAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAvisoAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloCompatible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyCents"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotasDeDeudaPorMarcar"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyFingerprint"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categoryOfBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyPurpose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyRowMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlySame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferEligible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferBankRow"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "expensePaymentRelationUI"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferNear"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferExcluded"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferPair"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefDeSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "reciboSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "metaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefSufijoCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ordinalSufijoCloud"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIdentityScopes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseMergeKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoPon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "traspasoPropioClave"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "metaAdmiteMarca"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "metaAportes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoClaves"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentEvidence"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboPagadoCon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseUnknownDeletionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "renameFalloDeRed"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetRowSigned"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsBudget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPendingAbsorbedState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloMismosCampos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloDatos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAsignar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoAdmite"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoLista"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoVigente"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescontable"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilaEnlazada"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegadaAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowGemelaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPagoGemela"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilaAuto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowBancoEntra"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPersistedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentChargeOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cargoDeReciboFirmeCalc"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6SinFotoAcreditado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pr6Cent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegadaFila"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenNombra"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenDia"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "nominaYaEntro"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountIbanKey"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaDesdeMs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotasUsadas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyText"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferCents"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferDay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obReferenceKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoTope"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedKeyOk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedPack"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedStorageKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedStorage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPendingGroup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obIsPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedEnqueue"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowBankPaid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowYm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowMesAntes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilaLibre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilaEncajaO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegadaGuardada"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "teDebenRecibidoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilasElegibles"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilaVetada"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEsSuMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowNombraPersona"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilaEncaja"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recFrase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNombreCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenPagador"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenAliasDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenPorPrincipio"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "lastWorkingDay"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mobilityCategoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoEsAlias"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedHash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedWarn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedJoin"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedPersist"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilaOtroBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowMesDespues"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowFilasDelMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowDiaRel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowVetoId"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "personasDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowBancoSale"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debenPersonaFisica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedMerge"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedMerge"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedNoticeKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedStorageKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedJoin"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedDisk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedUnpack"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedIdsKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CUR_SYM"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "RENAME_BACKOFF_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "RENAME_AVISO_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "PR6_DIF_CENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "PR6_RANGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "PR6_FOTO_MESES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcGastosActiveCbs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcGastosActive"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEMELOS_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ownTransferRecent"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "TRASPASO_NO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "expenseConfirmedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_ABSORBED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedBlocked"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "PR6_FOTO_MARGEN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PALABRAS_NO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NO_ES_PAGO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_PROPIO"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_AT_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_metaAportesMemo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedIndexes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedReadCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorbedNotices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorbedWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GASTO_ORIGENES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_CONFIRMED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NOTE_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDatosCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDiasCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "REPARTO_VIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "fixedPaymentOwnerDepth"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_MESES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "teDebenMemo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "FLOW_ADELANTO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "debenAliasIdx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_ALIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "TRASPASO_PALABRA"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_NOMBRES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "flowFilasIdx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_JURIDICO"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obStateCanonical"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPullExpensesPaged"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedCanUpload"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourcePatch"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ordinalDeTramos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferSession"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedCandidate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedPossible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "perfilSinDatosBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcBetaLog"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      }
+    ],
+    "unidades": true
+  },
+  "dinero-237": {
+    "web": [
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "debtLeftInfo"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "deudaAmortizada"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "amortRecorte"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "Debts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "billsCuotasEnAno"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "patchDebtFields"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentNoAdeudo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentCobroDistinto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pendingWalkEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboEnElSaldo"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedSaldoBp"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedRestaDelSaldo"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "fixedEnSaldoMostrado"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "BillsItemSheet"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "LlegaSheet"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "planRecibosBancos"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "goalEta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensaDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "destinoRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasPendientes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "aplicarRecompensasTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "revertirRecompensa"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "DestinoRecompensas"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "InvestmentRewards"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  /* Round up / Saveback que avisa TR → a su posición",
+        "to": "  const [showAuth,setShowAuth]=useState(false);"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .ru-mult{",
+        "to": "}"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .rw-opt{",
+        "to": "}"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncConflict"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncDeleteDebt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthLong"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncDiscard"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "descuentoDescuadreGuardado"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategoryKw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFilasBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "metaDeGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContender"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentCobroDistintoMes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentImporteParecido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentStoredProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboVetado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentRivalPorImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedCargoBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debtPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowAbonaEn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowLlegoIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDerivedDay"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileBank"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedEnPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "patchFixedById"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "patchFlowById"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "patchOneoffById"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planCoverState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "goalRemaining"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthsUntil"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthYearIn"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "posicionesTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "filasRecompensa"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "mkOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reverseInvestBuy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fromEurAmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasReales"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasDelMes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileGemelosAutomaticos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncEditState"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncDebtDeleted"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoDelMes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoDescuentaDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescontable"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "deudaDescuentoBase"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseDeletionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseUnknownDeletionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseKnownIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRecord"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentPersistedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentChargeOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowBankPaid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cargoDeRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedMarcaTrasCambio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "conSaldoMostrado"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceStage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceModel"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthShort"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "mk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "recompensasEstimadas"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPendingAbsorbedState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloMismosCampos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloAvisoKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloBancoAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloDatos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloCompatible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushGemelos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAvisoAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAsignar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncDebtVersion"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoAdmite"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoLista"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "repartoVigente"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedKeyOk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookSameRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recFrase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "insumosSaldoGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceIsManual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "manualBalanceSame"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedPack"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedStorageKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedStorage"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPendingGroup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obIsPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obReferenceKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedEnqueue"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidaPon"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "planSyncDebtCanonical"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obPolarity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankMatches"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "nominaYaEntro"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedHash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedRestore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedWarn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedJoin"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidasTope"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushDeleted"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowVetoId"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "lastWorkingDay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedMerge"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedMerge"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedNoticeKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedStorageKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedRead"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedJoin"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedDisk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedUnpack"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedIdsKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_NO_ADEUDO_RE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DEVUELTO_DIAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RECOMPENSA_VENTANA_MS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_EN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF_ES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "expenseConfirmedSets"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "RECIBO_DISTINTO_PCT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "filasRecompensaCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_ABSORBED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedBlocked"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INCOME_OWN_TRANSFER_COLS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PLAN_EDIT_INTENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedIndexes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "fixedPaymentOwnerDepth"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_INTENT"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedReadCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorbedNotices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorbedWarnings"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GASTO_ORIGENES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_CONFIRMED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDatosCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDiasCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEMELOS_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "REPARTO_VIAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_AC_KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_MESES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_AT_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nfIngles"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obStateCanonical"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPullExpensesPaged"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedCanUpload"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "reciboSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourcePatch"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ordinalDeTramos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefDeSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "metaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxTransition"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferPeer"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferSession"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferWriteValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferPlanValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferRowMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyProposal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferOutgoingValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedCandidate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedPossible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "perfilSinDatosBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPausa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoFrena"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcBetaLog"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefSufijoCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ordinalSufijoCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "nativeEventFromSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferEligible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferNear"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferBankRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "incomeOwnTransferExcluded"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferPlan"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferPair"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyCents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotasDeDeudaPorMarcar"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyFingerprint"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categoryOfBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyPurpose"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "expensePaymentRelationUI"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoGuarda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoAnota"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoPara"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferCents"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferDay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ownTransferAccount"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaDesdeMs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotasUsadas"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "trMonthlyText"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceUI"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoLimpio"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mobilityCategoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "paymentEvidenceRowIssue"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cargoDeReciboFirme"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cargoDeReciboFirmeCalc"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNombreCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboPagadoCon"
       }
     ],
     "unidades": true

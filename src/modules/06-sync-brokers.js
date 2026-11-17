@@ -731,28 +731,31 @@ function Projection({invested, defMonthly, state, currency, fmt, fmt0}){
   );
 }
 
-/* A QUÉ POSICIÓN VA CADA AVISO DE TR (16/11/2026): una fila para el Round up y otra para el Saveback,
+/* A QUÉ POSICIÓN VA CADA AVISO DE TR (16/11/2026): un grupo para el Round up y otro para el Saveback,
    con el logo de cada posición. Tocar la elegida la quita (se apunta igual, sin sumar a ninguna).
-   Escribe en la cuenta de TR, que es donde lo lee `destinoRecompensa`. */
+   Escribe en la cuenta de TR, que es donde lo lee `destinoRecompensa`. Solo posiciones de TR
+   (`posicionesTR`): TR no puede invertir el redondeo en un fondo de otro bróker, y el filtro de
+   diseño 237 lo vio ofreciendo uno de MyInvestor, escondido al final de una fila con scroll. Ahora
+   es una lista a todo el ancho, con el nombre entero y ✓ en la elegida. */
 function DestinoRecompensas({state,set}){
   const tr=state.accounts.find(function(a){ return a.ent==="trade_republic"; });
-  if(!tr || !state.investments.length) return null;
+  const pos=posicionesTR(state);
+  if(!tr || !pos.length) return null;
   const pon=function(patch){ set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(a){ return a.id===tr.id?Object.assign({},a,patch):a; })}); }); };
-  const fila=function(k){
+  const grupo=function(k){
     const actual=destinoRecompensa(state, k), campo=k==="roundup"?"rewardInv":"savebackInv";
-    return React.createElement("div",{key:k,className:"rw-dest","data-rw":k,style:{display:"flex",alignItems:"center",gap:8,margin:"0 0 8px"}},
-      React.createElement("div",{className:"mlabel",style:{flex:"0 0 74px",textAlign:"left",margin:0}}, t(k==="roundup"?"rw_ru":"rw_sb")),
-      React.createElement("div",{style:{display:"flex",gap:6,overflowX:"auto",flex:1}},
-        state.investments.map(function(i){
-          const on=!!actual && actual.id===i.id;
-          return React.createElement("button",{key:i.id,type:"button",className:"chip"+(on?" active":""),"aria-pressed":on,title:i.name,
-            style:{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px 5px 5px"},
-            onClick:function(){ const p={}; p[campo]=on?"":i.id; pon(p); }},
-            React.createElement(LogoInv,{nombre:i.name,ent:i.ent,kind:i.kind,size:20}),
-            React.createElement("span",{style:{maxWidth:110,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}, i.name));
-        })));
+    return React.createElement("div",{key:k,className:"rw-dest","data-rw":k},
+      React.createElement("div",{className:"mlabel rw-dest-t"}, t(k==="roundup"?"rw_ru":"rw_sb")),
+      pos.map(function(i){
+        const on=!!actual && actual.id===i.id;
+        return React.createElement("button",{key:i.id,type:"button",className:"rw-opt"+(on?" on":""),"aria-pressed":on,
+          onClick:function(){ const p={}; p[campo]=on?"":i.id; pon(p); }},
+          React.createElement(LogoInv,{nombre:i.name,ent:i.ent,kind:i.kind,size:20}),
+          React.createElement("span",{className:"rw-opt-nm"}, i.name),
+          React.createElement("span",{className:"rw-opt-ck","aria-hidden":true}, on?"✓":""));
+      }));
   };
-  return React.createElement("div",{style:{marginBottom:6}}, fila("roundup"), fila("saveback"));
+  return React.createElement("div",{className:"rw-dests"}, grupo("roundup"), grupo("saveback"));
 }
 
 function InvestmentRewards({state,set}){
@@ -775,9 +778,14 @@ function InvestmentRewards({state,set}){
   const ru=(trAcc.roundupManual!=null&&!rewardsAuto.hay.roundup)?trAcc.roundupManual:ruAuto, sb=(trAcc.savebackManual!=null&&!rewardsAuto.hay.saveback)?trAcc.savebackManual:sbAuto, tot=state.trRewardsTotal||0;
   const iv=state.investments.find(function(i){ return i.id===trAcc.rewardInv; });
   const invName=iv?iv.name:t("ru_pick");
-  return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):(mult>0?tf("ru_sub_on",{m:mult}):t("ru_sub_off")),dot:mult>0?"#E6C36A":"var(--muted-2)",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
+  /* La cabecera dice adónde va: «desactivado» con un destino elegido se contradecía (filtro de
+     diseño 237, F3). «Desactivado» solo sin destino, sin multiplicador y sin Saveback. */
+  const dRu=destinoRecompensa(state,"roundup");
+  const sub=dRu?tf("ru_sub_dest",{name:dRu.name}):mult>0?tf("ru_sub_on",{m:mult}):trAcc.saveback?t("rw_sb"):t("ru_sub_off");
+  const activo=!!(dRu||mult>0||trAcc.saveback);
+  return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):sub,dot:activo?"var(--tan)":"var(--muted-2)",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",marginBottom:6}},t("ru_mult")),
-    React.createElement("div",{className:"curtoggle",style:{flexWrap:"wrap",justifyContent:"flex-start"}},
+    React.createElement("div",{className:"curtoggle ru-mult"},
       RU_MULTS.map(function(m){ return React.createElement("button",{key:m,type:"button",className:"curbtn inv-tap"+(mult===m?" on":""),onClick:function(){ setTr({roundup:m}); }}, m===0?t("ru_off"):"×"+m); })),
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",margin:"12px 0 6px"}},t("ru_dest")),
     React.createElement(DestinoRecompensas,{state:state,set:set}),
@@ -804,7 +812,8 @@ function InvestmentRewards({state,set}){
     React.createElement("div",{className:"ru-edit"},
       React.createElement("span",{className:"muted"},t("ru_total")),
       React.createElement("input",{className:"af-in num",style:{width:96,textAlign:"right",padding:"7px 9px"},inputMode:"decimal",placeholder:"0",value:tot||"",onChange:function(e){ setTot(parseFloat(String(e.target.value).replace(',','.'))||0); }})),
-    React.createElement("div",{className:"hint",style:{marginTop:8}}, SIMPLEMODE?t("ru_hint_simple"):((mult>0||trAcc.saveback?tf("ru_hint",{inv:invName}):t("ru_hint_off"))+" "+t("ru_manual_hint")))
+    // Una línea: los campos de arriba vacíos se calculan solos (filtro de diseño 237: eran tres renglones).
+    React.createElement("div",{className:"hint",style:{marginTop:8}}, SIMPLEMODE?t("ru_hint_simple"):t("ru_vacio"))
   );
 }
 

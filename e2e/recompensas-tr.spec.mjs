@@ -9,6 +9,7 @@ const investments = [
   { id: "f1", ent: "trade_republic", name: "Fondo Mundo Uno", shares: 10, value: 1000, cost: 900, cur: "EUR" },
   { id: "f2", ent: "trade_republic", name: "Fondo Mundo Dos", shares: 5, value: 500, cost: 450, cur: "EUR" },
 ];
+const tarjetaRu = (page) => page.locator(".card").filter({ hasText: /Round up y Saveback|Round up and Saveback|Round up i Saveback/ }).first();
 const aviso = {
   id: "550e8400-e29b-41d4-a716-446655449001", user_id: "e2e-user", fecha: new Date().toISOString(),
   importe: 12.96, comercio: "Round up", ob_name: "Round up", cat: "inversion", source: "macrodroid", no_card: true,
@@ -37,8 +38,9 @@ test("Round up de TR: elige destino por tipo y la posición sube una sola vez", 
   await expect(pos).toContainText(/1[.,]?012[.,]96/);
   await expect(pos).not.toContainText(/1[.,]?025[.,]92/);
 
-  // El ajuste: Round up → Fondo Mundo Uno; Saveback → ninguna. Tocar otra la elige.
-  const panel = page.locator(".card").filter({ hasText: /Round-up & Saveback/ }).first();
+  // El ajuste: Round up → Fondo Mundo Uno; Saveback → ninguna. Tocar otra la elige. La tarjeta se llama
+  // «Round up y Saveback» desde el filtro de diseño 237 (un solo término, como TR).
+  const panel = tarjetaRu(page);
   await panel.locator(".card-head").click();
   const ru = panel.locator('[data-rw="roundup"]'), sb = panel.locator('[data-rw="saveback"]');
   await expect(ru.locator('button[aria-pressed="true"]')).toHaveCount(1);
@@ -50,6 +52,45 @@ test("Round up de TR: elige destino por tipo y la posición sube una sola vez", 
   // Elegir el destino del Saveback no mueve el Round up ya sumado ni toca la otra posición.
   await expect(listaInv.locator('[data-inv-position="f2"]')).not.toContainText(/512[.,]96/);
   await expect(pos).toContainText(/1[.,]?012[.,]96/);
+});
+
+/* Filtro de diseño 237, F3: el selector ofrecía también un fondo de MyInvestor, escondido al final de una
+   fila con scroll, y la cabecera decía «desactivado» con un destino elegido. TR solo invierte en su casa:
+   aquí solo salen sus posiciones, en una lista a todo el ancho que no se sale a 360, con ✓ en la elegida,
+   y la cabecera dice adónde va. */
+test("Round up de TR: el destino solo ofrece posiciones de TR, a todo el ancho, y la cabecera dice adónde va", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await seedLoggedInDashboard(page, {
+    investments: investments.concat([{ id: "m1", ent: "myinvestor", name: "Fondo Indexado de Otro Bróker", shares: 3, value: 300, cost: 280, cur: "EUR" }]),
+    accounts: [{ id: "daily", ent: "trade_republic", name: "Trade Republic", value: 1000, spendFrom: true, roundup: 0, saveback: false, rewardInv: "f1", savebackInv: "" }],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  const panel = tarjetaRu(page);
+  await expect(panel).toContainText("Round up → Fondo Mundo Uno");
+  await expect(panel).not.toContainText("desactivado");
+  await panel.locator(".card-head").click();
+  for (const k of ["roundup", "saveback"]) {
+    const g = panel.locator(`[data-rw="${k}"] .rw-opt`);
+    await expect(g).toHaveText([/Fondo Mundo Uno/, /Fondo Mundo Dos/]);
+    await expect(g.filter({ hasText: "Otro Bróker" })).toHaveCount(0);
+  }
+  await expect(panel.locator('[data-rw="roundup"] .rw-opt.on .rw-opt-ck')).toHaveText("✓");
+  // Nada fuera de la tarjeta ni recortado: ni scroll de lado ni elipsis.
+  const fuera = await panel.evaluate((card) => {
+    const cb = card.getBoundingClientRect();
+    return [...card.querySelectorAll(".rw-opt, .rw-opt-nm, .ru-mult")].filter((e) => {
+      const b = e.getBoundingClientRect();
+      return b.right > cb.right + 1 || e.scrollWidth > e.clientWidth + 1 || getComputedStyle(e).textOverflow === "ellipsis";
+    }).map((e) => e.className + ": " + e.textContent);
+  });
+  expect(fuera).toEqual([]);
+  // El multiplicador a todo el ancho de la tarjeta, como lo demás.
+  const [mult, opt] = await Promise.all([panel.locator(".ru-mult").boundingBox(), panel.locator(".rw-opt").first().boundingBox()]);
+  expect(Math.abs(mult.width - opt.width)).toBeLessThanOrEqual(2);
 });
 
 /* Revisión de dinero 236, P1-A: el aviso no se aplica sobre una cartera vieja. La app lleva rato abierta;

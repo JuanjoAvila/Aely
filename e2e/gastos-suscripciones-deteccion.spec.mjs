@@ -59,14 +59,33 @@ test("a 360 no se corta nada en las tarjetas", async ({ page }) => {
   expect(cortes).toEqual([]);
 });
 
+/* Filtro de diseño 237, F1: en la ficha de la anual salían «Antivirus Sint…» y «Se cobra el 1 de
+   septiembre · S…» con elipsis a 360, 393 y 412. Nada de la cabecera puede pasar de su caja. */
+for (const [w, h] of [[360, 740], [393, 851], [412, 915]]) {
+  test(`la ficha de una suscripción no corta nada a ${w}`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await abre(page);
+    await tarjeta(page, "Antivirus").click();
+    const f = page.locator('[data-sheet="sub-ficha"]');
+    await expect(f).toBeVisible();
+    const cortes = await f.locator(".gx-subf-cab").evaluate((cab) =>
+      [cab, ...cab.querySelectorAll("*")]
+        .filter((x) => x.scrollWidth > x.clientWidth + 1 || getComputedStyle(x).textOverflow === "ellipsis")
+        .map((x) => x.className + ": " + x.textContent));
+    expect(cortes).toEqual([]);
+    const cab = await f.locator(".gx-subf-cab").boundingBox(), hoja = await f.boundingBox();
+    expect(cab.x + cab.width).toBeLessThanOrEqual(hoja.x + hoja.width + 0.5);
+  });
+}
+
 test("la anual se pasa a Recibos como anual, en su mes y su día", async ({ page }) => {
   await abre(page);
   await tarjeta(page, "Antivirus").click();
   const f = page.locator('[data-sheet="sub-ficha"]');
   await expect(f).toBeVisible();
-  await expect(f.locator(".gx-subf-cab .gx-sub-meta")).toHaveText(["Se cobra el 1 de septiembre · Sabadell", "3 años seguidos"]);
+  await expect(f.locator(".gx-subf-cab .gx-sub-meta")).toHaveText(["Se cobra el 1 de septiembre", "Sabadell · 3 años seguidos"]);
   await expect(f.locator(".gx-subf-cab .gx-sub-mes")).toHaveText("al año");
-  await expect(f.locator(".gx-subf-anio")).toContainText("Unos 40 € al año.");
+  await expect(f.locator(".gx-subf-anio")).toHaveText("Unos 40 € al año.");
   await f.locator('[data-sub-accion="recibos"]').click();
   await expect(f).toHaveCount(0);
   await expect.poll(async () => (await page.evaluate(() => mcLoadRaw(mcStateKey()))).fixed.find((x) => x.name === "Antivirus Sintético") || null)
@@ -79,6 +98,6 @@ test("la semanal dice qué día de la semana", async ({ page }) => {
   await abre(page);
   await tarjeta(page, "Kiosko").click();
   const f = page.locator('[data-sheet="sub-ficha"]');
-  await expect(f.locator(".gx-subf-cab .gx-sub-meta")).toHaveText(["Cada lunes · Revolut", "12 semanas seguidas"]);
+  await expect(f.locator(".gx-subf-cab .gx-sub-meta")).toHaveText(["Cada lunes", "Revolut · 12 semanas seguidas"]);
   await expect(f.locator(".gx-subf-cab .gx-sub-mes")).toHaveText("a la semana");
 });

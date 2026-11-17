@@ -259,8 +259,9 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
           React.createElement("span",{className:"gx-sub-ic gx-subf-ic","aria-hidden":true,style:{background:c.color+"22",color:c.color}},c.icon),
           React.createElement("div",{className:"gx-sub-txt"},
             React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"gx-subf-nm"},sp.name),
-            React.createElement("span",{className:"gx-sub-meta"},cuando+" · "+(bk||t("gv5_sub_sinbanco"))),
-            React.createElement("span",{className:"gx-sub-meta"},gxSubFrec(sp))),
+            // El cuándo solo en la primera línea y el banco con la racha en la segunda: juntos, a 360 el banco se cortaba.
+            React.createElement("span",{className:"gx-sub-meta"},cuando),
+            React.createElement("span",{className:"gx-sub-meta"},(bk||t("gv5_sub_sinbanco"))+" · "+gxSubFrec(sp))),
           React.createElement("span",{className:"gx-sub-am"},
             React.createElement("span",{className:"num serif gx-subf-amt"},eur(sp.amount)),
             React.createElement("span",{className:"gx-sub-mes"},porPer))),
@@ -273,7 +274,7 @@ function GxSubFicha({f, onClose, onRecibos, onBaja, onNo}){
               React.createElement("span",{className:"num gx-subf-fila-am"},eur(x.amount)));
           })),
         React.createElement("p",{className:"gx-subf-anio"},
-          tf(sp.per!=="mes"||sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})+" "+t("gv5_sub_fijo")),
+          tf(sp.per!=="mes"||sp.span===sp.months?"gv5_sub_anio":"gv5_sub_anio_si",{y:eur0(sp.yearly)})),
         React.createElement("label",{className:"gx-subf-imp"},
           React.createElement("span",null,t("gv5_sub_importe")),
           React.createElement("span",{className:"num"},
