@@ -3378,7 +3378,8 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
   const saveAmt=function(e){
     const b=e.currentTarget;
     if(locked||hasSched||b.disabled) return;
-    const n=parseNumPadRaw(amount);
+    // Al céntimo, como el resto de entradas de dinero: 10,354 descuadraba cuotas y saldos (revisión 237).
+    const n=Math.round(parseNumPadRaw(amount)*100)/100;
     if(!amount.trim()) return;
     // La ficha se cerraba en el mismo toque y «Guardado» apenas llegaba a verse. Sellar primero
     // evita un segundo set si el usuario repite el toque y deja una confirmación breve en su sitio.
@@ -3401,7 +3402,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
   const saveReview=function(){
     const patch=Object.assign({},reviewPatch);
     if(!name.trim()||day!==""&&cleanDay(day)==null){setReviewError("plan_edit_invalid");return;}
-    if(amount.trim()&&!hasSched){const n=parseNumPadRaw(amount);if(!Number.isFinite(n)){setReviewError("plan_edit_invalid");return;}patch.amount=n;}
+    if(amount.trim()&&!hasSched){const n=Math.round(parseNumPadRaw(amount)*100)/100;if(!Number.isFinite(n)){setReviewError("plan_edit_invalid");return;}patch.amount=n;}
     reviewCommit.save(planFixedReviewResult(state,row.item,review,patch));
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
@@ -3457,7 +3458,7 @@ function BillsItemSheet({row, state, set, banks, simple, onClose, onRemove,revie
         React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_account")),
         bankListButtons(banks, account, function(b){ setAccount(b); const p=row.kind==="flow"?(item.kind==="income"?{to:b}:{from:b}):{account:b}; saveMeta(p); })),
       row.kind==="debt"&&simple && React.createElement("input",{className:"v4-bills-search",style:{marginTop:8},value:amort,placeholder:t("fj_amort"),
-        onChange:function(e){ setAmort(e.target.value); }, onBlur:function(){ const n=parseFloat(String(amort).replace(",",".")); if(isFinite(n)) saveMeta({amort:n}); }}),
+        onChange:function(e){ setAmort(e.target.value); }, onBlur:function(){ const n=parseFloat(String(amort).replace(",",".")); if(isFinite(n)){ const c=Math.round(n*100)/100; setAmort(String(c)); saveMeta({amort:c}); } }}),
       review&&["cat","category"].filter(function(k){return review.fields.indexOf(k)>=0;}).map(function(k){return React.createElement("label",{key:k},t("plan_conflict_category"),React.createElement("input",{className:"v4-bills-search",value:reviewPatch[k]==null?"":String(reviewPatch[k]),onChange:function(e){saveMeta({[k]:e.target.value});}}));}),
       (reviewError||reviewCommit.error)&&React.createElement("div",{role:"alert",className:"hint"},t(reviewError||reviewCommit.error)),
       review&&React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:reviewCommit.pending,onClick:saveReview},t("db_savechanges")),

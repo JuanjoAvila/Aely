@@ -6493,7 +6493,8 @@ function billsCuotasEnAno(d, curMonth, curYear){
   const cur=curYear*12+curMonth-1, anchor=(typeof d.asOf==="number")?d.asOf:cur;
   if(d.months!=null) return Math.min(12,Math.max(0,anchor+d.months-cur));
   const a=debtAmort(d);
-  return a>0?Math.min(12,Math.max(0,Math.ceil(debtBalance(d)/a-1e-9))):12;
+  // En céntimos (`cuotasQueQuedan`), como el resto de cuentas de cuotas: el `-1e-9` en euros era un parche.
+  return a>0?Math.min(12,cuotasQueQuedan(debtBalance(d),a)):12;
 }
 // Día de referencia para mirar si un mes ya está pagado: hoy si es el mes en curso; si no, su último día.
 function billsHoyDe(y, m){
@@ -6885,6 +6886,9 @@ function patchDebtFields(set, id, patch){
     return Object.assign({},s,{debts:(s.debts||[]).map(function(d){
       if(d.id!==id) return d;
       const n=Object.assign({},d,patch);
+      /* Dinero al céntimo, como Editar deuda: una bajada de 10,354 hacía que el saldo (valor − bajada ×
+         pagadas) arrastrase milésimas y el plazo, contado en céntimos, dejaba de cuadrar (revisión 237). */
+      ["monthly","amort"].forEach(function(k){ if(typeof patch[k]==="number"&&isFinite(patch[k])) n[k]=Math.round(patch[k]*100)/100; });
       if(!n.day) delete n.day;
       if(!(n.amort>0) || Math.abs((n.amort||0)-(n.monthly||0))<0.005) delete n.amort;
       /* El saldo de hoy es value − bajada × pagadas: cambiar la bajada sin re-anclar movía el saldo
