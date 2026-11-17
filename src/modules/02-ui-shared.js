@@ -2895,7 +2895,7 @@ function useDespliegue(open){
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction, todasEnFila}){
+  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction, todasEnFila, catRowsMax}){
   const isIn=kind==="ingreso";
   /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
      ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Al tocar el importe
@@ -2908,9 +2908,10 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
   const cols=useCatCols();
   const bodyRef=useRef(null), filaAltoRef=useRef(66);
   /* Con el teclado abierto, entre «CATEGORÍA» y el teclado solo van FILAS ENTERAS de baldosas (el
-     crítico de la v3: asomaban medias filas «como una franja rota»). Se mide el hueco libre con la
-     ficha arriba del todo y caben floor(hueco / fila); si no cabe ninguna, la elegida va en la
-     cabecera. null = sin teclado, todas las filas. */
+     crítico de la v3: asomaban medias filas «como una franja rota»). La hoja mantiene su alto máximo
+     mientras se teclea (CSS, `.con-teclado`): medido con la hoja ya encogida al contenido, cada fila
+     quitada achicaba el hueco siguiente y a 393 acababa en cero (crítico de la v4). Caben
+     floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
   const [filasTeclado,setFilasTeclado]=useState(null);
   useLayoutEffect(function(){
     if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
@@ -2930,7 +2931,28 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     window.addEventListener("resize",mide);
     return function(){ window.removeEventListener("resize",mide); };
   },[conTeclado,teclado.vivo,cols,(categoryItems||[]).length]);
-  const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRows||2);
+  /* Apuntar (`catRowsMax`): una fila, y dos si caben enteras en el alto que le queda a la hoja hasta
+     su máximo (a 393 y 412 sí; a 360 no). La misma medida de filas enteras que la ficha. */
+  const [filasAuto,setFilasAuto]=useState(1);
+  useLayoutEffect(function(){
+    if(!catRowsMax||todasEnFila) return undefined;
+    const mide=function(){
+      const body=bodyRef.current, hoja=body&&body.parentElement; if(!hoja) return;
+      const tile=body.querySelector(".v4-ficha-cats .v4-ficha-cat");
+      if(tile) filaAltoRef.current=tile.getBoundingClientRect().height;
+      const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, alto=hoja.getBoundingClientRect().height/(parseFloat(getComputedStyle(document.body).zoom)||1);
+      setFilasAuto(function(v){
+        const fila=filaAltoRef.current+6, sobra=max-alto, desborda=body.scrollHeight-body.clientHeight>1;
+        if(desborda&&v>1) return v-1;
+        if(!desborda&&v<catRowsMax&&sobra>=fila) return v+1;
+        return v;
+      });
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
+  const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
   const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
@@ -2939,10 +2961,15 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
   };
   const catsBlock=!isIn && React.createElement(React.Fragment,{key:"cats"},
-    !todasEnFila && React.createElement("div",{className:"v4-ficha-cat-title"},
-      React.createElement("span",{className:"v4-ficha-cat-t"},t("f_cat"),
-        elegida && React.createElement("span",{className:"v4-ficha-cat-elegida","data-testid":(testPrefix||"expense")+"-cat-elegida"},
-          " · "+(elegida.icon||"")+" "+(elegida.label||catName(elegida.id)))),
+    /* Sin sitio para ninguna fila, la cabecera ES la elegida, y toda la línea abre el selector. Sin
+       «CATEGORÍA ·» delante: el icono y el nombre ya lo dicen, y así «Inteligencia artificial» cabe
+       entera a 360 (crítico de la v4). */
+    !todasEnFila && elegida && React.createElement("button",{type:"button",className:"v4-ficha-cat-title v4-ficha-cat-title-btn",
+        "data-testid":(testPrefix||"expense")+"-cat-elegida",onClick:onAllCategories},
+      React.createElement("span",{className:"v4-ficha-cat-elegida"},(elegida.icon||"")+" "+(elegida.label||catName(elegida.id))),
+      React.createElement("span",{className:"v4-ficha-todas"},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
+    !todasEnFila && !elegida && React.createElement("div",{className:"v4-ficha-cat-title"},
+      React.createElement("span",{className:"v4-ficha-cat-t"},t("f_cat")),
       React.createElement("span",{className:"v4-ficha-cat-acts"},conTeclado?null:(catAction||null),
         todasBtn("v4-ficha-todas",tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
     visibles.length>0 && React.createElement(ExpenseCategoryGrid,{items:visibles,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
@@ -2953,7 +2980,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         "data-testid":testPrefix||"expense-ficha","data-kb":kb?"1":null,ref:bodyRef,
         // En el click y no antes: si se recogiera en el `pointerdown`, lo tocado se movería bajo el dedo.
         onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
-          if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado"))) onCloseNumpad();
+          if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado,.v4-ficha-cat-title-btn"))) onCloseNumpad();
         }:undefined},
       React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},

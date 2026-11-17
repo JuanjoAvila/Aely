@@ -386,7 +386,9 @@ const PRESUPUESTO = {
   // Cuarta vuelta (17/11, el crítico de la v3): filas enteras con el teclado abierto (medida y recorte), rejilla de
   // 3/4 columnas con etiquetas a 12 px, «Todas ›» en la cabecera de Apuntar y la cuenta del ingreso marcada:
   // +2.944 B (1.977.970 sin sello) y 542.683 B gzip. Suben a 1933 / 531 KiB.
-  minificado: 1933 * 1024,
+  // Quinta vuelta (17/11, crítico de la v4): la hoja con su alto máximo al teclear, Apuntar con dos filas donde
+  // caben, los ajustes como chips y la cabecera con la elegida tocable: +1.657 B (1.979.627 sin sello). Sube a 1934.
+  minificado: 1934 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

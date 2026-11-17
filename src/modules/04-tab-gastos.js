@@ -3444,9 +3444,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("span",null,t("f_adj_retirada")))
   ].filter(Boolean);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    /* La misma rejilla que las categorías (tres o cuatro columnas, baldosas del mismo ancho, a la
-       izquierda): la fila tiene la misma forma en un gasto a mano y en uno del banco. Una sola
-       baldosa (un ingreso: la nota) no va en rejilla: es una fila entera, icono y texto en línea. */
+    /* La misma rejilla que las categorías (tres o cuatro columnas, a la izquierda), pero en chips
+       de unos 40 px con icono y texto en línea: no son categorías y no necesitan baldosa alta (crítico
+       de la v4: a 360 la segunda fila de baldosas quedaba partida bajo el pie). Una sola (la nota de
+       un ingreso) ocupa la fila entera. */
     React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes"+(baldosas.length===1?" solo":"")},baldosas),
     retiradaAvisos.length>0 && React.createElement("div",{className:"hint v4-ficha-avisos","data-testid":"exp-withdrawal-info"},retiradaAvisos),
     panelVisto && React.createElement("div",{className:"v4-ficha-fold"+(despliegue.dentro&&adjustOpen?" open":"")},

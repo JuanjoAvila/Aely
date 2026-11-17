@@ -330,15 +330,30 @@ for (const [w, h] of [[360, 740], [393, 851], [412, 915]]) {
     const m = await hoja.evaluate((s) => {
       const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), t = s.querySelector(".v4-ficha-cat-title").getBoundingClientRect();
       const tiles = [...s.querySelectorAll(".v4-ficha-cat")].map((e) => e.getBoundingClientRect());
+      const hojaEl = s.closest(".v4-exp-sheet") || s, hr = hojaEl.getBoundingClientRect();
       return { n: tiles.length, enteras: tiles.every((r) => r.bottom <= k.top + 0.5 && r.top >= t.bottom - 0.5),
+        altoMax: Math.abs(hr.height - parseFloat(getComputedStyle(hojaEl).maxHeight)) < 1.5,
         ajustes: s.querySelectorAll(".v4-ficha-adjust").length, scroll: s.querySelector(".v4-sheet-body").scrollTop,
         elegida: (s.querySelector('[data-testid="exp-cat-elegida"]') || {}).textContent || "", bares: !!s.querySelector('[data-testid="exp-cat-bares"]') };
     });
     expect(m.enteras, "ninguna baldosa visible por debajo del borde del teclado ni encima de la cabecera").toBe(true);
     expect(m.ajustes).toBe(0);
     expect(m.scroll).toBe(0);
+    // La hoja conserva su alto máximo con el teclado (crítico de la v4: encogía y medía cero filas).
+    expect(m.altoMax, "la hoja no encoge al teclear").toBe(true);
+    // A 393 y 412 cabe una fila entera de tres; solo a 360 no cabe ninguna.
+    if (w >= 390) expect(m.n, "al menos una fila entera de tres").toBeGreaterThanOrEqual(3);
     // La elegida se ve siempre: o en su baldosa, o en la cabecera si no cabe ninguna fila.
-    if (m.n === 0) expect(m.elegida).toContain("Bares y restaurantes"); else expect(m.bares).toBe(true);
+    if (m.n === 0) {
+      expect(m.elegida).toContain("Bares y restaurantes");
+      // Toda la línea abre el selector.
+      await hoja.getByTestId("exp-cat-elegida").click();
+      await expect(page.locator(".v4-ficha-cat-sheet")).toBeVisible();
+      await page.goBack();
+      await expect(page.locator(".v4-ficha-cat-sheet")).toHaveCount(0);
+      // Abrir el selector desde la cabecera no recoge el teclado: se sigue tecleando al volver.
+      await expect(hoja.locator(".v4-ficha-teclado")).toHaveClass(/open/);
+    } else expect(m.bares).toBe(true);
     // Al cerrar vuelven las filas y los ajustes.
     await hoja.locator(".v4-ficha-amount").click();
     await expect(hoja.locator(".v4-ficha-adjust")).toHaveCount(1);
@@ -385,4 +400,51 @@ test("ingreso: se ve siempre a qué cuenta entra, el pie dice «Borrar ingreso»
   await hoja.getByTestId("exp-efectivo").click();
   await page.waitForTimeout(400);
   expect((await de("bizum-in")).ent).toBe("sabadell");
+});
+
+
+/* Crítico de la v4 (N2): sin teclado, ninguna baldosa ni chip visible queda partido bajo el pie, en los
+   tres tamaños, con la ficha del banco más cargada (cinco ajustes). Y la cabecera con la elegida más
+   larga, «Inteligencia artificial», cabe entera a 360 con el teclado. */
+const CARGADA = {
+  fixed: [{ id: "luz", name: "Luz", amount: 48, day: 20, ent: "sabadell" }],
+  debts: [{ id: "coche", name: "Préstamo coche", balance: 4000, payment: 180 }],
+  goals: [{ id: "viaje", name: "Viaje", target: 1000, saved: 100, emoji: "✈️" }],
+};
+for (const [w, h] of [[360, 740], [393, 851], [412, 915]]) {
+  test(`sin teclado, nada partido bajo el pie en la ficha del banco, ${w}×${h}`, async ({ page }) => {
+    await arranca(page, w, h, Object.assign({}, CARGADA, { expenses: LARGAS.slice(0, 8).concat([
+      { id: "del-banco", date: HOY, amount: 23.4, merchant: "Cargo del banco", category: "super", source: "ob", ent: "trade_republic", obAcc: "ob-tr" }]) }));
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await gastosAbreGasto(page, "Cargo del banco");
+    const hoja = page.locator(".v4-exp-sheet");
+    await expect(hoja.getByTestId("exp-withdrawal")).toBeVisible();
+    await page.waitForTimeout(500);
+    const partidas = await hoja.evaluate((s) => {
+      const cuerpo = s.querySelector(".v4-sheet-body").getBoundingClientRect(), pie = s.querySelector(".v4-ficha-foot").getBoundingClientRect();
+      const borde = Math.min(cuerpo.bottom, pie.top);
+      return [...s.querySelectorAll(".v4-ficha-cat")].map((e) => ({ t: e.textContent, r: e.getBoundingClientRect() }))
+        .filter(({ r }) => r.top < borde - 0.5 && r.bottom > borde + 0.5).map(({ t }) => t);
+    });
+    expect(partidas, "o entera encima del pie, o entera fuera de la vista").toEqual([]);
+    // Los ajustes son chips compactos de una línea.
+    const altos = await hoja.locator(".v4-ficha-ajustes > .v4-ficha-cat").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
+    expect(Math.max(...altos)).toBeLessThan(48);
+  });
+}
+test("cabecera con «Inteligencia artificial» elegida, a 360 con el teclado: entera y abre el selector", async ({ page }) => {
+  await arranca(page, 360, 740, { expenses: [{ id: MANO, date: HOY, amount: 20, merchant: "Suscripción", category: "ia", source: "manual", ent: "sabadell" }] });
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await gastosAbreGasto(page, "Suscripción");
+  const hoja = page.locator(".v4-exp-sheet");
+  await hoja.locator(".v4-ficha-amount").click();
+  await expect(hoja.locator(".v4-ficha-teclado")).toHaveClass(/open/);
+  const cab = hoja.getByTestId("exp-cat-elegida");
+  await expect(cab).toContainText("Inteligencia artificial");
+  const m = await cab.evaluate((b) => { const n = b.querySelector(".v4-ficha-cat-elegida"), r = b.getBoundingClientRect(), rn = n.getBoundingClientRect();
+    return { cabe: n.scrollWidth <= n.clientWidth + 1, dentro: rn.right <= r.right + 0.5, una: n.getClientRects().length === 1, alto: r.height }; });
+  expect(m).toEqual({ cabe: true, dentro: true, una: true, alto: expect.any(Number) });
+  expect(m.alto, "toda la línea se toca").toBeGreaterThanOrEqual(44);
+  await cab.click();
+  await expect(page.locator(".v4-ficha-cat-sheet")).toBeVisible();
 });
