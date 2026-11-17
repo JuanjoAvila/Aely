@@ -5,10 +5,13 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
    reloj del 16/11/2026. Sabadell tiene la corriente (1.000) y la de ahorro (500), las dos «fijos»;
    el Teléfono de 30 € del día 8 no tiene cobro en el extracto y el calendario lo da por restado.
    Antes cada cuenta se restaba el neto del banco entero y además ese neto llegaba doble: 970 − 30
-   y 500 − 60, «Tienes hoy» 1.380 € donde lo justo es 1.470 €. CaixaBank, de control, una sola cuenta. */
+   y 500 − 60, «Tienes hoy» 1.380 € donde lo justo es 1.470 €. CaixaBank, de control, una sola cuenta.
+   Dos partidas: un estado ya en la regla nueva, y uno guardado por la versión vieja (sin
+   `_netoUnaCuenta`, la Corriente y la Ahorro tecleadas 970 y 500 → 1.030 y 560): al abrir, la
+   migración de una vez tiene que pintar lo mismo que pintaba ayer (revisión 238, P1). */
 const r = (id, name, amount, day, extra) => Object.assign({ id, name, amount, freq: "mes", day, account: "sabadell" }, extra || {});
 const estado = {
-  __seedOnce: true, lastBackup: "2026-11-16", _dynBalAnchored: true,
+  __seedOnce: true, lastBackup: "2026-11-16", _dynBalAnchored: true, _netoUnaCuenta: true,
   accounts: [
     { id: "sb1", ent: "sabadell", name: "Corriente", role: "fijos", value: 1000 },
     { id: "sb2", ent: "sabadell", name: "Ahorro", role: "fijos", value: 500 },
@@ -19,11 +22,15 @@ const estado = {
   settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell", "caixabank"] },
 };
 
-test("dos cuentas de recibos del mismo banco: el Teléfono se resta una vez en Cartera y en «¿Te llega?»", async ({ page }) => {
+const viejo = JSON.parse(JSON.stringify(estado));
+delete viejo._netoUnaCuenta; viejo.accounts[0].value = 1030; viejo.accounts[1].value = 560;
+
+for (const [nombre, semilla] of [["estado nuevo", estado], ["guardado por la versión vieja", viejo]])
+test("dos cuentas de recibos del mismo banco (" + nombre + "): el Teléfono se resta una vez en Cartera y en «¿Te llega?»", async ({ page }) => {
   test.info().annotations.push({ type: "own-clock" });
   await page.clock.install({ time: new Date("2026-11-16T12:00:00+01:00") });
   await page.route("**/*", (x) => new URL(x.request().url()).hostname === "127.0.0.1" ? x.continue() : x.abort());
-  await seedLoggedInDashboard(page, JSON.parse(JSON.stringify(estado)));
+  await seedLoggedInDashboard(page, JSON.parse(JSON.stringify(semilla)));
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await page.waitForFunction(() => !document.getElementById("mc-load"));
@@ -58,4 +65,6 @@ test("dos cuentas de recibos del mismo banco: el Teléfono se resta una vez en C
     return ["sabadell", "caixabank"].map((ent) => Math.round(minWalk(banco(ent), bankPendingEvents(s, ent, 2026, 11, 16)).min * 100));
   });
   expect(mins).toEqual([132000, 76000]);
+  // La marca queda guardada: otra carga no vuelve a migrar.
+  expect(await page.evaluate(() => mcLoadRaw(mcStateKey())._netoUnaCuenta)).toBe(true);
 });

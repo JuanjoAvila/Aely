@@ -35,7 +35,7 @@ const seg={id:"seg",name:"Seguro",amount:150,day:20,account:"sabadell",freq:"mes
 const alq={id:"alq",name:"Alquiler",amount:650,day:1,account:"caixabank",freq:"mes"};
 const luz={id:"luz",name:"Luz",amount:40,day:25,account:"caixabank",freq:"mes"};
 const estado=p=>Object.assign({accounts:cuentas(),fixed:[tel,seg,alq,luz],debts:[],bankTx:[],expenses:[],oneoffs:[],flows:[],
-  goals:[],deleted:[],investments:[],assets:[],aportaciones:[],obAccounts:[],settings:{expenseBanks:["revolut"]},_dynBalAnchored:true},p);
+  goals:[],deleted:[],investments:[],assets:[],aportaciones:[],obAccounts:[],settings:{expenseBanks:["revolut"]},_dynBalAnchored:true,_netoUnaCuenta:true},p);
 const pintado=s=>{ const i=c.insumosSaldoGasto(s),o={}; s.accounts.forEach(a=>{ o[a.id]=cents(c.saldoCuentaMostrada(a,i)); }); return o; };
 const plan=s=>{
   const T=totalsDe(s,"2026-11-16"),pack=c.planChargesMonth(s,M,Y,HOY),bancos={};
@@ -70,12 +70,16 @@ test("el orden manda solo en quién lo carga: al revés, la otra cuenta lo lleva
 });
 
 test("con lectura del banco: tras re-anclar cada cuenta enseña lo que dice su banco",()=>{
-  const acc=cuentas();acc[0].bankIban="ES00SINTETICA0001";acc[1].bankIban="ES00SINTETICA0002";
+  // Valores de partida lejos de lo esperado: si el re-anclaje no corre, el test no puede pasar.
+  const acc=cuentas();acc[0].bankIban="ES00SINTETICA0001";acc[1].bankIban="ES00SINTETICA0002";acc[0].value=1100;acc[1].value=600;
   const s=estado({accounts:acc});
+  // La forma que lee `pickBankBalanceInfo`: {type, amount}.
   const links=[{aspsp:"Banco Sabadell",ok:true,accounts:[
-    {uid:"u1",iban:"ES00SINTETICA0001",balances:[{balanceType:"CLBD",balanceAmount:{amount:"970.00",currency:"EUR"}}]},
-    {uid:"u2",iban:"ES00SINTETICA0002",balances:[{balanceType:"CLBD",balanceAmount:{amount:"500.00",currency:"EUR"}}]}]}];
-  const next=c.applyBankBalances(s,links).state,p=pintado(next);
+    {uid:"u1",iban:"ES00SINTETICA0001",balances:[{type:"CLBD",amount:"970.00",currency:"EUR"}]},
+    {uid:"u2",iban:"ES00SINTETICA0002",balances:[{type:"CLBD",amount:"500.00",currency:"EUR"}]}]}];
+  const r=c.applyBankBalances(s,links),next=r.state,p=pintado(next);
+  assert.equal(r.synced.length,2,"las dos cuentas se re-anclan");
+  assert.ok(next.accounts.slice(0,2).every(a=>!a.balanceStale),"ninguna queda rancia");
   assert.equal(p.sb1,97000,"la que carga el neto: base 1.000, pinta 970");
   assert.equal(p.sb2,50000,"la hermana, tal cual (antes 470)");
   assert.equal(next.accounts[0].value,1000);assert.equal(next.accounts[1].value,500);
@@ -122,4 +126,77 @@ test("una sola cuenta por banco: igual que siempre",()=>{
   const s=estado({accounts:[cuentas()[0],cuentas()[2],cuentas()[3]]});
   assert.deepEqual(pintado(s),{sb1:97000,cx:15000,rv:30000});
   assert.deepEqual(plan(s).bancos.sabadell,{bal:97000,min:82000});
+});
+
+// ---------- Migración de una vez (`_netoUnaCuenta`, revisión 238 P1) ----------
+// Oráculo independiente de la regla vieja: cada cuenta de recibos pintaba value + k·N (k cuentas de
+// recibos del banco, N = `monthNetForAccount` del mes hasta hoy). Lo que se pintaba ayer se tiene
+// que pintar hoy, cuenta a cuenta.
+const viejoPintado=s=>{
+  const k={},o={};s.accounts.forEach(a=>{ if(c.accFixed(a)) k[a.ent]=(k[a.ent]||0)+1; });
+  const i=c.insumosSaldoGasto(Object.assign({},s,{accounts:[]}));
+  s.accounts.forEach(a=>{ o[a.id]=c.accFixed(a)?cents((a.value||0)+k[a.ent]*c.monthNetForAccount(s,a.ent,Y,M,HOY)):cents(c.saldoCuentaMostrada(a,i)); });
+  return o;
+};
+const sinMarca=p=>{ const s=estado(p); delete s._netoUnaCuenta; return s; };
+
+test("migración: cuentas a mano tecleadas con la versión vieja pintan lo mismo al actualizar",()=>{
+  // La vieja guardó value = tecleado − 2·N: 970 → 1.030 y 500 → 560.
+  const acc=cuentas();acc[0].value=1030;acc[1].value=560;
+  const s=sinMarca({accounts:acc}),ayer=viejoPintado(s);
+  assert.deepEqual(ayer,{sb1:97000,sb2:50000,cx:15000,rv:30000});
+  const hoy=c.seedFlows(json(s));
+  assert.equal(hoy._netoUnaCuenta,true);
+  assert.deepEqual(pintado(hoy),ayer,"sin mover un céntimo");
+  assert.equal(cents(totalsDe(hoy,"2026-11-16").bankBal.sabadell),147000);
+  // De una vez: otra carga no vuelve a mover nada.
+  assert.deepEqual(json(c.seedFlows(json(hoy)).accounts),json(hoy.accounts));
+});
+
+test("migración: cuentas OB ancladas con la regla vieja pintan lo mismo, y el siguiente sync las deja como el banco",()=>{
+  // Ancla vieja: base = saldo − N en cada cuenta (970 → 1.000, 500 → 530); pintaban 940 y 470.
+  const acc=cuentas();acc[0].bankIban="ES00SINTETICA0001";acc[1].bankIban="ES00SINTETICA0002";acc[0].value=1000;acc[1].value=530;
+  const s=sinMarca({accounts:acc}),ayer=viejoPintado(s);
+  assert.deepEqual([ayer.sb1,ayer.sb2],[94000,47000]);
+  const hoy=c.seedFlows(json(s));
+  assert.deepEqual(pintado(hoy),ayer);
+  const links=[{aspsp:"Banco Sabadell",ok:true,accounts:[
+    {uid:"u1",iban:"ES00SINTETICA0001",balances:[{type:"CLBD",amount:"970.00",currency:"EUR"}]},
+    {uid:"u2",iban:"ES00SINTETICA0002",balances:[{type:"CLBD",amount:"500.00",currency:"EUR"}]}]}];
+  const r=c.applyBankBalances(hoy,links);
+  assert.equal(r.synced.length,2);
+  const p=pintado(r.state);assert.deepEqual([p.sb1,p.sb2],[97000,50000]);
+});
+
+test("migración: con una cuenta de recibos por banco no se toca nada",()=>{
+  const s=sinMarca({accounts:[cuentas()[0],cuentas()[2],cuentas()[3]]});
+  const hoy=c.seedFlows(json(s));
+  assert.deepEqual(hoy.accounts,json(s).accounts,"mismos valores, mismos objetos");
+  assert.deepEqual(pintado(hoy),viejoPintado(s));
+  assert.equal(hoy._netoUnaCuenta,true);
+});
+
+test("migración: el primer arranque tras cambiar de mes cierra con la regla vieja y pinta lo mismo",()=>{
+  // Último uso en octubre con la vieja; se abre el 16/11 ya actualizada.
+  const acc=cuentas();acc[0].value=1030;acc[1].value=560;
+  const s=sinMarca({accounts:acc,trAnchor:"2026-10"});
+  // Oráculo: el cierre viejo arrastraba el neto de octubre entero a CADA cuenta.
+  const cerradaVieja=json(s);cerradaVieja.accounts.forEach(a=>{ if(!a.spendFrom) a.value=+(a.value+c.monthNetForAccount(s,a.ent,2026,10,null)).toFixed(2); });
+  const ayer=viejoPintado(cerradaVieja);
+  const hoy=c.seedFlows(c.reconcileTR(json(s)));
+  const p=pintado(hoy);
+  for(const id of ["sb1","sb2","cx"]) assert.equal(p[id],ayer[id],id);
+});
+
+test("un estado nuevo nace migrado",()=>{
+  assert.equal(c.buildEmpty()._netoUnaCuenta,true);
+});
+
+test("dos cuentas sin id del mismo banco: el neto lo carga una sola",()=>{
+  const acc=cuentas().map(a=>{ const o=Object.assign({},a); delete o.id; return o; });
+  const s=estado({accounts:acc}),i=c.insumosSaldoGasto(s);
+  const v=s.accounts.map(a=>cents(c.saldoCuentaMostrada(a,i)));
+  assert.deepEqual(v.slice(0,2),[97000,50000],"antes 970 + 470");
+  assert.equal(c.llevaNetoDeBanco(s.accounts,s.accounts[1]),false);
+  assert.equal(cents(totalsDe(s,"2026-11-16").bankBal.sabadell),147000);
 });

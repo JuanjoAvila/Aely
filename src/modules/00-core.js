@@ -1037,7 +1037,7 @@ function mcSeedSandboxVacio(){
   mcSandboxTransition(true);
   try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
-    _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
+    _dataVer:6, onboarded:false, tourSeen:false, setupHint:false, _netoUnaCuenta:true,
     budget:0, monthStartNet:0, history:[],
     accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
     expenses:[], settings:{}
@@ -3385,8 +3385,10 @@ function paidNetDeCuenta(a, paidMap){
   const pn=paidMap[a.ent]||0;
   if(!pn) return 0;
   const lleva=paidMap.cuentaDe;
-  if(lleva && Object.prototype.hasOwnProperty.call(lleva,a.ent) && lleva[a.ent]!==a.id) return 0;
-  return pn;
+  if(!lleva || !Object.prototype.hasOwnProperty.call(lleva,a.ent)) return pn;
+  const m=lleva[a.ent];
+  // Marca = id de la cuenta, o la cuenta misma si no tiene id (dos sin id no lo cargan las dos).
+  return (m!==null&&typeof m==="object" ? m===a : m===a.id) ? pn : 0;
 }
 /* Saldo que se PINTA de una cuenta. Diaria → fórmula TR. Efectivo → value − gastos propios
    (nadie re-ancla el sobre). Resto → value + paidNet, SIN restar gastos: las manuales sin OB

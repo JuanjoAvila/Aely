@@ -15447,6 +15447,10 @@
         "function": "cuentaDelNetoDeBanco"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoCuenta"
       },
@@ -37741,6 +37745,10 @@
         "function": "bankAutoFrena"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "conservaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoToca"
       },
@@ -42581,6 +42589,10 @@
         "function": "bankAutoFrena"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "conservaNetoDeBanco"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoToca"
       },
@@ -44673,6 +44685,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -48818,6 +48834,10 @@
         "function": "paidNetDeCuenta"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentNoAdeudo"
       },
@@ -52153,6 +52173,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "llevaNetoDeBanco"
       },
       {
@@ -54433,6 +54457,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -58233,6 +58261,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoLee"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -81885,6 +81917,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "llevaNetoDeBanco"
       },
       {
@@ -90542,6 +90578,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "llevaNetoDeBanco"
       },
       {
@@ -93149,6 +93189,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -116022,6 +116066,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "llevaNetoDeBanco"
       },
       {
@@ -119641,6 +119689,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "migraNetoUnaCuenta"
       },
       {
         "file": "src/modules/01-i18n.js",
