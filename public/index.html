@@ -1925,19 +1925,25 @@
   .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1);}
   .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:4px 0 8px;gap:6px;background:var(--bg-2);}
   /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
-     (56 px, las pidió él): una sola fila de categorías con «Más» al final y sin la cabecera
-     «Categoría · Las 32», y algo menos de aire alrededor del importe y del teclado. El relleno del
+     (56 px, las pidió él): una sola fila de categorías, y algo menos de aire alrededor del importe
+     y del teclado. Desde el remate de la 235, «Todas ›» va en la cabecera como en la ficha (la
+     baldosa «Más» le quitaba una columna a las etiquetas). El relleno del
      importe es el mismo vacío y escrito: si no, la hoja salta al teclear la primera cifra (D1). */
   .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{padding:2px 0 6px;line-height:1.15;}
-  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:6px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{gap:6px;margin-bottom:4px;}
+  /* La cabecera «CATEGORÍA … Todas ›» y las etiquetas a 12 px en dos líneas suman ~25 px: se recuperan
+     apretando lo que sobraba, para que a 360×640 siga sin deslizarse y a 390×844 no pase de 660. */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat-title{margin-bottom:2px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cat-title button{min-height:36px;margin:-10px -4px -10px 0;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-cats .v4-ficha-cat{min-height:54px;padding:4px 2px;gap:2px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-concept.v4-input{padding-bottom:6px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-head{margin-bottom:3px;}
   /* Los últimos px para que a 360×640 no quede ni un deslizamiento y a 390×844 la hoja no pase de
      660 (DIS-01/06): sin ellos sobraban 3 y 5 px respectivamente. */
-  .v4-ficha-body[data-testid="ap"] .v4-ficha-pay{margin-bottom:10px;}
-  .v4-ficha-body[data-testid="ap"] .v4-ficha-focus{margin-bottom:6px;}
-  /* En cinco columnas «Supermercado» no cabe en una línea y se cortaba por los dos lados: se parte
-     con guion (hay `lang` en <html>) y, como mucho, en dos líneas. */
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-pay{margin-bottom:5px;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-focus{margin-bottom:4px;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-cat{padding:6px 2px;}
-  .v4-ficha-cat.more{color:var(--mint);}
+  .v4-ficha-todas-tile{color:var(--mint);}
   /* Móvil bajo: la hoja de Apuntar ocupa la pantalla (menos la barra de estado) en vez del 88 %, y
      el asa y el pie se aprietan un poco: ahí cada fila que cabe es una que no hay que buscar. */
   @media (max-height:700px){
@@ -2032,6 +2038,9 @@
   .v4-ficha-meta-pill span{overflow:hidden;text-overflow:ellipsis;}
   .v4-ficha-meta-pill.on{background:rgba(95,208,138,.12);border-color:var(--mint-deep);color:var(--mint);}
   .v4-ficha-meta-pill.disabled{opacity:.45;cursor:default;}
+  /* Ingreso: la cuenta elegida, rellena como «Tarjeta» en un gasto; del banco, el efectivo apagado. */
+  .v4-ficha-pay.income > .v4-ficha-meta-pill.sel{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
+  .v4-ficha-pay.income > .v4-ficha-meta-pill.bloqueada{opacity:.45;}
   .v4-ficha-cat-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;font-size:11px;font-weight:800;
     letter-spacing:1.1px;text-transform:uppercase;color:var(--muted-2);}
   .v4-ficha-cat-acts{display:flex;align-items:center;gap:2px;}
@@ -2040,7 +2049,10 @@
   .v4-ficha-cat-title .v4-ficha-ia:disabled{opacity:.45;}
   .v4-ficha-cat-title button{min-height:44px;margin:-12px -4px -12px 0;padding:0 4px;color:var(--mint);font-size:12px;font-weight:800;
     letter-spacing:0;text-transform:none;}
-  .v4-ficha-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:12px;}
+  /* Tres columnas y cuatro solo desde 460 px (`useCatCols` usa la misma media): en un móvil, con la
+     etiqueta a 12 px, «Supermercado» no cabe entera en cuatro ni a 412 px. */
+  .v4-ficha-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px;}
+  @media (min-width:460px){ .v4-ficha-cats{grid-template-columns:repeat(4,minmax(0,1fr));} }
   .v4-ficha-cat{min-height:62px;padding:6px 3px;border-radius:15px;background:var(--sur);border:1px solid var(--line-soft);
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:700;line-height:1.1;overflow:hidden;}
   .v4-ficha-cat.on{background:rgba(108,198,136,.16);border-color:var(--mint-deep);color:var(--text);}
@@ -2052,14 +2064,16 @@
   .v4-ficha-adjust{margin:2px 0 10px;padding-top:12px;border-top:1px solid var(--line-soft);}
   .v4-ficha-ajustes{margin-bottom:0;}
   .v4-ficha-ajuste{transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
-  /* El nombre de una baldosa (categoría o ajuste) nunca se parte ni se corta (auditoría 237, P1-2:
-     salían «Supermer-cado», «Trans-porte» y «restauran…»). Sin guion ni puntos: la letra encoge lo
-     justo para que su palabra más larga (`--lw`, en letras) quepa en el ancho de la baldosa
-     (`cqi`), y las de dos palabras van en dos líneas. 0,62 em por letra es lo que mide Manrope 700
-     de media en mayúscula inicial + minúsculas, con margen. */
-  .v4-ficha-cat{container-type:inline-size;}
-  .v4-ficha-cat > span:last-child{max-width:100%;-webkit-hyphens:none;hyphens:none;overflow-wrap:normal;word-break:normal;
-    font-size:min(10.5px, calc((100cqi - 6px) / (var(--lw, 8) * .62)));}
+  /* El nombre de una baldosa (categoría o ajuste): UN solo tamaño, 12 px, nunca partido ni cortado
+     (auditoría 237, P1-2, y el crítico de la v3: «Supermer-cado», «restauran…» y letras encogidas a
+     7 px). Si una palabra no cabiera, se cambia la rejilla, no la letra. */
+  .v4-ficha-cat > span:last-child{max-width:100%;font-size:12px;line-height:1.15;-webkit-hyphens:none;hyphens:none;overflow-wrap:normal;word-break:normal;}
+  /* Una sola baldosa de ajuste (un ingreso: la nota) no va en rejilla: fila entera, icono y texto en línea. */
+  .v4-ficha-ajustes.solo{display:block;}
+  .v4-ficha-ajustes.solo > .v4-ficha-cat{width:100%;min-height:48px;flex-direction:row;gap:8px;}
+  /* Con el teclado sin sitio para ninguna fila, la categoría elegida se lee en la cabecera. */
+  .v4-ficha-cat-t{min-width:0;}
+  .v4-ficha-cat-elegida{color:var(--text);font-size:12px;letter-spacing:0;text-transform:none;font-weight:750;}
   .v4-ficha-ajuste > .value{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;}
   .v4-ficha-ajuste:disabled{cursor:default;}
   .v4-ficha-ajuste:disabled:not(.on){opacity:.45;}
@@ -2094,8 +2108,8 @@
     box-shadow:0 6px 18px rgba(0,0,0,.28);color:var(--muted);font-size:12px;line-height:1.35;}
   .v4-ficha-aviso .btn{flex:0 0 auto;min-height:36px;padding:0 12px;}
   .v4-ficha-del{flex:none;min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;white-space:nowrap;}
-  /* A 360 «Borrar gasto» se partía en dos líneas: no se parte; el aviso del centro, si no cabe, va en
-     dos líneas equilibradas (nunca cortado). */
+  /* A 360 «Borrar gasto» y «Se guarda al momento ✓» se partían: el aviso es ahora «Guardado ✓», en
+     una línea; los de estado (más largos y de paso), si no caben, en dos líneas equilibradas. */
   .v4-ficha-saved{flex:1 1 auto;min-width:0;color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.25;text-wrap:balance;}
   .v4-ficha-done{min-height:44px;padding:0 16px;border-radius:14px;background:var(--mint);color:var(--on-mint);font-size:13px;font-weight:850;white-space:nowrap;}
   /* Ficha de cuenta v4.1: el saldo gana la jerarquía y el histórico solo aparece cuando se puede
@@ -8789,8 +8803,8 @@ const LANG = {
     v4_moved_cat:"Movido a {cat}", v4_cuota_confirmada:"Confirmada como cuota de {name}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
-    f_cat_all:"Todas ›", f_cat_more:"Más", f_kb_done:"Listo", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
-    f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
+    f_cat_all:"Todas ›", f_kb_done:"Listo", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
+    f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Guardado ✓", f_del:"Borrar gasto", f_del_in:"Borrar ingreso",
     f_note_row:"Nota", f_debt_row:"Es la cuota de una deuda", f_no:"No",
     f_adj_recibo:"Recibo", f_adj_deuda:"Deuda", f_adj_meta:"Meta", f_adj_retirada:"Retirada",
     f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Puedes deshacerlo.",
@@ -13716,25 +13730,40 @@ function expenseTopCategoryPick(ranked, currentId, catalog, n){
   }
   return top;
 }
-/* Letras de la palabra más larga de una etiqueta de baldosa: el CSS encoge la letra lo justo para
-   que esa palabra quepa entera en el ancho de la baldosa (auditoría 237, P1-2: con el guion
-   automático salían «Supermer-cado» y «restauran…»). Las de dos palabras van en dos líneas. */
-function etiquetaLw(txt){
-  return String(txt||"").split(/\s+/).reduce(function(m,w){ return Math.max(m,w.length); },1);
+/* Columnas de las rejillas de baldosas: tres, y cuatro solo desde 460 px, la misma media que usa el
+   CSS (`.v4-ficha-cats`). Con la etiqueta a 12 px, sin encoger ni partir, «Supermercado» NO cabe en
+   cuatro columnas ni a 412 px (medido en el e2e de etiquetas): la rejilla cede, la letra no
+   (auditoría 237, P1-2, y el crítico de la v3). */
+const CAT_COLS_Q="(min-width:460px)";
+function useCatCols(){
+  const mq=function(){ try{ return window.matchMedia(CAT_COLS_Q).matches; }catch(e){ return false; } };
+  const [cols,setCols]=useState(function(){ return mq()?4:3; });
+  useEffect(function(){
+    const on=function(){ setCols(mq()?4:3); };
+    window.addEventListener("resize",on);
+    return function(){ window.removeEventListener("resize",on); };
+  },[]);
+  return cols;
 }
-function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix, onMore}){
+// Los n primeros, sin que se quede fuera la elegida (si no cabe, ocupa el último hueco).
+function catsRecorta(items, n, elegida){
+  const out=(items||[]).slice(0,Math.max(0,n));
+  if(n>0 && elegida && !out.some(function(c){ return c.id===elegida; })){
+    const c=(items||[]).find(function(x){ return x.id===elegida; });
+    if(c) out[out.length-1]=c;
+  }
+  return out;
+}
+function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix, fin}){
   return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
     (items||[]).map(function(c){
       const on=selectedMany ? selectedMany.indexOf(c.id)!==-1 : selected===c.id;
       return React.createElement("button",{key:c.id,type:"button",className:"v4-ficha-cat"+(on?" on":""),
         "data-testid":(testPrefix||"expense-cat")+"-"+c.id,"aria-pressed":on,onClick:function(){ onPick(c.id); }},
         React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
-        React.createElement("span",{style:{"--lw":etiquetaLw(c.label||catName(c.id))}},(c.label||catName(c.id))+(c.suggested?" ✨":"")));
+        React.createElement("span",null,(c.label||catName(c.id))+(c.suggested?" ✨":"")));
     }),
-    onMore && React.createElement("button",{key:"_more",type:"button",className:"v4-ficha-cat more",
-      "data-testid":(testPrefix||"expense-cat")+"-more",onClick:onMore},
-      React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},"⋯"),
-      React.createElement("span",null,t("f_cat_more")))
+    fin||null
   );
 }
 function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
@@ -13769,8 +13798,12 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
   const p=testPrefix||"expense";
   const elige=useDespliegue(!!bankOn&&!bankLocked&&(bankOpts||[]).length>0);
   const bankPill=function(hidden){
-    return React.createElement("button",{type:"button",className:"v4-ficha-meta-pill v4-ficha-pay-bank"+(bankOn?" on":"")+(bankLocked?" locked":"")+(hidden?" off":""),
+    /* En un ingreso la cuenta elegida se ve SIEMPRE (crítico de la v3: banco y efectivo iban los dos
+       apagados y no se sabía a qué cuenta entraba el dinero): rellena como «Tarjeta» en un gasto. */
+    const sel=!!income&&mode!=="cash";
+    return React.createElement("button",{type:"button",className:"v4-ficha-meta-pill v4-ficha-pay-bank"+(bankOn?" on":"")+(sel?" sel":"")+(bankLocked?" locked":"")+(hidden?" off":""),
       "data-testid":p+"-bank","aria-hidden":hidden?"true":null,tabIndex:hidden?-1:null,"aria-expanded":hidden||bankLocked?null:!!bankOn,
+      "aria-pressed":income?sel:null,
       onClick:hidden?undefined:(bankLocked?onLocked:onBank)},
       React.createElement(BancoIcono,{ent:bankEnt,size:22}),
       React.createElement("span",{className:"v4-bank-nom"},bankEnt?entOf(bankEnt).label:t("ap_bank_none")));
@@ -13791,8 +13824,9 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
   if(income){
     return React.createElement("div",{className:cls},bankPill(false),
       React.createElement("button",{type:"button",disabled:!!cashDisabled,
-        className:"v4-ficha-meta-pill"+(mode==="cash"?" on":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked":""),
-        "data-testid":p+"-efectivo",onClick:cashDisabled?undefined:function(){ onMode(mode==="cash"?"card":"cash"); }},
+        // Del banco, la cuenta no se cambia: el efectivo se queda visiblemente apagado.
+        className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
+        "data-testid":p+"-efectivo","aria-pressed":mode==="cash",onClick:cashDisabled?undefined:function(){ onMode(mode==="cash"?"card":"cash"); }},
         React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))),
       picker);
   }
@@ -13836,7 +13870,7 @@ function useDespliegue(open){
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catMore, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction}){
+  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction, todasEnFila}){
   const isIn=kind==="ingreso";
   /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
      ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Al tocar el importe
@@ -13844,19 +13878,54 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
      recoge al volver a tocarlo o al tocar cualquier otra cosa de la ficha. Va en el flujo, al final:
      lo de arriba sigue alcanzándose entero desplazando la ficha. */
   const plegado=numpadOpen!==undefined;
+  const conTeclado=plegado&&!!numpadOpen;
   const teclado=useDespliegue(!!numpadOpen);
+  const cols=useCatCols();
+  const bodyRef=useRef(null), filaAltoRef=useRef(66);
+  /* Con el teclado abierto, entre «CATEGORÍA» y el teclado solo van FILAS ENTERAS de baldosas (el
+     crítico de la v3: asomaban medias filas «como una franja rota»). Se mide el hueco libre con la
+     ficha arriba del todo y caben floor(hueco / fila); si no cabe ninguna, la elegida va en la
+     cabecera. null = sin teclado, todas las filas. */
+  const [filasTeclado,setFilasTeclado]=useState(null);
+  useLayoutEffect(function(){
+    if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
+    const mide=function(){
+      const body=bodyRef.current; if(!body) return;
+      const keys=body.querySelector(".v4-ficha-teclado .v4-keys"), title=body.querySelector(".v4-ficha-cat-title");
+      if(!keys||!title) return;
+      body.scrollTop=0;
+      const tile=body.querySelector(".v4-ficha-cats .v4-ficha-cat");
+      if(tile) filaAltoRef.current=tile.getBoundingClientRect().height;
+      const b=body.getBoundingClientRect(), tb=title.getBoundingClientRect();
+      const libre=body.clientHeight-keys.offsetHeight-(tb.bottom-b.top)-8-12;
+      const n=Math.max(0,Math.min(catRows||2,Math.floor((libre+7)/(filaAltoRef.current+7))));
+      setFilasTeclado(function(v){ return v===n?v:n; });
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[conTeclado,teclado.vivo,cols,(categoryItems||[]).length]);
+  const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRows||2);
+  const visibles=catsRecorta(categoryItems,filas*cols,category);
+  const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
   const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
-  // `catMore` (Apuntar): sin cabecera; «Más» va de última baldosa y ahorra la fila del título.
+  // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
+  const todasBtn=function(cls,hijos){
+    return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
+  };
   const catsBlock=!isIn && React.createElement(React.Fragment,{key:"cats"},
-    !catMore && React.createElement("div",{className:"v4-ficha-cat-title"},
-      React.createElement("span",null,t("f_cat")),
-      React.createElement("span",{className:"v4-ficha-cat-acts"},catAction||null,
-        React.createElement("button",{type:"button",className:"v4-ficha-todas",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
-    React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
-      onMore:catMore?onAllCategories:null}));
+    !todasEnFila && React.createElement("div",{className:"v4-ficha-cat-title"},
+      React.createElement("span",{className:"v4-ficha-cat-t"},t("f_cat"),
+        elegida && React.createElement("span",{className:"v4-ficha-cat-elegida","data-testid":(testPrefix||"expense")+"-cat-elegida"},
+          " · "+(elegida.icon||"")+" "+(elegida.label||catName(elegida.id)))),
+      React.createElement("span",{className:"v4-ficha-cat-acts"},conTeclado?null:(catAction||null),
+        todasBtn("v4-ficha-todas",tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
+    visibles.length>0 && React.createElement(ExpenseCategoryGrid,{items:visibles,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
+      fin:todasEnFila?todasBtn("v4-ficha-cat v4-ficha-todas-tile",[React.createElement("span",{key:"i",className:"v4-ficha-cat-icon","aria-hidden":"true"},"⋯"),
+        React.createElement("span",{key:"t"},tf("f_cat_all",{n:(allCategoryItems||[]).length}))]):null}));
   return React.createElement(React.Fragment,null,
     React.createElement("div",{className:"v4-sheet-body v4-ficha-body"+(plegado?" v4-ficha-plegable"+(numpadOpen?" con-teclado":""):""),
-        "data-testid":testPrefix||"expense-ficha","data-kb":kb?"1":null,
+        "data-testid":testPrefix||"expense-ficha","data-kb":kb?"1":null,ref:bodyRef,
         // En el click y no antes: si se recogiera en el `pointerdown`, lo tocado se movería bajo el dedo.
         onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
           if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado"))) onCloseNumpad();
@@ -13886,7 +13955,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       /* Con letra Muy grande o Enorme no cabe todo encima del teclado: las categorías, que se tocan
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
-      adjustments||null,
+      // Las baldosas de ajustes se apartan mientras se teclea el importe: vuelven al cerrar el teclado.
+      conTeclado?null:(adjustments||null),
       plegado
         ? (teclado.vivo && React.createElement("div",{className:"v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
             React.createElement("div",Object.assign({className:"v4-ficha-teclado-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)))
@@ -17909,7 +17979,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return React.createElement("button",{key:id,type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(value||abierta?" on":""),"data-testid":testId,
         "aria-label":aria+(value?": "+value:""),"aria-expanded":abierta,onClick:function(){ setEditaImporte(false); setAdjustOpen(abierta?null:id); }},
       React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},icon),
-      value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",{style:{"--lw":etiquetaLw(label)}},label));
+      value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",null,label));
   };
   // Con marca de recibo el chip sale siempre: si no, «No es este recibo» quedaba inalcanzable
   // cuando la marca venía de un puntual o la categoría era neutra.
@@ -17964,12 +18034,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         disabled:exp.category==="traspaso"||!canRecognizeWithdrawal(exp,state)||!!(retiradaEn&&retiradaEn.status==="pending"),
         onClick:function(){ recognizeWithdrawal(exp); }},
       React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},"🏧"),
-      React.createElement("span",{style:{"--lw":etiquetaLw(t("f_adj_retirada"))}},t("f_adj_retirada")))
+      React.createElement("span",null,t("f_adj_retirada")))
   ].filter(Boolean);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    /* Una sola fila y sin huecos: tres, cuatro o cinco baldosas ocupan el ancho entero; una o dos
-       (un ingreso: la nota) se quedan del ancho de una categoría, alineadas a la izquierda. */
-    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes",style:{gridTemplateColumns:"repeat("+(baldosas.length>=3?baldosas.length:4)+",minmax(0,1fr))"}},baldosas),
+    /* La misma rejilla que las categorías (tres o cuatro columnas, baldosas del mismo ancho, a la
+       izquierda): la fila tiene la misma forma en un gasto a mano y en uno del banco. Una sola
+       baldosa (un ingreso: la nota) no va en rejilla: es una fila entera, icono y texto en línea. */
+    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes"+(baldosas.length===1?" solo":"")},baldosas),
     retiradaAvisos.length>0 && React.createElement("div",{className:"hint v4-ficha-avisos","data-testid":"exp-withdrawal-info"},retiradaAvisos),
     panelVisto && React.createElement("div",{className:"v4-ficha-fold"+(despliegue.dentro&&adjustOpen?" open":"")},
       React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},adjustOpen?null:{"aria-hidden":"true",inert:""}),panelVisto)),
@@ -17996,7 +18067,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry")));
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     renameAviso,
-    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
+    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t(isIncome?"f_del_in":"f_del")),
     React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
@@ -32021,7 +32092,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="fc690499210b13d671fdc612a9605ff1947670a6dfb2f5b68ccbad86c0859f81";
+var _rnSha="1287313d200813231fcde9c312652cfcde674bd6d13d8277f52a9ea31e295c47";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -38656,8 +38727,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             const tm=setTimeout(fin,600);
           },kb:conceptoFoco,
           categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
-          numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catMore:true,
+          numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catRows:1,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
+          // Con letra Muy grande o Enorme no cabe la fila de cabecera: «Todas ›» va al final de la fila que se desliza.
+          todasEnFila:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
           footer:conceptoFoco
             // Sin quitar el foco al apretar (mousedown): así el toque lo resuelve «Listo», no el blur.
             ? React.createElement("button",{key:"listo",className:"v4-cta","data-testid":"ap-kb-done",

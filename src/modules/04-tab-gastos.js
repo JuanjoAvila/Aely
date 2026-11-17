@@ -3386,7 +3386,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return React.createElement("button",{key:id,type:"button",className:"v4-ficha-cat v4-ficha-ajuste"+(value||abierta?" on":""),"data-testid":testId,
         "aria-label":aria+(value?": "+value:""),"aria-expanded":abierta,onClick:function(){ setEditaImporte(false); setAdjustOpen(abierta?null:id); }},
       React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},icon),
-      value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",{style:{"--lw":etiquetaLw(label)}},label));
+      value ? React.createElement("span",{className:"value","data-testid":testId+"-value"},value) : React.createElement("span",null,label));
   };
   // Con marca de recibo el chip sale siempre: si no, «No es este recibo» quedaba inalcanzable
   // cuando la marca venía de un puntual o la categoría era neutra.
@@ -3441,12 +3441,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         disabled:exp.category==="traspaso"||!canRecognizeWithdrawal(exp,state)||!!(retiradaEn&&retiradaEn.status==="pending"),
         onClick:function(){ recognizeWithdrawal(exp); }},
       React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},"🏧"),
-      React.createElement("span",{style:{"--lw":etiquetaLw(t("f_adj_retirada"))}},t("f_adj_retirada")))
+      React.createElement("span",null,t("f_adj_retirada")))
   ].filter(Boolean);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    /* Una sola fila y sin huecos: tres, cuatro o cinco baldosas ocupan el ancho entero; una o dos
-       (un ingreso: la nota) se quedan del ancho de una categoría, alineadas a la izquierda. */
-    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes",style:{gridTemplateColumns:"repeat("+(baldosas.length>=3?baldosas.length:4)+",minmax(0,1fr))"}},baldosas),
+    /* La misma rejilla que las categorías (tres o cuatro columnas, baldosas del mismo ancho, a la
+       izquierda): la fila tiene la misma forma en un gasto a mano y en uno del banco. Una sola
+       baldosa (un ingreso: la nota) no va en rejilla: es una fila entera, icono y texto en línea. */
+    React.createElement("div",{className:"v4-ficha-cats v4-ficha-ajustes"+(baldosas.length===1?" solo":"")},baldosas),
     retiradaAvisos.length>0 && React.createElement("div",{className:"hint v4-ficha-avisos","data-testid":"exp-withdrawal-info"},retiradaAvisos),
     panelVisto && React.createElement("div",{className:"v4-ficha-fold"+(despliegue.dentro&&adjustOpen?" open":"")},
       React.createElement("div",Object.assign({className:"v4-ficha-fold-in"},adjustOpen?null:{"aria-hidden":"true",inert:""}),panelVisto)),
@@ -3473,7 +3474,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){saveEdit(exp,{merchant:exp.renamePending.merchant,retryRename:true});}},t("g_note_retry")));
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     renameAviso,
-    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
+    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t(isIncome?"f_del_in":"f_del")),
     React.createElement("span",{className:"v4-ficha-saved"},t(pendingSourceStatus?(pendingSourceStatus.status==="pending"?"f_source_pending":"f_source_unconfirmed"):withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));

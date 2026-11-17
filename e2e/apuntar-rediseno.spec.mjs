@@ -62,7 +62,8 @@ async function mideHoja(page) {
     const hoja = document.querySelector(".v4-exp-sheet");
     const cuerpo = hoja.querySelector(".v4-sheet-body");
     const teclas = [...hoja.querySelectorAll(".v4-keys button")];
-    const cats = [...hoja.querySelectorAll(".v4-ficha-cats .v4-ficha-cat")];
+    // «Todas ›» al final de la fila (letra Muy grande o Enorme) no es una categoría.
+    const cats = [...hoja.querySelectorAll(".v4-ficha-cats .v4-ficha-cat:not(.v4-ficha-todas-tile)")];
     const resumen = [...document.querySelectorAll('.page-scroll-host [data-testid="gastos-estado"],.page-scroll-host [data-testid="gastos-desglose"]')]
       .map((e) => e.getBoundingClientRect()).filter((r) => r.height > 0);
     return {
@@ -125,8 +126,11 @@ for (const [w, h] of TAMANOS) for (const letra of LETRAS) {
       // Las teclas no se encogen: 56 px en pantalla también con la letra Enorme (no 56 × zoom).
       expect(m.teclaAlto).toBeGreaterThanOrEqual(55.5);
       expect(m.teclaAlto).toBeLessThan(57);
-      expect(m.nCats).toBe(5);
-      expect(m.ultimaCat).toBe("ap-cat-more");
+      // Tres categorías (a 12 px no caben cuatro en un móvil) y «Todas ›» en la cabecera, como en la
+      // ficha: la baldosa «Más» se fue en el remate de la 235.
+      expect(m.nCats).toBe(3);
+      // (Con letra Muy grande o Enorme va al final de la fila que se desliza, no en la cabecera.)
+      await expect(page.locator(".v4-exp-sheet [data-testid=ap-cat-more]")).toHaveCount(1);
       expect(m.filas).toBe(1);
       if (letra === "huge") {
         // Con Enorme las categorías son una fila que se desliza: al menos una se lee entera.
@@ -134,7 +138,7 @@ for (const [w, h] of TAMANOS) for (const letra of LETRAS) {
       } else {
         // Importe, concepto, pago, categorías con su nombre, teclas y botón, sin deslizar nada.
         expect(m.sobra, "sin scroll en el cuerpo").toBeLessThanOrEqual(1);
-        expect(m.nombresVisibles).toBe(5);
+        expect(m.nombresVisibles).toBe(3);
         // El segmentado y la píldora del banco caben en una sola fila.
         expect(m.filasPago).toBe(1);
         // Móvil bajo: la hoja ocupa la pantalla entera menos un respiro arriba.
@@ -153,7 +157,7 @@ for (const [w, h] of TAMANOS) for (const letra of LETRAS) {
       await todas.locator('[data-testid="expense-all-cat-mascotas"]').click();
       await expect(todas).toHaveCount(0);
       await expect(hoja.locator('[data-testid="ap-cat-mascotas"]')).toHaveAttribute("aria-pressed", "true");
-      await expect(hoja.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(5);
+      await expect(hoja.locator(".v4-ficha-cats .v4-ficha-cat:not(.v4-ficha-todas-tile)")).toHaveCount(3);
     });
   });
 }

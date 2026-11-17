@@ -5101,8 +5101,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             const tm=setTimeout(fin,600);
           },kb:conceptoFoco,
           categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
-          numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catMore:true,
+          numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catRows:1,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
+          // Con letra Muy grande o Enorme no cabe la fila de cabecera: «Todas ›» va al final de la fila que se desliza.
+          todasEnFila:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
           footer:conceptoFoco
             // Sin quitar el foco al apretar (mousedown): así el toque lo resuelve «Listo», no el blur.
             ? React.createElement("button",{key:"listo",className:"v4-cta","data-testid":"ap-kb-done",

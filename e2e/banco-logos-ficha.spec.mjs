@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, gastosAbreGasto } from "./fixtures.mjs";
 
 /* REMATE DE LA 235 (petición del dueño, 16/11). Render puro y dinero, medidos en el DOM:
    · Apuntar (gasto e ingreso): el banco se elige con LOGOS que entran en la misma fila del pago, con
@@ -215,13 +215,16 @@ test("Ficha: del banco sin tarjeta de origen, con candado y bloqueada; a mano, b
   await page.waitForTimeout(400);
   const sitio = await hoja.evaluate((s) => {
     const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), pie = s.querySelector(".v4-ficha-foot").getBoundingClientRect();
-    return { sobrePie: k.bottom <= pie.top + 1, pegado: pie.top - k.bottom < 4, despues: !!(s.querySelector(".v4-ficha-adjust").compareDocumentPosition(s.querySelector(".v4-ficha-teclado")) & Node.DOCUMENT_POSITION_FOLLOWING) };
+    const cats = s.querySelector(".v4-ficha-cats") || s.querySelector(".v4-ficha-cat-title");
+    return { sobrePie: k.bottom <= pie.top + 1, pegado: pie.top - k.bottom < 4, despues: !!(cats.compareDocumentPosition(s.querySelector(".v4-ficha-teclado")) & Node.DOCUMENT_POSITION_FOLLOWING),
+      ajustes: s.querySelectorAll(".v4-ficha-adjust").length };
   });
-  expect(sitio, "abajo del todo, pegado encima del pie y detrás de categorías y ajustes").toEqual({ sobrePie: true, pegado: true, despues: true });
+  // Las baldosas de ajustes se apartan mientras se teclea (crítico de la v3).
+  expect(sitio, "abajo del todo, pegado encima del pie y detrás de las categorías; sin ajustes").toEqual({ sobrePie: true, pegado: true, despues: true, ajustes: 0 });
   expect(await pisaPie(), "ninguna baldosa visible pisa el pie (abierto)").toBe(false);
   // Desplazando hasta el final, lo último queda entero encima del teclado.
   const fin = await hoja.evaluate((s) => { const b = s.querySelector(".v4-sheet-body"); b.scrollTop = b.scrollHeight;
-    const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), aj = [...s.querySelectorAll(".v4-ficha-ajustes .v4-ficha-cat")].map((e) => e.getBoundingClientRect());
+    const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), aj = [...s.querySelectorAll(".v4-ficha-cat")].map((e) => e.getBoundingClientRect());
     return aj.every((r) => r.bottom <= k.top + 0.5); });
   expect(fin, "con el teclado, lo de arriba se alcanza entero").toBe(true);
   await hoja.locator(".v4-sheet-body").evaluate((b) => { b.scrollTop = 0; });
@@ -246,7 +249,9 @@ test("Ficha: del banco sin tarjeta de origen, con candado y bloqueada; a mano, b
   });
   expect(filas.n, "a mano y sin recibos ni deudas: solo la nota").toBeGreaterThanOrEqual(1);
   expect(filas.tops, "una sola fila").toBe(1);
-  expect(Math.abs(filas.alto - filas.altoCat), "mismo alto que una categoría").toBeLessThan(1);
+  // Varias, del alto de una categoría; una sola (la nota) va en fila entera.
+  if (filas.n > 1) expect(Math.abs(filas.alto - filas.altoCat), "mismo alto que una categoría").toBeLessThan(1);
+  else await expect(hoja.locator(".v4-ficha-ajustes")).toHaveClass(/\bsolo\b/);
   expect(filas.dentro).toBe(true);
   await expect(hoja.locator(".v4-ficha-adjust-row")).toHaveCount(0);
   await hoja.getByTestId("exp-note").click();
@@ -270,6 +275,9 @@ const palabrasEnteras = (page) => page.evaluate(() => {
     if (!sp || !sp.firstChild || sp.classList.contains("value")) continue;
     const cs = getComputedStyle(sp), tr = tile.getBoundingClientRect();
     if (cs.hyphens !== "none" || cs.textOverflow === "ellipsis") malas.push(sp.textContent + ": estilo");
+    // Un solo tamaño, legible: 12 px en todas (crítico de la v3: había etiquetas a 7 px).
+    if (parseFloat(cs.fontSize) !== 12) malas.push(sp.textContent + ": letra " + cs.fontSize);
+    if (sp.scrollWidth > sp.clientWidth + 1) malas.push(sp.textContent + ": más ancha que su sitio");
     const txt = sp.firstChild.textContent;
     let i = 0;
     for (const w of txt.split(/(\s+)/)) {
@@ -303,3 +311,78 @@ for (const [w, h] of [[360, 740], [393, 851], [412, 915]]) {
     expect(await palabrasEnteras(page), "ficha").toEqual([]);
   });
 }
+
+
+/* CUARTA VUELTA (crítico de la v3). A: con el teclado abierto, solo filas ENTERAS de categorías entre la
+   cabecera y el teclado (o ninguna y la elegida en la cabecera), sin ajustes; en 360, 393 y 412.
+   C/D: el pie dice «Guardado ✓» en una línea y «Borrar ingreso» en un ingreso. E: en un ingreso se ve
+   siempre a qué cuenta entra, y lo que se toca es lo que se guarda (dinero). */
+for (const [w, h] of [[360, 740], [393, 851], [412, 915]]) {
+  test(`teclado abierto: solo filas enteras y ningún ajuste, ${w}×${h}`, async ({ page }) => {
+    await arranca(page, w, h, { expenses: [{ id: MANO, date: HOY, amount: 20, merchant: "Compra a mano", category: "bares", source: "manual", ent: "sabadell" }] });
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await gastosAbreGasto(page, "Compra a mano");
+    const hoja = page.locator(".v4-exp-sheet");
+    await expect(hoja.getByTestId("exp-cat-more")).toBeVisible();
+    await hoja.locator(".v4-ficha-amount").click();
+    await expect(hoja.locator(".v4-ficha-teclado")).toHaveClass(/open/);
+    await page.waitForTimeout(500);
+    const m = await hoja.evaluate((s) => {
+      const k = s.querySelector(".v4-ficha-teclado").getBoundingClientRect(), t = s.querySelector(".v4-ficha-cat-title").getBoundingClientRect();
+      const tiles = [...s.querySelectorAll(".v4-ficha-cat")].map((e) => e.getBoundingClientRect());
+      return { n: tiles.length, enteras: tiles.every((r) => r.bottom <= k.top + 0.5 && r.top >= t.bottom - 0.5),
+        ajustes: s.querySelectorAll(".v4-ficha-adjust").length, scroll: s.querySelector(".v4-sheet-body").scrollTop,
+        elegida: (s.querySelector('[data-testid="exp-cat-elegida"]') || {}).textContent || "", bares: !!s.querySelector('[data-testid="exp-cat-bares"]') };
+    });
+    expect(m.enteras, "ninguna baldosa visible por debajo del borde del teclado ni encima de la cabecera").toBe(true);
+    expect(m.ajustes).toBe(0);
+    expect(m.scroll).toBe(0);
+    // La elegida se ve siempre: o en su baldosa, o en la cabecera si no cabe ninguna fila.
+    if (m.n === 0) expect(m.elegida).toContain("Bares y restaurantes"); else expect(m.bares).toBe(true);
+    // Al cerrar vuelven las filas y los ajustes.
+    await hoja.locator(".v4-ficha-amount").click();
+    await expect(hoja.locator(".v4-ficha-adjust")).toHaveCount(1);
+    await expect(hoja.getByTestId("exp-cat-elegida")).toHaveCount(0);
+  });
+}
+
+test("ingreso: se ve siempre a qué cuenta entra, el pie dice «Borrar ingreso» y «Guardado ✓» en una línea", async ({ page }) => {
+  await arranca(page, 360, 740, {
+    __seedOnce: true, _historyOwner: "e2e-user",
+    expenses: [
+      { id: MANO, date: HOY, amount: -40, merchant: "Venta a mano", category: "ingreso", source: "manual", ent: "trade_republic" },
+      { id: "bizum-in", date: HOY, amount: -25, merchant: "Bizum de Ana", category: "ingreso", source: "ob", ent: "sabadell", obAcc: "ob-sab" },
+    ],
+    __cloudRows: { expenses: [{ user_id: "e2e-user", id: MANO, source: "manual:trade_republic", fecha: HOY, importe: -40, comercio: "Venta a mano", cat: "ingreso" }] },
+  });
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const de = async (id) => (await guardados(page)).find((x) => x.id === id);
+  const abre = async (id) => { await page.locator('[data-expense-id="' + id + '"]').evaluate((el) => el.click()); const h = page.locator(".v4-exp-sheet"); await expect(h.getByTestId("exp-bank")).toBeVisible(); return h; };
+  let hoja = await abre(MANO);
+  await expect(hoja.locator(".v4-ficha-del")).toHaveText("🗑 Borrar ingreso");
+  await expect(hoja.locator(".v4-ficha-saved")).toHaveText("Guardado ✓");
+  expect(await hoja.locator(".v4-ficha-saved").evaluate((e) => e.getClientRects().length === 1 && e.getBoundingClientRect().height < 20), "en una línea").toBe(true);
+  // La cuenta del ingreso, marcada y rellena; la otra, no.
+  await expect(hoja.getByTestId("exp-bank")).toHaveAttribute("aria-pressed", "true");
+  await expect(hoja.getByTestId("exp-bank")).toHaveClass(/\bsel\b/);
+  await expect(hoja.getByTestId("exp-efectivo")).toHaveAttribute("aria-pressed", "false");
+  const fondo = await hoja.getByTestId("exp-bank").evaluate((e) => { const p = document.createElement("i"); p.style.color = "var(--mint)"; document.body.appendChild(p); const m = getComputedStyle(p).color; p.remove(); return getComputedStyle(e).backgroundColor === m; });
+  expect(fondo, "relleno en menta, como «Tarjeta» en un gasto").toBe(true);
+  // A efectivo: lo marcado y lo guardado son lo mismo.
+  await hoja.getByTestId("exp-efectivo").click();
+  await expect.poll(async () => (await de(MANO)).ent).toBe("efectivo");
+  await expect(hoja.getByTestId("exp-efectivo")).toHaveAttribute("aria-pressed", "true");
+  await expect(hoja.getByTestId("exp-bank")).toHaveAttribute("aria-pressed", "false");
+  // Y la nota sola, en fila entera.
+  const nota = await hoja.getByTestId("exp-note").evaluate((e) => ({ w: e.getBoundingClientRect().width, p: e.parentElement.getBoundingClientRect().width }));
+  expect(Math.abs(nota.w - nota.p), "la nota sola ocupa la fila").toBeLessThan(1);
+  await hoja.locator(".v4-ficha-done").click();
+  await expect(hoja).toHaveCount(0);
+  // Del banco: su cuenta marcada y el efectivo apagado; no cambia.
+  hoja = await abre("bizum-in");
+  await expect(hoja.getByTestId("exp-bank")).toHaveAttribute("aria-pressed", "true");
+  await expect(hoja.getByTestId("exp-efectivo")).toHaveClass(/bloqueada/);
+  await hoja.getByTestId("exp-efectivo").click();
+  await page.waitForTimeout(400);
+  expect((await de("bizum-in")).ent).toBe("sabadell");
+});
