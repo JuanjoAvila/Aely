@@ -403,6 +403,11 @@ const PRESUPUESTO = {
   // y la cuota del coche), fila de movimientos igual que Inicio, fundido de la tira de meses y lupa de línea: +3.989 B
   // minificado y +1.209 B gzip sobre la 4.26.235 (1.974.237 / 542.306 B sin sello; quedaban 35 B y −610 B). Misma
   // regla del 11/10: sube al mínimo medido, 1929 KiB y 530 KiB.
+  // Round up y Saveback de TR (236, 16/11): el aviso entra en Inversión, suma una vez a la posición elegida y la
+  // estimación deja paso a lo real; selector por tipo con logos. Medido sobre la 235 sin sello: ~1930 / 530 KiB.
+  // Es lógica de dinero que pidió el dueño; SUBE (mandato 11/10) al mínimo con margen para el sello: 1931 / 531 KiB.
+  // Revisión de dinero 236 (pull antes de aplicar, deshacer al recategorizar o borrar, pendientes sin destino,
+  // primer aviso que deshace el cierre estimado): ~1934 KiB medidos. +4 KiB, solo al crudo; gzip sigue en 531.
   minificado: 1932 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

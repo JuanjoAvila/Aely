@@ -162,7 +162,39 @@ export function categorizar(comercio: string): string {
   return mobilityCategoryOfNewMerchant(comercio, "otros");
 }
 
-export type Tipo = "gasto" | "gasto_nocard" | "ingreso" | "ignorado";
+export type Tipo = "gasto" | "gasto_nocard" | "ingreso" | "inversion" | "ignorado";
+
+/* EL ROUND UP Y EL SAVEBACK DE TRADE REPUBLIC SE APUNTAN (petición suya, 16/11/2026: «¡Has ahorrado e
+   invertido 12,96 € en Round up!»). Hasta hoy eran ruido y se tiraban: el dinero acababa en el fondo y la
+   app solo lo veía días después, como un «Movimiento» sin nombre del banco. Ahora entran en Inversión con
+   un nombre FIJO —«Round up» o «Saveback»—, que es lo que la app lee para saber a qué posición va cada
+   uno y para emparejarlo con lo que luego traiga el banco (el nombre va también en `ob_name`, así que
+   renombrar la fila no le quita lo que es).
+   Solo lo YA invertido, y con la forma que usa TR («¡Has ahorrado e invertido 12,96 € en Round up!»,
+   título «Round up Invertido»). Ante la duda NO es recompensa (revisión de dinero 236, P2-C): un aviso
+   de lo que se invertirá, uno cancelado o fallido, o un «cashback» que va al efectivo apuntados aquí
+   restarían o sumarían dinero que no se ha movido, y cuando llegara el de verdad contaría dos veces.
+   Por eso: el nombre del producto («Round up»/«redondeo», «Saveback» — «cashback» NO), el verbo
+   INVERTIR en pasado (ni «recibido» ni «ahorrado» bastan solos), ningún futuro o gerundio, ninguna
+   negación y nada que suene a compra («compra de», «pago de»…: esa compra es un gasto y se pierde).
+   Aquí se mira la frase ENTERA: «Round up» va justo detrás del « en », donde en una compra iría el
+   comercio. */
+export type Recompensa = "roundup" | "saveback";
+export const NOMBRE_RECOMPENSA: Record<Recompensa, string> = { roundup: "Round up", saveback: "Saveback" };
+const RE_ROUNDUP = /\b(round[\s-]?ups?|redondeos?|arrodoniments?)\b/;
+const RE_SAVEBACK = /\bsaveback\b/;
+const RE_INVERTIDO = /\b(invertid[oa]s?|invertit|invertits|invested)\b/;
+const RE_FUTURO = /\b(se invertir[aá]n?|invertiremos|s'invertir[aà]n?|invertira|invertiran|will be invested|will invest|we'?ll invest|is being invested|are being invested|being invested|going to be invested|to be invested|pending|pendiente|pendent|en curso|programad[oa]|recibiras|rebras|you will)\b/;
+const RE_NEGADO = /\b(no se ha|no se han|no ha sido|no han sido|no s'ha|no s'han|not invested|not been invested|wasn't|was not|could not|couldn't|cancelad[oa]s?|cancel·lat|cancelled|canceled|fallid[oa]|failed|rechazad[oa]|rejected|insuficiente|insufficient|error)\b/;
+const RE_COMPRA = /\b(compra de|compra en|pago de|pago en|pagament de|payment of|purchase|has gastado|has pagado|you spent|you paid|has gastat|has pagat)\b/;
+export function recompensaTR(texto: string, titulo: string): Recompensa | null {
+  const t = norm(limpiarTexto(titulo + " " + texto));
+  if (!RE_INVERTIDO.test(t) || RE_FUTURO.test(t) || RE_NEGADO.test(t) || RE_COMPRA.test(t)) return null;
+  const sb = RE_SAVEBACK.test(t), ru = RE_ROUNDUP.test(t);
+  // Los dos nombres a la vez: no se sabe a qué posición va. Mejor fuera.
+  if (sb === ru) return null;
+  return sb ? "saveback" : "roundup";
+}
 
 /**
  * De qué app venía la notificación. Cambia DÓNDE se puede buscar, no solo cómo se parsea.
@@ -196,6 +228,8 @@ export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuent
      entero por la otra puerta: un «BAR STOP» o un «CÓDIGO BCN» en el título de Wallet se
      descartaría como ruido. Con `wallet` el título se deja fuera de las dos búsquedas. */
   const escaneable = fuente === "wallet" ? "" : titulo;
+  // Antes que el ruido: «saveback», «redondeo» e «invertido» están en esa lista. Solo de TR.
+  if (fuente === "tr" && recompensaTR(texto, titulo)) return { tipo: "inversion", motivo: null };
   const t = norm(escaneable + " " + texto);
   const IGNORAR = [
     "interes", "dividendo", "rendimiento", "rentabilidad",
@@ -237,6 +271,9 @@ export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuent
 }
 
 export function extraerImporte(texto: string): number {
+  // «€1,234.56» (inglés, € delante y coma de miles): sin esto salía 1,234 → 1,23 (revisión 236, P3).
+  const m0 = (texto || "").match(/€\s*(\d{1,3}(?:,\d{3})+\.\d{1,2})(?!\d)/);
+  if (m0) return parseFloat(m0[1].replace(/,/g, ""));
   const m1 = (texto || "").match(/(\d+(?:\.\d{3})*[.,]\d+)\s*€/);
   if (m1) return parseFloat(m1[1].replace(/\.(?=\d{3})/g, "").replace(",", "."));
   const m2 = (texto || "").match(/(\d+[.,]\d+)/);

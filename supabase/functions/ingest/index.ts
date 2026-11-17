@@ -8,8 +8,10 @@
 //   - ingreso       → bizum RECIBIDO: importe NEGATIVO + cat "ingreso" (resta del mes)
 //   - gasto_nocard  → bizum ENVIADO: gasto con no_card=true (sale del saldo,
 //                     pero NO alimenta el round-up: TR solo redondea tarjeta)
+//   - inversion     → Round up / Saveback ya invertidos (16/11/2026): cat "inversion",
+//                     comercio y ob_name fijos; la app elige a qué posición suma
 //   - ignorado      → ruido de TR: intereses, dividendos, órdenes, planes de
-//                     inversión, round-up/saveback, depósitos propios (ya modelados
+//                     inversión, depósitos propios (ya modelados
 //                     con `inject`), transferencias no-bizum, avisos de seguridad…
 //
 // Además devuelve `alert` (presupuesto superado / 80% / gasto tocho) calculada
@@ -32,7 +34,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import {
   categorizar, clasificarConMotivo, extraerComercio, extraerConcepto, extraerImporte, extraerPersona,
-  limpiarTexto, type Fuente, type Tipo,
+  limpiarTexto, NOMBRE_RECOMPENSA, recompensaTR, type Fuente, type Tipo,
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { claveEvento, esGemeloIngest, tieneGemeloAnterior, ordinalIngest, fechaEventoOrdinal, sourceIngestOrdinal, ordinalEvento } from "../_shared/ingest_identity.ts";
@@ -150,6 +152,7 @@ Deno.serve(async (req) => {
   let comercio: string;
   let cat: string;
   let noCard = false;
+  let obName: string | null = null;           // solo Round up / Saveback: su nombre fijo
   let importeOrig: number | null = null;      // lo que marcaba el precio, si no fue en euros
   let divisaOrig: string | null = null;
 
@@ -195,6 +198,13 @@ Deno.serve(async (req) => {
       comercio = quien ? "Bizum a " + quien : "Bizum enviado";
       cat = "otros";
       noCard = true;                                      // no alimenta el round-up
+    } else if (tipo === "inversion") {
+      // Positivo, como la salida del efectivo hacia el fondo. Si cuenta o no en el saldo lo decide
+      // la app por su nombre (el Saveback no sale de tu efectivo: lo pone TR).
+      comercio = NOMBRE_RECOMPENSA[recompensaTR(texto, titulo) || "roundup"];
+      obName = comercio;
+      cat = "inversion";
+      noCard = true;                                      // no es una compra: no se redondea
     } else {
       comercio = extraerComercio(texto, titulo);
       cat = categorizar(comercio);
@@ -281,6 +291,7 @@ Deno.serve(async (req) => {
     no_card: noCard, nota: nota || null,
   };
   if (eventKey) fila.ingest_event_id = eventKey;
+  if (obName) fila.ob_name = obName;
   // Solo cuando hubo divisa de verdad: así una noti normal en euros escribe EXACTAMENTE las mismas
   // columnas que antes y no depende de que la migración 0020 esté aplicada.
   if (divisaOrig) { fila.importe_orig = importeOrig; fila.divisa = divisaOrig; }
@@ -462,8 +473,9 @@ Deno.serve(async (req) => {
       budgetLeft: budget > 0 ? +Math.max(0, budget - after).toFixed(2) : -1,
       againstDelta: +(stats.against - sinEsta.against).toFixed(2),
       counts: mueveElPresupuesto ? 1 : 0,
-      // Una inversión/traspaso no gasta presupuesto, pero sí sale del efectivo de TR.
-      cashCounts: 1,
+      // Una inversión/traspaso no gasta presupuesto, pero sí sale del efectivo de TR. El Saveback
+      // no: lo pone TR y se invierte sin pasar por tu efectivo (misma regla que `expenseCountsCash`).
+      cashCounts: obName === NOMBRE_RECOMPENSA.saveback ? 0 : 1,
     };
     if (tipo === "gasto" && budget > 0 && mueveElPresupuesto) {
       const before = after - importe;

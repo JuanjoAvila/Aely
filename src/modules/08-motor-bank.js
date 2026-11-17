@@ -2566,7 +2566,9 @@ function applyBankBalances(s, links){
      sí contaba el saldo salía inflado justo después de sincronizar (banco 1848 → pantalla 2000,
      los 152 € de los recibos). Solo se quita esa fila: el resto del mes sigue en crudo, como
      estaba, para no mover el anclaje de nada más. */
-  const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart && !cargoDeRecibo(e, s); });
+  // El Saveback que avisa TR tampoco (16/11/2026): al pintar no resta (`expenseCountsCash`), y aquí
+  // contarlo dejaría el saldo por encima del banco en lo mismo.
+  const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart && !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback"; });
   const dailyAcc=(s.accounts||[]).find(function(x){ return accDaily(x); });
   const dailyEnt=dailyAcc&&dailyAcc.ent;
   const porBanco=gastoDelMesPorBanco(monthExp, dailyEnt);
@@ -2654,7 +2656,7 @@ function applyBankBalances(s, links){
           // Pintado: value + paidNet. paidNet = monthNetForAccount → base = bal − monthNet.
           newBase=+((bal - monthNetForAccount(s, ent, cy, cm, td)).toFixed(2));
         } else {
-          const ruMv=(a.roundupManual!=null)?a.roundupManual:roundupOf(monthExp, a.roundup||0);
+          const ruMv=recompensasEstimadas(s, a, monthExp, +monthStart, true).ru;
           const miMv=a.monthlyInvest||0;
           const injMv=nominaYaEntro()?accInject(a):0;
           newBase=valueDesdeSaldo({
@@ -3087,7 +3089,11 @@ const gemeloCache=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache
 // 750,50 al emparejar dos nombres distintos sin id (CI 13/10/2026). Sólo el genérico carece de identidad.
 // Una fila que él marcó como aportación a meta tampoco se esconde sola: su marca se perdería de vista.
 function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&!e.goalId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
-function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.pending&&!e.reciboId&&!e.debtId; }
+// El Saveback que avisa TR no es la otra mitad de ningún cargo: su banco trae DOS apuntes (abono y
+// retirada) que se neutralizan entre ellos (`reconcileObDupes`). Esconder solo la retirada dejaría el
+// abono subiendo el saldo (16/11/2026). Se mira en línea —su `obName` fijo, que solo pone `ingest`— y
+// no con `recompensaDe`: esta función la vigilan entregas de beta ya cerradas que no pueden crecer.
+function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.pending&&!e.reciboId&&!e.debtId&&!(e.category==="inversion"&&e.obName==="Saveback"); }
 function gemeloDatos(e){
   if(!e) return {grupo:"",dia:NaN};
   let d=gemeloDatosCache.get(e); if(d) return d;
@@ -3853,7 +3859,7 @@ function importObExpenses(s, txs, links){
      diga «es el mismo» o «son distintos». Cero decisiones irreversibles automáticas. */
   const DUP_MS=DUP_DIAS_MS;   // misma ventana que el historico (`histCandCercanos`)
   const otrasVias=(s.expenses||[]).filter(function(e){
-    return e && !esFilaDeBanco(e) && !e.possibleDup && !e.pending && !e.reciboId && !e.debtId;
+    return e && !esFilaDeBanco(e) && !e.possibleDup && !e.pending && !e.reciboId && !e.debtId && recompensaDe(e)!=="saveback";
   });
   /* UN AVISO EMPAREJA UNA SOLA VEZ (12/10/2026). `usadoDup` ya lo garantizaba DENTRO de una
      sincronización; entre sincronizaciones —y desde otro móvil— el mismo aviso volvía a ser el
@@ -5179,8 +5185,31 @@ function reconcileObDupes(state){
      empareja por atributos — migrar a ID de fila antes de tocar el índice. */
   const recat=[];
   const usadoTwin={};
+  /* EL SAVEBACK QUE AVISA TR Y SUS DOS APUNTES DEL BANCO (16/11/2026). El aviso ya suma al fondo y no
+     toca el efectivo; el banco trae después el abono (−X) y la retirada (+X), sin nombre. Juntos no
+     mueven el saldo, pero el abono solo contaba como INGRESO del mes y la retirada como gasto «Otros».
+     Los dos pasan a Inversión (neutra): el saldo sigue igual y el patrimonio sube una sola vez, por el
+     aviso. Mismo céntimo y banco; el abono hasta 10 días antes del aviso y la retirada ±3 días.
+     Ninguno compra participaciones: eso ya lo hizo el aviso (`aplicarRecompensasTR`). */
+  exps.forEach(function(sb){
+    if(!sb || sb.category!=="inversion" || recompensaDe(sb)!=="saveback") return;
+    const c=Math.round(Number(sb.amount)*100), ms=dateMs(sb.date);
+    const busca=function(signo, antes, despues){
+      return exps.find(function(e){
+        // Lo que él ya clasificó a mano (`catStale`/`catAckAt`) no se toca.
+        if(!esOb(e) || usadoTwin[e.id] || !sinComercioReal(e.obName!=null?e.obName:e.merchant) || e.ent!=="trade_republic" || e.catStale || e.catAckAt!=null || Math.round(Number(e.amount)*100)!==signo*c) return false;
+        const d=dateMs(e.date)-ms;
+        return d>=-antes && d<=despues;
+      });
+    };
+    [busca(-1, 10*864e5, 864e5), busca(1, 3*864e5, 3*864e5)].forEach(function(e){
+      if(!e) return;
+      usadoTwin[e.id]=1;
+      if(e.category!=="inversion") recat.push({ expense:e, cat:"inversion" });
+    });
+  });
   exps.forEach(function(g){
-    if(!esOb(g) || !(g.amount>0) || !sinNombre(g)) return;
+    if(!esOb(g) || !(g.amount>0) || !sinNombre(g) || usadoTwin[g.id]) return;
     const acc=(state.accounts||[]).find(function(a){ return a.ent===g.ent && a.rewardInv; });
     if(!acc) return;
     if(acc.monthlyInvest>0 && Math.abs(g.amount-acc.monthlyInvest)<0.01) return;   // el aporte fijo va aparte

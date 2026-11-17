@@ -149,5 +149,6 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
     against: after.against, budgetLeft: budgetKnown ? +Math.max(0, after.budget - after.against).toFixed(2) : -1,
     shownDelta: +(shown - oldShown).toFixed(2), againstDelta: +(after.against - before.against).toFixed(2),
     counts: amount && !fueraDelPresupuesto(amount, cycle) && ((cycle && Number(amount.importe) < 0) || daily(amount)) ? 1 : 0,
-    cashCounts: 1 };
+    // El Saveback no sale del efectivo: lo pone TR y va directo al fondo (igual que `ingest`).
+    cashCounts: amount && amount.cat === "inversion" && amount.comercio === "Saveback" ? 0 : 1 };
 }

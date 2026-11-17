@@ -288,5 +288,25 @@ await t("handler completo: Bizum recibido con el nombre delante acaba en comerci
  const sin=await post(fakeDb({}),{fuente:"tr",titulo:"Transferencia recibida",texto:"Has recibido un Bizum de 12,20 €.",fecha:String(now),evento:"bizum-sin-nombre"});
  assert.equal(sin.data.comercio,"Bizum recibido");
 });
+// Round up y Saveback de TR (16/11/2026): entran en Inversión con nombre fijo en comercio y ob_name.
+// El Saveback no sale del efectivo (lo pone TR): el widget no lo resta (`cashCounts:0`).
+await t("handler completo: Round up y Saveback entran en Inversión con su nombre fijo",async()=>{
+  const now=Date.now();
+  const env=fakeDb({});
+  const ru=await post(env,{fuente:"tr",titulo:"Round up Invertido",texto:"¡Has ahorrado e invertido 12,96 € en Round up!",fecha:String(now),evento:"ru-1"});
+  assert.equal(ru.data.ok,true);assert.equal(ru.data.tipo,"inversion");
+  assert.equal(ru.data.comercio,"Round up");assert.equal(ru.data.cat,"inversion");assert.equal(ru.data.importe,12.96);
+  assert.equal(ru.data.alert,null);
+  const fila=env.rows.find(r=>r.comercio==="Round up");
+  assert.equal(fila.ob_name,"Round up");assert.equal(fila.no_card,true);assert.equal(fila.cat,"inversion");
+  if(ru.data.month){assert.equal(ru.data.month.counts,0);assert.equal(ru.data.month.cashCounts,1);}
+  const sb=await post(env,{fuente:"tr",titulo:"Saveback invertido",texto:"¡Has recibido 1.234,56 € de Saveback y se han invertido!",fecha:String(now+60000),evento:"sb-1"});
+  assert.equal(sb.data.tipo,"inversion");assert.equal(sb.data.comercio,"Saveback");assert.equal(sb.data.importe,1234.56);
+  if(sb.data.month){assert.equal(sb.data.month.counts,0);assert.equal(sb.data.month.cashCounts,0);}
+  // Un aviso de lo que aún no se ha invertido no deja fila.
+  const futuro=await post(env,{fuente:"tr",titulo:"Saveback",texto:"Tu Saveback de 3,20 € se invertirá el día 2",fecha:String(now+120000),evento:"sb-futuro"});
+  assert.equal(futuro.data.skipped,true);
+  assert.equal(env.rows.filter(r=>r.cat==="inversion").length,2);
+});
 if (failures) process.exitCode = 1;
 else console.log("  ok");

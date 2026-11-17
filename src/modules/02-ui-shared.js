@@ -1517,7 +1517,7 @@ function netWorthSeries(state, options){
   entries.forEach(function(e){if(!first||e.day<first)first=e.day;});
   const investments=clean(state.invHistory,"d","v"),hasInv=(state.investments||[]).length>0;
   if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })){gaps.push({kind:"investment",unknown:true});return done();}
-  const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(n,i){ return n+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0);
+  const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(n,i){ return n+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0)+(ins.rewardsPending||0);
   // Sin foto anterior, la inversión no recorta: se mantiene su primer valor conocido (la primera
   // foto, o el de hoy si no hay ninguna) menos las aportaciones propias entre medias, como un
   // bien heredado. Antes bastaba un bróker recién dado de alta para dejar Inicio sin gráfica.

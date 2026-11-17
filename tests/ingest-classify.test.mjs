@@ -92,8 +92,6 @@ for (const [comercio, palabra] of COMERCIOS_TRAMPA) {
    de TR: lo que las delata va en la FRASE, nunca en el nombre del comercio. */
 const RUIDO = [
   ["Has recibido 2,03 € de intereses", ""],
-  ["Se ha invertido tu redondeo de 0,42 € en iShares Core MSCI World", ""],
-  ["Saveback: 1,25 € invertidos en tu plan", ""],
   ["Tu plan de inversión ha ejecutado 50,00 € en Vanguard FTSE All-World", ""],
   ["Orden ejecutada: compra de 3 acciones de Apple por 512,30 €", ""],
   ["Has recibido un dividendo de 3,10 € de Realty Income", ""],
@@ -101,6 +99,16 @@ const RUIDO = [
   ["Nuevo inicio de sesión en tu cuenta desde un dispositivo nuevo", ""],
   ["Has añadido 200,00 € a tu cuenta", ""],
 ];
+/* El redondeo y el Saveback YA invertidos dejaron de ser ruido el 16/11/2026: entran en Inversión
+   y la app los suma a la posición que él elija (ver `recompensaTR`). */
+for (const [texto, titulo] of [
+  ["Se ha invertido tu redondeo de 0,42 € en iShares Core MSCI World", ""],
+  ["Saveback: 1,25 € invertidos en tu plan", ""],
+]) {
+  t(`recompensa → inversion: «${texto.slice(0, 44)}…»`, () => {
+    assert.equal(clasificar(texto, titulo), "inversion");
+  });
+}
 for (const [texto, titulo] of RUIDO) {
   t(`ruido → ignorado: «${texto.slice(0, 44)}…»`, () => {
     assert.equal(clasificar(texto, titulo), "ignorado");
