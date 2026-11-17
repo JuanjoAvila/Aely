@@ -416,8 +416,12 @@ for (const m of MODOS.filter((x) => x.id !== "ap-efectivo")) {
 // Modificar comparte `.v4-exp-sheet` con Apuntar, pero no sube con el teclado del sistema: la
 // transición del margen es solo de Apuntar (observación del revisor sobre DIS-05).
 const transicion = (page) => page.evaluate(() => getComputedStyle(document.querySelector(".v4-exp-sheet")).transitionProperty);
+// Desde el 239 (filtro de diseño), solo mientras sube con el teclado: al irse, el margen baja de golpe para
+// que la hoja no se salga por arriba mientras vuelven el pago y el numérico.
 test("DIS-05: Apuntar lleva la transición del margen", async ({ page }) => {
-  await abreApuntar(page, { w: 390, h: 844, letra: "normal" });
+  const hoja = await abreApuntar(page, { w: 390, h: 844, letra: "normal" });
+  await hoja.locator(".v4-ficha-concept").click();
+  await expect(hoja.locator('.v4-ficha-body[data-kb="1"]')).toHaveCount(1);
   expect(await transicion(page)).toContain("margin-bottom");
 });
 test("DIS-05: Modificar no la lleva", async ({ page }) => {
