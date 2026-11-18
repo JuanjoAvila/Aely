@@ -2915,6 +2915,20 @@ function expenseDeletedSet(s){
   return delSet;
 }
 function expenseCountsCash(e, s){
+  if(!expenseSaleDelSaldo(e, s)) return false;
+  /* La cuota de una deuda (`debtId`, 4.21.0) NO sale de aquí a propósito: en la cuenta de gasto
+     diario ya resta hoy como cualquier cargo (`paidNet` vale 0 ahí) y `applyBankBalances` ancla el
+     saldo contando con ella. Sacarla haría saltar el saldo hasta el siguiente anclaje — el
+     «6724 → 6681» otra vez. Solo sale del GASTADO, por categoría neutra (`CAT_NEUTRAS`). */
+  const ent=expenseBankOf(e);
+  if(!ent) return true;
+  return expenseBankEnts(s).indexOf(ent)>=0;
+}
+/* ¿Este movimiento saca dinero del saldo de su cuenta? Lo de `expenseCountsCash` menos el filtro de
+   bancos de gasto diario, que decide qué cuenta en el presupuesto y en la diaria, no si el dinero
+   salió. Lo usa el sobre de efectivo (`gastoDelSobre`), que resta sus compras también fuera de ese
+   filtro (ronda 240, P3 de la revisión de saldos). */
+function expenseSaleDelSaldo(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
   if(e.possibleDup) return false;
@@ -2924,14 +2938,15 @@ function expenseCountsCash(e, s){
      NINGUNA cifra, sea cual sea el rol del banco: el recibo ya resta por calendario
      (`monthNetForAccount`) y esta fila antes ni existía. Dejarla contar lo restaría dos veces
      en un banco «para todo» (medido: +importe al gastado y −importe al saldo). */
-  if(cargoDeRecibo(e, s)) return false;
-  /* La cuota de una deuda (`debtId`, 4.21.0) NO sale de aquí a propósito: en la cuenta de gasto
-     diario ya resta hoy como cualquier cargo (`paidNet` vale 0 ahí) y `applyBankBalances` ancla el
-     saldo contando con ella. Sacarla haría saltar el saldo hasta el siguiente anclaje — el
-     «6724 → 6681» otra vez. Solo sale del GASTADO, por categoría neutra (`CAT_NEUTRAS`). */
-  const ent=expenseBankOf(e);
-  if(!ent) return true;
-  return expenseBankEnts(s).indexOf(ent)>=0;
+  return !cargoDeRecibo(e, s);
+}
+/* Lo que el sobre de efectivo resta de lo suyo: sus compras que sacan dinero (`expenseSaleDelSaldo`),
+   estén o no entre los bancos de gasto diario. Antes, si él sacaba el sobre de ese filtro, ni el
+   pintado ni el cierre restaban nada y el sobre no bajaba nunca (P3 de la revisión de 240-saldos). */
+function gastoDelSobre(gastos, s){
+  let t=0;
+  (gastos||[]).forEach(function(e){ if(e && expenseBankOf(e)==="efectivo" && expenseSaleDelSaldo(e, s)) t+=(e.amount||0); });
+  return t;
 }
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
@@ -3104,6 +3119,8 @@ function insumosSaldoGasto(state){
   // Sin enumerar: el mapa se recorre por banco en Plan y en los tests, y la marca no es un banco.
   Object.defineProperty(paidNetByBank,"cuentaDe",{value:cuentaDe});
   const spentByBank=gastoDelMesPorBanco(thisMonthExp, trAcc&&trAcc.ent);
+  // El sobre resta lo suyo esté o no entre los bancos de gasto (`gastoDelSobre`), igual que al cerrar el mes.
+  if(accounts.some(isEfectivoEnt)){ const ms=+monthStart; spentByBank.efectivo=gastoDelSobre(((state&&state.expenses)||[]).filter(function(e){ return e&&dateMs(e.date)>=ms; }), state); }
   return { trAcc:trAcc, thisMonthExp:thisMonthExp, injTR:injTR, roundup:roundup, saveback:saveback, monthlyInvest:monthlyInvest,
     spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today,
     // Avisos de TR aún sin posición: tuyos, cuentan como invertidos hasta aplicarse (`recompensasPendientes`).
@@ -3159,11 +3176,12 @@ function applyAccountRole(s, totals, id, r){
     if(rr==="fijos") return +(shown - pnNuevo).toFixed(2);
     return valueDesdeSaldo({shown:shown, injTR:ins.injTR, spentOwn:(a.ent&&ins.spentByBank[a.ent])||0, roundup:ins.roundup, monthlyInvest:ins.monthlyInvest, ambos:rr==="ambos", paidNet:pnNuevo});
   };
+  // Re-anclar para conservar lo pintado no cambia con qué reglas se ancló: la marca sigue al `value` (`conValor`, 07).
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
-    if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }
-    if(r!=="fijos" && accDaily(a)) return Object.assign({},a,{role:"fijos", spendFrom:false, value:valueForRole(a,"fijos",shownOf(a))});
+    if(a.id===id){ if(accRole(a)===r) return a; return Object.assign(conValor(a,valueForRole(a,r,shownOf(a))),{role:r, spendFrom:r!=="fijos"}); }
+    if(r!=="fijos" && accDaily(a)) return Object.assign(conValor(a,valueForRole(a,"fijos",shownOf(a))),{role:"fijos", spendFrom:false});
     const rr=accRole(a);
-    if(Math.abs(pn(a)-(fijoTras(rr)?paidNetDeCuenta(a,ins.paidNetByBank):0))>0.005) return Object.assign({},a,{value:valueForRole(a,rr,shownOf(a))});
+    if(Math.abs(pn(a)-(fijoTras(rr)?paidNetDeCuenta(a,ins.paidNetByBank):0))>0.005) return conValor(a,valueForRole(a,rr,shownOf(a)));
     return a;
   })});
 }
@@ -3198,7 +3216,7 @@ function migraNetoUnaCuenta(s){
       if(!a||!accFixed(a)||!(k[a.ent]>=2)) return a;
       if(!Object.prototype.hasOwnProperty.call(N,a.ent)) N[a.ent]=monthNetForAccount(s,a.ent,cy,cm,td);
       const d=+(k[a.ent]*N[a.ent]-(llevaNetoDeBanco(accs,a)?N[a.ent]:0)).toFixed(2);
-      return Math.abs(d)>0.005?Object.assign({},a,{value:+((a.value||0)+d).toFixed(2)}):a;
+      return Math.abs(d)>0.005?conValor(a,+((a.value||0)+d).toFixed(2)):a;
     });
   }
   s._netoUnaCuenta=true;
@@ -3219,7 +3237,7 @@ function conservaNetoDeBanco(antes, despues){
     const diff=+(paidNetDeCuenta(b,pa)-paidNetDeCuenta(a,pd)).toFixed(2);
     if(Math.abs(diff)<=0.005) return a;
     cambia=true;
-    return Object.assign({},a,{value:+((a.value||0)+diff).toFixed(2)});
+    return conValor(a,+((a.value||0)+diff).toFixed(2));
   });
   return cambia?Object.assign({},despues,{accounts:accounts}):despues;
 }
@@ -3247,14 +3265,31 @@ function accInject(a){ if(!a) return 0; return a.inject!=null ? a.inject : (a.id
      (`applyInvestBuy`) y simularlos aquí los contaba dos veces. El cargo de un recibo no cuenta como
      «el banco ya trae sus movimientos» (12/10/2026, medido: 1771,72 pasaba a 1772,52).
    - Se estiman de los MISMOS gastos que en vivo (`recompensasEstimadas`): solo su banco, y nada si
-     TR ya avisó de lo real (FIN-01, 9/9). */
-function gastoDelCierre(s, acc, key, ay, am){
-  const monthExp=(s.expenses||[]).filter(e=> mkOf(parseDate(e.date))===key && expenseCountsCash(e, s));
-  const porBanco=gastoDelMesPorBanco(monthExp, acc.ent), spent=porBanco[acc.ent]||0;
+     TR ya avisó de lo real (FIN-01, 9/9).
+   `viejo`: el cierre de antes de la 240 (`cierreConReglaVieja`), que restaba también el posible
+   repetido. Solo cambia el gastado: su redondeo ya se estimaba sin él. */
+function gastoDelCierre(s, acc, key, ay, am, viejo){
+  const delMes=(s.expenses||[]).filter(e=> mkOf(parseDate(e.date))===key);
+  const monthExp=delMes.filter(e=> expenseCountsCash(e, s));
+  const resta=viejo ? delMes.filter(e=> !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback") : monthExp;
+  const porBanco=gastoDelMesPorBanco(resta, acc.ent), spent=porBanco[acc.ent]||0;
+  // El sobre de efectivo, sus propias compras aunque no esté entre los bancos de gasto (`gastoDelSobre`, como al pintar).
+  porBanco.efectivo=gastoDelSobre(delMes, s);
   const obFed=(s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent && !cargoDeRecibo(e, s); });
   const rec=obFed?{ru:0,sb:0}:recompensasEstimadas(s, acc, monthExp, +new Date(ay, am, 1), true);
-  // `porBanco` también lo usa el cierre del sobre de efectivo, con el mismo reparto.
   return {spent:spent, porBanco:porBanco, obFed:obFed, ru:rec.ru, sb:rec.sb};
+}
+/* ¿Cierra esta cuenta con la regla de antes de la 240 (el posible repetido también resta)? (P2-B de la
+   revisión de 240-saldos.) Desde la 240 el ancla con la lectura del banco deja fuera del `value` el
+   posible repetido, y un `value` anclado así se marca (`anclaReglas`, 07). Si la cuenta se ancló con la
+   lectura del banco (`balSaldo`, el rastro que solo deja `applyBankBalances`) y la marca no vale, la
+   ancló un cliente anterior, con el repetido DENTRO: cerrarla con la regla nueva lo dejaría sin restar
+   nunca (+48 en el primer cierre tras actualizar). Las diarias a mano y la TR del puente se anclan con
+   `insumosSaldoGasto` (`manualBalanceWrite`, `applyTrCash`), que ya dejaba fuera el repetido antes de
+   la 240: con cualquier cliente su `value` significa lo nuevo, y cierran con la regla nueva.
+   Se decide con el `value` de antes de cerrar: la marca solo vale con él. */
+function cierreConReglaVieja(acc){
+  return !!acc && acc.balSaldo!=null && !anclaConReglas(acc);
 }
 function reconcileTR(s){
   if(!s.accounts || !s.expenses) return s;
@@ -3273,6 +3308,12 @@ function reconcileTR(s){
     if(llevaNetoDeBanco(s.accounts, a)&&isFinite(t)) devuelto.set(a, {mk:mk(t.getFullYear(),t.getMonth()), eur:cobrosLeidosDelMes(s, a.ent, t.getFullYear(), t.getMonth()+1, null)});
   });
   const devueltoEn=function(a,key){ const d=devuelto.get(a); return d&&d.mk===key ? d.eur : 0; };
+  /* Con qué regla cierra la diaria (`cierreConReglaVieja`), decidido ANTES de mutar `value`, como `devuelto`.
+     Solo el mes de su última lectura, la que dejó el repetido dentro del `value` (si no se sabe cuándo
+     fue, el primero que se cierra). Los demás no tienen ancla y se pintaron, en cualquier cliente, sin
+     restarlo. */
+  const viejoPrimero=cierreConReglaVieja(acc), leidaEn=saldoLeidoDelBanco(s, acc.ent, acc);
+  const mesViejo=leidaEn>0 ? mkOf(new Date(leidaEn)) : null;
   const now=new Date();
   const cmKey=mkOf(now);
   /* Un estado sin `_netoUnaCuenta` se ancló con la regla vieja: cierra sus meses también con ella
@@ -3284,8 +3325,18 @@ function reconcileTR(s){
   let guard=0;
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
-    const cierre=gastoDelCierre(s, acc, key, ay, am);
+    const viejo=viejoPrimero&&(mesViejo ? mesViejo===key : guard===0);
+    const cierre=gastoDelCierre(s, acc, key, ay, am, viejo);
     acc.value = acc.value + accInject(acc) - cierre.spent;          // mes cerrado: + inyección de nómina − gasto
+    /* Qué meses cerró con la regla nueva, para que «son distintos» / «es el mismo» sobre un posible
+       repetido de ese mes sepan si el cierre lo restó (`saldoTrasResolverRepetido`, 00). Un mes sin
+       entrada lo cerró un cliente anterior (no conoce el mapa) o la regla vieja: se trata como viejo.
+       Los últimos 12: más atrás nadie resuelve repetidos. */
+    if(!viejo){
+      const m=Object.assign({}, acc.cierreReglas||{}); m[key]=ANCLA_REGLAS;
+      const ks=Object.keys(m).sort(); ks.slice(0, Math.max(0, ks.length-12)).forEach(function(k){ delete m[k]; });
+      acc.cierreReglas=m;
+    }
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
     // Solo si es la que carga el neto de su banco (`cuentaDelNetoDeBanco`): es la misma que lo
     // pinta durante el mes, y con dos cuentas del banco cada una lo arrastraba entero (ronda 238).

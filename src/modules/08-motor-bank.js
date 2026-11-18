@@ -2745,8 +2745,15 @@ function pendingWalkEvents(state, y, m, today){
        por restado un Teléfono sin cobrar y «¿Te llega?» salía 30 € alto; la más reciente falla al
        revés (ahorro reciente, recibos sin leer: lo resta dos veces). Sin cuenta de recibos, la de
        siempre: la más vieja, prudente (R5-2). El aviso de la víspera (11) sigue con la más vieja:
-       allí la pregunta es si el TOTAL del banco está leído entero. */
-    if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b,cuentaDelNetoDeBanco(state.accounts,b)||undefined);
+       allí la pregunta es si el TOTAL del banco está leído entero.
+       Una sola fuente para «cuándo se leyó la cuenta de recibos» (integración 240): la hora con la que
+       se ancló su `value` (`lecturaDeSusRecibos`, 07, la de la marca; la misma que usa el saldo para lo
+       cobrado antes de su día). Solo si la marca no lo dice —a mano, el puente de TR, o un `value` que
+       escribió otro cliente— el sello de esa cuenta (`saldoLeidoDelBanco` con la cuenta). */
+    if(!(b in leido)){
+      const c=cuentaDelNetoDeBanco(state.accounts,b);
+      leido[b]=c ? (lecturaDeSusRecibos(state,b)||saldoLeidoDelBanco(state,b,c)) : saldoLeidoDelBanco(state,b);
+    }
     // Pagado por otro lado: este banco ya no lo va a cobrar (misma regla que el saldo y los totales).
     if(fixedPagadoFuera(state,e,y,m,today)) return;
     const st=fixedPaymentState(state,e,y,m,today);
@@ -4242,8 +4249,7 @@ function conSaldoMostrado(antes, despues){
     if(Math.abs(diff)<=0.005) return acc;
     cambia=true;
     // Desplazar para no mover lo pintado no cambia con qué reglas se ancló: la marca sigue al `value`.
-    const v=+((acc.value||0)+diff).toFixed(2);
-    return Object.assign({},acc,{value:v},anclaConReglas(acc)?{anclaReglas:selloAncla(v, acc.anclaReglas.t)}:null);
+    return conValor(acc, +((acc.value||0)+diff).toFixed(2));
   });
   return cambia ? Object.assign({},despues,{accounts:accounts}) : despues;
 }

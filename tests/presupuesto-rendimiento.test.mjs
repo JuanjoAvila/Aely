@@ -435,7 +435,10 @@ const PRESUPUESTO = {
   // Saldos 240 (18/11, revisión de dinero): el ancla y el cierre con la misma puerta que lo pintado, «son distintos» que
   // mueve el saldo, la lectura de la cuenta de recibos y la foto de Hogar por cuenta: 2.004.151 B minificado (183 B sobre
   // el tope) y 550.658 B gzip. Es lógica de dinero; mismo mandato del 11/10: el minificado, al mínimo medido, 1958 KiB.
-  minificado: 1962 * 1024,
+  // Integración 240-dinero (recibos + saldos, con el cierre según la marca, `cierreReglas` y el sobre de efectivo):
+  // 2.010.911 B minificado y 552.790 B gzip. Mismo mandato del 11/10: el minificado, al mínimo medido, 1964 KiB; el
+  // gzip cabe en 540 KiB.
+  minificado: 1964 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

@@ -4017,7 +4017,7 @@ function resolvePossibleDup(state, expenseId, same){
     const gemelos=pushGemelos(state.gemelos, [twin ? gemeloDe(twin, ex) : {aviso:"", banco:bancoKey}]);
     const out=Object.assign({},state,{expenses:expenses});
     if(gemelos!==state.gemelos) out.gemelos=gemelos;
-    return out;
+    return saldoTrasResolverRepetido(state, out, ex);
   }
   // «Son distintos»: la fila cuenta y el aviso vuelve a estar libre.
   const out=Object.assign({},state,{expenses:(state.expenses||[]).map(function(e){
@@ -4028,21 +4028,26 @@ function resolvePossibleDup(state, expenseId, same){
   })});
   const sueltos=quitarGemeloDe(state.gemelos, bancoKey);
   if(sueltos!==state.gemelos) out.gemelos=sueltos;
-  return saldoTrasSonDistintos(state, out, ex);
+  return saldoTrasResolverRepetido(state, out, ex);
 }
-/* «SON DISTINTOS» Y EL SALDO DE LA CUENTA DIARIA (ronda 240, revisión de dinero P2-A y P3-C).
-   El posible repetido no resta mientras dura la duda: ni al pintar, ni al anclar con la lectura
-   del banco, ni al cerrar el mes (`expenseCountsCash`). Al decir que son dos cargos de verdad:
+/* RESOLVER UN POSIBLE REPETIDO Y EL SALDO DE LA CUENTA DIARIA (ronda 240, revisión de dinero P2-A,
+   P3-C y P2-B). El posible repetido no resta mientras dura la duda: ni al pintar, ni al anclar con la
+   lectura del banco, ni al cerrar el mes (`expenseCountsCash`). Al resolverlo:
    - Si la cuenta tiene una lectura del banco (o un saldo tecleado) del día de la fila o posterior,
-     esa lectura ya llevaba el cargo —la fila salió de ese extracto—: se conserva lo que se pinta
-     (`conSaldoMostrado`). Sin esto quedaba 48 € por debajo del banco hasta el siguiente sync.
-   - Sin esa lectura, la verdad es restarlo. En el mes en curso lo hace solo el pintado al quitar
-     la marca. De un mes YA CERRADO (anterior a `trAnchor`) no lo restaría nadie nunca: el cierre
-     lo dejó fuera y en una cuenta a mano no hay lectura que lo corrija (quedaban 48 € de más para
-     siempre). Se resta de la base justo lo que ese cierre habría restado con la fila contando
-     (`gastoDelCierre`: el importe y su redondeo, la misma regla que el cierre).
-   «Es el mismo» no toca nada: la fila nunca contó. */
-function saldoTrasSonDistintos(antes, despues, ex){
+     esa lectura ya era la verdad —la fila salió de ese extracto—: se conserva lo que se pinta
+     (`conSaldoMostrado`). Sin esto, «son distintos» quedaba 48 € por debajo del banco hasta el
+     siguiente sync.
+   - Sin esa lectura, en el mes en curso basta con lo que hace el pintado al quitar la marca o la fila.
+   - De un mes YA CERRADO (anterior a `trAnchor`) no lo corregiría nadie: en una cuenta a mano no hay
+     lectura. Se desplaza la base justo lo que ese cierre habría restado de más o de menos
+     (`gastoDelCierre` antes y después, CON LA REGLA CON LA QUE SE CERRÓ ESE MES):
+       · cierre nuevo (`cierreReglas[mes]`, lo escribe `reconcileTR`): el repetido no restó.
+         «Son distintos» resta el importe y su redondeo; «es el mismo», nada.
+       · cierre viejo (sin entrada: un cliente anterior o la regla vieja de `cierreConReglaVieja`): el
+         importe ya restó. «Es el mismo» lo devuelve; «son distintos» solo resta su redondeo, que ese
+         cierre no estimó (era un posible repetido) y la compra de verdad sí lleva.
+   La marca de anclaje se renueva (`conValor`): mover la base así no cambia con qué reglas se ancló. */
+function saldoTrasResolverRepetido(antes, despues, ex){
   const b=expenseBankOf(ex)||((antes.accounts||[]).find(function(a){ return a&&a.spendFrom; })||{}).ent;
   const cuenta=(antes.accounts||[]).find(function(a){ return a&&accDaily(a)&&a.ent===b; });
   if(!cuenta) return despues;
@@ -4050,11 +4055,12 @@ function saldoTrasSonDistintos(antes, despues, ex){
   if(saldoLeidoDelBanco(antes, b, cuenta)>=new Date(f.getFullYear(), f.getMonth(), f.getDate()).getTime()) return conSaldoMostrado(antes, despues);
   const key=mkOf(f);
   if(!cuenta.spendFrom || !antes.trAnchor || !(key<antes.trAnchor)) return despues;
-  const c0=gastoDelCierre(antes, cuenta, key, f.getFullYear(), f.getMonth()), c1=gastoDelCierre(despues, cuenta, key, f.getFullYear(), f.getMonth());
+  const viejo=!((cuenta.cierreReglas||{})[key]>=ANCLA_REGLAS);
+  const c0=gastoDelCierre(antes, cuenta, key, f.getFullYear(), f.getMonth(), viejo), c1=gastoDelCierre(despues, cuenta, key, f.getFullYear(), f.getMonth(), viejo);
   const delta=+((c1.spent+c1.ru)-(c0.spent+c0.ru)).toFixed(2);
   if(Math.abs(delta)<0.005) return despues;
   return Object.assign({}, despues, {accounts:(despues.accounts||[]).map(function(a){
-    return a===cuenta ? Object.assign({}, a, {value:+((a.value||0)-delta).toFixed(2)}) : a;
+    return a===cuenta ? conValor(a, +((a.value||0)-delta).toFixed(2)) : a;
   })});
 }
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */

@@ -840,13 +840,23 @@ function fixedRestaDelSaldo(s,e,y,m,t,bp){
    Lleva también la hora de la lectura de ESA cuenta (`t`, el `balanceAt` por cuenta que manda el
    servidor) con la que se ancló: la de H3 de arriba.
    La ponen `applyBankBalances` al re-anclar; la renuevan, con la misma `t`, el cierre de mes
-   (`reconcileTR`) y `conSaldoMostrado`, si ya valía. */
+   (`reconcileTR`) y todo lo que desplaza `value` sin cambiar su significado (`conValor`), si ya valía.
+   La usa también la regla del posible repetido (ronda 240 saldos): el ancla nueva lo deja fuera del
+   `value` y un cierre viejo lo restaría otra vez (ver `cierreConReglaVieja`, 01). */
 const ANCLA_REGLAS=240;
 function anclaConReglas(a, r){
   const m=a&&a.anclaReglas;
   return !!m&&typeof m==="object"&&Number(m.r)>=(r==null?ANCLA_REGLAS:r)&&Math.abs((Number(m.v)||0)-(Number(a.value)||0))<=0.005;
 }
 function selloAncla(value, t){ return {r:ANCLA_REGLAS, v:+(Number(value)||0).toFixed(2), t:t||null}; }
+/* La cuenta con otro `value` que NO cambia con qué reglas se ancló (desplazar para conservar lo pintado,
+   pasarse el neto entre hermanas, cambiar de rol, migrar, resolver un posible repetido): si la marca
+   valía, se renueva con el `value` nuevo y la misma hora. Sin esto, reordenar una cuenta de Open
+   Banking la dejaba sin marca y su cierre siguiente la trataba como anclada por un cliente viejo
+   (revisión 240-saldos, segunda vuelta, P2-B punto 2). */
+function conValor(a, v){
+  return Object.assign({}, a, {value:v}, anclaConReglas(a)?{anclaReglas:selloAncla(v, a.anclaReglas.t)}:null);
+}
 // Hora (ms) de la lectura con la que se ancló el `value` de la cuenta que lleva los recibos del banco; 0 si no se sabe.
 function lecturaDeSusRecibos(s, ent){
   const c=cuentaDelNetoDeBanco(s.accounts, ent);
