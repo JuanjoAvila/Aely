@@ -139,6 +139,31 @@ const pick = (r) => r.acc.positions.map((p) => ({ key: p.key, isin: p.isin, shar
   ok("varias cuentas: se suman por cuenta y se avisa; dos monedas no se mezclan");
 }
 
+/* 7b. Segunda revisión de dinero (18/11): un ISIN que llega en DOS monedas (VWCE en Xetra en € y la
+       misma ISIN en Londres en $) no se importa, pero SIGUE en el fichero: no puede salir como «ya no
+       está», que la marcaba por defecto y bajaba el patrimonio 2.402 € sin motivo. Lo mismo con una
+       cantidad ilegible o una posición corta. */
+{
+  const s = { investments: [
+    { id: "vwce", ent: "ibkr", src: "csv:ibkr", name: "VANGUARD FTSE ALL-WORLD", isin: "IE00BK5BQT80", fileSym: "VWCE", shares: 20, value: 2402, cost: 2000, costEur: 2000, cur: "EUR" },
+    { id: "pg", ent: "ibkr", src: "csv:ibkr", name: "PROCTER & GAMBLE CO", isin: "US7427181091", fileSym: "PG", shares: 30, value: 1365, cost: 1200, cur: "GBP" },
+  ], fxRates: { GBP: 1.2 } };
+  const londres = '<OpenPosition accountId="U0000001" currency="USD" fxRateToBase="0.94" assetCategory="STK" symbol="VWRD" description="VANGUARD FTSE ALL-WORLD" isin="IE00BK5BQT80" listingExchange="LSE" position="5" markPrice="130" positionValue="650" costBasisMoney="600" levelOfDetail="SUMMARY" />\n';
+  const ilegible = XML.replace(/(symbol="PG"[^>]*?)position="30"/, '$1position="n/d"');
+  const r = ctx.brokerAnalyze("ibkr", [ilegible.replace("</OpenPositions>", londres + "</OpenPositions>")], {});
+  assert.equal(r.acc.positions.find((p) => p.isin === "IE00BK5BQT80"), undefined, "en dos monedas no se importa");
+  assert.equal(r.acc.positions.find((p) => p.isin === "US7427181091"), undefined, "cantidad ilegible no se importa");
+  assert.ok(J(r.acc.warnings).some((w) => w.k === "mixcur"));
+  const map = {};
+  for (const po of r.acc.positions) map[po.key] = ctx.brkSuggest(po, s.investments, "ibkr") || "";
+  assert.deepEqual(J(ctx.brkGoneOf(s.investments, "ibkr", r.acc.positions, map, r.acc.present)), [], "ninguna sale como «ya no está»");
+  // Por la otra vía: aplicar con lo que el motor marca deja el patrimonio igual.
+  const total = (st) => st.investments.reduce((a, i) => a + ctx.invValueEur(i, st), 0);
+  const marks = Object.fromEntries(ctx.brkGoneOf(s.investments, "ibkr", r.acc.positions, map, r.acc.present).map((i) => [i.id, 1]));
+  assert.equal(total(ctx.brkApplyFile(s, "ibkr", r.acc.positions, map, marks, "2024-11-15")), total(s), "el patrimonio no baja");
+  ok("lo que el fichero trae pero no se importa sigue presente: no se marca ni sale del total");
+}
+
 /* 8. P3: un costEur anclado no se tira si el fichero trae lo mismo sin ancla; y una posición de un
       bróker con sincronización propia (Trade Republic) no se toca aunque se mapee a ella. */
 {

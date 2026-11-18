@@ -1484,7 +1484,7 @@ Object.assign(LANG.es,{
   bf_w_short:"Posiciones cortas: {n}, no se importan", bf_w_total:"⚠ El total en {x} no cuadra con la suma", bf_w_nocur:"⚠ {x}: sin moneda", bf_w_accounts:"Suma de {n} cuentas", bf_w_mixcur:"⚠ {x}: en dos monedas, no se importa",
   bf_cash:"Efectivo en el fichero: {x} (no se toca)",
   bf_value_file:"Sin precio en vivo: el valor es el del fichero, con su fecha.",
-  iv_file_on:"{date} · {x}", iv_file_gone:"ya no está", iv_gone_out:"{n} fuera del total: ya no están en el fichero",
+  iv_file_on:"{date} · {x}", iv_file_gone:"ya no está", iv_gone_out:"{n} fuera del total",
   bf_hint:"Sube el fichero de tu bróker o pega su texto. Se procesa en tu móvil, no se sube.", bf_paste_ph:"…o pega aquí su contenido",
   bi_summary_one:"1 posición detectada · {from} → {to}", bi_apply_one:"Aplicar a 1 posición", bi_done_one:"✓ 1 posición re-anclada con el extracto"
 });
@@ -1504,7 +1504,7 @@ Object.assign(LANG.en,{
   bf_w_short:"Short positions: {n}, not imported", bf_w_total:"⚠ The {x} total doesn't match the sum", bf_w_nocur:"⚠ {x}: no currency", bf_w_accounts:"Sum of {n} accounts", bf_w_mixcur:"⚠ {x}: in two currencies, not imported",
   bf_cash:"Cash in the file: {x} (left untouched)",
   bf_value_file:"No live price: the value is the file's, with its date.",
-  iv_file_on:"{date} · {x}", iv_file_gone:"no longer held", iv_gone_out:"{n} left out of the total: no longer in the file",
+  iv_file_on:"{date} · {x}", iv_file_gone:"no longer held", iv_gone_out:"{n} left out of the total",
   bf_hint:"Upload your broker's file or paste its text. It's processed on your phone, never uploaded.", bf_paste_ph:"…or paste its content here",
   bi_summary_one:"1 position detected · {from} → {to}", bi_apply_one:"Apply to 1 position", bi_done_one:"✓ 1 position re-anchored to the statement"
 });
@@ -1524,7 +1524,7 @@ Object.assign(LANG.ca,{
   bf_w_short:"Posicions curtes: {n}, no s'importen", bf_w_total:"⚠ El total en {x} no quadra amb la suma", bf_w_nocur:"⚠ {x}: sense moneda", bf_w_accounts:"Suma de {n} comptes", bf_w_mixcur:"⚠ {x}: en dues monedes, no s'importa",
   bf_cash:"Efectiu al fitxer: {x} (no es toca)",
   bf_value_file:"Sense preu en viu: el valor és el del fitxer, amb la seva data.",
-  iv_file_on:"{date} · {x}", iv_file_gone:"ja no hi és", iv_gone_out:"{n} fora del total: ja no són al fitxer",
+  iv_file_on:"{date} · {x}", iv_file_gone:"ja no hi és", iv_gone_out:"{n} fora del total",
   bf_hint:"Puja el fitxer del teu bròker o enganxa'n el text. Es processa al teu mòbil, no es puja.", bf_paste_ph:"…o enganxa'n aquí el contingut",
   bi_summary_one:"1 posició detectada · {from} → {to}", bi_apply_one:"Aplica a 1 posició", bi_done_one:"✓ 1 posició re-ancorada amb l'extracte"
 });

@@ -59,8 +59,8 @@ function nuevo(txts, memo) {
   if (r.err) return { err: r.err === "aux" ? "fiat" : r.err };
   const acc = J(r.acc);
   acc.positions.forEach((p) => { assert.equal(p.key, p.ticker); delete p.key; });
-  assert.deepEqual(acc.cash, []); assert.deepEqual(acc.warnings, []); assert.equal(acc.snapshot, false);
-  delete acc.cash; delete acc.warnings; delete acc.snapshot;
+  assert.deepEqual(acc.cash, []); assert.deepEqual(acc.warnings, []); assert.deepEqual(acc.present, []); assert.equal(acc.snapshot, false);
+  delete acc.cash; delete acc.warnings; delete acc.present; delete acc.snapshot;
   return { acc };
 }
 const igual = (txts, msg) => assert.deepEqual(nuevo(txts, {}), J(viejo(txts, {})), msg);

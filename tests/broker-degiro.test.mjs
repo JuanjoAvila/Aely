@@ -169,6 +169,20 @@ const pick = (r) => r.acc.positions.map((p) => ({ key: p.key, shares: p.shares, 
   ok("decimales ambiguos en todo el fichero: decide el idioma, nunca ×1.000");
 }
 
+/* 8b. Lo mismo en neerlandés: «Product» también es la cabecera NL, así que no puede decidir que el
+       fichero va en inglés (segunda revisión de dinero 18/11: «0,125» volvía a salir 125). */
+{
+  const nl = "Product,Symbool/ISIN,Aantal,Slotkoers,Lokale waarde,,Waarde in EUR\nFONDS X,IE0000000001,\"0,125\",\"100,125\",EUR,\"12,516\",\"12,516\"\n";
+  const p = ctx.brokerAnalyze("degiro", [nl], {}).acc.positions[0];
+  assert.equal(p.shares, 0.125); assert.equal(p.valueHint, 12.516);
+  // Y una fila con ISIN pero sin cantidad legible no se importa, pero no es «ya no está».
+  const raro = CARTERA_ES + "FONDO RARO,IE0000000002,n/d,\"10,00\",EUR,\"40,00\",\"40,00\"\n";
+  const r = ctx.brokerAnalyze("degiro", [raro], {});
+  const inv = [{ id: "r", ent: "degiro", name: "Fondo raro", isin: "IE0000000002", src: "csv:degiro", shares: 4, value: 40, cur: "EUR" }];
+  assert.deepEqual(J(ctx.brkGoneOf(inv, "degiro", r.acc.positions, {}, r.acc.present)), []);
+  ok("neerlandés con decimales ambiguos; fila ilegible presente, no «ya no está»");
+}
+
 /* 9. P3: peniques (GBX). Con «Valor en EUR» la posición va en €; sin él, a libras ÷100. Nunca ×100. */
 {
   const gbx = "Producto,Símbolo/ISIN,Cantidad,Precio de cierre,Valor local,,Valor en EUR\nUNILEVER,GB00B10RZP78,10,\"4550,00\",GBX,\"45500,00\",\"541,45\"\n";

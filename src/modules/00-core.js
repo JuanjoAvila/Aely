@@ -698,10 +698,11 @@ const ENT = {
   trade_republic: { label:"Trade Republic", mono:"TR", color:"#E6C36A" },
   myinvestor:     { label:"MyInvestor",     mono:"MI", color:"#C9A0E0" },
   // Brókers por fichero (18/11): sin PNG oficial que recortar, el monograma de la casa, nunca un logo
-  // dibujado. Colores ya de la app y sin repetir el de otro banco (#E2705F es Santander). `short`: la
-  // línea de origen de cada posición («15 nov · IBKR»), que con letra grande no cabe con el nombre largo.
-  degiro:         { label:"DEGIRO",         mono:"DG", color:"#9BD0E0" },
-  ibkr:           { label:"Interactive Brokers", mono:"IB", color:"#E85D4C", short:"IBKR" },
+  // dibujado. Colores ya de la app y sin repetir el de otro banco (#E2705F es Santander); IBKR en azul y no
+  // en coral, que en esta app es pérdida y alerta. `ink`: el color de las letras cuando el del fondo es
+  // tan claro que en tema claro no llega a 3:1 (`--ink-cian` solo existe en claro: #2F7F98). `short`: la línea de origen («15 nov · IBKR»), que con letra grande no cabía.
+  degiro:         { label:"DEGIRO",         mono:"DG", color:"#9BD0E0", ink:"var(--ink-cian,#9BD0E0)" },
+  ibkr:           { label:"Interactive Brokers", mono:"IB", color:"var(--blue)", short:"IBKR" },
   caixabank:      { label:"CaixaBank",      mono:"Cx", color:"#3FA9E0" },
   bbva:           { label:"BBVA",           mono:"BB", color:"#4B7FD6" },
   santander:      { label:"Santander",      mono:"Sa", color:"#E2705F" },

@@ -105,7 +105,7 @@ test("re-importar con una posición vendida NO la borra: la marca", async ({ pag
   await page.getByRole("button", { name: /Ver todas tus inversiones/i }).click();
   const bloque = page.locator('[data-inv-screen] [data-inv-broker="ibkr"]');
   // Lo vendido NO suma: el total del bloque es solo Apple + Vanguard, y se dice por qué.
-  await expect(bloque.locator("[data-inv-gone]")).toHaveText("1 fuera del total: ya no están en el fichero");
+  await expect(bloque.locator(".hint[data-inv-gone]")).toHaveText("1 fuera del total");
   const usd = await page.evaluate(() => { const s = JSON.parse(localStorage.getItem("micartera_v3")); return (s.fxRates && s.fxRates.USD) || s.fx; });
   const total = Math.round(+(2282.2 * usd).toFixed(2) + 2402);
   await expect(bloque.locator(".am")).toHaveText(new RegExp("^" + String(total).replace(/(\d)(?=(\d{3})$)/, "$1[.\\s]?") + "\\s*€$"));

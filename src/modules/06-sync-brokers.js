@@ -629,7 +629,8 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
         React.createElement("div",null,
           React.createElement("div",{className:"rname"},it.name),
           React.createElement("div",{className:"rsub"}, entOf(it.ent).label + (it.cur==="USD"?" \u00b7 USD":"")),
-          editing && React.createElement("button",{type:"button",className:"inv-row-action",style:{color:"#9BD0E0"},onClick:function(){ onSell(it); }},t("inv_sold_part")),
+          // «Vender» no en lo que el fichero ya da por vendido: vale 0 en los totales y la venta saldría a 0 €.
+          editing && !it.fileGone && React.createElement("button",{type:"button",className:"inv-row-action",style:{color:"#9BD0E0"},onClick:function(){ onSell(it); }},t("inv_sold_part")),
           editing && React.createElement("button",{type:"button",className:"inv-row-action",style:{color:"var(--coral)",marginLeft:12},onClick:function(){ onDelete(it); }},"🗑 "+t("inv_delete"))
         )
       ),
@@ -891,6 +892,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     }).then(function(pStr){ if(pStr!=null) sellPct(it, parseFloat(String(pStr).replace(',','.'))); });
   };
   const sellPct=function(it,pct){
+    if(it&&it.fileGone) return;
     if(!(pct>0 && pct<=100)){ return; }
     const f=pct/100;
     const valueEur=invValueEur(it,state);
@@ -1172,7 +1174,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
               ? React.createElement(InvRows,{items:items,st:state,fmt:f2,editing:true,showCost:true,draft:draft,setF:setF,onSell:onSell,onDelete:onDelete})
               : items.map(function(it){
                   const v=invValueEur(it,state), c=invCostEur(it,state), d=v-c;
-                  return React.createElement("div",{className:"row",key:it.id,"data-inv-position":it.id},
+                  return React.createElement("div",{className:"row",key:it.id,"data-inv-position":it.id,"data-inv-gone":it.fileGone?"1":undefined},
                     React.createElement("div",{className:"rl"},
                       React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
                       React.createElement("div",null,

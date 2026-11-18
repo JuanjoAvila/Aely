@@ -99,7 +99,13 @@ function Mono({ent, size, logo}){
         decoding:"async",onError:function(){ setRoto(true); },
         style:{width:lado,height:lado,objectFit:"contain",display:"block"}}));
   }
-  return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
+  return React.createElement("div",{className:"mono",style:{width:size,height:size,background:entTint(e.color,13),color:e.ink||e.color,borderColor:entTint(e.color,27)}}, e.mono);
+}
+/* Fondo y borde translúcidos del color de una entidad. Con un hex se le pega el alfa como siempre
+   («22» ≈ 13 %, «44» ≈ 27 %); con una variable CSS (IBKR va en `var(--blue)`, que cambia con el
+   tema) no se puede pegar nada, así que se mezcla con transparente. */
+function entTint(c, pct){
+  return /^(var|color-mix)\(/.test(String(c))?"color-mix(in srgb, "+c+" "+pct+"%, transparent)":c+(pct<20?"22":"44");
 }
 
 /* LOGO DE UNA INVERSIÓN — la EMPRESA, no el banco que la custodia (2026-09-11).

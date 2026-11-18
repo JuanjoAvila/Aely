@@ -567,9 +567,10 @@ function degiroHead(h, tx){
 }
 /* Si ninguna celda decide el decimal (todas con tres decimales, «0,125»), decide el IDIOMA de la
    cabecera, que es el de los números: en inglés punto, en es/nl/de coma. Nunca se vuelve a
-   adivinar celda a celda, que leía «0,125» participaciones como 125 (revisión de dinero 18/11). */
+   adivinar celda a celda, que leía «0,125» participaciones como 125 (revisión de dinero 18/11).
+   Solo cabeceras que existen ÚNICAMENTE en inglés: «product» y «date» también son neerlandés. */
 function degiroDec(head){
-  return head.some(function(h){ return ["product","quantity","closing","date","local value"].indexOf(h)>=0; })?".":",";
+  return head.some(function(h){ return ["quantity","closing","local value"].indexOf(h)>=0; })?".":",";
 }
 // Transacciones → operaciones por ISIN. Cada fila lleva su clave (orden + fecha + cantidad) para que
 // soltar el mismo fichero dos veces no duplique compras.
@@ -625,13 +626,13 @@ function degiroParseCartera(text, memo){
   const head=rows[hi].map(brkKey); const ci={}; ["prod","isin","qty","close","local","eur"].forEach(function(k){ ci[k]=brkCol(head,DEGIRO_COLS[k]); });
   const body=rows.slice(hi+1); const dec=brkDecimal(body)||degiroDec(head);
   const tx=(memo&&memo.degiroTx)||null;
-  const positions=[], cash=[], warnings=[]; let skipped=0;
+  const positions=[], cash=[], warnings=[], present=[]; let skipped=0;
   body.forEach(function(f){
     const name=String(f[ci.prod]||"").trim(); const id=String(f[ci.isin]||"").trim().toUpperCase();
     const q=brkNum(f[ci.qty],dec); const loc=brkMoney(f,ci.local,dec);
     // La fila del efectivo («CASH & CASH FUND…») no trae ISIN ni cantidad: es dinero, no una posición.
     if(!id && !q){ if(loc.amt!=null) cash.push({cur:loc.cur||"EUR",amt:loc.amt}); return; }
-    if(!id || !(q>0)){ skipped++; return; }
+    if(!id || !(q>0)){ skipped++; if(id) present.push(id); return; }
     const isin=BRK_ISIN.test(id)?id:null;
     const eurV=ci.eur>=0?brkMoney(f,ci.eur,dec).amt:null;
     const close=ci.close>=0?brkNum(f[ci.close],dec):null;
@@ -651,7 +652,7 @@ function degiroParseCartera(text, memo){
     positions.push(brkPence(po));
   });
   if(!positions.length && !cash.length) return null;
-  return { positions:positions, cash:cash, warnings:warnings, skipped:skipped, dividends:0, fees:0, from:null, to:null, snapshot:true };
+  return { positions:positions, cash:cash, warnings:warnings, present:present, skipped:skipped, dividends:0, fees:0, from:null, to:null, snapshot:true };
 }
 
 /* ---- Interactive Brokers: Flex Query (XML o CSV) y Activity Statement ----
@@ -668,7 +669,7 @@ var IBKR_SKIP={ OPT:1, FOP:1, FUT:1, WAR:1, CFD:1, CASH:1, "EQUITY AND INDEX OPT
 /* Filas ya normalizadas (claves en minúscula, las de Flex) → posiciones. Con SUMMARY y LOT a la
    vez manda SUMMARY; si solo hay lotes, se suman. */
 function ibkrPositions(rows, dec){
-  const by={}; const accts={}; const warnings=[]; let deriv=0, shorts=0;
+  const by={}; const accts={}; const warnings=[], present=[]; let deriv=0, shorts=0;
   rows.forEach(function(r){
     const cat=String(r.assetcategory||r.assetclass||"").toUpperCase();
     if(IBKR_SKIP[cat]){ deriv++; return; }
@@ -693,14 +694,18 @@ function ibkrPositions(rows, dec){
     const g=by[key]; const rs=[];
     Object.keys(g).forEach(function(k){ const a=g[k]; Array.prototype.push.apply(rs, a.sum?[a.sum]:a.lots); });
     const r0=rs[0];
+    /* Lo que el fichero TRAE pero no se importa (dos monedas, corta, cantidad ilegible) sigue
+       presente: si no, `brkGoneOf` lo marcaba «ya no está» y salía del patrimonio algo que se
+       tiene (segunda revisión de dinero 18/11: VWCE en € y en $, −2.402 € sin motivo). */
+    const sigue=function(){ present.push(key); if(r0.symbol) present.push(String(r0.symbol).trim()); };
     // El mismo valor en dos monedas no se suma: se avisa y no entra.
     const curs={}; rs.forEach(function(r){ curs[String(r.currency||r.currencyprimary||"").trim().toUpperCase()]=1; });
-    if(Object.keys(curs).length>1){ warnings.push({k:"mixcur",name:String(r0.description||r0.symbol||key).trim()}); return; }
+    if(Object.keys(curs).length>1){ warnings.push({k:"mixcur",name:String(r0.description||r0.symbol||key).trim()}); sigue(); return; }
     const num=function(r,k){ return brkNum(r[k],dec); };
     const tot=function(k){ let s=0,ok=true; rs.forEach(function(r){ const v=num(r,k); if(v==null) ok=false; else s+=v; }); return ok?s:null; };
     const q=tot("position")!=null?tot("position"):tot("quantity");
-    if(q==null) return;
-    if(q<0){ shorts++; return; }
+    if(q==null){ sigue(); return; }
+    if(q<0){ shorts++; sigue(); return; }
     if(!(q>0)) return;
     const cur=String(r0.currency||r0.currencyprimary||"").trim().toUpperCase()||null;
     const val=tot("positionvalue"), costN=tot("costbasismoney"), mark=num(r0,"markprice");
@@ -721,7 +726,7 @@ function ibkrPositions(rows, dec){
   });
   if(deriv) warnings.push({k:"deriv",n:deriv});
   if(shorts) warnings.push({k:"short",n:shorts});
-  return { positions:positions, warnings:warnings };
+  return { positions:positions, warnings:warnings, present:present };
 }
 function ibkrCash(rows, dec){
   const out=[];
@@ -737,7 +742,7 @@ function ibkrParseFlexXml(text){
   const st=brkXmlTags(text,"FlexStatement")[0]||{};
   const to=brkIsoDate(st.todate||((brkXmlTags(text,"OpenPosition")[0]||{}).reportdate)||"");
   if(!pos.positions.length && !cash.length) return null;
-  return { positions:pos.positions, cash:cash, warnings:pos.warnings, skipped:0, dividends:0, fees:0, from:brkIsoDate(st.fromdate||""), to:to, snapshot:true };
+  return { positions:pos.positions, cash:cash, warnings:pos.warnings, present:pos.present, skipped:0, dividends:0, fees:0, from:brkIsoDate(st.fromdate||""), to:to, snapshot:true };
 }
 // Flex en CSV: los mismos campos que el XML, en columnas («CurrencyPrimary» en vez de «currency»).
 // Si se activan las cabeceras de sección, las filas llegan como HEADER/DATA,<sección>,…
@@ -759,7 +764,7 @@ function ibkrParseFlexCsv(text){
   const cash=ibkrCash(recs.filter(function(r){ return r.endingcash!=null; }),dec);
   if(!pos.positions.length && !cash.length) return null;
   let to=null; recs.forEach(function(r){ const d=brkIsoDate(r.reportdate||""); if(d && (!to||d>to)) to=d; });
-  return { positions:pos.positions, cash:cash, warnings:pos.warnings, skipped:0, dividends:0, fees:0, from:null, to:to, snapshot:true };
+  return { positions:pos.positions, cash:cash, warnings:pos.warnings, present:pos.present, skipped:0, dividends:0, fees:0, from:null, to:to, snapshot:true };
 }
 /* Activity Statement: un CSV con muchas secciones; la primera columna dice cuál. Se leen «Open
    Positions» (solo las filas Summary), el ISIN de «Financial Instrument Information» y el
@@ -806,7 +811,7 @@ function ibkrParseActivity(text){
     if(mi>=0) to=last[3]+"-"+("0"+(mi+1)).slice(-2)+"-"+("0"+last[2]).slice(-2);
   });
   if(!pos.positions.length && !cash.length) return null;
-  return { positions:pos.positions, cash:cash, warnings:pos.warnings, skipped:0, dividends:0, fees:0, from:null, to:to, snapshot:true };
+  return { positions:pos.positions, cash:cash, warnings:pos.warnings, present:pos.present, skipped:0, dividends:0, fees:0, from:null, to:to, snapshot:true };
 }
 
 /* PERFILES. `aux` = el fichero solo aporta datos a la memoria; `parse` = saca posiciones.
@@ -843,7 +848,7 @@ function brokerDetect(text){
 function brokerAnalyze(ent, txts, memo){
   memo=memo||{};
   const profs=BROKER_PROFILES.filter(function(p){ return p.ent===ent; });
-  const acc={ positions:[], dividends:0, fees:0, from:null, to:null, skipped:0, cash:[], warnings:[], snapshot:false };
+  const acc={ positions:[], dividends:0, fees:0, from:null, to:null, skipped:0, cash:[], warnings:[], present:[], snapshot:false };
   let any=false, allPnl=true, auxN=0;
   // PRIMERA PASADA: los ficheros de ayuda, antes de parsear nada, para que dé igual el orden.
   txts.forEach(function(src){ profs.forEach(function(p){ if(p.aux && p.aux(src,memo)) auxN++; }); });
@@ -862,6 +867,7 @@ function brokerAnalyze(ent, txts, memo){
     if(res.to && (!acc.to||res.to>acc.to)) acc.to=res.to;
     if(res.cash) acc.cash=acc.cash.concat(res.cash);
     if(res.warnings) acc.warnings=acc.warnings.concat(res.warnings);
+    if(res.present) acc.present=acc.present.concat(res.present);
     if(res.snapshot) acc.snapshot=true;
   });
   if(any) return { acc:acc };
@@ -888,8 +894,10 @@ function brkSuggest(po, investments, ent){
    la fecha, y borrarla es cosa del usuario desde Editar. Sin esto vuelven los «cadáveres» y las
    resurrecciones de las sagas de Revolut y Trade Republic. Solo con un fichero de cartera
    COMPLETA (snapshot): con unas transacciones sueltas no se puede saber qué ya no está. */
-function brkGoneOf(investments, ent, positions, map){
-  const keys={}; positions.forEach(function(p){ if(p.isin) keys[p.isin]=1; if(p.sym) keys["s:"+String(p.sym).toUpperCase()]=1; if(map[p.key]) keys["#"+map[p.key]]=1; });
+function brkGoneOf(investments, ent, positions, map, present){
+  const keys={};
+  (present||[]).forEach(function(x){ x=String(x||"").toUpperCase(); if(!x) return; if(BRK_ISIN.test(x)) keys[x]=1; else keys["s:"+x.split("@")[0]]=1; });
+  positions.forEach(function(p){ if(p.isin) keys[p.isin]=1; if(p.sym) keys["s:"+String(p.sym).toUpperCase()]=1; if(map[p.key]) keys["#"+map[p.key]]=1; });
   // También por el símbolo del fichero: una posición sin ISIN que SIGUE en el fichero (aunque se
   // deje en «no tocar») no está vendida, y marcarla la sacaría del patrimonio.
   const sym=function(i){ const x=String(i.fileSym||i.ticker||"").toUpperCase(); return x && keys["s:"+x]; };
@@ -950,7 +958,8 @@ function brkApplyFile(s, ent, positions, map, goneMark, at){
    DEGIRO e IBKR llevan monograma sobrio (no hay un PNG oficial que recortar en docs/design/bancos,
    y dibujar el logo es justo lo que se rechazó cuatro veces). */
 var BROKER_FILE_CARDS={
-  revolut:{ cls:"bk-csv", logo:"CSV", logoStyle:{background:"#9BD0E022",color:"#9BD0E0"}, title:"bi_rev_title", sub:"bi_sub", btn:"bi_rev_steps_btn", steps:"bi_rev_steps", file:"bi_file", accept:".csv,text/csv,text/plain" },
+  // El texto de «CSV»: en claro, #9BD0E0 sobre su fondo no llegaba a 3:1 (`--ink-cian`, solo en claro).
+  revolut:{ cls:"bk-csv", logo:"CSV", logoStyle:{background:"#9BD0E022",color:"var(--ink-cian,#9BD0E0)"}, title:"bi_rev_title", sub:"bi_sub", btn:"bi_rev_steps_btn", steps:"bi_rev_steps", file:"bi_file", accept:".csv,text/csv,text/plain" },
   degiro:{ cls:"bk-file", logo:"DG", title:"bf_degiro_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_degiro_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,text/csv,text/plain" },
   ibkr:{ cls:"bk-file", logo:"IB", title:"bf_ibkr_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_ibkr_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,.xml,text/csv,text/xml,application/xml,text/plain" }
 };
@@ -1025,7 +1034,7 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
   const mappedN=parsed?parsed.positions.filter(function(p){ return map[p.key]; }).length:0;
   // Lo que ya no está en el fichero se marca de serie (marcar no mueve dinero: solo avisa) y
   // se puede dejar sin tocar. Borrarla sigue siendo cosa del usuario, desde Editar.
-  const goneList=(parsed && !rev && parsed.snapshot)?brkGoneOf(state.investments, ent, parsed.positions, map):[];
+  const goneList=(parsed && !rev && parsed.snapshot)?brkGoneOf(state.investments, ent, parsed.positions, map, parsed.present):[];
   const goneMark={}; goneList.forEach(function(i){ if(gone[i.id]!=="") goneMark[i.id]=1; });
   const goneN=Object.keys(goneMark).length;
   const apply=function(){
@@ -1072,8 +1081,8 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
     if(fetchPrices) setTimeout(function(){ fetchPrices(true); },50);
   };
   const brand=function(isOpen){
-    const c=entOf(ent).color;
-    return bkBrand({logo:card.logo, logoStyle:card.logoStyle||{background:c+"22",color:c,borderColor:c+"44"}, title:t(card.title), sub:t(card.sub),
+    const e=entOf(ent);
+    return bkBrand({logo:card.logo, logoStyle:card.logoStyle||{background:entTint(e.color,13),color:e.ink||e.color,borderColor:entTint(e.color,27)}, title:t(card.title), sub:t(card.sub),
              badge:null, open:isOpen, onToggle:onToggle});
   };
   // El borde de acento con el color del bróker: el de `var(--line)` casi no se veía en oscuro.

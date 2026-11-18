@@ -680,3 +680,26 @@ test("Inversiones v4: la pantalla entra como página y el gesto desde cualquier 
   await expect(screen).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Ver todas tus inversiones|See all your investments|Veure totes les inversions/i })).toBeFocused();
 });
+
+/* PÉRDIDAS EN VERDE EN TEMA CLARO (filtro de diseño 18/11). La regla de los textos menta del tema
+   claro (`html[data-theme=light] .row .rval .rvsub`) ganaba a `.rvsub.neg`: una posición que pierde
+   se pintaba del mismo verde que una que gana. Es un dato de dinero que se lee por el color. */
+test("Cartera › Inversiones en tema claro: una posición en pérdidas no sale en verde", async ({ page }) => {
+  await seedLoggedInDashboard(page, { investments });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.evaluate(() => applyTheme("light"));
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  const listaInv = page.locator(".v4-card-list").filter({ hasText: /posici|position/ }).first();
+  await listaInv.locator("button.v4-mov").filter({ hasText: "Trade Republic" }).click();
+  const perdida = listaInv.locator('[data-inv-position="i4"] .rvsub.neg');
+  await expect(perdida).toBeVisible();
+  const c = await perdida.evaluate((el) => {
+    const muestra = (v) => { const d = document.createElement("span"); d.style.color = v; document.body.appendChild(d); const x = getComputedStyle(d).color; d.remove(); return x; };
+    return { fila: getComputedStyle(el).color, menta: muestra("var(--mint)"), mentaTinta: muestra("var(--mint-ink)"), coral: muestra("var(--coral)") };
+  });
+  expect(c.fila).not.toBe(c.menta);
+  expect(c.fila).not.toBe(c.mentaTinta);
+  expect(c.fila).toBe(c.coral);
+});

@@ -452,7 +452,9 @@ const PRESUPUESTO = {
   // fuera del mapeo) y los del filtro de diseño (selector que corta con «…», importe sin partir, pie fijo,
   // monograma con su color, plurales, entrada suave): 2.042.019 B minificado y 562.216 B gzip. Al mínimo
   // medido: 1995 / 550 KiB.
-  minificado: 1995 * 1024,
+  // Segunda vuelta (lo que el fichero trae y no se importa sigue presente, «Vender» fuera de lo vendido,
+  // IBKR en azul, cian legible en claro, pérdidas en coral en claro): 2.042.900 / 562.534 B. Al mínimo: 1996 / 550 KiB.
+  minificado: 1996 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

@@ -2540,6 +2540,13 @@
   @media (prefers-reduced-motion:reduce){ .v4-banks .bf-in{animation:none;} }
   /* El importe de una posición no se parte («1.501,25» / «€»): cede el nombre, no la cifra. */
   .v4-inv-drop .row .rval{white-space:nowrap;}
+  /* Lo que el fichero ya no trae (vendido) no suma: su importe va en gris para que no se lea como vivo. */
+  .v4-inv-drop .row[data-inv-gone] .rval{color:var(--muted);}
+  /* Letras cian del monograma (DEGIRO, «CSV» de Revolut): en claro, #9BD0E0 no llegaba a 3:1. */
+  html[data-theme="light"]{--ink-cian:#2F7F98;}
+  /* PÉRDIDAS EN VERDE en tema claro: la regla de los textos menta (`.row .rval .rvsub`, más arriba)
+     ganaba a `.rvsub.neg` y una posición en pérdidas se pintaba como ganancia (filtro de diseño 18/11). */
+  html[data-theme="light"] .row .rval .rvsub.neg{color:var(--coral);}
   .v4-banks .bk-ver{font-size:11px;color:var(--muted-2);text-align:center;margin-top:18px;font-weight:600;}
   /* Novedades: entra con el resto (sin «delay y luego zarpazo»). */
   .wn-panel{position:fixed;inset:0;z-index:97;overflow-y:auto;background:var(--bg);color:var(--text);
