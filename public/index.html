@@ -33016,7 +33016,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9bb65aca08a36f35470d0110548041b43284ca257cf4cd967943c004777e9fb9";
+var _rnSha="1b5557236a2ffeeb21e0e583239978578f34dc99b51c67ed0f89eb54b746b632";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -41528,6 +41528,13 @@ function App(){
              cuenta migrada nunca viaja sin su marca, así que quitarla aquí no migra dos veces. */
           if(!localNewer||goalState._goalSync.cloudOnly){
             if(cloudState._netoUnaCuenta) baseObj._netoUnaCuenta=true; else delete baseObj._netoUnaCuenta;
+            /* Igual el libro de Round up / Saveback (`trRecompensas`): dice qué avisos están YA sumados
+               a las posiciones, así que va con las INVERSIONES que gana. Una nube sin la clave (un móvil
+               que nunca vio un aviso no la escribe) dejaba el libro local encima de las posiciones de la
+               nube: el aviso constaba como sumado sin estarlo y no se volvía a aplicar nunca, 12,96 € que
+               desaparecían de la cartera (CI de beta 240, recompensas-tr con la máquina lenta). Sin libro,
+               `aplicarRecompensasTR` lo suma una vez sobre lo bajado. */
+            if(cloudState.trRecompensas) baseObj.trRecompensas=cloudState.trRecompensas; else delete baseObj.trRecompensas;
           }
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
