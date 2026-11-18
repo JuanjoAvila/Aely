@@ -426,7 +426,10 @@ const PRESUPUESTO = {
   // Integración 4.26.239 (17/11): Apuntar con el concepto a la vista (el pliegue al compás del teclado, el textarea y la baldosa
   // del banco con «+») y la producción 237 mezclada, con el sello y la nota: 2.002.959 B minificado y 550.289 B gzip. La rama pedía 1954 / 537 sobre la 237;
   // aquí se suma además la 238 (dos cuentas de recibos en un banco); mismo mandato del 11/10: al mínimo medido, 1957 / 538 KiB.
-  minificado: 1957 * 1024,
+  // Apuntar con el teclado de Android de verdad (240, su vídeo del 18/11): ocultarlo sin «Listo» devuelve la hoja, la
+  // subida prevista con el alto del último teclado, el margen que lo sigue sin transición y el fondo de la hoja debajo:
+  // 2.005.485 B minificado y 550.898 B gzip. Mismo mandato del 11/10: el minificado, al mínimo medido, 1959 KiB.
+  minificado: 1959 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

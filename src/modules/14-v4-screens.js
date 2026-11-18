@@ -4843,6 +4843,23 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
     ), document.body);
 }
 
+/* Alto del teclado del sistema la última vez, por móvil (solo una comodidad local: sin él, la hoja
+   espera a que el teclado termine de subir). Se guarda con el alto de la ventana: girado o en otro
+   tamaño, no vale. */
+function mcTecladoAlto(alto){
+  try{
+    const g=JSON.parse(localStorage.getItem("micartera_kb_alto")||"null");
+    if(g&&g.k>80&&Math.abs((g.h||0)-alto)<60&&g.k<alto*0.7) return Math.round(g.k);
+  }catch(e){}
+  return 0;
+}
+function mcTecladoGuarda(k, alto){
+  try{
+    const g=JSON.parse(localStorage.getItem("micartera_kb_alto")||"null");
+    if(g&&Math.abs(g.k-k)<4&&Math.abs((g.h||0)-alto)<4) return;
+    localStorage.setItem("micartera_kb_alto",JSON.stringify({k:Math.round(k),h:Math.round(alto)}));
+  }catch(e){}
+}
 /* Sheet FAB «Apuntar» — teclado propio, gasto/ingreso (SPEC §7).
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
@@ -4887,6 +4904,15 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      el hueco vacío donde iba el numérico. */
   const [kbVista,setKbVista]=useState(false);
   const kbTokRef=useRef(0);
+  /* El teclado de Android sube animándose y la WebView no se entera hasta el final (su vídeo del 18/11):
+     mientras, el teclado tapaba la hoja y, al llegar el alto, Chrome desplazaba la pantalla para enseñar
+     el campo y la hoja daba un salto con el fondo asomando. Se sube ya al enfocar con el alto del último
+     teclado visto en este móvil (`kbPrevio`, con transición) y se ajusta al exacto cuando llega. */
+  const [kbPrevio,setKbPrevio]=useState(false);
+  const previoRef=useRef(false), previoTmRef=useRef(0), tecladoVistoRef=useRef(false), prevAltoRef=useRef(0);
+  /* Teclado ya en pantalla: lo que quede por plegarse se pliega de golpe, porque la hoja ya se recorta al
+     alto que queda a la vista (si no, las categorías asomaban cortadas bajo «Listo» unos fotogramas). */
+  const [kbYa,setKbYa]=useState(false);
   const [listoQueda,setListoQueda]=useState(false);
   const listoQuedaRef=useRef(0);
   const listoAt=useRef(0);
@@ -4923,6 +4949,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
+      setKbPrevio(false); previoRef.current=false; tecladoVistoRef.current=false; clearTimeout(previoTmRef.current); setKbYa(false);
       setListoQueda(false); clearTimeout(listoQuedaRef.current);
       altoSinTecladoRef.current=window.innerHeight||0;
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
@@ -4966,21 +4993,46 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      la ventana y el de visualViewport: la hoja se sube eso (como la ayuda, 16-help-assistant). Si
      la WebView se encoge, ese hueco es 0; en los dos casos el tope es el alto que queda a la vista. */
   useEffect(function(){
-    if(!open || !conceptoFoco) { setKbPad(0); setVvAlto(0); return undefined; }
+    if(!open || !conceptoFoco) {
+      setKbPad(0); setVvAlto(0); setKbPrevio(false); previoRef.current=false; tecladoVistoRef.current=false; setKbYa(false);
+      clearTimeout(previoTmRef.current); return undefined;
+    }
+    let tmQuieto=0;
     const sync=function(){
       try{
         const vv=window.visualViewport;
         altoSinTecladoRef.current=Math.max(altoSinTecladoRef.current, window.innerHeight||0);
         const visto=vv?vv.height:window.innerHeight;
         const pad=vv?Math.max(0, window.innerHeight-(vv.height+vv.offsetTop)):0;
-        setKbPad(pad>24?Math.round(pad):0);
         // Con teclado (encima o encogiendo la WebView), la hoja no pasa de lo que queda a la vista.
         const hay=altoSinTecladoRef.current-visto>80;
-        setVvAlto(hay?Math.round(visto):0);
-        /* Con el teclado ya fuera, el toque que enfocó ha terminado: la hoja se compacta en el mismo
-           fotograma en que se recorta. Si se recortaba antes, se veía un instante a −142 px o con el
-           numérico montado (filtro de diseño 239, segunda vuelta). */
-        if(hay) setKbVista(true);
+        if(hay){
+          tecladoVistoRef.current=true; setKbYa(true);
+          /* Si el teclado llega por pasos, mientras sube no se baja la hoja del alto previsto (iría
+             arriba y abajo): se queda en el mayor de los dos y, quieto el teclado, en el exacto, que es
+             el que se recuerda para la próxima vez. */
+          if(previoRef.current){
+            const prev=prevAltoRef.current;
+            setKbPad(Math.max(pad>24?Math.round(pad):0, prev)); setVvAlto(Math.min(Math.round(visto), altoSinTecladoRef.current-prev));
+          } else {
+            setKbPad(pad>24?Math.round(pad):0); setVvAlto(Math.round(visto));
+          }
+          clearTimeout(tmQuieto);
+          tmQuieto=setTimeout(function(){
+            const v2=window.visualViewport, h2=v2?v2.height:window.innerHeight;
+            if(altoSinTecladoRef.current-h2>80) mcTecladoGuarda(altoSinTecladoRef.current-h2, altoSinTecladoRef.current);
+            if(previoRef.current){ previoRef.current=false; clearTimeout(previoTmRef.current); setKbPrevio(false); sync(); }
+          },160);
+          /* Con el teclado ya fuera, el toque que enfocó ha terminado: la hoja se compacta en el mismo
+             fotograma en que se recorta. Si se recortaba antes, se veía un instante a −142 px o con el
+             numérico montado (filtro de diseño 239, segunda vuelta). */
+          setKbVista(true);
+        } else if(tecladoVistoRef.current){
+          /* El teclado se ha ido sin «Listo» (su flecha ⌄ o Atrás): el campo sigue enfocado y la hoja se
+             quedaba compacta, sin teclado ni numérico (vídeo del 18/11). Se suelta como con «Listo». */
+          tecladoVistoRef.current=false; setKbPad(0); setVvAlto(0); setKbYa(false);
+          setTimeout(function(){ try{ const el=document.activeElement; if(el&&el.classList&&el.classList.contains("v4-ficha-concept")) el.blur(); }catch(e){} },0);
+        } else if(!previoRef.current){ setKbPad(0); setVvAlto(0); }
       }catch(e){ setKbPad(0); setVvAlto(0); }
     };
     sync();
@@ -4994,6 +5046,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     document.addEventListener("pointerdown",baja,true); document.addEventListener("pointerup",sube,true);
     document.addEventListener("pointercancel",sube,true);
     return function(){
+      clearTimeout(tmQuieto);
       if(vv){ vv.removeEventListener("resize",alActo); vv.removeEventListener("scroll",alActo); }
       window.removeEventListener("resize",alActo);
       document.removeEventListener("pointerdown",baja,true); document.removeEventListener("pointerup",sube,true);
@@ -5126,6 +5179,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
+        "data-kb-previo":kbPrevio?"1":null,"data-kb-ya":kbYa?"1":null,
         // En px de pantalla: dentro del body con zoom, el margen se multiplicaría.
         /* Sube y se recorta cuando ya se está compactando (`kbVista`): si el teclado llegaba antes, la hoja
            entera subía o se recortaba con el numérico aún puesto. */
@@ -5142,7 +5196,21 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             const tok=++kbTokRef.current;
             const pon=function(){
               document.removeEventListener("click",pon,true); clearTimeout(tm);
-              requestAnimationFrame(function(){ if(kbTokRef.current===tok) setKbVista(true); });
+              requestAnimationFrame(function(){
+                if(kbTokRef.current!==tok) return;
+                setKbVista(true);
+                // Sube ya, con el alto del teclado de la otra vez, a la vez que el de verdad se anima.
+                const alto0=altoSinTecladoRef.current||window.innerHeight, prev=mcTecladoAlto(alto0);
+                if(prev&&!tecladoVistoRef.current){
+                  previoRef.current=true; prevAltoRef.current=prev; setKbPrevio(true); setKbPad(prev);
+                  // Sin teclado en pantalla (uno físico, o no salió): se deshace.
+                  clearTimeout(previoTmRef.current);
+                  previoTmRef.current=setTimeout(function(){
+                    if(!previoRef.current||tecladoVistoRef.current) return;
+                    previoRef.current=false; setKbPrevio(false); setKbPad(0); setVvAlto(0);
+                  },900);
+                }
+              });
             };
             document.addEventListener("click",pon,true);
             // Foco sin toque (teclado físico, lector de pantalla): no llega ningún click.
@@ -5150,6 +5218,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
           },onConceptBlur:function(){
             const suelta=function(){
               kbTokRef.current++; setConceptoFoco(false); setKbVista(false);
+              previoRef.current=false; setKbPrevio(false); clearTimeout(previoTmRef.current);
               // «Listo» no pasa a «Apuntar» hasta que vuelven el pago y el numérico (300 ms).
               setListoQueda(true); clearTimeout(listoQuedaRef.current);
               listoQuedaRef.current=setTimeout(function(){ setListoQueda(false); },mcReduced()?0:300);

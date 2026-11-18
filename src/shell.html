@@ -1961,16 +1961,24 @@
      se despliega con la transición de siempre. */
   .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;transition:none;}
   .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold.abajo{transition:none;}
+  /* Con el teclado ya en pantalla la hoja se recorta a lo que queda a la vista: lo que faltara por
+     plegarse se pliega de golpe (si no, las categorías asomaban cortadas bajo «Listo», 240). */
+  .v4-sheet[data-kb-ya="1"] > .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold{transition:none;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{transition:font-size .3s var(--ease),min-height .3s var(--ease);}
   .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-amount{font-size:30px;min-height:40px;}
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){padding-bottom:16px;}
   /* Y la hoja sube y baja con el teclado del sistema en vez de saltar (el margen lo pone el JS).
      Solo Apuntar: Modificar comparte `.v4-exp-sheet` y no mueve el margen con el teclado. */
-  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
-  /* El margen sube con el teclado, pero al irse baja de golpe: bajando a la vez que vuelven el pago y el
-     numérico, con letra Enorme la hoja se salía un instante por arriba (filtro de diseño 239). Con el
-     teclado puesto manda la regla de arriba; esta es la de volver. */
-  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]:not([data-kb])){transition:transform .3s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* El margen sigue al teclado SIN transición: lo pone el JS en cada evento del visualViewport, y con
+     transición se quedaba atrás mientras Chrome desplazaba la pantalla y asomaba el fondo (vídeo del
+     18/11). Solo se anima la subida prevista, a la vez que el teclado se anima (`kbPrevio`). Al irse, baja
+     de golpe: con letra Enorme, bajando despacio la hoja se salía por arriba (filtro de diseño 239). */
+  .v4-sheet.v4-exp-sheet[data-kb-previo="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .28s cubic-bezier(.2,.8,.2,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* Con el teclado, debajo de la hoja va su mismo fondo hasta abajo: si el teclado y la hoja no llegan
+     a la vez, lo que se ve entre los dos es hoja, no la lista de Gastos ni la barra de abajo. */
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){
+    box-shadow:0 -8px 28px rgba(0,0,0,.28),0 200px 0 var(--bg-2),0 400px 0 var(--bg-2),0 600px 0 var(--bg-2),0 800px 0 var(--bg-2);}
   .v4-ficha-body[data-testid="ap"] > .v4-ficha-kbfold.teclas{position:sticky;bottom:0;z-index:1;background:var(--bg-2);
     transition:grid-template-rows .3s var(--ease),opacity .15s linear,visibility 0s;}
   .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{margin:0;padding:4px 0 8px;gap:6px;}
