@@ -1079,11 +1079,13 @@ function App(){
   /* Al sincronizar A MANO se lanzan a la vez bancos y brókers y cada uno tenía su toast: ganaba el
      último en acabar y el otro no se veía nunca («si actualizo… no me dice nada», 12/9). Con
      `opts.collect` cada uno deja su aviso en la lista y `sincronizarAMano` enseña UNO solo. */
-  const avisaSync=function(opts,m){ if(opts&&opts.collect) opts.collect.push(m); else showToast(m); };
+  // El último aviso de fallo de la lectura en curso: al cerrar Conexiones tras renovar, gana a «✓ renovado».
+  const avisoSync=useRef(null);
+  const avisaSync=function(opts,m){ if(String(m).charAt(0)==="⚠") avisoSync.current=m; if(opts&&opts.collect) opts.collect.push(m); else showToast(m); };
   const runBankSync=function(opts){
     opts=opts||{};
     if(!cloud.enabled() || !sessionRef.current || bankSyncing.current) return Promise.resolve();
-    bankSyncing.current=true;
+    bankSyncing.current=true; avisoSync.current=null;
     /* Las filas de `bank_links` en crudo, EN PARALELO al sync. Hacen falta porque el sync no ve
        los enlaces `pending` (la Edge solo consulta active/expired/error), y un banco que se quedó
        a medio autorizar no salía por ningún lado: ni saldo, ni movimientos, ni aviso. Suyo, 11/9:
@@ -1734,6 +1736,7 @@ function App(){
         set(function(s){ return s.hasBankLink?s:Object.assign({},s,{hasBankLink:true}); });
         limpiaCartelReconectado();
         runBankSync({manual:true});
+        vueltaDelBanco();
       } else {
         // SEC-01: códigos cortos del Edge; el texto crudo de la URL NO se pinta (4.23.0).
         showToast(bankCallbackErrorToast(parts.slice(2).join("|")));
@@ -1853,7 +1856,7 @@ function App(){
     const bankParam=params && params.get("bank");
     if(!bankParam) return;
     try{ history.replaceState(null, "", location.pathname + location.hash); }catch(e){}   // que no se repita al recargar
-    if(bankParam==="ok"){ showToast("✓ "+t("bank_connected")); bankJustConnected.current=true; }
+    if(bankParam==="ok"){ showToast("✓ "+t("bank_connected")); bankJustConnected.current=true; vueltaDelBanco(); }
     else if(bankParam==="error"){
       // SEC-01: mismos códigos que el puente nativo; NUNCA pintar `msg` crudo (4.23.0).
       showToast(bankCallbackErrorToast(params.get("msg")||""));
@@ -2023,20 +2026,55 @@ function App(){
     const id=setTimeout(function(){ window.dispatchEvent(new CustomEvent("mc-open-beta-review")); },0);
     return function(){ clearTimeout(id); };
   },[]);
-  // «Reconectar Trade Republic» desde el banner de Cartera: abre Ajustes YA en Mis bancos
-  // (con el teléfono precargado) — sin pasear al usuario por menús (UX padre 2026-07-18).
-  const [banksGoto,setBanksGoto]=useState(0);
-  const [banksFocus,setBanksFocus]=useState("");   // aspsp a resaltar al aterrizar en Mis bancos
+  /* CONEXIONES SE ABRE SUELTA, sin Ajustes debajo (R2, 18/11). Antes cada puerta —el banner de
+     Cartera, el vacío de Gastos, la ayuda— abría Ajustes y encima «Mis bancos», y al cerrar se
+     caía en Ajustes aunque vinieras de Cartera. Ahora se apunta el ORIGEN (Ajustes si está abierto
+     o lo pide su fila; si no, la pestaña de delante) y al cerrar se vuelve justo ahí.
+     `focus` lo manda el sync/la noti: ese banco se resalta y se centra (petición 2026-07-24). */
+  const [banks,setBanks]=useState(null);   // null | {origen, focus, accion}
   useEffect(function(){
     const h=function(e){
-      setDrawerMounted(true); setDrawerOpen(true); setBanksGoto(Date.now());
-      // `focus` lo manda el sync/la noti: el banco que hay que reconectar se resalta y se centra
-      // en pantalla, para que no haya que buscarlo en la lista (petición 2026-07-24).
-      setBanksFocus((e&&e.detail&&e.detail.focus)||"");
+      const d=(e&&e.detail)||{};
+      setBanks(function(b){ return Object.assign({origen:d.origin||(drawerOpen?"settings":tabOrderOf(stateRef.current)[tabRef.current])},b,{focus:d.focus||""}); });
     };
     window.addEventListener("mc-open-banks",h);
     return function(){ window.removeEventListener("mc-open-banks",h); };
-  },[]);
+  },[drawerOpen]);
+  /* Al cerrar con algo hecho dentro (conectar o renovar), la pantalla de origen resalta la fila de
+     ese banco y avisa; el resalte se apaga solo en 1,8 s. Un atrás sin cambios vuelve callado. */
+  const cierraBancos=function(ac){
+    const b=banks; setBanks(null);
+    try{ window.dispatchEvent(new CustomEvent("mc-tr-status")); }catch(e){}   // Ajustes y Cartera releen TR
+    if(!ac||!b) return;
+    const ent=ac.ent||entFromAspsp(ac.n)||"";
+    /* Si la lectura del banco tras renovar falló, gana su aviso: «✓ renovado» encima lo tapaba y
+       quedaba solo el éxito (filtro de diseño R2, 19/11). Y la fila de Ajustes relee el estado,
+       que si no seguía diciendo «pide renovar» justo después del aviso. */
+    showToast(avisoSync.current || "✓ "+tf(ac.k==="r"?"cx_renewed":"cx_connected",{bank:ent?entOf(ent).label:ac.n}));
+    try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
+    let el=null;
+    if(b.origen==="settings") el=drawerRef.current&&drawerRef.current.querySelector("[data-cx-row]");
+    else {
+      // Las filas de «Tus cuentas» de ese banco: las manuales por id y las del banco por su clave.
+      const s=stateRef.current, sel=[], pg=trackRef.current&&trackRef.current.children[tabOrderOf(s).indexOf(b.origen)];
+      (s.accounts||[]).concat(s.obAccounts||[]).forEach(function(a){ if(a.ent===ent) sel.push(a.key?'[data-ob-key="'+a.key+'"]':'[data-account-id="'+a.id+'"]'); });
+      if(pg&&sel.length) el=pg.querySelector(sel.join(","));
+    }
+    if(!el) return;
+    try{ el.scrollIntoView({block:"center",behavior:mcReduced()?"auto":"smooth"}); }catch(e){}
+    el.classList.add("cx-vuelta");
+    setTimeout(function(){ el.classList.remove("cx-vuelta"); },1800);
+  };
+  // Vuelta de autorizar un banco (`bank|ok` en la APK, `?bank=ok` en la web): de nuevo a
+  // Conexiones con ese banco delante, y con el origen que tenía antes de salir de la app.
+  const vueltaDelBanco=function(){
+    let p=null;
+    try{ p=JSON.parse(sessionStorage.getItem("mc_bk_vuelta")); sessionStorage.removeItem("mc_bk_vuelta"); }catch(e){}
+    if(!p) return;
+    if(p.o==="settings"){ setDrawerMounted(true); setDrawerOpen(true); }
+    else { const i=tabOrderOf(stateRef.current).indexOf(p.o); if(i>=0) setTab(i); }
+    setBanks({origen:p.o, focus:p.n, accion:{n:p.n, k:p.k}});
+  };
   // La misma hoja que el + desde dentro de una pantalla (el vacío de Gastos, diseño 235 DIS-18).
   // Por evento y no por prop: la lista de Gastos es un `React.memo` y una función nueva en cada
   // render lo dejaría de adorno.
@@ -4355,7 +4393,10 @@ function App(){
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
     // Con Ajustes o el perfil encima no hay barra de abajo que salvar: el aviso baja a su sitio en
     // vez de quedarse flotando sobre las filas (auditoría 237, P2-13).
-    toast && React.createElement("div",{className:"toast"+(drawerOpen||profileOpen?" toast-low":"")},toast.f?toast.f():toast),
+    toast && React.createElement("div",{className:"toast"+(drawerOpen||profileOpen||banks?" toast-low":"")},toast.f?toast.f():toast),
+    // «Sincronizar bancos» desde aquí también trae Trade Republic (`sincronizarAMano`), como en Cartera.
+    banks && React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:sincronizarAMano,totals:totals,fetchPrices:fetchPrices,
+      focusAspsp:banks.focus,origen:banks.origen,accion:banks.accion,onClose:cierraBancos}),
     syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{
@@ -4384,7 +4425,7 @@ function App(){
       drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){
           if(typeof betaOlvidarVuelta==="function") betaOlvidarVuelta();
           setDrawerOpen(false);
-        },showToast:showToast,uid:uid,onBankSync:sincronizarAMano,onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
+        },showToast:showToast,uid:uid,onTour:openTour,totals:totals,refreshFx:refreshFx,
         goGastos:function(){ setDrawerOpen(false); setGastosForceAll(Date.now()); const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }})
     ),
     React.createElement("div",{className:"profile-dim-layer"+(profileOpen?" on":""),ref:dimLayerRef,style:profileOpen?{opacity:"1"}:undefined,"aria-hidden":"true"}),
