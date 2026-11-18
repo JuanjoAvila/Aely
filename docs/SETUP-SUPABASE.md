@@ -50,9 +50,10 @@ no despliega ni acredita funciones vivas. El cambio de referencia entre días qu
 
 # Setup Supabase — Fase 1 (Aely)
 
-## Crons: solo el keepalive de MyInvestor (31/10/2026)
+## Crons: el keepalive de MyInvestor y la purga de `rate_limits` (31/10 y 18/11/2026)
 
-El único `pg_cron` es `myinvestor-keepalive` (0011). No existe cron de Open Banking ni de avisos:
+`pg_cron` tiene `myinvestor-keepalive` (0011) y, cuando se aplique la 0030, `aely-rate-limits-purga`
+(una vez al día, solo borra cubos de frenos ya caducados). No existe cron de Open Banking ni de avisos:
 la lectura del banco el día del recibo (Recibos v6, SPEC §11.1) está pendiente de decisión del
 dueño, y los avisos de la víspera los dan el cliente y el `AlertCheckWorker` de la APK. Antes de
 programar cualquier lectura de `bank-sync`, ver «Open Banking: lectura sola al entrar, con tope» en
@@ -156,13 +157,129 @@ dueño y lo complementa.
 
 - **`delete-account` (P3-06/P3-09):** 5 intentos cada 10 min por usuario ANTES de reautenticar
   (con una sesión robada era un probador de contraseñas); los errores de Auth vuelven como `error`.
-  La revocación del consentimiento de Enable Banking al borrar la cuenta queda pendiente (ver
-  nota de la ronda): hoy se borra la fila y el consentimiento caduca solo en el proveedor.
+  La revocación del consentimiento de Enable Banking al borrar la cuenta llegó en la ronda A
+  (18/11, abajo).
 - **Migración `0027_hogar_funciones_sin_anon.sql`:** `revoke execute … from anon` en
   `join_household_by_code` e `is_household_member`. Sin efecto para la app. Aplicarla a mano en
   SQL Editor o con `migraciones=si`.
 - **`supabase.yml` (P3-15):** `permissions: contents: read` explícito; el despliegue sigue con
   `SUPABASE_ACCESS_TOKEN`, sin cambios de flujo.
+
+## Ronda A · servidor (18/11/2026) — en fuente, SIN desplegar
+
+Rama `claude/ronda-a-servidor`. Nada de esto está activo hasta desplegar cada función y aplicar las
+migraciones, con el OK del dueño. Ninguna función cambia de contrato con la app: la web y la APK
+instaladas siguen funcionando igual con o sin estos despliegues.
+
+### Qué hay que desplegar (una función cada vez, por Actions)
+
+| Función | Por qué | Notas |
+|---|---|---|
+| `delete-account` | Revoca en Enable Banking antes de borrar (P3-06) | Lleva `_shared/eb-revocar.ts` |
+| `bank-callback` | Revoca la sesión que crea y no consta guardada (SEC-02) | Ídem |
+| `bank-connect`, `bank-aspsps`, `bank-disconnect` | Códigos cerrados en vez de `error.message` (P3-09) | `bank-disconnect` no cambia su revocación |
+| `myinvestor-connect`, `myinvestor-sync`, `myinvestor-disconnect`, `myinvestor-keepalive` | Ídem | El aviso de MyInvestor al iniciar sesión se queda |
+
+`_shared/cors.ts` y `_shared/ratelimit.ts` cambian también, pero **sin cambio de comportamiento sin
+secretos nuevos**: las funciones que los empaquetan (todas, `ingest` y `bank-sync` incluidas) se
+pueden desplegar cuando toque por lo suyo.
+
+### Qué cambia
+
+- **Borrar la cuenta revoca los consentimientos bancarios** (`delete-account`, P3-06). En paralelo,
+  tope de 8 s como `bank-disconnect`; si el proveedor falla, la cuenta se borra igual (el derecho a
+  borrar no depende de él) y la consola de la función guarda `delete-account: revocación no
+  completada {total, fallos:[{step,status,code}]}`, sin id ni texto del proveedor. MyInvestor no
+  tiene cierre equivalente: no consta un logout en su API no oficial; al borrar la fila el
+  keepalive deja de renovar y los tokens caducan solos.
+- **El callback tardío ya no deja sesiones huérfanas** (`bank-callback`, reserva de la PR314). Se
+  revoca la sesión recién canjeada SOLO cuando consta que no se guardó: el UPDATE final volvió sin
+  filas y sin error (otra generación ganó), el GET de cuentas no respondió, o algo falló antes de
+  guardar. Con error o acuse ambiguo no se toca: podría estar guardada, y revocarla mataría un
+  enlace activo. El diagnóstico añade `huerfanaRevocada: true|false` cuando se intentó. En esa
+  rama la redirección puede tardar hasta 8 s más.
+- **Errores cerrados** (P3-09): las funciones de la tabla devuelven `error:"error"` en vez del
+  mensaje de PostgREST o de la excepción. La app ya enseñaba su texto propio (`errTxt`). Pendiente:
+  el `catch` final de `bank-sync` (ronda E). Lo vigila `_shared/errores-cerrados.test.ts`.
+
+### Interruptores preparados y APAGADOS (secretos de Edge; sin ellos, todo como siempre)
+
+| Secreto | Valor | Efecto | Quién decide |
+|---|---|---|---|
+| `ALLOW_LOCAL_ORIGINS` | `0` | CORS deja de aceptar `http://localhost:*` (P3-10). La APK (`https://localhost`) y la app publicada siguen. Rompe el desarrollo local contra producción. | Dueño (pregunta 9) |
+| `RATE_LIMIT_IP_DIAG` | `1` | Apunta UNA vez por instancia la forma de las cabeceras de IP (sin IPs) | Cualquiera, para medir |
+| `RATE_LIMIT_IP_SOURCE` | `xff-last` / `cf` | Cambia de dónde sale la IP del cubo de `ingest` y `bank-callback` (P3-04). Por defecto, el primer `x-forwarded-for` | Tras medir |
+
+**Cómo decidir `RATE_LIMIT_IP_SOURCE` sin ver ninguna IP** 👤:
+1. Secreto `RATE_LIMIT_IP_DIAG=1` y desplegar `bank-callback` (o esperar a su próximo despliegue).
+2. Desde cualquier equipo: `curl -s -o /dev/null -H "X-Forwarded-For: 203.0.113.7" "https://<REF>.supabase.co/functions/v1/bank-callback?code=x&state=diagnostico"`
+   (devuelve el 302 de error de siempre: el `state` no existe y no se consume nada).
+3. Edge Functions → Logs de `bank-callback`: la línea `rate-limit cabeceras: {...}`.
+   - `primeroDePrueba: true` → el gateway **concatena** la XFF del cliente: el primer salto lo elige
+     quien llama. Si además `cfIgualUltimo: true`, usar `RATE_LIMIT_IP_SOURCE=cf`.
+   - `algunoDePrueba: false` → el gateway **sustituye** la XFF: lo de siempre es correcto.
+4. Borrar `RATE_LIMIT_IP_DIAG`. Ojo: si el último salto fuera interno de Supabase, `xff-last`
+   metería todas las peticiones en un cubo y el freno de 60/min tumbaría el lector de la familia.
+
+El freno **sigue abriéndose si falla** (BD caída, migración sin aplicar): regla de la casa, se decide
+mantenerla.
+
+### Migraciones 0028–0030
+
+⚠ **`migraciones=si` aplica TODAS las pendientes del ref lanzado** (`db push --include-all`), no
+solo una. A 18/11 la 0027 no está aplicada en la BD; lanzar desde esta rama aplicaría 0027, 0028,
+0029 y 0030 juntas. Si se quiere solo la 0027, lanzar desde un ref que no tenga las demás, o pegarla
+a mano en el SQL Editor. Ninguna se ha ejecutado contra un Postgres (no hay uno local): probarlas
+antes con `begin; … rollback;` en el SQL Editor.
+
+- **0028 · Hogar** (P3-05). Encontrado al revisarlo: **el freno de la 0022 no contaba los fallos**.
+  `join_household_by_code` lanza `invalid_code`, y la excepción deshace la transacción de la RPC con
+  su contador dentro: solo se contaban los aciertos. La función nueva `join_household(p_code)`
+  devuelve `{ok, code}` sin lanzar, así que sus fallos sí se quedan; la vieja se conserva para la app
+  instalada. Además: tope global de 200 códigos fallidos/hora (cierra las dos funciones para todos
+  esa hora), `invite_expires_at` (NULL = no caduca), códigos nuevos o cambiados de ≥10 letras/cifras
+  (trigger solo en `insert` o `update of invite_code`: los de 6 siguen valiendo), el dueño puede
+  expulsar (`household_members_delete_owner`) y la foto del que sale se borra (trigger). **Falta la
+  parte de la app** (otra ronda): usar `join_household`, botón de expulsar, rotar el código con
+  caducidad y regenerar los de 6. Prueba sugerida en el SQL Editor (como `authenticated`):
+  ```sql
+  begin;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+  select public.join_household('NOEXISTE00');   -- {"ok":false,"code":"invalid_code"}
+  reset role;
+  select bucket, hits from public.rate_limits where bucket = 'hh-join-miss-global';  -- hits ≥ 1
+  rollback;
+  ```
+- **0029 · admin sin correo** (P3-08). Ninguna cuenta nueva nace admin; no toca ninguna fila. Antes
+  de aplicarla, `select count(*) from public.profiles where is_admin;` debe dar 1.
+  **Admin por `user_id`** (solo si hiciera falta darlo de nuevo, a mano 👤):
+  `update public.profiles set is_admin = true where user_id = '<UUID de Authentication → Users>';`
+- **0030 · purga diaria de `rate_limits`** (T-08). `pg_cron` a las 04:17 UTC llama a
+  `prune_rate_limits()` (borra ventanas de hace más de 2 días; la ventana más larga de cualquier
+  freno es 1 día, así que no cambia ninguna decisión). Motivo: los cubos por IP (`ingest-ip:`,
+  `bank-callback-ip:`) nacen con cada cambio de IP del móvil y no vuelven, y un hash de IP sigue
+  siendo dato seudónimo. **Medir antes y después** (solo lectura):
+  ```sql
+  select split_part(bucket, ':', 1) as freno, count(*) as filas,
+         count(*) filter (where window_start < now() - interval '2 days') as caducadas
+    from public.rate_limits group by 1 order by 2 desc;
+  ```
+
+### Lo que queda fuera de esta ronda (y por qué)
+
+- **Cifrado de tokens obligatorio** (`TOKEN_ENCRYPTION_REQUIRED=1`, P2-04): el código ya está; falta
+  comprobar la clave y los recuentos (pasos arriba), y la credencial local de Supabase está
+  caducada (pregunta 6).
+- **Gemelas nativas** (`INGEST_NATIVE_TWINS`): secreto, solo con todos los móviles en ≥4.26.179
+  (pregunta 4). Riesgo de contar doble: ver «SEC02 F2» abajo.
+- **Cerrar el alta de cuentas** (Auth → «Allow new users to sign up»): ajuste del dueño (pregunta 3).
+- **Privacidad de los logs de la plataforma** (SEC-03 servidor): en el código de estas funciones no
+  queda ningún registro con texto libre; lo que guarde el gateway (URL con `code`/`state` del
+  callback, cabeceras) no se controla desde el código y hay que mirarlo en el panel con credencial.
+  Reescribir la historia del repo, solo con decisión expresa.
+- **Matriz función/migración/versión viva** (OPS-01): necesita token de lectura de Supabase y un
+  script nuevo en `scripts/` (fuera de esta ronda), además del pago real con Wallet en divisas.
 
 ## SEC01: límites del cuerpo por función · PR256 candidata, sin desplegar (17/10/2026)
 

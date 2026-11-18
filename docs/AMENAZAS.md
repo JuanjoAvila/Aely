@@ -16,7 +16,7 @@ seguridad no puede depender de que nadie mire el código.
 |-------|-------------|----------------------|
 | PWA / APK | El móvil de cada usuario | Quien tenga el móvil |
 | Supabase (Postgres + Auth) | Nube | Cualquiera con la URL y la clave anónima (que es pública por diseño) |
-| 10 Edge Functions | Nube | Igual; algunas exigen JWT y otras no pueden (`ingest`, `myinvestor-keepalive`) |
+| 15 Edge Functions | Nube | Igual; algunas exigen JWT y otras no pueden (`ingest`, `myinvestor-keepalive`) |
 | GitHub Pages | Nube | Todo el mundo, en lectura |
 | Release `beta` | Nube | Todo el mundo, en lectura |
 
@@ -37,6 +37,8 @@ seguridad no puede depender de que nadie mire el código.
 | 11 | **Bundle OTA manipulado** | ⚠ | Se descarga de GitHub por HTTPS y solo avanza de versión (`_mcNewerVer`). No hay firma propia: quien controlara la cuenta de GitHub podría publicar un bundle. Se asume — es la misma confianza que ya se le da al repo. |
 | 12 | **Móvil perdido o prestado** | ✅ | Bloqueo por huella opcional (Ajustes → Cuenta). Sin él, quien tenga el móvil desbloqueado ve la cartera: igual que cualquier app de banco sin PIN propio. |
 | 13 | **Un banco corta el acceso por «uso robótico»** | ✅ | No es seguridad, pero se comporta igual de mal: desde el 16/11/2026 la lectura sola al entrar lleva tope (6 h, 3 al día contando las manuales, pausa hasta mañana tras un 429 o un permiso rechazado). Los syncs vivos están listados en `ARQUITECTURA.md`. |
+| 14 | **Consentimiento bancario huérfano** (una autorización PSD2 viva que ninguna fila conoce) | ⚠ | En fuente desde el 18/11, sin desplegar: lo revocan `bank-disconnect` (ya activo), `delete-account` y el `bank-callback` que pierde la carrera con una reconexión (`_shared/eb-revocar.ts`). Si el proveedor no responde, caduca solo a los 90 días como mucho. |
+| 15 | **Adivinar el código de un Hogar** (da lectura de los saldos de sus miembros) | ⚠ | Códigos de 10 de `getRandomValues`. El freno de la 0022 no contaba los fallos (la excepción deshacía el contador); la 0028 (sin aplicar) añade una función que sí los cuenta, tope global, caducidad y expulsar. Falta que la app la use. |
 
 ## Lo que sale de aquí (y va al ROADMAP)
 
