@@ -110,7 +110,9 @@ export async function client(page, server, overrides = {}) {
 }
 export async function openBackups(page) {
   await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-settings")));
-  await page.getByRole("button",{name:"🗄️ "+await page.evaluate(()=>t("backup"))+" ›",exact:true}).click();
+  // Desde la 240 el icono de la fila es un dibujo de trazo con aria-hidden, no el emoji 🗄️: el
+  // nombre accesible es solo la etiqueta y la flecha.
+  await page.getByRole("button",{name:await page.evaluate(()=>t("backup"))+" ›",exact:true}).click();
   await page.getByRole("button",{name:await page.evaluate(()=>t("bk_auto_title"))}).click();
   await expect(page.getByRole("button",{name:await page.evaluate(()=>t("bk_view")),exact:true})).toBeVisible();
 }
