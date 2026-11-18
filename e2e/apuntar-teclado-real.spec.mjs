@@ -22,9 +22,9 @@ const ESTADO = {
   settings: { autoPrices: false, theme: "green" },
 };
 
-async function abreApuntar(page) {
-  await page.setViewportSize({ width: W, height: H });
-  await seedLoggedInDashboard(page, ESTADO);
+async function abreApuntar(page, w = W, h = H, letra) {
+  await page.setViewportSize({ width: w, height: h });
+  await seedLoggedInDashboard(page, letra ? Object.assign({}, ESTADO, { settings: Object.assign({}, ESTADO.settings, { textSize: letra }) }) : ESTADO);
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
@@ -181,5 +181,30 @@ for (const alFinal of [false, true]) test("el teclado sube animándose (" + (alF
     await page.evaluate(() => window.__teclado(0));
     await page.waitForTimeout(450);
     await vuelveNormal(hoja);
+  }
+});
+
+/* El concepto no cae bajo el dedo al tocarlo, tampoco con letra Enorme: ahí el pago va debajo de las categorías y,
+   yéndose de golpe, la hoja caía 84-120 px antes de subir (filtro de diseño 240, segunda vuelta). Primera vez (alto
+   supuesto) y segunda (alto recordado), con la ventana enterándose al final como en su móvil. */
+for (const [w, h] of [[393, 851], [412, 915]]) test(`letra Enorme ${w}×${h}: al tocar el concepto, no cae bajo el dedo`, async ({ page }) => {
+  const hoja = await abreApuntar(page, w, h, "huge");
+  const kb = Math.round(h * 0.38);
+  for (const vez of [1, 2]) {
+    await hoja.locator(".v4-ficha-concept").click();
+    const registro = graba(page);
+    await page.evaluate((px) => window.__teclado(px, 5, 250, true), kb);
+    const fr = await registro;
+    // Ni salto en un fotograma ni ir y volver: puede asentarse un poco más abajo, pero deslizándose.
+    let salto = 0;
+    for (let i = 1; i < fr.length; i++) salto = Math.max(salto, Math.abs(fr[i].c - fr[i - 1].c));
+    const c0 = fr[0].c, c1 = fr[fr.length - 1].c;
+    const contra = c1 >= c0 ? c0 - Math.min(...fr.map((x) => x.c)) : Math.max(...fr.map((x) => x.c)) - c0;
+    const pasa = c1 >= c0 ? Math.max(...fr.map((x) => x.c)) - c1 : c1 - Math.min(...fr.map((x) => x.c));
+    expect(salto, "vez " + vez + ": salto del concepto en un fotograma").toBeLessThanOrEqual(30);
+    expect(Math.max(contra, pasa), "vez " + vez + ": el concepto va y vuelve").toBeLessThanOrEqual(40);
+    await hoja.locator('[data-testid="ap-kb-done"]').click();
+    await page.evaluate(() => window.__teclado(0));
+    await page.waitForTimeout(500);
   }
 });

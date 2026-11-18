@@ -5080,25 +5080,23 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
   const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
   /* Mientras baja al soltar el concepto, el contenido puede crecer más deprisa de lo que baja el margen (con
-     letra Enorme a 360 la hoja asomaba 18 px por encima de la pantalla): el tope se ajusta en cada
-     fotograma para que el borde de arriba no suba de donde estaba ni del sitio que tendrá al acabar. */
+     letra Enorme a 360 la hoja asomaba 18 px por encima de la pantalla); y en la subida prevista, el margen
+     puede subir más deprisa de lo que se pliega el contenido (lo mismo a 360 con Enorme, −19 px). El tope se
+     ajusta en cada fotograma para que el borde de arriba no suba de donde estaba ni del sitio que tendría
+     con su tope normal. */
   useLayoutEffect(function(){
     const el=swipe.sheetRef.current;
-    if(!kbBaja||conceptoFoco||!el||mcReduced()) return undefined;
+    const activo=(kbBaja&&!conceptoFoco)||(kbPrevio&&conceptoFoco);
+    if(!activo||!el||mcReduced()) return undefined;
     const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
     const maxCss=parseFloat(getComputedStyle(el).maxHeight)||0;
     const lim=Math.min(el.getBoundingClientRect().top, window.innerHeight-maxCss*zoom);
-    let raf=0, puesto="";
-    const paso=function(){
-      const m=parseFloat(getComputedStyle(el).marginBottom)||0;
-      puesto=Math.max(0,Math.min(maxCss,(window.innerHeight-lim)/zoom-m))+"px";
-      el.style.maxHeight=puesto;
-      raf=requestAnimationFrame(paso);
-    };
-    paso();
-    // Solo se quita lo puesto aquí: si se vuelve a enfocar, React ya ha puesto su tope.
-    return function(){ cancelAnimationFrame(raf); if(el.style.maxHeight===puesto) el.style.maxHeight=""; };
-  },[kbBaja,conceptoFoco]);
+    // El tope lo calcula el CSS con el margen animado (`--kb-m`); aquí solo se le dan sus dos límites.
+    el.style.setProperty("--kb-lim",((window.innerHeight-lim)/zoom)+"px");
+    el.style.setProperty("--kb-max",maxCss+"px");
+    el.setAttribute("data-kb-lim","1");
+    return function(){ el.removeAttribute("data-kb-lim"); el.style.removeProperty("--kb-lim"); el.style.removeProperty("--kb-max"); };
+  },[kbBaja,kbPrevio,conceptoFoco]);
   useBackClose(!!open&&!ensayo, swipe.close);
   /* La primera apertura costaba mucho más que las siguientes (123 ms de tarea larga frente a 0, con
      la CPU a ×6, 14/11/2026): se ensaya una vez en seco a los pocos segundos de arrancar. Si ya se
@@ -5227,7 +5225,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
         /* Sube y se recorta cuando ya se está compactando (`kbVista`): si el teclado llegaba antes, la hoja
            entera subía o se recortaba con el numérico aún puesto. */
         style:conceptoFoco&&kbVista&&(kbPad||vvAlto)?Object.assign({},
-          kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))"}:null,
+          kbPad?{"--kb-m":"calc("+kbPad+"px / var(--zoom,1))"}:null,
           vvAlto?{maxHeight:"calc(("+vvAlto+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),

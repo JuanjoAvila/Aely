@@ -1955,13 +1955,15 @@
   .v4-ficha-body[data-kb="1"] .v4-ficha-kbfold{grid-template-rows:0fr;opacity:0;visibility:hidden;
     transition:grid-template-rows .3s var(--ease) 60ms,opacity .1s ease-out,visibility 0s .36s;}
   /* Recogiéndose, el numérico no va pegado al fondo: con el teclado encima la hoja se recorta y,
-     pegado, se montaba un instante sobre el concepto y el pago. Se pliega, sin fundirse, con el mismo ritmo
-     con que sube la hoja: el teclado del sistema lo va tapando desde abajo y el concepto no se mueve. Yéndose
-     de golpe, el concepto caía 254 px bajo el dedo y volvía a subir (240); fundiéndose, dejaba un hueco de
-     ~140 px sobre «Listo» (239). Con el teclado ya en pantalla se va de golpe (`data-kb-ya`, abajo). */
-  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;
-    transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1),opacity 0s .28s,visibility 0s .28s;}
-  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold.abajo{transition:none;}
+     pegado, se montaba un instante sobre el concepto y el pago. Se pliega con el mismo ritmo con que sube la
+     hoja, y así el concepto no se mueve bajo el dedo (yéndose de golpe caía 254 px y volvía a subir, 240); se
+     funde enseguida para que no asome una fila de teclas cortada. Con letra Muy grande o Enorme el pago va
+     debajo de las categorías y se va igual (de golpe, la hoja caía 84-120 px). Con el teclado ya en pantalla
+     se van de golpe (`data-kb-ya`, abajo). */
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;}
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas,
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold.abajo{
+    transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1),opacity .1s ease-out,visibility 0s .28s;}
   /* Con el teclado ya en pantalla la hoja se recorta a lo que queda a la vista: lo que faltara por
      plegarse se pliega de golpe (si no, las categorías asomaban cortadas bajo «Listo», 240). */
   .v4-sheet[data-kb-ya="1"] > .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold{transition:none;}
@@ -1975,10 +1977,16 @@
      transición se quedaba atrás mientras Chrome desplazaba la pantalla y asomaba el fondo (vídeo del
      18/11). Solo se anima la subida prevista, a la vez que el teclado se anima (`kbPrevio`), y la bajada al
      soltar el concepto, al mismo ritmo que el despliegue (`kbBaja`, abajo). */
-  .v4-sheet.v4-exp-sheet[data-kb-previo="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .28s cubic-bezier(.2,.8,.2,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* El margen de Apuntar sale de `--kb-m` (propiedad registrada: se anima como una longitud). Así el tope que
+     impide que el borde de arriba suba mientras se anima (`--kb-lim`, lo pone el JS) se calcula con el MISMO
+     margen en cada fotograma; calculado desde JS iba un fotograma tarde y el borde asomaba (240). */
+  @property --kb-m{syntax:"<length>";inherits:false;initial-value:0px;}
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){margin-bottom:var(--kb-m);}
+  .v4-sheet.v4-exp-sheet[data-kb-lim][data-kb-lim]:has(>.v4-ficha-body[data-testid="ap"]){max-height:min(var(--kb-max),calc(var(--kb-lim) - var(--kb-m)));}
+  .v4-sheet.v4-exp-sheet[data-kb-previo="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),--kb-m .28s cubic-bezier(.2,.8,.2,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
   /* Al soltar el concepto, el margen baja con el mismo ritmo que se despliegan el pago y el numérico: el
      borde de arriba se queda y la hoja crece hacia abajo (sin esto caía al fondo y volvía a subir, 240). */
-  .v4-sheet.v4-exp-sheet[data-kb-baja="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .3s var(--ease),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  .v4-sheet.v4-exp-sheet[data-kb-baja="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),--kb-m .3s var(--ease),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
   /* Con el teclado (y mientras la hoja baja al soltarlo), debajo de la hoja va su mismo fondo hasta abajo:
      si el teclado y la hoja no van a la vez, lo que se ve entre los dos es hoja, no la lista de Gastos ni
      la barra de abajo. */
@@ -2116,7 +2124,8 @@
     display:grid;place-items:center;color:var(--muted);font-size:15px;font-weight:700;line-height:1;}
   @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;}
     .v4-ficha-body[data-kb] .v4-ficha-kbfold,.v4-ficha-body .v4-ficha-kbfold,.v4-ficha-body[data-testid] .v4-ficha-amount,
-    .v4-ficha-body[data-testid][data-kb] > .v4-ficha-kbfold.teclas,.v4-ficha-body[data-testid] > .v4-ficha-kbfold.teclas{transition:none;} }
+    .v4-ficha-body[data-testid][data-kb] > .v4-ficha-kbfold.teclas,.v4-ficha-body[data-testid] > .v4-ficha-kbfold.teclas,
+    .v4-ficha-body[data-testid][data-kb] .v4-ficha-kbfold.abajo{transition:none;} }
   /* Con Efectivo la píldora no se pinta, pero guarda su sitio: la fila no salta al cambiar. */
   .v4-ficha-pay > .v4-ficha-meta-pill.off{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s .2s;}
   .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);
@@ -32963,7 +32972,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="cfed29cad445326650b197b051d37227ffdf2e117db82fc182e7aa436bbabf44";
+var _rnSha="f409b2f300f8f43761cc8faee0152817a1abaf3e2ae8e3a9e922378daad59ae8";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39604,25 +39613,23 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
   const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
   /* Mientras baja al soltar el concepto, el contenido puede crecer más deprisa de lo que baja el margen (con
-     letra Enorme a 360 la hoja asomaba 18 px por encima de la pantalla): el tope se ajusta en cada
-     fotograma para que el borde de arriba no suba de donde estaba ni del sitio que tendrá al acabar. */
+     letra Enorme a 360 la hoja asomaba 18 px por encima de la pantalla); y en la subida prevista, el margen
+     puede subir más deprisa de lo que se pliega el contenido (lo mismo a 360 con Enorme, −19 px). El tope se
+     ajusta en cada fotograma para que el borde de arriba no suba de donde estaba ni del sitio que tendría
+     con su tope normal. */
   useLayoutEffect(function(){
     const el=swipe.sheetRef.current;
-    if(!kbBaja||conceptoFoco||!el||mcReduced()) return undefined;
+    const activo=(kbBaja&&!conceptoFoco)||(kbPrevio&&conceptoFoco);
+    if(!activo||!el||mcReduced()) return undefined;
     const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
     const maxCss=parseFloat(getComputedStyle(el).maxHeight)||0;
     const lim=Math.min(el.getBoundingClientRect().top, window.innerHeight-maxCss*zoom);
-    let raf=0, puesto="";
-    const paso=function(){
-      const m=parseFloat(getComputedStyle(el).marginBottom)||0;
-      puesto=Math.max(0,Math.min(maxCss,(window.innerHeight-lim)/zoom-m))+"px";
-      el.style.maxHeight=puesto;
-      raf=requestAnimationFrame(paso);
-    };
-    paso();
-    // Solo se quita lo puesto aquí: si se vuelve a enfocar, React ya ha puesto su tope.
-    return function(){ cancelAnimationFrame(raf); if(el.style.maxHeight===puesto) el.style.maxHeight=""; };
-  },[kbBaja,conceptoFoco]);
+    // El tope lo calcula el CSS con el margen animado (`--kb-m`); aquí solo se le dan sus dos límites.
+    el.style.setProperty("--kb-lim",((window.innerHeight-lim)/zoom)+"px");
+    el.style.setProperty("--kb-max",maxCss+"px");
+    el.setAttribute("data-kb-lim","1");
+    return function(){ el.removeAttribute("data-kb-lim"); el.style.removeProperty("--kb-lim"); el.style.removeProperty("--kb-max"); };
+  },[kbBaja,kbPrevio,conceptoFoco]);
   useBackClose(!!open&&!ensayo, swipe.close);
   /* La primera apertura costaba mucho más que las siguientes (123 ms de tarea larga frente a 0, con
      la CPU a ×6, 14/11/2026): se ensaya una vez en seco a los pocos segundos de arrancar. Si ya se
@@ -39751,7 +39758,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
         /* Sube y se recorta cuando ya se está compactando (`kbVista`): si el teclado llegaba antes, la hoja
            entera subía o se recortaba con el numérico aún puesto. */
         style:conceptoFoco&&kbVista&&(kbPad||vvAlto)?Object.assign({},
-          kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))"}:null,
+          kbPad?{"--kb-m":"calc("+kbPad+"px / var(--zoom,1))"}:null,
           vvAlto?{maxHeight:"calc(("+vvAlto+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),

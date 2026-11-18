@@ -423,7 +423,8 @@ test("DIS-05: Apuntar lleva la transición del margen", async ({ page }) => {
   await page.evaluate(() => localStorage.setItem("micartera_kb_alto", JSON.stringify({ k: 300, h: innerHeight })));
   await hoja.locator(".v4-ficha-concept").click();
   await expect(page.locator('.v4-exp-sheet[data-kb-previo="1"]')).toHaveCount(1);
-  expect(await transicion(page)).toContain("margin-bottom");
+  // Desde el 240 el margen de Apuntar sale de `--kb-m`, que es lo que se anima.
+  expect(await transicion(page)).toContain("--kb-m");
 });
 test("DIS-05: Modificar no la lleva", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
