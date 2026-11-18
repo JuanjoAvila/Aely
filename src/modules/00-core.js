@@ -4028,7 +4028,34 @@ function resolvePossibleDup(state, expenseId, same){
   })});
   const sueltos=quitarGemeloDe(state.gemelos, bancoKey);
   if(sueltos!==state.gemelos) out.gemelos=sueltos;
-  return out;
+  return saldoTrasSonDistintos(state, out, ex);
+}
+/* «SON DISTINTOS» Y EL SALDO DE LA CUENTA DIARIA (ronda 240, revisión de dinero P2-A y P3-C).
+   El posible repetido no resta mientras dura la duda: ni al pintar, ni al anclar con la lectura
+   del banco, ni al cerrar el mes (`expenseCountsCash`). Al decir que son dos cargos de verdad:
+   - Si la cuenta tiene una lectura del banco (o un saldo tecleado) del día de la fila o posterior,
+     esa lectura ya llevaba el cargo —la fila salió de ese extracto—: se conserva lo que se pinta
+     (`conSaldoMostrado`). Sin esto quedaba 48 € por debajo del banco hasta el siguiente sync.
+   - Sin esa lectura, la verdad es restarlo. En el mes en curso lo hace solo el pintado al quitar
+     la marca. De un mes YA CERRADO (anterior a `trAnchor`) no lo restaría nadie nunca: el cierre
+     lo dejó fuera y en una cuenta a mano no hay lectura que lo corrija (quedaban 48 € de más para
+     siempre). Se resta de la base justo lo que ese cierre habría restado con la fila contando
+     (`gastoDelCierre`: el importe y su redondeo, la misma regla que el cierre).
+   «Es el mismo» no toca nada: la fila nunca contó. */
+function saldoTrasSonDistintos(antes, despues, ex){
+  const b=expenseBankOf(ex)||((antes.accounts||[]).find(function(a){ return a&&a.spendFrom; })||{}).ent;
+  const cuenta=(antes.accounts||[]).find(function(a){ return a&&accDaily(a)&&a.ent===b; });
+  if(!cuenta) return despues;
+  const f=new Date(dateMs(ex.date));
+  if(saldoLeidoDelBanco(antes, b, cuenta)>=new Date(f.getFullYear(), f.getMonth(), f.getDate()).getTime()) return conSaldoMostrado(antes, despues);
+  const key=mkOf(f);
+  if(!cuenta.spendFrom || !antes.trAnchor || !(key<antes.trAnchor)) return despues;
+  const c0=gastoDelCierre(antes, cuenta, key, f.getFullYear(), f.getMonth()), c1=gastoDelCierre(despues, cuenta, key, f.getFullYear(), f.getMonth());
+  const delta=+((c1.spent+c1.ru)-(c0.spent+c0.ru)).toFixed(2);
+  if(Math.abs(delta)<0.005) return despues;
+  return Object.assign({}, despues, {accounts:(despues.accounts||[]).map(function(a){
+    return a===cuenta ? Object.assign({}, a, {value:+((a.value||0)-delta).toFixed(2)}) : a;
+  })});
 }
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){

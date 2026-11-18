@@ -141,3 +141,55 @@ test("foto de Hogar: cada cuenta con su saldo y el banco una sola vez",()=>{
   // Sin `totals`, `value` a pelo, como antes.
   assert.deepEqual(Array.from(c.buildHouseholdSnapshot(s,{},"a@b.c").accounts,a=>a.value),[1000,500,800,300]);
 });
+
+// ---------- Revisión de la 240: resolver el posible repetido DESPUÉS ----------
+// P2-A: BBVA diaria a mano (sin lectura), aviso «Bar» de 48 €, la fila del extracto importado sin
+// nombre marcada como posible repetido y Mercadona 20 €. Se cierra octubre y el 3/11 se resuelve.
+// Verdad: «son distintos» → salieron 68 + 48; «es el mismo» → salieron 68. ING con su cuenta de recibos.
+const casoCerrado=redondeo=>Object.assign({},json(vacio),{
+  accounts:[{id:"a",ent:"bbva",role:"diario",spendFrom:true,value:1000,roundup:redondeo},{id:"b",ent:"ing",role:"fijos",value:600}],
+  settings:{},trAnchor:"2026-10",budget:800,fixed:[],
+  expenses:[
+    {id:"w1",date:"2026-10-10T08:00:00.000Z",merchant:"Bar",amount:48,category:"bares",source:"wallet",ent:"bbva"},
+    {id:"o1",date:"2026-10-10T10:00:00.000Z",merchant:"",amount:48,category:"otros",source:"ob-hist",ent:"bbva",possibleDup:true,possibleDupOf:"w1"},
+    {id:"m1",date:"2026-10-12T12:00:00.000Z",merchant:"Mercadona",amount:20,category:"super",source:"manual",ent:"bbva"}]});
+const resuelveEl3=(s0,mismo)=>{ reloj.t=new Date(2026,10,3,9).getTime(); const s=c.reconcileTR(json(s0)); assert.equal(s.trAnchor,"2026-11"); return {cerrado:s,resuelto:c.resolvePossibleDup(s,"o1",mismo)}; };
+
+test("posible repetido de un mes cerrado, cuenta a mano: «son distintos» resta el importe y «es el mismo» nada",()=>{
+  reloj.t=OCT31;
+  const s0=casoCerrado(0);
+  assert.deepEqual(pintado(s0),{a:93200,b:60000});
+  const d=resuelveEl3(s0,false), m=resuelveEl3(s0,true);
+  assert.deepEqual(pintado(d.cerrado),{a:93200,b:60000},"cerrar no mueve lo pintado");
+  assert.deepEqual(pintado(d.resuelto),{a:88400,b:60000},"antes se quedaba en 932 para siempre");
+  assert.deepEqual(pintado(m.resuelto),{a:93200,b:60000});
+  assert.equal(m.resuelto.expenses.some(e=>e.id==="o1"),false);
+});
+
+test("y con redondeo: «son distintos» resta también lo que el cierre habría redondeado",()=>{
+  reloj.t=OCT31;
+  const s0=casoCerrado(1);
+  // 48 → 1,00 y 20 → 1,00 de redondeo; el repetido no redondea.
+  assert.equal(pintado(s0).a,93000);
+  const d=resuelveEl3(s0,false), m=resuelveEl3(s0,true);
+  assert.equal(pintado(d.cerrado).a,93000);
+  assert.equal(pintado(d.resuelto).a,93000-4800-100);
+  assert.equal(pintado(m.resuelto).a,93000);
+});
+
+// P3-C: BBVA «ambos» por Open Banking. El banco dice 1.000 y ya lleva la compra de 20 y los dos cargos
+// de 48; se sincronizó el 28/10. Resolver en cualquier sentido deja lo pintado en lo que dice el banco.
+// Sin lectura posterior a la fila (cuenta a mano), «son distintos» sí lo resta: es la verdad.
+test("posible repetido del mes en curso: con lectura del banco posterior, resolver no se aparta del banco",()=>{
+  const OCT28=new Date(2026,9,28,18).getTime();
+  reloj.t=OCT28;
+  const base=Object.assign(casoCerrado(0),{accounts:[{id:"a",ent:"bbva",role:"ambos",spendFrom:true,value:1000},{id:"b",ent:"ing",role:"fijos",value:600}]});
+  base.expenses.find(e=>e.id==="o1").source="ob";
+  const leido=Object.assign(c.applyBankBalances(base,[enlace("BBVA","bbva",1000),enlace("ING","ing",600)]).state,{obBalAt:{BBVA:new Date(OCT28).toISOString(),ING:new Date(OCT28).toISOString()}});
+  assert.deepEqual(pintado(leido),{a:100000,b:60000});
+  assert.deepEqual(pintado(c.resolvePossibleDup(leido,"o1",false)),{a:100000,b:60000},"antes 952 hasta el siguiente sync");
+  assert.deepEqual(pintado(c.resolvePossibleDup(leido,"o1",true)),{a:100000,b:60000});
+  // La misma cuenta sin lectura: «son distintos» baja lo pintado en el cargo.
+  const aMano=json(base);
+  assert.equal(pintado(c.resolvePossibleDup(aMano,"o1",false)).a,pintado(aMano).a-4800);
+});

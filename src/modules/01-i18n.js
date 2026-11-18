@@ -3227,6 +3227,34 @@ function conservaNetoDeBanco(antes, despues){
 // anclado al id de la cuenta TR del creador (patrón de migración por id) hasta que la semilla escriba el campo.
 function accInject(a){ if(!a) return 0; return a.inject!=null ? a.inject : (a.id==="ebj0vbh" ? CONFIG.TR_INJECTION : 0); }
 
+/* Lo que el CIERRE de un mes le resta a la cuenta de gasto diario por sus gastos: el gastado y el
+   redondeo/saveback estimados. En una función porque «son distintos» sobre un posible repetido de
+   un mes ya cerrado (`resolvePossibleDup`) tiene que desplazar el saldo justo lo que este cierre
+   habría restado con esa fila contando (ronda 240, revisión P2-A).
+   - Lo que el saldo restaba al pintarse durante el mes, ni más ni menos (`expenseCountsCash`, la
+     misma puerta que el pintado y el anclaje; ronda 240). Antes se copiaban a mano sus exclusiones
+     —el cargo de un recibo, que ya arrastra `monthNetForAccount` (12/10/2026), y el Saveback de TR
+     (16/11/2026)— y faltaba el posible repetido: el día 1 el saldo bajaba de golpe lo que estaba
+     marcado como posible repetido, que durante el mes no restaba.
+   - Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO y se
+     lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre de
+     efectivo —o un recibo de Sabadell— bajaba Trade Republic. Mismo reparto que usa el saldo que se
+     PINTA durante el mes (`gastoDelMesPorBanco` + `saldoCuentaMostrada`, 00-core): si el cierre usa
+     otro criterio, el saldo pega un salto el día 1.
+   - El redondeo y el saveback, SOLO si la cuenta no tiene ya movimientos reales de Open Banking
+     (`obFed`, 2026-08-03): desde que TR sincroniza de verdad entran como gastos reales «inversion»
+     (`applyInvestBuy`) y simularlos aquí los contaba dos veces. El cargo de un recibo no cuenta como
+     «el banco ya trae sus movimientos» (12/10/2026, medido: 1771,72 pasaba a 1772,52).
+   - Se estiman de los MISMOS gastos que en vivo (`recompensasEstimadas`): solo su banco, y nada si
+     TR ya avisó de lo real (FIN-01, 9/9). */
+function gastoDelCierre(s, acc, key, ay, am){
+  const monthExp=(s.expenses||[]).filter(e=> mkOf(parseDate(e.date))===key && expenseCountsCash(e, s));
+  const porBanco=gastoDelMesPorBanco(monthExp, acc.ent), spent=porBanco[acc.ent]||0;
+  const obFed=(s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent && !cargoDeRecibo(e, s); });
+  const rec=obFed?{ru:0,sb:0}:recompensasEstimadas(s, acc, monthExp, +new Date(ay, am, 1), true);
+  // `porBanco` también lo usa el cierre del sobre de efectivo, con el mismo reparto.
+  return {spent:spent, porBanco:porBanco, obFed:obFed, ru:rec.ru, sb:rec.sb};
+}
 function reconcileTR(s){
   if(!s.accounts || !s.expenses) return s;
   const acc=s.accounts.find(a=>a.spendFrom);
@@ -3242,44 +3270,17 @@ function reconcileTR(s){
   let guard=0;
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
-    /* Lo que el saldo restaba al pintarse durante el mes, ni más ni menos (`expenseCountsCash`, la
-       misma puerta que el pintado y el anclaje; ronda 240). Antes se copiaban a mano sus exclusiones
-       —el cargo de un recibo, que ya arrastra `monthNetForAccount` (12/10/2026), y el Saveback de TR
-       (16/11/2026)— y faltaba el posible repetido: el día 1 el saldo bajaba de golpe lo que estaba
-       marcado como posible repetido, que durante el mes no restaba. */
-    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && expenseCountsCash(e, s));
-    /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
-       y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
-       de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
-       porque `monthNetForAccount` no mira `s.expenses`. El patrimonio total cuadraba y por eso no
-       se veía; los dos saldos por separado mentían. Mismo reparto que usa el saldo que se PINTA
-       durante el mes (`gastoDelMesPorBanco` + `saldoCuentaMostrada`, 00-core): si el cierre usa
-       otro criterio, el saldo pega un salto el día 1. */
-    const gastoPorBanco=gastoDelMesPorBanco(monthExp, acc.ent);
-    const spent=gastoPorBanco[acc.ent]||0;
-    acc.value = acc.value + accInject(acc) - spent;                 // mes cerrado: + inyección de nómina − gasto
+    const cierre=gastoDelCierre(s, acc, key, ay, am);
+    acc.value = acc.value + accInject(acc) - cierre.spent;          // mes cerrado: + inyección de nómina − gasto
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
     // Solo si es la que carga el neto de su banco (`cuentaDelNetoDeBanco`): es la misma que lo
     // pinta durante el mes, y con dos cuentas del banco cada una lo arrastraba entero (ronda 238).
     if(accRole(acc)==="ambos" && cargaNeto(acc)) acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
     // Round-up & Saveback (#19): al cerrar el mes, el round-up sale del efectivo y se abona
     // (junto al saveback, dinero gratis) a la inversión destino comprando participaciones.
-    // SOLO si la cuenta no tiene ya movimientos reales de Open Banking (2026-08-03): desde que TR
-    // sincroniza de verdad, el round-up/saveback/aporte YA entran como gastos reales categoría
-    // "inversion" (ver `applyInvestBuy` en 08-motor-bank.js, disparado desde `importObExpenses` y
-    // `setCat`) — sumarlos aquí TAMBIÉN los contaba dos veces (una simulada, otra real).
-    // El cargo de un recibo no cuenta como «el banco ya trae sus movimientos»: esa fila antes ni
-    // existía, y con ella sola el cierre dejaba de restar el redondeo y el aporte (revisión del
-    // 12/10/2026, medido: 1771,72 pasaba a 1772,52).
-    const obFed = (s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent && !cargoDeRecibo(e, s); });
-    if(!obFed){
-      /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo (`monthExp` ya pasa
-         por `expenseCountsCash`): con el mes ENTERO podían comerse compras con tarjeta de bancos
-         que no son de gasto diario y el saldo de TR daba un salto el día 1 (FIN-01, 9/9).
-         Misma regla que en vivo (`recompensasEstimadas`): solo su banco, y nada si TR ya avisó de lo real
-         (eso ya restó del efectivo y ya sumó a su posición: simularlo otra vez lo contaría dos veces). */
-      const rec = recompensasEstimadas(s, acc, monthExp, +new Date(ay, am, 1), true);
-      const ru = rec.ru, sb = rec.sb;
+    // Solo sin movimientos reales del banco (`gastoDelCierre`, `obFed`).
+    if(!cierre.obFed){
+      const ru = cierre.ru, sb = cierre.sb;
       if(ru>0) acc.value = +(acc.value - ru).toFixed(2);             // el round-up abandona el efectivo
       const contrib = ru + sb;                                       // total que entra a la inversión (€)
       /* Lo estimado en ESTE cierre, por tipo (revisión 236, P2-E): si el primer aviso real de TR llega
@@ -3331,7 +3332,7 @@ function reconcileTR(s){
       // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia
       // arriba el día 1. Los demás bancos NO restan gastos a propósito (00-core, saldo mostrado:
       // «las manuales sin OB las ajusta él a mano»), así que aquí tampoco.
-      if(isEfectivoEnt(a2)) v -= (gastoPorBanco["efectivo"]||0);
+      if(isEfectivoEnt(a2)) v -= (cierre.porBanco["efectivo"]||0);
       a2.value = +v.toFixed(2);
     });
     am++; if(am>11){am=0;ay++;}
