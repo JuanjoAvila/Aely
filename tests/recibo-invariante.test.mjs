@@ -138,19 +138,43 @@ function cifras(c,s,y,m,d){
   const numeros={}; Object.keys(st).sort().forEach(k=>{ if(typeof st[k]==="number"&&k!=="nomina") numeros[k]=+st[k].toFixed(2); });
   return {presupuesto:numeros,pintado,base:s.accounts.map(a=>a.value),previsto:pintado.map((x,k)=>+(x+cerrado[k]-hoy[k]).toFixed(2))};
 }
+/* Quinta excepción (ronda 240 saldos, P3 de la revisión de la 237; la cuarta es la de recibos): el POSIBLE REPETIDO. Al pintar no resta
+   (`expenseCountsCash`) y la referencia sí lo contaba al anclar con la lectura del banco, así que justo
+   después de leer pintaba más que el banco: 1.321,69 con el banco en 1.273,69 en el amplio #165 (un
+   cargo de 48 € sin nombre, gemelo del aviso de las basuras). La 240 ancla y cierra con la misma puerta
+   que pinta. Se calcula desde las filas de la REFERENCIA, sin código de la candidata (revisión 240,
+   P3-D): cada cuenta de gasto diario pinta, prevé y guarda de base lo de la referencia MENOS sus
+   posibles repetidos del mes y su redondeo (la referencia también los redondeaba al anclar). Al
+   cerrar, la referencia restaba el importe (que la 240 ya tenía fuera de la base) pero no su redondeo,
+   que ya no estima con ellos: tras el cierre solo queda de diferencia ese redondeo (`soloRedondeo`),
+   el mismo salto del día 1 que la 240 también quita. */
+function menosRepetidos(paso,estado,mes,soloRedondeo){
+  const c=base.c, diaria=estado.accounts.find(a=>a.spendFrom);
+  const menos=estado.accounts.map(function(acc){
+    if(!c.accDaily(acc)) return 0;
+    const filas=estado.expenses.filter(e=>e.possibleDup&&e.amount>0&&new Date(c.dateMs(e.date)).getMonth()+1===mes&&(c.expenseBankOf(e)||(diaria&&diaria.ent))===acc.ent);
+    const propias=filas.filter(e=>{ const b=c.expenseBankOf(e); return b ? b===acc.ent : c.accDaily(acc); });
+    return (soloRedondeo?0:Math.round(filas.reduce((s,e)=>s+e.amount,0)*100))+Math.round(c.roundupOf(propias,acc.roundup||0)*100);
+  });
+  if(!menos.some(Boolean)) return {paso,menos};
+  const resta=xs=>xs.map((x,i)=>+((Math.round(x*100)-menos[i])/100).toFixed(2));
+  return {paso:Object.assign({},paso,{pintado:resta(paso.pintado),previsto:resta(paso.previsto),base:resta(paso.base)}),menos};
+}
 function recorre({c,reloj},ex){
   const pasos={};
   reloj.t=OCT28;
   let s=sincroniza(c,clon(ex.estado),ex.txs,ex.saldos);
-  pasos.sync=cifras(c,s,2026,10,28);
+  pasos.sync=cifras(c,s,2026,10,28); const trasSync=s;
   // Segunda pulsación: lo pendiente ya está contabilizado y el banco ha cobrado algo más.
   s=sincroniza(c,s,ex.txs.map(t=>t.status==="PDNG"?Object.assign({},t,{status:"BOOK"}):t),ex.saldos);
   pasos.contabilizado=cifras(c,s,2026,10,28);
   reloj.t=NOV2;
   const cerrado=c.reconcileTR(clon(s));
   pasos.cierre={base:cerrado.accounts.map(a=>a.value)};
-  return {pasos,estado:s};
+  return {pasos,estado:s,trasSync};
 }
+// Lo que la candidata debe dar en `recorre`: lo de la referencia sin sus posibles repetidos (quinta excepción).
+const esperado=a=>Object.assign({},a.pasos,{sync:menosRepetidos(a.pasos.sync,a.trasSync,10).paso,contabilizado:menosRepetidos(a.pasos.contabilizado,a.estado,10).paso});
 
 const ROLES=["recibos","todo","diario"], SEMILLAS=12;
 let extractos=0;
@@ -159,7 +183,7 @@ for(const rol of ROLES) for(const bancos of [1,2]) for(const nombres of ["plan",
     for(const importes of ["exactos","variables","distintos"]) for(let k=0;k<SEMILLAS;k++){
       const ex=extracto({rol,bancos,nombres,importes,semilla:1000*bancos+97*k+ROLES.indexOf(rol)*7+(nombres==="banco"?3:0)+(importes.length)});
       const a=recorre(base,ex), b=recorre(cand,ex);
-      assert.deepEqual(b.pasos,a.pasos,"extracto "+importes+" #"+k);
+      assert.deepEqual(b.pasos,esperado(a),"extracto "+importes+" #"+k);
       extractos++;
       // Y no es porque no haya entrado nada: lo que la 119 tiraba ahora está en la lista.
       assert.ok(b.estado.expenses.length>=a.estado.expenses.length);
@@ -191,7 +215,9 @@ test("la fila de recibo no gasta el «posible repetido» que le toca a otro movi
     // El del recibo va con fecha posterior: el extracto se recorre de nuevo a viejo y es el que llega antes.
     txs:[{ext_id:"m1",ent:"caixabank",date:"2026-10-07",amount:20,merchant:"Movimiento",status:"BOOK",card:false},{ext_id:"m2",ent:"caixabank",date:"2026-10-06",amount:20,merchant:"",status:"BOOK",card:true}],saldos:{caixabank:2960}};
   const a=recorre(base,ex), b=recorre(cand,ex);
-  assert.deepEqual(b.pasos,a.pasos);
+  assert.deepEqual(b.pasos,esperado(a));
+  // La quinta excepción, con su cifra: la referencia pintaba 2.980 con el banco en 2.960.
+  assert.deepEqual([a.pasos.sync.pintado[0],b.pasos.sync.pintado[0]],[2980,2960]);
   assert.equal(b.pasos.sync.presupuesto.spent,20,"solo cuenta el aviso");
   assert.equal(b.estado.expenses.filter(e=>e.possibleDup).length,1);
 });
@@ -283,6 +309,16 @@ function extractoAmplio(semilla){
     else tx(Object.assign({ent:uno(ents),date:fecha},compra));
   }
   if(settings.budgetCycle||p(0.3)) tx({ent:uno(ents),date:uno(["2026-09-28","2026-10-01","2026-10-10","2026-10-27"]),amount:-1800,merchant:"NOMINA ACME SL",status:"BOOK",card:false,ext_id:"nom"});
+  /* Posibles repetidos de verdad (revisión 240, P3-D): el aviso del móvil y, el mismo día y en el banco
+     de gasto diario, la fila del extracto sin nombre por el mismo importe. Con su propio azar, para no
+     mover ninguna otra cifra del generador. El amplio #1 (semilla 7013) se queda como estaba: sus
+     cifras de octubre están fijadas abajo a mano. */
+  const r2=azar(semilla*7+1);
+  if(r2()<0.3&&semilla!==7013){
+    const dia=dd(1+Math.floor(r2()*27)), cuanto=[12.3,48,20.4,7.15][Math.floor(r2()*4)];
+    expenses.push({id:"w"+(++n),date:"2026-10-"+dia+"T08:00:00.000Z",merchant:"Bar Paco",amount:cuanto,category:"bares",source:"wallet",ent:diaria.ent});
+    txs.push({ext_id:"d"+n,status:"BOOK",card:true,ent:diaria.ent,date:"2026-10-"+dia,amount:cuanto,merchant:""});
+  }
   const d1=uno([9,16,22,28,31]), saldos=()=>{ const o={}; ents.forEach(e=>{ o[e]=+(300+r()*3000).toFixed(2); }); return o; };
   return {estado:{accounts,settings,fixed,debts,oneoffs,flows:[],expenses,bankTx:[],deleted:[],budget:uno([0,800,1200]),investments:[],assets:[],aportaciones:[],trAnchor:"2026-10"},
     txs,d1,d2:Math.min(31,d1+uno([0,1,5])),dn:uno([1,2,5]),saldos:[saldos(),saldos(),saldos()]};
@@ -348,10 +384,11 @@ function cobroLeidoJustificado(ex,s,mes,rd,observado,etiqueta){
 function recorreAmplio({c,reloj},ex){
   const pasos={}, hasta=(mes,dia)=>ex.txs.filter(t=>t.date<="2026-"+mes+"-"+dd(dia)), contab=t=>t.status==="PDNG"?Object.assign({},t,{status:"BOOK"}):t;
   reloj.t=aLas(10,ex.d1);
+  const estados={};
   let s=sincroniza(c,c.reconcileTR(clon(ex.estado)),hasta(10,ex.d1),ex.saldos[0]);
-  pasos.sync=cifras(c,s,2026,10,ex.d1);
+  pasos.sync=cifras(c,s,2026,10,ex.d1); estados.sync=s;
   s=sincroniza(c,s,hasta(10,ex.d1).map(contab),ex.saldos[0]);
-  pasos.contabilizado=cifras(c,s,2026,10,ex.d1);
+  pasos.contabilizado=cifras(c,s,2026,10,ex.d1); estados.contabilizado=s;
   reloj.t=aLas(10,ex.d2);
   s=sincroniza(c,s,hasta(10,ex.d2).map(contab),ex.saldos[1]);
   pasos.otroDia=cifras(c,s,2026,10,ex.d2);
@@ -363,9 +400,10 @@ function recorreAmplio({c,reloj},ex){
   const noviembre=s, trasNoviembre=cifras(c,s,2026,11,ex.dn);
   reloj.t=aLas(12,1);
   const diciembre=c.reconcileTR(clon(s)).accounts.map(a=>a.value);
-  return {pasos,octubre,noviembre,trasNoviembre,diciembre};
+  return {pasos,octubre,noviembre,trasNoviembre,diciembre,estados};
 }
 // La excepción aceptada, medida: qué compras reimporta la 119 que ahora siguen marcadas.
+const conRepetido=new Set();
 function compara(ex,etiqueta){
   const a=recorreAmplio(base,ex), b=recorreAmplio(cand,ex);
   /* Segunda excepción: referencias distintas (decisión del coordinador, 15/10/2026).
@@ -397,18 +435,21 @@ function compara(ex,etiqueta){
     });
     return filas?filasExtra:ex.estado.accounts.map(acc=>extra[acc.ent]||0);
   };
-  const comparaSaldo=function(actual,antes,extra,nombre){
+  const comparaSaldo=function(actual,antes,extra,nombre,estado,mes){
+    if(estado){ const r=menosRepetidos(antes,estado,mes); antes=r.paso; if(r.menos.some(Boolean)) conRepetido.add(etiqueta); }
     const {base:baseB,...restoB}=actual,{base:baseA,...restoA}=antes;
     assert.deepEqual(restoB,restoA,etiqueta+": "+nombre+", gastado/pintado/previsto sin cambios");
     assert.deepEqual(baseB.map(x=>Math.round(x*100)),baseA.map((x,i)=>Math.round(x*100)+(extra[i]||0)),etiqueta+": "+nombre+", base al céntimo más cargos extra por referencia");
   };
-  comparaSaldo(b.pasos.sync,a.pasos.sync,cargosExtraPorReferencia(10,ex.d1,false),"sync");
-  comparaSaldo(b.pasos.contabilizado,a.pasos.contabilizado,cargosExtraPorReferencia(10,ex.d1,true),"contabilizado");
-  comparaSaldo(b.pasos.otroDia,a.pasos.otroDia,cargosExtraPorReferencia(10,ex.d2,true),"otro día");
-  // Cuarta excepción (`cobroLeidoJustificado`): al cerrar el mes, lo cobrado antes de su día que ya traía la lectura.
-  const cobrosOct=cobroLeidoJustificado(ex,b.octubre,10,ex.d2,b.pasos.cierre.base.map((x,i)=>Math.round(x*100)-Math.round(a.pasos.cierre.base[i]*100)),etiqueta+": cierre de octubre");
+  comparaSaldo(b.pasos.sync,a.pasos.sync,cargosExtraPorReferencia(10,ex.d1,false),"sync",a.estados.sync,10);
+  comparaSaldo(b.pasos.contabilizado,a.pasos.contabilizado,cargosExtraPorReferencia(10,ex.d1,true),"contabilizado",a.estados.contabilizado,10);
+  comparaSaldo(b.pasos.otroDia,a.pasos.otroDia,cargosExtraPorReferencia(10,ex.d2,true),"otro día",a.octubre,10);
+  // Al cerrar, primero la quinta excepción (el redondeo de los posibles repetidos, `menosRepetidos`) y sobre lo que
+  // queda la cuarta (`cobroLeidoJustificado`): lo cobrado antes de su día que ya traía la lectura.
+  const cierreA=menosRepetidos(a.pasos.cierre,a.octubre,10,true).paso;
+  const cobrosOct=cobroLeidoJustificado(ex,b.octubre,10,ex.d2,b.pasos.cierre.base.map((x,i)=>Math.round(x*100)-Math.round(cierreA.base[i]*100)),etiqueta+": cierre de octubre");
   {
-    const sube=v=>v.map((x,i)=>+(x+cobrosOct[i]/100).toFixed(2)), {base:baseA,...restoA}=a.pasos.cierre;
+    const sube=v=>v.map((x,i)=>+(x+cobrosOct[i]/100).toFixed(2)), {base:baseA,...restoA}=cierreA;
     comparaSaldo(b.pasos.cierre,Object.assign({},restoA,{base:baseA,pintado:sube(restoA.pintado),previsto:sube(restoA.previsto)}),cobrosOct,"cierre");
   }
   const extrasOctubre=cargosExtraPorReferencia(10,ex.d2,true,true);
@@ -421,9 +462,10 @@ function compara(ex,etiqueta){
   assert.equal(b.noviembre.expenses.filter(e=>!e.reciboId).length,a.noviembre.expenses.length-reimportadas.length+extrasNoviembre.length,etiqueta+": las únicas filas extra tienen referencias distintas del extracto");
   // El saldo, idéntico. El presupuesto, el de la 119 sin esas compras que antes eran un recibo.
   const {presupuesto:pa,...saldoA}=a.trasNoviembre, {presupuesto:pb,...saldoB}=b.trasNoviembre;
-  comparaSaldo(saldoB,saldoA,cargosExtraPorReferencia(11,ex.dn,true),"saldo tras sincronizar en noviembre");
-  const cobrosNov=cobroLeidoJustificado(ex,b.noviembre,11,ex.dn,b.diciembre.map((x,i)=>Math.round(x*100)-Math.round(a.diciembre[i]*100)),etiqueta+": cierre de noviembre");
-  assert.deepEqual(b.diciembre.map(x=>Math.round(x*100)),a.diciembre.map((x,i)=>Math.round(x*100)+cobrosNov[i]),etiqueta+": cierre de noviembre");
+  comparaSaldo(saldoB,saldoA,cargosExtraPorReferencia(11,ex.dn,true),"saldo tras sincronizar en noviembre",a.noviembre,11);
+  const ruNov=menosRepetidos({pintado:[],previsto:[],base:a.diciembre},a.noviembre,11,true).paso.base;
+  const cobrosNov=cobroLeidoJustificado(ex,b.noviembre,11,ex.dn,b.diciembre.map((x,i)=>Math.round(x*100)-Math.round(ruNov[i]*100)),etiqueta+": cierre de noviembre");
+  assert.deepEqual(b.diciembre.map(x=>Math.round(x*100)),ruNov.map((x,i)=>Math.round(x*100)+cobrosNov[i]),etiqueta+": cierre de noviembre");
   base.reloj.t=aLas(11,ex.dn);
   const sinEllas=Object.assign({},a.noviembre,{expenses:a.noviembre.expenses.filter(e=>reimportadas.indexOf(e)<0)});
   assert.deepEqual(pb,cifras(base.c,sinEllas,2026,11,ex.dn).presupuesto,etiqueta+": presupuesto tras sincronizar en noviembre");
@@ -451,6 +493,7 @@ test("segunda familia: deudas, puntuales, no mensuales, redondeo, «Mi ciclo» y
   assert.ok(conMarca>AMPLIOS*0.8,"filas marcadas en "+conMarca);
   assert.ok(conReimporte>=3,"extractos con la excepción del cruce de mes: "+conReimporte);
   assert.ok(conDeuda>=30,"extractos con una cuota de deuda en Gastos: "+conDeuda);
+  assert.ok(conRepetido.size>=30,"extractos con un posible repetido en la cuenta diaria: "+conRepetido.size);
   assert.ok(conRedondeoSimulado>=5,"extractos donde el cierre estima el redondeo y hay cargos de recibo: "+conRedondeoSimulado);
   assert.ok(cobrosLeidosVistos>=5&&inequivocosVistos>=5,"cierres con un recibo cobrado antes de su día y ya leído (cuarta excepción): "+cobrosLeidosVistos+", inequívocos: "+inequivocosVistos);
   console.log("cuarta excepción: "+cobrosLeidosVistos+" cierres con diferencia, "+inequivocosVistos+" recibos inequívocos, "+inequivocosSinCasar+" sin casar");

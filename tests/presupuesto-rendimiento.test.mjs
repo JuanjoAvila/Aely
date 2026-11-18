@@ -432,6 +432,9 @@ const PRESUPUESTO = {
   // minificado (+5.558 sobre la 239 integrada) y 552.021 B gzip (+1.732). Es lógica de dinero (el saldo restaba dos veces un
   // recibo cobrado antes de su día, y clientes de dos versiones no pueden leer el mismo `value` con reglas distintas);
   // mandato 11/10: al mínimo medido, 1962 / 540 KiB.
+  // Saldos 240 (18/11, revisión de dinero): el ancla y el cierre con la misma puerta que lo pintado, «son distintos» que
+  // mueve el saldo, la lectura de la cuenta de recibos y la foto de Hogar por cuenta: 2.004.151 B minificado (183 B sobre
+  // el tope) y 550.658 B gzip. Es lógica de dinero; mismo mandato del 11/10: el minificado, al mínimo medido, 1958 KiB.
   minificado: 1962 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

@@ -2565,13 +2565,15 @@ function applyBankBalances(s, links){
   // Gasto del mes por banco UNA vez (misma lista que al pintar). Si se recalcula dentro del
   // bucle con `spentM` global, un segundo banco diario/ambos se come los gastos ajenos.
   const monthStart=startOfMonth();
-  /* Sin el cargo de un recibo (revisión del 12/10/2026): al pintar esa fila no cuenta, y si aquí
-     sí contaba el saldo salía inflado justo después de sincronizar (banco 1848 → pantalla 2000,
-     los 152 € de los recibos). Solo se quita esa fila: el resto del mes sigue en crudo, como
-     estaba, para no mover el anclaje de nada más. */
-  // El Saveback que avisa TR tampoco (16/11/2026): al pintar no resta (`expenseCountsCash`), y aquí
-  // contarlo dejaría el saldo por encima del banco en lo mismo.
-  const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart && !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback"; });
+  /* LA MISMA PUERTA QUE AL PINTAR, ENTERA (`expenseCountsCash`, ronda 240). Lo que aquí cuenta y
+     al pintar no deja el saldo por encima del banco justo después de sincronizar. Se copiaban a
+     mano las exclusiones una a una —el cargo de un recibo (12/10/2026: banco 1848 → pantalla 2000)
+     y el Saveback de TR (16/11/2026)— y faltaba el POSIBLE REPETIDO: una cuenta «ambos» pintaba
+     1.321,69 con el banco en 1.273,69, los 48 € de un cargo sin nombre gemelo del aviso de las
+     basuras (ya pasaba en la 119). Su redondeo igual, que se estima de esta misma lista. El filtro
+     de bancos de `expenseCountsCash` siempre deja pasar el de la cuenta diaria, la única que se
+     ancla con el gasto del mes, así que eso no mueve nada más. */
+  const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart && expenseCountsCash(e, s); });
   const dailyAcc=(s.accounts||[]).find(function(x){ return accDaily(x); });
   const dailyEnt=dailyAcc&&dailyAcc.ent;
   const porBanco=gastoDelMesPorBanco(monthExp, dailyEnt);
@@ -2735,7 +2737,16 @@ function pendingWalkEvents(state, y, m, today){
     const a=occAmountIn(e,m,y);
     if(!(a>0)||!occursIn(e,m,y)||fixedSinCobroIn(e,y,m)) return;
     const b=accOf(e);
-    if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
+    /* La lectura que vale para sus recibos es la de la cuenta que carga el neto del banco
+       (`cuentaDelNetoDeBanco`), no la más vieja del banco (ronda 240, P3.3 de la revisión 238).
+       Desde la 238 el `paidNet` del banco va en UNA cuenta: lo que el saldo mostrado ya resta por
+       calendario (`fixedEnSaldoMostrado`) y si un cobro está dentro de lo leído dependen de cuándo se
+       leyó ESA cuenta. Con la de recibos leída hoy y la de ahorro tecleada el día 1, la más vieja daba
+       por restado un Teléfono sin cobrar y «¿Te llega?» salía 30 € alto; la más reciente falla al
+       revés (ahorro reciente, recibos sin leer: lo resta dos veces). Sin cuenta de recibos, la de
+       siempre: la más vieja, prudente (R5-2). El aviso de la víspera (11) sigue con la más vieja:
+       allí la pregunta es si el TOTAL del banco está leído entero. */
+    if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b,cuentaDelNetoDeBanco(state.accounts,b)||undefined);
     // Pagado por otro lado: este banco ya no lo va a cobrar (misma regla que el saldo y los totales).
     if(fixedPagadoFuera(state,e,y,m,today)) return;
     const st=fixedPaymentState(state,e,y,m,today);
@@ -2799,6 +2810,7 @@ function pendingWalkEvents(state, y, m, today){
    R2 y R4: con Open Banking o con el puente de TR, un recibo ya cobrado se restaba otra vez).
    Cada cuenta del banco tiene su lectura y manda la MÁS VIEJA; si una cuenta no tiene ninguna,
    0 (R5-2: una lectura reciente de otra cuenta no puede meter cobros que la vieja no ha visto).
+   Con `soloCuenta`, la de esa cuenta (la que carga los recibos: `pendingWalkEvents`).
    Fuentes, todas con la misma señal (una hora de lectura en la cuenta o del banco):
    - Puente nativo de Trade Republic: `applyTrCash` (00 y la tarjeta de 06) sella `saldoLeidoAt`;
      para estados anteriores al sello, `lastTrSync` si el puente manda.
@@ -2810,13 +2822,13 @@ function pendingWalkEvents(state, y, m, today){
    MyInvestor y los demás brókers solo leen posiciones (Inversiones), no el saldo de una cuenta.
    Tener extracto en `bankTx` NO es una lectura: el saldo puede seguir siendo el tecleado (es el
    alquiler BOOK de 750 que fija `fixed-ispaidin`). */
-function saldoLeidoDelBanco(state, bank){
+function saldoLeidoDelBanco(state, bank, soloCuenta){
   const ms=function(v){ const t=Date.parse(v); return isFinite(t)&&t>0?t:0; };
   let ob=0;
   const at=state.obBalAt||{};
   Object.keys(at).forEach(function(asp){ if(entFromAspsp(asp)!==bank) return; const t=ms(at[asp]); if(t&&(!ob||t<ob)) ob=t; });
   const tr=bank==="trade_republic"&&state.lastTrSync&&saldoLoMandaPuenteNativo(state,bank)?ms(state.lastTrSync):0;
-  const cuentas=(state.accounts||[]).filter(function(a){ return a&&a.ent===bank; });
+  const cuentas=soloCuenta?[soloCuenta]:(state.accounts||[]).filter(function(a){ return a&&a.ent===bank; });
   if(!cuentas.length) return 0;
   let viejo=Infinity;
   cuentas.forEach(function(a){
