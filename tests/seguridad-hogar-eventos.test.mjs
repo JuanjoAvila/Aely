@@ -76,5 +76,71 @@ t("el generador no usa Math.random, y al crear no se trunca a 8", () => {
   assert.ok(/replace\(\/\[\^A-Z0-9\]\/g,""\)\.slice\(0,12\)/.test(core), "con slice(0,8) el código de 10 se trunca y nadie puede unirse");
 });
 
+/* Ronda A (18/11): 0028 endurece Hogar, 0029 quita el admin por correo y 0030 purga rate_limits.
+   Sin Postgres: se vigila lo que se rompe al tocarlas. Lo que solo se ve ejecutándolas está en
+   docs/SETUP-SUPABASE.md (prueba con begin … rollback en el SQL Editor). */
+const m28 = rd("supabase/migrations/0028_hogar_endurecer.sql");
+const m29 = rd("supabase/migrations/0029_admin_sin_email.sql");
+const m30 = rd("supabase/migrations/0030_rate_limits_purga.sql");
+const cuerpo = (src, fn) => {
+  const i = src.indexOf("create or replace function public." + fn + "(");
+  assert.ok(i >= 0, "falta " + fn);
+  return src.slice(i, src.indexOf("$$;", src.indexOf("$$", i) + 2));
+};
+
+t("0028: la función nueva NO lanza, para que el fallo quede contado", () => {
+  const f = cuerpo(m28, "join_household");
+  assert.equal(/raise exception/.test(f), false, "una excepción deshace el contador: es justo el fallo de la 0022");
+  assert.ok(/returns jsonb/.test(f));
+  const iMiss = f.indexOf("check_rate_limit('hh-join-miss-global', 200, 3600)");
+  const iInsert = f.indexOf("insert into public.household_members");
+  assert.ok(iMiss > 0 && iMiss < iInsert, "el fallo global se cuenta en la rama del código inválido");
+  assert.ok(f.indexOf("hogar_fallos_globales_agotados()") < f.indexOf("from public.households h"), "el tope global se mira antes de buscar");
+  assert.ok(f.indexOf("check_rate_limit('hh-join:'") < f.indexOf("from public.households h"), "y el freno por usuario también");
+});
+
+t("0028: la vieja conserva el contrato que espera la app instalada", () => {
+  const f = cuerpo(m28, "join_household_by_code");
+  for (const e of ["not_authenticated", "too_many_attempts", "invalid_code"]) assert.ok(f.includes("raise exception '" + e + "'"), e);
+  assert.ok(/returns uuid/.test(f));
+  assert.ok(/caduca is not null and caduca < now\(\)/.test(f), "caducado = inexistente");
+});
+
+t("0028: nada nuevo ejecutable sin sesión, y todo SECURITY DEFINER con search_path", () => {
+  for (const fn of ["join_household(text)", "join_household_by_code(text)", "is_household_owner(uuid)"]) {
+    assert.ok(m28.includes("revoke execute on function public." + fn + " from anon;"), fn);
+    assert.ok(m28.includes("grant execute on function public." + fn + " to authenticated;"), fn);
+  }
+  assert.ok(m28.includes("revoke execute on function public.hogar_fallos_globales_agotados() from anon, authenticated;"));
+  assert.equal((m28.match(/security definer/g) || []).length, (m28.match(/security definer\s*\n(?:\s*stable\s*\n)?\s*set search_path = public/g) || []).length);
+  assert.equal(/grant [^;]* to anon/.test(m28), false);
+});
+
+t("0028: expulsar solo a OTROS, solo el dueño, y la foto del que sale se borra", () => {
+  assert.ok(/for delete to authenticated\s+using \(user_id <> auth\.uid\(\) and public\.is_household_owner\(household_id\)\)/.test(m28));
+  assert.ok(/after delete on public\.household_members/.test(m28));
+  assert.ok(/delete from public\.household_snapshots\s+where household_id = old\.household_id and user_id = old\.user_id/.test(m28));
+});
+
+t("0028: longitud solo al crear o CAMBIAR el código, y nada que revalide lo viejo", () => {
+  assert.ok(/before insert or update of invite_code on public\.households/.test(m28));
+  assert.ok(/< 10 then/.test(m28));
+  assert.equal(/alter table public\.households add constraint/.test(m28), false, "un CHECK revalida en cada UPDATE (renombrar un hogar viejo fallaría)");
+  assert.ok(/add column if not exists invite_expires_at timestamptz;/.test(m28), "nullable: NULL = no caduca, como hoy");
+});
+
+t("0029: ninguna cuenta nace admin y no queda ningún correo", () => {
+  assert.ok(/values \(new\.id, false\)/.test(m29));
+  assert.equal(/@[a-z0-9-]+\.[a-z]/i.test(m29.replace(/^--.*$/gm, "")), false, "ni un correo en el SQL");
+  assert.equal(/update public\.profiles|delete from public\.profiles/i.test(m29), false, "no toca el admin de hoy");
+});
+
+t("0030: purga diaria idempotente que solo llama a la función de la 0019", () => {
+  assert.ok(/perform cron\.unschedule\('aely-rate-limits-purga'\);\s*exception when others then\s*null;/.test(m30));
+  assert.ok(/cron\.schedule\(\s*'aely-rate-limits-purga',\s*'17 4 \* \* \*',\s*\$job\$ select public\.prune_rate_limits\(\); \$job\$/.test(m30));
+  const m19 = rd("supabase/migrations/0019_rate_limit.sql");
+  assert.ok(/window_start < now\(\) - interval '2 days'/.test(m19), "si cambia el margen de la purga, revisar las ventanas de los frenos");
+});
+
 if (fallos) { console.error(`seguridad-hogar-eventos: ${fallos} fallo(s)`); process.exit(1); }
 console.log("seguridad-hogar-eventos: OK");
