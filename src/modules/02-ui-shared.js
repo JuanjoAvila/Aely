@@ -1320,10 +1320,8 @@ function settingsDeps(settings, keys){
    guardián (`tests/inicio-deps-ajustes.test.mjs`) muta cada uno y busca los que falten.
    `accountBalanceHistory` y `settings` van aparte (`netWorthHistoryKey`, `settingsDeps`).
    `trRecompensas` (4.26.237): el libro de avisos de TR decide qué Round up sigue pendiente y suma
-   al patrimonio de hoy (`rewardsPending`); sin declararlo, elegir destino dejaba la gráfica vieja.
-   `obBalAt` (ronda 240): la hora de la lectura decide qué cobrado antes de su día devuelve el saldo
-   (`cobrosLeidosDelMes`, 07). */
-const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","obBalAt","oneoffs","reciboBorrado","reciboNo","shared","trRecompensas","trasAbonoDesde"];
+   al patrimonio de hoy (`rewardsPending`); sin declararlo, elegir destino dejaba la gráfica vieja. */
+const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trRecompensas","trasAbonoDesde"];
 const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};

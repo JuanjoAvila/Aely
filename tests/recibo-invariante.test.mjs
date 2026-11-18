@@ -102,11 +102,12 @@ function extracto({rol,bancos,nombres,importes,semilla}){
   const saldos={[principal]:+(1500+r()*1000).toFixed(2)}; if(segundo) saldos[segundo]=+(600+r()*500).toFixed(2);
   return {estado:{accounts,settings,fixed,debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10"},txs,saldos};
 }
-const enlaces=(txs,saldos)=>Object.keys(saldos).map(ent=>({aspsp:ASPSP[ent],ok:true,
-  accounts:[{uid:ent,ok:true,balances:[{type:"ITAV",amount:saldos[ent],currency:"EUR"}],transactions:txs.filter(t=>t.ent===ent)}]}));
+// Con la hora de la lectura, del enlace y de cada cuenta, como la manda `bank-sync` cuando lee todos los saldos.
+const enlaces=(txs,saldos,at)=>Object.keys(saldos).map(ent=>({aspsp:ASPSP[ent],ok:true,balanceAt:at,
+  accounts:[{uid:ent,ok:true,balanceAt:at,balances:[{type:"ITAV",amount:saldos[ent],currency:"EUR"}],transactions:txs.filter(t=>t.ent===ent)}]}));
 // Lo mismo que hace `runBankSync` con la respuesta: importar, guardar extracto y pruebas, anclar.
 function sincroniza(c,s,txs,saldos){
-  const links=enlaces(txs,saldos),flat=c.flattenBankTx(links),entran=c.importObExpenses(s,flat,links)||[];
+  const links=enlaces(txs,saldos,new c.Date().toISOString()),flat=c.flattenBankTx(links),entran=c.importObExpenses(s,flat,links)||[];
   /* LA CIFRA DE REFERENCIA ES LA CONVERGIDA (13/10/2026). El código de antes metía dos filas con
      la MISMA clave cuando el banco mandaba un apunte con id y otro idéntico sin él: contaban
      doble hasta el primer pull, que las funde en una (`mergeExpenses`, una fila por clave). Hoy
@@ -117,10 +118,10 @@ function sincroniza(c,s,txs,saldos){
   c.cuotasDeDeudaPorMarcar(Object.assign({},s,{expenses:[...add].concat(s.expenses||[])})).forEach(a=>{ if(add.indexOf(a.e)>=0){ a.e.category="deudas"; a.e.debtId=a.debtId; } });
   const hoy=new c.Date(), dia=[hoy.getFullYear(),hoy.getMonth()+1,hoy.getDate()];
   const conTx=Object.assign({},s,{expenses:c.enrichNotesFromBankTx([...add].concat(s.expenses||[]),flat),bankTx:flat});
-  // Y la hora de la lectura de cada banco (`obBalAt`), que `runBankSync` sella después de anclar (ronda 240:
-  // sin ella este banco no veía nunca un cobro anterior a la lectura, H3 de la 237).
+  // Y la hora de la lectura de cada banco (`obBalAt`), que `runBankSync` sella después de anclar. Ronda 240: sin
+  // horas de lectura (la del enlace y la de cada cuenta) este banco no veía nunca un cobro anterior a la lectura.
   const anclado=c.applyBankBalances(c.reconcileEarlyIncomeAnchors(c.reconcileFixedPaymentProofs(conTx,...dia),...dia),links).state;
-  const leido=Object.assign({},s.obBalAt); links.forEach(l=>{ leido[l.aspsp]=hoy.toISOString(); });
+  const leido=Object.assign({},s.obBalAt); links.forEach(l=>{ if(l.balanceAt) leido[l.aspsp]=l.balanceAt; });
   return Object.assign({},anclado,{obBalAt:leido});
 }
 // Las cifras, cada una por su camino. `previsto` = lo pintado más lo que el Plan aún va a mover.

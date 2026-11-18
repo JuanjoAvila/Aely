@@ -428,11 +428,11 @@ const PRESUPUESTO = {
   // aquí se suma además la 238 (dos cuentas de recibos en un banco); mismo mandato del 11/10: al mínimo medido, 1957 / 538 KiB.
   // Ronda 240 recibos (18/11): lo cobrado antes de su día que ya traía la lectura se devuelve al pintar y al cerrar el mes
   // (`cobrosLeidosDelMes`, con su filtro barato y la memoria del casado: sin ellos `totals` triplicaba), R1 y `pendingByBank`
-  // con la regla del saldo, y la marca de anclaje por cuenta (`anclaReglas`): 2.007.336 B minificado (+4.377 sobre la 239
-  // integrada) y 551.669 B gzip (+1.380). Es lógica de dinero (el saldo restaba dos veces un recibo cobrado antes de su día,
-  // y clientes de dos versiones no pueden leer el mismo `value` con reglas distintas); mandato 11/10: al mínimo medido,
-  // 1961 / 539 KiB.
-  minificado: 1961 * 1024,
+  // con la regla del saldo, y la marca de anclaje por cuenta (`anclaReglas`, con la hora de la lectura): 2.008.517 B
+  // minificado (+5.558 sobre la 239 integrada) y 552.021 B gzip (+1.732). Es lógica de dinero (el saldo restaba dos veces un
+  // recibo cobrado antes de su día, y clientes de dos versiones no pueden leer el mismo `value` con reglas distintas);
+  // mandato 11/10: al mínimo medido, 1962 / 540 KiB.
+  minificado: 1962 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -475,7 +475,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 539 * 1024, // ver el comentario de minificado (538,7 KiB medidos el 18/11/2026 en la ronda 240 recibos).
+  gzip: 540 * 1024, // ver el comentario de minificado (539,1 KiB medidos el 18/11/2026 en la ronda 240 recibos).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

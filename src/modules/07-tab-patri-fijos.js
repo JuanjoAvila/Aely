@@ -812,8 +812,13 @@ function fixedRestaDelSaldo(s,e,y,m,t,bp){
    cuenta que cambiaba el `value`, el viejo enseñaba 1.030 con 1.000 en el banco, y si re-anclaba el
    viejo el nuevo enseñaba 970 y cerraba el mes en 890 (revisión de la 240, P2-2). Aquí la corrección
    no se guarda: se SUMA al pintar (`insumosSaldoGasto`) y al cerrar el mes (`reconcileTR`), y se
-   deduce del extracto y de la hora de la lectura, que son de todos. Un cliente viejo sigue como
-   siempre (con H3, sin inventar dinero).
+   deduce del extracto y de la hora de la lectura CON LA QUE SE ANCLÓ ese `value` (la `t` de la marca
+   de abajo). Un cliente viejo sigue como siempre (con H3, sin inventar dinero).
+   La hora es la de la marca y no la del banco (`obBalAt`): el servidor solo manda la del enlace si
+   leyó TODAS sus cuentas, así que con otra cuenta del enlace fallando se quedaba en una lectura vieja
+   mientras esta se re-anclaba hoy, y se devolvía un recibo que el saldo ya no llevaba (1.030 con el
+   banco en 1.000, y el cierre también; revisión de la 240, segunda vuelta, P1). Sin marca válida
+   (otro `value`, o sin hora) no se devuelve nada.
    Cuenta un recibo si:
    - lo resta la regla de arriba SOLO por calendario (con marca `paidYm` o prueba de un cargo
      enlazado ya restaba antes, y si esa marca llegó después de leer, `conSaldoMostrado` ya movió el
@@ -832,52 +837,64 @@ function fixedRestaDelSaldo(s,e,y,m,t,bp){
    `value` con el que se puso y solo vale mientras coincide: cualquier escritura de `value` que no la
    renueve (un cliente viejo, o código nuevo que aún no la conoce) la invalida sola y la cuenta vuelve
    a leerse con la regla de antes. Falla hacia lo de siempre, nunca hacia una mezcla.
-   La ponen `applyBankBalances` al re-anclar y el cierre de mes (`reconcileTR`) si ya valía.
-   La corrección de H3 de arriba NO la necesita (no cambia `value`); la usa quien cambie el anclaje. */
+   Lleva también la hora de la lectura de ESA cuenta (`t`, el `balanceAt` por cuenta que manda el
+   servidor) con la que se ancló: la de H3 de arriba.
+   La ponen `applyBankBalances` al re-anclar; la renuevan, con la misma `t`, el cierre de mes
+   (`reconcileTR`) y `conSaldoMostrado`, si ya valía. */
 const ANCLA_REGLAS=240;
 function anclaConReglas(a, r){
   const m=a&&a.anclaReglas;
   return !!m&&typeof m==="object"&&Number(m.r)>=(r==null?ANCLA_REGLAS:r)&&Math.abs((Number(m.v)||0)-(Number(a.value)||0))<=0.005;
 }
-function selloAncla(value){ return {r:ANCLA_REGLAS, v:+(Number(value)||0).toFixed(2)}; }
+function selloAncla(value, t){ return {r:ANCLA_REGLAS, v:+(Number(value)||0).toFixed(2), t:t||null}; }
+// Hora (ms) de la lectura con la que se ancló el `value` de la cuenta que lleva los recibos del banco; 0 si no se sabe.
 function lecturaDeSusRecibos(s, ent){
   const c=cuentaDelNetoDeBanco(s.accounts, ent);
-  // Rancia (su saldo falló en la última sincronización): la hora del banco puede ser de otra cuenta y
-  // no de la lectura con la que se ancló esta. Sin hora fiable no se devuelve nada (prudente).
-  if(!c||!(c.bankIban||c.bankUid||c.balSaldo!=null)||c.balanceStale) return 0;
-  const ms=function(v){ const t=Date.parse(v); return isFinite(t)&&t>0?t:0; };
-  // La lectura con la que se ancló el `value`: la última (Open Banking, o el saldo corregido a mano).
-  let r=Math.max(ms(c.saldoLeidoAt), ms(c.balanceAt));
-  Object.keys(s.obBalAt||{}).forEach(function(asp){ if(entFromAspsp(asp)===ent) r=Math.max(r, ms(s.obBalAt[asp])); });
-  return r;
+  /* Rancia (su saldo falló en la última sincronización): no se devuelve nada. Su `value` sigue siendo
+     el de la marca, pero se prefiere lo prudente: pinta como siempre (970 con el banco en 1.000, H3
+     de la base, de menos) hasta la próxima lectura buena. */
+  if(!c||!(c.bankIban||c.bankUid||c.balSaldo!=null)||c.balanceStale||!anclaConReglas(c)) return 0;
+  const t=Date.parse(c.anclaReglas.t);
+  return isFinite(t)&&t>0?t:0;
 }
 /* Cargos BOOK de cada banco ordenados por importe, una vez por extracto: filtro barato antes de casar
    el recibo. `fixedPaymentState` cuesta (recorre el extracto y los demás recibos): llamarlo por cada
    recibo en cada pintado llevaba `totals` de 255 a 796 ms con 25 recibos y 1.000 movimientos (revisión
-   de la 240, P2-1). Solo pasa un recibo con una prueba guardada del mes, o con un cargo de importe
-   parecido que lleve su nombre (o, si su día ya llegó, aunque no lo lleve: `fixedPaymentState` casa
-   también por importe, pero nunca antes de su día). */
+   de la 240, P2-1). Solo pasa un recibo con una prueba guardada del mes, o con un cargo del mes de
+   importe parecido, con fecha no posterior a la lectura, que lleve su nombre (o, si su día ya llegó,
+   aunque no lo lleve: `fixedPaymentState` casa también por importe, pero nunca antes de su día). Sin
+   la fecha, a final de mes con una lectura de hace días pasaban todos los recibos cobrados en su día y
+   `totals` casi se duplicaba (segunda vuelta, P2). Un cargo cuya fecha contable el banco corrija a
+   otro día se queda fuera: H3 de siempre, de menos. */
 const _cargosBookPorBanco=new WeakMap();
 function cargosBookDelBanco(s, ent){
   const tx=s.bankTx||[];
   let porBanco=_cargosBookPorBanco.get(tx);
   if(!porBanco){
     porBanco={};
-    tx.forEach(function(x){ if(x&&String(x.status||"").toUpperCase()==="BOOK"&&Number(x.amount)>0) (porBanco[x.ent]=porBanco[x.ent]||[]).push({a:Number(x.amount),m:x.merchant}); });
+    tx.forEach(function(x){ if(x&&String(x.status||"").toUpperCase()==="BOOK"&&Number(x.amount)>0) (porBanco[x.ent]=porBanco[x.ent]||[]).push({a:Number(x.amount),m:x.merchant,d:String(x.date||"").slice(0,10)}); });
     Object.keys(porBanco).forEach(function(k){ porBanco[k].sort(function(p,q){ return p.a-q.a; }); });
     _cargosBookPorBanco.set(tx, porBanco);
   }
   return porBanco[ent]||[];
 }
-function puedeHaberloCobrado(s,e,y,m,t,target){
+function puedeHaberloCobrado(s,e,y,m,t,target,rd){
   if(e.paymentProofs&&e.paymentProofs[y*12+m]) return true;
   const lista=cargosBookDelBanco(s,accOf(e)), dd=dayIn(e,m,y), porImporte=t==null||dd!=null&&dd<=t;
+  const mes=y+"-"+String(m).padStart(2,"0")+"-", hasta=mes+String(rd).padStart(2,"0");
+  // Sin su nombre, `fixedPaymentPorImporte` exige el céntimo y el día a ±`CUOTA_DIAS` de su ventana: un
+  // cargo cualquiera que solo se le parezca en el importe no lo paga, y no merece casarlo.
+  const ventana=porImporte?fixedPaymentContender(e,y,m):null, cents=Math.round(target*100);
   // Primer cargo dentro de la tolerancia de `recAmtClose` (búsqueda binaria; la tolerancia nunca pasa del 2 % o 0,50).
   const desde=target-Math.max(0.5,0.021*target);
   let lo=0,hi=lista.length;
   while(lo<hi){ const mid=(lo+hi)>>1; if(lista[mid].a<desde) lo=mid+1; else hi=mid; }
   for(let i=lo;i<lista.length&&lista[i].a<=target*1.03+0.5;i++){
-    if(recAmtClose(target,lista[i].a)&&(porImporte||recNameMatch(e.name,lista[i].m))) return true;
+    const x=lista[i];
+    if(x.d.slice(0,8)!==mes||x.d>hasta||!recAmtClose(target,x.a)) continue;
+    if(recNameMatch(e.name,x.m)) return true;
+    const dia=Number(x.d.slice(8,10));
+    if(ventana&&ventana.day!=null&&Math.round(x.a*100)===cents&&dia>=ventana.dMin-CUOTA_DIAS&&dia<=ventana.dMax+CUOTA_DIAS) return true;
   }
   return false;
 }
@@ -887,7 +904,7 @@ function fixedCobradoAntesDeLeer(s,e,y,m,t,r){
   const l=new Date(r);
   if(l.getFullYear()*12+l.getMonth()+1!==y*12+m) return null;
   const target=typeof e.bankAmount==="number"&&e.bankAmount>0?e.bankAmount:occAmountIn(e,m,y);
-  if(!puedeHaberloCobrado(s,e,y,m,t,target)) return null;
+  if(!puedeHaberloCobrado(s,e,y,m,t,target,l.getDate())) return null;
   const d=diaDelCargoQuePaga(s,e,y,m,t==null?new Date(y,m,0).getDate():t);
   return d>=1&&d<=l.getDate()?d:null;
 }
@@ -909,22 +926,40 @@ function diaDelCargoQuePaga(s,e,y,m,t){
   return porRecibo.get(k);
 }
 // Lo que hay que devolverle a `paidNet` de un banco (t null = mes cerrado). Ver arriba.
+/* Recordado por los arrays que lee y por la lectura de la marca (que ya dice si vale con el `value` de
+   hoy): `conSaldoMostrado` pide el saldo de antes y el de después, y el de antes ya lo calculó `totals`
+   con el mismo estado (segunda vuelta, P2). */
+const _devueltoMemo=new WeakMap();
 function cobrosLeidosDelMes(s, ent, y, m, t){
   const r=lecturaDeSusRecibos(s, ent);
   if(!(r>0)) return 0;
   const l=new Date(r), ym=y*12+m;
   if(l.getFullYear()*12+l.getMonth()+1!==ym) return 0;
-  const rd=l.getDate(), bp=fixedSaldoBp(s,y,m,t);
-  let devuelve=0;
+  let nodo=_devueltoMemo;
+  [s.bankTx,s.fixed,s.expenses,s.reciboNo,s.deleted,s.debts,s.oneoffs].forEach(function(k){
+    const o=k&&typeof k==="object"?k:_sinDato;
+    let sig=nodo.get(o); if(!sig){ sig=new WeakMap(); nodo.set(o,sig); } nodo=sig;
+  });
+  let porClave=nodo.get(_sinDato); if(!porClave){ porClave=new Map(); nodo.set(_sinDato,porClave); }
+  // El casado mira cuántas cuentas de recibos tiene el banco: va en la clave, como la lectura.
+  const fijas=(s.accounts||[]).filter(function(a){ return a&&a.ent===ent&&accFixed(a); }).length;
+  const clave=[ent,y,m,t,r,fijas].join("|");
+  if(porClave.has(clave)) return porClave.get(clave);
+  const rd=l.getDate();
+  let bp, conBp=false, devuelve=0;
   (s.fixed||[]).forEach(function(e){
     if(accOf(e)!==ent||e.paidYm===ym||e.wait===ym) return;
     const dd=dayIn(e,m,y);
     if(t==null ? (dd!=null&&dd<=rd) : (dd==null||dd<=rd||dd>t)) return;
+    // Lo barato primero: casi nunca hay un cargo anterior a la lectura que lo pague.
+    if(fixedCobradoAntesDeLeer(s,e,y,m,t,r)==null) return;
     const p=fixedPaymentProof(s,e,y,m,t==null?new Date(y,m,0).getDate():t);
     if(p&&p.kind==="expense"&&fixedPaymentDerivedDay(s,{proof:p})) return;
-    if(!fixedRestaDelSaldo(s,e,y,m,t,bp)||fixedCobradoAntesDeLeer(s,e,y,m,t,r)==null) return;
+    if(!conBp){ bp=fixedSaldoBp(s,y,m,t); conBp=true; }
+    if(!fixedRestaDelSaldo(s,e,y,m,t,bp)) return;
     devuelve+=occAmountIn(e,m,y);
   });
+  porClave.set(clave, devuelve);
   return devuelve;
 }
 /* ¿El «Tienes hoy» de su banco lleva ya restado este recibo (TU parte, `occAmountIn`)? Solo en un

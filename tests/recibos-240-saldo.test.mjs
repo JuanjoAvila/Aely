@@ -46,10 +46,19 @@ const cuentas=()=>[
 const estado=p=>Object.assign({accounts:cuentas(),fixed:[tel,seg],debts:[],bankTx:[],expenses:[],oneoffs:[],flows:[],goals:[],deleted:[],
   investments:[],assets:[],aportaciones:[],obAccounts:[],settings:{},_dynBalAnchored:true,_netoUnaCuenta:true},p);
 const cargoTel=fecha=>({id:"t-tel-"+fecha,ent:"sabadell",date:fecha,amount:30,merchant:"TELEFONO",concept:"RECIBO TELEFONO",status:"BOOK"});
-const lectura=saldo=>[{aspsp:"Banco Sabadell",ok:true,accounts:[{uid:"u1",iban:"ES00SINTETICA0001",balances:[{type:"CLBD",amount:String(saldo),currency:"EUR"}]}]}];
-const leidoEl=dia=>({"Banco Sabadell":new Date(2026,10,dia,9).toISOString()});
-// La sincronización: ancla con el cliente que sea y sella la hora de la lectura, como `runBankSync`.
-const lee=(cli,s,dia,saldo)=>{ reloj(dia); return Object.assign({},cli.applyBankBalances(s,lectura(saldo)).state,{obBalAt:leidoEl(dia)}); };
+const leidaA=dia=>new Date(2026,10,dia,9).toISOString();
+const leidoEl=dia=>({"Banco Sabadell":leidaA(dia)});
+/* Lo que manda `bank-sync`: cada cuenta con su `balanceAt` si leyó el saldo; el enlace, solo si las leyó
+   TODAS. `falla`: otra cuenta del mismo enlace sin saldo (el P1 de la segunda vuelta). */
+const lectura=(saldo,dia,falla)=>[{aspsp:"Banco Sabadell",ok:true,balanceAt:falla?undefined:leidaA(dia),accounts:[
+  {uid:"u1",iban:"ES00SINTETICA0001",ok:true,balanceOk:true,balanceAt:leidaA(dia),balances:[{type:"CLBD",amount:String(saldo),currency:"EUR"}]}]
+  .concat(falla?[{uid:"u2",iban:"ES00SINTETICA0002",ok:false,balanceOk:false,balances:[]}]:[])}];
+// La sincronización: ancla con el cliente que sea y sella la hora del enlace si vino, como `runBankSync`.
+const lee=(cli,s,dia,saldo,falla)=>{
+  reloj(dia); const links=lectura(saldo,dia,falla), r=cli.applyBankBalances(s,links).state, at=Object.assign({},s.obBalAt);
+  links.forEach(l=>{ if(l.balanceAt) at[l.aspsp]=l.balanceAt; });
+  return Object.assign({},r,{obBalAt:at});
+};
 const pintado=(s,cli=c)=>{ const i=cli.insumosSaldoGasto(s),o={}; s.accounts.forEach(a=>{ o[a.id]=cents(cli.saldoCuentaMostrada(a,i)); }); return o; };
 // El cierre de noviembre de verdad (`reconcileTR`), abriendo el 2 de diciembre. Necesita la cuenta diaria.
 const conDiaria=s=>Object.assign({},json(s),{trAnchor:"2026-11",accounts:json(s.accounts).concat([{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:300,inject:0}])});
@@ -96,9 +105,10 @@ test("H3 · cliente viejo y nuevo en la misma cuenta (P2-2): ninguno enseña din
   const c9=lee(viejo,a,9,1000);
   reloj(9);assert.deepEqual([pintado(c9).sb,pintado(c9,viejo).sb],[100000,100000],"c) día 9");
   assert.equal(cierre(c9),92000,"c) cierre");
-  // d) Y al revés: el viejo ancla el 4 y el nuevo lee el 9: los dos, 1.000.
+  // d) Y al revés: el viejo ancla el 4 (sin marca) y el nuevo lo abre el 9: sin la hora de esa lectura no
+  // devuelve nada y pinta como la base (970, de menos); en cuanto lee él, 1.000.
   const d4=lee(viejo,s0,4,1000);
-  reloj(9);assert.equal(pintado(d4).sb,100000,"d) el nuevo sobre un ancla vieja");
+  reloj(9);assert.equal(pintado(d4).sb,97000,"d) el nuevo sobre un ancla vieja, como la base");
   assert.equal(pintado(lee(c,d4,9,1000)).sb,100000);
 });
 
@@ -120,14 +130,32 @@ test("marca de anclaje · la pone el anclaje nuevo y la invalida sola cualquier 
   assert.equal(c.anclaConReglas(c.reconcileTR(conDiaria(s0)).accounts.find(x=>x.id==="sb")),false);
 });
 
-test("H3 · si el saldo de la cuenta falló en la última lectura, la hora del banco no vale: no devuelve nada",()=>{
-  // Ancla el día 4 sin el cargo; el banco cobra el 6; el día 7 la lectura de ESTA cuenta falla (otra del banco
-  // sí lee y la hora avanza). El `value` no lleva el cargo del 6: devolverlo el día 10 inventaría 30 €.
-  const a=lee(c,estado({fixed:[tel,seg]}),4,1030);
-  const rancia=Object.assign({},a,{bankTx:[cargoTel("2026-11-06")],obBalAt:leidoEl(7),accounts:[Object.assign({},a.accounts[0],{balanceStale:true}),a.accounts[1]]});
+test("H3 · otra cuenta del enlace falla el día 9: la hora del banco se queda en el 4, la de la marca no (1.000, no 1.030)",()=>{
+  // Caso del revisor (segunda vuelta, P1): ancla bien el 4 con el Teléfono cobrado el 3; el 9 esta cuenta lee
+  // 1.000 y se re-ancla (el calendario ya resta el Teléfono: value 1.030), pero otra cuenta del enlace falla y
+  // `obBalAt` sigue en el 4. Con la hora del banco se devolvía el Teléfono otra vez.
+  const s0=estado({fixed:[tel,luz,seg],bankTx:[cargoTel("2026-11-03")]});
+  const a=lee(c,s0,4,1000), b=lee(c,a,9,1000,true);
+  assert.equal(b.obBalAt["Banco Sabadell"],leidaA(4),"el enlace no trae hora: el banco sigue en el 4");
+  assert.equal(b.accounts[0].anclaReglas.t,leidaA(9),"la marca lleva la lectura de esta cuenta");
+  for(const [dia,justo] of [[9,100000],[10,100000],[21,92000]]){ reloj(dia); assert.equal(pintado(b).sb,justo,"día "+dia); }
+  assert.equal(cierre(b),92000,"y el cierre de noviembre");
+  // Sin la hora por cuenta, vale la del enlace (solo viene si leyó todas); sin ninguna, la marca va sin hora.
+  const soloEnlace=lectura(1000,4); delete soloEnlace[0].accounts[0].balanceAt;
+  reloj(4);assert.equal(c.applyBankBalances(s0,soloEnlace).state.accounts[0].anclaReglas.t,leidaA(4));
+  const ninguna=lectura(1000,4,true); delete ninguna[0].accounts[0].balanceAt;
+  assert.equal(c.applyBankBalances(s0,ninguna).state.accounts[0].anclaReglas.t,null);
+  // Sin hora en la marca (un servidor que no la mande), no se devuelve nada: H3 de siempre, de menos.
+  const sinHora=Object.assign({},a,{accounts:[Object.assign({},a.accounts[0],{anclaReglas:Object.assign({},a.accounts[0].anclaReglas,{t:null})}),a.accounts[1]]});
+  reloj(10);assert.equal(pintado(sinHora).sb,97000);
+});
+
+test("H3 · cuenta rancia (su saldo falló en la última lectura): no devuelve nada, pinta como la base (970, de menos)",()=>{
+  const a=lee(c,estado({fixed:[tel,seg],bankTx:[cargoTel("2026-11-03")]}),4,1000);
+  const rancia=Object.assign({},a,{accounts:[Object.assign({},a.accounts[0],{balanceStale:true}),a.accounts[1]]});
   reloj(10);
   assert.equal(c.cobrosLeidosDelMes(rancia,"sabadell",Y,M,10),0);
-  assert.equal(pintado(rancia).sb,100000,"1.030 leídos − 30 del Teléfono");
+  assert.equal(pintado(rancia).sb,97000);assert.equal(pintado(rancia,viejo).sb,97000,"igual que la base");
 });
 
 test("H3 · en la cuenta a mano un cargo BOOK no adelanta nada (el extracto no es su saldo)",()=>{
@@ -147,9 +175,17 @@ test("H3 · coste (P2-1): un recibo sin ningún cargo parecido en el extracto ni
   try{
     const muchos=Array.from({length:25},(_,i)=>({id:"r"+i,name:"Recibo "+i,amount:100+i,day:9,account:"sabadell",freq:"mes"}));
     const tx=Array.from({length:1000},(_,i)=>({id:"x"+i,ent:"sabadell",date:"2026-11-0"+(1+i%8),amount:3+i%50,merchant:"COMERCIO "+i,status:"BOOK"}));
-    const s=estado({fixed:muchos,bankTx:tx,obBalAt:leidoEl(5)});
+    const marcada=cuentas(); marcada[0].anclaReglas=c.selloAncla(marcada[0].value,leidaA(5));
+    const s=estado({accounts:marcada,fixed:muchos,bankTx:tx});
+    assert.ok(c.lecturaDeSusRecibos(s,"sabadell")>0,"la corrección está activa");
     llamadas=0;c.cobrosLeidosDelMes(s,"sabadell",Y,M,10);
     assert.equal(llamadas,0,"ningún cargo del banco se parece a esos recibos: ni se casa");
+    // Final de mes con la lectura del 5 y cada recibo cobrado en su día con su nombre (el peor caso del revisor):
+    // ningún cargo es anterior a la lectura, así que tampoco se casa ninguno.
+    reloj(28);
+    const suyos=tx.concat(muchos.map((f,i)=>({id:"rc"+i,ent:"sabadell",date:"2026-11-09",amount:f.amount,merchant:f.name.toUpperCase(),status:"BOOK"})));
+    llamadas=0;c.cobrosLeidosDelMes(Object.assign({},s,{bankTx:suyos}),"sabadell",Y,M,28);
+    assert.equal(llamadas,0,"cobrados después de la lectura: ni se casan");
   }finally{ c.fixedPaymentState=fps; }
 });
 

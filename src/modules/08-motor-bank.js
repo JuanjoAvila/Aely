@@ -2682,18 +2682,21 @@ function applyBankBalances(s, links){
         // Sin IBAN, el uid de la cuenta del banco: es lo que llevan sus movimientos (`obAcc`) y lo
         // único que deja contar la parte de una principal a medias (revisión 14/10).
         const uidCambia = !ac.iban && ac.uid!=null && a.bankUid!==String(ac.uid);
-        // Y la marca de anclaje (`anclaConReglas`, 07): esta lectura ancla con las reglas de esta versión.
-        const sinMarca = !anclaConReglas(Object.assign({}, a, { value:newBase }));
+        // Y la marca de anclaje (`anclaConReglas`, 07): esta lectura ancla con las reglas de esta versión,
+        // a la hora en que el servidor leyó ESTA cuenta (`balanceAt` por cuenta). Si no la trae, vale la del
+        // enlace, que el servidor solo manda si leyó TODAS sus cuentas en ese momento; sin ninguna, sin hora.
+        const leidaAt = ac.balanceAt || (lk && lk.balanceAt) || null;
+        const sinMarca = !anclaConReglas(Object.assign({}, a, { value:newBase })) || (a.anclaReglas.t||null)!==leidaAt;
         if(!(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia) && sinMarca){
-          // Solo falta la marca: se pone sin reescribir lo demás (el rastro sigue tal cual).
-          accounts[ownerOf[k]]=Object.assign({}, a, { anclaReglas:selloAncla(a.value) });
+          // Solo falta (o cambia) la marca: se pone sin reescribir lo demás (el rastro sigue tal cual).
+          accounts[ownerOf[k]]=Object.assign({}, a, { anclaReglas:selloAncla(a.value, leidaAt) });
           changed=true;
         } else if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia){
           /* El rastro va también aquí: la Revolut de su padre es una cuenta PRINCIPAL re-anclada,
              no una obAccount, y era justo la que le bailaba. `balSaldo` es el saldo crudo que mandó
              el banco, sin la fórmula de dynBal encima, para poder comparar manzanas con manzanas. */
           accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban,
-            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal, anclaReglas:selloAncla(newBase) },
+            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal, anclaReglas:selloAncla(newBase, leidaAt) },
             uidCambia?{bankUid:String(ac.uid)}:null);
           changed=true;
         }
@@ -4228,7 +4231,7 @@ function conSaldoMostrado(antes, despues){
     cambia=true;
     // Desplazar para no mover lo pintado no cambia con qué reglas se ancló: la marca sigue al `value`.
     const v=+((acc.value||0)+diff).toFixed(2);
-    return Object.assign({},acc,{value:v},anclaConReglas(acc)?{anclaReglas:selloAncla(v)}:null);
+    return Object.assign({},acc,{value:v},anclaConReglas(acc)?{anclaReglas:selloAncla(v, acc.anclaReglas.t)}:null);
   });
   return cambia ? Object.assign({},despues,{accounts:accounts}) : despues;
 }
