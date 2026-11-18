@@ -457,6 +457,10 @@ const PRESUPUESTO = {
   // Integración 4.26.242 (18/11): la ronda de dinero de saldos y recibos (240-dinero: la marca del ancla, el cierre según la
   // marca, H3, «¿Te llega?» con la lectura de su cuenta, el sobre y la vista del Hogar) sobre la 241, con el sello y la nota:
   // 2.021.947 B minificado y 556.418 B gzip. Es lógica de dinero; mismo mandato del 11/10: al mínimo medido, 1975 / 544 KiB.
+  // Bancos R1 (18/11): aprobar Trade Republic sin abrir la persiana (botón a su app, espera hasta la cuenta atrás de TR,
+  // reintento al volver a primer plano y aviso propio) suma +2.347 B minificado y +809 B gzip sobre la 241: 2.015.120 /
+  // 554.256 B. Es lógica nueva que se ve, sin nada viejo que quitar en esta ronda (bkBrand y el selector se van en R3).
+  // Al mínimo medido: 1968 / 542 KiB.
   minificado: 1975 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

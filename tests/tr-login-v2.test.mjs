@@ -85,8 +85,9 @@ await t("el sanitizador tira lo que podría llevar teléfono, PIN o correo",()=>
   }
 });
 await t("v2 con aviso: tras el login se espera la aprobación sin pedir código",async()=>{
+  // Cuenta atrás de 1 s (bancos R1): con ella agotada, el primer `pending` para la tarjeta en vez de encadenar otra espera.
   const calls=[];
-  const {card,sets}=mount({login:async o=>{calls.push(["login",o]);return {ok:true,api:"v2",flow:"push",processId:"p-1"};},verify:async o=>{calls.push(["verify",o]);return {ok:false,pending:true,diag:{api:"v2",trCode:"PENDING"}};}});
+  const {card,sets}=mount({login:async o=>{calls.push(["login",o]);return {ok:true,api:"v2",flow:"push",processId:"p-1",countdown:1};},verify:async o=>{calls.push(["verify",o]);return {ok:false,pending:true,diag:{api:"v2",trCode:"PENDING"}};}});
   card.doLogin();for(let i=0;i<4;i++)await tick();
   assert.equal(calls[0][1].appVersion,"2.2631.13");assert.equal(calls[0][1].platform,"web-pro");
   assert.equal(calls[1][0],"verify");
