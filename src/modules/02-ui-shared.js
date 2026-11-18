@@ -306,7 +306,8 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast(errTxt()); return; }
-      const fname="mi-cartera-"+ymFile+".png";
+      // Con el nombre de la app de hoy: «mi-cartera-…» era el de antes de llamarse Aely.
+      const fname="aely-informe-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
         setTimeout(function(){ URL.revokeObjectURL(u); },1000);
@@ -2811,8 +2812,10 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
     React.createElement("button",{type:"button",className:"v4-bankpick-op sin"+(!bankEnt?" on":""),"aria-pressed":!bankEnt,
       onClick:function(){ mcTickHaptic(); onPickBank(null); }},t("ap_bank_none")));
   const cls="v4-ficha-pay"+(income?" income":"")+(elige.dentro?" eligiendo":"");
+  // Sin ningún banco que elegir la píldora no abre nada: no se pinta.
+  const sinBancos=!bankEnt&&!bankLocked&&!(bankOpts||[]).length;
   if(income){
-    return React.createElement("div",{className:cls},bankPill(false),
+    return React.createElement("div",{className:cls},sinBancos?null:bankPill(false),
       React.createElement("button",{type:"button",disabled:!!cashDisabled,
         // Del banco, la cuenta no se cambia: el efectivo se queda visiblemente apagado.
         className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
@@ -2830,13 +2833,13 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
       opt("card",t("ap_pay_card"),p+"-pay-card"),
       opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
       opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
-    bankPill(mode==="cash"),
+    sinBancos?null:bankPill(mode==="cash"),
     picker);
 }
-/* El logo del banco, o un círculo vacío si no hay banco: el 🏦 genérico parecía un banco más. */
+/* El logo del banco, o un hueco con «+» si no hay banco: el 🏦 genérico parecía un banco más. */
 function BancoIcono({ent, size}){
   if(ent) return React.createElement(Mono,{ent:ent,size:size});
-  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}});
+  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}},"+");
 }
 /* Montar con entrada y salida suaves: `vivo` monta, `dentro` pone la clase que anima. Al cerrar se
    espera a que acabe la transición antes de desmontar; con «reducir movimiento», sin esperar. */
@@ -2880,6 +2883,25 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
      a su alto máximo dejaba huecos vacíos de hasta 215 px encima del teclado (crítico de la v5).
      Caben floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
   const [filasTeclado,setFilasTeclado]=useState(null);
+  // El área del concepto de Apuntar mide lo que su texto, hasta dos renglones (más allá, se desliza por dentro).
+  const conceptoRef=useRef(null);
+  useLayoutEffect(function(){
+    const el=conceptoRef.current; if(!el||el.tagName!=="TEXTAREA") return undefined;
+    const mide=function(){
+      const cs=getComputedStyle(el), lh=parseFloat(cs.lineHeight)||20;
+      const max=2*lh+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      el.style.height="auto";
+      const alto=el.scrollHeight;
+      el.style.height=Math.min(alto,max)+"px";
+      el.style.overflowY=alto>max+1?"auto":"hidden";
+      // La hoja de Apuntar crece ese renglón (shell.html) para no perder una fila de categorías.
+      const dos=alto>lh*1.5+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      if((el.getAttribute("data-renglones")==="2")!==dos) el.setAttribute("data-renglones",dos?"2":"1");
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[concept,kb,cols]);
   useLayoutEffect(function(){
     if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
     const mide=function(){
@@ -2905,6 +2927,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
   /* Apuntar (`catRowsMax`): una fila, y dos si caben enteras en el alto que le queda a la hoja hasta
      su máximo (a 393 y 412 sí; a 360 no). La misma medida de filas enteras que la ficha. */
   const [filasAuto,setFilasAuto]=useState(1);
+  const kbFilasRef=useRef(!!kb), kbCambioRef=useRef(0), filasAntesRef=useRef(null), kbBordeRef=useRef(!!kb);
   useLayoutEffect(function(){
     if(!catRowsMax||todasEnFila) return undefined;
     const mide=function(){
@@ -2915,14 +2938,28 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       setFilasAuto(function(v){
         const fila=filaAltoRef.current+6, sobra=max-alto, desborda=body.scrollHeight-body.clientHeight>1;
         if(desborda&&v>1) return v-1;
-        if(!desborda&&v<catRowsMax&&sobra>=fila) return v+1;
+        // Escribiendo el concepto no se ganan filas: aparecerían de golpe con la hoja ya quieta.
+        if(!desborda&&v<catRowsMax&&sobra>=fila&&!kb) return v+1;
         return v;
       });
     };
-    mide();
-    window.addEventListener("resize",mide);
-    return function(){ window.removeEventListener("resize",mide); };
-  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
+    /* Mientras se pliega o despliega lo de Apuntar (el concepto con teclado, 300 ms) la hoja mide lo que
+       no es: medida a mitad, al volver de «Listo» quedaba una segunda fila que luego no cabía y asomaba
+       partida bajo el numérico (filtro de diseño 239, a 360). Se mide cuando ya está quieta. */
+    let tm=0;
+    if(kbFilasRef.current!==!!kb){
+      kbFilasRef.current=!!kb; kbCambioRef.current=Date.now();
+      // Al volver, de entrada las filas que había antes del teclado: una fila ganada con el teclado
+      // puesto no cabe con el numérico y se quedaba debajo de él hasta medir.
+      if(kb) filasAntesRef.current=filasAuto;
+      else if(filasAntesRef.current!=null&&filasAntesRef.current<filasAuto){ setFilasAuto(filasAntesRef.current); filasAntesRef.current=null; }
+    }
+    const resto=function(){ return 400-(Date.now()-kbCambioRef.current); };
+    const cuando=function(){ clearTimeout(tm); if(resto()>0) tm=setTimeout(mide,resto()); else mide(); };
+    cuando();
+    window.addEventListener("resize",cuando);
+    return function(){ clearTimeout(tm); window.removeEventListener("resize",cuando); };
+  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length,kb,concept]);
   /* El borde de la hoja no parte por la mitad lo que hay detrás (crítico de la v5: en Apuntar a 393,
      la línea «gastado en septiembre · …»; y en la ficha, el total a 360 o un movimiento a 412). Si el
      borde cae dentro de un texto de la pantalla de detrás, sube lo justo para taparlo entero, con
@@ -2937,7 +2974,10 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     const mira=function(el){
       const r=el.getBoundingClientRect();
       if(r.height<=0||y<r.top||y>r.bottom||r.right<=0||r.left>=window.innerWidth) return;
-      if(el.childElementCount===0){ if((el.textContent||"").trim()&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
+      // Un buscador también es letra: su texto de ayuda no está en `textContent` (el de Gastos, partido
+      // por la hoja con el teclado del sistema puesto, 17/11).
+      const letra=(el.textContent||"").trim()||(el.tagName==="INPUT"&&(el.value||el.placeholder));
+      if(el.childElementCount===0){ if(letra&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
       for(let c=el.firstElementChild;c;c=c.nextElementSibling) mira(c);
     };
     document.querySelectorAll(".page-scroll-host").forEach(mira);
@@ -2948,7 +2988,25 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     if(rellenoBaseRef.current==null) rellenoBaseRef.current=parseFloat(getComputedStyle(hoja).paddingTop)||0;
     const maxPropio=hoja.style.maxHeight;
     const ajusta=function(){
-      hoja.style.paddingTop=""; hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      const antes=hoja.style.paddingTop;
+      /* El tope de Apuntar con el teclado del sistema lo pone React (`vvAlto`): aquí solo se toca en
+         la ficha, que es la única que lo acorta. Si se reponía siempre, cada `resize` del teclado le
+         quitaba el tope a Apuntar y la hoja volvía a salirse por arriba. */
+      hoja.style.paddingTop=""; if(plegado) hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      mideBorde();
+      /* Escribiendo el concepto se mide cuando la hoja ya está quieta sobre el teclado, y el borde va
+         a su sitio deslizándose: de golpe se veía como un salto justo después de colocarse. */
+      if(desliza&&antes!==hoja.style.paddingTop&&!mcReduced()){
+        const nuevo=hoja.style.paddingTop;
+        hoja.style.paddingTop=antes; void hoja.offsetHeight;
+        hoja.style.transition=getComputedStyle(hoja).transition+",padding-top .25s cubic-bezier(.22,.61,.36,1)";
+        hoja.style.paddingTop=nuevo;
+        clearTimeout(tmBorde); tmBorde=setTimeout(function(){ hoja.style.transition=""; },300);
+      }
+    };
+    let tmBorde=0, tmKb=0;
+    const desliza=!!kb||kbBordeRef.current!==!!kb; kbBordeRef.current=!!kb;
+    const mideBorde=function(){
       const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
       const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, base=hoja.offsetHeight, top0=hoja.offsetTop*zoom;
       let extra=0, bajar=0;
@@ -2956,7 +3014,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         const y=top0-extra*zoom, r=textoPartido(y); if(!r) break;
         const mas=(y-(r.top-6))/zoom;
         // Si para taparlo habría que pasar del alto máximo, el borde baja hasta dejarlo entero encima.
-        if(extra+mas>max-base){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
+        // Con el teclado, como mucho un renglón: más es una franja vacía sobre el asa (filtro 239, a 360 con Enorme).
+        if(extra+mas>Math.min(max-base,kb?28:Infinity)){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
         extra+=mas;
       }
       if(extra>0){ hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px"; rellenoExtraRef.current=extra; }
@@ -2966,17 +3025,39 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         if(textoPartido(hoja.offsetTop*zoom)) hoja.style.maxHeight=maxPropio;
       }
     };
-    ajusta();
+    // Con el teclado del sistema, una vez quietos los pliegues (300 ms) y el margen que sube la hoja (250 ms).
+    const programa=function(){ clearTimeout(tmKb); tmKb=setTimeout(ajusta,360); };
+    const vv=kb?window.visualViewport:null;
+    /* Y al soltarlo, igual: medido a mitad del despliegue, el relleno de arriba salía de más y con letra
+       Enorme la hoja asomaba por encima de la pantalla (−53 px, filtro de diseño 240). */
+    if(desliza) programa(); else ajusta();
     // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
-    const tm=setTimeout(ajusta,480);
+    const tm=desliza?0:setTimeout(ajusta,480);
     hoja.addEventListener("animationend",ajusta);
-    window.addEventListener("resize",ajusta);
-    return function(){ clearTimeout(tm); hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",ajusta); };
-  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo]);
+    window.addEventListener("resize",kb?programa:ajusta);
+    if(vv) vv.addEventListener("resize",programa);
+    return function(){
+      clearTimeout(tm); clearTimeout(tmKb); clearTimeout(tmBorde); hoja.style.transition="";
+      hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",kb?programa:ajusta);
+      if(vv) vv.removeEventListener("resize",programa);
+    };
+  // Escribiendo, el concepto que pasa a dos renglones vuelve a medir el borde: el relleno de arriba
+  // puesto con uno solo dejaba una franja vacía y tapaba las categorías (filtro 239, a 360 con Enorme).
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo,kb,kb?concept:null]);
   const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
-  const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
+  /* Apuntar con el concepto enfocado (`kb`): la cabecera, el pago y el numérico se recogen con su alto
+     (filas de rejilla, como el teclado de Modificar) y la hoja encoge con ellos, sin saltos. Mientras
+     se escribe solo queda lo útil: el importe en pequeño, el concepto, las categorías y la sugerencia
+     ✨ (queja del 17/11: «está todo como hyper apretado»). */
+  const pliega=function(cls,hijo){
+    if(!onConceptFocus||!hijo) return hijo||null;
+    return React.createElement("div",{className:"v4-ficha-kbfold"+(cls?" "+cls:""),"aria-hidden":kb?"true":null,inert:kb?"":undefined},
+      React.createElement("div",{className:"v4-ficha-kbfold-in"},hijo));
+  };
+  // Con las categorías delante, el pago queda pegado al numérico y se va con él (`abajo`, shell.html).
+  const metaBlock=React.createElement(React.Fragment,{key:"meta"},pliega(catsFirst?"abajo":null,payRow),afterMeta||null);
   // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
   const todasBtn=function(cls,hijos){
     return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
@@ -3003,12 +3084,12 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
           if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado,.v4-ficha-cat-title-btn"))) onCloseNumpad();
         }:undefined},
-      React.createElement("div",{className:"v4-ficha-head"},
+      pliega(null,React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
         // La fecha se cambia aquí: la píldora 📅 repetía lo mismo con otras mayúsculas (DIS-03/04).
-        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel)),
+        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel))),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),"aria-expanded":plegado&&!locked?!!numpadOpen:null,onClick:locked?onLocked:(onAmount||undefined)},amount),
@@ -3020,10 +3101,15 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
           onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
-      React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
+      /* En Apuntar el concepto es un área de un renglón que crece a dos y parte entre palabras: en una
+         línea, un concepto largo dejaba un trozo de letra pegado al borde mientras se escribía y «…» al
+         terminar (filtro de diseño 239). Sigue siendo una línea de texto: Intro es «Listo» y un salto
+         pegado pasa a espacio. Modificar sigue con su campo de siempre. */
+      React.createElement(onConceptFocus?"textarea":"input",{className:"v4-input v4-exp-name v4-ficha-concept"+(onConceptFocus?" v4-ficha-concept-area":""),
+        value:concept||"",placeholder:t("f_concept_ph"),ref:conceptoRef,rows:onConceptFocus?1:undefined,
         enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
         onKeyDown:onConceptFocus?function(e){ if(e.key==="Enter"){ e.preventDefault(); e.target.blur(); } }:undefined,
-        onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
+        onChange:function(e){ onConcept(onConceptFocus?e.target.value.replace(/[\r\n]+/g," "):e.target.value); },onBlur:onConceptBlur}),
       /* Con letra Muy grande o Enorme no cabe todo encima del teclado: las categorías, que se tocan
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
@@ -3032,7 +3118,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       plegado
         ? (teclado.vivo && React.createElement("div",{className:"v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
             React.createElement("div",Object.assign({className:"v4-ficha-teclado-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)))
-        : (numpad||null)
+        : pliega("teclas",numpad)
     ),
     footer||null
   );

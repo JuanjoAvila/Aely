@@ -1037,7 +1037,7 @@ function mcSeedSandboxVacio(){
   mcSandboxTransition(true);
   try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
-    _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
+    _dataVer:6, onboarded:false, tourSeen:false, setupHint:false, _netoUnaCuenta:true,
     budget:0, monthStartNet:0, history:[],
     accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
     expenses:[], settings:{}
@@ -3372,6 +3372,24 @@ function valueDesdeSaldo(o){
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
 }
+/* EL NETO DEL MES DE UN BANCO LO LLEVA UNA SOLA CUENTA (ronda 238, revisión de dinero R2).
+   Los recibos, cuotas, nóminas y traspasos se apuntan a un BANCO (`accOf`), no a una cuenta, y
+   `paidNetByBank[ent]` es lo ya cobrado de ese banco. Cada cuenta lo sumaba entero: con dos
+   cuentas de recibos del mismo banco (la corriente y la de ahorro que trae Open Banking, las dos
+   «fijos» por defecto) un Teléfono de 30 € bajaba 120 € el «Tienes hoy» del banco, porque el mapa
+   ya llegaba doble y cada cuenta se lo restaba. Ahora el mapa lleva, sin que se vea al recorrerlo,
+   qué cuenta carga el neto (`cuentaDelNetoDeBanco`, 01-i18n), y viaja con el mapa a todo el que
+   lo pase. Un mapa hecho a mano sin esa marca se comporta como antes. */
+function paidNetDeCuenta(a, paidMap){
+  if(!a||!paidMap) return 0;
+  const pn=paidMap[a.ent]||0;
+  if(!pn) return 0;
+  const lleva=paidMap.cuentaDe;
+  if(!lleva || !Object.prototype.hasOwnProperty.call(lleva,a.ent)) return pn;
+  const m=lleva[a.ent];
+  // Marca = id de la cuenta, o la cuenta misma si no tiene id (dos sin id no lo cargan las dos).
+  return (m!==null&&typeof m==="object" ? m===a : m===a.id) ? pn : 0;
+}
 /* Saldo que se PINTA de una cuenta. Diaria → fórmula TR. Efectivo → value − gastos propios
    (nadie re-ancla el sobre). Resto → value + paidNet, SIN restar gastos: las manuales sin OB
    las ajusta él a mano (decisión pendiente del dueño; NO ensanchar a «sin bankIban»). */
@@ -3380,7 +3398,7 @@ function saldoCuentaMostrada(a, o){
   if(!a) return 0;
   const spentMap=o.spentByBank||{};
   const paidMap=o.paidNetByBank||{};
-  const pn=paidMap[a.ent]||0;
+  const pn=paidNetDeCuenta(a, paidMap);
   if(typeof accDaily==="function" ? accDaily(a) : (a.role==="diario"||a.role==="ambos"||a.spendFrom)){
     return saldoCuentaGasto({
       value:a.value, injTR:o.injTR||0, spentOwn:spentMap[a.ent]||0,
@@ -3729,7 +3747,7 @@ function applyTrCash(state, cash, totals){
   const hasTR=accounts.some(function(a){ return a.ent==="trade_republic"; });
   const next=hasTR ? accounts.map(function(a){
     if(a.ent!=="trade_republic") return a;
-    const pn=(totals.paidNetByBank&&totals.paidNetByBank[a.ent])||0;
+    const pn=paidNetDeCuenta(a, totals.paidNetByBank);
     const spentOwn=(totals.spentByBank&&totals.spentByBank[a.ent])||0;
     const stored=accDaily(a)
       ? valueDesdeSaldo({shown:shown,injTR:totals.injTR||0,spentOwn:spentOwn,roundup:totals.roundupThisMonth||0,monthlyInvest:totals.monthlyInvestThisMonth||0,ambos:accRole(a)==="ambos",paidNet:pn})
@@ -3956,7 +3974,8 @@ function moveAccountInList(state, fromId, toId){
     const j=acc.findIndex(function(a){ return accountOrderKeyOf(a,"account")===to; });
     if(i<0||j<0||i===j) return state;
     const item=acc.splice(i,1)[0]; acc.splice(j,0,item);
-    return Object.assign({},state,{accounts:acc});
+    // Reordenar puede cambiar qué cuenta carga el neto de su banco; el saldo no se mueve (238).
+    return conservaNetoDeBanco(state, Object.assign({},state,{accounts:acc}));
   }
 
   const keys=rows.map(function(r){ return r.key; });
@@ -3971,7 +3990,7 @@ function moveAccountInList(state, fromId, toId){
     const byKey={}; (state.accounts||[]).forEach(function(a){ byKey[accountOrderKeyOf(a,"account")]=a; });
     next.accounts=keys.map(function(k){ return byKey[k]; }).filter(Boolean);
   }
-  return Object.assign({},state,next);
+  return conservaNetoDeBanco(state, Object.assign({},state,next));
 }
 /* Resuelve un OB marcado como posible repetido (2026-09-07).
    same=true  → se queda el gemelo con nombre (noti/manual) y se borra la fila OB.
@@ -4801,7 +4820,7 @@ function manualBalanceWrite(s,readings){
     const typed=+(r.typed).toFixed(2),shown=saldoCuentaMostrada(a,input);
     // La misma cifra sigue siendo una lectura nueva (t3), aunque no acredite otra base manual.
     if(Math.round(typed*100)===Math.round(shown*100)){changed=true;return Object.assign({},a,{saldoLeidoAt:new Date().toISOString()});}
-    const pn=input.paidNetByBank[a.ent]||0,spent=input.spentByBank[a.ent]||0;
+    const pn=paidNetDeCuenta(a,input.paidNetByBank),spent=input.spentByBank[a.ent]||0;
     const value=accDaily(a)?valueDesdeSaldo({shown:typed,injTR:input.injTR,spentOwn:spent,roundup:input.roundup,monthlyInvest:input.monthlyInvest,ambos:accRole(a)==="ambos",paidNet:pn}):isEfectivoEnt(a)?+(typed+spent).toFixed(2):+(typed-pn).toFixed(2);
     const n=Object.assign({},a,{value:value,saldoLeidoAt:new Date().toISOString()});
     changed=true;

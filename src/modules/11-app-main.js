@@ -943,6 +943,21 @@ function App(){
           if(!planState)return Object.assign({},prev,{[cloudMergeKey.current]:{read:read,planInvalid:true}});
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState,planState);
+          /* La marca de la migración de la 238 (`_netoUnaCuenta`) va con las CUENTAS, no con quien gane
+             el resto. Si las cuentas vienen de la nube sin marca (las subió esta versión antes de migrar,
+             o un móvil viejo), la local no puede quedarse: `seedFlows` no las migraría y el arranque
+             pintaba 1.000/560 en vez de 970/500, y lo subía así (revisión 238, segunda vuelta). Una
+             cuenta migrada nunca viaja sin su marca, así que quitarla aquí no migra dos veces. */
+          if(!localNewer||goalState._goalSync.cloudOnly){
+            if(cloudState._netoUnaCuenta) baseObj._netoUnaCuenta=true; else delete baseObj._netoUnaCuenta;
+            /* Igual el libro de Round up / Saveback (`trRecompensas`): dice qué avisos están YA sumados
+               a las posiciones, así que va con las INVERSIONES que gana. Una nube sin la clave (un móvil
+               que nunca vio un aviso no la escribe) dejaba el libro local encima de las posiciones de la
+               nube: el aviso constaba como sumado sin estarlo y no se volvía a aplicar nunca, 12,96 € que
+               desaparecían de la cartera (CI de beta 240, recompensas-tr con la máquina lenta). Sin libro,
+               `aplicarRecompensasTR` lo suma una vez sobre lo bajado. */
+            if(cloudState.trRecompensas) baseObj.trRecompensas=cloudState.trRecompensas; else delete baseObj.trRecompensas;
+          }
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
           baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
@@ -4330,7 +4345,9 @@ function App(){
       (upd.otaReady&&!upd.otaDownloaded)?t("upd_downloading"):t("upd_ready")),
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
-    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast),
+    // Con Ajustes o el perfil encima no hay barra de abajo que salvar: el aviso baja a su sitio en
+    // vez de quedarse flotando sobre las filas (auditoría 237, P2-13).
+    toast && React.createElement("div",{className:"toast"+(drawerOpen||profileOpen?" toast-low":"")},toast.f?toast.f():toast),
     syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{

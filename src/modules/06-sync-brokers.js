@@ -534,7 +534,7 @@ function TRSync({state, set, totals, open, onToggle}){
         next.accounts = hasTR
           ? s.accounts.map(function(a){
               if(a.ent!=="trade_republic") return a;
-              const pn=(totals.paidNetByBank&&totals.paidNetByBank[a.ent])||0;
+              const pn=paidNetDeCuenta(a, totals.paidNetByBank);
               const spentOwn=(totals.spentByBank&&totals.spentByBank[a.ent])||0;
               const stored = accDaily(a)
                 ? valueDesdeSaldo({shown:trCash, injTR:totals.injTR||0, spentOwn:spentOwn, roundup:totals.roundupThisMonth||0, monthlyInvest:totals.monthlyInvestThisMonth||0, ambos:accRole(a)==="ambos", paidNet:pn})

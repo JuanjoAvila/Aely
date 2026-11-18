@@ -1,5 +1,41 @@
 [
   {
+    "v": "4.26.241",
+    "d": "2026-11-18",
+    "t": {
+      "es": "Apuntar sin saltos, recibos que se restan una vez y Deudas, Metas y Ajustes más limpios",
+      "en": "Adding without jumps, bills taken off once and cleaner Debts, Goals and Settings",
+      "ca": "Apuntar sense salts, rebuts que es resten una vegada i Deutes, Metes i Configuració més nets"
+    },
+    "items": {
+      "es": [
+        "Al escribir el concepto en Apuntar, el campo se queda a la vista justo encima del teclado y la hoja lo acompaña sin saltos; un concepto largo se lee entero en dos renglones, y si cierras el teclado sin tocar «Listo», vuelve todo.",
+        "Si no hay banco elegido en Apuntar, su baldosa lo dice con un «+» para elegirlo.",
+        "Si tienes dos cuentas de recibos en el mismo banco, cada recibo se resta una sola vez del saldo.",
+        "Deudas y Metas llevan arriba el mismo resumen que Recibos y menos textos de relleno; las deudas con la familia tienen un icono de persona.",
+        "Ajustes estrena iconos en todas sus filas y la ayuda va junto al buscador; el Perfil va en filas y es más corto. Con la letra más grande ya no se corta nada en Deudas, Metas ni Ajustes.",
+        "Desde ahora, el redondeo de Trade Republic no se pierde al sincronizar entre móviles."
+      ],
+      "en": [
+        "When you type the description in Add, the field stays in sight just above the keyboard and the sheet moves with it without jumps; a long description reads in full over two lines, and if you close the keyboard without tapping «Done», everything comes back.",
+        "If no bank is chosen in Add, its tile shows a «+» so you can pick one.",
+        "If you have two bill accounts at the same bank, each bill is taken off the balance only once.",
+        "Debts and Goals show the same summary at the top as Bills, with less filler text; debts with family have a person icon.",
+        "Settings has new icons on every row and help sits next to the search box; Profile is laid out in rows and is shorter. With bigger text nothing gets cut off in Debts, Goals or Settings.",
+        "From now on, the Trade Republic round-up is not lost when syncing between phones."
+      ],
+      "ca": [
+        "En escriure el concepte a Apuntar, el camp queda a la vista just a sobre del teclat i el full l'acompanya sense salts; un concepte llarg es llegeix sencer en dues línies, i si tanques el teclat sense tocar «Fet», torna tot.",
+        "Si no hi ha cap banc triat a Apuntar, la seva rajola ho diu amb un «+» per triar-lo.",
+        "Si tens dos comptes de rebuts al mateix banc, cada rebut es resta una sola vegada del saldo.",
+        "Deutes i Metes porten a dalt el mateix resum que Rebuts i menys textos de farciment; els deutes amb la família tenen una icona de persona.",
+        "Configuració estrena icones a totes les files i l'ajuda va al costat del cercador; el Perfil va en files i és més curt. Amb la lletra més gran ja no es talla res a Deutes, Metes ni Configuració.",
+        "A partir d'ara, l'arrodoniment de Trade Republic no es perd en sincronitzar entre mòbils."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.237",
     "d": "2026-11-17",
     "t": {

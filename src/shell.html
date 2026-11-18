@@ -1490,7 +1490,9 @@
   html.reduce-motion .pr6-fold,html.reduce-motion .pr6-fold-in,html.reduce-motion .pr6-fold-l>.pr6-fold-in>*>*,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}
   .v4-goals{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
-  .v4-goal{flex:0 0 78%;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
+  /* Cada tarjeta con su alto: estirada a la de al lado, una meta sin línea de ritmo quedaba con un
+     hueco vacío abajo (filtro de diseño 240). */
+  .v4-goal{flex:0 0 78%;align-self:flex-start;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
@@ -1944,12 +1946,58 @@
      - El teclado se pega al fondo del cuerpo: si en un móvil bajo no cabe todo, lo que se desliza
        por debajo son las categorías, nunca las teclas. Lleva el fondo de la hoja para taparlas. */
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"]){padding-bottom:max(34px,calc(14px + var(--safe-bottom)));}
-  /* Escribiendo el concepto (DIS-05) el numérico sobra y tapaba el campo con la WebView encogida. */
-  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-keys{display:none;}
+  /* Escribiendo el concepto (DIS-05, y su queja del 17/11): la cabecera, el pago y el numérico se
+     recogen con su alto (`pliega` en ExpenseFichaLayout) y el importe se queda en pequeño; la hoja
+     encoge con ellos y «Listo» queda pegado al teclado del sistema, sin el hueco del numérico. */
+  /* Primero se funden y luego se pliegan (y al volver, al revés): plegándose a la vez, a mitad se
+     veían tiras cortadas de «Gasto» y «Tarjeta» (filtro de diseño 239). */
+  .v4-ficha-kbfold{display:grid;grid-template-rows:1fr;
+    transition:grid-template-rows .3s var(--ease),opacity .2s ease-out .12s,visibility 0s;}
+  .v4-ficha-kbfold-in{min-height:0;overflow:hidden;}
+  .v4-ficha-body[data-kb="1"] .v4-ficha-kbfold{grid-template-rows:0fr;opacity:0;visibility:hidden;
+    transition:grid-template-rows .3s var(--ease) 60ms,opacity .1s ease-out,visibility 0s .36s;}
+  /* Recogiéndose, el numérico no va pegado al fondo: con el teclado encima la hoja se recorta y,
+     pegado, se montaba un instante sobre el concepto y el pago. Se pliega con el mismo ritmo con que sube la
+     hoja, y así el concepto no se mueve bajo el dedo (yéndose de golpe caía 254 px y volvía a subir, 240); se
+     funde enseguida para que no asome una fila de teclas cortada. Con letra Muy grande o Enorme el pago va
+     debajo de las categorías y se va igual (de golpe, la hoja caía 84-120 px). Con el teclado ya en pantalla
+     se van de golpe (`data-kb-ya`, abajo). */
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;}
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas,
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold.abajo{
+    transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1),opacity .1s ease-out,visibility 0s .28s;}
+  /* Con el teclado ya en pantalla la hoja se recorta a lo que queda a la vista: lo que faltara por
+     plegarse se pliega de golpe (si no, las categorías asomaban cortadas bajo «Listo», 240). */
+  .v4-sheet[data-kb-ya="1"] > .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold{transition:none;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{transition:font-size .3s var(--ease),min-height .3s var(--ease);}
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-amount{font-size:30px;min-height:40px;}
+  .v4-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){padding-bottom:16px;}
   /* Y la hoja sube y baja con el teclado del sistema en vez de saltar (el margen lo pone el JS).
      Solo Apuntar: Modificar comparte `.v4-exp-sheet` y no mueve el margen con el teclado. */
-  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1);}
-  .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:4px 0 8px;gap:6px;background:var(--bg-2);}
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* El margen sigue al teclado SIN transición: lo pone el JS en cada evento del visualViewport, y con
+     transición se quedaba atrás mientras Chrome desplazaba la pantalla y asomaba el fondo (vídeo del
+     18/11). Solo se anima la subida prevista, a la vez que el teclado se anima (`kbPrevio`), y la bajada al
+     soltar el concepto, al mismo ritmo que el despliegue (`kbBaja`, abajo). */
+  /* El margen de Apuntar sale de `--kb-m` (propiedad registrada: se anima como una longitud). Así el tope que
+     impide que el borde de arriba suba mientras se anima (`--kb-lim`, lo pone el JS) se calcula con el MISMO
+     margen en cada fotograma; calculado desde JS iba un fotograma tarde y el borde asomaba (240). */
+  @property --kb-m{syntax:"<length>";inherits:false;initial-value:0px;}
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){margin-bottom:var(--kb-m);}
+  .v4-sheet.v4-exp-sheet[data-kb-lim][data-kb-lim]:has(>.v4-ficha-body[data-testid="ap"]){max-height:min(var(--kb-max),calc(var(--kb-lim) - var(--kb-m)));}
+  .v4-sheet.v4-exp-sheet[data-kb-previo="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),--kb-m .28s cubic-bezier(.2,.8,.2,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* Al soltar el concepto, el margen baja con el mismo ritmo que se despliegan el pago y el numérico: el
+     borde de arriba se queda y la hoja crece hacia abajo (sin esto caía al fondo y volvía a subir, 240). */
+  .v4-sheet.v4-exp-sheet[data-kb-baja="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),--kb-m .3s var(--ease),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* Con el teclado (y mientras la hoja baja al soltarlo), debajo de la hoja va su mismo fondo hasta abajo:
+     si el teclado y la hoja no van a la vez, lo que se ve entre los dos es hoja, no la lista de Gastos ni
+     la barra de abajo. */
+  .v4-sheet.v4-exp-sheet[data-kb-baja="1"]:has(>.v4-ficha-body[data-testid="ap"]),
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){
+    box-shadow:0 -8px 28px rgba(0,0,0,.28),0 200px 0 var(--bg-2),0 400px 0 var(--bg-2),0 600px 0 var(--bg-2),0 800px 0 var(--bg-2);}
+  .v4-ficha-body[data-testid="ap"] > .v4-ficha-kbfold.teclas{position:sticky;bottom:0;z-index:1;background:var(--bg-2);
+    transition:grid-template-rows .3s var(--ease),opacity .15s linear,visibility 0s;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{margin:0;padding:4px 0 8px;gap:6px;}
   /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
      (56 px, las pidió él): una sola fila de categorías, y algo menos de aire alrededor del importe
      y del teclado. Desde el remate de la 235, «Todas ›» va en la cabecera como en la ficha (la
@@ -1982,12 +2030,23 @@
   @media (min-height:701px) and (max-height:780px){
     .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){max-height:calc(92dvh / var(--zoom,1));}
   }
+  /* Un concepto en dos renglones no puede costar una fila de categorías (a 393 se perdía la segunda tras
+     «Listo»): la hoja crece ese renglón, sin pasar nunca de la barra de estado. En móviles bajos ya va
+     a pantalla completa. */
+  @media (min-height:701px){
+    .v4-sheet.v4-exp-sheet:has(.v4-ficha-concept-area[data-renglones="2"]){
+      max-height:min(calc(88dvh / var(--zoom,1) + 24px),calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1)));}
+  }
+  @media (min-height:701px) and (max-height:780px){
+    .v4-sheet.v4-exp-sheet:has(.v4-ficha-concept-area[data-renglones="2"]){
+      max-height:min(calc(92dvh / var(--zoom,1) + 24px),calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1)));}
+  }
   /* Letra Muy grande y Enorme (DIS-07): las teclas conservan su alto en pantalla (56 px reales,
      no 56 × zoom) y las categorías van en una fila que se desliza de lado en vez de aplastarse. */
-  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys,
-  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys{gap:5px;}
-  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys button,
-  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys button{height:calc(56px / var(--zoom,1));}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{gap:5px;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys button,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys button{height:calc(56px / var(--zoom,1));}
   html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats,
   html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{display:flex;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;}
   html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats::-webkit-scrollbar,
@@ -2030,6 +2089,12 @@
   .v4-ficha-fx{text-align:center;color:var(--muted);font-size:12.5px;line-height:1.35;margin:-1px 0 7px;}
   /* El texto de ayuda largo con letra Enorme se cortaba a media palabra: puntos suspensivos. */
   .v4-ficha-concept.v4-input{text-overflow:ellipsis;font-size:17px;font-weight:700;padding:2px 10px 10px;margin:0;background:transparent;border:0;border-radius:0;text-align:center;}
+  /* Apuntar: el concepto crece a dos renglones y parte entre palabras, nunca con «…» (filtro de diseño 239). */
+  .v4-ficha-concept-area.v4-input{display:block;resize:none;overflow:hidden;text-overflow:clip;line-height:1.3;
+    white-space:pre-wrap;overflow-wrap:break-word;hyphens:none;font-family:inherit;scrollbar-width:none;}
+  .v4-ficha-concept-area::-webkit-scrollbar{display:none;}
+  /* Vacío, el texto de ayuda sigue en un renglón (con letra Enorme partido en dos empujaba las categorías). */
+  .v4-ficha-concept-area:placeholder-shown{white-space:nowrap;text-overflow:ellipsis;}
   /* Forma de pago (DIS-03): segmentado de 44 px y la píldora del banco al lado. La píldora parte de
      44 px y se estira con lo que sobre: si ni así cabe (letra Enorme a 360) baja a su propia línea. */
   .v4-ficha-pay{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 12px;}
@@ -2055,8 +2120,14 @@
   .v4-bankpick-op.on{border-color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint);}
   .v4-bankpick-op.sin{width:auto;padding:0 12px;color:var(--muted);font-size:12px;font-weight:750;white-space:nowrap;}
   .v4-bankpick-op.sin.on{color:var(--mint);}
-  .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px solid var(--line);}
-  @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;} }
+  /* Sin banco elegido: un hueco punteado con «+» (el cuadro liso parecía un logo que no había cargado,
+     17/11). */
+  .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px dashed var(--muted-2);
+    display:grid;place-items:center;color:var(--muted);font-size:15px;font-weight:700;line-height:1;}
+  @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;}
+    .v4-ficha-body[data-kb] .v4-ficha-kbfold,.v4-ficha-body .v4-ficha-kbfold,.v4-ficha-body[data-testid] .v4-ficha-amount,
+    .v4-ficha-body[data-testid][data-kb] > .v4-ficha-kbfold.teclas,.v4-ficha-body[data-testid] > .v4-ficha-kbfold.teclas,
+    .v4-ficha-body[data-testid][data-kb] .v4-ficha-kbfold.abajo{transition:none;} }
   /* Con Efectivo la píldora no se pinta, pero guarda su sitio: la fila no salta al cambiar. */
   .v4-ficha-pay > .v4-ficha-meta-pill.off{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s .2s;}
   .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);
@@ -2374,7 +2445,9 @@
   .settings-push.mc-page-dragging{transition:none!important;will-change:transform,opacity;}
   @keyframes mcPageEnter{from{opacity:.62;clip-path:inset(0 0 0 12%)}to{opacity:1;clip-path:inset(0)}}
   .settings-push-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
+  /* Redondo, como el de «Tus recibos» y el cierre del perfil: había un cuadrado aquí y un círculo
+     allí para lo mismo (auditoría 237, P2-10). */
+  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
   .settings-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
   /* Subpantallas de Ajustes (Privacidad, Hogar, Copias…): el mismo «‹» redondo que Ajustes, con el
      título al lado. Antes cada una llevaba un «‹ Ajustes» o «‹ Volver» de texto azul y había seis
@@ -2416,12 +2489,15 @@
     transition:opacity .45s ease;max-width:520px;margin:0 auto;}
   .profile-dim-layer.on{opacity:1;pointer-events:none;}
   .profile-dim-layer.blurred{-webkit-backdrop-filter:blur(18px) saturate(1.15);backdrop-filter:blur(18px) saturate(1.15);}
-  .profile-pull-h{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:40px;}
-  .profile-pull-h .back{width:34px;height:34px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:17px;color:var(--text);flex:0 0 auto;line-height:1;}
+  /* La cabecera del perfil es la de Ajustes: botón redondo de 44 y título en Fraunces a su altura.
+     El perfil se cierra con ✕ porque baja como una hoja desde el avatar (el «‹» es de las pantallas
+     que entran de lado); lo que cambiaba era el tamaño y el título, que flotaba por encima. */
+  .profile-pull-h{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:44px;}
+  .profile-pull-h .back{width:44px;height:44px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:18px;color:var(--text);flex:0 0 auto;line-height:1;}
   .profile-pull-h .ph-main{flex:1;min-width:0;}
-  .profile-pull-h h1{font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;margin:0;letter-spacing:-.2px;}
+  .profile-pull-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;line-height:1.15;}
   .profile-handle{font-size:12.5px;font-weight:700;color:var(--mint);display:inline-flex;align-items:center;gap:5px;margin-top:2px;}
-  .profile-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
+  .profile-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
     display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--text);flex:0 0 auto;position:relative;}
   .profile-sec{font-size:13px;font-weight:700;color:var(--muted);margin:16px 2px 8px;}
   .profile-card{background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:2px 0;margin-bottom:4px;}
@@ -2432,6 +2508,9 @@
   .profile-row .pr-val{font-size:14.5px;font-weight:700;color:var(--text);line-height:1.35;word-break:break-word;}
   .profile-row .pr-val.pr-val-empty{color:var(--muted-2);font-weight:600;}
   .profile-row .pr-edit{color:var(--mint);font-size:13px;flex:0 0 auto;padding-top:2px;opacity:.9;}
+  /* Filas que llevan a otra pantalla: una línea centrada con su flecha, como las de Ajustes. */
+  .profile-row:has(> .pr-chev){align-items:center;min-height:48px;}
+  .profile-row .pr-chev{color:var(--muted);font-size:17px;line-height:1;flex:0 0 auto;}
   /* Sin scale/filter en shell (huecos negros + WebView). El dim es la capa aparte. */
   .app-shell.profile-dim{pointer-events:none;}
   /* El avatar se aparta mientras la tarjeta del perfil sale de él: si se queda, se ven los dos
@@ -2635,7 +2714,8 @@
   .aely-savings{margin-top:12px;padding:16px;}
   .aely-savings-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
   .aely-savings-total{font-size:26px;font-weight:550;letter-spacing:-.5px;line-height:1.15;margin-top:4px;white-space:nowrap;}
-  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;}
+  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;min-height:44px;}
+  .aely-savings-vacia .aely-savings-h{align-items:center;flex-wrap:nowrap;}
   .aely-savings-note{margin:8px 0 4px;font-size:12.5px;line-height:1.45;}
   .aely-savings-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line-soft);}
   .aely-savings-name{min-width:0;flex:1 1 140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;}
@@ -2662,10 +2742,21 @@
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
   /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
      montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */
-  .plan-summary{text-align:center;padding:22px 16px;}
-  .plan-summary-amount{font-size:46px;font-weight:560;letter-spacing:-.5px;line-height:1.05;margin-top:6px;overflow-wrap:anywhere;}
+  /* La tarjeta resumen de Deudas y Metas copia la de Recibos (`.pr6-sum`): a la izquierda, misma
+     cifra y mismos huecos. Centradas, la cifra cambiaba de sitio al pasar de un segmento a otro. */
+  .plan-summary{display:flex;flex-direction:column;gap:12px;text-align:left;}
+  /* La cifra encoge con la tarjeta en vez de partirse («187.306,2 / 4 €» con letra Enorme a 360):
+     46 px como Recibos mientras quepa. El `anywhere` queda solo para cifras imposibles. */
+  .plan-summary{container-type:inline-size;}
+  .plan-summary-amount{font-size:min(46px,13.5cqi);font-weight:600;letter-spacing:-1px;line-height:1;color:var(--text);overflow-wrap:anywhere;}
+  .plan-summary-sub{font-size:14px;color:var(--muted);line-height:1.45;}
   .plan-item-open{width:100%;padding:0;border:0;background:none;color:var(--text);font-family:inherit;text-align:left;cursor:pointer;min-height:48px;}
-  .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:anywhere;}
+  /* Si nombre e importe no caben en una fila, el importe baja a la derecha en vez de partir el
+     nombre a media palabra («Hipote / ca sintéti / ca» con letra Enorme a 360, 240). */
+  .plan-item-open{flex-wrap:wrap;}
+  .plan-item-main{flex:1 1 auto;min-width:0;}
+  .plan-item-open .plan-item-value{margin-left:auto;}
+  .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:break-word;}
   .plan-item .v4-debt-emoji{font-size:22px;line-height:1.4;}
   .v4-debt-ico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--muted);}
   .plan-item .v4-debt-ico{line-height:1;margin-top:2px;}
@@ -2755,9 +2846,19 @@
   .v4-sheet .btn.btn-primary{min-height:46px;font-size:14.5px;border-radius:12px;}
   button.v4-mov{width:100%;border:1px solid var(--line-soft);background:var(--sur);color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .set-card>.set-row:first-child,.set-card>.set-sub:first-child>.set-row:first-child{border-top:none;}
-  .set-row .sr-ic{font-size:17px;flex:0 0 22px;text-align:center;line-height:1;}
-  .set-row .sr-lb{flex:1;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .set-row .sr-val{color:var(--muted);font-size:12.5px;font-weight:600;flex:0 1 42%;max-width:42%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .set-row .sr-ic{font-size:17px;flex:0 0 22px;text-align:center;line-height:1;color:var(--muted);}
+  .set-row .sr-ic svg{display:block;margin:0 auto;}
+  /* Nada cortado: la etiqueta y el valor bajan de renglón por palabras. Con letra Enorme a 360
+     salía «Accesi…» al lado de «Enorme», y luego «Total / de / Gastos» o «Despeses i in…» (240).
+     La etiqueta parte de unas ocho letras de ancho y los dos ceden a la vez, sin bajar nunca de su
+     palabra más larga; el valor, como mucho la otra mitad, alineado a la derecha. */
+  .set-row .sr-lb{font-weight:700;overflow-wrap:break-word;}
+  .set-row > .sr-lb{flex:1 1 min(8em,50%);}
+  .set-row .sr-val{color:var(--muted);font-size:12.5px;font-weight:600;line-height:1.3;flex:0 1 auto;max-width:48%;text-align:right;overflow-wrap:break-word;}
+  .set-search{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .set-search-box{position:relative;flex:1;min-width:0;display:flex;align-items:center;}
+  .set-search-ic{position:absolute;left:13px;color:var(--muted);pointer-events:none;}
+  .set-search-in{width:100%;min-height:44px;padding:10px 13px 10px 38px;border-radius:12px;border:1px solid var(--line);background:var(--bg-2);color:var(--text);font-size:16px;font-family:inherit;box-sizing:border-box;}
   /* Notificaciones (16/11): título + una línea de apoyo, logo del banco en el hueco del icono y el
      permiso como estado con punto, que se lee igual en la fila del grupo y dentro. */
   .set-row .sr-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
@@ -2926,6 +3027,7 @@
   .dots .d.on{width:22px;background:linear-gradient(90deg,var(--mint-bright),var(--mint));}
 
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-bottom));background:var(--sur2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:16px;font-size:14px;font-weight:700;z-index:200;box-shadow:var(--shadow);animation:toastin .3s ease;}
+  .toast.toast-low{bottom:calc(24px + var(--safe-bottom));}
   .offline-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:rgba(226,160,95,.16);border:1px solid rgba(226,160,95,.5);color:#E2A05F;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;z-index:210;white-space:nowrap;box-shadow:var(--shadow);}
   .update-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:var(--on-mint);padding:9px 18px;border-radius:20px;font-size:12.5px;font-weight:800;z-index:215;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(95,208,138,.7);border:none;cursor:pointer;animation:updin .35s ease;}
   .update-pill+.update-pill{top:calc(var(--safe-top) + 48px);}
@@ -3037,7 +3139,8 @@
 .aely-help-phrase{font-size:15px;font-weight:550;letter-spacing:-.1px;line-height:1.4;margin:4px 0 0;text-decoration:none !important;}
 .aely-help-steps{margin:8px 0 0;padding-left:22px;display:grid;gap:5px;line-height:1.35;}
 .aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
-.aely-help-entry{margin:6px 0 10px;}
+/* «Pregúntame» en Ajustes: el mismo «?» redondo de Inicio, al lado del buscador y ya con 44 px. */
+.aely-help-entry-set{width:44px;height:44px;flex:0 0 auto;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--text);font:550 19px/1 var(--serif,Georgia,serif);padding:0;cursor:pointer;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
 .aely-help-entry-mini{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
 /* El dibujo sigue en 36 px; el dedo necesita 44 (auditoría 15/11). -5 y no -4: el inset cuenta desde

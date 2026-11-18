@@ -592,7 +592,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
               React.createElement("div",{className:"serif num v4-goal-pct",style:{fontWeight:600,fontSize:18}}, Math.round(pct)+"%")
             ),
             React.createElement("div",{className:"bar"}, React.createElement("i",{style:{width:pct+"%"}})),
-            React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)"}}, eta.text)
+            eta.text && React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)"}}, eta.text)
           );
         })
       )

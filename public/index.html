@@ -1490,7 +1490,9 @@
   html.reduce-motion .pr6-fold,html.reduce-motion .pr6-fold-in,html.reduce-motion .pr6-fold-l>.pr6-fold-in>*>*,html.reduce-motion .pr6-chev,html.reduce-motion .pr6-track,html.reduce-motion .pr6-step{transition:none;}
   .v4-paid{opacity:.55;}
   .v4-goals{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
-  .v4-goal{flex:0 0 78%;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
+  /* Cada tarjeta con su alto: estirada a la de al lado, una meta sin línea de ritmo quedaba con un
+     hueco vacío abajo (filtro de diseño 240). */
+  .v4-goal{flex:0 0 78%;align-self:flex-start;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
@@ -1944,12 +1946,58 @@
      - El teclado se pega al fondo del cuerpo: si en un móvil bajo no cabe todo, lo que se desliza
        por debajo son las categorías, nunca las teclas. Lleva el fondo de la hoja para taparlas. */
   .v4-sheet:has(>.v4-ficha-body[data-testid="ap"]){padding-bottom:max(34px,calc(14px + var(--safe-bottom)));}
-  /* Escribiendo el concepto (DIS-05) el numérico sobra y tapaba el campo con la WebView encogida. */
-  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-keys{display:none;}
+  /* Escribiendo el concepto (DIS-05, y su queja del 17/11): la cabecera, el pago y el numérico se
+     recogen con su alto (`pliega` en ExpenseFichaLayout) y el importe se queda en pequeño; la hoja
+     encoge con ellos y «Listo» queda pegado al teclado del sistema, sin el hueco del numérico. */
+  /* Primero se funden y luego se pliegan (y al volver, al revés): plegándose a la vez, a mitad se
+     veían tiras cortadas de «Gasto» y «Tarjeta» (filtro de diseño 239). */
+  .v4-ficha-kbfold{display:grid;grid-template-rows:1fr;
+    transition:grid-template-rows .3s var(--ease),opacity .2s ease-out .12s,visibility 0s;}
+  .v4-ficha-kbfold-in{min-height:0;overflow:hidden;}
+  .v4-ficha-body[data-kb="1"] .v4-ficha-kbfold{grid-template-rows:0fr;opacity:0;visibility:hidden;
+    transition:grid-template-rows .3s var(--ease) 60ms,opacity .1s ease-out,visibility 0s .36s;}
+  /* Recogiéndose, el numérico no va pegado al fondo: con el teclado encima la hoja se recorta y,
+     pegado, se montaba un instante sobre el concepto y el pago. Se pliega con el mismo ritmo con que sube la
+     hoja, y así el concepto no se mueve bajo el dedo (yéndose de golpe caía 254 px y volvía a subir, 240); se
+     funde enseguida para que no asome una fila de teclas cortada. Con letra Muy grande o Enorme el pago va
+     debajo de las categorías y se va igual (de golpe, la hoja caía 84-120 px). Con el teclado ya en pantalla
+     se van de golpe (`data-kb-ya`, abajo). */
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas{position:static;}
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] > .v4-ficha-kbfold.teclas,
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold.abajo{
+    transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1),opacity .1s ease-out,visibility 0s .28s;}
+  /* Con el teclado ya en pantalla la hoja se recorta a lo que queda a la vista: lo que faltara por
+     plegarse se pliega de golpe (si no, las categorías asomaban cortadas bajo «Listo», 240). */
+  .v4-sheet[data-kb-ya="1"] > .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-kbfold{transition:none;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-amount{transition:font-size .3s var(--ease),min-height .3s var(--ease);}
+  .v4-ficha-body[data-testid="ap"][data-kb="1"] .v4-ficha-amount{font-size:30px;min-height:40px;}
+  .v4-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){padding-bottom:16px;}
   /* Y la hoja sube y baja con el teclado del sistema en vez de saltar (el margen lo pone el JS).
      Solo Apuntar: Modificar comparte `.v4-exp-sheet` y no mueve el margen con el teclado. */
-  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),margin-bottom .25s cubic-bezier(.22,.61,.36,1);}
-  .v4-ficha-body[data-testid="ap"] > .v4-keys{position:sticky;bottom:0;z-index:1;margin:0;padding:4px 0 8px;gap:6px;background:var(--bg-2);}
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* El margen sigue al teclado SIN transición: lo pone el JS en cada evento del visualViewport, y con
+     transición se quedaba atrás mientras Chrome desplazaba la pantalla y asomaba el fondo (vídeo del
+     18/11). Solo se anima la subida prevista, a la vez que el teclado se anima (`kbPrevio`), y la bajada al
+     soltar el concepto, al mismo ritmo que el despliegue (`kbBaja`, abajo). */
+  /* El margen de Apuntar sale de `--kb-m` (propiedad registrada: se anima como una longitud). Así el tope que
+     impide que el borde de arriba suba mientras se anima (`--kb-lim`, lo pone el JS) se calcula con el MISMO
+     margen en cada fotograma; calculado desde JS iba un fotograma tarde y el borde asomaba (240). */
+  @property --kb-m{syntax:"<length>";inherits:false;initial-value:0px;}
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){margin-bottom:var(--kb-m);}
+  .v4-sheet.v4-exp-sheet[data-kb-lim][data-kb-lim]:has(>.v4-ficha-body[data-testid="ap"]){max-height:min(var(--kb-max),calc(var(--kb-lim) - var(--kb-m)));}
+  .v4-sheet.v4-exp-sheet[data-kb-previo="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),--kb-m .28s cubic-bezier(.2,.8,.2,1),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* Al soltar el concepto, el margen baja con el mismo ritmo que se despliegan el pago y el numérico: el
+     borde de arriba se queda y la hoja crece hacia abajo (sin esto caía al fondo y volvía a subir, 240). */
+  .v4-sheet.v4-exp-sheet[data-kb-baja="1"]:has(>.v4-ficha-body[data-testid="ap"]){transition:transform .3s cubic-bezier(.22,.61,.36,1),--kb-m .3s var(--ease),padding-bottom .3s cubic-bezier(.22,.61,.36,1);}
+  /* Con el teclado (y mientras la hoja baja al soltarlo), debajo de la hoja va su mismo fondo hasta abajo:
+     si el teclado y la hoja no van a la vez, lo que se ve entre los dos es hoja, no la lista de Gastos ni
+     la barra de abajo. */
+  .v4-sheet.v4-exp-sheet[data-kb-baja="1"]:has(>.v4-ficha-body[data-testid="ap"]),
+  .v4-sheet.v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"][data-kb="1"]){
+    box-shadow:0 -8px 28px rgba(0,0,0,.28),0 200px 0 var(--bg-2),0 400px 0 var(--bg-2),0 600px 0 var(--bg-2),0 800px 0 var(--bg-2);}
+  .v4-ficha-body[data-testid="ap"] > .v4-ficha-kbfold.teclas{position:sticky;bottom:0;z-index:1;background:var(--bg-2);
+    transition:grid-template-rows .3s var(--ease),opacity .15s linear,visibility 0s;}
+  .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{margin:0;padding:4px 0 8px;gap:6px;}
   /* Rediseño aprobado (DIS-01, 15/11): el alto se gana quitando filas, NO encogiendo las teclas
      (56 px, las pidió él): una sola fila de categorías, y algo menos de aire alrededor del importe
      y del teclado. Desde el remate de la 235, «Todas ›» va en la cabecera como en la ficha (la
@@ -1982,12 +2030,23 @@
   @media (min-height:701px) and (max-height:780px){
     .v4-exp-sheet:has(>.v4-ficha-body[data-testid="ap"]){max-height:calc(92dvh / var(--zoom,1));}
   }
+  /* Un concepto en dos renglones no puede costar una fila de categorías (a 393 se perdía la segunda tras
+     «Listo»): la hoja crece ese renglón, sin pasar nunca de la barra de estado. En móviles bajos ya va
+     a pantalla completa. */
+  @media (min-height:701px){
+    .v4-sheet.v4-exp-sheet:has(.v4-ficha-concept-area[data-renglones="2"]){
+      max-height:min(calc(88dvh / var(--zoom,1) + 24px),calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1)));}
+  }
+  @media (min-height:701px) and (max-height:780px){
+    .v4-sheet.v4-exp-sheet:has(.v4-ficha-concept-area[data-renglones="2"]){
+      max-height:min(calc(92dvh / var(--zoom,1) + 24px),calc((100dvh - var(--safe-top) - 8px) / var(--zoom,1)));}
+  }
   /* Letra Muy grande y Enorme (DIS-07): las teclas conservan su alto en pantalla (56 px reales,
      no 56 × zoom) y las categorías van en una fila que se desliza de lado en vez de aplastarse. */
-  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys,
-  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys{gap:5px;}
-  html.bigtext .v4-ficha-body[data-testid="ap"] > .v4-keys button,
-  html.hugetext .v4-ficha-body[data-testid="ap"] > .v4-keys button{height:calc(56px / var(--zoom,1));}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys{gap:5px;}
+  html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys button,
+  html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-kbfold.teclas .v4-keys button{height:calc(56px / var(--zoom,1));}
   html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats,
   html.hugetext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats{display:flex;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;}
   html.bigtext .v4-ficha-body[data-testid="ap"] .v4-ficha-cats::-webkit-scrollbar,
@@ -2030,6 +2089,12 @@
   .v4-ficha-fx{text-align:center;color:var(--muted);font-size:12.5px;line-height:1.35;margin:-1px 0 7px;}
   /* El texto de ayuda largo con letra Enorme se cortaba a media palabra: puntos suspensivos. */
   .v4-ficha-concept.v4-input{text-overflow:ellipsis;font-size:17px;font-weight:700;padding:2px 10px 10px;margin:0;background:transparent;border:0;border-radius:0;text-align:center;}
+  /* Apuntar: el concepto crece a dos renglones y parte entre palabras, nunca con «…» (filtro de diseño 239). */
+  .v4-ficha-concept-area.v4-input{display:block;resize:none;overflow:hidden;text-overflow:clip;line-height:1.3;
+    white-space:pre-wrap;overflow-wrap:break-word;hyphens:none;font-family:inherit;scrollbar-width:none;}
+  .v4-ficha-concept-area::-webkit-scrollbar{display:none;}
+  /* Vacío, el texto de ayuda sigue en un renglón (con letra Enorme partido en dos empujaba las categorías). */
+  .v4-ficha-concept-area:placeholder-shown{white-space:nowrap;text-overflow:ellipsis;}
   /* Forma de pago (DIS-03): segmentado de 44 px y la píldora del banco al lado. La píldora parte de
      44 px y se estira con lo que sobre: si ni así cabe (letra Enorme a 360) baja a su propia línea. */
   .v4-ficha-pay{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 12px;}
@@ -2055,8 +2120,14 @@
   .v4-bankpick-op.on{border-color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint);}
   .v4-bankpick-op.sin{width:auto;padding:0 12px;color:var(--muted);font-size:12px;font-weight:750;white-space:nowrap;}
   .v4-bankpick-op.sin.on{color:var(--mint);}
-  .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px solid var(--line);}
-  @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;} }
+  /* Sin banco elegido: un hueco punteado con «+» (el cuadro liso parecía un logo que no había cargado,
+     17/11). */
+  .v4-banco-sin{flex:0 0 auto;box-sizing:border-box;border-radius:30%;border:1.5px dashed var(--muted-2);
+    display:grid;place-items:center;color:var(--muted);font-size:15px;font-weight:700;line-height:1;}
+  @media (prefers-reduced-motion:reduce){ .v4-bankpick,.v4-ficha-fold{transition:none;}
+    .v4-ficha-body[data-kb] .v4-ficha-kbfold,.v4-ficha-body .v4-ficha-kbfold,.v4-ficha-body[data-testid] .v4-ficha-amount,
+    .v4-ficha-body[data-testid][data-kb] > .v4-ficha-kbfold.teclas,.v4-ficha-body[data-testid] > .v4-ficha-kbfold.teclas,
+    .v4-ficha-body[data-testid][data-kb] .v4-ficha-kbfold.abajo{transition:none;} }
   /* Con Efectivo la píldora no se pinta, pero guarda su sitio: la fila no salta al cambiar. */
   .v4-ficha-pay > .v4-ficha-meta-pill.off{opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s .2s;}
   .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);
@@ -2374,7 +2445,9 @@
   .settings-push.mc-page-dragging{transition:none!important;will-change:transform,opacity;}
   @keyframes mcPageEnter{from{opacity:.62;clip-path:inset(0 0 0 12%)}to{opacity:1;clip-path:inset(0)}}
   .settings-push-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
+  /* Redondo, como el de «Tus recibos» y el cierre del perfil: había un cuadrado aquí y un círculo
+     allí para lo mismo (auditoría 237, P2-10). */
+  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
   .settings-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
   /* Subpantallas de Ajustes (Privacidad, Hogar, Copias…): el mismo «‹» redondo que Ajustes, con el
      título al lado. Antes cada una llevaba un «‹ Ajustes» o «‹ Volver» de texto azul y había seis
@@ -2416,12 +2489,15 @@
     transition:opacity .45s ease;max-width:520px;margin:0 auto;}
   .profile-dim-layer.on{opacity:1;pointer-events:none;}
   .profile-dim-layer.blurred{-webkit-backdrop-filter:blur(18px) saturate(1.15);backdrop-filter:blur(18px) saturate(1.15);}
-  .profile-pull-h{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:40px;}
-  .profile-pull-h .back{width:34px;height:34px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:17px;color:var(--text);flex:0 0 auto;line-height:1;}
+  /* La cabecera del perfil es la de Ajustes: botón redondo de 44 y título en Fraunces a su altura.
+     El perfil se cierra con ✕ porque baja como una hoja desde el avatar (el «‹» es de las pantallas
+     que entran de lado); lo que cambiaba era el tamaño y el título, que flotaba por encima. */
+  .profile-pull-h{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:44px;}
+  .profile-pull-h .back{width:44px;height:44px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:18px;color:var(--text);flex:0 0 auto;line-height:1;}
   .profile-pull-h .ph-main{flex:1;min-width:0;}
-  .profile-pull-h h1{font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;margin:0;letter-spacing:-.2px;}
+  .profile-pull-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;line-height:1.15;}
   .profile-handle{font-size:12.5px;font-weight:700;color:var(--mint);display:inline-flex;align-items:center;gap:5px;margin-top:2px;}
-  .profile-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
+  .profile-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
     display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--text);flex:0 0 auto;position:relative;}
   .profile-sec{font-size:13px;font-weight:700;color:var(--muted);margin:16px 2px 8px;}
   .profile-card{background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:2px 0;margin-bottom:4px;}
@@ -2432,6 +2508,9 @@
   .profile-row .pr-val{font-size:14.5px;font-weight:700;color:var(--text);line-height:1.35;word-break:break-word;}
   .profile-row .pr-val.pr-val-empty{color:var(--muted-2);font-weight:600;}
   .profile-row .pr-edit{color:var(--mint);font-size:13px;flex:0 0 auto;padding-top:2px;opacity:.9;}
+  /* Filas que llevan a otra pantalla: una línea centrada con su flecha, como las de Ajustes. */
+  .profile-row:has(> .pr-chev){align-items:center;min-height:48px;}
+  .profile-row .pr-chev{color:var(--muted);font-size:17px;line-height:1;flex:0 0 auto;}
   /* Sin scale/filter en shell (huecos negros + WebView). El dim es la capa aparte. */
   .app-shell.profile-dim{pointer-events:none;}
   /* El avatar se aparta mientras la tarjeta del perfil sale de él: si se queda, se ven los dos
@@ -2635,7 +2714,8 @@
   .aely-savings{margin-top:12px;padding:16px;}
   .aely-savings-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
   .aely-savings-total{font-size:26px;font-weight:550;letter-spacing:-.5px;line-height:1.15;margin-top:4px;white-space:nowrap;}
-  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;}
+  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;min-height:44px;}
+  .aely-savings-vacia .aely-savings-h{align-items:center;flex-wrap:nowrap;}
   .aely-savings-note{margin:8px 0 4px;font-size:12.5px;line-height:1.45;}
   .aely-savings-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line-soft);}
   .aely-savings-name{min-width:0;flex:1 1 140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;}
@@ -2662,10 +2742,21 @@
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
   /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
      montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */
-  .plan-summary{text-align:center;padding:22px 16px;}
-  .plan-summary-amount{font-size:46px;font-weight:560;letter-spacing:-.5px;line-height:1.05;margin-top:6px;overflow-wrap:anywhere;}
+  /* La tarjeta resumen de Deudas y Metas copia la de Recibos (`.pr6-sum`): a la izquierda, misma
+     cifra y mismos huecos. Centradas, la cifra cambiaba de sitio al pasar de un segmento a otro. */
+  .plan-summary{display:flex;flex-direction:column;gap:12px;text-align:left;}
+  /* La cifra encoge con la tarjeta en vez de partirse («187.306,2 / 4 €» con letra Enorme a 360):
+     46 px como Recibos mientras quepa. El `anywhere` queda solo para cifras imposibles. */
+  .plan-summary{container-type:inline-size;}
+  .plan-summary-amount{font-size:min(46px,13.5cqi);font-weight:600;letter-spacing:-1px;line-height:1;color:var(--text);overflow-wrap:anywhere;}
+  .plan-summary-sub{font-size:14px;color:var(--muted);line-height:1.45;}
   .plan-item-open{width:100%;padding:0;border:0;background:none;color:var(--text);font-family:inherit;text-align:left;cursor:pointer;min-height:48px;}
-  .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:anywhere;}
+  /* Si nombre e importe no caben en una fila, el importe baja a la derecha en vez de partir el
+     nombre a media palabra («Hipote / ca sintéti / ca» con letra Enorme a 360, 240). */
+  .plan-item-open{flex-wrap:wrap;}
+  .plan-item-main{flex:1 1 auto;min-width:0;}
+  .plan-item-open .plan-item-value{margin-left:auto;}
+  .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:break-word;}
   .plan-item .v4-debt-emoji{font-size:22px;line-height:1.4;}
   .v4-debt-ico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--muted);}
   .plan-item .v4-debt-ico{line-height:1;margin-top:2px;}
@@ -2755,9 +2846,19 @@
   .v4-sheet .btn.btn-primary{min-height:46px;font-size:14.5px;border-radius:12px;}
   button.v4-mov{width:100%;border:1px solid var(--line-soft);background:var(--sur);color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .set-card>.set-row:first-child,.set-card>.set-sub:first-child>.set-row:first-child{border-top:none;}
-  .set-row .sr-ic{font-size:17px;flex:0 0 22px;text-align:center;line-height:1;}
-  .set-row .sr-lb{flex:1;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .set-row .sr-val{color:var(--muted);font-size:12.5px;font-weight:600;flex:0 1 42%;max-width:42%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .set-row .sr-ic{font-size:17px;flex:0 0 22px;text-align:center;line-height:1;color:var(--muted);}
+  .set-row .sr-ic svg{display:block;margin:0 auto;}
+  /* Nada cortado: la etiqueta y el valor bajan de renglón por palabras. Con letra Enorme a 360
+     salía «Accesi…» al lado de «Enorme», y luego «Total / de / Gastos» o «Despeses i in…» (240).
+     La etiqueta parte de unas ocho letras de ancho y los dos ceden a la vez, sin bajar nunca de su
+     palabra más larga; el valor, como mucho la otra mitad, alineado a la derecha. */
+  .set-row .sr-lb{font-weight:700;overflow-wrap:break-word;}
+  .set-row > .sr-lb{flex:1 1 min(8em,50%);}
+  .set-row .sr-val{color:var(--muted);font-size:12.5px;font-weight:600;line-height:1.3;flex:0 1 auto;max-width:48%;text-align:right;overflow-wrap:break-word;}
+  .set-search{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .set-search-box{position:relative;flex:1;min-width:0;display:flex;align-items:center;}
+  .set-search-ic{position:absolute;left:13px;color:var(--muted);pointer-events:none;}
+  .set-search-in{width:100%;min-height:44px;padding:10px 13px 10px 38px;border-radius:12px;border:1px solid var(--line);background:var(--bg-2);color:var(--text);font-size:16px;font-family:inherit;box-sizing:border-box;}
   /* Notificaciones (16/11): título + una línea de apoyo, logo del banco en el hueco del icono y el
      permiso como estado con punto, que se lee igual en la fila del grupo y dentro. */
   .set-row .sr-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
@@ -2926,6 +3027,7 @@
   .dots .d.on{width:22px;background:linear-gradient(90deg,var(--mint-bright),var(--mint));}
 
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-bottom));background:var(--sur2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:16px;font-size:14px;font-weight:700;z-index:200;box-shadow:var(--shadow);animation:toastin .3s ease;}
+  .toast.toast-low{bottom:calc(24px + var(--safe-bottom));}
   .offline-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:rgba(226,160,95,.16);border:1px solid rgba(226,160,95,.5);color:#E2A05F;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;z-index:210;white-space:nowrap;box-shadow:var(--shadow);}
   .update-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:var(--on-mint);padding:9px 18px;border-radius:20px;font-size:12.5px;font-weight:800;z-index:215;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(95,208,138,.7);border:none;cursor:pointer;animation:updin .35s ease;}
   .update-pill+.update-pill{top:calc(var(--safe-top) + 48px);}
@@ -3037,7 +3139,8 @@
 .aely-help-phrase{font-size:15px;font-weight:550;letter-spacing:-.1px;line-height:1.4;margin:4px 0 0;text-decoration:none !important;}
 .aely-help-steps{margin:8px 0 0;padding-left:22px;display:grid;gap:5px;line-height:1.35;}
 .aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
-.aely-help-entry{margin:6px 0 10px;}
+/* «Pregúntame» en Ajustes: el mismo «?» redondo de Inicio, al lado del buscador y ya con 44 px. */
+.aely-help-entry-set{width:44px;height:44px;flex:0 0 auto;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--text);font:550 19px/1 var(--serif,Georgia,serif);padding:0;cursor:pointer;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
 .aely-help-entry-mini{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
 /* El dibujo sigue en 36 px; el dedo necesita 44 (auditoría 15/11). -5 y no -4: el inset cuenta desde
@@ -4429,7 +4532,7 @@ function mcSeedSandboxVacio(){
   mcSandboxTransition(true);
   try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
-    _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
+    _dataVer:6, onboarded:false, tourSeen:false, setupHint:false, _netoUnaCuenta:true,
     budget:0, monthStartNet:0, history:[],
     accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
     expenses:[], settings:{}
@@ -6764,6 +6867,24 @@ function valueDesdeSaldo(o){
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
 }
+/* EL NETO DEL MES DE UN BANCO LO LLEVA UNA SOLA CUENTA (ronda 238, revisión de dinero R2).
+   Los recibos, cuotas, nóminas y traspasos se apuntan a un BANCO (`accOf`), no a una cuenta, y
+   `paidNetByBank[ent]` es lo ya cobrado de ese banco. Cada cuenta lo sumaba entero: con dos
+   cuentas de recibos del mismo banco (la corriente y la de ahorro que trae Open Banking, las dos
+   «fijos» por defecto) un Teléfono de 30 € bajaba 120 € el «Tienes hoy» del banco, porque el mapa
+   ya llegaba doble y cada cuenta se lo restaba. Ahora el mapa lleva, sin que se vea al recorrerlo,
+   qué cuenta carga el neto (`cuentaDelNetoDeBanco`, 01-i18n), y viaja con el mapa a todo el que
+   lo pase. Un mapa hecho a mano sin esa marca se comporta como antes. */
+function paidNetDeCuenta(a, paidMap){
+  if(!a||!paidMap) return 0;
+  const pn=paidMap[a.ent]||0;
+  if(!pn) return 0;
+  const lleva=paidMap.cuentaDe;
+  if(!lleva || !Object.prototype.hasOwnProperty.call(lleva,a.ent)) return pn;
+  const m=lleva[a.ent];
+  // Marca = id de la cuenta, o la cuenta misma si no tiene id (dos sin id no lo cargan las dos).
+  return (m!==null&&typeof m==="object" ? m===a : m===a.id) ? pn : 0;
+}
 /* Saldo que se PINTA de una cuenta. Diaria → fórmula TR. Efectivo → value − gastos propios
    (nadie re-ancla el sobre). Resto → value + paidNet, SIN restar gastos: las manuales sin OB
    las ajusta él a mano (decisión pendiente del dueño; NO ensanchar a «sin bankIban»). */
@@ -6772,7 +6893,7 @@ function saldoCuentaMostrada(a, o){
   if(!a) return 0;
   const spentMap=o.spentByBank||{};
   const paidMap=o.paidNetByBank||{};
-  const pn=paidMap[a.ent]||0;
+  const pn=paidNetDeCuenta(a, paidMap);
   if(typeof accDaily==="function" ? accDaily(a) : (a.role==="diario"||a.role==="ambos"||a.spendFrom)){
     return saldoCuentaGasto({
       value:a.value, injTR:o.injTR||0, spentOwn:spentMap[a.ent]||0,
@@ -7121,7 +7242,7 @@ function applyTrCash(state, cash, totals){
   const hasTR=accounts.some(function(a){ return a.ent==="trade_republic"; });
   const next=hasTR ? accounts.map(function(a){
     if(a.ent!=="trade_republic") return a;
-    const pn=(totals.paidNetByBank&&totals.paidNetByBank[a.ent])||0;
+    const pn=paidNetDeCuenta(a, totals.paidNetByBank);
     const spentOwn=(totals.spentByBank&&totals.spentByBank[a.ent])||0;
     const stored=accDaily(a)
       ? valueDesdeSaldo({shown:shown,injTR:totals.injTR||0,spentOwn:spentOwn,roundup:totals.roundupThisMonth||0,monthlyInvest:totals.monthlyInvestThisMonth||0,ambos:accRole(a)==="ambos",paidNet:pn})
@@ -7348,7 +7469,8 @@ function moveAccountInList(state, fromId, toId){
     const j=acc.findIndex(function(a){ return accountOrderKeyOf(a,"account")===to; });
     if(i<0||j<0||i===j) return state;
     const item=acc.splice(i,1)[0]; acc.splice(j,0,item);
-    return Object.assign({},state,{accounts:acc});
+    // Reordenar puede cambiar qué cuenta carga el neto de su banco; el saldo no se mueve (238).
+    return conservaNetoDeBanco(state, Object.assign({},state,{accounts:acc}));
   }
 
   const keys=rows.map(function(r){ return r.key; });
@@ -7363,7 +7485,7 @@ function moveAccountInList(state, fromId, toId){
     const byKey={}; (state.accounts||[]).forEach(function(a){ byKey[accountOrderKeyOf(a,"account")]=a; });
     next.accounts=keys.map(function(k){ return byKey[k]; }).filter(Boolean);
   }
-  return Object.assign({},state,next);
+  return conservaNetoDeBanco(state, Object.assign({},state,next));
 }
 /* Resuelve un OB marcado como posible repetido (2026-09-07).
    same=true  → se queda el gemelo con nombre (noti/manual) y se borra la fila OB.
@@ -8193,7 +8315,7 @@ function manualBalanceWrite(s,readings){
     const typed=+(r.typed).toFixed(2),shown=saldoCuentaMostrada(a,input);
     // La misma cifra sigue siendo una lectura nueva (t3), aunque no acredite otra base manual.
     if(Math.round(typed*100)===Math.round(shown*100)){changed=true;return Object.assign({},a,{saldoLeidoAt:new Date().toISOString()});}
-    const pn=input.paidNetByBank[a.ent]||0,spent=input.spentByBank[a.ent]||0;
+    const pn=paidNetDeCuenta(a,input.paidNetByBank),spent=input.spentByBank[a.ent]||0;
     const value=accDaily(a)?valueDesdeSaldo({shown:typed,injTR:input.injTR,spentOwn:spent,roundup:input.roundup,monthlyInvest:input.monthlyInvest,ambos:accRole(a)==="ambos",paidNet:pn}):isEfectivoEnt(a)?+(typed+spent).toFixed(2):+(typed-pn).toFixed(2);
     const n=Object.assign({},a,{value:value,saldoLeidoAt:new Date().toISOString()});
     changed=true;
@@ -8824,7 +8946,7 @@ const LANG = {
     v4_apuntar_need:"Pon un importe 🙂", v4_apuntar_ok:"✓ Gasto apuntado", v4_apuntar_ok_in:"✓ Ingreso apuntado",
     v4_back:"Volver",
     v4_debts_hero:"Debes en total", v4_debts_sub:"{x}/mes en cuotas · bajando cada mes",
-    v4_debts_ends:"acabas en {d}", v4_amort_now:"💸 Amortizar ahora",
+    v4_debts_ends:"acabas en {d}", v4_amort_now:"Amortizar ahora",
     v4_debt_party_1:"🎉 {name}: ¡ÚLTIMA cuota este mes ({x})!", v4_debt_party_sub:"Después, {x}/mes libres para ti.",
     v4_goals_hero:"Ahorrado en metas", v4_goal_new:"+ Nueva meta de ahorro",
     v4_ob_skip:"Saltar", v4_ob_title1:"Bienvenido/a",
@@ -8880,7 +9002,7 @@ const LANG = {
     // pintaba la clave pelada «tb_removed» / «tb_nodel» en el toast (bug encontrado 2026-07-24
     // por el test de claves i18n).
     st_mode_hint:"Plan solo con recibos: sin deudas ni metas.",
-    settings:"Ajustes", language:"Idioma", theme:"Tema de color", currency:"Moneda de visualización",
+    settings:"Ajustes", language:"Idioma", theme:"Tema de color", currency:"Moneda en pantalla",
     save:"Guardar", backup:"Copia de seguridad", st_imports:"Importaciones",
     eb_title:"Algo se ha torcido", eb_msg:"La app ha tenido un error al dibujar. Tus datos están a salvo. Descarga una copia por si acaso y recarga.", eb_export:"⬇️ Descargar copia de seguridad", eb_export_fail:"No se pudo descargar la copia. Recarga y prueba otra vez.", err_generic:"No ha salido bien. Prueba otra vez.", err_offline:"Sin conexión. Prueba otra vez.", err_login:"Correo o contraseña incorrectos.", err_pass:"Contraseña incorrecta.", err_registered:"Ese correo ya tiene cuenta.", err_unconfirmed:"Confirma el correo antes de entrar.", err_cloud_off:"Nube no disponible.", err_cloud_format:"La nube trae datos raros: se quedan los de este móvil.", err_cloud_pull:"No se ha podido traer lo de la nube. Lo de este móvil sigue aquí.", au_bio_need:"Configura primero la huella o el bloqueo de pantalla del móvil.", au_bio_nosupport:"Este móvil no permite usar la huella aquí.", pr_no_tickers:"Ninguna inversión tiene precio automático.", pr_login:"Inicia sesión para actualizar precios.", pr_updating:"Actualizando precios…", pr_none:"No han llegado precios. Prueba más tarde.", nav_aria:"Navegación", eb_reload:"🔄 Recargar la app",
     off_pill:"📴 Sin conexión · se guarda y sincroniza al volver",
@@ -8896,7 +9018,7 @@ const LANG = {
     apk_why_state:"app: canal {ch} ofrece la {want}, tienes la {have}", apk_ch_beta:"pruebas", apk_ch_stable:"estable",
     ob_signup:"Crear cuenta nueva",
     st_notifs:"Notificaciones", st_simple_lbl:"Modo sencillo",
-    st_search_ph:"🔍 Buscar en ajustes…", st_search_none:"Nada con ese nombre. Prueba con «tema», «banco», «copia»…",
+    st_search_ph:"Buscar en ajustes…", st_search_none:"Nada con ese nombre. Prueba con «tema», «banco», «copia»…",
     st_updates:"Actualizaciones", st_update:"Buscar actualización",
     st_up_ok:"✓ Estás a la última", st_up_applying:"⬇️ Actualizando a la v{v}… la app se recarga sola en unos segundos", st_up_apk:"⬇️ App {v} disponible · descargando, se abrirá el instalador",
     st_widget_hint:"📱 Widget: mantén pulsado el escritorio → Widgets → Aely. Verás el gasto del mes y lo que te queda.",
@@ -8918,22 +9040,21 @@ const LANG = {
     st_banksync_notif:"Sincronizar al llegar un aviso del banco", st_banksync_notif_hint:"Como mucho cada 12 h",
     st_aicat:"Sugerir categoría con IA", st_aicat_hint:"Solo en «Otros» · sin el importe",
     th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
-    rp_saved:"✓ Informe guardado en Descargas (busca «mi-cartera-…png»)",
+    rp_saved:"Informe guardado en Descargas",
     rp_saved_notif:"📊 Informe del mes guardado en Descargas: {f}. Ábrelo desde tu app de Archivos o la galería.",
     ob_haveacc:"Ya tengo cuenta · Iniciar sesión",
     // v4.6 — aportar a metas con banco + teclado propio
     gl_contribute_title:"Aportar a {name}", gl_contribute_from:"¿De qué banco sale?", gl_contribute_save:"Aportar {x}",
     // Accesibilidad
     v4_set_a11y:"Accesibilidad",
-    st_textsize:"Tamaño de letra", st_textsize_hint:"Agranda toda la app.",
+    st_textsize:"Tamaño de letra",
     ts_small:"Normal", ts_normal:"Grande", ts_big:"Muy grande", ts_huge:"Enorme",
-    st_reduce_motion:"Reducir animaciones", st_reduce_motion_hint:"Quita deslizamientos y rebotes.",
-    st_contrast:"Más contraste", st_contrast_hint:"Sube el contraste del texto para que se lea mejor.",
+    st_reduce_motion:"Reducir animaciones",
+    st_contrast:"Más contraste",
     // Temáticas de temporada
     st_theme_season:"Temática", st_theme_season_hint:"Colores y un detalle suave de fondo según la estación.",
     th_none:"Ninguna", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Navidad 🎄", th_verano:"Verano ☀️", th_invierno:"Invierno ❄️", th_pascua:"Pascua 🐣", th_otono:"Otoño 🍂", th_primavera:"Primavera 🌸",
     // Bancos de gasto diario (varios)
-    v4_shared_sub:"Hogar, pareja y grupos de gastos",
     // Comparativa de monedas
     st_cur_compare_empty:"Aún no hay tipos de cambio. Comprueba la conexión y pulsa reintentar.",
     st_cur_compare_retry:"Reintentar",
@@ -9327,7 +9448,7 @@ Object.assign(LANG.es,{
   d_saving:"Ahorro", 
   done:"Listo ✓", drag_hint:"mantén pulsada una tarjeta para moverla",
   // Gastos
-  g_month:"Este mes", g_cycle:"Mi ciclo", g_all:"Todo", g_custom:"Rango…", g_allcats:"Todas",
+  g_cycle:"Mi ciclo", g_all:"Todo", g_custom:"Rango…", g_allcats:"Todas",
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
@@ -9353,8 +9474,8 @@ Object.assign(LANG.es,{
   g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
   sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
-  st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con nómina reconocida, Gastos va de nómina a nómina; si no, por mes natural.",
-  sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
+  st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Ciclo de cobro",
+  sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_add_short:"Añadir",
   g_syncing:"Sincronizando…",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
   ap_pay_card:"Tarjeta", ap_pay_cash:"Efectivo", ap_pay_transfer:"Bizum/transf.", ap_pay_aria:"Forma de pago",
@@ -9405,7 +9526,6 @@ Object.assign(LANG.es,{
   db_concept:"Ej.: financiación del móvil", db_amount:"Importe €", db_quota_ph:"Vacía si es al 0 %", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
   db_months_ph:"Plazo (meses)", db_day_ph:"Día", db_financing_hint:"Plazo en meses: la cuota se apunta sola y para al acabar. Al 0 % déjala vacía; con interés, pon la real.",
   db_down_ph:"Entrada € (opcional)", db_balloon_ph:"Pago final € (coche)", db_balloon_tag:"(pago final)", db_balloon_hint:"Coche con pago final: pon importe financiado, pago final y plazo; la cuota sale sola.", db_balloon_line:"Pago final: {x}", db_down_line:"Entrada: {x}",
-  db_hint:"El saldo baja solo cada mes. Corrígelo aquí cuando tengas el real del banco.",
   db_err_amount:"⚠ Falta el importe total de la deuda", db_err_quota:"⚠ Pon la cuota/mes o el plazo en meses", db_err_paid:"⚠ Has pagado tantas cuotas como el plazo: esa deuda ya está liquidada", db_added:"✓ Deuda añadida",
   db_paid_ph:"Cuotas ya pagadas", db_paid_hint:"¿Ya la tienes empezada? Pon cuántas cuotas llevas pagadas y el pendiente se calcula solo.",
   db_amortize:"Amortizar", db_amortize_prompt:"¿Cuánto amortizas de «{name}»?", db_amortize_sub:"Pendiente ahora: {x}. Lo que pongas baja el saldo y acorta el plazo, manteniendo la misma cuota.", db_amortized:"✓ Amortizado {x} · pendiente {y}", db_amortize_full:"🎉 ¡Deuda liquidada!",
@@ -9448,7 +9568,7 @@ Object.assign(LANG.es,{
   gl_save:"Guardar cambios", gl_delete:"Eliminar meta", gl_of:"de",
   gl_eta:"A tu ritmo ({x}/mes) la cumples en {when} 🟢",
   gl_eta_ok:"Vas bien 🟢 · faltan {x}", gl_eta_behind:"Necesitas {x}/mes para llegar a tiempo 🟠",
-  gl_eta_reached:"🎉 ¡Conseguida!", gl_eta_overdue:"La fecha ya pasó 🟠 · ajústala", gl_eta_nosaving:"Empieza a ahorrar para ver la previsión",
+  gl_eta_reached:"🎉 ¡Conseguida!", gl_eta_overdue:"La fecha ya pasó 🟠 · ajústala",
   gl_done_badge:"🏅 Cumplida", gl_celebrate:"🎉 ¡Meta «{name}» cumplida!",
   gm_levelup:"🎉 ¡Subiste al nivel {n}!", gm_badge_new:"🏅 Logro: {x}",
   gm_b_first_goal:"1ª meta cumplida", gm_b_first_underbudget:"1er mes bajo presupuesto", gm_b_first_reto:"1er reto completado", gm_b_streak_3:"Racha de 3 meses",
@@ -9472,7 +9592,6 @@ Object.assign(LANG.es,{
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
   // INC-0410 es: los avisos del alta y el estado del reparto también deben invalidar su revisión.
   rr_title:"Reservar dinero de tus ingresos", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
-  rr_none:"Añade una para apartar dinero cada mes hacia una meta.",
   rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% del ingreso",
   rr_row_fixed:"{v} fijos", rr_row_pct:"{v} %",
   rr_goal_gone:"(meta borrada)",
@@ -9604,7 +9723,7 @@ Object.assign(LANG.es,{
   bp_hist_undo_cloud_fail:"Quitado en el móvil, pero la nube no ha confirmado el borrado. Si vuelven a aparecer, vuelve a deshacer con conexión.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
-  bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ningún banco conectado todavía",
+  bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ninguno",
   bp_summary_tr_dead:"⚠ Trade Republic desconectado",
   exp_pull_invalid:"No se pudo completar la descarga. Lo guardado se conserva; vuelve a intentarlo.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
@@ -9638,8 +9757,7 @@ Object.assign(LANG.es,{
   pf_title:"Tu perfil", pf_people:"Tu gente", pf_personal:"Personal", 
   pf_add:"Añadir", pf_handle:"Usuario", pf_basic:"Información básica", pf_name:"Nombre", pf_name_ph:"Tu nombre",
   pf_email:"Correo",
-  pf_hint:"Estos datos viven solo en tu móvil (y en la nube de Aely si tienes sesión). No se comparten con bancos.",
-  pf_to_settings:"Ir a Ajustes",
+  pf_to_settings:"Ir a Ajustes", pf_shared_row:"Hogar compartido",
 });
 
 
@@ -10003,8 +10121,17 @@ function insumosSaldoGasto(state){
   const monthlyInvest=trAcc ? (trAcc.monthlyInvest||0) : 0;
   const now=new Date();
   const curMonth=now.getMonth()+1, curYear=now.getFullYear(), today=now.getDate();
-  const paidNetByBank={};
-  accounts.forEach(function(a){ if(accFixed(a)) paidNetByBank[a.ent]=(paidNetByBank[a.ent]||0)+monthNetForAccount(state,a.ent,curYear,curMonth,today); });
+  // Un término por BANCO, no por cuenta: con dos cuentas de recibos del mismo banco se sumaba
+  // dos veces y además cada una se lo restaba entero (ronda 238). Lo carga `cuentaDelNetoDeBanco`.
+  const paidNetByBank={}, cuentaDe={};
+  accounts.forEach(function(a){
+    if(!accFixed(a)||Object.prototype.hasOwnProperty.call(cuentaDe,a.ent)) return;
+    // La primera = `cuentaDelNetoDeBanco`. Sin id, la propia cuenta: dos sin id no lo cargan las dos.
+    cuentaDe[a.ent]=a.id!=null?a.id:a;
+    paidNetByBank[a.ent]=monthNetForAccount(state,a.ent,curYear,curMonth,today);
+  });
+  // Sin enumerar: el mapa se recorre por banco en Plan y en los tests, y la marca no es un banco.
+  Object.defineProperty(paidNetByBank,"cuentaDe",{value:cuentaDe});
   const spentByBank=gastoDelMesPorBanco(thisMonthExp, trAcc&&trAcc.ent);
   return { trAcc:trAcc, thisMonthExp:thisMonthExp, injTR:injTR, roundup:roundup, saveback:saveback, monthlyInvest:monthlyInvest,
     spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today,
@@ -10012,7 +10139,7 @@ function insumosSaldoGasto(state){
     rewardsPending:recompensasPendientes(state, Date.now()) };
 }
 function applyAccountRole(s, totals, id, r){
-  const pn=function(i){ return (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0; };
+  const pn=function(i){ return paidNetDeCuenta(i, totals.paidNetByBank); };
   const ruM=totals.roundupThisMonth||0, miM=totals.monthlyInvestThisMonth||0;
   const spentOwn=function(i){ return (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0; };
   const spendBal=function(i){ return saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}); };
@@ -10033,11 +10160,11 @@ function applyAccountRole(s, totals, id, r){
      Y por eso sincronizar lo curaba: `applyBankBalances` vuelve a anclar contra el saldo REAL
      del banco, ya con el rol nuevo puesto.
 
-     Aquí se calcula el `paidNet` que tendrá la cuenta CON EL ROL NUEVO, con la misma suma que
-     hace `totals` (un término por cuenta `accFixed` de ese banco) para que las dos digan lo
-     mismo. ⚠ Esa suma cuenta DOBLE si un banco tiene dos cuentas fijas; es un defecto de fondo
-     anotado al backlog y se replica a propósito: divergir aquí sería el fallo de la regla en dos
-     sitios otra vez. Ver [[misma-regla-en-dos-sitios]]. */
+     Aquí se calcula el `paidNet` que tendrá la cuenta CON EL ROL NUEVO, con la misma regla que
+     `totals` (`paidNetDeCuenta` sobre `insumosSaldoGasto`). Ver [[misma-regla-en-dos-sitios]].
+     Y como el neto del banco lo carga UNA cuenta (`cuentaDelNetoDeBanco`, ronda 238), cambiar el
+     rol de una puede pasárselo a su hermana del mismo banco: esa también se re-ancla, o su saldo
+     saltaría el importe de los recibos ya cobrados sin haber tocado nada en ella. */
   const fijoTras=function(rr){ return rr==="fijos"||rr==="ambos"; };
   const rolTras=function(a){
     if(a.id===id) return r;
@@ -10057,17 +10184,74 @@ function applyAccountRole(s, totals, id, r){
   })});
   const ins=insumosSaldoGasto(sTras);
   const valueForRole=function(a,rr,shown){
-    const pnNuevo=fijoTras(rr)?((a.ent&&ins.paidNetByBank[a.ent])||0):0;
+    const pnNuevo=fijoTras(rr)?paidNetDeCuenta(a,ins.paidNetByBank):0;
     if(rr==="fijos") return +(shown - pnNuevo).toFixed(2);
     return valueDesdeSaldo({shown:shown, injTR:ins.injTR, spentOwn:(a.ent&&ins.spentByBank[a.ent])||0, roundup:ins.roundup, monthlyInvest:ins.monthlyInvest, ambos:rr==="ambos", paidNet:pnNuevo});
   };
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
     if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }
     if(r!=="fijos" && accDaily(a)) return Object.assign({},a,{role:"fijos", spendFrom:false, value:valueForRole(a,"fijos",shownOf(a))});
+    const rr=accRole(a);
+    if(Math.abs(pn(a)-(fijoTras(rr)?paidNetDeCuenta(a,ins.paidNetByBank):0))>0.005) return Object.assign({},a,{value:valueForRole(a,rr,shownOf(a))});
     return a;
   })});
 }
 function accFixed(a){ const r=accRole(a); return r==="fijos"||r==="ambos"; }    // participa en el motor de fijos
+/* Qué cuenta carga el neto del mes de su banco (`monthNetForAccount`): la PRIMERA de recibos de
+   ese banco en el orden guardado. Los recibos no dicen cuenta, solo banco, así que repartirlos
+   sería inventar; y la primera no cambia al promocionar otra cuenta del banco, que va al final.
+   Pintar, re-anclar y cerrar el mes tienen que elegir LA MISMA: si una suma y otra no, el saldo
+   salta (ronda 238). Con lectura del banco da igual cuál sea: al re-anclar cada una vuelve a
+   enseñar lo que dice su banco. */
+function cuentaDelNetoDeBanco(accounts, ent){
+  return (accounts||[]).find(function(a){ return a&&a.ent===ent&&accFixed(a); })||null;
+}
+function llevaNetoDeBanco(accounts, a){
+  const c=a&&cuentaDelNetoDeBanco(accounts,a.ent);
+  return !!c&&(c===a||(c.id!=null&&c.id===a.id));          // misma comparación que `paidNetDeCuenta`
+}
+/* MIGRACIÓN DE UNA VEZ (`_netoUnaCuenta`, ronda 238): los `value` guardados antes se anclaron con
+   la regla vieja, en la que cada cuenta de recibos pintaba k·N (k cuentas del banco, N su neto del
+   mes). Sin esto, al actualizar, la Ahorro de quien tecleó «500» con la versión vieja pasaba a
+   pintar 560 (revisión 238, P1). Se desplaza la base lo justo para que cada cuenta pinte HOY lo
+   mismo que ayer: v + k·N − (la que lo carga ? N : 0). Con una cuenta por banco k=1 y no se toca.
+   Un estado sin `_dynBalAnchored` guarda el saldo de hoy y lo ancla el bloque de abajo con la regla
+   nueva. Sin escribir a la nube: la marca viaja con el estado como las demás. */
+function migraNetoUnaCuenta(s){
+  if(!s||s._netoUnaCuenta) return s;
+  const accs=s.accounts||[];
+  if(s._dynBalAnchored){
+    const now=new Date(), cy=now.getFullYear(), cm=now.getMonth()+1, td=now.getDate(), k={}, N={};
+    accs.forEach(function(a){ if(a&&accFixed(a)) k[a.ent]=(k[a.ent]||0)+1; });
+    s.accounts=accs.map(function(a){
+      if(!a||!accFixed(a)||!(k[a.ent]>=2)) return a;
+      if(!Object.prototype.hasOwnProperty.call(N,a.ent)) N[a.ent]=monthNetForAccount(s,a.ent,cy,cm,td);
+      const d=+(k[a.ent]*N[a.ent]-(llevaNetoDeBanco(accs,a)?N[a.ent]:0)).toFixed(2);
+      return Math.abs(d)>0.005?Object.assign({},a,{value:+((a.value||0)+d).toFixed(2)}):a;
+    });
+  }
+  s._netoUnaCuenta=true;
+  return s;
+}
+/* Arrastrar una cuenta para ordenarla o borrar su hermana puede cambiar cuál carga el neto del
+   banco. Eso no es dinero que entre ni salga: cada cuenta que sigue conserva el saldo que
+   enseñaba, desplazando su base lo que cambia su parte del neto (como `keepShownAcrossFlows`). */
+function conservaNetoDeBanco(antes, despues){
+  if(!antes||!despues||antes.accounts===despues.accounts) return despues;
+  const pa=insumosSaldoGasto(antes).paidNetByBank, pd=insumosSaldoGasto(despues).paidNetByBank;
+  const previa={}; (antes.accounts||[]).forEach(function(a){ if(a&&a.id!=null) previa[a.id]=a; });
+  let cambia=false;
+  const accounts=(despues.accounts||[]).map(function(a){
+    // Sin id, la misma cuenta es el mismo objeto (borrar y reordenar no la copian).
+    const b=a&&(a.id!=null?previa[a.id]:((antes.accounts||[]).indexOf(a)>=0&&a));
+    if(!b||!accFixed(a)||!accFixed(b)) return a;
+    const diff=+(paidNetDeCuenta(b,pa)-paidNetDeCuenta(a,pd)).toFixed(2);
+    if(Math.abs(diff)<=0.005) return a;
+    cambia=true;
+    return Object.assign({},a,{value:+((a.value||0)+diff).toFixed(2)});
+  });
+  return cambia?Object.assign({},despues,{accounts:accounts}):despues;
+}
 // Inyección de nómina de la cuenta de gasto (€ que entran cada mes FUERA del sistema de flujos).
 // Antes era CONFIG.TR_INJECTION hardcodeado para todos; ahora es por cuenta (a.inject). Fallback
 // anclado al id de la cuenta TR del creador (patrón de migración por id) hasta que la semilla escriba el campo.
@@ -10079,6 +10263,10 @@ function reconcileTR(s){
   if(!acc) return s;
   const now=new Date();
   const cmKey=mkOf(now);
+  /* Un estado sin `_netoUnaCuenta` se ancló con la regla vieja: cierra sus meses también con ella
+     (el neto en cada cuenta) y `migraNetoUnaCuenta`, que corre justo después, lo pasa a la nueva
+     sin mover lo que se pinta. Si no, el primer arranque tras cambiar de mes saltaba. */
+  const cargaNeto=function(a){ return !s._netoUnaCuenta || llevaNetoDeBanco(s.accounts, a); };
   let anchor=s.trAnchor || cmKey;
   let [ay,am]=anchor.split("-").map(Number); am=am-1;
   let guard=0;
@@ -10099,7 +10287,9 @@ function reconcileTR(s){
     const spent=gastoPorBanco[acc.ent]||0;
     acc.value = acc.value + accInject(acc) - spent;                 // mes cerrado: + inyección de nómina − gasto
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
-    if(accRole(acc)==="ambos") acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
+    // Solo si es la que carga el neto de su banco (`cuentaDelNetoDeBanco`): es la misma que lo
+    // pinta durante el mes, y con dos cuentas del banco cada una lo arrastraba entero (ronda 238).
+    if(accRole(acc)==="ambos" && cargaNeto(acc)) acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
     // Round-up & Saveback (#19): al cerrar el mes, el round-up sale del efectivo y se abona
     // (junto al saveback, dinero gratis) a la inversión destino comprando participaciones.
     // SOLO si la cuenta no tiene ya movimientos reales de Open Banking (2026-08-03): desde que TR
@@ -10166,7 +10356,8 @@ function reconcileTR(s){
     // Demás bancos (Sabadell, etc.): arrastran su neto del mes cerrado (ingresos − fijos − cuotas − puntuales − transfers)
     s.accounts.forEach(function(a2){
       if(a2.spendFrom) return;
-      let v=(a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null);
+      // El neto lo arrastra la misma cuenta que lo pinta durante el mes (ronda 238).
+      let v=(a2.value||0) + (cargaNeto(a2) ? monthNetForAccount(s, a2.ent, ay, am+1, null) : 0);
       // El sobre de efectivo SÍ arrastra sus propias compras al cerrar: durante el mes
       // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia
       // arriba el día 1. Los demás bancos NO restan gastos a propósito (00-core, saldo mostrado:
@@ -10460,7 +10651,9 @@ function goalEta(g, monthlySaving){
   }
   // En céntimos, como las cuotas de deuda: 72,45 a 10,35 al mes son 7 meses, no 8 (revisión 237).
   if(Math.round(m*100)>0){ const months=Math.max(1,cuotasQueQuedan(rem,m)); return {text:tf("gl_eta",{x:eur0(m),when:monthYearIn(months)}), cls:""}; }
-  return {text:t("gl_eta_nosaving"), cls:""};
+  // Sin ritmo no hay previsión que dar, y no se pinta nada: «Empieza a ahorrar para ver la
+  // previsión» salía en cada tarjeta, también con media meta ya ahorrada (auditoría 237, P1-7).
+  return {text:"", cls:""};
 }
 // confeti DOM: ligero, se autolimpia. Para celebrar una meta cumplida.
 function celebrate(){
@@ -10762,6 +10955,7 @@ function buildEmpty(){
     categoryBudgets: {},
     lastSync: null, lastPriceSync: null,
     onboarded: false, _dataVer: 6, trAnchor: mkOf(new Date()),
+    _netoUnaCuenta: true,   // nace con la regla de una cuenta por banco: nada que migrar (238)
   };
 }
 function migrate(s){
@@ -11012,13 +11206,15 @@ function seedFlows(s){
     // semilla única: materializa la inyección de nómina de TR como campo por cuenta (antes CONFIG global)
     if(!s._injectSeed){ s.accounts=s.accounts.map(function(a){ return (a.spendFrom && a.inject==null)?Object.assign({},a,{inject:CONFIG.TR_INJECTION}):a; }); s._injectSeed=true; }
   }
+  // Antes que el bloque de abajo: decide con `_dynBalAnchored` todavía sin tocar.
+  migraNetoUnaCuenta(s);
   // FIX v3.50: el saldo dinámico (v3.48) interpretó el `value` guardado como "inicio de mes" y volvió a
   // restar los cargos YA pagados de este mes → saldos disparados (Sabadell −3312 en vez de 147). Re-anclamos
   // UNA sola vez: el value guardado era el saldo de HOY, así que le sumamos de vuelta el neto ya ocurrido
   // (base = hoy − netoYaOcurrido) para que el saldo mostrado vuelva a ser el real y evolucione bien.
   if(!s._dynBalAnchored){
     const cy=new Date().getFullYear(), cm=new Date().getMonth()+1, td=new Date().getDate();
-    (s.accounts||[]).forEach(function(a){ if(!a.spendFrom){ a.value = +(((a.value||0) - monthNetForAccount(s, a.ent, cy, cm, td))).toFixed(2); } });
+    (s.accounts||[]).forEach(function(a){ if(!a.spendFrom && llevaNetoDeBanco(s.accounts, a)){ a.value = +(((a.value||0) - monthNetForAccount(s, a.ent, cy, cm, td))).toFixed(2); } });
     s._dynBalAnchored=true;
   }
   // deuda dinámica: ancla el saldo actual al mes de hoy si aún no tenía ancla (vale para todos)
@@ -11109,7 +11305,7 @@ function loadState(){
     if(uuidChanged)saved.expenses=unique;
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
-    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored || saved.trasAbonoDesde==null;
+    var writeBack=uuidChanged || !(saved._dataVer>=6) || !saved._dynBalAnchored || !saved._netoUnaCuenta || saved.trasAbonoDesde==null;
     // Antes de cerrar meses: el sello decide qué traspasos abonan en su destino (`flowAbonaEn`, 08).
     if(saved.trasAbonoDesde==null) saved.trasAbonoDesde=sellarAbonoTraspasos({}).trasAbonoDesde;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
@@ -11622,7 +11818,8 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast(errTxt()); return; }
-      const fname="mi-cartera-"+ymFile+".png";
+      // Con el nombre de la app de hoy: «mi-cartera-…» era el de antes de llamarse Aely.
+      const fname="aely-informe-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
         setTimeout(function(){ URL.revokeObjectURL(u); },1000);
@@ -14127,8 +14324,10 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
     React.createElement("button",{type:"button",className:"v4-bankpick-op sin"+(!bankEnt?" on":""),"aria-pressed":!bankEnt,
       onClick:function(){ mcTickHaptic(); onPickBank(null); }},t("ap_bank_none")));
   const cls="v4-ficha-pay"+(income?" income":"")+(elige.dentro?" eligiendo":"");
+  // Sin ningún banco que elegir la píldora no abre nada: no se pinta.
+  const sinBancos=!bankEnt&&!bankLocked&&!(bankOpts||[]).length;
   if(income){
-    return React.createElement("div",{className:cls},bankPill(false),
+    return React.createElement("div",{className:cls},sinBancos?null:bankPill(false),
       React.createElement("button",{type:"button",disabled:!!cashDisabled,
         // Del banco, la cuenta no se cambia: el efectivo se queda visiblemente apagado.
         className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashDisabled?" disabled":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
@@ -14146,13 +14345,13 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
       opt("card",t("ap_pay_card"),p+"-pay-card"),
       opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
       opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
-    bankPill(mode==="cash"),
+    sinBancos?null:bankPill(mode==="cash"),
     picker);
 }
-/* El logo del banco, o un círculo vacío si no hay banco: el 🏦 genérico parecía un banco más. */
+/* El logo del banco, o un hueco con «+» si no hay banco: el 🏦 genérico parecía un banco más. */
 function BancoIcono({ent, size}){
   if(ent) return React.createElement(Mono,{ent:ent,size:size});
-  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}});
+  return React.createElement("span",{className:"v4-banco-sin","aria-hidden":"true",style:{width:size,height:size}},"+");
 }
 /* Montar con entrada y salida suaves: `vivo` monta, `dentro` pone la clase que anima. Al cerrar se
    espera a que acabe la transición antes de desmontar; con «reducir movimiento», sin esperar. */
@@ -14196,6 +14395,25 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
      a su alto máximo dejaba huecos vacíos de hasta 215 px encima del teclado (crítico de la v5).
      Caben floor(hueco / fila); si no cabe ninguna, la elegida va en la cabecera. null = sin teclado. */
   const [filasTeclado,setFilasTeclado]=useState(null);
+  // El área del concepto de Apuntar mide lo que su texto, hasta dos renglones (más allá, se desliza por dentro).
+  const conceptoRef=useRef(null);
+  useLayoutEffect(function(){
+    const el=conceptoRef.current; if(!el||el.tagName!=="TEXTAREA") return undefined;
+    const mide=function(){
+      const cs=getComputedStyle(el), lh=parseFloat(cs.lineHeight)||20;
+      const max=2*lh+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      el.style.height="auto";
+      const alto=el.scrollHeight;
+      el.style.height=Math.min(alto,max)+"px";
+      el.style.overflowY=alto>max+1?"auto":"hidden";
+      // La hoja de Apuntar crece ese renglón (shell.html) para no perder una fila de categorías.
+      const dos=alto>lh*1.5+(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+      if((el.getAttribute("data-renglones")==="2")!==dos) el.setAttribute("data-renglones",dos?"2":"1");
+    };
+    mide();
+    window.addEventListener("resize",mide);
+    return function(){ window.removeEventListener("resize",mide); };
+  },[concept,kb,cols]);
   useLayoutEffect(function(){
     if(!conTeclado||!teclado.vivo){ if(filasTeclado!==null) setFilasTeclado(null); return undefined; }
     const mide=function(){
@@ -14221,6 +14439,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
   /* Apuntar (`catRowsMax`): una fila, y dos si caben enteras en el alto que le queda a la hoja hasta
      su máximo (a 393 y 412 sí; a 360 no). La misma medida de filas enteras que la ficha. */
   const [filasAuto,setFilasAuto]=useState(1);
+  const kbFilasRef=useRef(!!kb), kbCambioRef=useRef(0), filasAntesRef=useRef(null), kbBordeRef=useRef(!!kb);
   useLayoutEffect(function(){
     if(!catRowsMax||todasEnFila) return undefined;
     const mide=function(){
@@ -14231,14 +14450,28 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       setFilasAuto(function(v){
         const fila=filaAltoRef.current+6, sobra=max-alto, desborda=body.scrollHeight-body.clientHeight>1;
         if(desborda&&v>1) return v-1;
-        if(!desborda&&v<catRowsMax&&sobra>=fila) return v+1;
+        // Escribiendo el concepto no se ganan filas: aparecerían de golpe con la hoja ya quieta.
+        if(!desborda&&v<catRowsMax&&sobra>=fila&&!kb) return v+1;
         return v;
       });
     };
-    mide();
-    window.addEventListener("resize",mide);
-    return function(){ window.removeEventListener("resize",mide); };
-  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length]);
+    /* Mientras se pliega o despliega lo de Apuntar (el concepto con teclado, 300 ms) la hoja mide lo que
+       no es: medida a mitad, al volver de «Listo» quedaba una segunda fila que luego no cabía y asomaba
+       partida bajo el numérico (filtro de diseño 239, a 360). Se mide cuando ya está quieta. */
+    let tm=0;
+    if(kbFilasRef.current!==!!kb){
+      kbFilasRef.current=!!kb; kbCambioRef.current=Date.now();
+      // Al volver, de entrada las filas que había antes del teclado: una fila ganada con el teclado
+      // puesto no cabe con el numérico y se quedaba debajo de él hasta medir.
+      if(kb) filasAntesRef.current=filasAuto;
+      else if(filasAntesRef.current!=null&&filasAntesRef.current<filasAuto){ setFilasAuto(filasAntesRef.current); filasAntesRef.current=null; }
+    }
+    const resto=function(){ return 400-(Date.now()-kbCambioRef.current); };
+    const cuando=function(){ clearTimeout(tm); if(resto()>0) tm=setTimeout(mide,resto()); else mide(); };
+    cuando();
+    window.addEventListener("resize",cuando);
+    return function(){ clearTimeout(tm); window.removeEventListener("resize",cuando); };
+  },[catRowsMax,todasEnFila,filasAuto,cols,(categoryItems||[]).length,kb,concept]);
   /* El borde de la hoja no parte por la mitad lo que hay detrás (crítico de la v5: en Apuntar a 393,
      la línea «gastado en septiembre · …»; y en la ficha, el total a 360 o un movimiento a 412). Si el
      borde cae dentro de un texto de la pantalla de detrás, sube lo justo para taparlo entero, con
@@ -14253,7 +14486,10 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     const mira=function(el){
       const r=el.getBoundingClientRect();
       if(r.height<=0||y<r.top||y>r.bottom||r.right<=0||r.left>=window.innerWidth) return;
-      if(el.childElementCount===0){ if((el.textContent||"").trim()&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
+      // Un buscador también es letra: su texto de ayuda no está en `textContent` (el de Gastos, partido
+      // por la hoja con el teclado del sistema puesto, 17/11).
+      const letra=(el.textContent||"").trim()||(el.tagName==="INPUT"&&(el.value||el.placeholder));
+      if(el.childElementCount===0){ if(letra&&y>r.top+2&&y<r.bottom-2&&(!peor||r.top<peor.top)) peor=r; return; }
       for(let c=el.firstElementChild;c;c=c.nextElementSibling) mira(c);
     };
     document.querySelectorAll(".page-scroll-host").forEach(mira);
@@ -14264,7 +14500,25 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     if(rellenoBaseRef.current==null) rellenoBaseRef.current=parseFloat(getComputedStyle(hoja).paddingTop)||0;
     const maxPropio=hoja.style.maxHeight;
     const ajusta=function(){
-      hoja.style.paddingTop=""; hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      const antes=hoja.style.paddingTop;
+      /* El tope de Apuntar con el teclado del sistema lo pone React (`vvAlto`): aquí solo se toca en
+         la ficha, que es la única que lo acorta. Si se reponía siempre, cada `resize` del teclado le
+         quitaba el tope a Apuntar y la hoja volvía a salirse por arriba. */
+      hoja.style.paddingTop=""; if(plegado) hoja.style.maxHeight=maxPropio; rellenoExtraRef.current=0;
+      mideBorde();
+      /* Escribiendo el concepto se mide cuando la hoja ya está quieta sobre el teclado, y el borde va
+         a su sitio deslizándose: de golpe se veía como un salto justo después de colocarse. */
+      if(desliza&&antes!==hoja.style.paddingTop&&!mcReduced()){
+        const nuevo=hoja.style.paddingTop;
+        hoja.style.paddingTop=antes; void hoja.offsetHeight;
+        hoja.style.transition=getComputedStyle(hoja).transition+",padding-top .25s cubic-bezier(.22,.61,.36,1)";
+        hoja.style.paddingTop=nuevo;
+        clearTimeout(tmBorde); tmBorde=setTimeout(function(){ hoja.style.transition=""; },300);
+      }
+    };
+    let tmBorde=0, tmKb=0;
+    const desliza=!!kb||kbBordeRef.current!==!!kb; kbBordeRef.current=!!kb;
+    const mideBorde=function(){
       const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
       const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, base=hoja.offsetHeight, top0=hoja.offsetTop*zoom;
       let extra=0, bajar=0;
@@ -14272,7 +14526,8 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         const y=top0-extra*zoom, r=textoPartido(y); if(!r) break;
         const mas=(y-(r.top-6))/zoom;
         // Si para taparlo habría que pasar del alto máximo, el borde baja hasta dejarlo entero encima.
-        if(extra+mas>max-base){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
+        // Con el teclado, como mucho un renglón: más es una franja vacía sobre el asa (filtro 239, a 360 con Enorme).
+        if(extra+mas>Math.min(max-base,kb?28:Infinity)){ if(extra===0) bajar=(r.bottom+6-y)/zoom; break; }
         extra+=mas;
       }
       if(extra>0){ hoja.style.paddingTop=(rellenoBaseRef.current+extra)+"px"; rellenoExtraRef.current=extra; }
@@ -14282,17 +14537,39 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         if(textoPartido(hoja.offsetTop*zoom)) hoja.style.maxHeight=maxPropio;
       }
     };
-    ajusta();
+    // Con el teclado del sistema, una vez quietos los pliegues (300 ms) y el margen que sube la hoja (250 ms).
+    const programa=function(){ clearTimeout(tmKb); tmKb=setTimeout(ajusta,360); };
+    const vv=kb?window.visualViewport:null;
+    /* Y al soltarlo, igual: medido a mitad del despliegue, el relleno de arriba salía de más y con letra
+       Enorme la hoja asomaba por encima de la pantalla (−53 px, filtro de diseño 240). */
+    if(desliza) programa(); else ajusta();
     // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
-    const tm=setTimeout(ajusta,480);
+    const tm=desliza?0:setTimeout(ajusta,480);
     hoja.addEventListener("animationend",ajusta);
-    window.addEventListener("resize",ajusta);
-    return function(){ clearTimeout(tm); hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",ajusta); };
-  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo]);
+    window.addEventListener("resize",kb?programa:ajusta);
+    if(vv) vv.addEventListener("resize",programa);
+    return function(){
+      clearTimeout(tm); clearTimeout(tmKb); clearTimeout(tmBorde); hoja.style.transition="";
+      hoja.removeEventListener("animationend",ajusta); window.removeEventListener("resize",kb?programa:ajusta);
+      if(vv) vv.removeEventListener("resize",programa);
+    };
+  // Escribiendo, el concepto que pasa a dos renglones vuelve a medir el borde: el relleno de arriba
+  // puesto con uno solo dejaba una franja vacía y tapaba las categorías (filtro 239, a 360 con Enorme).
+  },[catRowsMax,filasAuto,conTeclado,filasTeclado,teclado.vivo,kb,kb?concept:null]);
   const filas=conTeclado&&filasTeclado!=null?filasTeclado:(catRowsMax?(todasEnFila?1:filasAuto):(catRows||2));
   const visibles=catsRecorta(categoryItems,filas*cols,category);
   const elegida=filas===0&&category?(allCategoryItems||categoryItems||[]).find(function(c){ return c.id===category; }):null;
-  const metaBlock=React.createElement(React.Fragment,{key:"meta"},payRow||null,afterMeta||null);
+  /* Apuntar con el concepto enfocado (`kb`): la cabecera, el pago y el numérico se recogen con su alto
+     (filas de rejilla, como el teclado de Modificar) y la hoja encoge con ellos, sin saltos. Mientras
+     se escribe solo queda lo útil: el importe en pequeño, el concepto, las categorías y la sugerencia
+     ✨ (queja del 17/11: «está todo como hyper apretado»). */
+  const pliega=function(cls,hijo){
+    if(!onConceptFocus||!hijo) return hijo||null;
+    return React.createElement("div",{className:"v4-ficha-kbfold"+(cls?" "+cls:""),"aria-hidden":kb?"true":null,inert:kb?"":undefined},
+      React.createElement("div",{className:"v4-ficha-kbfold-in"},hijo));
+  };
+  // Con las categorías delante, el pago queda pegado al numérico y se va con él (`abajo`, shell.html).
+  const metaBlock=React.createElement(React.Fragment,{key:"meta"},pliega(catsFirst?"abajo":null,payRow),afterMeta||null);
   // Apuntar y la ficha, la misma cabecera: «CATEGORÍA … Todas ›» (antes Apuntar llevaba una baldosa «Más»).
   const todasBtn=function(cls,hijos){
     return React.createElement("button",{type:"button",className:cls,"data-testid":(testPrefix||"expense")+"-cat-more",onClick:onAllCategories},hijos);
@@ -14319,12 +14596,12 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         onClickCapture:plegado&&numpadOpen&&onCloseNumpad?function(e){
           if(!(e.target.closest&&e.target.closest(".v4-ficha-amount,.v4-ficha-teclado,.v4-ficha-cat-title-btn"))) onCloseNumpad();
         }:undefined},
-      React.createElement("div",{className:"v4-ficha-head"},
+      pliega(null,React.createElement("div",{className:"v4-ficha-head"},
         React.createElement("div",{className:"v4-seg v4-ficha-seg"},
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ if(isIn) mcTickHaptic(); onKind("gasto"); }},t("v4_gasto")),
           React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ if(!isIn) mcTickHaptic(); onKind("ingreso"); }},t("v4_ingreso"))),
         // La fecha se cambia aquí: la píldora 📅 repetía lo mismo con otras mayúsculas (DIS-03/04).
-        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel)),
+        React.createElement("button",{type:"button",className:"v4-ficha-date","data-testid":(testPrefix||"expense")+"-date",onClick:onDate},dateLabel))),
       React.createElement("div",{className:"v4-ficha-amount-row"},
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),"aria-expanded":plegado&&!locked?!!numpadOpen:null,onClick:locked?onLocked:(onAmount||undefined)},amount),
@@ -14336,10 +14613,15 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
           onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
-      React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
+      /* En Apuntar el concepto es un área de un renglón que crece a dos y parte entre palabras: en una
+         línea, un concepto largo dejaba un trozo de letra pegado al borde mientras se escribía y «…» al
+         terminar (filtro de diseño 239). Sigue siendo una línea de texto: Intro es «Listo» y un salto
+         pegado pasa a espacio. Modificar sigue con su campo de siempre. */
+      React.createElement(onConceptFocus?"textarea":"input",{className:"v4-input v4-exp-name v4-ficha-concept"+(onConceptFocus?" v4-ficha-concept-area":""),
+        value:concept||"",placeholder:t("f_concept_ph"),ref:conceptoRef,rows:onConceptFocus?1:undefined,
         enterKeyHint:onConceptFocus?"done":undefined,onFocus:onConceptFocus,
         onKeyDown:onConceptFocus?function(e){ if(e.key==="Enter"){ e.preventDefault(); e.target.blur(); } }:undefined,
-        onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
+        onChange:function(e){ onConcept(onConceptFocus?e.target.value.replace(/[\r\n]+/g," "):e.target.value); },onBlur:onConceptBlur}),
       /* Con letra Muy grande o Enorme no cabe todo encima del teclado: las categorías, que se tocan
          en casi cada apunte, suben por delante del pago, que casi siempre se queda como viene. */
       catsFirst ? [catsBlock,metaBlock] : [metaBlock,catsBlock],
@@ -14348,7 +14630,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       plegado
         ? (teclado.vivo && React.createElement("div",{className:"v4-ficha-teclado"+(teclado.dentro&&numpadOpen?" open":"")},
             React.createElement("div",Object.assign({className:"v4-ficha-teclado-in"},numpadOpen?null:{"aria-hidden":"true",inert:""}),numpad)))
-        : (numpad||null)
+        : pliega("teclas",numpad)
     ),
     footer||null
   );
@@ -14948,7 +15230,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
               React.createElement("div",{className:"serif num v4-goal-pct",style:{fontWeight:600,fontSize:18}}, Math.round(pct)+"%")
             ),
             React.createElement("div",{className:"bar"}, React.createElement("i",{style:{width:pct+"%"}})),
-            React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)"}}, eta.text)
+            eta.text && React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)"}}, eta.text)
           );
         })
       )
@@ -19747,7 +20029,7 @@ function TRSync({state, set, totals, open, onToggle}){
         next.accounts = hasTR
           ? s.accounts.map(function(a){
               if(a.ent!=="trade_republic") return a;
-              const pn=(totals.paidNetByBank&&totals.paidNetByBank[a.ent])||0;
+              const pn=paidNetDeCuenta(a, totals.paidNetByBank);
               const spentOwn=(totals.spentByBank&&totals.spentByBank[a.ent])||0;
               const stored = accDaily(a)
                 ? valueDesdeSaldo({shown:trCash, injTR:totals.injTR||0, spentOwn:spentOwn, roundup:totals.roundupThisMonth||0, monthlyInvest:totals.monthlyInvestThisMonth||0, ambos:accRole(a)==="ambos", paidNet:pn})
@@ -20849,7 +21131,8 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     set(function(s){
       const a=(s.accounts||[]).find(function(x){ return x.id===id; });
       if(a && isEfectivoEnt(a)) return removeEfectivoAccount(s, id);
-      return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })});
+      // Si se va la que cargaba el neto del banco, lo hereda su hermana sin cambiar de saldo (238).
+      return conservaNetoDeBanco(s, Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })}));
     });
   };
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)
@@ -21488,8 +21771,8 @@ function flowEarlyBankMatches(s,f,y,m,today){
   const planned=flowDay(f,y,m);
   if(planned==null) return [];
   const bank=f.to||"sabadell", ym=y+"-"+String(m).padStart(2,"0"), amount=Number(f.amount);
-  // El extracto va por entidad, no por cuenta. Dos cuentas de recibos del mismo banco
-  // comparten hoy paidNet y no permiten reanclar una nómina sin atribuirla a ambas.
+  // El extracto va por entidad, no por cuenta. Con dos cuentas de recibos del mismo banco no se
+  // sabe en cuál entró la nómina, y adelantarla movería el neto de la que lo carga sin pruebas.
   if((s.accounts||[]).filter(function(a){ return a.ent===bank && accFixed(a); }).length>1) return [];
   return (s.bankTx||[]).filter(function(tx){
     if(!tx||tx.ent!==bank||!(Number(tx.amount)<0)||String(tx.date||"").slice(0,7)!==ym) return false;
@@ -23946,7 +24229,10 @@ function promoteObAccount(s, totals, key, role, id){
   const now=new Date();
   const bal=toEurAmt(o.value||0, o.cur||"EUR", s);
   if(bal==null) return s;
-  const base=+((bal - monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate())).toFixed(2));
+  // Va al final: si el banco ya tiene una cuenta de recibos, el neto lo sigue cargando esa
+  // (`cuentaDelNetoDeBanco`) y esta enseña su saldo tal cual (ronda 238).
+  const lleva=!cuentaDelNetoDeBanco(s.accounts, o.ent);
+  const base=+((bal - (lleva ? monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate()) : 0)).toFixed(2));
   const name=((s.obLabels||{})[o.key]) || niceObName(o);
   /* Conserva la clave de orden de la fila OB: elegir un rol no debe mandar de golpe la cuenta al
      final de Cartera justo después de haberla colocado (rechazo CaixaBank 2026-09-16). */
@@ -23963,8 +24249,8 @@ function promoteObAccount(s, totals, key, role, id){
   const saved=((ns.settings||{}).accountListOrder)||[];
   if(!(ns.obAccounts||[]).length && Array.isArray(saved) && saved.length){
     const rows=accountRowsInOrder(ns), keys=rows.map(function(r){ return r.key; });
-    ns=Object.assign({},ns,{accounts:rows.map(function(r){ return r.item; }),
-      settings:Object.assign({},ns.settings,{accountListOrder:keys})});
+    ns=conservaNetoDeBanco(ns, Object.assign({},ns,{accounts:rows.map(function(r){ return r.item; }),
+      settings:Object.assign({},ns.settings,{accountListOrder:keys})}));
   }
   return ns;
 }
@@ -24096,10 +24382,13 @@ function applyBankBalances(s, links){
         // `spentM` sumaba TODOS los bancos del mes y, con rol diario/ambos, inflaba la base
         // (padre: Revolut 26 € del banco → 455 € en pantalla; 2026-09-11).
         const role=accRole(a);
+        // El neto del banco solo lo pinta la cuenta que lo carga (`cuentaDelNetoDeBanco`); las
+        // demás del mismo banco enseñan su `value` y se anclan al saldo tal cual (ronda 238).
+        const netoMes=llevaNetoDeBanco(accounts, a) ? monthNetForAccount(s, ent, cy, cm, td) : 0;
         let newBase;
         if(role==="fijos"){
           // Pintado: value + paidNet. paidNet = monthNetForAccount → base = bal − monthNet.
-          newBase=+((bal - monthNetForAccount(s, ent, cy, cm, td)).toFixed(2));
+          newBase=+((bal - netoMes).toFixed(2));
         } else {
           const ruMv=recompensasEstimadas(s, a, monthExp, +monthStart, true).ru;
           const miMv=a.monthlyInvest||0;
@@ -24108,7 +24397,7 @@ function applyBankBalances(s, links){
             shown:bal, injTR:injMv, spentOwn:porBanco[ent]||0,
             roundup:ruMv, monthlyInvest:miMv,
             ambos:role==="ambos",
-            paidNet:monthNetForAccount(s, ent, cy, cm, td)
+            paidNet:netoMes
           });
         }
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });
@@ -29035,6 +29324,7 @@ const DEBT_ICO={
   car:[["path",{d:"M3 16v-4l2.2-5.5h13.6L21 12v4z"}],["path",{d:"M3 12h18"}],["circle",{cx:7.5,cy:16.5,r:1.8}],["circle",{cx:16.5,cy:16.5,r:1.8}]],
   phone:[["rect",{x:7,y:2.5,width:10,height:19,rx:2}],["path",{d:"M11 18h2"}]],
   study:[["path",{d:"M2 9l10-5 10 5-10 5z"}],["path",{d:"M6 11v5c3 2.5 9 2.5 12 0v-5"}]],
+  person:[["circle",{cx:12,cy:8,r:4}],["path",{d:"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"}]],
   card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
 };
 const DEBT_BLANK={name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""};
@@ -29157,7 +29447,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const amortize=(d)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
-      ph:NF.format(0)+" €", ok:"💸 "+t("db_amortize"),
+      ph:NF.format(0)+" €", ok:t("db_amortize"),
       // atajos: los importes redondos que quepan + «todo» para liquidarla de un toque
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
         .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}]),
@@ -29177,7 +29467,11 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
      vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
   const debtIco=function(d){
     const n=String(d.name||"").toLowerCase();
-    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":"card";
+    // Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica: «Mamá»
+    // con una tarjeta parecía una financiación del banco (auditoría 237, P2-7). Va por palabra entera
+    // para que «papelería» no sea «papá».
+    const persona=/(^|[^a-záéíóúàèòïüñç])(mam[aá]|pap[aá]|madre|padre|famil\w*|herman[oa]s?|abuel[oa]s?|t[ií][oa]s?|amig[oa]s?|suegr[oa]s?|mum|mom|dad|mother|father|brother|sister|friend|grandma|grandpa|mare|pare|germ[àa]n?a?|avi|[àa]via)(?=$|[^a-záéíóúàèòïüñç])/;
+    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":persona.test(n)?"person":"card";
     return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
       DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
   };
@@ -29200,11 +29494,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
   if(editorOnly) return editor;
   return React.createElement("div",null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // La misma tarjeta que Recibos (etiqueta, cifra y una línea, a la izquierda): centrada, la cifra
+    // saltaba de sitio al cambiar de segmento dentro de Plan (auditoría 237, P2-1).
+    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"debts-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--text)"}},eur(total)),
+      React.createElement("div",{className:"serif num plan-summary-amount"},eur(total)),
       // Con céntimos, como la cuota de cada tarjeta y Recibos: «661 €» al lado de 660,85 parecía otra cifra (DIS-30).
-      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur(monthly)}))
+      React.createElement("div",{className:"plan-summary-sub"},tf("v4_debts_sub",{x:eur(monthly)}))
     ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
       React.createElement("div",{className:"hint"},t("plan_deleted_while_editing")),
@@ -29223,7 +29519,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
           React.createElement("span",{className:"v4-debt-emoji v4-debt-ico"},debtIco(d)),
-          React.createElement("div",{style:{flex:1,minWidth:0}},
+          React.createElement("div",{className:"plan-item-main"},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
           ),
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
@@ -29278,7 +29574,6 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
         React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
     React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
-    React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
     editor
   );
 }
@@ -29391,7 +29686,6 @@ function ReservaRules({state, set}){
   if(!goals.length && !rules.length && !adding) return null;
   const closeForm=function(){ saving.current=false; setSent(null); setEditing(null); setAdding(false); setErr(""); setForm(blank); };
   return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"var(--mint)",storageKey:"g_reserva_rules",help:t("h_reserva")},
-    rules.length===0 && React.createElement("div",{className:"hint"}, t("rr_none")),
     rules.map(function(r){
       return React.createElement("div",{key:r.id,className:"sub-row plan-rule-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
@@ -29504,15 +29798,20 @@ function SavingsPlanCard({state, set, totals, showToast}){
     if(showToast) showToast(t("sv_saved"));
   };
   const editing=!!drafts;
-  return React.createElement("div",{className:"v4-card rise aely-savings","data-savings-plan":"1"},
+  /* Sin aportaciones la tarjeta es UNA fila, «Ahorro mensual · Añadir»: «0,00 €/mes» en grande y
+     dos frases de ayuda para no decir nada ocupaban media pantalla (auditoría 237, P1-7). La nota
+     de que solo planifica se queda cuando hay algo que planificar: es la línea que evita creer que
+     esto mueve dinero. */
+  const vacia=!editing && aps.length===0 && !(Math.round(total*100)>0);
+  return React.createElement("div",{className:"v4-card rise aely-savings"+(vacia?" aely-savings-vacia":""),"data-savings-plan":"1"},
     React.createElement("div",{className:"aely-savings-h"},
       React.createElement("div",{style:{minWidth:0}},
         React.createElement("div",{className:"v4-micro"}, t("sv_title")),
-        React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
+        !vacia && React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
       React.createElement("button",{type:"button",className:"btn btn-ghost aely-savings-edit","data-savings-edit":"1",
-        onClick:function(){ editing?setDrafts(null):start(); }}, editing?t("fj_cancel"):t("fj_edit"))),
-    React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
-    !editing && aps.length===0 && React.createElement("div",{className:"hint"}, t("sv_empty")),
+        onClick:function(){ editing?setDrafts(null):(vacia?setDrafts([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]):start()); }},
+        editing?t("fj_cancel"):(vacia?t("sv_add_short"):t("fj_edit")))),
+    !vacia && React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
     !editing && aps.map(function(ap){
       return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
         React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"}, entOf(ap.ent).label)),
@@ -29598,10 +29897,11 @@ function Goals({state, set, totals, showToast}){
 
   return React.createElement("div",null,
     // Sin metas, «Ahorrado en metas 0,00 €» en grande era un cero que no decía nada (DIS-28).
-    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // Misma tarjeta que Recibos y Deudas, con la cifra en el color del texto (P2-1).
+    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"goals-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--mint)"}},eur(totalSaved)),
-      totalTarget>0 && React.createElement("div",{style:{marginTop:10,fontSize:13.5,color:"var(--muted)"}},tf("gl_total_sub",{x:eur0(totalTarget)}))
+      React.createElement("div",{className:"serif num plan-summary-amount"},eur(totalSaved)),
+      totalTarget>0 && React.createElement("div",{className:"plan-summary-sub"},tf("gl_total_sub",{x:eur0(totalTarget)}))
     ),
     React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
@@ -29614,7 +29914,7 @@ function Goals({state, set, totals, showToast}){
       return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
           React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
-          React.createElement("div",{style:{flex:1,minWidth:0}},
+          React.createElement("div",{className:"plan-item-main"},
             React.createElement("div",{className:"v4-debt-name"},g.name,g.done&&React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
             React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-saved"}, eur0(gv.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0)),
             gv.aportado>0 && React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-from-gastos"}, tf("gl_from_gastos",{x:eur(gv.aportado)}))
@@ -29622,7 +29922,7 @@ function Goals({state, set, totals, showToast}){
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}},Math.round(pct)+"%"),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
         React.createElement("div",{className:"v4-goal-bar"},React.createElement("i",{style:{width:pct+"%",background:g.done?"var(--tan)":"var(--mint)"}})),
-        React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
+        eta.text && React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
         !g.done&&React.createElement("button",{className:"v4-goal-cta",onClick:function(){contribute(g);}},t("gl_contribute"))
       );
     }),
@@ -31456,7 +31756,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           if(ent){
             const accs=(next.accounts||[]);
             const quedan=accs.filter(function(a){ return !(a && a.ent===ent && a.bankIban); });
-            if(quedan.length!==accs.length) next=Object.assign({},next,{accounts:quedan});
+            // Si se va la que cargaba el neto del banco, la hermana a mano lo hereda sin cambiar de saldo (238).
+            if(quedan.length!==accs.length) next=conservaNetoDeBanco(next, Object.assign({},next,{accounts:quedan}));
           }
           /* Solo si lo ha pedido, y solo sacándolo de la lista de gasto diario: los gastos siguen
              enteros en `expenses` con su banco, así que volver a conectarlo lo deja como estaba. */
@@ -32715,7 +33016,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="c8ea8837af03ef5d442204890ad7c2333a90ff18a7cf0c35d77919bcaed28606";
+var _rnSha="4be0ed23ba5a2d055a75320fd40adb613d971594c276feb95de021a17d176c20";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -32986,6 +33287,66 @@ function HapticTuner({showToast}){
       React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setV(mcHapticTuneReset()); }},t("hv_reset"))));
 }
 
+/* Iconos de las filas de Ajustes: trazo de 24 px como la barra de abajo y los recibos (auditoría
+   237, P2-7). Los emojis de colores se pintaban distinto en cada móvil y eran lo único con color
+   de toda la lista. Van por la clave de la fila; una fila sin entrada aquí (las de pruebas, los
+   logos de banco) conserva lo que traiga. */
+const SET_ICO=(function(){
+  const banco=[["path",{d:"M3 10l9-6 9 6"}],["path",{d:"M5 10v8M9.7 10v8M14.3 10v8M19 10v8"}],["path",{d:"M3 20h18"}]];
+  const euro=[["path",{d:"M17.5 6.5a7 7 0 1 0 0 11"}],["path",{d:"M4 10.5h9M4 13.5h9"}]];
+  // Uno por fila: la misma chispa servía para la temática, las novedades y la ayuda, y las filas de
+  // dentro repetían el de su grupo (filtro de diseño 240). Todo trazo, ninguno relleno.
+  return {
+    general:[["circle",{cx:12,cy:12,r:9}],["circle",{cx:8.5,cy:10,r:1.3}],["circle",{cx:12,cy:7.5,r:1.3}],["circle",{cx:15.5,cy:10,r:1.3}],["path",{d:"M12 21a2.5 2.5 0 0 1 0-5h2.5"}]],
+    season:[["path",{d:"M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"}],["path",{d:"M10 4.5l2 1.5 2-1.5M10 19.5l2-1.5 2 1.5"}]],
+    lang:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M3 12h18"}],["path",{d:"M12 3c2.4 2.6 3.6 5.6 3.6 9s-1.2 6.4-3.6 9c-2.4-2.6-3.6-5.6-3.6-9S9.6 5.6 12 3z"}]],
+    a11y:[["circle",{cx:12,cy:4.5,r:1.6}],["path",{d:"M5 8.5l7 1.5 7-1.5"}],["path",{d:"M12 10v5"}],["path",{d:"M8.5 21l3.5-6 3.5 6"}]],
+    redmo:[["path",{d:"M3 12h3l2.5-6 4 12 2.5-6h6"}]],
+    hicon:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M12 3v18M12 7.5h5.5M12 12h7M12 16.5h5.5"}]],
+    money:[["rect",{x:3,y:6,width:18,height:13,rx:2.5}],["path",{d:"M3 10h18"}],["path",{d:"M15.5 14.5h2"}]],
+    cur:euro,
+    curcmp:[["path",{d:"M4 8h15l-3.5-3.5"}],["path",{d:"M20 16H5l3.5 3.5"}]],
+    gview:[["path",{d:"M5 6h14M5 12h14M5 18h8"}]],
+    budgetcycle:[["rect",{x:3,y:5,width:18,height:16,rx:2.5}],["path",{d:"M3 10h18M8 3v4M16 3v4"}]],
+    bills:[["path",{d:"M6 3h12v18l-3-2-3 2-3-2-3 2z"}],["path",{d:"M9 8h6M9 12h6"}]],
+    banks:banco,
+    bankmanage:[["path",{d:"M4 7h9M17 7h3M4 17h3M11 17h9"}],["circle",{cx:15,cy:7,r:2}],["circle",{cx:9,cy:17,r:2}]],
+    banksync:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M4 13a8 8 0 0 0 14.5 4.5L20 16"}],["path",{d:"M20 20v-4h-4"}]],
+    notifs:[["path",{d:"M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"}],["path",{d:"M10 21h4"}]],
+    trnotif:[["path",{d:"M4 5h16v11H9l-5 4z"}],["path",{d:"M9 10.5l2 2 4-4"}]],
+    access:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M8 12.5l3 3 5-6"}]],
+    narestr:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"}],["path",{d:"M12 17.5h.01"}]],
+    aicat:[["path",{d:"M3 12V4h8l10 10-8 8z"}],["circle",{cx:7.5,cy:8.5,r:1.3}]],
+    helpai:[["path",{d:"M9 18h6M10 21h4"}],["path",{d:"M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"}]],
+    widget:[["rect",{x:3.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:3.5,y:13.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:13.5,width:7,height:7,rx:1.8}]],
+    easy:[["path",{d:"M5 19C5 10.5 10.5 5 20 4c-.8 9.5-6.3 15-15 15z"}],["path",{d:"M5 19l7.5-7.5"}]],
+    simple:[["rect",{x:2.5,y:7,width:19,height:10,rx:5}],["circle",{cx:7.5,cy:12,r:2.5}]],
+    tour:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M15.5 8.5l-2 5-5 2 2-5z"}]],
+    import:[["path",{d:"M12 4v11"}],["path",{d:"M7 10l5 5 5-5"}],["path",{d:"M5 20h14"}]],
+    imphoja:[["rect",{x:3.5,y:4,width:17,height:16,rx:2}],["path",{d:"M3.5 9.5h17M3.5 14.5h17M9.5 4v16"}]],
+    imphist:[["path",{d:"M3.5 12a8.5 8.5 0 1 0 2.5-6L3.5 8.5"}],["path",{d:"M3.5 4v4.5H8"}],["path",{d:"M12 8v4l3 2"}]],
+    backup:[["rect",{x:3,y:4,width:18,height:5,rx:1.5}],["path",{d:"M5 9v10h14V9"}],["path",{d:"M10 13h4"}]],
+    autoback:[["path",{d:"M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.2 11.5 3.3 3.3 0 0 0 7 18z"}]],
+    report:[["rect",{x:3,y:5,width:18,height:14,rx:2}],["circle",{cx:9,cy:10,r:1.6}],["path",{d:"M4 18l5-5 3.5 3.5L16 13l4 4"}]],
+    news:[["rect",{x:3.5,y:8,width:17,height:4.5,rx:1}],["path",{d:"M5.5 12.5V20h13v-7.5M12 8v12"}],["path",{d:"M12 8c-1.5-3.5-5.5-3.5-5.5-1.2S10 8 12 8c2 0 5.5 1.1 5.5-1.2S13.5 4.5 12 8z"}]],
+    fb:[["path",{d:"M4 5h16v11H9l-5 4z"}]],
+    updates:[["rect",{x:7,y:2.5,width:10,height:19,rx:2.5}],["path",{d:"M12 7v7M9.5 11.5L12 14l2.5-2.5"}]],
+    upd:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M12 9v6M9.5 12.5L12 15l2.5-2.5"}]],
+    account:[["circle",{cx:12,cy:8,r:4}],["path",{d:"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"}]],
+    biolock:[["path",{d:"M7 11a5 5 0 0 1 10 0v2c0 3-1 5.5-2.5 7.5"}],["path",{d:"M12 11v3c0 2.5-.8 4.7-2 6.5"}],["path",{d:"M4.5 15.5c.4-1.4.5-2.9.5-4.5a7 7 0 0 1 12.5-4.3"}]],
+    priv:[["path",{d:"M12 3l8 3v6c0 4.8-3.4 7.9-8 9-4.6-1.1-8-4.2-8-9V6z"}]],
+    signout:[["path",{d:"M14 4h5v16h-5"}],["path",{d:"M15 12H4"}],["path",{d:"M8 8l-4 4 4 4"}]],
+    delacc:[["path",{d:"M4 7h16"}],["path",{d:"M9 7V4h6v3"}],["path",{d:"M6 7l1 13h10l1-13"}]],
+    vibra:[["rect",{x:8,y:3,width:8,height:18,rx:2}],["path",{d:"M4 9v6M20 9v6"}]]
+  };
+})();
+function setIco(k, fallback){
+  const d=SET_ICO[k];
+  if(!d) return fallback;
+  return React.createElement("svg",{viewBox:"0 0 24 24",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-set-ico":k},
+    d.map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
+}
+
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
 function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos}){
   const adminCacheKey="_mcAdminProfile";
@@ -33178,11 +33539,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       }
     }).catch(function(){ setBankLinks([]); });
   },[uid]);
-  // Estilos de los pocos controles con input propio (presupuesto). Los demás usan el sistema
-  // de filas .set-row/.swx. (lbl/btnGhost/link se quitaron en 2026-07-17: estaban muertos.)
-  // Inputs se quedan en 16px (menos = zoom automático del móvil al enfocar); los botones sí
-  // bajan de tamaño para no parecer listones (feedback 2026-07-18).
-  const inp={width:"100%",padding:"10px 13px",borderRadius:"12px",border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:"16px",boxSizing:"border-box"};
+  // Botones de opción de los desplegables (tema, moneda, letra…). Los demás controles usan el
+  // sistema de filas .set-row/.swx. Bajan de tamaño para no parecer listones (feedback 2026-07-18).
   const btn={width:"100%",padding:"10px 12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"14px",marginTop:"10px",cursor:"pointer"};
   /* Presupuesto mensual: se edita en Resumen (BudgetSheet). Bancos de gasto diario: en Cartera.
      Quitados de aquí el 2026-08-05 — eran duplicados muertos / confusos (feedback suyo). */
@@ -33197,7 +33555,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const toggleExp=function(k){ setExpand(expand===k?null:k); };
   const row=function(k,icon,label,value,onClick,right){
     return React.createElement("button",{key:k,className:"set-row",onClick:onClick},
-      React.createElement("span",{className:"sr-ic"},icon),
+      React.createElement("span",{className:"sr-ic"},setIco(k,icon)),
       React.createElement("span",{className:"sr-lb"},label),
       value!=null && React.createElement("span",{className:"sr-val"},value),
       right!==undefined ? right : React.createElement("span",{className:"sr-chev"+(expand===k?" open":"")},"›")
@@ -33240,7 +33598,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Es una fila de la tarjeta de su `seccion`, no una tarjeta propia (DIS-40).
     return React.createElement("div",{className:"set-sub"},
       React.createElement("button",{className:"set-row",onClick:function(){ toggleGrp(id); }},
-        React.createElement("span",{className:"sr-ic"},icon),
+        React.createElement("span",{className:"sr-ic"},setIco(id,icon)),
         React.createElement("span",{className:"sr-lb",style:{fontWeight:800}},title),
         val!=null && React.createElement("span",{className:"sr-val"},val),
         React.createElement("span",{className:"sr-chev"+(open?" open":"")},"›")),
@@ -33273,12 +33631,19 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
     ),
-    React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:function(){
-      try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, totals, {
-        onConsent:function(ok){ setS({helpAiOk:!!ok, helpAiAsked:true}); }
-      })})); }catch(e){}
-    }}, t("help_title")),
-    React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
+    /* Buscador con la lupa de trazo de «Tus recibos» y, a su lado, «Pregúntame» como el «?» redondo
+       de Inicio: suelto entre la tarjeta de cuenta y el buscador no pertenecía a nada (auditoría
+       237, P2-11). Las dos cosas sirven para lo mismo, encontrar algo, y van en la misma fila. */
+    React.createElement("div",{className:"set-search"},
+      React.createElement("label",{className:"set-search-box"},
+        React.createElement("svg",{className:"set-search-ic",viewBox:"0 0 24 24",width:18,height:18,fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round","aria-hidden":"true"},
+          React.createElement("circle",{cx:11,cy:11,r:6.5}),React.createElement("path",{d:"M16 16l4.5 4.5"})),
+        React.createElement("input",{className:"set-search-in",placeholder:t("st_search_ph"),"aria-label":t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }})),
+      React.createElement("button",{type:"button",className:"aely-help-entry aely-help-entry-set","aria-label":t("help_title"),title:t("help_title"),onClick:function(){
+        try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, totals, {
+          onConsent:function(ok){ setS({helpAiOk:!!ok, helpAiAsked:true}); }
+        })})); }catch(e){}
+      }}, "?")),
 
     /* AJUSTES EN CUATRO GRUPOS (diseño 233, DIS-40, aprobado 15/11). Había siete cabeceras con una
        sola fila que repetía su título («APARIENCIA › Apariencia») y cosas en grupos que no les
@@ -33318,27 +33683,27 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           })))
     ),
     grp("a11y","♿",t("v4_set_a11y"),"accesibilidad letra grande tamaño texto contraste animaciones reduce motion accessibility",t("ts_"+curTextSize),
+      // Sin subtítulos: el nombre ya lo dice (auditoría 237, P1-7), tampoco bajo el tamaño de letra; el
+      // bloque de los botones de letra se vigila en beta-sources hasta su cierre (reanclado en la 240).
       React.createElement("div",{style:{padding:"6px 14px 4px"}},
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
           [["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){
             return React.createElement("button",{key:ts[0],type:"button","data-ts":ts[0],"aria-pressed":curTextSize===ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
-          })),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginTop:6}}, t("st_textsize_hint"))
+          }))
       ),
       (function(){ const on=!!(state.settings&&state.settings.reduceMotion);
-        return React.createElement(React.Fragment,null,
-          row("redmo",on?"🐢":"🎞️",t("st_reduce_motion"),null,function(){ applyReduceMotion(!on); setS({reduceMotion:!on}); }, sw(on)),
-          React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_reduce_motion_hint"))); })(),
+        return row("redmo",on?"🐢":"🎞️",t("st_reduce_motion"),null,function(){ applyReduceMotion(!on); setS({reduceMotion:!on}); }, sw(on)); })(),
       (function(){ const on=!!(state.settings&&state.settings.hiContrast);
-        return React.createElement(React.Fragment,null,
-          row("hicon",on?"🌗":"🌓",t("st_contrast"),null,function(){ applyContrast(!on); setS({hiContrast:!on}); }, sw(on)),
-          React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_contrast_hint"))); })()
+        return row("hicon",on?"🌗":"🌓",t("st_contrast"),null,function(){ applyContrast(!on); setS({hiContrast:!on}); }, sw(on)); })()
     )),
     seccion(t("v4_set_g_money"),
     // Dinero: moneda de visualización (ahora SÍ convierte) + comparativa + cómo se ve el total
     // de gastos. Presupuesto y bancos de gasto diario viven en Resumen / Cartera (2026-08-05).
-    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts presupuesto nòmina nómina salario cobro ciclo payday budget",t("cur_"+curCur.toLowerCase()),
+    // La moneda se ve en la cabecera solo con el grupo plegado: abierto, la fila de dentro ya la dice
+    // y salía «€ Euro» dos veces seguidas (auditoría 237, P2-11).
+    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts presupuesto nòmina nómina salario cobro ciclo payday budget",
+      (isOpen("money")||normQ(q).trim())?null:t("cur_"+curCur.toLowerCase()),
       row("cur","💱",t("currency"),t("cur_"+curCur.toLowerCase()),function(){ toggleExp("cur"); }),
       expand==="cur" && React.createElement("div",{className:"set-exp"},
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}},
@@ -33395,10 +33760,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       })(),
       // Su mes de gasto puede empezar con el cobro real, no con el día 1. La elección queda
       // en su perfil y se puede deshacer sin tocar los movimientos (feedback pareja 28/9).
-      row("budgetcycle","📅",t("st_budget_cycle"),t(state.settings&&state.settings.budgetCycle?"g_cycle":"g_month"),function(){
+      // Solo el interruptor: «Mi ciclo» al lado y el párrafo de debajo partían la etiqueta en tres
+      // renglones y repetían lo que ya dice el interruptor (auditoría 237, P1-4).
+      row("budgetcycle","📅",t("st_budget_cycle"),null,function(){
         setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
       },sw(!!(state.settings&&state.settings.budgetCycle))),
-      React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
       // «Cambiar mis recibos» salió de Ajustes (14/10/2026: se gestionan desde Plan › Recibos › Gestionar).
       // Solo se queda en modo sencillo, donde Plan no enseña «Gestionar» (NO-GO §5bis.2) y esta era la
       // ÚNICA puerta. Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
@@ -33435,7 +33801,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         : ((links||[]).some(function(r){return r.status==='pending';}) ? t("bank_pending") : t("bp_summary_none"));
       if(trDead && summary.indexOf("Trade Republic")<0) summary += (summary&&summary!=="…"?" · ":"") + t("bp_summary_tr_dead");
       return grp("banks","🏦",t("bank_section"),"banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking sincronizar",summary,
-        row("banks","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
+        row("bankmanage","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
       );
     })(),
     (function(){
@@ -33484,7 +33850,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // Fila con una línea de apoyo bajo el título (sin párrafos: una línea útil o nada).
       const fila=function(k,icon,label,sub,onClick,right){
         return React.createElement("button",{key:k,type:"button",className:"set-row nt-row","data-nt":k,onClick:onClick},
-          React.createElement("span",{className:"sr-ic"},icon),
+          React.createElement("span",{className:"sr-ic"},setIco(k,icon)),
           React.createElement("span",{className:"sr-tx"},
             React.createElement("span",{className:"sr-lb"},label),
             sub && React.createElement("span",{className:"sr-sub"},sub)),
@@ -39119,6 +39485,30 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
     ), document.body);
 }
 
+/* Alto del teclado del sistema la última vez, por móvil (solo una comodidad local: sin él, la hoja
+   espera a que el teclado termine de subir). Se guarda con el alto de la ventana: girado o en otro
+   tamaño, no vale. */
+function mcTecladoAlto(alto){
+  try{
+    const g=JSON.parse(localStorage.getItem("micartera_kb_alto")||"null");
+    if(g&&g.k>80&&Math.abs((g.h||0)-alto)<60&&g.k<alto*0.7) return Math.round(g.k);
+  }catch(e){}
+  return 0;
+}
+/* Sin teclado visto aún en este móvil, se supone el 40 % de la ventana (en su OnePlus es el 38 %): así la
+   primera vez la hoja también sube a la par, y al llegar el alto de verdad se ajusta. Solo con pantalla
+   táctil: con ratón no sale teclado y la hoja subiría y bajaría para nada. */
+function mcTecladoSupuesto(alto){
+  try{ if(!(window.matchMedia&&window.matchMedia("(pointer: coarse)").matches)) return 0; }catch(e){ return 0; }
+  return Math.round(alto*0.4);
+}
+function mcTecladoGuarda(k, alto){
+  try{
+    const g=JSON.parse(localStorage.getItem("micartera_kb_alto")||"null");
+    if(g&&Math.abs(g.k-k)<4&&Math.abs((g.h||0)-alto)<4) return;
+    localStorage.setItem("micartera_kb_alto",JSON.stringify({k:Math.round(k),h:Math.round(alto)}));
+  }catch(e){}
+}
 /* Sheet FAB «Apuntar» — teclado propio, gasto/ingreso (SPEC §7).
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
@@ -39151,9 +39541,33 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      numérico se esconde, el botón pasa a «Listo» y la hoja se sube sobre el teclado del sistema. */
   const [conceptoFoco,setConceptoFoco]=useState(false);
   const [kbPad,setKbPad]=useState(0);
-  /* Alto de la hoja al tocar el concepto. Sin fijarlo, al esconder el numérico la hoja encogía
-     250 px de golpe: el campo se iba de debajo del dedo y el toque acababa en el velo, que la cierra. */
-  const [kbAlto,setKbAlto]=useState(0);
+  /* Alto visible con el teclado del sistema puesto (0 = sin teclado). El tope de la hoja sale de
+     aquí y no de `dvh`: en su OnePlus la WebView se encoge con el teclado pero `dvh` no, así que la
+     hoja conservaba su alto, se salía por arriba hasta la barra de estado y el concepto que se
+     estaba escribiendo quedaba fuera de la pantalla (queja del 17/11). */
+  const [vvAlto,setVvAlto]=useState(0);
+  const altoSinTecladoRef=useRef(0);
+  /* La hoja compacta (sin cabecera, pago ni numérico) entra DESPUÉS del toque que enfoca: si
+     encoge antes del `click`, el campo se va de debajo del dedo y el toque acaba en el velo, que la
+     cierra, o en una categoría. Antes se fijaba el alto entero de la hoja, y eso es lo que dejaba
+     el hueco vacío donde iba el numérico. */
+  const [kbVista,setKbVista]=useState(false);
+  const kbTokRef=useRef(0);
+  /* El teclado de Android sube animándose y la WebView no se entera hasta el final (su vídeo del 18/11):
+     mientras, el teclado tapaba la hoja y, al llegar el alto, Chrome desplazaba la pantalla para enseñar
+     el campo y la hoja daba un salto con el fondo asomando. Se sube ya al enfocar con el alto del último
+     teclado visto en este móvil (`kbPrevio`, con transición) y se ajusta al exacto cuando llega. */
+  const [kbPrevio,setKbPrevio]=useState(false);
+  const previoRef=useRef(false), previoTmRef=useRef(0), tecladoVistoRef=useRef(false), prevAltoRef=useRef(0);
+  /* Teclado ya en pantalla: lo que quede por plegarse se pliega de golpe, porque la hoja ya se recorta al
+     alto que queda a la vista (si no, las categorías asomaban cortadas bajo «Listo» unos fotogramas). */
+  const [kbYa,setKbYa]=useState(false);
+  const [listoQueda,setListoQueda]=useState(false);
+  /* Al soltar el concepto (con «Listo» o con el teclado ocultado con ⌄ o Atrás) el margen baja al ritmo con
+     que se despliegan el pago y el numérico: el borde de arriba se queda donde estaba y la hoja crece hacia
+     abajo. Quitándolo de golpe caía al fondo y volvía a subir (filtro de diseño 240: 306 → 654 → 333 px). */
+  const [kbBaja,setKbBaja]=useState(false);
+  const listoQuedaRef=useRef(0), kbBajaRef=useRef(0);
   const listoAt=useRef(0);
   /* Mientras la hoja baja tras guardar, el botón sigue debajo del dedo: un doble toque rápido
      apuntaba DOS gastos (encargo 236, P2-1). Como `addedRef` de las deudas: se suelta al reabrir. */
@@ -39187,7 +39601,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
-      setConceptoFoco(false); setKbPad(0); setKbAlto(0);
+      setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
+      setKbPrevio(false); previoRef.current=false; tecladoVistoRef.current=false; clearTimeout(previoTmRef.current); setKbYa(false);
+      setListoQueda(false); clearTimeout(listoQuedaRef.current); setKbBaja(false);
+      altoSinTecladoRef.current=window.innerHeight||0;
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
       try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
@@ -39227,27 +39644,76 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   },[open, note, kind, aiOn]);
   /* Si el teclado se superpone sin encoger la WebView, lo que tapa es lo que sobra entre el alto de
      la ventana y el de visualViewport: la hoja se sube eso (como la ayuda, 16-help-assistant). Si
-     la WebView se encoge, ese hueco es 0 y basta con haber escondido el teclado numérico. */
+     la WebView se encoge, ese hueco es 0; en los dos casos el tope es el alto que queda a la vista. */
   useEffect(function(){
-    if(!open || !conceptoFoco) { setKbPad(0); return undefined; }
+    if(!open || !conceptoFoco) {
+      setKbPad(0); setVvAlto(0); setKbPrevio(false); previoRef.current=false; tecladoVistoRef.current=false; setKbYa(false);
+      clearTimeout(previoTmRef.current); return undefined;
+    }
+    let tmQuieto=0;
     const sync=function(){
       try{
         const vv=window.visualViewport;
-        if(!vv){ setKbPad(0); return; }
-        const pad=Math.max(0, window.innerHeight-(vv.height+vv.offsetTop));
-        setKbPad(pad>24?Math.round(pad):0);
-      }catch(e){ setKbPad(0); }
+        altoSinTecladoRef.current=Math.max(altoSinTecladoRef.current, window.innerHeight||0);
+        const visto=vv?vv.height:window.innerHeight;
+        const pad=vv?Math.max(0, window.innerHeight-(vv.height+vv.offsetTop)):0;
+        // Con teclado (encima o encogiendo la WebView), la hoja no pasa de lo que queda a la vista.
+        const hay=altoSinTecladoRef.current-visto>80;
+        if(hay){
+          /* Si es la ventana la que encoge (el teclado no va encima), la subida prevista sobra: la hoja ya
+             queda sobre el teclado sin margen. Se deja y se recorta ya; si no, con el margen aún subiendo en
+             una ventana más baja, el borde de arriba se salía de la pantalla. */
+          if(previoRef.current&&altoSinTecladoRef.current-window.innerHeight>80){ previoRef.current=false; clearTimeout(previoTmRef.current); setKbPrevio(false); }
+          // Con la subida prevista en marcha, el pliegue ya va a su ritmo: cortarlo a medias daba un salto.
+          tecladoVistoRef.current=true; if(!previoRef.current) setKbYa(true);
+          /* Si el teclado llega por pasos, mientras sube no se baja la hoja del alto previsto (iría
+             arriba y abajo): se queda en el mayor de los dos y, quieto el teclado, en el exacto, que es
+             el que se recuerda para la próxima vez. */
+          if(previoRef.current){
+            // Lo previsto se mide desde abajo de la ventana: si Chrome desplaza la pantalla, ya no hace falta tanto.
+            // Y si la ventana ya encoge con el teclado, lo que encogió tampoco.
+            const prev=Math.max(0, prevAltoRef.current-(vv?vv.offsetTop:0)-(altoSinTecladoRef.current-window.innerHeight));
+            // Sin recortar todavía: el pliegue va a su ritmo y la hoja cabe; recortada a mitad, daba un salto.
+            setKbPad(Math.max(pad>24?Math.round(pad):0, prev));
+          } else {
+            setKbPad(pad>24?Math.round(pad):0); setVvAlto(Math.round(visto));
+          }
+          clearTimeout(tmQuieto);
+          tmQuieto=setTimeout(function(){
+            const v2=window.visualViewport, h2=v2?v2.height:window.innerHeight;
+            if(altoSinTecladoRef.current-h2>80) mcTecladoGuarda(altoSinTecladoRef.current-h2, altoSinTecladoRef.current);
+            if(previoRef.current){ previoRef.current=false; clearTimeout(previoTmRef.current); setKbPrevio(false); sync(); }
+          },160);
+          /* Con el teclado ya fuera, el toque que enfocó ha terminado: la hoja se compacta en el mismo
+             fotograma en que se recorta. Si se recortaba antes, se veía un instante a −142 px o con el
+             numérico montado (filtro de diseño 239, segunda vuelta). */
+          setKbVista(true);
+        } else if(tecladoVistoRef.current){
+          /* El teclado se ha ido sin «Listo» (su flecha ⌄ o Atrás): el campo sigue enfocado y la hoja se
+             quedaba compacta, sin teclado ni numérico (vídeo del 18/11). Se suelta como con «Listo». */
+          // Sin tocar aún el margen: lo quita `suelta`, bajando al ritmo del despliegue.
+          tecladoVistoRef.current=false; setKbYa(false);
+          setTimeout(function(){ try{ const el=document.activeElement; if(el&&el.classList&&el.classList.contains("v4-ficha-concept")) el.blur(); }catch(e){} },0);
+        }
+        /* Sin teclado no se toca nada: el margen y el tope ya están a cero, o los quita `suelta` bajando con
+           el despliegue. Ponerlos a cero aquí, en el `scroll` que llega justo después del `resize`, hacía
+           caer la hoja al fondo al ocultar el teclado (filtro de diseño 240). */
+      }catch(e){ setKbPad(0); setVvAlto(0); }
     };
     sync();
+    /* Desde el evento, aplicado antes de pintar: con el render normal, el primer fotograma con la
+       ventana ya encogida salía con la hoja sin recortar. */
+    const alActo=function(){ try{ ReactDOM.flushSync(sync); }catch(e){ sync(); } };
     const vv=window.visualViewport;
-    if(vv){ vv.addEventListener("resize",sync); vv.addEventListener("scroll",sync); }
-    window.addEventListener("resize",sync);
+    if(vv){ vv.addEventListener("resize",alActo); vv.addEventListener("scroll",alActo); }
+    window.addEventListener("resize",alActo);
     const baja=function(){ dedoRef.current=true; }, sube=function(){ dedoRef.current=false; };
     document.addEventListener("pointerdown",baja,true); document.addEventListener("pointerup",sube,true);
     document.addEventListener("pointercancel",sube,true);
     return function(){
-      if(vv){ vv.removeEventListener("resize",sync); vv.removeEventListener("scroll",sync); }
-      window.removeEventListener("resize",sync);
+      clearTimeout(tmQuieto);
+      if(vv){ vv.removeEventListener("resize",alActo); vv.removeEventListener("scroll",alActo); }
+      window.removeEventListener("resize",alActo);
       document.removeEventListener("pointerdown",baja,true); document.removeEventListener("pointerup",sube,true);
       document.removeEventListener("pointercancel",sube,true);
       dedoRef.current=false;
@@ -39255,6 +39721,24 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   },[open, conceptoFoco]);
   // `ensayo`: montaje en seco de `mcEnsayar`, sin candado ni entrada de Atrás.
   const swipe=useSheetSwipe(!!open&&!ensayo, onClose, {soloVelo:true});
+  /* Mientras baja al soltar el concepto, el contenido puede crecer más deprisa de lo que baja el margen (con
+     letra Enorme a 360 la hoja asomaba 18 px por encima de la pantalla); y en la subida prevista, el margen
+     puede subir más deprisa de lo que se pliega el contenido (lo mismo a 360 con Enorme, −19 px). El tope se
+     ajusta en cada fotograma para que el borde de arriba no suba de donde estaba ni del sitio que tendría
+     con su tope normal. */
+  useLayoutEffect(function(){
+    const el=swipe.sheetRef.current;
+    const activo=(kbBaja&&!conceptoFoco)||(kbPrevio&&conceptoFoco);
+    if(!activo||!el||mcReduced()) return undefined;
+    const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
+    const maxCss=parseFloat(getComputedStyle(el).maxHeight)||0;
+    const lim=Math.min(el.getBoundingClientRect().top, window.innerHeight-maxCss*zoom);
+    // El tope lo calcula el CSS con el margen animado (`--kb-m`); aquí solo se le dan sus dos límites.
+    el.style.setProperty("--kb-lim",((window.innerHeight-lim)/zoom)+"px");
+    el.style.setProperty("--kb-max",maxCss+"px");
+    el.setAttribute("data-kb-lim","1");
+    return function(){ el.removeAttribute("data-kb-lim"); el.style.removeProperty("--kb-lim"); el.style.removeProperty("--kb-max"); };
+  },[kbBaja,kbPrevio,conceptoFoco]);
   useBackClose(!!open&&!ensayo, swipe.close);
   /* La primera apertura costaba mucho más que las siguientes (123 ms de tarea larga frente a 0, con
      la CPU a ×6, 14/11/2026): se ensaya una vez en seco a los pocos segundos de arrancar. Si ya se
@@ -39378,21 +39862,52 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
+        "data-kb-previo":kbPrevio?"1":null,"data-kb-ya":kbYa?"1":null,"data-kb-baja":kbBaja?"1":null,
         // En px de pantalla: dentro del body con zoom, el margen se multiplicaría.
-        style:conceptoFoco?Object.assign(kbAlto?{height:kbAlto+"px"}:{},
-          kbPad?{marginBottom:"calc("+kbPad+"px / var(--zoom,1))",maxHeight:"calc((100dvh - "+kbPad+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
+        /* Sube y se recorta cuando ya se está compactando (`kbVista`): si el teclado llegaba antes, la hoja
+           entera subía o se recortaba con el numérico aún puesto. */
+        style:conceptoFoco&&kbVista&&(kbPad||vvAlto)?Object.assign({},
+          kbPad?{"--kb-m":"calc("+kbPad+"px / var(--zoom,1))"}:null,
+          vvAlto?{maxHeight:"calc(("+vvAlto+"px - var(--safe-top) - 8px) / var(--zoom,1))"}:null):undefined},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),
           onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); },
           amount:(raw||"0"),amountEmpty:!raw,currency:entrySym,onCurrency:function(){ setCurOpen(function(v){ return !v; }); setCalOpen(false); setBankOpen(false); },
           focused:true,concept:note,onConcept:setNote,fxHint:fxHint,payRow:payRow,afterMeta:afterMeta,
           onConceptFocus:function(){
-            const el=swipe.sheetRef.current;
-            // px del propio CSS de la hoja (dentro del zoom del body), que es lo que se le vuelve a poner.
-            setKbAlto(el?parseFloat(getComputedStyle(el).height)||0:0);
-            setConceptoFoco(true);
+            setConceptoFoco(true); setCalOpen(false); setCurOpen(false); setBankOpen(false);
+            const tok=++kbTokRef.current;
+            const pon=function(){
+              document.removeEventListener("click",pon,true); clearTimeout(tm);
+              requestAnimationFrame(function(){
+                if(kbTokRef.current!==tok) return;
+                setKbVista(true);
+                // Sube ya, con el alto del teclado de la otra vez, a la vez que el de verdad se anima.
+                const alto0=altoSinTecladoRef.current||window.innerHeight, prev=mcTecladoAlto(alto0)||mcTecladoSupuesto(alto0);
+                if(prev&&!tecladoVistoRef.current){
+                  previoRef.current=true; prevAltoRef.current=prev; setKbPrevio(true); setKbPad(prev);
+                  // Sin teclado en pantalla (uno físico, o no salió): se deshace.
+                  clearTimeout(previoTmRef.current);
+                  previoTmRef.current=setTimeout(function(){
+                    if(!previoRef.current||tecladoVistoRef.current) return;
+                    previoRef.current=false; setKbPrevio(false); setKbPad(0); setVvAlto(0);
+                  },900);
+                }
+              });
+            };
+            document.addEventListener("click",pon,true);
+            // Foco sin toque (teclado físico, lector de pantalla): no llega ningún click.
+            const tm=setTimeout(pon,400);
           },onConceptBlur:function(){
-            const suelta=function(){ setConceptoFoco(false); setKbAlto(0); };
+            const suelta=function(){
+              kbTokRef.current++; setConceptoFoco(false); setKbVista(false);
+              previoRef.current=false; setKbPrevio(false); clearTimeout(previoTmRef.current);
+              // «Listo» no pasa a «Apuntar» hasta que vuelven el pago y el numérico (300 ms).
+              setListoQueda(true); clearTimeout(listoQuedaRef.current);
+              setKbBaja(true); clearTimeout(kbBajaRef.current);
+              kbBajaRef.current=setTimeout(function(){ setKbBaja(false); },mcReduced()?0:330);
+              listoQuedaRef.current=setTimeout(function(){ setListoQueda(false); },mcReduced()?0:300);
+            };
             if(!dedoRef.current){ suelta(); return; }
             /* Blur por un toque en la propia hoja (una categoría, el chip ✨…): si el teclado numérico
                vuelve antes del `click`, la hoja crece, lo tocado se mueve y el click cae en otra
@@ -39400,7 +39915,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             const fin=function(){ document.removeEventListener("click",fin,true); clearTimeout(tm); setTimeout(suelta,0); };
             document.addEventListener("click",fin,true);
             const tm=setTimeout(fin,600);
-          },kb:conceptoFoco,
+          },kb:kbVista,
           categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
           numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catRowsMax:2,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
@@ -39411,7 +39926,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
             ? React.createElement("button",{key:"listo",className:"v4-cta","data-testid":"ap-kb-done",
                 onMouseDown:function(e){ e.preventDefault(); listoAt.current=Date.now(); },
                 onClick:function(){ listoAt.current=Date.now(); try{ document.activeElement&&document.activeElement.blur(); }catch(e){} }},t("f_kb_done"))
-            : React.createElement("button",{key:"cta",className:"v4-cta",onClick:save},kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
+            /* Recién cerrado el teclado ya guarda (Intro y tocar ahí mismo apunta, como siempre); solo el
+               rótulo espera a que vuelvan el pago y el numérico. */
+            : React.createElement("button",{key:"cta",className:"v4-cta",onClick:save},listoQueda?t("f_kb_done"):kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
       )
     ),document.body);
   return React.createElement(React.Fragment,null,main,
@@ -39481,11 +39998,12 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
         if(onClose) onClose();
         try{ window.dispatchEvent(new CustomEvent("mc-open-shared")); }catch(e){}
       }},
+        // Una línea: «Hogar y gastos compartidos» encima de «Hogar, pareja y grupos…» decía Hogar dos
+        // veces (auditoría 237, P2-12).
         React.createElement("div",{className:"pr-body"},
-          React.createElement("div",{className:"pr-lab"}, t("st_shared")),
-          React.createElement("div",{className:"pr-val"}, t("v4_shared_sub"))
+          React.createElement("div",{className:"pr-val"}, t("pf_shared_row"))
         ),
-        React.createElement("span",{className:"pr-edit","aria-hidden":"true"}, "›")
+        React.createElement("span",{className:"pr-chev","aria-hidden":"true"}, "›")
       )
     ),
     React.createElement("div",{className:"profile-sec"}, t("pf_personal")),
@@ -39495,8 +40013,12 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
         if(onOpenSettings) onOpenSettings();
       })
     ),
-    React.createElement("p",{style:{fontSize:12,color:"var(--muted-2)",lineHeight:1.45,margin:"18px 2px 0"}}, t("pf_hint")),
-    onOpenSettings && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},onClick:function(){ onClose(); onOpenSettings(); }}, t("pf_to_settings"))
+    /* «Ir a Ajustes» es una fila como las demás, con su flecha: en botón fantasma gris parecía
+       desactivado. El párrafo de privacidad que iba encima se quitó (textos mínimos, auditoría 237). */
+    onOpenSettings && React.createElement("div",{className:"profile-card",style:{marginTop:16}},
+      React.createElement("button",{type:"button",className:"profile-row","data-act":"perfil-ajustes",onClick:function(){ onClose(); onOpenSettings(); }},
+        React.createElement("div",{className:"pr-body"}, React.createElement("div",{className:"pr-val"}, t("pf_to_settings"))),
+        React.createElement("span",{className:"pr-chev","aria-hidden":"true"}, "›")))
   );
 }
 /* Pregúntame: una pregunta → una frase + un botón. Cifras solo en el móvil.
@@ -40999,6 +41521,21 @@ function App(){
           if(!planState)return Object.assign({},prev,{[cloudMergeKey.current]:{read:read,planInvalid:true}});
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState,planState);
+          /* La marca de la migración de la 238 (`_netoUnaCuenta`) va con las CUENTAS, no con quien gane
+             el resto. Si las cuentas vienen de la nube sin marca (las subió esta versión antes de migrar,
+             o un móvil viejo), la local no puede quedarse: `seedFlows` no las migraría y el arranque
+             pintaba 1.000/560 en vez de 970/500, y lo subía así (revisión 238, segunda vuelta). Una
+             cuenta migrada nunca viaja sin su marca, así que quitarla aquí no migra dos veces. */
+          if(!localNewer||goalState._goalSync.cloudOnly){
+            if(cloudState._netoUnaCuenta) baseObj._netoUnaCuenta=true; else delete baseObj._netoUnaCuenta;
+            /* Igual el libro de Round up / Saveback (`trRecompensas`): dice qué avisos están YA sumados
+               a las posiciones, así que va con las INVERSIONES que gana. Una nube sin la clave (un móvil
+               que nunca vio un aviso no la escribe) dejaba el libro local encima de las posiciones de la
+               nube: el aviso constaba como sumado sin estarlo y no se volvía a aplicar nunca, 12,96 € que
+               desaparecían de la cartera (CI de beta 240, recompensas-tr con la máquina lenta). Sin libro,
+               `aplicarRecompensasTR` lo suma una vez sobre lo bajado. */
+            if(cloudState.trRecompensas) baseObj.trRecompensas=cloudState.trRecompensas; else delete baseObj.trRecompensas;
+          }
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
           baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
@@ -44386,7 +44923,9 @@ function App(){
       (upd.otaReady&&!upd.otaDownloaded)?t("upd_downloading"):t("upd_ready")),
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
-    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast),
+    // Con Ajustes o el perfil encima no hay barra de abajo que salvar: el aviso baja a su sitio en
+    // vez de quedarse flotando sobre las filas (auditoría 237, P2-13).
+    toast && React.createElement("div",{className:"toast"+(drawerOpen||profileOpen?" toast-low":"")},toast.f?toast.f():toast),
     syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{

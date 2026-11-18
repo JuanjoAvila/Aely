@@ -253,6 +253,11 @@ test("vínculo tardío con UPDATE denegado conserva prueba A/B y categoría orig
   await sheet.getByTestId("exp-note").click();
   await sheet.locator('.v4-exp-note-in').fill("Nota sintética con confirmación fallida");await sheet.getByTestId("exp-bank").click();
   await expect(sheet.getByTestId("exp-withdrawal-receipt-blocked")).toBeVisible();
+  /* «Tardío» = el vínculo del otro móvil llega con el UPDATE aún en vuelo. El aviso de bloqueo sale
+     antes de que aterrice el pull del CAS, así que sin esperarlo el denegado podía adelantarse y la foto
+     para B salía sin la prueba (CI de beta 240: 1 de cada 3 con dos workers; 1,5 s después estaba).
+     Igual que el test de arriba: primero el vínculo en A, luego el ACK. */
+  await expect.poll(async()=>!!((await stored(page)).state.fixed[0].paymentProofs||{})[FIXTURE_YM]).toBe(true);
   await page.evaluate(()=>{window.__withdrawalFixture.releaseAck=true;});
   await expect(sheet.getByTestId("exp-withdrawal-info")).toContainText("No se ha confirmado el cambio");
   await expect(sheet.getByTestId("exp-cat-otros")).toHaveAttribute("aria-pressed","true");

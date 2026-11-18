@@ -412,7 +412,36 @@ const PRESUPUESTO = {
   // suscripciones por cobro y periodo, y el Round up y el Saveback de TR con su libro de avisos, con el sello y la nota de la versión
   // (dos tandas) y el filtro de diseño: 1.994.176 B minificado y 547.935 B gzip. Mismo mandato del 11/10 (el tamaño no bloquea producto): los topes,
   // al mínimo medido, 1948 / 536 KiB.
-  minificado: 1948 * 1024,
+  // Integración 4.26.238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, su migración y la marca en
+  // el pull, con el sello y la nota: 1.996.941 B minificado y 548.852 B gzip. Es lógica de dinero (un recibo restado varias veces
+  // del saldo); mismo mandato del 11/10: los topes, al mínimo medido, 1951 / 536 KiB (el gzip cabe con 12 B).
+  // Apuntar escribiendo el concepto (239, 17/11: el campo se iba por arriba y quedaba un hueco hasta «Listo»): pliegues
+  // de cabecera, pago y numérico, tope de la hoja con el alto visible, el borde que no parte el buscador de detrás y la
+  // baldosa del banco con «+»: 1.996.985 B minificado y 548.535 B gzip. Mismo mandato del 11/10: el minificado, al mínimo
+  // medido, 1951 KiB; el gzip sigue dentro. Segunda vuelta (filtro de diseño 239): el concepto en dos renglones,
+  // fundido antes del pliegue, el numérico sin pegar al fondo al recogerse y las filas medidas con la hoja quieta:
+  // 1.998.947 B minificado y 549.119 B gzip. Los dos, al mínimo medido: 1953 / 537 KiB. Tercera vuelta: el pliegue al
+  // compás del teclado (aplicado antes de pintar), la hoja que crece un renglón con el concepto en dos y el margen que
+  // baja de golpe: 2.000.210 B minificado y 549.424 B gzip. El minificado, a 1954 KiB.
+  // Integración 4.26.239 (17/11): Apuntar con el concepto a la vista (el pliegue al compás del teclado, el textarea y la baldosa
+  // del banco con «+») y la producción 237 mezclada, con el sello y la nota: 2.002.959 B minificado y 550.289 B gzip. La rama pedía 1954 / 537 sobre la 237;
+  // aquí se suma además la 238 (dos cuentas de recibos en un banco); mismo mandato del 11/10: al mínimo medido, 1957 / 538 KiB.
+  // Ronda de diseño 240 (18/11): los iconos de trazo de Ajustes (unos 40 dibujos de 24 px en vez de emojis, que cada móvil
+  // pintaba distinto), el buscador con su lupa y el «?», y las tarjetas de Deudas/Metas como la de Recibos. Se quitan
+  // varios textos de ayuda en tres idiomas, pero los dibujos pesan más: 2.007.258 B minificado y 552.029 B gzip
+  // (+4,2 KiB / +1,7 KiB). Mismo mandato del 11/10: al mínimo medido, 1961 / 540 KiB.
+  // Integración 4.26.240 (18/11): la ronda de diseño D y E (Deudas, Metas, Ajustes con iconos de trazo y Perfil), con el sello y
+  // la nota: 2.008.151 B minificado y 552.328 B gzip (la rama medía sin nota ni sello). Mismo mandato del 11/10: al mínimo
+  // medido, 1962 / 540 KiB.
+  // Apuntar con el teclado de Android de verdad (240, su vídeo del 18/11): ocultarlo sin «Listo» devuelve la hoja, la
+  // subida prevista con el alto del último teclado, el margen que lo sigue sin transición y el fondo de la hoja debajo:
+  // 2.005.485 B minificado y 550.898 B gzip. Mismo mandato del 11/10: el minificado, al mínimo medido, 1959 KiB.
+  // Segunda vuelta (filtro 240): la hoja que baja al soltar con el borde de arriba quieto, el numérico que se pliega
+  // al ritmo de la subida y el 40 % supuesto la primera vez: 2.007.127 B y 551.278 B gzip. Al mínimo medido: 1961 / 539 KiB.
+  // Integración 4.26.241 (18/11): Apuntar con el teclado del móvil de verdad (el margen que lo sigue, la subida prevista y
+  // el ocultado sin «Listo»), con el sello y la nota: 2.012.797 B minificado y 553.461 B gzip. Mismo mandato del 11/10: al mínimo
+  // medido, 1966 / 541 KiB.
+  minificado: 1966 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -452,7 +481,10 @@ const PRESUPUESTO = {
   // 4.26.232 (13/11): al juntar el enlace con otro banco (con su catálogo de nombres), «Ver menos» que sube y el globo
   // del filtro sobre la 231, el gzip pasa a 521 KiB (1 por encima). Todo es lógica de dinero revisada o arreglos que pidió el
   // dueño; SUBE (mandato 11/10) a 524 KiB.
-  gzip: 536 * 1024, // ver el comentario de minificado (535,1 KiB medidos el 17/11/2026 en la integración 4.26.237).
+  // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
+  // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
+  // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
+  gzip: 541 * 1024, // ver el comentario de minificado (540,5 KiB medidos el 18/11/2026 en la integración 4.26.241).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

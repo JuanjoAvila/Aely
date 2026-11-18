@@ -65,6 +65,14 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Ronda de diseño 240 (encargos D y E): resumen de Deudas/Metas, Ajustes con iconos de trazo y sin
+  // nada cortado, Perfil en filas y el aviso abajo con Ajustes abierto.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
   // Lectura sola del banco al entrar, con tope (orden del dueño, 16/11/2026): el tope vive en 08,
   // el contador en `cloud.bankSync` (00) y el efecto que la lanza en App (11).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
@@ -156,6 +164,14 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
   { file: "src/modules/00-core.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-te-llega-dinero.spec.mjs"] },
+  // Dos cuentas de recibos del mismo banco: el neto lo carga una sola (ronda 238). Pintar (00),
+  // insumos y cierre (01), quitar cuenta (07), re-anclar (08) y el «Tienes hoy» de Plan (11, 14).
+  { file: "src/modules/00-core.js", specs: ["e2e/recibos-238-fijos-dobles.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/recibos-238-fijos-dobles.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibos-238-fijos-dobles.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-238-fijos-dobles.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/recibos-238-fijos-dobles.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-238-fijos-dobles.spec.mjs"] },
   // Portada como el prototipo: «Ya pagados» en una línea con la letra al 110 %, tres en «Para revisar»,
   // «Todos ›», «¿Y si gasto…?» y «¿Cuánto es?» sin aplastarse (auditoría 9/11). Lo que se mide es CSS.
   // Lo que entra y lo que mueves con el ciclo de un recibo (12/11/2026): sección, ficha y alta.
@@ -207,6 +223,15 @@ export const E2E_MAP = [
   { file: "src/modules/04-tab-gastos.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/apuntar-ficha-apertura-ligera.spec.mjs"] },
+  // Apuntar escribiendo el concepto con el teclado del sistema (17/11): el campo a la vista, nada bajo
+  // la barra de estado y «Listo» pegado al teclado; y la baldosa del banco sin banco elegido.
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
+  // El teclado de Android de verdad (vídeo del 18/11): sube animándose y se puede ocultar sin «Listo».
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-teclado-real.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-teclado-real.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/apuntar-teclado-real.spec.mjs"] },
   // Cerrar Tus recibos de un desliz y seguir hacia otra pestaña sin que el carrusel se desplace de
   // lado (vídeo del dueño, 11/11): el foco que vuelve a «Todos» y el gesto de pestañas.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
