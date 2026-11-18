@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.242",
+    "d": "2026-11-18",
+    "t": {
+      "es": "Saldos y recibos que cuadran con el banco",
+      "en": "Balances and bills that match your bank",
+      "ca": "Saldos i rebuts que quadren amb el banc"
+    },
+    "items": {
+      "es": [
+        "Al sincronizar, el saldo de cada cuenta cuadra con el de tu banco.",
+        "Un recibo que el banco cobra antes de su día ya no se resta dos veces.",
+        "«¿Te llega?» lee el saldo de la cuenta en la que pagas los recibos.",
+        "La vista que compartes en el Hogar ya no cuenta dos veces un banco en el que tienes dos cuentas."
+      ],
+      "en": [
+        "When you sync, each account's balance matches your bank's.",
+        "A bill the bank charges before its day is no longer taken off twice.",
+        "«Will it cover?» reads the balance of the account you pay your bills from.",
+        "The view you share in your household no longer counts twice a bank where you have two accounts."
+      ],
+      "ca": [
+        "En sincronitzar, el saldo de cada compte quadra amb el del teu banc.",
+        "Un rebut que el banc cobra abans del seu dia ja no es resta dues vegades.",
+        "«T'arriba?» llegeix el saldo del compte on pagues els rebuts.",
+        "La vista que comparteixes a la llar ja no compta dues vegades un banc on tens dos comptes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "dinero-242",
+        "t": {
+          "es": "Saldos, recibos y la vista del Hogar",
+          "en": "Balances, bills and the household view",
+          "ca": "Saldos, rebuts i la vista de la llar"
+        },
+        "items": {
+          "es": [
+            "1. Cartera: toca «Sincronizar bancos» y, cuando acabe, compara el saldo de cada cuenta con el de la app de tu banco. BIEN: cada cuenta enseña lo mismo que su banco, también la de los recibos aunque este mes ya te hayan cobrado alguno. MAL: una cuenta sale con más o con menos dinero que el banco, o cambia de saldo al volver a abrir la app sin movimientos nuevos.",
+            "2. Plan → Recibos → «¿Te llega?»: abre la hoja del banco donde pagas los recibos. BIEN: «Tienes hoy» es el mismo saldo que ves en Cartera para esa cuenta; un recibo que el banco cobró antes de su día sale como pagado y no se resta otra vez. MAL: «Tienes hoy» no coincide con Cartera, o un recibo ya cobrado sigue restando.",
+            "3. Solo si compartes Hogar y tienes dos cuentas en el mismo banco: toca tu foto, entra en «Hogar compartido», toca «Actualizar mi vista en el hogar» y mira tu vista (o pídeselo a quien comparte contigo). BIEN: cada cuenta sale con su saldo, el mismo que en tu Cartera, y el banco no aparece con el doble. MAL: las dos cuentas del mismo banco salen con el total del banco cada una."
+          ],
+          "en": [
+            "1. Portfolio: tap «Sync banks» and, when it finishes, compare each account's balance with your bank's app. RIGHT: each account shows the same as its bank, including the one for bills even if some have already been charged this month. WRONG: an account shows more or less money than the bank, or its balance changes when you reopen the app with no new transactions.",
+            "2. Plan → Bills → «Will it cover?»: open the sheet for the bank you pay your bills from. RIGHT: «You have today» is the same balance you see in Portfolio for that account; a bill the bank charged before its day shows as paid and isn't taken off again. WRONG: «You have today» doesn't match Portfolio, or a bill already charged is still being taken off.",
+            "3. Only if you share a household and have two accounts at the same bank: tap your picture, go into «Shared household», tap «Update my household view» and look at your view (or ask the person you share with). RIGHT: each account shows its own balance, the same as in your Portfolio, and the bank doesn't show double. WRONG: the two accounts at the same bank each show the bank's total."
+          ],
+          "ca": [
+            "1. Cartera: toca «Sincronitza els bancs» i, quan acabi, compara el saldo de cada compte amb el de l'app del teu banc. BÉ: cada compte ensenya el mateix que el seu banc, també el dels rebuts encara que aquest mes ja te n'hagin cobrat algun. MALAMENT: un compte surt amb més o menys diners que el banc, o canvia de saldo en tornar a obrir l'app sense moviments nous.",
+            "2. Pla → Rebuts → «T'arriba?»: obre el full del banc on pagues els rebuts. BÉ: «Tens avui» és el mateix saldo que veus a Cartera per a aquell compte; un rebut que el banc va cobrar abans del seu dia surt com a pagat i no es torna a restar. MALAMENT: «Tens avui» no coincideix amb Cartera, o un rebut ja cobrat encara resta.",
+            "3. Només si comparteixes llar i tens dos comptes al mateix banc: toca la teva foto, entra a «Llar compartida», toca «Actualitzar la meva vista» i mira la teva vista (o demana-ho a qui comparteix amb tu). BÉ: cada compte surt amb el seu saldo, el mateix que a la teva Cartera, i el banc no apareix amb el doble. MALAMENT: els dos comptes del mateix banc surten cadascun amb el total del banc."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.241",
     "d": "2026-11-18",
     "t": {
