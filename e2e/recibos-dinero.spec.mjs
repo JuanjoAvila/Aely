@@ -159,6 +159,9 @@ test("Deshacer tras devolver un saltado avisa si la fila cambió entretanto", as
   await ficha.locator('[data-act="pausar"]').click();
   await ficha.locator('[data-pausa="h2"]').click();
   await expect(ficha).toHaveCount(0);
+  // El guardado va después de cerrar la ficha: leerlo a la primera daba `undefined` con la CPU cargada
+  // (dos de cuatro pasadas con 2 workers, integración 240-dinero) y el test comparaba contra eso.
+  await expect.poll(() => page.evaluate(() => mcLoadRaw(mcStateKey()).fixed[0].pausedUntil)).not.toBeUndefined();
   const tras = await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed[0].pausedUntil);
   await recibos.getByTestId("plan-deshacer").getByRole("button", { name: "Deshacer" }).click();
   await expect(page.getByText("No se pudo deshacer: ha cambiado mientras tanto")).toBeVisible();
