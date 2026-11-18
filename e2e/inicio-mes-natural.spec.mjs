@@ -2,9 +2,9 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 const idiomas=[
-  {lang:"es",money:"Dinero",cycle:"Presupuesto por ciclo de cobro",pace:x=>x+" € al día durante 3 días"},
-  {lang:"en",money:"Money",cycle:"Budget by pay cycle",pace:x=>x+" € a day for 3 days"},
-  {lang:"ca",money:"Diners",cycle:"Pressupost per cicle de cobrament",pace:x=>x+" € al dia durant 3 dies"},
+  {lang:"es",money:"Dinero",cycle:"Ciclo de cobro",pace:x=>x+" € al día durante 3 días"},
+  {lang:"en",money:"Money",cycle:"Pay cycle",pace:x=>x+" € a day for 3 days"},
+  {lang:"ca",money:"Diners",cycle:"Cicle de cobrament",pace:x=>x+" € al dia durant 3 dies"},
 ];
 // El anillo enseña lo que QUEDA, igual que la cifra «Te quedan» de su derecha (Inicio v4.2):
 // agotado o pasado es 0 %, sin tocar es 100 %. Y el reparto diario sale siempre que quede

@@ -29,9 +29,9 @@ async function open(page,currency='EUR',fx=0.8){
 async function setCurrency(page,currency){
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('mc-open-settings')));
  const settings=page.locator('.settings-push.open').filter({has:page.locator('button.set-row')});
- const currencyRow=settings.locator('button.set-row').filter({hasText:/Moneda de visualización/}).first();
+ const currencyRow=settings.locator('button.set-row').filter({hasText:/Moneda en pantalla/}).first();
  // Desde DIS-40 cada desplegable es una fila (`.set-sub`) de la tarjeta de su grupo: se busca la fila, no la tarjeta.
- const money=settings.locator('.set-card > .set-sub').filter({hasText:'Moneda de visualización'});
+ const money=settings.locator('.set-card > .set-sub').filter({hasText:'Moneda en pantalla'});
  await expect(money).toHaveCount(1);
  // El acordeón conserva nodos montados dentro de una rejilla cerrada: isVisible no basta.
  if(!await money.locator(':scope > .collapsible.open').count())await money.locator(':scope > button').click();

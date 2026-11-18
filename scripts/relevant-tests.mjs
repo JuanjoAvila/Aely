@@ -65,6 +65,14 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Ronda de diseño 240 (encargos D y E): resumen de Deudas/Metas, Ajustes con iconos de trazo y sin
+  // nada cortado, Perfil en filas y el aviso abajo con Ajustes abierto.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
   // Lectura sola del banco al entrar, con tope (orden del dueño, 16/11/2026): el tope vive en 08,
   // el contador en `cloud.bankSync` (00) y el efecto que la lanza en App (11).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },

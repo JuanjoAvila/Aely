@@ -512,7 +512,7 @@ test("con nube y lectura nueva, Mi ciclo y un gasto nuevo llegan al widget con a
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
   const settings = page.locator(".settings-push.open");
   await settings.locator("button.set-row").filter({ hasText: /Dinero/ }).first().click();
-  await settings.locator("button.set-row").filter({ hasText: /Presupuesto por ciclo de cobro/ }).click();
+  await settings.locator("button.set-row").filter({ hasText: /Ciclo de cobro/ }).click();
   await settings.locator(".settings-push-h .back").click();
   await expect.poll(async () => (await last())?.periodKind).toBe("ciclo");
   snap = await last();
@@ -520,7 +520,7 @@ test("con nube y lectura nueva, Mi ciclo y un gasto nuevo llegan al widget con a
   // De vuelta al mes y un gasto nuevo de 2 € desde Apuntar.
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
   await settings.locator("button.set-row").filter({ hasText: /Dinero/ }).first().click();
-  await settings.locator("button.set-row").filter({ hasText: /Presupuesto por ciclo de cobro/ }).click();
+  await settings.locator("button.set-row").filter({ hasText: /Ciclo de cobro/ }).click();
   await settings.locator(".settings-push-h .back").click();
   await expect.poll(async () => (await last())?.periodKind).toBe("mes");
   await page.locator(".botnav-fab").click();
@@ -572,7 +572,7 @@ test("alternar Mi ciclo y mes empuja al widget en el acto, en las dos direccione
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
   const settings = page.locator(".settings-push.open");
   await settings.locator("button.set-row").filter({ hasText: /Dinero/ }).first().click();
-  const toggle = settings.locator("button.set-row").filter({ hasText: /Presupuesto por ciclo de cobro/ });
+  const toggle = settings.locator("button.set-row").filter({ hasText: /Ciclo de cobro/ });
   for (const [kind, spent, left] of [["ciclo", 1536.47, 0], ["mes", 1436.47, 63.53], ["ciclo", 1536.47, 0], ["mes", 1436.47, 63.53]]) {
     const before = await page.evaluate(() => window.__widgetCalls.length);
     await toggle.click();

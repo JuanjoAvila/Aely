@@ -528,6 +528,7 @@ const DEBT_ICO={
   car:[["path",{d:"M3 16v-4l2.2-5.5h13.6L21 12v4z"}],["path",{d:"M3 12h18"}],["circle",{cx:7.5,cy:16.5,r:1.8}],["circle",{cx:16.5,cy:16.5,r:1.8}]],
   phone:[["rect",{x:7,y:2.5,width:10,height:19,rx:2}],["path",{d:"M11 18h2"}]],
   study:[["path",{d:"M2 9l10-5 10 5-10 5z"}],["path",{d:"M6 11v5c3 2.5 9 2.5 12 0v-5"}]],
+  person:[["circle",{cx:12,cy:8,r:4}],["path",{d:"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"}]],
   card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
 };
 const DEBT_BLANK={name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""};
@@ -650,7 +651,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const amortize=(d)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
-      ph:NF.format(0)+" €", ok:"💸 "+t("db_amortize"),
+      ph:NF.format(0)+" €", ok:t("db_amortize"),
       // atajos: los importes redondos que quepan + «todo» para liquidarla de un toque
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
         .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}]),
@@ -670,7 +671,11 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
      vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
   const debtIco=function(d){
     const n=String(d.name||"").toLowerCase();
-    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":"card";
+    // Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica: «Mamá»
+    // con una tarjeta parecía una financiación del banco (auditoría 237, P2-7). Va por palabra entera
+    // para que «papelería» no sea «papá».
+    const persona=/(^|[^a-záéíóúàèòïüñç])(mam[aá]|pap[aá]|madre|padre|famil\w*|herman[oa]s?|abuel[oa]s?|t[ií][oa]s?|amig[oa]s?|suegr[oa]s?|mum|mom|dad|mother|father|brother|sister|friend|grandma|grandpa|mare|pare|germ[àa]n?a?|avi|[àa]via)(?=$|[^a-záéíóúàèòïüñç])/;
+    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":persona.test(n)?"person":"card";
     return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
       DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
   };
@@ -693,11 +698,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
   if(editorOnly) return editor;
   return React.createElement("div",null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // La misma tarjeta que Recibos (etiqueta, cifra y una línea, a la izquierda): centrada, la cifra
+    // saltaba de sitio al cambiar de segmento dentro de Plan (auditoría 237, P2-1).
+    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"debts-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--text)"}},eur(total)),
+      React.createElement("div",{className:"serif num plan-summary-amount"},eur(total)),
       // Con céntimos, como la cuota de cada tarjeta y Recibos: «661 €» al lado de 660,85 parecía otra cifra (DIS-30).
-      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur(monthly)}))
+      React.createElement("div",{className:"plan-summary-sub"},tf("v4_debts_sub",{x:eur(monthly)}))
     ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
       React.createElement("div",{className:"hint"},t("plan_deleted_while_editing")),
@@ -716,7 +723,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
           React.createElement("span",{className:"v4-debt-emoji v4-debt-ico"},debtIco(d)),
-          React.createElement("div",{style:{flex:1,minWidth:0}},
+          React.createElement("div",{className:"plan-item-main"},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
           ),
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
@@ -771,7 +778,6 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
         React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
     React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
-    React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
     editor
   );
 }
@@ -884,7 +890,6 @@ function ReservaRules({state, set}){
   if(!goals.length && !rules.length && !adding) return null;
   const closeForm=function(){ saving.current=false; setSent(null); setEditing(null); setAdding(false); setErr(""); setForm(blank); };
   return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"var(--mint)",storageKey:"g_reserva_rules",help:t("h_reserva")},
-    rules.length===0 && React.createElement("div",{className:"hint"}, t("rr_none")),
     rules.map(function(r){
       return React.createElement("div",{key:r.id,className:"sub-row plan-rule-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
@@ -997,15 +1002,20 @@ function SavingsPlanCard({state, set, totals, showToast}){
     if(showToast) showToast(t("sv_saved"));
   };
   const editing=!!drafts;
-  return React.createElement("div",{className:"v4-card rise aely-savings","data-savings-plan":"1"},
+  /* Sin aportaciones la tarjeta es UNA fila, «Ahorro mensual · Añadir»: «0,00 €/mes» en grande y
+     dos frases de ayuda para no decir nada ocupaban media pantalla (auditoría 237, P1-7). La nota
+     de que solo planifica se queda cuando hay algo que planificar: es la línea que evita creer que
+     esto mueve dinero. */
+  const vacia=!editing && aps.length===0 && !(Math.round(total*100)>0);
+  return React.createElement("div",{className:"v4-card rise aely-savings"+(vacia?" aely-savings-vacia":""),"data-savings-plan":"1"},
     React.createElement("div",{className:"aely-savings-h"},
       React.createElement("div",{style:{minWidth:0}},
         React.createElement("div",{className:"v4-micro"}, t("sv_title")),
-        React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
+        !vacia && React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
       React.createElement("button",{type:"button",className:"btn btn-ghost aely-savings-edit","data-savings-edit":"1",
-        onClick:function(){ editing?setDrafts(null):start(); }}, editing?t("fj_cancel"):t("fj_edit"))),
-    React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
-    !editing && aps.length===0 && React.createElement("div",{className:"hint"}, t("sv_empty")),
+        onClick:function(){ editing?setDrafts(null):(vacia?setDrafts([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]):start()); }},
+        editing?t("fj_cancel"):(vacia?t("sv_add_short"):t("fj_edit")))),
+    !vacia && React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
     !editing && aps.map(function(ap){
       return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
         React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"}, entOf(ap.ent).label)),
@@ -1091,10 +1101,11 @@ function Goals({state, set, totals, showToast}){
 
   return React.createElement("div",null,
     // Sin metas, «Ahorrado en metas 0,00 €» en grande era un cero que no decía nada (DIS-28).
-    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // Misma tarjeta que Recibos y Deudas, con la cifra en el color del texto (P2-1).
+    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"goals-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--mint)"}},eur(totalSaved)),
-      totalTarget>0 && React.createElement("div",{style:{marginTop:10,fontSize:13.5,color:"var(--muted)"}},tf("gl_total_sub",{x:eur0(totalTarget)}))
+      React.createElement("div",{className:"serif num plan-summary-amount"},eur(totalSaved)),
+      totalTarget>0 && React.createElement("div",{className:"plan-summary-sub"},tf("gl_total_sub",{x:eur0(totalTarget)}))
     ),
     React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
@@ -1107,7 +1118,7 @@ function Goals({state, set, totals, showToast}){
       return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
           React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
-          React.createElement("div",{style:{flex:1,minWidth:0}},
+          React.createElement("div",{className:"plan-item-main"},
             React.createElement("div",{className:"v4-debt-name"},g.name,g.done&&React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
             React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-saved"}, eur0(gv.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0)),
             gv.aportado>0 && React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-from-gastos"}, tf("gl_from_gastos",{x:eur(gv.aportado)}))
@@ -1115,7 +1126,7 @@ function Goals({state, set, totals, showToast}){
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}},Math.round(pct)+"%"),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
         React.createElement("div",{className:"v4-goal-bar"},React.createElement("i",{style:{width:pct+"%",background:g.done?"var(--tan)":"var(--mint)"}})),
-        React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
+        eta.text && React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
         !g.done&&React.createElement("button",{className:"v4-goal-cta",onClick:function(){contribute(g);}},t("gl_contribute"))
       );
     }),

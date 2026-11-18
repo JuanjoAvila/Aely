@@ -2420,7 +2420,9 @@
   .settings-push.mc-page-dragging{transition:none!important;will-change:transform,opacity;}
   @keyframes mcPageEnter{from{opacity:.62;clip-path:inset(0 0 0 12%)}to{opacity:1;clip-path:inset(0)}}
   .settings-push-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
+  /* Redondo, como el de «Tus recibos» y el cierre del perfil: había un cuadrado aquí y un círculo
+     allí para lo mismo (auditoría 237, P2-10). */
+  .settings-push-h .back,.sub-push-h .back{width:44px;height:44px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);cursor:pointer;flex:0 0 auto;}
   .settings-push-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
   /* Subpantallas de Ajustes (Privacidad, Hogar, Copias…): el mismo «‹» redondo que Ajustes, con el
      título al lado. Antes cada una llevaba un «‹ Ajustes» o «‹ Volver» de texto azul y había seis
@@ -2462,12 +2464,15 @@
     transition:opacity .45s ease;max-width:520px;margin:0 auto;}
   .profile-dim-layer.on{opacity:1;pointer-events:none;}
   .profile-dim-layer.blurred{-webkit-backdrop-filter:blur(18px) saturate(1.15);backdrop-filter:blur(18px) saturate(1.15);}
-  .profile-pull-h{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:40px;}
-  .profile-pull-h .back{width:34px;height:34px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:17px;color:var(--text);flex:0 0 auto;line-height:1;}
+  /* La cabecera del perfil es la de Ajustes: botón redondo de 44 y título en Fraunces a su altura.
+     El perfil se cierra con ✕ porque baja como una hoja desde el avatar (el «‹» es de las pantallas
+     que entran de lado); lo que cambiaba era el tamaño y el título, que flotaba por encima. */
+  .profile-pull-h{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:44px;}
+  .profile-pull-h .back{width:44px;height:44px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:18px;color:var(--text);flex:0 0 auto;line-height:1;}
   .profile-pull-h .ph-main{flex:1;min-width:0;}
-  .profile-pull-h h1{font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;margin:0;letter-spacing:-.2px;}
+  .profile-pull-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;line-height:1.15;}
   .profile-handle{font-size:12.5px;font-weight:700;color:var(--mint);display:inline-flex;align-items:center;gap:5px;margin-top:2px;}
-  .profile-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
+  .profile-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
     display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--text);flex:0 0 auto;position:relative;}
   .profile-sec{font-size:13px;font-weight:700;color:var(--muted);margin:16px 2px 8px;}
   .profile-card{background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:2px 0;margin-bottom:4px;}
@@ -2478,6 +2483,9 @@
   .profile-row .pr-val{font-size:14.5px;font-weight:700;color:var(--text);line-height:1.35;word-break:break-word;}
   .profile-row .pr-val.pr-val-empty{color:var(--muted-2);font-weight:600;}
   .profile-row .pr-edit{color:var(--mint);font-size:13px;flex:0 0 auto;padding-top:2px;opacity:.9;}
+  /* Filas que llevan a otra pantalla: una línea centrada con su flecha, como las de Ajustes. */
+  .profile-row:has(> .pr-chev){align-items:center;min-height:48px;}
+  .profile-row .pr-chev{color:var(--muted);font-size:17px;line-height:1;flex:0 0 auto;}
   /* Sin scale/filter en shell (huecos negros + WebView). El dim es la capa aparte. */
   .app-shell.profile-dim{pointer-events:none;}
   /* El avatar se aparta mientras la tarjeta del perfil sale de él: si se queda, se ven los dos
@@ -2681,7 +2689,8 @@
   .aely-savings{margin-top:12px;padding:16px;}
   .aely-savings-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
   .aely-savings-total{font-size:26px;font-weight:550;letter-spacing:-.5px;line-height:1.15;margin-top:4px;white-space:nowrap;}
-  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;}
+  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;min-height:44px;}
+  .aely-savings-vacia .aely-savings-h{align-items:center;flex-wrap:nowrap;}
   .aely-savings-note{margin:8px 0 4px;font-size:12.5px;line-height:1.45;}
   .aely-savings-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line-soft);}
   .aely-savings-name{min-width:0;flex:1 1 140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;}
@@ -2708,10 +2717,21 @@
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
   /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
      montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */
-  .plan-summary{text-align:center;padding:22px 16px;}
-  .plan-summary-amount{font-size:46px;font-weight:560;letter-spacing:-.5px;line-height:1.05;margin-top:6px;overflow-wrap:anywhere;}
+  /* La tarjeta resumen de Deudas y Metas copia la de Recibos (`.pr6-sum`): a la izquierda, misma
+     cifra y mismos huecos. Centradas, la cifra cambiaba de sitio al pasar de un segmento a otro. */
+  .plan-summary{display:flex;flex-direction:column;gap:12px;text-align:left;}
+  /* La cifra encoge con la tarjeta en vez de partirse («187.306,2 / 4 €» con letra Enorme a 360):
+     46 px como Recibos mientras quepa. El `anywhere` queda solo para cifras imposibles. */
+  .plan-summary{container-type:inline-size;}
+  .plan-summary-amount{font-size:min(46px,13.5cqi);font-weight:600;letter-spacing:-1px;line-height:1;color:var(--text);overflow-wrap:anywhere;}
+  .plan-summary-sub{font-size:14px;color:var(--muted);line-height:1.45;}
   .plan-item-open{width:100%;padding:0;border:0;background:none;color:var(--text);font-family:inherit;text-align:left;cursor:pointer;min-height:48px;}
-  .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:anywhere;}
+  /* Si nombre e importe no caben en una fila, el importe baja a la derecha en vez de partir el
+     nombre a media palabra («Hipote / ca sintéti / ca» con letra Enorme a 360, 240). */
+  .plan-item-open{flex-wrap:wrap;}
+  .plan-item-main{flex:1 1 9em;min-width:0;}
+  .plan-item-open .plan-item-value{margin-left:auto;}
+  .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:break-word;}
   .plan-item .v4-debt-emoji{font-size:22px;line-height:1.4;}
   .v4-debt-ico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--muted);}
   .plan-item .v4-debt-ico{line-height:1;margin-top:2px;}
@@ -2801,9 +2821,19 @@
   .v4-sheet .btn.btn-primary{min-height:46px;font-size:14.5px;border-radius:12px;}
   button.v4-mov{width:100%;border:1px solid var(--line-soft);background:var(--sur);color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .set-card>.set-row:first-child,.set-card>.set-sub:first-child>.set-row:first-child{border-top:none;}
-  .set-row .sr-ic{font-size:17px;flex:0 0 22px;text-align:center;line-height:1;}
-  .set-row .sr-lb{flex:1;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;}
-  .set-row .sr-val{color:var(--muted);font-size:12.5px;font-weight:600;flex:0 1 42%;max-width:42%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .set-row .sr-ic{font-size:17px;flex:0 0 22px;text-align:center;line-height:1;color:var(--muted);}
+  .set-row .sr-ic svg{display:block;margin:0 auto;}
+  /* Nada cortado: la etiqueta baja de renglón por palabras y el valor se queda entero. Con letra
+     Enorme a 360 salía «Accesi…» al lado de «Enorme» (240). La etiqueta parte de 0 y crece: sin
+     `overflow` su mínimo es su palabra más larga, así que no se parte a media palabra, y el valor
+     solo cede con «…» si ni así caben los dos. */
+  .set-row .sr-lb{font-weight:700;overflow-wrap:break-word;}
+  .set-row > .sr-lb{flex:1 1 0;}
+  .set-row .sr-val{color:var(--muted);font-size:12.5px;font-weight:600;flex:0 1 auto;max-width:50%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .set-search{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .set-search-box{position:relative;flex:1;min-width:0;display:flex;align-items:center;}
+  .set-search-ic{position:absolute;left:13px;color:var(--muted);pointer-events:none;}
+  .set-search-in{width:100%;min-height:44px;padding:10px 13px 10px 38px;border-radius:12px;border:1px solid var(--line);background:var(--bg-2);color:var(--text);font-size:16px;font-family:inherit;box-sizing:border-box;}
   /* Notificaciones (16/11): título + una línea de apoyo, logo del banco en el hueco del icono y el
      permiso como estado con punto, que se lee igual en la fila del grupo y dentro. */
   .set-row .sr-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
@@ -2972,6 +3002,7 @@
   .dots .d.on{width:22px;background:linear-gradient(90deg,var(--mint-bright),var(--mint));}
 
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-bottom));background:var(--sur2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:16px;font-size:14px;font-weight:700;z-index:200;box-shadow:var(--shadow);animation:toastin .3s ease;}
+  .toast.toast-low{bottom:calc(24px + var(--safe-bottom));}
   .offline-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:rgba(226,160,95,.16);border:1px solid rgba(226,160,95,.5);color:#E2A05F;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;z-index:210;white-space:nowrap;box-shadow:var(--shadow);}
   .update-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:var(--on-mint);padding:9px 18px;border-radius:20px;font-size:12.5px;font-weight:800;z-index:215;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(95,208,138,.7);border:none;cursor:pointer;animation:updin .35s ease;}
   .update-pill+.update-pill{top:calc(var(--safe-top) + 48px);}
@@ -3083,7 +3114,8 @@
 .aely-help-phrase{font-size:15px;font-weight:550;letter-spacing:-.1px;line-height:1.4;margin:4px 0 0;text-decoration:none !important;}
 .aely-help-steps{margin:8px 0 0;padding-left:22px;display:grid;gap:5px;line-height:1.35;}
 .aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
-.aely-help-entry{margin:6px 0 10px;}
+/* «Pregúntame» en Ajustes: el mismo «?» redondo de Inicio, al lado del buscador y ya con 44 px. */
+.aely-help-entry-set{width:44px;height:44px;flex:0 0 auto;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--text);font:550 19px/1 var(--serif,Georgia,serif);padding:0;cursor:pointer;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
 .aely-help-entry-mini{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
 /* El dibujo sigue en 36 px; el dedo necesita 44 (auditoría 15/11). -5 y no -4: el inset cuenta desde
@@ -8889,7 +8921,7 @@ const LANG = {
     v4_apuntar_need:"Pon un importe 🙂", v4_apuntar_ok:"✓ Gasto apuntado", v4_apuntar_ok_in:"✓ Ingreso apuntado",
     v4_back:"Volver",
     v4_debts_hero:"Debes en total", v4_debts_sub:"{x}/mes en cuotas · bajando cada mes",
-    v4_debts_ends:"acabas en {d}", v4_amort_now:"💸 Amortizar ahora",
+    v4_debts_ends:"acabas en {d}", v4_amort_now:"Amortizar ahora",
     v4_debt_party_1:"🎉 {name}: ¡ÚLTIMA cuota este mes ({x})!", v4_debt_party_sub:"Después, {x}/mes libres para ti.",
     v4_goals_hero:"Ahorrado en metas", v4_goal_new:"+ Nueva meta de ahorro",
     v4_ob_skip:"Saltar", v4_ob_title1:"Bienvenido/a",
@@ -8945,7 +8977,7 @@ const LANG = {
     // pintaba la clave pelada «tb_removed» / «tb_nodel» en el toast (bug encontrado 2026-07-24
     // por el test de claves i18n).
     st_mode_hint:"Plan solo con recibos: sin deudas ni metas.",
-    settings:"Ajustes", language:"Idioma", theme:"Tema de color", currency:"Moneda de visualización",
+    settings:"Ajustes", language:"Idioma", theme:"Tema de color", currency:"Moneda en pantalla",
     save:"Guardar", backup:"Copia de seguridad", st_imports:"Importaciones",
     eb_title:"Algo se ha torcido", eb_msg:"La app ha tenido un error al dibujar. Tus datos están a salvo. Descarga una copia por si acaso y recarga.", eb_export:"⬇️ Descargar copia de seguridad", eb_export_fail:"No se pudo descargar la copia. Recarga y prueba otra vez.", err_generic:"No ha salido bien. Prueba otra vez.", err_offline:"Sin conexión. Prueba otra vez.", err_login:"Correo o contraseña incorrectos.", err_pass:"Contraseña incorrecta.", err_registered:"Ese correo ya tiene cuenta.", err_unconfirmed:"Confirma el correo antes de entrar.", err_cloud_off:"Nube no disponible.", err_cloud_format:"La nube trae datos raros: se quedan los de este móvil.", err_cloud_pull:"No se ha podido traer lo de la nube. Lo de este móvil sigue aquí.", au_bio_need:"Configura primero la huella o el bloqueo de pantalla del móvil.", au_bio_nosupport:"Este móvil no permite usar la huella aquí.", pr_no_tickers:"Ninguna inversión tiene precio automático.", pr_login:"Inicia sesión para actualizar precios.", pr_updating:"Actualizando precios…", pr_none:"No han llegado precios. Prueba más tarde.", nav_aria:"Navegación", eb_reload:"🔄 Recargar la app",
     off_pill:"📴 Sin conexión · se guarda y sincroniza al volver",
@@ -8961,7 +8993,7 @@ const LANG = {
     apk_why_state:"app: canal {ch} ofrece la {want}, tienes la {have}", apk_ch_beta:"pruebas", apk_ch_stable:"estable",
     ob_signup:"Crear cuenta nueva",
     st_notifs:"Notificaciones", st_simple_lbl:"Modo sencillo",
-    st_search_ph:"🔍 Buscar en ajustes…", st_search_none:"Nada con ese nombre. Prueba con «tema», «banco», «copia»…",
+    st_search_ph:"Buscar en ajustes…", st_search_none:"Nada con ese nombre. Prueba con «tema», «banco», «copia»…",
     st_updates:"Actualizaciones", st_update:"Buscar actualización",
     st_up_ok:"✓ Estás a la última", st_up_applying:"⬇️ Actualizando a la v{v}… la app se recarga sola en unos segundos", st_up_apk:"⬇️ App {v} disponible · descargando, se abrirá el instalador",
     st_widget_hint:"📱 Widget: mantén pulsado el escritorio → Widgets → Aely. Verás el gasto del mes y lo que te queda.",
@@ -8983,7 +9015,7 @@ const LANG = {
     st_banksync_notif:"Sincronizar al llegar un aviso del banco", st_banksync_notif_hint:"Como mucho cada 12 h",
     st_aicat:"Sugerir categoría con IA", st_aicat_hint:"Solo en «Otros» · sin el importe",
     th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
-    rp_saved:"✓ Informe guardado en Descargas (busca «mi-cartera-…png»)",
+    rp_saved:"Informe guardado en Descargas",
     rp_saved_notif:"📊 Informe del mes guardado en Descargas: {f}. Ábrelo desde tu app de Archivos o la galería.",
     ob_haveacc:"Ya tengo cuenta · Iniciar sesión",
     // v4.6 — aportar a metas con banco + teclado propio
@@ -8992,13 +9024,12 @@ const LANG = {
     v4_set_a11y:"Accesibilidad",
     st_textsize:"Tamaño de letra", st_textsize_hint:"Agranda toda la app.",
     ts_small:"Normal", ts_normal:"Grande", ts_big:"Muy grande", ts_huge:"Enorme",
-    st_reduce_motion:"Reducir animaciones", st_reduce_motion_hint:"Quita deslizamientos y rebotes.",
-    st_contrast:"Más contraste", st_contrast_hint:"Sube el contraste del texto para que se lea mejor.",
+    st_reduce_motion:"Reducir animaciones",
+    st_contrast:"Más contraste",
     // Temáticas de temporada
     st_theme_season:"Temática", st_theme_season_hint:"Colores y un detalle suave de fondo según la estación.",
     th_none:"Ninguna", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Navidad 🎄", th_verano:"Verano ☀️", th_invierno:"Invierno ❄️", th_pascua:"Pascua 🐣", th_otono:"Otoño 🍂", th_primavera:"Primavera 🌸",
     // Bancos de gasto diario (varios)
-    v4_shared_sub:"Hogar, pareja y grupos de gastos",
     // Comparativa de monedas
     st_cur_compare_empty:"Aún no hay tipos de cambio. Comprueba la conexión y pulsa reintentar.",
     st_cur_compare_retry:"Reintentar",
@@ -9392,7 +9423,7 @@ Object.assign(LANG.es,{
   d_saving:"Ahorro", 
   done:"Listo ✓", drag_hint:"mantén pulsada una tarjeta para moverla",
   // Gastos
-  g_month:"Este mes", g_cycle:"Mi ciclo", g_all:"Todo", g_custom:"Rango…", g_allcats:"Todas",
+  g_cycle:"Mi ciclo", g_all:"Todo", g_custom:"Rango…", g_allcats:"Todas",
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
@@ -9418,8 +9449,8 @@ Object.assign(LANG.es,{
   g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
   sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
-  st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con nómina reconocida, Gastos va de nómina a nómina; si no, por mes natural.",
-  sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
+  st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Ciclo de cobro",
+  sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_add_short:"Añadir",
   g_syncing:"Sincronizando…",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
   ap_pay_card:"Tarjeta", ap_pay_cash:"Efectivo", ap_pay_transfer:"Bizum/transf.", ap_pay_aria:"Forma de pago",
@@ -9470,7 +9501,6 @@ Object.assign(LANG.es,{
   db_concept:"Ej.: financiación del móvil", db_amount:"Importe €", db_quota_ph:"Vacía si es al 0 %", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
   db_months_ph:"Plazo (meses)", db_day_ph:"Día", db_financing_hint:"Plazo en meses: la cuota se apunta sola y para al acabar. Al 0 % déjala vacía; con interés, pon la real.",
   db_down_ph:"Entrada € (opcional)", db_balloon_ph:"Pago final € (coche)", db_balloon_tag:"(pago final)", db_balloon_hint:"Coche con pago final: pon importe financiado, pago final y plazo; la cuota sale sola.", db_balloon_line:"Pago final: {x}", db_down_line:"Entrada: {x}",
-  db_hint:"El saldo baja solo cada mes. Corrígelo aquí cuando tengas el real del banco.",
   db_err_amount:"⚠ Falta el importe total de la deuda", db_err_quota:"⚠ Pon la cuota/mes o el plazo en meses", db_err_paid:"⚠ Has pagado tantas cuotas como el plazo: esa deuda ya está liquidada", db_added:"✓ Deuda añadida",
   db_paid_ph:"Cuotas ya pagadas", db_paid_hint:"¿Ya la tienes empezada? Pon cuántas cuotas llevas pagadas y el pendiente se calcula solo.",
   db_amortize:"Amortizar", db_amortize_prompt:"¿Cuánto amortizas de «{name}»?", db_amortize_sub:"Pendiente ahora: {x}. Lo que pongas baja el saldo y acorta el plazo, manteniendo la misma cuota.", db_amortized:"✓ Amortizado {x} · pendiente {y}", db_amortize_full:"🎉 ¡Deuda liquidada!",
@@ -9513,7 +9543,7 @@ Object.assign(LANG.es,{
   gl_save:"Guardar cambios", gl_delete:"Eliminar meta", gl_of:"de",
   gl_eta:"A tu ritmo ({x}/mes) la cumples en {when} 🟢",
   gl_eta_ok:"Vas bien 🟢 · faltan {x}", gl_eta_behind:"Necesitas {x}/mes para llegar a tiempo 🟠",
-  gl_eta_reached:"🎉 ¡Conseguida!", gl_eta_overdue:"La fecha ya pasó 🟠 · ajústala", gl_eta_nosaving:"Empieza a ahorrar para ver la previsión",
+  gl_eta_reached:"🎉 ¡Conseguida!", gl_eta_overdue:"La fecha ya pasó 🟠 · ajústala",
   gl_done_badge:"🏅 Cumplida", gl_celebrate:"🎉 ¡Meta «{name}» cumplida!",
   gm_levelup:"🎉 ¡Subiste al nivel {n}!", gm_badge_new:"🏅 Logro: {x}",
   gm_b_first_goal:"1ª meta cumplida", gm_b_first_underbudget:"1er mes bajo presupuesto", gm_b_first_reto:"1er reto completado", gm_b_streak_3:"Racha de 3 meses",
@@ -9537,7 +9567,6 @@ Object.assign(LANG.es,{
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
   // INC-0410 es: los avisos del alta y el estado del reparto también deben invalidar su revisión.
   rr_title:"Reservar dinero de tus ingresos", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
-  rr_none:"Añade una para apartar dinero cada mes hacia una meta.",
   rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% del ingreso",
   rr_row_fixed:"{v} fijos", rr_row_pct:"{v} %",
   rr_goal_gone:"(meta borrada)",
@@ -9669,7 +9698,7 @@ Object.assign(LANG.es,{
   bp_hist_undo_cloud_fail:"Quitado en el móvil, pero la nube no ha confirmado el borrado. Si vuelven a aparecer, vuelve a deshacer con conexión.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
-  bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ningún banco conectado todavía",
+  bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ninguno",
   bp_summary_tr_dead:"⚠ Trade Republic desconectado",
   exp_pull_invalid:"No se pudo completar la descarga. Lo guardado se conserva; vuelve a intentarlo.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
@@ -9703,8 +9732,7 @@ Object.assign(LANG.es,{
   pf_title:"Tu perfil", pf_people:"Tu gente", pf_personal:"Personal", 
   pf_add:"Añadir", pf_handle:"Usuario", pf_basic:"Información básica", pf_name:"Nombre", pf_name_ph:"Tu nombre",
   pf_email:"Correo",
-  pf_hint:"Estos datos viven solo en tu móvil (y en la nube de Aely si tienes sesión). No se comparten con bancos.",
-  pf_to_settings:"Ir a Ajustes",
+  pf_to_settings:"Ir a Ajustes", pf_shared_row:"Hogar compartido",
 });
 
 
@@ -10598,7 +10626,9 @@ function goalEta(g, monthlySaving){
   }
   // En céntimos, como las cuotas de deuda: 72,45 a 10,35 al mes son 7 meses, no 8 (revisión 237).
   if(Math.round(m*100)>0){ const months=Math.max(1,cuotasQueQuedan(rem,m)); return {text:tf("gl_eta",{x:eur0(m),when:monthYearIn(months)}), cls:""}; }
-  return {text:t("gl_eta_nosaving"), cls:""};
+  // Sin ritmo no hay previsión que dar, y no se pinta nada: «Empieza a ahorrar para ver la
+  // previsión» salía en cada tarjeta, también con media meta ya ahorrada (auditoría 237, P1-7).
+  return {text:"", cls:""};
 }
 // confeti DOM: ligero, se autolimpia. Para celebrar una meta cumplida.
 function celebrate(){
@@ -11763,7 +11793,8 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast(errTxt()); return; }
-      const fname="mi-cartera-"+ymFile+".png";
+      // Con el nombre de la app de hoy: «mi-cartera-…» era el de antes de llamarse Aely.
+      const fname="aely-informe-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
         setTimeout(function(){ URL.revokeObjectURL(u); },1000);
@@ -15171,7 +15202,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
               React.createElement("div",{className:"serif num v4-goal-pct",style:{fontWeight:600,fontSize:18}}, Math.round(pct)+"%")
             ),
             React.createElement("div",{className:"bar"}, React.createElement("i",{style:{width:pct+"%"}})),
-            React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)"}}, eta.text)
+            eta.text && React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)"}}, eta.text)
           );
         })
       )
@@ -29265,6 +29296,7 @@ const DEBT_ICO={
   car:[["path",{d:"M3 16v-4l2.2-5.5h13.6L21 12v4z"}],["path",{d:"M3 12h18"}],["circle",{cx:7.5,cy:16.5,r:1.8}],["circle",{cx:16.5,cy:16.5,r:1.8}]],
   phone:[["rect",{x:7,y:2.5,width:10,height:19,rx:2}],["path",{d:"M11 18h2"}]],
   study:[["path",{d:"M2 9l10-5 10 5-10 5z"}],["path",{d:"M6 11v5c3 2.5 9 2.5 12 0v-5"}]],
+  person:[["circle",{cx:12,cy:8,r:4}],["path",{d:"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"}]],
   card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
 };
 const DEBT_BLANK={name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""};
@@ -29387,7 +29419,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const amortize=(d)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
-      ph:NF.format(0)+" €", ok:"💸 "+t("db_amortize"),
+      ph:NF.format(0)+" €", ok:t("db_amortize"),
       // atajos: los importes redondos que quepan + «todo» para liquidarla de un toque
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
         .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}]),
@@ -29407,7 +29439,11 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
      vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
   const debtIco=function(d){
     const n=String(d.name||"").toLowerCase();
-    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":"card";
+    // Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica: «Mamá»
+    // con una tarjeta parecía una financiación del banco (auditoría 237, P2-7). Va por palabra entera
+    // para que «papelería» no sea «papá».
+    const persona=/(^|[^a-záéíóúàèòïüñç])(mam[aá]|pap[aá]|madre|padre|famil\w*|herman[oa]s?|abuel[oa]s?|t[ií][oa]s?|amig[oa]s?|suegr[oa]s?|mum|mom|dad|mother|father|brother|sister|friend|grandma|grandpa|mare|pare|germ[àa]n?a?|avi|[àa]via)(?=$|[^a-záéíóúàèòïüñç])/;
+    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":persona.test(n)?"person":"card";
     return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
       DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
   };
@@ -29430,11 +29466,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
   if(editorOnly) return editor;
   return React.createElement("div",null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // La misma tarjeta que Recibos (etiqueta, cifra y una línea, a la izquierda): centrada, la cifra
+    // saltaba de sitio al cambiar de segmento dentro de Plan (auditoría 237, P2-1).
+    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"debts-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--text)"}},eur(total)),
+      React.createElement("div",{className:"serif num plan-summary-amount"},eur(total)),
       // Con céntimos, como la cuota de cada tarjeta y Recibos: «661 €» al lado de 660,85 parecía otra cifra (DIS-30).
-      React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur(monthly)}))
+      React.createElement("div",{className:"plan-summary-sub"},tf("v4_debts_sub",{x:eur(monthly)}))
     ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
       React.createElement("div",{className:"hint"},t("plan_deleted_while_editing")),
@@ -29453,7 +29491,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
           React.createElement("span",{className:"v4-debt-emoji v4-debt-ico"},debtIco(d)),
-          React.createElement("div",{style:{flex:1,minWidth:0}},
+          React.createElement("div",{className:"plan-item-main"},
             React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
           ),
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
@@ -29508,7 +29546,6 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
         React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
     React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
-    React.createElement("div",{className:"hint",style:{padding:"10px 4px 0"}},t("db_hint")),
     editor
   );
 }
@@ -29621,7 +29658,6 @@ function ReservaRules({state, set}){
   if(!goals.length && !rules.length && !adding) return null;
   const closeForm=function(){ saving.current=false; setSent(null); setEditing(null); setAdding(false); setErr(""); setForm(blank); };
   return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"var(--mint)",storageKey:"g_reserva_rules",help:t("h_reserva")},
-    rules.length===0 && React.createElement("div",{className:"hint"}, t("rr_none")),
     rules.map(function(r){
       return React.createElement("div",{key:r.id,className:"sub-row plan-rule-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
@@ -29734,15 +29770,20 @@ function SavingsPlanCard({state, set, totals, showToast}){
     if(showToast) showToast(t("sv_saved"));
   };
   const editing=!!drafts;
-  return React.createElement("div",{className:"v4-card rise aely-savings","data-savings-plan":"1"},
+  /* Sin aportaciones la tarjeta es UNA fila, «Ahorro mensual · Añadir»: «0,00 €/mes» en grande y
+     dos frases de ayuda para no decir nada ocupaban media pantalla (auditoría 237, P1-7). La nota
+     de que solo planifica se queda cuando hay algo que planificar: es la línea que evita creer que
+     esto mueve dinero. */
+  const vacia=!editing && aps.length===0 && !(Math.round(total*100)>0);
+  return React.createElement("div",{className:"v4-card rise aely-savings"+(vacia?" aely-savings-vacia":""),"data-savings-plan":"1"},
     React.createElement("div",{className:"aely-savings-h"},
       React.createElement("div",{style:{minWidth:0}},
         React.createElement("div",{className:"v4-micro"}, t("sv_title")),
-        React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
+        !vacia && React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
       React.createElement("button",{type:"button",className:"btn btn-ghost aely-savings-edit","data-savings-edit":"1",
-        onClick:function(){ editing?setDrafts(null):start(); }}, editing?t("fj_cancel"):t("fj_edit"))),
-    React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
-    !editing && aps.length===0 && React.createElement("div",{className:"hint"}, t("sv_empty")),
+        onClick:function(){ editing?setDrafts(null):(vacia?setDrafts([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]):start()); }},
+        editing?t("fj_cancel"):(vacia?t("sv_add_short"):t("fj_edit")))),
+    !vacia && React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
     !editing && aps.map(function(ap){
       return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
         React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"}, entOf(ap.ent).label)),
@@ -29828,10 +29869,11 @@ function Goals({state, set, totals, showToast}){
 
   return React.createElement("div",null,
     // Sin metas, «Ahorrado en metas 0,00 €» en grande era un cero que no decía nada (DIS-28).
-    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary"},
+    // Misma tarjeta que Recibos y Deudas, con la cifra en el color del texto (P2-1).
+    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"goals-summary"},
       React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount",style:{color:"var(--mint)"}},eur(totalSaved)),
-      totalTarget>0 && React.createElement("div",{style:{marginTop:10,fontSize:13.5,color:"var(--muted)"}},tf("gl_total_sub",{x:eur0(totalTarget)}))
+      React.createElement("div",{className:"serif num plan-summary-amount"},eur(totalSaved)),
+      totalTarget>0 && React.createElement("div",{className:"plan-summary-sub"},tf("gl_total_sub",{x:eur0(totalTarget)}))
     ),
     React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
@@ -29844,7 +29886,7 @@ function Goals({state, set, totals, showToast}){
       return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
           React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
-          React.createElement("div",{style:{flex:1,minWidth:0}},
+          React.createElement("div",{className:"plan-item-main"},
             React.createElement("div",{className:"v4-debt-name"},g.name,g.done&&React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
             React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-saved"}, eur0(gv.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0)),
             gv.aportado>0 && React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-from-gastos"}, tf("gl_from_gastos",{x:eur(gv.aportado)}))
@@ -29852,7 +29894,7 @@ function Goals({state, set, totals, showToast}){
           React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}},Math.round(pct)+"%"),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
         ),
         React.createElement("div",{className:"v4-goal-bar"},React.createElement("i",{style:{width:pct+"%",background:g.done?"var(--tan)":"var(--mint)"}})),
-        React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
+        eta.text && React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
         !g.done&&React.createElement("button",{className:"v4-goal-cta",onClick:function(){contribute(g);}},t("gl_contribute"))
       );
     }),
@@ -33217,6 +33259,61 @@ function HapticTuner({showToast}){
       React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setV(mcHapticTuneReset()); }},t("hv_reset"))));
 }
 
+/* Iconos de las filas de Ajustes: trazo de 24 px como la barra de abajo y los recibos (auditoría
+   237, P2-7). Los emojis de colores se pintaban distinto en cada móvil y eran lo único con color
+   de toda la lista. Van por la clave de la fila; una fila sin entrada aquí (las de pruebas, los
+   logos de banco) conserva lo que traiga. */
+const SET_ICO=(function(){
+  const sol=[["circle",{cx:12,cy:12,r:9}],["path",{d:"M12 3a9 9 0 0 1 0 18z",fill:"currentColor",stroke:"none"}]];
+  const chispa=[["path",{d:"M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9z"}],["path",{d:"M19 16v4M17 18h4"}]];
+  const banco=[["path",{d:"M3 10l9-6 9 6"}],["path",{d:"M5 10v8M9.7 10v8M14.3 10v8M19 10v8"}],["path",{d:"M3 20h18"}]];
+  const campana=[["path",{d:"M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"}],["path",{d:"M10 21h4"}]];
+  const bajar=[["path",{d:"M12 4v11"}],["path",{d:"M7 10l5 5 5-5"}],["path",{d:"M5 20h14"}]];
+  const persona=[["circle",{cx:12,cy:8,r:4}],["path",{d:"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"}]];
+  const hoja=[["path",{d:"M5 19C5 10.5 10.5 5 20 4c-.8 9.5-6.3 15-15 15z"}],["path",{d:"M5 19l7.5-7.5"}]];
+  return {
+    general:[["circle",{cx:12,cy:12,r:9}],["circle",{cx:8.5,cy:10,r:1.3}],["circle",{cx:12,cy:7.5,r:1.3}],["circle",{cx:15.5,cy:10,r:1.3}],["path",{d:"M12 21a2.5 2.5 0 0 1 0-5h2.5"}]],
+    season:chispa,
+    lang:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M3 12h18"}],["path",{d:"M12 3c2.4 2.6 3.6 5.6 3.6 9s-1.2 6.4-3.6 9c-2.4-2.6-3.6-5.6-3.6-9S9.6 5.6 12 3z"}]],
+    a11y:[["circle",{cx:12,cy:4.5,r:1.6}],["path",{d:"M5 8.5l7 1.5 7-1.5"}],["path",{d:"M12 10v5"}],["path",{d:"M8.5 21l3.5-6 3.5 6"}]],
+    redmo:[["path",{d:"M3 12h3l2.5-6 4 12 2.5-6h6"}]],
+    hicon:sol,
+    money:[["path",{d:"M17.5 6.5a7 7 0 1 0 0 11"}],["path",{d:"M4 10.5h9M4 13.5h9"}]],
+    cur:[["path",{d:"M17.5 6.5a7 7 0 1 0 0 11"}],["path",{d:"M4 10.5h9M4 13.5h9"}]],
+    curcmp:[["path",{d:"M4 8h15l-3.5-3.5"}],["path",{d:"M20 16H5l3.5 3.5"}]],
+    gview:[["path",{d:"M5 6h14M5 12h14M5 18h8"}]],
+    budgetcycle:[["rect",{x:3,y:5,width:18,height:16,rx:2.5}],["path",{d:"M3 10h18M8 3v4M16 3v4"}]],
+    bills:[["path",{d:"M6 3h12v18l-3-2-3 2-3-2-3 2z"}],["path",{d:"M9 8h6M9 12h6"}]],
+    banks:banco, imphist:banco, banksync:banco,
+    notifs:campana, trnotif:campana,
+    access:[["rect",{x:7,y:2.5,width:10,height:19,rx:2.5}],["path",{d:"M11 18h2"}]],
+    narestr:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"}],["path",{d:"M12 17.5h.01"}]],
+    aicat:chispa, helpai:chispa,
+    widget:[["rect",{x:3.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:3.5,y:13.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:13.5,width:7,height:7,rx:1.8}]],
+    easy:hoja, simple:hoja,
+    tour:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M15.5 8.5l-2 5-5 2 2-5z"}]],
+    import:bajar, upd:bajar, updates:bajar,
+    imphoja:[["rect",{x:3.5,y:4,width:17,height:16,rx:2}],["path",{d:"M3.5 9.5h17M3.5 14.5h17M9.5 4v16"}]],
+    backup:[["rect",{x:3,y:4,width:18,height:5,rx:1.5}],["path",{d:"M5 9v10h14V9"}],["path",{d:"M10 13h4"}]],
+    autoback:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M12 7v5l3 2"}]],
+    report:[["rect",{x:3,y:5,width:18,height:14,rx:2}],["circle",{cx:9,cy:10,r:1.6}],["path",{d:"M4 18l5-5 3.5 3.5L16 13l4 4"}]],
+    news:chispa,
+    fb:[["path",{d:"M4 5h16v11H9l-5 4z"}]],
+    account:persona,
+    biolock:[["path",{d:"M7 11a5 5 0 0 1 10 0v2c0 3-1 5.5-2.5 7.5"}],["path",{d:"M12 11v3c0 2.5-.8 4.7-2 6.5"}],["path",{d:"M4.5 15.5c.4-1.4.5-2.9.5-4.5a7 7 0 0 1 12.5-4.3"}]],
+    priv:[["path",{d:"M12 3l8 3v6c0 4.8-3.4 7.9-8 9-4.6-1.1-8-4.2-8-9V6z"}]],
+    signout:[["path",{d:"M14 4h5v16h-5"}],["path",{d:"M15 12H4"}],["path",{d:"M8 8l-4 4 4 4"}]],
+    delacc:[["path",{d:"M4 7h16"}],["path",{d:"M9 7V4h6v3"}],["path",{d:"M6 7l1 13h10l1-13"}]],
+    vibra:[["rect",{x:8,y:3,width:8,height:18,rx:2}],["path",{d:"M4 9v6M20 9v6"}]]
+  };
+})();
+function setIco(k, fallback){
+  const d=SET_ICO[k];
+  if(!d) return fallback;
+  return React.createElement("svg",{viewBox:"0 0 24 24",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-set-ico":k},
+    d.map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
+}
+
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
 function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos}){
   const adminCacheKey="_mcAdminProfile";
@@ -33409,11 +33506,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       }
     }).catch(function(){ setBankLinks([]); });
   },[uid]);
-  // Estilos de los pocos controles con input propio (presupuesto). Los demás usan el sistema
-  // de filas .set-row/.swx. (lbl/btnGhost/link se quitaron en 2026-07-17: estaban muertos.)
-  // Inputs se quedan en 16px (menos = zoom automático del móvil al enfocar); los botones sí
-  // bajan de tamaño para no parecer listones (feedback 2026-07-18).
-  const inp={width:"100%",padding:"10px 13px",borderRadius:"12px",border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:"16px",boxSizing:"border-box"};
+  // Botones de opción de los desplegables (tema, moneda, letra…). Los demás controles usan el
+  // sistema de filas .set-row/.swx. Bajan de tamaño para no parecer listones (feedback 2026-07-18).
   const btn={width:"100%",padding:"10px 12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"14px",marginTop:"10px",cursor:"pointer"};
   /* Presupuesto mensual: se edita en Resumen (BudgetSheet). Bancos de gasto diario: en Cartera.
      Quitados de aquí el 2026-08-05 — eran duplicados muertos / confusos (feedback suyo). */
@@ -33428,7 +33522,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const toggleExp=function(k){ setExpand(expand===k?null:k); };
   const row=function(k,icon,label,value,onClick,right){
     return React.createElement("button",{key:k,className:"set-row",onClick:onClick},
-      React.createElement("span",{className:"sr-ic"},icon),
+      React.createElement("span",{className:"sr-ic"},setIco(k,icon)),
       React.createElement("span",{className:"sr-lb"},label),
       value!=null && React.createElement("span",{className:"sr-val"},value),
       right!==undefined ? right : React.createElement("span",{className:"sr-chev"+(expand===k?" open":"")},"›")
@@ -33471,7 +33565,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Es una fila de la tarjeta de su `seccion`, no una tarjeta propia (DIS-40).
     return React.createElement("div",{className:"set-sub"},
       React.createElement("button",{className:"set-row",onClick:function(){ toggleGrp(id); }},
-        React.createElement("span",{className:"sr-ic"},icon),
+        React.createElement("span",{className:"sr-ic"},setIco(id,icon)),
         React.createElement("span",{className:"sr-lb",style:{fontWeight:800}},title),
         val!=null && React.createElement("span",{className:"sr-val"},val),
         React.createElement("span",{className:"sr-chev"+(open?" open":"")},"›")),
@@ -33504,12 +33598,19 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
     ),
-    React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:function(){
-      try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, totals, {
-        onConsent:function(ok){ setS({helpAiOk:!!ok, helpAiAsked:true}); }
-      })})); }catch(e){}
-    }}, t("help_title")),
-    React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
+    /* Buscador con la lupa de trazo de «Tus recibos» y, a su lado, «Pregúntame» como el «?» redondo
+       de Inicio: suelto entre la tarjeta de cuenta y el buscador no pertenecía a nada (auditoría
+       237, P2-11). Las dos cosas sirven para lo mismo, encontrar algo, y van en la misma fila. */
+    React.createElement("div",{className:"set-search"},
+      React.createElement("label",{className:"set-search-box"},
+        React.createElement("svg",{className:"set-search-ic",viewBox:"0 0 24 24",width:18,height:18,fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round","aria-hidden":"true"},
+          React.createElement("circle",{cx:11,cy:11,r:6.5}),React.createElement("path",{d:"M16 16l4.5 4.5"})),
+        React.createElement("input",{className:"set-search-in",placeholder:t("st_search_ph"),"aria-label":t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }})),
+      React.createElement("button",{type:"button",className:"aely-help-entry aely-help-entry-set","aria-label":t("help_title"),title:t("help_title"),onClick:function(){
+        try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, totals, {
+          onConsent:function(ok){ setS({helpAiOk:!!ok, helpAiAsked:true}); }
+        })})); }catch(e){}
+      }}, "?")),
 
     /* AJUSTES EN CUATRO GRUPOS (diseño 233, DIS-40, aprobado 15/11). Había siete cabeceras con una
        sola fila que repetía su título («APARIENCIA › Apariencia») y cosas en grupos que no les
@@ -33549,6 +33650,9 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           })))
     ),
     grp("a11y","♿",t("v4_set_a11y"),"accesibilidad letra grande tamaño texto contraste animaciones reduce motion accessibility",t("ts_"+curTextSize),
+      // Sin subtítulos debajo de los interruptores: el nombre ya lo dice (auditoría 237, P1-7). La línea
+      // de la letra se queda por ahora: cierra un bloque que vigila beta-sources y quitarla obliga a
+      // reanclar ese descriptor al integrar (240).
       React.createElement("div",{style:{padding:"6px 14px 4px"}},
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
@@ -33558,18 +33662,17 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginTop:6}}, t("st_textsize_hint"))
       ),
       (function(){ const on=!!(state.settings&&state.settings.reduceMotion);
-        return React.createElement(React.Fragment,null,
-          row("redmo",on?"🐢":"🎞️",t("st_reduce_motion"),null,function(){ applyReduceMotion(!on); setS({reduceMotion:!on}); }, sw(on)),
-          React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_reduce_motion_hint"))); })(),
+        return row("redmo",on?"🐢":"🎞️",t("st_reduce_motion"),null,function(){ applyReduceMotion(!on); setS({reduceMotion:!on}); }, sw(on)); })(),
       (function(){ const on=!!(state.settings&&state.settings.hiContrast);
-        return React.createElement(React.Fragment,null,
-          row("hicon",on?"🌗":"🌓",t("st_contrast"),null,function(){ applyContrast(!on); setS({hiContrast:!on}); }, sw(on)),
-          React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_contrast_hint"))); })()
+        return row("hicon",on?"🌗":"🌓",t("st_contrast"),null,function(){ applyContrast(!on); setS({hiContrast:!on}); }, sw(on)); })()
     )),
     seccion(t("v4_set_g_money"),
     // Dinero: moneda de visualización (ahora SÍ convierte) + comparativa + cómo se ve el total
     // de gastos. Presupuesto y bancos de gasto diario viven en Resumen / Cartera (2026-08-05).
-    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts presupuesto nòmina nómina salario cobro ciclo payday budget",t("cur_"+curCur.toLowerCase()),
+    // La moneda se ve en la cabecera solo con el grupo plegado: abierto, la fila de dentro ya la dice
+    // y salía «€ Euro» dos veces seguidas (auditoría 237, P2-11).
+    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts presupuesto nòmina nómina salario cobro ciclo payday budget",
+      (isOpen("money")||normQ(q).trim())?null:t("cur_"+curCur.toLowerCase()),
       row("cur","💱",t("currency"),t("cur_"+curCur.toLowerCase()),function(){ toggleExp("cur"); }),
       expand==="cur" && React.createElement("div",{className:"set-exp"},
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}},
@@ -33626,10 +33729,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       })(),
       // Su mes de gasto puede empezar con el cobro real, no con el día 1. La elección queda
       // en su perfil y se puede deshacer sin tocar los movimientos (feedback pareja 28/9).
-      row("budgetcycle","📅",t("st_budget_cycle"),t(state.settings&&state.settings.budgetCycle?"g_cycle":"g_month"),function(){
+      // Solo el interruptor: «Mi ciclo» al lado y el párrafo de debajo partían la etiqueta en tres
+      // renglones y repetían lo que ya dice el interruptor (auditoría 237, P1-4).
+      row("budgetcycle","📅",t("st_budget_cycle"),null,function(){
         setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
       },sw(!!(state.settings&&state.settings.budgetCycle))),
-      React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
       // «Cambiar mis recibos» salió de Ajustes (14/10/2026: se gestionan desde Plan › Recibos › Gestionar).
       // Solo se queda en modo sencillo, donde Plan no enseña «Gestionar» (NO-GO §5bis.2) y esta era la
       // ÚNICA puerta. Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
@@ -33715,7 +33819,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // Fila con una línea de apoyo bajo el título (sin párrafos: una línea útil o nada).
       const fila=function(k,icon,label,sub,onClick,right){
         return React.createElement("button",{key:k,type:"button",className:"set-row nt-row","data-nt":k,onClick:onClick},
-          React.createElement("span",{className:"sr-ic"},icon),
+          React.createElement("span",{className:"sr-ic"},setIco(k,icon)),
           React.createElement("span",{className:"sr-tx"},
             React.createElement("span",{className:"sr-lb"},label),
             sub && React.createElement("span",{className:"sr-sub"},sub)),
@@ -39751,11 +39855,12 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
         if(onClose) onClose();
         try{ window.dispatchEvent(new CustomEvent("mc-open-shared")); }catch(e){}
       }},
+        // Una línea: «Hogar y gastos compartidos» encima de «Hogar, pareja y grupos…» decía Hogar dos
+        // veces (auditoría 237, P2-12).
         React.createElement("div",{className:"pr-body"},
-          React.createElement("div",{className:"pr-lab"}, t("st_shared")),
-          React.createElement("div",{className:"pr-val"}, t("v4_shared_sub"))
+          React.createElement("div",{className:"pr-val"}, t("pf_shared_row"))
         ),
-        React.createElement("span",{className:"pr-edit","aria-hidden":"true"}, "›")
+        React.createElement("span",{className:"pr-chev","aria-hidden":"true"}, "›")
       )
     ),
     React.createElement("div",{className:"profile-sec"}, t("pf_personal")),
@@ -39765,8 +39870,12 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
         if(onOpenSettings) onOpenSettings();
       })
     ),
-    React.createElement("p",{style:{fontSize:12,color:"var(--muted-2)",lineHeight:1.45,margin:"18px 2px 0"}}, t("pf_hint")),
-    onOpenSettings && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},onClick:function(){ onClose(); onOpenSettings(); }}, t("pf_to_settings"))
+    /* «Ir a Ajustes» es una fila como las demás, con su flecha: en botón fantasma gris parecía
+       desactivado. El párrafo de privacidad que iba encima se quitó (textos mínimos, auditoría 237). */
+    onOpenSettings && React.createElement("div",{className:"profile-card",style:{marginTop:16}},
+      React.createElement("button",{type:"button",className:"profile-row","data-act":"perfil-ajustes",onClick:function(){ onClose(); onOpenSettings(); }},
+        React.createElement("div",{className:"pr-body"}, React.createElement("div",{className:"pr-val"}, t("pf_to_settings"))),
+        React.createElement("span",{className:"pr-chev","aria-hidden":"true"}, "›")))
   );
 }
 /* Pregúntame: una pregunta → una frase + un botón. Cifras solo en el móvil.
@@ -44664,7 +44773,9 @@ function App(){
       (upd.otaReady&&!upd.otaDownloaded)?t("upd_downloading"):t("upd_ready")),
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
-    toast && React.createElement("div",{className:"toast"},toast.f?toast.f():toast),
+    // Con Ajustes o el perfil encima no hay barra de abajo que salvar: el aviso baja a su sitio en
+    // vez de quedarse flotando sobre las filas (auditoría 237, P2-13).
+    toast && React.createElement("div",{className:"toast"+(drawerOpen||profileOpen?" toast-low":"")},toast.f?toast.f():toast),
     syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{

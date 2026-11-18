@@ -25,7 +25,7 @@ async function toggle(page){
  const settings=page.locator('.settings-push.open');await expect(settings).toBeVisible();
  // Cambiar la preferencia por su botón real también comprueba su persistencia.
  await settings.locator('button.set-row').filter({hasText:/Dinero|Money|Diners/}).first().click();
- await settings.locator('button.set-row').filter({hasText:/Presupuesto por ciclo de cobro|Budget by pay cycle|Pressupost per cicle de cobrament/}).click();
+ await settings.locator('button.set-row').filter({hasText:/Ciclo de cobro|Pay cycle|Cicle de cobrament/}).click();
  await settings.locator('.settings-push-h .back').click();
  await expect.poll(async()=>page.evaluate(()=>mcLoadRaw('micartera_v3').settings.budgetCycle)).toBe(!prior);
 }

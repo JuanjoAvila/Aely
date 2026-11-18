@@ -5244,11 +5244,12 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
         if(onClose) onClose();
         try{ window.dispatchEvent(new CustomEvent("mc-open-shared")); }catch(e){}
       }},
+        // Una línea: «Hogar y gastos compartidos» encima de «Hogar, pareja y grupos…» decía Hogar dos
+        // veces (auditoría 237, P2-12).
         React.createElement("div",{className:"pr-body"},
-          React.createElement("div",{className:"pr-lab"}, t("st_shared")),
-          React.createElement("div",{className:"pr-val"}, t("v4_shared_sub"))
+          React.createElement("div",{className:"pr-val"}, t("pf_shared_row"))
         ),
-        React.createElement("span",{className:"pr-edit","aria-hidden":"true"}, "›")
+        React.createElement("span",{className:"pr-chev","aria-hidden":"true"}, "›")
       )
     ),
     React.createElement("div",{className:"profile-sec"}, t("pf_personal")),
@@ -5258,7 +5259,11 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
         if(onOpenSettings) onOpenSettings();
       })
     ),
-    React.createElement("p",{style:{fontSize:12,color:"var(--muted-2)",lineHeight:1.45,margin:"18px 2px 0"}}, t("pf_hint")),
-    onOpenSettings && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},onClick:function(){ onClose(); onOpenSettings(); }}, t("pf_to_settings"))
+    /* «Ir a Ajustes» es una fila como las demás, con su flecha: en botón fantasma gris parecía
+       desactivado. El párrafo de privacidad que iba encima se quitó (textos mínimos, auditoría 237). */
+    onOpenSettings && React.createElement("div",{className:"profile-card",style:{marginTop:16}},
+      React.createElement("button",{type:"button",className:"profile-row","data-act":"perfil-ajustes",onClick:function(){ onClose(); onOpenSettings(); }},
+        React.createElement("div",{className:"pr-body"}, React.createElement("div",{className:"pr-val"}, t("pf_to_settings"))),
+        React.createElement("span",{className:"pr-chev","aria-hidden":"true"}, "›")))
   );
 }
