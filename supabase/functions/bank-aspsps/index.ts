@@ -35,6 +35,7 @@ Deno.serve(withCors(async (req: Request) => {
 
     return jsonResp({ ok: true, country, count: aspsps.length, aspsps });
   } catch (e) {
-    return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);
+    // P3-09: el texto de la excepción (proveedor, secretos que faltan) se queda en el servidor.
+    return jsonResp({ ok: false, error: "error" }, 500);
   }
 }));

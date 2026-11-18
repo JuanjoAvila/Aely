@@ -73,10 +73,11 @@ Deno.serve(withCors(async (req: Request) => {
       valid_until: validUntil,
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id,aspsp_name" });
-    if (error) return jsonResp({ ok: false, error: error.message }, 500);
+    // P3-09: el mensaje de PostgREST describe el esquema; al cliente, un código cerrado.
+    if (error) return jsonResp({ ok: false, error: "error" }, 500);
 
     return jsonResp({ ok: true, url: auth.url || auth.redirect_url });
   } catch (e) {
-    return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);
+    return jsonResp({ ok: false, error: "error" }, 500);
   }
 }));

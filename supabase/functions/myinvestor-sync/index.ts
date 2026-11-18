@@ -196,6 +196,7 @@ Deno.serve(withCors(async (req: Request) => {
     // Tampoco afirmamos haber reiniciado el contador cuando falta ese acuse.
     return jsonResp({ ok: true, positions, ...(saveError ? { code: "counter_not_saved" } : {}) });
   } catch (e) {
-    return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);
+    // P3-09: el texto de una excepción interna (descifrado, BD) no es un mensaje para el usuario.
+    return jsonResp({ ok: false, error: "error" }, 500);
   }
 }));
