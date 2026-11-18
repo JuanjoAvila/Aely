@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacitat — Aely</title>
+  <link rel="alternate" hreflang="es" href="privacy.html">
+  <link rel="alternate" hreflang="en" href="privacy.en.html">
+  <link rel="alternate" hreflang="ca" href="privacy.ca.html">
+  <style>
+    /* Misma hoja que privacy.html (la versión en castellano manda; esta es su traducción). */
+    @font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+    @font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
+    :root { --bg:#06120C; --text:#E8F5EE; --muted:#8FA89A; --mint:#5FD08A; --line:#1a2e24; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:'Manrope',system-ui,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; padding:calc(env(safe-area-inset-top,0px) + 24px) calc(env(safe-area-inset-right,0px) + 20px) calc(env(safe-area-inset-bottom,0px) + 48px) calc(env(safe-area-inset-left,0px) + 20px); }
+    main { max-width:640px; margin:0 auto; }
+    h1 { font-size:1.6rem; margin:0 0 8px; }
+    h2 { font-size:1.05rem; margin:28px 0 8px; color:var(--mint); }
+    p, li { color:var(--text); font-size:15px; }
+    .muted { color:var(--muted); font-size:14px; }
+    a { color:var(--mint); }
+    ul { padding-left:1.2em; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; }
+    .back { text-decoration:none; font-weight:700; }
+    .langs { display:flex; gap:4px; font-size:14px; font-weight:700; }
+    .langs a, .langs span { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; text-decoration:none; }
+    .langs span { color:var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top">
+      <a class="back" href="./">← Tornar a Aely</a>
+      <nav class="langs" aria-label="Idioma"><a href="privacy.html" hreflang="es" lang="es">ES</a><a href="privacy.en.html" hreflang="en" lang="en">EN</a><span aria-current="page">CA</span></nav>
+    </div>
+    <h1>Privacitat i dades</h1>
+    <p class="muted">Última actualització: 18 nov 2026 · Aely (Juanjo Avila)</p>
+
+    <h2>Quines dades desem</h2>
+    <ul>
+      <li><strong>La teva cartera:</strong> comptes, inversions, deutes, pressupost i ajustos (al dispositiu i, si inicies sessió, a Supabase).</li>
+      <li><strong>Despeses:</strong> import, comerç, categoria i data (taula <code>expenses</code>).</li>
+      <li><strong>Connexions bancàries:</strong> estat de l'enllaç Open Banking i tokens de sessió xifrats. No desem la contrasenya del teu banc.</li>
+      <li><strong>MyInvestor:</strong> tokens de sessió xifrats després de connectar. La contrasenya només s'utilitza per iniciar sessió i no es desa.</li>
+      <li><strong>Diagnòstic i ús:</strong> amb la sessió iniciada, l'app envia els errors (netejats abans de sortir), quines pantalles es fan servir (un cop per sessió) i quant triguen les sincronitzacions, amb la versió i la plataforma. Les mètriques d'ús mai no porten imports, comerços ni el que escrius. Avui no es pot desactivar.</li>
+    </ul>
+
+    <h2>On s'allotgen</h2>
+    <p>Les dades al núvol són a <strong>Supabase</strong> (UE). L'app web se serveix des de <strong>GitHub Pages</strong>. Cada usuari només pot llegir i escriure les seves pròpies dades (Row Level Security), amb dues excepcions: si comparteixes una Llar, els seus membres veuen els saldos que comparteixes, i l'administrador de l'app llegeix les dades de diagnòstic i ús.</p>
+
+    <h2>Ajuda avançada opcional</h2>
+    <p>«Pregunta’m» funciona en local i sense connexió. Si actives voluntàriament l'ajuda avançada, només s'envia a <strong>OpenAI</strong> la pregunta que hagis escrit. No s'hi adjunten saldos, comptes, moviments ni el contingut de la teva cartera. Abans del primer enviament es demana consentiment i el pots retirar a Configuració. No escriguis números de compte, targetes, contrasenyes, PIN, CVV, claus ni tokens; l'app els bloqueja quan detecta aquests patrons.</p>
+
+    <h2>Els teus drets</h2>
+    <ul>
+      <li><strong>Accés i portabilitat:</strong> totes les teves dades es veuen dins de l'app, i Configuració → Còpia de seguretat en desa una còpia diària que pots restaurar. Si en vols una còpia completa en un fitxer, demana-la al correu de contacte.</li>
+      <li><strong>Supressió:</strong> Configuració → El teu compte → Esborrar el meu compte (demana la contrasenya). Elimina el teu usuari i totes les dades associades.</li>
+      <li><strong>Rectificació:</strong> pots editar qualsevol dada dins de l'app.</li>
+    </ul>
+
+    <h2>Contacte</h2>
+    <p>Dubtes sobre privacitat: <a href="mailto:juanjo.avila.chavero@gmail.com">juanjo.avila.chavero@gmail.com</a></p>
+  </main>
+</body>
+</html>

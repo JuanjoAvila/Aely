@@ -281,3 +281,85 @@ t("la release `beta` publica TAMBIÉN el manifiesto de la APK", () => {
   assert.match(yml, /cp public\/apk\.json apk\.json/,
     "el apk.json que se sube es el de la rama beta, que es quien conoce la APK de pruebas");
 });
+
+/* ---------- SEG-01: el OTA se instala con checksum (18/11/2026) ----------
+   El plugin (Capgo 6.50.1) recalcula el SHA-256 del zip y tira el bundle si no casa con el
+   `checksum` que le pasamos. Si el manifiesto no trae uno válido NO se pasa nada: exigirlo dejaría
+   sin actualizaciones a quien lea un manifiesto viejo (o el del repo puente). */
+await ta("OTA: el checksum del manifiesto llega al instalador, normalizado", async () => {
+  const { sandbox } = sandboxCanal();
+  const suma = "A".repeat(64);
+  const o = sandbox.mcBundleOpts({ version: "4.27.0", checksum: " " + suma + " " });
+  assert.equal(o.checksum, "a".repeat(64), "en minúsculas, que es como lo calcula el plugin");
+  assert.equal(o.version, "4.27.0");
+  assert.equal(o.url, "https://juanjoavila.github.io/Aely/bundle.zip?v=4.27.0",
+    "en estable el zip lleva la versión: la caché de Pages no puede servir el viejo con el checksum nuevo");
+});
+
+await ta("OTA: sin checksum (o uno raro) se instala como antes, sin campo", async () => {
+  const { sandbox } = sandboxCanal();
+  for (const v of [{ version: "4.27.0" }, { version: "4.27.0", checksum: "abc" }, { version: "4.27.0", checksum: 12 },
+    { version: "4.27.0", checksum: "z".repeat(64) }]) {
+    const o = sandbox.mcBundleOpts(v);
+    assert.equal("checksum" in o, false, JSON.stringify(v));
+  }
+});
+
+await ta("OTA beta: el zip de la release va sin parámetros y con su checksum", async () => {
+  const { sandbox } = sandboxCanal();
+  sandbox.mcSetChannel("beta");
+  const o = sandbox.mcBundleOpts({ version: "4.27.0.3", checksum: "b".repeat(64) });
+  assert.equal(o.url, "https://github.com/JuanjoAvila/Aely/releases/download/beta/bundle.zip");
+  assert.equal(o.checksum, "b".repeat(64));
+});
+
+await ta("OTA beta: si el manifiesto cae a estable, el zip también sale de estable", async () => {
+  // Revisión de seguridad de la ronda C (P3-1): con la release `beta` sin version.json, el
+  // checksum era el del zip estable y se pedía el de beta; el plugin lo tiraba en cada intento.
+  const suma = "c".repeat(64);
+  const caida = sandboxCanal({
+    respuestas: {
+      "releases/download": { status: 404, body: "" },
+      "github.io": { status: 200, body: JSON.stringify({ version: "4.27.0", checksum: suma }) },
+    },
+  });
+  caida.sandbox.mcSetChannel("beta");
+  const v = await caida.sandbox.mcFetchManifest("version.json").then(caida.sandbox.mcManifestJson);
+  const o = caida.sandbox.mcBundleOpts(v);
+  assert.equal(o.url, "https://juanjoavila.github.io/Aely/bundle.zip?v=4.27.0");
+  assert.equal(o.checksum, suma);
+
+  // Y con la beta publicada, el zip sigue saliendo de la release.
+  const beta = sandboxCanal({
+    respuestas: { "releases/download": { status: 200, body: JSON.stringify({ version: "4.27.0.2", checksum: suma }) } },
+  });
+  beta.sandbox.mcSetChannel("beta");
+  const vb = await beta.sandbox.mcFetchManifest("version.json").then(beta.sandbox.mcManifestJson);
+  assert.equal(beta.sandbox.mcBundleOpts(vb).url, "https://github.com/JuanjoAvila/Aely/releases/download/beta/bundle.zip");
+});
+
+t("OTA: los dos chequeos leen el manifiesto con mcManifestJson (que guarda el canal)", () => {
+  assert.equal((html.match(/\.then\(mcManifestJson\)/g) || []).length, 2);
+  assert.equal(html.indexOf(".then(function(r){ return r.json(); })"), -1);
+});
+
+t("OTA: las dos descargas del bundle pasan por mcBundleOpts", () => {
+  // Una tercera descarga a mano se saltaría el checksum sin que nada lo dijera.
+  const descargas = html.match(/up\.download\([^\n;]*/g) || [];
+  assert.ok(descargas.length >= 2, "no se encontraron las descargas del bundle");
+  for (const d of descargas) assert.ok(d.startsWith("up.download(mcBundleOpts(v))"), d);
+});
+
+t("OTA: deploy.yml y beta.yml publican el checksum del MISMO zip que suben", () => {
+  for (const [wf, zip] of [["deploy.yml", "public/bundle.zip"], ["beta.yml", "bundle.zip"]]) {
+    const yml = fs.readFileSync(path.join(root, ".github", "workflows", wf), "utf8");
+    const iZip = yml.indexOf("zip -qr ../bundle.zip .");
+    const iSuma = yml.indexOf("SUMA=$(sha256sum " + zip + " | cut -d' ' -f1)");
+    const iManif = yml.indexOf('"checksum":"%s"}\\n\'');
+    assert.ok(iZip > 0 && iSuma > iZip && iManif > iSuma, wf + ": el checksum tiene que salir del zip ya hecho y entrar en version.json");
+    // La CSP se sella ANTES de comprimir: después, el zip llevaría un index distinto al de Pages.
+    const iCsp = yml.indexOf("node scripts/csp-sellar.mjs");
+    const iMin = yml.indexOf("node scripts/minify-html.mjs");
+    assert.ok(iMin > 0 && iCsp > iMin && iCsp < iZip, wf + ": csp-sellar va después de minificar y antes del zip");
+  }
+});

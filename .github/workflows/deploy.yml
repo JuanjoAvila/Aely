@@ -20,13 +20,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
-      - uses: denoland/setup-deno@v2
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.x
       - name: Tests + privacidad
@@ -45,12 +45,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
 
@@ -69,22 +69,32 @@ jobs:
           npm install --no-save --no-audit --no-fund esbuild@0.25.5
           node scripts/minify-html.mjs
 
+      # CSP sin 'unsafe-inline' (SEG-07): la huella de cada <script> inline en script-src. Tiene
+      # que ser lo ÚLTIMO que toca index.html: un byte cambiado después y la app no arranca.
+      # El propio script comprueba el resultado y corta el despliegue si no cuadra.
+      - name: Sellar la CSP con las huellas de los scripts
+        run: node scripts/csp-sellar.mjs
+
       # Bundle OTA para la app Android (capgo/capacitor-updater self-hosted):
       # zip de public/ (ya sellado+minificado) + version.json con la versión.
       # La app lo consulta al arrancar y hot-swapea el bundle en el siguiente arranque.
+      # `checksum` (SEG-01): SHA-256 del zip. El plugin lo recalcula al bajarlo y tira el bundle
+      # si no casa (zip truncado o el viejo aún en la caché de Pages). Va DESPUÉS de mover el zip
+      # y ANTES de nada más: si algo tocara el zip después, ningún móvil se actualizaría.
       - name: Empaquetar bundle OTA (bundle.zip + version.json)
         run: |
           VERSION=$(cat VERSION | tr -d '[:space:]')
           (cd public && zip -qr ../bundle.zip .)
           mv bundle.zip public/bundle.zip
-          printf '{"version":"%s","url":"https://juanjoavila.github.io/Aely/bundle.zip"}\n' "$VERSION" > public/version.json
-          echo "OTA $VERSION → $(du -h public/bundle.zip | cut -f1)"
+          SUMA=$(sha256sum public/bundle.zip | cut -d' ' -f1)
+          printf '{"version":"%s","url":"https://juanjoavila.github.io/Aely/bundle.zip","checksum":"%s"}\n' "$VERSION" "$SUMA" > public/version.json
+          echo "OTA $VERSION → $(du -h public/bundle.zip | cut -f1) · sha256 $SUMA"
 
       - name: Configurar Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Subir artefacto (carpeta public)
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
           path: ./public
 
@@ -97,4 +107,4 @@ jobs:
     steps:
       - name: Desplegar a GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

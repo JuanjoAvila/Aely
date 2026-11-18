@@ -4,8 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacidad — Aely</title>
-  <link rel="stylesheet" href="fonts/manrope.css">
+  <link rel="alternate" hreflang="es" href="privacy.html">
+  <link rel="alternate" hreflang="en" href="privacy.en.html">
+  <link rel="alternate" hreflang="ca" href="privacy.ca.html">
   <style>
+    /* La hoja `fonts/manrope.css` que se pedía aquí no existe: la página salía con la letra del
+       sistema. Mismas caras que la app, auto-hospedadas (18/11/2026). */
+    @font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+    @font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url(fonts/manrope-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
     :root { --bg:#06120C; --text:#E8F5EE; --muted:#8FA89A; --mint:#5FD08A; --line:#1a2e24; }
     * { box-sizing: border-box; }
     /* safe-area: en móvil con notch el título no debe quedar bajo la barra de estado («muy arriba»). */
@@ -17,14 +23,22 @@
     .muted { color:var(--muted); font-size:14px; }
     a { color:var(--mint); }
     ul { padding-left:1.2em; }
-    .back { display:inline-block; margin-bottom:20px; text-decoration:none; font-weight:700; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; }
+    .back { text-decoration:none; font-weight:700; }
+    /* Dianas de 44 px: es lo que se pulsa con el pulgar en el móvil. */
+    .langs { display:flex; gap:4px; font-size:14px; font-weight:700; }
+    .langs a, .langs span { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; text-decoration:none; }
+    .langs span { color:var(--muted); }
   </style>
 </head>
 <body>
   <main>
-    <a class="back" href="./">← Volver a Aely</a>
+    <div class="top">
+      <a class="back" href="./">← Volver a Aely</a>
+      <nav class="langs" aria-label="Idioma"><span aria-current="page">ES</span><a href="privacy.en.html" hreflang="en" lang="en">EN</a><a href="privacy.ca.html" hreflang="ca" lang="ca">CA</a></nav>
+    </div>
     <h1>Privacidad y datos</h1>
-    <p class="muted">Última actualización: 16 sep 2026 · Aely (Juanjo Avila)</p>
+    <p class="muted">Última actualización: 18 nov 2026 · Aely (Juanjo Avila)</p>
 
     <h2>Qué datos guardamos</h2>
     <ul>
@@ -32,18 +46,18 @@
       <li><strong>Gastos:</strong> importe, comercio, categoría y fecha (tabla <code>expenses</code>).</li>
       <li><strong>Conexiones bancarias:</strong> estado del enlace Open Banking y tokens de sesión cifrados. No guardamos tu contraseña del banco.</li>
       <li><strong>MyInvestor:</strong> tokens de sesión cifrados tras conectar. La contraseña solo se usa en el login y no se almacena.</li>
-      <li><strong>Telemetría mínima (opcional):</strong> versión de la app, plataforma y mensajes de error — sin datos financieros.</li>
+      <li><strong>Diagnóstico y uso:</strong> con la sesión iniciada, la app envía los errores (limpiados antes de salir), qué pantallas se usan (una vez por sesión) y cuánto tardan las sincronizaciones, junto con la versión y la plataforma. Las métricas de uso nunca llevan importes, comercios ni lo que escribes. Hoy no se puede desactivar.</li>
     </ul>
 
     <h2>Dónde se alojan</h2>
-    <p>Los datos en la nube están en <strong>Supabase</strong> (UE). La app web se sirve desde <strong>GitHub Pages</strong>. Cada usuario solo puede leer y escribir sus propios datos (Row Level Security).</p>
+    <p>Los datos en la nube están en <strong>Supabase</strong> (UE). La app web se sirve desde <strong>GitHub Pages</strong>. Cada usuario solo puede leer y escribir sus propios datos (Row Level Security), con dos excepciones: si compartes un Hogar, sus miembros ven los saldos que compartes, y el administrador de la app lee los datos de diagnóstico y uso.</p>
 
     <h2>Ayuda avanzada opcional</h2>
     <p>«Pregúntame» funciona de forma local y sin conexión. Si activas voluntariamente la ayuda avanzada, se envía a <strong>OpenAI</strong> únicamente la pregunta que hayas escrito. No se adjuntan saldos, cuentas, movimientos ni el contenido de tu cartera. Antes del primer envío se pide consentimiento y puedes retirarlo en Ajustes. No escribas números de cuenta, tarjetas, contraseñas, PIN, CVV, claves ni tokens; la app los bloquea cuando detecta esos patrones.</p>
 
     <h2>Tus derechos</h2>
     <ul>
-      <li><strong>Acceso y portabilidad:</strong> exporta tus datos en JSON desde Ajustes → Copia de seguridad.</li>
+      <li><strong>Acceso y portabilidad:</strong> todos tus datos se ven dentro de la app, y Ajustes → Copia de seguridad guarda una copia diaria que puedes restaurar. Si quieres una copia completa en un fichero, pídela en el correo de contacto.</li>
       <li><strong>Supresión:</strong> Ajustes → Tu cuenta → Borrar mi cuenta (pide contraseña). Elimina tu usuario y todos los datos asociados.</li>
       <li><strong>Rectificación:</strong> puedes editar cualquier dato dentro de la app.</li>
     </ul>

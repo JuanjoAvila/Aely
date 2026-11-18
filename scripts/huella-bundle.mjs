@@ -16,7 +16,8 @@
  *
  * La huella se calcula sobre TODO `public/`, con dos cosas normalizadas para que no ensucien:
  *   · `APP_VERSION: "…"` en index.html — es el sello, cambia en cada compilación por definición;
- *   · `const VERSION = "…"` en sw.js — lo mismo, lo pone `stamp-version.mjs`.
+ *   · `const VERSION = "…"` en sw.js — lo mismo, lo pone `stamp-version.mjs`;
+ *   · las `'sha256-…'` de la CSP sellada, que dependen del sello de arriba.
  * Sin normalizarlas, la huella cambiaría siempre y esto no serviría de nada.
  *
  * Uso:  node scripts/huella-bundle.mjs        → imprime la huella (sha256, 16 hex)
@@ -47,7 +48,10 @@ function contenidoNormalizado(rel, abs) {
   return Buffer.from(
     bin.toString("utf8")
       .replace(/APP_VERSION: *"[^"]*"/g, 'APP_VERSION:"<sello>"')
-      .replace(/const VERSION = "[^"]*";/g, 'const VERSION = "<sello>";'),
+      .replace(/const VERSION = "[^"]*";/g, 'const VERSION = "<sello>";')
+      // Las huellas de la CSP sellada (`csp-sellar.mjs`) cubren el script que lleva el sello de
+      // versión, así que cambian con él. Lo que tapan ya entra en la huella por el propio script.
+      .replace(/'sha256-[A-Za-z0-9+/=]+'/g, "'sha256-<sello>'"),
     "utf8",
   );
 }
