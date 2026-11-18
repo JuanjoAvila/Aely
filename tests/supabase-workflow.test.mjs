@@ -36,6 +36,13 @@ for (const name of ["Validar función", "Desplegar Edge Functions"]) {
 assert.match(step("Comprobar configuración"), /MIGRACIONES: \$\{\{ inputs.migraciones \}\}/);
 assert.match(step("Aplicar migraciones"), /if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.migrate == 'true'/);
 assert.match(step("Desplegar Edge Functions"), /if: steps.gate.outputs.skip != 'true'/);
+// SEG-20: nada de etiquetas móviles ni `latest` en el job que maneja el token y la contraseña de la BD.
+// La CLI 2.x no conoce `db push --remote`: una versión fija ≥3 es parte del contrato del paso.
+for (const m of yaml.matchAll(/^\s+uses: (\S+)/gm)) assert.match(m[1], /@[0-9a-f]{40}$/, "acción sin fijar por SHA: " + m[1]);
+assert.match(step("Instalar Supabase CLI"), /\n          version: 3\.\d+\.\d+\n/);
+assert.doesNotMatch(yaml, /version: latest/);
+// `link` en la 3.x ignora --password (y avisa): la contraseña solo va a `db push`.
+assert.doesNotMatch(script("Aplicar migraciones"), /supabase link[^\n]*--password/);
 assert.equal((yaml.match(/supabase functions deploy/g) || []).length, 1);
 assert.match(script("Desplegar Edge Functions"), /supabase functions deploy "\$FN" --project-ref/);
 const validate = script("Validar función"), gate = script("Comprobar configuración");
