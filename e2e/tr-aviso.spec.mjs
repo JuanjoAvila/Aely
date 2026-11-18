@@ -134,7 +134,7 @@ test("login v2 por aviso: espera la aprobación sin pedir código y conecta", as
     window.MiCarteraTR = {
       status: async () => ({ connected }),
       login: async () => ({ ok: true, api: "v2", flow: "push", processId: "e2e-v2" }),
-      // Primera espera sin aprobar → botón para volver a esperar; la segunda, aprobada.
+      // Primera espera sin aprobar → se vuelve a esperar sola (R1 de bancos); la segunda, aprobada.
       verify: async (o) => { window.__trVerify.push(o); polls++; if (polls < 2) return { ok: false, pending: true, diag: { api: "v2", trCode: "PENDING" } }; connected = true; return { ok: true }; },
       sync: async () => ({ ok: true, cash: 10, positions: [{ isin: "IE00E2E", name: "Fondo e2e", shares: 1, value: 100, cost: 90 }] }),
       logout: async () => ({ ok: true }),
@@ -147,8 +147,7 @@ test("login v2 por aviso: espera la aprobación sin pedir código y conecta", as
   await tr.getByRole("button", { name: "Conectar", exact: true }).click();
   await expect(tr).toContainText("Abre la app de Trade Republic y aprueba el inicio de sesión.");
   await expect(tr.locator('input[maxlength="6"]')).toHaveCount(0);
-  await expect(tr.locator(".alarmbox")).toContainText("Aún no llega la aprobación");
-  await tr.getByRole("button", { name: "Ya lo he aprobado", exact: true }).click();
+  // Dentro de la cuenta atrás de TR no hace falta «Ya lo he aprobado»: conecta sin tocar nada.
   await expect(page.locator(".toast").filter({ hasText: toastOk })).toBeVisible({ timeout: 10_000 });
   const calls = await page.evaluate(() => window.__trVerify);
   expect(calls.length).toBe(2);

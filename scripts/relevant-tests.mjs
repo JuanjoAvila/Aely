@@ -78,6 +78,9 @@ export const E2E_MAP = [
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
   { file: "src/modules/00-core.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },
+  // Aprobar TR y volver solo (ronda R1 de bancos, 18/11/2026): espera encadenada, primer plano y aviso.
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/tr-aprobar-vuelve.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/tr-aprobar-vuelve.spec.mjs"] },
   // Round up y Saveback de TR (16/11/2026): el destino por tipo en Cartera y que la posición suba una vez.
   { file: "src/modules/06-sync-brokers.js", specs: ["e2e/recompensas-tr.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/recompensas-tr.spec.mjs"] },

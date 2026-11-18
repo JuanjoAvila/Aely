@@ -9337,6 +9337,8 @@ Object.assign(LANG.es,{
   tr_push_intro:"Abre la app de Trade Republic y aprueba el inicio de sesión.",
   tr_push_waiting:"Esperando la aprobación…", tr_push_retry:"Ya lo he aprobado",
   tr_push_pending:"Aún no llega la aprobación. Apruébalo en la app de Trade Republic y pulsa el botón.",
+  tr_open_app:"Abrir Trade Republic", tr_notif_ok:"Trade Republic conectado. Toca para volver.",
+  tr_push_expired:"La aprobación caducó. Vuelve a conectar.",
   tr_auth_intro:"Mete el código de tu app autenticadora.",
   mi_title:"Conectar MyInvestor", mi_sub:"trae tus fondos indexados",
   mi_expired:"Tu sesión de MyInvestor caducó y no se pudo renovar sola. Vuelve a entrar (usuario recordado): contraseña y, si lo pide, el código SMS.",
@@ -19911,6 +19913,16 @@ function trErrKey(r){
 function trLogStartupStatus(r){
   if(r&&(r.authExpired===true||(r.connected===false&&!!trPhoneSaved()))) trLogFailure("status_check","status_inactive");
 }
+/* Aprobar el login de TR sin abrir la persiana (ronda R1 de bancos, 18/11/2026). Capacitor 6.2.1
+   (`Bridge.launchIntent`) manda cualquier URL ajena como ACTION_VIEW, y `market://launch` lo
+   atiende Play Store abriendo la app instalada. Solo con el puente de la APK: en web no hay TR. */
+const TR_LAUNCH_URL="market://launch?id=de.traderepublic.app";
+function trIsApk(){ try{ return !!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TradeRepublic); }catch(e){ return false; } }
+// Si se aprobó con Aely detrás, nada la trae al frente (Android 10+ lo prohíbe): un aviso de un toque.
+function trNotifyApproved(){
+  const nat=natPlugin();
+  if(nat&&nat.showNotification){ try{ Promise.resolve(nat.showNotification({title:"Aely", body:t("tr_notif_ok"), tag:"tr-approved"})).catch(function(){}); }catch(e){} }
+}
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -19931,6 +19943,10 @@ function TRSync({state, set, totals, open, onToggle}){
   // de TR) o «authenticator» (v2 con app autenticadora). APK 62 no lo manda → «code», como siempre.
   const [flow,setFlow]=useState("code");
   const [api,setApi]=useState("v1");
+  // Espera del aviso de TR: un objeto que dura lo que la tarjeta (useState sin setter, detrás del
+  // resto para no mover su orden). Lo leen los oyentes de primer plano y la cadena de verify, que
+  // viven más que un render. `deadline` = cuenta atrás que da TR al login (120 s).
+  const wait=useState({pr:null, deadline:0, busy:false, again:false, hidden:false, live:true, verify:null})[0];
   useEffect(function(){
     if(!bridge||!bridge.status) return;
     Promise.resolve(bridge.status()).then(function(r){ trLogStartupStatus(r); if(r&&r.connected) setConnected(true); }).catch(function(){});
@@ -19983,23 +19999,70 @@ function TRSync({state, set, totals, open, onToggle}){
       const f=r.flow==="push"||r.flow==="authenticator"?r.flow:"code", a=r.api==="v2"?"v2":"v1";
       setProcessId(r.processId||null); setFlow(f); setApi(a); setStep("code");
       // Sin código que teclear: se espera la aprobación en la app de TR sin otro toque.
-      if(f==="push") doVerify({processId:r.processId||null,flow:f,api:a});
+      if(f==="push"){
+        const cd=+r.countdown>0&&+r.countdown<=300?+r.countdown:120;
+        wait.deadline=Date.now()+cd*1000;
+        doVerify({processId:r.processId||null,flow:f,api:a});
+      }
     }).catch(function(e){ fail(e,"tr_card_login","login_failed"); });
   };
   // `now` llega solo desde doLogin: el estado de React aún no tiene el processId recién creado.
   const doVerify=function(now){
     const pr=now&&now.flow?now:{processId:processId,flow:flow,api:api};
-    const push=pr.flow==="push";
+    const push=pr.flow==="push", w=wait;
     if(!push&&code.trim().length<4) return;
+    // Una sola espera a la vez: si vuelve a primer plano con una en vuelo, se repite al acabar.
+    if(push){ w.pr=pr; if(w.busy){ w.again=true; return; } w.busy=true; w.again=false; }
     setBusy(true); setErr(false); setErrKey("");
+    const t0=Date.now();
     Promise.resolve().then(function(){ return bridge.verify(Object.assign({processId:pr.processId,code:push?"":code.trim(),flow:pr.flow,api:pr.api},TR_V2_CLIENT)); }).then(function(r){
+      if(push) w.busy=false;
+      // El sondeo nativo corta a los 75 s y TR da 120: se encadena hasta su cuenta atrás. El
+      // «timeout» de seguridad del puente cuenta igual, porque salta si Android congeló Aely
+      // mientras se aprobaba en TR, no porque TR haya dicho que no. Entre vueltas, al menos 2 s:
+      // un puente que contestase `pending` al instante no debe convertirse en un bucle.
+      const sigue=push&&r&&(r.pending||(!r.ok&&!r.diag&&/timeout/i.test(String(r.error||""))));
+      const gap=Math.max(0,2000-(Date.now()-t0));
+      if(sigue&&w.live&&(w.again||Date.now()+gap<w.deadline)){
+        setTimeout(function(){ if(w.live&&w.pr===pr) wait.verify(pr); },gap); return;
+      }
       // Aún sin aprobar en la app de TR: no es un fallo, se puede volver a esperar.
       if(r&&r.pending){ setBusy(false); setErr(true); setErrKey("tr_push_pending"); trLogFailure("tr_card_verify","login_pending",r.diag); return; }
-      if(!r||!r.ok){ fail(r,"tr_card_verify","verify_failed"); return; }
+      if(!r||!r.ok){
+        if(push) w.pr=null;
+        // Pasada la cuenta atrás, TR ya cerró el proceso: reintentar no sirve, toca conectar otra vez.
+        if(push&&Date.now()>=w.deadline){ setBusy(false); setErr(true); setErrKey("tr_push_expired"); setStep("idle"); trLogFailure("tr_card_verify","verify_failed",r&&r.diag); return; }
+        fail(r,"tr_card_verify","verify_failed"); return;
+      }
+      if(push){ w.pr=null; if(w.hidden) trNotifyApproved(); }
       // Acuse visible al completar el 2FA (rechazo 4.19.0/tr-reactivo). doSync sin ack otra vez.
       setConnected(true); markTrConnected({ack:true}); setExpired(false); setCode(""); doSync();
-    }).catch(function(e){ fail(e,"tr_card_verify","verify_failed"); });
+    }).catch(function(e){ if(push){ w.busy=false; w.pr=null; } fail(e,"tr_card_verify","verify_failed"); });
   };
+  wait.verify=doVerify;
+  // Volver de TR con el gesto atrás tiene que bastar: al recuperar el primer plano se comprueba
+  // en el acto, sin pulsar «Ya lo he aprobado». La APK avisa por Capacitor además del navegador.
+  useEffect(function(){
+    const w=wait; w.live=true;
+    const onState=function(vis){
+      w.hidden=!vis;
+      if(!vis||!w.pr) return;
+      if(w.busy){ w.again=true; return; }
+      wait.verify(w.pr);
+    };
+    const onVis=function(){ onState(document.visibilityState==="visible"); };
+    document.addEventListener("visibilitychange", onVis);
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub;
+    if(A&&A.addListener){
+      try{ sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(st&&w.live) onState(!!st.isActive); })); sub.catch(function(){}); }catch(e){}
+    }
+    return function(){
+      w.live=false;
+      document.removeEventListener("visibilitychange", onVis);
+      if(sub) sub.then(function(h){ return h&&h.remove&&h.remove(); }).catch(function(){});
+    };
+  },[]);
   const mappedN=positions?positions.filter(function(p){ return map[p.isin]; }).length:0;
   const apply=function(){
     const pos=positions, trCash=cash;
@@ -20046,6 +20109,7 @@ function TRSync({state, set, totals, open, onToggle}){
   const disconnect=function(){
     if(bridge&&bridge.logout){ Promise.resolve(bridge.logout()).catch(function(){}); }
     try{ localStorage.removeItem("mc_tr_phone"); localStorage.removeItem("_trAuthExpired"); }catch(e){}
+    wait.pr=null;
     setConnected(false); trSignalStatus(false); setStep("idle"); setPositions(null); setPhone(""); setPin("");
   };
   const inpStyle={marginTop:8};
@@ -20062,7 +20126,9 @@ function TRSync({state, set, totals, open, onToggle}){
         ),
         step==="code" && flow==="push" && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:0}},t("tr_push_intro")),
-          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy,onClick:function(){ doVerify(); }}, busy?t("tr_push_waiting"):t("tr_push_retry"))
+          // Enlace y no JS: el toque del usuario es lo que deja a la WebView entregar la URL a Android.
+          trIsApk() && React.createElement("a",{className:"btn btn-primary btn-block tr-open-app",href:TR_LAUNCH_URL,style:{marginTop:12,textDecoration:"none",boxSizing:"border-box"}},t("tr_open_app")),
+          React.createElement("button",{className:"btn btn-block "+(trIsApk()?"btn-ghost":"btn-primary"),style:{marginTop:trIsApk()?8:12},disabled:busy,onClick:function(){ doVerify(); }}, busy?t("tr_push_waiting"):t("tr_push_retry"))
         ),
         step==="code" && flow!=="push" && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:0}},t(flow==="authenticator"?"tr_auth_intro":"tr_code_intro")),
@@ -33016,7 +33082,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b451ccfda0b19cf404a21834e9189b70b3cc5e3fe005ad07c53b66dfdc9118d4";
+var _rnSha="aee4c0c1f58f7c423dd56c703f4a454f988916af4d79c7ef4e811d85eded14cc";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
