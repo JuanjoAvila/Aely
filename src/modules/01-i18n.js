@@ -1519,6 +1519,8 @@ Object.assign(LANG.es,{
   tr_push_intro:"Abre la app de Trade Republic y aprueba el inicio de sesión.",
   tr_push_waiting:"Esperando la aprobación…", tr_push_retry:"Ya lo he aprobado",
   tr_push_pending:"Aún no llega la aprobación. Apruébalo en la app de Trade Republic y pulsa el botón.",
+  tr_open_app:"Abrir Trade Republic", tr_notif_ok:"Trade Republic conectado. Toca para volver.",
+  tr_push_expired:"La aprobación caducó. Vuelve a conectar.",
   tr_auth_intro:"Mete el código de tu app autenticadora.",
   mi_title:"Conectar MyInvestor", mi_sub:"trae tus fondos indexados",
   mi_expired:"Tu sesión de MyInvestor caducó y no se pudo renovar sola. Vuelve a entrar (usuario recordado): contraseña y, si lo pide, el código SMS.",
@@ -1608,6 +1610,8 @@ Object.assign(LANG.en,{
   tr_push_intro:"Open the Trade Republic app and approve the sign-in.",
   tr_push_waiting:"Waiting for approval…", tr_push_retry:"I've approved it",
   tr_push_pending:"The approval hasn't arrived yet. Approve it in the Trade Republic app and tap the button.",
+  tr_open_app:"Open Trade Republic", tr_notif_ok:"Trade Republic connected. Tap to go back.",
+  tr_push_expired:"The approval expired. Connect again.",
   tr_auth_intro:"Enter the code from your authenticator app.",
 });
 Object.assign(LANG.ca,{
@@ -1679,6 +1683,8 @@ Object.assign(LANG.ca,{
   tr_push_intro:"Obre l'app de Trade Republic i aprova l'inici de sessió.",
   tr_push_waiting:"Esperant l'aprovació…", tr_push_retry:"Ja l'he aprovat",
   tr_push_pending:"Encara no arriba l'aprovació. Aprova-ho a l'app de Trade Republic i prem el botó.",
+  tr_open_app:"Obre Trade Republic", tr_notif_ok:"Trade Republic connectat. Toca per tornar.",
+  tr_push_expired:"L'aprovació ha caducat. Torna a connectar.",
   tr_auth_intro:"Posa el codi de la teva app autenticadora.",
 });
 // meses traducidos (largos y cortos)
