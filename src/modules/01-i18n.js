@@ -2903,6 +2903,20 @@ function expenseDeletedSet(s){
   return delSet;
 }
 function expenseCountsCash(e, s){
+  if(!expenseSaleDelSaldo(e, s)) return false;
+  /* La cuota de una deuda (`debtId`, 4.21.0) NO sale de aquí a propósito: en la cuenta de gasto
+     diario ya resta hoy como cualquier cargo (`paidNet` vale 0 ahí) y `applyBankBalances` ancla el
+     saldo contando con ella. Sacarla haría saltar el saldo hasta el siguiente anclaje — el
+     «6724 → 6681» otra vez. Solo sale del GASTADO, por categoría neutra (`CAT_NEUTRAS`). */
+  const ent=expenseBankOf(e);
+  if(!ent) return true;
+  return expenseBankEnts(s).indexOf(ent)>=0;
+}
+/* ¿Este movimiento saca dinero del saldo de su cuenta? Lo de `expenseCountsCash` menos el filtro de
+   bancos de gasto diario, que decide qué cuenta en el presupuesto y en la diaria, no si el dinero
+   salió. Lo usa el sobre de efectivo (`gastoDelSobre`), que resta sus compras también fuera de ese
+   filtro (ronda 240, P3 de la revisión de saldos). */
+function expenseSaleDelSaldo(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
   if(e.possibleDup) return false;
@@ -2912,14 +2926,15 @@ function expenseCountsCash(e, s){
      NINGUNA cifra, sea cual sea el rol del banco: el recibo ya resta por calendario
      (`monthNetForAccount`) y esta fila antes ni existía. Dejarla contar lo restaría dos veces
      en un banco «para todo» (medido: +importe al gastado y −importe al saldo). */
-  if(cargoDeRecibo(e, s)) return false;
-  /* La cuota de una deuda (`debtId`, 4.21.0) NO sale de aquí a propósito: en la cuenta de gasto
-     diario ya resta hoy como cualquier cargo (`paidNet` vale 0 ahí) y `applyBankBalances` ancla el
-     saldo contando con ella. Sacarla haría saltar el saldo hasta el siguiente anclaje — el
-     «6724 → 6681» otra vez. Solo sale del GASTADO, por categoría neutra (`CAT_NEUTRAS`). */
-  const ent=expenseBankOf(e);
-  if(!ent) return true;
-  return expenseBankEnts(s).indexOf(ent)>=0;
+  return !cargoDeRecibo(e, s);
+}
+/* Lo que el sobre de efectivo resta de lo suyo: sus compras que sacan dinero (`expenseSaleDelSaldo`),
+   estén o no entre los bancos de gasto diario. Antes, si él sacaba el sobre de ese filtro, ni el
+   pintado ni el cierre restaban nada y el sobre no bajaba nunca (P3 de la revisión de 240-saldos). */
+function gastoDelSobre(gastos, s){
+  let t=0;
+  (gastos||[]).forEach(function(e){ if(e && expenseBankOf(e)==="efectivo" && expenseSaleDelSaldo(e, s)) t+=(e.amount||0); });
+  return t;
 }
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
@@ -3047,10 +3062,12 @@ function inversionEtiqueta(s, e){
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido).
-   Con aviso real de TR, lo que se enseña es lo avisado del mes, no la estimación. */
+   Con aviso real de TR, lo que se enseña es lo avisado del mes, no la estimación.
+   Con la misma puerta que el saldo (`expenseCountsCash`, ronda 240): la tarjeta enseñaba también
+   el redondeo de los posibles repetidos, que el saldo no resta. */
 function recompensasDelMes(state, trAcc, monthStartMs){
   if(!trAcc) return {ru:0,sb:0};
-  const monthExp=((state&&state.expenses)||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs && !cargoDeRecibo(e, state); });
+  const monthExp=((state&&state.expenses)||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs && expenseCountsCash(e, state); });
   const est=recompensasEstimadas(state, trAcc, monthExp, monthStartMs, false);
   const d=new Date(monthStartMs), reales=recompensasReales(state, trAcc.ent, monthStartMs, +new Date(d.getFullYear(), d.getMonth()+1, 1));
   return {ru:reales.hay.roundup?reales.roundup:est.ru, sb:reales.hay.saveback?reales.saveback:est.sb};
@@ -3084,11 +3101,14 @@ function insumosSaldoGasto(state){
     if(!accFixed(a)||Object.prototype.hasOwnProperty.call(cuentaDe,a.ent)) return;
     // La primera = `cuentaDelNetoDeBanco`. Sin id, la propia cuenta: dos sin id no lo cargan las dos.
     cuentaDe[a.ent]=a.id!=null?a.id:a;
-    paidNetByBank[a.ent]=monthNetForAccount(state,a.ent,curYear,curMonth,today);
+    // Más lo cobrado antes de su día que la lectura ya llevaba (`cobrosLeidosDelMes`, 07; H3 de la 237).
+    paidNetByBank[a.ent]=monthNetForAccount(state,a.ent,curYear,curMonth,today)+cobrosLeidosDelMes(state,a.ent,curYear,curMonth,today);
   });
   // Sin enumerar: el mapa se recorre por banco en Plan y en los tests, y la marca no es un banco.
   Object.defineProperty(paidNetByBank,"cuentaDe",{value:cuentaDe});
   const spentByBank=gastoDelMesPorBanco(thisMonthExp, trAcc&&trAcc.ent);
+  // El sobre resta lo suyo esté o no entre los bancos de gasto (`gastoDelSobre`), igual que al cerrar el mes.
+  if(accounts.some(isEfectivoEnt)){ const ms=+monthStart; spentByBank.efectivo=gastoDelSobre(((state&&state.expenses)||[]).filter(function(e){ return e&&dateMs(e.date)>=ms; }), state); }
   return { trAcc:trAcc, thisMonthExp:thisMonthExp, injTR:injTR, roundup:roundup, saveback:saveback, monthlyInvest:monthlyInvest,
     spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today,
     // Avisos de TR aún sin posición: tuyos, cuentan como invertidos hasta aplicarse (`recompensasPendientes`).
@@ -3144,11 +3164,12 @@ function applyAccountRole(s, totals, id, r){
     if(rr==="fijos") return +(shown - pnNuevo).toFixed(2);
     return valueDesdeSaldo({shown:shown, injTR:ins.injTR, spentOwn:(a.ent&&ins.spentByBank[a.ent])||0, roundup:ins.roundup, monthlyInvest:ins.monthlyInvest, ambos:rr==="ambos", paidNet:pnNuevo});
   };
+  // Re-anclar para conservar lo pintado no cambia con qué reglas se ancló: la marca sigue al `value` (`conValor`, 07).
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
-    if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }
-    if(r!=="fijos" && accDaily(a)) return Object.assign({},a,{role:"fijos", spendFrom:false, value:valueForRole(a,"fijos",shownOf(a))});
+    if(a.id===id){ if(accRole(a)===r) return a; return Object.assign(conValor(a,valueForRole(a,r,shownOf(a))),{role:r, spendFrom:r!=="fijos"}); }
+    if(r!=="fijos" && accDaily(a)) return Object.assign(conValor(a,valueForRole(a,"fijos",shownOf(a))),{role:"fijos", spendFrom:false});
     const rr=accRole(a);
-    if(Math.abs(pn(a)-(fijoTras(rr)?paidNetDeCuenta(a,ins.paidNetByBank):0))>0.005) return Object.assign({},a,{value:valueForRole(a,rr,shownOf(a))});
+    if(Math.abs(pn(a)-(fijoTras(rr)?paidNetDeCuenta(a,ins.paidNetByBank):0))>0.005) return conValor(a,valueForRole(a,rr,shownOf(a)));
     return a;
   })});
 }
@@ -3183,7 +3204,7 @@ function migraNetoUnaCuenta(s){
       if(!a||!accFixed(a)||!(k[a.ent]>=2)) return a;
       if(!Object.prototype.hasOwnProperty.call(N,a.ent)) N[a.ent]=monthNetForAccount(s,a.ent,cy,cm,td);
       const d=+(k[a.ent]*N[a.ent]-(llevaNetoDeBanco(accs,a)?N[a.ent]:0)).toFixed(2);
-      return Math.abs(d)>0.005?Object.assign({},a,{value:+((a.value||0)+d).toFixed(2)}):a;
+      return Math.abs(d)>0.005?conValor(a,+((a.value||0)+d).toFixed(2)):a;
     });
   }
   s._netoUnaCuenta=true;
@@ -3204,7 +3225,7 @@ function conservaNetoDeBanco(antes, despues){
     const diff=+(paidNetDeCuenta(b,pa)-paidNetDeCuenta(a,pd)).toFixed(2);
     if(Math.abs(diff)<=0.005) return a;
     cambia=true;
-    return Object.assign({},a,{value:+((a.value||0)+diff).toFixed(2)});
+    return conValor(a,+((a.value||0)+diff).toFixed(2));
   });
   return cambia?Object.assign({},despues,{accounts:accounts}):despues;
 }
@@ -3213,10 +3234,84 @@ function conservaNetoDeBanco(antes, despues){
 // anclado al id de la cuenta TR del creador (patrón de migración por id) hasta que la semilla escriba el campo.
 function accInject(a){ if(!a) return 0; return a.inject!=null ? a.inject : (a.id==="ebj0vbh" ? CONFIG.TR_INJECTION : 0); }
 
+/* Lo que el CIERRE de un mes le resta a la cuenta de gasto diario por sus gastos: el gastado y el
+   redondeo/saveback estimados. En una función porque «son distintos» sobre un posible repetido de
+   un mes ya cerrado (`resolvePossibleDup`) tiene que desplazar el saldo justo lo que este cierre
+   habría restado con esa fila contando (ronda 240, revisión P2-A).
+   - Lo que el saldo restaba al pintarse durante el mes, ni más ni menos (`expenseCountsCash`, la
+     misma puerta que el pintado y el anclaje; ronda 240). Antes se copiaban a mano sus exclusiones
+     —el cargo de un recibo, que ya arrastra `monthNetForAccount` (12/10/2026), y el Saveback de TR
+     (16/11/2026)— y faltaba el posible repetido: el día 1 el saldo bajaba de golpe lo que estaba
+     marcado como posible repetido, que durante el mes no restaba.
+   - Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO y se
+     lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre de
+     efectivo —o un recibo de Sabadell— bajaba Trade Republic. Mismo reparto que usa el saldo que se
+     PINTA durante el mes (`gastoDelMesPorBanco` + `saldoCuentaMostrada`, 00-core): si el cierre usa
+     otro criterio, el saldo pega un salto el día 1.
+   - El redondeo y el saveback, SOLO si la cuenta no tiene ya movimientos reales de Open Banking
+     (`obFed`, 2026-08-03): desde que TR sincroniza de verdad entran como gastos reales «inversion»
+     (`applyInvestBuy`) y simularlos aquí los contaba dos veces. El cargo de un recibo no cuenta como
+     «el banco ya trae sus movimientos» (12/10/2026, medido: 1771,72 pasaba a 1772,52).
+   - Se estiman de los MISMOS gastos que en vivo (`recompensasEstimadas`): solo su banco, y nada si
+     TR ya avisó de lo real (FIN-01, 9/9).
+   `viejo`: el cierre de antes de la 240 (`cierreConReglaVieja`), que restaba también el posible
+   repetido. Solo cambia el gastado: su redondeo ya se estimaba sin él. */
+function gastoDelCierre(s, acc, key, ay, am, viejo){
+  const delMes=(s.expenses||[]).filter(e=> mkOf(parseDate(e.date))===key);
+  const monthExp=delMes.filter(e=> expenseCountsCash(e, s));
+  const resta=viejo ? delMes.filter(e=> !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback") : monthExp;
+  const porBanco=gastoDelMesPorBanco(resta, acc.ent), spent=porBanco[acc.ent]||0;
+  // El sobre de efectivo, sus propias compras aunque no esté entre los bancos de gasto (`gastoDelSobre`, como al pintar).
+  porBanco.efectivo=gastoDelSobre(delMes, s);
+  const obFed=(s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent && !cargoDeRecibo(e, s); });
+  const rec=obFed?{ru:0,sb:0}:recompensasEstimadas(s, acc, monthExp, +new Date(ay, am, 1), true);
+  return {spent:spent, porBanco:porBanco, obFed:obFed, ru:rec.ru, sb:rec.sb};
+}
+/* ¿Cierra esta cuenta con la regla de antes de la 240 (el posible repetido también resta)? (P2-B de la
+   revisión de 240-saldos.) Desde la 240 el ancla con la lectura del banco deja fuera del `value` el
+   posible repetido, y un `value` anclado así se marca (`anclaReglas`, 07). Si la cuenta se ancló con la
+   lectura del banco (`balSaldo`, el rastro que solo deja `applyBankBalances`) y la marca no vale, la
+   ancló un cliente anterior, con el repetido DENTRO: cerrarla con la regla nueva lo dejaría sin restar
+   nunca (+48 en el primer cierre tras actualizar). Las diarias a mano y la TR del puente se anclan con
+   `insumosSaldoGasto` (`manualBalanceWrite`, `applyTrCash`), que ya dejaba fuera el repetido antes de
+   la 240: con cualquier cliente su `value` significa lo nuevo, y cierran con la regla nueva.
+   Se decide con el `value` de antes de cerrar: la marca solo vale con él. */
+/* Lo que compra en la posición destino un dinero de recompensas (redondeo y saveback), en su moneda y al
+   precio de hoy. Lo usan el cierre (`reconcileTR`) y «son distintos» de un mes cerrado, que resta de la
+   cuenta el redondeo de la compra y lo tiene que llevar aquí, como el cierre (revisión de 240-dinero, P3:
+   si no, el patrimonio bajaba 48 en vez de 47,50). Con `eur` negativo deshace lo mismo. */
+function compraDeRecompensa(inv, eur, fx){
+  const cInv = inv.cur==="USD" ? eur/(fx||1) : eur;              // a la moneda de la inversión
+  const precio = (inv.shares>0 && inv.value>0) ? inv.value/inv.shares : 0;
+  return { cInv:cInv, precio:precio, shares:precio ? +(inv.shares + cInv/precio).toFixed(6) : inv.shares,
+    value:+((inv.value||0)+cInv).toFixed(2), cost:+((inv.cost||0)+cInv).toFixed(2) };
+}
+function cierreConReglaVieja(acc){
+  return !!acc && acc.balSaldo!=null && !anclaConReglas(acc);
+}
 function reconcileTR(s){
   if(!s.accounts || !s.expenses) return s;
   const acc=s.accounts.find(a=>a.spendFrom);
   if(!acc) return s;
+  // Las que llegan con la marca de anclaje válida (`anclaConReglas`, 07) la conservan tras cerrar: el
+  // cierre se hace con las reglas de esta versión. Las demás siguen sin ella (ronda 240).
+  const conMarca=s.accounts.filter(function(a){ return anclaConReglas(a); });
+  /* Lo cobrado antes de su día que ya traía la lectura de la marca (`cobrosLeidosDelMes`, 07; H3 de la 237),
+     calculado ANTES de cerrar: la marca solo vale con el `value` con que se puso y el cierre lo va mutando
+     (a la cuenta «ambos» se le suma antes la inyección y se le resta el gasto). Solo para el mes de esa
+     lectura; los demás meses que se cierren de golpe no lo llevan. */
+  const devuelto=new Map();
+  conMarca.forEach(function(a){
+    const t=new Date(Date.parse(a.anclaReglas.t));
+    if(llevaNetoDeBanco(s.accounts, a)&&isFinite(t)) devuelto.set(a, {mk:mk(t.getFullYear(),t.getMonth()), eur:cobrosLeidosDelMes(s, a.ent, t.getFullYear(), t.getMonth()+1, null)});
+  });
+  const devueltoEn=function(a,key){ const d=devuelto.get(a); return d&&d.mk===key ? d.eur : 0; };
+  /* Con qué regla cierra la diaria (`cierreConReglaVieja`), decidido ANTES de mutar `value`, como `devuelto`.
+     Solo el mes de su última lectura, la que dejó el repetido dentro del `value` (si no se sabe cuándo
+     fue, el primero que se cierra). Los demás no tienen ancla y se pintaron, en cualquier cliente, sin
+     restarlo. */
+  const viejoPrimero=cierreConReglaVieja(acc), leidaEn=saldoLeidoDelBanco(s, acc.ent, acc);
+  const mesViejo=leidaEn>0 ? mkOf(new Date(leidaEn)) : null;
   const now=new Date();
   const cmKey=mkOf(now);
   /* Un estado sin `_netoUnaCuenta` se ancló con la regla vieja: cierra sus meses también con ella
@@ -3228,45 +3323,29 @@ function reconcileTR(s){
   let guard=0;
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
-    // Sin el cargo de un recibo: `monthNetForAccount` ya lo arrastra más abajo, y con la fila
-    // dentro una cuenta «para todo» lo restaba dos veces al cruzar de mes (revisión del 12/10/2026).
-    // Tampoco el Saveback que avisa TR: no salió del efectivo (`expenseCountsCash`, 16/11/2026).
-    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback");
-    /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
-       y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
-       de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
-       porque `monthNetForAccount` no mira `s.expenses`. El patrimonio total cuadraba y por eso no
-       se veía; los dos saldos por separado mentían. Mismo reparto que usa el saldo que se PINTA
-       durante el mes (`gastoDelMesPorBanco` + `saldoCuentaMostrada`, 00-core): si el cierre usa
-       otro criterio, el saldo pega un salto el día 1. */
-    const gastoPorBanco=gastoDelMesPorBanco(monthExp, acc.ent);
-    const spent=gastoPorBanco[acc.ent]||0;
-    acc.value = acc.value + accInject(acc) - spent;                 // mes cerrado: + inyección de nómina − gasto
+    const viejo=viejoPrimero&&(mesViejo ? mesViejo===key : guard===0);
+    const cierre=gastoDelCierre(s, acc, key, ay, am, viejo);
+    acc.value = acc.value + accInject(acc) - cierre.spent;          // mes cerrado: + inyección de nómina − gasto
+    /* Qué meses cerró con la regla nueva, para que «son distintos» / «es el mismo» sobre un posible
+       repetido de ese mes sepan si el cierre lo restó (`saldoTrasResolverRepetido`, 00). Un mes sin
+       entrada lo cerró un cliente anterior (no conoce el mapa) o la regla vieja: se trata como viejo.
+       Los últimos 12: más atrás nadie resuelve repetidos. */
+    if(!viejo){
+      const m=Object.assign({}, acc.cierreReglas||{}); m[key]=ANCLA_REGLAS;
+      const ks=Object.keys(m).sort(); ks.slice(0, Math.max(0, ks.length-12)).forEach(function(k){ delete m[k]; });
+      acc.cierreReglas=m;
+    }
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
     // Solo si es la que carga el neto de su banco (`cuentaDelNetoDeBanco`): es la misma que lo
     // pinta durante el mes, y con dos cuentas del banco cada una lo arrastraba entero (ronda 238).
-    if(accRole(acc)==="ambos" && cargaNeto(acc)) acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
+    // Con lo cobrado antes de su día que ya traía la última lectura (`devuelto`, arriba; H3 de la 237): el
+    // neto cerrado lo resta y ese saldo ya lo llevaba. Solo la que carga el neto, como al pintar.
+    if(accRole(acc)==="ambos" && cargaNeto(acc)) acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null) + devueltoEn(acc, key)).toFixed(2);
     // Round-up & Saveback (#19): al cerrar el mes, el round-up sale del efectivo y se abona
     // (junto al saveback, dinero gratis) a la inversión destino comprando participaciones.
-    // SOLO si la cuenta no tiene ya movimientos reales de Open Banking (2026-08-03): desde que TR
-    // sincroniza de verdad, el round-up/saveback/aporte YA entran como gastos reales categoría
-    // "inversion" (ver `applyInvestBuy` en 08-motor-bank.js, disparado desde `importObExpenses` y
-    // `setCat`) — sumarlos aquí TAMBIÉN los contaba dos veces (una simulada, otra real).
-    // El cargo de un recibo no cuenta como «el banco ya trae sus movimientos»: esa fila antes ni
-    // existía, y con ella sola el cierre dejaba de restar el redondeo y el aporte (revisión del
-    // 12/10/2026, medido: 1771,72 pasaba a 1772,52).
-    const obFed = (s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent && !cargoDeRecibo(e, s); });
-    if(!obFed){
-      /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo. Durante el mes,
-         `11-app-main.js:1483` los calcula sobre una lista ya filtrada por `expenseCountsCash`;
-         aquí se calculaban sobre el mes ENTERO, así que al cerrar podían comerse compras con
-         tarjeta de bancos que no son de gasto diario y el saldo de TR daba un salto el día 1.
-         Divergencia vieja, encontrada al revisar FIN-01 (9/9). Misma regla en los dos sitios. */
-      const monthExpCash = monthExp.filter(function(e){ return expenseCountsCash(e, s); });
-      // Misma regla que en vivo (`recompensasEstimadas`): solo su banco, y nada si TR ya avisó de lo real
-      // (eso ya restó del efectivo y ya sumó a su posición: simularlo otra vez lo contaría dos veces).
-      const rec = recompensasEstimadas(s, acc, monthExpCash, +new Date(ay, am, 1), true);
-      const ru = rec.ru, sb = rec.sb;
+    // Solo sin movimientos reales del banco (`gastoDelCierre`, `obFed`).
+    if(!cierre.obFed){
+      const ru = cierre.ru, sb = cierre.sb;
       if(ru>0) acc.value = +(acc.value - ru).toFixed(2);             // el round-up abandona el efectivo
       const contrib = ru + sb;                                       // total que entra a la inversión (€)
       /* Lo estimado en ESTE cierre, por tipo (revisión 236, P2-E): si el primer aviso real de TR llega
@@ -3278,11 +3357,8 @@ function reconcileTR(s){
       if(contrib>0 && acc.rewardInv){
         const inv = s.investments && s.investments.find(function(i){ return i.id===acc.rewardInv; });
         if(inv){
-          const cInv = inv.cur==="USD" ? contrib/(s.fx||1) : contrib;   // a la moneda de la inversión
-          const precio = (inv.shares>0 && inv.value>0) ? inv.value/inv.shares : 0;
-          if(precio) inv.shares = +(inv.shares + cInv/precio).toFixed(6);
-          inv.value = +((inv.value||0)+cInv).toFixed(2);
-          inv.cost  = +((inv.cost||0)+cInv).toFixed(2);
+          const r = compraDeRecompensa(inv, contrib, s.fx), cInv = r.cInv, precio = r.precio;
+          inv.shares = r.shares; inv.value = r.value; inv.cost = r.cost;
           ["roundup","saveback"].forEach(function(k){ const x=est[k]; if(!x) return; x.inv=inv.id; x.c=+(cInv*x.eur/contrib).toFixed(6); x.sh=precio?+(x.c/precio).toFixed(6):0; });
         }
         s.trRewardsTotal = +(((s.trRewardsTotal||0)+contrib)).toFixed(2);   // acumulado histórico (€)
@@ -3313,17 +3389,20 @@ function reconcileTR(s){
     s.accounts.forEach(function(a2){
       if(a2.spendFrom) return;
       // El neto lo arrastra la misma cuenta que lo pinta durante el mes (ronda 238).
-      let v=(a2.value||0) + (cargaNeto(a2) ? monthNetForAccount(s, a2.ent, ay, am+1, null) : 0);
+      // Y lo cobrado antes de su día que ya traía la lectura (`devuelto`, arriba; H3 de la 237).
+      let v=(a2.value||0) + (cargaNeto(a2) ? monthNetForAccount(s, a2.ent, ay, am+1, null) + devueltoEn(a2, key) : 0);
       // El sobre de efectivo SÍ arrastra sus propias compras al cerrar: durante el mes
       // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia
       // arriba el día 1. Los demás bancos NO restan gastos a propósito (00-core, saldo mostrado:
       // «las manuales sin OB las ajusta él a mano»), así que aquí tampoco.
-      if(isEfectivoEnt(a2)) v -= (gastoPorBanco["efectivo"]||0);
+      if(isEfectivoEnt(a2)) v -= (cierre.porBanco["efectivo"]||0);
       a2.value = +v.toFixed(2);
     });
     am++; if(am>11){am=0;ay++;}
     guard++;
   }
+  // Se mutan en su sitio (como `value` arriba): la marca sigue al `value` cerrado.
+  if(guard) conMarca.forEach(function(a){ a.anclaReglas=selloAncla(a.value, a.anclaReglas.t); });
   s.trAnchor=cmKey;
   return s;
 }
@@ -3513,7 +3592,8 @@ function aplicarRecompensasTR(state, nowMs){
       // El cierre del mes anterior al aviso (o de su mismo mes) estimó este dinero: fuera, lo paga el aviso.
       const mesAviso=mkOf(new Date(ms)), mesAntes=mkOf(new Date(new Date(ms).getFullYear(), new Date(ms).getMonth()-1, 1));
       if(est && (ce.ym===mesAviso || ce.ym===mesAntes)){
-        if(k==="roundup") a.value=+((a.value||0)+est.eur).toFixed(2);
+        // Devolver la estimación del cierre no cambia con qué reglas se ancló la cuenta: la marca la sigue (`ponValor`, 07).
+        if(k==="roundup") ponValor(a, +((a.value||0)+est.eur).toFixed(2));
         // Si el puente de TR reescribió esa posición después del cierre, lo estimado ya no está en ella.
         const pos=est.inv && (s.investments||[]).find(function(i){ return i.id===est.inv; });
         if(est.inv && est.c && !(pos && pos.brokerAt && ce.at && pos.brokerAt>=ce.at)) s=reverseInvestBuy(s, est.inv, est.sh, est.c, est.eur);
@@ -4170,7 +4250,7 @@ function seedFlows(s){
   // (base = hoy − netoYaOcurrido) para que el saldo mostrado vuelva a ser el real y evolucione bien.
   if(!s._dynBalAnchored){
     const cy=new Date().getFullYear(), cm=new Date().getMonth()+1, td=new Date().getDate();
-    (s.accounts||[]).forEach(function(a){ if(!a.spendFrom && llevaNetoDeBanco(s.accounts, a)){ a.value = +(((a.value||0) - monthNetForAccount(s, a.ent, cy, cm, td))).toFixed(2); } });
+    (s.accounts||[]).forEach(function(a){ if(!a.spendFrom && llevaNetoDeBanco(s.accounts, a)) ponValor(a, +(((a.value||0) - monthNetForAccount(s, a.ent, cy, cm, td))).toFixed(2)); });
     s._dynBalAnchored=true;
   }
   // deuda dinámica: ancla el saldo actual al mes de hoy si aún no tenía ancla (vale para todos)

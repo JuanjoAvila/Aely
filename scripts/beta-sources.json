@@ -1966,6 +1966,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -3852,6 +3880,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -5568,6 +5616,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -8269,6 +8337,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -9985,6 +10073,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -12450,6 +12558,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -15765,6 +15893,30 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "migraNetoUnaCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -17339,6 +17491,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
       }
     ],
     "unidades": true
@@ -19040,6 +19200,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -19927,6 +20107,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ]
   },
@@ -21634,6 +21822,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -22527,6 +22743,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -24320,6 +24540,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -26235,6 +26459,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -28661,6 +28913,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -30585,6 +30865,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -35245,6 +35553,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -36961,6 +37277,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -38439,6 +38775,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -40140,6 +40484,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -41916,6 +42280,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -43387,6 +43779,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "edge": [
@@ -45517,6 +45917,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -47136,6 +47564,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -49716,6 +50152,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -51484,6 +51948,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -53138,6 +53610,30 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -55453,6 +55949,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -56754,6 +57278,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -56987,6 +57519,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseRenameKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
       }
     ],
     "unidades": true
@@ -57359,6 +57915,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -59353,6 +59917,30 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -63127,6 +63715,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -63396,6 +64012,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "edge": [
@@ -68735,6 +69355,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -71065,6 +71693,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -74418,6 +75054,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -76998,6 +77662,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -81292,6 +81964,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -83258,6 +83938,38 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -84797,6 +85509,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -87634,6 +88354,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -92063,6 +92791,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -94721,6 +95469,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -96427,6 +97195,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -101493,6 +102289,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -103320,6 +104124,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -105807,6 +106635,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "edge": [
@@ -107193,6 +108025,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -108979,6 +109819,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -111086,6 +111954,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -112833,6 +113729,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -114575,6 +115499,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -116313,6 +117265,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -117923,6 +118903,38 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -119783,6 +120795,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -121665,6 +122705,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -123418,6 +124486,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -125235,6 +126331,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -125255,8 +126379,8 @@
       },
       {
         "file": "src/modules/11-app-main.js",
-        "from": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(",
-        "to": "isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });",
+        "from": "    const bpMes=fixedSaldoBp(",
+        "to": "accOf(e),fijoCobrado(e)); });",
         "includeTo": true
       },
       {
@@ -125762,6 +126886,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -126667,6 +127799,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -128733,6 +129869,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -130783,6 +131947,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -132669,6 +133861,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -134402,6 +135602,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -136221,6 +137429,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -139576,6 +140792,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -140996,6 +142220,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -143040,6 +144272,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -143137,7 +144373,7 @@
       {
         "file": "src/modules/11-app-main.js",
         "from": "    // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---",
-        "to": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });",
+        "to": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),fijoCobrado(e)); });",
         "includeTo": true
       },
       {
@@ -144696,6 +145932,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -146278,6 +147522,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -148194,6 +149442,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -150196,6 +151456,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -152166,6 +153438,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -154690,6 +155970,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -157536,6 +158824,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -159278,6 +160574,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -160768,6 +162092,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -162658,6 +163990,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -165219,6 +166559,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -166916,6 +168264,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -168889,6 +170265,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -170847,6 +172231,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -172813,6 +174205,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true
@@ -175242,6 +176642,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -177695,6 +179123,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -180099,6 +181555,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -182321,6 +183805,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -184716,6 +186228,30 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -186403,6 +187939,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
       }
     ],
     "unidades": true
@@ -188655,6 +190199,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -190268,6 +191840,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
       }
     ],
     "unidades": true
@@ -191907,6 +193491,30 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelCierre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLeidoDelBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -193207,6 +194815,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseSaleDelSaldo"
       }
     ],
     "unidades": true

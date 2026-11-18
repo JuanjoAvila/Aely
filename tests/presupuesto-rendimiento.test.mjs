@@ -441,6 +441,19 @@ const PRESUPUESTO = {
   // Integración 4.26.241 (18/11): Apuntar con el teclado del móvil de verdad (el margen que lo sigue, la subida prevista y
   // el ocultado sin «Listo»), con el sello y la nota: 2.012.797 B minificado y 553.461 B gzip. Mismo mandato del 11/10: al mínimo
   // medido, 1966 / 541 KiB.
+  // Ronda 240 recibos (18/11): lo cobrado antes de su día que ya traía la lectura se devuelve al pintar y al cerrar el mes
+  // (`cobrosLeidosDelMes`, con su filtro barato y la memoria del casado: sin ellos `totals` triplicaba), R1 y `pendingByBank`
+  // con la regla del saldo, y la marca de anclaje por cuenta (`anclaReglas`, con la hora de la lectura): 2.008.517 B
+  // minificado (+5.558 sobre la 239 integrada) y 552.021 B gzip (+1.732). Es lógica de dinero (el saldo restaba dos veces un
+  // recibo cobrado antes de su día, y clientes de dos versiones no pueden leer el mismo `value` con reglas distintas);
+  // mandato 11/10: al mínimo medido, 1962 / 540 KiB.
+  // Saldos 240 (18/11, revisión de dinero): el ancla y el cierre con la misma puerta que lo pintado, «son distintos» que
+  // mueve el saldo, la lectura de la cuenta de recibos y la foto de Hogar por cuenta: 2.004.151 B minificado (183 B sobre
+  // el tope) y 550.658 B gzip. Es lógica de dinero; mismo mandato del 11/10: el minificado, al mínimo medido, 1958 KiB.
+  // Integración 240-dinero (recibos + saldos, con el cierre según la marca, `cierreReglas` y el sobre de efectivo):
+  // 2.010.911 B minificado y 552.790 B gzip. Mismo mandato del 11/10: el minificado, al mínimo medido, 1964 KiB; el
+  // gzip cabe en 540 KiB. Revisión de 240-dinero (la marca en todos los escritores de `value`, el redondeo de «son
+  // distintos» a la posición): 2.011.978 B y 553.181 B gzip. Al mínimo medido: 1965 / 541 KiB.
   minificado: 1966 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

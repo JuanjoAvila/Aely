@@ -34,14 +34,29 @@ async function capas(page, fn) {
   await cdp.send("DOM.enable"); await cdp.send("LayerTree.enable");
   const arboles = [];
   cdp.on("LayerTree.layerTreeDidChange", (e) => arboles.push(e.layers || []));
-  // El árbol solo se emite cuando cambia: una capa que se pone y se quita da el de partida.
-  await page.evaluate(() => new Promise((r) => {
-    const d = document.createElement("div"); d.style.cssText = "position:fixed;left:0;top:0;width:2px;height:2px;will-change:transform";
+  /* El árbol solo se emite cuando cambia: una capa de sonda que se pone y se quita da el de partida.
+     Se espera a VER la sonda en el árbol y a verla irse, no a fotogramas de la página: con
+     `page.clock.install` su requestAnimationFrame es un temporizador falso de 16 ms que no espera al
+     compositor. Con la máquina cargada (otro Playwright a la vez) un fotograma real tarda más que
+     eso, la sonda nacía y moría dentro del mismo y no salía ningún árbol: «sin árbol de capas de
+     partida» sin que la app interviniera (R3 de la revisión de la 237). */
+  const { root } = await cdp.send("DOM.getDocument", { depth: 0 });
+  await page.evaluate(() => {
+    const d = document.createElement("div"); d.id = "e2e-sonda-capa";
+    d.style.cssText = "position:fixed;left:0;top:0;width:2px;height:2px;will-change:transform";
     document.body.appendChild(d);
-    requestAnimationFrame(() => requestAnimationFrame(() => { d.remove(); requestAnimationFrame(() => requestAnimationFrame(r)); }));
-  }));
+  });
+  const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector: "#e2e-sonda-capa" });
+  const sonda = (await cdp.send("DOM.describeNode", { nodeId })).node.backendNodeId;
+  const conSonda = (ls) => ls.some((l) => l.backendNodeId === sonda);
+  // Tiempo real del runner (el reloj falso es el de la página): 10 s es un compositor parado, no lento.
+  const hasta = async (ok, que) => { const fin = Date.now() + 10_000; while (!ok()) { if (Date.now() > fin) throw new Error(que); await new Promise((r) => setTimeout(r, 20)); } };
+  await hasta(() => arboles.some(conSonda), "la capa de sonda no llega al árbol de capas");
+  const conElla = arboles.length;
+  await page.evaluate(() => document.getElementById("e2e-sonda-capa").remove());
+  await hasta(() => arboles.length > conElla && !conSonda(arboles.at(-1)), "la capa de sonda no sale del árbol de capas");
   await page.waitForTimeout(300);
-  const n0 = arboles.length, base = arboles.at(-1) || [];
+  const n0 = arboles.length, base = arboles.at(-1);
   await fn();
   await page.waitForTimeout(900);
   const nacen = new Map(), mueren = new Map();

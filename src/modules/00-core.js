@@ -3451,8 +3451,9 @@ function applySaqueCajero(state, fromEnt, amount){
   if(!(amt>0)) return state;
   let st=ensureEfectivoAccount(state, 0);
   const accounts=(st.accounts||[]).map(function(a){
-    if(isEfectivoEnt(a)) return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
-    if(a.ent===fromEnt && !a.bankIban) return Object.assign({}, a, { value:+((a.value||0)-amt).toFixed(2) });
+    if(isEfectivoEnt(a)) return conValor(a, +((a.value||0)+amt).toFixed(2));
+    // Un movimiento real que el banco aún no trae: la marca sigue valiendo (`conValor`; puede ser OB por `bankUid`).
+    if(a.ent===fromEnt && !a.bankIban) return conValor(a, +((a.value||0)-amt).toFixed(2));
     return a;
   });
   const e={
@@ -3475,7 +3476,7 @@ function applyEntradaEfectivo(state, amount){
   let st=ensureEfectivoAccount(state, 0);
   const accounts=(st.accounts||[]).map(function(a){
     if(!isEfectivoEnt(a)) return a;
-    return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
+    return conValor(a, +((a.value||0)+amt).toFixed(2));
   });
   return Object.assign({}, st, { accounts:accounts });
 }
@@ -3752,7 +3753,10 @@ function applyTrCash(state, cash, totals){
     const stored=accDaily(a)
       ? valueDesdeSaldo({shown:shown,injTR:totals.injTR||0,spentOwn:spentOwn,roundup:totals.roundupThisMonth||0,monthlyInvest:totals.monthlyInvestThisMonth||0,ambos:accRole(a)==="ambos",paidNet:pn})
       : shown-pn;
-    return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:leido});
+    // Ancla con la regla de la 240 (`insumosSaldoGasto`): marca sin hora (`selloAncla`, 07). Sin ella, una TR que
+    // antes sincronizó por Open Banking (`balSaldo`) cerraría con la regla vieja. La hora no es la del extracto,
+    // así que no activa H3 (`lecturaDeSusRecibos` pide `t`).
+    return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:leido,anclaReglas:selloAncla(+stored.toFixed(2),null)});
   }) : accounts.concat([{id:uid(),ent:"trade_republic",name:"Trade Republic",value:+shown.toFixed(2),note:"",saldoLeidoAt:leido}]);
   return Object.assign({},state,{accounts:next});
 }
@@ -4017,7 +4021,7 @@ function resolvePossibleDup(state, expenseId, same){
     const gemelos=pushGemelos(state.gemelos, [twin ? gemeloDe(twin, ex) : {aviso:"", banco:bancoKey}]);
     const out=Object.assign({},state,{expenses:expenses});
     if(gemelos!==state.gemelos) out.gemelos=gemelos;
-    return out;
+    return saldoTrasResolverRepetido(state, out, ex);
   }
   // «Son distintos»: la fila cuenta y el aviso vuelve a estar libre.
   const out=Object.assign({},state,{expenses:(state.expenses||[]).map(function(e){
@@ -4028,6 +4032,61 @@ function resolvePossibleDup(state, expenseId, same){
   })});
   const sueltos=quitarGemeloDe(state.gemelos, bancoKey);
   if(sueltos!==state.gemelos) out.gemelos=sueltos;
+  return saldoTrasResolverRepetido(state, out, ex);
+}
+/* RESOLVER UN POSIBLE REPETIDO Y EL SALDO DE LA CUENTA DIARIA (ronda 240, revisión de dinero P2-A,
+   P3-C y P2-B). El posible repetido no resta mientras dura la duda: ni al pintar, ni al anclar con la
+   lectura del banco, ni al cerrar el mes (`expenseCountsCash`). Al resolverlo:
+   - Si la cuenta tiene una lectura del banco (o un saldo tecleado) del día de la fila o posterior,
+     esa lectura ya era la verdad —la fila salió de ese extracto—: se conserva lo que se pinta
+     (`conSaldoMostrado`). Sin esto, «son distintos» quedaba 48 € por debajo del banco hasta el
+     siguiente sync.
+   - Sin esa lectura, en el mes en curso basta con lo que hace el pintado al quitar la marca o la fila.
+   - De un mes YA CERRADO (anterior a `trAnchor`) no lo corregiría nadie: en una cuenta a mano no hay
+     lectura. Se desplaza la base justo lo que ese cierre habría restado de más o de menos
+     (`gastoDelCierre` antes y después, CON LA REGLA CON LA QUE SE CERRÓ ESE MES):
+       · cierre nuevo (`cierreReglas[mes]`, lo escribe `reconcileTR`): el repetido no restó.
+         «Son distintos» resta el importe y su redondeo; «es el mismo», nada.
+       · cierre viejo (sin entrada: un cliente anterior o la regla vieja de `cierreConReglaVieja`): el
+         importe ya restó. «Es el mismo» lo devuelve; «son distintos» solo resta su redondeo, que ese
+         cierre no estimó (era un posible repetido) y la compra de verdad sí lleva.
+   La marca de anclaje se renueva (`conValor`): mover la base así no cambia con qué reglas se ancló. */
+function saldoTrasResolverRepetido(antes, despues, ex){
+  const b=expenseBankOf(ex)||((antes.accounts||[]).find(function(a){ return a&&a.spendFrom; })||{}).ent;
+  const cuenta=(antes.accounts||[]).find(function(a){ return a&&accDaily(a)&&a.ent===b; });
+  if(!cuenta) return despues;
+  const f=new Date(dateMs(ex.date));
+  if(saldoLeidoDelBanco(antes, b, cuenta)>=new Date(f.getFullYear(), f.getMonth(), f.getDate()).getTime()) return conSaldoMostrado(antes, despues);
+  const key=mkOf(f);
+  if(!cuenta.spendFrom || !antes.trAnchor || !(key<antes.trAnchor)) return despues;
+  const viejo=!((cuenta.cierreReglas||{})[key]>=ANCLA_REGLAS);
+  const c0=gastoDelCierre(antes, cuenta, key, f.getFullYear(), f.getMonth(), viejo), c1=gastoDelCierre(despues, cuenta, key, f.getFullYear(), f.getMonth(), viejo);
+  const delta=+((c1.spent+c1.ru)-(c0.spent+c0.ru)).toFixed(2), dRu=+(c1.ru-c0.ru).toFixed(2);
+  if(Math.abs(delta)<0.005) return despues;
+  const out=Object.assign({}, despues, {accounts:(despues.accounts||[]).map(function(a){
+    if(a!==cuenta) return a;
+    const n=conValor(a, +((a.value||0)-delta).toFixed(2));
+    // Lo que el cierre de ese mes estimó, con la compra: el aviso real de TR lo deshará con estas cifras (`aplicarRecompensasTR`).
+    const ce=a.trCierreEstimado;
+    if(Math.abs(dRu)>=0.005 && a.rewardInv && ce && ce.ym===key){
+      const x=Object.assign({eur:0,inv:a.rewardInv,c:0,sh:0}, ce.roundup);
+      const inv=(despues.investments||[]).find(function(i){ return i.id===a.rewardInv; });
+      const r=inv?compraDeRecompensa(inv, dRu, despues.fx):null;
+      n.trCierreEstimado=Object.assign({}, ce, {roundup:{eur:+(x.eur+dRu).toFixed(2), inv:x.inv, c:+(x.c+(r?r.cInv:0)).toFixed(6), sh:+(x.sh+(r&&r.precio?r.cInv/r.precio:0)).toFixed(6)}});
+    }
+    return n;
+  })});
+  /* El redondeo que ahora sale de la cuenta va a la posición destino, como en el cierre: así el patrimonio
+     solo baja la compra (revisión de 240-dinero, P3: bajaba 48 en vez de 47,50). Sin destino, como el
+     cierre: solo el acumulado. */
+  if(Math.abs(dRu)>=0.005 && cuenta.rewardInv){
+    out.investments=(despues.investments||[]).map(function(i){
+      if(i.id!==cuenta.rewardInv) return i;
+      const r=compraDeRecompensa(i, dRu, despues.fx);
+      return Object.assign({}, i, {shares:r.shares, value:r.value, cost:r.cost});
+    });
+    out.trRewardsTotal=+(((despues.trRewardsTotal||0)+dRu)).toFixed(2);
+  }
   return out;
 }
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */

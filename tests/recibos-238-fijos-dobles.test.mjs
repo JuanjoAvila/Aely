@@ -246,3 +246,25 @@ test("pull: lo local más nuevo sube los valores migrados con su marca",()=>{
   assert.deepEqual(json(s.accounts),json(prev.accounts));
   assert.deepEqual([pintado(s).sb1,pintado(s).sb2],[97000,50000]);
 });
+
+/* Ronda 240 (P3 de la tercera vuelta de la 238): la rama `cloudOnly` no la vigilaba nadie. Lo local
+   es más nuevo, pero las reservas de las metas chocan con las de la nube y gana la nube ENTERA
+   (`goalSyncPull` → `cloudOnly`): las cuentas vuelven a ser las de la nube, sin migrar y sin marca.
+   Si la marca local se quedara, `seedFlows` no las migraría y se pintaría 1.000/560 (el P1 de la
+   segunda vuelta otra vez, por la puerta de atrás). Quitar «||…cloudOnly» de `syncFromCloud` tumba
+   este test y ningún otro. */
+test("pull: lo local es más nuevo pero gana la nube por un choque de reservas → la marca va con las cuentas de la nube",()=>{
+  const regla=id=>({id,goalId:"g1",kind:"pct",pct:10});
+  const nube=Object.assign(ayerEnLaNube(),{settings:{expenseBanks:["revolut"],reservaRules:[regla("r-nube")]}});
+  const prev=Object.assign(c.seedFlows(json(Object.assign({},nube,{settings:{expenseBanks:["revolut"],reservaRules:[regla("r-local")]}}))),
+    {_savedAt:2000,_goalSync:{owner:"e2e-user",revision:null,base:[],reserves:{rules:[],log:[]},keepLocalReserves:false,cloudOnly:false,conflicts:[]}});
+  assert.deepEqual([pintado(prev).sb1,pintado(prev).sb2],[97000,50000],"lo local ya migró");
+  const base=mezclaPull(json(prev),json(nube));
+  assert.equal(base._goalSync.cloudOnly,true,"el choque de reservas manda la nube entera");
+  assert.equal(base._netoUnaCuenta,undefined,"la marca no se queda sobre las cuentas de la nube");
+  const s=tirar(prev,nube);
+  assert.equal(s._netoUnaCuenta,true);
+  assert.deepEqual([pintado(s).sb1,pintado(s).sb2],[97000,50000],"lo mismo que pintaba el arranque local");
+  // Y un segundo pull con lo ya migrado no migra otra vez.
+  assert.deepEqual(json(tirar(s,s).accounts),json(s.accounts));
+});

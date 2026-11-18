@@ -17,9 +17,15 @@ function mcInviteCode(){
 }
 
 function buildHouseholdSnapshot(state, totals, email){
+  /* Cada cuenta con SU saldo pintado (`saldoCuentaMostrada`, con los mismos insumos que `totals`),
+     no el total de su banco (ronda 240, P3.4 de la revisión 238): con dos cuentas del mismo banco
+     cada fila llevaba `bankBal[ent]` entero y la foto enseñaba el banco dos veces. Sumadas por
+     banco dan justo `bankBal`. Sin `totals` (pruebas y arranque), `value` a pelo, como antes. */
+  const ins={ injTR:totals.injTR, spentByBank:totals.spentByBank, paidNetByBank:totals.paidNetByBank,
+    roundup:totals.roundupThisMonth, monthlyInvest:totals.monthlyInvestThisMonth };
   const accounts=(state.accounts||[]).map(function(a){
     const ent=entOf(a.ent);
-    const val=(totals.bankBal&&totals.bankBal[a.ent]!=null)?totals.bankBal[a.ent]:(a.value||0);
+    const val=saldoCuentaMostrada(a, ins);
     return { name:a.name||ent.label, ent:a.ent, label:ent.label, value:+Number(val).toFixed(2) };
   });
   // Gastos del mes por categoría (sin comercios: privacidad)

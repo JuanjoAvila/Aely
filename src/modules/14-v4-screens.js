@@ -707,6 +707,13 @@ function pr6FrescuraTxt(ms, now){
   if(d<7) return tf("pr6_fresh_d",{n:d});
   return tf("pr6_fresh_fecha",{x:a.toLocaleDateString(loc(),{day:"numeric",month:"short"})});
 }
+/* El Deshacer de Plan › Recibos repone la base que tenía cada cuenta antes de mover el recibo
+   (`cuentas`: [{id, antes}]). Reponer la base de antes no cambia con qué reglas se ancló: la marca la sigue
+   (`conValor`, 07). Con `Object.assign` la marca se quedaba con la `v` del desplazamiento y dejaba de valer:
+   sin la corrección de H3 el saldo bajaba de golpe (1.000 → 970; revisión de 240-dinero, segunda vuelta). */
+function reponerBases(accounts, cuentas){
+  return (accounts||[]).map(function(a){ const c=cuentas.find(function(x){ return x.id===a.id; }); return c?conValor(a,c.antes):a; });
+}
 function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
@@ -849,7 +856,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         if(!intacto(s)) return s;
         return Object.assign({},s,{
           fixed:s.fixed.map(function(o){ return o.id===f.id?foto.antes:o; }),
-          accounts:foto.cuentas.length?s.accounts.map(function(a){ const c=foto.cuentas.find(function(x){ return x.id===a.id; }); return c?Object.assign({},a,{value:c.antes}):a; }):s.accounts});
+          accounts:foto.cuentas.length?reponerBases(s.accounts,foto.cuentas):s.accounts});
       });
     });
   };

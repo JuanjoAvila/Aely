@@ -11,7 +11,9 @@ const old=loadPureLogic(baseHTML), L=process.env.H2_CLIENT_FILE?loadPureLogic(fs
 const baseServer=handlerSource(execFileSync('git',['show',baseSHA+':supabase/functions/bank-sync/index.ts'],{encoding:'utf8'}));
 const prior='2026-10-16T01:00:00.000Z', stamp='2026-10-18T01:00:00.000Z';
 class Clock extends Date {constructor(...a){super(...(a.length?a:[stamp]));} static now(){return Date.parse(stamp);}}
-const plain=x=>JSON.parse(JSON.stringify(x));
+// La marca de anclaje (`anclaReglas`, ronda 240) es lo ÚNICO que la base no escribe: se aparta aquí, declarada,
+// y `compare` exige que toda cuenta que este anclaje deja con `balSaldo` la lleve válida (`anclaConReglas`).
+const plain=x=>JSON.parse(JSON.stringify(x,(k,v)=>k==="anclaReglas"?undefined:v));
 const manual=(value,extra={})=>({id:'main',ent:'caixabank',role:'fijos',value,...extra});
 const extra=(key,value,more={})=>({key,aspsp:'CaixaBank',ent:'caixabank',value,cur:'EUR',balanceAt:prior,...more});
 const state=(accounts=[],obAccounts=[])=>({accounts,obAccounts,expenses:[],fixed:[],flows:[],debts:[],oneoffs:[]});
@@ -31,7 +33,9 @@ function compare(s,links,expected){
  if(expected!=null)assert.equal(cents(baseline.state),expected,'actual base cents');
  console.log('ORACLE '+JSON.stringify({baseCents:cents(baseline.state),candidateCents:cents(got.state)}));
  assert.deepEqual(plain(got),plain(baseline),'complete real-base result: state, mapping, order, amounts, dates, changed, synced');
- assert.deepEqual(plain(L.applyBankBalances(plain(got.state),plain(links))),plain(old.applyBankBalances(plain(baseline.state),plain(links))),'complete replay');
+ got.state.accounts.forEach(a=>{ if(a.balSaldo!=null&&!a.balanceStale) assert.ok(L.anclaConReglas(a),'anclada con marca válida: '+a.id); });
+ // El candidato repite sobre SU estado (con su marca): apartarla aquí la haría poner otra vez y `changed` mentiría.
+ assert.deepEqual(plain(L.applyBankBalances(JSON.parse(JSON.stringify(got.state)),plain(links))),plain(old.applyBankBalances(plain(baseline.state),plain(links))),'complete replay');
  differentials++;return got.state;
 }
 const account=(uid,value=70,more={})=>({uid,ok:true,balanceOk:true,balanceAt:stamp,balances:[{amount:value,type:'ITAV'}],...more});
