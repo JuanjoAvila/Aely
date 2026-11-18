@@ -55,6 +55,8 @@ async function abreApuntar(page) {
         const h = Math.round(desde + ((px - desde) * i) / pasos);
         window.__kbAlto = h; k.style.height = h + "px";
         if (!alFinal || i === pasos) { vv.height = innerHeight - h; ev.dispatchEvent(new Event("resize")); }
+        // Chrome manda también un «scroll» del visualViewport tras el «resize» (lo hacía caer la hoja, 240).
+        if (i === pasos) ev.dispatchEvent(new Event("scroll"));
         if (i < pasos) setTimeout(paso, ms / pasos); else ok();
       };
       setTimeout(paso, ms / pasos);
@@ -92,7 +94,8 @@ const graba = (page) => page.evaluate(() => new Promise((ok) => {
     const cats = [...hoja.querySelectorAll(".v4-ficha-cats .v4-ficha-cat")].map((c) => c.getBoundingClientRect().bottom);
     // Borde de arriba del teclado en coordenadas de la página: con la pantalla desplazada, más abajo.
     const vv = window.visualViewport;
-    out.push({ t: performance.now() - t0, kbTop: vv.offsetTop > 0 ? vv.offsetTop + vv.height : innerHeight - window.__kbAlto, cubre, abajo: r.bottom, cats: Math.max(0, ...cats) });
+    out.push({ t: performance.now() - t0, kbTop: vv.offsetTop > 0 ? vv.offsetTop + vv.height : innerHeight - window.__kbAlto, cubre, abajo: r.bottom, cats: Math.max(0, ...cats),
+      c: hoja.querySelector(".v4-ficha-concept").getBoundingClientRect().top });
     if (performance.now() - t0 < 700) requestAnimationFrame(f); else ok(out);
   };
   requestAnimationFrame(f);
@@ -114,9 +117,13 @@ test("ocultar el teclado sin «Listo» (⌄ o Atrás) devuelve la hoja entera", 
   await hoja.locator(".v4-ficha-concept").pressSequentially("Pan");
   await page.waitForTimeout(400);
   await expect(hoja.locator(".v4-keys")).toBeHidden();
-  // El teclado se va sin tocar nada de la hoja: el campo seguiría enfocado.
-  await page.evaluate(() => window.__teclado(0));
-  await page.waitForTimeout(450);
+  // El teclado se va sin tocar nada de la hoja (el campo seguiría enfocado) y la ventana se entera al final,
+  // como en su móvil. La hoja no cae al fondo para volver a subir: el concepto no baja más de 40 px.
+  const registro = graba(page);
+  await page.evaluate(() => window.__teclado(0, 5, 250, true));
+  const fr = await registro;
+  const baja = Math.max(...fr.map((x) => x.c)) - fr[0].c;
+  expect(baja, "al ocultar el teclado, el concepto no cae (bajó " + Math.round(baja) + " px)").toBeLessThanOrEqual(40);
   await vuelveNormal(hoja);
   await expect(hoja.locator(".v4-ficha-concept")).toHaveValue("Pan");
   // Y se puede volver a escribir: el teclado vuelve a sacar la hoja compacta.

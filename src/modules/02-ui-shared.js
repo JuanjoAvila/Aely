@@ -2926,7 +2926,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
   /* Apuntar (`catRowsMax`): una fila, y dos si caben enteras en el alto que le queda a la hoja hasta
      su máximo (a 393 y 412 sí; a 360 no). La misma medida de filas enteras que la ficha. */
   const [filasAuto,setFilasAuto]=useState(1);
-  const kbFilasRef=useRef(!!kb), kbCambioRef=useRef(0), filasAntesRef=useRef(null);
+  const kbFilasRef=useRef(!!kb), kbCambioRef=useRef(0), filasAntesRef=useRef(null), kbBordeRef=useRef(!!kb);
   useLayoutEffect(function(){
     if(!catRowsMax||todasEnFila) return undefined;
     const mide=function(){
@@ -2995,7 +2995,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       mideBorde();
       /* Escribiendo el concepto se mide cuando la hoja ya está quieta sobre el teclado, y el borde va
          a su sitio deslizándose: de golpe se veía como un salto justo después de colocarse. */
-      if(kb&&antes!==hoja.style.paddingTop&&!mcReduced()){
+      if(desliza&&antes!==hoja.style.paddingTop&&!mcReduced()){
         const nuevo=hoja.style.paddingTop;
         hoja.style.paddingTop=antes; void hoja.offsetHeight;
         hoja.style.transition=getComputedStyle(hoja).transition+",padding-top .25s cubic-bezier(.22,.61,.36,1)";
@@ -3004,6 +3004,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       }
     };
     let tmBorde=0, tmKb=0;
+    const desliza=!!kb||kbBordeRef.current!==!!kb; kbBordeRef.current=!!kb;
     const mideBorde=function(){
       const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
       const max=parseFloat(getComputedStyle(hoja).maxHeight)||0, base=hoja.offsetHeight, top0=hoja.offsetTop*zoom;
@@ -3026,9 +3027,11 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
     // Con el teclado del sistema, una vez quietos los pliegues (300 ms) y el margen que sube la hoja (250 ms).
     const programa=function(){ clearTimeout(tmKb); tmKb=setTimeout(ajusta,360); };
     const vv=kb?window.visualViewport:null;
-    if(kb) programa(); else ajusta();
+    /* Y al soltarlo, igual: medido a mitad del despliegue, el relleno de arriba salía de más y con letra
+       Enorme la hoja asomaba por encima de la pantalla (−53 px, filtro de diseño 240). */
+    if(desliza) programa(); else ajusta();
     // Y otra vez cuando la hoja termina de entrar: mientras sube, Gastos aún se está colocando debajo.
-    const tm=kb?0:setTimeout(ajusta,480);
+    const tm=desliza?0:setTimeout(ajusta,480);
     hoja.addEventListener("animationend",ajusta);
     window.addEventListener("resize",kb?programa:ajusta);
     if(vv) vv.addEventListener("resize",programa);
