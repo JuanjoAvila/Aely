@@ -2811,16 +2811,14 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           })))
     ),
     grp("a11y","♿",t("v4_set_a11y"),"accesibilidad letra grande tamaño texto contraste animaciones reduce motion accessibility",t("ts_"+curTextSize),
-      // Sin subtítulos debajo de los interruptores: el nombre ya lo dice (auditoría 237, P1-7). La línea
-      // de la letra se queda por ahora: cierra un bloque que vigila beta-sources y quitarla obliga a
-      // reanclar ese descriptor al integrar (240).
+      // Sin subtítulos: el nombre ya lo dice (auditoría 237, P1-7), tampoco bajo el tamaño de letra; el
+      // bloque de los botones de letra se vigila en beta-sources hasta su cierre (reanclado en la 240).
       React.createElement("div",{style:{padding:"6px 14px 4px"}},
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
           [["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){
             return React.createElement("button",{key:ts[0],type:"button","data-ts":ts[0],"aria-pressed":curTextSize===ts[0],onClick:function(){ applyTextSize(ts[0]); setS({textSize:ts[0]}); },style:Object.assign({},segBtn(curTextSize===ts[0]),{flex:"1 1 40%"})}, t(ts[1]));
-          })),
-        React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginTop:6}}, t("st_textsize_hint"))
+          }))
       ),
       (function(){ const on=!!(state.settings&&state.settings.reduceMotion);
         return row("redmo",on?"🐢":"🎞️",t("st_reduce_motion"),null,function(){ applyReduceMotion(!on); setS({reduceMotion:!on}); }, sw(on)); })(),

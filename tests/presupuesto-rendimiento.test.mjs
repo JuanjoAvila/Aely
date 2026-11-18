@@ -430,7 +430,10 @@ const PRESUPUESTO = {
   // pintaba distinto), el buscador con su lupa y el «?», y las tarjetas de Deudas/Metas como la de Recibos. Se quitan
   // varios textos de ayuda en tres idiomas, pero los dibujos pesan más: 2.007.258 B minificado y 552.029 B gzip
   // (+4,2 KiB / +1,7 KiB). Mismo mandato del 11/10: al mínimo medido, 1961 / 540 KiB.
-  minificado: 1961 * 1024,
+  // Integración 4.26.240 (18/11): la ronda de diseño D y E (Deudas, Metas, Ajustes con iconos de trazo y Perfil), con el sello y
+  // la nota: 2.008.151 B minificado y 552.328 B gzip (la rama medía sin nota ni sello). Mismo mandato del 11/10: al mínimo
+  // medido, 1962 / 540 KiB.
+  minificado: 1962 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -473,7 +476,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 540 * 1024, // ver el comentario de minificado (539,1 KiB medidos el 18/11/2026 en la ronda de diseño 240).
+  gzip: 540 * 1024, // ver el comentario de minificado (539,4 KiB medidos el 18/11/2026 en la integración 4.26.240).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
