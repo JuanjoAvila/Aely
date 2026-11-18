@@ -99,8 +99,6 @@ function Mono({ent, size, logo}){
         decoding:"async",onError:function(){ setRoto(true); },
         style:{width:lado,height:lado,objectFit:"contain",display:"block"}}));
   }
-  // Sin logo oficial: las letras del bróker en los colores de la app, sin inventar su marca.
-  if(e.sobrio) return React.createElement("div",{className:"mono",title:e.label,"aria-label":e.label,style:{width:size,height:size,background:"var(--sur2)",color:"var(--text)",borderColor:"var(--line-soft)"}}, e.mono);
   return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
 }
 

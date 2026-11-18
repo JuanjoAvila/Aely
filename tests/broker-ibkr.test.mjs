@@ -88,7 +88,9 @@ const pick = (r) => r.acc.positions.map((p) => ({ key: p.key, isin: p.isin, shar
   const s1 = ctx.brkApplyFile({ investments: [] }, "ibkr", r1.acc.positions, map1, {}, r1.acc.to);
   assert.equal(s1.investments.length, 3);
   assert.ok(s1.investments.every((i) => i.ent === "ibkr" && i.src === "csv:ibkr" && i.ticker === undefined && i.fileSym));
-  const sinPG = XML.replace(/<OpenPosition [^>]*symbol="PG"[^>]*\/>\n/, "");
+  // `\r?`: con core.autocrlf=true el fixture sale de git con CRLF (revisión de dinero 18/11).
+  const sinPG = XML.replace(/<OpenPosition [^>]*symbol="PG"[^>]*\/>\r?\n/, "");
+  assert.notEqual(sinPG, XML, "la fila de PG se ha quitado de verdad");
   const r2 = ctx.brokerAnalyze("ibkr", [sinPG], {});
   const map2 = {};
   for (const po of r2.acc.positions) map2[po.key] = ctx.brkSuggest(po, s1.investments, "ibkr") || "";
@@ -111,6 +113,49 @@ const pick = (r) => r.acc.positions.map((p) => ({ key: p.key, isin: p.isin, shar
   assert.deepEqual(J(ctx.brokerDetect(ACT)), ["ibkr-activity"]);
   assert.equal(ctx.brokerAnalyze("degiro", [XML], {}).err, "other:ibkr");
   ok("detección: solo su perfil");
+}
+
+/* 7. P1 de la revisión de dinero (18/11): un Flex con DOS cuentas (individual + conjunta) trae una
+      SUMMARY por cuenta. Antes se quedaba la última: VWCE 20+5 salía 5 y el patrimonio bajaba
+      2.402 € sin aviso. Ahora se suma por cuenta, y se dice que es la suma de dos. */
+{
+  const otra = '<OpenPosition accountId="U0000001" currency="EUR" fxRateToBase="1" assetCategory="STK" symbol="VWCE" description="VANGUARD FTSE ALL-WORLD" conid="1000001" isin="IE00BK5BQT80" listingExchange="IBIS2" multiplier="1" reportDate="20241115" position="5" markPrice="120.1" positionValue="600.5" costBasisMoney="550" levelOfDetail="SUMMARY" side="Long" />\n';
+  const dos = XML.replace("</OpenPositions>", otra + "</OpenPositions>");
+  const r = ctx.brokerAnalyze("ibkr", [dos], {});
+  const vwce = r.acc.positions.find((p) => p.isin === "IE00BK5BQT80");
+  assert.equal(vwce.shares, 25, "20 + 5, no 5");
+  assert.equal(vwce.valueHint, 3002.5); assert.equal(vwce.cost, 2550); assert.equal(vwce.costEur, 2550);
+  assert.equal(r.acc.positions.find((p) => p.isin === "US0378331005").shares, 10, "AAPL: SUMMARY de su cuenta, no sumada con sus lotes");
+  assert.ok(J(r.acc.warnings).some((w) => w.k === "accounts" && w.n === 2), "avisa de que suma dos cuentas");
+  // Dos vías: Σ valor de VWCE = Σ positionValue de sus dos filas SUMMARY (2.402 + 600,5).
+  assert.equal(vwce.valueHint, 2402 + 600.5);
+  // El mismo valor en dos monedas no se suma: no entra y se avisa.
+  const mix = XML.replace("</OpenPositions>", otra.replace('currency="EUR"', 'currency="USD"') + "</OpenPositions>");
+  const rm = ctx.brokerAnalyze("ibkr", [mix], {});
+  assert.equal(rm.acc.positions.find((p) => p.isin === "IE00BK5BQT80"), undefined);
+  assert.ok(J(rm.acc.warnings).some((w) => w.k === "mixcur"));
+  // La misma cuenta en el CSV (ClientAccountID) sigue dando lo de siempre.
+  assert.equal(ctx.brokerAnalyze("ibkr", [CSV], {}).acc.warnings.some((w) => w.k === "accounts"), false);
+  ok("varias cuentas: se suman por cuenta y se avisa; dos monedas no se mezclan");
+}
+
+/* 8. P3: un costEur anclado no se tira si el fichero trae lo mismo sin ancla; y una posición de un
+      bróker con sincronización propia (Trade Republic) no se toca aunque se mapee a ella. */
+{
+  const r = ctx.brokerAnalyze("ibkr", [XML], {});
+  const s = { investments: [
+    { id: "a", ent: "ibkr", name: "APPLE INC", isin: "US0378331005", shares: 10, value: 2282.2, cost: 1500, costEur: 1380, cur: "USD" },
+    { id: "t", ent: "trade_republic", name: "Apple TR", isin: "US7427181091", ticker: "PG", shares: 3, value: 100, cost: 90, cur: "EUR" },
+  ] };
+  const out = ctx.brkApplyFile(s, "ibkr", r.acc.positions, { US0378331005: "a", US7427181091: "t" }, {}, "2024-11-15");
+  assert.equal(out.investments.find((i) => i.id === "a").costEur, 1380, "mismas participaciones y coste: el ancla se queda");
+  assert.deepEqual(J(out.investments.find((i) => i.id === "t")), s.investments[1], "Trade Republic intacta");
+  // Si cambian las participaciones, el ancla vieja ya no vale y se quita.
+  const s2 = { investments: [Object.assign({}, s.investments[0], { shares: 8, cost: 1200 })] };
+  assert.equal(ctx.brkApplyFile(s2, "ibkr", r.acc.positions, { US0378331005: "a" }, {}, "x").investments[0].costEur, undefined);
+  assert.equal(ctx.brkTargetOk({ ent: "myinvestor" }, "ibkr"), false);
+  assert.equal(ctx.brkTargetOk({ ent: "revolut" }, "ibkr"), true);
+  ok("costEur anclado se conserva si nada cambia; TR/MyInvestor fuera del mapeo");
 }
 
 console.log("\nbroker-ibkr: OK");

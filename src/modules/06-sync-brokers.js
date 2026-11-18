@@ -1059,9 +1059,10 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
        fichero y tiene que decirlo con su fecha, no hacerse pasar por un precio de hoy. Si después
        lo tocaste a mano, manda lo más reciente. */
     const fileMs=it.fileAt?new Date(it.fileAt+"T12:00:00").getTime():0;
-    const lbl=fileMs>0&&fileMs>=ms?tf("iv_file_on",{date:day(fileMs),x:entOf(it.ent).label})
+    // Corta («15 nov · IBKR»): con letra Enorme la larga ocupaba cuatro líneas (filtro de diseño 18/11).
+    if(it.fileGone) return t("iv_file_gone")+" · "+day(new Date(it.fileGone+"T12:00:00").getTime());
+    return fileMs>0&&fileMs>=ms?tf("iv_file_on",{date:day(fileMs),x:entOf(it.ent).short||entOf(it.ent).label})
       :(ms>0?tf("iv_manual_on",{date:day(ms)}):t("iv_manual"));
-    return it.fileGone?t("iv_file_gone")+" · "+lbl:lbl;
   };
   const beginBrokerEdit=function(gid){
     start();
@@ -1159,7 +1160,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"},items.length===1?t("v4_inv_position"):tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
+              React.createElement("div",{className:"meta"},items.length===1?t("v4_inv_position"):tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")),
+                // Lo vendido según el fichero no suma (invValueEur): se dice aquí para que el total no extrañe.
+                (function(){ const n=items.filter(function(i){ return i.fileGone; }).length; return n>0&&React.createElement("div",{className:"hint","data-inv-gone":n},tf("iv_gone_out",{n:n})); })())),
             React.createElement("div",{style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{className:"am num"},f0(o.v)),
               brokerCostComplete && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),

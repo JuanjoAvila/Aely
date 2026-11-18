@@ -87,5 +87,13 @@ test("aplicar → bloque DEGIRO en Cartera con su total en € y la posición en
   await expect(bloque.locator(".am")).toHaveText(new RegExp("^" + String(total).replace(/(\d)(?=(\d{3})$)/, "$1[.\\s]?") + "\\s*€$"));
   await bloque.locator("button").first().click();
   // La posición dice de dónde sale el valor y de qué día: no se hace pasar por un precio de hoy.
-  await expect(bloque.locator(`[data-inv-position="${aapl.id}"]`)).toContainText("según DEGIRO");
+  await expect(bloque.locator(`[data-inv-position="${aapl.id}"] .rsub`)).toHaveText(/^\d{2} \S+ · DEGIRO$/);
+  // El importe no se parte en dos líneas («1.501,25» / «€», filtro de diseño 18/11): con el nombre
+  // largo de DEGIRO es justo donde pasaba. Una sola fila de cajas para el texto de la cifra.
+  await page.setViewportSize({ width: 360, height: 780 });
+  const lineas = await bloque.locator("[data-inv-position] .rval").evaluateAll((els) => els.map((el) => {
+    const r = document.createRange(); r.selectNodeContents(el.firstChild);
+    return new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size;
+  }));
+  expect(lineas).toEqual([1, 1, 1]);
 });

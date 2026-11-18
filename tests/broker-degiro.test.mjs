@@ -155,6 +155,63 @@ const pick = (r) => r.acc.positions.map((p) => ({ key: p.key, shares: p.shares, 
   ok("detección: solo su perfil");
 }
 
+/* 8. P3 de la revisión de dinero (18/11): un fichero donde TODAS las celdas tienen tres decimales
+      no decide el separador por sí solo. Antes se adivinaba celda a celda (×1.000: 125 títulos y
+      12.516 de valor); ahora decide el idioma de la cabecera, el mismo de los números. */
+{
+  const es = "Producto,Símbolo/ISIN,Cantidad,Precio de cierre,Valor local,,Valor en EUR\nFONDO X,IE0000000001,\"0,125\",\"100,125\",EUR,\"12,516\",\"12,516\"\n";
+  const en = "Product,Symbol/ISIN,Quantity,Closing,Local value,,Value in EUR\nFUND X,IE0000000001,0.125,100.125,EUR,12.516,12.516\n";
+  for (const [n, txt] of [["es", es], ["en", en]]) {
+    const p = ctx.brokerAnalyze("degiro", [txt], {}).acc.positions[0];
+    assert.equal(p.shares, 0.125, n + ": 0,125 títulos, no 125");
+    assert.equal(p.valueHint, 12.516, n + ": 12,516 de valor, no 12.516");
+  }
+  ok("decimales ambiguos en todo el fichero: decide el idioma, nunca ×1.000");
+}
+
+/* 9. P3: peniques (GBX). Con «Valor en EUR» la posición va en €; sin él, a libras ÷100. Nunca ×100. */
+{
+  const gbx = "Producto,Símbolo/ISIN,Cantidad,Precio de cierre,Valor local,,Valor en EUR\nUNILEVER,GB00B10RZP78,10,\"4550,00\",GBX,\"45500,00\",\"541,45\"\n";
+  const p = ctx.brokerAnalyze("degiro", [gbx], {}).acc.positions[0];
+  assert.equal(p.cur, "EUR"); assert.equal(p.valueHint, 541.45);
+  const sinEur = gbx.replace(',"541,45"', ",");
+  const q = ctx.brokerAnalyze("degiro", [sinEur], {}).acc.positions[0];
+  assert.equal(q.cur, "GBP"); assert.equal(q.valueHint, 455); assert.equal(q.price, 45.5);
+  ok("GBX: en € con el valor del fichero, o en libras ÷100");
+}
+
+/* 10. P2 de la revisión de dinero (18/11): lo marcado «ya no está» NO suma en el patrimonio.
+       Antes seguía contando con su valor congelado, y si se vendió para comprar otra cosa, dos veces.
+       Caso: Tesla ×3 por 600 € vendida y, con ese dinero, Apple ×10 por 2.282,20 $. */
+{
+  const st = { fx: 0.92, fxRates: { USD: 0.92 }, investments: [
+    { id: "tsla", ent: "degiro", name: "Tesla", isin: "US88160R1014", shares: 3, value: 600, cost: 500, cur: "EUR", src: "csv:degiro" },
+    { id: "z", ent: "degiro", name: "Zalando", isin: "DE000ZAL1111", shares: 5, value: 100, cost: 90, cur: "EUR", src: "csv:degiro" },
+  ] };
+  const r = ctx.brokerAnalyze("degiro", [CARTERA_ES, TX_ES], {});
+  const map = { US0378331005: "__new" };
+  const gone = ctx.brkGoneOf(st.investments, "degiro", r.acc.positions, map);
+  const marks = Object.fromEntries(gone.map((i) => [i.id, 1]));
+  const out = ctx.brkApplyFile(st, "degiro", r.acc.positions, map, marks, "2024-11-15");
+  const total = (s) => s.investments.reduce((a, i) => a + ctx.invValueEur(i, s), 0);
+  const coste = (s) => s.investments.reduce((a, i) => a + ctx.invCostEur(i, s), 0);
+  // Por una vía: suma de lo que el motor da por vivo. Por la otra: solo Apple, a mano (2.282,20 × 0,92).
+  assert.equal(+total(out).toFixed(2), +(2282.2 * 0.92).toFixed(2), "Tesla y Zalando ya no suman");
+  assert.equal(+coste(out).toFixed(2), 1559.17, "ni su coste");
+  assert.equal(out.investments.filter((i) => i.fileGone).length, 2, "siguen ahí, marcadas, para borrarlas o corregirlas");
+  assert.equal(ctx.fxMissingOf(out), 0, "marcar no deja el total como «incompleto»");
+  ok("patrimonio: lo vendido según el fichero no suma, ni valor ni coste");
+}
+
+/* 11. P3: una posición sin ISIN que SIGUE en el fichero (aunque se deje en «no tocar») no es «ya no está». */
+{
+  const conSym = CARTERA_ES + "CERTIFICADO RARO,XYZ123,4,\"10,00\",EUR,\"40,00\",\"40,00\"\n";
+  const r = ctx.brokerAnalyze("degiro", [conSym], {});
+  const inv = [{ id: "x1", ent: "degiro", name: "Certificado", fileSym: "XYZ123", src: "csv:degiro", shares: 4, value: 40, cur: "EUR" }];
+  assert.deepEqual(J(ctx.brkGoneOf(inv, "degiro", r.acc.positions, {})), []);
+  ok("sin ISIN pero en el fichero: no se marca como vendida");
+}
+
 /* Golden LOCAL, nunca commiteado: si alguien deja un export real en tests/fixtures/local/
    (ignorado por git), se valida por dos vías. Sin fichero, no hace nada. */
 {

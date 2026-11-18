@@ -528,6 +528,16 @@ function brkIsoDate(s){
   if((m=/^(\d{1,2})[\-\/.](\d{1,2})[\-\/.](\d{4})/.exec(s))) return m[3]+"-"+("0"+m[2]).slice(-2)+"-"+("0"+m[1]).slice(-2);
   return null;
 }
+/* Peniques (GBX/GBp, Londres): el BCE no tiene cambio para ellos y tomarlos por libras multiplica
+   por 100. Con el «Valor en EUR» del fichero (y sin un coste nativo que se quedaría huérfano) la
+   posición va en €; si no, se pasa a libras ÷100, que es exacto. */
+function brkPence(po){
+  if(po.cur!=="GBX" && po.cur!=="GBp") return po;
+  if(po.valueEurHint!=null && (po.cost==null || po.costEur!=null))
+    return Object.assign(po,{cur:"EUR", valueHint:po.valueEurHint, cost:po.costEur, price:null});
+  const d=function(n){ return n==null?null:+(n/100).toFixed(4); };
+  return Object.assign(po,{cur:"GBP", valueHint:d(po.valueHint), cost:po.cost==null?null:+(po.cost/100).toFixed(2), price:d(po.price)});
+}
 function brkHeadRow(rows, need){
   for(let i=0;i<Math.min(rows.length,6);i++){ const h=rows[i].map(brkKey); if(need(h)) return i; }
   return -1;
@@ -555,6 +565,12 @@ function degiroHead(h, tx){
   if(tx) return c("date")>=0 && c("isin")>=0 && c("qty")>=0 && c("price")>=0 && h.indexOf("isin")>=0;
   return c("prod")>=0 && c("isin")>=0 && c("qty")>=0 && c("local")>=0 && c("date")<0;
 }
+/* Si ninguna celda decide el decimal (todas con tres decimales, «0,125»), decide el IDIOMA de la
+   cabecera, que es el de los números: en inglés punto, en es/nl/de coma. Nunca se vuelve a
+   adivinar celda a celda, que leía «0,125» participaciones como 125 (revisión de dinero 18/11). */
+function degiroDec(head){
+  return head.some(function(h){ return ["product","quantity","closing","date","local value"].indexOf(h)>=0; })?".":",";
+}
 // Transacciones → operaciones por ISIN. Cada fila lleva su clave (orden + fecha + cantidad) para que
 // soltar el mismo fichero dos veces no duplique compras.
 function degiroParseTx(text){
@@ -563,7 +579,7 @@ function degiroParseTx(text){
   const head=rows[hi].map(brkKey); const ci={}; Object.keys(DEGIRO_COLS).forEach(function(k){ ci[k]=brkCol(head,DEGIRO_COLS[k]); });
   // «Valor» a secas es el importe en EUR: se busca EXACTO, que «valor local» también empieza por «valor».
   ci.value=-1; DEGIRO_COLS.value.some(function(n){ const j=head.indexOf(n); if(j>=0){ ci.value=j; return true; } return false; });
-  const body=rows.slice(hi+1); const dec=brkDecimal(body);
+  const body=rows.slice(hi+1); const dec=brkDecimal(body)||degiroDec(head);
   const ops={}; let n=0;
   body.forEach(function(f){
     const isin=String(f[ci.isin]||"").trim().toUpperCase(); if(!BRK_ISIN.test(isin)) return;
@@ -607,7 +623,7 @@ function degiroParseCartera(text, memo){
   const rows=brkRows(text); const hi=brkHeadRow(rows,function(h){ return degiroHead(h,false); });
   if(hi<0) return null;
   const head=rows[hi].map(brkKey); const ci={}; ["prod","isin","qty","close","local","eur"].forEach(function(k){ ci[k]=brkCol(head,DEGIRO_COLS[k]); });
-  const body=rows.slice(hi+1); const dec=brkDecimal(body);
+  const body=rows.slice(hi+1); const dec=brkDecimal(body)||degiroDec(head);
   const tx=(memo&&memo.degiroTx)||null;
   const positions=[], cash=[], warnings=[]; let skipped=0;
   body.forEach(function(f){
@@ -632,7 +648,7 @@ function degiroParseCartera(text, memo){
         if(Math.abs(c.shares-q)>1e-6) po.costWhy="tx_mismatch";
         else { po.cost=(!c.cur||c.cur===po.cur)?c.cost:null; po.costEur=c.costEur; po.costWhy=po.cost==null&&po.costEur==null?"tx_partial":null; } }
     }
-    positions.push(po);
+    positions.push(brkPence(po));
   });
   if(!positions.length && !cash.length) return null;
   return { positions:positions, cash:cash, warnings:warnings, skipped:skipped, dividends:0, fees:0, from:null, to:null, snapshot:true };
@@ -652,7 +668,7 @@ var IBKR_SKIP={ OPT:1, FOP:1, FUT:1, WAR:1, CFD:1, CASH:1, "EQUITY AND INDEX OPT
 /* Filas ya normalizadas (claves en minúscula, las de Flex) → posiciones. Con SUMMARY y LOT a la
    vez manda SUMMARY; si solo hay lotes, se suman. */
 function ibkrPositions(rows, dec){
-  const by={}; const warnings=[]; let deriv=0, shorts=0;
+  const by={}; const accts={}; const warnings=[]; let deriv=0, shorts=0;
   rows.forEach(function(r){
     const cat=String(r.assetcategory||r.assetclass||"").toUpperCase();
     if(IBKR_SKIP[cat]){ deriv++; return; }
@@ -661,12 +677,25 @@ function ibkrPositions(rows, dec){
     const key=BRK_ISIN.test(isin)?isin:(sym+(exch?"@"+exch:""));
     if(!key) return;
     const lvl=String(r.levelofdetail||"SUMMARY").toUpperCase();
-    const g=by[key]||(by[key]={sum:null,lots:[]});
-    if(lvl==="LOT") g.lots.push(r); else g.sum=r;
+    /* POR CUENTA (revisión de dinero 18/11): un Flex de varias cuentas (individual + conjunta, IRA…)
+       trae una fila SUMMARY por cuenta y por valor. Quedarse con la última dejaba VWCE 20+5 en 5 y
+       el patrimonio 2.402 € más bajo sin aviso. Cada cuenta manda su SUMMARY (o sus lotes) y se suman. */
+    const acct=String(r.accountid||r.clientaccountid||r.account||"").trim();
+    if(acct) accts[acct]=1;
+    const g=by[key]||(by[key]={});
+    const a=g[acct]||(g[acct]={sum:null,lots:[]});
+    if(lvl==="LOT") a.lots.push(r); else a.sum=r;
   });
   const positions=[];
+  const nAcct=Object.keys(accts).length;
+  if(nAcct>1) warnings.push({k:"accounts",n:nAcct});
   Object.keys(by).forEach(function(key){
-    const g=by[key]; const rs=g.sum?[g.sum]:g.lots; const r0=rs[0];
+    const g=by[key]; const rs=[];
+    Object.keys(g).forEach(function(k){ const a=g[k]; Array.prototype.push.apply(rs, a.sum?[a.sum]:a.lots); });
+    const r0=rs[0];
+    // El mismo valor en dos monedas no se suma: se avisa y no entra.
+    const curs={}; rs.forEach(function(r){ curs[String(r.currency||r.currencyprimary||"").trim().toUpperCase()]=1; });
+    if(Object.keys(curs).length>1){ warnings.push({k:"mixcur",name:String(r0.description||r0.symbol||key).trim()}); return; }
     const num=function(r,k){ return brkNum(r[k],dec); };
     const tot=function(k){ let s=0,ok=true; rs.forEach(function(r){ const v=num(r,k); if(v==null) ok=false; else s+=v; }); return ok?s:null; };
     const q=tot("position")!=null?tot("position"):tot("quantity");
@@ -688,7 +717,7 @@ function ibkrPositions(rows, dec){
     // Dos vías: cantidad × precio de marca (× multiplicador) contra el valor que trae el fichero.
     const mult=num(r0,"multiplier")||num(r0,"mult")||1;
     if(mark!=null && val!=null && Math.abs(q*mark*mult-val)>Math.max(0.05,Math.abs(val)*0.005)) warnings.push({k:"check",name:po.name});
-    positions.push(po);
+    positions.push(brkPence(po));
   });
   if(deriv) warnings.push({k:"deriv",n:deriv});
   if(shorts) warnings.push({k:"short",n:shorts});
@@ -725,7 +754,7 @@ function ibkrParseFlexCsv(text){
     const o={}; head.forEach(function(h,j){ if(h) o[h]=f[j]; }); recs.push(o);
   });
   if(!recs.length) return null;
-  const dec=brkDecimal(rows);
+  const dec=brkDecimal(rows)||".";
   const pos=ibkrPositions(recs.filter(function(r){ return (r.position!=null||r.quantity!=null) && (r.markprice!=null||r.positionvalue!=null); }),dec);
   const cash=ibkrCash(recs.filter(function(r){ return r.endingcash!=null; }),dec);
   if(!pos.positions.length && !cash.length) return null;
@@ -739,7 +768,7 @@ var MONTHS_EN=["january","february","march","april","may","june","july","august"
 function ibkrParseActivity(text){
   const rows=brkRows(text);
   if(!rows.length || !rows.some(function(f){ return String(f[1]||"").trim()==="Header" && brkKey(f[0])==="open positions"; })) return null;
-  const dec=brkDecimal(rows);
+  const dec=brkDecimal(rows)||".";
   const heads={}; const data={}; const totals=[];
   rows.forEach(function(f){
     const sec=brkKey(f[0]), kind=String(f[1]||"").trim();
@@ -860,9 +889,16 @@ function brkSuggest(po, investments, ent){
    resurrecciones de las sagas de Revolut y Trade Republic. Solo con un fichero de cartera
    COMPLETA (snapshot): con unas transacciones sueltas no se puede saber qué ya no está. */
 function brkGoneOf(investments, ent, positions, map){
-  const keys={}; positions.forEach(function(p){ if(p.isin) keys[p.isin]=1; if(map[p.key]) keys["#"+map[p.key]]=1; });
-  return (investments||[]).filter(function(i){ return i.ent===ent && !keys["#"+i.id] && !(i.isin && keys[i.isin]) && (i.src==="csv:"+ent||i.isin); });
+  const keys={}; positions.forEach(function(p){ if(p.isin) keys[p.isin]=1; if(p.sym) keys["s:"+String(p.sym).toUpperCase()]=1; if(map[p.key]) keys["#"+map[p.key]]=1; });
+  // También por el símbolo del fichero: una posición sin ISIN que SIGUE en el fichero (aunque se
+  // deje en «no tocar») no está vendida, y marcarla la sacaría del patrimonio.
+  const sym=function(i){ const x=String(i.fileSym||i.ticker||"").toUpperCase(); return x && keys["s:"+x]; };
+  return (investments||[]).filter(function(i){ return i.ent===ent && !keys["#"+i.id] && !(i.isin && keys[i.isin]) && !sym(i) && (i.src==="csv:"+ent||i.isin); });
 }
+// Brókers con sincronización propia: sus posiciones no se ofrecen al importar un fichero de otro,
+// porque cambiarlas de bróker haría que su sincronización las volviera a crear (contaría doble).
+var BRK_OWN_SYNC={ trade_republic:1, myinvestor:1 };
+function brkTargetOk(i, ent){ return i.ent===ent || !BRK_OWN_SYNC[i.ent]; }
 /* Aplicar (DEGIRO, IBKR y los que vengan). Solo lo mapeado; lo que el fichero no trae se
    respeta. El precio en vivo NO se engancha: `prices` aún no sabe la moneda de cada cotización
    (un GBp tomado por GBP multiplica por 100), así que el símbolo del fichero se guarda aparte
@@ -871,7 +907,7 @@ function brkApplyFile(s, ent, positions, map, goneMark, at){
   const used={};
   let inv=(s.investments||[]).map(function(i){
     if(goneMark[i.id]) return Object.assign({},i,{fileGone:at});
-    const po=positions.find(function(p){ return map[p.key]===i.id; });
+    const po=brkTargetOk(i, ent) && positions.find(function(p){ return map[p.key]===i.id; });
     if(!po) return i;
     used[po.key]=1;
     const patch={ shares:po.shares, ent:ent, src:"csv:"+ent };
@@ -882,7 +918,12 @@ function brkApplyFile(s, ent, positions, map, goneMark, at){
     if(curOk){
       patch.cur=po.cur;
       if(po.valueHint!=null){ patch.value=+po.valueHint.toFixed(2); patch.fileAt=at; }
-      if(po.cost!=null || po.costEur!=null){ patch.cost=po.cost; patch.costEur=po.costEur; }
+      if(po.cost!=null || po.costEur!=null){
+        patch.cost=po.cost; patch.costEur=po.costEur;
+        // Un `costEur` anclado (el € que de verdad se pagó) no se tira si el fichero trae lo mismo
+        // que ya había —mismas participaciones y mismo coste nativo— pero sin ancla propia.
+        if(po.costEur==null && typeof i.costEur==="number" && sameCur && i.shares===po.shares && Number(i.cost)===po.cost) patch.costEur=i.costEur;
+      }
     }
     if(patch.value==null){ const pps=(i.shares>0 && i.value>0)?(i.value/i.shares):null; if(pps!=null) patch.value=+(pps*po.shares).toFixed(2); }
     if(!i.isin && po.isin) patch.isin=po.isin;
@@ -910,8 +951,8 @@ function brkApplyFile(s, ent, positions, map, goneMark, at){
    y dibujar el logo es justo lo que se rechazó cuatro veces). */
 var BROKER_FILE_CARDS={
   revolut:{ cls:"bk-csv", logo:"CSV", logoStyle:{background:"#9BD0E022",color:"#9BD0E0"}, title:"bi_rev_title", sub:"bi_sub", btn:"bi_rev_steps_btn", steps:"bi_rev_steps", file:"bi_file", accept:".csv,text/csv,text/plain" },
-  degiro:{ cls:"bk-file", logo:"DG", title:"bf_degiro_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_degiro_steps", file:"bi_file", accept:".csv,text/csv,text/plain" },
-  ibkr:{ cls:"bk-file", logo:"IB", title:"bf_ibkr_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_ibkr_steps", file:"bf_file", accept:".csv,.xml,text/csv,text/xml,application/xml,text/plain" }
+  degiro:{ cls:"bk-file", logo:"DG", title:"bf_degiro_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_degiro_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,text/csv,text/plain" },
+  ibkr:{ cls:"bk-file", logo:"IB", title:"bf_ibkr_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_ibkr_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,.xml,text/csv,text/xml,application/xml,text/plain" }
 };
 /* Tarjeta de importación por fichero. Vive junto a Trade Republic en «Mis bancos».
    Previsualización obligatoria + mapeo por posición antes de aplicar: el usuario cuadra contra
@@ -1031,10 +1072,12 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
     if(fetchPrices) setTimeout(function(){ fetchPrices(true); },50);
   };
   const brand=function(isOpen){
-    return bkBrand({logo:card.logo, logoStyle:card.logoStyle||{background:"var(--sur2)",color:"var(--text)"}, title:t(card.title), sub:t(card.sub),
+    const c=entOf(ent).color;
+    return bkBrand({logo:card.logo, logoStyle:card.logoStyle||{background:c+"22",color:c,borderColor:c+"44"}, title:t(card.title), sub:t(card.sub),
              badge:null, open:isOpen, onToggle:onToggle});
   };
-  const cardProps={className:"bk-card "+card.cls,"data-broker-file":ent};
+  // El borde de acento con el color del bróker: el de `var(--line)` casi no se veía en oscuro.
+  const cardProps={className:"bk-card "+card.cls,"data-broker-file":ent,style:rev?undefined:{borderLeftColor:entOf(ent).color}};
   if(open===false) return React.createElement("div",cardProps, brand(false));
   const errTxt=!err?null:(err==="aux"?t(rev?"bi_err_fiat":"bf_err_aux"):(err==="pnl"?t("bi_err_pnl")
     :(err.indexOf("other:")===0?tf("bf_err_other",{x:entOf(err.slice(6)).label}):t("bi_err"))));
@@ -1042,15 +1085,15 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
   const natAmt=function(n,cur){ return n==null?"—":NF.format(n)+" "+(cur||"EUR"); };
   return React.createElement("div",cardProps,
     brand(true),
-    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("bi_hint")),
+    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t(card.hint||"bi_hint")),
     React.createElement("button",{className:"chip",style:{marginBottom:10},onClick:function(){ setSteps(!steps); }}, (steps?"▾ ":"▸ ")+t(card.btn)),
-    steps && React.createElement("ol",{style:{margin:"0 0 12px",paddingLeft:18,fontSize:12.5,color:"var(--muted)",lineHeight:1.6}},
+    steps && React.createElement("ol",{className:"bf-in",style:{margin:"0 0 12px",paddingLeft:18,fontSize:12.5,color:"var(--muted)",lineHeight:1.6}},
       (t(card.steps)||[]).map(function(st,i){ return React.createElement("li",{key:i,style:{marginBottom:4}}, st); })
     ),
     !parsed && doneN==null && React.createElement(React.Fragment,null,
       React.createElement("label",{className:"btn btn-ghost btn-block",style:{cursor:"pointer",marginBottom:8}}, t(card.file),
         React.createElement("input",{type:"file",accept:card.accept,multiple:true,style:{display:"none"},onChange:onFile})),
-      React.createElement("textarea",{className:"af-in",style:{width:"100%",minHeight:70,fontFamily:"monospace",fontSize:11,boxSizing:"border-box"},placeholder:t("bi_paste_ph"),value:text,onChange:function(e){ setText(e.target.value); }}),
+      React.createElement("textarea",{className:"af-in",style:{width:"100%",minHeight:70,fontFamily:"monospace",fontSize:11,boxSizing:"border-box"},placeholder:t(card.ph||"bi_paste_ph"),value:text,onChange:function(e){ setText(e.target.value); }}),
       React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},disabled:!text.trim(),onClick:function(){ analyze(); }}, t("bi_analyze"))
     ),
     // «aux» no es un fallo: el fichero se leyó bien y sus datos están guardados. Va en caja
@@ -1059,8 +1102,8 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
     parsed && !rev && React.createElement(BrokerFilePreview,{parsed:parsed, ent:ent, state:state, map:map, setMap:setMap,
       goneList:goneList, gone:gone, setGone:setGone, mappedN:mappedN, goneN:goneN, natAmt:natAmt,
       apply:apply, cancel:function(){ setParsed(null); }}),
-    parsed && rev && React.createElement(React.Fragment,null,
-      React.createElement("div",{className:"hint",style:{marginTop:6}}, tf("bi_summary",{n:parsed.positions.length, from:parsed.from||"—", to:parsed.to||"—"})),
+    parsed && rev && React.createElement("div",{className:"bf-in"},
+      React.createElement("div",{className:"hint",style:{marginTop:6}}, tf(parsed.positions.length===1?"bi_summary_one":"bi_summary",{n:parsed.positions.length, from:parsed.from||"—", to:parsed.to||"—"})),
       parsed.skipped>0 && React.createElement("div",{className:"hint",style:{marginTop:0}}, tf("bi_skipped",{n:parsed.skipped})),
       mappedN<parsed.positions.length && React.createElement("div",{className:"hint",style:{marginTop:4}}, t("bi_unmatched_hint")),
       parsed.positions.map(function(po){
@@ -1093,11 +1136,11 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
         t(parsed.positions.some(function(p){ return p.metal && p.cost!=null; })?"bi_metal_auto":"bi_metal_hint")),
       (parsed.dividends>0) && React.createElement("div",{className:"hint",style:{marginTop:2}}, tf("bi_cash_info",{int:eur(0), div:eur(parsed.dividends)})),
       React.createElement("div",{className:"hint",style:{marginTop:2}}, t("bi_usd_hint")),
-      React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:mappedN===0,onClick:apply}, tf("bi_apply",{n:mappedN})),
+      React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:mappedN===0,onClick:apply}, tf(mappedN===1?"bi_apply_one":"bi_apply",{n:mappedN})),
       React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ setParsed(null); }}, t("fj_cancel")),
       React.createElement("div",{className:"hint"},t("bi_apply_hint"))
     ),
-    doneN!=null && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700,marginTop:8}}, tf("bi_done",{n:doneN}))
+    doneN!=null && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700,marginTop:8}}, tf(doneN===1?"bi_done_one":"bi_done",{n:doneN}))
   );
 }
 /* Vista previa de DEGIRO / IBKR. Por fila: qué trae el fichero (participaciones, valor en su
@@ -1107,12 +1150,13 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
   const sinPareja=parsed.positions.filter(function(p){ return !map[p.key]; });
   const warn=parsed.warnings||[];
   const sm={fontSize:12,color:"var(--muted)",lineHeight:1.4};
-  return React.createElement(React.Fragment,null,
+  const nPos=parsed.positions.length, nAp=mappedN+goneN;
+  return React.createElement("div",{className:"bf-in"},
     // Una cartera de DEGIRO no trae fecha: sin ella, «· — → —» no dice nada y se quita.
-    React.createElement("div",{className:"hint",style:{marginTop:6}}, tf("iv_positions",{n:parsed.positions.length})+(parsed.to?" · "+new Date(parsed.to+"T12:00:00").toLocaleDateString(loc(),{day:"2-digit",month:"short",year:"numeric"}):"")),
+    React.createElement("div",{className:"hint",style:{marginTop:6}}, (nPos===1?t("v4_inv_position"):tf("iv_positions",{n:nPos}))+(parsed.to?" · "+new Date(parsed.to+"T12:00:00").toLocaleDateString(loc(),{day:"2-digit",month:"short",year:"numeric"}):"")),
     sinPareja.length>0 && React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",margin:"4px 0 6px"}},
       React.createElement("span",{className:"hint",style:{margin:0,flex:"1 1 160px"}}, t("bf_unmatched")),
-      React.createElement("button",{type:"button",className:"chip","data-act":"bf-create-all",onClick:function(){
+      React.createElement("button",{type:"button",className:"chip","data-act":"bf-create-all",style:{minHeight:44},onClick:function(){
         setMap(function(m){ const n=Object.assign({},m); sinPareja.forEach(function(p){ n[p.key]="__new"; }); return n; }); }},
         sinPareja.length===1?t("bf_create_one"):tf("bf_create_all",{n:sinPareja.length}))),
     parsed.positions.map(function(po){
@@ -1126,17 +1170,19 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
           React.createElement("div",{className:"rval num",style:{flex:"0 0 auto"}}, cost)),
         // Sin coste, o con coste sin anclar en €: se dice por qué en una línea.
         po.costWhy && React.createElement("div",{style:sm}, t("bf_cost_"+po.costWhy)),
-        React.createElement("select",{className:"af-in",value:map[po.key]||"",onChange:function(e){ setOne(po.key,e.target.value); }},
+        React.createElement("select",{className:"af-in bf-sel",value:map[po.key]||"",onChange:function(e){ setOne(po.key,e.target.value); }},
           React.createElement("option",{value:""},t("bi_notouch")),
           React.createElement("option",{value:"__new"},t("tr_createnew")),
-          (state.investments||[]).map(function(i){ return React.createElement("option",{key:i.id,value:i.id}, i.name+" · "+entOf(i.ent).label); })));
+          (state.investments||[]).filter(function(i){ return brkTargetOk(i, ent); }).map(function(i){ return React.createElement("option",{key:i.id,value:i.id}, i.ent===ent?i.name:i.name+" · "+(entOf(i.ent).short||entOf(i.ent).label)); })));
     }),
     goneList.length>0 && React.createElement("div",{style:{marginTop:10}},
       React.createElement("div",{className:"bk-sec",style:{marginBottom:4}}, t("bf_gone_title")),
       goneList.map(function(i){
-        return React.createElement("div",{key:i.id,className:"row","data-bf-gone":i.id,style:{alignItems:"center",gap:10}},
-          React.createElement("div",{className:"rname",style:{flex:1,minWidth:0}}, i.name),
-          React.createElement("select",{className:"af-in",style:{flex:"0 0 auto",width:"auto"},value:gone[i.id]===""?"":"mark",
+        // El selector debajo y a todo el ancho, como en las filas de arriba: al lado, con letra
+        // Enorme, el nombre bajaba a tres líneas.
+        return React.createElement("div",{key:i.id,className:"row","data-bf-gone":i.id,style:{alignItems:"flex-start",flexDirection:"column",gap:6}},
+          React.createElement("div",{className:"rname",style:{overflowWrap:"anywhere"}}, i.name),
+          React.createElement("select",{className:"af-in bf-sel",value:gone[i.id]===""?"":"mark",
             onChange:function(e){ const v=e.target.value==="mark"?"mark":""; setGone(function(g){ const n=Object.assign({},g); n[i.id]=v; return n; }); }},
             React.createElement("option",{value:"mark"},t("bf_gone_mark")),
             React.createElement("option",{value:""},t("bi_notouch"))));
@@ -1145,8 +1191,9 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
     (parsed.cash||[]).length>0 && React.createElement("div",{className:"hint",style:{marginTop:4}},
       tf("bf_cash",{x:parsed.cash.map(function(c){ return natAmt(c.amt,c.cur); }).join(" · ")})),
     React.createElement("div",{className:"hint",style:{marginTop:4}}, t("bf_value_file")),
-    React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:mappedN+goneN===0,onClick:apply}, tf("bi_apply",{n:mappedN+goneN})),
-    React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:cancel}, t("fj_cancel"))
+    React.createElement("div",{className:"bf-foot"},
+      React.createElement("button",{className:"btn btn-ghost",style:{flex:"0 0 auto",minHeight:44},onClick:cancel}, t("fj_cancel")),
+      React.createElement("button",{className:"btn btn-primary",style:{flex:1,minHeight:44},disabled:nAp===0,onClick:apply}, tf(nAp===1?"bi_apply_one":"bi_apply",{n:nAp})))
   );
 }
 

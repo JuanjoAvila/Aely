@@ -2527,6 +2527,19 @@
   .v4-banks .bk-card.bk-mi{border-left:4px solid #C9A0E0;}
   .v4-banks .bk-card.bk-csv{border-left:4px solid #9BD0E0;}
   .v4-banks .bk-card.bk-file{border-left:4px solid var(--line);}
+  /* Importar por fichero (filtro de diseño 18/11): el selector de mapeo corta con «…» y deja sitio
+     a la flecha; el pie con Aplicar/Cancelar se queda a la vista en vistas previas largas; lo que
+     se despliega (pasos, vista previa) entra suave. */
+  .v4-banks select.bf-sel{min-height:44px;padding-right:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* `bottom` negativo: el sticky se para en el padding inferior del panel (safe-bottom + 28 px) y
+     dejaba ver filas por debajo del pie; así se pega al borde real de la pantalla. */
+  .v4-banks .bf-foot{position:sticky;bottom:calc(-1 * (var(--safe-bottom) + 28px));z-index:2;display:flex;gap:8px;margin:12px -16px -16px;padding:10px 16px calc(10px + var(--safe-bottom));
+    background:var(--sur);border-top:1px solid var(--line-soft);border-radius:0 0 18px 18px;}
+  .v4-banks .bf-in{animation:bfIn .22s ease both;}
+  @keyframes bfIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){ .v4-banks .bf-in{animation:none;} }
+  /* El importe de una posición no se parte («1.501,25» / «€»): cede el nombre, no la cifra. */
+  .v4-inv-drop .row .rval{white-space:nowrap;}
   .v4-banks .bk-ver{font-size:11px;color:var(--muted-2);text-align:center;margin-top:18px;font-weight:600;}
   /* Novedades: entra con el resto (sin «delay y luego zarpazo»). */
   .wn-panel{position:fixed;inset:0;z-index:97;overflow-y:auto;background:var(--bg);color:var(--text);

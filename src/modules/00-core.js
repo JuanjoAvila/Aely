@@ -697,9 +697,11 @@ const ENT = {
   revolut:        { label:"Revolut",        mono:"Rv", color:"#5FD08A" },
   trade_republic: { label:"Trade Republic", mono:"TR", color:"#E6C36A" },
   myinvestor:     { label:"MyInvestor",     mono:"MI", color:"#C9A0E0" },
-  // Brókers por fichero (18/11): sin PNG oficial que recortar, monograma sobrio (`sobrio`), nunca un logo dibujado.
-  degiro:         { label:"DEGIRO",         mono:"DG", color:"#5FB0D0", sobrio:true },
-  ibkr:           { label:"Interactive Brokers", mono:"IB", color:"#E2705F", sobrio:true },
+  // Brókers por fichero (18/11): sin PNG oficial que recortar, el monograma de la casa, nunca un logo
+  // dibujado. Colores ya de la app y sin repetir el de otro banco (#E2705F es Santander). `short`: la
+  // línea de origen de cada posición («15 nov · IBKR»), que con letra grande no cabe con el nombre largo.
+  degiro:         { label:"DEGIRO",         mono:"DG", color:"#9BD0E0" },
+  ibkr:           { label:"Interactive Brokers", mono:"IB", color:"#E85D4C", short:"IBKR" },
   caixabank:      { label:"CaixaBank",      mono:"Cx", color:"#3FA9E0" },
   bbva:           { label:"BBVA",           mono:"BB", color:"#4B7FD6" },
   santander:      { label:"Santander",      mono:"Sa", color:"#E2705F" },
@@ -756,12 +758,16 @@ function FxNotice({missing}){
   return missing>0 ? React.createElement("div",{className:"hint","data-fx-incomplete":"1",role:"status"},t("fx_total_incomplete")) : null;
 }
 /** Coste en € anclado (costEur) o conversión spot del cost nativo. */
+/* Lo que el fichero del bróker ya NO trae (`fileGone`, vendido) pesa 0 en todos los totales
+   (revisión de dinero 18/11): marcado pero sumando, su valor congelado contaba dos veces si se
+   vendió para comprar otra cosa. La fila sigue a la vista, con su aviso, para borrarla o corregirla. */
 function invCostEur(i, s){
-  if(!i) return 0;
+  if(!i||i.fileGone) return 0;
   if(typeof i.costEur==="number"&&isFinite(i.costEur)) return i.costEur;
   return toEurAmt(i.cost||0, i.cur||"EUR", s);
 }
 function invValueEur(i, s){
+  if(i&&i.fileGone) return 0;
   return toEurAmt(i&&i.value||0, i&&i.cur||"EUR", s);
 }
 
