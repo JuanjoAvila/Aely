@@ -7010,7 +7010,7 @@ function fixedPausa(s, id, from, until){
   if(e&&f&&(s.fixed||[]).filter(function(x){return x.id===id;}).length===1&&fixedPausedIn(e,y,m)&&!fixedPausedIn(f,y,m)&&origin&&origin.schema===1&&origin.origin==="manual-v1"&&Number.isSafeInteger(origin.ym)&&origin.ym>0&&origin.ym<=ym){
     // Si otro cliente duplicó el ID de cuenta, ninguna copia de esa identidad recibe
     // dinero. Las demás cuentas siguen la compensación de base.
-    const restored=Object.assign({},out,{accounts:(out.accounts||[]).map(function(x,i){const a=(s.accounts||[])[i];return a&&a.id===origin.accountId&&a.ent===origin.ent?Object.assign({},x,{value:a.value}):x;})});
+    const restored=Object.assign({},out,{accounts:(out.accounts||[]).map(function(x,i){const a=(s.accounts||[])[i];return a&&a.id===origin.accountId&&a.ent===origin.ent?conValor(x,a.value):x;})});
     const a=manualBalanceAccount(s,origin.accountId),proof=a&&a.ent===origin.ent&&manualBalanceRead(s,a.id);
     return proof?manualBalanceStage(restored,s,"pause",[{before:manualBalanceModel(a),next:Object.assign({},proof)}]):restored;
   }
@@ -7022,7 +7022,7 @@ function fixedPausa(s, id, from, until){
   const compensated=manualBalanceAccount(out,a.id);
   if(!compensated||Math.abs(compensated.value-a.value)<=0.005) return out;
   f.manualPauseBalance={schema:1,origin:"manual-v1",ym:ym,accountId:a.id,ent:a.ent};
-  const restored=Object.assign({},out,{accounts:(out.accounts||[]).map(function(x){return x.id===a.id?Object.assign({},x,{value:a.value}):x;})});
+  const restored=Object.assign({},out,{accounts:(out.accounts||[]).map(function(x){return x.id===a.id?conValor(x,a.value):x;})});
   return manualBalanceStage(restored,s,"pause",[{before:manualBalanceModel(a),next:Object.assign({},proof)}]);
 }
 /* Quitar o poner un recibo con una parte que se descuenta de una deuda mueve también la cuota

@@ -245,3 +245,29 @@ test("«son distintos» tras un cierre viejo: el redondeo también va a la posic
   // «Es el mismo» no toca la posición.
   assert.equal(resuelve(c,true).investments[0].value,c.investments[0].value);
 });
+
+// Segunda vuelta de la revisión: las restauraciones también se llevan la marca. El Deshacer de Plan › Recibos
+// (`reponerBases`) repone la base de antes en cualquier cuenta que movió la acción, también una de Open Banking
+// con marca; con `Object.assign` la marca se quedaba con la `v` de la acción y dejaba de valer (`din-b6`).
+test("el Deshacer de Plan › Recibos repone la base y la marca sigue valiendo: vuelve a 1.000 (antes 970)",()=>{
+  const s0=leeH3(casoH3());
+  reloj.t=new Date(2026,10,10,12).getTime();
+  const flows=s0.flows.map(f=>Object.assign({},f,{paidYm:2026*12+11,paidDay:10,paidBank:"sabadell",paidAmount:500}));
+  const s1=nuevo.keepShownAcrossFlows(s0,flows);            // una acción que desplaza la base y renueva la marca
+  assert.notEqual(s1.accounts[0].value,s0.accounts[0].value);
+  const deshecho=Object.assign({},s1,{flows:s0.flows,accounts:nuevo.reponerBases(s1.accounts,[{id:"sb",antes:s0.accounts[0].value}])});
+  assert.equal(deshecho.accounts[0].value,s0.accounts[0].value);
+  assert.equal(nuevo.anclaConReglas(deshecho.accounts[0]),true);
+  assert.equal(pinta(nuevo,deshecho).sb,100000);
+});
+
+test("el puente de TR ancla con la regla nueva y lo marca sin hora: una TR que antes fue de Open Banking no cae al cierre viejo",()=>{
+  const s=casoAMano(0);
+  reloj.t=OCT28;
+  const conOB=Object.assign(json(s),{accounts:[{id:"t",ent:"trade_republic",role:"diario",spendFrom:true,value:0,balSaldo:10,bankUid:"x",anclaReglas:{r:240,v:5,t:null}},s.accounts[1]]});
+  assert.equal(nuevo.cierreConReglaVieja(conOB.accounts[0]),true,"la marca de antes ya no valía");
+  const tr=nuevo.applyTrCash(conOB,900,Object.assign({roundupThisMonth:0,monthlyInvestThisMonth:0},nuevo.insumosSaldoGasto(conOB)));
+  assert.equal(nuevo.anclaConReglas(tr.accounts[0]),true);
+  assert.equal(tr.accounts[0].anclaReglas.t,null,"sin hora: no activa H3");
+  assert.equal(nuevo.cierreConReglaVieja(tr.accounts[0]),false);
+});

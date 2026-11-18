@@ -3753,7 +3753,10 @@ function applyTrCash(state, cash, totals){
     const stored=accDaily(a)
       ? valueDesdeSaldo({shown:shown,injTR:totals.injTR||0,spentOwn:spentOwn,roundup:totals.roundupThisMonth||0,monthlyInvest:totals.monthlyInvestThisMonth||0,ambos:accRole(a)==="ambos",paidNet:pn})
       : shown-pn;
-    return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:leido});
+    // Ancla con la regla de la 240 (`insumosSaldoGasto`): marca sin hora (`selloAncla`, 07). Sin ella, una TR que
+    // antes sincronizó por Open Banking (`balSaldo`) cerraría con la regla vieja. La hora no es la del extracto,
+    // así que no activa H3 (`lecturaDeSusRecibos` pide `t`).
+    return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:leido,anclaReglas:selloAncla(+stored.toFixed(2),null)});
   }) : accounts.concat([{id:uid(),ent:"trade_republic",name:"Trade Republic",value:+shown.toFixed(2),note:"",saldoLeidoAt:leido}]);
   return Object.assign({},state,{accounts:next});
 }

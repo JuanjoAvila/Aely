@@ -152,6 +152,10 @@ test("Deshacer tras devolver un saltado avisa si la fila cambió entretanto", as
   await pagados.locator(".pr6-paid-h").click();
   await pagados.locator('[data-pausado="1"][data-recibo="fixed_com"]').click();
   await expect(recibos.getByTestId("plan-review").locator('[data-recibo="fixed_com"]')).toHaveCount(1);
+  // Lo que había en disco ANTES de volver a pausar: el saltado ya devuelto (sin pausa). Se espera a que esté,
+  // para que la espera de abajo no la dé por buena con la pausa del principio todavía en disco.
+  const pausaEnDisco = () => page.evaluate(() => mcLoadRaw(mcStateKey()).fixed[0].pausedUntil);
+  await expect.poll(pausaEnDisco).toBeUndefined();
   // Entretanto la fila cambia por otro camino (aquí, pausándola otra vez desde su ficha; en la vida
   // real suele ser una sync): el Deshacer ya no puede reponer la foto y lo tiene que decir.
   await recibos.getByTestId("plan-review").locator('[data-recibo="fixed_com"]').click();
@@ -160,9 +164,10 @@ test("Deshacer tras devolver un saltado avisa si la fila cambió entretanto", as
   await ficha.locator('[data-pausa="h2"]').click();
   await expect(ficha).toHaveCount(0);
   // El guardado va después de cerrar la ficha: leerlo a la primera daba `undefined` con la CPU cargada
-  // (dos de cuatro pasadas con 2 workers, integración 240-dinero) y el test comparaba contra eso.
-  await expect.poll(() => page.evaluate(() => mcLoadRaw(mcStateKey()).fixed[0].pausedUntil)).not.toBeUndefined();
-  const tras = await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed[0].pausedUntil);
+  // (dos de cuatro pasadas con 2 workers, integración 240-dinero) y el test comparaba contra eso. Se espera a
+  // que CAMBIE respecto a lo de antes de volver a pausar (arriba: sin pausa).
+  await expect.poll(pausaEnDisco).not.toBeUndefined();
+  const tras = await pausaEnDisco();
   await recibos.getByTestId("plan-deshacer").getByRole("button", { name: "Deshacer" }).click();
   await expect(page.getByText("No se pudo deshacer: ha cambiado mientras tanto")).toBeVisible();
   expect(await page.evaluate(() => mcLoadRaw(mcStateKey()).fixed[0].pausedUntil)).toBe(tras);

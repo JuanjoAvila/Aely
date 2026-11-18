@@ -22,11 +22,13 @@ const PERMITIDAS={
   "07-tab-patri-fijos.js|ponValor":[1,"es el propio ayudante, en su sitio"],
   "08-motor-bank.js|applyBankBalances":[2,"la lectura del banco: pone la marca nueva ella misma (`selloAncla`)"],
   "01-i18n.js|reconcileTR":[6,"muta la cuenta durante el cierre y renueva la marca al final (`conMarca`)"],
-  "00-core.js|applyTrCash":[1,"puente nativo de TR: lectura propia con `saldoLeidoAt`, sin marca"],
-  "06-sync-brokers.js|TRSync":[1,"puente nativo de TR (la tarjeta): lectura propia, sin marca"],
-  "00-core.js|manualBalanceWrite":[1,"saldo tecleado en una cuenta a mano (sin IBAN ni uid): sin marca"],
-  "08-motor-bank.js|fixedPausa":[2,"restaura el `value` de antes de pausar: la marca vuelve a valer sola porque `v` coincide"],
-  "14-v4-screens.js|PlanRecibos":[1,"deshacer: restaura el `value` de antes, la marca vuelve a valer sola"],
+  // Lecturas nuevas, no de Open Banking: anclan con la regla de la 240 (`insumosSaldoGasto`).
+  "00-core.js|applyTrCash":[1,"puente nativo de TR: ancla y pone la marca sin hora (`selloAncla(v,null)`)"],
+  "06-sync-brokers.js|TRSync":[1,"puente nativo de TR (la tarjeta): ancla y pone la marca sin hora"],
+  "00-core.js|manualBalanceWrite":[1,"saldo tecleado: solo cuentas sin IBAN, uid ni `_obKey`, que no llevan marca ni `balSaldo` (cierran con la regla nueva)"],
+  // Las restauraciones NO van aquí: reponen un `value` en una cuenta que puede llevar marca y usan `conValor`
+  // (`fixedPausa`, `reponerBases`). La lista justificaba la de Plan › Recibos con «la marca vuelve a valer
+  // sola», y no era verdad: el saldo bajaba de 1.000 a 970 (revisión de 240-dinero, segunda vuelta).
   "07-tab-patri-fijos.js|AssetSheet":[1,"un bien (piso, coche), no una cuenta"],
   "08-motor-bank.js|patchDebtFields":[1,"una deuda, no una cuenta"],
   "09-tab-debts-goals.js|deudaAmortizada":[1,"una deuda, no una cuenta"],

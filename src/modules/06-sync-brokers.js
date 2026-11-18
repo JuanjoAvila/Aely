@@ -540,7 +540,8 @@ function TRSync({state, set, totals, open, onToggle}){
                 ? valueDesdeSaldo({shown:trCash, injTR:totals.injTR||0, spentOwn:spentOwn, roundup:totals.roundupThisMonth||0, monthlyInvest:totals.monthlyInvestThisMonth||0, ambos:accRole(a)==="ambos", paidNet:pn})
                 : trCash-pn;
               // Misma marca de lectura que `applyTrCash` (ver `saldoLeidoDelBanco`).
-              return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:new Date().toISOString()});
+              // Y la misma marca sin hora (`applyTrCash`): ancla con la regla de la 240.
+              return Object.assign({},a,{value:+stored.toFixed(2),saldoLeidoAt:new Date().toISOString(),anclaReglas:selloAncla(+stored.toFixed(2),null)});
             })
           : s.accounts.concat([{ id:uid(), ent:"trade_republic", name:"Trade Republic", value:+trCash.toFixed(2), note:"", saldoLeidoAt:new Date().toISOString() }]);
       }
