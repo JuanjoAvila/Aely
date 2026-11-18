@@ -437,8 +437,9 @@ const PRESUPUESTO = {
   // el tope) y 550.658 B gzip. Es lógica de dinero; mismo mandato del 11/10: el minificado, al mínimo medido, 1958 KiB.
   // Integración 240-dinero (recibos + saldos, con el cierre según la marca, `cierreReglas` y el sobre de efectivo):
   // 2.010.911 B minificado y 552.790 B gzip. Mismo mandato del 11/10: el minificado, al mínimo medido, 1964 KiB; el
-  // gzip cabe en 540 KiB.
-  minificado: 1964 * 1024,
+  // gzip cabe en 540 KiB. Revisión de 240-dinero (la marca en todos los escritores de `value`, el redondeo de «son
+  // distintos» a la posición): 2.011.978 B y 553.181 B gzip. Al mínimo medido: 1965 / 541 KiB.
+  minificado: 1965 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -481,7 +482,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 540 * 1024, // ver el comentario de minificado (539,1 KiB medidos el 18/11/2026 en la ronda 240 recibos).
+  gzip: 541 * 1024, // ver el comentario de minificado (540,2 KiB medidos el 18/11/2026 en la integración 240-dinero).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

@@ -1990,6 +1990,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -3892,6 +3896,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -5624,6 +5632,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -8341,6 +8353,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -10073,6 +10089,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -12554,6 +12574,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -15889,6 +15913,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -19188,6 +19216,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -21814,6 +21846,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -26447,6 +26483,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -28897,6 +28937,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -30845,6 +30889,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -37245,6 +37293,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -40448,6 +40500,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cierreConReglaVieja"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "native": [
@@ -42248,6 +42304,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -45881,6 +45941,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -50112,6 +50176,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -53562,6 +53630,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -55901,6 +55973,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -59861,6 +59937,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -63659,6 +63739,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -74994,6 +75078,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -83878,6 +83966,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -92715,6 +92807,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -95389,6 +95485,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -97119,6 +97219,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -104040,6 +104144,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "edge": [
@@ -109735,6 +109843,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -111866,6 +111978,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -113637,6 +113753,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -115403,6 +115523,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -117165,6 +117289,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -118803,6 +118931,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ENT"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -120687,6 +120819,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -122593,6 +122729,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -124370,6 +124510,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -126211,6 +126355,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -129745,6 +129893,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -131819,6 +131971,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -160442,6 +160598,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -168128,6 +168288,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -176502,6 +176666,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -178979,6 +179147,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -181407,6 +181579,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -183653,6 +183829,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -186068,6 +186248,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -190039,6 +190223,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true
@@ -193323,6 +193511,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "compraDeRecompensa"
       }
     ],
     "unidades": true

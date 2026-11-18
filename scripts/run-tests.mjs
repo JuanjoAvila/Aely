@@ -274,6 +274,7 @@ const steps = [
   ["recibos-240-saldo", ["node", "--test", "tests/recibos-240-saldo.test.mjs"]],
   ["saldos-240", ["node", "--test", "tests/saldos-240.test.mjs"]],
   ["dinero-240-clientes", ["node", "--test", "tests/dinero-240-clientes.test.mjs"]],
+  ["valor-con-marca", ["node", "--test", "tests/valor-con-marca.test.mjs"]],
   ["recibos-prueba-permanencia", ["node", "--test", "tests/recibos-prueba-permanencia.test.mjs"]],
   ["recibos-renombrar", ["node", "tests/recibos-renombrar.test.mjs"]],
   ["recibos-t4-book-edit-state", ["node", "--test", "tests/recibos-t4-book-edit-state.test.mjs"]],

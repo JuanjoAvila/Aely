@@ -99,7 +99,9 @@ function keepShownAcrossFlows(s,flows){
   const accounts=(s.accounts||[]).map(function(a){
     const oldShown=saldoCuentaMostrada(a,oldInput), newShown=saldoCuentaMostrada(a,newInput);
     const diff=+((oldShown-newShown).toFixed(2));
-    return Math.abs(diff)>0.005 ? Object.assign({},a,{value:+((a.value||0)+diff).toFixed(2)}) : a;
+    // Conservar lo pintado no cambia con qué reglas se ancló: la marca sigue al `value` (`conValor`, 07).
+    // Sin ella, una nómina adelantada quitaba la corrección de H3 (1.000 → 970; revisión de 240-dinero, P2).
+    return Math.abs(diff)>0.005 ? conValor(a,+((a.value||0)+diff).toFixed(2)) : a;
   });
   return Object.assign({},marked,{accounts:accounts});
 }

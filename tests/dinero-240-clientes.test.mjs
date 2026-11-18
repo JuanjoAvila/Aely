@@ -178,3 +178,70 @@ test("sobre de efectivo fuera de los bancos de gasto: resta sus compras al pinta
   assert.equal(pinta(nuevo,dentro).e,11091);
   assert.equal(pinta(viejo,dentro).e,11091);
 });
+
+// ---------- Revisión de 240-dinero ----------
+// P2: los escritores de `value` que conservan lo pintado tienen que llevarse la marca (`conValor`). Caso `din-b5`
+// del revisor: Sabadell por Open Banking, el Teléfono de 30 € del 8 cobrado el 3 y leído el 4 (H3: se pinta
+// 1.000 con el banco en 1.000); el 10 llega antes de su día una nómina de 500 del 25.
+const telH3={id:"tel",name:"Teléfono",amount:30,day:8,account:"sabadell",freq:"mes"}, luzH3={id:"luz",name:"Luz",amount:80,day:20,account:"sabadell",freq:"mes"};
+const casoH3=()=>Object.assign(json(vacio),{
+  accounts:[{id:"sb",ent:"sabadell",name:"Cuenta",role:"fijos",value:1000,bankIban:"ES00X1"},{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:300}],
+  fixed:[telH3,luzH3],settings:{},trAnchor:"2026-11",expenses:[],
+  bankTx:[{id:"t1",ent:"sabadell",date:"2026-11-03",amount:30,merchant:"TELEFONO",status:"BOOK"},{id:"n1",ent:"sabadell",date:"2026-11-04",amount:-1,merchant:"X",status:"BOOK"}],
+  flows:[{id:"nom",kind:"income",name:"Nómina",amount:500,day:25,to:"sabadell",freq:"mes"}]});
+const leeH3=s=>{ reloj.t=new Date(2026,10,4,9).getTime(); const at=new Date(2026,10,4,9).toISOString();
+  const r=nuevo.applyBankBalances(s,[{aspsp:"Banco Sabadell",ok:true,balanceAt:at,accounts:[{uid:"u1",iban:"ES00X1",ok:true,balances:[{type:"ITAV",amount:"1000",currency:"EUR"}]}]}]).state;
+  return Object.assign({},r,{obBalAt:{"Banco Sabadell":at}}); };
+
+test("una nómina que llega antes de su día no quita la marca: lo pintado sigue en 1.000 (antes 970)",()=>{
+  const s0=leeH3(casoH3());
+  reloj.t=new Date(2026,10,10,12).getTime();
+  assert.equal(nuevo.anclaConReglas(s0.accounts[0]),true);
+  assert.equal(pinta(nuevo,s0).sb,100000,"H3: el Teléfono cobrado el 3 ya va en la lectura del 4");
+  const flows=s0.flows.map(f=>Object.assign({},f,{paidYm:2026*12+11,paidDay:10,paidBank:"sabadell",paidAmount:500}));
+  const s1=nuevo.keepShownAcrossFlows(s0,flows);
+  assert.notEqual(s1.accounts[0].value,s0.accounts[0].value,"la base se desplaza");
+  assert.equal(nuevo.anclaConReglas(s1.accounts[0]),true,"y la marca la sigue");
+  assert.equal(pinta(nuevo,s1).sb,100000);
+  // El otro camino del mismo escritor: el ancla de entradas adelantadas en cada pull.
+  const s2=nuevo.reconcileEarlyIncomeAnchors(Object.assign(json(s0),{bankTx:s0.bankTx.concat([{id:"nm",ent:"sabadell",date:"2026-11-10",amount:-500,merchant:"NOMINA ACME",status:"BOOK"}])}),2026,11,10);
+  if(s2.accounts[0].value!==s0.accounts[0].value) assert.equal(nuevo.anclaConReglas(s2.accounts[0]),true);
+  assert.equal(pinta(nuevo,s2).sb,100000);
+});
+
+test("el saque del cajero de un banco sin IBAN (Open Banking por uid) conserva la marca",()=>{
+  const s=leeH3(casoH3()); s.accounts[0]=Object.assign({},s.accounts[0],{bankIban:undefined,bankUid:"u1"});
+  reloj.t=new Date(2026,10,10,12).getTime();
+  const r=nuevo.applySaqueCajero(s,"sabadell",40);
+  const sb=r.accounts.find(a=>a.id==="sb");
+  assert.equal(sb.value,+(s.accounts[0].value-40).toFixed(2));
+  assert.equal(nuevo.anclaConReglas(sb),true);
+});
+
+// P3: el redondeo que «son distintos» resta de la cuenta va a la posición, como en el cierre: el patrimonio
+// baja solo la compra. Caso `din-b5`: diaria a mano con redondeo ×1, un aviso de 47,50 y su posible repetido.
+const casoRedondeo=()=>Object.assign(json(vacio),{
+  accounts:[{id:"a",ent:"bbva",role:"diario",spendFrom:true,value:1000,roundup:1,rewardInv:"inv1"},{id:"b",ent:"ing",role:"fijos",value:600}],
+  investments:[{id:"inv1",ent:"trade_republic",name:"MSCI",shares:10,value:1000,cost:900}],settings:{},trAnchor:"2026-10",
+  expenses:[{id:"w1",date:"2026-10-15T07:30:00.000Z",merchant:"Bar",amount:47.5,category:"bares",source:"wallet",ent:"bbva"},
+    {id:"o1",date:"2026-10-15T10:00:00.000Z",merchant:"",amount:47.5,category:"bares",source:"ob-hist",ent:"bbva",possibleDup:true}]});
+const patrimonio=s=>{ const i=nuevo.insumosSaldoGasto(s); return cents(s.accounts.reduce((t,a)=>t+nuevo.saldoCuentaMostrada(a,i),0)+s.investments.reduce((t,x)=>t+x.value,0)); };
+
+test("«son distintos» tras un cierre nuevo: el patrimonio baja la compra (47,50), y el redondeo va a la posición",()=>{
+  const c=cierra(nuevo,casoRedondeo());
+  assert.equal(c.investments[0].value,1000.5,"el cierre compró el redondeo del aviso");
+  const d=resuelve(c,false);
+  assert.equal(patrimonio(d),patrimonio(c)-4750,"antes bajaba 48");
+  assert.equal(d.investments[0].value,1001,"el redondeo de la compra de verdad, a la posición");
+  assert.equal(d.trRewardsTotal,+((c.trRewardsTotal||0)+0.5).toFixed(2));
+  assert.equal(d.accounts[0].trCierreEstimado.roundup.eur,1,"y lo estimado de octubre lo lleva, por si llega el aviso real");
+});
+
+test("«son distintos» tras un cierre viejo: el redondeo también va a la posición",()=>{
+  const c=cierra(viejo,casoRedondeo());
+  const d=resuelve(c,false);
+  assert.equal(patrimonio(d),patrimonio(c),"el importe ya lo restó el cierre viejo; el redondeo solo cambia de sitio");
+  assert.equal(d.investments[0].value,+(c.investments[0].value+0.5).toFixed(2));
+  // «Es el mismo» no toca la posición.
+  assert.equal(resuelve(c,true).investments[0].value,c.investments[0].value);
+});

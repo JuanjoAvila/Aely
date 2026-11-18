@@ -3288,6 +3288,16 @@ function gastoDelCierre(s, acc, key, ay, am, viejo){
    `insumosSaldoGasto` (`manualBalanceWrite`, `applyTrCash`), que ya dejaba fuera el repetido antes de
    la 240: con cualquier cliente su `value` significa lo nuevo, y cierran con la regla nueva.
    Se decide con el `value` de antes de cerrar: la marca solo vale con él. */
+/* Lo que compra en la posición destino un dinero de recompensas (redondeo y saveback), en su moneda y al
+   precio de hoy. Lo usan el cierre (`reconcileTR`) y «son distintos» de un mes cerrado, que resta de la
+   cuenta el redondeo de la compra y lo tiene que llevar aquí, como el cierre (revisión de 240-dinero, P3:
+   si no, el patrimonio bajaba 48 en vez de 47,50). Con `eur` negativo deshace lo mismo. */
+function compraDeRecompensa(inv, eur, fx){
+  const cInv = inv.cur==="USD" ? eur/(fx||1) : eur;              // a la moneda de la inversión
+  const precio = (inv.shares>0 && inv.value>0) ? inv.value/inv.shares : 0;
+  return { cInv:cInv, precio:precio, shares:precio ? +(inv.shares + cInv/precio).toFixed(6) : inv.shares,
+    value:+((inv.value||0)+cInv).toFixed(2), cost:+((inv.cost||0)+cInv).toFixed(2) };
+}
 function cierreConReglaVieja(acc){
   return !!acc && acc.balSaldo!=null && !anclaConReglas(acc);
 }
@@ -3359,11 +3369,8 @@ function reconcileTR(s){
       if(contrib>0 && acc.rewardInv){
         const inv = s.investments && s.investments.find(function(i){ return i.id===acc.rewardInv; });
         if(inv){
-          const cInv = inv.cur==="USD" ? contrib/(s.fx||1) : contrib;   // a la moneda de la inversión
-          const precio = (inv.shares>0 && inv.value>0) ? inv.value/inv.shares : 0;
-          if(precio) inv.shares = +(inv.shares + cInv/precio).toFixed(6);
-          inv.value = +((inv.value||0)+cInv).toFixed(2);
-          inv.cost  = +((inv.cost||0)+cInv).toFixed(2);
+          const r = compraDeRecompensa(inv, contrib, s.fx), cInv = r.cInv, precio = r.precio;
+          inv.shares = r.shares; inv.value = r.value; inv.cost = r.cost;
           ["roundup","saveback"].forEach(function(k){ const x=est[k]; if(!x) return; x.inv=inv.id; x.c=+(cInv*x.eur/contrib).toFixed(6); x.sh=precio?+(x.c/precio).toFixed(6):0; });
         }
         s.trRewardsTotal = +(((s.trRewardsTotal||0)+contrib)).toFixed(2);   // acumulado histórico (€)
@@ -3597,7 +3604,8 @@ function aplicarRecompensasTR(state, nowMs){
       // El cierre del mes anterior al aviso (o de su mismo mes) estimó este dinero: fuera, lo paga el aviso.
       const mesAviso=mkOf(new Date(ms)), mesAntes=mkOf(new Date(new Date(ms).getFullYear(), new Date(ms).getMonth()-1, 1));
       if(est && (ce.ym===mesAviso || ce.ym===mesAntes)){
-        if(k==="roundup") a.value=+((a.value||0)+est.eur).toFixed(2);
+        // Devolver la estimación del cierre no cambia con qué reglas se ancló la cuenta: la marca la sigue (`ponValor`, 07).
+        if(k==="roundup") ponValor(a, +((a.value||0)+est.eur).toFixed(2));
         // Si el puente de TR reescribió esa posición después del cierre, lo estimado ya no está en ella.
         const pos=est.inv && (s.investments||[]).find(function(i){ return i.id===est.inv; });
         if(est.inv && est.c && !(pos && pos.brokerAt && ce.at && pos.brokerAt>=ce.at)) s=reverseInvestBuy(s, est.inv, est.sh, est.c, est.eur);
@@ -4252,7 +4260,7 @@ function seedFlows(s){
   // (base = hoy − netoYaOcurrido) para que el saldo mostrado vuelva a ser el real y evolucione bien.
   if(!s._dynBalAnchored){
     const cy=new Date().getFullYear(), cm=new Date().getMonth()+1, td=new Date().getDate();
-    (s.accounts||[]).forEach(function(a){ if(!a.spendFrom && llevaNetoDeBanco(s.accounts, a)){ a.value = +(((a.value||0) - monthNetForAccount(s, a.ent, cy, cm, td))).toFixed(2); } });
+    (s.accounts||[]).forEach(function(a){ if(!a.spendFrom && llevaNetoDeBanco(s.accounts, a)) ponValor(a, +(((a.value||0) - monthNetForAccount(s, a.ent, cy, cm, td))).toFixed(2)); });
     s._dynBalAnchored=true;
   }
   // deuda dinámica: ancla el saldo actual al mes de hoy si aún no tenía ancla (vale para todos)

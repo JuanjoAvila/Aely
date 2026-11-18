@@ -3451,8 +3451,9 @@ function applySaqueCajero(state, fromEnt, amount){
   if(!(amt>0)) return state;
   let st=ensureEfectivoAccount(state, 0);
   const accounts=(st.accounts||[]).map(function(a){
-    if(isEfectivoEnt(a)) return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
-    if(a.ent===fromEnt && !a.bankIban) return Object.assign({}, a, { value:+((a.value||0)-amt).toFixed(2) });
+    if(isEfectivoEnt(a)) return conValor(a, +((a.value||0)+amt).toFixed(2));
+    // Un movimiento real que el banco aún no trae: la marca sigue valiendo (`conValor`; puede ser OB por `bankUid`).
+    if(a.ent===fromEnt && !a.bankIban) return conValor(a, +((a.value||0)-amt).toFixed(2));
     return a;
   });
   const e={
@@ -3475,7 +3476,7 @@ function applyEntradaEfectivo(state, amount){
   let st=ensureEfectivoAccount(state, 0);
   const accounts=(st.accounts||[]).map(function(a){
     if(!isEfectivoEnt(a)) return a;
-    return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
+    return conValor(a, +((a.value||0)+amt).toFixed(2));
   });
   return Object.assign({}, st, { accounts:accounts });
 }
@@ -4057,11 +4058,33 @@ function saldoTrasResolverRepetido(antes, despues, ex){
   if(!cuenta.spendFrom || !antes.trAnchor || !(key<antes.trAnchor)) return despues;
   const viejo=!((cuenta.cierreReglas||{})[key]>=ANCLA_REGLAS);
   const c0=gastoDelCierre(antes, cuenta, key, f.getFullYear(), f.getMonth(), viejo), c1=gastoDelCierre(despues, cuenta, key, f.getFullYear(), f.getMonth(), viejo);
-  const delta=+((c1.spent+c1.ru)-(c0.spent+c0.ru)).toFixed(2);
+  const delta=+((c1.spent+c1.ru)-(c0.spent+c0.ru)).toFixed(2), dRu=+(c1.ru-c0.ru).toFixed(2);
   if(Math.abs(delta)<0.005) return despues;
-  return Object.assign({}, despues, {accounts:(despues.accounts||[]).map(function(a){
-    return a===cuenta ? conValor(a, +((a.value||0)-delta).toFixed(2)) : a;
+  const out=Object.assign({}, despues, {accounts:(despues.accounts||[]).map(function(a){
+    if(a!==cuenta) return a;
+    const n=conValor(a, +((a.value||0)-delta).toFixed(2));
+    // Lo que el cierre de ese mes estimó, con la compra: el aviso real de TR lo deshará con estas cifras (`aplicarRecompensasTR`).
+    const ce=a.trCierreEstimado;
+    if(Math.abs(dRu)>=0.005 && a.rewardInv && ce && ce.ym===key){
+      const x=Object.assign({eur:0,inv:a.rewardInv,c:0,sh:0}, ce.roundup);
+      const inv=(despues.investments||[]).find(function(i){ return i.id===a.rewardInv; });
+      const r=inv?compraDeRecompensa(inv, dRu, despues.fx):null;
+      n.trCierreEstimado=Object.assign({}, ce, {roundup:{eur:+(x.eur+dRu).toFixed(2), inv:x.inv, c:+(x.c+(r?r.cInv:0)).toFixed(6), sh:+(x.sh+(r&&r.precio?r.cInv/r.precio:0)).toFixed(6)}});
+    }
+    return n;
   })});
+  /* El redondeo que ahora sale de la cuenta va a la posición destino, como en el cierre: así el patrimonio
+     solo baja la compra (revisión de 240-dinero, P3: bajaba 48 en vez de 47,50). Sin destino, como el
+     cierre: solo el acumulado. */
+  if(Math.abs(dRu)>=0.005 && cuenta.rewardInv){
+    out.investments=(despues.investments||[]).map(function(i){
+      if(i.id!==cuenta.rewardInv) return i;
+      const r=compraDeRecompensa(i, dRu, despues.fx);
+      return Object.assign({}, i, {shares:r.shares, value:r.value, cost:r.cost});
+    });
+    out.trRewardsTotal=+(((despues.trRewardsTotal||0)+dRu)).toFixed(2);
+  }
+  return out;
 }
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){

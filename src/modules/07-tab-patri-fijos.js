@@ -857,6 +857,12 @@ function selloAncla(value, t){ return {r:ANCLA_REGLAS, v:+(Number(value)||0).toF
 function conValor(a, v){
   return Object.assign({}, a, {value:v}, anclaConReglas(a)?{anclaReglas:selloAncla(v, a.anclaReglas.t)}:null);
 }
+// Lo mismo sobre la cuenta en su sitio, para el código que ya muta una copia o el estado recién cargado.
+function ponValor(a, v){
+  const vale=anclaConReglas(a);
+  a.value=v;
+  if(vale) a.anclaReglas=selloAncla(v, a.anclaReglas.t);
+}
 // Hora (ms) de la lectura con la que se ancló el `value` de la cuenta que lleva los recibos del banco; 0 si no se sabe.
 function lecturaDeSusRecibos(s, ent){
   const c=cuentaDelNetoDeBanco(s.accounts, ent);
