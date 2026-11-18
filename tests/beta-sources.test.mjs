@@ -250,6 +250,8 @@ const sourceProd232=sourceAt("5ceb117c0e774991d576f9b358039c4763a10461");
 const sourceProd233=sourceAt("20ac544ca6b9d3d97a03a28592d70c981ccfd309");
 // Promoción237 pasa a histórico al volver a beta (4.26.239): se lee del cierre de producción 4.26.237 (cf3333cd3, árbol de 7cf7c832e).
 const sourceProd237=sourceAt("cf3333cd3b99a86c3805ad4df5c812bd392394f4");
+// Promoción241 pasa a histórico al volver a beta (4.26.242): se lee del cierre de producción 4.26.241 (1f486771e, árbol de 421013905).
+const sourceProd241=sourceAt("1f486771e7a7a9c1e6529e144389cd38bcb0d61d");
 const sourceBeta153=sourceAt("80752dff055dc391c52c3067ce238f49e0a14598");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
@@ -6413,6 +6415,8 @@ const sourceBeta239=sourceAt("eb75d2908415c5447555a5fb7c5b75ad6f48bfc7");
 // Catálogo240 pasa a histórico con la 241: se lee de la 4.26.240 servida en beta (13d483fe6: 02f9e0070 más el ayudante e2e de la copia;
 // sin APK nueva, sigue la 64). La 241 retira concepto-239 sin veredicto (la sustituye teclado-241) y deja diseno-240 y dinero-238.
 const sourceBeta240=sourceAt("13d483fe68d79797ed1cfb87881d6833512c8e2b");
+// Catálogo241 pasa a histórico con la promoción 241: se lee de la beta 4.26.241 servida y aprobada (f89607567, las tres tandas en la 4.26.241.1), lo último que probó el móvil y lo que sube entero.
+const sourceBeta241=sourceAt("f89607567504b54870f6a4147a6e984b8a164b61");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -6621,11 +6625,11 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
 // posiciones; con el local, un aviso constaba como sumado sin estarlo y se perdía. Eso cae dentro del bloque de 11 que vigila
 // dinero-238, así que su huella se mueve (sin paso nuevo: un aviso real de TR no se puede provocar hoy); la de diseno-240, no.
 // Registro: un descriptor nuevo, el último; sin reanclas; los anteriores solo crecen por el final con el cierre de lectores.
-test("Catálogo241 retira concepto-239 (sin veredicto, la sustituye teclado-241), conserva dinero-238 y diseno-240, abre teclado-241 y hace crecer el registro con el cierre de lectores",()=>{
+test("Catálogo241 histórico retira concepto-239 (sin veredicto, la sustituye teclado-241), conserva dinero-238 y diseno-240, abre teclado-241 y hace crecer el registro con el cierre de lectores",()=>{
   const nueva="teclado-241",previas=["diseno-240","dinero-238"],retirada="concepto-239";
   const V02="src/modules/02-ui-shared.js",V14="src/modules/14-v4-screens.js",SH="src/shell.html",I18N="src/modules/01-i18n.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta240("scripts/beta-sources.json")),before=JSON.parse(sourceBeta240("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta240(f));
+  const source=f=>nl(sourceBeta241(f)),old=f=>nl(sourceBeta240(f));
   assert.equal(before[0].v,"4.26.240");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>g.id)),["diseno-240",retirada,"dinero-238"],"la 240 llevaba diseno-240, concepto-239 y dinero-238");
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -9802,6 +9806,76 @@ test("Promoción198 muestra una nota y el historial de producción, retira todas
   for(const id of entregadas){
     const delivered=betaRevision(id,beta,undefined,old[id]);
     assert.deepEqual(betaRevision(id,source,undefined,scopes[id]),delivered,id+": la huella es la de la beta198, sin revisión nueva que juzgar");
+    assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
+  }
+  assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
+});
+
+// Producción 4.26.241 (18/11/2026): sube la ronda de beta 238 a 241 (f89607567), aprobada por el dueño en su panel (dinero-238, diseno-240 y teclado-241 en la 4.26.241.1), sobre
+// la producción 4.26.237 (cf3333cd3). La beta ya mezcló ese cierre en la 239, así que main es ancestro de la beta: el commit de producción va sobre la beta y el cierre lleva main
+// como primer padre con el árbol de la promoción. Producto, servidor y nativo son los de la beta 241 byte a byte y lo único que cambia es el catálogo: la familia ve UNA nota más
+// las 241 de producción237 (las notas 238 a 240 de beta quedan en Git y en sus catálogos). La APK sigue siendo la 64 (4.26.206) desde su release estable `v4.26.206`. Desde la 237
+// no cambia nada de `supabase/` ni de `.github/`: el `--yes` de supabase.yml ya viajó a beta con el cierre de la 237 y aquí se vigila que siga.
+const expectedProd241={"v":"4.26.241","d":"2026-11-18","t":{"es":"Apuntar sin saltos, recibos que se restan una vez y Deudas, Metas y Ajustes más limpios","en":"Adding without jumps, bills taken off once and cleaner Debts, Goals and Settings","ca":"Apuntar sense salts, rebuts que es resten una vegada i Deutes, Metes i Configuració més nets"},"items":{"es":["Al escribir el concepto en Apuntar, el campo se queda a la vista justo encima del teclado y la hoja lo acompaña sin saltos; un concepto largo se lee entero en dos renglones, y si cierras el teclado sin tocar «Listo», vuelve todo.","Si no hay banco elegido en Apuntar, su baldosa lo dice con un «+» para elegirlo.","Si tienes dos cuentas de recibos en el mismo banco, cada recibo se resta una sola vez del saldo.","Deudas y Metas llevan arriba el mismo resumen que Recibos y menos textos de relleno; las deudas con la familia tienen un icono de persona.","Ajustes estrena iconos en todas sus filas y la ayuda va junto al buscador; el Perfil va en filas y es más corto. Con la letra más grande ya no se corta nada en Deudas, Metas ni Ajustes.","Desde ahora, el redondeo de Trade Republic no se pierde al sincronizar entre móviles."],"en":["When you type the description in Add, the field stays in sight just above the keyboard and the sheet moves with it without jumps; a long description reads in full over two lines, and if you close the keyboard without tapping «Done», everything comes back.","If no bank is chosen in Add, its tile shows a «+» so you can pick one.","If you have two bill accounts at the same bank, each bill is taken off the balance only once.","Debts and Goals show the same summary at the top as Bills, with less filler text; debts with family have a person icon.","Settings has new icons on every row and help sits next to the search box; Profile is laid out in rows and is shorter. With bigger text nothing gets cut off in Debts, Goals or Settings.","From now on, the Trade Republic round-up is not lost when syncing between phones."],"ca":["En escriure el concepte a Apuntar, el camp queda a la vista just a sobre del teclat i el full l'acompanya sense salts; un concepte llarg es llegeix sencer en dues línies, i si tanques el teclat sense tocar «Fet», torna tot.","Si no hi ha cap banc triat a Apuntar, la seva rajola ho diu amb un «+» per triar-lo.","Si tens dos comptes de rebuts al mateix banc, cada rebut es resta una sola vegada del saldo.","Deutes i Metes porten a dalt el mateix resum que Rebuts i menys textos de farciment; els deutes amb la família tenen una icona de persona.","Configuració estrena icones a totes les files i l'ajuda va al costat del cercador; el Perfil va en files i és més curt. Amb la lletra més gran ja no es talla res a Deutes, Metes ni Configuració.","A partir d'ara, l'arrodoniment de Trade Republic no es perd en sincronitzar entre mòbils."]},"tandas":[]};
+test("Promoción241 histórico muestra una nota y el historial de producción, retira las tres tandas aprobadas y no toca producto, descriptores ni APK",()=>{
+  const beta=f=>nl(sourceBeta241(f)),source=f=>nl(sourceProd241(f)),prod=f=>nl(sourceProd237(f));
+  const production=JSON.parse(prod("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
+  assert.equal(production.length,241);assert.deepEqual(production.slice(0,4).map(n=>n.v),["4.26.237","4.26.233","4.26.232","4.26.198"]);
+  for(const n of production)assert.deepEqual(n.tandas,[],"producción237 no deja nada en el panel: "+n.v);
+  const ronda=["4.26.241","4.26.240","4.26.239","4.26.238"];
+  assert.deepEqual(before.slice(0,ronda.length).map(n=>n.v),ronda,"las notas de la ronda en la beta241");
+  // Debajo de la ronda la beta lleva la nota única de producción 237 (mezcló su cierre), pero luego sus notas de beta 236 a 234 y no la nota única de producción 233.
+  assert.deepEqual(before[ronda.length],production[0],"la nota de la 237 que lleva la beta es la de producción");
+  assert.notDeepEqual(before[ronda.length+1],production[1],"la nota de beta 236 no es la nota única de producción 233");
+  const panel=before.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(panel,["teclado-241","diseno-240","dinero-238"],"la beta241 dejaba tres tandas en el panel, todas aprobadas");
+  const expected=[expectedProd241,...production];
+  const verify=list=>assert.deepEqual(list,expected,"una nota literal y el historial de producción237 íntegro");
+  const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,242);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes)assert.deepEqual(n.tandas,[],n.v+": nunca resucitar /todo");
+  for(const v of ronda.slice(1))assert.equal(notes.some(n=>n.v===v),false,v+": nota intermedia ausente de Novedades");
+  for(const lang of ["es","en","ca"]){
+    assert.ok(notes[0].t[lang]);assert.equal(notes[0].items[lang].length,6,lang+": seis puntos familiares");
+    // Sin cocina en la nota que lee la familia (AGENTS §4). «Ajustes» es el nombre de la pantalla en castellano, no un ajuste de la cocina: es lo único que se deja pasar.
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|acuse|cursor|token|Edge|servidor|Open Banking|ajust(?!es\b)|tune|regul|versión|zoom|FIN-|SES-|SEC-|UX-|PRO-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+    // El Round up que la 237 ya perdió no se recupera solo (CHANGELOG 4.26.241): la nota no lo promete.
+    for(const text of notes[0].items[lang])assert.equal(/recuper|recover|torna a aparèixer|vuelve a aparecer|devuelve|restaur/i.test(text),false,lang+": no promete recuperar lo perdido: "+text);
+  }
+  const resurrected=structuredClone(notes);resurrected[0].tandas=structuredClone(before[0].tandas);assert.throws(()=>verify(resurrected),assert.AssertionError,"la tanda del teclado, entregada, no vuelve");
+  const intermediate=structuredClone(notes);intermediate.splice(1,0,{...before[1],tandas:[]});assert.throws(()=>verify(intermediate),assert.AssertionError,"la nota 240 no se enseña aparte");
+  const betaFirst=structuredClone(notes);betaFirst[0]={...before[0],tandas:[]};assert.throws(()=>verify(betaFirst),assert.AssertionError,"la nota de beta 241 sola no resume la ronda");
+  const implicit=structuredClone(notes);delete implicit[0].tandas;assert.throws(()=>verify(implicit),assert.AssertionError,"sin la propiedad el panel la resucitaría como /todo");
+  const lost=structuredClone(notes);lost.splice(1,1);assert.throws(()=>verify(lost),assert.AssertionError,"la nota de producción 237 no se pierde");
+  const betaNote=structuredClone(notes);betaNote[2]={...before[ronda.length+1],tandas:[]};assert.throws(()=>verify(betaNote),assert.AssertionError,"la nota de beta 236 no sustituye a la de producción 233");
+  const lost2=structuredClone(notes);lost2.splice(5,1);assert.throws(()=>verify(lost2),assert.AssertionError,"no se pierde ninguna nota de producción");
+  // Lo que sube es lo que se probó: producto, servidor, nativo, descriptores y archivo, idénticos a la beta241.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),old=JSON.parse(beta("scripts/beta-sources.json"));
+  assert.deepEqual(scopes,old,"ningún descriptor se recorta ni se repina");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),JSON.parse(beta("scripts/beta-archives.json")),"archivo y rechazo109 no se repinan");
+  const tracked=execFileSync("git",["ls-tree","-r","--name-only","f89607567504b54870f6a4147a6e984b8a164b61","--","src/modules","src/shell.html","src/build-order.json","android","supabase",".github"],{encoding:"utf8"}).trim().split("\n");
+  assert.ok(tracked.length>50);
+  for(const file of tracked)assert.equal(source(file),beta(file),file+": idéntico a la beta241");
+  // El `--yes` del despliegue manual de Supabase (7e1bc3628) sigue: lo trajo el cierre de la 237 y la ronda no lo toca.
+  const yml=source(".github/workflows/supabase.yml");
+  assert.equal(yml,prod(".github/workflows/supabase.yml"),"supabase.yml el de producción237");
+  assert.equal((yml.match(/^\s+supabase (db push|functions deploy) .* --yes$/gm)||[]).length,2,"db push y functions deploy con --yes");
+  // La APK 64 sigue siendo la de producción y se anuncia desde su release estable, no desde `beta`.
+  const apk=JSON.parse(source("public/apk.json")),apkBeta=JSON.parse(beta("public/apk.json"));
+  assert.equal(apkBeta.url,"https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.206-beta-64.apk");
+  assert.equal(apk.url,"https://github.com/JuanjoAvila/Aely/releases/download/v"+apk.versionName+"/Aely-"+apk.versionName+".apk","apunta a la release estable de su versión");
+  assert.deepEqual({...apk,url:apkBeta.url},apkBeta,"apk.json idéntico al de la beta241 salvo la URL");
+  assert.deepEqual(apk,JSON.parse(prod("public/apk.json")),"apk.json idéntico al de producción237");
+  assert.equal(apk.versionCode,64);assert.equal(apk.sha256,"68b6b43fa5b932b60a19dfb9a85efca5e7a616bedf4b2bfa9fd53911b20e104e","la huella del binario aprobado");
+  // El panel queda vacío y el recibo web sigue entregando cada unidad de la ronda con su huella de la beta241 (concepto-239 incluida: la sustituyó teclado-241, aprobada).
+  const entregadas=["dinero-238","concepto-239","diseno-240","teclado-241"];
+  assert.deepEqual(Object.keys(scopes).filter(id=>!(id in JSON.parse(prod("scripts/beta-sources.json")))),entregadas,"los descriptores que nacen en la ronda, todos");
+  const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
+  assert.deepEqual(receipt.pruebas,{},"ningún guion por probar");
+  assert.equal(betaNotes(notes,source,scopes).flatMap(n=>n.tandas||[]).length,0);
+  for(const id of entregadas){
+    const delivered=betaRevision(id,beta,undefined,old[id]);
+    assert.deepEqual(betaRevision(id,source,undefined,scopes[id]),delivered,id+": la huella es la de la beta241, sin revisión nueva que juzgar");
     assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
   }
   assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");

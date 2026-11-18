@@ -3,48 +3,37 @@
     "v": "4.26.241",
     "d": "2026-11-18",
     "t": {
-      "es": "Escribir el concepto sin saltos, y el redondeo de Trade Republic a salvo",
-      "en": "Typing the description without jumps, and the Trade Republic round-up kept safe",
-      "ca": "Escriure el concepte sense salts, i l’arrodoniment de Trade Republic a recer"
+      "es": "Apuntar sin saltos, recibos que se restan una vez y Deudas, Metas y Ajustes más limpios",
+      "en": "Adding without jumps, bills taken off once and cleaner Debts, Goals and Settings",
+      "ca": "Apuntar sense salts, rebuts que es resten una vegada i Deutes, Metes i Configuració més nets"
     },
     "items": {
       "es": [
-        "Al escribir el concepto en Apuntar, la hoja acompaña al teclado sin saltos y no asoma nada de lo que hay detrás; si cierras el teclado sin tocar «Listo», vuelve todo.",
-        "El redondeo de Trade Republic ya no se pierde al sincronizar entre móviles."
+        "Al escribir el concepto en Apuntar, el campo se queda a la vista justo encima del teclado y la hoja lo acompaña sin saltos; un concepto largo se lee entero en dos renglones, y si cierras el teclado sin tocar «Listo», vuelve todo.",
+        "Si no hay banco elegido en Apuntar, su baldosa lo dice con un «+» para elegirlo.",
+        "Si tienes dos cuentas de recibos en el mismo banco, cada recibo se resta una sola vez del saldo.",
+        "Deudas y Metas llevan arriba el mismo resumen que Recibos y menos textos de relleno; las deudas con la familia tienen un icono de persona.",
+        "Ajustes estrena iconos en todas sus filas y la ayuda va junto al buscador; el Perfil va en filas y es más corto. Con la letra más grande ya no se corta nada en Deudas, Metas ni Ajustes.",
+        "Desde ahora, el redondeo de Trade Republic no se pierde al sincronizar entre móviles."
       ],
       "en": [
-        "When you type the description in Add, the sheet moves with the keyboard without jumps and nothing behind it shows through; if you close the keyboard without tapping «Done», everything comes back.",
-        "The Trade Republic round-up is no longer lost when syncing between phones."
+        "When you type the description in Add, the field stays in sight just above the keyboard and the sheet moves with it without jumps; a long description reads in full over two lines, and if you close the keyboard without tapping «Done», everything comes back.",
+        "If no bank is chosen in Add, its tile shows a «+» so you can pick one.",
+        "If you have two bill accounts at the same bank, each bill is taken off the balance only once.",
+        "Debts and Goals show the same summary at the top as Bills, with less filler text; debts with family have a person icon.",
+        "Settings has new icons on every row and help sits next to the search box; Profile is laid out in rows and is shorter. With bigger text nothing gets cut off in Debts, Goals or Settings.",
+        "From now on, the Trade Republic round-up is not lost when syncing between phones."
       ],
       "ca": [
-        "En escriure el concepte a Apuntar, el full acompanya el teclat sense salts i no s'hi veu res del que hi ha darrere; si tanques el teclat sense tocar «Fet», torna tot.",
-        "L’arrodoniment de Trade Republic ja no es perd en sincronitzar entre mòbils."
+        "En escriure el concepte a Apuntar, el camp queda a la vista just a sobre del teclat i el full l'acompanya sense salts; un concepte llarg es llegeix sencer en dues línies, i si tanques el teclat sense tocar «Fet», torna tot.",
+        "Si no hi ha cap banc triat a Apuntar, la seva rajola ho diu amb un «+» per triar-lo.",
+        "Si tens dos comptes de rebuts al mateix banc, cada rebut es resta una sola vegada del saldo.",
+        "Deutes i Metes porten a dalt el mateix resum que Rebuts i menys textos de farciment; els deutes amb la família tenen una icona de persona.",
+        "Configuració estrena icones a totes les files i l'ajuda va al costat del cercador; el Perfil va en files i és més curt. Amb la lletra més gran ja no es talla res a Deutes, Metes ni Configuració.",
+        "A partir d'ara, l'arrodoniment de Trade Republic no es perd en sincronitzar entre mòbils."
       ]
     },
-    "tandas": [
-      {
-        "id": "teclado-241",
-        "t": {
-          "es": "Apuntar: el concepto con el teclado del móvil",
-          "en": "Add: the description with the phone's keyboard",
-          "ca": "Apuntar: el concepte amb el teclat del mòbil"
-        },
-        "items": {
-          "es": [
-            "1. Apuntar (el botón + de abajo): toca el concepto y escribe algo; después oculta el teclado con su flecha o con el botón Atrás del móvil, sin tocar «Listo». BIEN: mientras sale el teclado la hoja sube con él, pegada, y entre la hoja y el teclado no asoma nada de lo que hay detrás (ni Gastos ni la barra de abajo); al ocultarlo, la hoja vuelve entera, con la forma de pago, el teclado de números y el botón «Apuntar», sin caerse ni rebotar, y puedes volver a tocar el concepto. MAL: el teclado tapa las categorías, asoma la pantalla de detrás o la barra de abajo, la hoja da un salto o rebota, o se queda recogida sin teclado.",
-            "2. Vuelve a tocar el concepto, escribe y toca «Listo»; hazlo dos veces seguidas. BIEN: la hoja acompaña al teclado sin saltos (la primera vez en este móvil puede esperar al teclado y subir al final; desde la segunda va a la par); no queda hueco entre el concepto y «Listo» ni teclas cortadas; al tocar «Listo» vuelven la forma de pago, el teclado de números y la baldosa del banco (su logo, o un «+» si no hay ninguno elegido), y el botón dice «Apuntar». MAL: la segunda vez sigue habiendo salto, queda un hueco o algo cortado, o tras «Listo» algo se queda montado o falta la baldosa del banco."
-          ],
-          "en": [
-            "1. Add (the + button at the bottom): tap the description and type something; then hide the keyboard with its arrow or with the phone's Back button, without tapping «Done». RIGHT: as the keyboard comes up the sheet rises with it, stuck to it, and nothing behind shows between the sheet and the keyboard (neither Spending nor the bottom bar); when you hide it, the sheet comes back whole, with the payment method, the number pad and the «Add» button, without dropping or bouncing, and you can tap the description again. WRONG: the keyboard covers the categories, the screen behind or the bottom bar shows through, the sheet jumps or bounces, or it stays tucked in with no keyboard.",
-            "2. Tap the description again, type and tap «Done»; do it twice in a row. RIGHT: the sheet moves with the keyboard without jumps (the first time on this phone it may wait for the keyboard and rise at the end; from the second time it moves in step); there is no gap between the description and «Done» and no keys are cut off; when you tap «Done» the payment method, the number pad and the bank tile come back (its logo, or a «+» if none is chosen), and the button says «Add». WRONG: the second time it still jumps, there is a gap or something cut off, or after «Done» something overlaps or the bank tile is missing."
-          ],
-          "ca": [
-            "1. Apuntar (el botó + de baix): toca el concepte i escriu alguna cosa; després amaga el teclat amb la seva fletxa o amb el botó Enrere del mòbil, sense tocar «Fet». BÉ: mentre surt el teclat el full puja amb ell, enganxat, i entre el full i el teclat no s'hi veu res del que hi ha darrere (ni Despeses ni la barra de baix); en amagar-lo, el full torna sencer, amb la forma de pagament, el teclat de números i el botó «Apuntar», sense caure ni rebotar, i pots tornar a tocar el concepte. MALAMENT: el teclat tapa les categories, s'hi veu la pantalla de darrere o la barra de baix, el full fa un salt o rebota, o es queda recollit sense teclat.",
-            "2. Torna a tocar el concepte, escriu i toca «Fet»; fes-ho dues vegades seguides. BÉ: el full acompanya el teclat sense salts (la primera vegada en aquest mòbil pot esperar el teclat i pujar al final; des de la segona va a la par); no queda cap buit entre el concepte i «Fet» ni tecles tallades; en tocar «Fet» tornen la forma de pagament, el teclat de números i la rajola del banc (el seu logo, o un «+» si no n'hi ha cap triat), i el botó diu «Apuntar». MALAMENT: la segona vegada encara hi ha salt, queda un buit o alguna cosa tallada, o després de «Fet» alguna cosa queda muntada o falta la rajola del banc."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.240",
@@ -71,33 +60,7 @@
         "Amb la lletra més gran ja no es talla res a Deutes, Metes ni Configuració."
       ]
     },
-    "tandas": [
-      {
-        "id": "diseno-240",
-        "t": {
-          "es": "Deudas, Metas, Ajustes y Perfil",
-          "en": "Debts, Goals, Settings and Profile",
-          "ca": "Deutes, Metes, Configuració i Perfil"
-        },
-        "items": {
-          "es": [
-            "1. Plan → Deudas y después Plan → Metas: mira la tarjeta de arriba y cada fila. BIEN: arriba hay una tarjeta como la de Recibos, con la cifra grande a la izquierda; cada deuda y cada meta lleva su nombre entero y, si no le cabe al lado, la cifra baja entera a la línea de abajo; ya no está la frase de debajo de las deudas ni el emoji en «Amortizar ahora»; una deuda con un familiar (mamá, papá, un amigo…) lleva icono de persona; en Metas, si no apartas nada al mes, sale «Ahorro mensual · Añadir» en una sola fila. MAL: la cifra de arriba se parte, un nombre o una cifra salen cortados con «…», o sigue el texto de relleno.",
-            "2. Ajustes (la rueda de arriba): recorre todas las filas y abre Accesibilidad; luego toca tu foto de arriba para abrir «Tu perfil». BIEN: cada fila tiene su propio icono dibujado, sin emojis ni dos iguales; el botón de volver es redondo; la «?» de ayuda está junto al buscador; «Reducir animaciones», «Más contraste» y «Ciclo de cobro» van sin frase debajo, y tampoco hay frase bajo «Tamaño de letra»; en «Tu perfil», «Hogar compartido» va en una línea e «Ir a Ajustes» es una fila con flecha. MAL: falta un icono, hay dos iguales o un emoji, sigue alguna frase debajo, o una fila no abre lo de siempre.",
-            "3. Ajustes → Accesibilidad → Tamaño de letra: elige «Enorme» y mira Plan → Deudas, Plan → Metas y Ajustes; después vuelve a dejar la letra como la tenías. BIEN: nada sale cortado con «…» ni con una palabra partida por la mitad; los nombres y las cifras se leen enteros, aunque bajen de línea. MAL: algún texto se corta, una palabra se parte, o algo se sale de su tarjeta."
-          ],
-          "en": [
-            "1. Plan → Debts and then Plan → Goals: look at the card at the top and each row. RIGHT: at the top there is a card like the one in Bills, with the big figure on the left; each debt and goal shows its full name and, if the figure doesn't fit beside it, the figure moves whole to the line below; the sentence under the debts is gone and so is the emoji on «Pay down now»; a debt with a relative (mum, dad, a friend…) has a person icon; in Goals, if you put nothing aside each month, «Monthly saving · Add» shows on a single row. WRONG: the figure at the top breaks, a name or a figure is cut off with «…», or the filler text is still there.",
-            "2. Settings (the cog at the top): go through every row and open Accessibility; then tap your picture at the top to open «Your profile». RIGHT: each row has its own drawn icon, no emojis and no two the same; the back button is round; the help «?» sits next to the search box; «Reduce motion», «More contrast» and «Pay cycle» have no sentence underneath, and neither does «Text size»; in «Your profile», «Shared household» is on one line and «Go to Settings» is a row with an arrow. WRONG: an icon is missing, two are the same or one is an emoji, a sentence is still underneath, or a row doesn't open what it used to.",
-            "3. Settings → Accessibility → Text size: choose «Huge» and look at Plan → Debts, Plan → Goals and Settings; then set the text back the way you had it. RIGHT: nothing is cut off with «…» or with a word split in half; names and figures read in full, even if they move to another line. WRONG: some text is cut off, a word is split, or something spills out of its card."
-          ],
-          "ca": [
-            "1. Pla → Deutes i després Pla → Metes: mira la targeta de dalt i cada fila. BÉ: a dalt hi ha una targeta com la de Rebuts, amb la xifra gran a l'esquerra; cada deute i cada meta porta el nom sencer i, si la xifra no hi cap al costat, baixa sencera a la línia de sota; ja no hi ha la frase de sota dels deutes ni l'emoji a «Amortitza ara»; un deute amb un familiar (mare, pare, un amic…) porta icona de persona; a Metes, si no apartes res al mes, surt «Estalvi mensual · Afegeix» en una sola fila. MALAMENT: la xifra de dalt es parteix, un nom o una xifra surten tallats amb «…», o encara hi ha el text de farciment.",
-            "2. Configuració (la roda de dalt): recorre totes les files i obre Accessibilitat; després toca la teva foto de dalt per obrir «El teu perfil». BÉ: cada fila té la seva pròpia icona dibuixada, sense emojis ni dues d'iguals; el botó de tornar és rodó; l'«?» d'ajuda és al costat del cercador; «Reduir animacions», «Més contrast» i «Cicle de cobrament» van sense frase a sota, i tampoc no hi ha frase sota «Mida de la lletra»; a «El teu perfil», «Llar compartida» va en una línia i «Ves a Configuració» és una fila amb fletxa. MALAMENT: falta una icona, n'hi ha dues d'iguals o un emoji, encara hi ha alguna frase a sota, o una fila no obre el de sempre.",
-            "3. Configuració → Accessibilitat → Mida de la lletra: tria «Enorme» i mira Pla → Deutes, Pla → Metes i Configuració; després torna a deixar la lletra com la tenies. BÉ: res no surt tallat amb «…» ni amb una paraula partida per la meitat; els noms i les xifres es llegeixen sencers, encara que baixin de línia. MALAMENT: algun text es talla, una paraula es parteix, o alguna cosa surt de la seva targeta."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.239",
@@ -142,27 +105,7 @@
         "Si tens dos comptes de rebuts al mateix banc, cada rebut es resta una sola vegada del saldo."
       ]
     },
-    "tandas": [
-      {
-        "id": "dinero-238",
-        "t": {
-          "es": "Cuentas de recibos: cada recibo se resta una vez",
-          "en": "Bill accounts: each bill is taken off once",
-          "ca": "Comptes de rebuts: cada rebut es resta una vegada"
-        },
-        "items": {
-          "es": [
-            "1. Cartera: mira el saldo de cada una de tus cuentas de recibos y compáralo con el de tu banco (o con el que veías ayer). Después abre Plan → Recibos y, arriba, «¿Te llega?» de ese banco. BIEN: cada cuenta tiene el mismo saldo que ayer si no ha habido movimientos; en Recibos cada recibo sale una sola vez; «Tienes hoy» es la suma de lo que ves en Cartera para las cuentas de ese banco; si tienes dos cuentas de recibos en el mismo banco, un recibo ya pagado se resta una sola vez. MAL: una cuenta ha cambiado de saldo sin movimientos, un recibo sale dos veces, o «Tienes hoy» no cuadra con Cartera."
-          ],
-          "en": [
-            "1. Portfolio: look at the balance of each of your bill accounts and compare it with your bank's (or with what you saw yesterday). Then open Plan → Bills and, at the top, «Will it cover?» for that bank. RIGHT: each account has the same balance as yesterday if there have been no transactions; in Bills each bill shows up only once; «You have today» is the sum of what you see in Portfolio for that bank's accounts; if you have two bill accounts at the same bank, a bill already paid is taken off only once. WRONG: an account's balance changed with no transactions, a bill shows up twice, or «You have today» doesn't match Portfolio."
-          ],
-          "ca": [
-            "1. Cartera: mira el saldo de cadascun dels teus comptes de rebuts i compara'l amb el del teu banc (o amb el que veies ahir). Després obre Pla → Rebuts i, a dalt, «T'arriba?» d'aquell banc. BÉ: cada compte té el mateix saldo que ahir si no hi ha hagut moviments; a Rebuts cada rebut surt una sola vegada; «Tens avui» és la suma del que veus a Cartera per als comptes d'aquell banc; si tens dos comptes de rebuts al mateix banc, un rebut ja pagat es resta una sola vegada. MALAMENT: un compte ha canviat de saldo sense moviments, un rebut surt dues vegades, o «Tens avui» no quadra amb Cartera."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.237",
