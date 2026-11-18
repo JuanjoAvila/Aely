@@ -1,0 +1,22 @@
+Statement,Header,Field Name,Field Value
+Statement,Data,BrokerName,Interactive Brokers Ireland Limited
+Statement,Data,Title,Activity Statement
+Statement,Data,Period,"November 1, 2024 - November 15, 2024"
+Account Information,Header,Field Name,Field Value
+Account Information,Data,Base Currency,EUR
+Open Positions,Header,DataDiscriminator,Asset Category,Currency,Symbol,Quantity,Mult,Cost Price,Cost Basis,Close Price,Value,Unrealized P/L,Code
+Open Positions,Data,Summary,Stocks,EUR,VWCE,20,1,100,2000,120.1,2402,402,
+Open Positions,Total,,Stocks,EUR,,,,,2000,,2402,402,
+Open Positions,Data,Summary,Stocks,GBP,PG,30,1,40,1200,45.5,1365,165,
+Open Positions,Total,,Stocks,GBP,,,,,1200,,1365,165,
+Open Positions,Data,Summary,Stocks,USD,AAPL,10,1,150,1500,228.22,"2,282.2",782.2,
+Open Positions,Total,,Stocks,USD,,,,,1500,,"2,282.2",782.2,
+Cash Report,Header,Currency Summary,Currency,Total,Securities,Futures,Month to Date,Year to Date,
+Cash Report,Data,Starting Cash,Base Currency Summary,1400,1400,0,,,
+Cash Report,Data,Ending Cash,Base Currency Summary,1500.25,1500.25,0,,,
+Cash Report,Data,Ending Cash,EUR,1000,1000,0,,,
+Cash Report,Data,Ending Cash,USD,531.5,531.5,0,,,
+Financial Instrument Information,Header,Asset Category,Symbol,Description,Conid,Security ID,Listing Exch,Multiplier,Type,Code
+Financial Instrument Information,Data,Stocks,AAPL,APPLE INC,265598,US0378331005,NASDAQ,1,COMMON,
+Financial Instrument Information,Data,Stocks,PG,PROCTER & GAMBLE CO,1000002,US7427181091,NYSE,1,COMMON,
+Financial Instrument Information,Data,Stocks,VWCE,VANGUARD FTSE ALL-WORLD,1000001,IE00BK5BQT80,IBIS2,1,ETF,

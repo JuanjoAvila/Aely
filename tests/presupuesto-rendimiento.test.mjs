@@ -441,7 +441,13 @@ const PRESUPUESTO = {
   // Integración 4.26.241 (18/11): Apuntar con el teclado del móvil de verdad (el margen que lo sigue, la subida prevista y
   // el ocultado sin «Listo»), con el sello y la nota: 2.012.797 B minificado y 553.461 B gzip. Mismo mandato del 11/10: al mínimo
   // medido, 1966 / 541 KiB.
-  minificado: 1966 * 1024,
+  // Brókers por fichero, fases 0 y 1 (18/11): el motor común de importación (Revolut pasa a perfil), DEGIRO
+  // (Cartera + Transacciones en es/en/nl/de), IBKR (Flex XML/CSV y Activity Statement), su vista previa con
+  // «ya no está en el fichero» y los textos en tres idiomas. Medido con el sello .99999 y la reserva de 95 B
+  // sobre 4.26.241: 2.012.797 → 2.038.828 B minificado (+25,5 KiB) y 553.461 → 561.246 B gzip (+7,6 KiB),
+  // dentro de lo estimado en el plan (+7-8 KB). Es lógica de dinero (parsers, coste medio, cuadre por dos
+  // vías), sin nada que recortar sin quitar una garantía; SUBE (mandato 11/10) al mínimo medido: 1992 / 549 KiB.
+  minificado: 1992 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -484,7 +490,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 541 * 1024, // ver el comentario de minificado (540,5 KiB medidos el 18/11/2026 en la integración 4.26.241).
+  gzip: 549 * 1024, // ver el comentario de minificado (548,1 KiB medidos el 18/11/2026 con los brókers por fichero).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

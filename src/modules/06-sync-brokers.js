@@ -1054,7 +1054,14 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
   };
   const manualLabel=function(it){
     const ms=new Date(it.manualUpdatedAt||0).getTime();
-    return ms>0?tf("iv_manual_on",{date:new Date(ms).toLocaleDateString(loc(),{day:"2-digit",month:"short"})}):t("iv_manual");
+    const day=function(x){ return new Date(x).toLocaleDateString(loc(),{day:"2-digit",month:"short"}); };
+    /* Importada de un fichero sin cotización en vivo (DEGIRO/IBKR, 18/11): el valor es el del
+       fichero y tiene que decirlo con su fecha, no hacerse pasar por un precio de hoy. Si después
+       lo tocaste a mano, manda lo más reciente. */
+    const fileMs=it.fileAt?new Date(it.fileAt+"T12:00:00").getTime():0;
+    const lbl=fileMs>0&&fileMs>=ms?tf("iv_file_on",{date:day(fileMs),x:entOf(it.ent).label})
+      :(ms>0?tf("iv_manual_on",{date:day(ms)}):t("iv_manual"));
+    return it.fileGone?t("iv_file_gone")+" · "+lbl:lbl;
   };
   const beginBrokerEdit=function(gid){
     start();
@@ -1167,7 +1174,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
                       React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
                       React.createElement("div",null,
                         React.createElement("div",{className:"rname"},it.name),
-                        React.createElement("div",{className:"rsub"},it.ticker?(it.ticker+(it.shares!=null?" · "+tf("iv_shares",{n:it.shares}):"")):manualLabel(it)))),
+                        React.createElement("div",{className:"rsub"},it.ticker?((it.fileGone?t("iv_file_gone")+" · ":"")+it.ticker+(it.shares!=null?" · "+tf("iv_shares",{n:it.shares}):"")):manualLabel(it)))),
                     React.createElement("div",{className:"rval num"},fxAmountText(it.value,it.cur,state,f2),
                       v!=null&&it.ticker&&c>0 && React.createElement("div",{className:"rvsub"+(d<0?" neg":"")},(d>=0?"+":"")+(d/c*100).toFixed(2)+"%")));
                 }),

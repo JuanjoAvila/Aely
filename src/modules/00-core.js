@@ -697,6 +697,9 @@ const ENT = {
   revolut:        { label:"Revolut",        mono:"Rv", color:"#5FD08A" },
   trade_republic: { label:"Trade Republic", mono:"TR", color:"#E6C36A" },
   myinvestor:     { label:"MyInvestor",     mono:"MI", color:"#C9A0E0" },
+  // Brókers por fichero (18/11): sin PNG oficial que recortar, monograma sobrio (`sobrio`), nunca un logo dibujado.
+  degiro:         { label:"DEGIRO",         mono:"DG", color:"#5FB0D0", sobrio:true },
+  ibkr:           { label:"Interactive Brokers", mono:"IB", color:"#E2705F", sobrio:true },
   caixabank:      { label:"CaixaBank",      mono:"Cx", color:"#3FA9E0" },
   bbva:           { label:"BBVA",           mono:"BB", color:"#4B7FD6" },
   santander:      { label:"Santander",      mono:"Sa", color:"#E2705F" },
