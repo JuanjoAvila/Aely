@@ -130,6 +130,7 @@ Deno.serve(async (req) => {
     }
     return jsonResp({ ok: true, refreshed, expired, skipped });
   } catch (e) {
-    return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);
+    // P3-09: código cerrado también hacia el cron (la respuesta queda en net._http_response).
+    return jsonResp({ ok: false, error: "error" }, 500);
   }
 });

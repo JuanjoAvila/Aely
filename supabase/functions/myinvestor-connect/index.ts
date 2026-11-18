@@ -142,6 +142,7 @@ Deno.serve(withCors(async (req: Request) => {
     const msg = (j?.status?.message) || (j?.payload?.data?.message) || ("login HTTP " + res.status);
     return jsonResp({ ok: false, status: res.status, error: msg });
   } catch (e) {
-    return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);
+    // P3-09: el texto de una excepción interna no es un mensaje para el usuario.
+    return jsonResp({ ok: false, error: "error" }, 500);
   }
 }));

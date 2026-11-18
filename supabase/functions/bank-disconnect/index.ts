@@ -80,11 +80,12 @@ Deno.serve(withCors(async (req: Request) => {
     deletion = link.session_id == null ? deletion.is("session_id", null) : deletion.eq("session_id", link.session_id);
     deletion = link.state_issued_at == null ? deletion.is("state_issued_at", null) : deletion.eq("state_issued_at", link.state_issued_at);
     const { data: removed, error } = await deletion.select("id");
-    if (error) return jsonResp({ ok: false, error: error.message }, 500);
+    // P3-09: ni el mensaje de PostgREST ni el de la excepción salen al cliente.
+    if (error) return jsonResp({ ok: false, error: "error" }, 500);
 
     if (!removed || !removed.length) return jsonResp({ ok: false, error: "enlace cambiado; vuelve a intentarlo" }, 409);
     return jsonResp({ ok: true });
   } catch (e) {
-    return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);
+    return jsonResp({ ok: false, error: "error" }, 500);
   }
 }));
