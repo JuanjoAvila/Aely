@@ -265,12 +265,12 @@ console.log("security");
 /* ---- 3 ter. Las acciones de los workflows, fijadas por commit (SEG-20, 18/11/2026) ----
    Una etiqueta como `@v4` la puede mover quien controle ese repo, y el workflow corre con permiso
    para publicar en Pages y en las releases: o sea, para meter código en los móviles. Un SHA no se
-   mueve. `supabase.yml` lo lleva la ronda de servidor (A) y se suma aquí cuando lo fije. */
+   mueve. Desde la 4.26.243 también `supabase.yml`, que fijó la ronda de servidor (A, T-01 en main). */
 {
   const dir = path.join(root, ".github", "workflows");
   const sueltas = [];
   let total = 0;
-  for (const f of fs.readdirSync(dir).filter((n) => /\.ya?ml$/.test(n) && n !== "supabase.yml")) {
+  for (const f of fs.readdirSync(dir).filter((n) => /\.ya?ml$/.test(n))) {
     for (const m of read(".github/workflows/" + f).matchAll(/^\s*(?:-\s*)?uses:\s*([^\s#]+)/gm)) {
       total++;
       if (!/@[0-9a-f]{40}$/.test(m[1])) sueltas.push(`${f}: ${m[1]}`);

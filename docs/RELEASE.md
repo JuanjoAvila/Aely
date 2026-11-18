@@ -127,3 +127,7 @@ npm run release:apk    # APK de producción de punta a punta
 npm run apk:prep       # solo prep (también exige WEBDEBUG off)
 gh run list --workflow="Deploy a GitHub Pages" --limit 3
 ```
+
+## Checksum del OTA (4.26.243)
+
+`deploy.yml` y `beta.yml` escriben en `version.json` el `checksum` = SHA-256 de `bundle.zip`, y la app (`mcBundleOpts` en `12-boot`) se lo pasa al actualizador, que recalcula el SHA-256 del zip descargado y lo tira si no casa. Un manifiesto sin `checksum` válido se trata como antes (manifiestos viejos y el repo puente). Por eso **el puente tiene que copiar `version.json` y `bundle.zip` JUNTOS**, del mismo despliegue: con el manifiesto nuevo y el zip viejo, el móvil ya no instala el bundle viejo con número nuevo (lo que pasaba antes), sino que falla la descarga. En estable el zip lleva `?v=<versión>` para que la caché de Pages no sirva el zip viejo con el manifiesto nuevo. Es integridad, no autenticidad: la firma queda para la APK.

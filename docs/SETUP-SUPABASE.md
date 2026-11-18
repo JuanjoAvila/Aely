@@ -241,7 +241,10 @@ antes con `begin; … rollback;` en el SQL Editor.
   (trigger solo en `insert` o `update of invite_code`: los de 6 siguen valiendo), el dueño puede
   expulsar (`household_members_delete_owner`) y la foto del que sale se borra (trigger). **Falta la
   parte de la app** (otra ronda): usar `join_household`, botón de expulsar, rotar el código con
-  caducidad y regenerar los de 6. Prueba sugerida en el SQL Editor (como `authenticated`):
+  caducidad y regenerar los de 6. **El hueco sigue abierto** hasta retirar `join_household_by_code`: la
+  vieja sigue lanzando `invalid_code`, así que sus fallos siguen sin contarse aunque se aplique la 0028
+  (revisión de la ronda A, P2-2); la retirada (`revoke execute … from authenticated`) va en el
+  inventario, después de que la app use `join_household`. Prueba sugerida en el SQL Editor (como `authenticated`):
   ```sql
   begin;
   set local role authenticated;

@@ -2417,7 +2417,7 @@ Object.assign(LANG.es,{
   pv_s2_h:"Dónde se alojan",
   pv_s2:"Tus datos se guardan en la UE y solo tú puedes leerlos. Los extractos se leen en el móvil y no se suben.",
   pv_s3_h:"Tus derechos",
-  pv_s3:["Acceso y portabilidad: exporta tus datos en JSON desde Ajustes → Copia de seguridad.","Supresión: Ajustes → Tu cuenta → Borrar mi cuenta (pide contraseña). Borra tu usuario y todos sus datos.","Rectificación: puedes editar cualquier dato dentro de la app."],
+  pv_s3:["Acceso y portabilidad: todos tus datos se ven dentro de la app, y Ajustes → Copia de seguridad guarda una copia diaria que puedes restaurar. Si quieres una copia completa en un fichero, pídela en el correo de contacto.","Supresión: Ajustes → Tu cuenta → Borrar mi cuenta (pide contraseña). Borra tu usuario y todos sus datos.","Rectificación: puedes editar cualquier dato dentro de la app."],
   pv_s4_h:"Contacto",
   pv_s4:"Para dudas sobre privacidad: juanjo.avila.chavero@gmail.com",
 });
@@ -2428,7 +2428,7 @@ Object.assign(LANG.en,{
   pv_s2_h:"Where it lives",
   pv_s2:"Your data is stored in the EU and only you can read it. Statements are read on the phone and never uploaded.",
   pv_s3_h:"Your rights",
-  pv_s3:["Access & portability: export your data as JSON from Settings → Backup.","Erasure: Settings → Your account → Delete my account (asks for password). Removes your user and all its data.","Rectification: you can edit any data inside the app."],
+  pv_s3:["Access & portability: all your data can be seen inside the app, and Settings → Backup keeps a daily copy you can restore. If you want a full copy as a file, ask for it at the contact email.","Erasure: Settings → Your account → Delete my account (asks for password). Removes your user and all its data.","Rectification: you can edit any data inside the app."],
   pv_s4_h:"Contact",
   pv_s4:"Privacy questions: juanjo.avila.chavero@gmail.com",
 });
@@ -2439,7 +2439,7 @@ Object.assign(LANG.ca,{
   pv_s2_h:"On s'allotgen",
   pv_s2:"Les teves dades es desen a la UE i només tu les pots llegir. Els extractes es llegeixen al mòbil i no es pugen.",
   pv_s3_h:"Els teus drets",
-  pv_s3:["Accés i portabilitat: exporta les teves dades en JSON des de Configuració → Còpia de seguretat.","Supressió: Configuració → El teu compte → Esborra el meu compte (demana contrasenya). Esborra el teu usuari i totes les dades.","Rectificació: pots editar qualsevol dada dins de l'app."],
+  pv_s3:["Accés i portabilitat: totes les teves dades es veuen dins de l'app, i Configuració → Còpia de seguretat en desa una còpia diària que pots restaurar. Si en vols una còpia completa en un fitxer, demana-la al correu de contacte.","Supressió: Configuració → El teu compte → Esborra el meu compte (demana contrasenya). Esborra el teu usuari i totes les dades.","Rectificació: pots editar qualsevol dada dins de l'app."],
   pv_s4_h:"Contacte",
   pv_s4:"Dubtes sobre privacitat: juanjo.avila.chavero@gmail.com",
 });

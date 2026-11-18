@@ -17,11 +17,13 @@
      scripts de check-syntax.mjs la encuentra por regex y se lía, aunque esté dentro de un
      comentario. Pasó al añadir esta CSP.)
 
-     'unsafe-inline' es inevitable: la app entera va en un único bloque inline sin paso de build,
-     y en hosting estático no hay forma de poner un nonce por petición. Aun así, el resto de la
-     política sigue valiendo: object-src/base-uri a 'none' y connect-src cerrado son justo lo que
-     corta la exfiltración. (frame-ancestors se ignora en <meta>; GitHub Pages ya manda
-     X-Frame-Options: DENY.)
+     Aquí, en la fuente, script-src lleva 'unsafe-inline' porque varios e2e reescriben el HTML al
+     servirlo. Lo PUBLICADO no: `deploy.yml` y `beta.yml` pasan `scripts/csp-sellar.mjs` después de
+     minificar y lo cambian por la huella sha256 de cada bloque inline (ronda C, SEG-07), así que un
+     script inyectado no corre. El bundle de la APK (`build-www`) aún no se sella. object-src/base-uri
+     a 'none' y connect-src cerrado siguen cortando la exfiltración. frame-ancestors se ignora en
+     <meta> y GitHub Pages NO manda X-Frame-Options (medido el 18/11): contra el iframe, `12-boot`
+     no monta la app dentro de un marco (SEG-21).
 
      ⚠ OJO CON LOS ASSETS DE LAS RELEASES DE GITHUB (canal beta y descarga del APK).
      `github.com/.../releases/download/...` responde un **302 a otro dominio**, y la CSP se aplica
@@ -9722,7 +9724,7 @@ Object.assign(LANG.es,{
   pv_s2_h:"Dónde se alojan",
   pv_s2:"Tus datos se guardan en la UE y solo tú puedes leerlos. Los extractos se leen en el móvil y no se suben.",
   pv_s3_h:"Tus derechos",
-  pv_s3:["Acceso y portabilidad: exporta tus datos en JSON desde Ajustes → Copia de seguridad.","Supresión: Ajustes → Tu cuenta → Borrar mi cuenta (pide contraseña). Borra tu usuario y todos sus datos.","Rectificación: puedes editar cualquier dato dentro de la app."],
+  pv_s3:["Acceso y portabilidad: todos tus datos se ven dentro de la app, y Ajustes → Copia de seguridad guarda una copia diaria que puedes restaurar. Si quieres una copia completa en un fichero, pídela en el correo de contacto.","Supresión: Ajustes → Tu cuenta → Borrar mi cuenta (pide contraseña). Borra tu usuario y todos sus datos.","Rectificación: puedes editar cualquier dato dentro de la app."],
   pv_s4_h:"Contacto",
   pv_s4:"Para dudas sobre privacidad: juanjo.avila.chavero@gmail.com",
 });
