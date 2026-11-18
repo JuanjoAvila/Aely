@@ -131,6 +131,7 @@ mi-cartera/
 ├── tests/ingest-native-phase1.test.mjs # Marca nativa, ambos órdenes OB, UUID cloud, colisiones SHA y switch OFF (candidato)
 ├── tests/native-event-debounce.test.mjs # Listener/helper Java reales: ventana local por identidad y concurrencia
 ├── tests/fin29-30-*.test.mjs # Alias/borrado/backfill, writer real y paridad offline; R8 dirigido verde, revisión financiera pendiente
+├── e2e/apuntar-teclado-real.spec.mjs # Apuntar con el teclado encima y Chrome desplazando la pantalla: ocultarlo sin «Listo», sin fondo asomando, por fotograma (241)
 ├── e2e/diseno-240-plan-ajustes.spec.mjs # Deudas, Metas, Ajustes y Perfil: resumen, iconos de trazo y nada cortado con letra Enorme a 360/393/412 (240)
 ├── e2e/apuntar-concepto-teclado.spec.mjs # Apuntar escribiendo el concepto: a la vista sobre el teclado, sin huecos, dos renglones y la baldosa del banco (239)
 ├── tests/recibos-238-fijos-dobles.test.mjs · e2e/recibos-238-fijos-dobles.spec.mjs # Dos cuentas de recibos en el mismo banco: el neto lo carga una, migración y pull (238)
@@ -223,7 +224,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.240**, candidata de beta sobre la 4.26.239 (servida en beta y SIN veredicto: sus tandas `concepto-239` y `dinero-238` siguen en el panel), solo web y sin APK nueva (sigue la 4.26.206 / code64). Ronda de diseño D y E: Deudas y Metas con el resumen de Recibos y sin textos de relleno, deudas con la familia con icono de persona, Ajustes con iconos de trazo en todas las filas y la ayuda junto al buscador, Perfil en filas, y nada cortado con letra Enorme. No toca dinero. Tanda nueva `diseno-240` (tres pasos). Tamaño 1961,1/539,4 KiB, tope 1962/540 KiB (el tope no bloquea producto, regla del 11/10).
+Estado actual: **v4.26.241**, candidata de beta sobre la 4.26.240 (servida en beta y SIN veredicto: sus tandas `diseno-240` y `dinero-238` siguen en el panel; `concepto-239` se retira con `tandas: []` porque la sustituye `teclado-241`), solo web y sin APK nueva (sigue la 4.26.206 / code64). Apuntar con el teclado del móvil de verdad: la hoja sigue al teclado en cada fotograma, sin saltos ni nada de detrás asomando, sube a la vez que él con el alto del último teclado visto, y ocultar el teclado sin «Listo» devuelve la hoja entera (sin verificar en su móvil real). Y el Round up de TR ya no se pierde al sincronizar: cuando gana la nube, su libro `trRecompensas` va con sus posiciones (lo que la 237 ya perdió no se repara solo). Tanda nueva `teclado-241` (dos pasos). Tamaño 1965,6/540,5 KiB, tope 1966/541 KiB (el tope no bloquea producto, regla del 11/10).
 
 Producción actual: **v4.26.237** — producción con la ronda de beta 234 a 237 aprobada sobre la 4.26.233: Apuntar sin deslizar y sin doble guardado; bancos al día al abrir la app (con tope) y aviso del banco que pide permiso; Gastos con los movimientos de cada día juntos, reordenar con el dedo y Suscripciones solo con cobros que se repiten; Deudas y metas al céntimo y «Amortizar ahora»; «¿Te llega?» sin restar dos veces un recibo ya descontado; Recibos y Cartera sin cortes, Cartera que se edita tocando y el destino del Round up y el Saveback de TR. APK 4.26.206 / code64 desde la release estable `v4.26.206`; las Edge Functions de la ronda van aparte (sin desplegar con esta subida).
 

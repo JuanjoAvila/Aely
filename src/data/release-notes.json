@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.241",
+    "d": "2026-11-18",
+    "t": {
+      "es": "Escribir el concepto sin saltos, y el redondeo de Trade Republic a salvo",
+      "en": "Typing the description without jumps, and the Trade Republic round-up kept safe",
+      "ca": "Escriure el concepte sense salts, i l’arrodoniment de Trade Republic a recer"
+    },
+    "items": {
+      "es": [
+        "Al escribir el concepto en Apuntar, la hoja acompaña al teclado sin saltos y no asoma nada de lo que hay detrás; si cierras el teclado sin tocar «Listo», vuelve todo.",
+        "El redondeo de Trade Republic ya no se pierde al sincronizar entre móviles."
+      ],
+      "en": [
+        "When you type the description in Add, the sheet moves with the keyboard without jumps and nothing behind it shows through; if you close the keyboard without tapping «Done», everything comes back.",
+        "The Trade Republic round-up is no longer lost when syncing between phones."
+      ],
+      "ca": [
+        "En escriure el concepte a Apuntar, el full acompanya el teclat sense salts i no s'hi veu res del que hi ha darrere; si tanques el teclat sense tocar «Fet», torna tot.",
+        "L’arrodoniment de Trade Republic ja no es perd en sincronitzar entre mòbils."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "teclado-241",
+        "t": {
+          "es": "Apuntar: el concepto con el teclado del móvil",
+          "en": "Add: the description with the phone's keyboard",
+          "ca": "Apuntar: el concepte amb el teclat del mòbil"
+        },
+        "items": {
+          "es": [
+            "1. Apuntar (el botón + de abajo): toca el concepto y escribe algo; después oculta el teclado con su flecha o con el botón Atrás del móvil, sin tocar «Listo». BIEN: mientras sale el teclado la hoja sube con él, pegada, y entre la hoja y el teclado no asoma nada de lo que hay detrás (ni Gastos ni la barra de abajo); al ocultarlo, la hoja vuelve entera, con la forma de pago, el teclado de números y el botón «Apuntar», sin caerse ni rebotar, y puedes volver a tocar el concepto. MAL: el teclado tapa las categorías, asoma la pantalla de detrás o la barra de abajo, la hoja da un salto o rebota, o se queda recogida sin teclado.",
+            "2. Vuelve a tocar el concepto, escribe y toca «Listo»; hazlo dos veces seguidas. BIEN: la hoja acompaña al teclado sin saltos (la primera vez en este móvil puede esperar al teclado y subir al final; desde la segunda va a la par); no queda hueco entre el concepto y «Listo» ni teclas cortadas; al tocar «Listo» vuelven la forma de pago, el teclado de números y la baldosa del banco (su logo, o un «+» si no hay ninguno elegido), y el botón dice «Apuntar». MAL: la segunda vez sigue habiendo salto, queda un hueco o algo cortado, o tras «Listo» algo se queda montado o falta la baldosa del banco."
+          ],
+          "en": [
+            "1. Add (the + button at the bottom): tap the description and type something; then hide the keyboard with its arrow or with the phone's Back button, without tapping «Done». RIGHT: as the keyboard comes up the sheet rises with it, stuck to it, and nothing behind shows between the sheet and the keyboard (neither Spending nor the bottom bar); when you hide it, the sheet comes back whole, with the payment method, the number pad and the «Add» button, without dropping or bouncing, and you can tap the description again. WRONG: the keyboard covers the categories, the screen behind or the bottom bar shows through, the sheet jumps or bounces, or it stays tucked in with no keyboard.",
+            "2. Tap the description again, type and tap «Done»; do it twice in a row. RIGHT: the sheet moves with the keyboard without jumps (the first time on this phone it may wait for the keyboard and rise at the end; from the second time it moves in step); there is no gap between the description and «Done» and no keys are cut off; when you tap «Done» the payment method, the number pad and the bank tile come back (its logo, or a «+» if none is chosen), and the button says «Add». WRONG: the second time it still jumps, there is a gap or something cut off, or after «Done» something overlaps or the bank tile is missing."
+          ],
+          "ca": [
+            "1. Apuntar (el botó + de baix): toca el concepte i escriu alguna cosa; després amaga el teclat amb la seva fletxa o amb el botó Enrere del mòbil, sense tocar «Fet». BÉ: mentre surt el teclat el full puja amb ell, enganxat, i entre el full i el teclat no s'hi veu res del que hi ha darrere (ni Despeses ni la barra de baix); en amagar-lo, el full torna sencer, amb la forma de pagament, el teclat de números i el botó «Apuntar», sense caure ni rebotar, i pots tornar a tocar el concepte. MALAMENT: el teclat tapa les categories, s'hi veu la pantalla de darrere o la barra de baix, el full fa un salt o rebota, o es queda recollit sense teclat.",
+            "2. Torna a tocar el concepte, escriu i toca «Fet»; fes-ho dues vegades seguides. BÉ: el full acompanya el teclat sense salts (la primera vegada en aquest mòbil pot esperar el teclat i pujar al final; des de la segona va a la par); no queda cap buit entre el concepte i «Fet» ni tecles tallades; en tocar «Fet» tornen la forma de pagament, el teclat de números i la rajola del banc (el seu logo, o un «+» si no n'hi ha cap triat), i el botó diu «Apuntar». MALAMENT: la segona vegada encara hi ha salt, queda un buit o alguna cosa tallada, o després de «Fet» alguna cosa queda muntada o falta la rajola del banc."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.240",
     "d": "2026-11-18",
     "t": {
@@ -74,30 +121,7 @@
         "Si no hi ha cap banc triat, la seva rajola ho diu amb un «+» per triar-lo."
       ]
     },
-    "tandas": [
-      {
-        "id": "concepto-239",
-        "t": {
-          "es": "Apuntar: escribir el concepto con el teclado",
-          "en": "Add: typing the description with the keyboard",
-          "ca": "Apuntar: escriure el concepte amb el teclat"
-        },
-        "items": {
-          "es": [
-            "1. Apuntar (el botón + de abajo): toca el concepto y escribe uno largo, por ejemplo «Cena de cumpleaños con los primos en el restaurante del puerto»; después toca «Listo». BIEN: al salir el teclado la hoja se recoge a la vez, el concepto queda a la vista justo encima del teclado y «Listo» pegado a él, sin un hueco vacío entre los dos; el texto largo baja entero a un segundo renglón, sin «…»; las categorías se ven en filas enteras; al tocar «Listo» vuelven la forma de pago y el teclado de números y el botón vuelve a decir «Apuntar». MAL: el concepto queda tapado o se sale por arriba, hay un hueco vacío entre el concepto y «Listo», el texto se corta con «…», una fila de categorías sale a medias, o tras «Listo» algo queda montado o fuera de su sitio.",
-            "2. En esa misma hoja, con Tarjeta o Bizum, mira la baldosa del banco junto a la forma de pago y tócala. BIEN: si hay banco elegido sale su logo; si no, sale un hueco punteado con «+»; al tocarla aparecen tus bancos para elegir. MAL: sale un cuadro vacío, un logo que no es el de tu banco, o al tocarla no pasa nada."
-          ],
-          "en": [
-            "1. Add (the + button at the bottom): tap the description and type a long one, for example «Birthday dinner with the cousins at the harbour restaurant»; then tap «Done». RIGHT: as the keyboard comes up the sheet tucks in at the same time, the description stays in sight just above the keyboard with «Done» right below it, with no empty gap between them; the long text moves whole to a second line, without «…»; categories show in full rows; when you tap «Done» the payment method and the number pad come back and the button says «Add» again. WRONG: the description is hidden or goes off the top, there is an empty gap between the description and «Done», the text is cut off with «…», a row of categories shows half-cut, or after «Done» something overlaps or is out of place.",
-            "2. In the same sheet, with Card or Bizum, look at the bank tile next to the payment method and tap it. RIGHT: if a bank is chosen its logo shows; if not, a dotted space with «+» shows; tapping it brings up your banks to choose from. WRONG: an empty box shows, a logo that isn't your bank's, or nothing happens when you tap it."
-          ],
-          "ca": [
-            "1. Apuntar (el botó + de baix): toca el concepte i escriu-ne un de llarg, per exemple «Sopar d'aniversari amb els cosins al restaurant del port»; després toca «Fet». BÉ: en sortir el teclat el full es recull alhora, el concepte queda a la vista just a sobre del teclat i «Fet» enganxat a ell, sense cap buit entre tots dos; el text llarg baixa sencer a una segona línia, sense «…»; les categories es veuen en files senceres; en tocar «Fet» tornen la forma de pagament i el teclat de números i el botó torna a dir «Apuntar». MALAMENT: el concepte queda tapat o surt per dalt, hi ha un buit entre el concepte i «Fet», el text es talla amb «…», una fila de categories surt a mitges, o després de «Fet» alguna cosa queda muntada o fora de lloc.",
-            "2. Al mateix full, amb Targeta o Bizum, mira la rajola del banc al costat de la forma de pagament i toca-la. BÉ: si hi ha banc triat surt el seu logo; si no, surt un buit puntejat amb «+»; en tocar-la apareixen els teus bancs per triar. MALAMENT: surt un quadre buit, un logo que no és el del teu banc, o en tocar-la no passa res."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.238",
