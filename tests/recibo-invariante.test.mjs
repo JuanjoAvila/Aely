@@ -52,7 +52,18 @@ const REGLA_REDONDEO_237=[
   ["src/modules/01-i18n.js","savebackOf(monthExpCash)","savebackOf(__propias237(monthExpCash, acc))"],
   ["src/modules/01-i18n.js","function isCardSpend(e){ return e && e.amount>0 && !e.noCard; }","function isCardSpend(e){ return e && e.amount>0 && !e.noCard && !CAT_NEUTRAS[e.category]; }\nfunction __propias237(gastos, acc){ return (gastos||[]).filter(function(e){ const b=expenseBankOf(e); return b ? b===acc.ent : accDaily(acc); }); }"],
 ];
-const deGit237=file=>REGLA_REDONDEO_237.filter(([f])=>f===file).reduce(function(txt,[,de,a]){
+/* Cuarta excepción (ronda 240, P3 de la revisión de la 237): el posible repetido. Al pintar no resta
+   (`expenseCountsCash`) y la referencia sí lo contaba al anclar y al cerrar el mes, así que justo
+   después de leer el banco pintaba más que el banco: 1.321,69 con el banco en 1.273,69 en el amplio
+   #165 (un cargo de 48 € sin nombre, gemelo del aviso de las basuras), y el día 1 bajaba de golpe
+   eso mismo. La 240 ancla y cierra con la misma puerta que pinta. Se le da a la referencia esa
+   regla, y solo esa (el filtro del gasto del mes en `applyBankBalances` y en `reconcileTR`); el
+   redondeo del ancla sale de esa misma lista, así que también deja de contar lo repetido. */
+const REGLA_REPETIDO_240=[
+  ["src/modules/08-motor-bank.js","const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart; });","const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart && expenseCountsCash(e, s); });"],
+  ["src/modules/01-i18n.js","const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key);","const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && expenseCountsCash(e, s));"],
+];
+const deGit237=file=>REGLA_REDONDEO_237.concat(REGLA_REPETIDO_240).filter(([f])=>f===file).reduce(function(txt,[,de,a]){
   if(txt.split(de).length!==2) throw new Error("la referencia ya no tiene: "+de);
   return txt.replace(de,()=>a);
 },deGit(file));

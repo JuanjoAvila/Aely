@@ -3059,10 +3059,12 @@ function inversionEtiqueta(s, e){
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido).
-   Con aviso real de TR, lo que se enseña es lo avisado del mes, no la estimación. */
+   Con aviso real de TR, lo que se enseña es lo avisado del mes, no la estimación.
+   Con la misma puerta que el saldo (`expenseCountsCash`, ronda 240): la tarjeta enseñaba también
+   el redondeo de los posibles repetidos, que el saldo no resta. */
 function recompensasDelMes(state, trAcc, monthStartMs){
   if(!trAcc) return {ru:0,sb:0};
-  const monthExp=((state&&state.expenses)||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs && !cargoDeRecibo(e, state); });
+  const monthExp=((state&&state.expenses)||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs && expenseCountsCash(e, state); });
   const est=recompensasEstimadas(state, trAcc, monthExp, monthStartMs, false);
   const d=new Date(monthStartMs), reales=recompensasReales(state, trAcc.ent, monthStartMs, +new Date(d.getFullYear(), d.getMonth()+1, 1));
   return {ru:reales.hay.roundup?reales.roundup:est.ru, sb:reales.hay.saveback?reales.saveback:est.sb};
@@ -3240,10 +3242,12 @@ function reconcileTR(s){
   let guard=0;
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
-    // Sin el cargo de un recibo: `monthNetForAccount` ya lo arrastra más abajo, y con la fila
-    // dentro una cuenta «para todo» lo restaba dos veces al cruzar de mes (revisión del 12/10/2026).
-    // Tampoco el Saveback que avisa TR: no salió del efectivo (`expenseCountsCash`, 16/11/2026).
-    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback");
+    /* Lo que el saldo restaba al pintarse durante el mes, ni más ni menos (`expenseCountsCash`, la
+       misma puerta que el pintado y el anclaje; ronda 240). Antes se copiaban a mano sus exclusiones
+       —el cargo de un recibo, que ya arrastra `monthNetForAccount` (12/10/2026), y el Saveback de TR
+       (16/11/2026)— y faltaba el posible repetido: el día 1 el saldo bajaba de golpe lo que estaba
+       marcado como posible repetido, que durante el mes no restaba. */
+    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && expenseCountsCash(e, s));
     /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
        y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
        de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
@@ -3269,15 +3273,12 @@ function reconcileTR(s){
     // 12/10/2026, medido: 1771,72 pasaba a 1772,52).
     const obFed = (s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent && !cargoDeRecibo(e, s); });
     if(!obFed){
-      /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo. Durante el mes,
-         `11-app-main.js:1483` los calcula sobre una lista ya filtrada por `expenseCountsCash`;
-         aquí se calculaban sobre el mes ENTERO, así que al cerrar podían comerse compras con
-         tarjeta de bancos que no son de gasto diario y el saldo de TR daba un salto el día 1.
-         Divergencia vieja, encontrada al revisar FIN-01 (9/9). Misma regla en los dos sitios. */
-      const monthExpCash = monthExp.filter(function(e){ return expenseCountsCash(e, s); });
-      // Misma regla que en vivo (`recompensasEstimadas`): solo su banco, y nada si TR ya avisó de lo real
-      // (eso ya restó del efectivo y ya sumó a su posición: simularlo otra vez lo contaría dos veces).
-      const rec = recompensasEstimadas(s, acc, monthExpCash, +new Date(ay, am, 1), true);
+      /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo (`monthExp` ya pasa
+         por `expenseCountsCash`): con el mes ENTERO podían comerse compras con tarjeta de bancos
+         que no son de gasto diario y el saldo de TR daba un salto el día 1 (FIN-01, 9/9).
+         Misma regla que en vivo (`recompensasEstimadas`): solo su banco, y nada si TR ya avisó de lo real
+         (eso ya restó del efectivo y ya sumó a su posición: simularlo otra vez lo contaría dos veces). */
+      const rec = recompensasEstimadas(s, acc, monthExp, +new Date(ay, am, 1), true);
       const ru = rec.ru, sb = rec.sb;
       if(ru>0) acc.value = +(acc.value - ru).toFixed(2);             // el round-up abandona el efectivo
       const contrib = ru + sb;                                       // total que entra a la inversión (€)

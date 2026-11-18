@@ -10038,10 +10038,12 @@ function inversionEtiqueta(s, e){
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido).
-   Con aviso real de TR, lo que se enseña es lo avisado del mes, no la estimación. */
+   Con aviso real de TR, lo que se enseña es lo avisado del mes, no la estimación.
+   Con la misma puerta que el saldo (`expenseCountsCash`, ronda 240): la tarjeta enseñaba también
+   el redondeo de los posibles repetidos, que el saldo no resta. */
 function recompensasDelMes(state, trAcc, monthStartMs){
   if(!trAcc) return {ru:0,sb:0};
-  const monthExp=((state&&state.expenses)||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs && !cargoDeRecibo(e, state); });
+  const monthExp=((state&&state.expenses)||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs && expenseCountsCash(e, state); });
   const est=recompensasEstimadas(state, trAcc, monthExp, monthStartMs, false);
   const d=new Date(monthStartMs), reales=recompensasReales(state, trAcc.ent, monthStartMs, +new Date(d.getFullYear(), d.getMonth()+1, 1));
   return {ru:reales.hay.roundup?reales.roundup:est.ru, sb:reales.hay.saveback?reales.saveback:est.sb};
@@ -10219,10 +10221,12 @@ function reconcileTR(s){
   let guard=0;
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
-    // Sin el cargo de un recibo: `monthNetForAccount` ya lo arrastra más abajo, y con la fila
-    // dentro una cuenta «para todo» lo restaba dos veces al cruzar de mes (revisión del 12/10/2026).
-    // Tampoco el Saveback que avisa TR: no salió del efectivo (`expenseCountsCash`, 16/11/2026).
-    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback");
+    /* Lo que el saldo restaba al pintarse durante el mes, ni más ni menos (`expenseCountsCash`, la
+       misma puerta que el pintado y el anclaje; ronda 240). Antes se copiaban a mano sus exclusiones
+       —el cargo de un recibo, que ya arrastra `monthNetForAccount` (12/10/2026), y el Saveback de TR
+       (16/11/2026)— y faltaba el posible repetido: el día 1 el saldo bajaba de golpe lo que estaba
+       marcado como posible repetido, que durante el mes no restaba. */
+    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && expenseCountsCash(e, s));
     /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
        y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
        de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
@@ -10248,15 +10252,12 @@ function reconcileTR(s){
     // 12/10/2026, medido: 1771,72 pasaba a 1772,52).
     const obFed = (s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent && !cargoDeRecibo(e, s); });
     if(!obFed){
-      /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo. Durante el mes,
-         `11-app-main.js:1483` los calcula sobre una lista ya filtrada por `expenseCountsCash`;
-         aquí se calculaban sobre el mes ENTERO, así que al cerrar podían comerse compras con
-         tarjeta de bancos que no son de gasto diario y el saldo de TR daba un salto el día 1.
-         Divergencia vieja, encontrada al revisar FIN-01 (9/9). Misma regla en los dos sitios. */
-      const monthExpCash = monthExp.filter(function(e){ return expenseCountsCash(e, s); });
-      // Misma regla que en vivo (`recompensasEstimadas`): solo su banco, y nada si TR ya avisó de lo real
-      // (eso ya restó del efectivo y ya sumó a su posición: simularlo otra vez lo contaría dos veces).
-      const rec = recompensasEstimadas(s, acc, monthExpCash, +new Date(ay, am, 1), true);
+      /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo (`monthExp` ya pasa
+         por `expenseCountsCash`): con el mes ENTERO podían comerse compras con tarjeta de bancos
+         que no son de gasto diario y el saldo de TR daba un salto el día 1 (FIN-01, 9/9).
+         Misma regla que en vivo (`recompensasEstimadas`): solo su banco, y nada si TR ya avisó de lo real
+         (eso ya restó del efectivo y ya sumó a su posición: simularlo otra vez lo contaría dos veces). */
+      const rec = recompensasEstimadas(s, acc, monthExp, +new Date(ay, am, 1), true);
       const ru = rec.ru, sb = rec.sb;
       if(ru>0) acc.value = +(acc.value - ru).toFixed(2);             // el round-up abandona el efectivo
       const contrib = ru + sb;                                       // total que entra a la inversión (€)
@@ -24234,13 +24235,15 @@ function applyBankBalances(s, links){
   // Gasto del mes por banco UNA vez (misma lista que al pintar). Si se recalcula dentro del
   // bucle con `spentM` global, un segundo banco diario/ambos se come los gastos ajenos.
   const monthStart=startOfMonth();
-  /* Sin el cargo de un recibo (revisión del 12/10/2026): al pintar esa fila no cuenta, y si aquí
-     sí contaba el saldo salía inflado justo después de sincronizar (banco 1848 → pantalla 2000,
-     los 152 € de los recibos). Solo se quita esa fila: el resto del mes sigue en crudo, como
-     estaba, para no mover el anclaje de nada más. */
-  // El Saveback que avisa TR tampoco (16/11/2026): al pintar no resta (`expenseCountsCash`), y aquí
-  // contarlo dejaría el saldo por encima del banco en lo mismo.
-  const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart && !cargoDeRecibo(e, s) && recompensaDe(e)!=="saveback"; });
+  /* LA MISMA PUERTA QUE AL PINTAR, ENTERA (`expenseCountsCash`, ronda 240). Lo que aquí cuenta y
+     al pintar no deja el saldo por encima del banco justo después de sincronizar. Se copiaban a
+     mano las exclusiones una a una —el cargo de un recibo (12/10/2026: banco 1848 → pantalla 2000)
+     y el Saveback de TR (16/11/2026)— y faltaba el POSIBLE REPETIDO: una cuenta «ambos» pintaba
+     1.321,69 con el banco en 1.273,69, los 48 € de un cargo sin nombre gemelo del aviso de las
+     basuras (ya pasaba en la 119). Su redondeo igual, que se estima de esta misma lista. El filtro
+     de bancos de `expenseCountsCash` siempre deja pasar el de la cuenta diaria, la única que se
+     ancla con el gasto del mes, así que eso no mueve nada más. */
+  const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart && expenseCountsCash(e, s); });
   const dailyAcc=(s.accounts||[]).find(function(x){ return accDaily(x); });
   const dailyEnt=dailyAcc&&dailyAcc.ent;
   const porBanco=gastoDelMesPorBanco(monthExp, dailyEnt);
@@ -24395,7 +24398,16 @@ function pendingWalkEvents(state, y, m, today){
     const a=occAmountIn(e,m,y);
     if(!(a>0)||!occursIn(e,m,y)||fixedSinCobroIn(e,y,m)) return;
     const b=accOf(e);
-    if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b);
+    /* La lectura que vale para sus recibos es la de la cuenta que carga el neto del banco
+       (`cuentaDelNetoDeBanco`), no la más vieja del banco (ronda 240, P3.3 de la revisión 238).
+       Desde la 238 el `paidNet` del banco va en UNA cuenta: lo que el saldo mostrado ya resta por
+       calendario (`fixedEnSaldoMostrado`) y si un cobro está dentro de lo leído dependen de cuándo se
+       leyó ESA cuenta. Con la de recibos leída hoy y la de ahorro tecleada el día 1, la más vieja daba
+       por restado un Teléfono sin cobrar y «¿Te llega?» salía 30 € alto; la más reciente falla al
+       revés (ahorro reciente, recibos sin leer: lo resta dos veces). Sin cuenta de recibos, la de
+       siempre: la más vieja, prudente (R5-2). El aviso de la víspera (11) sigue con la más vieja:
+       allí la pregunta es si el TOTAL del banco está leído entero. */
+    if(!(b in leido)) leido[b]=saldoLeidoDelBanco(state,b,cuentaDelNetoDeBanco(state.accounts,b)||undefined);
     // Pagado por otro lado: este banco ya no lo va a cobrar (misma regla que el saldo y los totales).
     if(fixedPagadoFuera(state,e,y,m,today)) return;
     const st=fixedPaymentState(state,e,y,m,today);
@@ -24453,6 +24465,7 @@ function pendingWalkEvents(state, y, m, today){
    R2 y R4: con Open Banking o con el puente de TR, un recibo ya cobrado se restaba otra vez).
    Cada cuenta del banco tiene su lectura y manda la MÁS VIEJA; si una cuenta no tiene ninguna,
    0 (R5-2: una lectura reciente de otra cuenta no puede meter cobros que la vieja no ha visto).
+   Con `soloCuenta`, la de esa cuenta (la que carga los recibos: `pendingWalkEvents`).
    Fuentes, todas con la misma señal (una hora de lectura en la cuenta o del banco):
    - Puente nativo de Trade Republic: `applyTrCash` (00 y la tarjeta de 06) sella `saldoLeidoAt`;
      para estados anteriores al sello, `lastTrSync` si el puente manda.
@@ -24464,13 +24477,13 @@ function pendingWalkEvents(state, y, m, today){
    MyInvestor y los demás brókers solo leen posiciones (Inversiones), no el saldo de una cuenta.
    Tener extracto en `bankTx` NO es una lectura: el saldo puede seguir siendo el tecleado (es el
    alquiler BOOK de 750 que fija `fixed-ispaidin`). */
-function saldoLeidoDelBanco(state, bank){
+function saldoLeidoDelBanco(state, bank, soloCuenta){
   const ms=function(v){ const t=Date.parse(v); return isFinite(t)&&t>0?t:0; };
   let ob=0;
   const at=state.obBalAt||{};
   Object.keys(at).forEach(function(asp){ if(entFromAspsp(asp)!==bank) return; const t=ms(at[asp]); if(t&&(!ob||t<ob)) ob=t; });
   const tr=bank==="trade_republic"&&state.lastTrSync&&saldoLoMandaPuenteNativo(state,bank)?ms(state.lastTrSync):0;
-  const cuentas=(state.accounts||[]).filter(function(a){ return a&&a.ent===bank; });
+  const cuentas=soloCuenta?[soloCuenta]:(state.accounts||[]).filter(function(a){ return a&&a.ent===bank; });
   if(!cuentas.length) return 0;
   let viejo=Infinity;
   cuentas.forEach(function(a){
@@ -32946,7 +32959,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="192d0b20d79c37dc140e70a004a8b5c694d4b12c754112098d601a6864bb973f";
+var _rnSha="a385d4c3e4d865c00533ccd98d270c530b69320a53bb0ae43684018c6c07dfdc";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -34238,9 +34251,15 @@ function mcInviteCode(){
 }
 
 function buildHouseholdSnapshot(state, totals, email){
+  /* Cada cuenta con SU saldo pintado (`saldoCuentaMostrada`, con los mismos insumos que `totals`),
+     no el total de su banco (ronda 240, P3.4 de la revisión 238): con dos cuentas del mismo banco
+     cada fila llevaba `bankBal[ent]` entero y la foto enseñaba el banco dos veces. Sumadas por
+     banco dan justo `bankBal`. Sin `totals` (pruebas y arranque), `value` a pelo, como antes. */
+  const ins={ injTR:totals.injTR, spentByBank:totals.spentByBank, paidNetByBank:totals.paidNetByBank,
+    roundup:totals.roundupThisMonth, monthlyInvest:totals.monthlyInvestThisMonth };
   const accounts=(state.accounts||[]).map(function(a){
     const ent=entOf(a.ent);
-    const val=(totals.bankBal&&totals.bankBal[a.ent]!=null)?totals.bankBal[a.ent]:(a.value||0);
+    const val=saldoCuentaMostrada(a, ins);
     return { name:a.name||ent.label, ent:a.ent, label:ent.label, value:+Number(val).toFixed(2) };
   });
   // Gastos del mes por categoría (sin comercios: privacidad)

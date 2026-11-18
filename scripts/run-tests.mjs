@@ -271,6 +271,7 @@ const steps = [
   ["recibos-cobro-distinto", ["node", "--test", "tests/recibos-cobro-distinto.test.mjs"]],
   ["recibos-237-dinero", ["node", "--test", "tests/recibos-237-dinero.test.mjs"]],
   ["recibos-238-fijos-dobles", ["node", "--test", "tests/recibos-238-fijos-dobles.test.mjs"]],
+  ["saldos-240", ["node", "--test", "tests/saldos-240.test.mjs"]],
   ["recibos-prueba-permanencia", ["node", "--test", "tests/recibos-prueba-permanencia.test.mjs"]],
   ["recibos-renombrar", ["node", "tests/recibos-renombrar.test.mjs"]],
   ["recibos-t4-book-edit-state", ["node", "--test", "tests/recibos-t4-book-edit-state.test.mjs"]],
