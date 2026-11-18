@@ -28,8 +28,8 @@ async function local(p,cur){await child(p).locator('.curtoggle').getByRole('butt
 async function global(p,cur){
  // Desde DIS-40 cada desplegable es una fila (`.set-sub`) de la tarjeta de su grupo: se busca la fila, no la tarjeta.
  await p.evaluate(()=>window.dispatchEvent(new CustomEvent('mc-open-settings')));const s=p.locator('.settings-push.open').filter({has:p.locator('button.set-row')});
- const card=s.locator('.set-card > .set-sub').filter({hasText:'Moneda de visualización'});await expect(card).toHaveCount(1);if(!await card.locator(':scope > .collapsible.open').count())await card.locator(':scope > button').click();
- const row=s.locator('button.set-row').filter({hasText:'Moneda de visualización'}).first();if(!await row.locator('.sr-chev.open').count())await row.click();
+ const card=s.locator('.set-card > .set-sub').filter({hasText:'Moneda en pantalla'});await expect(card).toHaveCount(1);if(!await card.locator(':scope > .collapsible.open').count())await card.locator(':scope > button').click();
+ const row=s.locator('button.set-row').filter({hasText:'Moneda en pantalla'}).first();if(!await row.locator('.sr-chev.open').count())await row.click();
  await s.getByRole('button',{name:({EUR:'€ Euro',USD:'$ Dólar',GBP:'£ Libra'})[cur],exact:true}).click();await s.locator('.settings-push-h button.back').click();await expect(s).toHaveCount(0);
 }
 async function capture(p,info,name){await info.attach(name+'.json',{body:JSON.stringify({stored:await stored(p),rows:await p.locator('[data-broker-key],.cartera-hero-amt,[data-inv-hero],[data-inv-projection]').allTextContents()},null,2),contentType:'application/json'});

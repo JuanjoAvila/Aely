@@ -202,7 +202,7 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   await page.getByRole("button",{name:/Ir a Ajustes/i}).click();
   const ajustes=page.locator(".settings-push.open");
   await ajustes.getByRole("button",{name:/Dinero/}).first().click();
-  await ajustes.getByRole("button",{name:/Presupuesto por ciclo de cobro/}).click();
+  await ajustes.getByRole("button",{name:/Ciclo de cobro/}).click();
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")||"{}").settings?.budgetCycle)).toBe(false);
 });
 

@@ -306,7 +306,8 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast(errTxt()); return; }
-      const fname="mi-cartera-"+ymFile+".png";
+      // Con el nombre de la app de hoy: «mi-cartera-…» era el de antes de llamarse Aely.
+      const fname="aely-informe-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
         setTimeout(function(){ URL.revokeObjectURL(u); },1000);

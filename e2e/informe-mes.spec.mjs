@@ -100,7 +100,7 @@ test("histórico: DOM y canvas usan 480,23 y75% aunque hoy tenga900",async({page
   const card=await open(page,fixture());
   await expect(card).toContainText(/octubre 2026/i);
   await expect(card).toContainText(/480\s*€.*75%/);await expect(card).not.toContainText(/900\s*€|880\s*€/);
-  const text=await share(page,card,"mi-cartera-2026-10.png");
+  const text=await share(page,card,"aely-informe-2026-10.png");
   expect(text).toMatch(/Octubre 2026/);expect(text).toMatch(/480 €.*75%/);expect(text).not.toMatch(/900 €|880 €/);
 });
 
@@ -112,7 +112,7 @@ for(const [kind,snapshot,reason] of [
   test("histórico "+kind+": motivo propio igual en DOM e imagen, sin porcentaje",async({page})=>{
     const s=fixture(snapshot);if(kind==="ausente")delete s.budgetByMonth;
     const card=await open(page,s);await expect(card).toContainText(reason);await expect(card).not.toContainText(/\d+%/);
-    const text=await share(page,card,"mi-cartera-2026-10.png");expect(text).toContain(reason);expect(text).not.toMatch(/\d+%|NaN|Infinity/);
+    const text=await share(page,card,"aely-informe-2026-10.png");expect(text).toContain(reason);expect(text).not.toMatch(/\d+%|NaN|Infinity/);
   });
 }
 
@@ -122,7 +122,7 @@ test("diciembre conserva año y PNG al empezar enero en Madrid",async({page})=>{
   s.reservaLog=s.reservaLog.map(e=>({...e,date:e.date.replace("2026-10","2026-12").replace("2026-11","2027-01")}));
   const card=await open(page,s,"2026-12-31T23:30:00Z");
   await expect(card).toContainText(/diciembre 2026/i);await expect(card).toContainText(/480\s*€.*75%/);
-  const text=await share(page,card,"mi-cartera-2026-12.png");expect(text).toContain("Diciembre 2026");expect(text).toMatch(/480 €.*75%/);
+  const text=await share(page,card,"aely-informe-2026-12.png");expect(text).toContain("Diciembre 2026");expect(text).toMatch(/480 €.*75%/);
 });
 
 test("reporte sin opt mantiene el presupuesto actual al compartir desde Ajustes",async({page})=>{
@@ -134,7 +134,7 @@ test("reporte sin opt mantiene el presupuesto actual al compartir desde Ajustes"
   });
   await expect.poll(()=>page.evaluate(()=>window.__reportShares.length)).toBe(1);
   const data=await page.evaluate(()=>({text:window.__reportTexts.join(" ").replace(/\s/g," "),file:window.__reportShares[0][0].name}));
-  expect(data.text).toMatch(/Noviembre 2026/);expect(data.text).toMatch(/801 €.*12%/);expect(data.file).toBe("mi-cartera-2026-11.png");
+  expect(data.text).toMatch(/Noviembre 2026/);expect(data.text).toMatch(/801 €.*12%/);expect(data.file).toBe("aely-informe-2026-11.png");
 });
 
 test("el día6 conserva el cierre fuera de la ventana de cinco días",async({page})=>{

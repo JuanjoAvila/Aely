@@ -426,7 +426,11 @@ const PRESUPUESTO = {
   // Integración 4.26.239 (17/11): Apuntar con el concepto a la vista (el pliegue al compás del teclado, el textarea y la baldosa
   // del banco con «+») y la producción 237 mezclada, con el sello y la nota: 2.002.959 B minificado y 550.289 B gzip. La rama pedía 1954 / 537 sobre la 237;
   // aquí se suma además la 238 (dos cuentas de recibos en un banco); mismo mandato del 11/10: al mínimo medido, 1957 / 538 KiB.
-  minificado: 1957 * 1024,
+  // Ronda de diseño 240 (18/11): los iconos de trazo de Ajustes (unos 40 dibujos de 24 px en vez de emojis, que cada móvil
+  // pintaba distinto), el buscador con su lupa y el «?», y las tarjetas de Deudas/Metas como la de Recibos. Se quitan
+  // varios textos de ayuda en tres idiomas, pero los dibujos pesan más: 2.007.258 B minificado y 552.029 B gzip
+  // (+4,2 KiB / +1,7 KiB). Mismo mandato del 11/10: al mínimo medido, 1961 / 540 KiB.
+  minificado: 1961 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -469,7 +473,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 538 * 1024, // ver el comentario de minificado (537,4 KiB medidos el 17/11/2026 en la integración 4.26.239).
+  gzip: 540 * 1024, // ver el comentario de minificado (539,1 KiB medidos el 18/11/2026 en la ronda de diseño 240).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

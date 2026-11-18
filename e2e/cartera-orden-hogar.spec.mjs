@@ -46,7 +46,8 @@ test("se llega a Hogar desde el perfil, y se abre de verdad", async ({ page }) =
 
   // Arriba del todo: el panel mide ~1.700 px y lo de abajo no lo ve nadie.
   await expect(perfil.getByText("Tu gente")).toBeVisible();
-  await perfil.locator(".profile-row").filter({ hasText: /Hogar y gastos compartidos/i }).click();
+  // Desde 240 la fila es una sola línea, «Hogar compartido» (antes decía Hogar dos veces).
+  await perfil.locator(".profile-row").filter({ hasText: /Hogar compartido/i }).click();
 
   // Y no es solo el botón: la pantalla de Hogar tiene que aparecer.
   await expect(page.getByText(/🏠 Hogar y gastos compartidos/)).toBeVisible({ timeout: 5_000 });

@@ -2415,6 +2415,66 @@ function HapticTuner({showToast}){
       React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setV(mcHapticTuneReset()); }},t("hv_reset"))));
 }
 
+/* Iconos de las filas de Ajustes: trazo de 24 px como la barra de abajo y los recibos (auditoría
+   237, P2-7). Los emojis de colores se pintaban distinto en cada móvil y eran lo único con color
+   de toda la lista. Van por la clave de la fila; una fila sin entrada aquí (las de pruebas, los
+   logos de banco) conserva lo que traiga. */
+const SET_ICO=(function(){
+  const banco=[["path",{d:"M3 10l9-6 9 6"}],["path",{d:"M5 10v8M9.7 10v8M14.3 10v8M19 10v8"}],["path",{d:"M3 20h18"}]];
+  const euro=[["path",{d:"M17.5 6.5a7 7 0 1 0 0 11"}],["path",{d:"M4 10.5h9M4 13.5h9"}]];
+  // Uno por fila: la misma chispa servía para la temática, las novedades y la ayuda, y las filas de
+  // dentro repetían el de su grupo (filtro de diseño 240). Todo trazo, ninguno relleno.
+  return {
+    general:[["circle",{cx:12,cy:12,r:9}],["circle",{cx:8.5,cy:10,r:1.3}],["circle",{cx:12,cy:7.5,r:1.3}],["circle",{cx:15.5,cy:10,r:1.3}],["path",{d:"M12 21a2.5 2.5 0 0 1 0-5h2.5"}]],
+    season:[["path",{d:"M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"}],["path",{d:"M10 4.5l2 1.5 2-1.5M10 19.5l2-1.5 2 1.5"}]],
+    lang:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M3 12h18"}],["path",{d:"M12 3c2.4 2.6 3.6 5.6 3.6 9s-1.2 6.4-3.6 9c-2.4-2.6-3.6-5.6-3.6-9S9.6 5.6 12 3z"}]],
+    a11y:[["circle",{cx:12,cy:4.5,r:1.6}],["path",{d:"M5 8.5l7 1.5 7-1.5"}],["path",{d:"M12 10v5"}],["path",{d:"M8.5 21l3.5-6 3.5 6"}]],
+    redmo:[["path",{d:"M3 12h3l2.5-6 4 12 2.5-6h6"}]],
+    hicon:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M12 3v18M12 7.5h5.5M12 12h7M12 16.5h5.5"}]],
+    money:[["rect",{x:3,y:6,width:18,height:13,rx:2.5}],["path",{d:"M3 10h18"}],["path",{d:"M15.5 14.5h2"}]],
+    cur:euro,
+    curcmp:[["path",{d:"M4 8h15l-3.5-3.5"}],["path",{d:"M20 16H5l3.5 3.5"}]],
+    gview:[["path",{d:"M5 6h14M5 12h14M5 18h8"}]],
+    budgetcycle:[["rect",{x:3,y:5,width:18,height:16,rx:2.5}],["path",{d:"M3 10h18M8 3v4M16 3v4"}]],
+    bills:[["path",{d:"M6 3h12v18l-3-2-3 2-3-2-3 2z"}],["path",{d:"M9 8h6M9 12h6"}]],
+    banks:banco,
+    bankmanage:[["path",{d:"M4 7h9M17 7h3M4 17h3M11 17h9"}],["circle",{cx:15,cy:7,r:2}],["circle",{cx:9,cy:17,r:2}]],
+    banksync:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M4 13a8 8 0 0 0 14.5 4.5L20 16"}],["path",{d:"M20 20v-4h-4"}]],
+    notifs:[["path",{d:"M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"}],["path",{d:"M10 21h4"}]],
+    trnotif:[["path",{d:"M4 5h16v11H9l-5 4z"}],["path",{d:"M9 10.5l2 2 4-4"}]],
+    access:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M8 12.5l3 3 5-6"}]],
+    narestr:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"}],["path",{d:"M12 17.5h.01"}]],
+    aicat:[["path",{d:"M3 12V4h8l10 10-8 8z"}],["circle",{cx:7.5,cy:8.5,r:1.3}]],
+    helpai:[["path",{d:"M9 18h6M10 21h4"}],["path",{d:"M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"}]],
+    widget:[["rect",{x:3.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:3.5,y:13.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:13.5,width:7,height:7,rx:1.8}]],
+    easy:[["path",{d:"M5 19C5 10.5 10.5 5 20 4c-.8 9.5-6.3 15-15 15z"}],["path",{d:"M5 19l7.5-7.5"}]],
+    simple:[["rect",{x:2.5,y:7,width:19,height:10,rx:5}],["circle",{cx:7.5,cy:12,r:2.5}]],
+    tour:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M15.5 8.5l-2 5-5 2 2-5z"}]],
+    import:[["path",{d:"M12 4v11"}],["path",{d:"M7 10l5 5 5-5"}],["path",{d:"M5 20h14"}]],
+    imphoja:[["rect",{x:3.5,y:4,width:17,height:16,rx:2}],["path",{d:"M3.5 9.5h17M3.5 14.5h17M9.5 4v16"}]],
+    imphist:[["path",{d:"M3.5 12a8.5 8.5 0 1 0 2.5-6L3.5 8.5"}],["path",{d:"M3.5 4v4.5H8"}],["path",{d:"M12 8v4l3 2"}]],
+    backup:[["rect",{x:3,y:4,width:18,height:5,rx:1.5}],["path",{d:"M5 9v10h14V9"}],["path",{d:"M10 13h4"}]],
+    autoback:[["path",{d:"M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.2 11.5 3.3 3.3 0 0 0 7 18z"}]],
+    report:[["rect",{x:3,y:5,width:18,height:14,rx:2}],["circle",{cx:9,cy:10,r:1.6}],["path",{d:"M4 18l5-5 3.5 3.5L16 13l4 4"}]],
+    news:[["rect",{x:3.5,y:8,width:17,height:4.5,rx:1}],["path",{d:"M5.5 12.5V20h13v-7.5M12 8v12"}],["path",{d:"M12 8c-1.5-3.5-5.5-3.5-5.5-1.2S10 8 12 8c2 0 5.5 1.1 5.5-1.2S13.5 4.5 12 8z"}]],
+    fb:[["path",{d:"M4 5h16v11H9l-5 4z"}]],
+    updates:[["rect",{x:7,y:2.5,width:10,height:19,rx:2.5}],["path",{d:"M12 7v7M9.5 11.5L12 14l2.5-2.5"}]],
+    upd:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M12 9v6M9.5 12.5L12 15l2.5-2.5"}]],
+    account:[["circle",{cx:12,cy:8,r:4}],["path",{d:"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"}]],
+    biolock:[["path",{d:"M7 11a5 5 0 0 1 10 0v2c0 3-1 5.5-2.5 7.5"}],["path",{d:"M12 11v3c0 2.5-.8 4.7-2 6.5"}],["path",{d:"M4.5 15.5c.4-1.4.5-2.9.5-4.5a7 7 0 0 1 12.5-4.3"}]],
+    priv:[["path",{d:"M12 3l8 3v6c0 4.8-3.4 7.9-8 9-4.6-1.1-8-4.2-8-9V6z"}]],
+    signout:[["path",{d:"M14 4h5v16h-5"}],["path",{d:"M15 12H4"}],["path",{d:"M8 8l-4 4 4 4"}]],
+    delacc:[["path",{d:"M4 7h16"}],["path",{d:"M9 7V4h6v3"}],["path",{d:"M6 7l1 13h10l1-13"}]],
+    vibra:[["rect",{x:8,y:3,width:8,height:18,rx:2}],["path",{d:"M4 9v6M20 9v6"}]]
+  };
+})();
+function setIco(k, fallback){
+  const d=SET_ICO[k];
+  if(!d) return fallback;
+  return React.createElement("svg",{viewBox:"0 0 24 24",width:20,height:20,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-set-ico":k},
+    d.map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
+}
+
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
 function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos}){
   const adminCacheKey="_mcAdminProfile";
@@ -2607,11 +2667,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       }
     }).catch(function(){ setBankLinks([]); });
   },[uid]);
-  // Estilos de los pocos controles con input propio (presupuesto). Los demás usan el sistema
-  // de filas .set-row/.swx. (lbl/btnGhost/link se quitaron en 2026-07-17: estaban muertos.)
-  // Inputs se quedan en 16px (menos = zoom automático del móvil al enfocar); los botones sí
-  // bajan de tamaño para no parecer listones (feedback 2026-07-18).
-  const inp={width:"100%",padding:"10px 13px",borderRadius:"12px",border:"1px solid var(--line)",background:"var(--bg-2)",color:"var(--text)",fontSize:"16px",boxSizing:"border-box"};
+  // Botones de opción de los desplegables (tema, moneda, letra…). Los demás controles usan el
+  // sistema de filas .set-row/.swx. Bajan de tamaño para no parecer listones (feedback 2026-07-18).
   const btn={width:"100%",padding:"10px 12px",borderRadius:"12px",border:"none",background:"var(--mint)",color:"var(--on-mint)",fontWeight:700,fontSize:"14px",marginTop:"10px",cursor:"pointer"};
   /* Presupuesto mensual: se edita en Resumen (BudgetSheet). Bancos de gasto diario: en Cartera.
      Quitados de aquí el 2026-08-05 — eran duplicados muertos / confusos (feedback suyo). */
@@ -2626,7 +2683,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const toggleExp=function(k){ setExpand(expand===k?null:k); };
   const row=function(k,icon,label,value,onClick,right){
     return React.createElement("button",{key:k,className:"set-row",onClick:onClick},
-      React.createElement("span",{className:"sr-ic"},icon),
+      React.createElement("span",{className:"sr-ic"},setIco(k,icon)),
       React.createElement("span",{className:"sr-lb"},label),
       value!=null && React.createElement("span",{className:"sr-val"},value),
       right!==undefined ? right : React.createElement("span",{className:"sr-chev"+(expand===k?" open":"")},"›")
@@ -2669,7 +2726,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Es una fila de la tarjeta de su `seccion`, no una tarjeta propia (DIS-40).
     return React.createElement("div",{className:"set-sub"},
       React.createElement("button",{className:"set-row",onClick:function(){ toggleGrp(id); }},
-        React.createElement("span",{className:"sr-ic"},icon),
+        React.createElement("span",{className:"sr-ic"},setIco(id,icon)),
         React.createElement("span",{className:"sr-lb",style:{fontWeight:800}},title),
         val!=null && React.createElement("span",{className:"sr-val"},val),
         React.createElement("span",{className:"sr-chev"+(open?" open":"")},"›")),
@@ -2702,12 +2759,19 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
     ),
-    React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:function(){
-      try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, totals, {
-        onConsent:function(ok){ setS({helpAiOk:!!ok, helpAiAsked:true}); }
-      })})); }catch(e){}
-    }}, t("help_title")),
-    React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
+    /* Buscador con la lupa de trazo de «Tus recibos» y, a su lado, «Pregúntame» como el «?» redondo
+       de Inicio: suelto entre la tarjeta de cuenta y el buscador no pertenecía a nada (auditoría
+       237, P2-11). Las dos cosas sirven para lo mismo, encontrar algo, y van en la misma fila. */
+    React.createElement("div",{className:"set-search"},
+      React.createElement("label",{className:"set-search-box"},
+        React.createElement("svg",{className:"set-search-ic",viewBox:"0 0 24 24",width:18,height:18,fill:"none",stroke:"currentColor",strokeWidth:2.2,strokeLinecap:"round","aria-hidden":"true"},
+          React.createElement("circle",{cx:11,cy:11,r:6.5}),React.createElement("path",{d:"M16 16l4.5 4.5"})),
+        React.createElement("input",{className:"set-search-in",placeholder:t("st_search_ph"),"aria-label":t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }})),
+      React.createElement("button",{type:"button",className:"aely-help-entry aely-help-entry-set","aria-label":t("help_title"),title:t("help_title"),onClick:function(){
+        try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, totals, {
+          onConsent:function(ok){ setS({helpAiOk:!!ok, helpAiAsked:true}); }
+        })})); }catch(e){}
+      }}, "?")),
 
     /* AJUSTES EN CUATRO GRUPOS (diseño 233, DIS-40, aprobado 15/11). Había siete cabeceras con una
        sola fila que repetía su título («APARIENCIA › Apariencia») y cosas en grupos que no les
@@ -2747,6 +2811,9 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           })))
     ),
     grp("a11y","♿",t("v4_set_a11y"),"accesibilidad letra grande tamaño texto contraste animaciones reduce motion accessibility",t("ts_"+curTextSize),
+      // Sin subtítulos debajo de los interruptores: el nombre ya lo dice (auditoría 237, P1-7). La línea
+      // de la letra se queda por ahora: cierra un bloque que vigila beta-sources y quitarla obliga a
+      // reanclar ese descriptor al integrar (240).
       React.createElement("div",{style:{padding:"6px 14px 4px"}},
         React.createElement("div",{style:{fontSize:13,fontWeight:700,marginBottom:6}}, t("st_textsize")),
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
@@ -2756,18 +2823,17 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginTop:6}}, t("st_textsize_hint"))
       ),
       (function(){ const on=!!(state.settings&&state.settings.reduceMotion);
-        return React.createElement(React.Fragment,null,
-          row("redmo",on?"🐢":"🎞️",t("st_reduce_motion"),null,function(){ applyReduceMotion(!on); setS({reduceMotion:!on}); }, sw(on)),
-          React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_reduce_motion_hint"))); })(),
+        return row("redmo",on?"🐢":"🎞️",t("st_reduce_motion"),null,function(){ applyReduceMotion(!on); setS({reduceMotion:!on}); }, sw(on)); })(),
       (function(){ const on=!!(state.settings&&state.settings.hiContrast);
-        return React.createElement(React.Fragment,null,
-          row("hicon",on?"🌗":"🌓",t("st_contrast"),null,function(){ applyContrast(!on); setS({hiContrast:!on}); }, sw(on)),
-          React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_contrast_hint"))); })()
+        return row("hicon",on?"🌗":"🌓",t("st_contrast"),null,function(){ applyContrast(!on); setS({hiContrast:!on}); }, sw(on)); })()
     )),
     seccion(t("v4_set_g_money"),
     // Dinero: moneda de visualización (ahora SÍ convierte) + comparativa + cómo se ve el total
     // de gastos. Presupuesto y bancos de gasto diario viven en Resumen / Cartera (2026-08-05).
-    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts presupuesto nòmina nómina salario cobro ciclo payday budget",t("cur_"+curCur.toLowerCase()),
+    // La moneda se ve en la cabecera solo con el grupo plegado: abierto, la fila de dentro ya la dice
+    // y salía «€ Euro» dos veces seguidas (auditoría 237, P2-11).
+    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts presupuesto nòmina nómina salario cobro ciclo payday budget",
+      (isOpen("money")||normQ(q).trim())?null:t("cur_"+curCur.toLowerCase()),
       row("cur","💱",t("currency"),t("cur_"+curCur.toLowerCase()),function(){ toggleExp("cur"); }),
       expand==="cur" && React.createElement("div",{className:"set-exp"},
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}},
@@ -2824,10 +2890,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       })(),
       // Su mes de gasto puede empezar con el cobro real, no con el día 1. La elección queda
       // en su perfil y se puede deshacer sin tocar los movimientos (feedback pareja 28/9).
-      row("budgetcycle","📅",t("st_budget_cycle"),t(state.settings&&state.settings.budgetCycle?"g_cycle":"g_month"),function(){
+      // Solo el interruptor: «Mi ciclo» al lado y el párrafo de debajo partían la etiqueta en tres
+      // renglones y repetían lo que ya dice el interruptor (auditoría 237, P1-4).
+      row("budgetcycle","📅",t("st_budget_cycle"),null,function(){
         setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
       },sw(!!(state.settings&&state.settings.budgetCycle))),
-      React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
       // «Cambiar mis recibos» salió de Ajustes (14/10/2026: se gestionan desde Plan › Recibos › Gestionar).
       // Solo se queda en modo sencillo, donde Plan no enseña «Gestionar» (NO-GO §5bis.2) y esta era la
       // ÚNICA puerta. Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
@@ -2864,7 +2931,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         : ((links||[]).some(function(r){return r.status==='pending';}) ? t("bank_pending") : t("bp_summary_none"));
       if(trDead && summary.indexOf("Trade Republic")<0) summary += (summary&&summary!=="…"?" · ":"") + t("bp_summary_tr_dead");
       return grp("banks","🏦",t("bank_section"),"banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking sincronizar",summary,
-        row("banks","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
+        row("bankmanage","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
       );
     })(),
     (function(){
@@ -2913,7 +2980,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // Fila con una línea de apoyo bajo el título (sin párrafos: una línea útil o nada).
       const fila=function(k,icon,label,sub,onClick,right){
         return React.createElement("button",{key:k,type:"button",className:"set-row nt-row","data-nt":k,onClick:onClick},
-          React.createElement("span",{className:"sr-ic"},icon),
+          React.createElement("span",{className:"sr-ic"},setIco(k,icon)),
           React.createElement("span",{className:"sr-tx"},
             React.createElement("span",{className:"sr-lb"},label),
             sub && React.createElement("span",{className:"sr-sub"},sub)),
