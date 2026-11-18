@@ -90,8 +90,10 @@ const graba = (page) => page.evaluate(() => new Promise((ok) => {
   const f = () => {
     const hoja = document.querySelector(".v4-exp-sheet"), c = hoja.querySelector(".v4-ficha-concept"), l = hoja.querySelector(".v4-cta");
     const rl = l.getBoundingClientRect(), abajo = Math.min(innerHeight, window.visualViewport ? window.visualViewport.height : innerHeight);
+    // Un pliegue que se está cerrando cuenta aunque ya esté fundido: es la franja que encoge, no un hueco muerto
+    // (desde el 240 el numérico se funde en 0,1 s mientras se pliega, para que no asome una fila cortada).
     const vis = [...hoja.querySelectorAll(".v4-ficha-body > *")].filter((el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
-      return r.height > 0.5 && +cs.opacity > 0.05 && cs.visibility !== "hidden" && r.bottom <= rl.top + 2; });
+      return r.height > 0.5 && (+cs.opacity > 0.05 || el.classList.contains("v4-ficha-kbfold")) && cs.visibility !== "hidden" && r.bottom <= rl.top + 2; });
     out.push({ t: performance.now() - t0, top: hoja.getBoundingClientRect().top, c: c.getBoundingClientRect().top,
       hueco: rl.top - Math.max(0, ...vis.map((el) => el.getBoundingClientRect().bottom)), bajo: abajo - rl.bottom });
     if (performance.now() - t0 < 700) requestAnimationFrame(f); else ok(out);

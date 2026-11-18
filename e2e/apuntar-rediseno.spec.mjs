@@ -416,13 +416,15 @@ for (const m of MODOS.filter((x) => x.id !== "ap-efectivo")) {
 // Modificar comparte `.v4-exp-sheet` con Apuntar, pero no sube con el teclado del sistema: la
 // transición del margen es solo de Apuntar (observación del revisor sobre DIS-05).
 const transicion = (page) => page.evaluate(() => getComputedStyle(document.querySelector(".v4-exp-sheet")).transitionProperty);
-// Desde el 239 (filtro de diseño), solo mientras sube con el teclado: al irse, el margen baja de golpe para
-// que la hoja no se salga por arriba mientras vuelven el pago y el numérico.
+// Desde el 240 (su vídeo del 18/11), solo la subida prevista con el alto del teclado de la otra vez, a la vez
+// que el teclado se anima; con el teclado ya puesto, el margen lo sigue sin transición, y al irse baja de golpe.
 test("DIS-05: Apuntar lleva la transición del margen", async ({ page }) => {
   const hoja = await abreApuntar(page, { w: 390, h: 844, letra: "normal" });
+  await page.evaluate(() => localStorage.setItem("micartera_kb_alto", JSON.stringify({ k: 300, h: innerHeight })));
   await hoja.locator(".v4-ficha-concept").click();
-  await expect(hoja.locator('.v4-ficha-body[data-kb="1"]')).toHaveCount(1);
-  expect(await transicion(page)).toContain("margin-bottom");
+  await expect(page.locator('.v4-exp-sheet[data-kb-previo="1"]')).toHaveCount(1);
+  // Desde el 240 el margen de Apuntar sale de `--kb-m`, que es lo que se anima.
+  expect(await transicion(page)).toContain("--kb-m");
 });
 test("DIS-05: Modificar no la lleva", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

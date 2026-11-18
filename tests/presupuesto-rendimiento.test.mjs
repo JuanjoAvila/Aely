@@ -433,6 +433,11 @@ const PRESUPUESTO = {
   // Integración 4.26.240 (18/11): la ronda de diseño D y E (Deudas, Metas, Ajustes con iconos de trazo y Perfil), con el sello y
   // la nota: 2.008.151 B minificado y 552.328 B gzip (la rama medía sin nota ni sello). Mismo mandato del 11/10: al mínimo
   // medido, 1962 / 540 KiB.
+  // Apuntar con el teclado de Android de verdad (240, su vídeo del 18/11): ocultarlo sin «Listo» devuelve la hoja, la
+  // subida prevista con el alto del último teclado, el margen que lo sigue sin transición y el fondo de la hoja debajo:
+  // 2.005.485 B minificado y 550.898 B gzip. Mismo mandato del 11/10: el minificado, al mínimo medido, 1959 KiB.
+  // Segunda vuelta (filtro 240): la hoja que baja al soltar con el borde de arriba quieto, el numérico que se pliega
+  // al ritmo de la subida y el 40 % supuesto la primera vez: 2.007.127 B y 551.278 B gzip. Al mínimo medido: 1961 / 539 KiB.
   minificado: 1962 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

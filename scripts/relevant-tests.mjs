@@ -228,6 +228,10 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/apuntar-concepto-teclado.spec.mjs"] },
+  // El teclado de Android de verdad (vídeo del 18/11): sube animándose y se puede ocultar sin «Listo».
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-teclado-real.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/apuntar-teclado-real.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/apuntar-teclado-real.spec.mjs"] },
   // Cerrar Tus recibos de un desliz y seguir hacia otra pestaña sin que el carrusel se desplace de
   // lado (vídeo del dueño, 11/11): el foco que vuelve a «Todos» y el gesto de pestañas.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/tus-recibos-cierre.spec.mjs"] },
