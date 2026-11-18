@@ -2420,42 +2420,47 @@ function HapticTuner({showToast}){
    de toda la lista. Van por la clave de la fila; una fila sin entrada aquí (las de pruebas, los
    logos de banco) conserva lo que traiga. */
 const SET_ICO=(function(){
-  const sol=[["circle",{cx:12,cy:12,r:9}],["path",{d:"M12 3a9 9 0 0 1 0 18z",fill:"currentColor",stroke:"none"}]];
-  const chispa=[["path",{d:"M12 3l1.9 5.6L19.5 10.5l-5.6 1.9L12 18l-1.9-5.6L4.5 10.5l5.6-1.9z"}],["path",{d:"M19 16v4M17 18h4"}]];
   const banco=[["path",{d:"M3 10l9-6 9 6"}],["path",{d:"M5 10v8M9.7 10v8M14.3 10v8M19 10v8"}],["path",{d:"M3 20h18"}]];
-  const campana=[["path",{d:"M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"}],["path",{d:"M10 21h4"}]];
-  const bajar=[["path",{d:"M12 4v11"}],["path",{d:"M7 10l5 5 5-5"}],["path",{d:"M5 20h14"}]];
-  const persona=[["circle",{cx:12,cy:8,r:4}],["path",{d:"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"}]];
-  const hoja=[["path",{d:"M5 19C5 10.5 10.5 5 20 4c-.8 9.5-6.3 15-15 15z"}],["path",{d:"M5 19l7.5-7.5"}]];
+  const euro=[["path",{d:"M17.5 6.5a7 7 0 1 0 0 11"}],["path",{d:"M4 10.5h9M4 13.5h9"}]];
+  // Uno por fila: la misma chispa servía para la temática, las novedades y la ayuda, y las filas de
+  // dentro repetían el de su grupo (filtro de diseño 240). Todo trazo, ninguno relleno.
   return {
     general:[["circle",{cx:12,cy:12,r:9}],["circle",{cx:8.5,cy:10,r:1.3}],["circle",{cx:12,cy:7.5,r:1.3}],["circle",{cx:15.5,cy:10,r:1.3}],["path",{d:"M12 21a2.5 2.5 0 0 1 0-5h2.5"}]],
-    season:chispa,
+    season:[["path",{d:"M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"}],["path",{d:"M10 4.5l2 1.5 2-1.5M10 19.5l2-1.5 2 1.5"}]],
     lang:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M3 12h18"}],["path",{d:"M12 3c2.4 2.6 3.6 5.6 3.6 9s-1.2 6.4-3.6 9c-2.4-2.6-3.6-5.6-3.6-9S9.6 5.6 12 3z"}]],
     a11y:[["circle",{cx:12,cy:4.5,r:1.6}],["path",{d:"M5 8.5l7 1.5 7-1.5"}],["path",{d:"M12 10v5"}],["path",{d:"M8.5 21l3.5-6 3.5 6"}]],
     redmo:[["path",{d:"M3 12h3l2.5-6 4 12 2.5-6h6"}]],
-    hicon:sol,
-    money:[["path",{d:"M17.5 6.5a7 7 0 1 0 0 11"}],["path",{d:"M4 10.5h9M4 13.5h9"}]],
-    cur:[["path",{d:"M17.5 6.5a7 7 0 1 0 0 11"}],["path",{d:"M4 10.5h9M4 13.5h9"}]],
+    hicon:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M12 3v18M12 7.5h5.5M12 12h7M12 16.5h5.5"}]],
+    money:[["rect",{x:3,y:6,width:18,height:13,rx:2.5}],["path",{d:"M3 10h18"}],["path",{d:"M15.5 14.5h2"}]],
+    cur:euro,
     curcmp:[["path",{d:"M4 8h15l-3.5-3.5"}],["path",{d:"M20 16H5l3.5 3.5"}]],
     gview:[["path",{d:"M5 6h14M5 12h14M5 18h8"}]],
     budgetcycle:[["rect",{x:3,y:5,width:18,height:16,rx:2.5}],["path",{d:"M3 10h18M8 3v4M16 3v4"}]],
     bills:[["path",{d:"M6 3h12v18l-3-2-3 2-3-2-3 2z"}],["path",{d:"M9 8h6M9 12h6"}]],
-    banks:banco, imphist:banco, banksync:banco,
-    notifs:campana, trnotif:campana,
-    access:[["rect",{x:7,y:2.5,width:10,height:19,rx:2.5}],["path",{d:"M11 18h2"}]],
+    banks:banco,
+    bankmanage:[["path",{d:"M4 7h9M17 7h3M4 17h3M11 17h9"}],["circle",{cx:15,cy:7,r:2}],["circle",{cx:9,cy:17,r:2}]],
+    banksync:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M4 13a8 8 0 0 0 14.5 4.5L20 16"}],["path",{d:"M20 20v-4h-4"}]],
+    notifs:[["path",{d:"M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"}],["path",{d:"M10 21h4"}]],
+    trnotif:[["path",{d:"M4 5h16v11H9l-5 4z"}],["path",{d:"M9 10.5l2 2 4-4"}]],
+    access:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M8 12.5l3 3 5-6"}]],
     narestr:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"}],["path",{d:"M12 17.5h.01"}]],
-    aicat:chispa, helpai:chispa,
+    aicat:[["path",{d:"M3 12V4h8l10 10-8 8z"}],["circle",{cx:7.5,cy:8.5,r:1.3}]],
+    helpai:[["path",{d:"M9 18h6M10 21h4"}],["path",{d:"M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"}]],
     widget:[["rect",{x:3.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:3.5,y:13.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:13.5,width:7,height:7,rx:1.8}]],
-    easy:hoja, simple:hoja,
+    easy:[["path",{d:"M5 19C5 10.5 10.5 5 20 4c-.8 9.5-6.3 15-15 15z"}],["path",{d:"M5 19l7.5-7.5"}]],
+    simple:[["rect",{x:2.5,y:7,width:19,height:10,rx:5}],["circle",{cx:7.5,cy:12,r:2.5}]],
     tour:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M15.5 8.5l-2 5-5 2 2-5z"}]],
-    import:bajar, upd:bajar, updates:bajar,
+    import:[["path",{d:"M12 4v11"}],["path",{d:"M7 10l5 5 5-5"}],["path",{d:"M5 20h14"}]],
     imphoja:[["rect",{x:3.5,y:4,width:17,height:16,rx:2}],["path",{d:"M3.5 9.5h17M3.5 14.5h17M9.5 4v16"}]],
+    imphist:[["path",{d:"M3.5 12a8.5 8.5 0 1 0 2.5-6L3.5 8.5"}],["path",{d:"M3.5 4v4.5H8"}],["path",{d:"M12 8v4l3 2"}]],
     backup:[["rect",{x:3,y:4,width:18,height:5,rx:1.5}],["path",{d:"M5 9v10h14V9"}],["path",{d:"M10 13h4"}]],
-    autoback:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M12 7v5l3 2"}]],
+    autoback:[["path",{d:"M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.2 11.5 3.3 3.3 0 0 0 7 18z"}]],
     report:[["rect",{x:3,y:5,width:18,height:14,rx:2}],["circle",{cx:9,cy:10,r:1.6}],["path",{d:"M4 18l5-5 3.5 3.5L16 13l4 4"}]],
-    news:chispa,
+    news:[["rect",{x:3.5,y:8,width:17,height:4.5,rx:1}],["path",{d:"M5.5 12.5V20h13v-7.5M12 8v12"}],["path",{d:"M12 8c-1.5-3.5-5.5-3.5-5.5-1.2S10 8 12 8c2 0 5.5 1.1 5.5-1.2S13.5 4.5 12 8z"}]],
     fb:[["path",{d:"M4 5h16v11H9l-5 4z"}]],
-    account:persona,
+    updates:[["rect",{x:7,y:2.5,width:10,height:19,rx:2.5}],["path",{d:"M12 7v7M9.5 11.5L12 14l2.5-2.5"}]],
+    upd:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M12 9v6M9.5 12.5L12 15l2.5-2.5"}]],
+    account:[["circle",{cx:12,cy:8,r:4}],["path",{d:"M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"}]],
     biolock:[["path",{d:"M7 11a5 5 0 0 1 10 0v2c0 3-1 5.5-2.5 7.5"}],["path",{d:"M12 11v3c0 2.5-.8 4.7-2 6.5"}],["path",{d:"M4.5 15.5c.4-1.4.5-2.9.5-4.5a7 7 0 0 1 12.5-4.3"}]],
     priv:[["path",{d:"M12 3l8 3v6c0 4.8-3.4 7.9-8 9-4.6-1.1-8-4.2-8-9V6z"}]],
     signout:[["path",{d:"M14 4h5v16h-5"}],["path",{d:"M15 12H4"}],["path",{d:"M8 8l-4 4 4 4"}]],
@@ -2926,7 +2931,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         : ((links||[]).some(function(r){return r.status==='pending';}) ? t("bank_pending") : t("bp_summary_none"));
       if(trDead && summary.indexOf("Trade Republic")<0) summary += (summary&&summary!=="…"?" · ":"") + t("bp_summary_tr_dead");
       return grp("banks","🏦",t("bank_section"),"banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking sincronizar",summary,
-        row("banks","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
+        row("bankmanage","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
       );
     })(),
     (function(){

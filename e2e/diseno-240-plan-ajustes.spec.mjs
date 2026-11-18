@@ -143,6 +143,9 @@ test("Inicio › Tus metas: sin ritmo no se pinta la previsión", async ({ page 
   await expect(tarjetas).toHaveCount(2);
   await expect(page.locator(".page-live .v4-goals")).not.toContainText(/Empieza a ahorrar/);
   await expect(tarjetas.nth(1)).toContainText("150");
+  // Sin previsión la tarjeta acaba en su barra: nada de hueco vacío para igualar a la de al lado.
+  const hueco = await tarjetas.nth(0).evaluate((el) => el.getBoundingClientRect().bottom - el.querySelector(".bar").getBoundingClientRect().bottom);
+  expect(hueco, "hueco bajo la barra (margen + relleno de la tarjeta)").toBeLessThan(30);
 });
 
 for (const [w, h] of ANCHOS) for (const letra of ["small", "huge"]) {
@@ -169,6 +172,15 @@ for (const [w, h] of ANCHOS) for (const letra of ["small", "huge"]) {
       const iconos = await aj.locator(".v4-set-sec + .set-card .set-row .sr-ic").evaluateAll((els) => els.map((e) => ({ svg: !!e.querySelector("svg, .mono"), txt: e.textContent.trim() })));
       expect(iconos.length).toBeGreaterThan(15);
       for (const i of iconos) { expect(i.svg, "fila con icono de trazo: " + i.txt).toBe(true); expect(i.txt).not.toMatch(EMOJI); }
+      // Cada fila su dibujo, todos de trazo: ni la misma chispa en tres sitios ni el del grupo repetido dentro.
+      const dibujos = await aj.locator(".v4-set-sec + .set-card .set-row .sr-ic svg[data-set-ico]").evaluateAll((els) => els.map((e) => ({ k: e.dataset.setIco, d: e.innerHTML, relleno: [...e.querySelectorAll("*")].some((n) => { const f = n.getAttribute("fill"); return f && f !== "none"; }) })));
+      const porDibujo = {};
+      for (const x of dibujos) { (porDibujo[x.d] ||= new Set()).add(x.k); expect(x.relleno, "icono relleno: " + x.k).toBe(false); }
+      for (const ks of Object.values(porDibujo)) expect([...ks], "el mismo dibujo para filas distintas").toHaveLength(1);
+      // «Total de Gastos» nunca va una palabra por renglón (Enorme a 360 la partía en tres).
+      const total = aj.locator(".set-row > .sr-lb", { hasText: /^Total de Gastos$/ });
+      const renglones = await total.evaluate((el) => { const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map((c) => Math.round(c.top))).size; });
+      expect(renglones).toBeLessThanOrEqual(2);
       await expect(aj.getByText(/Quita deslizamientos|Sube el contraste|Con nómina reconocida/)).toHaveCount(0);
       const ciclo = aj.locator(".set-row", { has: page.locator(".sr-lb", { hasText: /^Ciclo de cobro$/ }) });
       await expect(ciclo).toHaveCount(1);
