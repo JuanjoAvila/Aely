@@ -950,6 +950,13 @@ function App(){
              cuenta migrada nunca viaja sin su marca, así que quitarla aquí no migra dos veces. */
           if(!localNewer||goalState._goalSync.cloudOnly){
             if(cloudState._netoUnaCuenta) baseObj._netoUnaCuenta=true; else delete baseObj._netoUnaCuenta;
+            /* Igual el libro de Round up / Saveback (`trRecompensas`): dice qué avisos están YA sumados
+               a las posiciones, así que va con las INVERSIONES que gana. Una nube sin la clave (un móvil
+               que nunca vio un aviso no la escribe) dejaba el libro local encima de las posiciones de la
+               nube: el aviso constaba como sumado sin estarlo y no se volvía a aplicar nunca, 12,96 € que
+               desaparecían de la cartera (CI de beta 240, recompensas-tr con la máquina lenta). Sin libro,
+               `aplicarRecompensasTR` lo suma una vez sobre lo bajado. */
+            if(cloudState.trRecompensas) baseObj.trRecompensas=cloudState.trRecompensas; else delete baseObj.trRecompensas;
           }
           delete baseObj.obAbsorbedIssue;
           const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
