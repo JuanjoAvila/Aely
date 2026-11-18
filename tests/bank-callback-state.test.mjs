@@ -9,11 +9,11 @@ const repo = new URL("../", import.meta.url);
 const now = Date.parse('2026-10-17T12:00:00.000Z');
 class Clock extends Date { constructor(...a) { super(...(a.length ? a : [now])); } static now() { return now; } }
 const clone = x => structuredClone(x);
-const sources = ['supabase/functions/_shared/entrada.ts', 'supabase/functions/_shared/ratelimit.ts', 'supabase/functions/_shared/request_body.ts', 'supabase/functions/bank-callback/reconnect.ts', 'supabase/functions/bank-callback/index.ts'];
+const sources = ['supabase/functions/_shared/entrada.ts', 'supabase/functions/_shared/ratelimit.ts', 'supabase/functions/_shared/request_body.ts', 'supabase/functions/bank-callback/reconnect.ts', 'supabase/functions/_shared/eb-revocar.ts', 'supabase/functions/bank-callback/index.ts'];
 const sourceText = Object.fromEntries(sources.map(p => [p, fs.readFileSync(new URL(p, repo), 'utf8')]));
 function compile(s) {
   const imports = (s.match(/^import .*;\r?$/gm) || []).map(x => x.trim());
-  assert.ok(imports.every(x => /^import .* from ["'](?:https:\/\/esm.sh\/@supabase\/supabase-js@2\.110\.0|\.\.\/_shared\/(?:enablebanking|token_store|entrada|ratelimit|request_body)\.ts|\.\/reconnect\.ts)["'];$/.test(x)));
+  assert.ok(imports.every(x => /^import .* from ["'](?:https:\/\/esm.sh\/@supabase\/supabase-js@2\.110\.0|\.\.\/_shared\/(?:enablebanking|token_store|entrada|ratelimit|request_body|eb-revocar)\.ts|\.\/(?:reconnect|enablebanking|token_store)\.ts)["'];$/.test(x)));
   const clean = s.replace(/^import .*;\r?\n/gm, '').replace(/^export /gm, '');
   assert.ok(!/^\s*import\b/m.test(clean));
   return transformSync(clean, { loader: "ts", format: "cjs" }).code;
@@ -78,11 +78,15 @@ function fixture(opt = {}, handlerSource = sourceText[sources.at(-1)]) {
   const context = vm.createContext({
     Deno: { serve: fn => handler = fn, env: { get: key => ({ APP_URL: 'https://app.example.invalid/', SUPABASE_URL: 'https://db.example.invalid', SUPABASE_SERVICE_ROLE_KEY: 'fixture-service-role' })[key] } },
     createClient: () => db, Request, Response, Headers, URL, TextEncoder, crypto: webcrypto, Date: Clock,
-    setTimeout, clearTimeout, console: { error: (...a) => logs.push(a), log: (...a) => logs.push(a) },
+    setTimeout, clearTimeout, AbortController, console: { error: (...a) => logs.push(a), log: (...a) => logs.push(a) },
     fetch: () => { throw Error('UNEXPECTED NETWORK'); },
     ebConfig: () => ({ appId: 'fixture-app', pem: 'fixture-pem' }), makeJWT: async () => 'fixture-jwt',
     encryptSessionId: async id => 'fixture-encrypted:' + id,
+    ebFailure: () => ({ status: 0, code: '', sessionEnded: false }),
+    decryptSessionId: async (x) => x,
     ebApi: async (_jwt, endpoint, options) => {
+      // SEC-02: la sesión que este callback crea y NO consta guardada se revoca; se apunta, no se responde.
+      if (options?.method === 'DELETE') { events.push({ op: 'revoke', endpoint }); return {}; }
       assert.equal(endpoint, '/sessions'); assert.equal(options.method, 'POST');
       const n = events.filter(e => e.op === 'oauth-exchange').length + 1;
       events.push({ op: 'oauth-exchange', request: n });
@@ -189,10 +193,12 @@ for (const app of [false, true]) {
     const f = make({ app, beforeSave: 'delete' }); const r = await f.request(), e = f.evidence([r]);
     closed(r, app); assert.equal(e.oauthExchanges, 1); assert.equal(e.consumeAffected, 1); assert.equal(e.linkUpdates, 0);
     assert.equal(e.events.filter(x => x.op === 'link-update').length, 1, 'una escritura sin retry');
+    assert.deepEqual(e.events.filter(x => x.op === 'revoke').map(x => x.endpoint), ['/sessions/fixture-session-1'], 'la sesión que nadie guardó se cierra en el proveedor ');
   });
   await test('guardado final confirmado permite éxito, APK=' + app, 'final-confirmed', async () => {
     const f = make({ app }); const r = await f.request(), e = f.evidence([r]);
     assert.equal(r.status, 302); assert.equal(r.location, okLocation(app)); assert.equal(e.linkUpdates, 1);
+    assert.equal(e.events.filter(x => x.op === 'revoke').length, 0, 'una sesión guardada no se revoca');
     assert.equal(e.oauthExchanges, 1); assert.equal(f.row().last_sync, f.initial.last_sync);
   });
   for (const finalFault of ['missingrows', 'rows-empty', 'rows-other', 'rows-multiple', 'absent', 'null', 'error-with-row']) {

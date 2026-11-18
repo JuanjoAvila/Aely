@@ -21,12 +21,13 @@ function fixture(issued: string | null = new Date(Date.now() - 1000).toISOString
       accounts: [{ uid: "account-before", iban: "ES0000000000000000000000", hash: "same-account", currency: "EUR" }],
       last_sync: "2026-10-01T00:00:00.000Z", balance_cents: 84260,
     } as Row,
-    trace: [] as Row[], events: [] as Row[], calls: [] as Row[],
+    trace: [] as Row[], events: [] as Row[], calls: [] as Row[], revocadas: [] as string[],
     ack: "normal" as Ack,
     beforeConsume: null as null | (() => void),
     beforeSave: null as null | (() => void),
     consumeAck: "normal" as Ack,
     exchange: null as null | (() => Promise<void>),
+    api: null as null | ((path: string, init: Row) => Promise<Row>),
   };
 }
 let serial = 0;
@@ -74,12 +75,16 @@ async function start(f: ReturnType<typeof fixture>) {
     ebConfig: () => ({}), makeJWT: async () => "synthetic-jwt",
     ebApi: async (_jwt: string, path: string, init: Row) => {
       f.calls.push({ path, method: init?.method });
+      if (f.api) return f.api(path, init);
       assert.equal(path, "/sessions"); assert.equal(init.method, "POST");
       if (f.exchange) await f.exchange();
       return { session_id: "session-A", accounts: [{ uid: "account-A",
         account_id: { iban: "ES0000000000000000000000" }, currency: "EUR", identification_hash: "same-account" }] };
     },
     encryptSessionId: async (id: string) => "synthetic-encrypted:" + id,
+    revocarSesionEB: async (id: string, opts: Row) => {
+      assert.equal(opts?.jwt, "synthetic-jwt", "reutiliza el JWT del canje"); f.revocadas.push(id); return { ok: true };
+    },
     CallbackFallo, codigoCallback, codigoNolink, keepsCursor, readInput,
     CONFIRM_PREFIX, huellaConfirmacion, nuevoTokenConfirmacion, stateConConfirmacion,
     bucketKey: async () => "synthetic-bucket", callerIp: () => "synthetic-ip",
@@ -126,6 +131,8 @@ Deno.test("callback lento conserva reconexión B y no anuncia bank=ok", async ()
   assert.deepEqual(f.row, expected, "A sobrescribió la generación B");
   closed(response);
   assert.equal(f.calls.length, 1); assert.equal(f.trace.filter(x => x.final).length, 1);
+  // SEC-02: la sesión que A creó en el proveedor no la tiene nadie; se revoca, y solo esa.
+  assert.deepEqual(f.revocadas, ["session-A"]);
 });
 
 for (const legacy of [false, true]) for (const app of [false, true]) {
@@ -140,6 +147,7 @@ for (const legacy of [false, true]) for (const app of [false, true]) {
     assert.equal(f.row.state, null); assert.equal(f.row.state_issued_at, before.state_issued_at);
     assert.equal(f.row.last_sync, before.last_sync); assert.equal(f.row.balance_cents, 84260);
     assert.equal(f.trace.length, 2); assert.equal(f.calls.length, 1);
+    assert.deepEqual(f.revocadas, [], "una sesión guardada no se revoca");
   });
 }
 for (const kind of ["state-only", "emission-only", "legacy-new-emission", "owner-only"]) {
@@ -154,6 +162,7 @@ for (const kind of ["state-only", "emission-only", "legacy-new-emission", "owner
     };
     closed(await (await start(f)).pending);
     assert.deepEqual(f.row, expected!); assert.equal(f.calls.length, 1);
+    assert.deepEqual(f.revocadas, ["session-A"], "el UPDATE no casó: la sesión nueva no está en ninguna fila");
   });
 }
 for (const ack of ["zero", "error", "lost", "ambiguous", "wrong-id", "null"] as Ack[]) {
@@ -162,6 +171,9 @@ for (const ack of ["zero", "error", "lost", "ambiguous", "wrong-id", "null"] as 
     closed(await (await start(f)).pending);
     assert.equal(f.row.state, null); assert.equal(f.calls.length, 1);
     assert.equal(f.trace.filter(x => x.final).length, 1);
+    // Solo «cero filas sin error» prueba que no se escribió; con error o acuse raro pudo quedar
+    // guardada, y revocarla dejaría muerto un enlace activo.
+    assert.deepEqual(f.revocadas, ack === "zero" ? ["session-A"] : []);
   });
 }
 for (const ack of ["zero", "error", "lost", "ambiguous"] as Ack[]) {
@@ -169,6 +181,7 @@ for (const ack of ["zero", "error", "lost", "ambiguous"] as Ack[]) {
     const f = fixture(); f.consumeAck = ack;
     closed(await (await start(f)).pending);
     assert.equal(f.calls.length, 0); assert.equal(f.trace.filter(x => x.final).length, 0);
+    assert.deepEqual(f.revocadas, [], "sin canje no hay sesión que revocar");
   });
 }
 Deno.test("reconexión previa al consumo queda intacta y no canjea", async () => {
@@ -176,4 +189,15 @@ Deno.test("reconexión previa al consumo queda intacta y no canjea", async () =>
   f.beforeConsume = () => { expected = reconnect(f, "state-B", new Date(Date.now() + 1000).toISOString()); };
   closed(await (await start(f)).pending);
   assert.deepEqual(f.row, expected!); assert.equal(f.calls.length, 0);
+});
+Deno.test("sesión creada y GET de cuentas sin respuesta: se revoca antes de salir", async () => {
+  const f = fixture();
+  f.api = async (path, init) => {
+    if (path === "/sessions" && init?.method === "POST") return { session_id: "session-empty", accounts: [] };
+    throw new Error("EB 404");
+  };
+  closed(await (await start(f)).pending);
+  assert.equal(f.trace.filter(x => x.final).length, 0, "no llega a guardar");
+  assert.deepEqual(f.calls.map(c => c.path), ["/sessions", "/sessions/session-empty"]);
+  assert.deepEqual(f.revocadas, ["session-empty"]);
 });
