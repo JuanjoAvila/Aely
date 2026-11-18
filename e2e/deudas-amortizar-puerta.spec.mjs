@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
 
 // DIS-26 (15/11/2026): el simulador «¿Cuándo amortizar?» solo informa; la única puerta para
-// amortizar es «Amortizar ahora» de cada deuda, y su diálogo cuenta las cuotas que quita.
+// amortizar es «Amortizar ahora» de cada deuda (en su ficha desde la 242), y su diálogo cuenta las cuotas que quita.
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 const now=new Date(FIXTURE_NOW);
@@ -32,8 +32,11 @@ test("el simulador ya no amortiza y «Amortizar ahora» sí, contando las cuotas
   const before=await page.evaluate(()=>{ const d=JSON.parse(localStorage.getItem("micartera_v3")).debts[0];
     return {bal:Math.round(debtBalance(d)*100),left:debtLeft(d)}; });
 
-  await page.locator('[data-debt-id="amz"]').getByRole("button",{name:/Amortizar ahora/}).click();
-  const dlg=page.getByRole("dialog");
+  // La puerta está en la ficha de la deuda (ronda 242), no en la tarjeta.
+  await expect(page.locator('[data-debt-id="amz"]').getByRole("button",{name:/Amortizar/})).toHaveCount(0);
+  await page.locator('[data-debt-id="amz"]').getByRole("button",{name:/^Editar /}).click();
+  await page.getByRole("dialog",{name:"Editar deuda",exact:true}).getByRole("button",{name:/Amortizar ahora/}).click();
+  const dlg=page.getByRole("dialog").filter({has:page.locator(".ask-in")});
   // Sin importe no se sabe cuántas cuotas quita: no se pinta nada.
   await expect(dlg.locator("[data-ask-live]")).toHaveCount(0);
   await dlg.locator(".ask-in").fill("500");

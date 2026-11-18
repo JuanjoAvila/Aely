@@ -2738,7 +2738,9 @@
   .v4-debt-bar i{display:block;height:100%;border-radius:6px;background:var(--mint);transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-goal-bar i{display:block;height:100%;border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-debt-foot{font-size:12.5px;color:var(--muted);line-height:1.4;}
-  .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;}
+  .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;transition:opacity .2s ease;}
+  /* En la ficha, con algo tecleado no se puede amortizar (cerrarla tiraría lo escrito): se apaga suave. */
+  .v4-debt-amort:disabled{opacity:.55;cursor:default;}
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
   /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
      montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */
@@ -2766,7 +2768,7 @@
   .plan-item .v4-debt-bar,.plan-item .v4-goal-bar{height:4px;margin:10px 0 8px;}
   .plan-item .v4-debt-bar i{background:var(--mint);}
   .plan-item .v4-debt-foot{font-size:12px;}
-  .plan-item .v4-debt-amort,.plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
+  .plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
   .plan-rule-row{gap:8px;padding:12px 0;align-items:center;}
   .plan-rule-row .sub-meta{line-height:1.45;}
   .plan-edit-sheet{max-height:calc(90dvh / var(--zoom,1));overflow-y:auto;overscroll-behavior:contain;}
@@ -9900,6 +9902,18 @@ function widgetBankAccounts(s){
 function widgetBankOf(s){
   const accounts=s.accounts||[], chosen=s.settings&&s.settings.widgetBank;
   return widgetBankAccounts(s).find(function(a){ return a.ent===chosen; }) || accounts.find(function(a){ return a.spendFrom; }) || null;
+}
+/* Banco de reserva de Apuntar (decisión del dueño, 18/11/2026): sin ninguna cuenta de gasto diario
+   la baldosa salía vacía con un «+». Solo entonces se usa el banco del widget, y solo si su gasto
+   CUENTA (`expenseBankEnts`): con el `ent` puesto, un gasto de un banco que no está en esa lista pasa
+   a «otro banco» y deja de sumar al gastado, mientras que sin banco sí suma. Tampoco si el banco ya
+   no está entre las cuentas o es de inversión (rol «extra»). */
+function apuntarBancoReserva(s){
+  const accounts=(s&&s.accounts)||[];
+  if(accounts.some(function(a){ return a&&(accDaily(a)||a.spendFrom); })) return null;
+  const w=widgetBankOf(s);
+  if(!w||!w.ent||accounts.some(function(a){ return a&&a.ent===w.ent&&a.role==="extra"; })) return null;
+  return expenseBankEnts(s).indexOf(w.ent)>=0 ? w.ent : null;
 }
 Object.assign(LANG.es,{st_widget_bank:"Banco del widget",st_widget_auto:"Cuenta de gasto diario",st_widget_bank_hint:"El widget usa el saldo de este banco (sus cuentas, sumadas). El presupuesto no cambia."});
 
@@ -29139,13 +29153,19 @@ function DebtDayPrompt({debt,onOpen}){
     "aria-label":debt.name+" · "+t("db_day_prompt"),style:{display:"block",minHeight:44,textAlign:"left",color:"var(--mint)",textDecoration:"underline",textUnderlineOffset:3},
     onClick:function(){ onOpen(debt); }},t("db_day_prompt"));
 }
-function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery,initialFocus}){
+function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,review,recovery,initialFocus}){
   const [form,setForm]=useState(function(){
     const source=planReviewDraft(debt,review),draft=debtEditDraft(source);
     // Revisar un conflicto conserva el día local aunque la copia remota aún no tenga uno.
     if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&cleanDay(dayOf(source))==null) draft.day="";
     return draft;
   });
+  // Amortizar desde la ficha (decisión del dueño, 18/11/2026) cierra la hoja al aplicarse: su borrador
+  // lleva el pendiente de antes y «Guardar cambios» lo devolvería. Con algo ya tecleado no se ofrece
+  // por lo mismo, para no tirar lo escrito.
+  const formInicial=useRef(form).current;
+  const tocado=Object.keys(form).some(function(k){ return form[k]!==formInicial[k]; });
+  const viva=(state.debts||[]).find(function(x){ return x.id===debt.id; });
   /* Si «Baja la deuda» va ligada a la cuota se decide UNA vez, con la deuda tal y como se abre. Antes
      se decidía en cada tecla comparando los dos campos en vivo: en un préstamo familiar (paga 197,
      baja 250) la cuota pasaba un instante por «250» al teclearla, la bajada se enganchaba y se
@@ -29233,6 +29253,10 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
       if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
     }},tf("db_extend_term",{n:extension.months})),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
+    onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("button",{type:"button",className:"v4-debt-amort","data-act":"debt-amortize",
+      disabled:tocado||save.pending||confirmPending,onClick:function(){
+        onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
+      }},t("v4_amort_now")),
     !recovery&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
@@ -29258,8 +29282,9 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
    (interestApr de las cuentas, p.ej. TR). Sin él, al menos simula cuántas cuotas te quitas.
    Los números usan el modelo lineal de la app (ver debtBalance): son una estimación honesta,
    no la liquidación exacta del banco.
-   Solo informa: amortizar se hace desde «Amortizar ahora» de cada deuda (decisión DIS-26,
-   15/11/2026: dos puertas al mismo dinero eran una de más). */
+   Solo informa: amortizar se hace desde «Amortizar ahora», dentro de la ficha de cada deuda
+   (decisión DIS-26, 15/11/2026: dos puertas al mismo dinero eran una de más; el botón pasó de la
+   tarjeta a la ficha el 18/11). */
 // Cuotas que quita un importe: la usan el asesor y el diálogo de amortizar, para que los dos
 // cuenten lo mismo. null si la deuda no tiene plazo (no hay cuotas que contar).
 function amortRecorte(d,amt){
@@ -29430,7 +29455,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const doAmort=(d,rawAmt)=>{
     const bal=debtBalance(d);
     const amt=Math.min(rawAmt||0, bal);
-    if(amt<=0) return;
+    if(amt<=0) return false;
     const nb=+(bal-amt).toFixed(2);
     set(function(s){
       let changed=false;
@@ -29443,8 +29468,10 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       return changed?Object.assign({},s,{debts:debts}):s;
     });
     showToast(nb<=0.005?t("db_amortize_full"):tf("db_amortized",{x:eur(amt),y:eur(nb)}));
+    return true;
   };
-  const amortize=(d)=>{
+  // `hecho`: lo que sigue a una amortización aplicada (la ficha se cierra); cancelar o un 0 no lo llaman.
+  const amortize=(d,hecho)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
       ph:NF.format(0)+" €", ok:t("db_amortize"),
@@ -29460,7 +29487,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       }
     }).then(function(raw){
       if(raw==null) return;
-      doAmort(d, parseFloat(String(raw).replace(',','.'))||0);
+      if(doAmort(d, parseFloat(String(raw).replace(',','.'))||0)&&hecho) hecho();
     });
   };
   /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
@@ -29491,7 +29518,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     onClose:function(){setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},
     onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
     React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,initialFocus:dayFocus?"day":undefined,
-      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
+      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,onAmortize:amortize,showToast:showToast}));
   if(editorOnly) return editor;
   return React.createElement("div",null,
     // La misma tarjeta que Recibos (etiqueta, cifra y una línea, a la izquierda): centrada, la cifra
@@ -29540,7 +29567,6 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         (d.balloon>0||d.downPayment>0) && React.createElement("div",{className:"v4-debt-sub",style:{marginTop:6,color:"var(--tan)"}},
           d.balloon>0?tf("db_balloon_line",{x:eur0(d.balloon)}):"",
           d.downPayment>0?(d.balloon>0?" · ":"")+tf("db_down_line",{x:eur0(d.downPayment)}):""),
-        bal>0.005 && React.createElement("button",{className:"v4-debt-amort",onClick:function(){ amortize(d); }},t("v4_amort_now")),
         bal<=0.005 && React.createElement("div",{className:"hint",style:{marginTop:10}},t(d.settledAt?"db_settled":"db_est_zero")),
         bal<=0.005 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ d.settledAt?archiveDebt(d):confirmSettled(d); }},t(d.settledAt?"db_archive":"db_settle_ok"))
       );
@@ -33016,7 +33042,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b451ccfda0b19cf404a21834e9189b70b3cc5e3fe005ad07c53b66dfdc9118d4";
+var _rnSha="244b04e8c7293c9eca5bca6fff7a99eeb624437622ccc17b3afd519cc4d106a4";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39594,6 +39620,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       || (state.accounts||[]).find(function(a){ return a && accDaily(a); });
     return (d&&d.ent)||null;
   },[state.accounts]);
+  // Sin cuenta diaria, el banco del widget si su gasto cuenta (`apuntarBancoReserva`); si no, vacía como antes.
+  const reservaBankEnt=useMemo(function(){
+    return dailyBankEnt?null:apuntarBancoReserva(state);
+  },[dailyBankEnt,state.accounts,state.settings]);
   useEffect(function(){
     // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
     if(open&&!ensayo){
@@ -39608,7 +39638,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
       try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
-      setBank(wantCash&&hasEfectivo?"efectivo":dailyBankEnt);
+      setBank(wantCash&&hasEfectivo?"efectivo":(dailyBankEnt||reservaBankEnt));
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());
     }
@@ -39835,7 +39865,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   /* Al salir de Efectivo se vuelve a un BANCO. Si el diario es el propio sobre, `dailyBankEnt` es
      "efectivo" y Tarjeta/Bizum se quedaban guardando efectivo con la píldora del banco escondida
      (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno. */
-  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:(bankOpts[0]||null);
+  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:(reservaBankEnt||bankOpts[0]||null);
   const onPayMode=function(m){
     if(m==="cash"){ setBank("efectivo"); setNc(false); }
     else { if(bank==="efectivo") setBank(cardBankEnt); setNc(m==="transfer"); }

@@ -343,13 +343,19 @@ function DebtDayPrompt({debt,onOpen}){
     "aria-label":debt.name+" · "+t("db_day_prompt"),style:{display:"block",minHeight:44,textAlign:"left",color:"var(--mint)",textDecoration:"underline",textUnderlineOffset:3},
     onClick:function(){ onOpen(debt); }},t("db_day_prompt"));
 }
-function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery,initialFocus}){
+function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,review,recovery,initialFocus}){
   const [form,setForm]=useState(function(){
     const source=planReviewDraft(debt,review),draft=debtEditDraft(source);
     // Revisar un conflicto conserva el día local aunque la copia remota aún no tenga uno.
     if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&cleanDay(dayOf(source))==null) draft.day="";
     return draft;
   });
+  // Amortizar desde la ficha (decisión del dueño, 18/11/2026) cierra la hoja al aplicarse: su borrador
+  // lleva el pendiente de antes y «Guardar cambios» lo devolvería. Con algo ya tecleado no se ofrece
+  // por lo mismo, para no tirar lo escrito.
+  const formInicial=useRef(form).current;
+  const tocado=Object.keys(form).some(function(k){ return form[k]!==formInicial[k]; });
+  const viva=(state.debts||[]).find(function(x){ return x.id===debt.id; });
   /* Si «Baja la deuda» va ligada a la cuota se decide UNA vez, con la deuda tal y como se abre. Antes
      se decidía en cada tecla comparando los dos campos en vivo: en un préstamo familiar (paga 197,
      baja 250) la cuota pasaba un instante por «250» al teclearla, la bajada se enganchaba y se
@@ -437,6 +443,10 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
       if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
     }},tf("db_extend_term",{n:extension.months})),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
+    onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("button",{type:"button",className:"v4-debt-amort","data-act":"debt-amortize",
+      disabled:tocado||save.pending||confirmPending,onClick:function(){
+        onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
+      }},t("v4_amort_now")),
     !recovery&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
@@ -462,8 +472,9 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
    (interestApr de las cuentas, p.ej. TR). Sin él, al menos simula cuántas cuotas te quitas.
    Los números usan el modelo lineal de la app (ver debtBalance): son una estimación honesta,
    no la liquidación exacta del banco.
-   Solo informa: amortizar se hace desde «Amortizar ahora» de cada deuda (decisión DIS-26,
-   15/11/2026: dos puertas al mismo dinero eran una de más). */
+   Solo informa: amortizar se hace desde «Amortizar ahora», dentro de la ficha de cada deuda
+   (decisión DIS-26, 15/11/2026: dos puertas al mismo dinero eran una de más; el botón pasó de la
+   tarjeta a la ficha el 18/11). */
 // Cuotas que quita un importe: la usan el asesor y el diálogo de amortizar, para que los dos
 // cuenten lo mismo. null si la deuda no tiene plazo (no hay cuotas que contar).
 function amortRecorte(d,amt){
@@ -634,7 +645,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const doAmort=(d,rawAmt)=>{
     const bal=debtBalance(d);
     const amt=Math.min(rawAmt||0, bal);
-    if(amt<=0) return;
+    if(amt<=0) return false;
     const nb=+(bal-amt).toFixed(2);
     set(function(s){
       let changed=false;
@@ -647,8 +658,10 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       return changed?Object.assign({},s,{debts:debts}):s;
     });
     showToast(nb<=0.005?t("db_amortize_full"):tf("db_amortized",{x:eur(amt),y:eur(nb)}));
+    return true;
   };
-  const amortize=(d)=>{
+  // `hecho`: lo que sigue a una amortización aplicada (la ficha se cierra); cancelar o un 0 no lo llaman.
+  const amortize=(d,hecho)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
       ph:NF.format(0)+" €", ok:t("db_amortize"),
@@ -664,7 +677,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       }
     }).then(function(raw){
       if(raw==null) return;
-      doAmort(d, parseFloat(String(raw).replace(',','.'))||0);
+      if(doAmort(d, parseFloat(String(raw).replace(',','.'))||0)&&hecho) hecho();
     });
   };
   /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
@@ -695,7 +708,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     onClose:function(){setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},
     onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
     React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,initialFocus:dayFocus?"day":undefined,
-      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
+      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,onAmortize:amortize,showToast:showToast}));
   if(editorOnly) return editor;
   return React.createElement("div",null,
     // La misma tarjeta que Recibos (etiqueta, cifra y una línea, a la izquierda): centrada, la cifra
@@ -744,7 +757,6 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         (d.balloon>0||d.downPayment>0) && React.createElement("div",{className:"v4-debt-sub",style:{marginTop:6,color:"var(--tan)"}},
           d.balloon>0?tf("db_balloon_line",{x:eur0(d.balloon)}):"",
           d.downPayment>0?(d.balloon>0?" · ":"")+tf("db_down_line",{x:eur0(d.downPayment)}):""),
-        bal>0.005 && React.createElement("button",{className:"v4-debt-amort",onClick:function(){ amortize(d); }},t("v4_amort_now")),
         bal<=0.005 && React.createElement("div",{className:"hint",style:{marginTop:10}},t(d.settledAt?"db_settled":"db_est_zero")),
         bal<=0.005 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ d.settledAt?archiveDebt(d):confirmSettled(d); }},t(d.settledAt?"db_archive":"db_settle_ok"))
       );

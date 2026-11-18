@@ -4952,6 +4952,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       || (state.accounts||[]).find(function(a){ return a && accDaily(a); });
     return (d&&d.ent)||null;
   },[state.accounts]);
+  // Sin cuenta diaria, el banco del widget si su gasto cuenta (`apuntarBancoReserva`); si no, vacía como antes.
+  const reservaBankEnt=useMemo(function(){
+    return dailyBankEnt?null:apuntarBancoReserva(state);
+  },[dailyBankEnt,state.accounts,state.settings]);
   useEffect(function(){
     // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
     if(open&&!ensayo){
@@ -4966,7 +4970,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
       try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
-      setBank(wantCash&&hasEfectivo?"efectivo":dailyBankEnt);
+      setBank(wantCash&&hasEfectivo?"efectivo":(dailyBankEnt||reservaBankEnt));
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());
     }
@@ -5193,7 +5197,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   /* Al salir de Efectivo se vuelve a un BANCO. Si el diario es el propio sobre, `dailyBankEnt` es
      "efectivo" y Tarjeta/Bizum se quedaban guardando efectivo con la píldora del banco escondida
      (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno. */
-  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:(bankOpts[0]||null);
+  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:(reservaBankEnt||bankOpts[0]||null);
   const onPayMode=function(m){
     if(m==="cash"){ setBank("efectivo"); setNc(false); }
     else { if(bank==="efectivo") setBank(cardBankEnt); setNc(m==="transfer"); }

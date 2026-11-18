@@ -60,9 +60,13 @@ test("la amortización total marca la deuda una vez y no crea un movimiento",asy
   const live=Object.assign({},debt,{value:80,original:80});
   await seedLoggedInDashboard(page,{debts:[live],expenses:[]});
   await openDebts(page);
-  await page.locator(".v4-debt-card").getByRole("button",{name:/Amortizar/}).click();
-  await page.getByRole("dialog").locator(".ask-in").fill("80");
-  await page.getByRole("dialog").getByRole("button",{name:/Amortizar/}).click();
+  // «Amortizar ahora» vive en la ficha de la deuda (ronda 242).
+  await page.locator(".v4-debt-card").getByRole("button",{name:"Editar Préstamo ejemplo",exact:true}).click();
+  await page.getByRole("dialog",{name:"Editar deuda",exact:true}).getByRole("button",{name:/Amortizar/}).click();
+  const ask=page.getByRole("dialog").filter({has:page.locator(".ask-in")});
+  await ask.locator(".ask-in").fill("80");
+  await ask.getByRole("button",{name:/Amortizar/}).click();
+  await expect(page.getByRole("dialog",{name:"Editar deuda",exact:true})).toHaveCount(0);
   await expect(page.locator(".v4-debt-card")).toContainText("Liquidada");
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).debts[0].settledAt)).toBeTruthy();
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));

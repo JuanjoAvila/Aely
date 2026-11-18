@@ -1966,6 +1966,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "unidades": true
@@ -3852,6 +3856,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "native": [
@@ -5568,6 +5576,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "native": [
@@ -6584,6 +6596,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "native": [
@@ -8269,6 +8285,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "native": [
@@ -9985,6 +10005,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "native": [
@@ -12450,6 +12474,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "unidades": true
@@ -15765,6 +15793,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "migraNetoUnaCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "unidades": true
@@ -19040,6 +19072,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "native": [
@@ -22527,6 +22563,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankAccounts"
       }
     ],
     "unidades": true
@@ -26235,6 +26283,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankAccounts"
       }
     ],
     "edge": [
@@ -36961,6 +37021,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "native": [
@@ -40140,6 +40204,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "native": [
@@ -41916,6 +41984,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
       }
     ],
     "unidades": true
@@ -105807,6 +105879,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankAccounts"
       }
     ],
     "edge": [
@@ -180099,6 +180183,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankAccounts"
       }
     ],
     "unidades": true
@@ -184716,6 +184812,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankOf"
       }
     ],
     "unidades": true
@@ -186403,6 +186507,14 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "cuentaDelNetoDeBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankOf"
       }
     ],
     "unidades": true
@@ -193207,6 +193319,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankAccounts"
       }
     ],
     "unidades": true
@@ -194801,6 +194925,10 @@
         "function": "isEfectivoEnt"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "apuntarBancoReserva"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "sugerenciaApuntar"
       },
@@ -194873,6 +195001,14 @@
         "function": "accRole"
       },
       {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
         "file": "src/modules/00-core.js",
         "function": "categoryOfNewMerchant"
       },
@@ -194911,10 +195047,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseBankOf"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "expenseBankEnts"
       },
       {
         "file": "src/modules/00-core.js",
@@ -195007,6 +195139,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "manualBalanceCommit"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "widgetBankAccounts"
       },
       {
         "file": "src/modules/00-core.js",

@@ -2857,6 +2857,18 @@ function widgetBankOf(s){
   const accounts=s.accounts||[], chosen=s.settings&&s.settings.widgetBank;
   return widgetBankAccounts(s).find(function(a){ return a.ent===chosen; }) || accounts.find(function(a){ return a.spendFrom; }) || null;
 }
+/* Banco de reserva de Apuntar (decisión del dueño, 18/11/2026): sin ninguna cuenta de gasto diario
+   la baldosa salía vacía con un «+». Solo entonces se usa el banco del widget, y solo si su gasto
+   CUENTA (`expenseBankEnts`): con el `ent` puesto, un gasto de un banco que no está en esa lista pasa
+   a «otro banco» y deja de sumar al gastado, mientras que sin banco sí suma. Tampoco si el banco ya
+   no está entre las cuentas o es de inversión (rol «extra»). */
+function apuntarBancoReserva(s){
+  const accounts=(s&&s.accounts)||[];
+  if(accounts.some(function(a){ return a&&(accDaily(a)||a.spendFrom); })) return null;
+  const w=widgetBankOf(s);
+  if(!w||!w.ent||accounts.some(function(a){ return a&&a.ent===w.ent&&a.role==="extra"; })) return null;
+  return expenseBankEnts(s).indexOf(w.ent)>=0 ? w.ent : null;
+}
 Object.assign(LANG.es,{st_widget_bank:"Banco del widget",st_widget_auto:"Cuenta de gasto diario",st_widget_bank_hint:"El widget usa el saldo de este banco (sus cuentas, sumadas). El presupuesto no cambia."});
 Object.assign(LANG.en,{st_widget_bank:"Widget bank",st_widget_auto:"Daily spending account",st_widget_bank_hint:"The widget uses this bank's balance (its accounts added up). Your budget doesn't change."});
 Object.assign(LANG.ca,{st_widget_bank:"Banc del giny",st_widget_auto:"Compte de despesa diària",st_widget_bank_hint:"El giny fa servir el saldo d'aquest banc (els seus comptes, sumats). El pressupost no canvia."});

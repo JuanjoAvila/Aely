@@ -2738,7 +2738,9 @@
   .v4-debt-bar i{display:block;height:100%;border-radius:6px;background:var(--mint);transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-goal-bar i{display:block;height:100%;border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-debt-foot{font-size:12.5px;color:var(--muted);line-height:1.4;}
-  .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;}
+  .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;transition:opacity .2s ease;}
+  /* En la ficha, con algo tecleado no se puede amortizar (cerrarla tiraría lo escrito): se apaga suave. */
+  .v4-debt-amort:disabled{opacity:.55;cursor:default;}
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
   /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
      montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */
@@ -2766,7 +2768,7 @@
   .plan-item .v4-debt-bar,.plan-item .v4-goal-bar{height:4px;margin:10px 0 8px;}
   .plan-item .v4-debt-bar i{background:var(--mint);}
   .plan-item .v4-debt-foot{font-size:12px;}
-  .plan-item .v4-debt-amort,.plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
+  .plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
   .plan-rule-row{gap:8px;padding:12px 0;align-items:center;}
   .plan-rule-row .sub-meta{line-height:1.45;}
   .plan-edit-sheet{max-height:calc(90dvh / var(--zoom,1));overflow-y:auto;overscroll-behavior:contain;}
