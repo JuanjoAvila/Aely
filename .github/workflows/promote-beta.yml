@@ -59,7 +59,7 @@ jobs:
           echo "::error::Elige UNA vía: «tandas» (mergea ramas tanda/<id>) o «commits» (cherry-pick suelto). No las dos."
           exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
@@ -77,7 +77,7 @@ jobs:
           git log origin/main..origin/beta --oneline >> $GITHUB_STEP_SUMMARY
 
       # Los mismos tests que el deploy: que una beta esté probada a mano no exime de la suite.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
       # ⚠ `git checkout beta` A SECAS NO VALE: la release rodante de pruebas crea un **tag**

@@ -96,6 +96,26 @@ function mcFetchManifest(name){
   });
 }
 
+/* QUÉ SE LE PIDE AL INSTALADOR DEL OTA (SEG-01, 18/11/2026).
+   El bundle se instalaba sin comprobar nada: un zip truncado, uno que la caché de Pages sirve aún
+   viejo con el version.json ya nuevo, o uno cambiado por el camino entraba igual y se quedaba como
+   la app del móvil. Los workflows publican ahora el SHA-256 del zip en `checksum`, y el plugin
+   (Capgo 6.50.1, el de todas las APK con OTA) lo calcula al bajar y TIRA el bundle si no casa.
+   Sin `checksum` (manifiesto publicado antes de esto, o el del repo puente) se instala como
+   siempre: exigirlo dejaría sin actualizaciones a quien lee un manifiesto viejo. Esto es
+   integridad, no autenticidad: quien pudiera cambiar el zip en Pages cambiaría también el
+   manifiesto. La firma con clave propia llega con la APK que lleve la clave pública.
+   En estable el zip lleva `?v=`: Pages cachea `bundle.zip` unos minutos y, con el checksum,
+   servir el viejo ya no instala nada malo, pero haría fallar cada intento hasta que caducara.
+   En beta no: es un asset de release, que no pasa por esa caché. */
+function mcBundleOpts(v){
+  var base=mcUpdBase(), o={url:base+"bundle.zip", version:v.version};
+  if(base===_mcOtaBASE) o.url+="?v="+encodeURIComponent(v.version);
+  var c=typeof v.checksum==="string"?v.checksum.trim().toLowerCase():"";
+  if(/^[0-9a-f]{64}$/.test(c)) o.checksum=c;
+  return o;
+}
+
 /* QUÉ VERSIÓN SIRVE PRODUCCIÓN AHORA MISMO (2026-07-28).
    Siempre desde Pages (`_mcOtaBASE`), pase lo que pase con el canal: producción ES `main`, y el
    móvil en beta también tiene derecho a saber por dónde va el resto de la familia.
@@ -177,8 +197,8 @@ window._mcApplyChannelBundle=function(opts){
       /* NUNCA fiarse de `v.url` del manifiesto (2026-09-12): tras el renombre Aely, producción
          seguía anunciando `.../Mi-Cartera/bundle.zip` y el cambio de canal petaba aunque el
          bundle existiera en `/Aely/`. La base la decide el cliente (`mcUpdBase`); el manifiesto
-         solo aporta el número de versión. */
-      return up.download({url:mcUpdBase()+"bundle.zip", version:v.version})
+         solo aporta el número de versión (y el checksum del zip, ver mcBundleOpts). */
+      return up.download(mcBundleOpts(v))
         .then(function(b){
           try{ localStorage.setItem("_otaPending", v.version); }catch(e){}
           return up.set({id:b.id}).then(function(){ return true; });
@@ -325,7 +345,7 @@ window._mcDownloadOta=function(up, v, opts){
   // Pill YA mientras descarga (antes solo al terminar → «tarda un montón», 2026-07-16).
   if(!manual) window._mcSignalOtaPending(v.version);
   if(manual&&toast) toast(tf("st_up_applying",{v:v.version}));
-  return up.download({url:mcUpdBase()+"bundle.zip", version:v.version})
+  return up.download(mcBundleOpts(v))
     .then(function(b){
       if(manual){
         try{ localStorage.setItem("_otaPending", v.version); }catch(e){}
@@ -502,7 +522,17 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0 && !_mc
    de empezar. No retrasa nada perceptible: son dos frames.
    A/B idiomas (4.19.103): si el guardado es en/ca, esperamos el JSON ANTES del montaje para
    no pintar un frame en español. El splash sigue visible mientras tanto. */
+/* NADIE PUEDE METER LA APP EN UN MARCO (SEG-21, 18/11/2026). Una web ajena podría cargarla en un
+   <iframe> invisible y hacer que el dedo pulse aquí creyendo pulsar allí (clickjacking), con la
+   sesión de la nube abierta. `frame-ancestors` no vale en una <meta> y GitHub Pages no manda
+   X-Frame-Options (medido con curl ese día), así que se corta aquí: dentro de un marco no se
+   monta nada y la página queda en blanco. La APK y la PWA cargan siempre en la ventana principal,
+   y si mirar `top` lo prohíbe el navegador, también es un marco. */
+var _mcEnMarco=false;
+try{ _mcEnMarco=window.self!==window.top; }catch(e){ _mcEnMarco=true; }
+if(_mcEnMarco){ try{ document.documentElement.style.display="none"; }catch(e){} }
 (function(){
+  if(_mcEnMarco) return;
   var montar=function(){
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ErrorBoundary,null,React.createElement(App)));
   };

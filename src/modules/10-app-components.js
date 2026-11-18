@@ -596,7 +596,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
     // `data-ent` en Mis bancos). Sin coste de render.
     return React.createElement("button",{key:id,type:"button",onClick:function(e){ e.stopPropagation(); setDestI(i,id); },
       title:hint||"", "data-dest":id, "data-cand":(cands&&cands[i]&&cands[i].id)||String(i),
-      style:{padding:"4px 9px",borderRadius:999,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"rgba(95,208,138,.18)":"transparent",color:on?"var(--mint)":"var(--muted)",fontWeight:800,fontSize:11,cursor:"pointer"}}, label);
+      style:{padding:"4px 9px",borderRadius:999,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"color-mix(in srgb,var(--mint) 18%,transparent)":"transparent",color:on?"var(--mint)":"var(--muted)",fontWeight:800,fontSize:11,cursor:"pointer"}}, label);
   };
   const dupHint=function(c){
     if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
@@ -629,8 +629,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
         emptyInfo && goGastos && React.createElement("button",{type:"button",className:"btn btn-primary",style:{marginTop:14},onClick:seeExisting},t("bp_hist_view_logged"))),
       cands!==null && cands.length>0 && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
-        truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
-        signBanks.length>0 && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}},
+        truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--tan)",background:"color-mix(in srgb,var(--tan) 12%,transparent)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
+        signBanks.length>0 && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--tan)",background:"color-mix(in srgb,var(--tan) 12%,transparent)",borderRadius:10,padding:"8px 10px",marginBottom:8}},
           tf("bp_hist_sign",{banks:signBanks.map(function(e){ return histBankLabel(e); }).join(", ")})),
         /* FILTROS: banco (solo si hay más de uno entre los que se buscó — con uno solo no aporta
            nada elegirlo), tipo (gasto/ingreso) y mes (solo si el lote trae más de uno). Mismo
@@ -913,7 +913,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
 
   const wrap={position:"fixed",inset:0,zIndex:95,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 14px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const pill=function(txt,col){ return React.createElement("span",{style:{fontSize:11,fontWeight:800,color:col,background:col+"1f",borderRadius:20,padding:"3px 9px",whiteSpace:"nowrap"}}, txt); };
+  const pill=function(txt,col){ return React.createElement("span",{style:{fontSize:11,fontWeight:800,color:col,background:"color-mix(in srgb,"+col+" 12%,transparent)",borderRadius:20,padding:"3px 9px",whiteSpace:"nowrap"}}, txt); };
   const mb={flex:"1 1 auto",minWidth:0,background:"var(--sur)",border:"1px solid var(--line-soft)",color:"var(--text)",borderRadius:12,padding:"10px 12px",fontSize:13,fontWeight:700,cursor:"pointer"};
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"linear-gradient(160deg,var(--mint-hi),var(--mint))",color:"var(--on-mint)",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:8};
   const inp={width:"100%",padding:"12px 14px",borderRadius:12,border:"1px solid var(--line-soft)",background:"var(--sur)",color:"var(--text)",fontSize:16,boxSizing:"border-box"};
@@ -973,10 +973,10 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       const isFocus = !!focusAspsp && l.aspsp_name===focusAspsp;
       // Píldora: gana el resultado de la ÚLTIMA sync sobre el status de la tabla. Si no, un
       // Sabadell caído seguía en verde porque bank_links aún decía «active».
-      const sp = noAcct ? pill(t("bp_st_noacct"),"#E2A05F")
+      const sp = noAcct ? pill(t("bp_st_noacct"),"var(--tan)")
                : liveDead ? pill(t("bp_st_expired"),"var(--coral)")
-               : l.status==='pending' ? pill(t("bp_st_pending"),"#E2A05F")
-               : l.status==='active' ? (soon? pill(t("bp_st_soon"),"#E2A05F") : pill(t("bp_st_active"),"var(--mint)"))
+               : l.status==='pending' ? pill(t("bp_st_pending"),"var(--tan)")
+               : l.status==='active' ? (soon? pill(t("bp_st_soon"),"var(--tan)") : pill(t("bp_st_active"),"var(--mint)"))
                : pill(t("bp_st_expired"),"var(--coral)");
       const abierto = openBank===l.aspsp_name;
       // Abrir uno CIERRA el anterior (acordeón): con varios bancos desplegados volvíamos al muro
@@ -1001,7 +1001,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           sp,
           // Flecha: sin ella la tarjeta no se ve pulsable y el usuario no descubre las acciones.
           React.createElement("span",{"aria-hidden":"true",style:{marginLeft:2,color:"var(--muted)",fontSize:12,transition:"transform .18s ease",transform:abierto?"rotate(180deg)":"none"}}, "▾")),
-        (abierto && noAcct) && React.createElement("div",{style:{fontSize:12,lineHeight:1.5,color:"#E2A05F",margin:"8px 2px 4px"}}, "⚠ "+t("bp_noacct_help")),
+        (abierto && noAcct) && React.createElement("div",{style:{fontSize:12,lineHeight:1.5,color:"var(--tan)",margin:"8px 2px 4px"}}, "⚠ "+t("bp_noacct_help")),
         !abierto ? null :
         (confirming===l.aspsp_name
           ? React.createElement("div",{className:"bk-actions",style:{marginTop:8}},
@@ -1705,7 +1705,7 @@ function BetaReviewPanel({onClose, showToast}){
 
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
-  const btn=function(on,color){ return {flex:1,background:on?color:"var(--surface-2)",color:on?"#06120C":"var(--text)",
+  const btn=function(on,color){ return {flex:1,background:on?color:"var(--surface-2)",color:on?"var(--on-mint)":"var(--text)",
     border:on?"none":"1px solid var(--line)",borderRadius:12,padding:"9px 6px",fontSize:13,fontWeight:800,cursor:"pointer"}; };
 
   return React.createElement("div",{style:wrap,className:"beta-review",ref:wrapRef,onScroll:recordarScroll,onPointerDown:tocar},
@@ -3199,7 +3199,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     (function(){ const nq=normQ(q).trim(); return (nq&&grpMatches===0)?React.createElement("div",{className:"hint",style:{marginTop:14,textAlign:"center"}},t("st_search_none")):null; })(),
     // El canal y las DOS versiones (OTA + APK) se cantan en el pie: si el icono no cambia,
     // aquí se ve al momento si sigues en una APK vieja aunque la web ya esté al día (2026-07-26).
-    React.createElement("div",{style:{textAlign:"center",color:"#5E7468",fontSize:"12px",marginTop:"22px"}},
+    React.createElement("div",{style:{textAlign:"center",color:"var(--muted-2)",fontSize:"12px",marginTop:"22px"}},
       "Aely · "+(apkVer
         ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer})
         : ("v"+CONFIG.APP_VERSION))+((typeof mcChannel==="function"&&mcChannel()==="beta")?" · 🚧 beta":""))
@@ -3240,7 +3240,7 @@ function Onboarding({set, onCloud, onSignup}){
   const dots=React.createElement("div",{className:"v4-ob-dots"},
     [0,1,2].map(function(i){ return React.createElement("span",{key:i,className:i===step?"on":""}); }));
   const skipBtn=React.createElement("div",{className:"v4-ob-top"},React.createElement("button",{type:"button",className:"v4-ob-skip",onClick:skip},t("v4_ob_skip")));
-  const cta={width:"100%",padding:"16px",borderRadius:"16px",border:"none",background:"linear-gradient(160deg,var(--mint-hi),var(--mint))",color:"var(--on-mint)",fontWeight:800,fontSize:"15.5px",cursor:"pointer",marginTop:22,boxShadow:"0 14px 28px -10px rgba(95,208,138,.45)"};
+  const cta={width:"100%",padding:"16px",borderRadius:"16px",border:"none",background:"linear-gradient(160deg,var(--mint-hi),var(--mint))",color:"var(--on-mint)",fontWeight:800,fontSize:"15.5px",cursor:"pointer",marginTop:22,boxShadow:"0 14px 28px -10px color-mix(in srgb,var(--mint) 45%,transparent)"};
 
   if(step===0) return React.createElement("div",{style:wrap},React.createElement("div",{style:inner},
     skipBtn,
@@ -3277,12 +3277,12 @@ function Onboarding({set, onCloud, onSignup}){
     React.createElement("h1",{className:"serif v4-ob-title"},t("v4_ob_title2")),
     React.createElement("p",{className:"v4-ob-sub"},t("v4_ob_sub2")),
     React.createElement("div",{className:"v4-mov rise",style:{animationDelay:".12s",marginTop:22}},
-      React.createElement("div",{className:"tile",style:{background:"rgba(95,208,138,.12)"}},"🛒"),
+      React.createElement("div",{className:"tile",style:{background:"color-mix(in srgb,var(--mint) 12%,transparent)"}},"🛒"),
       React.createElement("div",{className:"nm"},React.createElement("div",null,t("v4_ob_demo1")),React.createElement("div",{className:"meta"},"Hoy")),
       React.createElement("div",{className:"am num"},"42,18 €")
     ),
     React.createElement("div",{className:"v4-mov rise",style:{animationDelay:".22s"}},
-      React.createElement("div",{className:"tile",style:{background:"rgba(226,192,95,.12)"}},"☕"),
+      React.createElement("div",{className:"tile",style:{background:"color-mix(in srgb,var(--tan) 12%,transparent)"}},"☕"),
       React.createElement("div",{className:"nm"},React.createElement("div",null,t("v4_ob_demo2")),React.createElement("div",{className:"meta"},"Ayer")),
       React.createElement("div",{className:"am num"},"2,40 €")
     ),
@@ -3416,7 +3416,7 @@ function Shared({state, set, uid:userId, totals, showToast, meEmail}){
               React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setAddingE(false); }}, t("sh_cancel")))
           : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ startAddE(open); }}, "+ "+t("sh_addexp"))
       ),
-      React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:12,color:"#E2705F"},onClick:function(){ delGroup(open.id); }}, t("sh_delgroup"))
+      React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:12,color:"var(--coral)"},onClick:function(){ delGroup(open.id); }}, t("sh_delgroup"))
     );
   }
 

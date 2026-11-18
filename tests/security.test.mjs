@@ -222,6 +222,58 @@ console.log("security");
   }
 }
 
+/* ---- 3 bis. Lo que se publica sale con la CSP SELLADA (SEG-07, 18/11/2026) ----
+   `shell.html` conserva 'unsafe-inline' para que los e2e puedan reescribir el HTML al servirlo;
+   lo que llega a los móviles lleva en su lugar la huella de cada script inline. Si el sellado
+   dejara de cuadrar o un workflow de publicación dejara de llamarlo, la app volvería a ejecutar
+   cualquier script colado, y eso no lo ve nadie mirando la app. */
+{
+  const { sellarCsp, comprobarCsp, scriptsInline } = await import("../scripts/csp-sellar.mjs");
+  const idx = read("public/index.html");
+  try {
+    const { html, huellas } = sellarCsp(idx);
+    const problemas = comprobarCsp(html);
+    if (problemas.length) bad("el sellado de la CSP cuadra con el index", problemas.join(" · "));
+    else if (huellas.length !== new Set(scriptsInline(idx).map((s) => s.replace(/\r\n?/g, "\n"))).size)
+      bad("una huella por cada script inline distinto", `${huellas.length} huellas`);
+    else ok(`el sellado de la CSP cuadra con el index (${huellas.length} scripts, sin 'unsafe-inline')`);
+    // Volver a sellar no puede acumular huellas viejas: el script que cambió ya no está.
+    const otra = sellarCsp(html.replace("APP_VERSION:", "APP_VERSION :")).html;
+    if (comprobarCsp(otra).length) bad("resellar sustituye las huellas en vez de sumarlas", comprobarCsp(otra).join(" · "));
+    else ok("resellar sustituye las huellas en vez de sumarlas");
+    // Y la comprobación caza un script tocado después del sellado.
+    if (!comprobarCsp(html.replace("APP_VERSION:", "APP_VERSION :")).length)
+      bad("comprobarCsp detecta un script cambiado tras sellar");
+    else ok("comprobarCsp detecta un script cambiado tras sellar");
+  } catch (e) {
+    bad("el sellado de la CSP funciona sobre el index", e.message);
+  }
+  for (const wf of ["deploy.yml", "beta.yml"]) {
+    if (!/^\s*(?:run: )?node scripts\/csp-sellar\.mjs\s*$/m.test(read(".github/workflows/" + wf)))
+      bad(`${wf} sella la CSP antes de publicar`);
+    else ok(`${wf} sella la CSP antes de publicar`);
+  }
+}
+
+/* ---- 3 ter. Las acciones de los workflows, fijadas por commit (SEG-20, 18/11/2026) ----
+   Una etiqueta como `@v4` la puede mover quien controle ese repo, y el workflow corre con permiso
+   para publicar en Pages y en las releases: o sea, para meter código en los móviles. Un SHA no se
+   mueve. `supabase.yml` lo lleva la ronda de servidor (A) y se suma aquí cuando lo fije. */
+{
+  const dir = path.join(root, ".github", "workflows");
+  const sueltas = [];
+  let total = 0;
+  for (const f of fs.readdirSync(dir).filter((n) => /\.ya?ml$/.test(n) && n !== "supabase.yml")) {
+    for (const m of read(".github/workflows/" + f).matchAll(/^\s*(?:-\s*)?uses:\s*([^\s#]+)/gm)) {
+      total++;
+      if (!/@[0-9a-f]{40}$/.test(m[1])) sueltas.push(`${f}: ${m[1]}`);
+    }
+  }
+  if (!total) bad("se encontraron las acciones de los workflows");
+  else if (sueltas.length) bad("las acciones van fijadas por SHA de commit", sueltas.join(" · "));
+  else ok(`las ${total} acciones de los workflows van fijadas por SHA`);
+}
+
 /* ---- 4. Ni rastro de la service_role en lo que se publica ---- */
 {
   const targets = ["src/shell.html", "public/index.html"];

@@ -43,6 +43,9 @@ export const CORE = [
   // Reparar el guardián de revisión tras un CI fallido no puede publicar la unión
   // pendiente sólo con Node y saltarse sus pantallas (publicador109, 8/10/2026).
   "tests/beta-veredictos.test.mjs",
+  // Sella la CSP de lo que se publica: si se equivoca, la app no arranca en ningún móvil. Solo
+  // csp.spec la arranca sellada, pero un sellado mal hecho rompe todas las pantallas a la vez.
+  "scripts/csp-sellar.mjs",
 ];
 
 /** REGISTROS DE TESTS: los alcances del panel de beta (8/11/2026). Antes estaban en CORE y casi
