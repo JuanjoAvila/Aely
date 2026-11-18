@@ -29,12 +29,24 @@ function appOrigin(): string | null {
   catch { return null; }
 }
 
+/* `http://localhost:*` EN PRODUCCIÓN (P3-10, auditoría del 14/11). Sirve para el desarrollo y los
+   e2e contra el proyecto de verdad, pero también deja pasar a cualquier servidor local del equipo
+   de quien use la app (otra app, una extensión con página local). Hace falta además el JWT, así
+   que el riesgo es bajo, y cerrarlo rompe el desarrollo local contra producción: lo decide el
+   dueño (pregunta 9 del triage del 18/11). Mientras tanto queda PREPARADO y APAGADO: sin el
+   secreto, como siempre; con `ALLOW_LOCAL_ORIGINS=0`, solo pasan la app publicada y la WebView de
+   la APK (`https://localhost`, que no es este caso). Volver atrás = borrar el secreto. */
+export function localOriginsAllowed(): boolean {
+  // Sin permiso de entorno (tests con `--allow-env` acotado) cuenta como ausente: lo de siempre.
+  try { return Deno.env.get("ALLOW_LOCAL_ORIGINS") !== "0"; } catch { return true; }
+}
+
 export function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
   if (LOCAL.indexOf(origin) >= 0) return true;
   if (origin === appOrigin()) return true;
   // Desarrollo y e2e: `serve public -l 4173`, vite, lo que sea, en la máquina de uno.
-  return /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  return localOriginsAllowed() && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 }
 
 const BASE = {
