@@ -48,6 +48,8 @@ function makeHandler(options = {}, compiled = code) {
     APP_URL: "https://app.example.invalid/Aely/", SUPABASE_URL: "https://db.example.invalid",
     SUPABASE_ANON_KEY: "fixture-anon", SUPABASE_SERVICE_ROLE_KEY: "fixture-service",
     OPENAI_API_KEY: options.key ? "fixture-llm" : "", OPENAI_MODEL: options.model || "",
+    // SEG-15: sin el secreto, localhost pasa como siempre; con "0", no.
+    ALLOW_LOCAL_ORIGINS: options.allowLocal,
   };
   const Deno = {
     serve: (f) => { calls.serve++; handler = f; },
@@ -370,6 +372,17 @@ await t("CORS real aplica la lista blanca a éxitos, errores y OPTIONS", async (
     assert.equal(res.headers.get("Access-Control-Allow-Headers"), "authorization, x-client-info, apikey, content-type, x-ingest-token");
     assert.equal(res.status, extra.method === "GET" ? 405 : extra.auth === null && !extra.method ? 401 : 200);
   }
+});
+await t("CORS con ALLOW_LOCAL_ORIGINS=0: fuera http://localhost, se queda la APK y la app", async () => {
+  for (const [origin, expected] of [
+    ["http://localhost:4173", null], ["http://127.0.0.1:4173", null],
+    ["https://localhost", "https://localhost"], ["https://app.example.invalid", "https://app.example.invalid"],
+  ]) {
+    const res = await makeHandler({ allowLocal: "0" }).request("Mercadona", { origin });
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), expected, origin);
+  }
+  const abierto = await makeHandler({ allowLocal: "1" }).request("Mercadona", { origin: "http://localhost:4173" });
+  assert.equal(abierto.headers.get("Access-Control-Allow-Origin"), "http://localhost:4173");
 });
 
 await t("controles negativos en memoria rechazan regresiones con los mismos oráculos", async () => {

@@ -401,6 +401,7 @@ const denoEnLista = [
   "supabase/functions/_shared/eb-revocar.test.ts",
   "supabase/functions/delete-account/revocacion.test.ts",
   "supabase/functions/_shared/errores-cerrados.test.ts",
+  "supabase/functions/_shared/ratelimit-ip.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
   .flatMap((d) => d.isDirectory() ? buscaDeno(dir + "/" + d.name)
