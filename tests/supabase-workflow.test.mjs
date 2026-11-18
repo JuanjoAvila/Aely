@@ -36,6 +36,13 @@ for (const name of ["Validar función", "Desplegar Edge Functions"]) {
 assert.match(step("Comprobar configuración"), /MIGRACIONES: \$\{\{ inputs.migraciones \}\}/);
 assert.match(step("Aplicar migraciones"), /if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.migrate == 'true'/);
 assert.match(step("Desplegar Edge Functions"), /if: steps.gate.outputs.skip != 'true'/);
+// SEG-20: nada de etiquetas móviles ni `latest` en el job que maneja el token y la contraseña de la BD.
+// La CLI 2.x no conoce `db push --remote`: una versión fija ≥3 es parte del contrato del paso.
+for (const m of yaml.matchAll(/^\s+uses: (\S+)/gm)) assert.match(m[1], /@[0-9a-f]{40}$/, "acción sin fijar por SHA: " + m[1]);
+assert.match(step("Instalar Supabase CLI"), /\n          version: 3\.\d+\.\d+\n/);
+assert.doesNotMatch(yaml, /version: latest/);
+// `link` en la 3.x ignora --password (y avisa): la contraseña solo va a `db push`.
+assert.doesNotMatch(script("Aplicar migraciones"), /supabase link[^\n]*--password/);
 assert.equal((yaml.match(/supabase functions deploy/g) || []).length, 1);
 assert.match(script("Desplegar Edge Functions"), /supabase functions deploy "\$FN" --project-ref/);
 const validate = script("Validar función"), gate = script("Comprobar configuración");
@@ -96,7 +103,15 @@ try {
   const r = run(mock + validate + "\n" + migrate);
   assert.equal(r.status, 0);
   assert.match(r.stdout, /MOCK <link>/);
-  assert.match(r.stdout, /MOCK <db> <push> <--include-all>/);
+  assert.match(r.stdout, /MOCK <db> <push> <--remote> <--include-all> <--password> <ficticia> <--yes>/);
+  // Un fallo del SQL no puede salir en verde: el paso final lo convierte en error del job.
+  assert.match(step("Aplicar migraciones"), /id: migrar\n/);
+  assert.match(step("Aplicar migraciones"), /continue-on-error: true/);
+  assert.match(step("Resultado de migraciones"), /if: always\(\) && steps.migrar.outcome == 'failure'/);
+  const fin = run(script("Resultado de migraciones"));
+  assert.notEqual(fin.status, 0);
+  assert.match(fin.stdout, /::error::/);
+  assert.ok(steps.findIndex(s => s.name === "Resultado de migraciones") > steps.findIndex(s => s.name === "Desplegar Edge Functions"));
   console.log("✅ supabase-workflow: evento manual, " + functions.length + " funciones válidas, " + invalid.length + " entradas rechazadas, gate y argumentos con CLI simulado");
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });

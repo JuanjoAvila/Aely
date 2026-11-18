@@ -498,6 +498,26 @@ Opción rápida (recomendada la primera vez): **SQL Editor → New query**, pega
 
 (En CI, `SUPABASE_DB_PASSWORD` solo habilita migraciones si se selecciona expresamente `migraciones=si` al lanzar el workflow manual; revisar previamente el SQL.)
 
+**Migraciones por CI (`supabase.yml`, 16/11/2026).** El paso «Aplicar migraciones» hace `supabase link` y
+`supabase db push --remote --include-all --password … --yes`. Según la referencia de la CLI
+(<https://supabase.com/docs/reference/cli/supabase-db-push>), sin flag de destino `db push` apunta a la base
+LOCAL; `--remote` apunta al proyecto enlazado, `--password` sigue vigente pero solo junto a `--remote`,
+`--yes` es global y obligatorio sin terminal, y `--linked`/`--db-url`/`--project-ref` siguen en v3 pero
+deprecados (se quitan en v4). Antes el paso llevaba `continue-on-error` y un fallo del SQL salía en verde:
+ahora la función se despliega igualmente, pero el paso final «Resultado de migraciones» emite
+`::error::` y pone el job en rojo. Rojo con función desplegada = SQL sin aplicar.
+`tests/supabase-workflow.test.mjs` lo vigila.
+
+**CLI fijada (18/11/2026, SEG-20).** `setup-cli` instala la **3.2.0** exacta, no `latest`, y las dos
+acciones van fijadas por SHA (los que resolvían `@v4`/`@v1` en el último despliegue bueno, run
+44246722285). Comprobado sin tocar producción: la CLI 2.117 rechaza `db push --remote`
+(«Unrecognized flag»), y la referencia de la 3.2.0 (`apps/cli/docs/supabase/db/push.md` y
+`docs/command-target.md` en el tag `v3.2.0` de `supabase/cli`) confirma `--remote` = proyecto
+enlazado, `--password` solo con `--remote`, `--yes` obligatorio sin terminal y `--include-all`. En la
+3.x `link` ignora `--password` con un aviso (no conecta a la BD), así que el paso ya no se lo pasa.
+En la v4 desaparecen `--linked` y `--project-ref`: antes de subir de versión hay que pasar
+`functions deploy` a `--remote=<ref>`. El test exige SHA en cada `uses:` y una versión 3.x exacta.
+
 ### Migración 0019 — límite de peticiones y caducidad del `state` (4.10.0)
 
 `0019_rate_limit.sql` añade la tabla `rate_limits` (sin políticas RLS a propósito: NADIE llega desde
@@ -613,7 +633,7 @@ En el repo: **Settings → Secrets and variables → Actions**:
 
 El workflow `Deploy Supabase` solo admite `workflow_dispatch`: ningún push, merge ni promote despliega funciones o ejecuta SQL. En Actions, seleccionar la referencia revisada y una función concreta autorizada. `funcion` es obligatorio: se rechazan vacío, rutas, metacaracteres o nombres sin `supabase/functions/<nombre>/index.ts`, antes de cualquier SQL. No existe despliegue global.
 
-`migraciones` conserva `no` por defecto. Solo `si` junto con contraseña habilita `db push --include-all`; requiere revisión y autorización separadas. La ruta histórica conserva `continue-on-error`: un Action verde no acredita éxito de las migraciones, hay que comprobar el paso y su resultado.
+`migraciones` conserva `no` por defecto. Solo `si` junto con contraseña habilita `db push --include-all`; requiere revisión y autorización separadas. `--include-all` aplica **todas** las migraciones del ref lanzado que falten en el registro remoto, no solo la última: antes de lanzarlo, mirar qué hay pendiente. Desde el 16/11 un fallo del SQL pone el job en rojo (paso «Resultado de migraciones»), aunque la función se despliegue igual.
 Mientras no estén configurados, el workflow se salta el deploy sin fallar.
 
 El proyecto Supabase es compartido: `beta` no tiene una Edge separada. Por eso una corrección de

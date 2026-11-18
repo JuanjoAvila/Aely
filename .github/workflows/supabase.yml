@@ -27,8 +27,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # Acciones fijadas por SHA y no por etiqueta (P3-15 / SEG-20): una etiqueta se puede mover y
+      # este job maneja SUPABASE_ACCESS_TOKEN y la contraseña de la BD. Son los SHA que resolvían
+      # `@v4` y `@v1` en el último despliegue bueno (run 44246722285, 18/11/2026).
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       # Se valida antes del gate y del SQL: una entrada inválida nunca debe tocar la BD.
       - name: Validar función
@@ -63,22 +66,36 @@ jobs:
 
       - name: Instalar Supabase CLI
         if: steps.gate.outputs.skip != 'true'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1
+        # Versión EXACTA, no `latest`: la CLI cambió dos veces de contrato en noviembre (el --yes
+        # obligatorio y el destino de `db push`) y cada cambio se descubrió con un despliegue roto.
+        # La 3.x es la primera con `db push --remote` (la 2.117 lo rechaza: «Unrecognized flag»);
+        # en la v4 desaparece `--project-ref` de `functions deploy`. Subirla es un cambio a propósito,
+        # con su lectura de la referencia de la CLI, no algo que llega solo.
         with:
-          version: latest
+          version: 3.2.0
 
       # Requiere migraciones=si y contraseña. --include-all conserva la ruta histórica;
       # el registro remoto puede diferir del repo: revisar el SQL antes de autorizarlo.
-      # continue-on-error permite seguir con la función; verde no acredita éxito del SQL.
+      # --remote apunta al proyecto enlazado por `link`: sin flag de destino la CLI actual empuja a
+      # la base LOCAL (por defecto) y falla en Actions; --linked sigue vivo pero deprecado (se
+      # quita en v4). --password solo vale junto a --remote. --yes: no hay terminal que confirme.
+      # `link` ya no lleva --password: en la 3.x lo acepta pero lo ignora con un aviso (no conecta
+      # a la BD); la contraseña la usa solo `db push`.
+      # OJO: --include-all aplica TODAS las migraciones del ref que no estén en el registro remoto,
+      # no solo la última. Antes de lanzar con migraciones=si, mirar qué hay pendiente.
+      # continue-on-error deja seguir con la función; el fallo NO se pierde: lo recoge el último
+      # paso («Resultado de migraciones»), que pone el job en rojo.
       - name: Aplicar migraciones
+        id: migrar
         if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.migrate == 'true'
         continue-on-error: true
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          supabase link --project-ref "${{ vars.SUPABASE_PROJECT_REF }}" --password "$DB_PASSWORD"
-          supabase db push --include-all --password "$DB_PASSWORD" --yes
+          supabase link --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
+          supabase db push --remote --include-all --password "$DB_PASSWORD" --yes
 
       - name: Desplegar Edge Functions
         if: steps.gate.outputs.skip != 'true'
@@ -89,6 +106,15 @@ jobs:
         run: |
           # Una única función evita activar otras que aún no están publicadas.
           echo "Desplegando SOLO $FN"
-          # --yes: la CLI (latest) pide confirmación desde nov. 2026 y en Actions no hay terminal:
+          # --yes: la CLI pide confirmación desde nov. 2026 (3.x) y en Actions no hay terminal:
           # sin él abortaba sin cambiar nada (run 43714083769). El alcance ya lo fija $FN.
           supabase functions deploy "$FN" --project-ref "${{ vars.SUPABASE_PROJECT_REF }}" --yes
+
+      # Antes un fallo del SQL salía en verde (continue-on-error) y la función se desplegaba como
+      # si nada. Ahora se despliega igual, pero el job acaba en rojo con una anotación visible.
+      - name: Resultado de migraciones
+        if: always() && steps.migrar.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::error::Las migraciones han FALLADO: el SQL no está aplicado (la función sí se ha desplegado). Revisa el log del paso «Aplicar migraciones»."
+          exit 1
