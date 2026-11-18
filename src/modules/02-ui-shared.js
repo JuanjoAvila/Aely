@@ -1118,12 +1118,16 @@ function PrimeraCuentaHero(){
    beta 4.26.150). Un número que no es el real es peor que no animar (AGENTS §1): se pinta la cifra
    real desde el primer frame y solo se anima el paso de un valor real a otro mientras se mira. */
 function useCountUp(target, ready){
-  const tgt0=+(target||0);
+  /* Un objetivo que no es un número (un `undefined` a medio cargar, un texto) dejaba la cifra en
+     NaN («NaN €») y no volvía sola: el siguiente paso partía de NaN (UX-17). Sale 0, como un
+     objetivo vacío. */
+  const cifraFinita=function(x){ const n=+(x||0); return isFinite(n)?n:0; };
+  const tgt0=cifraFinita(target);
   const [shown,setShown]=useState(tgt0);
   const rafRef=useRef(0);
   const shownRef=useRef(tgt0);
   useEffect(function(){
-    const tgt=+(target||0);
+    const tgt=cifraFinita(target);
     cancelAnimationFrame(rafRef.current);
     // Oculta, sin movimiento o ya en su sitio: la cifra salta a su valor real.
     if(!ready||mcReduced()||shownRef.current===tgt){
@@ -1139,7 +1143,9 @@ function useCountUp(target, ready){
       // El `now` del primer frame puede ser anterior al performance.now() de arriba: sin el suelo en 0,
       // p sale negativo y la cifra arranca POR DEBAJO de donde estaba (e2e B2: 4315 en vez de ≥4321).
       const p=Math.min(1,Math.max(0,(now-t0)/dur));
-      const v=start+(tgt-start)*ease(p);
+      // Al final, el objetivo exacto: `start+(tgt-start)*1` puede quedarse a un pelo por la coma
+      // flotante y la cifra en reposo no coincidiría con la del resto de la app.
+      const v=p>=1?tgt:start+(tgt-start)*ease(p);
       shownRef.current=v;
       setShown(v);
       if(p<1) rafRef.current=requestAnimationFrame(step);
@@ -1148,7 +1154,7 @@ function useCountUp(target, ready){
     return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
   },[target, ready]);
   // Oculta, el render ya lleva el valor real aunque el efecto aún no haya corrido.
-  return ready?shown:+(target||0);
+  return ready?shown:cifraFinita(target);
 }
 
 /* QUÉ CIERRES SE GUARDAN HOY: una fila por cuenta, con la MISMA clave con la que luego se leen
@@ -2136,7 +2142,30 @@ function mcCalentarCapa(el){
    raíz de React aparte y con `ensayo` en las props de quien se ensaya, que es quien deja sin poner
    su candado, su entrada de Atrás y sus clases en <html> (una marca global la leería también la
    app si le tocara repintar justo dentro de este `flushSync`). */
-function mcEnsayar(el){
+/* NI EN MITAD DE UN GESTO (18/11/2026). Los ensayos esperan un hueco libre, pero un dedo que
+   arrastra despacio deja huecos de sobra entre `touchmove` y `touchmove`, y el ensayo caía ahí: al
+   deslizar de Plan a Cartera nada más entrar en Plan, tareas de 60-270 ms a ×6 en mitad del gesto
+   (traza con pila: el `mcEnsayar` de las hojas de Recibos, no el montaje de Cartera). Con un dedo
+   puesto o un scroll de hace nada, el ensayo se aplaza hasta que la pantalla esté quieta; y si al
+   volver hay una hoja abierta, también (sería ensayar la que ya se está viendo). */
+let _mcDedos=0, _mcGestoMs=-1e9;
+(function(){
+  try{
+    const o={capture:true,passive:true};
+    const marca=function(e){ _mcDedos=e&&e.touches?e.touches.length:0; _mcGestoMs=performance.now(); };
+    window.addEventListener("touchstart",marca,o);
+    window.addEventListener("touchend",marca,o);
+    window.addEventListener("touchcancel",marca,o);
+    window.addEventListener("scroll",function(){ _mcGestoMs=performance.now(); },o);
+  }catch(e){}
+})();
+function mcGestoVivo(){ return _mcDedos>0||performance.now()-_mcGestoMs<600; }
+function mcEnsayar(el, aplazado){
+  const h=document.documentElement.classList;
+  if((aplazado|0)<20&&(mcGestoVivo()||(aplazado&&(h.contains("sheet-open")||h.contains("bills-open"))))){
+    setTimeout(function(){ mcScheduleIdle(function(){ mcEnsayar(el,(aplazado|0)+1); },1500); },700);
+    return;
+  }
   let host=null, root=null;
   try{
     host=document.createElement("div");

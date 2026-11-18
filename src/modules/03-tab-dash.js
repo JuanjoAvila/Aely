@@ -549,10 +549,14 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_all"))),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
-          return React.createElement("div",{key:i,className:"v4-charge"},
-            React.createElement("div",{className:"dt"},React.createElement("div",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("div",{className:"m"},monthName.slice(0,3))),
-            React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{className:"nm"},u.name),React.createElement("div",{className:"sub"},u.sub+" · "+t("pr6_no_llegado"))),
-            React.createElement("div",{className:"am num"},eur(u.amount)));
+          // Cada fila lleva a Recibos, como «Ver todo»: parecían tocables (y en Recibos lo son) y no
+          // hacían nada (triage 18/11, F-07).
+          return React.createElement("button",{key:i,type:"button",className:"v4-charge v4-charge-btn","data-testid":"inicio-revisar-fila",
+              onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},
+            // `span` y no `div`: dentro de un botón solo cabe contenido en línea (el CSS los pone en bloque).
+            React.createElement("span",{className:"dt"},React.createElement("span",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("span",{className:"m"},monthName.slice(0,3))),
+            React.createElement("span",{style:{flex:1,minWidth:0}},React.createElement("span",{className:"nm"},u.name),React.createElement("span",{className:"sub"},u.sub+" · "+t("pr6_no_llegado"))),
+            React.createElement("span",{className:"am num"},eur(u.amount)));
         }))
     ),
 

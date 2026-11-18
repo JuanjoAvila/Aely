@@ -465,6 +465,12 @@ const PRESUPUESTO = {
   // selector en hoja y fila de un toque en Ajustes. Se quitó lo sustituido (grupo y resumen de Bancos, selector a
   // pantalla completa, estilos en línea, «vX» del pie, nota de solo lectura) y aun así queda +3.868 B / +1.225 B gzip
   // (con los avisos que no se pisan y la fila que relee): 2.016.665 B y 554.686 B gzip. El resto de lo que se va (`bkBrand`, chips de brókers) es de R3. SUBE a 1970 / 542 KiB.
+  // Ronda D (18/11): «Para revisar» de Inicio tocable, el buscador de Gastos que deja deslizar, los ensayos de hojas que
+  // esperan a que no haya un dedo puesto, dianas de 48 px y la rejilla de dos columnas de la ficha con Enorme: 2.014.907 B
+  // minificado (+2.110) y 553.958 B gzip (dentro). Mismo mandato del 11/10: el minificado, al mínimo medido, 1968 KiB.
+  // Arreglo del filtro de la ronda D: con Enorme en un móvil estrecho el importe de «Últimos movimientos» y el de
+  // Categorías bajan de línea para que ninguna palabra se parta ni se corte, y el buscador suelta el gesto al
+  // cerrarse el teclado: 2.016.314 B minificado y 554.335 B gzip (+1.407 / +377). Al mínimo medido: 1970 / 542 KiB.
   minificado: 1975 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

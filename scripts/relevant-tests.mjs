@@ -68,6 +68,11 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Ronda D (18/11/2026): «Para revisar» tocable, deslizar desde el buscador de Gastos, nombres de
+  // «Últimos movimientos» sin cortar, dianas de 44 px de pantalla y cifras de Categorías.
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
   // Ronda de diseño 240 (encargos D y E): resumen de Deudas/Metas, Ajustes con iconos de trazo y sin
   // nada cortado, Perfil en filas y el aviso abajo con Ajustes abierto.
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },

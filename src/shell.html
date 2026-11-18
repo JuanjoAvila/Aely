@@ -987,14 +987,16 @@
 
   .v42-net-ranges{display:flex;justify-content:center;gap:2px;margin-top:8px;}
   .v42-net-ranges button{position:relative;min-width:52px;height:30px;border-radius:15px;border:0;background:none;color:var(--muted-2);font-size:12.5px;font-weight:700;padding:0 10px;transition:background .2s,color .2s;}
-  .v42-net-ranges button:before{content:"";position:absolute;inset:-7px 0;}
+  /* Diana de 48 en CSS, no de 44: con la letra «Normal» todo va con `zoom` .92 y 44 se quedaban en
+     40 de pantalla (gate-240, D-01). 30 + 9 + 9. */
+  .v42-net-ranges button:before{content:"";position:absolute;inset:-9px 0;}
   .v42-net-ranges button[aria-pressed="true"]{background:color-mix(in srgb,var(--mint) 14%,transparent);color:var(--mint);}
   .v42-cycle-section{margin-top:22px;}
   .v42-cycle-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px;font-size:14px;font-weight:700;}
-  /* 44 px de dedo como `.v4-section-h button.link`; el margen negativo devuelve el alto que gana
-     para que la cabecera no crezca (medía 20 px de alto, auditoría 15/11); el -2 de la derecha
-     anula el margen de la cabecera y alinea el texto con el de las demás secciones. */
-  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;min-height:44px;padding:10px 8px;margin:-10px -2px -10px 0;}
+  /* 48 px de dedo en CSS como `.v4-section-h button.link` (44 de pantalla con «Normal»); el margen
+     negativo devuelve el alto que gana para que la cabecera no crezca (medía 20 px de alto,
+     auditoría 15/11); el -2 de la derecha anula el margen de la cabecera y alinea el texto. */
+  .v42-cycle-head .link{color:var(--mint);font-size:13px;font-weight:700;min-height:48px;padding:12px 8px;margin:-12px -2px -12px 0;}
   .v42-cycle{gap:14px;padding:14px 16px;cursor:pointer;}
   .v42-cycle-ring{position:relative;width:76px;height:76px;flex:0 0 auto;}
   .v42-cycle-percent{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;padding-top:25px;font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;line-height:1;color:var(--text);}
@@ -1034,7 +1036,9 @@
   .v4-budget-txt .ph{font-size:14.5px;color:var(--muted);line-height:1.45;margin-top:6px;text-wrap:pretty;}
   .v4-section{margin-top:22px;}
   .v4-section-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:15px;font-weight:800;}
-  .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
+  /* 48 en CSS (44 de pantalla con «Normal», ver `.v42-net-ranges`); el margen devuelve los 4 px para
+     que la cabecera de sección no crezca. */
+  .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:48px;padding:12px 8px;margin:-2px 0;cursor:pointer;}
   /* «En noviembre» junto a «Próximos cargos» cuando lo que se ve es del mes que viene. */
   .v4-upcoming-mes{margin-left:8px;color:var(--muted);font-weight:600;font-size:13px;}
   .v4-section .v4-mov{min-height:60px;}
@@ -1051,6 +1055,11 @@
   @media (prefers-reduced-motion:reduce){ .v4-nogoal-row:active{transform:none;} }
   .v4-charge{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-soft);}
   .v4-charge:first-child{border-top:none;}
+  /* «Para revisar» de Inicio: la misma fila, pero botón (lleva a Recibos). Sin el aspecto de botón
+     del sistema: ni fondo, ni borde salvo la raya, y el texto a la izquierda. */
+  .v4-charge-btn{width:100%;background:none;border-width:1px 0 0;border-style:solid;border-color:var(--line-soft);border-radius:0;color:inherit;font:inherit;text-align:left;cursor:pointer;}
+  .v4-charge-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .v4-charge-btn span{display:block;}
   .v4-charge .dt{width:44px;text-align:center;flex:0 0 auto;}
   .v4-charge .dt .d{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;line-height:1;}
   .v4-charge .dt .m{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted-2);font-weight:700;margin-top:2px;}
@@ -1503,9 +1512,26 @@
   .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
   .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
   /* La misma fila que Gastos (237, P2-5): nombre a 16/600, «Categoría · Banco» a 13 en gris. */
-  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* El nombre baja a una segunda línea en vez de cortarse con «…» (D-03: los recortes que quedaban
+     en Inicio eran estos, sobre todo con letra Enorme a 360). Más de dos líneas solo con nombres de
+     banco kilométricos; ahí sí se corta, que una fila de cinco líneas rompe la lista. Una palabra
+     nunca se parte (gate de la ronda D: «Supermerc / ados…» con Enorme): si no cabe, se cambia la
+     rejilla, no la palabra (ver abajo). */
+  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-weight:600;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.3;}
   .v4-section[data-testid="inicio-recent"] .v4-mov .meta{font-size:13px;margin-top:3px;}
   .v4-section[data-testid="inicio-recent"] .v4-mov .am{font-weight:600;white-space:nowrap;}
+  /* Con Enorme en un móvil estrecho el importe se comía la columna del nombre y «Supermercados» no
+     cabía ni sola en su línea. El importe baja a la línea de la categoría, a la derecha, y el nombre
+     se queda todo el ancho (unos 80 px más). La caja del texto se deshace (`contents`) para que
+     nombre, categoría e importe entren en la rejilla de la fila. */
+  @media (max-width:430px){
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;align-items:center;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .tile{grid-row:1 / span 2;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > div:not(.tile){display:contents;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov .nm{grid-column:2 / 4;align-self:end;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov .meta{grid-column:2;align-self:start;min-width:0;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .am{grid-column:3;grid-row:2;align-self:start;margin-top:2px;}
+  }
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
      Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
@@ -1714,7 +1740,19 @@
   .gx-cat-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
   .gx-cat .v4-gastos-cat-row{font-size:15px;}
   .gx-cat .v4-gastos-cat-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .gx-cat .v4-gastos-cat-amt{font-weight:600;}
+  /* Una regla para las cifras (237, P2-4; D-04): Fraunces para la cifra de arriba y para el importe
+     de una fila con nombre propio (un movimiento, un recibo, una categoría); sans tabular para
+     totales de apoyo y desgloses (el total del día, la línea de estado). Las categorías iban en sans
+     y eran la única lista de importes que no se parecía a la de Movimientos. */
+  .gx-cat .v4-gastos-cat-amt{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:600;}
+  /* Con Enorme en un móvil estrecho, «Supermercado» y su cifra no caben en una línea y el nombre se
+     cortaba («Supermer…», ya en la base). Misma receta que «Últimos movimientos»: si no caben, la
+     cifra baja a su propia línea, a la derecha, y el nombre se ve entero. */
+  @media (max-width:430px){
+    html.hugetext .gx-cat .v4-gastos-cat-row{flex-wrap:wrap;row-gap:2px;}
+    html.hugetext .gx-cat .v4-gastos-cat-name{white-space:normal;overflow:visible;text-overflow:clip;}
+    html.hugetext .gx-cat .v4-gastos-cat-amt{margin-left:auto;}
+  }
   .gx-cat .v4-gastos-cat-hint{margin-top:-4px;}
   .gx-cat .bar{display:block;height:4px;margin-top:0;border:0;border-radius:2px;background:var(--bg);}
   .gx-cat-rel{display:block;height:4px;border-radius:2px;background:var(--bg);overflow:hidden;}
@@ -2167,6 +2205,13 @@
      (auditoría 237, P1-2, y el crítico de la v3: «Supermer-cado», «restauran…» y letras encogidas a
      7 px). Si una palabra no cabiera, se cambia la rejilla, no la letra. */
   .v4-ficha-cat > span:last-child{max-width:100%;font-size:12px;line-height:1.15;-webkit-hyphens:none;hyphens:none;overflow-wrap:normal;word-break:normal;}
+  /* Y eso es lo que hace falta en la ficha de un gasto con letra Enorme en un móvil estrecho: a tres
+     columnas «Supermercado» y «restaurantes» se salían de la baldosa (D-13, captura a 360 y 393 tras
+     la 4.26.241). Dos columnas. Apuntar no entra aquí: con letra grande ya va en una fila que se
+     desliza de lado. */
+  @media (max-width:430px){
+    html.hugetext .v4-ficha-body:not([data-testid="ap"]) .v4-ficha-cats:not(.v4-ficha-ajustes){grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
   /* Ajustes: chips de unos 40 px, icono y texto en línea, en la rejilla de las categorías; uno solo
      (la nota de un ingreso) ocupa la fila entera. */
   .v4-ficha-ajustes > .v4-ficha-cat{min-height:40px;padding:6px 8px;flex-direction:row;justify-content:flex-start;gap:6px;border-radius:13px;}
@@ -2496,6 +2541,11 @@
      que entran de lado); lo que cambiaba era el tamaño y el título, que flotaba por encima. */
   .profile-pull-h{display:flex;align-items:center;gap:10px;margin-bottom:6px;min-height:44px;}
   .profile-pull-h .back{width:44px;height:44px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:18px;color:var(--text);flex:0 0 auto;line-height:1;}
+  /* Volver: el dibujo se queda en 44 (40 en Recibos), la diana llega a 48 en CSS, que con «Normal»
+     (`zoom` .92) son los 44 de pantalla (D-01). */
+  .settings-push-h .back,.sub-push-h .back,.profile-pull-h .back,.pr6-back{position:relative;}
+  .settings-push-h .back::after,.sub-push-h .back::after,.profile-pull-h .back::after,.pr6-back::after{content:"";position:absolute;inset:-3px;border-radius:50%;}
+  .pr6-back::after{inset:-5px;}
   .profile-pull-h .ph-main{flex:1;min-width:0;}
   .profile-pull-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;line-height:1.15;}
   .profile-handle{font-size:12.5px;font-weight:700;color:var(--mint);display:inline-flex;align-items:center;gap:5px;margin-top:2px;}
