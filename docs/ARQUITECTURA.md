@@ -1337,8 +1337,8 @@ Disparadores:
 | Cambio del rol de un banco (`mc-bank-role-changed`) | `11-app-main.js` |
 | Noti del banco (evento real del usuario) | apagado por defecto; si se activa expresamente, presupuesto persistente de 1 cada 12 h |
 
-No hay lectura programada del banco: el único `pg_cron` es `myinvestor-keepalive`, que no lee
-Open Banking. La «lectura el día del recibo» de Recibos v6 (SPEC §11.1) sigue sin hacer y
+No hay lectura programada del banco: los `pg_cron` son `myinvestor-keepalive` y, con la 0030, la
+purga diaria de `rate_limits`; ninguno lee Open Banking. La «lectura el día del recibo» de Recibos v6 (SPEC §11.1) sigue sin hacer y
 pendiente de decisión del dueño (31/10/2026): Enable Banking no recibe cabeceras de usuario
 presente, así que cualquier lectura cuenta como desatendida y gasta el cupo diario del banco, y
 el extracto (`bankTx`) solo vive en el móvil, de modo que lo que leyera un cron en el servidor no
