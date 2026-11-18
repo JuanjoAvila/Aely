@@ -191,9 +191,11 @@ await t("desconexión Edge: descifrado y proveedor hostiles no salen al registro
  }
 });
 await t("inventario de destinos completo: toda nueva ruta obliga a actualizar la matriz",()=>{
+ // Ronda A (18/11): `delete-account` registra en consola la revocación fallida de Enable Banking, solo con
+ // paso/estado/código de la lista cerrada; `app_events` del usuario se va con él en el CASCADE.
  // 4.26.233: tres rutas de consola nuevas, revisadas una a una: el aviso de `errTxt` y el de la copia de la pantalla de error solo
  // sacan `mcLogCode` (la clase del fallo, nunca el mensaje), y `askDialog` sin host escribe un texto fijo.
- const inventory={"src/modules/00-core.js":[4,2,1],"src/modules/01-i18n.js":[0,0,1],"src/modules/05-dialogs-inv.js":[0,0,1],"src/modules/10-app-components.js":[0,0,3],"supabase/functions/bank-sync/index.ts":[4,0,0],"supabase/functions/bank-disconnect/index.ts":[1,0,0],"supabase/functions/bank-confirm/index.ts":[1,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/myinvestor-keepalive/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2],"supabase/functions/_shared/crypto.ts":[0,0,1]};
+ const inventory={"src/modules/00-core.js":[4,2,1],"src/modules/01-i18n.js":[0,0,1],"src/modules/05-dialogs-inv.js":[0,0,1],"src/modules/10-app-components.js":[0,0,3],"supabase/functions/bank-sync/index.ts":[4,0,0],"supabase/functions/bank-disconnect/index.ts":[1,0,0],"supabase/functions/bank-confirm/index.ts":[1,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/delete-account/index.ts":[0,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/myinvestor-keepalive/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2],"supabase/functions/_shared/crypto.ts":[0,0,1]};
  const found={};for(const dir of ["src/modules","supabase/functions"]){for(const file of fs.readdirSync(new URL("../"+dir,import.meta.url),{recursive:true})){if(!/\.(?:js|ts)$/.test(file)||file.endsWith(".test.ts"))continue;const path=dir+"/"+file.replaceAll("\\","/");const src=read(path);const counts=[(src.match(/\.from\(["']app_events["']\)/g)||[]).length,(src.match(/Sentry\.captureException\(/g)||[]).length,(src.match(/console\.(?:log|warn|error|info)\(/g)||[]).length];if(counts.some(Boolean))found[path]=counts;}}
  assert.deepEqual(found,inventory);
 });

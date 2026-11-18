@@ -9,6 +9,7 @@ import { jsonResp } from "../_shared/myinvestor.ts";
 import { withCors } from "../_shared/cors.ts";
 import { readInput } from "../_shared/request_body.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
+import { revocarSesionesGuardadas } from "../_shared/eb-revocar.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
@@ -38,6 +39,23 @@ Deno.serve(withCors(async (req: Request) => {
     const probe = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!);
     const { error: signErr } = await probe.auth.signInWithPassword({ email: user.email, password });
     if (signErr) return jsonResp({ ok: false, error: "contraseña incorrecta" }, 403);
+
+    /* P3-06 (auditoría 14/11): borrar la fila de `bank_links` NO cierra el consentimiento PSD2.
+       Seguía vivo en Enable Banking hasta caducar (hasta 90 días) de una cuenta que ya no existe.
+       Se revoca antes, como hace `bank-disconnect`, en paralelo y con el mismo tope de 8 s.
+       Si falla, se borra igual: el derecho a borrar la cuenta no puede depender del proveedor.
+       Al registro solo van clases cerradas (sin id, JWT ni texto del proveedor), y a la consola de
+       la función: `app_events` de este usuario desaparece con él en el CASCADE.
+       MyInvestor no tiene aquí un cierre equivalente: no consta un endpoint de logout en su API
+       no oficial y no se inventa. Al borrar la fila, el keepalive deja de renovar y los tokens
+       caducan solos en su lado. */
+    const { data: enlaces } = await admin.from("bank_links").select("session_id").eq("user_id", user.id);
+    const sesiones = (Array.isArray(enlaces) ? enlaces : []).map((l) => l?.session_id).filter((s) => !!s).slice(0, 20);
+    if (sesiones.length) {
+      const fallos = (await revocarSesionesGuardadas(sesiones)).filter((r) => !r.ok)
+        .map((r) => r.ok ? null : { step: r.step, status: r.status, code: r.code });
+      if (fallos.length) console.error("delete-account: revocación no completada " + JSON.stringify({ total: sesiones.length, fallos }));
+    }
 
     // Best-effort: desconectar integraciones antes del CASCADE.
     await admin.from("myinvestor_links").delete().eq("user_id", user.id);

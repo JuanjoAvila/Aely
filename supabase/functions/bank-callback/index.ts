@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.110.0";
 import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
+import { revocarSesionEB } from "../_shared/eb-revocar.ts";
 import { CallbackFallo, codigoCallback, codigoNolink, CONFIRM_PREFIX, huellaConfirmacion, nuevoTokenConfirmacion, stateConConfirmacion } from "../_shared/entrada.ts";
 import { keepsCursor, type LinkedAccount } from "./reconnect.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
@@ -49,6 +50,15 @@ Deno.serve(async (req) => {
   // deno-lint-ignore no-explicit-any
   let admin: any = null;
   let userId: string | null = null;
+  /* SESIÓN HUÉRFANA (SEC-02, reserva de la PR314). El canje crea una sesión en Enable Banking. Si
+     después NO se llega a guardar —el callback tardío pierde la carrera con una reconexión, el GET
+     de cuentas no responde, el cifrado falla— nadie tiene su id y el consentimiento quedaba vivo en
+     el proveedor hasta caducar. Se revoca en el `catch`, pero SOLO cuando consta que no se guardó:
+     si el UPDATE final pudo escribirla (error o acuse ambiguo), revocarla dejaría muerto un enlace
+     que quizá sí está activo. Ante la duda, como antes: no se toca. */
+  let jwt: string | null = null;
+  let sesionNueva: string | null = null;
+  let sesionPuedeEstarGuardada = false;
   try {
     if (ebError || hasErrorDescription) throw new CallbackFallo("eb_error");
     if (!code || !state) throw new CallbackFallo("sin_code");
@@ -108,9 +118,10 @@ Deno.serve(async (req) => {
     }
 
     const { appId, pem } = ebConfig();
-    const jwt = await makeJWT(appId, pem);
+    jwt = await makeJWT(appId, pem);
     const session = await ebApi(jwt, "/sessions", { method: "POST", body: { code } });
     const sessionId = session.session_id || session.id || null;
+    sesionNueva = typeof sessionId === "string" && sessionId ? sessionId : null;
 
     // --- Extracción robusta de la cuenta autorizada ---
     // Enable Banking devuelve las cuentas en formas DISTINTAS según banco/endpoint:
@@ -173,7 +184,7 @@ Deno.serve(async (req) => {
       for (let attempt = 0; attempt < 3 && !accts.length; attempt++) {
         if (attempt > 0) await sleep(1200);
         try {
-          const full = await ebApi(jwt, `/sessions/${sessionId}`);
+          const full = await ebApi(jwt!, `/sessions/${sessionId}`);
           accts = buildAccts(collect(full));
         } catch (_) {
           getFailed = true;
@@ -223,7 +234,10 @@ Deno.serve(async (req) => {
     save = link.state_issued_at == null
       ? save.is("state_issued_at", null)
       : save.eq("state_issued_at", link.state_issued_at);
+    sesionPuedeEstarGuardada = true;
     const saved = await save.select("id");
+    // Cero filas y sin error = el filtro no casó (otra generación ganó): consta que NO se escribió.
+    if (!saved?.error && Array.isArray(saved?.data) && saved.data.length === 0) sesionPuedeEstarGuardada = false;
     // También puede desaparecer la fila después del consumo: cero filas sin error
     // no confirma que la sesión se haya guardado. No anunciar éxito ni reintentar.
     if (saved?.error || !Array.isArray(saved?.data)
@@ -255,8 +269,12 @@ Deno.serve(async (req) => {
     return Response.redirect(`${APP_URL}?bank=ok`, 302);
   } catch (e) {
     const msg = codigoCallback(e);
+    let revocada: boolean | null = null;
+    if (sesionNueva && !sesionPuedeEstarGuardada) {
+      try { revocada = (await revocarSesionEB(sesionNueva, { jwt })).ok; } catch (_) { revocada = false; }
+    }
     // Ni la query OAuth ni el mensaje de BD/proveedor son necesarios para distinguir la ruta.
-    const detalle = JSON.stringify({ code: msg, codePresent: !!code, statePresent: !!state, bankError: !!(ebError || hasErrorDescription) });
+    const detalle = JSON.stringify({ code: msg, codePresent: !!code, statePresent: !!state, bankError: !!(ebError || hasErrorDescription), ...(revocada === null ? {} : { huerfanaRevocada: revocada }) });
     console.error("bank-callback " + msg + ": " + detalle);
     if (admin && userId) {
       try {
