@@ -6407,6 +6407,10 @@ const sourceBeta237=sourceAt("92be003a07af53969b87ee93c4af0fbd1faeb3d5");
 // Catálogo238 pasa a histórico con la 239: se lee de la 4.26.238 servida en beta (69efd9dca, sin APK nueva, sigue la 64). Su tanda,
 // dinero-238, sigue SIN veredicto: la 239 la deja en su versión y abre concepto-239.
 const sourceBeta238=sourceAt("69efd9dca290440350b58bb32ed4186ee3110b10");
+// Catálogo239 pasa a histórico con la ronda 240: se lee de la 4.26.239 servida en beta (eb75d2908, sin APK nueva, sigue la 64).
+// La ronda 240 cambia 07, 08 y 11 (saldo y pendiente de Recibos): con la fuente viva, sus «idéntico» fallaban sin que nada de la 239
+// hubiera cambiado. Sus tandas (concepto-239, dinero-238) siguen SIN veredicto. El registro de la 240 lo vigila su propio Catálogo.
+const sourceBeta239=sourceAt("eb75d2908415c5447555a5fb7c5b75ad6f48bfc7");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -6611,11 +6615,11 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
 // dinero-238 sigue SIN veredicto: se queda en su versión y su huella no se mueve (la 239 no toca nada de lo que lee). UNA tanda nueva,
 // concepto-239. Registro: un descriptor nuevo, el último; dos reanclas declaradas (TECLAS239: el numérico de Apuntar pasa al
 // pliegue en auditorias-233 y diseno-235). Solo web: ni servidor ni APK.
-test("Catálogo239 conserva dinero-238 sin veredicto, trae las notas de producción de main, abre concepto-239 y reancla el numérico de Apuntar",()=>{
+test("Catálogo239 histórico conserva dinero-238 sin veredicto, trae las notas de producción de main, abre concepto-239 y reancla el numérico de Apuntar",()=>{
   const nueva="concepto-239",previas=["dinero-238"],desdeMain=["4.26.237","4.26.232","4.26.182","4.26.159"];
   const V02="src/modules/02-ui-shared.js",V14="src/modules/14-v4-screens.js",SH="src/shell.html",I18N="src/modules/01-i18n.js",java="android/app/src/main/java/com/micartera/app/";
   const integrated=JSON.parse(sourceBeta238("scripts/beta-sources.json")),before=JSON.parse(sourceBeta238("src/data/release-notes.json")),prod=JSON.parse(sourceProd237("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta238(f));
+  const source=f=>nl(sourceBeta239(f)),old=f=>nl(sourceBeta238(f));
   assert.equal(before[0].v,"4.26.238");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>g.id)),previas,"la 238 llevaba dinero-238");
   const notes=JSON.parse(source("src/data/release-notes.json"));

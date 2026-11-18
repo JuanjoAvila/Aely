@@ -2603,8 +2603,13 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    // Lo pagado de otra forma no queda pendiente en ningún banco (`fixedPagadoFuera`, la regla de «¿Te llega?»).
-    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });
+    /* Deja de estar pendiente lo que ya resta el saldo (`fixedRestaDelSaldo`, la regla del saldo
+       mostrado y de «¿Te llega?») y lo pagado de otra forma (`fixedPagadoFuera`). Antes iba con
+       `isPaidIn` a secas: un recibo en espera que el extracto ya daba por cobrado, o cobrado antes de
+       su día, salía restado en el saldo Y pendiente en el previsto a fin de mes (ronda 240). */
+    const bpMes=fixedSaldoBp(state,curYear,curMonth,today);
+    const fijoCobrado=e=> fixedRestaDelSaldo(state,e,curYear,curMonth,today,bpMes)||fixedPagadoFuera(state,e,curYear,curMonth,today);
+    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),fijoCobrado(e)); });
     // Por banco cuenta lo que sale del banco: en un compartido, el importe entero (`fixedCargoBanco`,
     // la regla del recorrido de «¿Te llega?»). Los totales del mes siguen con tu parte. Sin esto el
     // previsto a fin de mes de la ficha de cuenta y del asistente salía 88 € por encima (rev. t5, R2).
@@ -2613,7 +2618,7 @@ function App(){
       const b=accOf(e), extra=fixedCargoBanco(e,curMonth,curYear)-occAmountIn(e,curMonth,curYear);
       if(!(Math.abs(extra)>0.0001)) return;
       chargesByBank[b]=(chargesByBank[b]||0)+extra;
-      if(!isPaidIn(e,curMonth,today,curYear,state)&&!fixedPagadoFuera(state,e,curYear,curMonth,today)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
+      if(!fijoCobrado(e)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
     });
     state.debts.forEach(d=>{ if(debtActive(d)) acc(debtCuotaIn(d,curYear,curMonth)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });

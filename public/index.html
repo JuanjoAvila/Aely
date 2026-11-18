@@ -21494,30 +21494,50 @@ function fixedPagadoFuera(s,e,y,m,t){
    mano sin lectura del banco, un alquiler de 650 € ya restado del «Tienes hoy» volvía a restarse
    en «Pagado, aún sin restar del saldo»: «Falta 34 €» donde lo justo eran 616,10 €. La usan el
    saldo (`monthNetForAccount`) y el recorrido de «¿Te llega?» (`reciboEnElSaldo`): si una cambia,
-   cambian las dos. ⚠ Lo pendiente de `totals` (11) sigue con `isPaidIn` a secas: solo difiere con un
-   recibo en espera (`wait`) que el extracto ya dio por cobrado (`bp`). `bp` se calcula una vez por
+   cambian las dos, y también lo pendiente de `totals` (11, ronda 240). `bp` se calcula una vez por
    mes; quien recorre todos los recibos lo pasa con `fixedSaldoBp`. */
 function fixedSaldoBp(s,y,m,t){
   const ym=y*12+m;
   return t!=null&&(s.fixed||[]).some(function(e){ return e.wait===ym; })?reconcileBank(s,y,m,t).paidAt:null;
 }
+/* COBRADO ANTES DE SU DÍA EN UNA CUENTA QUE LEE OPEN BANKING (revisión de la 237, H3). El banco
+   cobró el Teléfono del 8 el día 3 y se sincronizó el 4: el saldo leído ya lo llevaba, pero
+   `paidNet` esperaba al calendario y el día 8 lo restaba otra vez (970 con 1.000 en el banco, y así
+   hasta la siguiente lectura; el cierre del mes lo arrastraba). Un cargo BOOK del banco llega en la
+   misma sincronización que su saldo, así que cuenta desde su día. Solo si la cuenta que carga el
+   neto se ancló ESTE mes con esta regla (`cobrosEnSaldo`, lo sella `applyBankBalances`): un `value`
+   anclado antes no la llevaba, y aplicarla sin re-anclar bajaba el saldo de golpe al actualizar.
+   Una cuenta a mano no la lleva nunca: el extracto no es una lectura de su saldo (el alquiler BOOK
+   de 750 de `fixed-ispaidin`). → día del cobro, o null. */
+function fixedCobroDelBanco(s,e,y,m,t){
+  if(t==null) return null;
+  const c=cuentaDelNetoDeBanco(s.accounts,accOf(e));
+  if(!c||c.cobrosEnSaldo!==y*12+m||!(s.bankTx||[]).some(function(tx){ return tx&&tx.ent===c.ent&&String(tx.status||"").toUpperCase()==="BOOK"; })) return null;
+  const st=fixedPaymentState(s,e,y,m,t),d=st.paid&&Number(fixedPaymentDerivedDay(s,st));
+  return d>=1&&d<=t?d:null;
+}
 function fixedRestaDelSaldo(s,e,y,m,t,bp){
   const closed=(t==null);
   if(!occursIn(e,m,y)||fixedEnPausa(s,e,y,m,closed?new Date(y,m,0).getDate():t)) return false;
   if(bp===undefined) bp=fixedSaldoBp(s,y,m,t);
-  return (closed||!!(bp&&bp[e.id])||isPaidIn(e,m,t,y,s))&&!fixedPagadoFuera(s,e,y,m,t);
+  return (closed||!!(bp&&bp[e.id])||isPaidIn(e,m,t,y,s)||fixedCobroDelBanco(s,e,y,m,t)!=null)&&!fixedPagadoFuera(s,e,y,m,t);
 }
 /* ¿El «Tienes hoy» de su banco lleva ya restado este recibo (TU parte, `occAmountIn`)? Solo en un
    banco con cuenta de recibos (las de gasto diario no llevan `paidNet`) y con `fixedRestaDelSaldo`.
-   Con lectura del banco, al anclar se sumó el `paidNet` de ese momento: lo que el calendario ya daba
-   por cobrado al leer queda neutro, así que solo cuenta si cruzó su día DESPUÉS de la lectura (el
-   día de la lectura con el reloj del móvil, como `today`). Sirve igual para un recibo pagado que
-   para uno sin cobro (revisión de la 237, H2). ⚠ No sabe si al leer había un `wait` (H4) ni si el
-   banco ya lo cobró antes de su día y antes de leer (H3): en los dos el saldo mostrado resta de más. */
+   Con lectura del banco, al anclar se sumó el `paidNet` de ese momento: lo que ya restaba al leer
+   queda neutro, así que solo cuenta si empezó a restar DESPUÉS de la lectura (el día de la lectura
+   con el reloj del móvil, como `today`). Sirve igual para un recibo pagado que para uno sin cobro
+   (revisión de la 237, H2). Empieza a restar el día del calendario; si no resta por calendario
+   (`wait`, o cobrado antes de su día), el día del cobro. Con su día de calendario, un recibo en
+   espera al leer el 9 y cobrado el 10 salía «ya dentro de lo leído» y «¿Te llega?» lo restaba otra
+   vez (revisión de la 237, H4: mínimo 30 € más bajo). Si la espera llegó después de la lectura, el
+   `value` ya se desplazó para no mover el saldo (`conSaldoMostrado`): da lo mismo. */
 function fixedEnSaldoMostrado(s,e,y,m,t,leidoMs,bp){
+  if(bp===undefined) bp=fixedSaldoBp(s,y,m,t);
   if(!(s.accounts||[]).some(function(a){ return a&&a.ent===accOf(e)&&accFixed(a); })||!fixedRestaDelSaldo(s,e,y,m,t,bp)) return false;
   if(!(leidoMs>0)) return true;
-  const l=new Date(leidoMs),lm=l.getFullYear()*12+l.getMonth()+1,dd=dayIn(e,m,y);
+  const l=new Date(leidoMs),lm=l.getFullYear()*12+l.getMonth()+1;
+  const dd=isPaidIn(e,m,t,y,s)?dayIn(e,m,y):(bp&&bp[e.id])||fixedCobroDelBanco(s,e,y,m,t)||dayIn(e,m,y);
   return !(lm>y*12+m||lm===y*12+m&&dd!=null&&dd<=l.getDate());
 }
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
@@ -24325,7 +24345,17 @@ function applyBankBalances(s, links){
         const role=accRole(a);
         // El neto del banco solo lo pinta la cuenta que lo carga (`cuentaDelNetoDeBanco`); las
         // demás del mismo banco enseñan su `value` y se anclan al saldo tal cual (ronda 238).
-        const netoMes=llevaNetoDeBanco(accounts, a) ? monthNetForAccount(s, ent, cy, cm, td) : 0;
+        // Y lo ancla con lo que el banco ya cobró antes de su día (`cobrosEnSaldo`, `fixedCobroDelBanco`
+        // en 07): el saldo que acaba de leer lo lleva dentro (revisión de la 237, H3). El sello solo se
+        // pone si cambia el neto: sin un cobro así, anclar con o sin la regla da lo mismo, y la cuenta
+        // se queda como estaba; lo sellará la lectura que traiga uno.
+        const ymSello=cy*12+cm, lleva=llevaNetoDeBanco(accounts, a);
+        let netoMes=lleva ? monthNetForAccount(s, ent, cy, cm, td) : 0, sella=false;
+        if(lleva&&a.cobrosEnSaldo!==ymSello){
+          const conSello=monthNetForAccount(Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){
+            return x&&x.ent===ent&&llevaNetoDeBanco(s.accounts,x) ? Object.assign({},x,{cobrosEnSaldo:ymSello}) : x; })}), ent, cy, cm, td);
+          if(Math.abs(conSello-netoMes)>0.005){ netoMes=conSello; sella=true; }
+        }
         let newBase;
         if(role==="fijos"){
           // Pintado: value + paidNet. paidNet = monthNetForAccount → base = bal − monthNet.
@@ -24351,13 +24381,13 @@ function applyBankBalances(s, links){
         // Sin IBAN, el uid de la cuenta del banco: es lo que llevan sus movimientos (`obAcc`) y lo
         // único que deja contar la parte de una principal a medias (revisión 14/10).
         const uidCambia = !ac.iban && ac.uid!=null && a.bankUid!==String(ac.uid);
-        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia){
+        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia || sella){
           /* El rastro va también aquí: la Revolut de su padre es una cuenta PRINCIPAL re-anclada,
              no una obAccount, y era justo la que le bailaba. `balSaldo` es el saldo crudo que mandó
              el banco, sin la fórmula de dynBal encima, para poder comparar manzanas con manzanas. */
           accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban,
             balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal },
-            uidCambia?{bankUid:String(ac.uid)}:null);
+            uidCambia?{bankUid:String(ac.uid)}:null, sella?{cobrosEnSaldo:ymSello}:null);
           changed=true;
         }
         if(Object.prototype.hasOwnProperty.call(a,"balanceStale")){
@@ -24419,8 +24449,12 @@ function pendingWalkEvents(state, y, m, today){
        dos veces: era el «Falta 34 €» con un alquiler por transferencia que no casa (revisión de la 237,
        H2). Va el día −1, antes que todo (también de lo que no tiene día), para que no se cuele en el
        mínimo, y en su propia fila de la hoja (`yaRestado`): «Tienes hoy − filas = cifra» se sigue
-       cumpliendo con el recibo en «Recibos que faltan». */
-    if(fixedEnSaldoMostrado(state,e,y,m,today,leido[b],bp)) evs.push({bank:b, day:-1, amt:a, yaRestado:true});
+       cumpliendo con el recibo en «Recibos que faltan».
+       Solo con su día ya llegado: el +X compensa el cargo que se pone HOY. Con el día por venir, el
+       cargo va en su día y el +X adelantado subía el mínimo de aquí a entonces; pasaba cuando el
+       extracto (`bp`) daba por cobrado lo que `fixedPaymentState` no (revisión de la 237, R1). */
+    const diaRec=dayIn(e,m,y);
+    if(diaRec!=null&&diaRec<=today&&fixedEnSaldoMostrado(state,e,y,m,today,leido[b],bp)) evs.push({bank:b, day:-1, amt:a, yaRestado:true});
   });
   (state.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
@@ -32946,7 +32980,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="192d0b20d79c37dc140e70a004a8b5c694d4b12c754112098d601a6864bb973f";
+var _rnSha="6462947c4bc914a9097d1c3d45f3f2823bfe3e8be4072cb59aac5816a427a3ac";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -42929,8 +42963,13 @@ function App(){
     const acc=(amt,bank,paid)=>{ chargesByBank[bank]=(chargesByBank[bank]||0)+amt;
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
-    // Lo pagado de otra forma no queda pendiente en ningún banco (`fixedPagadoFuera`, la regla de «¿Te llega?»).
-    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });
+    /* Deja de estar pendiente lo que ya resta el saldo (`fixedRestaDelSaldo`, la regla del saldo
+       mostrado y de «¿Te llega?») y lo pagado de otra forma (`fixedPagadoFuera`). Antes iba con
+       `isPaidIn` a secas: un recibo en espera que el extracto ya daba por cobrado, o cobrado antes de
+       su día, salía restado en el saldo Y pendiente en el previsto a fin de mes (ronda 240). */
+    const bpMes=fixedSaldoBp(state,curYear,curMonth,today);
+    const fijoCobrado=e=> fixedRestaDelSaldo(state,e,curYear,curMonth,today,bpMes)||fixedPagadoFuera(state,e,curYear,curMonth,today);
+    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),fijoCobrado(e)); });
     // Por banco cuenta lo que sale del banco: en un compartido, el importe entero (`fixedCargoBanco`,
     // la regla del recorrido de «¿Te llega?»). Los totales del mes siguen con tu parte. Sin esto el
     // previsto a fin de mes de la ficha de cuenta y del asistente salía 88 € por encima (rev. t5, R2).
@@ -42939,7 +42978,7 @@ function App(){
       const b=accOf(e), extra=fixedCargoBanco(e,curMonth,curYear)-occAmountIn(e,curMonth,curYear);
       if(!(Math.abs(extra)>0.0001)) return;
       chargesByBank[b]=(chargesByBank[b]||0)+extra;
-      if(!isPaidIn(e,curMonth,today,curYear,state)&&!fixedPagadoFuera(state,e,curYear,curMonth,today)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
+      if(!fijoCobrado(e)) pendingByBank[b]=(pendingByBank[b]||0)+extra;
     });
     state.debts.forEach(d=>{ if(debtActive(d)) acc(debtCuotaIn(d,curYear,curMonth)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });

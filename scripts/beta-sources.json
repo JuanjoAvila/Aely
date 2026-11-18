@@ -19927,6 +19927,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "KW"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cuentaDelNetoDeBanco"
       }
     ]
   },
@@ -125255,8 +125259,8 @@
       },
       {
         "file": "src/modules/11-app-main.js",
-        "from": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(",
-        "to": "isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });",
+        "from": "    const bpMes=fixedSaldoBp(",
+        "to": "accOf(e),fijoCobrado(e)); });",
         "includeTo": true
       },
       {
@@ -143137,7 +143141,7 @@
       {
         "file": "src/modules/11-app-main.js",
         "from": "    // --- MOTOR DINÁMICO: cargos de fijos que tocan ESTE mes, por banco ---",
-        "to": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),isPaidIn(e,curMonth,today,curYear,state)||fixedPagadoFuera(state,e,curYear,curMonth,today)); });",
+        "to": "    state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),fijoCobrado(e)); });",
         "includeTo": true
       },
       {
