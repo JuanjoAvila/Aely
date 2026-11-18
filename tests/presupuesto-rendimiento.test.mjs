@@ -444,7 +444,10 @@ const PRESUPUESTO = {
   // Ronda D (18/11): «Para revisar» de Inicio tocable, el buscador de Gastos que deja deslizar, los ensayos de hojas que
   // esperan a que no haya un dedo puesto, dianas de 48 px y la rejilla de dos columnas de la ficha con Enorme: 2.014.907 B
   // minificado (+2.110) y 553.958 B gzip (dentro). Mismo mandato del 11/10: el minificado, al mínimo medido, 1968 KiB.
-  minificado: 1968 * 1024,
+  // Arreglo del filtro de la ronda D: con Enorme en un móvil estrecho el importe de «Últimos movimientos» y el de
+  // Categorías bajan de línea para que ninguna palabra se parta ni se corte, y el buscador suelta el gesto al
+  // cerrarse el teclado: 2.016.314 B minificado y 554.335 B gzip (+1.407 / +377). Al mínimo medido: 1970 / 542 KiB.
+  minificado: 1970 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -487,7 +490,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 541 * 1024, // ver el comentario de minificado (540,5 KiB medidos el 18/11/2026 en la integración 4.26.241).
+  gzip: 542 * 1024, // ver el comentario de minificado (541,3 KiB medidos el 18/11/2026 tras el filtro de la ronda D).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

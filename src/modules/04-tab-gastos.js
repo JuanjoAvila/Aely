@@ -315,9 +315,28 @@ function GxSubInfo({open, onClose}){
    buscador queda justo a media altura, donde se desliza (y=200 en un Pixel 5: 2 de 2 pasadas sin
    cambiar de pestaña). Con el cursor dentro sí es suyo, para mover el cursor o seleccionar. Se marca
    a mano y no con estado: un `setState` por foco repintaría la lista entera. */
+/* Y si el teclado se cierra con Atrás, la WebView suele dejar el foco en el campo: sin teclado ya no
+   se escribe, así que la marca se quita cuando el `visualViewport` vuelve a su alto (gate de la
+   ronda D). Se mira solo mientras hay foco. */
 const GX_BUSCA_DEDO={
-  onFocus:function(e){ e.currentTarget.setAttribute("data-noswipe","1"); },
-  onBlur:function(e){ e.currentTarget.removeAttribute("data-noswipe"); },
+  onFocus:function(e){
+    const caja=e.currentTarget, vv=window.visualViewport;
+    caja.setAttribute("data-noswipe","1");
+    if(!vv||caja._mcSueltaVv) return;
+    const alto=vv.height; let conTeclado=false;
+    const mira=function(){
+      if(vv.height<alto*0.85){ conTeclado=true; return; }
+      if(conTeclado&&vv.height>=alto*0.95){ caja.removeAttribute("data-noswipe"); suelta(); }
+    };
+    const suelta=function(){ vv.removeEventListener("resize",mira); caja._mcSueltaVv=null; };
+    caja._mcSueltaVv=suelta;
+    vv.addEventListener("resize",mira);
+  },
+  onBlur:function(e){
+    const caja=e.currentTarget;
+    caja.removeAttribute("data-noswipe");
+    if(caja._mcSueltaVv) caja._mcSueltaVv();
+  },
   onTouchStart:function(e){ if(e.currentTarget.hasAttribute("data-noswipe")) e.stopPropagation(); },
   onTouchMove:function(e){ if(e.currentTarget.hasAttribute("data-noswipe")) e.stopPropagation(); }
 };

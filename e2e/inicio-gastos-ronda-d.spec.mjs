@@ -14,23 +14,26 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 // allá la fila se corta a propósito (ver `.v4-section[data-testid="inicio-recent"] .v4-mov .nm`).
 const LARGO = "Cafetería Restaurante La Esquina";
 
-function estado() {
+// Con letra Enorme a 360: el nombre del gate («Supermerc / ados…»), una palabra larga de verdad.
+const ENORME = "Supermercados Masymas Benimaclet";
+function estado(letra = "small") {
   const b = estadoHeredado("2026-09-26");
   return {
     ...b,
     obAccounts: b.obAccounts.map((o) => ({ ...o, key: o.id })),
-    expenses: [...b.expenses, { id: "lg1", date: "2026-09-26T09:00:00Z", amount: 63.4, ent: "sabadell", category: "super", merchant: LARGO }],
+    expenses: [...b.expenses, { id: "lg1", date: "2026-09-26T09:00:00Z", amount: 63.4, ent: "sabadell", category: "super", merchant: LARGO },
+      { id: "lg2", date: "2026-09-26T10:00:00Z", amount: 18.75, ent: "sabadell", category: "super", merchant: ENORME }],
     // Recibos de días ya pasados y sin cargo: salen en «Para revisar».
     fixed: [
       { id: "fx-luz", name: "Luz ficticia", amount: 54.3, freq: "mes", day: 4, account: "sabadell" },
       { id: "fx-gym", name: "Gimnasio ficticio", amount: 29.9, freq: "mes", day: 20, account: "sabadell" },
     ],
-    settings: { ...b.settings, lang: "es", textSize: "small" },
+    settings: { ...b.settings, lang: "es", textSize: letra },
   };
 }
-async function abre(page) {
+async function abre(page, letra) {
   await installFixtureClock(page);
-  await seedLoggedInDashboard(page, { __seedOnce: true, ...estado() });
+  await seedLoggedInDashboard(page, { __seedOnce: true, ...estado(letra) });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible();
   await page.waitForFunction(() => !document.getElementById("mc-load"));
@@ -99,4 +102,41 @@ test("Dianas de 44 px de pantalla con letra Normal y cifras de Categorías en Fr
   await page.locator('.page-scroll-host .gx-root [role="tab"][data-gx-tab="cats"]').click();
   const fam = await page.locator(".page-scroll-host .gx-cat .v4-gastos-cat-amt").first().evaluate((el) => getComputedStyle(el).fontFamily);
   expect(fam).toContain("Fraunces");
+});
+
+/* Gate de la ronda D: con Enorme a 360 «Supermercados» salía partido a mitad («Supermerc / ados…»).
+   Ninguna palabra de «Últimos movimientos» ni de Categorías puede quedar en dos renglones: se mira
+   con rangos de texto, palabra a palabra (un rango partido da dos rectángulos a distinta altura). */
+const partidas = (page, sel) => page.evaluate((sel) => {
+  const out = [];
+  for (const el of document.querySelectorAll(sel)) {
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const re = /[\p{L}\p{N}][\p{L}\p{N}.,'’]*/gu; let m;
+      while ((m = re.exec(n.textContent))) {
+        if (m[0].length < 3) continue;
+        const r = document.createRange(); r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length);
+        const rs = [...r.getClientRects()].filter((x) => x.width > 0);
+        if (rs.length > 1 && Math.abs(rs[0].top - rs[rs.length - 1].top) > 3) out.push(m[0]);
+      }
+    }
+  }
+  return out;
+}, sel);
+
+test("Enorme a 360: ninguna palabra partida en «Últimos movimientos» ni en Categorías", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await abre(page, "huge");
+  const filas = '.page-scroll-host [data-testid="inicio-recent"] .v4-mov';
+  await expect(page.locator(filas).filter({ hasText: "Masymas" })).toHaveCount(1);
+  expect(await partidas(page, filas)).toEqual([]);
+  // El nombre largo, entero: sin «…» (cabe en dos renglones con el importe abajo).
+  const nm = await page.locator(filas + " .nm").filter({ hasText: "Masymas" }).evaluate((el) => ({ sh: el.scrollHeight, ch: el.clientHeight }));
+  expect(nm.sh).toBeLessThanOrEqual(nm.ch + 1);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.page-scroll-host .gx-root [role="tab"][data-gx-tab="cats"]').click();
+  await expect(page.locator(".page-scroll-host .gx-cat").first()).toBeVisible();
+  expect(await partidas(page, ".page-scroll-host .gx-cat .v4-gastos-cat-row")).toEqual([]);
+  const cortados = await page.evaluate(() => [...document.querySelectorAll(".page-scroll-host .gx-cat .v4-gastos-cat-name")].filter((el) => el.scrollWidth > el.clientWidth + 1).map((el) => el.textContent));
+  expect(cortados).toEqual([]);
 });

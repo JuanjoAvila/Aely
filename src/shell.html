@@ -1057,6 +1057,7 @@
      del sistema: ni fondo, ni borde salvo la raya, y el texto a la izquierda. */
   .v4-charge-btn{width:100%;background:none;border-width:1px 0 0;border-style:solid;border-color:var(--line-soft);border-radius:0;color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .v4-charge-btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .v4-charge-btn span{display:block;}
   .v4-charge .dt{width:44px;text-align:center;flex:0 0 auto;}
   .v4-charge .dt .d{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;line-height:1;}
   .v4-charge .dt .m{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted-2);font-weight:700;margin-top:2px;}
@@ -1511,12 +1512,24 @@
   /* La misma fila que Gastos (237, P2-5): nombre a 16/600, «Categoría · Banco» a 13 en gris. */
   /* El nombre baja a una segunda línea en vez de cortarse con «…» (D-03: los recortes que quedaban
      en Inicio eran estos, sobre todo con letra Enorme a 360). Más de dos líneas solo con nombres de
-     banco kilométricos; ahí sí se corta, que una fila de cinco líneas rompe la lista. Sin guiones
-     automáticos (partían también «Hiper» y «Ahorro», que cabían): solo se parte una palabra que no
-     cabe entera ni sola en su línea, que con Enorme a 360 es la única forma de no cortarla. */
-  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-weight:600;overflow:hidden;overflow-wrap:break-word;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.3;}
+     banco kilométricos; ahí sí se corta, que una fila de cinco líneas rompe la lista. Una palabra
+     nunca se parte (gate de la ronda D: «Supermerc / ados…» con Enorme): si no cabe, se cambia la
+     rejilla, no la palabra (ver abajo). */
+  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-weight:600;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.3;}
   .v4-section[data-testid="inicio-recent"] .v4-mov .meta{font-size:13px;margin-top:3px;}
   .v4-section[data-testid="inicio-recent"] .v4-mov .am{font-weight:600;white-space:nowrap;}
+  /* Con Enorme en un móvil estrecho el importe se comía la columna del nombre y «Supermercados» no
+     cabía ni sola en su línea. El importe baja a la línea de la categoría, a la derecha, y el nombre
+     se queda todo el ancho (unos 80 px más). La caja del texto se deshace (`contents`) para que
+     nombre, categoría e importe entren en la rejilla de la fila. */
+  @media (max-width:430px){
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;align-items:center;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .tile{grid-row:1 / span 2;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > div:not(.tile){display:contents;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov .nm{grid-column:2 / 4;align-self:end;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov .meta{grid-column:2;align-self:start;min-width:0;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .am{grid-column:3;grid-row:2;align-self:start;margin-top:2px;}
+  }
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
      Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
@@ -1730,6 +1743,14 @@
      totales de apoyo y desgloses (el total del día, la línea de estado). Las categorías iban en sans
      y eran la única lista de importes que no se parecía a la de Movimientos. */
   .gx-cat .v4-gastos-cat-amt{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:600;}
+  /* Con Enorme en un móvil estrecho, «Supermercado» y su cifra no caben en una línea y el nombre se
+     cortaba («Supermer…», ya en la base). Misma receta que «Últimos movimientos»: si no caben, la
+     cifra baja a su propia línea, a la derecha, y el nombre se ve entero. */
+  @media (max-width:430px){
+    html.hugetext .gx-cat .v4-gastos-cat-row{flex-wrap:wrap;row-gap:2px;}
+    html.hugetext .gx-cat .v4-gastos-cat-name{white-space:normal;overflow:visible;text-overflow:clip;}
+    html.hugetext .gx-cat .v4-gastos-cat-amt{margin-left:auto;}
+  }
   .gx-cat .v4-gastos-cat-hint{margin-top:-4px;}
   .gx-cat .bar{display:block;height:4px;margin-top:0;border:0;border-radius:2px;background:var(--bg);}
   .gx-cat-rel{display:block;height:4px;border-radius:2px;background:var(--bg);overflow:hidden;}
