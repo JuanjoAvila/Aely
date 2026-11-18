@@ -313,6 +313,36 @@ await ta("OTA beta: el zip de la release va sin parámetros y con su checksum", 
   assert.equal(o.checksum, "b".repeat(64));
 });
 
+await ta("OTA beta: si el manifiesto cae a estable, el zip también sale de estable", async () => {
+  // Revisión de seguridad de la ronda C (P3-1): con la release `beta` sin version.json, el
+  // checksum era el del zip estable y se pedía el de beta; el plugin lo tiraba en cada intento.
+  const suma = "c".repeat(64);
+  const caida = sandboxCanal({
+    respuestas: {
+      "releases/download": { status: 404, body: "" },
+      "github.io": { status: 200, body: JSON.stringify({ version: "4.27.0", checksum: suma }) },
+    },
+  });
+  caida.sandbox.mcSetChannel("beta");
+  const v = await caida.sandbox.mcFetchManifest("version.json").then(caida.sandbox.mcManifestJson);
+  const o = caida.sandbox.mcBundleOpts(v);
+  assert.equal(o.url, "https://juanjoavila.github.io/Aely/bundle.zip?v=4.27.0");
+  assert.equal(o.checksum, suma);
+
+  // Y con la beta publicada, el zip sigue saliendo de la release.
+  const beta = sandboxCanal({
+    respuestas: { "releases/download": { status: 200, body: JSON.stringify({ version: "4.27.0.2", checksum: suma }) } },
+  });
+  beta.sandbox.mcSetChannel("beta");
+  const vb = await beta.sandbox.mcFetchManifest("version.json").then(beta.sandbox.mcManifestJson);
+  assert.equal(beta.sandbox.mcBundleOpts(vb).url, "https://github.com/JuanjoAvila/Aely/releases/download/beta/bundle.zip");
+});
+
+t("OTA: los dos chequeos leen el manifiesto con mcManifestJson (que guarda el canal)", () => {
+  assert.equal((html.match(/\.then\(mcManifestJson\)/g) || []).length, 2);
+  assert.equal(html.indexOf(".then(function(r){ return r.json(); })"), -1);
+});
+
 t("OTA: las dos descargas del bundle pasan por mcBundleOpts", () => {
   // Una tercera descarga a mano se saltaría el checksum sin que nada lo dijera.
   const descargas = html.match(/up\.download\([^\n;]*/g) || [];

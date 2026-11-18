@@ -43,11 +43,11 @@
       <li><strong>Despeses:</strong> import, comerç, categoria i data (taula <code>expenses</code>).</li>
       <li><strong>Connexions bancàries:</strong> estat de l'enllaç Open Banking i tokens de sessió xifrats. No desem la contrasenya del teu banc.</li>
       <li><strong>MyInvestor:</strong> tokens de sessió xifrats després de connectar. La contrasenya només s'utilitza per iniciar sessió i no es desa.</li>
-      <li><strong>Telemetria mínima (opcional):</strong> versió de l'app, plataforma i missatges d'error — sense dades financeres.</li>
+      <li><strong>Diagnòstic i ús:</strong> amb la sessió iniciada, l'app envia els errors (netejats abans de sortir), quines pantalles es fan servir (un cop per sessió) i quant triguen les sincronitzacions, amb la versió i la plataforma. Les mètriques d'ús mai no porten imports, comerços ni el que escrius. Avui no es pot desactivar.</li>
     </ul>
 
     <h2>On s'allotgen</h2>
-    <p>Les dades al núvol són a <strong>Supabase</strong> (UE). L'app web se serveix des de <strong>GitHub Pages</strong>. Cada usuari només pot llegir i escriure les seves pròpies dades (Row Level Security).</p>
+    <p>Les dades al núvol són a <strong>Supabase</strong> (UE). L'app web se serveix des de <strong>GitHub Pages</strong>. Cada usuari només pot llegir i escriure les seves pròpies dades (Row Level Security), amb dues excepcions: si comparteixes una Llar, els seus membres veuen els saldos que comparteixes, i l'administrador de l'app llegeix les dades de diagnòstic i ús.</p>
 
     <h2>Ajuda avançada opcional</h2>
     <p>«Pregunta’m» funciona en local i sense connexió. Si actives voluntàriament l'ajuda avançada, només s'envia a <strong>OpenAI</strong> la pregunta que hagis escrit. No s'hi adjunten saldos, comptes, moviments ni el contingut de la teva cartera. Abans del primer enviament es demana consentiment i el pots retirar a Configuració. No escriguis números de compte, targetes, contrasenyes, PIN, CVV, claus ni tokens; l'app els bloqueja quan detecta aquests patrons.</p>

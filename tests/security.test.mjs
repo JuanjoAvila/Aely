@@ -245,6 +245,13 @@ console.log("security");
     if (!comprobarCsp(html.replace("APP_VERSION:", "APP_VERSION :")).length)
       bad("comprobarCsp detecta un script cambiado tras sellar");
     else ok("comprobarCsp detecta un script cambiado tras sellar");
+    // El puente de Capacitor (WebViews viejas) entra tras la primera `<head>` literal: sin ella,
+    // o con atributos, entraría detrás de la CSP y quedaría bloqueado (revisión ronda C, P3-2).
+    const sinHead = [html.replace("<head>", '<head data-x="1">'), html.replace("<head>", "<HEAD>"),
+      html.replace("<head>", "").replace("</title>", "</title><head>")];
+    const fallos = sinHead.filter((h) => !comprobarCsp(h).some((p) => p.includes("<head>")));
+    if (fallos.length) bad("comprobarCsp exige una <head> literal antes de la CSP", `${fallos.length} variantes sin detectar`);
+    else ok("comprobarCsp exige una <head> literal antes de la CSP");
   } catch (e) {
     bad("el sellado de la CSP funciona sobre el index", e.message);
   }

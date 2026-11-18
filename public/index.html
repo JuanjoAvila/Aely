@@ -45080,9 +45080,18 @@ function mcFetchManifest(name){
    manifiesto. La firma con clave propia llega con la APK que lleve la clave pública.
    En estable el zip lleva `?v=`: Pages cachea `bundle.zip` unos minutos y, con el checksum,
    servir el viejo ya no instala nada malo, pero haría fallar cada intento hasta que caducara.
-   En beta no: es un asset de release, que no pasa por esa caché. */
+   En beta no: es un asset de release, que no pasa por esa caché.
+   El zip sale del MISMO canal que el manifiesto (`_from`, ver mcManifestJson): un móvil en beta
+   cuyo version.json cae a estable (404 en la release) pedía el zip de beta con el checksum del
+   estable, y el plugin lo tiraba cada vez (revisión de seguridad de la ronda C). */
+function mcManifestJson(r){
+  return Promise.resolve(r.json()).then(function(v){
+    if(v&&typeof v==="object") v._from=r.from;
+    return v;
+  });
+}
 function mcBundleOpts(v){
-  var base=mcUpdBase(), o={url:base+"bundle.zip", version:v.version};
+  var base=v._from==="stable"?_mcOtaBASE:mcUpdBase(), o={url:base+"bundle.zip", version:v.version};
   if(base===_mcOtaBASE) o.url+="?v="+encodeURIComponent(v.version);
   var c=typeof v.checksum==="string"?v.checksum.trim().toLowerCase():"";
   if(/^[0-9a-f]{64}$/.test(c)) o.checksum=c;
@@ -45163,7 +45172,7 @@ window._mcApplyChannelBundle=function(opts){
   var up=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.CapacitorUpdater;
   if(!up||!up.download) return Promise.resolve(false);
   return mcFetchManifest("version.json")
-    .then(function(r){ return r.json(); })
+    .then(mcManifestJson)
     .then(function(v){
       if(!v||!v.version||v.version===CONFIG.APP_VERSION) return false;
       if(toast) toast(tf("st_up_applying",{v:v.version}));
@@ -45339,7 +45348,7 @@ window._mcCheckOtaUpdates=function(opts){
   // En beta, si el manifiesto no está (aún no hay ninguna beta publicada, o la release se borró),
   // se cae a estable en vez de dejar el móvil sin actualizaciones.
   return mcFetchManifest("version.json")
-    .then(function(r){ return r.json(); })
+    .then(mcManifestJson)
     .then(function(v){
       if(!v||!v.version) return false;
       if(v.version===CONFIG.APP_VERSION){

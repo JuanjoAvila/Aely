@@ -85,6 +85,16 @@ export function comprobarCsp(html) {
   if (!src) return ["la CSP no tiene script-src"];
   const tokens = src.split(/\s+/);
   const problemas = [];
+  /* En WebViews sin DOCUMENT_START_SCRIPT, Capacitor mete su puente como script inline justo
+     DESPUÉS de la primera `<head>` literal (JSInjector); si no la encuentra, antes de `</head>`.
+     La <meta> de CSP solo rige lo que viene detrás, así que el puente se salva únicamente si esa
+     `<head>` existe tal cual, sin atributos, es la etiqueta de verdad y va antes de la <meta>. Si
+     un minificador futuro la tocara, el puente quedaría bloqueado y Capgo revertiría cada OTA a
+     los 10 s (revisión de seguridad de la ronda C, P3-2). */
+  const cabecera = html.match(/^\s*(?:<!DOCTYPE[^>]*>\s*)?(?:<html\b[^>]*>\s*)?<head>/i);
+  const iHead = html.indexOf("<head>");
+  if (!cabecera || iHead !== cabecera[0].length - "<head>".length || iHead > html.search(META_RE))
+    problemas.push("el documento no empieza por una <head> literal antes de la <meta> de CSP (el puente de Capacitor quedaría bloqueado)");
   if (tokens.includes("'unsafe-inline'")) problemas.push("script-src sigue con 'unsafe-inline'");
   const puestas = new Set(tokens.filter((p) => /^'sha256-/.test(p)));
   const reales = new Set(scriptsInline(html).map(huellaScript));

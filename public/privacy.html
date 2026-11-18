@@ -46,11 +46,11 @@
       <li><strong>Gastos:</strong> importe, comercio, categoría y fecha (tabla <code>expenses</code>).</li>
       <li><strong>Conexiones bancarias:</strong> estado del enlace Open Banking y tokens de sesión cifrados. No guardamos tu contraseña del banco.</li>
       <li><strong>MyInvestor:</strong> tokens de sesión cifrados tras conectar. La contraseña solo se usa en el login y no se almacena.</li>
-      <li><strong>Telemetría mínima (opcional):</strong> versión de la app, plataforma y mensajes de error — sin datos financieros.</li>
+      <li><strong>Diagnóstico y uso:</strong> con la sesión iniciada, la app envía los errores (limpiados antes de salir), qué pantallas se usan (una vez por sesión) y cuánto tardan las sincronizaciones, junto con la versión y la plataforma. Las métricas de uso nunca llevan importes, comercios ni lo que escribes. Hoy no se puede desactivar.</li>
     </ul>
 
     <h2>Dónde se alojan</h2>
-    <p>Los datos en la nube están en <strong>Supabase</strong> (UE). La app web se sirve desde <strong>GitHub Pages</strong>. Cada usuario solo puede leer y escribir sus propios datos (Row Level Security).</p>
+    <p>Los datos en la nube están en <strong>Supabase</strong> (UE). La app web se sirve desde <strong>GitHub Pages</strong>. Cada usuario solo puede leer y escribir sus propios datos (Row Level Security), con dos excepciones: si compartes un Hogar, sus miembros ven los saldos que compartes, y el administrador de la app lee los datos de diagnóstico y uso.</p>
 
     <h2>Ayuda avanzada opcional</h2>
     <p>«Pregúntame» funciona de forma local y sin conexión. Si activas voluntariamente la ayuda avanzada, se envía a <strong>OpenAI</strong> únicamente la pregunta que hayas escrito. No se adjuntan saldos, cuentas, movimientos ni el contenido de tu cartera. Antes del primer envío se pide consentimiento y puedes retirarlo en Ajustes. No escribas números de cuenta, tarjetas, contraseñas, PIN, CVV, claves ni tokens; la app los bloquea cuando detecta esos patrones.</p>

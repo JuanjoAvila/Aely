@@ -43,11 +43,11 @@
       <li><strong>Expenses:</strong> amount, merchant, category and date (<code>expenses</code> table).</li>
       <li><strong>Bank connections:</strong> Open Banking link status and encrypted session tokens. We never store your bank password.</li>
       <li><strong>MyInvestor:</strong> encrypted session tokens after connecting. The password is only used to sign in and is not stored.</li>
-      <li><strong>Minimal telemetry (optional):</strong> app version, platform and error messages — no financial data.</li>
+      <li><strong>Diagnostics and usage:</strong> while you are signed in, the app sends errors (cleaned before they leave), which screens are used (once per session) and how long syncs take, together with the app version and platform. Usage metrics never include amounts, merchants or anything you type. This cannot be turned off today.</li>
     </ul>
 
     <h2>Where it lives</h2>
-    <p>Cloud data is stored in <strong>Supabase</strong> (EU). The web app is served from <strong>GitHub Pages</strong>. Each user can only read and write their own data (Row Level Security).</p>
+    <p>Cloud data is stored in <strong>Supabase</strong> (EU). The web app is served from <strong>GitHub Pages</strong>. Each user can only read and write their own data (Row Level Security), with two exceptions: if you share a Household, its members see the balances you share, and the app administrator reads the diagnostics and usage data.</p>
 
     <h2>Optional advanced help</h2>
     <p>“Ask me” works locally and offline. If you choose to turn on advanced help, only the question you typed is sent to <strong>OpenAI</strong>. No balances, accounts, transactions or portfolio contents are attached. You are asked for consent before the first message and can withdraw it in Settings. Do not type account or card numbers, passwords, PINs, CVVs, keys or tokens; the app blocks them when it spots those patterns.</p>
