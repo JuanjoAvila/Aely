@@ -1079,11 +1079,13 @@ function App(){
   /* Al sincronizar A MANO se lanzan a la vez bancos y brókers y cada uno tenía su toast: ganaba el
      último en acabar y el otro no se veía nunca («si actualizo… no me dice nada», 12/9). Con
      `opts.collect` cada uno deja su aviso en la lista y `sincronizarAMano` enseña UNO solo. */
-  const avisaSync=function(opts,m){ if(opts&&opts.collect) opts.collect.push(m); else showToast(m); };
+  // El último aviso de fallo de la lectura en curso: al cerrar Conexiones tras renovar, gana a «✓ renovado».
+  const avisoSync=useRef(null);
+  const avisaSync=function(opts,m){ if(String(m).charAt(0)==="⚠") avisoSync.current=m; if(opts&&opts.collect) opts.collect.push(m); else showToast(m); };
   const runBankSync=function(opts){
     opts=opts||{};
     if(!cloud.enabled() || !sessionRef.current || bankSyncing.current) return Promise.resolve();
-    bankSyncing.current=true;
+    bankSyncing.current=true; avisoSync.current=null;
     /* Las filas de `bank_links` en crudo, EN PARALELO al sync. Hacen falta porque el sync no ve
        los enlaces `pending` (la Edge solo consulta active/expired/error), y un banco que se quedó
        a medio autorizar no salía por ningún lado: ni saldo, ni movimientos, ni aviso. Suyo, 11/9:
@@ -2045,7 +2047,11 @@ function App(){
     try{ window.dispatchEvent(new CustomEvent("mc-tr-status")); }catch(e){}   // Ajustes y Cartera releen TR
     if(!ac||!b) return;
     const ent=ac.ent||entFromAspsp(ac.n)||"";
-    showToast("✓ "+tf(ac.k==="r"?"cx_renewed":"cx_connected",{bank:ent?entOf(ent).label:ac.n}));
+    /* Si la lectura del banco tras renovar falló, gana su aviso: «✓ renovado» encima lo tapaba y
+       quedaba solo el éxito (filtro de diseño R2, 19/11). Y la fila de Ajustes relee el estado,
+       que si no seguía diciendo «pide renovar» justo después del aviso. */
+    showToast(avisoSync.current || "✓ "+tf(ac.k==="r"?"cx_renewed":"cx_connected",{bank:ent?entOf(ent).label:ac.n}));
+    try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
     let el=null;
     if(b.origen==="settings") el=drawerRef.current&&drawerRef.current.querySelector("[data-cx-row]");
     else {

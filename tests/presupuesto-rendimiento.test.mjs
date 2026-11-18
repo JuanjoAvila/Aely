@@ -443,8 +443,8 @@ const PRESUPUESTO = {
   // medido, 1966 / 541 KiB.
   // Ronda R2 de bancos (18/11, `claude/bancos-r2-conexiones`): Conexiones pasa a pantalla hija con vuelta al origen,
   // selector en hoja y fila de un toque en Ajustes. Se quitó lo sustituido (grupo y resumen de Bancos, selector a
-  // pantalla completa, estilos en línea, «vX» del pie, nota de solo lectura) y aun así queda +3.289 B / +1.085 B gzip:
-  // 2.016.086 B y 554.546 B gzip. El resto de lo que se va (`bkBrand`, chips de brókers) es de R3. SUBE a 1970 / 542 KiB.
+  // pantalla completa, estilos en línea, «vX» del pie, nota de solo lectura) y aun así queda +3.868 B / +1.225 B gzip
+  // (con los avisos que no se pisan y la fila que relee): 2.016.665 B y 554.686 B gzip. El resto de lo que se va (`bkBrand`, chips de brókers) es de R3. SUBE a 1970 / 542 KiB.
   minificado: 1970 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

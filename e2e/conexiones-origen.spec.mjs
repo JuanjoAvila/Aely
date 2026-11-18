@@ -105,16 +105,23 @@ test("el selector sube en hoja sin teclado, y atrás va por pasos: hoja, pantall
   await expect(page.locator('.botnav-tab[data-tour="cartera"]')).toHaveClass(/active/);
 });
 
-test("volver de renovar un banco aterriza en el origen con la fila resaltada y el aviso", async ({ page }) => {
-  // Lo que deja `connect` antes de salir hacia el banco, y la vuelta de la web con ?bank=ok.
-  await page.addInitScript(() => {
+// Lo que deja `connect` antes de salir hacia el banco, y la vuelta de la web con ?bank=ok.
+// `lectura` es la respuesta de `bank-sync`, que corre sola nada más volver.
+const LECTURA_OK = { data: { ok: true, links: [{ aspsp: "Banco de Sabadell", ok: true, accounts: [] }, { aspsp: "CaixaBank", ok: true, accounts: [] }] }, error: null };
+async function vuelveDeRenovar(page, banco, origen, lectura) {
+  await page.addInitScript(([n, o]) => {
     if (sessionStorage.getItem("_e2eVuelta")) return;
     sessionStorage.setItem("_e2eVuelta", "1");
-    sessionStorage.setItem("mc_bk_vuelta", JSON.stringify({ n: "Banco de Sabadell", k: "r", o: "cartera" }));
-  });
-  await arranca(page, { __url: "/?bank=ok" });
+    sessionStorage.setItem("mc_bk_vuelta", JSON.stringify({ n, k: "r", o }));
+  }, [banco, origen]);
+  await arranca(page, { __url: "/?bank=ok", __cloudFns: lectura ? { "bank-sync": lectura } : {} });
   await expect(push(page)).toHaveClass(/open/, { timeout: 10_000 });
+}
+
+test("volver de renovar un banco aterriza en el origen con la fila resaltada y el aviso", async ({ page }) => {
+  await vuelveDeRenovar(page, "Banco de Sabadell", "cartera", LECTURA_OK);
   await expect(page.locator('.botnav-tab[data-tour="cartera"]')).toHaveClass(/active/);
+  await page.waitForTimeout(800);   // que la lectura de después de volver termine
   await push(page).locator(".settings-push-h .back").click();
   await expect(push(page)).toHaveCount(0);
 
@@ -124,6 +131,41 @@ test("volver de renovar un banco aterriza en el origen con la fila resaltada y e
   await expect(page.locator(".toast")).toContainText(/Sabadell renovado/);
   // El resalte se apaga solo.
   await expect(page.locator(".cx-vuelta")).toHaveCount(0, { timeout: 4_000 });
+});
+
+test("si leer el banco falla tras renovar, ese aviso no queda tapado por «renovado»", async ({ page }) => {
+  // Sin `bank-sync` simulado la lectura falla: es el caso real de un banco que tarda o se cae.
+  await vuelveDeRenovar(page, "Banco de Sabadell", "cartera", null);
+  await expect(page.locator(".toast")).toContainText(/⚠/, { timeout: 10_000 });
+  await push(page).locator(".settings-push-h .back").click();
+  await expect(push(page)).toHaveCount(0);
+  await expect(page.locator(".page.page-live .cx-vuelta")).toHaveCount(1);
+  // Ni en el momento ni un poco después: gana el error y no se suceden dos mensajes contrarios.
+  await expect(page.locator(".toast")).toContainText(/⚠/);
+  await page.waitForTimeout(600);
+  await expect(page.locator(".toast")).not.toContainText(/renovado/);
+});
+
+test("volviendo a Ajustes, la fila «Conexiones» deja de decir «pide renovar»", async ({ page }) => {
+  await vuelveDeRenovar(page, "CaixaBank", "settings", LECTURA_OK);
+  // El banco ya confirmó el permiso nuevo: la tabla de enlaces lo da por activo.
+  await page.evaluate(() => { window.__e2eCloudRows.bank_links.forEach((l) => { l.status = "active"; l.valid_until = "2027-02-15T00:00:00Z"; }); });
+  await page.waitForTimeout(800);
+  await push(page).locator(".settings-push-h .back").click();
+  await expect(push(page)).toHaveCount(0);
+  const fila = page.locator("[data-cx-row]");
+  await expect(fila).toHaveClass(/cx-vuelta/);
+  await expect(page.locator(".toast")).toContainText(/CaixaBank renovado/);
+  await expect(fila).toContainText(/2 al día/);
+  await expect(fila).not.toContainText(/pide renovar/);
+  // Y con Conexiones ya cerrada: una lectura que acaba después (`runBankSync` avisa al terminar)
+  // también llega a la fila, sin tener que salir y volver a entrar en Ajustes.
+  await page.evaluate(() => {
+    window.__e2eCloudRows.bank_links.find((l) => l.aspsp_name === "Banco de Sabadell").status = "expired";
+    window.dispatchEvent(new CustomEvent("mc-bank-links-changed"));
+  });
+  // Al momento: sin escuchar el aviso, la fila tardaba en enterarse por caminos ajenos.
+  await expect(fila).toContainText(/1 de 2 al día · Sabadell pide renovar/, { timeout: 1_500 });
 });
 
 test("con «reducir animaciones» la pantalla entra y sale sin deslizar", async ({ page }) => {

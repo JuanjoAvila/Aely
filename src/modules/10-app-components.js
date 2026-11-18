@@ -2695,12 +2695,17 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
   },[]);
   useEffect(function(){
     if(!cloud.enabled()){ setBankLinks([]); return; }
-    cloud.bankLinks().then(function(rows){
+    // Y otra vez cada vez que la lista puede haber cambiado (fin de un sync, vuelta de renovar):
+    // con Conexiones ya cerrada nadie más le avisaba y la fila seguía en «pide renovar» (R2, 19/11).
+    const lee=function(){ cloud.bankLinks().then(function(rows){
       setBankLinks(rows||[]);
       if((rows||[]).some(function(r){ return r.status==='active'||r.status==='pending'; })){
         set(function(s){ return s.hasBankLink?s:Object.assign({},s,{hasBankLink:true}); });
       }
-    }).catch(function(){ setBankLinks([]); });
+    }).catch(function(){ setBankLinks(function(v){ return v||[]; }); }); };
+    lee();
+    window.addEventListener("mc-bank-links-changed",lee);
+    return function(){ window.removeEventListener("mc-bank-links-changed",lee); };
   },[uid]);
   // Botones de opción de los desplegables (tema, moneda, letra…). Los demás controles usan el
   // sistema de filas .set-row/.swx. Bajan de tamaño para no parecer listones (feedback 2026-07-18).
