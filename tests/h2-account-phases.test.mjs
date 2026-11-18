@@ -16,7 +16,9 @@ const bal=n=>({balances:[{balance_type:'ITAV',balance_amount:{amount:String(n),c
 const tx=()=>({transactions:[{...movement(),booking_date:'2026-10-17',status:'BOOK'}]});
 const state=()=>({accounts:[],expenses:[],obAccounts:[{key:'a',ent:'caixabank',aspsp:'CaixaBank',value:125,cur:'EUR',balanceAt:prior},{key:'b',ent:'caixabank',aspsp:'CaixaBank',value:80,cur:'EUR',balanceAt:prior}]});
 const cents=s=>Math.round(s.obAccounts.reduce((n,a)=>n+a.value,0)*100);
-const plain=x=>JSON.parse(JSON.stringify(x));
+// La marca de anclaje (`anclaReglas`, ronda 240) es lo ÚNICO que la base no escribe: se aparta, declarada
+// (la vigila `h2-account-identity` y `recibos-240-saldo`).
+const plain=x=>JSON.parse(JSON.stringify(x,(k,v)=>k==="anclaReglas"?undefined:v));
 let pass=0,fail=0;
 async function t(name,fn){ if(process.env.H2_CASE_FILTER&&!name.includes(process.env.H2_CASE_FILTER))return;now=Date.parse(stamp);try{await fn();pass++;console.log('PASS '+name);}catch(e){fail++;console.error('FAIL '+name+'\n'+e.stack);} }
 async function failedBalance(mode=body){const reply=tx;reply.balanceError=p=>p.includes('/a/')?'EB 503: synthetic':null;try{return await sync([bank()],reply,mode,Clock);}finally{delete reply.balanceError;} }

@@ -1,33 +1,44 @@
 // Ronda 240: los cuatro restos de dinero de la revisión de la 237 en Plan › Recibos.
 // H3) Cobrado ANTES de su día y leído por Open Banking: el día del recibo `paidNet` lo restaba otra
-//     vez del saldo que ya lo llevaba (970 con 1.000 en el banco).
+//     vez del saldo que ya lo llevaba (970 con 1.000 en el banco). La corrección se suma al pintar y
+//     al cerrar el mes, sin cambiar lo que significa `value`: un cliente con la versión anterior (la
+//     beta 4.26.239, `eb75d2908`, cargada de Git) y uno nuevo comparten la cuenta sin descuadrarla
+//     (revisión de la 240, P2-2).
 // H4) Recibo en espera al leer y cobrado después: «¿Te llega?» lo daba por dentro de lo leído y lo
 //     restaba otra vez (mínimo 940 cuando lo justo es 970).
-// R1) `yaRestado` (+X el día −1) solo con el día del recibo ya llegado.
+// R1) `yaRestado` (+X el día −1) solo con el día del recibo ya llegado, o sin día (P3-1).
 // totals.pendingByBank con la regla del saldo (`fixedRestaDelSaldo`), no con `isPaidIn` a secas.
 // Se siembran DOS bancos de recibos: Sabadell leído por Open Banking y CaixaBank a mano.
 // Datos inventados; reloj de noviembre de 2026. Corre también con TZ=UTC.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
+import { execFileSync } from "node:child_process";
 import { test } from "node:test";
 import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
-const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
-const order=JSON.parse(read("src/build-order.json"));
-const c=loadPureLogic(read("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>order.map(f=>read("src/modules/"+f)).join("\n")));
-vm.runInNewContext(read("src/modules/14-v4-screens.js"),c);
 let AHORA=0;
-const reloj=dia=>{ AHORA=new Date(2026,10,dia,12).getTime(); };
-c.Date=class extends Date { constructor(...a){ super(...(a.length?a:[AHORA])); } static now(){ return AHORA; } };
+const reloj=(dia,mes=11)=>{ AHORA=new Date(2026,mes-1,dia,12).getTime(); };
+function carga(read){
+  const order=JSON.parse(read("src/build-order.json"));
+  const ctx=loadPureLogic(read("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>order.map(f=>read("src/modules/"+f)).join("\n")));
+  vm.runInNewContext(read("src/modules/14-v4-screens.js"),ctx);
+  ctx.Date=class extends Date { constructor(...a){ super(...(a.length?a:[AHORA])); } static now(){ return AHORA; } };
+  const main=read("src/modules/11-app-main.js").replaceAll("\r\n","\n"),ini=main.indexOf("const totals=useMemo(()=>{"),fin=main.indexOf("\n\n  const budgetMonth=",ini);
+  assert(ini>=0&&fin>ini,"callback real de totals");
+  ctx.__totals=vm.runInNewContext("(function(state,calendarDay){"+main.slice(ini,fin)+";return totals;})",ctx);
+  return ctx;
+}
+const c=carga(f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8"));
+// El cliente de antes: la beta servida sobre la que nace la ronda (lo que tiene hoy otro móvil de la casa).
+const viejo=carga(f=>execFileSync("git",["show","eb75d2908415c5447555a5fb7c5b75ad6f48bfc7:"+f],{encoding:"utf8",maxBuffer:3e7,cwd:new URL("..",import.meta.url)}));
+const totalsDe=c.__totals;
 const Y=2026,M=11,YM=Y*12+M;
-const main=read("src/modules/11-app-main.js").replaceAll("\r\n","\n"),ini=main.indexOf("const totals=useMemo(()=>{"),fin=main.indexOf("\n\n  const budgetMonth=",ini);
-assert(ini>=0&&fin>ini,"callback real de totals");
-const totalsDe=vm.runInNewContext("(function(state,calendarDay){"+main.slice(ini,fin)+";return totals;})",c);
 const cents=n=>Math.round(n*100);
 const json=x=>JSON.parse(JSON.stringify(x));
 
 const tel={id:"tel",name:"Teléfono",amount:30,day:8,account:"sabadell",freq:"mes"};
+const luz={id:"luz",name:"Luz",amount:80,day:20,account:"sabadell",freq:"mes"};
 const seg={id:"seg",name:"Seguro",amount:64.9,day:28,account:"caixabank",freq:"mes"};
 const cuentas=()=>[
   {id:"sb",ent:"sabadell",name:"Cuenta Sintética",role:"fijos",value:1000,bankIban:"ES00SINTETICA0001"},
@@ -37,7 +48,12 @@ const estado=p=>Object.assign({accounts:cuentas(),fixed:[tel,seg],debts:[],bankT
 const cargoTel=fecha=>({id:"t-tel-"+fecha,ent:"sabadell",date:fecha,amount:30,merchant:"TELEFONO",concept:"RECIBO TELEFONO",status:"BOOK"});
 const lectura=saldo=>[{aspsp:"Banco Sabadell",ok:true,accounts:[{uid:"u1",iban:"ES00SINTETICA0001",balances:[{type:"CLBD",amount:String(saldo),currency:"EUR"}]}]}];
 const leidoEl=dia=>({"Banco Sabadell":new Date(2026,10,dia,9).toISOString()});
-const pintado=s=>{ const i=c.insumosSaldoGasto(s),o={}; s.accounts.forEach(a=>{ o[a.id]=cents(c.saldoCuentaMostrada(a,i)); }); return o; };
+// La sincronización: ancla con el cliente que sea y sella la hora de la lectura, como `runBankSync`.
+const lee=(cli,s,dia,saldo)=>{ reloj(dia); return Object.assign({},cli.applyBankBalances(s,lectura(saldo)).state,{obBalAt:leidoEl(dia)}); };
+const pintado=(s,cli=c)=>{ const i=cli.insumosSaldoGasto(s),o={}; s.accounts.forEach(a=>{ o[a.id]=cents(cli.saldoCuentaMostrada(a,i)); }); return o; };
+// El cierre de noviembre de verdad (`reconcileTR`), abriendo el 2 de diciembre. Necesita la cuenta diaria.
+const conDiaria=s=>Object.assign({},json(s),{trAnchor:"2026-11",accounts:json(s.accounts).concat([{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:300,inject:0}])});
+const cierre=(s,cli=c)=>{ reloj(2,12); const r=cli.reconcileTR(conDiaria(s)); return cents(r.accounts.find(a=>a.id==="sb").value); };
 const hoja=(s,dia)=>{
   const T=totalsDe(s,"2026-11-"+String(dia).padStart(2,"0")),pack=c.planChargesMonth(s,M,Y,dia),out={};
   c.planRecibosBancos(T,pack,null).forEach(b=>{ out[b.bank]={bal:cents(b.bal),sinRestar:cents(b.sinRestar),yaRestado:cents(b.yaRestado),min:cents(b.min)}; });
@@ -46,53 +62,95 @@ const hoja=(s,dia)=>{
 
 // ---------- H3 ----------
 
-test("H3 · cobrado el 3 y leído el 4: el día 8 el saldo no lo resta otra vez (1.000, no 970)",()=>{
+test("H3 · cobrado el 3 y leído el 4: el día 8 el saldo no lo resta otra vez (1.000, no 970), ni al cerrar el mes",()=>{
   reloj(4);
-  const s=estado({bankTx:[cargoTel("2026-11-03")]});
-  assert.equal(c.fixedPaymentState(s,tel,Y,M,4).paid,true,"el cargo del 3 paga el Teléfono");
-  // La sincronización real: la lectura llega con el cargo dentro.
-  const r=c.applyBankBalances(s,lectura(1000)),leido=Object.assign({},r.state,{obBalAt:leidoEl(4)});
-  assert.equal(leido.accounts[0].cobrosEnSaldo,YM,"la cuenta se ancla con la regla nueva");
-  assert.equal(pintado(leido).sb,100000,"justo tras leer, lo que dice el banco");
-  for(const dia of [6,8,10,30]){
+  const s0=estado({bankTx:[cargoTel("2026-11-03")]});
+  assert.equal(c.fixedPaymentState(s0,tel,Y,M,4).paid,true,"el cargo del 3 paga el Teléfono");
+  const s=lee(c,s0,4,1000);
+  assert.equal(s.accounts[0].value,1000,"el value se ancla como siempre");
+  for(const dia of [4,6,8,10,30]){
     reloj(dia);
-    assert.equal(pintado(leido).sb,100000,"día "+dia);
-    const T=totalsDe(leido,"2026-11-"+String(dia).padStart(2,"0"));
+    assert.equal(pintado(s).sb,100000,"día "+dia);
+    const T=totalsDe(s,"2026-11-"+String(dia).padStart(2,"0"));
     assert.equal(cents(T.bankBal.sabadell),100000);assert.equal(cents(T.minByBank.sabadell),100000,"nada más que restar este mes");
     assert.equal(cents(T.pendingByBank.sabadell||0),0,"ni pendiente en el previsto");
   }
-  // Sin un cobro así, la lectura ancla igual que antes y la cuenta no cambia de forma.
-  reloj(4);
-  const sinCobro=c.applyBankBalances(estado(),lectura(1000)).state;
-  assert.equal(sinCobro.accounts[0].cobrosEnSaldo,undefined);assert.equal(sinCobro.accounts[0].value,1000);
-  reloj(30);
-  // El cierre del mes arrastra el neto entero: diciembre empieza con lo que había en el banco.
-  assert.equal(cents(leido.accounts[0].value+c.monthNetForAccount(leido,"sabadell",Y,M,null)),100000);
+  // Antes del arreglo, el día 8 pintaba 970; el cliente viejo sigue así (no inventa dinero: enseña de menos).
+  reloj(8);assert.equal(pintado(s,viejo).sb,97000);
+  assert.equal(cierre(s),100000,"diciembre empieza con lo del banco");
+  assert.equal(cierre(s,viejo),97000,"(el cierre del cliente viejo arrastra H3, como siempre)");
   // El otro banco, a mano, ni se entera: su Seguro del 28 resta por calendario, como siempre.
-  assert.equal(pintado(leido).cx,50000-6490);
-  reloj(10);assert.equal(pintado(leido).cx,50000);
+  reloj(30);assert.equal(pintado(s).cx,50000-6490);
 });
 
-test("H3 · un saldo anclado antes de esta versión no se mueve al actualizar (sin sello, regla de antes)",()=>{
-  reloj(6);
-  const s=estado({bankTx:[cargoTel("2026-11-03")],obBalAt:leidoEl(4)});
-  assert.equal(s.accounts[0].cobrosEnSaldo,undefined);
-  assert.equal(pintado(s).sb,100000,"antes de su día, como ayer");
-  // Sello de otro mes: tampoco (el `value` de noviembre no se ancló con él).
-  const viejo=estado({bankTx:[cargoTel("2026-11-03")],accounts:[Object.assign(cuentas()[0],{cobrosEnSaldo:YM-1}),cuentas()[1]]});
-  assert.equal(pintado(viejo).sb,100000);
+test("H3 · cliente viejo y nuevo en la misma cuenta (P2-2): ninguno enseña dinero que no hay",()=>{
+  const s0=estado({fixed:[tel,luz,seg],bankTx:[cargoTel("2026-11-03")]});
+  // a) Ancla el NUEVO el día 4 y abre el estado un cliente VIEJO: lo mismo que el banco hasta el día 8.
+  const a=lee(c,s0,4,1000);
+  for(const dia of [4,6]){ reloj(dia); assert.deepEqual([pintado(a).sb,pintado(a,viejo).sb],[100000,100000],"a) día "+dia); }
+  // b) Re-ancla el VIEJO el día 5 (misma lectura) y lo abre el nuevo: 1.000 hasta la Luz del 20, 920 después y al cerrar.
+  const b=lee(viejo,a,5,1000);
+  for(const [dia,justo] of [[5,100000],[8,100000],[21,92000]]){ reloj(dia); assert.equal(pintado(b).sb,justo,"b) día "+dia); }
+  assert.equal(cierre(b),92000,"b) cierre de noviembre");
+  // c) El viejo re-ancla DESPUÉS del día 8 (su `paidNet` ya resta el Teléfono): el nuevo no lo devuelve dos veces.
+  const c9=lee(viejo,a,9,1000);
+  reloj(9);assert.deepEqual([pintado(c9).sb,pintado(c9,viejo).sb],[100000,100000],"c) día 9");
+  assert.equal(cierre(c9),92000,"c) cierre");
+  // d) Y al revés: el viejo ancla el 4 y el nuevo lee el 9: los dos, 1.000.
+  const d4=lee(viejo,s0,4,1000);
+  reloj(9);assert.equal(pintado(d4).sb,100000,"d) el nuevo sobre un ancla vieja");
+  assert.equal(pintado(lee(c,d4,9,1000)).sb,100000);
 });
 
-test("H3 · en la cuenta a mano un cargo BOOK no adelanta el calendario (el extracto no es su saldo)",()=>{
+test("marca de anclaje · la pone el anclaje nuevo y la invalida sola cualquier `value` que no la renueve",()=>{
+  const s0=estado({fixed:[tel,luz,seg],bankTx:[cargoTel("2026-11-03")]});
+  const a=lee(c,s0,4,1000);
+  assert.ok(c.anclaConReglas(a.accounts[0]),"anclada por este cliente");
+  assert.equal(c.anclaConReglas(a.accounts[1]),false,"la cuenta a mano no se ha anclado");
+  // Un cliente viejo re-ancla con otro saldo: conserva el campo, pero ya no casa con el `value`.
+  const b=lee(viejo,a,9,1100);
+  assert.ok(b.accounts[0].anclaReglas,"el viejo conserva el campo que no conoce");
+  assert.equal(c.anclaConReglas(b.accounts[0]),false,"y la marca deja de valer");
+  // Cierre de mes: el nuevo la renueva con el `value` cerrado; el viejo la deja inválida.
+  reloj(2,12);
+  const cn=c.reconcileTR(conDiaria(a)), cv=viejo.reconcileTR(conDiaria(a));
+  assert.ok(c.anclaConReglas(cn.accounts.find(x=>x.id==="sb")),"cierra el nuevo: sigue anclada con sus reglas");
+  assert.equal(c.anclaConReglas(cv.accounts.find(x=>x.id==="sb")),false,"cierra el viejo: ya no");
+  // Sin marca previa, el cierre no la inventa.
+  assert.equal(c.anclaConReglas(c.reconcileTR(conDiaria(s0)).accounts.find(x=>x.id==="sb")),false);
+});
+
+test("H3 · si el saldo de la cuenta falló en la última lectura, la hora del banco no vale: no devuelve nada",()=>{
+  // Ancla el día 4 sin el cargo; el banco cobra el 6; el día 7 la lectura de ESTA cuenta falla (otra del banco
+  // sí lee y la hora avanza). El `value` no lleva el cargo del 6: devolverlo el día 10 inventaría 30 €.
+  const a=lee(c,estado({fixed:[tel,seg]}),4,1030);
+  const rancia=Object.assign({},a,{bankTx:[cargoTel("2026-11-06")],obBalAt:leidoEl(7),accounts:[Object.assign({},a.accounts[0],{balanceStale:true}),a.accounts[1]]});
   reloj(10);
+  assert.equal(c.cobrosLeidosDelMes(rancia,"sabadell",Y,M,10),0);
+  assert.equal(pintado(rancia).sb,100000,"1.030 leídos − 30 del Teléfono");
+});
+
+test("H3 · en la cuenta a mano un cargo BOOK no adelanta nada (el extracto no es su saldo)",()=>{
+  reloj(21);
   const cxTel=Object.assign({},tel,{id:"tel-cx",account:"caixabank",day:20});
-  const s=estado({fixed:[cxTel,seg],bankTx:[Object.assign(cargoTel("2026-11-09"),{ent:"caixabank"})],
-    accounts:[cuentas()[0],Object.assign(cuentas()[1],{cobrosEnSaldo:YM})]});
-  assert.equal(c.fixedPaymentState(s,cxTel,Y,M,10).paid,true);
-  assert.equal(c.fixedCobroDelBanco(s,cxTel,Y,M,10),9,"con el sello, sí cuenta");
-  const sinSello=estado({fixed:[cxTel,seg],bankTx:s.bankTx});
-  assert.equal(c.fixedCobroDelBanco(sinSello,cxTel,Y,M,10),null);
-  assert.equal(pintado(sinSello).cx,50000,"sin sello (a mano nunca lo lleva), el saldo no lo resta");
+  const s=estado({fixed:[cxTel,seg],bankTx:[Object.assign(cargoTel("2026-11-09"),{ent:"caixabank"})],obBalAt:leidoEl(10)});
+  assert.equal(c.fixedPaymentState(s,cxTel,Y,M,21).paid,true);
+  assert.equal(c.lecturaDeSusRecibos(s,"caixabank"),0,"una cuenta a mano no tiene lectura de Open Banking");
+  assert.equal(c.cobrosLeidosDelMes(s,"caixabank",Y,M,21),0);
+  assert.equal(pintado(s).cx,pintado(s,viejo).cx,"igual que antes");
+});
+
+test("H3 · coste (P2-1): un recibo sin ningún cargo parecido en el extracto ni se casa",()=>{
+  reloj(10);
+  let llamadas=0;const fps=c.fixedPaymentState;
+  c.fixedPaymentState=function(){ llamadas++; return fps.apply(this,arguments); };
+  try{
+    const muchos=Array.from({length:25},(_,i)=>({id:"r"+i,name:"Recibo "+i,amount:100+i,day:9,account:"sabadell",freq:"mes"}));
+    const tx=Array.from({length:1000},(_,i)=>({id:"x"+i,ent:"sabadell",date:"2026-11-0"+(1+i%8),amount:3+i%50,merchant:"COMERCIO "+i,status:"BOOK"}));
+    const s=estado({fixed:muchos,bankTx:tx,obBalAt:leidoEl(5)});
+    llamadas=0;c.cobrosLeidosDelMes(s,"sabadell",Y,M,10);
+    assert.equal(llamadas,0,"ningún cargo del banco se parece a esos recibos: ni se casa");
+  }finally{ c.fixedPaymentState=fps; }
 });
 
 // ---------- H4 ----------
@@ -134,9 +192,24 @@ test("R1 · sin `yaRestado` para un recibo cuyo día aún no ha llegado (el mín
   const T=totalsDe(s,"2026-11-10");
   assert.equal(cents(T.minByBank.caixabank),hoy-2500-10000-4000-6490);
   assert.equal(hoja(s,10).out.caixabank.min,cents(T.minByBank.caixabank),"la hoja dice lo mismo");
-  // Con el día ya llegado, el `yaRestado` sigue (H2 de la 237): el Agua a mano sin cobro.
+  // Con el día ya llegado, el `yaRestado` sigue (H2 de la 237): el Teléfono a mano sin cobro.
   const vencida=estado({fixed:[tel,seg]});
   assert.ok(json(c.bankPendingEvents(vencida,"sabadell",Y,M,10)).some(e=>e.yaRestado&&e.amt===30));
+});
+
+test("R1 · el recibo SIN día conserva su `yaRestado`: el mínimo no lo resta dos veces (435, no 395) (P3-1)",()=>{
+  reloj(10);
+  const sindia={id:"sd",name:"Gimnasio",amount:40,day:null,account:"caixabank",freq:"mes"};
+  const agua={id:"agua",name:"Agua",amount:25,day:9,account:"caixabank",freq:"mes",wait:YM};
+  const s=estado({fixed:[tel,sindia,agua],
+    accounts:[cuentas()[0],cuentas()[1],{id:"cx2",ent:"caixabank",name:"Ahorro",role:"fijos",value:0}],
+    bankTx:[{id:"t1",ent:"caixabank",date:"2026-11-03",amount:40,merchant:"GIMNASIO",status:"BOOK"},
+      {id:"t0",ent:"caixabank",date:"2026-11-02",amount:5,merchant:"COMISION",status:"BOOK"}]});
+  assert.ok(c.fixedSaldoBp(s,Y,M,10).sd,"el extracto lo da por cobrado");
+  assert.equal(pintado(s).cx,46000,"«Tienes hoy» ya lo resta");
+  const T=totalsDe(s,"2026-11-10");
+  assert.equal(cents(T.minByBank.caixabank),43500,"solo queda el Agua vencida");
+  assert.equal(cents(viejo.__totals(s,"2026-11-10").minByBank.caixabank),43500,"igual que antes de la ronda");
 });
 
 // ---------- totals.pendingByBank ----------
@@ -153,4 +226,13 @@ test("pendingByBank · misma regla que el saldo: lo que el saldo ya resta no que
   // Y el de Sabadell, por calendario, como siempre.
   assert.equal(cents(T.pendingByBank.sabadell||0),0);
   assert.equal(cents(T.paidThisMonth),6000);
+});
+
+test("pendingByBank · lo cobrado antes de su día que ya trae la lectura no queda pendiente (H3 en el previsto)",()=>{
+  const s=lee(c,estado({fixed:[tel,luz,seg],bankTx:[cargoTel("2026-11-03")]}),4,1000);
+  reloj(6);
+  const T=totalsDe(s,"2026-11-06");
+  assert.equal(cents(T.pendingByBank.sabadell),8000,"solo la Luz del 20");
+  assert.equal(cents(T.projectedByBank.sabadell),100000-8000);
+  assert.equal(cents(T.minByBank.sabadell),100000-8000);
 });

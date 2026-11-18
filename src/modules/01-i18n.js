@@ -3096,7 +3096,8 @@ function insumosSaldoGasto(state){
     if(!accFixed(a)||Object.prototype.hasOwnProperty.call(cuentaDe,a.ent)) return;
     // La primera = `cuentaDelNetoDeBanco`. Sin id, la propia cuenta: dos sin id no lo cargan las dos.
     cuentaDe[a.ent]=a.id!=null?a.id:a;
-    paidNetByBank[a.ent]=monthNetForAccount(state,a.ent,curYear,curMonth,today);
+    // Más lo cobrado antes de su día que la lectura ya llevaba (`cobrosLeidosDelMes`, 07; H3 de la 237).
+    paidNetByBank[a.ent]=monthNetForAccount(state,a.ent,curYear,curMonth,today)+cobrosLeidosDelMes(state,a.ent,curYear,curMonth,today);
   });
   // Sin enumerar: el mapa se recorre por banco en Plan y en los tests, y la marca no es un banco.
   Object.defineProperty(paidNetByBank,"cuentaDe",{value:cuentaDe});
@@ -3229,6 +3230,9 @@ function reconcileTR(s){
   if(!s.accounts || !s.expenses) return s;
   const acc=s.accounts.find(a=>a.spendFrom);
   if(!acc) return s;
+  // Las que llegan con la marca de anclaje válida (`anclaConReglas`, 07) la conservan tras cerrar: el
+  // cierre se hace con las reglas de esta versión. Las demás siguen sin ella (ronda 240).
+  const conMarca=s.accounts.filter(function(a){ return anclaConReglas(a); });
   const now=new Date();
   const cmKey=mkOf(now);
   /* Un estado sin `_netoUnaCuenta` se ancló con la regla vieja: cierra sus meses también con ella
@@ -3257,7 +3261,9 @@ function reconcileTR(s){
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
     // Solo si es la que carga el neto de su banco (`cuentaDelNetoDeBanco`): es la misma que lo
     // pinta durante el mes, y con dos cuentas del banco cada una lo arrastraba entero (ronda 238).
-    if(accRole(acc)==="ambos" && cargaNeto(acc)) acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
+    // Con lo cobrado antes de su día que ya traía la última lectura (`cobrosLeidosDelMes`, 07; H3 de la
+    // 237): el neto cerrado lo resta y ese saldo ya lo llevaba. Solo la que carga el neto, como al pintar.
+    if(accRole(acc)==="ambos" && cargaNeto(acc)) acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null) + (llevaNetoDeBanco(s.accounts, acc) ? cobrosLeidosDelMes(s, acc.ent, ay, am+1, null) : 0)).toFixed(2);
     // Round-up & Saveback (#19): al cerrar el mes, el round-up sale del efectivo y se abona
     // (junto al saveback, dinero gratis) a la inversión destino comprando participaciones.
     // SOLO si la cuenta no tiene ya movimientos reales de Open Banking (2026-08-03): desde que TR
@@ -3325,7 +3331,8 @@ function reconcileTR(s){
     s.accounts.forEach(function(a2){
       if(a2.spendFrom) return;
       // El neto lo arrastra la misma cuenta que lo pinta durante el mes (ronda 238).
-      let v=(a2.value||0) + (cargaNeto(a2) ? monthNetForAccount(s, a2.ent, ay, am+1, null) : 0);
+      // Y lo cobrado antes de su día que ya traía la lectura (`cobrosLeidosDelMes`, 07; H3 de la 237).
+      let v=(a2.value||0) + (cargaNeto(a2) ? monthNetForAccount(s, a2.ent, ay, am+1, null) + (llevaNetoDeBanco(s.accounts, a2) ? cobrosLeidosDelMes(s, a2.ent, ay, am+1, null) : 0) : 0);
       // El sobre de efectivo SÍ arrastra sus propias compras al cerrar: durante el mes
       // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia
       // arriba el día 1. Los demás bancos NO restan gastos a propósito (00-core, saldo mostrado:
@@ -3336,6 +3343,8 @@ function reconcileTR(s){
     am++; if(am>11){am=0;ay++;}
     guard++;
   }
+  // Se mutan en su sitio (como `value` arriba): la marca sigue al `value` cerrado.
+  if(guard) conMarca.forEach(function(a){ a.anclaReglas=selloAncla(a.value); });
   s.trAnchor=cmKey;
   return s;
 }

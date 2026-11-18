@@ -2656,17 +2656,7 @@ function applyBankBalances(s, links){
         const role=accRole(a);
         // El neto del banco solo lo pinta la cuenta que lo carga (`cuentaDelNetoDeBanco`); las
         // demás del mismo banco enseñan su `value` y se anclan al saldo tal cual (ronda 238).
-        // Y lo ancla con lo que el banco ya cobró antes de su día (`cobrosEnSaldo`, `fixedCobroDelBanco`
-        // en 07): el saldo que acaba de leer lo lleva dentro (revisión de la 237, H3). El sello solo se
-        // pone si cambia el neto: sin un cobro así, anclar con o sin la regla da lo mismo, y la cuenta
-        // se queda como estaba; lo sellará la lectura que traiga uno.
-        const ymSello=cy*12+cm, lleva=llevaNetoDeBanco(accounts, a);
-        let netoMes=lleva ? monthNetForAccount(s, ent, cy, cm, td) : 0, sella=false;
-        if(lleva&&a.cobrosEnSaldo!==ymSello){
-          const conSello=monthNetForAccount(Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){
-            return x&&x.ent===ent&&llevaNetoDeBanco(s.accounts,x) ? Object.assign({},x,{cobrosEnSaldo:ymSello}) : x; })}), ent, cy, cm, td);
-          if(Math.abs(conSello-netoMes)>0.005){ netoMes=conSello; sella=true; }
-        }
+        const netoMes=llevaNetoDeBanco(accounts, a) ? monthNetForAccount(s, ent, cy, cm, td) : 0;
         let newBase;
         if(role==="fijos"){
           // Pintado: value + paidNet. paidNet = monthNetForAccount → base = bal − monthNet.
@@ -2692,13 +2682,19 @@ function applyBankBalances(s, links){
         // Sin IBAN, el uid de la cuenta del banco: es lo que llevan sus movimientos (`obAcc`) y lo
         // único que deja contar la parte de una principal a medias (revisión 14/10).
         const uidCambia = !ac.iban && ac.uid!=null && a.bankUid!==String(ac.uid);
-        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia || sella){
+        // Y la marca de anclaje (`anclaConReglas`, 07): esta lectura ancla con las reglas de esta versión.
+        const sinMarca = !anclaConReglas(Object.assign({}, a, { value:newBase }));
+        if(!(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia) && sinMarca){
+          // Solo falta la marca: se pone sin reescribir lo demás (el rastro sigue tal cual).
+          accounts[ownerOf[k]]=Object.assign({}, a, { anclaReglas:selloAncla(a.value) });
+          changed=true;
+        } else if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia){
           /* El rastro va también aquí: la Revolut de su padre es una cuenta PRINCIPAL re-anclada,
              no una obAccount, y era justo la que le bailaba. `balSaldo` es el saldo crudo que mandó
              el banco, sin la fórmula de dynBal encima, para poder comparar manzanas con manzanas. */
           accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban,
-            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal },
-            uidCambia?{bankUid:String(ac.uid)}:null, sella?{cobrosEnSaldo:ymSello}:null);
+            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal, anclaReglas:selloAncla(newBase) },
+            uidCambia?{bankUid:String(ac.uid)}:null);
           changed=true;
         }
         if(Object.prototype.hasOwnProperty.call(a,"balanceStale")){
@@ -2761,11 +2757,13 @@ function pendingWalkEvents(state, y, m, today){
        H2). Va el día −1, antes que todo (también de lo que no tiene día), para que no se cuele en el
        mínimo, y en su propia fila de la hoja (`yaRestado`): «Tienes hoy − filas = cifra» se sigue
        cumpliendo con el recibo en «Recibos que faltan».
-       Solo con su día ya llegado: el +X compensa el cargo que se pone HOY. Con el día por venir, el
-       cargo va en su día y el +X adelantado subía el mínimo de aquí a entonces; pasaba cuando el
-       extracto (`bp`) daba por cobrado lo que `fixedPaymentState` no (revisión de la 237, R1). */
+       Solo con su día ya llegado o sin día: el +X compensa el cargo que se pone HOY (o el día 0 del
+       que no tiene día). Con el día por venir, el cargo va en su día y el +X adelantado subía el mínimo
+       de aquí a entonces; pasaba cuando el extracto (`bp`) daba por cobrado lo que `fixedPaymentState`
+       no (revisión de la 237, R1). Sin día se compensan en el mismo arranque del recorrido: quitarle el
+       +X lo restaba dos veces (revisión de la 240, P3-1). */
     const diaRec=dayIn(e,m,y);
-    if(diaRec!=null&&diaRec<=today&&fixedEnSaldoMostrado(state,e,y,m,today,leido[b],bp)) evs.push({bank:b, day:-1, amt:a, yaRestado:true});
+    if((diaRec==null||diaRec<=today)&&fixedEnSaldoMostrado(state,e,y,m,today,leido[b],bp)) evs.push({bank:b, day:-1, amt:a, yaRestado:true});
   });
   (state.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
@@ -4228,7 +4226,9 @@ function conSaldoMostrado(antes, despues){
     const diff=+(saldoCuentaMostrada((antes.accounts||[])[i],a)-saldoCuentaMostrada(acc,d)).toFixed(2);
     if(Math.abs(diff)<=0.005) return acc;
     cambia=true;
-    return Object.assign({},acc,{value:+((acc.value||0)+diff).toFixed(2)});
+    // Desplazar para no mover lo pintado no cambia con qué reglas se ancló: la marca sigue al `value`.
+    const v=+((acc.value||0)+diff).toFixed(2);
+    return Object.assign({},acc,{value:v},anclaConReglas(acc)?{anclaReglas:selloAncla(v)}:null);
   });
   return cambia ? Object.assign({},despues,{accounts:accounts}) : despues;
 }

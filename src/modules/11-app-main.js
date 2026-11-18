@@ -2606,9 +2606,12 @@ function App(){
     /* Deja de estar pendiente lo que ya resta el saldo (`fixedRestaDelSaldo`, la regla del saldo
        mostrado y de «¿Te llega?») y lo pagado de otra forma (`fixedPagadoFuera`). Antes iba con
        `isPaidIn` a secas: un recibo en espera que el extracto ya daba por cobrado, o cobrado antes de
-       su día, salía restado en el saldo Y pendiente en el previsto a fin de mes (ronda 240). */
-    const bpMes=fixedSaldoBp(state,curYear,curMonth,today);
-    const fijoCobrado=e=> fixedRestaDelSaldo(state,e,curYear,curMonth,today,bpMes)||fixedPagadoFuera(state,e,curYear,curMonth,today);
+       su día, salía restado en el saldo Y pendiente en el previsto a fin de mes (ronda 240). Tampoco
+       lo que el banco cobró antes de su día y ya trae la lectura (`fixedCobradoAntesDeLeer`, 07). */
+    const bpMes=fixedSaldoBp(state,curYear,curMonth,today), lecturaDe={};
+    const leidaDe=b=> (b in lecturaDe)?lecturaDe[b]:(lecturaDe[b]=lecturaDeSusRecibos(state,b));
+    const fijoCobrado=e=> fixedRestaDelSaldo(state,e,curYear,curMonth,today,bpMes)||fixedPagadoFuera(state,e,curYear,curMonth,today)
+      ||fixedCobradoAntesDeLeer(state,e,curYear,curMonth,today,leidaDe(accOf(e)))!=null;
     state.fixed.forEach(e=>{ if(fijoDelMes(e)) acc(occAmountIn(e,curMonth,curYear),accOf(e),fijoCobrado(e)); });
     // Por banco cuenta lo que sale del banco: en un compartido, el importe entero (`fixedCargoBanco`,
     // la regla del recorrido de «¿Te llega?»). Los totales del mes siguen con tu parte. Sin esto el
@@ -2671,7 +2674,7 @@ function App(){
     /* DEPENDENCIAS: ojo al tocar este bloque — la lista de abajo tiene que incluir TODO
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; flowPaidIn → bankTx;
-       toEurAmt/invValueEur → fx y fxRates). */
+       toEurAmt/invValueEur → fx y fxRates; lecturaDeSusRecibos y el recorrido → obBalAt). */
     return {fxMissing:fxMissingOf(state),rewardsPending,liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,transferInByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,evsByBank,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` al editar, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
@@ -2680,7 +2683,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
-     state.trRewardsTotal,state.trRecompensas,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,calendarDay]);
+     state.trRewardsTotal,state.trRecompensas,state.fx,state.fxRates,state.reciboNo,state.trasAbonoDesde,state.obBalAt,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){

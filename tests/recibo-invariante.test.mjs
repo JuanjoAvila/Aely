@@ -117,7 +117,11 @@ function sincroniza(c,s,txs,saldos){
   c.cuotasDeDeudaPorMarcar(Object.assign({},s,{expenses:[...add].concat(s.expenses||[])})).forEach(a=>{ if(add.indexOf(a.e)>=0){ a.e.category="deudas"; a.e.debtId=a.debtId; } });
   const hoy=new c.Date(), dia=[hoy.getFullYear(),hoy.getMonth()+1,hoy.getDate()];
   const conTx=Object.assign({},s,{expenses:c.enrichNotesFromBankTx([...add].concat(s.expenses||[]),flat),bankTx:flat});
-  return c.applyBankBalances(c.reconcileEarlyIncomeAnchors(c.reconcileFixedPaymentProofs(conTx,...dia),...dia),links).state;
+  // Y la hora de la lectura de cada banco (`obBalAt`), que `runBankSync` sella después de anclar (ronda 240:
+  // sin ella este banco no veía nunca un cobro anterior a la lectura, H3 de la 237).
+  const anclado=c.applyBankBalances(c.reconcileEarlyIncomeAnchors(c.reconcileFixedPaymentProofs(conTx,...dia),...dia),links).state;
+  const leido=Object.assign({},s.obBalAt); links.forEach(l=>{ leido[l.aspsp]=hoy.toISOString(); });
+  return Object.assign({},anclado,{obBalAt:leido});
 }
 // Las cifras, cada una por su camino. `previsto` = lo pintado más lo que el Plan aún va a mover.
 function cifras(c,s,y,m,d){
@@ -148,7 +152,7 @@ function recorre({c,reloj},ex){
 }
 
 const ROLES=["recibos","todo","diario"], SEMILLAS=12;
-let extractos=0, conCobroLeido=0;
+let extractos=0;
 for(const rol of ROLES) for(const bancos of [1,2]) for(const nombres of ["plan","banco"]){
   test("mismas cifras que cuando el cargo se tiraba · rol "+rol+" · "+bancos+" banco(s) · nombres de "+nombres, ()=>{
     for(const importes of ["exactos","variables","distintos"]) for(let k=0;k<SEMILLAS;k++){
@@ -284,40 +288,81 @@ function extractoAmplio(semilla){
 }
 const aLas=(mes,dia)=>new Date(2026,mes-1,dia,18).getTime();
 const claveFila=e=>[String(e.date).slice(0,10),e.amount,e.obName!=null?e.obName:e.merchant,e.ent].join("|");
-/* Cuarta excepción (ronda 240, H3 de la revisión de dinero de la 237): un recibo que el banco cobra
-   ANTES de su día (o sin día) y que ya trae la lectura de Open Banking resta desde su cobro en la cuenta
-   que lleva el neto, si esa lectura la ancló con la regla (`cobrosEnSaldo`). La referencia lo restaba
-   otra vez: el pintado no cambia (los dos enseñan el banco), pero la base anclada, el previsto y el cierre
-   del mes salían ese importe por debajo (el amplio #2: un alquiler de 750 cobrado el 1 de noviembre y
-   leído el 2, con su día más tarde, previsto 424,23 donde lo justo es 1.174,23). Céntimos por cuenta:
-   lo que la regla nueva resta y la de siempre (calendario, marca, extracto en espera, pagado fuera) no. */
-const cobrosLeidos=(c,s,y,m,d)=>{
-  if(!c.fixedCobroDelBanco) return s.accounts.map(()=>0);
-  const isPaidIn=vm.runInNewContext("isPaidIn",c), occursIn=vm.runInNewContext("occursIn",c), accOf=vm.runInNewContext("accOf",c), bp=c.fixedSaldoBp(s,y,m,d);
-  return s.accounts.map(a=>a.cobrosEnSaldo!==y*12+m||!c.llevaNetoDeBanco(s.accounts,a)?0:(s.fixed||[]).reduce((n,e)=>
-    accOf(e)===a.ent&&occursIn(e,m,y)&&!c.fixedEnPausa(s,e,y,m,d)&&!isPaidIn(e,m,d,y,s)&&!(bp&&bp[e.id])&&!c.fixedPagadoFuera(s,e,y,m,d)&&c.fixedCobroDelBanco(s,e,y,m,d)!=null
-      ? n+Math.round(c.occAmountIn(e,m,y)*100) : n,0));
-};
+/* Cuarta excepción (ronda 240, H3 de la revisión de dinero de la 237). Un recibo que el banco cobró ANTES
+   de su día (o que no tiene día) y que ya estaba en la última lectura del mes: la referencia lo restaba
+   otra vez al cerrar el mes (el saldo empezaba el mes siguiente ese importe por debajo del banco); la 240
+   no. Durante el mes no cambia nada de lo que se mide aquí: pintado, base y previsto siguen idénticos
+   tras cada sincronización. Solo el cierre (y, en el de octubre, lo que se pinta al abrir noviembre).
+   La diferencia observada se justifica DESDE EL EXTRACTO, sin la regla que se prueba (revisión de la 240,
+   P3-3: la versión anterior la calculaba con la propia función de la app):
+   - cada recibo que la explique tiene en el extracto un cargo de su banco, de ese mes, con fecha no
+     posterior a la lectura, y con uno de los nombres con que lo llama el banco o su importe;
+   - y la suma de esos recibos da, al céntimo, lo observado;
+   - y casi siempre entran los inequívocos: un único cargo que lleva su nombre tal cual, por su importe
+     exacto, sin otro cargo ni otro recibo del banco que se le parezca, sin una cuota ni un puntual de ese
+     banco con su importe y sin aviso del móvil que lo pague por otro lado (al menos 4 de cada 5; el resto, casos que el
+     casado de la app no da por pagados, lo deja como la referencia). */
+const nombresDelBanco=Object.fromEntries(POOL.map(([id,,,,n])=>[id,n]));
+let cobrosLeidosVistos=0, inequivocosVistos=0, inequivocosSinCasar=0;
+function cobroLeidoJustificado(ex,s,mes,rd,observado,etiqueta){
+  const c=cand.c, ym="2026-"+dd(mes)+"-", occ=vm.runInNewContext("occursIn",c), diaDe=vm.runInNewContext("dayIn",c), parece=(a,b)=>Math.abs(a-b)<=Math.max(0.5,0.021*Math.max(a,b));
+  return s.accounts.map((acc,i)=>{
+    const D=observado[i]||0;
+    if(!c.accFixed(acc)||!c.llevaNetoDeBanco(s.accounts,acc)){ assert.equal(D,0,etiqueta+": "+acc.id+" no lleva recibos"); return 0; }
+    const cargos=ex.txs.filter(t=>t.ent===acc.ent&&t.amount>0&&t.date.startsWith(ym)&&Number(t.date.slice(8,10))<=rd&&(t.status==="BOOK"||t.status==="PDNG"));
+    const cand_=[], fijos=[], idsF=[], idsC=[];
+    ex.estado.fixed.forEach(f=>{
+      const dia=diaDe(f,mes,2026);
+      if(f.account!==acc.ent||!occ(f,mes,2026)||(dia!=null&&dia<=rd)) return;
+      const objetivo=typeof f.bankAmount==="number"?f.bankAmount:c.occAmountIn(f,mes,2026), nombres=nombresDelBanco[f.id]||[];
+      if(!cargos.some(t=>nombres.includes(t.merchant)||parece(objetivo,t.amount))) return;
+      const cents=Math.round(c.occAmountIn(f,mes,2026)*100);
+      // Inequívoco solo si el cargo lleva el NOMBRE del recibo tal cual («TRANSF ALQUILER PISO» para «Alquiler piso»): un alias
+      // del banco («AYTO RECAUDACION» para «Basuras») no lo puede saber nadie sin enlazarlo.
+      const sinMarcas=x=>String(x||"").normalize("NFD").replace(/\p{M}/gu,"").toUpperCase(), llano=sinMarcas;
+      // Y un nombre de al menos cinco letras: con uno genérico («LUZ», «AGUA») la app pide confirmarlo a mano.
+      const suyos=llano(f.name).length<5?[]:cargos.filter(t=>sinMarcas(t.merchant).includes(sinMarcas(f.name))), parecidos=cargos.filter(t=>parece(objetivo,t.amount));
+      const otroRecibo=ex.estado.fixed.some(g=>g!==f&&g.account===acc.ent&&(parece(objetivo,typeof g.bankAmount==="number"?g.bankAmount:c.occAmountIn(g,mes,2026))||(nombresDelBanco[g.id]||[]).some(n=>nombres.includes(n))));
+      const inequivoco=suyos.length===1&&parecidos.length===1&&suyos[0]===parecidos[0]&&Math.round(suyos[0].amount*100)===Math.round(objetivo*100)
+        &&f.bankAmount===undefined&&!otroRecibo&&!ex.estado.debts.some(d=>d.account===acc.ent&&parece(objetivo,d.monthly))&&!ex.estado.oneoffs.some(o=>o.account===acc.ent&&parece(objetivo,o.amount))
+        &&!ex.estado.expenses.some(x=>x.ent===acc.ent&&Math.round(x.amount*100)===Math.round(objetivo*100));
+      (inequivoco?fijos:cand_).push(cents); (inequivoco?idsF:idsC).push(f.id);
+    });
+    // Primero con todos los inequívocos dentro; si no cabe, cualquier combinación: el casado de la app puede no
+    // reconocer alguno (un cargo con otra fecha contable, uno ya visto el mes anterior). Esos se cuentan y tienen
+    // que ser pocos; lo que no puede pasar nunca es una diferencia que el extracto no explique.
+    const suma=(lista,k)=>lista.reduce((n,x,j)=>k&(1<<j)?n+x:n,0), base=fijos.reduce((n,x)=>n+x,0), todos=fijos.concat(cand_);
+    let conFijos=false, cabe=false;
+    for(let k=0;k<(1<<cand_.length)&&!conFijos;k++) conFijos=base+suma(cand_,k)===D;
+    cabe=conFijos;
+    for(let k=0;k<(1<<todos.length)&&!cabe;k++) cabe=suma(todos,k)===D;
+    if(!conFijos) inequivocosSinCasar+=fijos.length;
+    assert.ok(cabe,etiqueta+": "+acc.id+" se desvía "+D+" céntimos; desde el extracto, seguros "+JSON.stringify(fijos)+" ("+idsF+") y posibles "+JSON.stringify(cand_)+" ("+idsC+")");
+    if(D) cobrosLeidosVistos++;
+    inequivocosVistos+=fijos.length;
+    return D;
+  });
+}
 // Hasta el cierre de octubre; después, la sincronización de noviembre y el cierre siguiente.
 function recorreAmplio({c,reloj},ex){
-  const pasos={}, cobros={}, hasta=(mes,dia)=>ex.txs.filter(t=>t.date<="2026-"+mes+"-"+dd(dia)), contab=t=>t.status==="PDNG"?Object.assign({},t,{status:"BOOK"}):t;
+  const pasos={}, hasta=(mes,dia)=>ex.txs.filter(t=>t.date<="2026-"+mes+"-"+dd(dia)), contab=t=>t.status==="PDNG"?Object.assign({},t,{status:"BOOK"}):t;
   reloj.t=aLas(10,ex.d1);
   let s=sincroniza(c,c.reconcileTR(clon(ex.estado)),hasta(10,ex.d1),ex.saldos[0]);
-  pasos.sync=cifras(c,s,2026,10,ex.d1); cobros.sync=cobrosLeidos(c,s,2026,10,ex.d1);
+  pasos.sync=cifras(c,s,2026,10,ex.d1);
   s=sincroniza(c,s,hasta(10,ex.d1).map(contab),ex.saldos[0]);
-  pasos.contabilizado=cifras(c,s,2026,10,ex.d1); cobros.contabilizado=cobrosLeidos(c,s,2026,10,ex.d1);
+  pasos.contabilizado=cifras(c,s,2026,10,ex.d1);
   reloj.t=aLas(10,ex.d2);
   s=sincroniza(c,s,hasta(10,ex.d2).map(contab),ex.saldos[1]);
-  pasos.otroDia=cifras(c,s,2026,10,ex.d2); cobros.otroDia=cobrosLeidos(c,s,2026,10,ex.d2);
+  pasos.otroDia=cifras(c,s,2026,10,ex.d2);
   const octubre=s;
   reloj.t=aLas(11,ex.dn);
   s=c.reconcileTR(clon(s));
   pasos.cierre=cifras(c,s,2026,11,ex.dn);
   s=sincroniza(c,s,hasta(11,ex.dn).filter(t=>t.date>="2026-10-24").map(contab),ex.saldos[2]);
-  const noviembre=s, trasNoviembre=cifras(c,s,2026,11,ex.dn); cobros.noviembre=cobrosLeidos(c,s,2026,11,ex.dn);
+  const noviembre=s, trasNoviembre=cifras(c,s,2026,11,ex.dn);
   reloj.t=aLas(12,1);
   const diciembre=c.reconcileTR(clon(s)).accounts.map(a=>a.value);
-  return {pasos,cobros,octubre,noviembre,trasNoviembre,diciembre};
+  return {pasos,octubre,noviembre,trasNoviembre,diciembre};
 }
 // La excepción aceptada, medida: qué compras reimporta la 119 que ahora siguen marcadas.
 function compara(ex,etiqueta){
@@ -351,19 +396,20 @@ function compara(ex,etiqueta){
     });
     return filas?filasExtra:ex.estado.accounts.map(acc=>extra[acc.ent]||0);
   };
-  // `cobros` (cuarta excepción, `cobrosLeidos`): la base y el previsto suben lo cobrado antes de su día que ya
-  // estaba en la lectura; tras cerrar el mes sin otra lectura, también lo pintado (la referencia lo restaba dos veces).
-  const comparaSaldo=function(actual,antes,extra,nombre,cobros=[],pintadoTambien=false){
-    const {base:baseB,...restoB}=actual,{base:baseA,...restoA0}=antes;
-    const sube=v=>v.map((x,i)=>+(x+(cobros[i]||0)/100).toFixed(2));
-    const restoA=Object.assign({},restoA0,{previsto:sube(restoA0.previsto)},pintadoTambien?{pintado:sube(restoA0.pintado)}:null);
+  const comparaSaldo=function(actual,antes,extra,nombre){
+    const {base:baseB,...restoB}=actual,{base:baseA,...restoA}=antes;
     assert.deepEqual(restoB,restoA,etiqueta+": "+nombre+", gastado/pintado/previsto sin cambios");
-    assert.deepEqual(baseB.map(x=>Math.round(x*100)),baseA.map((x,i)=>Math.round(x*100)+(extra[i]||0)+(cobros[i]||0)),etiqueta+": "+nombre+", base al céntimo más cargos extra por referencia");
+    assert.deepEqual(baseB.map(x=>Math.round(x*100)),baseA.map((x,i)=>Math.round(x*100)+(extra[i]||0)),etiqueta+": "+nombre+", base al céntimo más cargos extra por referencia");
   };
-  comparaSaldo(b.pasos.sync,a.pasos.sync,cargosExtraPorReferencia(10,ex.d1,false),"sync",b.cobros.sync);
-  comparaSaldo(b.pasos.contabilizado,a.pasos.contabilizado,cargosExtraPorReferencia(10,ex.d1,true),"contabilizado",b.cobros.contabilizado);
-  comparaSaldo(b.pasos.otroDia,a.pasos.otroDia,cargosExtraPorReferencia(10,ex.d2,true),"otro día",b.cobros.otroDia);
-  comparaSaldo(b.pasos.cierre,a.pasos.cierre,[],"cierre",b.cobros.otroDia,true);
+  comparaSaldo(b.pasos.sync,a.pasos.sync,cargosExtraPorReferencia(10,ex.d1,false),"sync");
+  comparaSaldo(b.pasos.contabilizado,a.pasos.contabilizado,cargosExtraPorReferencia(10,ex.d1,true),"contabilizado");
+  comparaSaldo(b.pasos.otroDia,a.pasos.otroDia,cargosExtraPorReferencia(10,ex.d2,true),"otro día");
+  // Cuarta excepción (`cobroLeidoJustificado`): al cerrar el mes, lo cobrado antes de su día que ya traía la lectura.
+  const cobrosOct=cobroLeidoJustificado(ex,b.octubre,10,ex.d2,b.pasos.cierre.base.map((x,i)=>Math.round(x*100)-Math.round(a.pasos.cierre.base[i]*100)),etiqueta+": cierre de octubre");
+  {
+    const sube=v=>v.map((x,i)=>+(x+cobrosOct[i]/100).toFixed(2)), {base:baseA,...restoA}=a.pasos.cierre;
+    comparaSaldo(b.pasos.cierre,Object.assign({},restoA,{base:baseA,pintado:sube(restoA.pintado),previsto:sube(restoA.previsto)}),cobrosOct,"cierre");
+  }
   const extrasOctubre=cargosExtraPorReferencia(10,ex.d2,true,true);
   const clavesOctubre=a.octubre.expenses.map(claveFila);
   assert.equal(JSON.stringify(b.octubre.expenses.filter(e=>!e.reciboId).map(claveFila).sort()),JSON.stringify(clavesOctubre.concat(extrasOctubre.filter(k=>clavesOctubre.includes(k))).sort()),etiqueta+": sin marca solo se añaden las referencias distintas declaradas");
@@ -374,9 +420,9 @@ function compara(ex,etiqueta){
   assert.equal(b.noviembre.expenses.filter(e=>!e.reciboId).length,a.noviembre.expenses.length-reimportadas.length+extrasNoviembre.length,etiqueta+": las únicas filas extra tienen referencias distintas del extracto");
   // El saldo, idéntico. El presupuesto, el de la 119 sin esas compras que antes eran un recibo.
   const {presupuesto:pa,...saldoA}=a.trasNoviembre, {presupuesto:pb,...saldoB}=b.trasNoviembre;
-  comparaSaldo(saldoB,saldoA,cargosExtraPorReferencia(11,ex.dn,true),"saldo tras sincronizar en noviembre",b.cobros.noviembre);
-  assert.deepEqual(b.diciembre.map(x=>Math.round(x*100)),a.diciembre.map((x,i)=>Math.round(x*100)+(b.cobros.noviembre[i]||0)),etiqueta+": cierre de noviembre");
-  if(b.cobros.noviembre.some(Boolean)||b.cobros.otroDia.some(Boolean)) conCobroLeido++;
+  comparaSaldo(saldoB,saldoA,cargosExtraPorReferencia(11,ex.dn,true),"saldo tras sincronizar en noviembre");
+  const cobrosNov=cobroLeidoJustificado(ex,b.noviembre,11,ex.dn,b.diciembre.map((x,i)=>Math.round(x*100)-Math.round(a.diciembre[i]*100)),etiqueta+": cierre de noviembre");
+  assert.deepEqual(b.diciembre.map(x=>Math.round(x*100)),a.diciembre.map((x,i)=>Math.round(x*100)+cobrosNov[i]),etiqueta+": cierre de noviembre");
   base.reloj.t=aLas(11,ex.dn);
   const sinEllas=Object.assign({},a.noviembre,{expenses:a.noviembre.expenses.filter(e=>reimportadas.indexOf(e)<0)});
   assert.deepEqual(pb,cifras(base.c,sinEllas,2026,11,ex.dn).presupuesto,etiqueta+": presupuesto tras sincronizar en noviembre");
@@ -405,7 +451,9 @@ test("segunda familia: deudas, puntuales, no mensuales, redondeo, «Mi ciclo» y
   assert.ok(conReimporte>=3,"extractos con la excepción del cruce de mes: "+conReimporte);
   assert.ok(conDeuda>=30,"extractos con una cuota de deuda en Gastos: "+conDeuda);
   assert.ok(conRedondeoSimulado>=5,"extractos donde el cierre estima el redondeo y hay cargos de recibo: "+conRedondeoSimulado);
-  assert.ok(conCobroLeido>=5,"extractos con un recibo cobrado antes de su día y ya leído (cuarta excepción): "+conCobroLeido);
+  assert.ok(cobrosLeidosVistos>=5&&inequivocosVistos>=5,"cierres con un recibo cobrado antes de su día y ya leído (cuarta excepción): "+cobrosLeidosVistos+", inequívocos: "+inequivocosVistos);
+  console.log("cuarta excepción: "+cobrosLeidosVistos+" cierres con diferencia, "+inequivocosVistos+" recibos inequívocos, "+inequivocosSinCasar+" sin casar");
+  assert.ok(inequivocosSinCasar*5<=inequivocosVistos,"la app reconoce al menos 4 de cada 5 inequívocos: "+inequivocosSinCasar+" de "+inequivocosVistos+" sin casar");
 });
 
 test("la excepción, con nombre y apellidos: el seguro anual cobrado a fin de mes ya no se cuenta como compra al mes siguiente", ()=>{
