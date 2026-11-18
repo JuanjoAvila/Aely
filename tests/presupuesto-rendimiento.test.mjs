@@ -441,7 +441,10 @@ const PRESUPUESTO = {
   // Integración 4.26.241 (18/11): Apuntar con el teclado del móvil de verdad (el margen que lo sigue, la subida prevista y
   // el ocultado sin «Listo»), con el sello y la nota: 2.012.797 B minificado y 553.461 B gzip. Mismo mandato del 11/10: al mínimo
   // medido, 1966 / 541 KiB.
-  minificado: 1966 * 1024,
+  // Ronda D (18/11): «Para revisar» de Inicio tocable, el buscador de Gastos que deja deslizar, los ensayos de hojas que
+  // esperan a que no haya un dedo puesto, dianas de 48 px y la rejilla de dos columnas de la ficha con Enorme: 2.014.907 B
+  // minificado (+2.110) y 553.958 B gzip (dentro). Mismo mandato del 11/10: el minificado, al mínimo medido, 1968 KiB.
+  minificado: 1968 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

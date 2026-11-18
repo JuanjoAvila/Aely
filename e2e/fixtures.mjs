@@ -142,10 +142,19 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       const expenseTerna = (r) => `${cell(r, "user_id")}|${r.fecha}|${r.importe}|${r.comercio}`;
       /** Una fila por terna en lecturas de pull: imita ignoreDuplicates y evita un UUID sintético
        *  distinto al id local que duplicaría el histórico si fallara el dedupe del cliente (M6). */
-      const storeExpenseRow = (rows, fila, { ignoreDuplicates } = {}) => {
+      /* Índice terna → primera fila, uno por LOTE (un insert/upsert). Con un `findIndex` por fila,
+         subir 5.000 gastos eran 25 M de ternas montadas: 4,4 s de un perfil de 9,3 s eran del doble
+         y no de la app (auditoría de rendimiento 14/11, I1). Por lote y no global: los tests tocan
+         `__e2eCloudRows` a mano entre consultas y un índice vivo se quedaría viejo sin avisar. */
+      const indiceTernas = (rows) => {
+        const m = new Map();
+        rows.forEach((r, i) => { const k = expenseTerna(r); if (!m.has(k)) m.set(k, i); });
+        return m;
+      };
+      const storeExpenseRow = (rows, fila, { ignoreDuplicates, indice } = {}) => {
         const copy = ensureExpenseId(JSON.parse(JSON.stringify(fila)));
         const t = expenseTerna(copy);
-        const idx = rows.findIndex((r) => expenseTerna(r) === t);
+        const idx = indice ? (indice.has(t) ? indice.get(t) : -1) : rows.findIndex((r) => expenseTerna(r) === t);
         if (idx >= 0) {
           if (ignoreDuplicates) return null;
           const keepId = rows[idx].id;
@@ -158,6 +167,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         }
         copy._e2ePullVisible = false;
         rows.push(copy);
+        if (indice) indice.set(t, rows.length - 1);
         return copy;
       };
       const finish = (resolve, out, delay) => {
@@ -201,9 +211,10 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         if (operation === "insert") {
           const values = Array.isArray(payload) ? payload : [payload];
           const inserted = [];
+          const indice = tabla === "expenses" ? indiceTernas(rows) : null;
           values.forEach((v) => {
             if (tabla === "expenses") {
-              const stored = storeExpenseRow(rows, v, { ignoreDuplicates: false });
+              const stored = storeExpenseRow(rows, v, { ignoreDuplicates: false, indice });
               if (stored) inserted.push(stored);
             } else {
               const copy = ensureExpenseId(JSON.parse(JSON.stringify(v)));
@@ -218,9 +229,10 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
           const values = Array.isArray(payload) ? payload : [payload];
           const ack = [];
           const ignoreDuplicates = !!upsertOpts?.ignoreDuplicates;
+          const indice = tabla === "expenses" ? indiceTernas(rows) : null;
           values.forEach((fila) => {
             if (tabla === "expenses") {
-              const stored = storeExpenseRow(rows, fila, { ignoreDuplicates });
+              const stored = storeExpenseRow(rows, fila, { ignoreDuplicates, indice });
               if (stored) ack.push(stored);
             } else {
               const copy = ensureExpenseId(JSON.parse(JSON.stringify(fila)));

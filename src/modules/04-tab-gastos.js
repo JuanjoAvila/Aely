@@ -310,6 +310,17 @@ function GxSubInfo({open, onClose}){
         React.createElement("button",{type:"button",className:"btn btn-primary btn-block",onClick:swipe.close},t("gv5_sub_i_ok"))
       )), document.body);
 }
+/* El buscador solo se queda el dedo MIENTRAS SE ESCRIBE (R-12, 18/11/2026). Con `stopSwipe` fijo,
+   deslizar para cambiar de pestaña no hacía nada si el dedo caía en él, y con «Mi ciclo» el
+   buscador queda justo a media altura, donde se desliza (y=200 en un Pixel 5: 2 de 2 pasadas sin
+   cambiar de pestaña). Con el cursor dentro sí es suyo, para mover el cursor o seleccionar. Se marca
+   a mano y no con estado: un `setState` por foco repintaría la lista entera. */
+const GX_BUSCA_DEDO={
+  onFocus:function(e){ e.currentTarget.setAttribute("data-noswipe","1"); },
+  onBlur:function(e){ e.currentTarget.removeAttribute("data-noswipe"); },
+  onTouchStart:function(e){ if(e.currentTarget.hasAttribute("data-noswipe")) e.stopPropagation(); },
+  onTouchMove:function(e){ if(e.currentTarget.hasAttribute("data-noswipe")) e.stopPropagation(); }
+};
 function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, forceAllTs, onGoPlan, onGoInversiones, onRefreshExpenses}){
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
@@ -2115,7 +2126,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
         // queda raro en medio»). Sincronizar es una acción de red (trae datos nuevos), no de
         // filtrado: va aparte, al pie de la lista (tanda 2).
         React.createElement("div",{style:{display:"flex",gap:8,marginBottom:9}},
-          React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},stopSwipe),
+          React.createElement("div",Object.assign({className:"searchbar",style:{flex:1,minWidth:0,marginBottom:0}},GX_BUSCA_DEDO),
             // Lupa de línea, la de «Tus recibos»: el 🔍 de color era el único emoji del cromo de Gastos (237, P2-7).
             React.createElement("svg",{className:"searchbar-ic",width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
               React.createElement("circle",{cx:11,cy:11,r:7}),React.createElement("path",{d:"M20 20l-3.5-3.5"})),
