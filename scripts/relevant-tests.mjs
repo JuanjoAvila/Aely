@@ -73,6 +73,11 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  // Ronda R2 de bancos (18/11): Conexiones como pantalla hija; entrar, salir y volver al origen.
+  { file: "src/modules/10-app-components.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs", "e2e/bancos-lista-fresca.spec.mjs", "e2e/brokers-selector.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/bancos-reconnect.spec.mjs", "e2e/brokers-selector.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/conexiones-origen.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/conexiones-origen.spec.mjs"] },
   // Lectura sola del banco al entrar, con tope (orden del dueño, 16/11/2026): el tope vive en 08,
   // el contador en `cloud.bankSync` (00) y el efecto que la lanza en App (11).
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/bancos-sync-al-entrar.spec.mjs"] },

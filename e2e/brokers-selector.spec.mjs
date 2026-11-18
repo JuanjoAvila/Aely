@@ -95,17 +95,22 @@ test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", 
       logout: async function() { connected = false; return { ok: true }; },
     };
   });
-  await abrirBancos(page, {
+  await seedLoggedInDashboard(page, {
     settings: { brokersOn: ["trade_republic"] },
     investments: [{ id: "i1", ent: "trade_republic", name: "Fondo e2e", isin: "IE00E2E", shares: 1, value: 90, cost: 90, cur: "EUR" }],
   });
-
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  // Desde R2 Conexiones se abre suelta: se entra por su fila de Ajustes para que el resumen quede
+  // montado DEBAJO y se pueda ver cambiar sin cerrar ni reabrir nada.
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
+  const bankSummary = page.locator("[data-cx-row]");
   // El puente empieza con una caducidad confirmada: Ajustes lo cuenta como caído. Un simple
   // `connected:false` ya no basta, porque era el falso positivo constante de los arranques fríos.
-  // El resumen sigue montado detrás del portal de Mis bancos, así comprobamos el cambio exacto
-  // que antes no ocurría sin introducir un cierre/reapertura que enmascare la regresión.
-  const bankSummary = page.locator(".set-card").filter({ hasText: /Gestionar mis bancos/i });
-  await expect(bankSummary).toContainText(/1 caducado.*Trade Republic desconectado/i);
+  await expect(bankSummary).toContainText(/0 de 1 al día · Trade Republic pide renovar/i, { timeout: 10_000 });
+  await bankSummary.click();
+  await expect(page.locator(".bk-sec")).toBeVisible({ timeout: 10_000 });
 
   // Completar PIN + código. Antes solo cambiaba el estado local de TRSync; el resumen que queda
   // detrás conservaba el caído hasta matar la app.
@@ -117,6 +122,12 @@ test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", 
   await tr.getByRole("button", { name: "Verificar", exact: true }).click();
   await expect(tr.locator("select")).toBeVisible();
 
-  await expect(bankSummary).toContainText(/1 conectado\(s\)/i);
-  await expect(bankSummary).not.toContainText(/Trade Republic desconectado/i);
+  await expect(bankSummary).toContainText(/1 al día/i);
+  await expect(bankSummary).not.toContainText(/pide renovar/i);
+
+  // Y al salir, vuelta con acción: Ajustes con la fila marcada y el aviso de lo conectado.
+  await page.locator(".v4-banks-push .settings-push-h .back").click();
+  await expect(page.locator(".v4-banks-push")).toHaveCount(0);
+  await expect(bankSummary).toHaveClass(/cx-vuelta/);
+  await expect(page.locator(".toast")).toContainText(/Trade Republic conectado/);
 });

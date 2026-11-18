@@ -2437,8 +2437,8 @@
   .settings-push:not(.open):not(.dragging):not(.mc-page-dragging),.settings-slide:not(.open):not(.dragging){box-shadow:none;}
   /* Inversiones es una pantalla hija de Cartera: entra por la derecha y vuelve en la misma
      dirección que el gesto de borde, no como el cajón de Ajustes que nace a la izquierda. */
-  .settings-push.v4-investments-push{transform:translate3d(100%,0,0);}
-  .settings-push.v4-investments-push.open{transform:translate3d(0,0,0);}
+  .settings-push.v4-investments-push,.settings-push.v4-banks-push{transform:translate3d(100%,0,0);}
+  .settings-push.v4-investments-push.open,.settings-push.v4-banks-push.open{transform:translate3d(0,0,0);}
   .settings-push.dragging,.settings-slide.dragging{transition:none;}
   /* Página hija de Recibos: entra lateralmente y puede acompañar el gesto Atrás. */
   .settings-push.mc-page-enter{animation:mcPageEnter .42s cubic-bezier(.32,.72,0,1);}
@@ -2526,7 +2526,26 @@
   .v4-banks .bk-card.bk-tr{border-left:4px solid #1a1a1a;}
   .v4-banks .bk-card.bk-mi{border-left:4px solid #C9A0E0;}
   .v4-banks .bk-card.bk-csv{border-left:4px solid #9BD0E0;}
-  .v4-banks .bk-ver{font-size:11px;color:var(--muted-2);text-align:center;margin-top:18px;font-weight:600;}
+  /* Conexiones (R2): por encima del cajón de Ajustes, que comparte `.settings-push`. */
+  .settings-push.v4-banks-push{z-index:72;}
+  /* Selector de bancos en hoja: la cabecera es la de las subpantallas (`.sub-push-h`, ✕ de 44 px
+     a la derecha), el buscador fijo y la lista desplazándose sola debajo (`.v4-sheet-body`). */
+  .bk-pick h1{flex:1;}
+  .bk-pick input{margin:10px 0 12px;}
+  /* Fila «Conexiones» de Ajustes: logos de lo conectado (los de Notificaciones) y un punto de
+     estado, menta al día y tan si algo pide renovar. */
+  .cx-row .nt-logos{margin:5px 0 3px;gap:4px;}
+  .cx-row .nt-logos .mono+.mono{margin-left:0;}   /* a 24 px, solapados se comían media «S» de Sabadell */
+  /* El icono va a la altura del título, como en las filas de una línea, y el punto pegado a su
+     texto: con letra Enorme se quedaba solo en un renglón y la frase en el siguiente. */
+  .set-row.cx-row .sr-ic{align-self:flex-start;margin-top:3px;}
+  .set-row.cx-row .sr-sub{display:block;}
+  .cx-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-right:6px;vertical-align:1px;}
+  .cx-dot.warn{background:var(--tan);}
+  /* Vuelta al origen tras conectar o renovar: la fila de ese banco se marca y se apaga sola. */
+  .cx-vuelta{animation:cxVuelta 1.8s ease-out forwards;}
+  @keyframes cxVuelta{0%,45%{background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}100%{background:transparent;box-shadow:inset 3px 0 0 transparent;}}
+  html.reduce-motion .cx-vuelta{animation:none;background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}
   /* Novedades: entra con el resto (sin «delay y luego zarpazo»). */
   .wn-panel{position:fixed;inset:0;z-index:97;overflow-y:auto;background:var(--bg);color:var(--text);
     padding:calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px);font-family:'Manrope',sans-serif;

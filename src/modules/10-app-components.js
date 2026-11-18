@@ -704,7 +704,17 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
 /* Los tres brókers con integración propia. El id es el mismo `ent` que llevan las posiciones en
    `state.investments`, para poder deducir de la cartera cuáles usa el usuario sin preguntarle. */
 var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"]];
-function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onLinks, fetchPrices, focusAspsp}){
+/* CONEXIONES ES UNA PANTALLA HIJA, no un `div` fijo (ronda R2 del rediseño de bancos, 18/11).
+   Antes aparecía y desaparecía en un fotograma y al cerrar siempre caía en Ajustes, vinieras de
+   donde vinieras («me deja donde no estaba»). Ahora entra por la derecha como Inversiones, se
+   cierra con ‹, con atrás o arrastrando desde el borde, y quien la abre (App) la monta suelta:
+   desde Cartera ya no hay Ajustes debajo. `origen` es a dónde vuelve; `accion` llega cuando se
+   vuelve de autorizar un banco. Lo que se hizo aquí dentro viaja en `onClose(accion)`, y solo
+   entonces la pantalla de origen resalta la fila y avisa: un atrás sin cambios vuelve callado. */
+function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fetchPrices, focusAspsp, origen, accion}){
+  const sr=useRef(null), accionRef=useRef(accion||null);
+  useEffect(function(){ if(accion) accionRef.current=accion; },[accion]);
+  const [vis,setVis]=useState(false);
   const [links,setLinks]=useState(null);          // null = cargando
   const [aspsps,setAspsps]=useState(null);        // null = sin cargar
   const [loadingA,setLoadingA]=useState(false);
@@ -767,8 +777,27 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
     const tm=setTimeout(function(){ try{ el.scrollIntoView({block:"center",behavior:"smooth"}); }catch(e){} }, 220);
     return function(){ clearTimeout(tm); };
   },[focusAspsp,links]);
-  useBackClose(picking, function(){ setPicking(false); setQ(""); });   // gesto atrás: sale del picker, no de la app
-  const loadLinks=function(){ if(!cloud.enabled()){ setLinks([]); return; } cloud.bankLinks().then(function(rows){ setLinks(rows||[]); if(onLinks) onLinks(rows||[]);   // el contador de Ajustes se entera al momento
+  /* Atrás va por pasos: primero baja la hoja del selector y después sale la pantalla. Mientras
+     la hoja está arriba, el borde no arrastra la página de debajo (`on` = sin hoja). */
+  const pk=useSheetSwipe(picking, function(){ setPicking(false); setQ(""); });
+  useBackClose(picking, pk.close);
+  const pg=useEdgePageClose(true,function(){ onClose(accionRef.current); },!picking,sr);
+  useBackClose(true, pg.close);
+  useLayoutEffect(function(){
+    let e2=0;
+    const e1=requestAnimationFrame(function(){ e2=requestAnimationFrame(function(){ setVis(true); }); });
+    mcSheetLock();
+    return function(){ cancelAnimationFrame(e1); if(e2) cancelAnimationFrame(e2); mcSheetUnlock(); };
+  },[]);
+  // Conectar Trade Republic aquí dentro también es «volver con acción».
+  useEffect(function(){
+    const h=function(e){ const d=e&&e.detail; if(d&&d.ack&&d.connected) accionRef.current={ent:"trade_republic",k:"c"}; };
+    window.addEventListener("mc-tr-status",h);
+    return function(){ window.removeEventListener("mc-tr-status",h); };
+  },[]);
+  const loadLinks=function(){ if(!cloud.enabled()){ setLinks([]); return; } cloud.bankLinks().then(function(rows){ setLinks(rows||[]);
+    // El resumen de la fila de Ajustes se entera al momento, esté o no montado debajo.
+    try{ window.dispatchEvent(new CustomEvent("mc-bank-links",{detail:rows||[]})); }catch(e){}
     if((rows||[]).some(function(r){return r.status==='active'||r.status==='pending';})) set(function(s){ return s.hasBankLink?s:Object.assign({},s,{hasBankLink:true}); });
     else if((rows||[]).length===0) set(function(s){ return s.hasBankLink?Object.assign({},s,{hasBankLink:false}):s; });   // sin bancos → dejar de llamar a bank-sync
   }).catch(function(){ setLinks([]); }); };
@@ -792,7 +821,11 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
     if(!cloud.enabled()||!uid){ showToast(t("bp_need_login")); return; }
     setBusy(name); showToast(t("bank_connecting"));
     set(function(s){ return Object.assign({},s,{hasBankLink:true}); });
-    bankConnectOnce(name, country||"ES").then(function(d){ location.href=d.url; })
+    bankConnectOnce(name, country||"ES").then(function(d){
+      // Autorizar sale de la app: a la vuelta (`bank|ok` o `?bank=ok`) App reabre Conexiones con
+      // este banco y, al cerrarla, aterriza en el mismo origen con la fila resaltada.
+      try{ sessionStorage.setItem("mc_bk_vuelta",JSON.stringify({n:name,k:connected[String(name).toLowerCase()]?"r":"c",o:origen||""})); }catch(e){}
+      location.href=d.url; })
       .catch(function(e){
         setBusy("");
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
@@ -911,8 +944,6 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
   const ql=q.trim().toLowerCase();
   const shown=(aspsps||[]).filter(function(a){ return !ql || (a.name||"").toLowerCase().indexOf(ql)>=0; });
 
-  const wrap={position:"fixed",inset:0,zIndex:95,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 14px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
-  const inner={maxWidth:480,margin:"0 auto"};
   const pill=function(txt,col){ return React.createElement("span",{style:{fontSize:11,fontWeight:800,color:col,background:col+"1f",borderRadius:20,padding:"3px 9px",whiteSpace:"nowrap"}}, txt); };
   const mb={flex:"1 1 auto",minWidth:0,background:"var(--sur)",border:"1px solid var(--line-soft)",color:"var(--text)",borderRadius:12,padding:"10px 12px",fontSize:13,fontWeight:700,cursor:"pointer"};
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"linear-gradient(160deg,var(--mint-hi),var(--mint))",color:"var(--on-mint)",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:8};
@@ -924,15 +955,20 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
     return React.createElement(Mono,{ent:ent||"",size:36});
   };
 
-  // ---- vista PICKER (elegir banco de la lista real) ----
-  if(picking){
-    return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
-      React.createElement(SubPushHead,{onBack:function(){ setPicking(false); setQ(""); },title:t("bp_pick_title")}),
-      React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:12}}, t("bp_pick_sub")),
-      React.createElement("input",{style:inp,placeholder:t("bp_search"),value:q,onChange:function(e){ setQ(e.target.value); },autoFocus:true}),
-      loadingA && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,padding:"18px 2px"}}, t("bp_loading")),
-      (!loadingA && aspsps!==null && shown.length===0) && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,padding:"18px 2px"}}, t("bp_noresults")),
-      React.createElement("div",{style:{marginTop:12}},
+  /* SELECTOR DE BANCOS: una hoja que sube encima de Conexiones. Antes sustituía la pantalla
+     entera en un fotograma y con `autoFocus`, así que el teclado tapaba media lista nada más
+     entrar; el buscador ahora espera a que lo toques. */
+  const hoja=picking && ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:pk.close},
+    React.createElement("div",Object.assign({className:"v4-sheet bk-pick",role:"dialog","aria-modal":"true","aria-label":t("bp_pick_title"),ref:pk.sheetRef,onClick:function(e){ e.stopPropagation(); }},pk.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"sub-push-h"},
+        React.createElement("h1",null, t("bp_pick_title")),
+        React.createElement("button",{type:"button",className:"back","aria-label":t("au_close"),onClick:pk.close},"✕")),
+      React.createElement("div",{className:"hint"}, t("bp_pick_sub")),
+      React.createElement("input",{style:inp,placeholder:t("bp_search"),value:q,onChange:function(e){ setQ(e.target.value); }}),
+      React.createElement("div",{className:"v4-sheet-body"},
+        loadingA && React.createElement("div",{className:"hint"}, t("bp_loading")),
+        (!loadingA && aspsps!==null && shown.length===0) && React.createElement("div",{className:"hint"}, t("bp_noresults")),
         shown.slice(0,80).map(function(a){
           const isC=!!connected[(a.name||"").toLowerCase()];
           // TR ya no se bloquea: se avisa de QUÉ va a aportar por aquí (los movimientos) para que
@@ -951,13 +987,13 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           );
         })
       )
-    ));
-  }
+    )), document.body);
 
-  // ---- vista PRINCIPAL (mis bancos conectados) ----
-  return React.createElement("div",{className:"v4-banks",style:wrap}, React.createElement("div",{style:inner},
-    React.createElement(SubPushHead,{onBack:onClose,title:t("bp_title")}),
-    React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("bp_intro")),
+  return ReactDOM.createPortal(React.createElement("div",{className:"settings-push v4-banks v4-banks-push"+(vis?" open":""),ref:sr,role:"dialog","aria-modal":"true","aria-label":t("bp_title")},
+    React.createElement("div",{className:"settings-push-h"},
+      React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pg.close},"‹"),
+      React.createElement("h1",null, t("bp_title"))),
+    // Sin la nota «Solo lectura · el permiso se renueva…»: lo dice la propia pantalla (textos mínimos).
     links===null && React.createElement("div",{style:{color:"var(--muted)",fontSize:13}}, "…"),
     links!==null && links.length===0 && React.createElement(React.Fragment,null,
       React.createElement("div",{style:{textAlign:"center",color:"var(--muted)",fontSize:13.5,padding:"18px 8px"}}, t("bp_empty"))
@@ -1060,10 +1096,9 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
     /* «¿Cuadran tus recibos con el banco?» vive aquí, que es donde se busca lo del banco.
        Sin datos del banco no pinta nada. */
     React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),
-    React.createElement("div",{className:"bk-ver"}, "v"+(CONFIG.APP_VERSION||"?")),
-    // (bp_apk_hint fuera 2026-07-18: párrafo de circunstancias ya resueltas — menos letra aquí)
-    // bp_foot fuera 2026-09-11: decía que TR no está en OB y ya sí puede; sobraba.
-  ));
+    // El «vX» del pie se fue en R2: la versión ya está en Ajustes y aquí enseñaba «vdev».
+    hoja
+  ), document.body);
 }
 
 /* Página «Actividad» del admin (petición 2026-07-11): antes era un acordeón dentro de Ajustes y
@@ -2438,7 +2473,6 @@ const SET_ICO=(function(){
     budgetcycle:[["rect",{x:3,y:5,width:18,height:16,rx:2.5}],["path",{d:"M3 10h18M8 3v4M16 3v4"}]],
     bills:[["path",{d:"M6 3h12v18l-3-2-3 2-3-2-3 2z"}],["path",{d:"M9 8h6M9 12h6"}]],
     banks:banco,
-    bankmanage:[["path",{d:"M4 7h9M17 7h3M4 17h3M11 17h9"}],["circle",{cx:15,cy:7,r:2}],["circle",{cx:9,cy:17,r:2}]],
     banksync:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M4 13a8 8 0 0 0 14.5 4.5L20 16"}],["path",{d:"M20 20v-4h-4"}]],
     notifs:[["path",{d:"M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"}],["path",{d:"M10 21h4"}]],
     trnotif:[["path",{d:"M4 5h16v11H9l-5 4z"}],["path",{d:"M9 10.5l2 2 4-4"}]],
@@ -2476,7 +2510,7 @@ function setIco(k, fallback){
 }
 
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
-function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos}){
+function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, refreshFx, goGastos}){
   const adminCacheKey="_mcAdminProfile";
   const adminCached=function(id){
     if(!id) return false;
@@ -2653,11 +2687,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       else if(nombre) setApkVer(nombre);
     }).catch(function(){});
   },[]);
-  const [manageBanks,setManageBanks]=useState(false);   // abre la sección "Mis bancos"
-  useBackClose(manageBanks, function(){ setManageBanks(false); });   // gesto atrás: cierra "Mis bancos"
-  // Banner «Reconectar TR» de Cartera (evento mc-open-banks → App abre Ajustes + goBanks):
-  // aterriza DIRECTO en Mis bancos, donde el formulario de TR ya trae el teléfono puesto.
-  useEffect(function(){ if(goBanks) setManageBanks(true); },[goBanks]);
+  // Conexiones la monta App (ver `BankPanel`); su lista llega aquí por evento al cargarse.
+  useEffect(function(){
+    const h=function(e){ if(e&&Array.isArray(e.detail)) setBankLinks(e.detail); };
+    window.addEventListener("mc-bank-links",h);
+    return function(){ window.removeEventListener("mc-bank-links",h); };
+  },[]);
   useEffect(function(){
     if(!cloud.enabled()){ setBankLinks([]); return; }
     cloud.bankLinks().then(function(rows){
@@ -2920,17 +2955,32 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         if(r.status!=='active') return false;
         return !issueAsp[String(r.aspsp_name||"").toLowerCase()];
       }).length + (!enPruebas && trConn?1:0);
-      const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
-      const trDead=!enPruebas && trKnown&&trExpired;
-      const nDead=nDeadDb + (trDead?1:0);
-      let summary = links===null ? "…"
-        : nActive>0 ? (tf("bp_summary_n",{n:nActive}) + (nDead?" · "+tf("bp_summary_exp",{n:nDead}):""))
-        : nDead>0 ? tf("bp_summary_exp",{n:nDead})
-        : ((links||[]).some(function(r){return r.status==='pending';}) ? t("bank_pending") : t("bp_summary_none"));
-      if(trDead && summary.indexOf("Trade Republic")<0) summary += (summary&&summary!=="…"?" · ":"") + t("bp_summary_tr_dead");
-      return grp("banks","🏦",t("bank_section"),"banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking sincronizar",summary,
-        row("bankmanage","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
-      );
+      const dead=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; })
+        .map(function(r){ const e=entFromAspsp(r.aspsp_name); return e?entOf(e).label:r.aspsp_name; });
+      if(!enPruebas && trKnown&&trExpired) dead.push("Trade Republic");
+      /* CONEXIONES A UN TOQUE (R2). Era un grupo plegado con una sola fila dentro y un resumen de
+         tres renglones; ahora es una fila de primer nivel, con su icono como las demás, los logos
+         de lo conectado y una línea de estado: «4 de 5 al día · CaixaBank pide renovar». */
+      const ents=[];
+      (links||[]).forEach(function(r){ const e=entFromAspsp(r.aspsp_name); if(e&&ents.indexOf(e)<0) ents.push(e); });
+      if(!enPruebas && (trConn||trKnown) && ents.indexOf("trade_republic")<0) ents.push("trade_republic");
+      const nTot=nActive+dead.length;
+      const st = links===null ? "…"
+        : !nTot ? t((links||[]).some(function(r){return r.status==='pending';}) ? "bank_pending" : "bp_summary_none")
+        : (dead.length ? tf("cx_of",{n:nActive,m:nTot})+" · "+tf("cx_renew",{bank:dead.join(", ")}) : tf("cx_ok",{n:nActive}));
+      const nq=normQ(q).trim();
+      if(nq && normQ(t("bp_title")+" banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking").indexOf(nq)<0) return null;
+      grpMatches++;
+      return React.createElement("div",{className:"set-sub"},
+        React.createElement("button",{type:"button",className:"set-row cx-row","data-cx-row":"",onClick:function(){
+          try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null,origin:"settings"}})); }catch(e){}
+        }},
+          React.createElement("span",{className:"sr-ic"},setIco("banks")),
+          React.createElement("span",{className:"sr-tx"},
+            React.createElement("span",{className:"sr-lb"},t("bp_title")),
+            ents.length>0 && React.createElement("span",{className:"nt-logos"}, ents.slice(0,5).map(function(e){ return React.createElement(Mono,{key:e,ent:e,size:24}); })),
+            React.createElement("span",{className:"sr-sub"}, nTot>0 && React.createElement("i",{className:"cx-dot"+(dead.length?" warn":"")}), st)),
+          React.createElement("span",{className:"sr-chev"},"›")));
     })(),
     (function(){
       const nat=natPlugin();
@@ -3015,7 +3065,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",padding:"0 14px 10px"}}, t("st_mode_hint")),
       onTour && row("tour","🎓",t("v4_set_tour"),null,onTour)
     )),
-    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); setTrExpired(!!(r&&r.authExpired)||(typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); }).catch(function(){}); } }}), document.body),
     // (Hogar y gastos compartidos se movió FUERA de Ajustes 2026-07-18: es una funcionalidad de
     //  la app, no un ajuste. Ahora se abre desde Cartera → «Hogar y gastos compartidos».)
     seccion(t("v4_set_g_data"),

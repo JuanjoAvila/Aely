@@ -164,7 +164,7 @@ for (const [w, h] of ANCHOS) for (const letra of ["small", "huge"]) {
       expect(caja.width / zoom).toBeGreaterThanOrEqual(43.5);
       expect(caja.height / zoom).toBeGreaterThanOrEqual(43.5);
       // Se abren los grupos de los cuatro bloques para ver todas sus filas.
-      for (const t of ["Apariencia", "Accesibilidad", "Dinero", "Bancos", "Para empezar fácil", "Importaciones", "Copia de seguridad", "Novedades", "Tu cuenta"]) {
+      for (const t of ["Apariencia", "Accesibilidad", "Dinero", "Para empezar fácil", "Importaciones", "Copia de seguridad", "Novedades", "Tu cuenta"]) {
         const fila = aj.locator(".set-sub > .set-row", { has: page.locator(".sr-lb", { hasText: new RegExp("^" + t + "$") }) }).first();
         if (await fila.count()) await fila.evaluate((b) => b.click());
       }
@@ -189,9 +189,10 @@ for (const [w, h] of ANCHOS) for (const letra of ["small", "huge"]) {
       const dinero = aj.locator(".set-sub > .set-row", { has: page.locator(".sr-lb", { hasText: /^Dinero$/ }) });
       await expect(dinero.locator(".sr-val")).toHaveCount(0);
       await expect(aj.locator(".set-row", { hasText: "Moneda en pantalla" }).locator(".sr-val")).toHaveText("€ Euro");
-      await expect(aj.locator(".set-row", { has: page.locator(".sr-lb", { hasText: /^Bancos$/ }) }).locator(".sr-val")).toHaveText("Ninguno");
+      // Conexiones (R2, 18/11) ya no es un grupo: su estado va en la línea de debajo de la fila.
+      await expect(aj.locator("[data-cx-row] .sr-sub")).toHaveText("Ninguno");
       // Nada cortado: ni etiquetas (a media palabra) ni valores con «…».
-      expect(await cortes(aj, ".set-row .sr-lb, .set-row .sr-val, .v4-set-sec")).toEqual([]);
+      expect(await cortes(aj, ".set-row .sr-lb, .set-row .sr-val, .set-row .sr-sub, .v4-set-sec")).toEqual([]);
       expect(await partidas(aj, ".set-row .sr-lb, .set-row .sr-val"), "palabras partidas en dos renglones").toEqual([]);
     });
   });
