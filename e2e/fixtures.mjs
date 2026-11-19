@@ -146,15 +146,31 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
          subir 5.000 gastos eran 25 M de ternas montadas: 4,4 s de un perfil de 9,3 s eran del doble
          y no de la app (auditoría de rendimiento 14/11, I1). Por lote y no global: los tests tocan
          `__e2eCloudRows` a mano entre consultas y un índice vivo se quedaría viejo sin avisar. */
+      /* Y el índice se monta PEREZOSO, a partir de la segunda fila del lote (19/11): la primera
+         subida de un histórico sin nube va de UNA en una (`cloud.addExpense`), y montar el Map de
+         todo `rows` en cada una de esas 20.000 llamadas costaba más del doble que el `findIndex`
+         que sustituía (22 s frente a 10 s de arranque a CPU normal en inicio-v42-rendimiento; en CI
+         pasó de los 45 s de su espera y el spec cayó dos veces en la 4.26.243 sin cambiar la app). */
       const indiceTernas = (rows) => {
         const m = new Map();
         rows.forEach((r, i) => { const k = expenseTerna(r); if (!m.has(k)) m.set(k, i); });
         return m;
       };
+      const loteTernas = (rows) => {
+        let m = null, vistas = 0;
+        return {
+          buscar(t) {
+            if (!m && ++vistas < 2) return rows.findIndex((r) => expenseTerna(r) === t);
+            if (!m) m = indiceTernas(rows);
+            return m.has(t) ? m.get(t) : -1;
+          },
+          alta(t, i) { if (m && !m.has(t)) m.set(t, i); },
+        };
+      };
       const storeExpenseRow = (rows, fila, { ignoreDuplicates, indice } = {}) => {
         const copy = ensureExpenseId(JSON.parse(JSON.stringify(fila)));
         const t = expenseTerna(copy);
-        const idx = indice ? (indice.has(t) ? indice.get(t) : -1) : rows.findIndex((r) => expenseTerna(r) === t);
+        const idx = indice ? indice.buscar(t) : rows.findIndex((r) => expenseTerna(r) === t);
         if (idx >= 0) {
           if (ignoreDuplicates) return null;
           const keepId = rows[idx].id;
@@ -167,7 +183,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         }
         copy._e2ePullVisible = false;
         rows.push(copy);
-        if (indice) indice.set(t, rows.length - 1);
+        if (indice) indice.alta(t, rows.length - 1);
         return copy;
       };
       const finish = (resolve, out, delay) => {
@@ -211,7 +227,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         if (operation === "insert") {
           const values = Array.isArray(payload) ? payload : [payload];
           const inserted = [];
-          const indice = tabla === "expenses" ? indiceTernas(rows) : null;
+          const indice = tabla === "expenses" ? loteTernas(rows) : null;
           values.forEach((v) => {
             if (tabla === "expenses") {
               const stored = storeExpenseRow(rows, v, { ignoreDuplicates: false, indice });
@@ -229,7 +245,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
           const values = Array.isArray(payload) ? payload : [payload];
           const ack = [];
           const ignoreDuplicates = !!upsertOpts?.ignoreDuplicates;
-          const indice = tabla === "expenses" ? indiceTernas(rows) : null;
+          const indice = tabla === "expenses" ? loteTernas(rows) : null;
           values.forEach((fila) => {
             if (tabla === "expenses") {
               const stored = storeExpenseRow(rows, fila, { ignoreDuplicates, indice });

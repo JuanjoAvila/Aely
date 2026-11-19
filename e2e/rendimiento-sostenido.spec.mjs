@@ -161,9 +161,11 @@ async function cycle(page,cdp) {
       if(await page.evaluate(()=>document.querySelectorAll(".bk-actions").length)!==1)throw new Error("Conexión sintética no aterrizó");
       await markAction(page,"banks-back");await page.evaluate(()=>history.back());await delay(850);
       if(await page.evaluate(()=>!!document.querySelector(".v4-banks")))throw new Error("Back bancos no cerró");
-      await markAction(page,"settings-back");await page.evaluate(()=>history.back());await delay(850);
-      if(await page.evaluate(()=>document.querySelector(".settings-push").classList.contains("open")))throw new Error("Back Ajustes no cerró");
-      landings.push("bancos/back/ajustes/back");
+      /* Desde Bancos R2 (4.26.243) Conexiones es pantalla hija y vuelve a su origen, aquí Cartera,
+         sin abrir Ajustes debajo. El atrás de más que cerraba Ajustes ya no tenía nada que cerrar y
+         el calentamiento dejó de aterrizar. Se comprueba la vuelta en vez de quitar el paso a secas. */
+      if(await page.evaluate(()=>!!document.querySelector(".settings-push.open:not(.v4-banks-push)")||document.querySelector(".botnav-tab.active").dataset.tour!=="cartera"))throw new Error("Back bancos no volvió a Cartera");
+      landings.push("bancos/back");
       await markAction(page,"bank-sync");
       await page.evaluate(()=>{
         const btn=[...document.querySelectorAll('.page-scroll-host button')].find(b=>/Sincronizar bancos/i.test(b.getAttribute("aria-label")||b.textContent));
