@@ -6427,9 +6427,9 @@ const sourceBeta243=sourceAt("572e4be093139fa2b7a888b840b7dc6909fa50dc");
 // Catálogo244 pasa a histórico con la 245: se lee de la 4.26.244 (cdba1f6e1, sin APK nueva, sigue la 64). Sus tandas y las de la
 // 243 y la 242 siguen SIN veredicto: la 245 las deja en su versión y abre beta-245.
 const sourceBeta244=sourceAt("cdba1f6e13a27b10f801797889c3aaf029667454");
-// Catálogo245 pasa a histórico con la 246: se lee de la 4.26.245 (16fa82429, sin APK nueva, sigue la 64). Sus tandas y las de la
+// Catálogo245 pasa a histórico con la 246: se lee de la 4.26.245 con su arreglo de CI (44bbb6fea, sin APK nueva, sigue la 64). Sus tandas y las de la
 // 244, la 243 y la 242 siguen SIN veredicto: la 246 las deja en su versión y abre beta-246.
-const sourceBeta245=sourceAt("16fa82429317e7f772d67a66214551b38e4c0b0e");
+const sourceBeta245=sourceAt("44bbb6fea3b3139006a13f454117d3021f9718be");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -6627,7 +6627,7 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
   assert.deepEqual(receipt.pruebas,{[nueva]:{v:"4.26.230",contenido:JSON.stringify([nueva,g0.t.es,g0.items.es,1])}},"un guion por probar, el de la tanda nueva");
 });
 
-// 4.26.246 (19/11/2026): sobre la 4.26.245 (16fa82429), brókers por conexión (claude/brokers-api hasta f73efc591, GO de dinero y de
+// 4.26.246 (19/11/2026): sobre la 4.26.245 con su arreglo de CI (44bbb6fea), brókers por conexión (claude/brokers-api hasta f73efc591, GO de dinero y de
 // seguridad en la tercera revisión y PASS del filtro de diseño): IBKR (Flex) y Kraken (solo lectura) se conectan desde «Mis bancos» con
 // su hoja (`BrokerApiSection/Card/Sheet`, 06), la primera lectura pasa por la vista previa (`brkApiReview`, 05) y las siguientes las hace
 // `runBrokerSync` (11) con `brkApiAuto`: re-ancla solo lo vinculado y PROPONE lo nuevo. `brkSyncCandidates` saca de la sync de TR y
@@ -6638,8 +6638,7 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
 // pedir. UNA tanda nueva, beta-246, solo web: el servidor (0031 y las tres funciones `broker-*`) espera a la promoción con el OK del
 // dueño, así que el panel solo pide mirar la tarjeta y la hoja, sin conectar.
 // Registro: un descriptor nuevo, el último; sin reanclas; con el cierre de lectores crecen dos alcances (los de la sync de brókers de
-// App), solo con `entOf`/`ENT` de 00, que ahora lee `brkSyncCandidates`. Las rondas del ajustador de vibración y el archivado siguen sin
-// resolverse, intactos.
+// App), solo con `entOf`/`ENT` de 00, que ahora lee `brkSyncCandidates`, y su nube pasa a vigilar `brokerLinks`/`brokerSync`.
 test("Catálogo246 conserva beta-245, beta-244, beta-243 y dinero-242 sin veredicto, abre beta-246 (solo web, con el servidor sin desplegar) y hace crecer el registro con el cierre de lectores",()=>{
   const nueva="beta-246",previas=["beta-245","beta-244","beta-243","dinero-242"];
   const C0="src/modules/00-core.js",I18N="src/modules/01-i18n.js",V05="src/modules/05-dialogs-inv.js",V06="src/modules/06-sync-brokers.js",A0="src/modules/10-app-components.js",A1="src/modules/11-app-main.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/",F="supabase/functions/";
@@ -6706,7 +6705,7 @@ test("Catálogo246 conserva beta-245, beta-244, beta-243 y dinero-242 sin veredi
   // Y su nube vigila también los dos métodos que ahora lee la sync de App (`brokerLinks`, `brokerSync`); ningún otro alcance cambia de miembros.
   const miembros=(reg,key)=>(reg[key].web.find(esMiembros)||{}).members;
   for(const key of Object.keys(integrated))assert.deepEqual(miembros(scopes,key),crecen.includes(key)?[...miembros(integrated,key),"brokerLinks","brokerSync"]:miembros(integrated,key),key+": miembros de la nube");
-  assert.deepEqual(ausentes,["vibracion-borde-y-mi-ciclo","vibracion-suave-ronda-2","vibracion-suave-ronda-3","vibracion-ajustador","vibracion-ajustador-r2","vibracion-r4","vibracion-r5","vibracion-r6"],"las rondas del ajustador siguen sin resolverse");
+  assert.deepEqual(ausentes,[],"todo alcance con unidades se resuelve (las rondas de vibración, reancladas en la 245)");
   const fn=(file,names)=>names.map(function_=>({file,function:function_}));
   // Lo que se prueba en el panel: la tarjeta y la hoja de IBKR y Kraken (06), el motor de la primera lectura y de la sync (05), la
   // entrada en Mis bancos con sus chips (10), los métodos `broker*` de la nube (00), la sync al abrir de App (11), su CSS y el bloque
@@ -6762,10 +6761,10 @@ test("Catálogo246 conserva beta-245, beta-244, beta-243 y dinero-242 sin veredi
 // beta-244, beta-243 y dinero-242 siguen SIN veredicto, en su versión; sus huellas SÍ se mueven (AskHost, Ajustes, Inicio, Plan y
 // Gastos cambian), así que el panel las vuelve a pedir. UNA tanda nueva, beta-245, solo web: el guardado nativo es de la APK 65,
 // que no sale en esta ronda (apk.json sigue en la 64).
-// Registro: un descriptor nuevo, el último; una reancla en beta-243 (`.set-row.cx-row .sr-ic{` → `.cx-vuelta{`: el CSS de la fila
-// «Conexiones» ya no existe); el cierre de lectores no hace crecer nada. Los alcances de las rondas de vibración que leían el
-// ajustador (`HapticTuner`, `mcHapticTuneSave`…) ya no se resuelven y salen de lo que el build entrega al panel; ninguno estaba vivo.
-test("Catálogo245 histórico conserva beta-244, beta-243 y dinero-242 sin veredicto, abre beta-245 (solo web), reancla beta-243 y retira del panel las rondas del ajustador",()=>{
+// Registro: un descriptor nuevo, el último; la reancla de beta-243 (`.cx-vuelta{`), la de la raíz de Inicio en las seis rondas de
+// vibración que la anclaban (gana `v4-inicio`) y la retirada de las unidades del ajustador (`HapticTuner`, `mcHapticTuneSave/Reset/
+// Text`) en sus cinco rondas, como limpieza129. Ninguna de esas rondas estaba viva en el panel: no hay tanda que quitar del array.
+test("Catálogo245 histórico conserva beta-244, beta-243 y dinero-242 sin veredicto, abre beta-245 (solo web), reancla beta-243 y las rondas de vibración y retira las unidades del ajustador",()=>{
   const nueva="beta-245",previas=["beta-244","beta-243","dinero-242"];
   const I18N="src/modules/01-i18n.js",U="src/modules/02-ui-shared.js",D="src/modules/03-tab-dash.js",GX="src/modules/04-tab-gastos.js",V05="src/modules/05-dialogs-inv.js",V09="src/modules/09-tab-debts-goals.js",A0="src/modules/10-app-components.js",A1="src/modules/11-app-main.js",V14="src/modules/14-v4-screens.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/",F="supabase/functions/";
   const integrated=JSON.parse(sourceBeta244("scripts/beta-sources.json")),before=JSON.parse(sourceBeta244("src/data/release-notes.json"));
@@ -6796,17 +6795,19 @@ test("Catálogo245 histórico conserva beta-244, beta-243 y dinero-242 sin vered
   {const r=rotulo("rp_btn");for(const lang of ["es","en","ca"])assert.ok(n245.tandas[0].items[lang][6].includes("«"+r[lang].replace(/^[^ ]+ /,"")+"»"),lang+": el paso 7 cita la fila del informe tal cual sale en Ajustes, sin el icono");}
   // Lo que el paso 6 dice que ya no está: ni su sección ni sus textos.
   for(const key of ["v4_set_adv","hv_title"])assert.equal(new RegExp("(?<![A-Za-z0-9_])"+key+':"').test(textos),false,key+": fuera");
-  // Registro: el descriptor nuevo, el último; la reancla de beta-243 y nada más.
+  // Registro: el descriptor nuevo, el último; dos reanclas y una retirada declaradas aquí, y el cierre de lectores exacto:
+  //  · beta-243: el CSS de la fila «Conexiones» ya no existe → `.cx-vuelta{` (lo que hace hoy la vuelta al origen).
+  //  · las seis rondas de vibración que anclaban la raíz de Inicio: la raíz gana `v4-inicio` (pulsar largo no selecciona).
+  //  · las rondas del ajustador pierden las unidades de las funciones retiradas con él (`mcHapticTuneSave/Reset/Text`,
+  //    `HapticTuner`), como limpieza129: lo que hacían ya no existe, y el resto de su alcance (motor, anillo, borde) sigue vigilado.
   const scopes=JSON.parse(source("scripts/beta-sources.json"));
   assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),nueva],"el descriptor nuevo, el último");
-  const reancla=u=>u.file===SH&&u.from==="  .set-row.cx-row .sr-ic{"?{...u,from:"  .cx-vuelta{"}:u;
-  for(const [key,scope] of Object.entries(integrated)){
-    const ahora=scopes[key];
-    assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
-    for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
-    assert.deepEqual(ahora.web,key==="beta-243"?scope.web.map(reancla):scope.web,key+(key==="beta-243"?": solo la reancla declarada":": no crece ni se reancla"));
-  }
-  assert.notDeepEqual(scopes["beta-243"].web,integrated["beta-243"].web,"beta-243 lleva la reancla");
+  const raizVieja="  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},";
+  const retiradas245=new Set(["mcHapticTuneSave","mcHapticTuneReset","mcHapticTuneText","HapticTuner"]);
+  const reancla245=u=>!u||typeof u!=="object"?u
+    :u.file===SH&&u.from==="  .set-row.cx-row .sr-ic{"?{...u,from:"  .cx-vuelta{"}
+    :u.file===D&&u.from===raizVieja?{...u,from:raizVieja.replace("\"v4-screen\"","\"v4-screen v4-inicio\"")}:u;
+  const de245=web=>web.filter(u=>!(u&&u.function&&retiradas245.has(u.function))).map(reancla245);
   const fns=logicFunctions(source),dat=logicData(source);
   const cierre=(web0)=>{
     let web=web0.slice();
@@ -6820,6 +6821,20 @@ test("Catálogo245 histórico conserva beta-244, beta-243 y dinero-242 sin vered
   };
   const fn=(file,names)=>names.map(function_=>({file,function:function_}));
   const css=from=>({file:SH,from,to:"}"});
+  const cambian=[],retiran=[];
+  for(const [key,scope] of Object.entries(integrated)){
+    const ahora=scopes[key];
+    assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
+    for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
+    const esperado=de245(scope.web);
+    if(JSON.stringify(esperado)!==JSON.stringify(scope.web))cambian.push(key);
+    if(esperado.length!==scope.web.length)retiran.push(key);
+    if(key===archiveId||!scope.unidades){assert.deepEqual(ahora.web,esperado,key+": solo lo declarado");continue;}
+    assert.deepEqual(ahora.web.slice(0,esperado.length),esperado,key+": lo anterior, con lo declarado");
+    assert.deepEqual(ahora.web,cierre(esperado),key+": solo crece lo que el cierre de lectores exige");
+  }
+  assert.deepEqual(cambian,["vibracion-borde-y-mi-ciclo","vibracion-suave-ronda-2","vibracion-suave-ronda-3","vibracion-ajustador","vibracion-ajustador-r2","vibracion-r4","vibracion-r5","vibracion-r6","beta-243"],"las reanclas y la retirada, solo donde se declaran");
+  assert.deepEqual(retiran,["vibracion-ajustador","vibracion-ajustador-r2","vibracion-r4","vibracion-r5","vibracion-r6"],"la retirada, solo en las rondas del ajustador");
   // Lo que se prueba en el panel: Inicio (filas, pulsar largo y tocar), Plan y Gastos que abren la ficha, Ajustes con «Bancos» y
   // sin la vibración, Mis bancos que sale opaca, el informe con su vista previa (AskHost con imagen), los valores de serie de la
   // vibración, su CSS y el bloque del guardado (tocar una meta abre su edición, que escribe estado con el set real).
@@ -6859,11 +6874,12 @@ test("Catálogo245 histórico conserva beta-244, beta-243 y dinero-242 sin vered
   assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
   assert.equal(receipt.web[nueva],current.web,"su huella llega al panel");
-  // Las rondas de vibración que leían el ajustador ya no se resuelven: salen de la entrega (ninguna estaba viva en el panel).
-  const delAjustador=["vibracion-borde-y-mi-ciclo","vibracion-suave-ronda-2","vibracion-suave-ronda-3","vibracion-ajustador","vibracion-ajustador-r2","vibracion-r4","vibracion-r5","vibracion-r6"];
+  // Las rondas de vibración ya aprobadas (ninguna viva en el panel) se siguen resolviendo con lo declarado arriba: nada sale de
+  // la entrega, y sus huellas cambian porque su código cambia de verdad (sin ajustador y con los valores de serie nuevos).
+  const rondasVibracion=["vibracion-borde-y-mi-ciclo","vibracion-suave-ronda-2","vibracion-suave-ronda-3","vibracion-ajustador","vibracion-ajustador-r2","vibracion-r3","vibracion-r4","vibracion-r5","vibracion-r6"];
   const oldReceipt=betaDelivery(betaNotes(before,old,integrated),old,integrated);
-  for(const id of delAjustador){assert.ok(oldReceipt.web[id],id+": la 244 aún la entregaba");assert.equal(receipt.web[id],undefined,id+": fuera de la entrega");assert.ok(!vivas.includes(id),id+": no estaba viva");}
-  assert.deepEqual(Object.keys(oldReceipt.web).filter(id=>!receipt.web[id]).sort(),delAjustador.slice().sort(),"no sale nada más de la entrega");
+  for(const id of rondasVibracion){assert.ok(oldReceipt.web[id]&&receipt.web[id],id+": se entrega antes y ahora");assert.notEqual(receipt.web[id],oldReceipt.web[id],id+": su huella se mueve");assert.ok(!vivas.includes(id),id+": no está viva en el panel");}
+  assert.deepEqual(Object.keys(oldReceipt.web).filter(id=>!receipt.web[id]),[],"no sale nada de la entrega");
   const [g1,g2,g3]=[built[1].tandas[0],built[2].tandas[0],built[3].tandas[0]];
   assert.deepEqual(receipt.pruebas,{[nueva]:{v:"4.26.245",contenido:JSON.stringify([nueva,g0.t.es,g0.items.es,1])},"beta-244":{v:"4.26.244",contenido:JSON.stringify(["beta-244",g1.t.es,g1.items.es,1])},"beta-243":{v:"4.26.243",contenido:JSON.stringify(["beta-243",g2.t.es,g2.items.es,1])},"dinero-242":{v:"4.26.242",contenido:JSON.stringify(["dinero-242",g3.t.es,g3.items.es,1])}},"cuatro guiones por probar: el nuevo, beta-244, beta-243 y dinero-242");
 });

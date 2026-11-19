@@ -68043,7 +68043,7 @@
       },
       {
         "file": "src/modules/03-tab-dash.js",
-        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen v4-inicio\",onAnimationStart:mcInicioFillHaptic},",
         "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
       },
       {
@@ -70477,7 +70477,7 @@
       },
       {
         "file": "src/modules/03-tab-dash.js",
-        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen v4-inicio\",onAnimationStart:mcInicioFillHaptic},",
         "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
       },
       {
@@ -71813,7 +71813,7 @@
       },
       {
         "file": "src/modules/03-tab-dash.js",
-        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen v4-inicio\",onAnimationStart:mcInicioFillHaptic},",
         "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
       },
       {
@@ -79223,18 +79223,6 @@
       },
       {
         "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneSave"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneReset"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneText"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
         "function": "mcBezierY"
       },
       {
@@ -79259,15 +79247,11 @@
       },
       {
         "file": "src/modules/10-app-components.js",
-        "function": "HapticTuner"
-      },
-      {
-        "file": "src/modules/10-app-components.js",
         "function": "SettingsPanel"
       },
       {
         "file": "src/modules/03-tab-dash.js",
-        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen v4-inicio\",onAnimationStart:mcInicioFillHaptic},",
         "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
       },
       {
@@ -85645,18 +85629,6 @@
       },
       {
         "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneSave"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneReset"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneText"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
         "function": "mcBezierY"
       },
       {
@@ -85685,15 +85657,11 @@
       },
       {
         "file": "src/modules/10-app-components.js",
-        "function": "HapticTuner"
-      },
-      {
-        "file": "src/modules/10-app-components.js",
         "function": "SettingsPanel"
       },
       {
         "file": "src/modules/03-tab-dash.js",
-        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen v4-inicio\",onAnimationStart:mcInicioFillHaptic},",
         "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
       },
       {
@@ -97351,18 +97319,6 @@
       },
       {
         "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneSave"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneReset"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneText"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
         "function": "mcBezierY"
       },
       {
@@ -97391,15 +97347,11 @@
       },
       {
         "file": "src/modules/10-app-components.js",
-        "function": "HapticTuner"
-      },
-      {
-        "file": "src/modules/10-app-components.js",
         "function": "SettingsPanel"
       },
       {
         "file": "src/modules/03-tab-dash.js",
-        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen v4-inicio\",onAnimationStart:mcInicioFillHaptic},",
         "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
       },
       {
@@ -99786,10 +99738,6 @@
       },
       {
         "file": "src/modules/02-ui-shared.js",
-        "function": "mcHapticTuneText"
-      },
-      {
-        "file": "src/modules/02-ui-shared.js",
         "function": "mcCycleTicks"
       },
       {
@@ -99807,10 +99755,6 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "mcBezierY"
-      },
-      {
-        "file": "src/modules/10-app-components.js",
-        "function": "HapticTuner"
       },
       {
         "file": "src/modules/02-ui-shared.js",
@@ -99905,10 +99849,6 @@
       {
         "file": "src/modules/03-tab-dash.js",
         "function": "NetWorthNow"
-      },
-      {
-        "file": "src/modules/10-app-components.js",
-        "function": "HapticTuner"
       },
       {
         "file": "src/modules/14-v4-screens.js",
