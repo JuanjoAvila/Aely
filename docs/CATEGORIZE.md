@@ -11,13 +11,15 @@
      pull (`keepCategoryChoices`) para el cargo siguiente que categorizó el servidor.
    - Las dos se aplican también al **mismo comercio escrito distinto** (`comercioBase`: sin números
      de tienda/tarjeta, signos ni forma jurídica). No si la base es genérica («Compra 123»,
-     «Transferencia») ni si dos correcciones de la misma base se contradicen.
+     «Transferencia»), una pasarela con solo un código («AMZN Mktp ES*…», «PAYPAL *1234567») o un
+     tipo de local con número («Taxi 4421», «Bar 21»), ni si dos correcciones de la misma base se
+     contradicen.
    - Nunca tocan el histórico ni un gasto al que ya pusiste categoría a mano.
 
 ## La IA de pago, retirada
 
 La app ya no llama a la Edge `categorize` ni enseña el ajuste «Sugerir categoría con IA» ni el ✨
-de la ficha. El secreto `OPENAI_API_KEY` nunca se configuró en Supabase, así que la función solo
+de la ficha ni el del chip sugerido en Apuntar. El secreto `OPENAI_API_KEY` nunca se configuró en Supabase, así que la función solo
 repetía las palabras clave con una llamada de red de por medio.
 
 ⚠ La Edge `categorize` **sigue desplegada** y su código sigue en `supabase/functions/categorize/`

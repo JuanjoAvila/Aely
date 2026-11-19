@@ -24,14 +24,14 @@ async function openApuntar(page, settingsExtra, cloudFns) {
   return sheet;
 }
 
-test("Apuntar: escribir Mercadona selecciona supermercado con ✨", async ({ page }) => {
+test("Apuntar: escribir Mercadona selecciona supermercado, sin ✨ (es una regla, no IA)", async ({ page }) => {
   const sheet = await openApuntar(page);
   await sheet.locator(".v4-input").fill("Mercadona");
   const superChip = sheet.locator('[data-testid="ap-cat-super"]');
   await expect.poll(async () => {
     const cls = await superChip.getAttribute("class");
     const txt = await superChip.innerText();
-    return (cls || "").includes(" on") && txt.includes("✨");
+    return (cls || "").includes(" on") && !txt.includes("✨");
   }, { timeout: 3_000, message: "las palabras clave no han marcado supermercado" }).toBe(true);
 });
 

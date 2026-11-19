@@ -2815,7 +2815,7 @@ function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix,
       return React.createElement("button",{key:c.id,type:"button",className:"v4-ficha-cat"+(on?" on":""),
         "data-testid":(testPrefix||"expense-cat")+"-"+c.id,"aria-pressed":on,onClick:function(){ onPick(c.id); }},
         React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
-        React.createElement("span",null,(c.label||catName(c.id))+(c.suggested?" ✨":"")));
+        React.createElement("span",null,c.label||catName(c.id)));
     }),
     fin||null
   );

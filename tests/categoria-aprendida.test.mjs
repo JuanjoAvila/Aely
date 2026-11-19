@@ -86,3 +86,45 @@ test("lo genérico y lo contradictorio no se aprende por parecido", () => {
   assert.equal(cli.comercioBase("Transferencia 0001"), "");
   assert.equal(cli.comercioBase("Movimiento"), "");
 });
+
+/* Los tres de abajo salen de la revisión de dinero del 19/11: eran garantías ciertas en el código
+   pero sin test que cayera al romperlas (mutantes vivos), o comercios distintos que se fundían. */
+test("lo aprendido por parecido NO mueve el «Otros» que ya estaba guardado", () => {
+  const cli = loadPureLogicFromFile();
+  corrige(cli, {}, gasto(1, "Super Ejemplo 1234"), "bares");
+  assert.equal(cli.categoryOfNewMerchant("SUPER EJEMPLO 5678"), "bares", "control: el alta sí lo aprende");
+  // Lo que relee el histórico en cada carga y en cada pull: solo el texto exacto.
+  assert.equal(cli.autoCategory("SUPER EJEMPLO 5678"), "otros");
+  assert.equal(cli.resolveCategory("otros", "SUPER EJEMPLO 5678"), "otros");
+  assert.equal(cli.expenseFromRow(fila(7, "SUPER EJEMPLO 5678", "2026-10-02T10:00:00.000Z", "otros")).category, "otros",
+    "una fila vieja en «Otros» cambiaría de categoría en un mes cerrado");
+});
+
+test("inversión, traspaso y deudas no se contagian al comercio parecido", () => {
+  for (const neutra of ["inversion", "traspaso", "deudas"]) {
+    const cli = loadPureLogicFromFile();
+    corrige(cli, {}, gasto(1, "Gestora Ejemplo 0001"), neutra);
+    assert.equal(cli.categoryOfNewMerchant("GESTORA EJEMPLO 0002"), "otros", neutra + " en el alta");
+    const nueva = cli.expenseFromRow(fila(2, "GESTORA EJEMPLO 0002", "2026-11-12T10:00:00.000Z", "otros"));
+    const r = cli.keepCategoryChoices([], [nueva], Date.now());
+    assert.equal(r.incoming[0].category, "otros", neutra + " en el pull");
+    assert.equal(r.recat.length, 0);
+  }
+});
+
+test("una pasarela con código o un tipo de local con número no enseñan a los demás", () => {
+  const limpio = loadPureLogicFromFile();
+  const cli = loadPureLogicFromFile();
+  vm.runInNewContext("USER_OVERRIDES={'amzn mktp es*2k4xy12z0':'regalos','paypal *1234567':'regalos','taxi 4421':'regalos'," +
+    "'bar 21':'regalos','farmacia 0453':'regalos','cuota prestamo 1234':'regalos'};USER_CAT_RULES={}", cli);
+  for (const m of ["AMZN Mktp ES*9Z8QQ1AB3", "PAYPAL *998877A", "TAXI 9981", "Bar 33", "Farmacia 24h", "Cuota prestamo 9999"]) {
+    assert.equal(cli.comercioBase(m), "", m);
+    assert.equal(cli.categoryOfNewMerchant(m), limpio.categoryOfNewMerchant(m), m + ": otro pedido/local, manda la palabra clave");
+  }
+  assert.equal(cli.categoryOfNewMerchant("AMZN Mktp ES*2K4XY12Z0"), "regalos", "el mismo texto sí");
+  // Con nombre detrás sigue siendo un comercio que se aprende.
+  corrige(cli, {}, gasto(1, "PAYPAL *STEAM 111"), "ocio");
+  assert.equal(cli.categoryOfNewMerchant("PAYPAL *STEAM 222"), "ocio");
+  corrige(cli, {}, gasto(2, "Bar Pepe 1"), "regalos");
+  assert.equal(cli.categoryOfNewMerchant("BAR PEPE 2"), "regalos");
+});

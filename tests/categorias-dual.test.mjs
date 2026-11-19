@@ -135,5 +135,37 @@ t("el histórico NO se toca: autoCategory sigue sin detectar el cajero", () => {
   assert.equal(cli.categoryOfNewMerchant("RETIRADA CAJERO 4B"), "traspaso");
 });
 
+t("★ los comercios del 19/11 caen en SU categoría, en la app y en el servidor", () => {
+  /* La paridad sola no basta: quitar una palabra de los DOS lados, o moverla de lista en los dos,
+     dejaba todo en verde (mutantes vivos de la revisión de dinero del 19/11). Aquí va la categoría
+     escrita. `hist` es lo que relee el «Otros» guardado (`autoCategory`), que no conoce gasolina. */
+  const debe = [
+    ["bonarea", "super"], ["bon area", "super"], ["coviran", "super"], ["masymas", "super"], ["hiperdino", "super"],
+    ["ametller origen", "super"], ["plusfresc", "super"], ["cash fresh", "super"], ["leclerc", "super"], ["sorli", "super"],
+    ["lizarran", "bares"], ["bocatta", "bares"],
+    ["waylet", "transporte"], ["cooltra", "transporte"], ["zity", "transporte"], ["free2move", "transporte"], ["yego", "transporte"],
+    ["petronor", "gasolina", "transporte"], ["meroil", "gasolina", "transporte"], ["esclatoil", "gasolina", "transporte"],
+    ["skyshowtime", "ocio"], ["vivagym", "ocio"], ["viva gym", "ocio"], ["altafit", "ocio"], ["anytime fitness", "ocio"],
+    ["holmes place", "ocio"], ["go fit", "ocio"], ["gofit", "ocio"], ["dreamfit", "ocio"],
+    ["avatel", "recibos"], ["adamo", "recibos"], ["euskaltel", "recibos"], ["telecable", "recibos"], ["catalana occidente", "recibos"],
+    ["conforama", "hogar"], ["jysk", "hogar"], ["maisons du monde", "hogar"], ["kave home", "hogar"], ["bricor", "hogar"],
+    // Como llegan en el extracto.
+    ["GO FIT VALLSUREDA", "ocio"], ["BONAREA 0123 GUISSONA", "super"], ["E.LECLERC PAMPLONA", "super"],
+    /* Y lo que esas palabras NO pueden llevarse (medido contra la base antes de añadirlas): una
+       persona, un apellido, otra empresa, la farmacia de la calle y el surtidor del súper. */
+    ["Transferencia a Diego Fitó", "otros"], ["Santiago Fita", "otros"], ["CARBON AREA SL", "otros"],
+    ["Leclercq Abogados", "tasas"], ["Farmacia Ametller", "salud"],
+    ["BONAREA GASOLINERA GUISSONA", "gasolina", "super"], ["E.LECLERC ESTACION DE SERVICIO", "gasolina", "super"],
+    ["LECLERC CARBURANTE", "gasolina", "super"], ["PETRONOR BILBAO", "gasolina", "transporte"],
+  ];
+  const mal = [];
+  for (const [m, alta, hist] of debe) {
+    const v = [cli.categoryOfNewMerchant(m), categorizar(m), cli.autoCategory(m)];
+    const e = [alta, alta, hist || alta];
+    if (v.join() !== e.join()) mal.push(`«${m}» → app=${v[0]} · servidor=${v[1]} · histórico=${v[2]} (debería ser ${e.join("/")})`);
+  }
+  assert.deepEqual(mal, []);
+});
+
 console.log(failed ? `\n${failed} fallo(s)` : "\ncategorias-dual: OK");
 process.exit(failed ? 1 : 0);

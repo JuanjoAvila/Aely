@@ -14,7 +14,7 @@ export const CATEGORIAS: Record<string, string[]> = {
   heladeria:  ["heladeria","gelateria","ice cream","llaollao","llao llao","ocool","frosti","haagen","ben & jerry","ben and jerry","grom ","amorino"],
   bares:      ["restaurante","bar","cafe","cafeteria","mcdonald","burger","pizza","sushi","tapas","cerveceria","bodega","bocadillo","kebab","pollo","grill","braseria","taberna","comida","food","lunch","dinner","brunch","desayuno","telepizza","glovo","just eat","uber eats","kfc","five guys","fiveguys","goiko","tgb","taco bell","tacobell","domino","papa john","subway","starbucks","vips","foster","montadito","rodilla","pans &","pans ","wok ","ramen","poke","taco","churreria","churros","asador","brasa","marisqueria","mariscos","pub ","shawarma","doner","döner","nandos","popeyes","dunkin","donut","tim hortons","cien montaditos","la sureña","sureña","muerde la pasta","ginos","la tagliatella","tagliatella","udon","wagamama","honest greens","croqueteria","tortilleria","gastrobar","vermuteria","coctel","cocktail","vending","expendedor","deliveroo","too good to go","toogoodtogo","mcdonalds","burger king","hamburgues","cervecer","cerveseria","fosters hollywood","100 montaditos","comida a domicilio","lizarran","bocatta"],
   padel:      ["padel","pádel","playtomic","paddle","club de padel","club padel","pista padel","padel pro","world padel","premier padel","indoor padel"],
-  super:      ["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","bonarea","bon area","coviran","covirán","masymas","hiperdino","ametller","plusfresc","cash fresh","leclerc","sorli"],
+  super:      ["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","bonarea","bon area","coviran","covirán","masymas","hiperdino","ametller origen","plusfresc","cash fresh","leclerc","sorli"],
   viajes:     ["booking","airbnb","hotel","hostal","hostel","apartament turistic","apartamento turistico","vueling","iberia","ryanair","easyjet","vuelos","vuelo ","aeropuerto","airport","expedia","trivago","kayak","edreams","rumbo","logitravel","civitatis","getyourguide","marriott","hilton","ibis ","nh hotel","melia","barcelo","ac hotel","travelodge","camping","ferry","balearia","crucero","cruise","turismo"],
   transporte: ["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","ballenoil","carburante","gasoleo","diesel","recarga electr","free now","freenow","waylet","petronor","meroil","esclatoil","cooltra","zity","free2move","yego"],
   parking:    ["parking","parquimetro","parkimetro","parquímetro","aparcament","aparcamiento","saba","b:sm","bsm","empark","interparking","apk2","apk80","onepark","elparking","easypark","telpark","zona azul","zona verde","area verde","àrea verda","grua municipal","indigo parking"],
@@ -30,7 +30,7 @@ export const CATEGORIAS: Record<string, string[]> = {
   educacion:  ["universidad","universitat","uab ","upc ","upf ","ub ","uoc ","uned","campus","matricula","matrícula","academia","curso ","cursos","formacion","formación","master ","máster","mba ","udemy","coursera","domestika","linkedin learning","skillshare","colegio","escola","guarderia","guardería","autoescuela","autoescola","british council","openenglish"],
   gaming:     ["steam","instant gaming","instantgaming","instant-gaming","g2a","eneba","cdkeys","humble bundle","epic games","battle.net","vs gamers","versus gamers","playstation store","xbox store","nintendo eshop","nintendo e-shop"],
   ia:         ["anthropic","claude","claude.ai","openai","chatgpt","chat gpt","gpt-","cursor","midjourney","perplexity","github copilot"],
-  ocio:       ["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","icloud","apple.com","youtube premium","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","synergym","crossfit","portaventura","tibidabo","skyshowtime","vivagym","viva gym","altafit","anytime fitness","holmes place","go fit","dreamfit"],
+  ocio:       ["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","icloud","apple.com","youtube premium","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","synergym","crossfit","portaventura","tibidabo","skyshowtime","vivagym","viva gym","altafit","anytime fitness","holmes place","go fit","gofit","dreamfit"],
   // Recibos DESPUÉS de ocio: «movistar plus» es streaming; el teléfono Movistar, no.
   recibos:    ["vodafone","yoigo","masmovil","mas movil","pepephone","jazztel","finetwork","simyo","lowi","parlem","digi espa","digi mobil","digi mov","movistar","orange es","orange espana","orange spain","orange fibra","orange movil","o2 es","o2 espa","telefonia","telefonica","fibra optica","factura movil","recibo movil","mapfre","allianz","axa ","axa.","pelayo","zurich","genesis seguro","direct seguros","mutua madrilena","linea directa","reale seguro","helvetia","alquiler","comunidad de prop","administracion de finca","adm fincas","cuota comunidad","prosegur","securitas direct","avatel","adamo","euskaltel","telecable","catalana occidente"],
   compras:    ["zara","mango","primark","stradivarius","bershka","pull &","el corte","amazon","amzn","aliexpress","pccomponentes","mediamarkt","worten","nike","adidas","foot locker","alehop","tiger","flying tiger","normal ","tedi","action","muy mucho","sostrene","kiabi","lefties","springfield","cortefiel","jd sports","sprinter","shein","temu","massimo","oysho","calzedonia","intimissimi","clas ohlson","veritas","douglas perfum","cofidis","papeleria","papelería","copisteria","libreria","druni","primor","sephora","perfumeria","uniqlo","h&m","bimba y lola"],
@@ -53,6 +53,10 @@ const KW_PALABRA: Record<string, number> = {
   "hospital": 1,  // hospital ⊂ HOSPITALET
   "midas": 1,     // Midas (talleres) como palabra entera
   "mango": 1,     // la tienda Mango ⊂ MANGOpay, la pasarela de Vinted (2026-09-12)
+  // Revisión de dinero del 19/11: con espacio o apellido, sueltas casaban dentro de otra cosa.
+  "go fit": 1,    // ⊂ dieGO FITó, santiaGO FITa: una transferencia a una persona salía como ocio
+  "bon area": 1,  // ⊂ carBON AREA
+  "leclerc": 1,   // ⊂ LECLERCq (un apellido)
 };
 
 /* PALABRAS QUE TIENEN QUE EMPEZAR PALABRA. Espejo EXACTO de `KW_INICIO` en `00-core.js`.
@@ -125,14 +129,16 @@ function mobilityCategoryOfNewMerchant(comercio: string, cat: string): string {
     if (/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
     if (/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
   }
-  if (cat !== "transporte" && cat !== "otros" && !(cat === "super" && /\bcarrefour gas\b/.test(c))) return cat;
+  // El surtidor de un súper (BonÀrea, Leclerc, Carrefour) es carburante aunque el nombre del súper
+  // se mire antes. Misma expresión que en `00-core.js` (19/11).
+  if (cat !== "transporte" && cat !== "otros" && !(cat === "super" && /\b(gasolinera|gasoleo|carburante)\b|\bestacion de servicio\b|\bcarrefour gas\b/.test(c))) return cat;
   if (/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if (/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
   if (/\brepsol\b/.test(c)) {
     if (/\bluz\b|electric|energia/.test(c)) return "luz";
     if (/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
   }
-  if (/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
+  if (/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat|petronor|meroil|esclatoil)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
   if (/\b(taxi|cabify|uber|moove|bolt|free ?now|ambitus)\b/.test(c)) return "taxi";
   return cat;
 }

@@ -4928,7 +4928,6 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   /* Sugerir categoría al escribir el concepto (13/9, opción A): lo aprendido y las palabras clave
      se aplican solas. Lo que tocas a mano manda. */
   const [tocadaAMano,setTocadaAMano]=useState(false);
-  const [sugKw,setSugKw]=useState(null);
   /* Escribiendo el concepto (DIS-05, 15/11): el teclado del sistema tapaba el campo, o el teclado
      numérico pegado abajo lo tapaba a él, y se escribía a ciegas. Con el foco en el concepto el
      numérico se esconde, el botón pasa a «Listo» y la hoja se sube sobre el teclado del sistema. */
@@ -4993,7 +4992,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     if(open&&!ensayo){
       guardadoRef.current=false;
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
-      setTocadaAMano(false); setSugKw(null);
+      setTocadaAMano(false);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
       setKbPrevio(false); previoRef.current=false; tecladoVistoRef.current=false; clearTimeout(previoTmRef.current); setKbYa(false);
@@ -5012,8 +5011,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     if(!open || kind!=="gasto") return undefined;
     const tKw=setTimeout(function(){
       const sug=sugerenciaApuntar({ concepto:String(noteRef.current||"").trim(), tocadaAMano:tocadaRef.current });
-      if(sug.kwCat){ setCat(sug.kwCat); setSugKw(sug.kwCat); }
-      else if(!tocadaRef.current) setSugKw(null);
+      if(sug.kwCat) setCat(sug.kwCat);
     }, 400);
     return function(){ clearTimeout(tKw); };
   },[open, note, kind]);
@@ -5193,11 +5191,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   };
   const cats=XC.filter(function(c){ return c.id!=="otros"; }).concat(XC.filter(function(c){ return c.id==="otros"; }));
   const pickCat=function(id){
-    setCat(id); setTocadaAMano(true); setSugKw(null);
+    setCat(id); setTocadaAMano(true);
   };
-  const visibleCats=fichaCats.map(function(c){
-    return Object.assign({},c,{suggested:sugKw===c.id && cat===c.id && !tocadaAMano});
-  });
   const payMode=bank==="efectivo"?"cash":(nc?"transfer":"card");
   /* Lo que escribe cada opción es lo que hoy guardaba cada mando (DIS-03): salir de Efectivo vuelve
      al banco de gasto diario, como al apagar el 💶. Efectivo deja `noCard` en falso, que es lo que
@@ -5283,14 +5278,14 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
               listoQuedaRef.current=setTimeout(function(){ setListoQueda(false); },mcReduced()?0:300);
             };
             if(!dedoRef.current){ suelta(); return; }
-            /* Blur por un toque en la propia hoja (una categoría, el chip ✨…): si el teclado numérico
+            /* Blur por un toque en la propia hoja (una categoría…): si el teclado numérico
                vuelve antes del `click`, la hoja crece, lo tocado se mueve y el click cae en otra
                cosa. Se espera a que ese toque termine. */
             const fin=function(){ document.removeEventListener("click",fin,true); clearTimeout(tm); setTimeout(suelta,0); };
             document.addEventListener("click",fin,true);
             const tm=setTimeout(fin,600);
           },kb:kbVista,
-          categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
+          categoryItems:fichaCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
           numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catRowsMax:2,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
           // Con letra Muy grande o Enorme no cabe la fila de cabecera: «Todas ›» va al final de la fila que se desliza.

@@ -440,7 +440,7 @@ const KW = {
   bares:["restaurante","bar","cafe","cafeteria","mcdonald","burger","pizza","sushi","tapas","cerveceria","bodega","bocadillo","kebab","pollo","grill","braseria","taberna","comida","food","lunch","dinner","brunch","desayuno","telepizza","glovo","just eat","uber eats","kfc","five guys","fiveguys","goiko","tgb","taco bell","tacobell","domino","papa john","subway","starbucks","vips","foster","montadito","rodilla","pans &","pans ","wok ","ramen","poke","taco","churreria","churros","asador","brasa","marisqueria","mariscos","pub ","shawarma","doner","döner","nandos","popeyes","dunkin","donut","tim hortons","cien montaditos","la sureña","sureña","muerde la pasta","ginos","la tagliatella","tagliatella","udon","wagamama","honest greens","croqueteria","tortilleria","gastrobar","vermuteria","coctel","cocktail","vending","expendedor","deliveroo","too good to go","toogoodtogo","mcdonalds","mcdonald's","burger king","hamburgues","cervecer","cerveseria","fosters hollywood","ladydiana","100 montaditos","comida a domicilio","lizarran","bocatta"],
   // Pádel DESPUÉS de bares: «restaurante de pádel» debe ser comida (feedback histórico).
   padel:["padel","pádel","playtomic","paddle","club de padel","club padel","pista padel","padel pro","world padel","premier padel","indoor padel"],
-  super:["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","ahorramás","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","compra online mercadona","bonarea","bon area","coviran","covirán","masymas","hiperdino","ametller","plusfresc","cash fresh","leclerc","sorli"],
+  super:["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","ahorramás","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","compra online mercadona","bonarea","bon area","coviran","covirán","masymas","hiperdino","ametller origen","plusfresc","cash fresh","leclerc","sorli"],
   // Viajes ANTES que ocio/transporte: booking/vueling no son «ocio» ni solo «metro».
   viajes:["booking","airbnb","hotel","hostal","hostel","apartament turistic","apartamento turistico","vueling","iberia","ryanair","easyjet","vuelos","vuelo ","aeropuerto","airport","expedia","trivago","kayak","edreams","rumbo","logitravel","civitatis","getyourguide","amadeus","renfe ave","hotelbeds","marriott","hilton","ibis ","nh hotel","melia","meliá","barcelo","barceló","ac hotel","travelodge","pension ","pensión ","camping","ferry","balearia","grimaldi","cruise","crucero","tourist","turismo"],
   transporte:["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus","waylet","petronor","meroil","esclatoil","cooltra","zity","free2move","yego"],
@@ -474,7 +474,7 @@ const KW = {
   // Suscripciones de IA separadas de Ocio (feedback 2026-09-07): son herramientas de trabajo
   // distintas de Netflix/Spotify y el presupuesto tiene que poder enseñarlas por separado.
   ia:["anthropic","claude","claude.ai","openai","chatgpt","chat gpt","gpt-","cursor","midjourney","perplexity","github copilot"],
-  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo","skyshowtime","vivagym","viva gym","altafit","anytime fitness","holmes place","go fit","dreamfit"],
+  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo","skyshowtime","vivagym","viva gym","altafit","anytime fitness","holmes place","go fit","gofit","dreamfit"],
   // Recibos DESPUÉS de ocio: «movistar plus» es streaming; el teléfono Movistar, no.
   // Impuestos en tasas; Sanitas/Adeslas en salud (luz/agua/gas ya van por su lista).
   recibos:["vodafone","yoigo","masmovil","mas movil","pepephone","jazztel","finetwork","simyo","lowi","parlem","digi espa","digi mobil","digi mov","movistar","orange es","orange espana","orange spain","orange fibra","orange movil","o2 es","o2 espa","telefonia","telefonica","fibra optica","factura movil","recibo movil","mapfre","allianz","axa ","axa.","pelayo","zurich","genesis seguro","direct seguros","mutua madrilena","linea directa","reale seguro","helvetia","alquiler","comunidad de prop","administracion de finca","adm fincas","cuota comunidad","prosegur","securitas direct","avatel","adamo","euskaltel","telecable","catalana occidente"],
@@ -542,6 +542,11 @@ const KW_PALABRA={
   "hospital":1,   // hospital ⊂ HOSPITALET
   "midas":1,      // Midas (talleres) como palabra entera
   "mango":1,      // la tienda Mango ⊂ MANGOpay, la pasarela de pago de Vinted (2026-09-12)
+  /* Revisión de dinero del 19/11, medidas contra la base: llevan espacio o son un apellido, y
+     sueltas casaban dentro de otra cosa. Enteras siguen reconociendo la cadena. */
+  "go fit":1,     // ⊂ dieGO FITó, santiaGO FITa: una transferencia a una persona salía como ocio
+  "bon area":1,   // ⊂ carBON AREA
+  "leclerc":1,    // ⊂ LECLERCq (un apellido)
 };
 /* PALABRAS QUE TIENEN QUE EMPEZAR PALABRA (2026-09-12). Hermana de `KW_PALABRA`, pero NO la misma,
    y la diferencia es la que hace que funcione:
@@ -609,7 +614,15 @@ function categoryOfNewMerchant(merchant){
    misma base dicen cosas distintas: entonces no se sabe cuál quiso y manda la palabra clave. */
 const BASE_GENERICA={compra:1,compras:1,pago:1,pagos:1,tarjeta:1,tarj:1,transferencia:1,transf:1,trf:1,bizum:1,
   recibo:1,cargo:1,abono:1,ingreso:1,traspaso:1,nomina:1,movimiento:1,gasto:1,operacion:1,adeudo:1,domiciliacion:1,
-  devolucion:1,comision:1,de:1,del:1,en:1,la:1,el:1,con:1,por:1,para:1,enviado:1,recibido:1};
+  devolucion:1,comision:1,de:1,del:1,en:1,la:1,el:1,con:1,por:1,para:1,enviado:1,recibido:1,
+  /* Pasarelas y mercados cuyo único distintivo es un código («AMZN Mktp ES*2K4XY12Z0», «PAYPAL
+     *1234567»): corregir UN pedido mandaba todos los siguientes a esa categoría. Y el tipo de
+     local con un número («Taxi 4421», «Bar 21», «Farmacia 0453») son comercios distintos. Con
+     nombre detrás («PAYPAL *STEAM», «Bar Pepe») siguen aprendiéndose (revisión de dinero, 19/11). */
+  amzn:1,amazon:1,mktp:1,marketplace:1,paypal:1,sumup:1,izettle:1,zettle:1,
+  taxi:1,bar:1,cafe:1,cafeteria:1,restaurante:1,restaurant:1,tienda:1,botiga:1,parking:1,aparcamiento:1,
+  farmacia:1,fcia:1,gasolinera:1,supermercado:1,estanco:1,kiosko:1,quiosco:1,panaderia:1,peluqueria:1,
+  hotel:1,cuota:1,prestamo:1,factura:1,pedido:1};
 // La forma jurídica («SLU» junta o «S.L.U.» en letras sueltas) no distingue un comercio de otro.
 const BASE_SOCIEDAD={sa:1,sl:1,slu:1,sau:1,sll:1,slp:1,scp:1,sccl:1,cb:1,ltd:1,inc:1,gmbh:1,bv:1,srl:1};
 function comercioBase(merchant){
@@ -648,14 +661,17 @@ function mobilityCategoryOfNewMerchant(merchant,cat){
     if(/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
     if(/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
   }
-  if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
+  /* Un súper con surtidor (BonÀrea, Leclerc, Carrefour) cobra el carburante con su nombre: «BONAREA
+     GASOLINERA GUISSONA» era gasolina hasta que «bonarea» entró en super, que se mira antes
+     (revisión de dinero, 19/11). Solo cuando el texto dice que es el surtidor. */
+  if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\b(gasolinera|gasoleo|carburante)\b|\bestacion de servicio\b|\bcarrefour gas\b/.test(c))) return cat;
   if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
   if(/\brepsol\b/.test(c)){
     if(/\bluz\b|electric|energia/.test(c)) return "luz";
     if(/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
   }
-  if(/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
+  if(/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat|petronor|meroil|esclatoil)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
   if(/\b(taxi|cabify|uber|moove|bolt|free ?now|ambitus)\b/.test(c)) return "taxi";
   return cat;
 }
