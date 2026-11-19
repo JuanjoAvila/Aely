@@ -452,7 +452,9 @@ public class TradeRepublicPlugin extends Plugin {
     }
 
     private String track(PluginCall call) {
-        String id = String.valueOf(System.nanoTime());
+        // Id imposible de adivinar (revisión R4, 19/11/2026): `AndroidTR` se expone a TODOS los marcos
+        // de la WebView, también a un iframe ajeno; con un id del reloj podía contestar por TR.
+        String id = java.util.UUID.randomUUID().toString();
         pending.put(id, call);
         call.setKeepAlive(true);   // la respuesta llega asíncrona por el puente
         // Red de seguridad: si una recarga se come el contexto JS y nada responde, resolvemos

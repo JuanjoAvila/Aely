@@ -152,6 +152,9 @@ public class TrExpenseListener extends NotificationListenerService {
         String ingestUrl = getSharedPreferences("micartera_ingest", MODE_PRIVATE).getString("url", "");
         if ((ingestUrl == null || ingestUrl.isEmpty()) && BuildConfig.DEBUG) ingestUrl = BuildConfig.INGEST_URL;
         if (ingestUrl == null || ingestUrl.isEmpty()) return;
+        // También al USARLA (revisión R5, 19/11/2026): una URL guardada por una APK anterior, que no
+        // la comprobaba, sobreviviría a la actualización hasta que la web reenviase la buena.
+        if (!BuildConfig.DEBUG && !MiCarteraPlugin.ingestUrlPermitida(ingestUrl)) return;
         final String INGEST_URL = ingestUrl;
 
         CharSequence titleCs = sbn.getNotification().extras.getCharSequence("android.title");

@@ -354,11 +354,18 @@ public class MiCarteraPlugin extends Plugin {
         if (sha256 != null && !sha256.isEmpty() && !sha256.matches("(?i)[0-9a-f]{64}")) {
             call.reject("actualización rechazada: huella no válida"); return;
         }
+        // Una instalación a la vez y un fichero propio por llamada (revisión R1, 19/11/2026): con un
+        // nombre fijo, una segunda llamada reescribía el APK YA verificado mientras el instalador lo
+        // leía, y el sistema acababa ofreciendo instalar lo que bajó la segunda sin verificar.
+        if (!INSTALANDO.compareAndSet(false, true)) {
+            call.reject("actualización rechazada: ya hay una en curso"); return;
+        }
         new Thread(() -> {
             File dir = new File(ctx.getCacheDir(), "updates");
             //noinspection ResultOfMethodCallIgnored
             dir.mkdirs();
-            File apk = new File(dir, "mi-cartera-update.apk");
+            limpiarApksViejos(dir);
+            File apk = new File(dir, "aely-" + java.util.UUID.randomUUID() + ".apk");
             try {
                 String bajada = descargarApk(url, apk);
                 if (sha256 != null && !sha256.isEmpty() && !sha256.equalsIgnoreCase(bajada)) {
@@ -382,8 +389,26 @@ public class MiCarteraPlugin extends Plugin {
                 //noinspection ResultOfMethodCallIgnored
                 apk.delete();
                 call.reject("descarga falló: " + e.getMessage());
+            } finally {
+                INSTALANDO.set(false);
             }
         }).start();
+    }
+
+    private static final java.util.concurrent.atomic.AtomicBoolean INSTALANDO =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    /* Cada llamada deja su APK (el instalador lo lee DESPUÉS de resolver, así que no se puede
+       borrar al acabar). Se recogen los de otras veces con margen de sobra para que el instalador
+       haya terminado con ellos; incluye el `mi-cartera-update.apk` de las APK anteriores. */
+    private static void limpiarApksViejos(File dir) {
+        File[] fs = dir.listFiles();
+        if (fs == null) return;
+        long corte = System.currentTimeMillis() - 30L * 60 * 1000;
+        for (File f : fs) {
+            //noinspection ResultOfMethodCallIgnored
+            if (f.isFile() && f.lastModified() < corte) f.delete();
+        }
     }
 
     /* Dónde puede vivir un APK de Aely: los releases de GitHub del dueño (`apk.json` siempre
@@ -400,8 +425,18 @@ public class MiCarteraPlugin extends Plugin {
             if (u.getPort() != -1 && u.getPort() != 443) return false;
             String h = u.getHost() == null ? "" : u.getHost().toLowerCase(java.util.Locale.ROOT);
             if (h.equals("github.com")) {
+                // Ruta EXACTA y sin escapes (revisión R1, 19/11/2026): java.net.URL no resuelve
+                // los .. pero GitHub sí, así que /JuanjoAvila/../otro/x/releases/download/… bajaba
+                // el release de OTRO dueño con el filtro de prefijo de antes (comprobado con curl).
                 String p = u.getPath() == null ? "" : u.getPath();
-                return p.startsWith(APK_OWNER_PATH) && p.contains("/releases/download/");
+                if (p.indexOf('%') >= 0 || p.indexOf('\\') >= 0) return false;
+                String[] s = p.split("/", -1);
+                if (s.length != 7 || !s[0].isEmpty() || !APK_OWNER_PATH.equals("/" + s[1] + "/")
+                        || !"releases".equals(s[3]) || !"download".equals(s[4])) return false;
+                for (int i = 1; i < s.length; i++) {
+                    if (s[i].isEmpty() || s[i].equals(".") || s[i].equals("..")) return false;
+                }
+                return s[2].matches("[A-Za-z0-9._-]+");
             }
             // El primer salto siempre es github.com; el CDN solo vale como destino de su redirección.
             return !inicial && h.endsWith(".githubusercontent.com");

@@ -81,6 +81,17 @@ ${metodo(tr, "paginaTR")}
     ok(!apkUrlPermitida("https://githubusercontent.com.evil.example/x.apk", false), "CDN falso");
     ok(!apkUrlPermitida("file:///sdcard/x.apk", true), "fichero local");
     ok(!apkUrlPermitida("no es una url", true), "basura");
+    // Revisión R1 (19/11/2026): GitHub resuelve los .. y el prefijo de antes lo dejaba pasar.
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/../otro/x/releases/download/v1/a.apk", true), "R1: .. salta de dueño");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/%2e%2e/otro/x/releases/download/v1/a.apk", true), "R1: %2e%2e");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/%2E%2E/otro/x/releases/download/v1/a.apk", true), "R1: %2E%2E");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/Aely/releases/download/../../../otro/x/releases/download/v1/a.apk", true), "R1: .. tras releases");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/Aely/releases/download/v1/..", true), "R1: .. como asset");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/./releases/download/v1/a.apk", true), "R1: . como repo");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila//releases/download/v1/a.apk", true), "R1: repo vacío");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/Aely/releases/download/v1/a%2Fb.apk", true), "R1: barra escapada");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/Aely/releases/download/v1/x/a.apk", true), "R1: segmentos de más");
+    ok(!apkUrlPermitida("https://github.com/JuanjoAvila/Aely/raw/main/releases/download/v1/a.apk", true), "R1: releases/download dentro de otra ruta");
     String ing = "https://" + INGEST_HOST + "/functions/v1/ingest?token=abc%2Bdef";
     ok(ingestUrlPermitida(ing), "ingest del proyecto");
     ok(!ingestUrlPermitida("http://" + INGEST_HOST + "/functions/v1/ingest?token=x"), "ingest sin https");
@@ -122,6 +133,20 @@ t("SEG-03: installApk comprueba origen, huella, paquete y firma antes del instal
   assert.match(plugin, /setInstanceFollowRedirects\(false\)/, "las redirecciones se siguen a mano, salto a salto");
   assert.doesNotMatch(plugin, /setInstanceFollowRedirects\(true\)/);
   assert.match(plugin, /getPackageName\(\)\.equals\(nueva\.packageName\)/, "otro paquete no se instala nunca");
+  // Revisión R1 (19/11/2026): con nombre fijo, una segunda llamada reescribía el APK ya verificado
+  // mientras el instalador lo leía. Fichero único por llamada y una instalación a la vez.
+  assert.doesNotMatch(body, /"mi-cartera-update\.apk"/, "R1: el APK no puede tener nombre fijo");
+  assert.match(body, /UUID\.randomUUID\(\)/, "R1: fichero propio por llamada");
+  assert.ok(i("INSTALANDO.compareAndSet(false, true)") < i("new Thread("), "R1: el cerrojo se toma antes de bajar");
+  assert.ok(i("INSTALANDO.set(false)") > i("ctx.startActivity(install)"), "R1: el cerrojo se suelta al acabar");
+});
+
+t("R4/R5: ids de TR no adivinables y la URL de ingest se comprueba también al usarla", () => {
+  const track = tr.slice(tr.indexOf("private String track("), tr.indexOf("private String track(") + 400);
+  assert.match(track, /UUID\.randomUUID\(\)/, "R4: el id del puente TR no sale del reloj");
+  assert.doesNotMatch(track, /nanoTime/);
+  const lis = rd("android/app/src/main/java/com/micartera/app/TrExpenseListener.java");
+  assert.match(lis, /MiCarteraPlugin\.ingestUrlPermitida\(ingestUrl\)/, "R5: el lector no manda a una URL guardada sin validar");
 });
 
 t("SEG-03: setIngestUrl rechaza un destino que no sea el ingest del proyecto", () => {
