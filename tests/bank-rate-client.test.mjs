@@ -27,7 +27,7 @@ async function flow(kind, lang, error, extra = {}) {
     uid: "synthetic", sessionRef: { current: {} }, bankSyncing: lock, pullOkRef: { current: Promise.resolve(true) },
     syncCloudExpenses: async () => {}, SYNC_SIN_NUBE: {}, obAckLoad: () => ({}), navigator: { onLine: true },
     window: { dispatchEvent() {} }, CustomEvent: function () {},
-    showToast: x => messages.push(x), avisaSync: (opts, x) => opts?.collect ? opts.collect.push(x) : messages.push(x),
+    showToast: x => messages.push(x), avisoSync: { current: null }, avisaSync: (opts, x) => opts?.collect ? opts.collect.push(x) : messages.push(x),
     t, bankRateLimited: limited, setBusy() {}, set() {}, location: {}, bankConnectOnce: async () => { calls.push("connect"); throw error; }, ...extra };
   const name = kind === "panel" ? "connect" : kind === "reconnect" ? "reconnectBank" : "runBankSync";
   const body = kind === "panel" ? connect : kind === "reconnect" ? reconnect : sync;
