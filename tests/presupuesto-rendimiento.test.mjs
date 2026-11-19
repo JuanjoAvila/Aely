@@ -498,7 +498,10 @@ const PRESUPUESTO = {
   // DEGIRO/IBKR) y la vibración sin su ajustador (fuera ~100 líneas de UI y 23 textos ×3) con el informe del mes en vista
   // previa, más el sello y la nota: 2.063.632 B minificado y 568.377 B gzip. Lo quitado compensa lo añadido; vuelve al
   // mínimo medido (mandato 11/10): 2016 / 556 KiB.
-  minificado: 2016 * 1024,
+  // Ronda E1 de dinero (19/11, sin sello ni nota): el día 31 en los meses cortos, «Te deben» con sus tres
+  // remates, la primera subida del histórico en lotes y el aviso de «Actualizar» con una lectura en marcha.
+  // Lógica de dinero (mandato 11/10): el minificado sube al mínimo medido, 2017 KiB; el gzip cabe en 556.
+  minificado: 2017 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
