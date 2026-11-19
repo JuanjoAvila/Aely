@@ -1226,6 +1226,85 @@ async function mcPullExpensesPaged(fetchPage){
 }
 
 
+/* HOGAR ENDURECIDO (SEG-10, ronda F, 19/11/2026). La migración 0028 trae `join_household`, que
+   devuelve {ok,code} en vez de lanzar: con la excepción de `join_household_by_code` el freno de la
+   0022 deshacía su propio contador y no contaba los fallos. Trae también la caducidad del código y
+   que el dueño pueda expulsar. Está escrita, pero una BD puede no tenerla aún: por eso cada paso
+   sabe caer a lo de antes en vez de romper el Hogar de la familia. Puras y con `sb` por parámetro
+   para poder probarlas sin red (tests/hogar-endurecido.test.mjs). */
+const HH_CODIGO_DIAS=30;
+function hhSinRpc(error){
+  const e=error||{};
+  return e.code==="PGRST202"||e.status===404||/could not find the function/i.test(String(e.message||""));
+}
+function hhSinColumna(error){
+  const e=error||{}, m=String(e.message||"");
+  return (e.code==="PGRST204"||e.code==="42703"||/column/i.test(m))&&/invite_expires_at/.test(m);
+}
+async function hhUnirse(sb, code){
+  const p={ p_code:String(code||"").trim() };
+  const r=await sb.rpc("join_household",p);
+  if(!r.error){
+    const d=r.data||{};
+    if(d.ok) return d.household_id||null;
+    throw new Error(String(d.code||"invalid_code"));
+  }
+  if(!hhSinRpc(r.error)) throw r.error;
+  const v=await sb.rpc("join_household_by_code",p);
+  if(v.error) throw v.error;
+  return v.data;
+}
+// El `.select()` distingue «hecho» de «la política no te deja»: sin permiso, la RLS no da error,
+// simplemente no toca ninguna fila.
+async function hhRegenerarCodigo(sb, hid, code, nowMs){
+  let caduca=new Date((nowMs!=null?nowMs:Date.now())+HH_CODIGO_DIAS*864e5).toISOString();
+  let r=await sb.from("households").update({ invite_code:code, invite_expires_at:caduca }).eq("id",hid).select("id");
+  if(r.error&&hhSinColumna(r.error)){
+    caduca=null;
+    r=await sb.from("households").update({ invite_code:code }).eq("id",hid).select("id");
+  }
+  if(r.error) throw r.error;
+  if(!r.data||!r.data.length) throw new Error("not_allowed");
+  return { invite_code:code, invite_expires_at:caduca };
+}
+async function hhExpulsar(sb, hid, userId){
+  const r=await sb.from("household_members").delete().eq("household_id",hid).eq("user_id",userId).select("user_id");
+  if(r.error) throw r.error;
+  if(!r.data||!r.data.length) throw new Error("not_allowed");
+}
+/* La fila propia se busca por `user_id`: la RLS deja ver a TODOS los miembros del hogar, así que el
+   `.limit(1)` de antes podía devolver la de otro y dar su rol (un miembro viéndose dueño o al revés).
+   La lista de miembros es solo para expulsar: si falla, el Hogar se pinta igual. */
+async function hhLeerHogar(sb){
+  const {data:ses}=await sb.auth.getSession();
+  const me=ses&&ses.session&&ses.session.user&&ses.session.user.id;
+  if(!me) return { household:null, snapshots:[], members:[] };
+  const {data:mem,error:e1}=await sb.from("household_members").select("household_id,role").eq("user_id",me).limit(1);
+  if(e1) throw e1;
+  if(!mem||!mem.length) return { household:null, snapshots:[], members:[] };
+  const hid=mem[0].household_id;
+  const {data:hh,error:e2}=await sb.from("households").select("*").eq("id",hid).maybeSingle();
+  if(e2) throw e2;
+  if(!hh) return { household:null, snapshots:[], members:[] };
+  const {data:snaps,error:e3}=await sb.from("household_snapshots")
+    .select("user_id,payload,published_at").eq("household_id",hid);
+  if(e3) throw e3;
+  let members=[];
+  try{
+    const r=await sb.from("household_members").select("user_id,role").eq("household_id",hid);
+    if(!r.error&&Array.isArray(r.data)) members=r.data;
+  }catch(e){}
+  return { household:hh, snapshots:snaps||[], myRole:mem[0].role, me:me, members:members };
+}
+// Un código viejo (los de 6 de antes del 13/9) o caducado: el dueño ve «Regenerar» destacado.
+function hhCodigoFlojo(hh, nowMs){
+  if(!hh) return false;
+  const c=String(hh.invite_code||"").replace(/[^A-Za-z0-9]/g,"");
+  if(c.length<10) return true;
+  const ms=hh.invite_expires_at?Date.parse(hh.invite_expires_at):NaN;
+  return isFinite(ms)&&ms<(nowMs!=null?nowMs:Date.now());
+}
+
 const cloud = (function(){
   let sb = null;
   const statePushCache=new Map();
@@ -2097,23 +2176,19 @@ const cloud = (function(){
     },
     async joinHousehold(code){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.rpc("join_household_by_code",{ p_code:String(code||"").trim() });
-      if(error) throw error;
-      return data;
+      return hhUnirse(sb, code);
+    },
+    async regenHouseholdCode(householdId, code){
+      if(!sb) throw new Error("nube no disponible");
+      return hhRegenerarCodigo(sb, householdId, code);
+    },
+    async kickHouseholdMember(householdId, userId){
+      if(!sb) throw new Error("nube no disponible");
+      return hhExpulsar(sb, householdId, userId);
     },
     async fetchHouseholdBundle(){
-      if(!sb) return { household:null, snapshots:[] };
-      const {data:mem,error:e1}=await sb.from("household_members").select("household_id,role").limit(1);
-      if(e1) throw e1;
-      if(!mem||!mem.length) return { household:null, snapshots:[] };
-      const hid=mem[0].household_id;
-      const {data:hh,error:e2}=await sb.from("households").select("*").eq("id",hid).maybeSingle();
-      if(e2) throw e2;
-      if(!hh) return { household:null, snapshots:[] };
-      const {data:snaps,error:e3}=await sb.from("household_snapshots")
-        .select("user_id,payload,published_at").eq("household_id",hid);
-      if(e3) throw e3;
-      return { household:hh, snapshots:snaps||[], myRole:mem[0].role };
+      if(!sb) return { household:null, snapshots:[], members:[] };
+      return hhLeerHogar(sb);
     },
     async publishHouseholdSnapshot(householdId, payload){
       if(!sb) throw new Error("nube no disponible");
@@ -2735,6 +2810,7 @@ const CLOUD_WRITES=[
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
+  "regenHouseholdCode","kickHouseholdMember",
 ];
 
 /* Lecturas que METEN DATOS en la cartera. Solo se cortan en MODO INICIAL (mcSandboxVacio), nunca

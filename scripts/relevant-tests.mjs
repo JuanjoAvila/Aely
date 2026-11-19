@@ -420,6 +420,9 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
   { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
+  // SEG-10 (ronda F): Hogar con y sin la 0028, regenerar el código y quitar a un miembro.
+  { file: "src/modules/13-hogar.js", specs: ["e2e/hogar-endurecido.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/hogar-endurecido.spec.mjs"] },
   // Revisión 237: fecha de fin de una deuda sin plazo contada en céntimos (`debtLeftInfo`).
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-fin-centimos.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },

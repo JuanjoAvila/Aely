@@ -122,12 +122,14 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
   const [joinCode,setJoinCode]=useState("");
   const [createName,setCreateName]=useState("");
   const [mode,setMode]=useState(null);
+  const [members,setMembers]=useState([]);
+  const [myRole,setMyRole]=useState(null);
 
   const reload=function(){
     if(!cloud.enabled()||!uid) return Promise.resolve();
     setBusy(true);
     return cloud.fetchHouseholdBundle().then(function(b){
-      setHh(b.household); setSnaps(b.snapshots||[]);
+      setHh(b.household); setSnaps(b.snapshots||[]); setMembers(b.members||[]); setMyRole(b.myRole||null);
     }).catch(function(e){
       showToast(errTxt(e));
     }).finally(function(){ setBusy(false); });
@@ -188,6 +190,36 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
     });
   };
 
+  /* SEG-10: el código ya no vale para siempre. Regenerarlo invalida el anterior (quien lo tuviera
+     apuntado ya no entra) y, con la migración 0028, caduca a los 30 días. */
+  const doRegen=function(){
+    if(!hh) return;
+    askConfirm({ title:t("hh_regen_q"), sub:t("hh_regen_sub"), ok:t("hh_regen") }).then(function(yes){
+      if(!yes) return;
+      setBusy(true);
+      cloud.regenHouseholdCode(hh.id, mcInviteCode()).then(function(r){
+        if(r) setHh(Object.assign({},hh,r));
+        showToast(t("hh_regen_ok"));
+      }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(false); });
+    });
+  };
+  // Quitar a alguien solo lo puede el dueño, y solo con la 0028 aplicada (su política de borrado):
+  // sin ella la RLS no borra nada y lo decimos en vez de fingir que salió.
+  const doKick=function(m){
+    if(!hh||!m) return;
+    askConfirm({ title:tf("hh_kick_q",{name:m.name}), sub:t("hh_kick_sub"), ok:t("hh_kick_ok"), danger:true }).then(function(yes){
+      if(!yes) return;
+      setBusy(true);
+      cloud.kickHouseholdMember(hh.id, m.userId).then(function(){
+        showToast(t("hh_kicked"));
+        return reload();
+      }).catch(function(e){
+        const msg=(e&&e.message)||String(e);
+        showToast(msg.indexOf("not_allowed")>=0 ? ("⚠ "+t("hh_kick_no")) : errTxt(e));
+      }).finally(function(){ setBusy(false); });
+    });
+  };
+
   if(!cloud.enabled()){
     return React.createElement("div",{className:"card",style:{padding:"14px 16px",marginBottom:14}},
       React.createElement("div",{className:"gm-sec-h"},"🏠 "+t("hh_title")),
@@ -223,14 +255,27 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
   }
 
   const maxCat=merged.expensesByCat.length?merged.expensesByCat[0].spent:1;
+  const isOwner=myRole==="owner"||(!!uid&&hh.created_by===uid);
+  const flojo=isOwner&&hhCodigoFlojo(hh);
+  const caduca=hh.invite_expires_at?new Date(hh.invite_expires_at):null;
+  // Los nombres salen de la vista que cada uno publica; quien aún no ha publicado es «Miembro».
+  const otros=isOwner?members.filter(function(m){ return m&&m.user_id&&m.user_id!==uid; }).map(function(m){
+    const s=merged.members.find(function(x){ return x.userId===m.user_id; });
+    return { userId:m.user_id, name:(s&&s.name&&s.name!=="?")?s.name:t("hh_member") };
+  }):[];
 
-  return React.createElement("div",{className:"card",style:{padding:"14px 16px",marginBottom:14}},
+  return React.createElement("div",{className:"card",style:{padding:"14px 16px",marginBottom:14},"data-hogar":"1"},
     React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}},
-      React.createElement("div",null,
+      React.createElement("div",{style:{minWidth:0}},
         React.createElement("div",{className:"gm-sec-h"},"🏠 "+hh.name),
-        React.createElement("div",{className:"hint"}, tf("hh_code_show",{c:hh.invite_code}))),
+        React.createElement("div",{className:"hint","data-hogar-code":"1",style:{overflowWrap:"anywhere"}}, tf("hh_code_show",{c:hh.invite_code})
+          +(caduca&&isFinite(caduca.getTime())&&!flojo?" · "+tf("hh_code_until",{d:caduca.toLocaleDateString(loc(),{day:"2-digit",month:"2-digit"})}):""))),
       React.createElement("button",{className:"btn btn-ghost",style:{flex:"0 0 auto",fontSize:12},onClick:doLeave}, t("hh_leave"))
     ),
+    flojo && React.createElement("div",{"data-hogar-flojo":"1",style:{marginTop:10}},
+      React.createElement("div",{className:"hint",style:{color:"var(--coral)"}}, t("hh_code_old")),
+      React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},disabled:busy,"data-act":"hh-regen",onClick:doRegen}, t("hh_regen"))),
+    isOwner && !flojo && React.createElement("button",{className:"chip",style:{marginTop:8},disabled:busy,"data-act":"hh-regen",onClick:doRegen}, t("hh_regen")),
     React.createElement("div",{className:"total-bar",style:{marginTop:12,marginBottom:0}},
       React.createElement("div",null,
         React.createElement("div",{className:"tl"}, t("hh_fused_net")),
@@ -285,6 +330,13 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
           t("hh_updated")+" "+new Date(m.publishedAt).toLocaleString())
       );
     }),
+    otros.length>0 && React.createElement("div",{"data-hogar-miembros":"1",style:{marginTop:14,paddingTop:12,borderTop:"1px solid var(--line-soft)"}},
+      React.createElement("div",{className:"gm-sec-h"}, t("hh_members")),
+      otros.map(function(m){
+        return React.createElement("div",{key:m.userId,className:"liqrow","data-hogar-miembro":m.userId,style:{alignItems:"center",gap:8,marginTop:6}},
+          React.createElement("span",{style:{minWidth:0,overflowWrap:"anywhere"}}, m.name),
+          React.createElement("button",{className:"chip",style:{flex:"0 0 auto"},disabled:busy,onClick:function(){ doKick(m); }}, t("hh_kick")));
+      })),
     React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:14},onClick:publish,disabled:busy},
       busy?t("hh_pub_busy"):t("hh_publish")),
     React.createElement("div",{className:"hint",style:{marginTop:8}}, t("hh_pub_hint"))
