@@ -518,7 +518,11 @@ const PRESUPUESTO = {
   // Ronda E1 de dinero (19/11, sin sello ni nota): el día 31 en los meses cortos, «Te deben» con sus tres
   // remates, la primera subida del histórico en lotes y el aviso de «Actualizar» con una lectura en marcha.
   // Lógica de dinero (mandato 11/10): el minificado sube al mínimo medido, 2017 KiB; el gzip cabe en 556.
-  minificado: 2017 * 1024,
+  // Integración 4.26.247 (19/11): D1 de Mis bancos y la ronda E1 sobre la 246 (2038 / 561), con el enganche de las
+  // baldosas de IBKR/Kraken a su hoja de alta, el sello y la nota: 2.100.464 B minificado y 577.809 B gzip. D1 es
+  // pantalla nueva que pidió el dueño y E1 es lógica de dinero revisada; mismo mandato del 11/10: los dos topes, al
+  // mínimo medido, 2052 / 565 KiB.
+  minificado: 2052 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -561,7 +565,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 561 * 1024, // ver el comentario de minificado (561,0 KiB medidos el 19/11/2026 en la integración 4.26.246).
+  gzip: 565 * 1024, // ver el comentario de minificado (564,3 KiB medidos el 19/11/2026 en la integración 4.26.247).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

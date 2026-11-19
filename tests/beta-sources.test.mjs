@@ -6433,6 +6433,10 @@ const sourceBeta244=sourceAt("cdba1f6e13a27b10f801797889c3aaf029667454");
 // Catálogo245 pasa a histórico con la 246: se lee de la 4.26.245 con su arreglo de CI (44bbb6fea, sin APK nueva, sigue la 64). Sus tandas y las de la
 // 244, la 243 y la 242 siguen SIN veredicto: la 246 las deja en su versión y abre beta-246.
 const sourceBeta245=sourceAt("44bbb6fea3b3139006a13f454117d3021f9718be");
+// Catálogo246 pasa a histórico con la 247: se lee de la 4.26.246 integrada (57c6551af, sin APK nueva, sigue la 64). Sus tandas y las de la
+// 245, la 244, la 243 y la 242 siguen SIN veredicto: la 247 las deja en su versión (rehaciendo los pasos de beta-246 y beta-243 que citaban
+// pantallas que D1 quitó) y abre beta-247.
+const sourceBeta246=sourceAt("57c6551af9ac541b8902a1708405c4e95527b343");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -6642,11 +6646,172 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
 // dueño, así que el panel solo pide mirar la tarjeta y la hoja, sin conectar.
 // Registro: un descriptor nuevo, el último; sin reanclas; con el cierre de lectores crecen dos alcances (los de la sync de brókers de
 // App), solo con `entOf`/`ENT` de 00, que ahora lee `brkSyncCandidates`, y su nube pasa a vigilar `brokerLinks`/`brokerSync`.
-test("Catálogo246 conserva beta-245, beta-244, beta-243 y dinero-242 sin veredicto, abre beta-246 (solo web, con el servidor sin desplegar) y hace crecer el registro con el cierre de lectores",()=>{
+// 4.26.247 (19/11/2026): sobre la 4.26.246 (57c6551af), dos ramas: claude/bancos-1911 hasta 7789c1180 (D1 de Mis bancos, PASS del
+// filtro de diseño en la pasada 3: filas con logo y anillo solo si hay que actuar, ficha en hoja, hoja Conectar con baldosas, TR,
+// MyInvestor y el CSV de Revolut como filas) y claude/ronda-e1 hasta cf83a6507 (dinero, GO tras el remate R1: el 31 en los meses
+// cortos, «Te deben» con pila y sin Bizum doble, el histórico en lotes de 500 y «Sincronizar bancos» que avisa con una lectura en
+// marcha). Al integrar, BankPanel monta `BrokerApiSection` bajo Inversiones y esta atiende `mc-open-broker-api`, que lanzaban las
+// baldosas de IBKR y Kraken sin que nadie lo escuchara.
+// Las cinco tandas anteriores siguen SIN veredicto y en su versión; sus huellas se mueven. Los pasos que citaban pantallas que D1 quitó
+// se rehacen en su sitio: beta-246 (1, 2 y 5: los chips de brókers) y beta-243 (3, 6, 7 y 9: «Conectar MyInvestor», la fila
+// «Conexiones» y los chips de DEGIRO/IBKR por fichero). UNA tanda nueva, beta-247, solo web.
+// Registro: un descriptor nuevo, el último; sin reanclas (la de beta-243 a `.cx-vuelta{` ya la declaró Catálogo245 y sigue en pie);
+// el resto solo crece con el cierre de lectores exacto y sus nubes ganan los métodos que ahora leen.
+test("Catálogo247 conserva las cinco tandas sin veredicto (rehace los pasos de beta-246 y beta-243 que citaban pantallas quitadas), abre beta-247 (solo web) y hace crecer el registro con el cierre de lectores",()=>{
+  const nueva="beta-247",previas=["beta-246","beta-245","beta-244","beta-243","dinero-242"];
+  const C0="src/modules/00-core.js",I18N="src/modules/01-i18n.js",V05="src/modules/05-dialogs-inv.js",V06="src/modules/06-sync-brokers.js",V07="src/modules/07-tab-patri-fijos.js",M8="src/modules/08-motor-bank.js",A0="src/modules/10-app-components.js",A1="src/modules/11-app-main.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/",F="supabase/functions/";
+  const integrated=JSON.parse(sourceBeta246("scripts/beta-sources.json")),before=JSON.parse(sourceBeta246("src/data/release-notes.json"));
+  const source=f=>nl(read(f)),old=f=>nl(sourceBeta246(f));
+  assert.equal(before[0].v,"4.26.246");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>g.id)),previas,"la 246 llevaba beta-246, beta-245, beta-244, beta-243 y dinero-242");
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.equal(notes[0].v,"4.26.247");assert.equal(notes.length,before.length+1);
+  // Lo anterior, intacto salvo los pasos rehechos de beta-246 y beta-243 (mismo id, mismo título, mismo número de pasos).
+  const tandaDe=(lista,id)=>lista.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  const rehechos={"beta-246":[0,1,4],"beta-243":[2,5,6,8]};
+  const esperado=JSON.parse(JSON.stringify(before));
+  for(const [id,pasos] of Object.entries(rehechos)){
+    const antes=tandaDe(before,id),ahora=tandaDe(notes,id);
+    assert.deepEqual(ahora.t,antes.t,id+": mismo título");
+    for(const lang of ["es","en","ca"]){
+      assert.equal(ahora.items[lang].length,antes.items[lang].length,id+" "+lang+": mismos pasos");
+      ahora.items[lang].forEach((s,i)=>pasos.includes(i)?assert.notEqual(s,antes.items[lang][i],id+" "+lang+": el paso "+(i+1)+" se rehace"):assert.equal(s,antes.items[lang][i],id+" "+lang+": el paso "+(i+1)+" intacto"));
+    }
+    tandaDe(esperado,id).items=ahora.items;
+  }
+  assert.deepEqual(notes.slice(1),esperado,"todo lo demás intacto");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,[nueva,...previas],"en el panel, la nueva y las cinco de antes");
+  const n247=notes[0];
+  assert.deepEqual(n247.tandas.map(g=>g.id),[nueva]);assert.deepEqual(Object.keys(n247.tandas[0]),["id","t","items"],"sin APK nueva");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|PSD2|FIN-|SES-|UX-|SEC-|DIS-|DIN-|zoom|PRO-|checksum|CSP|SHA|Flex|API|nonce|cifrad|lote|backfill|\d+\.\d+\.\d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(n247.items[lang].length,5,lang+": cinco puntos familiares");
+    for(const text of [n247.t[lang],...n247.items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+    const steps=n247.tandas[0].items[lang];
+    assert.equal(steps.length,7,lang+": siete pasos, lo que se puede probar hoy en el móvil");
+    for(const g of [n247.tandas[0],tandaDe(notes,"beta-246"),tandaDe(notes,"beta-243")]){
+      assert.ok(g.items[lang].every((s,i)=>s.startsWith((i+1)+". ")),g.id+" "+lang+": pasos numerados");
+      for(const step of g.items[lang])assert.ok(/MAL|WRONG|MALAMENT/.test(step)&&/BIEN|RIGHT|BÉ/.test(step),g.id+" "+lang+": cada paso dice qué es MAL y qué es BIEN");
+    }
+    // Sin el servidor de brókers desplegado, beta-246 sigue sin pedir que se pegue una clave.
+    assert.ok(/no pegues|Don't paste|no enganxis/i.test(tandaDe(notes,"beta-246").items[lang][2]),lang+": beta-246 sigue diciendo que no se pegue ninguna clave");
+  }
+  const textos=source(I18N);
+  const rotulo=key=>{const all=[...textos.matchAll(new RegExp("(?<![A-Za-z0-9_])"+key+':"([^"]*)"',"g"))].map(x=>x[1]);assert.equal(all.length,3,key+": un texto por idioma");return {es:all[0],en:all[1],ca:all[2]};};
+  const cita=(g,lista)=>{for(const [key,paso] of lista){const r=rotulo(key);for(const lang of ["es","en","ca"])assert.ok(g.items[lang][paso].includes(r[lang]),g.id+" "+lang+": el paso "+(paso+1)+" cita «"+r[lang]+"» ("+key+")");}};
+  cita(n247.tandas[0],[["settings",0],["bank_section",0],["bp_manage",0],["mb_sec_cuentas",0],["mb_renew",0],["mb_st_ok",1],["mb_st_dead_c",1],["bp_title",1],["mb_connect",2],["mb_other",2],["mb_sec_inv",2],["bp_title",3],["mb_sec_inv",3],["mb_st_off",3],["settings",4],["st_textsize",4],["ts_huge",4],["bp_title",4],["mb_st_dead",4],["tab_cartera",5],["v4_sync_banks",5],["bank_sync_ya",5],["tab_plan",6],["v4_plan_recibos",6],["pr6_llega_t",6]]);
+  cita(tandaDe(notes,"beta-246"),[["settings",0],["bank_section",0],["bp_manage",0],["mb_sec_inv",0],["mb_connect",1],["bx_connect",1],["bp_title",1],["bx_connect",2],["bx_steps_btn",2],["bx_kraken_a",2],["bx_kraken_b",2],["bp_title",3],["settings",4],["st_textsize",4],["ts_huge",4],["bp_title",4],["bx_connect",4],["bx_steps_btn",4],["bx_ibkr_a",4],["bx_ibkr_b",4]]);
+  cita(tandaDe(notes,"beta-243"),[["settings",2],["bank_section",2],["bp_manage",2],["mb_sec_inv",2],["settings",5],["bank_section",5],["bp_manage",5],["bp_title",5],["tab_cartera",6],["v4_cuentas",6],["pf_add",6],["bp_title",6],["bp_title",8],["mb_sec_inv",8],["mb_rev_csv",8],["bi_rev_steps_btn",8]]);
+  // Lo que citaban los pasos viejos ya no existe: ni la hoja «Conectar MyInvestor», ni los chips de brókers.
+  for(const key of ["mi_title","bp_brokers","bp_which"])assert.equal(new RegExp("(?<![A-Za-z0-9_])"+key+':"').test(textos),false,key+": ya no existe");
+  assert.equal(/className:"v4-chip/.test(source(A0).slice(source(A0).indexOf("function BankPanel("),source(A0).indexOf("function bkHace("))),false,"Mis bancos sin chips");
+  // IBKR y Kraken: la baldosa de Conectar lanza el evento y `BrokerApiSection` lo atiende (sin esto, la baldosa no hacía nada).
+  assert.match(source(A0),/window\.dispatchEvent\(new CustomEvent\("mc-open-broker-api",\{detail:\{ent:b\[0\]\}\}\)\)/);
+  assert.match(source(V06),/window\.addEventListener\("mc-open-broker-api",h\);/);
+  assert.match(source(A0),/React\.createElement\(BrokerApiSection,\{state:state,set:set,brokersOn:brokersOn,openBank:bxOpen,setOpenBank:setBxOpen\}\)/);
+  // Registro: el descriptor nuevo, el último; sin reanclas; el resto solo crece con el cierre de lectores exacto.
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),[...Object.keys(integrated),nueva],"el descriptor nuevo, el último");
+  assert.equal(source(SH).split("\n  .cx-vuelta{").length,2,"la reancla de beta-243 (Catálogo245) sigue siendo inequívoca");
+  assert.ok(scopes["beta-243"].web.some(u=>u.file===SH&&u.from==="  .cx-vuelta{"),"beta-243 sigue anclada en .cx-vuelta{");
+  const fns=logicFunctions(source),dat=logicData(source);
+  const cierre=(web0)=>{
+    let web=web0.slice();
+    for(let ronda=0;ronda<30;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  const esMiembros=u=>u.data==="cloud"&&u.members,sinMiembros=web=>web.map(u=>esMiembros(u)?{...u,members:undefined}:u);
+  const nuevos=new Set(["debenTitularEn","subirGastosEnLotes","renameFalloDeRed","GASTOS_POR_LOTE","toEurAmt","invValueEur","fxRateOf","fxTableOf"]);
+  const crecen=[],ausentes=[];
+  for(const [key,scope] of Object.entries(integrated)){
+    const ahora=scopes[key];
+    assert.deepEqual(Object.keys(ahora),Object.keys(scope),key+": mismas claves");
+    for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
+    if(key===archiveId||!scope.unidades){assert.deepEqual(ahora.web,scope.web,key+": no crece");continue;}
+    let esperadoWeb;
+    try{esperadoWeb=cierre(scope.web);}catch(error){assert.equal(error.code,"BETA_SCOPE_ABSENT",key);ausentes.push(key);assert.deepEqual(ahora.web,scope.web,key+": sin resolver, intacto");continue;}
+    assert.deepEqual(sinMiembros(ahora.web.slice(0,scope.web.length)),sinMiembros(scope.web),key+": lo anterior intacto");
+    assert.deepEqual(sinMiembros(ahora.web),sinMiembros(esperadoWeb),key+": solo crece lo que el cierre de lectores exige, en su orden");
+    if(ahora.web.length>scope.web.length){
+      crecen.push(key);
+      for(const u of ahora.web.slice(scope.web.length))assert.ok(nuevos.has(u.function||u.data),key+": crece solo con lo nuevo de E1/D1 que lee: "+(u.function||u.data));
+    }
+  }
+  assert.equal(crecen.length,56,"crecen 56 alcances con el cierre de lectores");
+  assert.ok(crecen.includes("inc-3009-01-cargos")&&crecen.includes("fin05-widget-reentrada")&&crecen.includes("dinero-242")&&crecen.includes("beta-246"),"entre ellos, los que E1 dejó señalados y las tandas vivas");
+  // Su nube vigila además los métodos que ahora lee (`addExpensesBatch` del repaso en lotes, `myinvestorStatus` del ✓ real de MyInvestor).
+  const miembros=(reg,key)=>(reg[key].web.find(esMiembros)||{}).members;
+  const cambianMiembros=[];
+  for(const key of Object.keys(integrated)){
+    const a=miembros(integrated,key),b=miembros(scopes,key);
+    if(!a){assert.equal(b,undefined,key+": sin nube");continue;}
+    assert.deepEqual(b.slice(0,a.length),a,key+": los miembros de antes, intactos");
+    if(b.length>a.length){cambianMiembros.push(key);for(const m of b.slice(a.length))assert.ok(["addExpensesBatch","myinvestorStatus"].includes(m),key+": miembro nuevo "+m);}
+  }
+  assert.deepEqual(cambianMiembros.sort(),["bancos-acuse-reconexion","bancos-sin-hueco","beta-246","feature-0310-01-movilidad","fin05-pago-cerrada","fin05-widget-reentrada","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","sync-dos-moviles","widget-app-cerrada","widget-ciclo-puente","widget-pago-app-cerrada"],"los trece alcances que leen los métodos nuevos");
+  assert.deepEqual(ausentes,[],"todo alcance con unidades se resuelve");
+  const fn=(file,names)=>names.map(function_=>({file,function:function_}));
+  // Lo que se prueba en el panel: Mis bancos por dentro (10, con su CSS), las fichas de TR/MyInvestor/Revolut y la conexión de IBKR y
+  // Kraken (05, 06), el día 31 (07, 08), «Te deben» (08), el repaso en lotes (00, 11), «Sincronizar bancos» con una lectura en marcha (11)
+  // y el bloque del guardado (Conectar enciende brókers y el repaso sube gastos con el set real).
+  const G=(({file,from,to})=>({file,from,to}))(integrated["recibo-quitar-deshacer"].web.find(u=>u.from&&u.from.includes("INC-0410 guardado: de aquí")));
+  const propias=[...fn(A0,["BankPanel","bkHace","bkCaduca","bkCaducado"]),{file:A0,data:"BROKER_CHIPS"},
+    ...fn(V06,["BrokerApiSection","BrokerApiCard","BrokerApiSheet","TRSync","MyInvestorSync"]),...fn(V05,["BrokerImport"]),
+    {file:SH,from:"  /* MIS BANCOS POR DENTRO (D1, 19/11;",to:"  /* Vuelta al origen tras conectar o renovar:"},
+    ...fn(V07,["diaDelMes","debtChargeDay","isDebtPaidThisMonth","flowDay","monthNetForAccount"]),
+    ...fn(M8,["debenTitularEn","debtPaymentState","fixedPaymentContenders"]),
+    ...fn(C0,["subirGastosEnLotes"]),{file:C0,data:"GASTOS_POR_LOTE"},
+    {file:C0,data:"cloud",members:["enabled","myinvestorStatus","bankLinks","bankAspsps","logEvent","bankDisconnect","brokerLinks","brokerSync","brokerDisconnect","brokerConnect","session","myinvestorSync","myinvestorStore","myinvestorConnect","myinvestorDisconnect","addExpensesBatch","bankConnect","addExpense","setExpenseRecibo"]},
+    {file:A1,from:"    /* Pulsar «Actualizar» con la lectura sola de al entrar aún en marcha",to:"      return bankSyncEnCurso.current||Promise.resolve();",includeTo:true},
+    {file:A1,from:"      // En lotes (`subirGastosEnLotes`): la primera vez, sin nada en la nube",to:"      subirGastosEnLotes(backfill, \"backfill\");",includeTo:true},G];
+  {
+    const ahora=scopes[nueva];
+    assert.deepEqual(Object.keys(ahora),["web","unidades"],nueva+": claves");assert.equal(ahora.unidades,true);
+    assert.deepEqual(ahora.web.slice(0,propias.length),propias,nueva+": las unidades propias");
+    assert.deepEqual(ahora.web,cierre(propias),nueva+": el cierre de lectores es exactamente el calculado, en su orden");
+  }
+  // De la 246 cambian 00, los textos, la hoja de las fichas (02), Inicio (03, el día de la cuota), los brókers (05, 06), Recibos (07),
+  // el motor (08), Mis bancos (10), App (11) y el CSS; el resto, la APK, el nativo y el servidor siguen idénticos.
+  for(const file of [C0,I18N,"src/modules/02-ui-shared.js","src/modules/03-tab-dash.js",V05,V06,V07,M8,A0,A1,SH])assert.notEqual(source(file),old(file),"cambia de verdad: "+file);
+  for(const file of [java+"AlertCheckWorker.java",java+"MiCarteraWidget.java",java+"MiCarteraPlugin.java",java+"TradeRepublicPlugin.java","android/app/build.gradle","src/modules/04-tab-gastos.js","src/modules/09-tab-debts-goals.js","src/modules/12-boot.js","src/modules/13-hogar.js","src/modules/14-v4-screens.js",F+"_shared/ingest_logic.ts",F+"ingest/index.ts",F+"bank-callback/index.ts",F+"bank-sync/index.ts",F+"broker-sync/index.ts","public/apk.json"])assert.equal(source(file),old(file),"idéntico: "+file);
+  const apk=JSON.parse(source("public/apk.json"));
+  assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
+  const current=betaRevision(nueva,source,undefined,scopes[nueva]);
+  assert.ok(current.web);assert.equal(current.native,undefined);assert.equal(current.edge,undefined,"solo web");
+  // Mutantes sobre la fuente real: el 31, «Te deben», los lotes, el enganche de la baldosa y Mis bancos reabren la tanda.
+  for(const [file,a] of [[V07,"function diaDelMes(d,y,m){"],[M8,"function debenTitularEn(titular,suyas,txt){"],[C0,"function subirGastosEnLotes(list, donde){"],[V06,"function BrokerApiSection({state, set, brokersOn, openBank, setOpenBank}){"],[A0,"function bkHace(x){"]]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(nueva,x=>x===file?source(x).replace(a,()=>a+" void 0;"):source(x),undefined,scopes[nueva]);
+    assert.notEqual(mutated.web,current.web,nueva+" reabre la tanda web: "+a);
+  }
+  // Las cinco de antes siguen sin veredicto y en su versión, pero su huella se mueve: el panel las vuelve a pedir.
+  for(const id of previas)assert.notEqual(betaRevision(id,source,undefined,scopes[id]).web,betaRevision(id,old,undefined,integrated[id]).web,id+": su huella se mueve");
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+  const g0=built[0].tandas[0];
+  assert.equal(g0.web,current.web);assert.equal(g0.native,undefined);assert.equal(g0.edge,undefined);assert.equal(g0.apk,undefined);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g0[key],undefined,"identidad nueva sin "+key);
+  assert.equal(receipt.web[nueva],current.web,"su huella llega al panel");
+  const oldReceipt=betaDelivery(betaNotes(before,old,integrated),old,integrated);
+  assert.deepEqual(Object.keys(oldReceipt.web).filter(id=>!receipt.web[id]),[],"no sale nada de la entrega");
+  const gs=[1,2,3,4,5].map(i=>built[i].tandas[0]);
+  const pruebas={[nueva]:{v:"4.26.247",contenido:JSON.stringify([nueva,g0.t.es,g0.items.es,1])}};
+  ["4.26.246","4.26.245","4.26.244","4.26.243","4.26.242"].forEach((v,i)=>{pruebas[gs[i].id]={v,contenido:JSON.stringify([gs[i].id,gs[i].t.es,gs[i].items.es,1])};});
+  assert.deepEqual(receipt.pruebas,pruebas,"seis guiones por probar: el nuevo y las cinco de antes, con los pasos rehechos");
+  assert.equal(receipt.pruebas["beta-246"].contenido.includes("«Gestionar mis bancos» y toca el «+» de arriba"),true,"beta-246 llega con su paso 1 rehecho");
+});
+
+test("Catálogo246 histórico conserva beta-245, beta-244, beta-243 y dinero-242 sin veredicto, abre beta-246 (solo web, con el servidor sin desplegar) y hace crecer el registro con el cierre de lectores",()=>{
   const nueva="beta-246",previas=["beta-245","beta-244","beta-243","dinero-242"];
   const C0="src/modules/00-core.js",I18N="src/modules/01-i18n.js",V05="src/modules/05-dialogs-inv.js",V06="src/modules/06-sync-brokers.js",A0="src/modules/10-app-components.js",A1="src/modules/11-app-main.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/",F="supabase/functions/";
   const integrated=JSON.parse(sourceBeta245("scripts/beta-sources.json")),before=JSON.parse(sourceBeta245("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta245(f));
+  const source=f=>nl(sourceBeta246(f)),old=f=>nl(sourceBeta245(f));
   assert.equal(before[0].v,"4.26.245");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>g.id)),previas,"la 245 llevaba beta-245, beta-244, beta-243 y dinero-242");
   const notes=JSON.parse(source("src/data/release-notes.json"));
