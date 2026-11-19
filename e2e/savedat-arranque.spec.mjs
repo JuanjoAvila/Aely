@@ -36,7 +36,9 @@ async function harness(browser,baseURL,info,options={}){
     old.assets=[{id:'asset',name:'Bien sintético',value:500}];
     old.assetValueHistory={asset:[{day,value:400}]};
   }
-  if(options.broker)old.investments[0].isin='SYNTHETIC0001';
+  // De MyInvestor, porque es su sync el que se simula: desde la 4.26.246 (D7, `brkSyncCandidates`)
+  // el de MyInvestor ya no se queda con una posición de TR, que lleva su propia sincronización.
+  if(options.broker){old.investments[0].isin='SYNTHETIC0001';old.investments[0].ent='myinvestor';}
   const remote=copy(old),other=seed(OTHER),rows=new Map(),requests=[],contexts=[],held=[],errors=[],traces=[];
   if(options.assets)remote.assets[0].value=700;
   remote.remoteUnknown={keep:'added on another client'};remote.debts[0].remoteUnknown={keep:17};
