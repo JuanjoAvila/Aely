@@ -1467,6 +1467,67 @@ Object.assign(LANG.ca,{
   bi_rev_title:"Importa de Revolut (CSV)", bi_rev_steps_btn:"Com exportar el CSV de Revolut",
   bi_rev_steps:["Obre l'app de Revolut → pestanya «Invest».","«More» (Més) → «Documents».","«Compte de corretatge» → «Extracte de compte». NO agafis el de «Pèrdues i Guanys»: aquell només porta el que ja has venut.","Tens or o plata? Torna enrere i repeteix amb «Matèries primeres» → «Extracte de compte». Van en un extracte A PART: sense ell, els teus metalls no entren.","I saber quant hi guanyes? Cal un TERCER: l'extracte del teu compte NORMAL de Revolut (el d'euros, fora d'Invest). Allà hi ha els € que vas posar a cada conversió; el de Matèries primeres només porta unces.","Format «Excel», des de l'obertura del compte fins avui → «Get statement».","Al mòbil obre'l amb Google Sheets → «Fes una còpia» i descarrega'l com a CSV (o desa'l/comparteix-lo i puja'l aquí).","Puja'ls a sota tots alhora, o d'un en un: els vaig ajuntant. Es processa al teu mòbil, no es puja enlloc."],
 });
+/* Brókers por fichero: DEGIRO e Interactive Brokers (18/11). Textos mínimos: una línea útil. */
+Object.assign(LANG.es,{
+  bf_degiro_title:"DEGIRO", bf_ibkr_title:"Interactive Brokers", bf_sub:"importar fichero",
+  bf_steps_btn:"Cómo exportarlo", bf_file:"📄 Elegir fichero (puedes marcar varios)",
+  bf_degiro_steps:["Web de DEGIRO → «Cartera» → «Exportar» → CSV.","«Bandeja de entrada» → «Transacciones», desde que abriste la cuenta → «Exportar» → CSV.","Sube los dos, juntos o de uno en uno."],
+  bf_ibkr_steps:["Web de IBKR → «Rendimiento e informes» → «Consultas Flex».","Consulta de actividad con «Posiciones abiertas» y «Efectivo», en XML.","Ejecútala y súbela. También vale el Activity Statement en CSV."],
+  bf_err_aux:"✓ Transacciones leídas. Sube ahora Cartera.csv.",
+  bf_err_other:"Este fichero es de {x}: súbelo en su tarjeta.",
+  bf_unmatched:"Sin pareja por ISIN o ticker: elige tú.", bf_create_all:"Crear las {n} nuevas", bf_create_one:"Crear la nueva",
+  bf_cost_need_tx:"Coste: falta Transacciones.csv", bf_cost_tx_missing:"Coste: no está en Transacciones",
+  bf_cost_tx_mismatch:"Coste: las operaciones no cuadran con lo que tienes", bf_cost_tx_partial:"Coste: faltan importes en alguna compra",
+  bf_cost_no_cost:"Coste: no viene en el fichero", bf_cost_fx_today:"Coste en su moneda; en € al cambio de hoy",
+  bf_gone_title:"Ya no están en el fichero", bf_gone_mark:"Marcar",
+  bf_w_check:"⚠ {x}: cantidad × precio no cuadra con el valor", bf_w_deriv:"Derivados: {n}, no se importan",
+  bf_w_short:"Posiciones cortas: {n}, no se importan", bf_w_total:"⚠ El total en {x} no cuadra con la suma", bf_w_nocur:"⚠ {x}: sin moneda", bf_w_accounts:"Suma de {n} cuentas", bf_w_mixcur:"⚠ {x}: en dos monedas, no se importa",
+  bf_cash:"Efectivo en el fichero: {x} (no se toca)",
+  bf_value_file:"Sin precio en vivo: el valor es el del fichero, con su fecha.",
+  iv_file_on:"{date} · {x}", iv_file_gone:"ya no está", iv_gone_out:"{n} fuera del total",
+  bf_hint:"Sube el fichero de tu bróker o pega su texto. Se procesa en tu móvil, no se sube.", bf_paste_ph:"…o pega aquí su contenido",
+  bi_summary_one:"1 posición detectada · {from} → {to}", bi_apply_one:"Aplicar a 1 posición", bi_done_one:"✓ 1 posición re-anclada con el extracto"
+});
+Object.assign(LANG.en,{
+  bf_degiro_title:"DEGIRO", bf_ibkr_title:"Interactive Brokers", bf_sub:"import a file",
+  bf_steps_btn:"How to export it", bf_file:"📄 Choose file (you can pick several)",
+  bf_degiro_steps:["DEGIRO website → «Portfolio» → «Export» → CSV.","«Inbox» → «Transactions», from account opening → «Export» → CSV.","Upload both, together or one at a time."],
+  bf_ibkr_steps:["IBKR website → «Performance & Reports» → «Flex Queries».","Activity query with «Open Positions» and «Cash Report», in XML.","Run it and upload it. The Activity Statement CSV also works."],
+  bf_err_aux:"✓ Transactions read. Now upload Portfolio.csv.",
+  bf_err_other:"This file is from {x}: upload it in its card.",
+  bf_unmatched:"No match by ISIN or ticker: you choose.", bf_create_all:"Create the {n} new ones", bf_create_one:"Create the new one",
+  bf_cost_need_tx:"Cost: Transactions.csv missing", bf_cost_tx_missing:"Cost: not in Transactions",
+  bf_cost_tx_mismatch:"Cost: trades don't match what you hold", bf_cost_tx_partial:"Cost: amounts missing in a purchase",
+  bf_cost_no_cost:"Cost: not in the file", bf_cost_fx_today:"Cost in its currency; in € at today's rate",
+  bf_gone_title:"No longer in the file", bf_gone_mark:"Mark",
+  bf_w_check:"⚠ {x}: quantity × price doesn't match the value", bf_w_deriv:"Derivatives: {n}, not imported",
+  bf_w_short:"Short positions: {n}, not imported", bf_w_total:"⚠ The {x} total doesn't match the sum", bf_w_nocur:"⚠ {x}: no currency", bf_w_accounts:"Sum of {n} accounts", bf_w_mixcur:"⚠ {x}: in two currencies, not imported",
+  bf_cash:"Cash in the file: {x} (left untouched)",
+  bf_value_file:"No live price: the value is the file's, with its date.",
+  iv_file_on:"{date} · {x}", iv_file_gone:"no longer held", iv_gone_out:"{n} left out of the total",
+  bf_hint:"Upload your broker's file or paste its text. It's processed on your phone, never uploaded.", bf_paste_ph:"…or paste its content here",
+  bi_summary_one:"1 position detected · {from} → {to}", bi_apply_one:"Apply to 1 position", bi_done_one:"✓ 1 position re-anchored to the statement"
+});
+Object.assign(LANG.ca,{
+  bf_degiro_title:"DEGIRO", bf_ibkr_title:"Interactive Brokers", bf_sub:"importar fitxer",
+  bf_steps_btn:"Com exportar-lo", bf_file:"📄 Tria el fitxer (en pots marcar diversos)",
+  bf_degiro_steps:["Web de DEGIRO → «Cartera» → «Exportar» → CSV.","«Safata d'entrada» → «Transaccions», des que vas obrir el compte → «Exportar» → CSV.","Puja'ls tots dos, junts o d'un en un."],
+  bf_ibkr_steps:["Web d'IBKR → «Rendiment i informes» → «Consultes Flex».","Consulta d'activitat amb «Posicions obertes» i «Efectiu», en XML.","Executa-la i puja-la. També val l'Activity Statement en CSV."],
+  bf_err_aux:"✓ Transaccions llegides. Puja ara Cartera.csv.",
+  bf_err_other:"Aquest fitxer és de {x}: puja'l a la seva targeta.",
+  bf_unmatched:"Sense parella per ISIN o ticker: tria tu.", bf_create_all:"Crea les {n} noves", bf_create_one:"Crea la nova",
+  bf_cost_need_tx:"Cost: falta Transaccions.csv", bf_cost_tx_missing:"Cost: no és a Transaccions",
+  bf_cost_tx_mismatch:"Cost: les operacions no quadren amb el que tens", bf_cost_tx_partial:"Cost: falten imports en alguna compra",
+  bf_cost_no_cost:"Cost: no ve al fitxer", bf_cost_fx_today:"Cost en la seva moneda; en € al canvi d'avui",
+  bf_gone_title:"Ja no són al fitxer", bf_gone_mark:"Marcar",
+  bf_w_check:"⚠ {x}: quantitat × preu no quadra amb el valor", bf_w_deriv:"Derivats: {n}, no s'importen",
+  bf_w_short:"Posicions curtes: {n}, no s'importen", bf_w_total:"⚠ El total en {x} no quadra amb la suma", bf_w_nocur:"⚠ {x}: sense moneda", bf_w_accounts:"Suma de {n} comptes", bf_w_mixcur:"⚠ {x}: en dues monedes, no s'importa",
+  bf_cash:"Efectiu al fitxer: {x} (no es toca)",
+  bf_value_file:"Sense preu en viu: el valor és el del fitxer, amb la seva data.",
+  iv_file_on:"{date} · {x}", iv_file_gone:"ja no hi és", iv_gone_out:"{n} fora del total",
+  bf_hint:"Puja el fitxer del teu bròker o enganxa'n el text. Es processa al teu mòbil, no es puja.", bf_paste_ph:"…o enganxa'n aquí el contingut",
+  bi_summary_one:"1 posició detectada · {from} → {to}", bi_apply_one:"Aplica a 1 posició", bi_done_one:"✓ 1 posició re-ancorada amb l'extracte"
+});
 /* Sincronización Trade Republic (beta · nativa en Android) */
 Object.assign(LANG.es,{
   tr_title:"Conectar Trade Republic", tr_sub:"un botón · trae tus posiciones",

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexQueryResponse queryName="Aely" type="AF">
+<FlexStatements count="1">
+<FlexStatement accountId="U0000000" fromDate="20241101" toDate="20241115" period="LastBusinessDay" whenGenerated="20241115;180000">
+<OpenPositions>
+<OpenPosition accountId="U0000000" currency="USD" fxRateToBase="0.9412" assetCategory="STK" symbol="AAPL" description="APPLE INC" conid="265598" isin="US0378331005" listingExchange="NASDAQ" multiplier="1" reportDate="20241115" position="10" markPrice="228.22" positionValue="2282.2" costBasisPrice="150" costBasisMoney="1500" levelOfDetail="SUMMARY" side="Long" />
+<OpenPosition accountId="U0000000" currency="USD" fxRateToBase="0.9412" assetCategory="STK" symbol="AAPL" description="APPLE INC" conid="265598" isin="US0378331005" listingExchange="NASDAQ" multiplier="1" reportDate="20241115" position="6" markPrice="228.22" positionValue="1369.32" costBasisMoney="840" levelOfDetail="LOT" side="Long" />
+<OpenPosition accountId="U0000000" currency="USD" fxRateToBase="0.9412" assetCategory="STK" symbol="AAPL" description="APPLE INC" conid="265598" isin="US0378331005" listingExchange="NASDAQ" multiplier="1" reportDate="20241115" position="4" markPrice="228.22" positionValue="912.88" costBasisMoney="660" levelOfDetail="LOT" side="Long" />
+<OpenPosition accountId="U0000000" currency="EUR" fxRateToBase="1" assetCategory="STK" symbol="VWCE" description="VANGUARD FTSE ALL-WORLD" conid="1000001" isin="IE00BK5BQT80" listingExchange="IBIS2" multiplier="1" reportDate="20241115" position="20" markPrice="120.1" positionValue="2402" costBasisMoney="2000" levelOfDetail="SUMMARY" side="Long" />
+<OpenPosition accountId="U0000000" currency="GBP" fxRateToBase="1.2" assetCategory="STK" symbol="PG" description="PROCTER &amp; GAMBLE CO" conid="1000002" isin="US7427181091" listingExchange="NYSE" multiplier="1" reportDate="20241115" position="30" markPrice="45.5" positionValue="1365" costBasisMoney="1200" levelOfDetail="SUMMARY" side="Long" />
+<OpenPosition accountId="U0000000" currency="USD" fxRateToBase="0.9412" assetCategory="OPT" symbol="AAPL  241220C00250000" description="AAPL 20DEC24 250 C" conid="1000003" isin="" listingExchange="CBOE" multiplier="100" reportDate="20241115" position="1" markPrice="1.5" positionValue="150" costBasisMoney="120" levelOfDetail="SUMMARY" side="Long" />
+</OpenPositions>
+<CashReport>
+<CashReportCurrency accountId="U0000000" currency="BASE_SUMMARY" endingCash="1500.25" />
+<CashReportCurrency accountId="U0000000" currency="EUR" endingCash="1000" />
+<CashReportCurrency accountId="U0000000" currency="USD" endingCash="531.5" />
+</CashReport>
+</FlexStatement>
+</FlexStatements>
+</FlexQueryResponse>

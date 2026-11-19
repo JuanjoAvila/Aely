@@ -694,7 +694,8 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
         React.createElement("div",null,
           React.createElement("div",{className:"rname"},it.name),
           React.createElement("div",{className:"rsub"}, entOf(it.ent).label + (it.cur==="USD"?" \u00b7 USD":"")),
-          editing && React.createElement("button",{type:"button",className:"inv-row-action",style:{color:"#9BD0E0"},onClick:function(){ onSell(it); }},t("inv_sold_part")),
+          // «Vender» no en lo que el fichero ya da por vendido: vale 0 en los totales y la venta saldría a 0 €.
+          editing && !it.fileGone && React.createElement("button",{type:"button",className:"inv-row-action",style:{color:"#9BD0E0"},onClick:function(){ onSell(it); }},t("inv_sold_part")),
           editing && React.createElement("button",{type:"button",className:"inv-row-action",style:{color:"var(--coral)",marginLeft:12},onClick:function(){ onDelete(it); }},"🗑 "+t("inv_delete"))
         )
       ),
@@ -956,6 +957,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
     }).then(function(pStr){ if(pStr!=null) sellPct(it, parseFloat(String(pStr).replace(',','.'))); });
   };
   const sellPct=function(it,pct){
+    if(it&&it.fileGone) return;
     if(!(pct>0 && pct<=100)){ return; }
     const f=pct/100;
     const valueEur=invValueEur(it,state);
@@ -1119,7 +1121,15 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
   };
   const manualLabel=function(it){
     const ms=new Date(it.manualUpdatedAt||0).getTime();
-    return ms>0?tf("iv_manual_on",{date:new Date(ms).toLocaleDateString(loc(),{day:"2-digit",month:"short"})}):t("iv_manual");
+    const day=function(x){ return new Date(x).toLocaleDateString(loc(),{day:"2-digit",month:"short"}); };
+    /* Importada de un fichero sin cotización en vivo (DEGIRO/IBKR, 18/11): el valor es el del
+       fichero y tiene que decirlo con su fecha, no hacerse pasar por un precio de hoy. Si después
+       lo tocaste a mano, manda lo más reciente. */
+    const fileMs=it.fileAt?new Date(it.fileAt+"T12:00:00").getTime():0;
+    // Corta («15 nov · IBKR»): con letra Enorme la larga ocupaba cuatro líneas (filtro de diseño 18/11).
+    if(it.fileGone) return t("iv_file_gone")+" · "+day(new Date(it.fileGone+"T12:00:00").getTime());
+    return fileMs>0&&fileMs>=ms?tf("iv_file_on",{date:day(fileMs),x:entOf(it.ent).short||entOf(it.ent).label})
+      :(ms>0?tf("iv_manual_on",{date:day(ms)}):t("iv_manual"));
   };
   const beginBrokerEdit=function(gid){
     start();
@@ -1217,7 +1227,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"},items.length===1?t("v4_inv_position"):tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
+              React.createElement("div",{className:"meta"},items.length===1?t("v4_inv_position"):tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")),
+                // Lo vendido según el fichero no suma (invValueEur): se dice aquí para que el total no extrañe.
+                (function(){ const n=items.filter(function(i){ return i.fileGone; }).length; return n>0&&React.createElement("div",{className:"hint","data-inv-gone":n},tf("iv_gone_out",{n:n})); })())),
             React.createElement("div",{style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{className:"am num"},f0(o.v)),
               brokerCostComplete && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),
@@ -1227,12 +1239,12 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
               ? React.createElement(InvRows,{items:items,st:state,fmt:f2,editing:true,showCost:true,draft:draft,setF:setF,onSell:onSell,onDelete:onDelete})
               : items.map(function(it){
                   const v=invValueEur(it,state), c=invCostEur(it,state), d=v-c;
-                  return React.createElement("div",{className:"row",key:it.id,"data-inv-position":it.id},
+                  return React.createElement("div",{className:"row",key:it.id,"data-inv-position":it.id,"data-inv-gone":it.fileGone?"1":undefined},
                     React.createElement("div",{className:"rl"},
                       React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
                       React.createElement("div",null,
                         React.createElement("div",{className:"rname"},it.name),
-                        React.createElement("div",{className:"rsub"},it.ticker?(it.ticker+(it.shares!=null?" · "+tf("iv_shares",{n:it.shares}):"")):manualLabel(it)))),
+                        React.createElement("div",{className:"rsub"},it.ticker?((it.fileGone?t("iv_file_gone")+" · ":"")+it.ticker+(it.shares!=null?" · "+tf("iv_shares",{n:it.shares}):"")):manualLabel(it)))),
                     React.createElement("div",{className:"rval num"},fxAmountText(it.value,it.cur,state,f2),
                       v!=null&&it.ticker&&c>0 && React.createElement("div",{className:"rvsub"+(d<0?" neg":"")},(d>=0?"+":"")+(d/c*100).toFixed(2)+"%")));
                 }),

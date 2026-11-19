@@ -471,6 +471,19 @@ const PRESUPUESTO = {
   // Arreglo del filtro de la ronda D: con Enorme en un móvil estrecho el importe de «Últimos movimientos» y el de
   // Categorías bajan de línea para que ninguna palabra se parta ni se corte, y el buscador suelta el gesto al
   // cerrarse el teclado: 2.016.314 B minificado y 554.335 B gzip (+1.407 / +377). Al mínimo medido: 1970 / 542 KiB.
+  // Brókers por fichero, fases 0 y 1 (18/11): el motor común de importación (Revolut pasa a perfil), DEGIRO
+  // (Cartera + Transacciones en es/en/nl/de), IBKR (Flex XML/CSV y Activity Statement), su vista previa con
+  // «ya no está en el fichero» y los textos en tres idiomas. Medido con el sello .99999 y la reserva de 95 B
+  // sobre 4.26.241: 2.012.797 → 2.038.828 B minificado (+25,5 KiB) y 553.461 → 561.246 B gzip (+7,6 KiB),
+  // dentro de lo estimado en el plan (+7-8 KB). Es lógica de dinero (parsers, coste medio, cuadre por dos
+  // vías), sin nada que recortar sin quitar una garantía; SUBE (mandato 11/10) al mínimo medido: 1992 / 549 KiB.
+  // Con los arreglos de la revisión de dinero (Flex de varias cuentas sumado por cuenta, lo vendido fuera
+  // del patrimonio con su aviso, decimal por idioma, GBX, ancla de costEur, brókers con sincronización
+  // fuera del mapeo) y los del filtro de diseño (selector que corta con «…», importe sin partir, pie fijo,
+  // monograma con su color, plurales, entrada suave): 2.042.019 B minificado y 562.216 B gzip. Al mínimo
+  // medido: 1995 / 550 KiB.
+  // Segunda vuelta (lo que el fichero trae y no se importa sigue presente, «Vender» fuera de lo vendido,
+  // IBKR en azul, cian legible en claro, pérdidas en coral en claro): 2.042.900 / 562.534 B. Al mínimo: 1996 / 550 KiB.
   minificado: 1975 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

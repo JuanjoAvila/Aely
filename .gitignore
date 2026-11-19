@@ -28,6 +28,9 @@ Thumbs.db
 # Playwright
 playwright-report/
 test-results/
+# Exports REALES de bróker (DEGIRO, IBKR…) para el golden local de tests/broker-degiro.test.mjs.
+# Son la cartera de una persona: repo público → nunca se commitean (AGENTS §9).
+/tests/fixtures/local/
 # Capturas del vídeo de referencia de Revolut (pantalla REAL del usuario: nombre, IBAN…).
 # Repo público → JAMÁS se commitean (AGENTS §8). Referencia local para diseño solamente.
 /docs/design/handoff/capturas/revolut-profile-pull/

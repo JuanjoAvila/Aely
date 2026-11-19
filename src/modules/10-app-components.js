@@ -701,9 +701,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   ));
 }
 
-/* Los tres brókers con integración propia. El id es el mismo `ent` que llevan las posiciones en
-   `state.investments`, para poder deducir de la cartera cuáles usa el usuario sin preguntarle. */
-var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"]];
+/* Los brókers con integración propia (DEGIRO e IBKR por fichero desde el 18/11). El id es el mismo
+   `ent` que llevan las posiciones en `state.investments`, para poder deducir de la cartera cuáles
+   usa el usuario sin preguntarle. */
+var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"],["degiro","DEGIRO"],["ibkr","Interactive Brokers"]];
 /* CONEXIONES ES UNA PANTALLA HIJA, no un `div` fijo (ronda R2 del rediseño de bancos, 18/11).
    Antes aparecía y desaparecía en un fotograma y al cerrar siempre caía en Ajustes, vinieras de
    donde vinieras («me deja donde no estaba»). Ahora entra por la derecha como Inversiones, se
@@ -1093,6 +1094,10 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
       open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }}),
     brokersOn.indexOf("revolut")>=0 && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
+    ["degiro","ibkr"].map(function(k){
+      return brokersOn.indexOf(k)>=0 && React.createElement(BrokerImport,{key:k,ent:k,state:state,set:set,fetchPrices:fetchPrices,
+        open:openBank==="br:"+k, onToggle:function(){ setOpenBank(openBank==="br:"+k?"":"br:"+k); }});
+    }),
     /* «¿Cuadran tus recibos con el banco?» vive aquí, que es donde se busca lo del banco.
        Sin datos del banco no pinta nada. */
     React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),

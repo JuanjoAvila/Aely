@@ -185,12 +185,14 @@ function brokerSuggest(pos, investments){
    (2) la CANTIDAD usa el separador decimal del IDIOMA de la cuenta Revolut → una cuenta
        en español da COMA y el campo va entrecomillado ("0,76672417"). */
 
-// Divide una línea CSV respetando comillas dobles (campos con comas dentro).
-function csvSplitLine(line){
+// Divide una línea CSV respetando comillas dobles (campos con comas dentro). `sep` solo lo pasan
+// los perfiles de bróker nuevos: un DEGIRO exportado con Excel en español sale con «;».
+function csvSplitLine(line, sep){
+  sep=sep||",";
   const out=[]; let cur=""; let q=false;
   for(let i=0;i<line.length;i++){ const c=line[i];
     if(q){ if(c==='"'){ if(line[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=c; }
-    else { if(c==='"') q=true; else if(c===','){ out.push(cur); cur=""; } else cur+=c; }
+    else { if(c==='"') q=true; else if(c===sep){ out.push(cur); cur=""; } else cur+=c; }
   }
   out.push(cur); return out;
 }
@@ -457,16 +459,527 @@ function revoIsPnl(text){
   return (low.indexOf('date acquired')>=0 && low.indexOf('date sold')>=0) || low.indexOf('gross pnl')>=0;
 }
 
-/* Tarjeta de importación CSV de Revolut. Vive junto a Trade Republic en «Mis bancos»
-   (Revolut es un bróker más). Previsualización obligatoria + mapeo por posición antes
-   de aplicar: el usuario cuadra contra su app de Revolut y decide. Re-ancla shares+coste
-   a las posiciones mapeadas (o crea nuevas). No pisa un ISIN real con el ticker. */
-function BrokerImport({state, set, fetchPrices, open, onToggle}){
+/* ============================================================
+   MOTOR COMÚN DE IMPORTACIÓN POR FICHERO (plan de brókers, fases 0 y 1 — 18/11/2026)
+   ============================================================
+   Revolut fue el primero y todo vivía dentro de su tarjeta. Para DEGIRO e Interactive Brokers
+   (un amigo del dueño los usa) se saca el esqueleto común: cada bróker es una lista de PERFILES,
+   uno por tipo de fichero, y el motor hace siempre lo mismo con ellos:
+     1. primera pasada: los ficheros que solo AYUDAN (el extracto en € de los metales, las
+        Transacciones de DEGIRO) dejan sus datos en una memoria que dura entre análisis, para que
+        se puedan soltar en cualquier orden y de uno en uno;
+     2. segunda pasada: el primer perfil que entiende el fichero saca posiciones;
+     3. la misma clave en dos ficheros: manda el último.
+   Revolut se queda EXACTAMENTE como estaba (sus tests son la red): sus tres perfiles llaman a
+   las mismas funciones y en el mismo orden que el `analyzeAll` de antes.
+   Todo se procesa en el móvil y no se sube a ningún sitio (AGENTS §9). */
+var BRK_ISIN=/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/;
+// Cabecera comparable entre idiomas: sin tildes, sin mayúsculas y sin dobles espacios.
+function brkKey(h){ return String(h||"").replace(/^﻿/,"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," "); }
+function brkRows(text){
+  const lines=String(text||"").replace(/^﻿/,"").replace(/\r/g,"").split("\n").filter(function(l){ return l.trim()!==""; });
+  if(!lines.length) return [];
+  const sep=lines[0].split(";").length>lines[0].split(",").length?";":",";
+  return lines.map(function(l){ return csvSplitLine(l,sep); });
+}
+/* El separador decimal se decide UNA vez por fichero, no celda a celda. `revoNum` adivina por
+   celda y con DEGIRO en español falla: «0,125» participaciones lo lee como 125 (miles). Se cuentan
+   las celdas que solo pueden ser de un formato («189,95», «1.234,5» frente a «189.95», «1,234.5»). */
+function brkDecimal(rows){
+  let c=0,p=0;
+  rows.forEach(function(f){ f.forEach(function(x){
+    const s=String(x||"").trim(); if(!/^[^\d]{0,5}[\d.,]+[^\d]{0,5}$/.test(s)) return;
+    if(/\d\.\d{3},\d/.test(s)||/^[^\d]*\d+,(\d{1,2}|\d{4,})[^\d]*$/.test(s)) c++;
+    else if(/\d,\d{3}\.\d/.test(s)||/^[^\d]*\d+\.(\d{1,2}|\d{4,})[^\d]*$/.test(s)) p++;
+  }); });
+  return c>p?",":(p>c?".":null);
+}
+function brkNum(s, dec){
+  s=String(s==null?"":s).trim(); if(!s) return null;
+  let neg=false;
+  if(/^\(.*\)$/.test(s)){ neg=true; s=s.slice(1,-1); }
+  if(s.indexOf("-")>=0||s.indexOf("−")>=0) neg=true;
+  let d=s.replace(/[^0-9.,]/g,""); if(!/\d/.test(d)) return null;
+  if(dec===",") d=d.replace(/\./g,"").replace(/,/g,".");
+  else if(dec===".") d=d.replace(/,/g,"");
+  else d=revoNum(d);
+  const n=parseFloat(d); return isFinite(n)?(neg?-n:n):null;
+}
+// Columna por sinónimos: primero igual, luego «empieza por» (DEGIRO recorta y cambia las cabeceras según el idioma).
+function brkCol(head, syns){
+  for(let k=0;k<syns.length;k++){ const j=head.indexOf(syns[k]); if(j>=0) return j; }
+  for(let k=0;k<syns.length;k++){ for(let j=0;j<head.length;j++){ if(head[j] && head[j].indexOf(syns[k])===0) return j; } }
+  return -1;
+}
+/* Importe con su divisa. DEGIRO pone la divisa en una columna SIN NOMBRE pegada al importe, unas
+   veces delante («Valor local» = USD y el número en la siguiente) y otras detrás (Transacciones). */
+var BRK_CUR=/^([A-Z]{3}|GBX|GBp)$/;
+function brkMoney(f, j, dec){
+  if(j<0) return {amt:null,cur:null};
+  const a=String(f[j]||"").trim(), b=String(f[j+1]||"").trim();
+  let m=/^([A-Z]{3})\s+(.+)$/.exec(a);
+  if(m) return {amt:brkNum(m[2],dec),cur:m[1]};
+  if(BRK_CUR.test(a)) return {amt:brkNum(b,dec),cur:a};
+  return {amt:brkNum(a,dec),cur:BRK_CUR.test(b)?b:null};
+}
+function brkIsoDate(s){
+  s=String(s||"").trim(); let m;
+  if((m=/^(\d{4})-?(\d{2})-?(\d{2})/.exec(s))) return m[1]+"-"+m[2]+"-"+m[3];
+  if((m=/^(\d{1,2})[\-\/.](\d{1,2})[\-\/.](\d{4})/.exec(s))) return m[3]+"-"+("0"+m[2]).slice(-2)+"-"+("0"+m[1]).slice(-2);
+  return null;
+}
+/* Peniques (GBX/GBp, Londres): el BCE no tiene cambio para ellos y tomarlos por libras multiplica
+   por 100. Con el «Valor en EUR» del fichero (y sin un coste nativo que se quedaría huérfano) la
+   posición va en €; si no, se pasa a libras ÷100, que es exacto. */
+function brkPence(po){
+  if(po.cur!=="GBX" && po.cur!=="GBp") return po;
+  if(po.valueEurHint!=null && (po.cost==null || po.costEur!=null))
+    return Object.assign(po,{cur:"EUR", valueHint:po.valueEurHint, cost:po.costEur, price:null});
+  const d=function(n){ return n==null?null:+(n/100).toFixed(4); };
+  return Object.assign(po,{cur:"GBP", valueHint:d(po.valueHint), cost:po.cost==null?null:+(po.cost/100).toFixed(2), price:d(po.price)});
+}
+function brkHeadRow(rows, need){
+  for(let i=0;i<Math.min(rows.length,6);i++){ const h=rows[i].map(brkKey); if(need(h)) return i; }
+  return -1;
+}
+
+/* ---- DEGIRO: Cartera.csv (lo que tienes hoy) + Transacciones.csv (lo que te costó) ----
+   Cabeceras de las cuatro lenguas de la cuenta (es/en/nl/de). Fixtures sintéticos en
+   tests/broker-degiro.test.mjs: no hay ficheros reales y los de un usuario no se commitean. */
+var DEGIRO_COLS={
+  prod:["producto","product","produkt"],
+  isin:["simbolo/isin","symbol/isin","symbool/isin","isin"],
+  qty:["cantidad","quantity","amount","aantal","anzahl","numero","number"],
+  close:["precio de cierre","closing","slotkoers","schlusskurs","cierre"],
+  local:["valor local","local value","lokale waarde","wert in lokalwahrung","lokalwahrung"],
+  eur:["valor en eur","value in eur","waarde in eur","wert in eur","valor eur","value eur"],
+  date:["fecha","date","datum"], time:["hora","time","tijd","uhrzeit","zeit"],
+  price:["precio","price","koers","kurs"],
+  value:["valor","value","waarde","wert"],
+  fee:["costes de transaccion","costes","transaction and/or third","transaction costs","transactiekosten","transaktionskosten","transaktionsund"],
+  total:["total","totaal","gesamt"],
+  order:["id orden","order id","order-id","orderid"]
+};
+function degiroHead(h, tx){
+  const c=function(k){ return brkCol(h,DEGIRO_COLS[k]); };
+  if(tx) return c("date")>=0 && c("isin")>=0 && c("qty")>=0 && c("price")>=0 && h.indexOf("isin")>=0;
+  return c("prod")>=0 && c("isin")>=0 && c("qty")>=0 && c("local")>=0 && c("date")<0;
+}
+/* Si ninguna celda decide el decimal (todas con tres decimales, «0,125»), decide el IDIOMA de la
+   cabecera, que es el de los números: en inglés punto, en es/nl/de coma. Nunca se vuelve a
+   adivinar celda a celda, que leía «0,125» participaciones como 125 (revisión de dinero 18/11).
+   Solo cabeceras que existen ÚNICAMENTE en inglés: «product» y «date» también son neerlandés. */
+function degiroDec(head){
+  return head.some(function(h){ return ["quantity","closing","local value"].indexOf(h)>=0; })?".":",";
+}
+// Transacciones → operaciones por ISIN. Cada fila lleva su clave (orden + fecha + cantidad) para que
+// soltar el mismo fichero dos veces no duplique compras.
+function degiroParseTx(text){
+  const rows=brkRows(text); const hi=brkHeadRow(rows,function(h){ return degiroHead(h,true); });
+  if(hi<0) return null;
+  const head=rows[hi].map(brkKey); const ci={}; Object.keys(DEGIRO_COLS).forEach(function(k){ ci[k]=brkCol(head,DEGIRO_COLS[k]); });
+  // «Valor» a secas es el importe en EUR: se busca EXACTO, que «valor local» también empieza por «valor».
+  ci.value=-1; DEGIRO_COLS.value.some(function(n){ const j=head.indexOf(n); if(j>=0){ ci.value=j; return true; } return false; });
+  const body=rows.slice(hi+1); const dec=brkDecimal(body)||degiroDec(head);
+  const ops={}; let n=0;
+  body.forEach(function(f){
+    const isin=String(f[ci.isin]||"").trim().toUpperCase(); if(!BRK_ISIN.test(isin)) return;
+    const q=brkNum(f[ci.qty],dec); if(!q) return;
+    const date=brkIsoDate(f[ci.date]); const time=ci.time>=0?String(f[ci.time]||"").trim():"";
+    const loc=brkMoney(f,ci.local,dec), val=brkMoney(f,ci.value,dec), fee=brkMoney(f,ci.fee,dec), tot=brkMoney(f,ci.total,dec);
+    const feeAbs=Math.abs(fee.amt||0);
+    let eurTot=null;
+    if(tot.amt!=null && (!tot.cur||tot.cur==="EUR")) eurTot=Math.abs(tot.amt);
+    else if(val.amt!=null && (!val.cur||val.cur==="EUR") && (!feeAbs||fee.cur==="EUR"||!fee.cur)) eurTot=Math.abs(val.amt)+feeAbs;
+    // La comisión va en EUR y el coste nativo en la moneda del valor: se pasa con el cambio QUE
+    // SALE DE LA PROPIA FILA (local ÷ EUR), así da igual en qué sentido escriba DEGIRO su tipo.
+    let feeLoc=0;
+    if(feeAbs){
+      if(!fee.cur||fee.cur===loc.cur) feeLoc=feeAbs;
+      else if(fee.cur==="EUR" && loc.amt && val.amt && (!val.cur||val.cur==="EUR")) feeLoc=feeAbs*Math.abs(loc.amt)/Math.abs(val.amt);
+      else feeLoc=null;
+    }
+    const k=[ci.order>=0?String(f[ci.order]||"").trim():"",date,time,isin,q].join("|");
+    const o=ops[isin]||(ops[isin]={});
+    if(!o[k]) n++;
+    o[k]={ ts:(date||"")+" "+time, qty:q, local:loc.amt==null?null:Math.abs(loc.amt), cur:loc.cur||null, eur:eurTot, feeLoc:feeLoc, fees:fee.cur==="EUR"||!fee.cur?feeAbs:0 };
+  });
+  return n?ops:null;
+}
+/* Coste MEDIO de lo que te queda, como `revoAggregate`: cada venta se lleva su parte del coste.
+   Un solo dato que falte en una COMPRA deja ese coste en null: «—» antes que un coste a medias. */
+function degiroCostOf(byKey){
+  const ord=Object.keys(byKey).map(function(k){ return byKey[k]; }).sort(function(a,b){ return a.ts<b.ts?-1:(a.ts>b.ts?1:0); });
+  let sh=0, cL=0, cE=0, okL=true, okE=true, buys=0, sells=0, cur=null;
+  ord.forEach(function(o){
+    if(o.qty>0){ sh+=o.qty; buys++;
+      if(o.cur){ if(cur && cur!==o.cur) okL=false; cur=o.cur; }
+      if(o.local==null||o.feeLoc==null) okL=false; else cL+=o.local+o.feeLoc;
+      if(o.eur==null) okE=false; else cE+=o.eur; }
+    else { const q=Math.min(-o.qty,sh); const fr=sh>0?q/sh:0; cL-=cL*fr; cE-=cE*fr; sh-=q; sells++; }
+  });
+  return { shares:+sh.toFixed(8), cost:okL?+cL.toFixed(2):null, costEur:okE?+cE.toFixed(2):null, cur:cur, buys:buys, sells:sells };
+}
+function degiroParseCartera(text, memo){
+  const rows=brkRows(text); const hi=brkHeadRow(rows,function(h){ return degiroHead(h,false); });
+  if(hi<0) return null;
+  const head=rows[hi].map(brkKey); const ci={}; ["prod","isin","qty","close","local","eur"].forEach(function(k){ ci[k]=brkCol(head,DEGIRO_COLS[k]); });
+  const body=rows.slice(hi+1); const dec=brkDecimal(body)||degiroDec(head);
+  const tx=(memo&&memo.degiroTx)||null;
+  const positions=[], cash=[], warnings=[], present=[]; let skipped=0;
+  body.forEach(function(f){
+    const name=String(f[ci.prod]||"").trim(); const id=String(f[ci.isin]||"").trim().toUpperCase();
+    const q=brkNum(f[ci.qty],dec); const loc=brkMoney(f,ci.local,dec);
+    // La fila del efectivo («CASH & CASH FUND…») no trae ISIN ni cantidad: es dinero, no una posición.
+    if(!id && !q){ if(loc.amt!=null) cash.push({cur:loc.cur||"EUR",amt:loc.amt}); return; }
+    // Solo una cantidad ILEGIBLE cuenta como presente; una a 0 es una posición cerrada y tiene que
+    // poder salir como «ya no está» (tercera revisión de dinero 18/11: Tesla a 0 seguía sumando 600 €).
+    if(!id || !(q>0)){ skipped++; if(id && q==null) present.push(id); return; }
+    const isin=BRK_ISIN.test(id)?id:null;
+    const eurV=ci.eur>=0?brkMoney(f,ci.eur,dec).amt:null;
+    const close=ci.close>=0?brkNum(f[ci.close],dec):null;
+    const po={ key:isin||id, isin:isin, sym:isin?null:id, name:name||id, shares:q, cur:loc.cur||"EUR",
+      valueHint:loc.amt, valueEurHint:eurV, price:close, cost:null, costEur:null, costWhy:"need_tx", buys:0, sells:0 };
+    // Dos vías (AGENTS §7): cantidad × cierre tiene que dar el valor local que trae el fichero.
+    if(close!=null && loc.amt!=null && Math.abs(q*close-loc.amt)>Math.max(0.05,Math.abs(loc.amt)*0.005)) warnings.push({k:"check",name:po.name});
+    if(tx){
+      const ops=isin?tx[isin]:null;
+      if(!ops) po.costWhy="tx_missing";
+      else { const c=degiroCostOf(ops); po.buys=c.buys; po.sells=c.sells;
+        // Si las operaciones no explican las participaciones de hoy (traspaso de entrada, split,
+        // un rango de fechas corto) su coste no es el tuyo: «—» y se dice por qué.
+        if(Math.abs(c.shares-q)>1e-6) po.costWhy="tx_mismatch";
+        else { po.cost=(!c.cur||c.cur===po.cur)?c.cost:null; po.costEur=c.costEur; po.costWhy=po.cost==null&&po.costEur==null?"tx_partial":null; } }
+    }
+    positions.push(brkPence(po));
+  });
+  if(!positions.length && !cash.length) return null;
+  return { positions:positions, cash:cash, warnings:warnings, present:present, skipped:skipped, dividends:0, fees:0, from:null, to:null, snapshot:true };
+}
+
+/* ---- Interactive Brokers: Flex Query (XML o CSV) y Activity Statement ----
+   El XML se lee con una expresión regular y no con DOMParser: Flex lo trae todo en atributos de
+   etiquetas de una línea, y así el MISMO parser corre en los tests de Node (que no tienen DOM) y
+   valdrá tal cual para la fase 3, cuando el mismo XML llegue por la API. */
+function brkXmlUnesc(s){ return String(s).replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,"&"); }
+function brkXmlTags(text, name){
+  const out=[]; const re=new RegExp("<"+name+"\\b([^>]*?)\\/?>","g"); let m;
+  while((m=re.exec(text))){ const o={}; m[1].replace(/([A-Za-z_][\w.\-]*)\s*=\s*"([^"]*)"/g,function(_,k,v){ o[k.toLowerCase()]=brkXmlUnesc(v); return ""; }); out.push(o); }
+  return out;
+}
+var IBKR_SKIP={ OPT:1, FOP:1, FUT:1, WAR:1, CFD:1, CASH:1, "EQUITY AND INDEX OPTIONS":1, FUTURES:1, FOREX:1, OPTIONS:1 };
+/* Filas ya normalizadas (claves en minúscula, las de Flex) → posiciones. Con SUMMARY y LOT a la
+   vez manda SUMMARY; si solo hay lotes, se suman. */
+function ibkrPositions(rows, dec){
+  const by={}; const accts={}; const warnings=[], present=[]; let deriv=0, shorts=0;
+  rows.forEach(function(r){
+    const cat=String(r.assetcategory||r.assetclass||"").toUpperCase();
+    if(IBKR_SKIP[cat]){ deriv++; return; }
+    const isin=String(r.isin||r.securityid||"").trim().toUpperCase();
+    const sym=String(r.symbol||"").trim(); const exch=String(r.listingexchange||"").trim();
+    const key=BRK_ISIN.test(isin)?isin:(sym+(exch?"@"+exch:""));
+    if(!key) return;
+    const lvl=String(r.levelofdetail||"SUMMARY").toUpperCase();
+    /* POR CUENTA (revisión de dinero 18/11): un Flex de varias cuentas (individual + conjunta, IRA…)
+       trae una fila SUMMARY por cuenta y por valor. Quedarse con la última dejaba VWCE 20+5 en 5 y
+       el patrimonio 2.402 € más bajo sin aviso. Cada cuenta manda su SUMMARY (o sus lotes) y se suman. */
+    const acct=String(r.accountid||r.clientaccountid||r.account||"").trim();
+    if(acct) accts[acct]=1;
+    const g=by[key]||(by[key]={});
+    const a=g[acct]||(g[acct]={sum:null,lots:[]});
+    if(lvl==="LOT") a.lots.push(r); else a.sum=r;
+  });
+  const positions=[];
+  const nAcct=Object.keys(accts).length;
+  if(nAcct>1) warnings.push({k:"accounts",n:nAcct});
+  Object.keys(by).forEach(function(key){
+    const g=by[key]; const rs=[];
+    Object.keys(g).forEach(function(k){ const a=g[k]; Array.prototype.push.apply(rs, a.sum?[a.sum]:a.lots); });
+    const r0=rs[0];
+    /* Lo que el fichero TRAE pero no se importa (dos monedas, cantidad ilegible) sigue
+       presente: si no, `brkGoneOf` lo marcaba «ya no está» y salía del patrimonio algo que se
+       tiene (segunda revisión de dinero 18/11: VWCE en € y en $, −2.402 € sin motivo). */
+    const sigue=function(){ present.push(key); if(r0.symbol) present.push(String(r0.symbol).trim()); };
+    // El mismo valor en dos monedas no se suma: se avisa y no entra.
+    const curs={}; rs.forEach(function(r){ curs[String(r.currency||r.currencyprimary||"").trim().toUpperCase()]=1; });
+    if(Object.keys(curs).length>1){ warnings.push({k:"mixcur",name:String(r0.description||r0.symbol||key).trim()}); sigue(); return; }
+    const num=function(r,k){ return brkNum(r[k],dec); };
+    const tot=function(k){ let s=0,ok=true; rs.forEach(function(r){ const v=num(r,k); if(v==null) ok=false; else s+=v; }); return ok?s:null; };
+    const q=tot("position")!=null?tot("position"):tot("quantity");
+    if(q==null){ sigue(); return; }
+    // Corta: no se importa y la larga de antes ya no está (si quedara presente, seguiría sumando).
+    if(q<0){ shorts++; return; }
+    if(!(q>0)) return;
+    const cur=String(r0.currency||r0.currencyprimary||"").trim().toUpperCase()||null;
+    const val=tot("positionvalue"), costN=tot("costbasismoney"), mark=num(r0,"markprice");
+    const isin=BRK_ISIN.test(String(r0.isin||r0.securityid||"").toUpperCase())?String(r0.isin||r0.securityid).toUpperCase():null;
+    /* Coste en € anclado SOLO si la posición ya es en euros. `fxRateToBase` es el cambio del DÍA
+       DEL INFORME, no el de cuando compraste: anclarlo congelaría un coste que no pagaste. Sin
+       ancla, la app convierte el coste nativo al cambio de hoy, como con cualquier valor en $. */
+    const po={ key:key, isin:isin, sym:String(r0.symbol||"").trim()||null, exch:String(r0.listingexchange||"").trim()||null,
+      name:String(r0.description||r0.symbol||key).trim(), shares:+q.toFixed(8), cur:cur||"EUR",
+      valueHint:val, price:mark, cost:costN==null?null:+Math.abs(costN).toFixed(2), costEur:null,
+      costWhy:costN==null?"no_cost":(cur==="EUR"?null:"fx_today"), buys:0, sells:0 };
+    if(cur==="EUR" && po.cost!=null) po.costEur=po.cost;
+    if(!cur) warnings.push({k:"nocur",name:po.name});
+    // Dos vías: cantidad × precio de marca (× multiplicador) contra el valor que trae el fichero.
+    const mult=num(r0,"multiplier")||num(r0,"mult")||1;
+    if(mark!=null && val!=null && Math.abs(q*mark*mult-val)>Math.max(0.05,Math.abs(val)*0.005)) warnings.push({k:"check",name:po.name});
+    positions.push(brkPence(po));
+  });
+  if(deriv) warnings.push({k:"deriv",n:deriv});
+  if(shorts) warnings.push({k:"short",n:shorts});
+  return { positions:positions, warnings:warnings, present:present };
+}
+function ibkrCash(rows, dec){
+  const out=[];
+  rows.forEach(function(r){ const c=String(r.currency||r.currencyprimary||"").toUpperCase(); const v=brkNum(r.endingcash,dec);
+    if(c && c.indexOf("BASE")<0 && v!=null && Math.abs(v)>0.004) out.push({cur:c,amt:v}); });
+  return out;
+}
+function ibkrParseFlexXml(text){
+  text=String(text||"");
+  if(text.indexOf("<FlexQueryResponse")<0 && text.indexOf("<FlexStatement")<0) return null;
+  const pos=ibkrPositions(brkXmlTags(text,"OpenPosition"),".");
+  const cash=ibkrCash(brkXmlTags(text,"CashReportCurrency"),".");
+  const st=brkXmlTags(text,"FlexStatement")[0]||{};
+  const to=brkIsoDate(st.todate||((brkXmlTags(text,"OpenPosition")[0]||{}).reportdate)||"");
+  if(!pos.positions.length && !cash.length) return null;
+  return { positions:pos.positions, cash:cash, warnings:pos.warnings, present:pos.present, skipped:0, dividends:0, fees:0, from:brkIsoDate(st.fromdate||""), to:to, snapshot:true };
+}
+// Flex en CSV: los mismos campos que el XML, en columnas («CurrencyPrimary» en vez de «currency»).
+// Si se activan las cabeceras de sección, las filas llegan como HEADER/DATA,<sección>,…
+function ibkrParseFlexCsv(text){
+  const rows=brkRows(text); if(!rows.length) return null;
+  let head=null; const recs=[];
+  rows.forEach(function(f){
+    const t0=String(f[0]||"").trim().toUpperCase();
+    if(/^(BOF|BOA|BOS|EOS|EOA|EOF)$/.test(t0)) return;
+    if(t0==="HEADER"||t0==="DATA") f=f.slice(2);
+    const low=f.map(function(x){ return String(x||"").trim().toLowerCase(); });
+    if(low.indexOf("symbol")>=0 || low.indexOf("currencyprimary")>=0 || low.indexOf("clientaccountid")>=0){ head=low; return; }
+    if(!head) return;
+    const o={}; head.forEach(function(h,j){ if(h) o[h]=f[j]; }); recs.push(o);
+  });
+  if(!recs.length) return null;
+  const dec=brkDecimal(rows)||".";
+  const pos=ibkrPositions(recs.filter(function(r){ return (r.position!=null||r.quantity!=null) && (r.markprice!=null||r.positionvalue!=null); }),dec);
+  const cash=ibkrCash(recs.filter(function(r){ return r.endingcash!=null; }),dec);
+  if(!pos.positions.length && !cash.length) return null;
+  let to=null; recs.forEach(function(r){ const d=brkIsoDate(r.reportdate||""); if(d && (!to||d>to)) to=d; });
+  return { positions:pos.positions, cash:cash, warnings:pos.warnings, present:pos.present, skipped:0, dividends:0, fees:0, from:null, to:to, snapshot:true };
+}
+/* Activity Statement: un CSV con muchas secciones; la primera columna dice cuál. Se leen «Open
+   Positions» (solo las filas Summary), el ISIN de «Financial Instrument Information» y el
+   efectivo de «Cash Report». Las filas «Total» se usan para cuadrar por la otra vía. */
+var MONTHS_EN=["january","february","march","april","may","june","july","august","september","october","november","december"];
+function ibkrParseActivity(text){
+  const rows=brkRows(text);
+  if(!rows.length || !rows.some(function(f){ return String(f[1]||"").trim()==="Header" && brkKey(f[0])==="open positions"; })) return null;
+  const dec=brkDecimal(rows)||".";
+  const heads={}; const data={}; const totals=[];
+  rows.forEach(function(f){
+    const sec=brkKey(f[0]), kind=String(f[1]||"").trim();
+    if(kind==="Header"){ heads[sec]=f.slice(2).map(function(x){ return String(x||"").trim().toLowerCase().replace(/[\s\/]+/g,""); }); return; }
+    const h=heads[sec]; if(!h) return;
+    const o={}; h.forEach(function(k,j){ o[k]=f[j+2]; });
+    if(kind==="Data") (data[sec]||(data[sec]=[])).push(o);
+    else if(kind==="Total" && sec==="open positions") totals.push(o);
+  });
+  const fin={}; (data["financial instrument information"]||[]).forEach(function(r){ if(r.symbol) fin[String(r.symbol).trim()]=r; });
+  const op=(data["open positions"]||[]).filter(function(r){ return String(r.datadiscriminator||"Summary").toLowerCase()==="summary"; }).map(function(r){
+    const fi=fin[String(r.symbol||"").trim()]||{};
+    return { assetcategory:r.assetcategory, currency:r.currency, symbol:r.symbol, description:fi.description||r.symbol,
+      isin:fi.securityid||"", listingexchange:fi.listingexch||"", position:r.quantity, markprice:r.closeprice,
+      positionvalue:r.value, costbasismoney:r.costbasis, multiplier:r.mult };
+  });
+  const pos=ibkrPositions(op,dec);
+  // Por la otra vía: la fila «Total» de cada divisa contra la suma de lo que se ha leído.
+  totals.forEach(function(tr){
+    const c=String(tr.currency||"").toUpperCase(); const v=brkNum(tr.value,dec); if(!c||v==null) return;
+    const s=pos.positions.filter(function(p){ return p.cur===c; }).reduce(function(a,p){ return a+(p.valueHint||0); },0);
+    if(Math.abs(s-v)>0.05 && !pos.warnings.some(function(w){ return w.k==="deriv"||w.k==="short"; })) pos.warnings.push({k:"total",name:c});
+  });
+  const cash=[];
+  (data["cash report"]||[]).forEach(function(r){
+    if(brkKey(r.currencysummary)!=="ending cash") return;
+    const c=String(r.currency||"").toUpperCase(); const v=brkNum(r.total,dec);
+    if(c && c.indexOf("BASE")<0 && v!=null && Math.abs(v)>0.004) cash.push({cur:c,amt:v});
+  });
+  let to=null;
+  (data["statement"]||[]).forEach(function(r){
+    if(brkKey(r.fieldname)!=="period") return;
+    const re=/([a-z]+)\s+(\d{1,2}),\s*(\d{4})/gi; let m, last=null; while((m=re.exec(String(r.fieldvalue||"")))) last=m;
+    const mi=last?MONTHS_EN.indexOf(last[1].toLowerCase()):-1;
+    if(mi>=0) to=last[3]+"-"+("0"+(mi+1)).slice(-2)+"-"+("0"+last[2]).slice(-2);
+  });
+  if(!pos.positions.length && !cash.length) return null;
+  return { positions:pos.positions, cash:cash, warnings:pos.warnings, present:pos.present, skipped:0, dividends:0, fees:0, from:null, to:to, snapshot:true };
+}
+
+/* PERFILES. `aux` = el fichero solo aporta datos a la memoria; `parse` = saca posiciones.
+   El orden importa dentro de cada bróker: es el de los `if` del importador de Revolut de antes. */
+var BROKER_PROFILES=[
+  { id:"revolut-stocks", ent:"revolut", detect:function(x){ return !!revoParse(x); },
+    parse:function(x){ const p=revoParse(x); const agg=p?revoAggregate(p):null;
+      return (agg && agg.positions.length)?Object.assign({},agg,{from:p.from,to:p.to,skipped:p.skipped}):null; } },
+  { id:"revolut-metals", ent:"revolut", detect:function(x){ return !!revoParseCommodities(x); },
+    parse:function(x,memo){ const res=revoParseCommodities(x);
+      // El coste que antes había que teclear a mano, ahora calculado: casa cada conversión con
+      // su pata en euros por marca de tiempo y aplica coste medio (ver revoMetalCost).
+      if(res) res.positions.forEach(function(po){ if(po.metal && po.mov) po.cost=revoMetalCost(po.mov, (memo.metalEur||{})[po.ticker]); });
+      return res; } },
+  { id:"revolut-fiat", ent:"revolut", detect:function(x){ return !!revoMetalCostsFromFiat(x); },
+    aux:function(x,memo){ const c=revoMetalCostsFromFiat(x); if(!c) return false;
+      const m=memo.metalEur||(memo.metalEur={});
+      Object.keys(c).forEach(function(tk){ Object.assign(m[tk]||(m[tk]={}), c[tk]); }); return true; } },
+  { id:"degiro-cartera", ent:"degiro", detect:function(x){ return !!degiroParseCartera(x,null); }, parse:degiroParseCartera },
+  { id:"degiro-tx", ent:"degiro", detect:function(x){ return !!degiroParseTx(x); },
+    aux:function(x,memo){ const o=degiroParseTx(x); if(!o) return false;
+      const m=memo.degiroTx||(memo.degiroTx={});
+      Object.keys(o).forEach(function(isin){ Object.assign(m[isin]||(m[isin]={}), o[isin]); }); return true; } },
+  { id:"ibkr-flex-xml", ent:"ibkr", detect:function(x){ return !!ibkrParseFlexXml(x); }, parse:ibkrParseFlexXml },
+  { id:"ibkr-activity", ent:"ibkr", detect:function(x){ return !!ibkrParseActivity(x); }, parse:ibkrParseActivity },
+  { id:"ibkr-flex-csv", ent:"ibkr", detect:function(x){ return !!ibkrParseFlexCsv(x); }, parse:ibkrParseFlexCsv }
+];
+function brokerDetect(text){
+  return BROKER_PROFILES.filter(function(p){ try{ return p.detect(text); }catch(e){ return false; } }).map(function(p){ return p.id; });
+}
+/* El análisis entero de una tanda de ficheros de UN bróker. `memo` es la memoria entre tandas
+   (la tarjeta la guarda en un ref). Devuelve {acc} o {err}: «aux» = solo llegaron ficheros de
+   ayuda; «pnl» = el de Pérdidas y Ganancias de Revolut; «other:<bróker>» = es de otro bróker. */
+function brokerAnalyze(ent, txts, memo){
+  memo=memo||{};
+  const profs=BROKER_PROFILES.filter(function(p){ return p.ent===ent; });
+  const acc={ positions:[], dividends:0, fees:0, from:null, to:null, skipped:0, cash:[], warnings:[], present:[], snapshot:false };
+  let any=false, allPnl=true, auxN=0;
+  // PRIMERA PASADA: los ficheros de ayuda, antes de parsear nada, para que dé igual el orden.
+  txts.forEach(function(src){ profs.forEach(function(p){ if(p.aux && p.aux(src,memo)) auxN++; }); });
+  txts.forEach(function(src){
+    let res=null;
+    for(let k=0;k<profs.length && !res;k++){ if(profs[k].parse) res=profs[k].parse(src,memo); }
+    if(!res){ if(!revoIsPnl(src)) allPnl=false; return; }
+    any=true;
+    res.positions.forEach(function(po){
+      if(po.key==null) po.key=po.ticker;
+      const j=acc.positions.findIndex(function(x){ return x.key===po.key; });
+      if(j>=0) acc.positions[j]=po; else acc.positions.push(po);   // misma clave en dos ficheros: manda el último
+    });
+    acc.dividends+=res.dividends||0; acc.fees+=res.fees||0; acc.skipped+=res.skipped||0;
+    if(res.from && (!acc.from||res.from<acc.from)) acc.from=res.from;
+    if(res.to && (!acc.to||res.to>acc.to)) acc.to=res.to;
+    if(res.cash) acc.cash=acc.cash.concat(res.cash);
+    if(res.warnings) acc.warnings=acc.warnings.concat(res.warnings);
+    if(res.present) acc.present=acc.present.concat(res.present);
+    if(res.snapshot) acc.snapshot=true;
+  });
+  if(any) return { acc:acc };
+  // Un fichero de ayuda solo está perfectamente entendido: lo que falta es el otro.
+  if(auxN) return { err:"aux" };
+  if(ent==="revolut" && allPnl) return { err:"pnl" };
+  for(let i=0;i<txts.length;i++){
+    const ids=brokerDetect(txts[i]); const o=BROKER_PROFILES.find(function(p){ return ids.indexOf(p.id)>=0 && p.ent!==ent; });
+    if(o) return { err:"other:"+o.ent };
+  }
+  return { err:"bad" };
+}
+// Sugerencia SOLO por ISIN o ticker exacto y dentro del mismo bróker: por palabras del nombre
+// «Vanguard All-World» casaría con «Vanguard S&P 500» y le pisaría las participaciones.
+function brkSuggest(po, investments, ent){
+  const mine=(investments||[]).filter(function(i){ return i.ent===ent; });
+  const byIsin=po.isin && mine.find(function(i){ return i.isin===po.isin; });
+  if(byIsin) return byIsin.id;
+  const sym=String(po.sym||"").toUpperCase();
+  const bySym=sym && mine.find(function(i){ return String(i.ticker||i.fileSym||"").toUpperCase()===sym && (!i.fileExch||!po.exch||i.fileExch===po.exch); });
+  return bySym?bySym.id:null;
+}
+/* Posiciones del bróker que el fichero ya NO trae (vendidas). No se borran solas: se marcan con
+   la fecha, y borrarla es cosa del usuario desde Editar. Sin esto vuelven los «cadáveres» y las
+   resurrecciones de las sagas de Revolut y Trade Republic. Solo con un fichero de cartera
+   COMPLETA (snapshot): con unas transacciones sueltas no se puede saber qué ya no está. */
+function brkGoneOf(investments, ent, positions, map, present){
+  const keys={};
+  (present||[]).forEach(function(x){ x=String(x||"").toUpperCase(); if(!x) return; if(BRK_ISIN.test(x)) keys[x]=1; else keys["s:"+x.split("@")[0]]=1; });
+  positions.forEach(function(p){ if(p.isin) keys[p.isin]=1; if(p.sym) keys["s:"+String(p.sym).toUpperCase()]=1; if(map[p.key]) keys["#"+map[p.key]]=1; });
+  // También por el símbolo del fichero: una posición sin ISIN que SIGUE en el fichero (aunque se
+  // deje en «no tocar») no está vendida, y marcarla la sacaría del patrimonio.
+  const sym=function(i){ const x=String(i.fileSym||i.ticker||"").toUpperCase(); return x && keys["s:"+x]; };
+  return (investments||[]).filter(function(i){ return i.ent===ent && !keys["#"+i.id] && !(i.isin && keys[i.isin]) && !sym(i) && (i.src==="csv:"+ent||i.isin); });
+}
+// Brókers con sincronización propia: sus posiciones no se ofrecen al importar un fichero de otro,
+// porque cambiarlas de bróker haría que su sincronización las volviera a crear (contaría doble).
+var BRK_OWN_SYNC={ trade_republic:1, myinvestor:1 };
+function brkTargetOk(i, ent){ return i.ent===ent || !BRK_OWN_SYNC[i.ent]; }
+/* Aplicar (DEGIRO, IBKR y los que vengan). Solo lo mapeado; lo que el fichero no trae se
+   respeta. El precio en vivo NO se engancha: `prices` aún no sabe la moneda de cada cotización
+   (un GBp tomado por GBP multiplica por 100), así que el símbolo del fichero se guarda aparte
+   (`fileSym`) y el valor es el del fichero, con su fecha, hasta que eso esté. */
+function brkApplyFile(s, ent, positions, map, goneMark, at){
+  const used={};
+  let inv=(s.investments||[]).map(function(i){
+    if(goneMark[i.id]) return Object.assign({},i,{fileGone:at});
+    const po=brkTargetOk(i, ent) && positions.find(function(p){ return map[p.key]===i.id; });
+    if(!po) return i;
+    used[po.key]=1;
+    const patch={ shares:po.shares, ent:ent, src:"csv:"+ent };
+    const sameCur=!i.cur||i.cur===po.cur;
+    // Cambiar de moneda solo si el fichero trae también el coste: un coste viejo en € dentro de
+    // una posición en $ haría mentir la ganancia.
+    const curOk=sameCur || po.cost!=null || po.costEur!=null || !(Number(i.cost)>0);
+    if(curOk){
+      patch.cur=po.cur;
+      if(po.valueHint!=null){ patch.value=+po.valueHint.toFixed(2); patch.fileAt=at; }
+      if(po.cost!=null || po.costEur!=null){
+        patch.cost=po.cost; patch.costEur=po.costEur;
+        // Un `costEur` anclado (el € que de verdad se pagó) no se tira si el fichero trae lo mismo
+        // que ya había —mismas participaciones y mismo coste nativo— pero sin ancla propia.
+        if(po.costEur==null && typeof i.costEur==="number" && sameCur && i.shares===po.shares && Number(i.cost)===po.cost) patch.costEur=i.costEur;
+      }
+    }
+    if(patch.value==null){ const pps=(i.shares>0 && i.value>0)?(i.value/i.shares):null; if(pps!=null) patch.value=+(pps*po.shares).toFixed(2); }
+    if(!i.isin && po.isin) patch.isin=po.isin;
+    if(po.sym){ patch.fileSym=po.sym; if(po.exch) patch.fileExch=po.exch; }
+    const out=Object.assign({},i,patch);
+    delete out.fileGone;
+    if(out.costEur==null) delete out.costEur;
+    return out;
+  });
+  const created=positions.filter(function(p){ return map[p.key]==="__new" && !used[p.key]; }).map(function(po){
+    const o={ id:uid(), ent:ent, name:po.name, shares:po.shares, cur:po.cur||"EUR", src:"csv:"+ent,
+      value:po.valueHint!=null?+po.valueHint.toFixed(2):(po.cost!=null?po.cost:0), cost:po.cost };
+    if(po.valueHint!=null) o.fileAt=at;
+    if(po.costEur!=null) o.costEur=po.costEur;
+    if(po.isin) o.isin=po.isin;
+    if(po.sym){ o.fileSym=po.sym; if(po.exch) o.fileExch=po.exch; }
+    return o;
+  });
+  if(created.length) inv=inv.concat(created);
+  return Object.assign({},s,{investments:inv});
+}
+
+/* Cada tarjeta de «Mis bancos» que importa por fichero. Revolut conserva su aspecto de siempre;
+   DEGIRO e IBKR llevan monograma sobrio (no hay un PNG oficial que recortar en docs/design/bancos,
+   y dibujar el logo es justo lo que se rechazó cuatro veces). */
+var BROKER_FILE_CARDS={
+  // El texto de «CSV»: en claro, #9BD0E0 sobre su fondo no llegaba a 3:1 (`--ink-cian`, solo en claro).
+  revolut:{ cls:"bk-csv", logo:"CSV", logoStyle:{background:"#9BD0E022",color:"var(--ink-cian,#9BD0E0)"}, title:"bi_rev_title", sub:"bi_sub", btn:"bi_rev_steps_btn", steps:"bi_rev_steps", file:"bi_file", accept:".csv,text/csv,text/plain" },
+  degiro:{ cls:"bk-file", logo:"DG", title:"bf_degiro_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_degiro_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,text/csv,text/plain" },
+  ibkr:{ cls:"bk-file", logo:"IB", title:"bf_ibkr_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_ibkr_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,.xml,text/csv,text/xml,application/xml,text/plain" }
+};
+/* Tarjeta de importación por fichero. Vive junto a Trade Republic en «Mis bancos».
+   Previsualización obligatoria + mapeo por posición antes de aplicar: el usuario cuadra contra
+   la app de su bróker y decide. Re-ancla participaciones y coste a las posiciones mapeadas (o
+   crea nuevas). No pisa un ISIN real con el ticker. */
+function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
+  ent=ent||"revolut";
+  const rev=ent==="revolut";
+  const card=BROKER_FILE_CARDS[ent];
   const [text,setText]=useState("");
   const [parsed,setParsed]=useState(null);
   const [map,setMap]=useState({});
+  const [gone,setGone]=useState({});        // posición que ya no está en el fichero → "" no tocar · "mark"
   const [mcost,setMcost]=useState({});      // coste € que TÚ tecleas para un metal (Revolut no lo trae)
-  const [err,setErr]=useState(null);        // null | "bad" | "pnl" | "fiat"
+  const [err,setErr]=useState(null);        // null | "bad" | "pnl" | "aux" | "other:<bróker>"
   /* La pata en EUROS de las conversiones a metal vive en el extracto de la cuenta NORMAL de
      Revolut, que no trae ni una posición. Se RECUERDA entre análisis para que los ficheros se
      puedan soltar de uno en uno y en cualquier orden.
@@ -488,56 +1001,26 @@ function BrokerImport({state, set, fetchPrices, open, onToggle}){
   // vive repartida en dos extractos y pedir dos pasadas era pedir que se le olvide una.
   const analyzeAll=function(txts){
     setErr(null); setDoneN(null);
-    const acc={ positions:[], dividends:0, fees:0, from:null, to:null, skipped:0 };
-    let any=false, allPnl=true;
-    // PRIMERA PASADA: recoger el coste en euros de los metales. Vive en el extracto de la CUENTA
-    // (otro fichero), y el usuario puede soltarlos en cualquier orden — así que se juntan antes
-    // de parsear nada, y da igual cuál venga primero. Se acumulan en fiatRef: soltar el extracto
-    // en € en una tanda y el de metales en la siguiente tiene que funcionar igual.
-    const mcosts=fiatRef.current;
-    let fiatN=0;
-    txts.forEach(function(src){
-      const c=revoMetalCostsFromFiat(src);
-      if(c){ fiatN++; Object.keys(c).forEach(function(tk){ Object.assign(mcosts[tk]||(mcosts[tk]={}), c[tk]); }); }
-    });
-    txts.forEach(function(src){
-      let res=null;
-      const p=revoParse(src);
-      const agg=p?revoAggregate(p):null;
-      if(agg && agg.positions.length) res=Object.assign({},agg,{from:p.from,to:p.to,skipped:p.skipped});
-      else {
-        res=revoParseCommodities(src);
-        // El coste que antes había que teclear a mano, ahora calculado: casa cada conversión con
-        // su pata en euros por marca de tiempo y aplica coste medio (ver revoMetalCost).
-        if(res) res.positions.forEach(function(po){
-          if(po.metal && po.mov) po.cost=revoMetalCost(po.mov, mcosts[po.ticker]);
-        });
-      }
-      if(!res){ if(!revoIsPnl(src)) allPnl=false; return; }
-      any=true;
-      res.positions.forEach(function(po){
-        const j=acc.positions.findIndex(function(x){ return x.ticker===po.ticker; });
-        if(j>=0) acc.positions[j]=po; else acc.positions.push(po);   // mismo ticker en dos ficheros: manda el último
-      });
-      acc.dividends+=res.dividends||0; acc.fees+=res.fees||0; acc.skipped+=res.skipped||0;
-      if(res.from && (!acc.from||res.from<acc.from)) acc.from=res.from;
-      if(res.to && (!acc.to||res.to>acc.to)) acc.to=res.to;
-    });
-    // Un fichero que SOLO aporta los euros de los metales está perfectamente entendido: lo que
-    // falta es el de Materias primas (las onzas). Decirlo así, en vez de «formato raro», es la
-    // diferencia entre saber qué subir y probar ficheros a ciegas.
-    if(!any){ setErr(fiatN?"fiat":(allPnl?"pnl":"bad")); setParsed(null); return; }
+    // La memoria entre tandas (fiatRef) es lo que deja soltar el extracto en € hoy y el de metales
+    // mañana, o Transacciones antes que Cartera: ver brokerAnalyze.
+    const r=brokerAnalyze(ent, txts, fiatRef.current);
+    // Un fichero que SOLO aporta datos de ayuda está perfectamente entendido: lo que falta es el
+    // otro. Decirlo así, en vez de «formato raro», es la diferencia entre saber qué subir y
+    // probar ficheros a ciegas.
+    if(r.err){ setErr(r.err); setParsed(null); return; }
+    const acc=r.acc;
     const m={};
     acc.positions.forEach(function(po){
+      if(!rev){ m[po.key]=brkSuggest(po, state.investments, ent)||""; return; }
       // el metal primero por su vía (más específica que el matcher por palabras del nombre)
       const sug=(po.metal?revoMetalSuggest(po.ticker,state.investments):null)
         || brokerSuggest({ticker:po.ticker,name:po.name}, state.investments);
       // Sin sugerencia clara el defecto es NO TOCAR (antes era «crear nueva» y el import
       // sembraba posiciones extra de valores ya vendidos — feedback 2026-07-13). Solo con
       // la cartera vacía compensa crear todo de serie.
-      m[po.ticker]=sug||((state.investments||[]).length?"":"__new");
+      m[po.key]=sug||((state.investments||[]).length?"":"__new");
     });
-    setParsed(acc); setMap(m);
+    setParsed(acc); setMap(m); setGone({});
   };
   const analyze=function(txt){ analyzeAll([txt!=null?txt:text]); };
   const onFile=function(e){
@@ -551,9 +1034,21 @@ function BrokerImport({state, set, fetchPrices, open, onToggle}){
       analyzeAll(txts);
     });
   };
-  const mappedN=parsed?parsed.positions.filter(function(p){ return map[p.ticker]; }).length:0;
+  const mappedN=parsed?parsed.positions.filter(function(p){ return map[p.key]; }).length:0;
+  // Lo que ya no está en el fichero se marca de serie (marcar no mueve dinero: solo avisa) y
+  // se puede dejar sin tocar. Borrarla sigue siendo cosa del usuario, desde Editar.
+  const goneList=(parsed && !rev && parsed.snapshot)?brkGoneOf(state.investments, ent, parsed.positions, map, parsed.present):[];
+  const goneMark={}; goneList.forEach(function(i){ if(gone[i.id]!=="") goneMark[i.id]=1; });
+  const goneN=Object.keys(goneMark).length;
   const apply=function(){
     const pos=parsed.positions;
+    if(!rev){
+      const at=parsed.to||isoLocal();
+      set(function(s){ return brkApplyFile(s, ent, pos, map, goneMark, at); });
+      setDoneN(mappedN+goneN); setParsed(null); setText("");
+      if(fetchPrices) setTimeout(function(){ fetchPrices(true); },50);
+      return;
+    }
     set(function(s){
       let inv=(s.investments||[]).map(function(i){
         const po=pos.find(function(p){ return map[p.ticker]===i.id; });
@@ -588,29 +1083,39 @@ function BrokerImport({state, set, fetchPrices, open, onToggle}){
     // y nada más re-anclar, precios en vivo en silencio: el valor pasa de «último conocido» a real
     if(fetchPrices) setTimeout(function(){ fetchPrices(true); },50);
   };
-  if(open===false) return React.createElement("div",{className:"bk-card bk-csv"},
-    bkBrand({logo:"CSV", logoStyle:{background:"#9BD0E022",color:"#9BD0E0"}, title:t("bi_rev_title"), sub:t("bi_sub"),
-             badge:null, open:false, onToggle:onToggle}));
-  return React.createElement("div",{className:"bk-card bk-csv"},
-    bkBrand({logo:"CSV", logoStyle:{background:"#9BD0E022",color:"#9BD0E0"}, title:t("bi_rev_title"), sub:t("bi_sub"),
-             badge:null, open:true, onToggle:onToggle}),
-    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("bi_hint")),
-    React.createElement("button",{className:"chip",style:{marginBottom:10},onClick:function(){ setSteps(!steps); }}, (steps?"▾ ":"▸ ")+t("bi_rev_steps_btn")),
-    steps && React.createElement("ol",{style:{margin:"0 0 12px",paddingLeft:18,fontSize:12.5,color:"var(--muted)",lineHeight:1.6}},
-      (t("bi_rev_steps")||[]).map(function(st,i){ return React.createElement("li",{key:i,style:{marginBottom:4}}, st); })
+  const brand=function(isOpen){
+    const e=entOf(ent);
+    return bkBrand({logo:card.logo, logoStyle:card.logoStyle||{background:entTint(e.color,13),color:e.ink||e.color,borderColor:entTint(e.color,27)}, title:t(card.title), sub:t(card.sub),
+             badge:null, open:isOpen, onToggle:onToggle});
+  };
+  // El borde de acento con el color del bróker: el de `var(--line)` casi no se veía en oscuro.
+  const cardProps={className:"bk-card "+card.cls,"data-broker-file":ent,style:rev?undefined:{borderLeftColor:entOf(ent).color}};
+  if(open===false) return React.createElement("div",cardProps, brand(false));
+  const errTxt=!err?null:(err==="aux"?t(rev?"bi_err_fiat":"bf_err_aux"):(err==="pnl"?t("bi_err_pnl")
+    :(err.indexOf("other:")===0?tf("bf_err_other",{x:entOf(err.slice(6)).label}):t("bi_err"))));
+  // Importe en su moneda, sin pasar a €: el cambio lo pone la app al pintar (y si no lo hay, «—»).
+  const natAmt=function(n,cur){ return n==null?"—":NF.format(n)+" "+(cur||"EUR"); };
+  return React.createElement("div",cardProps,
+    brand(true),
+    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t(card.hint||"bi_hint")),
+    React.createElement("button",{className:"chip",style:{marginBottom:10},onClick:function(){ setSteps(!steps); }}, (steps?"▾ ":"▸ ")+t(card.btn)),
+    steps && React.createElement("ol",{className:"bf-in",style:{margin:"0 0 12px",paddingLeft:18,fontSize:12.5,color:"var(--muted)",lineHeight:1.6}},
+      (t(card.steps)||[]).map(function(st,i){ return React.createElement("li",{key:i,style:{marginBottom:4}}, st); })
     ),
     !parsed && doneN==null && React.createElement(React.Fragment,null,
-      React.createElement("label",{className:"btn btn-ghost btn-block",style:{cursor:"pointer",marginBottom:8}}, t("bi_file"),
-        React.createElement("input",{type:"file",accept:".csv,text/csv,text/plain",multiple:true,style:{display:"none"},onChange:onFile})),
-      React.createElement("textarea",{className:"af-in",style:{width:"100%",minHeight:70,fontFamily:"monospace",fontSize:11,boxSizing:"border-box"},placeholder:t("bi_paste_ph"),value:text,onChange:function(e){ setText(e.target.value); }}),
+      React.createElement("label",{className:"btn btn-ghost btn-block",style:{cursor:"pointer",marginBottom:8}}, t(card.file),
+        React.createElement("input",{type:"file",accept:card.accept,multiple:true,style:{display:"none"},onChange:onFile})),
+      React.createElement("textarea",{className:"af-in",style:{width:"100%",minHeight:70,fontFamily:"monospace",fontSize:11,boxSizing:"border-box"},placeholder:t(card.ph||"bi_paste_ph"),value:text,onChange:function(e){ setText(e.target.value); }}),
       React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},disabled:!text.trim(),onClick:function(){ analyze(); }}, t("bi_analyze"))
     ),
-    // «fiat» no es un fallo: el fichero se leyó bien y sus datos están guardados. Va en caja
+    // «aux» no es un fallo: el fichero se leyó bien y sus datos están guardados. Va en caja
     // neutra (no de alarma) para no dar por roto lo que ha funcionado.
-    err && React.createElement("div",{className:err==="fiat"?"hint":"alarmbox",style:{marginTop:10}},
-      err==="fiat"?t("bi_err_fiat"):(err==="pnl"?t("bi_err_pnl"):t("bi_err"))),
-    parsed && React.createElement(React.Fragment,null,
-      React.createElement("div",{className:"hint",style:{marginTop:6}}, tf("bi_summary",{n:parsed.positions.length, from:parsed.from||"—", to:parsed.to||"—"})),
+    err && React.createElement("div",{className:err==="aux"?"hint":"alarmbox",style:{marginTop:10}}, errTxt),
+    parsed && !rev && React.createElement(BrokerFilePreview,{parsed:parsed, ent:ent, state:state, map:map, setMap:setMap,
+      goneList:goneList, gone:gone, setGone:setGone, mappedN:mappedN, goneN:goneN, natAmt:natAmt,
+      apply:apply, cancel:function(){ setParsed(null); }}),
+    parsed && rev && React.createElement("div",{className:"bf-in"},
+      React.createElement("div",{className:"hint",style:{marginTop:6}}, tf(parsed.positions.length===1?"bi_summary_one":"bi_summary",{n:parsed.positions.length, from:parsed.from||"—", to:parsed.to||"—"})),
       parsed.skipped>0 && React.createElement("div",{className:"hint",style:{marginTop:0}}, tf("bi_skipped",{n:parsed.skipped})),
       mappedN<parsed.positions.length && React.createElement("div",{className:"hint",style:{marginTop:4}}, t("bi_unmatched_hint")),
       parsed.positions.map(function(po){
@@ -643,11 +1148,64 @@ function BrokerImport({state, set, fetchPrices, open, onToggle}){
         t(parsed.positions.some(function(p){ return p.metal && p.cost!=null; })?"bi_metal_auto":"bi_metal_hint")),
       (parsed.dividends>0) && React.createElement("div",{className:"hint",style:{marginTop:2}}, tf("bi_cash_info",{int:eur(0), div:eur(parsed.dividends)})),
       React.createElement("div",{className:"hint",style:{marginTop:2}}, t("bi_usd_hint")),
-      React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:mappedN===0,onClick:apply}, tf("bi_apply",{n:mappedN})),
+      React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:mappedN===0,onClick:apply}, tf(mappedN===1?"bi_apply_one":"bi_apply",{n:mappedN})),
       React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ setParsed(null); }}, t("fj_cancel")),
       React.createElement("div",{className:"hint"},t("bi_apply_hint"))
     ),
-    doneN!=null && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700,marginTop:8}}, tf("bi_done",{n:doneN}))
+    doneN!=null && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700,marginTop:8}}, tf(doneN===1?"bi_done_one":"bi_done",{n:doneN}))
+  );
+}
+/* Vista previa de DEGIRO / IBKR. Por fila: qué trae el fichero (participaciones, valor en su
+   moneda) y el coste, o «—» con el porqué. Nada se aplica sin elegir a qué posición va. */
+function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, setGone, mappedN, goneN, natAmt, apply, cancel}){
+  const setOne=function(k,v){ setMap(function(m){ const n=Object.assign({},m); n[k]=v; return n; }); };
+  const sinPareja=parsed.positions.filter(function(p){ return !map[p.key]; });
+  const warn=parsed.warnings||[];
+  const sm={fontSize:12,color:"var(--muted)",lineHeight:1.4};
+  const nPos=parsed.positions.length, nAp=mappedN+goneN;
+  return React.createElement("div",{className:"bf-in"},
+    // Una cartera de DEGIRO no trae fecha: sin ella, «· — → —» no dice nada y se quita.
+    React.createElement("div",{className:"hint",style:{marginTop:6}}, (nPos===1?t("v4_inv_position"):tf("iv_positions",{n:nPos}))+(parsed.to?" · "+new Date(parsed.to+"T12:00:00").toLocaleDateString(loc(),{day:"2-digit",month:"short",year:"numeric"}):"")),
+    sinPareja.length>0 && React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",margin:"4px 0 6px"}},
+      React.createElement("span",{className:"hint",style:{margin:0,flex:"1 1 160px"}}, t("bf_unmatched")),
+      React.createElement("button",{type:"button",className:"chip","data-act":"bf-create-all",style:{minHeight:44},onClick:function(){
+        setMap(function(m){ const n=Object.assign({},m); sinPareja.forEach(function(p){ n[p.key]="__new"; }); return n; }); }},
+        sinPareja.length===1?t("bf_create_one"):tf("bf_create_all",{n:sinPareja.length}))),
+    parsed.positions.map(function(po){
+      const cost=po.costEur!=null?eur(po.costEur):(po.cost!=null?natAmt(po.cost,po.cur):"—");
+      return React.createElement("div",{key:po.key,className:"row","data-bf-row":po.key,style:{alignItems:"flex-start",flexDirection:"column",gap:6}},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",width:"100%",gap:10}},
+          React.createElement("div",{style:{minWidth:0}},
+            React.createElement("div",{className:"rname",style:{overflowWrap:"anywhere"}}, po.name+(po.cur!=="EUR"?" · "+po.cur:"")),
+            React.createElement("div",{className:"rsub"}, po.shares.toLocaleString(loc(),{maximumFractionDigits:8})+" "+t("bi_shares")+" · "+natAmt(po.valueHint,po.cur)),
+            (po.isin||po.sym) && React.createElement("div",{className:"rsub",style:{opacity:.8}}, po.isin||po.sym)),
+          React.createElement("div",{className:"rval num",style:{flex:"0 0 auto"}}, cost)),
+        // Sin coste, o con coste sin anclar en €: se dice por qué en una línea.
+        po.costWhy && React.createElement("div",{style:sm}, t("bf_cost_"+po.costWhy)),
+        React.createElement("select",{className:"af-in bf-sel",value:map[po.key]||"",onChange:function(e){ setOne(po.key,e.target.value); }},
+          React.createElement("option",{value:""},t("bi_notouch")),
+          React.createElement("option",{value:"__new"},t("tr_createnew")),
+          (state.investments||[]).filter(function(i){ return brkTargetOk(i, ent); }).map(function(i){ return React.createElement("option",{key:i.id,value:i.id}, i.ent===ent?i.name:i.name+" · "+(entOf(i.ent).short||entOf(i.ent).label)); })));
+    }),
+    goneList.length>0 && React.createElement("div",{style:{marginTop:10}},
+      React.createElement("div",{className:"bk-sec",style:{marginBottom:4}}, t("bf_gone_title")),
+      goneList.map(function(i){
+        // El selector debajo y a todo el ancho, como en las filas de arriba: al lado, con letra
+        // Enorme, el nombre bajaba a tres líneas.
+        return React.createElement("div",{key:i.id,className:"row","data-bf-gone":i.id,style:{alignItems:"flex-start",flexDirection:"column",gap:6}},
+          React.createElement("div",{className:"rname",style:{overflowWrap:"anywhere"}}, i.name),
+          React.createElement("select",{className:"af-in bf-sel",value:gone[i.id]===""?"":"mark",
+            onChange:function(e){ const v=e.target.value==="mark"?"mark":""; setGone(function(g){ const n=Object.assign({},g); n[i.id]=v; return n; }); }},
+            React.createElement("option",{value:"mark"},t("bf_gone_mark")),
+            React.createElement("option",{value:""},t("bi_notouch"))));
+      })),
+    warn.map(function(w,j){ return React.createElement("div",{key:j,className:"hint",style:{marginTop:4}}, tf("bf_w_"+w.k,{x:w.name||"",n:w.n||0})); }),
+    (parsed.cash||[]).length>0 && React.createElement("div",{className:"hint",style:{marginTop:4}},
+      tf("bf_cash",{x:parsed.cash.map(function(c){ return natAmt(c.amt,c.cur); }).join(" · ")})),
+    React.createElement("div",{className:"hint",style:{marginTop:4}}, t("bf_value_file")),
+    React.createElement("div",{className:"bf-foot"},
+      React.createElement("button",{className:"btn btn-ghost",style:{flex:"0 0 auto",minHeight:44},onClick:cancel}, t("fj_cancel")),
+      React.createElement("button",{className:"btn btn-primary",style:{flex:1,minHeight:44},disabled:nAp===0,onClick:apply}, tf(nAp===1?"bi_apply_one":"bi_apply",{n:nAp})))
   );
 }
 

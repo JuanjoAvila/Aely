@@ -517,8 +517,12 @@ export const E2E_MAP = [
     "e2e/modo-pruebas.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
+    // El motor común de importación vive aquí: Revolut, DEGIRO e IBKR por fichero (18/11).
+    "e2e/revolut-csv-import.spec.mjs", "e2e/degiro-import.spec.mjs", "e2e/ibkr-import.spec.mjs",
   ] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/degiro-import.spec.mjs", "e2e/ibkr-import.spec.mjs"] },
   { file: "src/modules/06-sync-brokers.js", specs: [
+    "e2e/degiro-import.spec.mjs", "e2e/ibkr-import.spec.mjs",
     "e2e/fin31-cartera-moneda.spec.mjs",
     "e2e/cartera-orden-brokers.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs", "e2e/revolut-csv-import.spec.mjs",

@@ -2598,6 +2598,28 @@
   .cx-vuelta{animation:cxVuelta 1.8s ease-out forwards;}
   @keyframes cxVuelta{0%,45%{background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}100%{background:transparent;box-shadow:inset 3px 0 0 transparent;}}
   html.reduce-motion .cx-vuelta{animation:none;background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}
+  .v4-banks .bk-card.bk-file{border-left:4px solid var(--line);}
+  /* Importar por fichero (filtro de diseño 18/11): el selector de mapeo corta con «…» y deja sitio
+     a la flecha; el pie con Aplicar/Cancelar se queda a la vista en vistas previas largas; lo que
+     se despliega (pasos, vista previa) entra suave. */
+  .v4-banks select.bf-sel{min-height:44px;padding-right:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* `bottom` negativo: el sticky se para en el padding inferior del panel (el de `.settings-push`,
+     safe-bottom + 24 px, desde que Conexiones es pantalla hija) y dejaba ver filas por debajo del pie;
+     así se pega al borde real de la pantalla. */
+  .v4-banks .bf-foot{position:sticky;bottom:calc(-1 * (var(--safe-bottom) + 24px));z-index:2;display:flex;gap:8px;margin:12px -16px -16px;padding:10px 16px calc(10px + var(--safe-bottom));
+    background:var(--sur);border-top:1px solid var(--line-soft);border-radius:0 0 18px 18px;}
+  .v4-banks .bf-in{animation:bfIn .22s ease both;}
+  @keyframes bfIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){ .v4-banks .bf-in{animation:none;} }
+  /* El importe de una posición no se parte («1.501,25» / «€»): cede el nombre, no la cifra. */
+  .v4-inv-drop .row .rval{white-space:nowrap;}
+  /* Lo que el fichero ya no trae (vendido) no suma: su importe va en gris para que no se lea como vivo. */
+  .v4-inv-drop .row[data-inv-gone] .rval{color:var(--muted);}
+  /* Letras cian del monograma (DEGIRO, «CSV» de Revolut): en claro, #9BD0E0 no llegaba a 3:1. */
+  html[data-theme="light"]{--ink-cian:#2F7F98;}
+  /* PÉRDIDAS EN VERDE en tema claro: la regla de los textos menta (`.row .rval .rvsub`, más arriba)
+     ganaba a `.rvsub.neg` y una posición en pérdidas se pintaba como ganancia (filtro de diseño 18/11). */
+  html[data-theme="light"] .row .rval .rvsub.neg{color:var(--coral);}
   /* Novedades: entra con el resto (sin «delay y luego zarpazo»). */
   .wn-panel{position:fixed;inset:0;z-index:97;overflow-y:auto;background:var(--bg);color:var(--text);
     padding:calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px);font-family:'Manrope',sans-serif;
