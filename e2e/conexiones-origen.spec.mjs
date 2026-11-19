@@ -35,13 +35,15 @@ async function aCartera(page) {
 }
 
 /* Muestrea en cada fotograma el borde izquierdo de la pantalla de bancos hasta que se asienta o
-   desaparece. Un salto es un fotograma que va hacia atrás o que la quita antes de haber salido. */
+   desaparece. Un salto es un fotograma que va hacia atrás o que la quita antes de haber salido.
+   Guarda también la opacidad: con fundido, al salir se leía Ajustes a través (filtro 19/11). */
 async function muestrea(page, hasta) {
   return page.evaluate((fin) => new Promise((ok) => {
-    const xs = []; const t0 = performance.now();
+    const xs = []; const t0 = performance.now(); window.__opBancos = [];
     const paso = () => {
       const el = document.querySelector(".v4-banks-push");
       xs.push(el ? Math.round(el.getBoundingClientRect().left) : null);
+      if (el) window.__opBancos.push(parseFloat(getComputedStyle(el).opacity));
       const quieto = el && xs.length > 4 && xs.slice(-4).every((x) => x === 0);
       if ((fin === "dentro" && quieto) || (fin === "fuera" && !el) || performance.now() - t0 > 3000) ok(xs); else requestAnimationFrame(paso);
     };
@@ -58,7 +60,7 @@ test("Ajustes: el grupo «Bancos» de siempre con «Gestionar mis bancos»; entr
   const grupo = page.locator("[data-bank-grp]");
   const cabecera = grupo.locator("> .set-row");
   await expect(cabecera.locator(".sr-lb")).toHaveText("Bancos");
-  await expect(cabecera.locator(".sr-val")).toHaveText(/1 conectado\(s\) · ⚠ 1 caducado\(s\)/);
+  await expect(cabecera.locator(".sr-val")).toHaveText("1 conectado · 1 caducado");
   await cabecera.click();
   const gestionar = page.locator("[data-bank-manage]");
   await expect(gestionar).toBeVisible();
@@ -81,6 +83,10 @@ test("Ajustes: el grupo «Bancos» de siempre con «Gestionar mis bancos»; entr
   expect(await alto(atras)).toBeGreaterThanOrEqual(44);
   await atras.click();
   const salida = await muestrea(page, "fuera");
+  // Opaca en TODOS los fotogramas de la salida: lo de debajo no se transparenta.
+  const ops = await page.evaluate(() => window.__opBancos);
+  expect(ops.length, "fotogramas de salida").toBeGreaterThan(3);
+  expect(ops.filter((o) => o < 1), "opacidad por fotograma: " + ops.join(",")).toEqual([]);
   const s2 = salida.filter((x) => x != null);
   // Sale hacia la derecha antes de desmontarse, sin volver atrás en ningún fotograma.
   expect(s2.some((x) => x > 40), "sale deslizando: " + s2.join(",")).toBe(true);
@@ -195,7 +201,7 @@ test("volviendo a Ajustes, el resumen de «Bancos» deja de contar el caducado",
   const fila = page.locator("[data-bank-grp] > .set-row");
   await expect(fila).toHaveClass(/cx-vuelta/);
   await expect(page.locator(".toast")).toContainText(/CaixaBank renovado/);
-  await expect(fila).toContainText(/2 conectado\(s\)/);
+  await expect(fila).toContainText(/2 conectados/);
   await expect(fila).not.toContainText(/caducado/);
   // Y con Conexiones ya cerrada: una lectura que acaba después (`runBankSync` avisa al terminar)
   // también llega a la fila, sin tener que salir y volver a entrar en Ajustes.
@@ -204,7 +210,7 @@ test("volviendo a Ajustes, el resumen de «Bancos» deja de contar el caducado",
     window.dispatchEvent(new CustomEvent("mc-bank-links-changed"));
   });
   // Al momento: sin escuchar el aviso, la fila tardaba en enterarse por caminos ajenos.
-  await expect(fila).toContainText(/1 conectado\(s\) · ⚠ 1 caducado\(s\)/, { timeout: 1_500 });
+  await expect(fila).toContainText("1 conectado · 1 caducado", { timeout: 1_500 });
 });
 
 test("con «reducir animaciones» la pantalla entra y sale sin deslizar", async ({ page }) => {

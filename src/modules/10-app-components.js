@@ -785,7 +785,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
      la hoja está arriba, el borde no arrastra la página de debajo (`on` = sin hoja). */
   const pk=useSheetSwipe(picking, function(){ setPicking(false); setQ(""); });
   useBackClose(picking, pk.close);
-  const pg=useEdgePageClose(true,function(){ onClose(accionRef.current); },!picking,sr);
+  const pg=useEdgePageClose(true,function(){ onClose(accionRef.current); },!picking,sr,{opaca:true});
   useBackClose(true, pg.close);
   useLayoutEffect(function(){
     let e2=0;
@@ -2968,9 +2968,13 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
       const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
       const trDead=!enPruebas && trKnown&&trExpired;
       const nDead=nDeadDb + (trDead?1:0);
+      // Plural de verdad y sin «⚠ … — reconéctalo»: con letra Enorme el resumen ocupaba tres
+      // renglones (filtro de diseño 19/11, textos mínimos).
+      const nC=function(n){ return n===1?t("bp_summary_n_one"):tf("bp_summary_n",{n:n}); };
+      const nX=function(n){ return n===1?t("bp_summary_exp_one"):tf("bp_summary_exp",{n:n}); };
       let summary = links===null ? "…"
-        : nActive>0 ? (tf("bp_summary_n",{n:nActive}) + (nDead?" · "+tf("bp_summary_exp",{n:nDead}):""))
-        : nDead>0 ? tf("bp_summary_exp",{n:nDead})
+        : nActive>0 ? (nC(nActive) + (nDead?" · "+nX(nDead):""))
+        : nDead>0 ? nX(nDead)
         : ((links||[]).some(function(r){return r.status==='pending';}) ? t("bank_pending") : t("bp_summary_none"));
       if(trDead && summary.indexOf("Trade Republic")<0) summary += (summary&&summary!=="…"?" · ":"") + t("bp_summary_tr_dead");
       /* La entrada vuelve a ser la de siempre: el grupo «Bancos» con «Gestionar mis bancos» dentro

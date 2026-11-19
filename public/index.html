@@ -9902,8 +9902,8 @@ Object.assign(LANG.es,{
   bp_hist_undo_cloud_fail:"Quitado en el móvil, pero la nube no ha confirmado el borrado. Si vuelven a aparecer, vuelve a deshacer con conexión.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
-  bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ninguno",
-  bp_summary_tr_dead:"⚠ Trade Republic desconectado",
+  bp_summary_n:"{n} conectados", bp_summary_n_one:"1 conectado", bp_summary_exp:"{n} caducados", bp_summary_exp_one:"1 caducado", bp_summary_none:"Ninguno",
+  bp_summary_tr_dead:"Trade Republic desconectado",
   exp_pull_invalid:"No se pudo completar la descarga. Lo guardado se conserva; vuelve a intentarlo.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
   bp_pick_title:"Elige tu banco", bp_pick_sub:"Solo verás las cuentas que autorices.",
@@ -13746,7 +13746,9 @@ function useEdgePageClose(open,onClose,on,ref,opts){
     el.classList.remove("mc-page-dragging");
     el.style.transition="transform .42s cubic-bezier(.32,.72,0,1), opacity .34s ease";
     el.style.setProperty("transform","translate3d(104%,0,0) rotateY(-1.2deg)","important");
-    el.style.opacity=".78";
+    /* `opaca`: la hija sale entera, sin fundido. Con el fundido, en Mis bancos (encima de Ajustes)
+       se leían a través las filas de Ajustes durante ~120 ms: texto doble (filtro de diseño 19/11). */
+    if(!opts.opaca) el.style.opacity=".78";
     tm.current=setTimeout(function(){
       tm.current=null;
       cb.current&&cb.current();
@@ -13790,7 +13792,7 @@ function useEdgePageClose(open,onClose,on,ref,opts){
     // compositor debe ganar solo mientras el gesto está vivo y no puede fiarlo a una clase.
     el.style.setProperty("transition","none","important");
     el.style.setProperty("transform","translate3d("+x+"px,0,0) rotateY("+(-1.2*p)+"deg)","important");
-    el.style.opacity=String(1-p*.22);
+    if(!opts.opaca) el.style.opacity=String(1-p*.22);
   };
   useEffect(function(){
     if(!open||!on) return undefined;
@@ -32837,7 +32839,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
      la hoja está arriba, el borde no arrastra la página de debajo (`on` = sin hoja). */
   const pk=useSheetSwipe(picking, function(){ setPicking(false); setQ(""); });
   useBackClose(picking, pk.close);
-  const pg=useEdgePageClose(true,function(){ onClose(accionRef.current); },!picking,sr);
+  const pg=useEdgePageClose(true,function(){ onClose(accionRef.current); },!picking,sr,{opaca:true});
   useBackClose(true, pg.close);
   useLayoutEffect(function(){
     let e2=0;
@@ -34235,7 +34237,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="62d7b54a0b8b58af85de9b01bcf265dcbaf9865bffcee99ebb9b2c1434a4e65d";
+var _rnSha="4493bed1f36bc55feacb054ed05d3888836c7dde69553fc96d0dbd7bae6d0174";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -35020,9 +35022,13 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
       const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
       const trDead=!enPruebas && trKnown&&trExpired;
       const nDead=nDeadDb + (trDead?1:0);
+      // Plural de verdad y sin «⚠ … — reconéctalo»: con letra Enorme el resumen ocupaba tres
+      // renglones (filtro de diseño 19/11, textos mínimos).
+      const nC=function(n){ return n===1?t("bp_summary_n_one"):tf("bp_summary_n",{n:n}); };
+      const nX=function(n){ return n===1?t("bp_summary_exp_one"):tf("bp_summary_exp",{n:n}); };
       let summary = links===null ? "…"
-        : nActive>0 ? (tf("bp_summary_n",{n:nActive}) + (nDead?" · "+tf("bp_summary_exp",{n:nDead}):""))
-        : nDead>0 ? tf("bp_summary_exp",{n:nDead})
+        : nActive>0 ? (nC(nActive) + (nDead?" · "+nX(nDead):""))
+        : nDead>0 ? nX(nDead)
         : ((links||[]).some(function(r){return r.status==='pending';}) ? t("bank_pending") : t("bp_summary_none"));
       if(trDead && summary.indexOf("Trade Republic")<0) summary += (summary&&summary!=="…"?" · ":"") + t("bp_summary_tr_dead");
       /* La entrada vuelve a ser la de siempre: el grupo «Bancos» con «Gestionar mis bancos» dentro

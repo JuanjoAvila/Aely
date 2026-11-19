@@ -123,7 +123,8 @@ test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", 
   await tr.getByRole("button", { name: "Verificar", exact: true }).click();
   await expect(tr.locator("select")).toBeVisible();
 
-  await expect(bankSummary).toContainText(/1 conectado\(s\)/i);
+  await expect(bankSummary).toContainText("1 conectado");
+  await expect(bankSummary).not.toContainText("caducado");
   await expect(bankSummary).not.toContainText(/Trade Republic desconectado/i);
 
   // Y al salir, vuelta con acción: Ajustes con la fila marcada y el aviso de lo conectado.
