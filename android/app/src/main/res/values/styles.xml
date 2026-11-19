@@ -38,7 +38,7 @@
              `android:background` se queda como red de seguridad para el Android<12 que sirve el
              `minSdkVersion` (23): ahí SÍ se sigue leyendo (comportamiento clásico de windowBackground). -->
         <item name="android:background">@drawable/splash</item>
-        <item name="windowSplashScreenBackground">@color/colorPrimary</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg_green</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
         <!-- ⚠ SIN ESTO (2026-08-06): tras el splash Android NO cambia al tema sin ActionBar.
              En su Oppo quedaba una franja nativa bajo la cámara (ActionBar / chrome del
@@ -49,5 +49,28 @@
              el atenuado al REANUDAR desde el multitarea (no al ARRANCAR en frío) puede seguir
              siendo la animación propia del selector de apps de MIUI/HyperOS, ajena a esta app. -->
         <item name="android:windowDisablePreview">true</item>
+    </style>
+
+    <!-- UX-03: el splash salía siempre verde oscuro y luego la app cambiaba a su tema (con el claro,
+         un fogonazo oscuro→claro en cada arranque). El tema lo guarda MainActivity al irse la app
+         al fondo; en Android 13+ el sistema recuerda el splash elegido para el siguiente arranque
+         (`setSplashScreenTheme`) y en Android 6-11 lo aplica la librería al arrancar. Android 12
+         (API 31-32) no deja cambiarlo: ahí sigue saliendo el verde. Solo cambia el fondo; el icono
+         lo pone Android y no se puede redecorar (saga de 2026-08-03). El tema verde es el de arriba. -->
+    <style name="AppTheme.NoActionBarLaunch.Dark">
+        <item name="android:background">@color/splash_bg_dark</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg_dark</item>
+    </style>
+    <style name="AppTheme.NoActionBarLaunch.Light">
+        <item name="android:background">@color/splash_bg_light</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg_light</item>
+    </style>
+    <style name="AppTheme.NoActionBarLaunch.Blue">
+        <item name="android:background">@color/splash_bg_blue</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg_blue</item>
+    </style>
+    <style name="AppTheme.NoActionBarLaunch.Cyber">
+        <item name="android:background">@color/splash_bg_cyber</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg_cyber</item>
     </style>
 </resources>

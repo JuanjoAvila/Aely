@@ -10,7 +10,8 @@
       "autoUpdate": false,
       "statsUrl": "",
       "channelUrl": "",
-      "updateUrl": ""
+      "updateUrl": "",
+      "publicKey": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA3/1VToEJPuvUUBoIEnqn3ri54GLAb0dyz/bifIMeXLD2tZcIBnkV\n5KoUhRWrFCp7xeCa4aqAHgQO7tFWpRgwjrlwCV1YM5Bj18HbK8yKbMuc1wVPh/P7\nUVNvRwf43kPsli2oiu2/dwV2UpQ+Wyv9kgfurzEtSXHUyNQBM1POHnk6aCMOdEeU\nN3eXs0vcfo82lkuzmFegjCl2EcdVEtRLQd1xOAfZj7q0fMgBMw0KtIxYK6Phu5Je\nRuA55piBRir17/eMJGl1EglSyQqMwRvJPUCd5gfjO/IhEoqpxxJfSCNBGAOVWTbh\nuKLSSvawvO7r1LL/JE5G33MDwvUoFHbvVwIDAQAB\n-----END RSA PUBLIC KEY-----"
     }
   }
 }

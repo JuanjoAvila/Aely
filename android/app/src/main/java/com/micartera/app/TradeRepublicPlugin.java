@@ -214,6 +214,19 @@ public class TradeRepublicPlugin extends Plugin {
                 // forzar un challenge nuevo en esta primera carga.
                 clearWafToken();
                 web.setWebViewClient(new WebViewClient() {
+                    /* SEG-05: esta WebView lleva la sesión de TR y en el login le metemos el
+                       teléfono y el PIN. Si la página navegara a otro sitio (un enlace, una
+                       redirección rara), el siguiente `run` inyectaría el PIN ahí. Solo se deja
+                       navegar dentro de TR; lo demás se corta sin abrir nada fuera. Solo el marco
+                       principal: el reto del WAF puede cargar iframes ajenos y ahí no se inyecta. */
+                    @Override public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
+                        if (req == null) return true;
+                        return req.isForMainFrame() && !origenTR(String.valueOf(req.getUrl()));
+                    }
+                    @SuppressWarnings("deprecation")
+                    @Override public boolean shouldOverrideUrlLoading(WebView v, String url) {
+                        return !origenTR(url);
+                    }
                     @Override public void onPageFinished(WebView v, String url) {
                         // La página APARCADA (about:blank) no es TR: no hay contexto donde inyectar
                         // nada ni sesión que snapshotear. Marcarla como "cargada" haría que la
@@ -401,7 +414,41 @@ public class TradeRepublicPlugin extends Plugin {
             "catch(e){r=JSON.stringify({ok:false,error:String(e&&e.message||e)});}" +
             "if(typeof r!=='string')r=JSON.stringify(r);" +
             "try{AndroidTR.result(" + JSONObject.quote(id) + ",r);}catch(e){}})();";
-        act.runOnUiThread(() -> web.evaluateJavascript(wrapped, null));
+        act.runOnUiThread(() -> {
+            // SEG-05: el cuerpo puede llevar el PIN. Se mira DÓNDE está la página justo antes de
+            // inyectar (en el hilo de UI, el mismo que navega): si no es app.traderepublic.com no
+            // se inyecta nada, se contesta con error y la próxima llamada recarga TR de cero.
+            if (!paginaTR(web.getUrl())) {
+                PluginCall call = pending.remove(id);
+                bodies.remove(id); retriedIds.remove(id); verifyIds.remove(id); loginIds.remove(id);
+                loaded = false; loading = false;
+                if (call != null) resolveErr(call, "TR no está cargado · reintenta");
+                return;
+            }
+            web.evaluateJavascript(wrapped, null);
+        });
+    }
+
+    /** ¿Es TR? Solo https y el dominio de TR o sus subdominios (la SPA y su API viven ahí). */
+    static boolean origenTR(String raw) {
+        try {
+            android.net.Uri u = android.net.Uri.parse(raw);
+            String h = u.getHost() == null ? "" : u.getHost().toLowerCase(java.util.Locale.ROOT);
+            return "https".equals(u.getScheme())
+                    && (h.equals("traderepublic.com") || h.endsWith(".traderepublic.com"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** La página donde se inyecta tiene que ser la SPA de TR, no un subdominio cualquiera. */
+    static boolean paginaTR(String raw) {
+        try {
+            android.net.Uri u = android.net.Uri.parse(raw);
+            return "https".equals(u.getScheme()) && "app.traderepublic.com".equalsIgnoreCase(u.getHost());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private String track(PluginCall call) {

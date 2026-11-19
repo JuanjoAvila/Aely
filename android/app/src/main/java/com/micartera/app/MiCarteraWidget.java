@@ -206,7 +206,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
                 org.json.JSONArray a = new org.json.JSONArray(scope);
                 if (a.length() != 8 || a.optInt(0, 0) != 2 || a.optLong(1, 0) != periodStart
                         || !kind.equals(a.optString(2, ""))
-                        || !(WidgetPeriod.CICLO.equals(kind) ? "neto" : "gasto").equals(magnitude)) return;
+                        || !WidgetPeriod.magnitudValida(kind, magnitude)) return;
             } catch (Exception invalid) { return; }
             // Sólo esta lectura completa nueva sustituye lo que ya no puede reconstruirse.
             // Un reenvío o una web anterior siguen conciliando IDs sin borrar incertidumbre.
@@ -344,13 +344,45 @@ public class MiCarteraWidget extends AppWidgetProvider {
                 importe, counts, cashCounts);
     }
 
+    /* FIN-34 / DIN-16: el widget pintaba siempre en euros aunque la app estuviera en dólares. Las
+       cifras se GUARDAN en euros (las del servidor llegan así y se suman a las de la app); solo se
+       convierten al pintar, con el símbolo y el cambio que manda la web en cada foto. Prefs aparte:
+       así ninguna escritura del árbitro las pisa. Sin moneda (web antigua o euros) queda «€». */
+    static final String PREFS_MONEDA = "micartera_widget_moneda";
+    private static volatile String monedaSym = "€";
+    private static volatile double monedaK = 1;
+
+    static void saveCurrency(Context ctx, String code, String sym, Double rate) {
+        SharedPreferences.Editor ed = ctx.getSharedPreferences(PREFS_MONEDA, Context.MODE_PRIVATE).edit();
+        boolean valida = code != null && code.matches("[A-Z]{3}") && !"EUR".equals(code)
+                && rate != null && Double.isFinite(rate) && rate > 0 && rate < 1e6;
+        if (!valida) {
+            ed.remove("code").remove("sym").remove("k").apply();
+            return;
+        }
+        // Un símbolo raro (largo o con saltos) rompería la línea del widget: se usa el código.
+        String s = sym != null && sym.length() >= 1 && sym.length() <= 4 && !sym.matches(".*[\\p{Cntrl}].*") ? sym : code;
+        ed.putString("code", code).putString("sym", s).putString("k", Double.toString(rate)).apply();
+    }
+
+    private static void loadCurrency(Context ctx) {
+        SharedPreferences m = ctx.getSharedPreferences(PREFS_MONEDA, Context.MODE_PRIVATE);
+        String sym = m.getString("sym", "");
+        double k = 1;
+        try { k = Double.parseDouble(m.getString("k", "1")); } catch (Exception ignored) {}
+        if (sym == null || sym.isEmpty() || !Double.isFinite(k) || k <= 0) { sym = "€"; k = 1; }
+        monedaSym = sym;
+        monedaK = k;
+    }
+
     private static String eur0(double n) {
         NumberFormat nf = NumberFormat.getInstance(new Locale("es", "ES"));
         nf.setMaximumFractionDigits(0);
-        return nf.format(Math.round(n)) + " €";
+        return nf.format(Math.round(n * monedaK)) + " " + monedaSym;
     }
 
     private static RemoteViews build(Context ctx) {
+        loadCurrency(ctx);
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         double spent = p.getFloat("spent", 0f);
         double budget = p.getFloat("budget", 0f);

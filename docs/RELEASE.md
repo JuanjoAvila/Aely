@@ -131,3 +131,27 @@ gh run list --workflow="Deploy a GitHub Pages" --limit 3
 ## Checksum del OTA (4.26.243)
 
 `deploy.yml` y `beta.yml` escriben en `version.json` el `checksum` = SHA-256 de `bundle.zip`, y la app (`mcBundleOpts` en `12-boot`) se lo pasa al actualizador, que recalcula el SHA-256 del zip descargado y lo tira si no casa. Un manifiesto sin `checksum` válido se trata como antes (manifiestos viejos y el repo puente). Por eso **el puente tiene que copiar `version.json` y `bundle.zip` JUNTOS**, del mismo despliegue: con el manifiesto nuevo y el zip viejo, el móvil ya no instala el bundle viejo con número nuevo (lo que pasaba antes), sino que falla la descarga. En estable el zip lleva `?v=<versión>` para que la caché de Pages no sirva el zip viejo con el manifiesto nuevo. Es integridad, no autenticidad: la firma queda para la APK.
+
+## Firma del OTA (SEG-01, lado APK desde la 65)
+
+El dueño dijo sí a firmar el OTA con clave propia (18/11). El checksum de arriba solo demuestra que el zip es el que dice el manifiesto; quien pudiera escribir los dos a la vez colaría su código en los móviles. Con la firma, solo quien tiene la clave PRIVADA puede publicar una OTA que la APK acepte.
+
+**Dónde está cada mitad:**
+
+| Pieza | Dónde | Quién la usa |
+|---|---|---|
+| Clave **pública** (RSA-2048, PKCS#1) | `capacitor.config.json` → `plugins.CapacitorUpdater.publicKey` (repo, es pública) | La APK: `npx cap sync` la copia a `android/app/src/main/assets/` |
+| Clave **privada** | `C:/Users/<usuario>/.micartera/capgo-ota-privada.pem` en el PC de casa, junto al keystore. **NUNCA al repo** (es público; `apk-puente-seguro` falla si aparece un `PRIVATE KEY` versionado) | El CI de Pages, como secreto de GitHub (ver abajo) |
+| Copia de la pública | `C:/Users/<usuario>/.micartera/capgo-ota-publica.pem` | Para comprobar a mano |
+
+Generada el 19/11/2026 con `crypto.generateKeyPairSync("rsa", {modulusLength:2048, …pkcs1…})` de Node (sin dependencias). Su identificador (lo que devuelve `MiCartera.appInfo().otaKeyId` y calcula el propio updater) es `MIIBCgKCAQEA3/1VToEJ`. **Haz copia de la privada** igual que del keystore: si se pierde, hay que generar otra pareja y sacar APK nueva; hasta entonces las APK con la clave vieja no aceptan ninguna OTA firmada con la nueva.
+
+**Pendiente del dueño (no lo puede hacer un agente):** crear el secreto de Actions con la privada (por ejemplo `OTA_SIGNING_KEY`, en *Settings → Secrets and variables → Actions*, pegando el contenido del `.pem`). Sin ese secreto, la ronda C no puede firmar en CI.
+
+**Cómo se firma (para la ronda C, `deploy.yml`/`beta.yml` + `12-boot.js`).** Comprobado contra el `CryptoCipher` real del updater 6.50.1 compilado con javac: acepta la firma y rechaza un checksum sin firmar.
+
+1. CI: `sha = sha256(bundle.zip)` en bruto (32 bytes) y `firma = crypto.privateEncrypt({key, padding: RSA_PKCS1_PADDING}, sha).toString("hex")` (512 caracteres). Va a `version.json` en un campo propio (p. ej. `signature`), además del `checksum` de siempre.
+2. Cliente: si `appInfo().otaKeyId` no está vacío, `up.download({url, version, checksum: firma, sessionKey: "firmado"})`. `sessionKey` tiene que ir NO vacío y SIN `:` (así el updater no intenta descifrar el zip, pero sí exige que el checksum venga firmado con la privada); con `otaKeyId` y sin `signature` en el manifiesto, **no se descarga** (si no, un manifiesto con checksum en claro seguiría valiendo y la firma no protegería nada).
+3. Con `otaKeyId` vacío (APK 64 o anterior) sigue el checksum en claro de hoy: la firma no casaría con su SHA-256 y la OTA fallaría.
+
+**⚠ Lo que cambia la APK con la clave aunque la web no se toque:** con `publicKey` presente el updater **rechaza cualquier descarga sin `checksum`** («Checksum required when public key is present»). Desde la 4.26.243 `version.json` lo lleva y `mcBundleOpts` lo pasa, así que la OTA de hoy sigue funcionando; pero un manifiesto viejo sin `checksum` (el repo puente `/Mi-Cartera` si se queda atrás, un despliegue a mano) deja a ese móvil sin OTA hasta que llegue uno bueno. Antes de publicar la APK 65: comprobar que el `version.json` servido en estable, beta y el puente lleva `checksum`.

@@ -86,25 +86,36 @@ final class WidgetPeriod {
         boolean v2 = contract >= CONTRACT;
         boolean ciclo = v2 && CICLO.equals(kind);
         boolean neto = v2 && "neto".equals(magnitude);
+        // DIN-16: en el mes la app manda lo que se compara con el límite (gasto menos ingresos sin
+        // la nómina), no el gasto bruto. Con «GASTO» encima se leía 1.436 € con 1.922 gastados.
+        boolean uso = v2 && !ciclo && USO.equals(magnitude);
         String l = v2 ? lang : "es";
         if ("en".equals(l)) {
             String p = ciclo ? "this cycle" : "this month";
-            return new String[]{(ciclo ? "AELY · MY CYCLE" : "AELY · THIS MONTH") + (v2 ? (neto ? " · NET SPENDING" : " · SPENT") : ""),
+            return new String[]{(ciclo ? "AELY · MY CYCLE" : "AELY · THIS MONTH") + (v2 ? (neto ? " · NET SPENDING" : uso ? " · LIMIT USED" : " · SPENT") : ""),
                     "of {b} " + p + " · {l} left", "of {b} " + p + " · {x} over 🚨",
-                    (neto ? "net " : "spent ") + p, "✅ You can spend ",
+                    (neto ? "net " : uso ? "used " : "spent ") + p, "✅ You can spend ",
                     "No data for " + p, "Open the app to update", "updated "};
         }
         if ("ca".equals(l)) {
             String p = ciclo ? "aquest cicle" : "aquest mes";
-            return new String[]{(ciclo ? "AELY · EL MEU CICLE" : "AELY · AQUEST MES") + (v2 ? (neto ? " · DESPESA NETA" : " · DESPESA") : ""),
+            return new String[]{(ciclo ? "AELY · EL MEU CICLE" : "AELY · AQUEST MES") + (v2 ? (neto ? " · DESPESA NETA" : uso ? " · ÚS DEL LÍMIT" : " · DESPESA") : ""),
                     "de {b} " + p + " · et queden {l}", "de {b} " + p + " · {x} de més 🚨",
-                    (neto ? "net " : "gastat ") + p, "✅ Pots gastar ",
+                    (neto ? "net " : uso ? "usat " : "gastat ") + p, "✅ Pots gastar ",
                     "Sense dades d'" + p, "Obre l'app per actualitzar", "actualitzat "};
         }
         String p = ciclo ? "este ciclo" : "este mes";
-        return new String[]{(ciclo ? "AELY · MI CICLO" : "AELY · ESTE MES") + (v2 ? (neto ? " · GASTO NETO" : " · GASTO") : ""),
+        return new String[]{(ciclo ? "AELY · MI CICLO" : "AELY · ESTE MES") + (v2 ? (neto ? " · GASTO NETO" : uso ? " · USADO DEL LÍMITE" : " · GASTO") : ""),
                 "de {b} " + p + " · te quedan {l}", "de {b} " + p + " · {x} de más 🚨",
-                (neto ? "neto " : "gastado ") + p, "✅ Puedes gastar ",
+                (neto ? "neto " : uso ? "usado " : "gastado ") + p, "✅ Puedes gastar ",
                 "Sin datos de " + p, "Abre la app para actualizar", "actualizado "};
+    }
+
+    static final String USO = "uso";
+
+    /** Qué magnitud acepta cada ventana. `uso` solo en el mes y solo si la web la manda (contrato). */
+    static boolean magnitudValida(String kind, String magnitude) {
+        if (CICLO.equals(kind)) return "neto".equals(magnitude);
+        return "gasto".equals(magnitude) || USO.equals(magnitude);
     }
 }

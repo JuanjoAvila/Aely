@@ -73,7 +73,10 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            // SEG-22: R8 quita de la APK el código de librerías que no se usa. El nuestro se conserva
+            // entero a propósito (nombres que guardan WorkManager y el puente JS): ver proguard-rules.pro.
+            // Sin `shrinkResources`: hay recursos que se piden por nombre y no compensa el riesgo.
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (ksFile) {
                 signingConfig signingConfigs.release

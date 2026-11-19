@@ -30,6 +30,10 @@ public class MainActivity extends BridgeActivity {
            en versiones antiguas de Android (< 12, minSdk 23) el splash "de verdad" no siempre se
            encadena bien con el primer pintado. Tiene que ir ANTES de super.onCreate(), que es
            justo cuando la librería necesita enganchar la ventana. */
+        // UX-03: en Android 6-11 el splash lo dibuja la librería con el tema ACTIVO al instalarla,
+        // así que el del tema guardado se pone antes. En 13+ lo hace el sistema (ver guardarTema).
+        final String tema = temaGuardado();
+        if (Build.VERSION.SDK_INT < 31 && estiloSplash(tema) != 0) setTheme(estiloSplash(tema));
         SplashScreen.installSplashScreen(this);
         registerPlugin(MiCarteraPlugin.class);       // antes de super.onCreate (así lo pide Capacitor)
         registerPlugin(TradeRepublicPlugin.class);   // puente TR (beta)
@@ -46,7 +50,11 @@ public class MainActivity extends BridgeActivity {
             if (webView != null) {
                 webView.setVerticalScrollBarEnabled(false);
                 webView.setHorizontalScrollBarEnabled(false);
+                // UX-03: entre el splash y el primer pintado de la web, la ventana y la WebView
+                // enseñaban su color por defecto (blanco/negro). Con el del tema no hay salto.
+                webView.setBackgroundColor(colorTema(tema));
             }
+            getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(colorTema(tema)));
         } catch (Throwable ignored) {}
         /* Si el splash no encadenó bien al NoActionBar (falta postSplashScreenTheme o OEM raro),
            la ActionBar nativa deja una franja bajo la cámara encima de la WebView (2026-08-06). */
@@ -200,6 +208,60 @@ public class MainActivity extends BridgeActivity {
     public void onDestroy() {
         setEdgeBackEnabled(false);
         super.onDestroy();
+    }
+
+    /* UX-03 · EL SPLASH CON EL TEMA. El tema lo elige la web (`data-theme` en <html>, que pone
+       `applyTheme` y el arranque de shell.html desde lo guardado); aquí solo se LEE al irse la app al
+       fondo, que es siempre antes de que Android pueda matarla, y se recuerda para el próximo
+       arranque. Así no hace falta tocar la web ni un contrato nuevo: una APK sin esto, o una web que
+       no ponga el atributo, se queda con el verde de siempre. */
+    private static final String PREFS_TEMA = "micartera_tema";
+    private static final java.util.Set<String> TEMAS = new java.util.HashSet<>(
+            java.util.Arrays.asList("green", "dark", "light", "blue", "cyber"));
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        guardarTema();
+    }
+
+    private void guardarTema() {
+        try {
+            if (bridge == null || bridge.getWebView() == null) return;
+            bridge.getWebView().evaluateJavascript(
+                    "document.documentElement.getAttribute('data-theme')||''", value -> {
+                        String t = value == null ? "" : value.replace("\"", "");
+                        if (!TEMAS.contains(t)) return;   // nada raro llega a las prefs ni al estilo
+                        getSharedPreferences(PREFS_TEMA, Context.MODE_PRIVATE).edit().putString("tema", t).apply();
+                        if (Build.VERSION.SDK_INT >= 33) {
+                            // El sistema lo guarda él y lo usa desde el siguiente arranque en frío.
+                            try { getSplashScreen().setSplashScreenTheme(estiloSplash(t)); } catch (Throwable ignored) {}
+                        }
+                    });
+        } catch (Throwable ignored) {}
+    }
+
+    private String temaGuardado() {
+        String t = getSharedPreferences(PREFS_TEMA, Context.MODE_PRIVATE).getString("tema", "green");
+        return TEMAS.contains(t) ? t : "green";
+    }
+
+    /** 0 = el del manifiesto (verde): así `setSplashScreenTheme(0)` vuelve al de siempre. */
+    static int estiloSplash(String tema) {
+        if ("dark".equals(tema)) return R.style.AppTheme_NoActionBarLaunch_Dark;
+        if ("light".equals(tema)) return R.style.AppTheme_NoActionBarLaunch_Light;
+        if ("blue".equals(tema)) return R.style.AppTheme_NoActionBarLaunch_Blue;
+        if ("cyber".equals(tema)) return R.style.AppTheme_NoActionBarLaunch_Cyber;
+        return 0;
+    }
+
+    private int colorTema(String tema) {
+        int id = R.color.splash_bg_green;
+        if ("dark".equals(tema)) id = R.color.splash_bg_dark;
+        else if ("light".equals(tema)) id = R.color.splash_bg_light;
+        else if ("blue".equals(tema)) id = R.color.splash_bg_blue;
+        else if ("cyber".equals(tema)) id = R.color.splash_bg_cyber;
+        return androidx.core.content.ContextCompat.getColor(this, id);
     }
 
     // Guarda el deep-link en prefs; la web lo consume al volver a primer plano con

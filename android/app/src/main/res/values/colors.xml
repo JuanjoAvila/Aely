@@ -4,4 +4,11 @@
     <color name="colorPrimaryDark">#0A1310</color>
     <color name="colorAccent">#5FD08A</color>
     <color name="status_bar_bg">#0A1310</color>
+    <!-- UX-03: el fondo del splash nativo es el MISMO color de fondo (bg) de cada tema de la web (shell.html),
+         para que no haya salto de color entre el splash del sistema y la pantalla de carga. -->
+    <color name="splash_bg_green">#0B140F</color>
+    <color name="splash_bg_dark">#0A0A0C</color>
+    <color name="splash_bg_light">#F2F6F2</color>
+    <color name="splash_bg_blue">#0A1320</color>
+    <color name="splash_bg_cyber">#0A0612</color>
 </resources>

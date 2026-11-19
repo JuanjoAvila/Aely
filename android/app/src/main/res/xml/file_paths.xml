@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <external-path name="my_images" path="." />
-    <cache-path name="my_cache_images" path="." />
+    <!-- SEG-17: antes había `external-path path="."` y la caché entera, heredados de la plantilla de
+         Capacitor para la cámara, que esta app no usa. Con eso el proveedor podía dar URI de
+         CUALQUIER fichero del almacenamiento compartido. Solo se publica lo que se comparte de
+         verdad: el APK de la actualización (installApk, en cache/updates) y el informe del mes. -->
+    <cache-path name="actualizacion" path="updates/" />
     <!-- FileSaver en Android 6–9: el informe del mes va a la carpeta de la app (sin permisos). -->
     <external-files-path name="informes" path="Download/" />
     <files-path name="informes_internos" path="Download/" />

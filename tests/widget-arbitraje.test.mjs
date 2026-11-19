@@ -239,6 +239,16 @@ public class WidgetSnapshotArbiterTest {
     ok(WidgetPeriod.labels(2,"en","mes","gasto")[WidgetPeriod.QUEDAN].equals("of {b} this month · {l} left"));
     ok(WidgetPeriod.labels(2,"es","ciclo","neto")[WidgetPeriod.SIN_PRESUPUESTO].equals("neto este ciclo"));
     ok(WidgetPeriod.labels(0,"en","ciclo","neto")[WidgetPeriod.TITULO].equals("AELY · ESTE MES")); // APK/web antigua
+    // DIN-16: «uso» solo en el mes; en el ciclo manda el neto y una magnitud rara no se acepta.
+    ok(WidgetPeriod.labels(2,"es","mes","uso")[WidgetPeriod.TITULO].equals("AELY · ESTE MES · USADO DEL LÍMITE"));
+    ok(WidgetPeriod.labels(2,"en","mes","uso")[WidgetPeriod.TITULO].equals("AELY · THIS MONTH · LIMIT USED"));
+    ok(WidgetPeriod.labels(2,"ca","mes","uso")[WidgetPeriod.TITULO].equals("AELY · AQUEST MES · ÚS DEL LÍMIT"));
+    ok(WidgetPeriod.labels(2,"es","mes","uso")[WidgetPeriod.SIN_PRESUPUESTO].equals("usado este mes"));
+    ok(WidgetPeriod.labels(2,"es","ciclo","uso")[WidgetPeriod.TITULO].equals("AELY · MI CICLO · GASTO"));
+    ok(WidgetPeriod.labels(0,"es","mes","uso")[WidgetPeriod.TITULO].equals("AELY · ESTE MES"));
+    ok(WidgetPeriod.magnitudValida("mes","gasto") && WidgetPeriod.magnitudValida("mes","uso"));
+    ok(WidgetPeriod.magnitudValida("ciclo","neto") && !WidgetPeriod.magnitudValida("ciclo","uso"));
+    ok(!WidgetPeriod.magnitudValida("mes","neto") && !WidgetPeriod.magnitudValida("mes",null));
     WidgetSnapshotArbiter.State v2=base(cobro,"trade_republic");
     ok(WidgetSnapshotArbiter.pendingUnknown(v2,"pago","k"));
     ok(v2.unknownPending); // una respuesta rechazada conserva la identidad hasta ACK, no solo un booleano

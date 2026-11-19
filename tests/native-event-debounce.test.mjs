@@ -49,7 +49,14 @@ const tail = text => {
   assert.ok(start >= 0, "inicio del contrato estable");
   return normalized.slice(start);
 };
-assert.equal(tail(listener.toString("utf8")), tail(baseline.stdout), "hash/transporte/cola/ACK deben conservarse");
+// DIN-14 (19/11/2026) solo cambia el TEXTO de la confirmación de un Round up/Saveback: no es hash,
+// transporte, cola ni ACK. Se quita esa rama, y solo esa, antes de cotejar el resto con la base.
+const sinDin14 = text => {
+  const out = text.replace(/\} else if \(tipo\.equals\("inversion"\)\) \{\n(?:[^\n]*\n){3}                \} else \{/, "} else {");
+  assert.notEqual(out, text, "la rama DIN-14 del listener ha cambiado: revisar este cotejo");
+  return out;
+};
+assert.equal(sinDin14(tail(listener.toString("utf8"))), tail(baseline.stdout), "hash/transporte/cola/ACK deben conservarse");
 
 source("android/content/SharedPreferences.java", `package android.content;
 import java.util.Map;

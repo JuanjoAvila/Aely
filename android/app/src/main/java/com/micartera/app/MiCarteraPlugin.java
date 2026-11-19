@@ -46,8 +46,10 @@ import com.getcapacitor.annotation.PermissionCallback;
  *                                la web salta a Gastos y abre la ficha. Se limpia al leerlo.
  *   - appInfo()               -> { versionName, versionCode } del APK instalado (la web lo
  *                                compara con apk.json de Pages para el botón «Actualizar app»)
- *   - installApk({url})       -> descarga el APK nuevo y abre el instalador del sistema
+ *   - installApk({url, sha256?}) -> descarga el APK nuevo y abre el instalador del sistema
  *                                (actualización SIN cable; instala encima, mantiene datos).
+ *                                Solo releases de GitHub del dueño; si llega `sha256` (el de
+ *                                apk.json) tiene que coincidir, y el paquete tiene que ser este.
  *                                { ok:false, needsPermission:true } si falta el permiso
  *                                "instalar apps desconocidas" (se abre el ajuste; reintentar).
  *   - syncOtaState({version, markNotifiedVer?}) -> alinea versión web con el worker de fondo
@@ -210,6 +212,9 @@ public class MiCarteraPlugin extends Plugin {
         // que le llegue como Double, y aquí vale lo mismo que el entero exacto.
         Number period = bridgeNumber(call, "periodStart");
         Number contract = bridgeNumber(call, "contract");
+        // Antes que la foto: `saveApp` es quien repinta. Sin `currency` (web anterior) vuelve a «€».
+        MiCarteraWidget.saveCurrency(ctx, call.getString("currency"), call.getString("currencySym"),
+                bridgeDouble(call, "currencyRate"));
         MiCarteraWidget.saveApp(ctx, period != null ? period.longValue() : MiCarteraWidget.monthStart(System.currentTimeMillis()),
                 spent != null ? spent : 0, budget != null ? budget : 0,
                 budgetLeft, safeLiq, cash, call.getString("cashEnt"), label,
@@ -226,6 +231,14 @@ public class MiCarteraPlugin extends Plugin {
     public void widgetContract(PluginCall call) {
         JSObject r = new JSObject();
         r.put("v", WidgetPeriod.CONTRACT);
+        /* DIN-16 (desde la APK 65): sin subir `v` —la web ya decide el ciclo con `v>=2`— se declaran
+           aparte las dos cosas nuevas. Solo si vienen aquí puede la web mandar `magnitude:"uso"` en
+           el mes, o `currency`/`currencySym`/`currencyRate` (euro → moneda de la app). Una APK
+           anterior no las anuncia y la web sigue con `gasto` y euros, como hasta ahora. */
+        com.getcapacitor.JSArray caps = new com.getcapacitor.JSArray();
+        caps.put(WidgetPeriod.USO);
+        caps.put("moneda");
+        r.put("caps", caps);
         call.resolve(r);
     }
 
@@ -295,6 +308,18 @@ public class MiCarteraPlugin extends Plugin {
             JSObject r = new JSObject();
             r.put("versionName", pi.versionName);
             r.put("versionCode", (int) code);
+            /* SEG-01: con clave pública en la APK, el actualizador solo da por buena una OTA cuyo
+               checksum venga FIRMADO (y `sessionKey` no vacío); sin clave, ese mismo checksum
+               firmado no casaría con el SHA-256 y la OTA fallaría. La web necesita saber cuál de
+               las dos APK tiene delante: `otaKeyId` es el identificador que calcula el propio
+               updater (primeros 20 caracteres de la clave), vacío si la APK no lleva clave. */
+            String key = "";
+            try {
+                key = getBridge().getConfig().getPluginConfiguration("CapacitorUpdater").getString("publicKey", "");
+            } catch (Exception ignored) {}
+            String body = key == null ? "" : key.replace("-----BEGIN RSA PUBLIC KEY-----", "")
+                    .replace("-----END RSA PUBLIC KEY-----", "").replaceAll("\\s+", "");
+            r.put("otaKeyId", body.length() >= 20 ? body.substring(0, 20) : "");
             call.resolve(r);
         } catch (Exception e) {
             call.reject(String.valueOf(e.getMessage()));
@@ -321,22 +346,25 @@ public class MiCarteraPlugin extends Plugin {
             call.resolve(r);
             return;
         }
+        // SEG-03: la web es la que dice qué bajar, y la web puede venir de una OTA. Sin estas
+        // comprobaciones, quien colara JS en la WebView podía hacer instalar cualquier APK (otra
+        // app con otro nombre de paquete no choca con la firma de Aely: Android la instala aparte).
+        final String sha256 = call.getString("sha256", "");
+        if (!apkUrlPermitida(url, true)) { call.reject("actualización rechazada: origen no permitido"); return; }
+        if (sha256 != null && !sha256.isEmpty() && !sha256.matches("(?i)[0-9a-f]{64}")) {
+            call.reject("actualización rechazada: huella no válida"); return;
+        }
         new Thread(() -> {
+            File dir = new File(ctx.getCacheDir(), "updates");
+            //noinspection ResultOfMethodCallIgnored
+            dir.mkdirs();
+            File apk = new File(dir, "mi-cartera-update.apk");
             try {
-                File dir = new File(ctx.getCacheDir(), "updates");
-                //noinspection ResultOfMethodCallIgnored
-                dir.mkdirs();
-                File apk = new File(dir, "mi-cartera-update.apk");
-                HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-                conn.setConnectTimeout(20000);
-                conn.setReadTimeout(120000);
-                conn.setInstanceFollowRedirects(true);   // GitHub Releases redirige al CDN
-                try (InputStream in = conn.getInputStream(); FileOutputStream out = new FileOutputStream(apk)) {
-                    byte[] buf = new byte[65536];
-                    int n;
-                    while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+                String bajada = descargarApk(url, apk);
+                if (sha256 != null && !sha256.isEmpty() && !sha256.equalsIgnoreCase(bajada)) {
+                    throw new SecurityException("la huella no coincide con la publicada");
                 }
-                conn.disconnect();
+                verificarApk(ctx, apk);
                 Uri uri = androidx.core.content.FileProvider.getUriForFile(
                         ctx, ctx.getPackageName() + ".fileprovider", apk);
                 Intent install = new Intent(Intent.ACTION_VIEW);
@@ -346,10 +374,133 @@ public class MiCarteraPlugin extends Plugin {
                 JSObject r = new JSObject();
                 r.put("ok", true);
                 call.resolve(r);
+            } catch (SecurityException e) {
+                //noinspection ResultOfMethodCallIgnored
+                apk.delete();   // un APK que no pasa la verificación no se queda a mano en la caché
+                call.reject("actualización rechazada: " + e.getMessage());
             } catch (Exception e) {
+                //noinspection ResultOfMethodCallIgnored
+                apk.delete();
                 call.reject("descarga falló: " + e.getMessage());
             }
         }).start();
+    }
+
+    /* Dónde puede vivir un APK de Aely: los releases de GitHub del dueño (`apk.json` siempre
+       apunta ahí) y el CDN al que GitHub redirige la descarga. Se fija el dueño y no el nombre
+       del repo: renombrar el repo ya rompió una vez las actualizaciones (Pages no redirige) y
+       GitHub sí redirige los releases de un repo renombrado del mismo dueño. */
+    private static final String APK_OWNER_PATH = "/JuanjoAvila/";
+    private static final long APK_MAX_BYTES = 200L * 1024 * 1024;
+
+    static boolean apkUrlPermitida(String raw, boolean inicial) {
+        try {
+            URL u = new URL(raw);
+            if (!"https".equals(u.getProtocol()) || u.getUserInfo() != null) return false;
+            if (u.getPort() != -1 && u.getPort() != 443) return false;
+            String h = u.getHost() == null ? "" : u.getHost().toLowerCase(java.util.Locale.ROOT);
+            if (h.equals("github.com")) {
+                String p = u.getPath() == null ? "" : u.getPath();
+                return p.startsWith(APK_OWNER_PATH) && p.contains("/releases/download/");
+            }
+            // El primer salto siempre es github.com; el CDN solo vale como destino de su redirección.
+            return !inicial && h.endsWith(".githubusercontent.com");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Baja siguiendo las redirecciones A MANO (cada salto se comprueba) y devuelve su SHA-256. */
+    private static String descargarApk(String url, File dest) throws Exception {
+        String actual = url;
+        for (int salto = 0; salto < 6; salto++) {
+            if (!apkUrlPermitida(actual, salto == 0)) throw new SecurityException("origen no permitido");
+            HttpURLConnection conn = (HttpURLConnection) new URL(actual).openConnection();
+            conn.setConnectTimeout(20000);
+            conn.setReadTimeout(120000);
+            conn.setInstanceFollowRedirects(false);
+            try {
+                int code = conn.getResponseCode();
+                if (code >= 300 && code < 400) {
+                    String loc = conn.getHeaderField("Location");
+                    if (loc == null || loc.isEmpty()) throw new java.io.IOException("redirección sin destino");
+                    actual = new URL(new URL(actual), loc).toString();
+                    continue;
+                }
+                if (code != 200) throw new java.io.IOException("HTTP " + code);
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+                long total = 0;
+                try (InputStream in = conn.getInputStream(); FileOutputStream out = new FileOutputStream(dest)) {
+                    byte[] buf = new byte[65536];
+                    int n;
+                    while ((n = in.read(buf)) != -1) {
+                        total += n;
+                        if (total > APK_MAX_BYTES) throw new SecurityException("demasiado grande");
+                        md.update(buf, 0, n);
+                        out.write(buf, 0, n);
+                    }
+                }
+                StringBuilder hex = new StringBuilder();
+                for (byte b : md.digest()) hex.append(String.format(java.util.Locale.ROOT, "%02x", b & 0xff));
+                return hex.toString();
+            } finally {
+                conn.disconnect();
+            }
+        }
+        throw new java.io.IOException("demasiadas redirecciones");
+    }
+
+    /* El APK tiene que ser ESTA app: mismo nombre de paquete y, si Android deja leer la firma del
+       fichero, al menos un certificado en común con la instalada (tolera una rotación de llave).
+       Si la firma del fichero no se puede leer (algunos Android 9-12 devuelven `signingInfo` nulo
+       para un archivo suelto) se sigue: el instalador del sistema ya rechaza un mismo paquete con
+       otra llave. Lo que no se deja pasar nunca es otro paquete, que el sistema sí instalaría. */
+    @SuppressWarnings("deprecation")
+    private static void verificarApk(Context ctx, File apk) throws Exception {
+        android.content.pm.PackageManager pm = ctx.getPackageManager();
+        PackageInfo nueva = pm.getPackageArchiveInfo(apk.getPath(), 0);
+        if (nueva == null || !ctx.getPackageName().equals(nueva.packageName)) {
+            throw new SecurityException("no es una actualización de Aely");
+        }
+        java.util.Set<String> deFichero = firmas(pm.getPackageArchiveInfo(apk.getPath(), flagsFirma()));
+        if (deFichero.isEmpty() && Build.VERSION.SDK_INT >= 28) {
+            deFichero = firmas(pm.getPackageArchiveInfo(apk.getPath(), android.content.pm.PackageManager.GET_SIGNATURES));
+        }
+        if (deFichero.isEmpty()) return;
+        java.util.Set<String> instalada = firmas(pm.getPackageInfo(ctx.getPackageName(), flagsFirma()));
+        if (instalada.isEmpty()) return;
+        deFichero.retainAll(instalada);
+        if (deFichero.isEmpty()) throw new SecurityException("firmada con otra llave");
+    }
+
+    @SuppressWarnings("deprecation")
+    private static int flagsFirma() {
+        return Build.VERSION.SDK_INT >= 28
+                ? android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES
+                : android.content.pm.PackageManager.GET_SIGNATURES;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static java.util.Set<String> firmas(PackageInfo pi) {
+        java.util.Set<String> out = new java.util.HashSet<>();
+        if (pi == null) return out;
+        android.content.pm.Signature[] sigs = null;
+        if (Build.VERSION.SDK_INT >= 28 && pi.signingInfo != null) {
+            sigs = pi.signingInfo.hasMultipleSigners()
+                    ? pi.signingInfo.getApkContentsSigners()
+                    : pi.signingInfo.getSigningCertificateHistory();
+        }
+        if (sigs == null || sigs.length == 0) sigs = pi.signatures;
+        if (sigs == null) return out;
+        for (android.content.pm.Signature s : sigs) {
+            try {
+                byte[] d = java.security.MessageDigest.getInstance("SHA-256").digest(s.toByteArray());
+                StringBuilder hex = new StringBuilder();
+                for (byte b : d) hex.append(String.format(java.util.Locale.ROOT, "%02x", b & 0xff));
+                out.add(hex.toString());
+            } catch (Exception ignored) {}
+        }
+        return out;
     }
 
     @PluginMethod
@@ -452,9 +603,30 @@ public class MiCarteraPlugin extends Plugin {
     @PluginMethod
     public void setIngestUrl(PluginCall call) {
         String url = call.getString("url", "");
+        if (url == null) url = "";
+        // SEG-03: el lector manda a esta URL el texto de cada pago que ve. Si la web pudiera
+        // apuntarla a cualquier sitio, un JS colado se llevaría las compras de la familia. Una
+        // URL rara se rechaza y se queda la que había (la buena la reenvía la web al arrancar).
+        if (!url.isEmpty() && !ingestUrlPermitida(url)) { call.reject("url de ingest no permitida"); return; }
         getContext().getSharedPreferences("micartera_ingest", Context.MODE_PRIVATE)
-                .edit().putString("url", url != null ? url : "").apply();
+                .edit().putString("url", url).apply();
         call.resolve();
+    }
+
+    /* El proyecto de Supabase es el mismo que lleva la web (`CONFIG.SUPABASE_URL`, público). Fijo
+       aquí: mudar de proyecto exige APK nueva, igual que ya lo exige el resto del puente. */
+    static final String INGEST_HOST = "sfyfjagbnhbplrljpbvh.supabase.co";
+
+    static boolean ingestUrlPermitida(String raw) {
+        try {
+            URL u = new URL(raw);
+            return "https".equals(u.getProtocol()) && u.getUserInfo() == null
+                    && (u.getPort() == -1 || u.getPort() == 443)
+                    && INGEST_HOST.equalsIgnoreCase(u.getHost())
+                    && "/functions/v1/ingest".equals(u.getPath());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /* Informe del mes (19/11/2026): la web manda el PNG en base64 y aquí se guarda en Descargas

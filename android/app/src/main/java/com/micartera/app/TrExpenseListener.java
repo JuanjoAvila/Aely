@@ -447,6 +447,10 @@ public class TrExpenseListener extends NotificationListenerService {
                     Notif.show(this, "💰 Dinero recibido", "+" + eur(-importe) + " · " + comercio, id, gotoTok);
                 } else if (tipo.equals("gasto_nocard")) {
                     Notif.show(this, "🔄 Bizum enviado apuntado", eur(importe) + " · " + comercio, id, gotoTok);
+                } else if (tipo.equals("inversion")) {
+                    // DIN-14: el Round up y el Saveback entran como inversión desde el 16/11 (ingest),
+                    // pero aquí caían al «✓ Gasto apuntado» y la familia leía que había gastado.
+                    Notif.show(this, "📈 Inversión apuntada", eur(importe) + " · " + comercio, id, gotoTok);
                 } else {
                     Notif.show(this, "✓ Gasto apuntado", eur(importe) + " en " + comercio, id, gotoTok);
                 }
