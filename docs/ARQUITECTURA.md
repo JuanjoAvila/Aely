@@ -1679,7 +1679,9 @@ Movilidad88 conserva el histórico y todos los contratos87; catálogo diario añ
 
 El resumen manual conserva por separado éxito, caducidad y fallo temporal de Trade Republic y MyInvestor. Un éxito parcial se presenta aunque el otro falle; una consulta MyInvestor fallida no se interpreta como ausencia de enlace. TR continúa a demanda y MyInvestor conserva el throttle automático. No cambia la aplicación de posiciones ni se despliega servidor.
 
-### Brókers por fichero (4.26.243)
+### Brókers por fichero (4.26.243; sin tarjeta desde la 4.26.245)
+
+Desde la 4.26.245 Mis bancos ya no enseña las tarjetas de fichero de DEGIRO e IBKR (`BROKER_CHIPS` vuelve a TR/MyInvestor/Revolut): esos brókers llegarán por conexión automática. El motor de abajo se queda para esa conexión, que tendrá que enseñar vista previa y dejar mapear igual.
 
 DEGIRO e Interactive Brokers entran por fichero, procesado en el móvil como el CSV de Revolut: nada sube a ningún sitio. `05-dialogs-inv.js` tiene un motor común (`BROKER_PROFILES` + `brokerAnalyze` + `brokerDetect`) que analiza, propone y aplica con `brkApplyFile`: solo lo mapeado, por defecto «no tocar», sugerencias solo por ISIN o ticker exacto dentro del mismo bróker, y el coste que no viene se respeta. Lo que un fichero completo ya no trae se marca `fileGone` (sin borrar) y pesa 0 en `invValueEur`/`invCostEur` (00-core), así que sale del patrimonio, de Inversiones y del coste; si vuelve a aparecer, la marca se quita. Las posiciones sin ticker guardan `fileSym`/`fileExch` y el valor del fichero con `fileAt`, y lo dicen («valor del {fecha} según {bróker}»). La Edge `prices` no se toca en esta fase.
 
@@ -1688,6 +1690,14 @@ DEGIRO e Interactive Brokers entran por fichero, procesado en el móvil como el 
 Un gasto sin banco suma al gastado y se atribuye a la cuenta diaria (`gastoDelMesPorBanco`: `expenseBankOf(e)||dailyEnt`); uno con el `ent` de un banco que no está en `expenseBankEnts` pasa a «otro banco» y deja de sumar. Por eso Apuntar (`ApuntarSheet`, 14) elige el banco con cuidado: la cuenta diaria si la hay; si no, `apuntarBancoReserva` (01) da el banco del widget solo cuando ninguna cuenta es diaria ni tiene `spendFrom`, el banco sigue entre las cuentas, no es de inversión (rol «extra») y su gasto cuenta; si no, ninguno. Al salir de Efectivo (`cardBankEnt`), sin cuenta diaria vuelve a la reserva o a ningún banco; con el sobre de efectivo como diaria, al primer banco que cuente y, si ninguno cuenta, a `bankOpts[0]`: nunca sin banco, porque se atribuiría al sobre y el sobre bajaría por un pago con tarjeta.
 
 «Amortizar ahora» vive en la ficha de la deuda (`DebtEditSheet`, 09). `doAmort` relee la deuda del último estado pintado (`estadoRef`) y, si `deudaAmortizada` no aplicaría nada, no escribe y avisa; si aplica, la ficha se cierra, porque su borrador llevaba el pendiente de antes y «Guardar cambios» lo devolvería.
+
+### Inicio que abre lo que tocas (4.26.245)
+
+Las filas de «Próximos cargos» y «Últimos movimientos» y las metas de Inicio (03) llevan `data-inicio-recibo`, `data-inicio-gasto` y `data-inicio-meta` (no `data-goal-id`/`data-recibo`, que son los selectores de Plan). Tocar llama a `onGoPlan(seg, {reciboId|goalId})` u `onGoGastos(e)` (11): App guarda `planGoto` o `gotoExp` (`focusExp` acepta `id`) y lleva a la pestaña; Plan (14) y Gastos (04) abren la ficha con `mcTrasLlegar` (02), que espera a que la `.page` esté quieta en x=0 dos frames (tope ~0,75 s) para que la hoja no suba a medio carrusel. La pantalla entera de Inicio es `user-select:none` (shell): con una pulsación larga el WebView seleccionaba el texto seleccionable más cercano, aunque fuera de otro bloque.
+
+### Vibración de serie e informe del mes (4.26.245)
+
+No hay ajustador: `MC_HAPTIC_DEF`/`MC_HAPTIC_DEF_USAGE` (02) son los valores que eligió el dueño, y `mcHapticTune` solo lee `_mcHapticTune` del móvil si existe (lo que guardó él). `mcHapticApplyCss` fija también la duración del anillo de Inicio. El informe del mes (`shareMonthReport` → `monthReportPreview` → `saveMonthReport`, 02) pinta un canvas 1080×1350, lo enseña en `AskHost` con `img` y guarda con `MiCarteraPlugin.saveToDownloads` (MediaStore en Android 10+, `Notif.showFile` para abrirlo); sin ese método nativo (APK anterior a la 65) avisa de actualizar y no escribe nada; en un navegador, descarga normal.
 
 ## Guardado del estado: solo lo comprometido (4.26.94)
 

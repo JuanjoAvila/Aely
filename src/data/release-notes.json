@@ -1,5 +1,76 @@
 [
   {
+    "v": "4.26.245",
+    "d": "2026-11-19",
+    "t": {
+      "es": "Inicio abre lo que tocas, Bancos vuelve a su sitio y el informe del mes con vista previa",
+      "en": "Home opens what you tap, Banks is back in its place and the monthly report with a preview",
+      "ca": "Inici obre el que toques, Bancs torna al seu lloc i l'informe del mes amb vista prèvia"
+    },
+    "items": {
+      "es": [
+        "En Inicio, tocar un recibo, un movimiento o una meta te lleva a su sitio y lo abre.",
+        "Mantener pulsado en Inicio ya no selecciona ni marca texto, y «Últimos movimientos» tiene el mismo tamaño que «Próximos cargos», también con la letra Enorme.",
+        "Bancos vuelve a estar donde siempre en Ajustes, con «Gestionar mis bancos», y entra y sale deslizando. DEGIRO e Interactive Brokers dejan de pedir ficheros: llegarán con conexión directa.",
+        "La vibración es más suave y el anillo de Inicio se rellena más rápido.",
+        "El informe del mes se abre con una vista previa antes de guardarlo. Si el móvil todavía no puede guardarlo, lo dice en vez de darlo por guardado."
+      ],
+      "en": [
+        "On Home, tapping a bill, a transaction or a goal takes you there and opens it.",
+        "Long-pressing on Home no longer selects or highlights text, and «Latest activity» now matches «Upcoming» in size, also with Huge text.",
+        "Banks is back where it always was in Settings, under «Manage my banks», and still slides in and out. DEGIRO and Interactive Brokers no longer ask for files: they'll come with a direct connection.",
+        "Vibration is softer and the ring on Home fills up faster.",
+        "The monthly report opens with a preview before you save it. If the phone can't save it yet, it says so instead of pretending it was saved."
+      ],
+      "ca": [
+        "A Inici, tocar un rebut, un moviment o una meta et porta al seu lloc i l'obre.",
+        "Mantenir premut a Inici ja no selecciona ni marca text, i «Últims moviments» té la mateixa mida que «Pròxims càrrecs», també amb la lletra Enorme.",
+        "Bancs torna a ser on sempre a Configuració, amb «Gestiona els meus bancs», i continua entrant i sortint lliscant. DEGIRO i Interactive Brokers deixen de demanar fitxers: arribaran amb connexió directa.",
+        "La vibració és més suau i l'anell d'Inici s'omple més de pressa.",
+        "L'informe del mes s'obre amb una vista prèvia abans de desar-lo. Si el mòbil encara no el pot desar, ho diu en lloc de donar-lo per desat."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-245",
+        "t": {
+          "es": "Inicio que abre lo que tocas, Bancos desde Ajustes, la vibración fija y el informe con vista previa",
+          "en": "Home that opens what you tap, Banks from Settings, fixed vibration and the report with a preview",
+          "ca": "Inici que obre el que toques, Bancs des de Configuració, la vibració fixa i l'informe amb vista prèvia"
+        },
+        "items": {
+          "es": [
+            "1. En Inicio, compara una fila de «Próximos cargos» con una de «Últimos movimientos». BIEN: las dos filas miden lo mismo de alto, con el nombre, la línea gris y el importe del mismo tamaño. MAL: las de «Últimos movimientos» son más altas, más bajas o con otra letra.",
+            "2. En Ajustes pon «Tamaño de letra» en «Enorme» y vuelve a Inicio a mirar las mismas filas (después vuelve a tu tamaño). BIEN: en los dos bloques el nombre ocupa todo el ancho, el importe baja a la línea gris y las filas miden lo mismo, sin palabras cortadas. MAL: un bloque tiene las filas mucho más altas que el otro o algo sale cortado.",
+            "3. En Inicio, mantén pulsado un rato sobre un cargo de «Próximos cargos», sobre una meta de «Tus metas» y sobre el título de un bloque. BIEN: no se marca ni se selecciona ningún texto, ni ahí ni en otro bloque, y no salen asas de selección. MAL: se subraya o se selecciona texto, en ese bloque o en otro.",
+            "4. En Inicio, toca un cargo de «Próximos cargos»; vuelve y toca un movimiento de «Últimos movimientos»; vuelve y toca una meta de «Tus metas». BIEN: el cargo te lleva a Plan › Recibos con su ficha abierta; el movimiento, a Gastos con su ficha abierta; la meta, a Plan › Metas, centrada y resaltada, y se abre su edición; la ficha sube cuando la pantalla ya ha llegado, sin cruzarse. MAL: no pasa nada, se abre otra ficha, o la ficha sube a medio deslizar la pantalla.",
+            "5. En Ajustes abre «Bancos» y toca «Gestionar mis bancos»; luego vuelve con ‹ y otra vez arrastrando desde el borde izquierdo. BIEN: «Mis bancos» entra deslizando desde la derecha y sale deslizando entera, sin que se transparente Ajustes por debajo; al volver, «Bancos» sigue abierto y la fila en el mismo sitio; el resumen dice «1 conectado» o «2 conectados», sin «(s)». MAL: aparece o desaparece de golpe, se ven las filas de Ajustes a través al salir, o caes en otro sitio.",
+            "6. Baja hasta el final de Ajustes; después abre Inicio y mira el anillo, desliza hasta el borde entre pestañas y cambia de sección en Plan. BIEN: ya no hay «Avanzado» ni «Vibración» en Ajustes, y la vibración se nota igual que la que dejaste elegida. MAL: sigue estando «Vibración», o vibra distinto de lo que elegiste (más fuerte, más largo o nada).",
+            "7. En Ajustes toca «Informe del mes (imagen)». BIEN: se abre una hoja con la imagen del informe entera y los botones «Cerrar» y «Guardar»; al tocar «Guardar» sale «Para guardar el informe, actualiza la app.» y no dice que se haya guardado. MAL: no sale la imagen, sale cortada, o dice «guardado en Descargas» sin estar en Descargas."
+          ],
+          "en": [
+            "1. On Home, compare a row in «Upcoming» with one in «Latest activity». RIGHT: both rows are the same height, with the name, the grey line and the amount the same size. WRONG: the «Latest activity» rows are taller, shorter or use different text.",
+            "2. In Settings set «Text size» to «Huge» and go back to Home to look at the same rows (then go back to your size). RIGHT: in both blocks the name takes the full width, the amount drops to the grey line and the rows are the same height, with no cut-off words. WRONG: one block has much taller rows than the other or something is cut off.",
+            "3. On Home, press and hold for a while on a charge in «Upcoming», on a goal in «Your goals» and on a block title. RIGHT: no text gets highlighted or selected, there or in another block, and no selection handles appear. WRONG: text is underlined or selected, in that block or another.",
+            "4. On Home, tap a charge in «Upcoming»; go back and tap a transaction in «Latest activity»; go back and tap a goal in «Your goals». RIGHT: the charge takes you to Plan › Bills with its card open; the transaction, to Spending with its card open; the goal, to Plan › Goals, centred and highlighted, and its edit sheet opens; the card slides up once the screen has arrived, without overlapping. WRONG: nothing happens, another card opens, or the card slides up while the screen is still moving.",
+            "5. In Settings open «Banks» and tap «Manage my banks»; then go back with ‹ and again by dragging from the left edge. RIGHT: «My banks» slides in from the right and slides out whole, without Settings showing through underneath; when you're back, «Banks» is still open and the row in the same place; the summary says «1 connected» or «2 connected», without «(s)». WRONG: it appears or disappears all at once, you can see the Settings rows through it as it leaves, or you land somewhere else.",
+            "6. Scroll to the end of Settings; then open Home and watch the ring, swipe to the edge between tabs and switch section in Plan. RIGHT: there's no «Advanced» or «Vibration» in Settings any more, and the vibration feels the same as the one you chose. WRONG: «Vibration» is still there, or it vibrates differently from what you chose (stronger, longer or not at all).",
+            "7. In Settings tap «Month report (image)». RIGHT: a sheet opens with the whole report image and the «Close» and «Save» buttons; tapping «Save» shows «To save the report, update the app.» and doesn't say it was saved. WRONG: the image doesn't show, it's cut off, or it says «saved to Downloads» when it isn't in Downloads."
+          ],
+          "ca": [
+            "1. A Inici, compara una fila de «Pròxims càrrecs» amb una d'«Últims moviments». BÉ: les dues files fan la mateixa alçada, amb el nom, la línia grisa i l'import de la mateixa mida. MALAMENT: les d'«Últims moviments» són més altes, més baixes o amb una altra lletra.",
+            "2. A Configuració posa «Mida de la lletra» a «Enorme» i torna a Inici a mirar les mateixes files (després torna a la teva mida). BÉ: als dos blocs el nom ocupa tota l'amplada, l'import baixa a la línia grisa i les files fan el mateix, sense paraules tallades. MALAMENT: un bloc té les files molt més altes que l'altre o alguna cosa surt tallada.",
+            "3. A Inici, mantén premut una estona sobre un càrrec de «Pròxims càrrecs», sobre una meta de «Les teves metes» i sobre el títol d'un bloc. BÉ: no es marca ni se selecciona cap text, ni allà ni en un altre bloc, i no surten nanses de selecció. MALAMENT: es subratlla o se selecciona text, en aquest bloc o en un altre.",
+            "4. A Inici, toca un càrrec de «Pròxims càrrecs»; torna i toca un moviment d'«Últims moviments»; torna i toca una meta de «Les teves metes». BÉ: el càrrec et porta a Pla › Rebuts amb la seva fitxa oberta; el moviment, a Despeses amb la seva fitxa oberta; la meta, a Pla › Metes, centrada i ressaltada, i s'obre la seva edició; la fitxa puja quan la pantalla ja ha arribat, sense creuar-se. MALAMENT: no passa res, s'obre una altra fitxa, o la fitxa puja a mig lliscar la pantalla.",
+            "5. A Configuració obre «Bancs» i toca «Gestiona els meus bancs»; després torna amb ‹ i un altre cop arrossegant des de la vora esquerra. BÉ: «Els meus bancs» entra lliscant des de la dreta i surt lliscant sencera, sense que es transparenti Configuració per sota; en tornar, «Bancs» continua obert i la fila al mateix lloc; el resum diu «1 connectat» o «2 connectats», sense «(s)». MALAMENT: apareix o desapareix de cop, es veuen les files de Configuració a través en sortir, o vas a parar a un altre lloc.",
+            "6. Baixa fins al final de Configuració; després obre Inici i mira l'anell, llisca fins a la vora entre pestanyes i canvia de secció a Pla. BÉ: ja no hi ha «Avançat» ni «Vibració» a Configuració, i la vibració es nota igual que la que vas deixar triada. MALAMENT: continua havent-hi «Vibració», o vibra diferent del que vas triar (més fort, més llarg o gens).",
+            "7. A Configuració toca «Informe del mes (imatge)». BÉ: s'obre un full amb la imatge de l'informe sencera i els botons «Tanca» i «Desa»; en tocar «Desa» surt «Per desar l'informe, actualitza l'app.» i no diu que s'hagi desat. MALAMENT: no surt la imatge, surt tallada, o diu «desat a Baixades» sense ser a Baixades."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.244",
     "d": "2026-11-19",
     "t": {

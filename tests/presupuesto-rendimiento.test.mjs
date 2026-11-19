@@ -494,7 +494,11 @@ const PRESUPUESTO = {
   // Inicio 19/11 (`inicio-1911`): tocar recibo/movimiento/meta abre su ficha, pulsar largo no selecciona y
   // «Últimos movimientos» con la fila de «Próximos cargos». Sin textos nuevos: +3.920 B min / +842 B gzip
   // (2.066.522 / 569.319 B sin sello). Lo pidió el dueño; SUBE (mandato 11/10) al mínimo: 2019 / 557 KiB.
-  minificado: 2019 * 1024,
+  // Integración 4.26.245 (19/11): Inicio (lo de arriba), Bancos de vuelta en Ajustes (sin las tarjetas de fichero de
+  // DEGIRO/IBKR) y la vibración sin su ajustador (fuera ~100 líneas de UI y 23 textos ×3) con el informe del mes en vista
+  // previa, más el sello y la nota: 2.063.632 B minificado y 568.377 B gzip. Lo quitado compensa lo añadido; vuelve al
+  // mínimo medido (mandato 11/10): 2016 / 556 KiB.
+  minificado: 2016 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -537,7 +541,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 557 * 1024, // ver el comentario de minificado (556,0 KiB medidos el 19/11/2026 con la ronda inicio-1911).
+  gzip: 556 * 1024, // ver el comentario de minificado (555,1 KiB medidos el 19/11/2026 en la integración 4.26.245).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
