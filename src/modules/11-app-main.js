@@ -1376,7 +1376,9 @@ function App(){
     set(function(s){
       const keyOf=function(p){ return p.isin||p.ticker||p.name; };
       const m={};
-      (positions||[]).forEach(function(po){ const sug=brokerSuggest(po, s.investments); if(sug) m[keyOf(po)]=sug; });
+      // Solo entre lo que no lleva otra sincronización (D7): ver `brkSyncCandidates`.
+      const cand=brkSyncCandidates(s.investments, stampKey==="lastTrSync"?"trade_republic":"myinvestor");
+      (positions||[]).forEach(function(po){ const sug=brokerSuggest(po, cand); if(sug) m[keyOf(po)]=sug; });
       const inv=(s.investments||[]).map(function(i){
         const po=(positions||[]).find(function(p){ return m[keyOf(p)]===i.id; });
         if(!po) return i;
@@ -1490,6 +1492,30 @@ function App(){
           applyBrokerPositions(res.positions, "lastMiSync"); updatedB.push("MyInvestor");
         });
       }).catch(function(){ if(opts.manual) soft.push("MyInvestor"); }));
+    }
+    /* IBKR y Kraken por conexión (19/11): una lectura del estado y un job por bróker activo. Solo
+       re-ancla lo que ya casa y marca lo vendido (`brkApiAuto`); lo nuevo queda PROPUESTO en su
+       tarjeta. Sin la primera revisión hecha en la vista previa no se toca nada. */
+    // `typeof`: los tests que montan runBrokerSync a solas no cargan el motor de 05.
+    if(typeof BRK_API!=="undefined" && cloud.enabled() && sessionRef.current && cloud.brokerLinks){
+      const apiDue=BRK_API.filter(function(ent){
+        const m=(st.brokerApi||{})[ent];
+        return m && Array.isArray(m.known) && (opts.manual || Date.now()-(m.at||0) >= BRK_API_THROTTLE[ent]);
+      });
+      if(apiDue.length) jobs.push(Promise.resolve(cloud.brokerLinks()).then(function(rows){
+        return Promise.all((rows||[]).filter(function(l){ return apiDue.indexOf(l.broker)>=0; }).map(function(l){
+          const name=entOf(l.broker).label;
+          if(l.status!=="active"){ if(opts.manual){ tried++; expiredB.push(name); } return; }
+          tried++;
+          return cloud.brokerSync(l.broker, opts.manual===true).then(function(res){
+            if(res&&res.authExpired){ expiredB.push(name); return; }
+            const parsed=brkApiSnapshot(res);
+            if(!parsed){ if(opts.manual) soft.push(name); return; }
+            set(function(s){ const r=brkApiAuto(s, l.broker, parsed); return r?r.s:s; });
+            updatedB.push(name);
+          }).catch(function(){ if(opts.manual) soft.push(name); });
+        }));
+      }).catch(function(){}));
     }
     return Promise.all(jobs).catch(function(){}).then(function(){
       brokerSyncing.current=false;

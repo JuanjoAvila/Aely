@@ -244,7 +244,7 @@ function MyInvestorSync({state, set, open, onToggle}){
       if(r&&r.authExpired){ setStep("idle"); setExpired(true); fail(r); return; }
       if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
       const m={};
-      r.positions.forEach(function(po){ const k=po.isin||po.name; const sug=brokerSuggest({isin:po.isin,name:po.name}, state.investments); m[k]=sug||"__new"; });
+      r.positions.forEach(function(po){ const k=po.isin||po.name; const sug=brokerSuggest({isin:po.isin,name:po.name}, brkSyncCandidates(state.investments, "myinvestor")); m[k]=sug||"__new"; });
       setPositions(r.positions); setMap(m); setStep("preview");
     }).catch(fail);
   };
@@ -483,7 +483,7 @@ function TRSync({state, set, totals, open, onToggle}){
       markTrConnected(opts.ack?{ack:true}:undefined);
       const m={};
       r.positions.forEach(function(po){
-        const sug=brokerSuggest(po, state.investments);
+        const sug=brokerSuggest(po, brkSyncCandidates(state.investments, "trade_republic"));
         // Sin cartera previa (usuario nuevo, p.ej. la pareja) el mapeo por defecto es CREAR la
         // posición: antes todo quedaba en "no tocar" y el botón se moría en "Aplicar a 0".
         if(sug) m[po.isin]=sug;
@@ -678,6 +678,187 @@ function TRSync({state, set, totals, open, onToggle}){
     open && React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("tr_hint")),
     open && body
   );
+}
+
+/* ============================================================
+   BRÓKERS POR CONEXIÓN — IBKR (Flex) y Kraken (solo lectura), 19/11/2026.
+   ============================================================
+   Vive aparte y entra en Conexiones con UNA línea (`BrokerApiSection`): la pantalla de bancos se
+   está rehaciendo en otra ronda y esto tiene que encajar sin tocar su acceso ni sus tarjetas.
+   Alta en una hoja con dos campos y los pasos plegados; la primera lectura siempre pasa por la
+   vista previa de la 243 (`BrokerFilePreview` en modo `api`). Las siguientes las hace
+   `runBrokerSync` sola (App), y lo nuevo se queda propuesto aquí hasta que se revisa. */
+var BRK_API_UI={
+  ibkr:{ need:"bx_ibkr_need", steps:"bx_ibkr_steps", a:"bx_ibkr_a", b:"bx_ibkr_b", bMode:"numeric", phA:"bx_ph_token", phB:"bx_ph_query", url:"https://www.interactivebrokers.com/" },
+  kraken:{ need:"bx_kraken_need", steps:"bx_kraken_steps", a:"bx_kraken_a", b:"bx_kraken_b", bMode:"text", phA:"bx_ph_paste", phB:"bx_ph_paste", url:"https://www.kraken.com/" }
+};
+/* Hoja de alta (filtro de diseño 19/11): `.tabsheet` como el resto de hojas de la casa, cabecera
+   con la ✕ a la derecha, cuerpo que DESPLAZA y el botón fijo abajo. En la primera versión el botón
+   vivía dentro del cuerpo y con letra Enorme quedaba cortado por la mitad. Los pasos empiezan
+   plegados en una línea: quien ya tiene la clave no tiene por qué leerlos. */
+function BrokerApiSheet({ent, onClose, onDone}){
+  const ui=BRK_API_UI[ent];
+  const [a,setA]=useState(""), [b,setB]=useState("");
+  const [busy,setBusy]=useState(false), [err,setErr]=useState("");
+  const [steps,setSteps]=useState(false);
+  const sh=useSheetSwipe(true, onClose, {nativeScroll:true});
+  useBackClose(true, sh.close);
+  const go=function(){
+    if(busy) return;
+    setBusy(true); setErr("");
+    cloud.brokerConnect(ent, a.trim(), b.trim()).then(function(r){
+      setBusy(false);
+      if(r&&r.ok&&r.sync){ setA(""); setB(""); onDone(r.sync); return; }
+      setErr(t(brkApiErr(r&&r.code)));
+    }).catch(function(){ setBusy(false); setErr(t("bx_e_error")); });
+  };
+  // Título con el nombre corto («Conectar IBKR»): el largo partía en tres renglones con letra Enorme.
+  const label=entOf(ent).short||entOf(ent).label;
+  const campo=function(k, lab, ph, mode, val, setVal){
+    return React.createElement("label",{className:"bx-field"}, t(lab),
+      React.createElement("input",{className:"af-in bx-in",value:val,"data-bx":k,placeholder:t(ph),inputMode:mode,autoComplete:"off",autoCapitalize:"off",spellCheck:false,onChange:function(e){ setVal(e.target.value); }}));
+  };
+  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back bx-sheet-back",onClick:sh.close},
+    React.createElement("div",Object.assign({className:"tabsheet bx-sheet","data-broker-api-sheet":ent,role:"dialog","aria-modal":"true","aria-label":tf("bx_connect_title",{x:label}),ref:sh.sheetRef,onClick:function(e){ e.stopPropagation(); }},sh.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"bx-head"},
+        React.createElement(Mono,{ent:ent,size:40}),
+        React.createElement("h2",{className:"serif"}, tf("bx_connect_title",{x:label})),
+        React.createElement("button",{type:"button",className:"bx-x","aria-label":t("au_close"),onClick:sh.close},"✕")),
+      React.createElement("div",{className:"bx-body"},
+        React.createElement("div",{className:"hint",style:{marginTop:0}}, t(ui.need)),
+        React.createElement("button",{type:"button",className:"bx-steps-btn","data-act":"bx-steps","aria-expanded":steps?"true":"false",onClick:function(){ setSteps(!steps); }},
+          React.createElement("span",{"aria-hidden":"true",className:"bx-caret"+(steps?" open":"")},"›"), t("bx_steps_btn")),
+        steps && React.createElement("ol",{className:"bx-steps bf-in"},
+          (t(ui.steps)||[]).map(function(st,i){ return React.createElement("li",{key:i}, st); })),
+        steps && React.createElement("a",{className:"bx-open",href:ui.url,target:"_blank",rel:"noopener noreferrer"}, tf("bx_open",{x:entOf(ent).short||label})+" ↗"),
+        campo("a", ui.a, ui.phA, "text", a, setA),
+        campo("b", ui.b, ui.phB, ui.bMode, b, setB),
+        err && React.createElement("div",{className:"alarmbox",role:"alert"}, err)),
+      React.createElement("div",{className:"bx-foot"},
+        React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-act":"bx-connect",disabled:busy||!a.trim()||!b.trim(),onClick:go}, busy?t("bx_connecting"):t("bx_connect")),
+        React.createElement("div",{className:"hint bx-safe"}, t("bx_safe"))))
+  ), document.body);
+}
+/* Tarjeta: el logo de la casa (`Mono`, el mismo de las filas de bancos), el nombre y UNA cosa a la
+   derecha. Sin conectar, el botón «Conectar» y nada más: el subtítulo «conectar» repetía el botón
+   y la flecha de plegar no tenía nada que enseñar (filtro de diseño 19/11). Conectada, su estado
+   y el acordeón con Actualizar / Revisar / Desconectar. */
+function BrokerApiCard({state, set, ent, link, open, onToggle, reload}){
+  const [sheet,setSheet]=useState(false);
+  const [preview,setPreview]=useState(null);   // {parsed, map, gone}
+  const [busy,setBusy]=useState("");
+  const [msg,setMsg]=useState("");
+  const [err,setErr]=useState("");
+  const meta=(state.brokerApi||{})[ent]||null;
+  const st=link&&link.status;
+  const label=entOf(ent).label, short=entOf(ent).short||label;
+  const pend=(meta&&meta.pend)||[];
+  /* La vista previa: casa por ISIN o símbolo del mismo bróker y, si no, «no tocar». Solo cuando
+     no hay NADA en tu cartera a lo que pudiera ir (ni de este bróker ni manual) sale «crear» de
+     serie: si no, el usuario se quedaba ante «Aplicar a 0» sin salida (filtro de diseño 19/11). Es
+     la misma regla del importador de Revolut con la cartera vacía. Aplicar sigue siendo cosa suya. */
+  const openPreview=function(parsed){
+    const nada=!(state.investments||[]).some(function(i){ return brkTargetOk(i, ent); });
+    const m={}; parsed.positions.forEach(function(po){ m[po.key]=brkSuggest(po, state.investments, ent)||(nada?"__new":""); });
+    setPreview({parsed:parsed, map:m, gone:{}});
+  };
+  /* Lectura de una respuesta del servidor: sin primera revisión, vista previa; con ella, al día sola. */
+  const take=function(res){
+    const parsed=brkApiSnapshot(res);
+    if(!parsed){ setErr(t(brkApiErr(res&&res.code))); return; }
+    if(!meta||!Array.isArray(meta.known)){ openPreview(parsed); return; }
+    set(function(s){ const r=brkApiAuto(s, ent, parsed); return r?r.s:s; });
+    setMsg(tf("bx_done",{x:short}));
+  };
+  const sync=function(){
+    if(busy) return;
+    setBusy("sync"); setErr(""); setMsg("");
+    cloud.brokerSync(ent, true).then(function(res){ setBusy(""); if(res&&res.authExpired) reload(); take(res); })
+      .catch(function(){ setBusy(""); setErr(t("bx_e_error")); });
+  };
+  const disconnect=function(){
+    askConfirm({ title:tf("bx_remove_q",{x:label}), sub:tf("bx_remove_sub",{x:label}), ok:t("bx_remove"), danger:true }).then(function(yes){
+      if(!yes) return;
+      setBusy("rm");
+      cloud.brokerDisconnect(ent).then(function(){ setBusy(""); reload(); }).catch(function(){ setBusy(""); setErr(t("bx_e_error")); });
+    });
+  };
+  const fmt=function(x){ try{ return new Date(x).toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); }catch(e){ return ""; } };
+  const activa=st==="active";
+  // Mientras se revisa la primera lectura la cabecera no dice nada: lo dice la vista previa.
+  const sub=preview||!link?null
+    : (activa?(pend.length?tf(pend.length===1?"bx_new_one":"bx_new_n",{n:pend.length,x:short}):(link.last_sync?tf("bx_sub_on",{x:fmt(link.last_sync)}):null))
+    : t("bx_sub_exp"));
+  // Se pliega solo lo conectado. Durante la vista previa no: ahí se está decidiendo algo y la flecha
+  // invitaba a cerrarlo a medias.
+  const plegable=!!link&&!preview;
+  const head=React.createElement("div",Object.assign({className:"bx-card-h"}, plegable?{role:"button",tabIndex:0,"aria-expanded":open?"true":"false",
+      onClick:onToggle, onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); onToggle(); } }}:{}),
+    React.createElement(Mono,{ent:ent,size:40}),
+    React.createElement("div",{className:"bx-card-t"},
+      React.createElement("div",{className:"nm"}, label),
+      sub && React.createElement("div",{className:"meta"+(activa?"":" bx-warn")}, sub)),
+    !link && !preview && React.createElement("button",{type:"button",className:"btn btn-primary bx-cta","data-act":"bx-open",onClick:function(){ setErr(""); setSheet(true); }}, t("bx_connect")),
+    plegable && React.createElement("span",{"aria-hidden":"true",className:"bx-chev"+(open?" open":"")},"▾"));
+  const cardProps={className:"bk-card bx-card","data-broker-api":ent};
+  const hoja=sheet && React.createElement(BrokerApiSheet,{ent:ent, onClose:function(){ setSheet(false); },
+    onDone:function(res){ setSheet(false); reload(); if(!open) onToggle(); take(res); }});
+  const errBox=err && React.createElement("div",{className:"alarmbox",role:"alert",style:{marginTop:10}}, err);
+  if(!preview&&!(link&&open)) return React.createElement("div",cardProps, head, errBox, hoja);
+  const mb={flex:"1 1 auto",minWidth:0,minHeight:44,background:"var(--sur)",border:"1px solid var(--line-soft)",color:"var(--text)",borderRadius:12,padding:"10px 12px",fontSize:13,fontWeight:700,cursor:"pointer"};
+  let body;
+  if(preview){
+    const p=preview.parsed, map=preview.map;
+    const mappedN=p.positions.filter(function(x){ return map[x.key]; }).length;
+    const goneList=p.snapshot?brkGoneOf(state.investments, ent, p.positions, map, p.present).filter(function(i){ return !i.fileGone; }):[];
+    const goneMark={}; goneList.forEach(function(i){ if(preview.gone[i.id]!=="") goneMark[i.id]=1; });
+    const goneN=Object.keys(goneMark).length;
+    body=React.createElement(BrokerFilePreview,{parsed:p, ent:ent, state:state, map:map, api:true,
+      setMap:function(f){ setPreview(function(pv){ return Object.assign({},pv,{map:typeof f==="function"?f(pv.map):f}); }); },
+      goneList:goneList, gone:preview.gone, setGone:function(f){ setPreview(function(pv){ return Object.assign({},pv,{gone:typeof f==="function"?f(pv.gone):f}); }); },
+      mappedN:mappedN, goneN:goneN, natAmt:function(n,cur){ return n==null?"—":NF.format(n)+" "+(cur||"EUR"); },
+      apply:function(){ set(function(s){ return brkApiReview(s, ent, p, map, goneMark); }); setPreview(null); setMsg(tf("bx_done",{x:short})); },
+      // Cancelar no decide nada: lo propuesto sigue esperando y la primera lectura se puede repetir.
+      cancel:function(){ setPreview(null); }});
+  } else if(activa){
+    body=React.createElement(React.Fragment,null,
+      (!meta||!Array.isArray(meta.known)) && React.createElement("div",{className:"hint",style:{marginTop:0}}, t("bx_first")),
+      pend.length>0 && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{minHeight:44,marginBottom:8},"data-act":"bx-review",
+        onClick:function(){ openPreview({positions:pend, present:[], cash:[], warnings:[], snapshot:false, to:meta.asOf||null}); }},
+        tf(pend.length===1?"bx_review_one":"bx_review_n",{n:pend.length})),
+      React.createElement("div",{className:"bk-actions",style:{marginTop:4}},
+        React.createElement("button",{type:"button",style:mb,"data-act":"bx-sync",disabled:!!busy,onClick:sync}, busy==="sync"?t("bx_syncing"):(!meta||!Array.isArray(meta.known)?t("bx_first_btn"):t("bx_sync"))),
+        React.createElement("button",{type:"button",style:Object.assign({},mb,{color:"var(--muted)",flex:"0 0 auto"}),"data-act":"bx-remove",disabled:!!busy,onClick:disconnect}, t("bx_remove"))));
+  } else {
+    body=React.createElement(React.Fragment,null,
+      link.last_code && React.createElement("div",{className:"alarmbox",style:{marginTop:0,marginBottom:8}}, t(brkApiErr(link.last_code))),
+      React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{minHeight:48},"data-act":"bx-open",onClick:function(){ setErr(""); setSheet(true); }}, t("bx_reconnect")),
+      React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{minHeight:44,marginTop:8},disabled:!!busy,onClick:disconnect}, t("bx_remove")));
+  }
+  return React.createElement("div",cardProps, head,
+    React.createElement("div",{className:"bx-card-b bf-in"}, body),
+    errBox,
+    msg && !preview && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700,marginTop:8}}, msg),
+    hoja);
+}
+/* La entrada en Conexiones. Una tarjeta por bróker que uses (su chip encendido) o que ya tengas
+   conectado; el estado sale de `broker_links` (solo columnas de estado: nunca la clave). */
+function BrokerApiSection({state, set, brokersOn, openBank, setOpenBank}){
+  const [links,setLinks]=useState(null);
+  const reload=function(){
+    if(!cloud.enabled()){ setLinks([]); return; }
+    Promise.resolve(cloud.brokerLinks()).then(function(r){ setLinks(Array.isArray(r)?r:[]); }).catch(function(){ setLinks([]); });
+  };
+  useEffect(reload,[]);
+  if(!cloud.enabled()) return null;
+  return React.createElement(React.Fragment,null, BRK_API.map(function(ent){
+    const link=(links||[]).find(function(l){ return l.broker===ent; })||null;
+    if(!link && (brokersOn||[]).indexOf(ent)<0) return null;
+    const k="bx:"+ent;
+    return React.createElement(BrokerApiCard,{key:ent, ent:ent, state:state, set:set, link:link, reload:reload,
+      open:openBank===k, onToggle:function(){ setOpenBank(openBank===k?"":k); }});
+  }));
 }
 
 function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDelete, onValue}){

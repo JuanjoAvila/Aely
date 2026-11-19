@@ -36,6 +36,7 @@ export const BODY_LIMITS = {
   "bank-callback": 1024, "bank-confirm": 1024, "categorize": 8 * 1024, "delete-account": 64 * 1024,
   "myinvestor-connect": 64 * 1024, "myinvestor-sync": 1024,
   "myinvestor-disconnect": 1024, "myinvestor-keepalive": 1024,
+  "broker-connect": 2048, "broker-sync": 1024, "broker-disconnect": 1024,
 } as const;
 export type InputName = keyof typeof BODY_LIMITS;
 type ObjectBody = Record<string, unknown>;
@@ -43,6 +44,10 @@ const object = (b: unknown): b is ObjectBody => b !== null && typeof b === "obje
 const text = (v: unknown): v is string => typeof v === "string" && v.trim().length > 0;
 const optional = (b: ObjectBody, k: string, rule: (v: unknown) => boolean) => !(k in b) || rule(b[k]);
 const country = (v: unknown) => typeof v === "string" && /^[a-z]{2}$/i.test(v);
+// Brókers por API (0031): solo los dos que existen, y credenciales con forma de credencial. Una
+// clave de Kraken es base64 (≤ ~90) y el Query ID de IBKR son cifras.
+const brokerApi = (v: unknown) => v === "ibkr" || v === "kraken";
+const cred = (v: unknown) => typeof v === "string" && /^\s*[A-Za-z0-9+/=]{6,200}\s*$/.test(v);
 const date = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v))
   && new Date(v).toISOString().slice(0, 10) === v;
 
@@ -60,6 +65,10 @@ export function validInput(name: InputName, b: unknown): b is ObjectBody {
       && optional(b, "recoverGaps", (v) => typeof v === "boolean")
       && optional(b, "aspsps", (v) => Array.isArray(v) && v.every((s) => s === null || typeof s === "string"));
     case "categorize": return text(b.merchant);
+    case "broker-connect": return brokerApi(b.broker) && cred(b.a) && cred(b.b)
+      && (b.broker !== "ibkr" || /^\s*\d{1,15}\s*$/.test(String(b.b))) && Object.keys(b).length === 3;
+    case "broker-sync": return brokerApi(b.broker) && optional(b, "userInitiated", (v) => typeof v === "boolean");
+    case "broker-disconnect": return brokerApi(b.broker) && Object.keys(b).length === 1;
     case "delete-account": return text(b.password);
     // El cliente actual siempre puede mandar el booleano. Cerrar este objeto a{}
     // como hacía PR211 rompería la señal manual y sus contadores de la fuente OPS08.

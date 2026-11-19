@@ -498,7 +498,15 @@ const PRESUPUESTO = {
   // DEGIRO/IBKR) y la vibración sin su ajustador (fuera ~100 líneas de UI y 23 textos ×3) con el informe del mes en vista
   // previa, más el sello y la nota: 2.063.632 B minificado y 568.377 B gzip. Lo quitado compensa lo añadido; vuelve al
   // mínimo medido (mandato 11/10): 2016 / 556 KiB.
-  minificado: 2016 * 1024,
+  // Brókers por conexión (19/11, `claude/brokers-api`): IBKR Flex y Kraken de solo lectura —tarjeta y hoja de alta,
+  // primera lectura en vista previa, lo nuevo propuesto, la sync al abrir y sus textos en tres idiomas— suman ~16 KiB
+  // minificado y ~4 KiB gzip. Es lógica de dinero (qué re-ancla y qué no); SUBE (mandato 11/10) al mínimo medido.
+  // Su filtro de diseño (hoja `.tabsheet` con pie fijo, pasos de IBKR para quien no es técnico, tarjeta sin
+  // ruido, cripto en su unidad) suma ~3,5 KiB minificado: 2036 / 562 KiB.
+  // Las dos revisiones de dinero (vínculo explícito, cuenta vacía, sync de TR/MI fuera de lo que lleva otra
+  // conexión, una posición por fila) suman ~1 KiB: 2037 KiB.
+  // Integración 4.26.246 (19/11): brókers por conexión sobre la 245, con el sello y la nota: __MIN__.
+  minificado: 2037 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -541,7 +549,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 556 * 1024, // ver el comentario de minificado (555,1 KiB medidos el 19/11/2026 en la integración 4.26.245).
+  gzip: 562 * 1024, // ver el comentario de minificado (__GZ__ medidos el 19/11/2026 en la integración 4.26.246).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

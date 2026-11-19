@@ -25,6 +25,7 @@ export function denoArgs(file) {
     "supabase/functions/_shared/imports-fijos.test.ts": ["--allow-read=supabase/functions"],
     "supabase/functions/delete-account/revocacion.test.ts": ["--allow-read=supabase/functions"],
     "supabase/functions/_shared/errores-cerrados.test.ts": ["--allow-read=supabase/functions"],
+    "supabase/functions/_shared/brokers/handlers.test.ts": ["--allow-read=supabase/functions"],
     "supabase/functions/_shared/myinvestor-counter.test.ts": ["--allow-read=supabase/functions"],
     "supabase/functions/bank-callback/generation-fence.test.ts": ["--allow-read=supabase/functions", "--fail-fast=1"],
     "supabase/functions/bank-sync/attempt-budget.test.ts": ["--allow-read=supabase/functions"],

@@ -2645,6 +2645,38 @@
   @keyframes cxVuelta{0%,45%{background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}100%{background:transparent;box-shadow:inset 3px 0 0 transparent;}}
   html.reduce-motion .cx-vuelta{animation:none;background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}
   .v4-banks .bk-card.bk-file{border-left:4px solid var(--line);}
+  /* Brókers por conexión (IBKR, Kraken; filtro de diseño 19/11). Tarjeta: logo, nombre y UNA cosa a la
+     derecha (Conectar o la flecha), sin borde de color. Hoja: `.tabsheet` por encima de Conexiones (72),
+     cuerpo que desplaza y botón fijo abajo, que con letra Enorme se cortaba dentro del cuerpo. */
+  .v4-banks .bx-card-h{display:flex;align-items:center;gap:12px;min-height:44px;flex-wrap:wrap;cursor:default;}
+  .v4-banks .bx-card-h[role="button"]{cursor:pointer;}
+  .v4-banks .bx-card-t{flex:1 1 120px;min-width:0;}
+  .v4-banks .bx-card-t .nm{font-weight:800;font-size:16px;overflow-wrap:anywhere;}
+  .v4-banks .bx-card-t .meta{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .v4-banks .bx-card-t .meta.bx-warn{color:var(--coral);}
+  .v4-banks .bx-cta{flex:0 0 auto;min-height:44px;padding:0 18px;margin-left:auto;}
+  .v4-banks .bx-chev{color:var(--muted);font-size:12px;transition:transform .18s ease;}
+  .v4-banks .bx-chev.open{transform:rotate(180deg);}
+  .v4-banks .bx-card-b{margin-top:12px;}
+  .bx-sheet-back{z-index:85;}
+  .bx-sheet{display:flex;flex-direction:column;max-height:calc(90dvh / var(--zoom,1));padding-bottom:0;box-sizing:border-box;}
+  .bx-head{display:flex;align-items:center;gap:12px;margin:6px 0 10px;flex:0 0 auto;}
+  .bx-head h2{flex:1;min-width:0;margin:0;font-size:22px;line-height:1.15;overflow-wrap:anywhere;}
+  .bx-x{margin-left:auto;flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid var(--line-soft);background:transparent;color:var(--text);font-size:17px;cursor:pointer;}
+  .bx-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:8px;}
+  .bx-steps-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0;background:none;border:0;color:var(--mint);font:inherit;font-weight:700;font-size:14px;cursor:pointer;}
+  .bx-caret{display:inline-block;font-size:18px;line-height:1;transition:transform .18s ease;}
+  .bx-caret.open{transform:rotate(90deg);}
+  .bx-steps{margin:0 0 6px;padding-left:22px;font-size:13.5px;color:var(--muted);line-height:1.55;}
+  .bx-steps li{margin-bottom:6px;}
+  .bx-open{display:inline-flex;align-items:center;min-height:44px;color:var(--mint);font-weight:700;}
+  .bx-field{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-top:10px;}
+  .bx-in{display:block;width:100%;box-sizing:border-box;margin-top:6px;font-family:monospace;font-size:16px;}
+  .bx-body .alarmbox{margin-top:12px;}
+  .bx-foot{flex:0 0 auto;padding:12px 0 calc(14px + var(--safe-bottom));border-top:1px solid var(--line-soft);background:var(--surface);}
+  .bx-foot .btn{min-height:48px;}
+  .bx-safe{text-align:center;margin:8px 0 0;}
+  html.reduce-motion .bx-caret,html.reduce-motion .v4-banks .bx-chev{transition:none;}
   /* Importar por fichero (filtro de diseño 18/11): el selector de mapeo corta con «…» y deja sitio
      a la flecha; el pie con Aplicar/Cancelar se queda a la vista en vistas previas largas; lo que
      se despliega (pasos, vista previa) entra suave. */
@@ -4341,6 +4373,9 @@ const ENT = {
   // tan claro que en tema claro no llega a 3:1 (`--ink-cian` solo existe en claro: #2F7F98). `short`: la línea de origen («15 nov · IBKR»), que con letra grande no cabía.
   degiro:         { label:"DEGIRO",         mono:"DG", color:"#9BD0E0", ink:"var(--ink-cian,#9BD0E0)" },
   ibkr:           { label:"Interactive Brokers", mono:"IB", color:"var(--blue)", short:"IBKR" },
+  // Kraken por clave de solo lectura (19/11): sin logo que recortar, monograma; el color neutro de la
+  // casa (`--cream` se oscurece solo en claro) para no repetir el morado de MyInvestor.
+  kraken:         { label:"Kraken",         mono:"Kr", color:"var(--cream)" },
   caixabank:      { label:"CaixaBank",      mono:"Cx", color:"#3FA9E0" },
   bbva:           { label:"BBVA",           mono:"BB", color:"#4B7FD6" },
   santander:      { label:"Santander",      mono:"Sa", color:"#E2705F" },
@@ -5565,6 +5600,33 @@ const cloud = (function(){
       if(!sb) return;
       try{ await sb.functions.invoke('myinvestor-disconnect'); }catch(e){}
     },
+    // --- Brókers por API (IBKR Flex, Kraken solo lectura; 0031). La credencial viaja SOLO en
+    // brokerConnect y se guarda cifrada en el servidor; aquí solo se lee el estado (grant por
+    // columnas: nunca `cred_*`). brokerSync devuelve posiciones y no escribe ninguna.
+    async brokerConnect(broker, a, b){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke('broker-connect',{ body:{ broker:broker, a:a, b:b } });
+      if(error) throw error;
+      return data;
+    },
+    async brokerSync(broker, userInitiated){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke('broker-sync',{ body:{ broker:broker, userInitiated:userInitiated===true } });
+      if(error) throw error;
+      return data;
+    },
+    async brokerDisconnect(broker){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke('broker-disconnect',{ body:{ broker:broker } });
+      if(error) throw error;
+      return data;
+    },
+    async brokerLinks(){
+      if(!sb) return [];
+      const {data,error}=await sb.from('broker_links').select('broker,status,last_sync,last_code,meta');
+      if(error) throw error;
+      return data||[];
+    },
     async myinvestorStatus(){
       if(!sb) return null;
       const {data:{session}}=await sb.auth.getSession();
@@ -6371,7 +6433,7 @@ const CLOUD_WRITES=[
   "decideOwnTransfer",
   "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","confirmTrMonthlyInvestment","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
-  "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
+  "myinvestorDisconnect","brokerConnect","brokerDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
 ];
 
@@ -6381,7 +6443,7 @@ const CLOUD_WRITES=[
    ni saldos, y cortarlas haría que la app pareciera rota en vez de recién instalada. */
 const CLOUD_READS_QUE_LLENAN=[
   "pullState","pullExpenses","bankSync","bankSyncHistory","bankLinks","bankAspsps",
-  "myinvestorSync","myinvestorStatus","listBackupDays","getBackup","fetchHouseholdBundle",
+  "myinvestorSync","myinvestorStatus","brokerSync","brokerLinks","listBackupDays","getBackup","fetchHouseholdBundle",
 ];
 (function(){
   CLOUD_WRITES.forEach(function(name){
@@ -9497,6 +9559,40 @@ Object.assign(LANG.es,{
 });
 
 
+/* Brókers por conexión: IBKR (Flex) y Kraken (solo lectura), 19/11. Una línea útil por texto.
+   Los `bx_e_*` son los códigos cerrados del servidor: nunca se enseña el texto del bróker. */
+Object.assign(LANG.es,{
+  bx_connect:"Conectar", bx_reconnect:"Volver a conectar", bx_connecting:"Conectando…", bx_connect_title:"Conectar {x}",
+  bx_steps_btn:"Cómo conseguirlos", bx_open:"Abrir {x}", bx_safe:"Solo lectura. Se guarda cifrado y puedes quitarlo cuando quieras.",
+  bx_ibkr_need:"Necesitas dos datos de IBKR: un token y el Query ID de una consulta. Se sacan una vez, desde el navegador.", bx_ibkr_a:"Token", bx_ibkr_b:"Query ID",
+  bx_ibkr_steps:["Entra en IBKR desde el navegador y ve a «Rendimiento e informes» → «Consultas Flex» (Performance & Reports → Flex Queries).","En «Consulta Flex de actividad» (Activity Flex Query) toca «+», ponle un nombre y marca «Posiciones abiertas» (Open Positions) y «Informe de efectivo» (Cash Report).","Abajo, formato XML y periodo «Último día hábil» (Last Business Day). Toca «Continuar» y «Crear».","Copia el Query ID de tu consulta: es un número que sale en sus detalles.","En «Configuración del servicio web Flex» (Flex Web Service Configuration), actívalo y toca «Generar nuevo token»: caducidad 1 año y la IP en blanco. Copia el token."],
+  bx_kraken_need:"Necesitas dos datos de Kraken: la clave API y la clave privada.", bx_kraken_a:"Clave API", bx_kraken_b:"Clave privada (Private key)",
+  bx_kraken_steps:["Entra en Kraken y ve a «Configuración» → «API» → «Crear clave API».","Marca solo «Consultar fondos» (Query Funds). No marques nada más y deja la IP en blanco.","Toca «Generar clave» y copia la clave API y la clave privada."],
+  bx_ph_paste:"Pega aquí", bx_ph_token:"Pega aquí el token", bx_ph_query:"Por ejemplo 123456",
+  bx_sub_on:"al día · {x}", bx_sub_exp:"hay que volver a conectar",
+  bx_new_one:"1 posición nueva en {x}", bx_new_n:"{n} posiciones nuevas en {x}",
+  bx_review_one:"Revisar la nueva", bx_review_n:"Revisar las {n} nuevas",
+  bx_first:"Revisa la primera lectura antes de que toque tu cartera.", bx_first_btn:"Revisar",
+  bx_sync:"Actualizar", bx_syncing:"Actualizando…", bx_done:"✓ {x} al día",
+  bx_remove:"Desconectar", bx_remove_q:"¿Desconectar {x}?", bx_remove_sub:"Tus posiciones se quedan. Borra también la clave en {x}.",
+  bx_gone_title:"Ya no están en {x}", bx_cash:"Efectivo en el bróker: {x}. Por ahora no suma a tu patrimonio.", bx_review_done:"Listo", bx_value:"Valor según {x}, con su fecha.",
+  bf_w_staked:"{x}: incluye lo que tienes en staking", bf_w_noprice:"{x}: sin precio en euros, no entra",
+  bf_cost_api_nocost:"Coste: el bróker no lo da",
+  bx_e_flex_1012:"El token ha caducado: genera otro en IBKR.", bx_e_flex_1015:"El token no es válido.",
+  bx_e_flex_1013:"El token tiene restricción de IP: déjala en blanco.", bx_e_flex_1014:"Esa query no existe o no es «Activity».",
+  bx_e_flex_1018:"Demasiadas peticiones a IBKR: prueba en un minuto.", bx_e_flex_1019:"IBKR va lento: prueba en un minuto.",
+  bx_e_flex_1025:"IBKR ha bloqueado el token: genera otro.", bx_e_flex_temp:"IBKR no responde: prueba en un rato.",
+  bx_e_flex_no_positions:"A la query le falta «Open Positions».", bx_e_flex_bad:"IBKR no ha devuelto el informe: revisa que la query sea XML.",
+  bx_e_kraken_perm:"Esta clave puede operar o retirar dinero. Crea una que solo pueda consultar.", bx_e_kraken_no_funds:"Marca «Consultar fondos» en la clave.",
+  bx_e_kraken_ip:"Quita la restricción de IP de la clave.", bx_e_kraken_otp:"Quita la verificación en dos pasos de la clave.",
+  bx_e_kraken_key:"Clave o clave privada incorrecta.", bx_e_kraken_nonce:"Kraken ha rechazado la petición: prueba otra vez.",
+  bx_e_kraken_rate:"Demasiadas peticiones a Kraken: prueba en un minuto.", bx_e_kraken_temp:"Kraken no responde: prueba en un rato.",
+  bx_e_kraken_bad:"Kraken ha respondido algo inesperado: prueba en un rato.",
+  bx_e_no_key:"Ahora no se puede guardar de forma segura. Prueba más tarde.", bx_e_rate:"Demasiados intentos: espera unos minutos.",
+  bx_e_expired:"Hay que volver a conectar.", bx_e_not_linked:"No está conectado.", bx_e_error:"No se ha podido. Prueba en un rato."
+});
+
+
 /* Brókers por fichero: DEGIRO e Interactive Brokers (18/11). Textos mínimos: una línea útil. */
 Object.assign(LANG.es,{
   bf_degiro_title:"DEGIRO", bf_ibkr_title:"Interactive Brokers", bf_sub:"importar fichero",
@@ -9564,7 +9660,7 @@ Object.assign(LANG.es,{
 
   ob2_go:"Empezar", ob2_next:"Siguiente",
   ob2_budget_t:"¿Cuánto quieres gastar al mes?", ob2_budget_d:"Tu presupuesto para el día a día (súper, bares, caprichos…). La app te avisa antes de pasarte.",
-  tr_createnew:"➕ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Participaciones, valor y coste se ajustan a lo que dice Trade Republic ahora.",
+  tr_createnew:"+ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Participaciones, valor y coste se ajustan a lo que dice Trade Republic ahora.",
   tr_done:"✓ {n} posiciones actualizadas desde Trade Republic",
   tr_err:"No se pudo conectar con Trade Republic. Revisa teléfono/PIN o el código, e inténtalo otra vez.",
   tr_expired_re:"Tu sesión de Trade Republic caducó. Vuelve a conectar: el teléfono ya está puesto, solo falta el PIN.",
@@ -19451,6 +19547,25 @@ function AskHost(){
 /* ============================================================
    TAB: INVERSIONES
    ============================================================ */
+/* CANDIDATAS DE UN BRÓKER QUE SE SINCRONIZA SOLO (revisión de dinero 19/11, D7). `brokerSuggest`
+   busca por ISIN o ticker en TODA la cartera, y el sync de TR/MyInvestor lo usa sin vista previa
+   cada 30 min: con VWCE en IBKR (por conexión) y en TR, el de TR le ponía sus 4 participaciones a
+   la de IBKR, IBKR se las devolvía a las 12 h, y mientras tanto el patrimonio contaba TR dos veces.
+   Fuera lo que ya lleva otra sincronización: lo que puso una conexión (`src:"api:…"`) y lo de los
+   otros brókers que se sincronizan solos. Lo demás (manual, de fichero, de cualquier `ent`) sigue
+   siendo candidato, como hasta hoy: hay carteras con posiciones de TR que se crearon a mano con
+   otro `ent` y que, con un filtro por `ent` estricto, dejarían de actualizarse sin aviso. */
+// D8 (tercera revisión): fuera también lo importado por fichero de OTRO bróker (`csv:degiro` con el
+// mismo ISIN que TR), y las del propio bróker primero, para que la suya gane a una manual que case.
+function brkSyncCandidates(investments, ent){
+  const out=(investments||[]).filter(function(i){
+    const src=String(i.src||"");
+    if(src.indexOf("api:")===0) return false;
+    if(src.indexOf("csv:")===0 && src!=="csv:"+ent) return false;
+    return i.ent===ent || !BRK_OWN_SYNC[i.ent];
+  });
+  return out.filter(function(i){ return i.ent===ent; }).concat(out.filter(function(i){ return i.ent!==ent; }));
+}
 // sugerencia de mapeo ISIN→posición (la usa la sincro TR): primero por ISIN guardado, luego por palabras del nombre
 function brokerSuggest(pos, investments){
   const byIsin=investments.find(function(i){ return i.isin && i.isin===pos.isin; });
@@ -20204,24 +20319,28 @@ function brkGoneOf(investments, ent, positions, map, present){
   // También por el símbolo del fichero: una posición sin ISIN que SIGUE en el fichero (aunque se
   // deje en «no tocar») no está vendida, y marcarla la sacaría del patrimonio.
   const sym=function(i){ const x=String(i.fileSym||i.ticker||"").toUpperCase(); return x && keys["s:"+x]; };
-  return (investments||[]).filter(function(i){ return i.ent===ent && !keys["#"+i.id] && !(i.isin && keys[i.isin]) && !sym(i) && (i.src==="csv:"+ent||i.isin); });
+  return (investments||[]).filter(function(i){ return i.ent===ent && !keys["#"+i.id] && !(i.isin && keys[i.isin]) && !sym(i) && (i.src==="csv:"+ent||i.src==="api:"+ent||i.isin); });
 }
 // Brókers con sincronización propia: sus posiciones no se ofrecen al importar un fichero de otro,
 // porque cambiarlas de bróker haría que su sincronización las volviera a crear (contaría doble).
+// Lo que ya re-ancla una conexión por API (IBKR, Kraken: `src:"api:…"`) tampoco: su sync la
+// volvería a poner donde estaba.
 var BRK_OWN_SYNC={ trade_republic:1, myinvestor:1 };
-function brkTargetOk(i, ent){ return i.ent===ent || !BRK_OWN_SYNC[i.ent]; }
+function brkTargetOk(i, ent){ return i.ent===ent || (!BRK_OWN_SYNC[i.ent] && String(i.src||"").indexOf("api:")!==0); }
 /* Aplicar (DEGIRO, IBKR y los que vengan). Solo lo mapeado; lo que el fichero no trae se
    respeta. El precio en vivo NO se engancha: `prices` aún no sabe la moneda de cada cotización
    (un GBp tomado por GBP multiplica por 100), así que el símbolo del fichero se guarda aparte
    (`fileSym`) y el valor es el del fichero, con su fecha, hasta que eso esté. */
-function brkApplyFile(s, ent, positions, map, goneMark, at){
+function brkApplyFile(s, ent, positions, map, goneMark, at, src){
+  // `src`: de dónde viene el dato — "csv:<bróker>" por fichero, "api:<bróker>" por conexión.
+  src=src||"csv:"+ent;
   const used={};
   let inv=(s.investments||[]).map(function(i){
     if(goneMark[i.id]) return Object.assign({},i,{fileGone:at});
     const po=brkTargetOk(i, ent) && positions.find(function(p){ return map[p.key]===i.id; });
     if(!po) return i;
     used[po.key]=1;
-    const patch={ shares:po.shares, ent:ent, src:"csv:"+ent };
+    const patch={ shares:po.shares, ent:ent, src:src };
     const sameCur=!i.cur||i.cur===po.cur;
     // Cambiar de moneda solo si el fichero trae también el coste: un coste viejo en € dentro de
     // una posición en $ haría mentir la ganancia.
@@ -20245,7 +20364,7 @@ function brkApplyFile(s, ent, positions, map, goneMark, at){
     return out;
   });
   const created=positions.filter(function(p){ return map[p.key]==="__new" && !used[p.key]; }).map(function(po){
-    const o={ id:uid(), ent:ent, name:po.name, shares:po.shares, cur:po.cur||"EUR", src:"csv:"+ent,
+    const o={ id:uid(), ent:ent, name:po.name, shares:po.shares, cur:po.cur||"EUR", src:src,
       value:po.valueHint!=null?+po.valueHint.toFixed(2):(po.cost!=null?po.cost:0), cost:po.cost };
     if(po.valueHint!=null) o.fileAt=at;
     if(po.costEur!=null) o.costEur=po.costEur;
@@ -20255,6 +20374,121 @@ function brkApplyFile(s, ent, positions, map, goneMark, at){
   });
   if(created.length) inv=inv.concat(created);
   return Object.assign({},s,{investments:inv});
+}
+
+/* ---- Brókers por CONEXIÓN: IBKR (Flex Web Service) y Kraken (clave de solo lectura), 19/11 ----
+   El dueño no quería ficheros: «que nadie tenga que entrar en la app del bróker». La credencial se
+   guarda cifrada en el servidor (`broker-connect`) y `broker-sync` devuelve lo que hay; el dinero
+   se decide AQUÍ con el mismo motor que los ficheros de la 243:
+   · La PRIMERA lectura pasa por la vista previa: se elige a qué posición va cada cosa, «no tocar»
+     de serie. Esas claves quedan como «conocidas» (`brokerApi[ent].known`).
+   · Las siguientes re-anclan solas lo que ya casa (ISIN o símbolo, mismo bróker) y marcan lo que
+     ya no está (solo lo que puso esta conexión). Una posición NUEVA no se crea sola: se propone
+     (`pend`) y se revisa con la misma vista previa. Decisión del dueño, 19/11.
+   · Solo con una lectura COMPLETA (`ok` y `snapshot`): una parcial no marca nada. */
+var BRK_API=["ibkr","kraken"];
+// IBKR da el cierre del último día hábil: más de dos veces al día no trae nada nuevo.
+var BRK_API_THROTTLE={ ibkr:12*3600*1000, kraken:30*60*1000 };
+var BRK_API_CODES=["flex_1012","flex_1015","flex_1013","flex_1014","flex_1018","flex_1019","flex_1025","flex_temp","flex_no_positions","flex_bad",
+  "kraken_perm","kraken_no_funds","kraken_ip","kraken_otp","kraken_key","kraken_nonce","kraken_rate","kraken_temp","kraken_bad",
+  "no_key","rate","expired","not_linked"];
+/** Código cerrado del servidor → clave de texto. Lo desconocido, al genérico: nunca un texto del bróker. */
+function brkApiErr(code){ return BRK_API_CODES.indexOf(code)>=0?"bx_e_"+code:"bx_e_error"; }
+/* Respuesta de broker-connect/-sync → lo mismo que sale de un fichero. IBKR manda su XML tal cual
+   y lo lee `ibkrParseFlexXml`; Kraken ya viene en posiciones, y aun así se revisa cada número:
+   una cantidad o un valor que no sea un número positivo no entra (quedaría en 0 €). */
+function brkApiSnapshot(res){
+  if(!res||res.ok!==true||res.snapshot!==true) return null;
+  if(res.broker==="ibkr"){
+    const xml=String(res.flexXml||"");
+    const p=ibkrParseFlexXml(xml);
+    if(p) return p;
+    /* Cuenta VACÍA (revisión de dinero 19/11): sin ninguna <OpenPosition> y sin efectivo, el parser
+       del fichero devuelve null y se tomaba por un error, así que al venderlo TODO nada salía como
+       «ya no está» y el valor viejo seguía sumando. El servidor ya ha comprobado que la sección
+       existe: una lectura completa con cero posiciones es un dato, no un fallo. Si hay alguna
+       posición que el parser no supo leer, sigue siendo error (no se marca nada). */
+    if(xml.indexOf("<FlexQueryResponse")<0 || !/<OpenPositions[\s/>]/.test(xml) || /<OpenPosition\s/.test(xml)) return null;
+    const st=brkXmlTags(xml,"FlexStatement")[0]||{};
+    return { positions:[], present:[], cash:[], warnings:[], skipped:0, dividends:0, fees:0, from:null, to:brkIsoDate(st.todate||"")||null, snapshot:true };
+  }
+  if(res.broker!=="kraken"||!Array.isArray(res.positions)) return null;
+  const present=(Array.isArray(res.present)?res.present:[]).map(String);
+  const positions=[];
+  res.positions.forEach(function(p){
+    if(!p||!p.key) return;
+    const q=Number(p.shares), v=Number(p.valueHint);
+    if(!(q>0)||!(v>0)||!isFinite(v)){ present.push(String(p.sym||p.key)); return; }
+    positions.push({ key:String(p.key), isin:null, sym:String(p.sym||p.key), exch:null, name:String(p.name||p.key), shares:q,
+      cur:p.cur==="USD"?"USD":"EUR", valueHint:v, price:Number(p.price)||null, cost:null, costEur:null, costWhy:"api_nocost", buys:0, sells:0 });
+  });
+  return { positions:positions, present:present, cash:Array.isArray(res.cash)?res.cash:[], warnings:Array.isArray(res.warnings)?res.warnings:[],
+    skipped:0, dividends:0, fees:0, from:null, to:/^\d{4}-\d{2}-\d{2}$/.test(String(res.asOf||""))?res.asOf:null, snapshot:true };
+}
+function brkApiMeta(s, ent, meta){
+  const o=Object.assign({},s.brokerApi||{}); o[ent]=meta;
+  return Object.assign({},s,{brokerApi:o});
+}
+/* EL VÍNCULO ES LA DECISIÓN (revisión de dinero 19/11). La vista previa guarda en `links` a qué
+   posición fue cada clave del bróker, y la lectura automática SOLO re-ancla esos vínculos. Antes
+   volvía a emparejar por ISIN o ticker con `brkSuggest`, que también encuentra lo que el usuario
+   dejó en «no tocar»: VWCE llevado a mano en dos posiciones (suya y de su pareja, mismo ISIN)
+   pasaba a valer el bróker entero en una y seguía sumando la otra (+600 € inventados). Y una
+   posición con ticker distinto del símbolo del bróker («BTC-EUR» frente a «BTC») dejaba de casar
+   y se congelaba sin aviso. */
+function brkApiLinkOf(inv, ent, links, po){
+  const id=links[po.key];
+  if(id && inv.some(function(i){ return i.id===id; })) return id;
+  // De reserva, solo lo que ya puso esta conexión y por lo que guardó ella (ISIN o su símbolo).
+  const own=inv.find(function(i){ return i.ent===ent && i.src==="api:"+ent && ((po.isin && i.isin===po.isin) || (!po.isin && po.sym && i.fileSym===po.sym)); });
+  return own?own.id:null;
+}
+/** Lo que el usuario decidió en la vista previa (primera lectura o revisión de nuevas). */
+function brkApiReview(s, ent, parsed, map, goneMark){
+  const was=(s.brokerApi||{})[ent]||{};
+  const at=parsed.to||isoLocal();
+  const before={}; (s.investments||[]).forEach(function(i){ before[i.id]=1; });
+  const next=brkApplyFile(s, ent, parsed.positions, map, goneMark||{}, at, "api:"+ent);
+  const nuevas=(next.investments||[]).filter(function(i){ return !before[i.id]; });
+  const links=Object.assign({},was.links||{});
+  parsed.positions.forEach(function(po){
+    const v=map[po.key];
+    if(v && v!=="__new") links[po.key]=v;
+    else if(v==="__new"){
+      const c=nuevas.find(function(i){ return po.isin?i.isin===po.isin:(i.fileSym===po.sym && !i.isin); });
+      if(c) links[po.key]=c.id;
+    }
+    // «no tocar» no deja vínculo: esa clave queda conocida y la automática no la toca nunca.
+  });
+  const known=(was.known||[]).slice();
+  parsed.positions.forEach(function(p){ if(known.indexOf(p.key)<0) known.push(p.key); });
+  const pend=(was.pend||[]).filter(function(p){ return known.indexOf(p.key)<0; });
+  return brkApiMeta(next, ent, Object.assign({},was,{known:known, links:links, pend:pend, at:Date.now(), asOf:at}));
+}
+/** Lectura automática tras la primera: re-ancla lo que casa, marca lo vendido, PROPONE lo nuevo.
+ *  Sin primera revisión (`known`) no toca nada: devuelve null. */
+function brkApiAuto(s, ent, parsed){
+  const was=(s.brokerApi||{})[ent];
+  if(!was||!Array.isArray(was.known)||!parsed||!parsed.snapshot) return null;
+  const map={}, pend=[];
+  /* Un vínculo a una posición que ya no existe (la borraste) se suelta y la clave vuelve a
+     proponerse: si no, desaparecía para siempre sin forma de recuperarla (revisión 19/11, R1). */
+  const inv=s.investments||[], links={}, known=was.known.slice();
+  Object.keys(was.links||{}).forEach(function(k){
+    if(inv.some(function(i){ return i.id===was.links[k]; })) links[k]=was.links[k];
+    else { const j=known.indexOf(k); if(j>=0) known.splice(j,1); }
+  });
+  parsed.positions.forEach(function(po){
+    const id=brkApiLinkOf(inv, ent, links, po);
+    if(id) map[po.key]=id;
+    else if(known.indexOf(po.key)<0) pend.push(po);
+  });
+  const goneMark={};
+  brkGoneOf(s.investments, ent, parsed.positions, map, parsed.present).forEach(function(i){ if(i.src==="api:"+ent && !i.fileGone) goneMark[i.id]=1; });
+  const at=parsed.to||isoLocal();
+  const next=brkApplyFile(s, ent, parsed.positions, map, goneMark, at, "api:"+ent);
+  return { s:brkApiMeta(next, ent, Object.assign({},was,{known:known, links:links, pend:pend, at:Date.now(), asOf:at})),
+    n:Object.keys(map).length, pend:pend.length, gone:Object.keys(goneMark).length };
 }
 
 /* Cada tarjeta de «Mis bancos» que importa por fichero. Revolut conserva su aspecto de siempre;
@@ -20314,7 +20548,7 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
       if(!rev){ m[po.key]=brkSuggest(po, state.investments, ent)||""; return; }
       // el metal primero por su vía (más específica que el matcher por palabras del nombre)
       const sug=(po.metal?revoMetalSuggest(po.ticker,state.investments):null)
-        || brokerSuggest({ticker:po.ticker,name:po.name}, state.investments);
+        || brokerSuggest({ticker:po.ticker,name:po.name}, brkSyncCandidates(state.investments, "revolut"));
       // Sin sugerencia clara el defecto es NO TOCAR (antes era «crear nueva» y el import
       // sembraba posiciones extra de valores ya vendidos — feedback 2026-07-13). Solo con
       // la cartera vacía compensa crear todo de serie.
@@ -20457,8 +20691,11 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
 }
 /* Vista previa de DEGIRO / IBKR. Por fila: qué trae el fichero (participaciones, valor en su
    moneda) y el coste, o «—» con el porqué. Nada se aplica sin elegir a qué posición va. */
-function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, setGone, mappedN, goneN, natAmt, apply, cancel}){
+function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, setGone, mappedN, goneN, natAmt, apply, cancel, api}){
+  // `api`: la misma vista para la conexión automática; solo cambian las frases que hablan de «fichero».
+  const brokerName=entOf(ent).short||entOf(ent).label;
   const setOne=function(k,v){ setMap(function(m){ const n=Object.assign({},m); n[k]=v; return n; }); };
+  const taken={}; Object.keys(map).forEach(function(k){ const v=map[k]; if(v && v!=="__new") taken[v]=1; });
   const sinPareja=parsed.positions.filter(function(p){ return !map[p.key]; });
   const warn=parsed.warnings||[];
   const sm={fontSize:12,color:"var(--muted)",lineHeight:1.4};
@@ -20472,23 +20709,30 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
         setMap(function(m){ const n=Object.assign({},m); sinPareja.forEach(function(p){ n[p.key]="__new"; }); return n; }); }},
         sinPareja.length===1?t("bf_create_one"):tf("bf_create_all",{n:sinPareja.length}))),
     parsed.positions.map(function(po){
-      const cost=po.costEur!=null?eur(po.costEur):(po.cost!=null?natAmt(po.cost,po.cur):"—");
+      // En la vía por conexión un coste que no llega no se pinta como «—» suelto: ya lo dice su línea.
+      const cost=po.costEur!=null?eur(po.costEur):(po.cost!=null?natAmt(po.cost,po.cur):(api?null:"—"));
+      /* Cripto (Kraken): la cantidad va en su unidad («0,25 BTC»), no en «participaciones», que son de
+         fondos; y el símbolo no se repite en una tercera línea si ya es el nombre (filtro de diseño 19/11). */
+      const cripto=api && !po.isin && po.sym && po.sym===po.name;
+      const qty=po.shares.toLocaleString(loc(),{maximumFractionDigits:8})+" "+(cripto?po.sym:t("bi_shares"));
       return React.createElement("div",{key:po.key,className:"row","data-bf-row":po.key,style:{alignItems:"flex-start",flexDirection:"column",gap:6}},
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",width:"100%",gap:10}},
           React.createElement("div",{style:{minWidth:0}},
             React.createElement("div",{className:"rname",style:{overflowWrap:"anywhere"}}, po.name+(po.cur!=="EUR"?" · "+po.cur:"")),
-            React.createElement("div",{className:"rsub"}, po.shares.toLocaleString(loc(),{maximumFractionDigits:8})+" "+t("bi_shares")+" · "+natAmt(po.valueHint,po.cur)),
-            (po.isin||po.sym) && React.createElement("div",{className:"rsub",style:{opacity:.8}}, po.isin||po.sym)),
-          React.createElement("div",{className:"rval num",style:{flex:"0 0 auto"}}, cost)),
+            React.createElement("div",{className:"rsub"}, qty+" · "+natAmt(po.valueHint,po.cur)),
+            (po.isin||po.sym) && !cripto && React.createElement("div",{className:"rsub",style:{opacity:.8}}, po.isin||po.sym)),
+          cost && React.createElement("div",{className:"rval num",style:{flex:"0 0 auto"}}, cost)),
         // Sin coste, o con coste sin anclar en €: se dice por qué en una línea.
         po.costWhy && React.createElement("div",{style:sm}, t("bf_cost_"+po.costWhy)),
         React.createElement("select",{className:"af-in bf-sel",value:map[po.key]||"",onChange:function(e){ setOne(po.key,e.target.value); }},
           React.createElement("option",{value:""},t("bi_notouch")),
           React.createElement("option",{value:"__new"},t("tr_createnew")),
-          (state.investments||[]).filter(function(i){ return brkTargetOk(i, ent); }).map(function(i){ return React.createElement("option",{key:i.id,value:i.id}, i.ent===ent?i.name:i.name+" · "+(entOf(i.ent).short||entOf(i.ent).label)); })));
+          /* Una posición, una fila (revisión de dinero 19/11, R3): con dos filas a la misma solo se
+             aplicaba la primera y la otra no sumaba nunca. La ya elegida en otra fila sale apagada. */
+          (state.investments||[]).filter(function(i){ return brkTargetOk(i, ent); }).map(function(i){ return React.createElement("option",{key:i.id,value:i.id,disabled:!!taken[i.id]&&map[po.key]!==i.id}, i.ent===ent?i.name:i.name+" · "+(entOf(i.ent).short||entOf(i.ent).label)); })));
     }),
     goneList.length>0 && React.createElement("div",{style:{marginTop:10}},
-      React.createElement("div",{className:"bk-sec",style:{marginBottom:4}}, t("bf_gone_title")),
+      React.createElement("div",{className:"bk-sec",style:{marginBottom:4}}, api?tf("bx_gone_title",{x:brokerName}):t("bf_gone_title")),
       goneList.map(function(i){
         // El selector debajo y a todo el ancho, como en las filas de arriba: al lado, con letra
         // Enorme, el nombre bajaba a tres líneas.
@@ -20501,11 +20745,13 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
       })),
     warn.map(function(w,j){ return React.createElement("div",{key:j,className:"hint",style:{marginTop:4}}, tf("bf_w_"+w.k,{x:w.name||"",n:w.n||0})); }),
     (parsed.cash||[]).length>0 && React.createElement("div",{className:"hint",style:{marginTop:4}},
-      tf("bf_cash",{x:parsed.cash.map(function(c){ return natAmt(c.amt,c.cur); }).join(" · ")})),
-    React.createElement("div",{className:"hint",style:{marginTop:4}}, t("bf_value_file")),
+      tf(api?"bx_cash":"bf_cash",{x:parsed.cash.map(function(c){ return natAmt(c.amt,c.cur); }).join(" · ")})),
+    React.createElement("div",{className:"hint",style:{marginTop:4}}, api?tf("bx_value",{x:brokerName}):t("bf_value_file")),
     React.createElement("div",{className:"bf-foot"},
       React.createElement("button",{className:"btn btn-ghost",style:{flex:"0 0 auto",minHeight:44},onClick:cancel}, t("fj_cancel")),
-      React.createElement("button",{className:"btn btn-primary",style:{flex:1,minHeight:44},disabled:nAp===0,onClick:apply}, tf(nAp===1?"bi_apply_one":"bi_apply",{n:nAp})))
+      /* Por conexión, «nada que aplicar» también es una respuesta: una cuenta vacía o todo en «no
+         tocar» se confirma con «Listo» y queda decidido; si no, la primera lectura no acababa nunca. */
+      React.createElement("button",{className:"btn btn-primary","data-act":"bf-apply",style:{flex:1,minHeight:44},disabled:nAp===0&&!api,onClick:apply}, nAp===0&&api?t("bx_review_done"):tf(nAp===1?"bi_apply_one":"bi_apply",{n:nAp})))
   );
 }
 
@@ -20755,7 +21001,7 @@ function MyInvestorSync({state, set, open, onToggle}){
       if(r&&r.authExpired){ setStep("idle"); setExpired(true); fail(r); return; }
       if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
       const m={};
-      r.positions.forEach(function(po){ const k=po.isin||po.name; const sug=brokerSuggest({isin:po.isin,name:po.name}, state.investments); m[k]=sug||"__new"; });
+      r.positions.forEach(function(po){ const k=po.isin||po.name; const sug=brokerSuggest({isin:po.isin,name:po.name}, brkSyncCandidates(state.investments, "myinvestor")); m[k]=sug||"__new"; });
       setPositions(r.positions); setMap(m); setStep("preview");
     }).catch(fail);
   };
@@ -20994,7 +21240,7 @@ function TRSync({state, set, totals, open, onToggle}){
       markTrConnected(opts.ack?{ack:true}:undefined);
       const m={};
       r.positions.forEach(function(po){
-        const sug=brokerSuggest(po, state.investments);
+        const sug=brokerSuggest(po, brkSyncCandidates(state.investments, "trade_republic"));
         // Sin cartera previa (usuario nuevo, p.ej. la pareja) el mapeo por defecto es CREAR la
         // posición: antes todo quedaba en "no tocar" y el botón se moría en "Aplicar a 0".
         if(sug) m[po.isin]=sug;
@@ -21189,6 +21435,187 @@ function TRSync({state, set, totals, open, onToggle}){
     open && React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("tr_hint")),
     open && body
   );
+}
+
+/* ============================================================
+   BRÓKERS POR CONEXIÓN — IBKR (Flex) y Kraken (solo lectura), 19/11/2026.
+   ============================================================
+   Vive aparte y entra en Conexiones con UNA línea (`BrokerApiSection`): la pantalla de bancos se
+   está rehaciendo en otra ronda y esto tiene que encajar sin tocar su acceso ni sus tarjetas.
+   Alta en una hoja con dos campos y los pasos plegados; la primera lectura siempre pasa por la
+   vista previa de la 243 (`BrokerFilePreview` en modo `api`). Las siguientes las hace
+   `runBrokerSync` sola (App), y lo nuevo se queda propuesto aquí hasta que se revisa. */
+var BRK_API_UI={
+  ibkr:{ need:"bx_ibkr_need", steps:"bx_ibkr_steps", a:"bx_ibkr_a", b:"bx_ibkr_b", bMode:"numeric", phA:"bx_ph_token", phB:"bx_ph_query", url:"https://www.interactivebrokers.com/" },
+  kraken:{ need:"bx_kraken_need", steps:"bx_kraken_steps", a:"bx_kraken_a", b:"bx_kraken_b", bMode:"text", phA:"bx_ph_paste", phB:"bx_ph_paste", url:"https://www.kraken.com/" }
+};
+/* Hoja de alta (filtro de diseño 19/11): `.tabsheet` como el resto de hojas de la casa, cabecera
+   con la ✕ a la derecha, cuerpo que DESPLAZA y el botón fijo abajo. En la primera versión el botón
+   vivía dentro del cuerpo y con letra Enorme quedaba cortado por la mitad. Los pasos empiezan
+   plegados en una línea: quien ya tiene la clave no tiene por qué leerlos. */
+function BrokerApiSheet({ent, onClose, onDone}){
+  const ui=BRK_API_UI[ent];
+  const [a,setA]=useState(""), [b,setB]=useState("");
+  const [busy,setBusy]=useState(false), [err,setErr]=useState("");
+  const [steps,setSteps]=useState(false);
+  const sh=useSheetSwipe(true, onClose, {nativeScroll:true});
+  useBackClose(true, sh.close);
+  const go=function(){
+    if(busy) return;
+    setBusy(true); setErr("");
+    cloud.brokerConnect(ent, a.trim(), b.trim()).then(function(r){
+      setBusy(false);
+      if(r&&r.ok&&r.sync){ setA(""); setB(""); onDone(r.sync); return; }
+      setErr(t(brkApiErr(r&&r.code)));
+    }).catch(function(){ setBusy(false); setErr(t("bx_e_error")); });
+  };
+  // Título con el nombre corto («Conectar IBKR»): el largo partía en tres renglones con letra Enorme.
+  const label=entOf(ent).short||entOf(ent).label;
+  const campo=function(k, lab, ph, mode, val, setVal){
+    return React.createElement("label",{className:"bx-field"}, t(lab),
+      React.createElement("input",{className:"af-in bx-in",value:val,"data-bx":k,placeholder:t(ph),inputMode:mode,autoComplete:"off",autoCapitalize:"off",spellCheck:false,onChange:function(e){ setVal(e.target.value); }}));
+  };
+  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back bx-sheet-back",onClick:sh.close},
+    React.createElement("div",Object.assign({className:"tabsheet bx-sheet","data-broker-api-sheet":ent,role:"dialog","aria-modal":"true","aria-label":tf("bx_connect_title",{x:label}),ref:sh.sheetRef,onClick:function(e){ e.stopPropagation(); }},sh.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"bx-head"},
+        React.createElement(Mono,{ent:ent,size:40}),
+        React.createElement("h2",{className:"serif"}, tf("bx_connect_title",{x:label})),
+        React.createElement("button",{type:"button",className:"bx-x","aria-label":t("au_close"),onClick:sh.close},"✕")),
+      React.createElement("div",{className:"bx-body"},
+        React.createElement("div",{className:"hint",style:{marginTop:0}}, t(ui.need)),
+        React.createElement("button",{type:"button",className:"bx-steps-btn","data-act":"bx-steps","aria-expanded":steps?"true":"false",onClick:function(){ setSteps(!steps); }},
+          React.createElement("span",{"aria-hidden":"true",className:"bx-caret"+(steps?" open":"")},"›"), t("bx_steps_btn")),
+        steps && React.createElement("ol",{className:"bx-steps bf-in"},
+          (t(ui.steps)||[]).map(function(st,i){ return React.createElement("li",{key:i}, st); })),
+        steps && React.createElement("a",{className:"bx-open",href:ui.url,target:"_blank",rel:"noopener noreferrer"}, tf("bx_open",{x:entOf(ent).short||label})+" ↗"),
+        campo("a", ui.a, ui.phA, "text", a, setA),
+        campo("b", ui.b, ui.phB, ui.bMode, b, setB),
+        err && React.createElement("div",{className:"alarmbox",role:"alert"}, err)),
+      React.createElement("div",{className:"bx-foot"},
+        React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-act":"bx-connect",disabled:busy||!a.trim()||!b.trim(),onClick:go}, busy?t("bx_connecting"):t("bx_connect")),
+        React.createElement("div",{className:"hint bx-safe"}, t("bx_safe"))))
+  ), document.body);
+}
+/* Tarjeta: el logo de la casa (`Mono`, el mismo de las filas de bancos), el nombre y UNA cosa a la
+   derecha. Sin conectar, el botón «Conectar» y nada más: el subtítulo «conectar» repetía el botón
+   y la flecha de plegar no tenía nada que enseñar (filtro de diseño 19/11). Conectada, su estado
+   y el acordeón con Actualizar / Revisar / Desconectar. */
+function BrokerApiCard({state, set, ent, link, open, onToggle, reload}){
+  const [sheet,setSheet]=useState(false);
+  const [preview,setPreview]=useState(null);   // {parsed, map, gone}
+  const [busy,setBusy]=useState("");
+  const [msg,setMsg]=useState("");
+  const [err,setErr]=useState("");
+  const meta=(state.brokerApi||{})[ent]||null;
+  const st=link&&link.status;
+  const label=entOf(ent).label, short=entOf(ent).short||label;
+  const pend=(meta&&meta.pend)||[];
+  /* La vista previa: casa por ISIN o símbolo del mismo bróker y, si no, «no tocar». Solo cuando
+     no hay NADA en tu cartera a lo que pudiera ir (ni de este bróker ni manual) sale «crear» de
+     serie: si no, el usuario se quedaba ante «Aplicar a 0» sin salida (filtro de diseño 19/11). Es
+     la misma regla del importador de Revolut con la cartera vacía. Aplicar sigue siendo cosa suya. */
+  const openPreview=function(parsed){
+    const nada=!(state.investments||[]).some(function(i){ return brkTargetOk(i, ent); });
+    const m={}; parsed.positions.forEach(function(po){ m[po.key]=brkSuggest(po, state.investments, ent)||(nada?"__new":""); });
+    setPreview({parsed:parsed, map:m, gone:{}});
+  };
+  /* Lectura de una respuesta del servidor: sin primera revisión, vista previa; con ella, al día sola. */
+  const take=function(res){
+    const parsed=brkApiSnapshot(res);
+    if(!parsed){ setErr(t(brkApiErr(res&&res.code))); return; }
+    if(!meta||!Array.isArray(meta.known)){ openPreview(parsed); return; }
+    set(function(s){ const r=brkApiAuto(s, ent, parsed); return r?r.s:s; });
+    setMsg(tf("bx_done",{x:short}));
+  };
+  const sync=function(){
+    if(busy) return;
+    setBusy("sync"); setErr(""); setMsg("");
+    cloud.brokerSync(ent, true).then(function(res){ setBusy(""); if(res&&res.authExpired) reload(); take(res); })
+      .catch(function(){ setBusy(""); setErr(t("bx_e_error")); });
+  };
+  const disconnect=function(){
+    askConfirm({ title:tf("bx_remove_q",{x:label}), sub:tf("bx_remove_sub",{x:label}), ok:t("bx_remove"), danger:true }).then(function(yes){
+      if(!yes) return;
+      setBusy("rm");
+      cloud.brokerDisconnect(ent).then(function(){ setBusy(""); reload(); }).catch(function(){ setBusy(""); setErr(t("bx_e_error")); });
+    });
+  };
+  const fmt=function(x){ try{ return new Date(x).toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); }catch(e){ return ""; } };
+  const activa=st==="active";
+  // Mientras se revisa la primera lectura la cabecera no dice nada: lo dice la vista previa.
+  const sub=preview||!link?null
+    : (activa?(pend.length?tf(pend.length===1?"bx_new_one":"bx_new_n",{n:pend.length,x:short}):(link.last_sync?tf("bx_sub_on",{x:fmt(link.last_sync)}):null))
+    : t("bx_sub_exp"));
+  // Se pliega solo lo conectado. Durante la vista previa no: ahí se está decidiendo algo y la flecha
+  // invitaba a cerrarlo a medias.
+  const plegable=!!link&&!preview;
+  const head=React.createElement("div",Object.assign({className:"bx-card-h"}, plegable?{role:"button",tabIndex:0,"aria-expanded":open?"true":"false",
+      onClick:onToggle, onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); onToggle(); } }}:{}),
+    React.createElement(Mono,{ent:ent,size:40}),
+    React.createElement("div",{className:"bx-card-t"},
+      React.createElement("div",{className:"nm"}, label),
+      sub && React.createElement("div",{className:"meta"+(activa?"":" bx-warn")}, sub)),
+    !link && !preview && React.createElement("button",{type:"button",className:"btn btn-primary bx-cta","data-act":"bx-open",onClick:function(){ setErr(""); setSheet(true); }}, t("bx_connect")),
+    plegable && React.createElement("span",{"aria-hidden":"true",className:"bx-chev"+(open?" open":"")},"▾"));
+  const cardProps={className:"bk-card bx-card","data-broker-api":ent};
+  const hoja=sheet && React.createElement(BrokerApiSheet,{ent:ent, onClose:function(){ setSheet(false); },
+    onDone:function(res){ setSheet(false); reload(); if(!open) onToggle(); take(res); }});
+  const errBox=err && React.createElement("div",{className:"alarmbox",role:"alert",style:{marginTop:10}}, err);
+  if(!preview&&!(link&&open)) return React.createElement("div",cardProps, head, errBox, hoja);
+  const mb={flex:"1 1 auto",minWidth:0,minHeight:44,background:"var(--sur)",border:"1px solid var(--line-soft)",color:"var(--text)",borderRadius:12,padding:"10px 12px",fontSize:13,fontWeight:700,cursor:"pointer"};
+  let body;
+  if(preview){
+    const p=preview.parsed, map=preview.map;
+    const mappedN=p.positions.filter(function(x){ return map[x.key]; }).length;
+    const goneList=p.snapshot?brkGoneOf(state.investments, ent, p.positions, map, p.present).filter(function(i){ return !i.fileGone; }):[];
+    const goneMark={}; goneList.forEach(function(i){ if(preview.gone[i.id]!=="") goneMark[i.id]=1; });
+    const goneN=Object.keys(goneMark).length;
+    body=React.createElement(BrokerFilePreview,{parsed:p, ent:ent, state:state, map:map, api:true,
+      setMap:function(f){ setPreview(function(pv){ return Object.assign({},pv,{map:typeof f==="function"?f(pv.map):f}); }); },
+      goneList:goneList, gone:preview.gone, setGone:function(f){ setPreview(function(pv){ return Object.assign({},pv,{gone:typeof f==="function"?f(pv.gone):f}); }); },
+      mappedN:mappedN, goneN:goneN, natAmt:function(n,cur){ return n==null?"—":NF.format(n)+" "+(cur||"EUR"); },
+      apply:function(){ set(function(s){ return brkApiReview(s, ent, p, map, goneMark); }); setPreview(null); setMsg(tf("bx_done",{x:short})); },
+      // Cancelar no decide nada: lo propuesto sigue esperando y la primera lectura se puede repetir.
+      cancel:function(){ setPreview(null); }});
+  } else if(activa){
+    body=React.createElement(React.Fragment,null,
+      (!meta||!Array.isArray(meta.known)) && React.createElement("div",{className:"hint",style:{marginTop:0}}, t("bx_first")),
+      pend.length>0 && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{minHeight:44,marginBottom:8},"data-act":"bx-review",
+        onClick:function(){ openPreview({positions:pend, present:[], cash:[], warnings:[], snapshot:false, to:meta.asOf||null}); }},
+        tf(pend.length===1?"bx_review_one":"bx_review_n",{n:pend.length})),
+      React.createElement("div",{className:"bk-actions",style:{marginTop:4}},
+        React.createElement("button",{type:"button",style:mb,"data-act":"bx-sync",disabled:!!busy,onClick:sync}, busy==="sync"?t("bx_syncing"):(!meta||!Array.isArray(meta.known)?t("bx_first_btn"):t("bx_sync"))),
+        React.createElement("button",{type:"button",style:Object.assign({},mb,{color:"var(--muted)",flex:"0 0 auto"}),"data-act":"bx-remove",disabled:!!busy,onClick:disconnect}, t("bx_remove"))));
+  } else {
+    body=React.createElement(React.Fragment,null,
+      link.last_code && React.createElement("div",{className:"alarmbox",style:{marginTop:0,marginBottom:8}}, t(brkApiErr(link.last_code))),
+      React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{minHeight:48},"data-act":"bx-open",onClick:function(){ setErr(""); setSheet(true); }}, t("bx_reconnect")),
+      React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{minHeight:44,marginTop:8},disabled:!!busy,onClick:disconnect}, t("bx_remove")));
+  }
+  return React.createElement("div",cardProps, head,
+    React.createElement("div",{className:"bx-card-b bf-in"}, body),
+    errBox,
+    msg && !preview && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700,marginTop:8}}, msg),
+    hoja);
+}
+/* La entrada en Conexiones. Una tarjeta por bróker que uses (su chip encendido) o que ya tengas
+   conectado; el estado sale de `broker_links` (solo columnas de estado: nunca la clave). */
+function BrokerApiSection({state, set, brokersOn, openBank, setOpenBank}){
+  const [links,setLinks]=useState(null);
+  const reload=function(){
+    if(!cloud.enabled()){ setLinks([]); return; }
+    Promise.resolve(cloud.brokerLinks()).then(function(r){ setLinks(Array.isArray(r)?r:[]); }).catch(function(){ setLinks([]); });
+  };
+  useEffect(reload,[]);
+  if(!cloud.enabled()) return null;
+  return React.createElement(React.Fragment,null, BRK_API.map(function(ent){
+    const link=(links||[]).find(function(l){ return l.broker===ent; })||null;
+    if(!link && (brokersOn||[]).indexOf(ent)<0) return null;
+    const k="bx:"+ent;
+    return React.createElement(BrokerApiCard,{key:ent, ent:ent, state:state, set:set, link:link, reload:reload,
+      open:openBank===k, onToggle:function(){ setOpenBank(openBank===k?"":k); }});
+  }));
 }
 
 function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDelete, onValue}){
@@ -32920,11 +33347,13 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
 
 /* Los brókers con integración propia. El id es el mismo `ent` que llevan las posiciones en
    `state.investments`, para poder deducir de la cartera cuáles usa el usuario sin preguntarle.
-   DEGIRO e IBKR salieron de aquí el 19/11, un día después de entrar por fichero: él no quiere
-   brókers por fichero («que nadie tenga que entrar en la app del bróker»). Sus lectores
-   (`brokerAnalyze`, `brkApplyFile`, `BrokerFilePreview`) se quedan para cuando entren por conexión,
-   que también tendrá que enseñar la vista previa y dejar mapear antes de tocar nada (AGENTS §9). */
-var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"]];
+   DEGIRO salió de aquí el 19/11, un día después de entrar por fichero: él no quiere brókers por
+   fichero («que nadie tenga que entrar en la app del bróker»), y DEGIRO no tiene conexión de solo
+   lectura. IBKR y Kraken vuelven el mismo día, pero por CONEXIÓN (`BrokerApiSection`, 06): su chip
+   ya no trae una tarjeta de importar, sino la de conectar. Los lectores de fichero (`brokerAnalyze`,
+   `brkApplyFile`, `BrokerFilePreview`) siguen: la conexión de IBKR lee el mismo XML y enseña la
+   misma vista previa antes de tocar nada (AGENTS §9). */
+var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"],["ibkr","Interactive Brokers"],["kraken","Kraken"]];
 /* CONEXIONES ES UNA PANTALLA HIJA, no un `div` fijo (ronda R2 del rediseño de bancos, 18/11).
    Antes aparecía y desaparecía en un fotograma y al cerrar siempre caía en Ajustes, vinieras de
    donde vinieras («me deja donde no estaba»). Ahora entra por la derecha como Inversiones, se
@@ -33314,6 +33743,9 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
       open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }}),
     brokersOn.indexOf("revolut")>=0 && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
+    // IBKR y Kraken por conexión (19/11): todo lo suyo vive en `BrokerApiSection` (06). Sin
+    // tarjetas de fichero: DEGIRO e IBKR por fichero se quitaron ese mismo día.
+    React.createElement(BrokerApiSection,{state:state,set:set,brokersOn:brokersOn,openBank:openBank,setOpenBank:setOpenBank}),
     /* «¿Cuadran tus recibos con el banco?» vive aquí, que es donde se busca lo del banco.
        Sin datos del banco no pinta nada. */
     React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),
@@ -34400,7 +34832,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="df007183e5fdf69526a7db75be459c40a1cbe1bbc6963fff691ba7473fa0dbbd";
+var _rnSha="59d01166ad732aaedafe07179f315c9df581d87dea79b42401a8adf7523ba8e8";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -43312,7 +43744,9 @@ function App(){
     set(function(s){
       const keyOf=function(p){ return p.isin||p.ticker||p.name; };
       const m={};
-      (positions||[]).forEach(function(po){ const sug=brokerSuggest(po, s.investments); if(sug) m[keyOf(po)]=sug; });
+      // Solo entre lo que no lleva otra sincronización (D7): ver `brkSyncCandidates`.
+      const cand=brkSyncCandidates(s.investments, stampKey==="lastTrSync"?"trade_republic":"myinvestor");
+      (positions||[]).forEach(function(po){ const sug=brokerSuggest(po, cand); if(sug) m[keyOf(po)]=sug; });
       const inv=(s.investments||[]).map(function(i){
         const po=(positions||[]).find(function(p){ return m[keyOf(p)]===i.id; });
         if(!po) return i;
@@ -43426,6 +43860,30 @@ function App(){
           applyBrokerPositions(res.positions, "lastMiSync"); updatedB.push("MyInvestor");
         });
       }).catch(function(){ if(opts.manual) soft.push("MyInvestor"); }));
+    }
+    /* IBKR y Kraken por conexión (19/11): una lectura del estado y un job por bróker activo. Solo
+       re-ancla lo que ya casa y marca lo vendido (`brkApiAuto`); lo nuevo queda PROPUESTO en su
+       tarjeta. Sin la primera revisión hecha en la vista previa no se toca nada. */
+    // `typeof`: los tests que montan runBrokerSync a solas no cargan el motor de 05.
+    if(typeof BRK_API!=="undefined" && cloud.enabled() && sessionRef.current && cloud.brokerLinks){
+      const apiDue=BRK_API.filter(function(ent){
+        const m=(st.brokerApi||{})[ent];
+        return m && Array.isArray(m.known) && (opts.manual || Date.now()-(m.at||0) >= BRK_API_THROTTLE[ent]);
+      });
+      if(apiDue.length) jobs.push(Promise.resolve(cloud.brokerLinks()).then(function(rows){
+        return Promise.all((rows||[]).filter(function(l){ return apiDue.indexOf(l.broker)>=0; }).map(function(l){
+          const name=entOf(l.broker).label;
+          if(l.status!=="active"){ if(opts.manual){ tried++; expiredB.push(name); } return; }
+          tried++;
+          return cloud.brokerSync(l.broker, opts.manual===true).then(function(res){
+            if(res&&res.authExpired){ expiredB.push(name); return; }
+            const parsed=brkApiSnapshot(res);
+            if(!parsed){ if(opts.manual) soft.push(name); return; }
+            set(function(s){ const r=brkApiAuto(s, l.broker, parsed); return r?r.s:s; });
+            updatedB.push(name);
+          }).catch(function(){ if(opts.manual) soft.push(name); });
+        }));
+      }).catch(function(){}));
     }
     return Promise.all(jobs).catch(function(){}).then(function(){
       brokerSyncing.current=false;

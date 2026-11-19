@@ -703,11 +703,13 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
 
 /* Los brókers con integración propia. El id es el mismo `ent` que llevan las posiciones en
    `state.investments`, para poder deducir de la cartera cuáles usa el usuario sin preguntarle.
-   DEGIRO e IBKR salieron de aquí el 19/11, un día después de entrar por fichero: él no quiere
-   brókers por fichero («que nadie tenga que entrar en la app del bróker»). Sus lectores
-   (`brokerAnalyze`, `brkApplyFile`, `BrokerFilePreview`) se quedan para cuando entren por conexión,
-   que también tendrá que enseñar la vista previa y dejar mapear antes de tocar nada (AGENTS §9). */
-var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"]];
+   DEGIRO salió de aquí el 19/11, un día después de entrar por fichero: él no quiere brókers por
+   fichero («que nadie tenga que entrar en la app del bróker»), y DEGIRO no tiene conexión de solo
+   lectura. IBKR y Kraken vuelven el mismo día, pero por CONEXIÓN (`BrokerApiSection`, 06): su chip
+   ya no trae una tarjeta de importar, sino la de conectar. Los lectores de fichero (`brokerAnalyze`,
+   `brkApplyFile`, `BrokerFilePreview`) siguen: la conexión de IBKR lee el mismo XML y enseña la
+   misma vista previa antes de tocar nada (AGENTS §9). */
+var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"],["ibkr","Interactive Brokers"],["kraken","Kraken"]];
 /* CONEXIONES ES UNA PANTALLA HIJA, no un `div` fijo (ronda R2 del rediseño de bancos, 18/11).
    Antes aparecía y desaparecía en un fotograma y al cerrar siempre caía en Ajustes, vinieras de
    donde vinieras («me deja donde no estaba»). Ahora entra por la derecha como Inversiones, se
@@ -1097,6 +1099,9 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
       open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }}),
     brokersOn.indexOf("revolut")>=0 && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
+    // IBKR y Kraken por conexión (19/11): todo lo suyo vive en `BrokerApiSection` (06). Sin
+    // tarjetas de fichero: DEGIRO e IBKR por fichero se quitaron ese mismo día.
+    React.createElement(BrokerApiSection,{state:state,set:set,brokersOn:brokersOn,openBank:openBank,setOpenBank:setOpenBank}),
     /* «¿Cuadran tus recibos con el banco?» vive aquí, que es donde se busca lo del banco.
        Sin datos del banco no pinta nada. */
     React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),
