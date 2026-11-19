@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* «Mis bancos» en acordeón (feedback 2026-07-25: «todo apilotonado con 198349123 funciones»).
+/* «Mis bancos» sin muro de botones (feedback 2026-07-25: «todo apilotonado con 198349123 funciones»;
+ * desde D1, 19/11, la ficha de cada banco es una hoja).
  *
  * Va con e2e por la lección de la 4.7.1 (AGENTS §7): esconder o mover elementos de una lista es
  * exactamente el tipo de cambio que `npm test` no ve —la sintaxis y la lógica siguen perfectas—
@@ -50,8 +51,8 @@ test("Mis bancos: los tres bancos salen, pero SIN el muro de botones", async ({ 
   await expect(page.locator('[data-aspsp="CaixaBank"]').getByText("CaixaBank", { exact: false }).first())
     .toBeVisible({ timeout: 10_000 });
 
-  // Antes se pintaban 3 botones por banco (9 en total) de salida. Ahora, ninguno.
-  await expect(page.locator("[data-aspsp] .bk-actions")).toHaveCount(0);
+  // Antes se pintaban 3 botones por banco (9 en total) de salida. Ahora solo «Renovar» en el caído.
+  await expect(page.locator("[data-aspsp] button")).toHaveCount(1);
 
   // El ESTADO sigue visible con todo plegado: es lo que avisa de que un banco está caído,
   // y esconderlo sería cambiar ruido por ceguera.
@@ -59,33 +60,27 @@ test("Mis bancos: los tres bancos salen, pero SIN el muro de botones", async ({ 
   await expect(caixa).toContainText(/caduc|renov|permiso/i);
 });
 
-test("Mis bancos: tocar un banco abre SUS acciones, y abrir otro cierra el primero", async ({ page }) => {
+/* Desde D1 (19/11) las acciones no se despliegan en la lista: tocar un banco abre SU ficha en una
+   hoja, de una en una. Lo que no se puede perder sigue siendo lo mismo: la salida para arreglar un
+   banco caído, que ahora está en su propia fila, a un toque. */
+test("Mis bancos: tocar un banco abre SU ficha, y solo una a la vez", async ({ page }) => {
   await abrirMisBancos(page);
-
-  const sabadell = page.locator('[data-aspsp="Sabadell"]');
-  const caixa = page.locator('[data-aspsp="CaixaBank"]');
-
-  await sabadell.locator(".v4-mov").click();
-  await expect(sabadell.locator(".bk-actions")).toHaveCount(1);
-  await expect(sabadell.locator(".v4-mov")).toHaveAttribute("aria-expanded", "true");
-  // Solo el suyo: el sentido del acordeón es que no vuelvan los 9 botones a la vez.
-  await expect(page.locator("[data-aspsp] .bk-actions")).toHaveCount(1);
-
-  await caixa.locator(".v4-mov").click();
-  await expect(caixa.locator(".bk-actions")).toHaveCount(1);
-  await expect(sabadell.locator(".bk-actions")).toHaveCount(0);
-  await expect(page.locator("[data-aspsp] .bk-actions")).toHaveCount(1);
-
-  // Volver a tocarlo lo pliega.
-  await caixa.locator(".v4-mov").click();
-  await expect(page.locator("[data-aspsp] .bk-actions")).toHaveCount(0);
+  await page.locator('[data-aspsp="Sabadell"] .bk-nm').click();
+  await expect(page.locator('.bk-ficha[data-bk-ficha="Sabadell"]')).toBeVisible();
+  await expect(page.locator(".bk-ficha")).toHaveCount(1);
+  await page.goBack();
+  await expect(page.locator(".bk-ficha")).toHaveCount(0);
+  await page.locator('[data-aspsp="CaixaBank"] .bk-nm').click();
+  await expect(page.locator('.bk-ficha[data-bk-ficha="CaixaBank"]')).toBeVisible();
+  await expect(page.locator(".bk-ficha")).toHaveCount(1);
 });
 
-test("Mis bancos: el banco caído sigue teniendo su botón de reconectar a un toque", async ({ page }) => {
+test("Mis bancos: el banco caído sigue teniendo su botón de renovar a un toque", async ({ page }) => {
   await abrirMisBancos(page);
   const caixa = page.locator('[data-aspsp="CaixaBank"]');
-  await caixa.locator(".v4-mov").click();
-  // Lo que NO se puede perder al plegar: la salida para arreglar el banco.
-  await expect(caixa.locator(".bk-actions button").filter({ hasText: /reconectar|volver a conectar|reintentar/i }))
-    .toHaveCount(1);
+  // En la propia fila, sin abrir nada: la salida para arreglar el banco.
+  await expect(caixa.locator('[data-act="bk-renovar"]')).toHaveCount(1);
+  await expect(caixa.locator('[data-act="bk-renovar"]')).toBeVisible();
+  // Los que están bien no llevan botón.
+  await expect(page.locator('[data-aspsp="Sabadell"] [data-act="bk-renovar"]')).toHaveCount(0);
 });

@@ -1104,20 +1104,18 @@ function brkApiAuto(s, ent, parsed){
     n:Object.keys(map).length, pend:pend.length, gone:Object.keys(goneMark).length };
 }
 
-/* Cada tarjeta de «Mis bancos» que importa por fichero. Revolut conserva su aspecto de siempre;
-   DEGIRO e IBKR llevan monograma sobrio (no hay un PNG oficial que recortar en docs/design/bancos,
-   y dibujar el logo es justo lo que se rechazó cuatro veces). */
+/* Lo que cambia por bróker al importar por fichero. El logo, el nombre y el estado los pone la
+   ficha del bróker en «Mis bancos» (D1, 19/11), así que aquí ya no hay monogramas ni colores. */
 var BROKER_FILE_CARDS={
-  // El texto de «CSV»: en claro, #9BD0E0 sobre su fondo no llegaba a 3:1 (`--ink-cian`, solo en claro).
-  revolut:{ cls:"bk-csv", logo:"CSV", logoStyle:{background:"#9BD0E022",color:"var(--ink-cian,#9BD0E0)"}, title:"bi_rev_title", sub:"bi_sub", btn:"bi_rev_steps_btn", steps:"bi_rev_steps", file:"bi_file", accept:".csv,text/csv,text/plain" },
-  degiro:{ cls:"bk-file", logo:"DG", title:"bf_degiro_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_degiro_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,text/csv,text/plain" },
-  ibkr:{ cls:"bk-file", logo:"IB", title:"bf_ibkr_title", sub:"bf_sub", btn:"bf_steps_btn", steps:"bf_ibkr_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,.xml,text/csv,text/xml,application/xml,text/plain" }
+  revolut:{ btn:"bi_rev_steps_btn", steps:"bi_rev_steps", file:"bi_file", accept:".csv,text/csv,text/plain" },
+  degiro:{ btn:"bf_steps_btn", steps:"bf_degiro_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,text/csv,text/plain" },
+  ibkr:{ btn:"bf_steps_btn", steps:"bf_ibkr_steps", file:"bf_file", hint:"bf_hint", ph:"bf_paste_ph", accept:".csv,.xml,text/csv,text/xml,application/xml,text/plain" }
 };
-/* Tarjeta de importación por fichero. Vive junto a Trade Republic en «Mis bancos».
+/* Importación por fichero, dentro de la ficha del bróker en «Mis bancos».
    Previsualización obligatoria + mapeo por posición antes de aplicar: el usuario cuadra contra
    la app de su bróker y decide. Re-ancla participaciones y coste a las posiciones mapeadas (o
    crea nuevas). No pisa un ISIN real con el ticker. */
-function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
+function BrokerImport({state, set, fetchPrices, ent}){
   ent=ent||"revolut";
   const rev=ent==="revolut";
   const card=BROKER_FILE_CARDS[ent];
@@ -1230,20 +1228,13 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
     // y nada más re-anclar, precios en vivo en silencio: el valor pasa de «último conocido» a real
     if(fetchPrices) setTimeout(function(){ fetchPrices(true); },50);
   };
-  const brand=function(isOpen){
-    const e=entOf(ent);
-    return bkBrand({logo:card.logo, logoStyle:card.logoStyle||{background:entTint(e.color,13),color:e.ink||e.color,borderColor:entTint(e.color,27)}, title:t(card.title), sub:t(card.sub),
-             badge:null, open:isOpen, onToggle:onToggle});
-  };
-  // El borde de acento con el color del bróker: el de `var(--line)` casi no se veía en oscuro.
-  const cardProps={className:"bk-card "+card.cls,"data-broker-file":ent,style:rev?undefined:{borderLeftColor:entOf(ent).color}};
-  if(open===false) return React.createElement("div",cardProps, brand(false));
+  // Vive dentro de la ficha de su bróker en Mis bancos (D1, 19/11): sin tarjeta ni monograma propio.
+  const cardProps={className:"bk-flow","data-broker-file":ent};
   const errTxt=!err?null:(err==="aux"?t(rev?"bi_err_fiat":"bf_err_aux"):(err==="pnl"?t("bi_err_pnl")
     :(err.indexOf("other:")===0?tf("bf_err_other",{x:entOf(err.slice(6)).label}):t("bi_err"))));
   // Importe en su moneda, sin pasar a €: el cambio lo pone la app al pintar (y si no lo hay, «—»).
   const natAmt=function(n,cur){ return n==null?"—":NF.format(n)+" "+(cur||"EUR"); };
   return React.createElement("div",cardProps,
-    brand(true),
     React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t(card.hint||"bi_hint")),
     React.createElement("button",{className:"chip",style:{marginBottom:10},onClick:function(){ setSteps(!steps); }}, (steps?"▾ ":"▸ ")+t(card.btn)),
     steps && React.createElement("ol",{className:"bf-in",style:{margin:"0 0 12px",paddingLeft:18,fontSize:12.5,color:"var(--muted)",lineHeight:1.6}},

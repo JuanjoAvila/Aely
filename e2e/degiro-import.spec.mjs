@@ -43,13 +43,13 @@ function aplica(page, ent, ficheros, investments) {
 test("Mis bancos ya no ofrece DEGIRO por fichero, tampoco a quien ya tiene posiciones de DEGIRO", async ({ page }) => {
   await arranca(page, { investments: [{ id: "d1", ent: "degiro", src: "csv:degiro", name: "APPLE INC.", isin: "US0378331005", shares: 1, value: 200, cost: 150, cur: "USD" }] });
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  await expect(page.locator(".bk-sec").first()).toBeVisible({ timeout: 10_000 });
-  await expect(page.locator(".v4-chip").filter({ hasText: "Trade Republic" })).toHaveCount(1);
-  await expect(page.locator(".v4-chip").filter({ hasText: /^DEGIRO$/ })).toHaveCount(0);
+  await expect(page.locator(".v4-banks-push")).toHaveClass(/open/, { timeout: 10_000 });
   await expect(page.locator('[data-broker-file="degiro"]')).toHaveCount(0);
-  // Revolut por CSV sigue donde estaba.
-  await page.locator(".v4-chip").filter({ hasText: /^Revolut$/ }).click();
-  await expect(page.locator(".bk-card.bk-csv")).toHaveCount(1);
+  // Ni en Conectar: los brókers que entran por ahí son los de conexión propia.
+  await page.locator('[data-act="bk-conectar"]').click();
+  await expect(page.locator('.bk-pick [data-bk-tile="trade_republic"]')).toHaveCount(1);
+  await expect(page.locator('.bk-pick [data-bk-tile="degiro"]')).toHaveCount(0);
+  await expect(page.locator(".bk-pick")).not.toContainText("DEGIRO");
 });
 
 test("Cartera + Transacciones (en orden inverso) → bloque DEGIRO con su total en € y el coste anclado", async ({ page }) => {

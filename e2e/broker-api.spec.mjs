@@ -25,7 +25,7 @@ async function abrirBancos(page, overrides) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  await expect(page.locator(".bk-sec")).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(".v4-banks-push")).toHaveClass(/open/, { timeout: 10_000 });
 }
 
 test("Kraken: conectar en la hoja → vista previa → la posición entra en Cartera, sin coste inventado", async ({ page }) => {

@@ -52,14 +52,18 @@ async function bloqueIbkr(page, investments) {
   return { p2, bloque };
 }
 
-/* Desde la 4.26.246 su chip vuelve, pero para CONECTAR (brókers por conexión): lo que no debe
-   volver nunca es la tarjeta de importar fichero, tampoco a quien ya tiene posiciones de IBKR. */
+/* Desde la 4.26.246 IBKR vuelve, pero para CONECTAR (brókers por conexión): en la 4.26.247 es una
+   baldosa de Conectar que abre su hoja de alta. Lo que no debe volver nunca es la tarjeta de
+   importar fichero, tampoco a quien ya tiene posiciones de IBKR. */
 test("Mis bancos ya no ofrece Interactive Brokers por fichero, tampoco a quien ya lo usa", async ({ page }) => {
   await arranca(page, { investments: [{ id: "x1", ent: "ibkr", src: "csv:ibkr", name: "APPLE INC", isin: "US0378331005", shares: 1, value: 200, cost: 150, cur: "USD" }] });
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  await expect(page.locator(".bk-sec").first()).toBeVisible({ timeout: 10_000 });
-  await expect(page.locator(".v4-chip").filter({ hasText: "Trade Republic" })).toHaveCount(1);
-  await expect(page.locator(".v4-chip").filter({ hasText: /Interactive Brokers$/ })).toHaveCount(1);
+  await expect(page.locator(".v4-banks-push")).toHaveClass(/open/, { timeout: 10_000 });
+  await expect(page.locator('[data-broker-file="ibkr"]')).toHaveCount(0);
+  await page.locator('[data-act="bk-conectar"]').click();
+  await expect(page.locator('.bk-pick [data-bk-tile="trade_republic"]')).toHaveCount(1);
+  await page.locator('.bk-pick [data-bk-tile="ibkr"]').click();
+  await expect(page.locator('[data-broker-api-sheet="ibkr"]')).toBeVisible();
   await expect(page.locator('[data-broker-file="ibkr"]')).toHaveCount(0);
 });
 

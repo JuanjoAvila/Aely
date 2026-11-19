@@ -97,9 +97,11 @@ test("«Saldo actualizado» pinta la hora en que se leyó el saldo, no el cursor
   await expect(page.locator(".sync-report")).toBeVisible({ timeout: 15_000 });
   await page.locator(".sync-report-back").click({ position: { x: 5, y: 5 } });
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  const meta = page.locator('[data-aspsp="CaixaBank"] .meta').first();
+  // Desde D1 (19/11) la hora va en relativo («hace 2 h»), con la misma función que pinta la fila.
+  const meta = page.locator('.bk-row[data-aspsp="CaixaBank"] .bk-mt');
   await expect(meta).toBeVisible({ timeout: 15_000 });
-  const [leido, cursor] = await page.evaluate((iso) => [new Date(iso).toLocaleString(), new Date("2026-05-01T00:00:00Z").toLocaleString()], balanceAt);
+  const [leido, cursor] = await page.evaluate((iso) => [bkHace(iso), bkHace("2026-05-01T00:00:00Z")], balanceAt);
+  expect(leido).not.toBe(cursor);
   await expect(meta).toContainText(leido);
   await expect(meta).not.toContainText(cursor);
 });

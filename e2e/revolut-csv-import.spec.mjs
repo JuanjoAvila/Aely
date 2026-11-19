@@ -42,9 +42,9 @@ async function abrirTarjetaCsv(page) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  const csv = page.locator(".bk-card.bk-csv");
-  await expect(csv).toHaveCount(1, { timeout: 10_000 });
-  await csv.locator(".bk-brand").click();
+  // Desde D1 (19/11) es una fila más de Inversiones y el CSV va dentro de su ficha.
+  await page.locator('.v4-banks-push .bk-row[data-broker="revolut"]').click({ timeout: 10_000 });
+  const csv = page.locator('.bk-ficha [data-broker-file="revolut"]');
   await expect(csv.locator("textarea")).toBeVisible();
   return csv;
 }
