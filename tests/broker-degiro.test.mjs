@@ -183,6 +183,22 @@ const pick = (r) => r.acc.positions.map((p) => ({ key: p.key, shares: p.shares, 
   ok("neerlandés con decimales ambiguos; fila ilegible presente, no «ya no está»");
 }
 
+/* 8c. Tercera revisión de dinero (18/11): una fila con cantidad 0 es una posición CERRADA, no una
+       ilegible. Contarla como presente dejaba a Tesla sumando 600 € después de venderla. */
+{
+  const conCero = CARTERA_ES + "TESLA INC,US88160R1014,0,\"200,00\",USD,\"0,00\",\"0,00\"\n";
+  const st = { fxRates: { USD: 0.92 }, investments: [
+    { id: "tsla", ent: "degiro", src: "csv:degiro", name: "Tesla", isin: "US88160R1014", shares: 3, value: 600, cost: 500, cur: "EUR" },
+  ] };
+  const r = ctx.brokerAnalyze("degiro", [conCero], {});
+  assert.equal(r.acc.positions.find((p) => p.isin === "US88160R1014"), undefined, "a 0 no se importa");
+  const gone = ctx.brkGoneOf(st.investments, "degiro", r.acc.positions, {}, r.acc.present);
+  assert.deepEqual(gone.map((i) => i.id), ["tsla"], "sale como «ya no está»");
+  const out = ctx.brkApplyFile(st, "degiro", r.acc.positions, {}, { tsla: 1 }, "2024-11-15");
+  assert.equal(out.investments.reduce((a, i) => a + ctx.invValueEur(i, out), 0), 0, "y no suma");
+  ok("cantidad 0 = cerrada: «ya no está» y fuera del total; solo lo ilegible cuenta como presente");
+}
+
 /* 9. P3: peniques (GBX). Con «Valor en EUR» la posición va en €; sin él, a libras ÷100. Nunca ×100. */
 {
   const gbx = "Producto,Símbolo/ISIN,Cantidad,Precio de cierre,Valor local,,Valor en EUR\nUNILEVER,GB00B10RZP78,10,\"4550,00\",GBX,\"45500,00\",\"541,45\"\n";

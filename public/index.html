@@ -19534,7 +19534,9 @@ function degiroParseCartera(text, memo){
     const q=brkNum(f[ci.qty],dec); const loc=brkMoney(f,ci.local,dec);
     // La fila del efectivo («CASH & CASH FUND…») no trae ISIN ni cantidad: es dinero, no una posición.
     if(!id && !q){ if(loc.amt!=null) cash.push({cur:loc.cur||"EUR",amt:loc.amt}); return; }
-    if(!id || !(q>0)){ skipped++; if(id) present.push(id); return; }
+    // Solo una cantidad ILEGIBLE cuenta como presente; una a 0 es una posición cerrada y tiene que
+    // poder salir como «ya no está» (tercera revisión de dinero 18/11: Tesla a 0 seguía sumando 600 €).
+    if(!id || !(q>0)){ skipped++; if(id && q==null) present.push(id); return; }
     const isin=BRK_ISIN.test(id)?id:null;
     const eurV=ci.eur>=0?brkMoney(f,ci.eur,dec).amt:null;
     const close=ci.close>=0?brkNum(f[ci.close],dec):null;
@@ -19596,7 +19598,7 @@ function ibkrPositions(rows, dec){
     const g=by[key]; const rs=[];
     Object.keys(g).forEach(function(k){ const a=g[k]; Array.prototype.push.apply(rs, a.sum?[a.sum]:a.lots); });
     const r0=rs[0];
-    /* Lo que el fichero TRAE pero no se importa (dos monedas, corta, cantidad ilegible) sigue
+    /* Lo que el fichero TRAE pero no se importa (dos monedas, cantidad ilegible) sigue
        presente: si no, `brkGoneOf` lo marcaba «ya no está» y salía del patrimonio algo que se
        tiene (segunda revisión de dinero 18/11: VWCE en € y en $, −2.402 € sin motivo). */
     const sigue=function(){ present.push(key); if(r0.symbol) present.push(String(r0.symbol).trim()); };
@@ -19607,7 +19609,8 @@ function ibkrPositions(rows, dec){
     const tot=function(k){ let s=0,ok=true; rs.forEach(function(r){ const v=num(r,k); if(v==null) ok=false; else s+=v; }); return ok?s:null; };
     const q=tot("position")!=null?tot("position"):tot("quantity");
     if(q==null){ sigue(); return; }
-    if(q<0){ shorts++; sigue(); return; }
+    // Corta: no se importa y la larga de antes ya no está (si quedara presente, seguiría sumando).
+    if(q<0){ shorts++; return; }
     if(!(q>0)) return;
     const cur=String(r0.currency||r0.currencyprimary||"").trim().toUpperCase()||null;
     const val=tot("positionvalue"), costN=tot("costbasismoney"), mark=num(r0,"markprice");

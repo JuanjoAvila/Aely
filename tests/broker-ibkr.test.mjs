@@ -142,7 +142,7 @@ const pick = (r) => r.acc.positions.map((p) => ({ key: p.key, isin: p.isin, shar
 /* 7b. Segunda revisión de dinero (18/11): un ISIN que llega en DOS monedas (VWCE en Xetra en € y la
        misma ISIN en Londres en $) no se importa, pero SIGUE en el fichero: no puede salir como «ya no
        está», que la marcaba por defecto y bajaba el patrimonio 2.402 € sin motivo. Lo mismo con una
-       cantidad ilegible o una posición corta. */
+       cantidad ilegible. (Una posición CORTA no: ver 7c.) */
 {
   const s = { investments: [
     { id: "vwce", ent: "ibkr", src: "csv:ibkr", name: "VANGUARD FTSE ALL-WORLD", isin: "IE00BK5BQT80", fileSym: "VWCE", shares: 20, value: 2402, cost: 2000, costEur: 2000, cur: "EUR" },
@@ -162,6 +162,24 @@ const pick = (r) => r.acc.positions.map((p) => ({ key: p.key, isin: p.isin, shar
   const marks = Object.fromEntries(ctx.brkGoneOf(s.investments, "ibkr", r.acc.positions, map, r.acc.present).map((i) => [i.id, 1]));
   assert.equal(total(ctx.brkApplyFile(s, "ibkr", r.acc.positions, map, marks, "2024-11-15")), total(s), "el patrimonio no baja");
   ok("lo que el fichero trae pero no se importa sigue presente: no se marca ni sale del total");
+}
+
+/* 7c. Tercera revisión de dinero (18/11): una posición que pasa de larga a CORTA no se importa (se
+       avisa), y la larga de antes ya no está: si contara como presente seguiría sumando su valor. */
+{
+  const s = { investments: [
+    { id: "pg", ent: "ibkr", src: "csv:ibkr", name: "PROCTER & GAMBLE CO", isin: "US7427181091", fileSym: "PG", shares: 30, value: 1365, cost: 1200, cur: "GBP" },
+  ], fxRates: { GBP: 1.2, USD: 0.92 } };
+  const corta = XML.replace(/(symbol="PG"[^>]*?)position="30"/, '$1position="-10"');
+  const r = ctx.brokerAnalyze("ibkr", [corta], {});
+  assert.ok(J(r.acc.warnings).some((w) => w.k === "short" && w.n === 1), "avisa de la corta");
+  const map = {};
+  for (const po of r.acc.positions) map[po.key] = ctx.brkSuggest(po, s.investments, "ibkr") || "";
+  const gone = ctx.brkGoneOf(s.investments, "ibkr", r.acc.positions, map, r.acc.present);
+  assert.deepEqual(gone.map((i) => i.id), ["pg"], "la larga de antes sale como «ya no está»");
+  const out = ctx.brkApplyFile(s, "ibkr", r.acc.positions, map, { pg: 1 }, "2024-11-15");
+  assert.equal(ctx.invValueEur(out.investments[0], out), 0, "y ya no suma");
+  ok("de larga a corta: avisa, la larga sale como «ya no está» y no suma");
 }
 
 /* 8. P3: un costEur anclado no se tira si el fichero trae lo mismo sin ancla; y una posición de un
