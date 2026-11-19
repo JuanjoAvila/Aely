@@ -249,8 +249,8 @@
   .ask-btns .btn{flex:1;margin:0;}
   /* Vista previa del informe del mes (19/11/2026): la imagen entera, sin recortar, y los botones
      siempre a la vista aunque la letra sea Enorme (se reparten en dos filas si no caben). */
-  .ask-img{display:block;max-width:100%;max-height:calc(100dvh - 250px - var(--safe-bottom));width:auto;height:auto;
-    margin:10px auto 0;border-radius:14px;border:1px solid var(--line);object-fit:contain;
+  .ask-img{display:block;max-width:100%;max-height:calc(100dvh - 200px - var(--safe-bottom));width:auto;height:auto;
+    margin:0 auto;border-radius:14px;border:1px solid var(--line);object-fit:contain;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
   .ask-preview .ask-btns{flex-wrap:wrap;}
   .ask-preview .ask-btns .btn{flex:1 1 auto;min-width:96px;}
@@ -19313,8 +19313,11 @@ function AskHost(){
     React.createElement(HelpHost,null),
     ReactDOM.createPortal(
     React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":"")+(cur.img?" ask-preview":""),onClick:cancel},
-      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true","aria-labelledby":"ask-dialog-title",tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
-        React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
+      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true",
+        "aria-labelledby":cur.img?null:"ask-dialog-title","aria-label":cur.img?cur.title:null,tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
+        // Con vista previa el título solo repetía el de la imagen y le quitaba altura (Enorme a
+        // 360, filtro de diseño 19/11): queda para el lector de pantalla, no se pinta.
+        !cur.img && React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
         // `img`: vista previa de lo que se va a guardar (informe del mes, 19/11/2026).
         cur.img && React.createElement("img",{className:"ask-img",src:cur.img,alt:cur.title||"",draggable:false}),

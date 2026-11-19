@@ -32,7 +32,9 @@ async function openPreview(page) {
   await expect(img).toBeVisible();
   // La imagen de verdad (1080×1350), no un hueco: se ha decodificado entera.
   await expect.poll(() => img.evaluate((el) => el.complete && el.naturalWidth + "x" + el.naturalHeight)).toBe("1080x1350");
-  await expect(sheet.getByRole("dialog")).toContainText("Noviembre 2026");
+  // El mes lo dice la imagen; la hoja no lo repite pintado, solo para el lector de pantalla.
+  await expect(sheet.getByRole("dialog")).toHaveAttribute("aria-label", "Noviembre 2026");
+  await expect(sheet.locator(".ts-title")).toHaveCount(0);
   return sheet;
 }
 
