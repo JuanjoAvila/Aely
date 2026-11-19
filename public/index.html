@@ -12453,14 +12453,10 @@ function mcCurvaCasa(p){
 /* UX16: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada», «dura un
    montón»), así que en la ronda 4 se le dio un ajustador en Ajustes (solo beta) y eligió él. El
    19/11/2026 pidió quitarlo: «la intensidad que elegí, que sea la de todos». Sus números NO están
-   en la nube —el ajustador guardaba solo en su móvil, en `_mcHapticTune`— y se copian aquí a mano.
-   ⚠ MC_HAPTIC_PENDIENTE: mientras exista, tests/vibracion-fija.test.mjs falla A PROPÓSITO. Se
-   ponen en MC_HAPTIC_DEF y MC_HAPTIC_DEF_USAGE los valores que copió él y se borra esa línea. */
-const MC_HAPTIC_PENDIENTE="RELLENAR_CON_LOS_VALORES_DEL_DUEÑO";
-/* Ronda 9 (beta 4.26.155): «el anillo no vibra» y «la fuerza del borde no cambia nada». Con toques
-   de 10–12 ms a un tercio de fuerza el motor de su OnePlus 13 no llega a arrancar; por eso los de
-   serie suben ciclo y borde, y el cambio de segmento tiene su propio par (seg*). */
-const MC_HAPTIC_DEF={fillAmp:140,fillMs:1100,edgeAmp:120,edgeMs:20,edgeEvery:150,tickAmp:70,tickMs:10,segAmp:150,segMs:24};
+   en la nube —el ajustador guardaba solo en su móvil, en `_mcHapticTune`— y se copiaron aquí a mano
+   de su «Copiar valores» del 19/11: «ciclo 40/601ms · borde 70/20ms cada 131ms · segmento 70/40ms ·
+   gráfica 7/33ms», uso touch. */
+const MC_HAPTIC_DEF={fillAmp:40,fillMs:601,edgeAmp:70,edgeMs:20,edgeEvery:131,tickAmp:7,tickMs:33,segAmp:70,segMs:40};
 /* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
    OplusPrebakedSegment de 45 ms). Los toques que se sienten van siempre con «hardware»
    (MC_FELT_USAGE); este es el de las demás llamadas al motor. */
