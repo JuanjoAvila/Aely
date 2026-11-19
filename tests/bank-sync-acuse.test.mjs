@@ -693,7 +693,7 @@ await t("H6c al quitar un banco se borra su acuse y solo el suyo", () => {
   ctx.obAckDrop("Banco que no está");
   assert.deepEqual(acuseDe(state), { Revolut: NOW + "|L2.0" });
   const panel = read("src/modules/10-app-components.js");
-  assert.match(panel, /cloud\.bankDisconnect\(name\)\.then\(function\(\)\{\s*setConfirming\(""\);\s*obAckDrop\(name\);/, "BankPanel lo llama cuando el servidor confirma que lo quitó");
+  assert.match(panel, /cloud\.bankDisconnect\(name\)\.then\(function\(\)\{\s*obAckDrop\(name\);/, "BankPanel lo llama cuando el servidor confirma que lo quitó");
 });
 
 // ── N5: el banco filtra por fecha valor y la app pinta la contable ───────────────────
