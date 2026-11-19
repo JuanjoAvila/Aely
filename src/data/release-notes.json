@@ -1,5 +1,67 @@
 [
   {
+    "v": "4.26.244",
+    "d": "2026-11-19",
+    "t": {
+      "es": "Amortizar desde la ficha de la deuda, el banco ya elegido al apuntar y diálogos que no se cortan",
+      "en": "Pay down from the debt's card, the bank already chosen when adding and dialogs that don't get cut off",
+      "ca": "Amortitzar des de la fitxa del deute, el banc ja triat en apuntar i diàlegs que no es tallen"
+    },
+    "items": {
+      "es": [
+        "«Amortizar ahora» está dentro de la ficha de cada deuda: tócala en Plan › Deudas y lo tienes debajo de «Guardar cambios». Mientras escribes el importe ves la cifra que se amortiza y cuántas cuotas te quitas.",
+        "Si has cambiado algo en la ficha, primero hay que guardarlo: el botón de amortizar se apaga y lo dice, para que no se pierda lo que escribiste.",
+        "Al apuntar un gasto, el banco ya viene puesto cuando se sabe cuál es, y al pasar de Efectivo a Tarjeta el gasto va a un banco que cuenta en tu presupuesto.",
+        "Con la letra más grande, los diálogos ya no se cortan por arriba y sus botones se quedan siempre a la vista."
+      ],
+      "en": [
+        "«Pay down now» is inside each debt's card: tap it in Plan › Debts and you'll find it under «Save changes». While you type the amount you see the figure being paid down and how many installments it removes.",
+        "If you changed something on the card, save it first: the pay-down button dims and says so, so what you typed isn't lost.",
+        "When adding an expense, the bank comes already set when it's clear which one it is, and switching from Cash to Card sends the expense to a bank that counts in your budget.",
+        "With the largest text, dialogs no longer get cut off at the top and their buttons always stay in view."
+      ],
+      "ca": [
+        "«Amortitza ara» és dins la fitxa de cada deute: toca'l a Pla › Deutes i el tens sota «Desa els canvis». Mentre escrius l'import veus la xifra que s'amortitza i quantes quotes et treus.",
+        "Si has canviat alguna cosa a la fitxa, primer cal desar-la: el botó d'amortitzar s'apaga i ho diu, perquè no es perdi el que has escrit.",
+        "En apuntar una despesa, el banc ja ve posat quan se sap quin és, i en passar d'Efectiu a Targeta la despesa va a un banc que compta al teu pressupost.",
+        "Amb la lletra més grossa, els diàlegs ja no es tallen per dalt i els seus botons queden sempre a la vista."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-244",
+        "t": {
+          "es": "Amortizar desde la ficha, el banco al apuntar y diálogos con letra Enorme",
+          "en": "Pay down from the card, the bank when adding and dialogs with Huge text",
+          "ca": "Amortitzar des de la fitxa, el banc en apuntar i diàlegs amb lletra Enorme"
+        },
+        "items": {
+          "es": [
+            "1. Plan › Deudas: toca una deuda que tengas pendiente, baja hasta «Amortizar ahora» y tócalo; escribe 2500 y después toca Cancelar. BIEN: el botón está en la ficha, debajo de «Guardar cambios» (y ya no en la tarjeta de la lista); al escribir sale «2.500,00 €» (o el pendiente, si es menos) y cuántas cuotas te quitas; al cancelar la ficha sigue abierta y el pendiente no cambia. MAL: no hay botón en la ficha, sigue en la tarjeta, o cancelar cambia el pendiente o cierra la ficha. Si de verdad has amortizado algo, mete el importe real y toca «Amortizar»: BIEN: la ficha se cierra sola y el pendiente baja justo eso.",
+            "2. En la ficha de una deuda, cambia una letra del nombre sin guardar. BIEN: «Amortizar ahora» se apaga con un fundido suave y debajo sale «Guarda antes los cambios.»; al deshacer el cambio, vuelve a encenderse. Cierra la ficha sin guardar. MAL: se puede amortizar con el cambio sin guardar, o el botón sigue apagado tras deshacerlo.",
+            "3. Toca el botón de apuntar un gasto y mira la baldosa «Banco» antes de tocar nada. BIEN: ya trae tu banco de gasto diario (si no tienes cuenta de gasto diario, el banco del widget si cuenta en tu presupuesto; si no, «+»). Cierra sin guardar. MAL: sale vacía teniendo banco de gasto diario, o trae un banco que no usas para gastar.",
+            "4. En la misma pantalla de apuntar, toca «Efectivo» y después «Tarjeta». BIEN: con «Tarjeta» vuelve un banco (el de gasto diario o uno que cuenta en tu presupuesto) y el efectivo no se toca; si no hay ninguno, «Sin banco». Cierra sin guardar. MAL: se queda en efectivo con «Tarjeta», o pone un banco cuyo gasto no cuentas.",
+            "5. En Ajustes, pon «Tamaño de letra» en «Enorme» y abre el diálogo de «Amortizar ahora» del paso 1 con el teclado abierto (después cancela y vuelve a tu tamaño). BIEN: el título se lee entero arriba, sin cortarse, y los botones se ven abajo; si no cabe todo, se desliza por dentro. MAL: el título sale cortado por arriba o los botones quedan tapados."
+          ],
+          "en": [
+            "1. Plan › Debts: tap a debt you still owe, scroll down to «Pay down now» and tap it; type 2500 and then tap Cancel. RIGHT: the button is on the card, under «Save changes» (and no longer on the list item); while typing it shows «2.500,00 €» (or what's owed, if less) and how many installments it removes; when you cancel the card stays open and the amount owed doesn't change. WRONG: there's no button on the card, it's still on the list item, or cancelling changes the amount owed or closes the card. If you really paid something down, enter the real amount and tap «Pay down»: RIGHT: the card closes on its own and the amount owed drops by exactly that.",
+            "2. On a debt's card, change one letter of the name without saving. RIGHT: «Pay down now» dims with a soft fade and «Save your changes first.» shows under it; undoing the change turns it back on. Close the card without saving. WRONG: you can pay down with the unsaved change, or the button stays dimmed after undoing it.",
+            "3. Tap the button to add an expense and look at the «Bank» tile before touching anything. RIGHT: it already has your daily spending bank (if you have no daily spending account, the widget bank if it counts in your budget; otherwise «+»). Close without saving. WRONG: it's empty although you have a daily spending bank, or it has a bank you don't use for spending.",
+            "4. On the same add screen, tap «Cash» and then «Card». RIGHT: with «Card» a bank comes back (the daily spending one or one that counts in your budget) and cash isn't touched; if there's none, «No bank». Close without saving. WRONG: it stays on cash with «Card», or it picks a bank whose spending you don't count.",
+            "5. In Settings, set «Text size» to «Huge» and open the «Pay down now» dialog from step 1 with the keyboard open (then cancel and go back to your size). RIGHT: the title reads in full at the top, not cut off, and the buttons show at the bottom; if it doesn't all fit, it scrolls inside. WRONG: the title is cut off at the top or the buttons are hidden."
+          ],
+          "ca": [
+            "1. Pla › Deutes: toca un deute que tinguis pendent, baixa fins a «Amortitza ara» i toca'l; escriu 2500 i després toca Cancel·la. BÉ: el botó és a la fitxa, sota «Desa els canvis» (i ja no a la targeta de la llista); en escriure surt «2.500,00 €» (o el pendent, si és menys) i quantes quotes et treus; en cancel·lar la fitxa continua oberta i el pendent no canvia. MALAMENT: no hi ha botó a la fitxa, continua a la targeta, o cancel·lar canvia el pendent o tanca la fitxa. Si de debò has amortitzat alguna cosa, posa l'import real i toca «Amortitza»: BÉ: la fitxa es tanca sola i el pendent baixa just això.",
+            "2. A la fitxa d'un deute, canvia una lletra del nom sense desar. BÉ: «Amortitza ara» s'apaga amb un fos suau i a sota surt «Desa abans els canvis.»; en desfer el canvi, torna a encendre's. Tanca la fitxa sense desar. MALAMENT: es pot amortitzar amb el canvi sense desar, o el botó continua apagat després de desfer-lo.",
+            "3. Toca el botó d'apuntar una despesa i mira la rajola «Banc» abans de tocar res. BÉ: ja porta el teu banc de despesa diària (si no tens compte de despesa diària, el banc del giny si compta al teu pressupost; si no, «+»). Tanca sense desar. MALAMENT: surt buida tenint banc de despesa diària, o porta un banc que no fas servir per gastar.",
+            "4. A la mateixa pantalla d'apuntar, toca «Efectiu» i després «Targeta». BÉ: amb «Targeta» torna un banc (el de despesa diària o un que compta al teu pressupost) i l'efectiu no es toca; si no n'hi ha cap, «Sense banc». Tanca sense desar. MALAMENT: es queda en efectiu amb «Targeta», o posa un banc la despesa del qual no comptes.",
+            "5. A Configuració, posa «Mida de la lletra» a «Enorme» i obre el diàleg d'«Amortitza ara» del pas 1 amb el teclat obert (després cancel·la i torna a la teva mida). BÉ: el títol es llegeix sencer a dalt, sense tallar-se, i els botons es veuen a baix; si no hi cap tot, llisca per dins. MALAMENT: el títol surt tallat per dalt o els botons queden tapats."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.243",
     "d": "2026-11-19",
     "t": {
