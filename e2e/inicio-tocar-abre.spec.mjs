@@ -86,10 +86,11 @@ test("mantener pulsado en Inicio no deja nada seleccionable ni seleccionado", as
   expect(await activa(page)).toBe("inicio");
 });
 
-for (const letra of ["small", "huge"]) {
-  test(`«Últimos movimientos» con la misma fila que «Próximos cargos» (${letra})`, async ({ page }) => {
-    // A 412: con Enorme a 360 el nombre del recibo ya baja a dos líneas y no hay fila que comparar.
-    await page.setViewportSize({ width: 412, height: 2000 });
+// Con Enorme a 360 también: los cargos bajan el importe a la línea gris como los movimientos (si no,
+// el nombre del recibo se partía en dos o tres líneas y la fila medía 113 px contra 86).
+for (const [letra, ancho] of [["small", 360], ["small", 412], ["huge", 360], ["huge", 412]]) {
+  test(`«Últimos movimientos» con la misma fila que «Próximos cargos» (${letra}, ${ancho})`, async ({ page }) => {
+    await page.setViewportSize({ width: ancho, height: 2000 });
     await abre(page, letra);
     const m = await inicio(page).evaluate((r) => {
       const fila = (sel) => {

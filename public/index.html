@@ -1548,6 +1548,14 @@
        línea gris ya trae sus 2 px) y el importe a la altura de esa línea, miden lo mismo. */
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov{row-gap:0;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .am{align-self:center;margin-top:0;line-height:1.15;}
+    /* Y «Próximos cargos» con la misma rejilla (filtro de diseño 19/11): con el importe a la derecha
+       el nombre bajaba a dos o tres líneas y la fila medía 113 px contra 86 de la de movimientos. */
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:0;align-items:center;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge > .dt{grid-row:1 / span 2;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge > div:not(.dt):not(.am){display:contents;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge .nm{grid-column:2 / 4;align-self:end;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge .sub{grid-column:2;align-self:start;min-width:0;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge > .am{grid-column:3;grid-row:2;align-self:center;line-height:1.15;white-space:nowrap;}
   }
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
