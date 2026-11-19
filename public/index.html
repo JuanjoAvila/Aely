@@ -1517,9 +1517,8 @@
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
   /* «Últimos movimientos» ya va dentro de su tarjeta: con fondo y borde propios cada fila era una
      tarjeta dentro de otra (auditoría 15/11). Filas planas con raya, como «Próximos cargos». */
-  .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:12px 0;}
   .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
-  /* La misma fila que Gastos (237, P2-5): nombre a 16/600, «Categoría · Banco» a 13 en gris. */
   /* El nombre baja a una segunda línea en vez de cortarse con «…» (D-03: los recortes que quedaban
      en Inicio eran estos, sobre todo con letra Enorme a 360). Más de dos líneas solo con nombres de
      banco kilométricos; ahí sí se corta, que una fila de cinco líneas rompe la lista. Una palabra
@@ -1535,10 +1534,36 @@
   @media (max-width:430px){
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;align-items:center;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .tile{grid-row:1 / span 2;}
-    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > div:not(.tile){display:contents;}
+    /* Sin `:not(.am)` el importe (también un `div`) perdía su caja y su sitio en la rejilla. */
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > div:not(.tile):not(.am){display:contents;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov .nm{grid-column:2 / 4;align-self:end;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov .meta{grid-column:2;align-self:start;min-width:0;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .am{grid-column:3;grid-row:2;align-self:start;margin-top:2px;}
+  }
+  /* LA MISMA FILA QUE «PRÓXIMOS CARGOS», QUE VA JUSTO ENCIMA (dueño, 19/11/2026: «Últimos
+     movimientos debe tener el mismo tamaño que Próximos cargos»). Medido en el DOM: nombre a 16/600
+     contra 15/700, gris a 13/400 contra 12,5/500, relleno de 10 contra 12 y un icono de 46 px que
+     sacaba la columna del texto 2 px más allá que la fecha. Ahora nombre, gris, importe, relleno y
+     columna de la izquierda (44 px) cuadran con la de arriba; la ficha de Gastos sigue con lo suyo.
+     Va aparte, después del bloque de la ronda D, para no mover sus anclas del panel de beta. */
+  .v4-section[data-testid="inicio-recent"] .v4-mov .tile{width:40px;height:40px;margin:0 2px;border-radius:12px;font-size:19px;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-size:15px;font-weight:700;line-height:1.5;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .meta{display:block;font-size:12.5px;font-weight:500;margin-top:2px;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .am{font-weight:550;}
+  @media (max-width:430px){
+    /* El `gap:12px` de `.v4-mov` también separaba en vertical nombre y categoría en la rejilla de
+       Enorme: la fila salía 25 px más alta que la de «Próximos cargos» (medido 19/11). Sin hueco (la
+       línea gris ya trae sus 2 px) y el importe a la altura de esa línea, miden lo mismo. */
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov{row-gap:0;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .am{align-self:center;margin-top:0;line-height:1.15;}
+    /* Y «Próximos cargos» con la misma rejilla (filtro de diseño 19/11): con el importe a la derecha
+       el nombre bajaba a dos o tres líneas y la fila medía 113 px contra 86 de la de movimientos. */
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:0;align-items:center;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge > .dt{grid-row:1 / span 2;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge > div:not(.dt):not(.am){display:contents;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge .nm{grid-column:2 / 4;align-self:end;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge .sub{grid-column:2;align-self:start;min-width:0;}
+    html.hugetext .v4-section[data-testid="inicio-upcoming"] .v4-charge > .am{grid-column:3;grid-row:2;align-self:center;line-height:1.15;white-space:nowrap;}
   }
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
@@ -1546,6 +1571,12 @@
      porque una fila entera moviendose mucho marea. Solo :active, sin JS ni transiciones nuevas. */
   .v4-charge:active,.v4-mov:active{transform:scale(.995);background:var(--sur2);transition:transform .12s var(--ease),background .12s var(--ease);}
   @media (prefers-reduced-motion:reduce){ .v4-charge:active,.v4-mov:active{transform:none;} }
+  /* Filas y metas de Inicio que abren su ficha (19/11/2026): la meta responde al dedo como las filas. */
+  .v4-tocable{cursor:pointer;}
+  .v4-tocable:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .v4-goal.v4-tocable{transition:transform .12s var(--ease);}
+  .v4-goal.v4-tocable:active{transform:scale(.985);}
+  @media (prefers-reduced-motion:reduce){ .v4-goal.v4-tocable:active{transform:none;} }
   .v4-mov .tile{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:21px;flex:0 0 auto;}
   .v4-mov button.tile{border:1px solid var(--line-soft);}
   .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:var(--fs-row-title);}
@@ -1643,6 +1674,15 @@
      `mcSinSeleccionHastaSoltar`): nada se selecciona, tampoco en la hoja del portal. */
   html.mc-sin-sel,html.mc-sin-sel *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;}
   .gx-root input,.gx-root textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
+  /* INICIO, IGUAL: NADA SE SELECCIONA (dueño, 19/11/2026: «mantener pulsado en Próximos cargos me
+     marca Últimos movimientos; en Metas aún peor, se puede subrayar»). La fila de un cargo ya era
+     `user-select:none`, pero lo de alrededor no: cabeceras de sección, el relleno de las tarjetas y
+     las metas enteras. Con una pulsación larga sobre algo no seleccionable el WebView no se rinde:
+     busca la posición de texto seleccionable MÁS CERCANA siguiendo el documento y la selecciona,
+     y la siguiente que encontraba bajando desde «Próximos cargos» era el título de «Tus metas» o el
+     de «Últimos movimientos». Por eso arreglarlo fila a fila no servía: la pantalla entera. */
+  .v4-inicio,.v4-inicio *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+  .v4-inicio input,.v4-inicio textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
   /* CABECERA FIJA. La caja NUNCA cambia de alto: encogerse es `transform` de la cifra y de la
      línea, y la fila de meses sale por debajo (posición absoluta) sobre la lista que ya ha
      pasado. Así bajar no recoloca ni una fila: es lo que medían los tirones del 27/7.
@@ -12430,6 +12470,22 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
 function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
 }
+/* Espera a que la pestaña de `dameEl()` termine de entrar por el carrusel (su `.page` quieta en x=0
+   dos frames seguidos) y entonces llama a `fn`. Al tocar algo de Inicio que abre una ficha en otra
+   pestaña, la hoja subiendo a la vez que la página deslizándose eran dos movimientos cruzados
+   («rapidísimo pero no suave», dueño 12/11): así el único movimiento al llegar es el de la hoja.
+   Tope de ~0,75 s por si la página no llega a medirse. Devuelve con qué cancelarla. */
+function mcTrasLlegar(dameEl, fn){
+  let n=0, antes=null, raf=0;
+  const paso=function(){
+    const el=dameEl&&dameEl(), pg=el&&(el.closest(".page")||el);
+    const x=pg?Math.round(pg.getBoundingClientRect().left):null;
+    if((x!=null&&Math.abs(x)<2&&antes===x)||++n>=45){ raf=0; fn(); return; }
+    antes=x; raf=requestAnimationFrame(paso);
+  };
+  raf=requestAnimationFrame(paso);
+  return function(){ if(raf) cancelAnimationFrame(raf); raf=0; };
+}
 /* La curva de la casa (`--ease`, cubic-bezier(.22,.61,.36,1)) en JS: lo que se desplaza acompañando a un
    pliegue va con su MISMA curva y su mismo tiempo. Con otra (la cúbica a secas) el scroll iba por
    delante o por detrás del pliegue y se veían dos movimientos (Recibos, 12/11). p en [0,1]. */
@@ -15261,7 +15317,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       // Lo marcado «Lo pagué de otra forma» ya no está vencido: la misma lectura que Recibos.
       const status=fixedEstadoMes(state,f,tt.curYear,cm,today);
       if(status.paid||fixedSinCobroIn(f,tt.curYear,cm)) return;
-      const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
+      const row={rid:"fixed_"+f.id, day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
       (status.overdue?overdue:rows).push(row);
     });
     (state.debts||[]).forEach(function(d){
@@ -15269,7 +15325,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       // Con «Lo descuento» la cuota es la tuya entera, como en Plan (pagas 197 € + 53 € del recibo).
       const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt, q=debtCuotaIn(d,tt.curYear,cm);
-      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
+      rows.push({rid:"debt_"+d.id, day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
     });
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
@@ -15277,7 +15333,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       // La misma regla que Plan (`flowEstadoMes`): lo que allí ya ha entrado aquí no sale como próximo.
       if(flowEstadoMes(state,f,tt.curYear,cm,today).llego) return;
       const day=flowDay(f,tt.curYear,cm)||1;
-      rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
+      rows.push({rid:"flow_"+f.id, day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });
     rows.sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); });
     return rows.slice(0,3);
@@ -15296,7 +15352,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     return p.pendingBills.concat(p.incomePending).sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); }).slice(0,3);
   },[nada,novato,sigM,sigY,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner])
     // Los textos fuera del memo: cambiar de idioma no toca sus dependencias.
-    .map(function(x){ return {day:x.day, name:x.name, sub:x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):(entOf(x.bank).label||""), amount:Math.abs(x.amount), pos:x.kind==="income"}; });
+    .map(function(x){ return {rid:x.id, day:x.day, name:x.name, sub:x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):(entOf(x.bank).label||""), amount:Math.abs(x.amount), pos:x.kind==="income"}; });
   const sigName=monthLong(sigM-1);
 
   // 🎉 Deudas a las que les queda LA ÚLTIMA cuota: alegría en Inicio (petición 2026-07-18
@@ -15349,8 +15405,18 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
+  /* TOCAR UNA FILA LLEVA A SU SITIO Y LA ABRE (dueño, 19/11/2026). Antes un cargo, un movimiento o
+     una meta de Inicio no hacían nada al tocarlos —parecían tocables y no lo eran— y «Ver todo»
+     dejaba en la lista, a buscar a mano. Ahora el recibo abre su ficha en Plan › Recibos, el
+     movimiento la suya en Gastos y la meta la suya en Plan › Metas. `role="button"` y no `<button>`:
+     la fila conserva su maqueta (la de Enorme incluida) y responde a Intro/Espacio igual. */
+  const tocable=function(fn){
+    return {role:"button",tabIndex:0,onClick:fn,
+      onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); fn(); } }};
+  };
+  const abreRecibo=function(rid){ if(onGoPlan) onGoPlan("recibos",rid?{reciboId:rid}:null); };
 
-  return React.createElement("div",{className:"v4-screen",onAnimationStart:mcInicioFillHaptic},
+  return React.createElement("div",{className:"v4-screen v4-inicio",onAnimationStart:mcInicioFillHaptic},
     React.createElement("div",{className:"v4-inicio-head rise"},
       React.createElement("div",null,
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),
@@ -15488,7 +15554,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       ),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         (upcoming.length>0?upcoming:nextUp).map(function(u,i){
-              return React.createElement("div",{key:i,className:"v4-charge"},
+              return React.createElement("div",Object.assign({key:i,className:"v4-charge v4-tocable","data-inicio-recibo":u.rid},tocable(function(){ abreRecibo(u.rid); })),
                 React.createElement("div",{className:"dt"},
                   React.createElement("div",{className:"d"}, u.day==null?"—":String(u.day).padStart(2,"0")),
                   React.createElement("div",{className:"m"}, (upcoming.length>0?monthName:sigName).slice(0,3))
@@ -15511,10 +15577,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_all"))),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
-          // Cada fila lleva a Recibos, como «Ver todo»: parecían tocables (y en Recibos lo son) y no
-          // hacían nada (triage 18/11, F-07).
-          return React.createElement("button",{key:i,type:"button",className:"v4-charge v4-charge-btn","data-testid":"inicio-revisar-fila",
-              onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},
+          // Cada fila lleva a Recibos (triage 18/11, F-07) y abre la ficha de ESE recibo (19/11).
+          return React.createElement("button",{key:i,type:"button",className:"v4-charge v4-charge-btn","data-testid":"inicio-revisar-fila","data-inicio-recibo":u.rid,
+              onClick:function(){ abreRecibo(u.rid); }},
             // `span` y no `div`: dentro de un botón solo cabe contenido en línea (el CSS los pone en bloque).
             React.createElement("span",{className:"dt"},React.createElement("span",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("span",{className:"m"},monthName.slice(0,3))),
             React.createElement("span",{style:{flex:1,minWidth:0}},React.createElement("span",{className:"nm"},u.name),React.createElement("span",{className:"sub"},u.sub+" · "+t("pr6_no_llegado"))),
@@ -15548,7 +15613,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           // Con lo marcado desde Gastos, como en Plan → Metas: la misma meta no puede decir dos cifras.
           const g=metaConAportes(g0,state);
           const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual);
-          return React.createElement("div",{key:g.id,className:"v4-goal"},
+          return React.createElement("div",Object.assign({key:g.id,className:"v4-goal v4-tocable","data-inicio-meta":g.id,"aria-label":g.name},
+              tocable(function(){ if(onGoPlan) onGoPlan("metas",{goalId:g.id}); })),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("span",{style:{fontSize:28}}, g.emoji||"🎯"),
               React.createElement("div",{style:{flex:1,minWidth:0}},
@@ -15569,14 +15635,15 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("span",null, t("v4_recent")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }}, t("v4_all"))
       ),
-      React.createElement("div",{className:"v4-card",style:{padding:"6px 14px"}},
+      React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         recent.length===0
           ? React.createElement("div",{style:{padding:"18px 4px",color:"var(--muted)",fontSize:14}}, t("v4_recent_empty"))
           : recent.map(function(e){
               const c=catOf(e.category); const pos=e.amount<0;
               // El cargo de un recibo se ve igual que en Gastos: atenuado y diciendo de cuál es.
               const recibo=reciboEtiqueta(state,e);
-              return React.createElement("div",{key:e.id||(e.date+e.amount+e.merchant),className:"v4-mov"+(recibo?" v4-mov-skip":""),style:recibo?{opacity:.72}:null},
+              return React.createElement("div",Object.assign({key:e.id||(e.date+e.amount+e.merchant),className:"v4-mov v4-tocable"+(recibo?" v4-mov-skip":""),style:recibo?{opacity:.72}:null,"data-inicio-gasto":e.id},
+                  tocable(function(){ if(onGoGastos) onGoGastos(e); })),
                 React.createElement("div",{className:"tile",style:{background:(c.color||"#5FD08A")+"22"}}, c.icon||"📦"),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
                   React.createElement("div",{className:"nm"}, e.merchant||catName(e.category)),
@@ -16687,11 +16754,22 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
   useEffect(function(){
     if(!focusExp) return;
-    const cands=(state.expenses||[]).filter(function(e){
+    // Desde Inicio llega el id exacto (19/11/2026): dos cafés de 1,50 € no se pueden confundir.
+    const porId=focusExp.id!=null&&(state.expenses||[]).find(function(e){ return e.id===focusExp.id; });
+    const cands=porId?[porId]:(state.expenses||[]).filter(function(e){
       if(Math.abs(Math.abs(e.amount)-focusExp.amount)>0.005) return false;
       if(focusExp.merchant){ const m=(e.merchant||"").toLowerCase(), fm=focusExp.merchant.toLowerCase(); if(m.indexOf(fm.slice(0,Math.min(6,fm.length)))<0 && fm.indexOf(m)<0) return false; }
       return true;
     }).sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
+    if(porId){
+      // La ficha sube cuando Gastos ya ha llegado (ver `mcTrasLlegar`), no a mitad del carrusel.
+      // Sin cancelarla al limpiar: `clearFocus` vacía `focusExp` en este mismo paso y la anularía.
+      mcTrasLlegar(function(){ return document.querySelector(".gx-root"); },function(){
+        setDetailId(porId.id); setEditExp({id:porId.id, merchant:porId.merchant||"", amount:montoEditable(porId.amount), income:porId.amount<0, date:String(porId.date||"").slice(0,10)});
+      });
+      if(clearFocus) clearFocus();
+      return;
+    }
     if(cands[0]){
       setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:montoEditable(cands[0].amount), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
       if(clearFocus) clearFocus();
@@ -31075,11 +31153,17 @@ function SavingsPlanCard({state, set, totals, showToast}){
 }
 
 
-function Goals({state, set, totals, showToast}){
+function Goals({state, set, totals, showToast, abrir}){
   const tt=totals||{};
   const goals=state.goals||[];
   const [adding,setAdding]=useState(false);
   const [editingGoal,setEditingGoal]=useState(null);
+  // La meta tocada en Inicio ({id,ts}) se abre como si se hubiera tocado aquí (PlanTab ya la ha centrado).
+  useEffect(function(){
+    if(!abrir) return;
+    const g=goals.find(function(x){ return String(x.id)===abrir.id; });
+    if(g) setEditingGoal(g);
+  },[abrir&&abrir.ts]);
   const [contribGoal,setContribGoal]=useState(null);   // meta abierta en la hoja de aportar
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);
@@ -34297,7 +34381,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="01e4291df27c693765a38f73dd8a062c6d46e3467446a90e97c3f7a37d76e571";
+var _rnSha="2e42c4938fd52533f258c325eab48dc0d41924c081af1df2c0654eb961c7c0e9";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -35956,7 +36040,9 @@ const PLAN_SEG_ORDEN=["recibos","deudas","metas"];
 function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [seg,setSeg]=useState("recibos");
   // Deuda a la que hay que llevar al llegar a Deudas ({id,ts}); ver `irADeuda`.
+  // Y lo mismo para una meta (`seg:"metas"`); el recibo y la meta que hay que abrir al llegar ({id,ts}).
   const [focoDeuda,setFocoDeuda]=useState(null);
+  const [focoRecibo,setFocoRecibo]=useState(null), [abrirMeta,setAbrirMeta]=useState(null);
   const [manageOpen,setManageOpen]=useState(false);
   // «Editar» desde la ficha de un recibo abre Todos directamente en su edición.
   const [manageEdit,setManageEdit]=useState(null);
@@ -36044,6 +36130,13 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     setSeg(simple?"recibos":gotoSeg.id);
     // Desde otra pestaña la transición ya es el carrusel: la sección no anima por su cuenta.
     if(!simple&&gotoSeg.id==="deudas"&&gotoSeg.debtId!=null) setFocoDeuda({id:String(gotoSeg.debtId),ts:gotoSeg.ts});
+    // Desde Inicio (19/11/2026): el recibo tocado abre su ficha; la meta tocada se centra, se
+    // resalta y abre la suya, con el mismo aterrizaje que una deuda.
+    if(gotoSeg.reciboId) setFocoRecibo({id:String(gotoSeg.reciboId),ts:gotoSeg.ts});
+    if(!simple&&gotoSeg.id==="metas"&&gotoSeg.goalId!=null){
+      const gid=String(gotoSeg.goalId), ts=gotoSeg.ts;
+      setFocoDeuda({seg:"metas",id:gid,ts:ts,alLlegar:function(){ setAbrirMeta({id:gid,ts:ts}); }});
+    }
     if(clearGoto) clearGoto();
   },[gotoSeg&&gotoSeg.ts]);
   /* «EN DEUDAS Y METAS SE RELENTIZA DE MANERA MUY BESTIA» — CAPÍTULO 2 (2026-07-26 noche).
@@ -36198,8 +36291,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     if(debtId==null&&listo) listo();
   };
   useEffect(function(){
-    if(!focoDeuda||seg!=="deudas"||!segMounted.deudas) return undefined;
-    const id=focoDeuda.id, listo=focoDeuda.listo;
+    const sg=focoDeuda&&focoDeuda.seg||"deudas";
+    if(!focoDeuda||seg!==sg||!segMounted[sg]) return undefined;
+    const id=focoDeuda.id, listo=focoDeuda.listo, alLlegar=focoDeuda.alLlegar;
+    const attr=sg==="metas"?"data-goal-id":"data-debt-id";
     let raf=0, n=0, antes=null, cancel=false;
     // Posición en la página por `offsetTop` y no por `getBoundingClientRect`: la sección entra con
     // un `translateY` y las tarjetas con `.rise`, y un rect medido a mitad de animación apuntaría
@@ -36211,9 +36306,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     };
     const paso=function(){
       raf=0; if(cancel) return;
-      const capaEl=segElRef.current.deudas;
+      const capaEl=segElRef.current[sg];
       let card=null;
-      try{ card=capaEl&&capaEl.querySelector('[data-debt-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); }catch(e){}
+      try{ card=capaEl&&capaEl.querySelector('['+attr+'="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); }catch(e){}
       const pg=card&&card.closest(".page");
       const y=pg?topEn(card,pg):null;
       // Se espera a que el layout se quede quieto dos frames seguidos: Deudas puede estar
@@ -36221,7 +36316,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       if(y==null||antes==null||Math.abs(y-antes)>0.5){
         antes=y;
         if(++n<60) raf=requestAnimationFrame(paso);
-        else { setFocoDeuda(null); if(listo) listo(); }
+        else { setFocoDeuda(null); if(listo) listo(); if(alLlegar) alLlegar(); }
         return;
       }
       const pr=pg.getBoundingClientRect();
@@ -36248,10 +36343,13 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       if(listo) setTimeout(resalta,mcReduced()?0:420); else resalta();
       setFocoDeuda(null);
       if(listo) listo();
+      // La ficha sube cuando la página ya ha llegado y el scroll suave ha terminado: un movimiento
+      // detrás de otro, no los tres a la vez.
+      if(alLlegar) mcTrasLlegar(function(){ return card; },function(){ setTimeout(alLlegar,enSitio&&!mcReduced()?380:0); });
     };
     raf=requestAnimationFrame(paso);
     return function(){ cancel=true; if(raf) cancelAnimationFrame(raf); };
-  },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas]);
+  },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas, segMounted.metas]);
 
   return React.createElement("div",{className:"v4-screen v4-plan",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     // Fondo bajo la barra de estado: al bajar, el título, los botones y la tarjeta pasaban por
@@ -36278,9 +36376,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
-          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay})),
+          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
+          foco:focoRecibo,clearFoco:function(){ setFocoRecibo(null); }})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
-    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast})),
+    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta})),
     debtDayRequest&&React.createElement(Debts,{state:state,set:set,showToast:showToast,editorOnly:true,editDayRequest:debtDayRequest,onEditDayClose:function(){setDebtDayRequest(null);}})
   );
 }
@@ -36662,7 +36761,7 @@ function pr6FrescuraTxt(ms, now){
 function reponerBases(accounts, cuentas){
   return (accounts||[]).map(function(a){ const c=cuentas.find(function(x){ return x.id===a.id; }); return c?conValor(a,c.antes):a; });
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay, foco, clearFoco}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -37007,6 +37106,21 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   // Pausar o borrar desde la ficha saca el recibo del mes antes de que la hoja termine de irse:
   // sin olvidarla, reaparecía abierta en cuanto el recibo volvía al mes.
   useEffect(function(){ if(ficha&&!fichaRow) setFicha(null); },[ficha,fichaRow]);
+  /* Un recibo tocado en Inicio (19/11/2026) abre aquí su ficha cuando Plan ya ha llegado. Si no es de
+     este mes (Inicio enseña el mes que viene cuando este ya está pagado), lo mismo que tocarlo en la
+     vista «mes siguiente»: su edición en Tus recibos. Sin cancelar al limpiar: `clearFoco` repinta
+     con `foco` vacío en este mismo paso. */
+  useEffect(function(){
+    if(!foco||activo===false||manageOpen) return;
+    const id=foco.id;
+    if(clearFoco) clearFoco();
+    const enMes=pack.pendingBills.concat(pack.paidBills,pack.transfersPending,pack.incomePending||[],flowsDone).some(function(x){ return x.id===id; });
+    mcTrasLlegar(function(){ return document.querySelector(".v4-plan"); },function(){
+      if(enMes){ abrir({id:id}); return; }
+      const k=/^(fixed|oneoff)_(.*)$/.exec(id);
+      if(k){ setManageEdit(k[2]); setManageOpen(true); }
+    });
+  },[foco&&foco.ts,activo]);
   // Al cambiar de mes la lista vuelve a sus tres primeras: lo desplegado era del otro mes.
   // La entrada lateral solo al cambiar: al abrir Plan la tarjeta ya sube con `rise`.
   const [vistaAnim,setVistaAnim]=useState(false);
@@ -46107,8 +46221,14 @@ function App(){
         setProfileMounted(true);
         requestAnimationFrame(function(){ requestAnimationFrame(function(){ profSetOrigin(); setProfileOpen(true); }); });
       },
-      onGoGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); },
-      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
+      // Con un movimiento, Gastos abre SU ficha por id: el mismo camino que la noti de un gasto
+      // (`focusExp`), que sin id casa por importe y comercio.
+      onGoGastos:function(e){
+        if(e&&e.id) setGotoExp({id:e.id,amount:Math.abs(Number(e.amount)||0),merchant:e.merchant||"",ts:Date.now()});
+        const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i);
+      },
+      // `foco`: {reciboId} o {goalId} para abrir ese recibo o esa meta al llegar (ver PlanTab).
+      onGoPlan:function(seg,foco){ if(seg) setPlanGoto(Object.assign({id:seg,ts:Date.now()},foco||null)); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
     if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,onRefreshExpenses:syncCloudExpenses,

@@ -491,7 +491,10 @@ const PRESUPUESTO = {
   // se apaga con algo tecleado y no amortiza si la deuda cambió; el banco de reserva de Apuntar, que solo actúa si su gasto
   // cuenta; los diálogos que no se cortan arriba) con el sello y la nota: 2.064.636 B minificado y 568.977 B gzip. Es lógica
   // de dinero que se ve; mismo mandato del 11/10: el minificado, al mínimo medido, 2017 KiB; el gzip cabe en 556.
-  minificado: 2017 * 1024,
+  // Inicio 19/11 (`inicio-1911`): tocar recibo/movimiento/meta abre su ficha, pulsar largo no selecciona y
+  // «Últimos movimientos» con la fila de «Próximos cargos». Sin textos nuevos: +3.920 B min / +842 B gzip
+  // (2.066.522 / 569.319 B sin sello). Lo pidió el dueño; SUBE (mandato 11/10) al mínimo: 2019 / 557 KiB.
+  minificado: 2019 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -534,7 +537,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 556 * 1024, // ver el comentario de minificado (555,6 KiB medidos el 19/11/2026 en la integración 4.26.244).
+  gzip: 557 * 1024, // ver el comentario de minificado (556,0 KiB medidos el 19/11/2026 con la ronda inicio-1911).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

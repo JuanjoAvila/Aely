@@ -8,7 +8,9 @@ const PLAN_SEG_ORDEN=["recibos","deudas","metas"];
 function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const [seg,setSeg]=useState("recibos");
   // Deuda a la que hay que llevar al llegar a Deudas ({id,ts}); ver `irADeuda`.
+  // Y lo mismo para una meta (`seg:"metas"`); el recibo y la meta que hay que abrir al llegar ({id,ts}).
   const [focoDeuda,setFocoDeuda]=useState(null);
+  const [focoRecibo,setFocoRecibo]=useState(null), [abrirMeta,setAbrirMeta]=useState(null);
   const [manageOpen,setManageOpen]=useState(false);
   // «Editar» desde la ficha de un recibo abre Todos directamente en su edición.
   const [manageEdit,setManageEdit]=useState(null);
@@ -96,6 +98,13 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     setSeg(simple?"recibos":gotoSeg.id);
     // Desde otra pestaña la transición ya es el carrusel: la sección no anima por su cuenta.
     if(!simple&&gotoSeg.id==="deudas"&&gotoSeg.debtId!=null) setFocoDeuda({id:String(gotoSeg.debtId),ts:gotoSeg.ts});
+    // Desde Inicio (19/11/2026): el recibo tocado abre su ficha; la meta tocada se centra, se
+    // resalta y abre la suya, con el mismo aterrizaje que una deuda.
+    if(gotoSeg.reciboId) setFocoRecibo({id:String(gotoSeg.reciboId),ts:gotoSeg.ts});
+    if(!simple&&gotoSeg.id==="metas"&&gotoSeg.goalId!=null){
+      const gid=String(gotoSeg.goalId), ts=gotoSeg.ts;
+      setFocoDeuda({seg:"metas",id:gid,ts:ts,alLlegar:function(){ setAbrirMeta({id:gid,ts:ts}); }});
+    }
     if(clearGoto) clearGoto();
   },[gotoSeg&&gotoSeg.ts]);
   /* «EN DEUDAS Y METAS SE RELENTIZA DE MANERA MUY BESTIA» — CAPÍTULO 2 (2026-07-26 noche).
@@ -250,8 +259,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     if(debtId==null&&listo) listo();
   };
   useEffect(function(){
-    if(!focoDeuda||seg!=="deudas"||!segMounted.deudas) return undefined;
-    const id=focoDeuda.id, listo=focoDeuda.listo;
+    const sg=focoDeuda&&focoDeuda.seg||"deudas";
+    if(!focoDeuda||seg!==sg||!segMounted[sg]) return undefined;
+    const id=focoDeuda.id, listo=focoDeuda.listo, alLlegar=focoDeuda.alLlegar;
+    const attr=sg==="metas"?"data-goal-id":"data-debt-id";
     let raf=0, n=0, antes=null, cancel=false;
     // Posición en la página por `offsetTop` y no por `getBoundingClientRect`: la sección entra con
     // un `translateY` y las tarjetas con `.rise`, y un rect medido a mitad de animación apuntaría
@@ -263,9 +274,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     };
     const paso=function(){
       raf=0; if(cancel) return;
-      const capaEl=segElRef.current.deudas;
+      const capaEl=segElRef.current[sg];
       let card=null;
-      try{ card=capaEl&&capaEl.querySelector('[data-debt-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); }catch(e){}
+      try{ card=capaEl&&capaEl.querySelector('['+attr+'="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); }catch(e){}
       const pg=card&&card.closest(".page");
       const y=pg?topEn(card,pg):null;
       // Se espera a que el layout se quede quieto dos frames seguidos: Deudas puede estar
@@ -273,7 +284,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       if(y==null||antes==null||Math.abs(y-antes)>0.5){
         antes=y;
         if(++n<60) raf=requestAnimationFrame(paso);
-        else { setFocoDeuda(null); if(listo) listo(); }
+        else { setFocoDeuda(null); if(listo) listo(); if(alLlegar) alLlegar(); }
         return;
       }
       const pr=pg.getBoundingClientRect();
@@ -300,10 +311,13 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       if(listo) setTimeout(resalta,mcReduced()?0:420); else resalta();
       setFocoDeuda(null);
       if(listo) listo();
+      // La ficha sube cuando la página ya ha llegado y el scroll suave ha terminado: un movimiento
+      // detrás de otro, no los tres a la vez.
+      if(alLlegar) mcTrasLlegar(function(){ return card; },function(){ setTimeout(alLlegar,enSitio&&!mcReduced()?380:0); });
     };
     raf=requestAnimationFrame(paso);
     return function(){ cancel=true; if(raf) cancelAnimationFrame(raf); };
-  },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas]);
+  },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas, segMounted.metas]);
 
   return React.createElement("div",{className:"v4-screen v4-plan",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     // Fondo bajo la barra de estado: al bajar, el título, los botones y la tarjeta pasaban por
@@ -330,9 +344,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
-          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay})),
+          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
+          foco:focoRecibo,clearFoco:function(){ setFocoRecibo(null); }})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
-    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast})),
+    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta})),
     debtDayRequest&&React.createElement(Debts,{state:state,set:set,showToast:showToast,editorOnly:true,editDayRequest:debtDayRequest,onEditDayClose:function(){setDebtDayRequest(null);}})
   );
 }
@@ -714,7 +729,7 @@ function pr6FrescuraTxt(ms, now){
 function reponerBases(accounts, cuentas){
   return (accounts||[]).map(function(a){ const c=cuentas.find(function(x){ return x.id===a.id; }); return c?conValor(a,c.antes):a; });
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay, foco, clearFoco}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -1059,6 +1074,21 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   // Pausar o borrar desde la ficha saca el recibo del mes antes de que la hoja termine de irse:
   // sin olvidarla, reaparecía abierta en cuanto el recibo volvía al mes.
   useEffect(function(){ if(ficha&&!fichaRow) setFicha(null); },[ficha,fichaRow]);
+  /* Un recibo tocado en Inicio (19/11/2026) abre aquí su ficha cuando Plan ya ha llegado. Si no es de
+     este mes (Inicio enseña el mes que viene cuando este ya está pagado), lo mismo que tocarlo en la
+     vista «mes siguiente»: su edición en Tus recibos. Sin cancelar al limpiar: `clearFoco` repinta
+     con `foco` vacío en este mismo paso. */
+  useEffect(function(){
+    if(!foco||activo===false||manageOpen) return;
+    const id=foco.id;
+    if(clearFoco) clearFoco();
+    const enMes=pack.pendingBills.concat(pack.paidBills,pack.transfersPending,pack.incomePending||[],flowsDone).some(function(x){ return x.id===id; });
+    mcTrasLlegar(function(){ return document.querySelector(".v4-plan"); },function(){
+      if(enMes){ abrir({id:id}); return; }
+      const k=/^(fixed|oneoff)_(.*)$/.exec(id);
+      if(k){ setManageEdit(k[2]); setManageOpen(true); }
+    });
+  },[foco&&foco.ts,activo]);
   // Al cambiar de mes la lista vuelve a sus tres primeras: lo desplegado era del otro mes.
   // La entrada lateral solo al cambiar: al abrir Plan la tarjeta ya sube con `rise`.
   const [vistaAnim,setVistaAnim]=useState(false);

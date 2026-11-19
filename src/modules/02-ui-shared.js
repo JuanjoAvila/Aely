@@ -629,6 +629,22 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
 function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
 }
+/* Espera a que la pestaña de `dameEl()` termine de entrar por el carrusel (su `.page` quieta en x=0
+   dos frames seguidos) y entonces llama a `fn`. Al tocar algo de Inicio que abre una ficha en otra
+   pestaña, la hoja subiendo a la vez que la página deslizándose eran dos movimientos cruzados
+   («rapidísimo pero no suave», dueño 12/11): así el único movimiento al llegar es el de la hoja.
+   Tope de ~0,75 s por si la página no llega a medirse. Devuelve con qué cancelarla. */
+function mcTrasLlegar(dameEl, fn){
+  let n=0, antes=null, raf=0;
+  const paso=function(){
+    const el=dameEl&&dameEl(), pg=el&&(el.closest(".page")||el);
+    const x=pg?Math.round(pg.getBoundingClientRect().left):null;
+    if((x!=null&&Math.abs(x)<2&&antes===x)||++n>=45){ raf=0; fn(); return; }
+    antes=x; raf=requestAnimationFrame(paso);
+  };
+  raf=requestAnimationFrame(paso);
+  return function(){ if(raf) cancelAnimationFrame(raf); raf=0; };
+}
 /* La curva de la casa (`--ease`, cubic-bezier(.22,.61,.36,1)) en JS: lo que se desplaza acompañando a un
    pliegue va con su MISMA curva y su mismo tiempo. Con otra (la cúbica a secas) el scroll iba por
    delante o por detrás del pliegue y se veían dos movimientos (Recibos, 12/11). p en [0,1]. */

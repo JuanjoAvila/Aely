@@ -73,6 +73,13 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
+  // Inicio 19/11/2026: tocar recibo/movimiento/meta abre su ficha, pulsar largo no selecciona y
+  // «Últimos movimientos» con la fila de «Próximos cargos».
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-tocar-abre.spec.mjs"] },
+  { file: "src/modules/04-tab-gastos.js", specs: ["e2e/inicio-tocar-abre.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/inicio-tocar-abre.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/inicio-tocar-abre.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/inicio-tocar-abre.spec.mjs"] },
   // Ronda de diseño 240 (encargos D y E): resumen de Deudas/Metas, Ajustes con iconos de trazo y sin
   // nada cortado, Perfil en filas y el aviso abajo con Ajustes abierto.
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
