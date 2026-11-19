@@ -115,10 +115,15 @@ function AskHost(){
   return React.createElement(React.Fragment,null,
     React.createElement(HelpHost,null),
     ReactDOM.createPortal(
-    React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
-      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true","aria-labelledby":"ask-dialog-title",tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
-        React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
+    React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":"")+(cur.img?" ask-preview":""),onClick:cancel},
+      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true",
+        "aria-labelledby":cur.img?null:"ask-dialog-title","aria-label":cur.img?cur.title:null,tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
+        // Con vista previa el título solo repetía el de la imagen y le quitaba altura (Enorme a
+        // 360, filtro de diseño 19/11): queda para el lector de pantalla, no se pinta.
+        !cur.img && React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
+        // `img`: vista previa de lo que se va a guardar (informe del mes, 19/11/2026).
+        cur.img && React.createElement("img",{className:"ask-img",src:cur.img,alt:cur.title||"",draggable:false}),
         // `live(valor)`: una línea que depende de lo tecleado (p. ej. cuotas que quita amortizar).
         // null = no se pinta: el diálogo no enseña nada que aún no se sabe. Su hueco sí se guarda: si
         // apareciera con la primera cifra, el campo bajaba un renglón bajo el dedo (filtro de diseño 242).
@@ -143,6 +148,8 @@ function AskHost(){
           })),
         React.createElement("div",{className:"ask-btns"},
           React.createElement("button",{className:"btn btn-ghost",onClick:cancel}, cur.cancel||t("fj_cancel")),
+          // `alt`: una segunda acción que no es cancelar (Compartir junto a Guardar). Resuelve "alt".
+          cur.alt && React.createElement("button",{className:"btn btn-ghost",onClick:function(){ done("alt"); }}, cur.alt),
           // Con opciones, el botón de aceptar sobra: elegir una YA es aceptar.
           (cur.options||[]).length===0 && React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
             onClick:ok}, cur.ok||t("ask_ok")))

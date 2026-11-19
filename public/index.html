@@ -255,6 +255,13 @@
      pasa por debajo sin mover nada: un relleno cambiaba el hueco de siempre en los diálogos sin campo. */
   .ask-btns{display:flex;gap:8px;margin-top:14px;position:sticky;bottom:0;background:var(--surface);box-shadow:0 -14px 0 var(--surface);}
   .ask-btns .btn{flex:1;margin:0;}
+  /* Vista previa del informe del mes (19/11/2026): la imagen entera, sin recortar, y los botones
+     siempre a la vista aunque la letra sea Enorme (se reparten en dos filas si no caben). */
+  .ask-img{display:block;max-width:100%;max-height:calc(100dvh - 200px - var(--safe-bottom));width:auto;height:auto;
+    margin:0 auto;border-radius:14px;border:1px solid var(--line);object-fit:contain;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+  .ask-preview .ask-btns{flex-wrap:wrap;}
+  .ask-preview .ask-btns .btn{flex:1 1 auto;min-width:96px;}
   /* Roles de cuenta (Patrimonio → Editar) */
   .rchip{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:9px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--muted);}
   .rchip.on{color:var(--on-mint);background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
@@ -1016,7 +1023,7 @@
   .v42-cycle-of{font-size:13px;color:var(--muted);white-space:nowrap;}
   .v42-cycle-pace{font-size:12.5px;color:var(--muted);margin-top:4px;}
   .v42-cycle-pace b{font-weight:700;color:var(--cycle-color);}
-  /* La duración la fija el ajustador de vibración (mcHapticApplyCss): anillo y onda, a la par. */
+  /* La duración la fija la vibración del anillo (mcHapticApplyCss): anillo y onda, a la par. */
   .v42-cycle-draw{animation:v42-cycle-draw var(--v42-cycle-ms,1.1s) .15s cubic-bezier(.65,0,.35,1) both;animation-play-state:var(--v42-play,running);}
   @keyframes v42-cycle-draw{from{stroke-dasharray:0 100;}to{stroke-dasharray:var(--cycle-pct) 100;}}
   @media(prefers-reduced-motion:reduce){
@@ -9170,8 +9177,8 @@ const LANG = {
     v4_set_appear:"Apariencia", v4_set_easy:"Para empezar fácil",
     v4_set_money:"Dinero",
     v4_set_g_look:"Cómo se ve", v4_set_g_money:"Dinero y bancos", v4_set_g_data:"Datos", v4_set_g_account:"Cuenta y privacidad",
-    v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
-   hv_title:"Vibración", hv_usage:"Tipo de vibración", hv_usage_hint:"Si al probar todas las fuerzas se notan igual, prueba otro tipo.", hv_u_touch:"Toque", hv_u_hardware:"Botones", hv_u_media:"Multimedia", hv_u_unknown:"Genérica", hv_motor_amp:"Tu móvil ajusta la fuerza y el ritmo de la vibración.", hv_motor_onoff:"Tu móvil no ajusta la fuerza: se nota como toques más largos o más cortos.", hv_intro:"Busca la vibración que te guste. Se guarda solo en este móvil.", hv_cycle:"Mi ciclo (el anillo de Inicio)", hv_cycle_hint:"Más toques cuanto más lleno esté el anillo.", hv_edge:"Al llegar arriba o abajo", hv_seg:"Al cambiar entre Recibos, Deudas y Metas", hv_tick:"Cursor de la gráfica de Inicio", hv_strength:"Fuerza", hv_length:"Duración", hv_every:"Repite cada (si sigues tirando)", hv_try:"Probar", hv_copy:"Copiar valores", hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar", hv_reset:"Volver a los de serie", hv_need_apk:"Para notar estos valores hay que instalar la última versión de la app.", hv_no_native:"La vibración solo funciona en la app de Android.",
+    v4_set_tour:"Ver el tutorial",
+   hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar",
     v4_moved_cat:"Movido a {cat}", v4_cuota_confirmada:"Confirmada como cuota de {name}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
@@ -9246,7 +9253,7 @@ const LANG = {
     st_aicat:"Sugerir categoría con IA", st_aicat_hint:"Solo en «Otros» · sin el importe",
     th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
     rp_saved:"Informe guardado en Descargas",
-    rp_saved_notif:"📊 Informe del mes guardado en Descargas: {f}. Ábrelo desde tu app de Archivos o la galería.",
+    rp_saved_notif:"{f} · Toca para abrirlo", rp_saved_app:"Informe guardado. Toca el aviso para abrirlo.", rp_need_apk:"Para guardar el informe, actualiza la app.", rp_share:"Compartir",
     ob_haveacc:"Ya tengo cuenta · Iniciar sesión",
     // v4.6 — aportar a metas con banco + teclado propio
     gl_contribute_title:"Aportar a {name}", gl_contribute_from:"¿De qué banco sale?", gl_contribute_save:"Aportar {x}",
@@ -9378,7 +9385,7 @@ Object.assign(LANG.es,{
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
   mr_title:"Así acabó {mes}",
   mr_budget_missing:"Límite de este mes no guardado", mr_budget_none:"Este mes no tenía límite configurado", mr_budget_invalid:"Límite de este mes no disponible",
-  mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
+  mr_share:"📸 Crear imagen del informe", mr_later:"Descartar",
   mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
   hh_title:"Hogar compartido", hh_intro:"Cada uno ve el patrimonio conjunto, sin mezclar datos privados.",
   hh_need_cloud:"Inicia sesión para crear o unirte a un hogar.", hh_need_login:"Inicia sesión para usar el hogar compartido.",
@@ -12149,33 +12156,59 @@ function shareMonthReport(state, tt, showToast, opt){
       if(!b){ if(showToast) showToast(errTxt()); return; }
       // Con el nombre de la app de hoy: «mi-cartera-…» era el de antes de llamarse Aely.
       const fname="aely-informe-"+ymFile+".png";
-      const dl=function(){
-        const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
-        setTimeout(function(){ URL.revokeObjectURL(u); },1000);
-      };
-      // Al descargar, decir DÓNDE queda (toast + notificación con el nombre del fichero): antes
-      // solo «descargado» y el usuario no sabía ni dónde buscarlo (feedback 2026-07-18).
-      const saidSaved=function(){
-        if(showToast) showToast(t("rp_saved"));
-        const nat=natPlugin();
-        if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely", body:tf("rp_saved_notif",{f:fname})}).catch(function(){}); }catch(e){} }
-      };
-      const file=new File([b], fname, {type:"image/png"});
-      if(navigator.canShare && navigator.canShare({files:[file]})){
-        // El share de la WebView puede rechazar en silencio («el informe no hace nada»,
-        // feedback 2026-07-18): si falla, descargamos la imagen igualmente y lo decimos.
-        navigator.share({files:[file], title:"Aely"}).catch(function(err){
-          const aborted=err && (err.name==="AbortError");   // canceló el usuario: no insistir
-          if(aborted) return;
-          dl();
-          saidSaved();
-        });
-      } else {
-        dl();
-        saidSaved();
-      }
+      monthReportPreview(b, fname, mes.charAt(0).toUpperCase()+mes.slice(1), showToast);
     },"image/png");
   }catch(e){ if(showToast) showToast(errTxt(e)); }
+}
+/* Primero se ENSEÑA y luego se guarda (19/11/2026: «no guarda nada; que lo enseñe primero, que
+   lo guarde después y que al tocar el archivo se abra»). Antes se lanzaba directo a compartir o
+   a descargar sin ver qué salía. Compartir solo aparece donde el navegador sabe compartir
+   ficheros de verdad: en la APK no hay Web Share y el botón no haría nada. */
+function monthReportPreview(blob, fname, title, showToast){
+  const url=URL.createObjectURL(blob);
+  const file=typeof File==="function"?new File([blob], fname, {type:"image/png"}):null;
+  const canShare=!!(file&&!natPlugin()&&navigator.canShare&&navigator.canShare({files:[file]}));
+  askConfirm({title:title, img:url, ok:t("fj_save"), cancel:t("au_close"), alt:canShare?t("rp_share"):null})
+    .then(function(v){
+      // La imagen ya se ha desmontado con la hoja: la URL sobra.
+      setTimeout(function(){ URL.revokeObjectURL(url); },0);
+      if(v===true) saveMonthReport(blob, fname, showToast);
+      else if(v==="alt") navigator.share({files:[file], title:"Aely"}).catch(function(err){
+        // Cancelar el menú de compartir no es un error; que falle de verdad, sí: se guarda.
+        if(err&&err.name==="AbortError") return;
+        saveMonthReport(blob, fname, showToast);
+      });
+    });
+}
+/* Guardar DE VERDAD. Hasta ahora era un `<a download>` con URL `blob:`, que en la WebView de la
+   APK no hace nada, y aun así se decía «guardado en Descargas» con notificación incluida: en la
+   carpeta no había nada. Desde la APK 65 los bytes cruzan al nativo (saveToDownloads → MediaStore)
+   y su notificación abre el fichero al tocarla. Una APK anterior no tiene cómo: se dice, no se
+   finge. En el navegador, la descarga de siempre, que ahí sí funciona. */
+function saveMonthReport(blob, fname, showToast){
+  const say=function(m){ if(showToast) showToast(m); };
+  const nat=natPlugin();
+  if(nat&&typeof nat.saveToDownloads==="function"){
+    const rd=new FileReader();
+    rd.onerror=function(){ say(errTxt()); };
+    rd.onload=function(){
+      // Sin permiso de notificaciones (Android 13+) se guarda igual; solo falta el aviso.
+      Promise.resolve(typeof nat.ensureNotifPerm==="function"?nat.ensureNotifPerm():null).catch(function(){})
+        .then(function(){
+          return nat.saveToDownloads({name:fname, mime:"image/png", data:String(rd.result||""),
+            title:t("rp_saved"), body:t("rp_saved_notif")});
+        })
+        .then(function(r){ say(r&&r.inDownloads===false?t("rp_saved_app"):t("rp_saved")); },
+          function(e){ say(errTxt(e)); });
+    };
+    rd.readAsDataURL(blob);
+    return;
+  }
+  if(nat){ say(t("rp_need_apk")); return; }
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download=fname; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(u); },1000);
+  say(t("rp_saved"));
 }
 
 /* ============================================================
@@ -12491,25 +12524,25 @@ function mcCurvaCasa(p){
   return 3*t*(1-t)*(1-t)*.61+3*t*t*(1-t)+t*t*t;
 }
 
-/* UX16 ronda 4: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada»,
-   «dura un montón»). Ahora las elige él con el ajustador de Ajustes (solo en beta) y se quedan
-   en ESTE móvil: es una preferencia del motor de su teléfono, no un dato que viaje a la nube.
-   Por defecto, los de la ronda 3 salvo borde y gráfica, que pedían «un pelín más». */
-const MC_HAPTIC_KEY="_mcHapticTune";
-/* Ronda 9 (beta 4.26.155): «el anillo no vibra» y «la fuerza del borde no cambia nada». Sí se
-   llamaba al motor, pero con toques de 10–12 ms a un tercio de fuerza: en el motor de su
-   OnePlus 13 eso no llega a arrancar, y entre fuerza 1 y 255 en 12 ms no hay diferencia que se
-   note. Por eso suben ciclo y borde, y el cambio de segmento tiene su propio par (seg*), un
-   poco más suave que el efecto de serie que le gustaba. La gráfica (tick*) se queda como está. */
-const MC_HAPTIC_DEF={fillAmp:140,fillMs:1100,edgeAmp:120,edgeMs:20,edgeEvery:150,tickAmp:70,tickMs:10,segAmp:150,segMs:24};
-const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40],segAmp:[1,255],segMs:[4,60]};
-/* Lo guardado antes de la ronda 9 se eligió con toques que no se notaban: sus fuerzas y
-   duraciones de ciclo y borde no valen para la escala nueva y se vuelven a los de serie. La
-   gráfica, el intervalo, la duración del anillo y el tipo se conservan: esos sí se sentían. */
-const MC_HAPTIC_VER=2, MC_HAPTIC_STALE=["fillAmp","edgeAmp","edgeMs"];
+/* UX16: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada», «dura un
+   montón»), así que en la ronda 4 se le dio un ajustador en Ajustes (solo beta) y eligió él. El
+   19/11/2026 pidió quitarlo: «la intensidad que elegí, que sea la de todos». Sus números NO están
+   en la nube —el ajustador guardaba solo en su móvil, en `_mcHapticTune`— y se copiaron aquí a mano
+   de su «Copiar valores» del 19/11: «ciclo 40/601ms · borde 70/20ms cada 131ms · segmento 70/40ms ·
+   gráfica 7/33ms», uso touch. */
+const MC_HAPTIC_DEF={fillAmp:40,fillMs:601,edgeAmp:70,edgeMs:20,edgeEvery:131,tickAmp:7,tickMs:33,segAmp:70,segMs:40};
 /* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
-   OplusPrebakedSegment de 45 ms). El ajustador deja elegir el uso hasta ver cuál la respeta. */
+   OplusPrebakedSegment de 45 ms). Los toques que se sienten van siempre con «hardware»
+   (MC_FELT_USAGE); este es el de las demás llamadas al motor. */
+const MC_HAPTIC_DEF_USAGE="touch";
+const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40],segAmp:[1,255],segMs:[4,60]};
 const MC_HAPTIC_USAGES=["touch","hardware","media","unknown"];
+/* Lo que eligió con el ajustador se sigue respetando en SU móvil aunque el ajustador ya no
+   exista: así, aunque los de serie no se hayan rellenado aún, él no pierde lo suyo. Lo guardado
+   antes de la ronda 9 se eligió con toques que no se notaban y sus fuerzas y duraciones de ciclo
+   y borde se vuelven a las de serie (MC_HAPTIC_STALE). */
+const MC_HAPTIC_KEY="_mcHapticTune";
+const MC_HAPTIC_VER=2, MC_HAPTIC_STALE=["fillAmp","edgeAmp","edgeMs"];
 function mcHapticClamp(raw){
   const out={};
   if(raw&&raw.v!==MC_HAPTIC_VER){ raw=Object.assign({},raw); MC_HAPTIC_STALE.forEach(function(k){ delete raw[k]; }); }
@@ -12517,7 +12550,7 @@ function mcHapticClamp(raw){
     const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
     out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
   });
-  out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_USAGES[0];
+  out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_DEF_USAGE;
   out.v=MC_HAPTIC_VER;
   return out;
 }
@@ -12525,27 +12558,11 @@ function mcHapticTune(){
   try{ return mcHapticClamp(JSON.parse(localStorage.getItem(MC_HAPTIC_KEY)||"null")); }catch(e){ return mcHapticClamp(null); }
 }
 // La duración del relleno manda también sobre la animación del anillo: así la vibración dura
-// exactamente lo que se ve rellenarse, la mueva él a donde la mueva.
+// exactamente lo que se ve rellenarse.
 function mcHapticApplyCss(tune){
   try{ document.documentElement.style.setProperty("--v42-cycle-ms",(tune||mcHapticTune()).fillMs+"ms"); }catch(e){}
 }
-function mcHapticTuneSave(patch){
-  const next=mcHapticClamp(Object.assign({},mcHapticTune(),patch||{}));
-  try{ localStorage.setItem(MC_HAPTIC_KEY,JSON.stringify(next)); }catch(e){}
-  mcHapticApplyCss(next);
-  return next;
-}
-function mcHapticTuneReset(){
-  try{ localStorage.removeItem(MC_HAPTIC_KEY); }catch(e){}
-  mcHapticApplyCss(MC_HAPTIC_DEF);
-  return mcHapticClamp(null);
-}
 mcHapticApplyCss();
-// El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
-function mcHapticTuneText(tune){
-  const v=tune||mcHapticTune();
-  return "Vibración ("+v.usage+") · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · segmento "+v.segAmp+"/"+v.segMs+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
-}
 // Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
 const MC_CYCLE_EASE=[.65,0,.35,1];
 function mcBezierY(x,p){
@@ -12623,13 +12640,13 @@ function mcHaptic(method, args){
   try{
     const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
     if(!plugin||typeof plugin[method]!=="function") return;
-    // Devuelve lo que contesta Android (null si falla): el ajustador lo usa para saber si la APK
-    // instalada ya entiende fuerza y duración.
+    // Devuelve lo que contesta Android (null si falla; `shaped` dice si la APK ya entiende fuerza
+    // y duración).
     return Promise.resolve(plugin[method](Object.assign({usage:mcHapticTune().usage},args||{}))).catch(function(){ return null; });
   }catch(e){}
 }
-// Un toque del borde con los valores que haya elegido él. La APK 58 ignora fuerza y duración y
-// sigue dando su toque fijo; desde la 59 manda lo del ajustador.
+// Un toque del borde con los valores de mcHapticTune. La APK 58 ignora fuerza y duración y sigue
+// dando su toque fijo; desde la 59 manda lo que pide la web.
 function mcEdgeHaptic(){
   const v=mcHapticTune();
   /* Ronda 8: «da igual la fuerza que pongas, solo vibra suave». La fuerza sí llegaba, pero con
@@ -12644,8 +12661,8 @@ function mcEdgeHaptic(){
 const MC_SEG_HUSH_MS=450;
 // Píxeles de vuelta atrás que convierten el siguiente empuje en otro gesto: menos es temblor.
 const MC_EDGE_REARM=12;
-/* Cambiar de segmento (Recibos/Deudas/Metas y gasto/ingreso): UN toque con su propio par del
-   ajustador. Hasta la ronda 8 usaba el de la gráfica con uso «toque», que OxygenOS cambia por su
+/* Cambiar de segmento (Recibos/Deudas/Metas y gasto/ingreso): UN toque con su propio par
+   (seg*). Hasta la ronda 8 usaba el de la gráfica con uso «toque», que OxygenOS cambia por su
    efecto de serie: le gustaba, pero ningún deslizador lo movía («me gustaría un poquito más
    suave»). Con uso hardware la fuerza y la duración son suyas. */
 function mcTickHaptic(){
@@ -15456,8 +15473,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
         closedCard.saved>=0 ? tf("mr_saved",{x:eur0(closedCard.saved)}) : tf("mr_over",{x:eur0(Math.abs(closedCard.saved))})),
       React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:12},onClick:function(){
+        // Abre la vista previa; el aviso llega al guardar (antes «listo para compartir» sin ver nada).
         shareMonthReport(state, totals, showToast, {startMs:closedCard.startMs, endMs:closedCard.endMs, ym:closedCard.ym});
-        if(showToast) showToast(t("mr_shared"));
       }}, t("mr_share"))
     ),
 
@@ -19389,10 +19406,15 @@ function AskHost(){
   return React.createElement(React.Fragment,null,
     React.createElement(HelpHost,null),
     ReactDOM.createPortal(
-    React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
-      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true","aria-labelledby":"ask-dialog-title",tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
-        React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
+    React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":"")+(cur.img?" ask-preview":""),onClick:cancel},
+      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true",
+        "aria-labelledby":cur.img?null:"ask-dialog-title","aria-label":cur.img?cur.title:null,tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
+        // Con vista previa el título solo repetía el de la imagen y le quitaba altura (Enorme a
+        // 360, filtro de diseño 19/11): queda para el lector de pantalla, no se pinta.
+        !cur.img && React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
+        // `img`: vista previa de lo que se va a guardar (informe del mes, 19/11/2026).
+        cur.img && React.createElement("img",{className:"ask-img",src:cur.img,alt:cur.title||"",draggable:false}),
         // `live(valor)`: una línea que depende de lo tecleado (p. ej. cuotas que quita amortizar).
         // null = no se pinta: el diálogo no enseña nada que aún no se sabe. Su hueco sí se guarda: si
         // apareciera con la primera cifra, el campo bajaba un renglón bajo el dedo (filtro de diseño 242).
@@ -19417,6 +19439,8 @@ function AskHost(){
           })),
         React.createElement("div",{className:"ask-btns"},
           React.createElement("button",{className:"btn btn-ghost",onClick:cancel}, cur.cancel||t("fj_cancel")),
+          // `alt`: una segunda acción que no es cancelar (Compartir junto a Guardar). Resuelve "alt".
+          cur.alt && React.createElement("button",{className:"btn btn-ghost",onClick:function(){ done("alt"); }}, cur.alt),
           // Con opciones, el botón de aceptar sobra: elegir una YA es aceptar.
           (cur.options||[]).length===0 && React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
             onClick:ok}, cur.ok||t("ask_ok")))
@@ -34376,7 +34400,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9d667b61a140e17e895f4c45314cbc9ab82d861715621c6b61cbb32789da2af9";
+var _rnSha="38336a3e6a16570be3fa35ebbca73c5cbe439e224a5a843d013c2a26b0e87cea";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -34567,86 +34591,6 @@ function CurConverterPanel({state, onClose, refreshFx}){
   ));
 }
 
-/* AJUSTADOR DE VIBRACIÓN (UX16 ronda 4, solo canal beta). Tras cuatro rondas rechazadas
-   adivinando fuerzas, él mueve los deslizadores en SU móvil, prueba cada grupo y nos copia los
-   números. Cada cambio se guarda al momento (mcHapticTuneSave) y la app entera lo usa ya. */
-function HapticTuner({showToast}){
-  const [v,setV]=useState(function(){ return mcHapticTune(); });
-  const timers=useRef([]);
-  useEffect(function(){ return function(){ timers.current.forEach(clearTimeout); }; },[]);
-  // Los deslizadores viven dentro del cajón de Ajustes: sin esto arrastrar uno lo cerraba.
-  const stop=function(e){ e.stopPropagation(); };
-  const put=function(k,val){ const p={}; p[k]=val; setV(mcHapticTuneSave(p)); };
-  // La APK 58 no entiende fuerza ni duración: mejor decirlo que dejarle probando a ciegas.
-  const said=function(p){
-    if(!p){ if(!mcReduced()) showToast(t(typeof _mcNative!=="undefined"&&_mcNative?"hv_need_apk":"hv_no_native")); return; }
-    // Ronda 5: además se dice qué motor tiene su móvil, para no volver a adivinar si la fuerza
-    // llega como amplitud o solo como tiempo encendido.
-    p.then(function(r){
-      if(!r||!r.shaped){ showToast(t("hv_need_apk")); return; }
-      showToast(t(r.amplitudeControl?"hv_motor_amp":"hv_motor_onoff"));
-    });
-  };
-  const later=function(ms,fn){ timers.current.push(setTimeout(fn,ms)); };
-  // Mi ciclo: la misma ristra que al entrar en Inicio, con el anillo lleno.
-  const tryFill=function(){ said(mcPlayCycle(v.fillMs,1)); };
-  // Borde: un choque, igual que en la app (una vez por arrastre) y por la misma función.
-  const tryEdge=function(){ said(mcEdgeHaptic()); };
-  // Segmento: un toque, el mismo que al pasar de Recibos a Deudas (y por la misma función).
-  const trySeg=function(){ mcTickHaptic.at=-Infinity; said(mcTickHaptic()); };
-  // Gráfica: seis puntos seguidos, como pasar el dedo despacio por la línea.
-  const tryTick=function(){
-    said(mcFeltHaptic(v.tickAmp,v.tickMs));
-    for(let i=1;i<6;i++) later(i*70,function(){ mcFeltHaptic(v.tickAmp,v.tickMs); });
-  };
-  const copy=function(){
-    const txt=mcHapticTuneText(v);
-    const viejo=function(){
-      try{
-        const ta=document.createElement("textarea"); ta.value=txt; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0";
-        document.body.appendChild(ta); ta.select(); const ok=document.execCommand("copy"); ta.remove();
-        showToast(ok?t("hv_copied"):t("hv_copy_fail"));
-      }catch(e){ showToast(t("hv_copy_fail")); }
-    };
-    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ showToast(t("hv_copied")); },viejo);
-    else viejo();
-  };
-  const slider=function(k,label,unit){
-    const r=MC_HAPTIC_RANGE[k];
-    return React.createElement("label",{key:k,style:{display:"block",margin:"8px 0 2px"}},
-      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:12.5,color:"var(--muted)"}},
-        React.createElement("span",null,label),
-        React.createElement("span",{className:"num",style:{color:"var(--text)",fontWeight:700}},v[k]+(unit||""))),
-      React.createElement("input",{type:"range",min:r[0],max:r[1],step:1,value:v[k],"data-haptic":k,"data-noswipe":"1","aria-label":label,
-        onChange:function(e){ put(k,parseInt(e.target.value,10)); },onTouchStart:stop,onTouchMove:stop,
-        style:{width:"100%",accentColor:"var(--mint)"}}));
-  };
-  const group=function(id,title,hint,kids,onTry){
-    return React.createElement("div",{key:id,className:"hv-group","data-group":id,style:{padding:"10px 14px",borderTop:"1px solid var(--line)"}},
-      React.createElement("div",{style:{fontWeight:800,fontSize:14}},title),
-      hint && React.createElement("div",{className:"hint",style:{marginTop:2}},hint),
-      kids,
-      React.createElement("button",{type:"button",className:"chip",style:{marginTop:8},onClick:onTry},"📳 "+t("hv_try")));
-  };
-  return React.createElement("div",{className:"hv-tuner"},
-    React.createElement("div",{className:"hint",style:{padding:"0 14px 8px"}},t("hv_intro")),
-    group("fill",t("hv_cycle"),t("hv_cycle_hint"),[slider("fillAmp",t("hv_strength")),slider("fillMs",t("hv_length")," ms")],tryFill),
-    group("edge",t("hv_edge"),null,[slider("edgeAmp",t("hv_strength")),slider("edgeMs",t("hv_length")," ms"),slider("edgeEvery",t("hv_every")," ms")],tryEdge),
-    group("seg",t("hv_seg"),null,[slider("segAmp",t("hv_strength")),slider("segMs",t("hv_length")," ms")],trySeg),
-    group("tick",t("hv_tick"),null,[slider("tickAmp",t("hv_strength")),slider("tickMs",t("hv_length")," ms")],tryTick),
-    React.createElement("div",{className:"hv-usage",style:{padding:"10px 14px",borderTop:"1px solid var(--line)"}},
-      React.createElement("div",{style:{fontWeight:800,fontSize:14}},t("hv_usage")),
-      React.createElement("div",{className:"hint",style:{marginTop:2}},t("hv_usage_hint")),
-      React.createElement("div",{className:"row",style:{flexWrap:"wrap",gap:6,marginTop:8}},
-        MC_HAPTIC_USAGES.map(function(u){
-          return React.createElement("button",{type:"button",key:u,className:"chip"+(v.usage===u?" active":""),"aria-pressed":v.usage===u,"data-usage":u,
-            onClick:function(){ put("usage",u); }},t("hv_u_"+u));
-        }))),
-    React.createElement("div",{className:"row",style:{padding:"10px 14px 12px",gap:8}},
-      React.createElement("button",{type:"button",className:"btn btn-primary",onClick:copy},t("hv_copy")),
-      React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setV(mcHapticTuneReset()); }},t("hv_reset"))));
-}
-
 /* Iconos de las filas de Ajustes: trazo de 24 px como la barra de abajo y los recibos (auditoría
    237, P2-7). Los emojis de colores se pintaban distinto en cada móvil y eran lo único con color
    de toda la lista. Van por la clave de la fila; una fila sin entrada aquí (las de pruebas, los
@@ -34696,8 +34640,7 @@ const SET_ICO=(function(){
     biolock:[["path",{d:"M7 11a5 5 0 0 1 10 0v2c0 3-1 5.5-2.5 7.5"}],["path",{d:"M12 11v3c0 2.5-.8 4.7-2 6.5"}],["path",{d:"M4.5 15.5c.4-1.4.5-2.9.5-4.5a7 7 0 0 1 12.5-4.3"}]],
     priv:[["path",{d:"M12 3l8 3v6c0 4.8-3.4 7.9-8 9-4.6-1.1-8-4.2-8-9V6z"}]],
     signout:[["path",{d:"M14 4h5v16h-5"}],["path",{d:"M15 12H4"}],["path",{d:"M8 8l-4 4 4 4"}]],
-    delacc:[["path",{d:"M4 7h16"}],["path",{d:"M9 7V4h6v3"}],["path",{d:"M6 7l1 13h10l1-13"}]],
-    vibra:[["rect",{x:8,y:3,width:8,height:18,rx:2}],["path",{d:"M4 9v6M20 9v6"}]]
+    delacc:[["path",{d:"M4 7h16"}],["path",{d:"M9 7V4h6v3"}],["path",{d:"M6 7l1 13h10l1-13"}]]
   };
 })();
 function setIco(k, fallback){
@@ -34784,16 +34727,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
   const [events,setEvents]=useState(null);
   const [actOpen,setActOpen]=useState(false);   // pantalla «Actividad» (antes acordeón: crecía sin fin)
   const [betaOpen,setBetaOpen]=useState(false);  // pantalla «Revisar la beta» (solo en canal beta)
-  // La APK .debug de pruebas nativas enseña el ajustador sin pasar al canal beta (que bajaría otra web).
-  const [hapticDebug,setHapticDebug]=useState(false);
-  useEffect(function(){
-    let vivo=true;
-    try{
-      const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.AelyHaptics;
-      if(plugin&&typeof plugin.info==="function") Promise.resolve(plugin.info()).then(function(r){ if(vivo&&r&&r.debug) setHapticDebug(true); },function(){});
-    }catch(e){}
-    return function(){ vivo=false; };
-  },[]);
   /* El arranque pide reabrir el panel cuando salió de la app para probar un punto y Android le
      mató la WebView (ver BETA_ABIERTO_KEY). Se hace por evento y no por prop porque Ajustes se
      monta al abrir el cajón, así que quien arranca no puede pasarle nada todavía. */
@@ -35328,11 +35261,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
           });
       })
     )),
-    seccion(t("v4_set_adv"),
-    // Solo en beta (o en la APK .debug de pruebas): es el banco donde él busca su vibración.
-    ((typeof mcChannel==="function" && mcChannel()==="beta")||hapticDebug) &&
-      grp("vibra","📳",t("hv_title"),"vibracion vibration vibracio haptic",null,React.createElement(HapticTuner,{showToast:showToast}))),
-
     // Admin al FINAL (fuera del flujo diario). Sentry de prueba quitado: no aporta en móvil.
     // Sin traducir a propósito: es la consola privada del dueño, como «Actividad».
     isAdmin && React.createElement(React.Fragment,null,

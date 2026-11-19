@@ -82,4 +82,37 @@ class Notif {
             // best-effort: una noti que falla nunca debe tumbar el listener ni el plugin
         }
     }
+
+    /** Intent que abre un fichero guardado con la app que el sistema tenga para su tipo. */
+    static Intent viewIntent(android.net.Uri uri, String mime) {
+        Intent view = new Intent(Intent.ACTION_VIEW);
+        view.setDataAndType(uri, mime);
+        view.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        return view;
+    }
+
+    /** Aviso de «fichero guardado»: al tocarlo se ABRE el fichero, no la app (19/11/2026: «al
+     *  tocar el archivo descargado, abrirlo directamente»). Sin `resolveActivity` delante a
+     *  propósito: con targetSdk 30+ la visibilidad de paquetes la haría devolver null aunque haya
+     *  galería, y el aviso nunca abriría nada. */
+    static void showFile(Context ctx, String title, String body, int id, android.net.Uri uri, String mime) {
+        try {
+            ensureChannel(ctx);
+            PendingIntent pi = PendingIntent.getActivity(ctx, id, viewIntent(uri, mime),
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            Notification.Builder b = Build.VERSION.SDK_INT >= 26
+                    ? new Notification.Builder(ctx, CHANNEL)
+                    : new Notification.Builder(ctx);
+            b.setContentTitle(title)
+                    .setContentText(body)
+                    .setStyle(new Notification.BigTextStyle().bigText(body))
+                    .setSmallIcon(R.drawable.ic_stat_micartera)
+                    .setAutoCancel(true)
+                    .setContentIntent(pi);
+            NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) nm.notify(id, b.build());
+        } catch (Exception ignored) {
+            // best-effort, como show(): el fichero ya está guardado aunque el aviso falle
+        }
+    }
 }

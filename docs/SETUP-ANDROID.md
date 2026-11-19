@@ -370,3 +370,14 @@ Integrado en la beta 4.26.141 con `versionCode` 56 / `versionName` 4.26.141 (la 
 **Ronda 6 (misma rama):** el `dumpsys vibrator_manager` de su OnePlus 13 enseña que con `usage: TOUCH` OxygenOS sustituye la onda por `OplusPrebakedSegment` (45 ms, fuerza 800/2400), y que `HARDWARE_FEEDBACK` sí la respeta. El plugin acepta `usage` (`touch` por defecto, `hardware`, `media`, `unknown`) con `VibrationAttributes` en API 33+ y `vibrate(effect)` sin atributos en API 26–32. El ajustador lo deja elegir con chips y también aparece en la APK `.debug` (`AelyHaptics.info().debug`) sin pasar al canal beta.
 
 **Ronda 7 (rama `claude/vibra-r3`, solo web, sirve la APK 60):** el borde da UNA vibración por arrastre (otra solo tras soltar o volver atrás ≥ 12 px y empujar); el anillo de Mi ciclo son hasta cinco toques de 8 ms con la fuerza del ajustador (40 por defecto), repartidos por el trazo y con el uso elegido; cambiar de segmento (Plan y gasto/ingreso) da el tick de la gráfica (`mcTickHaptic`).
+
+**Sin ajustador (19/11/2026, solo web):** el ajustador de Ajustes se quitó; la fuerza y la duración de serie viven en `MC_HAPTIC_DEF` / `MC_HAPTIC_DEF_USAGE` (`02-ui-shared.js`) y lo que ya hubiera guardado un móvil en `_mcHapticTune` (localStorage) se sigue respetando. El nativo no guarda nada: recibe fuerza y duración en cada llamada, así que el cambio viaja por OTA y no pide APK.
+
+## Guardar ficheros en Descargas (informe del mes, necesita APK 65)
+
+Hasta la APK 64 la web guardaba el informe con `<a download>` sobre una URL `blob:`. En la WebView de Capacitor eso no hace nada (no hay `DownloadListener`, y `DownloadManager` no lee `blob:`), y aun así se avisaba de «guardado en Descargas». Desde la APK 65, `MiCartera.saveToDownloads({name, mime, data, title, body})` recibe el fichero en base64 y `FileSaver` lo escribe:
+
+- **Android 10+**: `MediaStore.Downloads` con `RELATIVE_PATH = Download` e `IS_PENDING` mientras escribe. Sin permisos de almacenamiento. Si el nombre ya existe, MediaStore lo renombra y se devuelve el nombre real.
+- **Android 6–9**: en la carpeta de la app (`Android/data/…/files/Download`) vía `FileProvider` (`file_paths.xml`), sin `WRITE_EXTERNAL_STORAGE`; la web lo sabe por `inDownloads:false` y no promete «Descargas».
+
+Después `Notif.showFile` publica un aviso cuyo `PendingIntent` es un `ACTION_VIEW` sobre la URI con `FLAG_GRANT_READ_URI_PERMISSION`: tocarlo abre el PNG en la app de imágenes. La web (vista previa → Guardar) viaja por OTA; con una APK anterior detecta que falta `saveToDownloads` y dice «actualiza la app» en vez de fingir. Prueba de humo en el móvil: Ajustes → Informe del mes → Guardar → el aviso abre la imagen y `Descargas/aely-informe-AAAA-MM.png` existe.

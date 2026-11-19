@@ -104,7 +104,7 @@ test("cada entrada de Ajustes abre lo suyo", async ({ page }) => {
   await abrePantalla(page, await aLaVista(page, "st_imports", await tx(page, "bp_hist_btn")));
   await abrePantalla(page, await aLaVista(page, "backup", await tx(page, "bk_auto_title")));
   const informe = (await tx(page, "rp_btn")).replace(/^[^ ]+ /, "");
-  await expect(await aLaVista(page, "v4_set_adv", informe)).toBeVisible();
+  await expect(filaDe(page, informe)).toBeVisible();
   await abrePantalla(page, await aLaVista(page, "st_news", await tx(page, "st_news_row")));
   await abrePantalla(page, await aLaVista(page, "st_news", await tx(page, "st_feedback")));
 

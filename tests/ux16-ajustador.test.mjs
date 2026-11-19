@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {test} from 'node:test';
-// UX16 ronda 4: el ajustador de vibración guarda en este móvil y TODA la vibración lo obedece.
+// UX16: TODA la vibración obedece a mcHapticTune (lo guardado en este móvil o los de serie). El
+// ajustador que lo guardaba se quitó el 19/11/2026; lo que ya guardó él se sigue leyendo.
 const source=fs.readFileSync(new URL('../src/modules/02-ui-shared.js',import.meta.url),'utf8');
 const block=source.slice(source.indexOf('function mcReduced(){'),source.indexOf('/* Count-up compartido'));
 function setup(stored){
@@ -15,7 +16,7 @@ function setup(stored){
     const timers=[];
   const context={document,window,localStorage,performance:{now:()=>0},Promise,WeakSet,WeakMap,Number,Math,JSON,Object,getComputedStyle:()=>({}),console,
     setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length;},clearTimeout:()=>{}};
-  vm.createContext(context);vm.runInContext(block,context);
+  vm.createContext(context);vm.runInContext(block+'\n;globalThis.__DEF=MC_HAPTIC_DEF;',context);
   // Dispara los temporizadores pendientes en orden de reloj (la ristra del anillo).
   const flush=()=>{timers.sort((a,b)=>a.ms-b.ms).splice(0).forEach(t=>t.fn());};
   return {context,calls,store,css,timers,flush};
@@ -26,28 +27,28 @@ function ringEvent(pct,duration=1100){
     closest:()=>({classList:{contains:()=>true}}),getAnimations:()=>[animation]};
   return {target:el,animationName:'v42-cycle-draw',elapsedTime:0};
 }
-test('valores por defecto (ronda 9): ciclo y borde que se notan, segmento propio y grafica intacta',()=>{
-  const x=setup();const v=x.context.mcHapticTune();
-  assert.equal(v.fillAmp,140);assert.equal(v.fillMs,1100);assert.equal(v.edgeEvery,150);
-  assert.ok(v.edgeAmp>=100&&v.edgeMs>=16,'borde: los 70/12 ms de la ronda 8 no se sentian');
-  assert.equal(v.tickAmp,70);assert.equal(v.tickMs,10);
-  assert.ok(v.segAmp>0&&v.segAmp<255&&v.segMs<45,'segmento: un poco mas suave que el efecto de serie de 45 ms');
-  assert.equal(x.css['--v42-cycle-ms'],'1100ms','el anillo arranca con la duracion de siempre');
+test('sin nada guardado mandan los de serie (MC_HAPTIC_DEF), dentro de rango',()=>{
+  const x=setup();const v=x.context.mcHapticTune(),def=x.context.__DEF;
+  for(const k of Object.keys(def))assert.equal(v[k],def[k],k);
+  assert.equal(x.css['--v42-cycle-ms'],def.fillMs+'ms','el anillo arranca con la duracion de serie');
 });
-test('guardar: persiste, se recorta al rango y otro arranque lo lee',()=>{
-  const x=setup();const v=x.context.mcHapticTuneSave({edgeAmp:999,edgeMs:2,fillMs:1500,tickAmp:120.4,ajeno:5});
+test('lo guardado en este movil se recorta al rango y manda sobre los de serie',()=>{
+  const y=setup(JSON.stringify({v:2,edgeAmp:999,edgeMs:2,fillMs:1500,tickAmp:120.4,ajeno:5}));
+  const v=y.context.mcHapticTune();
   assert.equal(v.edgeAmp,255);assert.equal(v.edgeMs,4);assert.equal(v.fillMs,1500);assert.equal(v.tickAmp,120);
-  assert.equal(JSON.parse(x.store.get('_mcHapticTune')).ajeno,undefined,'solo se guardan las claves conocidas');
-  assert.equal(x.css['--v42-cycle-ms'],'1500ms','la animacion del anillo sigue a la duracion');
-  const y=setup(x.store.get('_mcHapticTune'));
-  assert.equal(y.context.mcHapticTune().edgeAmp,255);assert.equal(y.css['--v42-cycle-ms'],'1500ms');
-  assert.deepEqual({...y.context.mcHapticTuneReset()},{...setup().context.mcHapticTune()},'volver a los de serie');
-  assert.equal(y.css['--v42-cycle-ms'],'1100ms');
-  assert.equal(y.store.has('_mcHapticTune'),false);
+  assert.equal(v.ajeno,undefined,'solo las claves conocidas');
+  assert.equal(y.css['--v42-cycle-ms'],'1500ms','la animacion del anillo sigue a la duracion');
+  const d=setup();assert.equal(d.css['--v42-cycle-ms'],d.context.__DEF.fillMs+'ms');
+});
+test('sin ajustador: ya no hay forma de guardar ni de copiar valores desde la app',()=>{
+  const x=setup();
+  for(const fn of ['mcHapticTuneSave','mcHapticTuneReset','mcHapticTuneText'])assert.equal(typeof x.context[fn],'undefined',fn);
+  const ajustes=fs.readFileSync(new URL('../src/modules/10-app-components.js',import.meta.url),'utf8');
+  assert.doesNotMatch(ajustes,/HapticTuner|hv-tuner|hv_title/,'Ajustes no pinta el ajustador');
 });
 test('almacen roto o con basura vuelve a los de serie sin romper',()=>{
-  const x=setup('{no es json');assert.equal(x.context.mcHapticTune().fillAmp,140);
-  const y=setup(JSON.stringify({v:2,fillAmp:'fuerte',edgeMs:null}));assert.equal(y.context.mcHapticTune().fillAmp,140);
+  const x=setup('{no es json');assert.equal(x.context.mcHapticTune().fillAmp,x.context.__DEF.fillAmp);
+  const y=setup(JSON.stringify({v:2,fillAmp:'fuerte',edgeMs:null}));assert.equal(y.context.mcHapticTune().fillAmp,y.context.__DEF.fillAmp);
 });
 test('borde (ronda 8): el choque obedece fuerza y duracion del ajustador, con uso hardware',()=>{
   for(const [amp,ms,felt] of [[1,8,4],[140,20,21],[255,60,90]]){
@@ -86,8 +87,8 @@ test('grafica (ronda 10): la fuerza del deslizador se nota, uso hardware',()=>{
   assert.equal(b.usage,'hardware');assert.ok(b.durationMs>=2*a.durationMs,a.durationMs+' frente a '+b.durationMs);
 });
 test('guardado de antes de la ronda 9: fuerzas de ciclo y borde a los de serie; grafica y tipo se conservan',()=>{
-  const v=setup('{"fillAmp":40,"edgeAmp":70,"edgeMs":12,"tickAmp":90,"tickMs":8,"fillMs":1500,"usage":"media"}').context.mcHapticTune();
-  assert.equal(v.fillAmp,140);assert.equal(v.edgeAmp,120);assert.equal(v.edgeMs,20);
+  const x=setup('{"fillAmp":40,"edgeAmp":70,"edgeMs":12,"tickAmp":90,"tickMs":8,"fillMs":1500,"usage":"media"}'),v=x.context.mcHapticTune(),def=x.context.__DEF;
+  assert.equal(v.fillAmp,def.fillAmp);assert.equal(v.edgeAmp,def.edgeAmp);assert.equal(v.edgeMs,def.edgeMs);
   assert.equal(v.tickAmp,90);assert.equal(v.tickMs,8);assert.equal(v.fillMs,1500);assert.equal(v.usage,'media');assert.equal(v.v,2);
 });
 test('Mi ciclo (ronda 8): toques sueltos, proporcionales al ciclo, con fuerza y duracion del ajustador',()=>{
@@ -106,12 +107,6 @@ test('Mi ciclo (ronda 8): toques sueltos, proporcionales al ciclo, con fuerza y 
   assert.ok(Math.max(...at(slow))>1800&&Math.max(...at(fast))<700,'la duracion reparte los toques por el trazo');
   const t=at(slow).sort((a,b)=>a-b);assert.ok(t.every((v,i)=>i===0||v-t[i-1]>=50),'nunca dos toques pegados');
   const empty=setup();empty.context.mcInicioFillHaptic(ringEvent(0));empty.flush();assert.equal(empty.calls.length,0,'anillo vacio no vibra');
-});
-test('texto para copiar: corto y con los nueve numeros',()=>{
-  const x=setup(JSON.stringify({v:2,fillAmp:40,fillMs:900,edgeAmp:90,edgeMs:15,edgeEvery:120,tickAmp:80,tickMs:9,segAmp:133,segMs:27}));
-  const txt=x.context.mcHapticTuneText();
-  for(const n of [40,900,90,15,120,80,9,133,27])assert.match(txt,new RegExp('(^|[^0-9])'+n+'([^0-9]|$)'));
-  assert.ok(txt.length<160);
 });
 test('grafica de Inicio: el tick usa los valores del ajustador',()=>{
   const dash=fs.readFileSync(new URL('../src/modules/03-tab-dash.js',import.meta.url),'utf8');
@@ -150,12 +145,12 @@ test('segmentos (ronda 9): UN toque por cambio, con su propio par del ajustador 
   clock.t+=300;x.context.mcTickHaptic();assert.equal(x.calls.length,2,'el siguiente cambio, otro');
   assert.match(plan,/if\(seg!==s\.id\) mcTickHaptic\(\); setSeg\(s\.id\)/,'Plan: tick al cambiar de segmento');
 });
-test('uso de la vibracion (ronda 6): se guarda, viaja en cada llamada y la basura vuelve a toque',()=>{
-  const x=setup();assert.equal(x.context.mcHapticTune().usage,'touch','por defecto, el de siempre');
-  x.context.mcHapticTuneSave({usage:'hardware'});
-  assert.equal(setup(x.store.get('_mcHapticTune')).context.mcHapticTune().usage,'hardware');
+test('uso de la vibracion (ronda 6): lo guardado viaja en cada llamada y la basura vuelve al de serie',()=>{
+  const def=setup().context.mcHapticTune().usage;
+  assert.ok(['touch','hardware','media','unknown'].includes(def),'por defecto, uno valido: '+def);
+  const x=setup(JSON.stringify({v:2,usage:'hardware'}));
+  assert.equal(x.context.mcHapticTune().usage,'hardware');
   x.context.mcEdgeHaptic();assert.equal(x.calls.at(-1).usage,'hardware','el borde lo lleva');
   x.context.mcHaptic('edge',{amplitude:9,durationMs:9,usage:'media'});assert.equal(x.calls.at(-1).usage,'media','quien llama puede forzarlo');
-  assert.equal(setup(JSON.stringify({v:2,usage:'vibracion-total'})).context.mcHapticTune().usage,'touch');
-  assert.match(x.context.mcHapticTuneText(),/hardware/,'el texto copiado dice que uso se probo');
+  assert.equal(setup(JSON.stringify({v:2,usage:'vibracion-total'})).context.mcHapticTune().usage,def);
 });

@@ -75,6 +75,7 @@ const steps = [
   ["countup-no-baja", ["node", "--test", "tests/countup-no-baja.test.mjs"]],
   ["avatar-iniciales", ["node", "--test", "tests/avatar-iniciales.test.mjs"]],
   ["ux16-ajustador", ["node", "--test", "tests/ux16-ajustador.test.mjs"]],
+  ["vibracion-fija", ["node", "--test", "tests/vibracion-fija.test.mjs"]],
   ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
   ["fin37-debt-startday-once", ["node", "tests/fin37-debt-startday-once.test.mjs"]],
   ["run-deno-tests", ["node", "tests/run-deno-tests.test.mjs"]],
