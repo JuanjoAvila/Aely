@@ -1,5 +1,88 @@
 [
   {
+    "v": "4.26.243",
+    "d": "2026-11-19",
+    "t": {
+      "es": "Trade Republic que vuelve solo, DEGIRO e Interactive Brokers por fichero, Conexiones de un toque y actualizaciones más seguras",
+      "en": "Trade Republic that comes back on its own, DEGIRO and Interactive Brokers from a file, one-tap Connections and safer updates",
+      "ca": "Trade Republic que torna sol, DEGIRO i Interactive Brokers per fitxer, Connexions d’un toc i actualitzacions més segures"
+    },
+    "items": {
+      "es": [
+        "Al conectar Trade Republic hay un botón para abrir su app; cuando apruebas, Aely termina sola al volver y, si no vuelves, te avisa.",
+        "En Inicio, los nombres largos de «Últimos movimientos» se leen enteros, cada cargo de «Para revisar» abre Recibos y los botones pequeños son más fáciles de tocar.",
+        "DEGIRO e Interactive Brokers se pueden traer a Cartera con el fichero que descargas de su web: antes de aplicar ves qué entra, eliges qué se actualiza, y lo que ya vendiste deja de sumar.",
+        "Conexiones se abre de un toque desde Ajustes y desde Cartera, entra y sale deslizando, y al cerrar vuelves a donde estabas. Si renuevas o conectas un banco, su fila se marca un momento.",
+        "Las actualizaciones se comprueban antes de instalarse: si llegan dañadas, no se instalan.",
+        "La página de privacidad está en castellano, inglés y catalán, y cuenta solo lo que la app hace de verdad."
+      ],
+      "en": [
+        "When you connect Trade Republic there is a button to open its app; once you approve, Aely finishes on its own when you come back and, if you don't, it lets you know.",
+        "On Home, long names in «Latest activity» show in full, each charge in «To review» opens Bills and small buttons are easier to tap.",
+        "DEGIRO and Interactive Brokers can be brought into Portfolio with the file you download from their website: before applying you see what comes in, you choose what gets updated, and what you already sold stops counting.",
+        "Connections opens in one tap from Settings and Portfolio, slides in and out, and closing takes you back to where you were. If you renew or connect a bank, its row lights up for a moment.",
+        "Updates are checked before they are installed: if they arrive damaged, they aren't installed.",
+        "The privacy page is in Spanish, English and Catalan, and only says what the app really does."
+      ],
+      "ca": [
+        "En connectar Trade Republic hi ha un botó per obrir la seva app; quan aproves, Aely acaba sola en tornar i, si no tornes, t'avisa.",
+        "A Inici, els noms llargs d'«Últims moviments» es llegeixen sencers, cada càrrec de «Per revisar» obre Rebuts i els botons petits són més fàcils de tocar.",
+        "DEGIRO i Interactive Brokers es poden portar a Cartera amb el fitxer que descarregues del seu web: abans d'aplicar veus què entra, tries què s'actualitza, i el que ja has venut deixa de sumar.",
+        "Connexions s’obre d’un toc des de Configuració i des de Cartera, entra i surt lliscant, i en tancar tornes on eres. Si renoves o connectes un banc, la seva fila es marca un moment.",
+        "Les actualitzacions es comproven abans d'instal·lar-se: si arriben malmeses, no s'instal·len.",
+        "La pàgina de privacitat és en castellà, anglès i català, i explica només el que l'app fa de debò."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-243",
+        "t": {
+          "es": "Arranque y actualizaciones, MyInvestor, Trade Republic, Conexiones, brókers por fichero, Inicio y privacidad",
+          "en": "Start-up and updates, MyInvestor, Trade Republic, Connections, brokers from a file, Home and privacy",
+          "ca": "Arrencada i actualitzacions, MyInvestor, Trade Republic, Connexions, brókers per fitxer, Inici i privacitat"
+        },
+        "items": {
+          "es": [
+            "1. Tras esta actualización, deja que la app arranque; luego ciérrala del todo y vuelve a abrirla. BIEN: arranca normal las dos veces, sin pantalla en blanco, y sigue en esta versión (la primera novedad es la de Trade Republic que vuelve solo). MAL: se queda en blanco o en el logo, o al reabrirla vuelve sola a la versión anterior.",
+            "2. Cuando llegue la siguiente beta, deja que se instale como siempre. BIEN: se instala y la app arranca con ella. MAL: no se instala nunca o avisa de un error al actualizar.",
+            "3. MyInvestor: abre «Conectar MyInvestor» y avanza con tu usuario hasta la casilla de verificación «No soy un robot» (si ya está conectado y no quieres reconectarlo, salta este paso). BIEN: la casilla carga y se puede marcar. MAL: sale un recuadro en blanco o un error al cargarla.",
+            "4. Trade Republic: en Ajustes, desconéctalo para que pida el login entero; conecta con teléfono y PIN y toca «Abrir Trade Republic»; aprueba en TR y vuelve con el gesto atrás, sin tocar nada más. BIEN: se abre la app de TR (anota si se abrió TR o la tienda de apps) y, al volver, Aely termina sola y enseña tus posiciones. MAL: el botón no hace nada, o al volver se queda esperando hasta que tocas algo.",
+            "5. Repite el paso 4, pero tras aprobar no vuelvas a Aely (quédate en TR o ve al inicio del móvil); otra vez, con Aely delante, no apruebes en 2 minutos. BIEN: en unos segundos sale el aviso «Trade Republic conectado. Toca para volver.» y al tocarlo Aely ya está conectada (si no sale el aviso pero al volver conecta sola, anótalo); sin aprobar, acaba en «La aprobación caducó. Vuelve a conectar.». MAL: ni aviso ni conexión al volver, o se queda esperando sin fin.",
+            "6. Ajustes: toca la fila «Conexiones» y después sal con ‹ o con el gesto atrás. BIEN: se abre de un toque, entrando desde la derecha, con tus bancos y su estado; al salir vuelves a Ajustes, justo donde estabas. MAL: hay que abrir antes un grupo, la pantalla aparece de golpe sin deslizar, o al salir caes en otra pantalla.",
+            "7. Cartera: en «Tus cuentas», toca «Añadir»; después vuelve deslizando desde el borde izquierdo o con atrás. BIEN: Conexiones se abre sin Ajustes debajo y al cerrarla vuelves a Cartera; si dentro renuevas un banco, al volver su fila se marca un momento y sale el aviso de renovado (o el de error, si la lectura falló). MAL: al cerrar caes en Ajustes, o el aviso dice «renovado» cuando la lectura falló.",
+            "8. En Ajustes, pon «Tamaño de letra» en «Enorme» y ve a Inicio › «Últimos movimientos» (después vuelve a tu tamaño). BIEN: los nombres largos bajan a una segunda línea y se leen enteros, sin «…» y sin montarse sobre el importe. MAL: un nombre sale cortado con «…», se monta sobre el importe o la fila se sale de la pantalla.",
+            "9. Conexiones › «Brókers»: toca los chips «DEGIRO» e «Interactive Brokers» y, en cada tarjeta, «Cómo exportarlo»; después vuelve a quitarlos. BIEN: cada uno saca su tarjeta para importar un fichero, con los pasos para descargarlo de su web, y tus posiciones de Trade Republic, MyInvestor y Revolut no cambian (si usas alguno, importa su fichero: antes de aplicar ves qué entra y nada cambia sin tu OK). MAL: el chip no hace nada, la tarjeta sale cortada o algo de tu cartera cambia sin aplicar.",
+            "10. Ajustes → «Privacidad y datos»: léela entera. BIEN: lo que dice cuadra con la app: tus datos se ven dentro de ella, Copia de seguridad guarda una copia diaria y, para una copia completa en un fichero, se pide por correo (ya no dice que se exporte un JSON). MAL: cuenta algo que la app no hace o no se puede abrir."
+          ],
+          "en": [
+            "1. After this update, let the app start; then close it completely and open it again. RIGHT: it starts normally both times, no blank screen, and stays on this version (the first news item is the one about Trade Republic coming back on its own). WRONG: it stays blank or on the logo, or when reopened it goes back to the previous version on its own.",
+            "2. When the next beta arrives, let it install as usual. RIGHT: it installs and the app starts with it. WRONG: it never installs or it shows an error when updating.",
+            "3. MyInvestor: open «Connect MyInvestor» and go ahead with your user up to the «I'm not a robot» check box (if it's already connected and you don't want to reconnect it, skip this step). RIGHT: the box loads and can be ticked. WRONG: a blank box or an error shows when loading it.",
+            "4. Trade Republic: in Settings, disconnect it so it asks for the full login; connect with phone and PIN and tap «Open Trade Republic»; approve in TR and come back with the back gesture, without touching anything else. RIGHT: the TR app opens (note whether TR or the app store opened) and, when you come back, Aely finishes on its own and shows your positions. WRONG: the button does nothing, or when you come back it keeps waiting until you tap something.",
+            "5. Repeat step 4, but after approving don't go back to Aely (stay in TR or go to the phone's home screen); another time, with Aely in front, don't approve for 2 minutes. RIGHT: within a few seconds the notice «Trade Republic connected. Tap to go back.» shows up and when you tap it Aely is already connected (if no notice shows but it connects on its own when you come back, note it down); without approving, it ends on «The approval expired. Connect again.». WRONG: neither notice nor connection when you come back, or it keeps waiting forever.",
+            "6. Settings: tap the «Connections» row and then leave with ‹ or the back gesture. RIGHT: it opens in one tap, sliding in from the right, with your banks and their status; when you leave you are back in Settings, right where you were. WRONG: you have to open a group first, the screen appears all at once without sliding, or when you leave you land on another screen.",
+            "7. Portfolio: under «Your accounts», tap «Add»; then go back by swiping from the left edge or with back. RIGHT: Connections opens without Settings underneath and when you close it you are back in Portfolio; if you renew a bank inside, when you come back its row lights up for a moment and the renewed notice shows (or the error one, if the reading failed). WRONG: when closing you land in Settings, or the notice says «renewed» when the reading failed.",
+            "8. In Settings, set «Text size» to «Huge» and go to Home › «Latest activity» (then go back to your size). RIGHT: long names drop to a second line and can be read in full, without «…» and without running over the amount. WRONG: a name is cut with «…», runs over the amount or the row goes off the screen.",
+            "9. Connections › «Brokers»: tap the «DEGIRO» and «Interactive Brokers» chips and, on each card, «How to export it»; then remove them again. RIGHT: each one shows its card to import a file, with the steps to download it from their website, and your Trade Republic, MyInvestor and Revolut positions don't change (if you use one, import its file: before applying you see what comes in and nothing changes without your OK). WRONG: the chip does nothing, the card is cut off or something in your portfolio changes without applying.",
+            "10. Settings → «Privacy & data»: read it all. RIGHT: what it says matches the app: your data can be seen inside it, Backup keeps a daily copy and, for a full copy as a file, you ask by email (it no longer says you can export a JSON). WRONG: it says something the app doesn't do or it can't be opened."
+          ],
+          "ca": [
+            "1. Després d'aquesta actualització, deixa que l'app arrenqui; després tanca-la del tot i torna-la a obrir. BÉ: arrenca normal les dues vegades, sense pantalla en blanc, i es manté en aquesta versió (la primera novetat és la de Trade Republic que torna sol). MALAMENT: es queda en blanc o al logo, o en tornar-la a obrir torna sola a la versió anterior.",
+            "2. Quan arribi la següent beta, deixa que s'instal·li com sempre. BÉ: s'instal·la i l'app arrenca amb ella. MALAMENT: no s'instal·la mai o avisa d'un error en actualitzar.",
+            "3. MyInvestor: obre «Connecta MyInvestor» i avança amb el teu usuari fins a la casella de verificació «No sóc un robot» (si ja està connectat i no el vols tornar a connectar, salta aquest pas). BÉ: la casella carrega i es pot marcar. MALAMENT: surt un requadre en blanc o un error en carregar-la.",
+            "4. Trade Republic: a Configuració, desconnecta'l perquè demani l'inici de sessió sencer; connecta amb telèfon i PIN i toca «Obre Trade Republic»; aprova a TR i torna amb el gest enrere, sense tocar res més. BÉ: s'obre l'app de TR (apunta si es va obrir TR o la botiga d'apps) i, en tornar, Aely acaba sola i ensenya les teves posicions. MALAMENT: el botó no fa res, o en tornar es queda esperant fins que toques alguna cosa.",
+            "5. Repeteix el pas 4, però després d'aprovar no tornis a Aely (queda't a TR o ves a l'inici del mòbil); una altra vegada, amb Aely davant, no aprovis en 2 minuts. BÉ: en uns segons surt l'avís «Trade Republic connectat. Toca per tornar.» i en tocar-lo Aely ja està connectada (si no surt l'avís però en tornar connecta sola, apunta-ho); sense aprovar, acaba a «L'aprovació ha caducat. Torna a connectar.». MALAMENT: ni avís ni connexió en tornar, o es queda esperant sense fi.",
+            "6. Configuració: toca la fila «Connexions» i després surt amb ‹ o amb el gest enrere. BÉ: s'obre d'un toc, entrant per la dreta, amb els teus bancs i el seu estat; en sortir tornes a Configuració, just on eres. MALAMENT: cal obrir abans un grup, la pantalla apareix de cop sense lliscar, o en sortir vas a parar a una altra pantalla.",
+            "7. Cartera: a «Els teus comptes», toca «Afegeix»; després torna lliscant des de la vora esquerra o amb enrere. BÉ: Connexions s'obre sense Configuració a sota i en tancar-la tornes a Cartera; si a dins renoves un banc, en tornar la seva fila es marca un moment i surt l'avís de renovat (o el d'error, si la lectura ha fallat). MALAMENT: en tancar vas a parar a Configuració, o l'avís diu «renovat» quan la lectura ha fallat.",
+            "8. A Configuració, posa «Mida de la lletra» a «Enorme» i ves a Inici › «Últims moviments» (després torna a la teva mida). BÉ: els noms llargs baixen a una segona línia i es llegeixen sencers, sense «…» i sense posar-se sobre l'import. MALAMENT: un nom surt tallat amb «…», es posa sobre l'import o la fila surt de la pantalla.",
+            "9. Connexions › «Brókers»: toca els xips «DEGIRO» i «Interactive Brokers» i, a cada targeta, «Com exportar-lo»; després torna'ls a treure. BÉ: cadascun treu la seva targeta per importar un fitxer, amb els passos per descarregar-lo del seu web, i les teves posicions de Trade Republic, MyInvestor i Revolut no canvien (si en fas servir algun, importa'n el fitxer: abans d'aplicar veus què entra i res no canvia sense el teu OK). MALAMENT: el xip no fa res, la targeta surt tallada o alguna cosa de la teva cartera canvia sense aplicar.",
+            "10. Configuració → «Privacitat i dades»: llegeix-la sencera. BÉ: el que diu quadra amb l'app: les teves dades es veuen dins seu, Còpia de seguretat en desa una còpia diària i, per a una còpia completa en un fitxer, es demana per correu (ja no diu que s'exporti un JSON). MALAMENT: explica alguna cosa que l'app no fa o no es pot obrir."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.242",
     "d": "2026-11-18",
     "t": {

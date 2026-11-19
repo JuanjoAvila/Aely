@@ -1678,6 +1678,10 @@ Movilidad88 conserva el histórico y todos los contratos87; catálogo diario añ
 
 El resumen manual conserva por separado éxito, caducidad y fallo temporal de Trade Republic y MyInvestor. Un éxito parcial se presenta aunque el otro falle; una consulta MyInvestor fallida no se interpreta como ausencia de enlace. TR continúa a demanda y MyInvestor conserva el throttle automático. No cambia la aplicación de posiciones ni se despliega servidor.
 
+### Brókers por fichero (4.26.243)
+
+DEGIRO e Interactive Brokers entran por fichero, procesado en el móvil como el CSV de Revolut: nada sube a ningún sitio. `05-dialogs-inv.js` tiene un motor común (`BROKER_PROFILES` + `brokerAnalyze` + `brokerDetect`) que analiza, propone y aplica con `brkApplyFile`: solo lo mapeado, por defecto «no tocar», sugerencias solo por ISIN o ticker exacto dentro del mismo bróker, y el coste que no viene se respeta. Lo que un fichero completo ya no trae se marca `fileGone` (sin borrar) y pesa 0 en `invValueEur`/`invCostEur` (00-core), así que sale del patrimonio, de Inversiones y del coste; si vuelve a aparecer, la marca se quita. Las posiciones sin ticker guardan `fileSym`/`fileExch` y el valor del fichero con `fileAt`, y lo dicen («valor del {fecha} según {bróker}»). La Edge `prices` no se toca en esta fase.
+
 ## Guardado del estado: solo lo comprometido (4.26.94)
 
 El estado se escribe en disco desde un `useLayoutEffect` de `App` que corre tras cada commit y llama a `mcPersistCommit` (00-core): apunta el estado recién pintado como volcado pendiente, marca el histórico de gastos solo si cambió su referencia **y sus filas** (desde la 4.26.171 un array nuevo con las mismas filas en el mismo orden no cuenta: la relectura al reconectar devolvía el mismo histórico y reescribía `_exp` entero en cada reconexión) y arma, si no lo había, el temporizador de 400 ms. `set()` solo calcula el estado siguiente y sella `_savedAt`; no apunta nada ni arma temporizadores.
