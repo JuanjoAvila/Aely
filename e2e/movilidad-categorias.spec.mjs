@@ -4,7 +4,7 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion,
 const labels={es:{multas:"Multas",zona_azul:"Zona azul",peajes:"Peajes"},en:{multas:"Fines",zona_azul:"Blue zone",peajes:"Tolls"},ca:{multas:"Multes",zona_azul:"Zona blava",peajes:"Peatges"}};
 const entries=[["multas","Multa DGT",40,"🚨"],["zona_azul","Zona azul",6,"🅿️"],["peajes","Peaje AP7",8,"🛣️"]];
 const accounts=[{id:"mobility",ent:"trade_republic",name:"Diario",value:2000,role:"diario",spendFrom:true}];
-const settings=lang=>({lang,autoPrices:false,aiCat:false,expenseBanks:["trade_republic"],gTotalMode:"split"});
+const settings=lang=>({lang,autoPrices:false,expenseBanks:["trade_republic"],gTotalMode:"split"});
 async function open(page){
   await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await dismissNews(page);
   await page.waitForFunction(()=>!document.getElementById("mc-load"));

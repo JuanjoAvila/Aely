@@ -48,8 +48,10 @@ test("cada interruptor de Notificaciones cambia su ajuste de siempre", async ({ 
   const casos = [
     { k: "banksync", clave: "bankSyncOnNotif", antes: undefined, despues: true },
     { k: "trnotif", clave: "trNotifyConfirm", antes: undefined, despues: false },
-    { k: "aicat", clave: "aiCat", antes: undefined, despues: true },
   ];
+  // «Sugerir categoría con IA» ya no existe (19/11): la Edge nunca tuvo clave y no hacía nada.
+  await expect(fila(page, "aicat")).toHaveCount(0);
+  await expect(page.locator(".nt-row").filter({ hasText: /IA/ })).toHaveCount(0);
   for (const c of casos) {
     const sw = fila(page, c.k).locator(".swx");
     const on = await sw.evaluate((e) => e.classList.contains("on"));

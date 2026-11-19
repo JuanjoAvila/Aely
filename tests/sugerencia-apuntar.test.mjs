@@ -2,66 +2,46 @@
 /**
  * SUGERIR CATEGORÍA MIENTRAS ESCRIBES EL CONCEPTO (13/9, opción A suya).
  * Su petición: «que te salga lo de sugerir categoría con IA en cuanto añadas el concepto, que no
- * tengas que ir a otros… guardar… abrir el gasto… porque es un coñazo». Aquí se vigilan las tres
- * reglas de la decisión; la pantalla (Apuntar) solo las obedece.
+ * tengas que ir a otros… guardar… abrir el gasto… porque es un coñazo». Aquí se vigilan las reglas
+ * de la decisión; la pantalla (Apuntar) solo las obedece. Desde el 19/11 sin IA de pago: la Edge
+ * nunca tuvo clave, así que lo que sugiere es lo aprendido de sus correcciones y las palabras clave.
  */
 import assert from "node:assert/strict";
+import vm from "node:vm";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const ctx = loadPureLogicFromFile();
 let fallos = 0;
 const t = (n, fn) => { try { fn(); console.log("  ✓ " + n); } catch (e) { fallos++; console.error("  ✗ " + n + "\n      " + (e && e.message)); } };
-const s = (o) => ctx.sugerenciaApuntar(Object.assign({ iaOn: true, nube: true }, o));
+const s = (o) => ctx.sugerenciaApuntar(o);
 console.log("sugerencia-apuntar");
 
 t("menos de 3 letras: nada", () => {
-  const r = s({ concepto: "Me" }); assert.equal(r.kwCat, null); assert.equal(r.pedirIA, false); assert.equal(r.chipIA, null);
+  assert.deepEqual(Object.keys(s({ concepto: "Me" })), ["kwCat"]);
+  assert.equal(s({ concepto: "Me" }).kwCat, null);
 });
 
-t("palabra clave conocida: se aplica sola y NO se gasta una llamada a la IA", () => {
-  const r = s({ concepto: "Mercadona" });
-  assert.equal(r.kwCat, "super");
-  assert.equal(r.pedirIA, false);
-  assert.equal(r.chipIA, null);
+t("palabra clave conocida: se aplica sola", () => {
+  assert.equal(s({ concepto: "Mercadona" }).kwCat, "super");
 });
 
 t("si ya tocaste un chip a mano, la palabra clave no lo mueve", () => {
-  const r = s({ concepto: "Mercadona", tocadaAMano: true });
+  assert.equal(s({ concepto: "Mercadona", tocadaAMano: true }).kwCat, null);
+});
+
+t("desconocido: no se inventa nada ni se ofrece chip de IA", () => {
+  const r = s({ concepto: "Xyzzy Studio", iaOn: true, nube: true });
   assert.equal(r.kwCat, null);
-  assert.equal(r.pedirIA, false);
+  assert.equal(r.chipIA, undefined);
+  assert.equal(r.pedirIA, undefined);
 });
 
-t("desconocido: se pide a la IA una vez por texto", () => {
-  assert.equal(s({ concepto: "Xyzzy Studio" }).pedirIA, true);
-  assert.equal(s({ concepto: "Xyzzy Studio", iaPara: "Xyzzy Studio", iaCat: "ocio" }).pedirIA, false, "ya se preguntó por este texto");
-});
-
-t("la respuesta de la IA se OFRECE como chip, no se aplica", () => {
-  const r = s({ concepto: "Xyzzy Studio", iaPara: "Xyzzy Studio", iaCat: "ocio" });
-  assert.equal(r.chipIA, "ocio");
-  assert.equal(r.kwCat, null, "la IA nunca se aplica sola (opción A)");
-});
-
-t("una respuesta VIEJA (para otro texto) se tira", () => {
-  const r = s({ concepto: "Xyzzy Studios Madrid", iaPara: "Xyzzy Studio", iaCat: "ocio" });
-  assert.equal(r.chipIA, null);
-  assert.equal(r.pedirIA, true, "el texto ha cambiado: se vuelve a preguntar");
-});
-
-t("IA apagada o sin nube: ni se pide ni se ofrece", () => {
-  assert.equal(s({ concepto: "Xyzzy Studio", iaOn: false }).pedirIA, false);
-  assert.equal(s({ concepto: "Xyzzy Studio", nube: false }).pedirIA, false);
-});
-
-t("la IA diciendo «otros» o una categoría que no existe no ofrece nada", () => {
-  assert.equal(s({ concepto: "Xyzzy", iaPara: "Xyzzy", iaCat: "otros" }).chipIA, null);
-  assert.equal(s({ concepto: "Xyzzy", iaPara: "Xyzzy", iaCat: "inventada" }).chipIA, null);
-});
-
-t("la IA no puede confundir Bizum con la finalidad del gasto", () => {
-  const r = s({ concepto: "Pago a Ana", iaPara: "Pago a Ana", iaCat: "bizum" });
-  assert.equal(r.chipIA, null);
-  assert.equal(r.kwCat, null);
+t("lo que él corrigió antes manda sobre la palabra clave, también escrito distinto", () => {
+  vm.runInNewContext("USER_OVERRIDES={'mercadona 1234':'bares'}", ctx);
+  try {
+    assert.equal(s({ concepto: "Mercadona 1234" }).kwCat, "bares");
+    assert.equal(s({ concepto: "MERCADONA" }).kwCat, "bares");
+  } finally { vm.runInNewContext("USER_OVERRIDES={}", ctx); }
 });
 
 if (fallos) { console.error(`sugerencia-apuntar: ${fallos} fallo(s)`); process.exit(1); }

@@ -437,13 +437,13 @@ const KW = {
   cine:["cinema","cine","cinesa","yelmo","kinepolis","odeon","mk2","renoir","multicines","entradas.com","atrapalo","ticketmaster","imax","cinemes","filmotech"],
   // Heladería ANTES que bares: si no, «heladería X» caía en restaurantes.
   heladeria:["heladeria","gelateria","ice cream","llaollao","llao llao","ocool","frosti","haagen","ben & jerry","ben and jerry","grom ","amorino"],
-  bares:["restaurante","bar","cafe","cafeteria","mcdonald","burger","pizza","sushi","tapas","cerveceria","bodega","bocadillo","kebab","pollo","grill","braseria","taberna","comida","food","lunch","dinner","brunch","desayuno","telepizza","glovo","just eat","uber eats","kfc","five guys","fiveguys","goiko","tgb","taco bell","tacobell","domino","papa john","subway","starbucks","vips","foster","montadito","rodilla","pans &","pans ","wok ","ramen","poke","taco","churreria","churros","asador","brasa","marisqueria","mariscos","pub ","shawarma","doner","döner","nandos","popeyes","dunkin","donut","tim hortons","cien montaditos","la sureña","sureña","muerde la pasta","ginos","la tagliatella","tagliatella","udon","wagamama","honest greens","croqueteria","tortilleria","gastrobar","vermuteria","coctel","cocktail","vending","expendedor","deliveroo","too good to go","toogoodtogo","mcdonalds","mcdonald's","burger king","hamburgues","cervecer","cerveseria","fosters hollywood","ladydiana","100 montaditos","comida a domicilio"],
+  bares:["restaurante","bar","cafe","cafeteria","mcdonald","burger","pizza","sushi","tapas","cerveceria","bodega","bocadillo","kebab","pollo","grill","braseria","taberna","comida","food","lunch","dinner","brunch","desayuno","telepizza","glovo","just eat","uber eats","kfc","five guys","fiveguys","goiko","tgb","taco bell","tacobell","domino","papa john","subway","starbucks","vips","foster","montadito","rodilla","pans &","pans ","wok ","ramen","poke","taco","churreria","churros","asador","brasa","marisqueria","mariscos","pub ","shawarma","doner","döner","nandos","popeyes","dunkin","donut","tim hortons","cien montaditos","la sureña","sureña","muerde la pasta","ginos","la tagliatella","tagliatella","udon","wagamama","honest greens","croqueteria","tortilleria","gastrobar","vermuteria","coctel","cocktail","vending","expendedor","deliveroo","too good to go","toogoodtogo","mcdonalds","mcdonald's","burger king","hamburgues","cervecer","cerveseria","fosters hollywood","ladydiana","100 montaditos","comida a domicilio","lizarran","bocatta"],
   // Pádel DESPUÉS de bares: «restaurante de pádel» debe ser comida (feedback histórico).
   padel:["padel","pádel","playtomic","paddle","club de padel","club padel","pista padel","padel pro","world padel","premier padel","indoor padel"],
-  super:["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","ahorramás","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","compra online mercadona"],
+  super:["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","ahorramás","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","compra online mercadona","bonarea","bon area","coviran","covirán","masymas","hiperdino","ametller origen","plusfresc","cash fresh","leclerc","sorli"],
   // Viajes ANTES que ocio/transporte: booking/vueling no son «ocio» ni solo «metro».
   viajes:["booking","airbnb","hotel","hostal","hostel","apartament turistic","apartamento turistico","vueling","iberia","ryanair","easyjet","vuelos","vuelo ","aeropuerto","airport","expedia","trivago","kayak","edreams","rumbo","logitravel","civitatis","getyourguide","amadeus","renfe ave","hotelbeds","marriott","hilton","ibis ","nh hotel","melia","meliá","barcelo","barceló","ac hotel","travelodge","pension ","pensión ","camping","ferry","balearia","grimaldi","cruise","crucero","tourist","turismo"],
-  transporte:["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus"],
+  transporte:["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus","waylet","petronor","meroil","esclatoil","cooltra","zity","free2move","yego"],
   parking:["parking","parquimetro","parkimetro","parquímetro","aparcament","aparcamiento","saba","b:sm","bsm","empark","interparking","apk2","apk80","onepark","elparking","easypark","telpark","zona azul","zona verde","area verde","àrea verda","grua municipal","indigo parking","secure parking"],
   // Coche tras parking. Sin «aire» suelto (choca con aire acondicionado y gasolineras); solo afecta a altas nuevas.
   coche:["taller","itv","lavado de coche","lavado coche","lavadero","autolavado","car wash","neumatico","neumatic","norauto","midas","feu vert","cambio de aceite","recambio","carglass"],
@@ -474,16 +474,16 @@ const KW = {
   // Suscripciones de IA separadas de Ocio (feedback 2026-09-07): son herramientas de trabajo
   // distintas de Netflix/Spotify y el presupuesto tiene que poder enseñarlas por separado.
   ia:["anthropic","claude","claude.ai","openai","chatgpt","chat gpt","gpt-","cursor","midjourney","perplexity","github copilot"],
-  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo"],
+  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo","skyshowtime","vivagym","viva gym","altafit","anytime fitness","holmes place","go fit","gofit","dreamfit"],
   // Recibos DESPUÉS de ocio: «movistar plus» es streaming; el teléfono Movistar, no.
   // Impuestos en tasas; Sanitas/Adeslas en salud (luz/agua/gas ya van por su lista).
-  recibos:["vodafone","yoigo","masmovil","mas movil","pepephone","jazztel","finetwork","simyo","lowi","parlem","digi espa","digi mobil","digi mov","movistar","orange es","orange espana","orange spain","orange fibra","orange movil","o2 es","o2 espa","telefonia","telefonica","fibra optica","factura movil","recibo movil","mapfre","allianz","axa ","axa.","pelayo","zurich","genesis seguro","direct seguros","mutua madrilena","linea directa","reale seguro","helvetia","alquiler","comunidad de prop","administracion de finca","adm fincas","cuota comunidad","prosegur","securitas direct"],
+  recibos:["vodafone","yoigo","masmovil","mas movil","pepephone","jazztel","finetwork","simyo","lowi","parlem","digi espa","digi mobil","digi mov","movistar","orange es","orange espana","orange spain","orange fibra","orange movil","o2 es","o2 espa","telefonia","telefonica","fibra optica","factura movil","recibo movil","mapfre","allianz","axa ","axa.","pelayo","zurich","genesis seguro","direct seguros","mutua madrilena","linea directa","reale seguro","helvetia","alquiler","comunidad de prop","administracion de finca","adm fincas","cuota comunidad","prosegur","securitas direct","avatel","adamo","euskaltel","telecable","catalana occidente"],
   compras:["zara","mango","primark","stradivarius","bershka","pull &","pull&","el corte","amazon","amzn","aliexpress","pccomponentes","mediamarkt","worten","nike","adidas","foot locker","alehop","ale hop","ale-hop","tiger","flying tiger","normal ","tedi","action","casa ","muy mucho","sostrene","søstrene","kiabi","lefties","springfield","cortefiel","jd sports","sprinter","shein","temu","massimo","oysho","cyrillus","calzedonia","intimissimi","clas ohlson","veritas","douglas perfum","cofidis","papeleria","papelería","copisteria","copistería","liberia","libreria","druni","primor","sephora","perfumeria","fnac ","game ","app store","apple store","samsung store","xiaomi store","coolmod","uniqlo","h&m","hm ","pull and bear","bimba y lola","swatch"],
   salud:["farmacia","fcia","clinica","clínica","medico","médico","doctor","dra.","dr.","consulta","ambulatorio","urgencias","hospital","optica","óptica","fisio","fisioterapia","masaje","podologo","podólogo","psicologo","psicólogo","psiquiatra","sanitas","adeslas","asisa","dkv","mutua","quiron","quirón","cima","cap ","centro medico","centro médico","laboratorio","analisis","análisis","radiologia","radiología","dentista","dental","ortodoncia","oculista","oftalmo","cruz verde","procare","vitaldent","vital dent","donte","dental company","general optic","multiopticas","multioptics","promofarma","dosfarma","atida","pocoyofarma"],
   pelu:["peluqueria","perruqueria","barberia","barber","estilis","hair","salon de belleza","nails","manicura","pedicura","lash","cejas","estetica","belleza","depilacion","depilación","corte de pelo","tinte pelo","balayage"],
   // Mascotas ANTES que hogar.
   mascotas:["zooplus","kivet","tiendanimal","miscota","animalis","kiwoko","pienso","veterinario","veterinari","clinica veterinaria","clínica veterinaria","peluqueria canina","peluquería canina","petsia","dogfy","affinity pet","royal canin","hills pet","purina","advance dog","advance cat","gos ","gat ","perro","gato","mascota"],
-  hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka"],
+  hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka","conforama","jysk","maisons du monde","kave home","bricor"],
   regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo ","douglas"],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
 };
@@ -542,6 +542,11 @@ const KW_PALABRA={
   "hospital":1,   // hospital ⊂ HOSPITALET
   "midas":1,      // Midas (talleres) como palabra entera
   "mango":1,      // la tienda Mango ⊂ MANGOpay, la pasarela de pago de Vinted (2026-09-12)
+  /* Revisión de dinero del 19/11, medidas contra la base: llevan espacio o son un apellido, y
+     sueltas casaban dentro de otra cosa. Enteras siguen reconociendo la cadena. */
+  "go fit":1,     // ⊂ dieGO FITó, santiaGO FITa: una transferencia a una persona salía como ocio
+  "bon area":1,   // ⊂ carBON AREA
+  "leclerc":1,    // ⊂ LECLERCq (un apellido)
 };
 /* PALABRAS QUE TIENEN QUE EMPEZAR PALABRA (2026-09-12). Hermana de `KW_PALABRA`, pero NO la misma,
    y la diferencia es la que hace que funcione:
@@ -577,33 +582,73 @@ const KW_INICIO={
    cambiaría totales de meses ya cerrados (bloqueo Claude 2026-09-08, misma regla que IA). */
 /* QUÉ CATEGORÍA SUGERIR MIENTRAS ESCRIBES EL CONCEPTO EN APUNTAR (13/9, brief
    `docs/briefs/brief-ia-al-escribir-concepto.md`, opción A elegida por él).
-   Función pura: la pantalla le pasa lo que hay y ella dice qué hacer. Tres reglas:
+   Función pura: la pantalla le pasa lo que hay y ella dice qué hacer. Dos reglas:
    1. Lo que TÚ tocas manda: si ya elegiste un chip a mano, nada lo mueve (`kwCat` null).
-   2. Palabras clave primero (gratis): si saben, se aplica sola esa categoría y NO se pregunta a la IA.
-   3. La IA solo si las palabras clave dicen «otros», está encendida y hay nube; su respuesta se
-      OFRECE como chip (no se aplica) y solo si es para el texto que hay AHORA (una vieja se tira).
-   o = { concepto, tocadaAMano, iaOn, nube, iaPara, iaCat } */
+   2. Lo aprendido de tus correcciones y las palabras clave (`categoryOfNewMerchant`) se aplican solas.
+   Sin chip de IA desde el 19/11: la Edge `categorize` nunca tuvo OPENAI_API_KEY, así que la «IA»
+   solo repetía estas mismas palabras clave con una llamada de red de por medio.
+   o = { concepto, tocadaAMano } */
 function sugerenciaApuntar(o){
   o=o||{};
   const texto=String(o.concepto||"").trim();
-  const nada={ kwCat:null, pedirIA:false, chipIA:null };
-  if(texto.length<3) return nada;
+  if(texto.length<3) return { kwCat:null };
   const kw=categoryOfNewMerchant(texto);
-  if(kw && kw!=="otros" && CAT[kw]){
-    return { kwCat: o.tocadaAMano ? null : kw, pedirIA:false, chipIA:null };
-  }
-  const iaVigente = o.iaPara===texto && o.iaCat && o.iaCat!=="otros" && o.iaCat!=="bizum" && CAT[o.iaCat] ? o.iaCat : null;
-  return {
-    kwCat:null,
-    pedirIA: !!(o.iaOn && o.nube && o.iaPara!==texto),
-    chipIA: iaVigente
-  };
+  return { kwCat: kw && kw!=="otros" && CAT[kw] && !o.tocadaAMano ? kw : null };
 }
 function categoryOfNewMerchant(merchant){
   if(isAtmWithdrawal(merchant)) return "traspaso";
   const cat=autoCategory(merchant);
   if(USER_OVERRIDES[catKey(merchant)] && !CAT_NEUTRAS[USER_OVERRIDES[catKey(merchant)]]) return cat;
+  const base=aprendidoPorBase(USER_OVERRIDES, merchant, function(v){ return v; });
+  if(base && CAT[base] && !CAT_NEUTRAS[base]) return base;
   return mobilityCategoryOfNewMerchant(merchant,cat);
+}
+/* LO APRENDIDO VALE PARA EL MISMO COMERCIO AUNQUE EL BANCO LO ESCRIBA DISTINTO (19/11).
+   Lo que él corrige se guardaba por el texto EXACTO: «Mercadona 1234» no enseñaba nada a
+   «MERCADONA 5678», ni «Pepe Mobile, S.L.U.» a «PEPE MOBILE SLU». Medido antes de tocar: las tres
+   parejas caían otra vez en la palabra clave, y él veía que «no aprende».
+   La base quita lo que cambia de un cargo a otro sin cambiar de sitio: signos, números (tienda,
+   tarjeta, fecha) y letras sueltas (S.A., S.L.U.). Solo para ALTAS: `autoCategory` también relee
+   el «Otros» viejo y movería meses cerrados. Y no vale si lo que queda es genérico («Compra 123»,
+   «Transferencia») —el mismo agujero que «Movimiento» en `setCat`— ni si dos correcciones de la
+   misma base dicen cosas distintas: entonces no se sabe cuál quiso y manda la palabra clave. */
+const BASE_GENERICA={compra:1,compras:1,pago:1,pagos:1,tarjeta:1,tarj:1,transferencia:1,transf:1,trf:1,bizum:1,
+  recibo:1,cargo:1,abono:1,ingreso:1,traspaso:1,nomina:1,movimiento:1,gasto:1,operacion:1,adeudo:1,domiciliacion:1,
+  devolucion:1,comision:1,de:1,del:1,en:1,la:1,el:1,con:1,por:1,para:1,enviado:1,recibido:1,
+  /* Pasarelas y mercados cuyo único distintivo es un código («AMZN Mktp ES*2K4XY12Z0», «PAYPAL
+     *1234567»): corregir UN pedido mandaba todos los siguientes a esa categoría. Y el tipo de
+     local con un número («Taxi 4421», «Bar 21», «Farmacia 0453») son comercios distintos. Con
+     nombre detrás («PAYPAL *STEAM», «Bar Pepe») siguen aprendiéndose (revisión de dinero, 19/11). */
+  amzn:1,amazon:1,mktp:1,marketplace:1,paypal:1,sumup:1,izettle:1,zettle:1,
+  taxi:1,bar:1,cafe:1,cafeteria:1,restaurante:1,restaurant:1,tienda:1,botiga:1,parking:1,aparcamiento:1,
+  farmacia:1,fcia:1,gasolinera:1,supermercado:1,estanco:1,kiosko:1,quiosco:1,panaderia:1,peluqueria:1,
+  hotel:1,cuota:1,prestamo:1,factura:1,pedido:1};
+// La forma jurídica («SLU» junta o «S.L.U.» en letras sueltas) no distingue un comercio de otro.
+const BASE_SOCIEDAD={sa:1,sl:1,slu:1,sau:1,sll:1,slp:1,scp:1,sccl:1,cb:1,ltd:1,inc:1,gmbh:1,bv:1,srl:1};
+function comercioBase(merchant){
+  const w=catKey(merchant).replace(/[^a-z0-9]+/g," ").split(" ").filter(function(x){ return x.length>1 && !/\d/.test(x) && !BASE_SOCIEDAD[x]; });
+  return w.some(function(x){ return x.length>=3 && !BASE_GENERICA[x]; }) ? w.join(" ") : "";
+}
+const _baseIdx=new WeakMap();
+/* `map` es USER_OVERRIDES o USER_CAT_RULES (se reasignan enteros al cambiar: el índice se
+   recalcula solo). `sufijo` separa la base del resto de la clave; `cat` saca la categoría. */
+function aprendidoPorBase(map, merchant, cat, sufijo){
+  const b=comercioBase(merchant);
+  if(!b || !map) return null;
+  let idx=_baseIdx.get(map);
+  if(!idx){
+    idx={};
+    for(const k in map){
+      const i=sufijo?k.indexOf("|"):-1, kb=comercioBase(i<0?k:k.slice(0,i))+(i<0?"":k.slice(i)), v=map[k], c=cat(v);
+      if(!kb || kb.charAt(0)==="|" || !c) continue;
+      if(idx[kb]===undefined) idx[kb]=v;
+      else if(idx[kb] && cat(idx[kb])!==c) idx[kb]=null;
+      // Misma categoría por dos caminos: vale desde la PRIMERA vez que lo enseñó.
+      else if(idx[kb] && sufijo && v.at<idx[kb].at) idx[kb]=v;
+    }
+    _baseIdx.set(map, idx);
+  }
+  return idx[b+(sufijo||"")]||null;
 }
 // Solo altas nuevas: autoCategory también se usa para leer/migrar «Otros» antiguos.
 // Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
@@ -616,14 +661,14 @@ function mobilityCategoryOfNewMerchant(merchant,cat){
     if(/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
     if(/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
   }
-  if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
+  if(cat!=="transporte" && cat!=="otros") return cat;
   if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
   if(/\brepsol\b/.test(c)){
     if(/\bluz\b|electric|energia/.test(c)) return "luz";
     if(/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
   }
-  if(/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
+  if(/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat|petronor|meroil|esclatoil)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
   if(/\b(taxi|cabify|uber|moove|bolt|free ?now|ambitus)\b/.test(c)) return "taxi";
   return cat;
 }
@@ -679,7 +724,20 @@ function autoCategoryKw(c){
     }
     return false;
   };
-  for(const cat in KW){ if(KW[cat].some(function(k){ return hit(c,k); })) return cat; }
+  /* El NOMBRE de una cadena no manda sobre lo que dice el resto del texto (revisión de dinero,
+     19/11; misma regla en `ingest_logic.ts`). Un súper con surtidor (BonÀrea, Leclerc, Carrefour)
+     cobra el carburante con su nombre, y «super» se mira antes: «BONAREA GASOLINERA GUISSONA» es
+     gasolina, también al releer lo guardado. El aparcamiento de un súper («Parking Leclerc») sigue
+     buscando en las listas de después. Y «Adamo Telecom Iberia» es una operadora, no la aerolínea. */
+  for(const cat in KW){
+    if(!KW[cat].some(function(k){ return hit(c,k); })) continue;
+    if(cat==="super"){
+      if(/\b(gasolinera|gasoleo|carburante)\b|\bestacion de servicio\b|\bcarrefour gas\b/.test(c)) return "gasolina";
+      if(/\b(parking|aparcamiento|aparcament)\b/.test(c)) continue;
+    }
+    if(cat==="viajes" && /\btelecom\b/.test(c)) continue;
+    return cat;
+  }
   return "otros";
 }
 function resolveCategory(sheetCat, merchant){
@@ -1874,8 +1932,6 @@ const cloud = (function(){
       if(error) throw error;
       return data;
     },
-    // IA / KW: sugiere categoría de gasto (Edge Function `categorize`). Sin OPENAI_API_KEY
-    // en Supabase cae a keywords; si hay key, solo se usa cuando KW dice «otros».
     async askHelp(question,language){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke("help-assistant",{body:{question:String(question||"").slice(0,600),language:language}});
@@ -1883,13 +1939,6 @@ const cloud = (function(){
         if(error.context&&error.context.status===429) return {ok:false,error:"limited"};
         throw error;
       }
-      return data;
-    },
-    async suggestCategory(merchant){
-      if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke("categorize",{ body:{ merchant:String(merchant||"").slice(0,120) } });
-      if(error) throw error;
-      if(data?.category==="bizum") data.category="otros";
       return data;
     },
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
@@ -2874,7 +2923,7 @@ const CLOUD_WRITES=[
 
 /* Lecturas que METEN DATOS en la cartera. Solo se cortan en MODO INICIAL (mcSandboxVacio), nunca
    en el banco de pruebas normal. Sin esto, la cartera vacía dura lo que tarda el primer pull.
-   `prices`, `suggestCategory` y las de sesión se quedan fuera a propósito: no traen movimientos
+   `prices` y las de sesión se quedan fuera a propósito: no traen movimientos
    ni saldos, y cortarlas haría que la app pareciera rota en vez de recién instalada. */
 const CLOUD_READS_QUE_LLENAN=[
   "pullState","pullExpenses","bankSync","bankSyncHistory","bankLinks","bankAspsps",
@@ -4689,7 +4738,9 @@ function keepCategoryChoices(prevList, incoming, readStartedAt,identityScope){
     if(!(inc.date>minIso)) return;
     // Fecha ilegible = no se sabe si es posterior: no se toca (`dateMs` la daría por hoy).
     const ms=Date.parse(inc.date);
-    const rule=USER_CAT_RULES[catRuleKey(inc)];
+    const rk=catRuleKey(inc);
+    // Mismo banco y forma de pago, aunque el comercio venga escrito distinto (`aprendidoPorBase`).
+    const rule=USER_CAT_RULES[rk] || aprendidoPorBase(USER_CAT_RULES, inc.merchant, function(v){ return v&&v.cat; }, rk.slice(rk.indexOf("|")));
     if(!rule || rule.cat===inc.category || !CAT[rule.cat] || !(ms>rule.at)) return;
     if(!esNueva(mergeKey(inc))) return;
     swap(i, Object.assign({},inc,{category:rule.cat, catStale:[inc.category]}));

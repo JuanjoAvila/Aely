@@ -2795,7 +2795,7 @@ function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix,
       return React.createElement("button",{key:c.id,type:"button",className:"v4-ficha-cat"+(on?" on":""),
         "data-testid":(testPrefix||"expense-cat")+"-"+c.id,"aria-pressed":on,onClick:function(){ onPick(c.id); }},
         React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
-        React.createElement("span",null,(c.label||catName(c.id))+(c.suggested?" ✨":"")));
+        React.createElement("span",null,c.label||catName(c.id)));
     }),
     fin||null
   );
@@ -2916,7 +2916,7 @@ function useDespliegue(open){
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction, todasEnFila, catRowsMax}){
+  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, todasEnFila, catRowsMax}){
   const isIn=kind==="ingreso";
   /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
      ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Al tocar el importe
@@ -3125,7 +3125,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       React.createElement("span",{className:"v4-ficha-todas"},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
     !todasEnFila && !elegida && React.createElement("div",{className:"v4-ficha-cat-title"},
       React.createElement("span",{className:"v4-ficha-cat-t"},t("f_cat")),
-      React.createElement("span",{className:"v4-ficha-cat-acts"},conTeclado?null:(catAction||null),
+      React.createElement("span",{className:"v4-ficha-cat-acts"},
         todasBtn("v4-ficha-todas",tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
     visibles.length>0 && React.createElement(ExpenseCategoryGrid,{items:visibles,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
       fin:todasEnFila?todasBtn("v4-ficha-cat v4-ficha-todas-tile",[React.createElement("span",{key:"i",className:"v4-ficha-cat-icon","aria-hidden":"true"},"⋯"),

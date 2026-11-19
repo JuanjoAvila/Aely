@@ -431,7 +431,6 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   const [filterOpen,setFilterOpen]=useState(false);
   const [visible,setVisible]=useState(CONFIG.PAGE_SIZE);
   const suppressOpenRef=useRef(0);
-  const [aiBusy,setAiBusy]=useState(false);
   const [undoDelete,setUndoDelete]=useState(null);
   const undoDeleteRef=useRef(null);
   const undoTimerRef=useRef(null);
@@ -1532,25 +1531,6 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       return true;
     });
   };
-  const suggestAi=function(ex){
-    if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
-    if(!ex||aiBusy) return;
-    // KW locales primero (mismas que ingest): Recibos/heladería/… no esperan a desplegar la Edge.
-    const local=autoCategory(ex.merchant||"");
-    if(local && local!=="otros" && CAT[local]){
-      setCat(ex,local);
-      showToast(tf("ai_cat_ok",{c:catName(local)}));
-      return;
-    }
-    if(!cloud.enabled()){ showToast(t("ai_cat_none")); return; }
-    setAiBusy(true);
-    cloud.suggestCategory(ex.merchant||"").then(function(res){
-      const cat=res&&res.category;
-      if(!cat||cat==="otros"||!CAT[cat]){ showToast(t("ai_cat_none")); return; }
-      setCat(ex,cat);
-      showToast(tf("ai_cat_ok",{c:catName(cat)}));
-    }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setAiBusy(false); });
-  };
   useEffect(()=>{ setVisible(CONFIG.PAGE_SIZE); },[preset,range,sel,bankSel,bucketSel,q,catFil]);
   /* LA PAGINACIÓN DE LA LISTA — sus fallos, y el de 2026-07-27.
      1. «Cuando bajas hacia abajo RAPIDÍSIMO deslizando se para cada cierto tiempo.» El centinela
@@ -2269,7 +2249,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
           const next=Object.assign({},current);delete next[key];return next;
         });});
       },
-      showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
+      showToast:showToast, state:state
     }),
     undoDelete && ReactDOM.createPortal(
       React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
@@ -3228,7 +3208,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -3586,8 +3566,6 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
           payRow:payRow,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
-          catAction:cloud.enabled()&&!isIncome?React.createElement("button",{type:"button",className:"v4-ficha-ia","data-testid":"exp-ai",
-            "aria-label":aiBusy?t("ai_cat_busy"):t("ai_cat_btn"),"aria-busy":aiBusy?"true":null,disabled:aiBusy,onClick:function(){ suggestAi(exp); }},"✨"):null,
           numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },onCloseNumpad:function(){ setEditaImporte(false); },
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )

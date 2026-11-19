@@ -4960,12 +4960,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const [date,setDate]=useState(function(){ return isoLocal(); });
   const [calOpen,setCalOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
-  /* Sugerir categoría al escribir el concepto (13/9, opción A): palabras clave se aplican solas;
-     la IA solo ofrece un chip. Lo que tocas a mano manda. */
+  /* Sugerir categoría al escribir el concepto (13/9, opción A): lo aprendido y las palabras clave
+     se aplican solas. Lo que tocas a mano manda. */
   const [tocadaAMano,setTocadaAMano]=useState(false);
-  const [iaPara,setIaPara]=useState(null);
-  const [iaCat,setIaCat]=useState(null);
-  const [sugKw,setSugKw]=useState(null);
   /* Escribiendo el concepto (DIS-05, 15/11): el teclado del sistema tapaba el campo, o el teclado
      numérico pegado abajo lo tapaba a él, y se escribía a ciegas. Con el foco en el concepto el
      numérico se esconde, el botón pasa a «Listo» y la hoja se sube sobre el teclado del sistema. */
@@ -5006,9 +5003,6 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const dedoRef=useRef(false);
   const noteRef=useRef(note); noteRef.current=note;
   const tocadaRef=useRef(tocadaAMano); tocadaRef.current=tocadaAMano;
-  const iaParaRef=useRef(iaPara); iaParaRef.current=iaPara;
-  const iaCatRef=useRef(iaCat); iaCatRef.current=iaCat;
-  const aiOn=!!(state.settings&&state.settings.aiCat);
   const bankOpts=useMemo(function(){
     const seen={}; const out=[];
     (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
@@ -5033,7 +5027,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     if(open&&!ensayo){
       guardadoRef.current=false;
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
-      setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
+      setTocadaAMano(false);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
       setKbPrevio(false); previoRef.current=false; tecladoVistoRef.current=false; clearTimeout(previoTmRef.current); setKbYa(false);
@@ -5047,35 +5041,15 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setEntryCur(String(last).toUpperCase());
     }
   },[open]);
-  /* Debounce 400 ms KW / 900 ms IA (brief opción A). Refs: el timer no debe pillarse el texto viejo. */
+  /* Debounce 400 ms (brief opción A). Refs: el timer no debe pillarse el texto viejo. */
   useEffect(function(){
     if(!open || kind!=="gasto") return undefined;
     const tKw=setTimeout(function(){
-      const texto=String(noteRef.current||"").trim();
-      const sug=sugerenciaApuntar({
-        concepto:texto, tocadaAMano:tocadaRef.current, iaOn:aiOn, nube:cloud.enabled(),
-        iaPara:iaParaRef.current, iaCat:iaCatRef.current
-      });
-      if(sug.kwCat){ setCat(sug.kwCat); setSugKw(sug.kwCat); }
-      else if(!tocadaRef.current) setSugKw(null);
+      const sug=sugerenciaApuntar({ concepto:String(noteRef.current||"").trim(), tocadaAMano:tocadaRef.current });
+      if(sug.kwCat) setCat(sug.kwCat);
     }, 400);
-    const tIa=setTimeout(function(){
-      const texto=String(noteRef.current||"").trim();
-      const sug=sugerenciaApuntar({
-        concepto:texto, tocadaAMano:tocadaRef.current, iaOn:aiOn, nube:cloud.enabled(),
-        iaPara:iaParaRef.current, iaCat:iaCatRef.current
-      });
-      if(!sug.pedirIA) return;
-      setIaPara(texto);
-      cloud.suggestCategory(texto).then(function(res){
-        if(String(noteRef.current||"").trim()!==texto) return;
-        const c=res&&res.category;
-        if(c && c!=="otros" && CAT[c]) setIaCat(c);
-        else setIaCat(null);
-      }).catch(function(){ /* ya marcamos iaPara: no reintentar en bucle */ });
-    }, 900);
-    return function(){ clearTimeout(tKw); clearTimeout(tIa); };
-  },[open, note, kind, aiOn]);
+    return function(){ clearTimeout(tKw); };
+  },[open, note, kind]);
   /* Si el teclado se superpone sin encoger la WebView, lo que tapa es lo que sobra entre el alto de
      la ventana y el de visualViewport: la hoja se sube eso (como la ayuda, 16-help-assistant). Si
      la WebView se encoge, ese hueco es 0; en los dos casos el tope es el alto que queda a la vista. */
@@ -5251,16 +5225,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     }
   };
   const cats=XC.filter(function(c){ return c.id!=="otros"; }).concat(XC.filter(function(c){ return c.id==="otros"; }));
-  const chipIA=(kind==="gasto") ? sugerenciaApuntar({
-    concepto:note.trim(), tocadaAMano:tocadaAMano, iaOn:aiOn, nube:cloud.enabled(),
-    iaPara:iaPara, iaCat:iaCat
-  }).chipIA : null;
   const pickCat=function(id){
-    setCat(id); setTocadaAMano(true); setSugKw(null);
+    setCat(id); setTocadaAMano(true);
   };
-  const visibleCats=fichaCats.map(function(c){
-    return Object.assign({},c,{suggested:sugKw===c.id && cat===c.id && !tocadaAMano});
-  });
   const payMode=bank==="efectivo"?"cash":(nc?"transfer":"card");
   /* Lo que escribe cada opción es lo que hoy guardaba cada mando (DIS-03): salir de Efectivo vuelve
      al banco de gasto diario, como al apagar el 💶. Efectivo deja `noCard` en falso, que es lo que
@@ -5290,10 +5257,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     curOpen && React.createElement("div",{className:"v4-chips wrap","aria-label":t("ap_cur_lbl")},
       curChips.map(function(c){ return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),
         onClick:function(){ pickCur(c); setCurOpen(false); }},(CUR_SYM[c]||c)+" "+c); })),
-    calOpen && React.createElement(McCal,{value:date,onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
-    chipIA && kind==="gasto" && React.createElement("div",{className:"v4-chips",style:{marginBottom:4}},
-      React.createElement("button",{type:"button",className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
-        onClick:function(){ pickCat(chipIA); }},"✨ "+catName(chipIA)))
+    calOpen && React.createElement(McCal,{value:date,onPick:function(iso){ setDate(iso); setCalOpen(false); }})
   );
   const fxHint=entryCur!=="EUR" ? (toEurAmt(amt,entryCur,state)==null?t("fx_no_rate"):tf("f_fx_eq",{
     x:NF.format(toEurAmt(amt,entryCur,state))+" €",date:fmtIsoCorto(state.fxDate||date)
@@ -5350,14 +5314,14 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
               listoQuedaRef.current=setTimeout(function(){ setListoQueda(false); },mcReduced()?0:300);
             };
             if(!dedoRef.current){ suelta(); return; }
-            /* Blur por un toque en la propia hoja (una categoría, el chip ✨…): si el teclado numérico
+            /* Blur por un toque en la propia hoja (una categoría…): si el teclado numérico
                vuelve antes del `click`, la hoja crece, lo tocado se mueve y el click cae en otra
                cosa. Se espera a que ese toque termine. */
             const fin=function(){ document.removeEventListener("click",fin,true); clearTimeout(tm); setTimeout(suelta,0); };
             document.addEventListener("click",fin,true);
             const tm=setTimeout(fin,600);
           },kb:kbVista,
-          categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
+          categoryItems:fichaCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
           numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",catRowsMax:2,
           catsFirst:textSizeOf(state)==="big"||textSizeOf(state)==="huge",
           // Con letra Muy grande o Enorme no cabe la fila de cabecera: «Todas ›» va al final de la fila que se desliza.
