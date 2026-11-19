@@ -703,6 +703,9 @@ const ENT = {
   // tan claro que en tema claro no llega a 3:1 (`--ink-cian` solo existe en claro: #2F7F98). `short`: la línea de origen («15 nov · IBKR»), que con letra grande no cabía.
   degiro:         { label:"DEGIRO",         mono:"DG", color:"#9BD0E0", ink:"var(--ink-cian,#9BD0E0)" },
   ibkr:           { label:"Interactive Brokers", mono:"IB", color:"var(--blue)", short:"IBKR" },
+  // Kraken por clave de solo lectura (19/11): sin logo que recortar, monograma; el color neutro de la
+  // casa (`--cream` se oscurece solo en claro) para no repetir el morado de MyInvestor.
+  kraken:         { label:"Kraken",         mono:"Kr", color:"var(--cream)" },
   caixabank:      { label:"CaixaBank",      mono:"Cx", color:"#3FA9E0" },
   bbva:           { label:"BBVA",           mono:"BB", color:"#4B7FD6" },
   santander:      { label:"Santander",      mono:"Sa", color:"#E2705F" },
@@ -1927,6 +1930,33 @@ const cloud = (function(){
       if(!sb) return;
       try{ await sb.functions.invoke('myinvestor-disconnect'); }catch(e){}
     },
+    // --- Brókers por API (IBKR Flex, Kraken solo lectura; 0031). La credencial viaja SOLO en
+    // brokerConnect y se guarda cifrada en el servidor; aquí solo se lee el estado (grant por
+    // columnas: nunca `cred_*`). brokerSync devuelve posiciones y no escribe ninguna.
+    async brokerConnect(broker, a, b){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke('broker-connect',{ body:{ broker:broker, a:a, b:b } });
+      if(error) throw error;
+      return data;
+    },
+    async brokerSync(broker, userInitiated){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke('broker-sync',{ body:{ broker:broker, userInitiated:userInitiated===true } });
+      if(error) throw error;
+      return data;
+    },
+    async brokerDisconnect(broker){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke('broker-disconnect',{ body:{ broker:broker } });
+      if(error) throw error;
+      return data;
+    },
+    async brokerLinks(){
+      if(!sb) return [];
+      const {data,error}=await sb.from('broker_links').select('broker,status,last_sync,last_code,meta');
+      if(error) throw error;
+      return data||[];
+    },
     async myinvestorStatus(){
       if(!sb) return null;
       const {data:{session}}=await sb.auth.getSession();
@@ -2733,7 +2763,7 @@ const CLOUD_WRITES=[
   "decideOwnTransfer",
   "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","confirmTrMonthlyInvestment","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
-  "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
+  "myinvestorDisconnect","brokerConnect","brokerDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
 ];
 
@@ -2743,7 +2773,7 @@ const CLOUD_WRITES=[
    ni saldos, y cortarlas haría que la app pareciera rota en vez de recién instalada. */
 const CLOUD_READS_QUE_LLENAN=[
   "pullState","pullExpenses","bankSync","bankSyncHistory","bankLinks","bankAspsps",
-  "myinvestorSync","myinvestorStatus","listBackupDays","getBackup","fetchHouseholdBundle",
+  "myinvestorSync","myinvestorStatus","brokerSync","brokerLinks","listBackupDays","getBackup","fetchHouseholdBundle",
 ];
 (function(){
   CLOUD_WRITES.forEach(function(name){

@@ -487,7 +487,10 @@ const PRESUPUESTO = {
   // Integración 4.26.243 (18/11): ronda C (checksum de la actualización, anti-iframe, colores, privacidad), ronda A (solo
   // servidor, sin efecto en el bundle), Trade Republic que vuelve solo (R1), Conexiones (R2), la ronda D y brókers f1 (DEGIRO e IBKR por fichero), con el sello y la nota:
   // 2.062.602 B minificado y 568.477 B gzip. Mismo mandato del 11/10: al mínimo medido, 2015 / 556 KiB.
-  minificado: 2015 * 1024,
+  // Brókers por conexión (19/11, `claude/brokers-api`): IBKR Flex y Kraken de solo lectura —tarjeta y hoja de alta,
+  // primera lectura en vista previa, lo nuevo propuesto, la sync al abrir y sus textos en tres idiomas— suman ~16 KiB
+  // minificado y ~4 KiB gzip. Es lógica de dinero (qué re-ancla y qué no); SUBE (mandato 11/10) al mínimo medido.
+  minificado: 2032 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -530,7 +533,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 556 * 1024, // ver el comentario de minificado (555,2 KiB medidos el 18/11/2026 en la integración 4.26.243).
+  gzip: 561 * 1024, // brókers por conexión (19/11): ver el comentario de minificado. Antes: ver el comentario de minificado (555,2 KiB medidos el 18/11/2026 en la integración 4.26.243).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

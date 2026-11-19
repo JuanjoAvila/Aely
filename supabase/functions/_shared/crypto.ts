@@ -84,3 +84,10 @@ export async function decryptSecret(stored: string | null | undefined): Promise<
   const dec = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
   return new TextDecoder().decode(dec);
 }
+
+/* ¿Se puede cifrar AHORA? Los brókers (0031) no guardan nada sin cifrar, con o sin
+   TOKEN_ENCRYPTION_REQUIRED: preguntan esto antes de mandar la credencial a ningún sitio. Una
+   clave mal formada cuenta como ausente (y no deja su valor en ningún mensaje). */
+export async function claveCifradoLista(): Promise<boolean> {
+  try { return (await loadKey()) !== null; } catch (_) { return false; }
+}

@@ -59,6 +59,47 @@ dueño, y los avisos de la víspera los dan el cliente y el `AlertCheckWorker` d
 programar cualquier lectura de `bank-sync`, ver «Open Banking: lectura sola al entrar, con tope» en
 `docs/ARQUITECTURA.md`.
 
+## Brókers por conexión: IBKR Flex y Kraken (19/11/2026) — en fuente, SIN desplegar
+
+Rama `claude/brokers-api`. Plan aprobado: credenciales de **solo lectura**, cifradas en el
+servidor como MyInvestor. Nada está activo hasta aplicar la migración y desplegar las tres
+funciones, desde `main` y con el OK del dueño.
+
+**Orden:** 1) aplicar `0031_broker_links.sql` (aditiva: tabla `broker_links`, RLS de solo lectura
+propia, grant por columnas sin `cred_*` ni `nonce`, y `broker_next_nonce` solo para `service_role`);
+2) desplegar `broker-connect`, `broker-sync` y `broker-disconnect` (llevan `_shared/brokers/*`,
+`_shared/crypto.ts` y `_shared/request_body.ts`); 3) desplegar `delete-account` (borra también
+`broker_links`); 4) publicar el cliente. Un cliente sin estas funciones no las llama: la tarjeta
+solo aparece si el usuario enciende el chip del bróker.
+
+**Secretos:** ninguno nuevo. `broker-connect` **se niega a guardar** (código `no_key`, 503) si
+`TOKEN_ENCRYPTION_KEY` falta o no es válida, con o sin `TOKEN_ENCRYPTION_REQUIRED`, y lo comprueba
+antes de mandar la credencial al bróker. Además, no escribe nada que no salga con el prefijo
+`enc:v1:`.
+
+**Qué hace cada una** (todas `verify_jwt = true`, freno por usuario de la 0019):
+
+| Función | Cuerpo (tope) | Qué hace |
+|---|---|---|
+| `broker-connect` | `{broker, a, b}` (2 KiB) | IBKR: `SendRequest` + `GetStatement` de prueba (v3, reintenta 1019 hasta ~30 s) y exige la sección Open Positions. Kraken: `GetApiKeyInfo` y **rechaza sin guardar** cualquier clave con `withdraw-funds`, `modify-trades`, `close-trades`, `add-funds`, `earn-funds`, `add-withdraw-address` o `update-withdraw-address`, sin `query-funds` o con lista de IP. Si todo cuadra, guarda cifrado y devuelve la primera lectura |
+| `broker-sync` | `{broker, userInitiated?}` (1 KiB) | Lee y **devuelve** (no escribe posiciones). IBKR: el XML de Flex tal cual, que interpreta `ibkrParseFlexXml` en el móvil. Kraken: vuelve a comprobar los permisos (si la clave ganó alguno peligroso, **borra la credencial** y deja la fila `rejected`), `BalanceEx` y precio con el `Ticker` público. Los fallos solo tocan la fila de la misma `connection_version` |
+| `broker-disconnect` | `{broker}` (1 KiB) | Borra la fila. Revocar el token o la clave en el bróker lo hace el usuario (la app lo dice) |
+
+Los registros de las tres llevan solo códigos cerrados (`flex_1012`, `kraken_perm`…); nunca la
+credencial, el cuerpo del bróker ni el id del usuario (lo vigila `brokers/handlers.test.ts`).
+
+**Comprobar tras aplicar la 0031** (SQL Editor, con `begin … rollback`):
+
+```sql
+select col, has_column_privilege('authenticated', 'public.broker_links', col, 'SELECT') as puede_leer
+  from unnest(array['broker','status','last_sync','last_code','meta','cred_a','cred_b','nonce']) as col;
+-- cred_a, cred_b y nonce tienen que salir en false.
+select has_function_privilege('authenticated', 'public.broker_next_nonce(uuid, text)', 'EXECUTE'); -- false
+```
+
+**Fuera de esta ronda:** DEGIRO (sesión no oficial, necesita una cuenta real para medir), Binance
+(cierra en España el 31/12/2026) y el coste de Kraken (`TradesHistory`): hoy es «—».
+
 ## Auditoría de seguridad 14/11 · ronda 233 en fuente, SIN desplegar
 
 ### Open Banking: la vinculación la confirma quien la inició (P2-01)

@@ -295,6 +295,7 @@ const steps = [
   ["broker-motor", ["node", "tests/broker-motor.test.mjs"]],
   ["broker-degiro", ["node", "tests/broker-degiro.test.mjs"]],
   ["broker-ibkr", ["node", "tests/broker-ibkr.test.mjs"]],
+  ["broker-api", ["node", "tests/broker-api.test.mjs"]],
   ["parsers-revolut", ["node", "tests/parsers/revolut.test.mjs"]],
   ["motor-debt", ["node", "tests/motor-debt.test.mjs"]],
   ["reconcile-bank", ["node", "tests/reconcile-bank.test.mjs"]],
@@ -405,6 +406,11 @@ const denoEnLista = [
   "supabase/functions/delete-account/revocacion.test.ts",
   "supabase/functions/_shared/errores-cerrados.test.ts",
   "supabase/functions/_shared/ratelimit-ip.test.ts",
+  // Brókers por API (19/11): firma de Kraken contra el ejemplo oficial, códigos de Flex y que una
+  // clave que pueda mover dinero no se guarde nunca.
+  "supabase/functions/_shared/brokers/kraken.test.ts",
+  "supabase/functions/_shared/brokers/ibkr.test.ts",
+  "supabase/functions/_shared/brokers/handlers.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
   .flatMap((d) => d.isDirectory() ? buscaDeno(dir + "/" + d.name)
@@ -458,7 +464,7 @@ if (plan.deno !== false && (part === "all" || part === "unit")) {
       ? ["test", "--cached-only", "--no-lock", "--no-prompt", "--node-modules-dir=none", "--allow-read=supabase/functions,src/modules", "--fail-fast=1", testFile]
       : /myinvestor-(counter|token-race)\.test|bank-callback\/generation-fence\.test/.test(testFile)
       ? ["test", "--node-modules-dir=none", "--allow-read=supabase/functions", ...(testFile.includes("generation-fence.test") ? ["--fail-fast=1"] : []), testFile]
-      : /imports-fijos\.test|delete-account\/revocacion\.test|errores-cerrados\.test/.test(testFile)
+      : /imports-fijos\.test|delete-account\/revocacion\.test|errores-cerrados\.test|brokers\/handlers\.test/.test(testFile)
       ? ["test", "--allow-read=supabase/functions", testFile]
       : testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]

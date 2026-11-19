@@ -131,6 +131,7 @@ mi-cartera/
 ├── tests/ingest-native-phase1.test.mjs # Marca nativa, ambos órdenes OB, UUID cloud, colisiones SHA y switch OFF (candidato)
 ├── tests/native-event-debounce.test.mjs # Listener/helper Java reales: ventana local por identidad y concurrencia
 ├── tests/fin29-30-*.test.mjs # Alias/borrado/backfill, writer real y paridad offline; R8 dirigido verde, revisión financiera pendiente
+├── supabase/functions/broker-{connect,sync,disconnect} · _shared/brokers/*.test.ts · tests/broker-api.test.mjs · e2e/broker-api.spec.mjs # IBKR (Flex) y Kraken (solo lectura) por conexión: credencial cifrada en servidor, primera lectura en vista previa y lo nuevo propuesto (sin desplegar)
 ├── e2e/tr-aprobar-vuelve.spec.mjs · e2e/conexiones-origen.spec.mjs · e2e/inicio-gastos-ronda-d.spec.mjs · e2e/degiro-import.spec.mjs · e2e/ibkr-import.spec.mjs · scripts/csp-sellar.mjs # Trade Republic que vuelve solo (R1), Conexiones con vuelta al origen (R2), Inicio y Gastos de la ronda D, DEGIRO e IBKR por fichero (brókers f1) y la CSP publicada sellada con huellas (ronda C, 243)
 ├── tests/saldos-240.test.mjs · tests/recibos-240-saldo.test.mjs · tests/dinero-240-clientes.test.mjs · tests/valor-con-marca.test.mjs # Saldos y recibos (242): la marca del ancla, el cierre según la marca, H3, clientes mezclados y que nadie escriba `value` sin la marca
 ├── e2e/apuntar-teclado-real.spec.mjs # Apuntar con el teclado encima y Chrome desplazando la pantalla: ocultarlo sin «Listo», sin fondo asomando, por fotograma (241)

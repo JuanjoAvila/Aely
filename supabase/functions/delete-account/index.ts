@@ -59,6 +59,8 @@ Deno.serve(withCors(async (req: Request) => {
 
     // Best-effort: desconectar integraciones antes del CASCADE.
     await admin.from("myinvestor_links").delete().eq("user_id", user.id);
+    // Claves de solo lectura de brókers (0031): sin revocación posible desde aquí (es del bróker).
+    await admin.from("broker_links").delete().eq("user_id", user.id);
     await admin.from("bank_links").delete().eq("user_id", user.id);
     await admin.from("ingest_tokens").delete().eq("user_id", user.id);
 

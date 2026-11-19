@@ -904,24 +904,28 @@ function brkGoneOf(investments, ent, positions, map, present){
   // También por el símbolo del fichero: una posición sin ISIN que SIGUE en el fichero (aunque se
   // deje en «no tocar») no está vendida, y marcarla la sacaría del patrimonio.
   const sym=function(i){ const x=String(i.fileSym||i.ticker||"").toUpperCase(); return x && keys["s:"+x]; };
-  return (investments||[]).filter(function(i){ return i.ent===ent && !keys["#"+i.id] && !(i.isin && keys[i.isin]) && !sym(i) && (i.src==="csv:"+ent||i.isin); });
+  return (investments||[]).filter(function(i){ return i.ent===ent && !keys["#"+i.id] && !(i.isin && keys[i.isin]) && !sym(i) && (i.src==="csv:"+ent||i.src==="api:"+ent||i.isin); });
 }
 // Brókers con sincronización propia: sus posiciones no se ofrecen al importar un fichero de otro,
 // porque cambiarlas de bróker haría que su sincronización las volviera a crear (contaría doble).
+// Lo que ya re-ancla una conexión por API (IBKR, Kraken: `src:"api:…"`) tampoco: su sync la
+// volvería a poner donde estaba.
 var BRK_OWN_SYNC={ trade_republic:1, myinvestor:1 };
-function brkTargetOk(i, ent){ return i.ent===ent || !BRK_OWN_SYNC[i.ent]; }
+function brkTargetOk(i, ent){ return i.ent===ent || (!BRK_OWN_SYNC[i.ent] && String(i.src||"").indexOf("api:")!==0); }
 /* Aplicar (DEGIRO, IBKR y los que vengan). Solo lo mapeado; lo que el fichero no trae se
    respeta. El precio en vivo NO se engancha: `prices` aún no sabe la moneda de cada cotización
    (un GBp tomado por GBP multiplica por 100), así que el símbolo del fichero se guarda aparte
    (`fileSym`) y el valor es el del fichero, con su fecha, hasta que eso esté. */
-function brkApplyFile(s, ent, positions, map, goneMark, at){
+function brkApplyFile(s, ent, positions, map, goneMark, at, src){
+  // `src`: de dónde viene el dato — "csv:<bróker>" por fichero, "api:<bróker>" por conexión.
+  src=src||"csv:"+ent;
   const used={};
   let inv=(s.investments||[]).map(function(i){
     if(goneMark[i.id]) return Object.assign({},i,{fileGone:at});
     const po=brkTargetOk(i, ent) && positions.find(function(p){ return map[p.key]===i.id; });
     if(!po) return i;
     used[po.key]=1;
-    const patch={ shares:po.shares, ent:ent, src:"csv:"+ent };
+    const patch={ shares:po.shares, ent:ent, src:src };
     const sameCur=!i.cur||i.cur===po.cur;
     // Cambiar de moneda solo si el fichero trae también el coste: un coste viejo en € dentro de
     // una posición en $ haría mentir la ganancia.
@@ -945,7 +949,7 @@ function brkApplyFile(s, ent, positions, map, goneMark, at){
     return out;
   });
   const created=positions.filter(function(p){ return map[p.key]==="__new" && !used[p.key]; }).map(function(po){
-    const o={ id:uid(), ent:ent, name:po.name, shares:po.shares, cur:po.cur||"EUR", src:"csv:"+ent,
+    const o={ id:uid(), ent:ent, name:po.name, shares:po.shares, cur:po.cur||"EUR", src:src,
       value:po.valueHint!=null?+po.valueHint.toFixed(2):(po.cost!=null?po.cost:0), cost:po.cost };
     if(po.valueHint!=null) o.fileAt=at;
     if(po.costEur!=null) o.costEur=po.costEur;
@@ -955,6 +959,76 @@ function brkApplyFile(s, ent, positions, map, goneMark, at){
   });
   if(created.length) inv=inv.concat(created);
   return Object.assign({},s,{investments:inv});
+}
+
+/* ---- Brókers por CONEXIÓN: IBKR (Flex Web Service) y Kraken (clave de solo lectura), 19/11 ----
+   El dueño no quería ficheros: «que nadie tenga que entrar en la app del bróker». La credencial se
+   guarda cifrada en el servidor (`broker-connect`) y `broker-sync` devuelve lo que hay; el dinero
+   se decide AQUÍ con el mismo motor que los ficheros de la 243:
+   · La PRIMERA lectura pasa por la vista previa: se elige a qué posición va cada cosa, «no tocar»
+     de serie. Esas claves quedan como «conocidas» (`brokerApi[ent].known`).
+   · Las siguientes re-anclan solas lo que ya casa (ISIN o símbolo, mismo bróker) y marcan lo que
+     ya no está (solo lo que puso esta conexión). Una posición NUEVA no se crea sola: se propone
+     (`pend`) y se revisa con la misma vista previa. Decisión del dueño, 19/11.
+   · Solo con una lectura COMPLETA (`ok` y `snapshot`): una parcial no marca nada. */
+var BRK_API=["ibkr","kraken"];
+// IBKR da el cierre del último día hábil: más de dos veces al día no trae nada nuevo.
+var BRK_API_THROTTLE={ ibkr:12*3600*1000, kraken:30*60*1000 };
+var BRK_API_CODES=["flex_1012","flex_1015","flex_1013","flex_1014","flex_1018","flex_1019","flex_1025","flex_temp","flex_no_positions","flex_bad",
+  "kraken_perm","kraken_no_funds","kraken_ip","kraken_otp","kraken_key","kraken_nonce","kraken_rate","kraken_temp","kraken_bad",
+  "no_key","rate","expired","not_linked"];
+/** Código cerrado del servidor → clave de texto. Lo desconocido, al genérico: nunca un texto del bróker. */
+function brkApiErr(code){ return BRK_API_CODES.indexOf(code)>=0?"bx_e_"+code:"bx_e_error"; }
+/* Respuesta de broker-connect/-sync → lo mismo que sale de un fichero. IBKR manda su XML tal cual
+   y lo lee `ibkrParseFlexXml`; Kraken ya viene en posiciones, y aun así se revisa cada número:
+   una cantidad o un valor que no sea un número positivo no entra (quedaría en 0 €). */
+function brkApiSnapshot(res){
+  if(!res||res.ok!==true||res.snapshot!==true) return null;
+  if(res.broker==="ibkr") return ibkrParseFlexXml(res.flexXml||"");
+  if(res.broker!=="kraken"||!Array.isArray(res.positions)) return null;
+  const present=(Array.isArray(res.present)?res.present:[]).map(String);
+  const positions=[];
+  res.positions.forEach(function(p){
+    if(!p||!p.key) return;
+    const q=Number(p.shares), v=Number(p.valueHint);
+    if(!(q>0)||!(v>0)||!isFinite(v)){ present.push(String(p.sym||p.key)); return; }
+    positions.push({ key:String(p.key), isin:null, sym:String(p.sym||p.key), exch:null, name:String(p.name||p.key), shares:q,
+      cur:p.cur==="USD"?"USD":"EUR", valueHint:v, price:Number(p.price)||null, cost:null, costEur:null, costWhy:"api_nocost", buys:0, sells:0 });
+  });
+  return { positions:positions, present:present, cash:Array.isArray(res.cash)?res.cash:[], warnings:Array.isArray(res.warnings)?res.warnings:[],
+    skipped:0, dividends:0, fees:0, from:null, to:/^\d{4}-\d{2}-\d{2}$/.test(String(res.asOf||""))?res.asOf:null, snapshot:true };
+}
+function brkApiMeta(s, ent, meta){
+  const o=Object.assign({},s.brokerApi||{}); o[ent]=meta;
+  return Object.assign({},s,{brokerApi:o});
+}
+/** Lo que el usuario decidió en la vista previa (primera lectura o revisión de nuevas). */
+function brkApiReview(s, ent, parsed, map, goneMark){
+  const was=(s.brokerApi||{})[ent]||{};
+  const at=parsed.to||isoLocal();
+  const next=brkApplyFile(s, ent, parsed.positions, map, goneMark||{}, at, "api:"+ent);
+  const known=(was.known||[]).slice();
+  parsed.positions.forEach(function(p){ if(known.indexOf(p.key)<0) known.push(p.key); });
+  const pend=(was.pend||[]).filter(function(p){ return known.indexOf(p.key)<0; });
+  return brkApiMeta(next, ent, Object.assign({},was,{known:known, pend:pend, at:Date.now(), asOf:at}));
+}
+/** Lectura automática tras la primera: re-ancla lo que casa, marca lo vendido, PROPONE lo nuevo.
+ *  Sin primera revisión (`known`) no toca nada: devuelve null. */
+function brkApiAuto(s, ent, parsed){
+  const was=(s.brokerApi||{})[ent];
+  if(!was||!Array.isArray(was.known)||!parsed||!parsed.snapshot) return null;
+  const map={}, pend=[];
+  parsed.positions.forEach(function(po){
+    const id=brkSuggest(po, s.investments, ent);
+    if(id) map[po.key]=id;
+    else if(was.known.indexOf(po.key)<0) pend.push(po);
+  });
+  const goneMark={};
+  brkGoneOf(s.investments, ent, parsed.positions, map, parsed.present).forEach(function(i){ if(i.src==="api:"+ent && !i.fileGone) goneMark[i.id]=1; });
+  const at=parsed.to||isoLocal();
+  const next=brkApplyFile(s, ent, parsed.positions, map, goneMark, at, "api:"+ent);
+  return { s:brkApiMeta(next, ent, Object.assign({},was,{pend:pend, at:Date.now(), asOf:at})),
+    n:Object.keys(map).length, pend:pend.length, gone:Object.keys(goneMark).length };
 }
 
 /* Cada tarjeta de «Mis bancos» que importa por fichero. Revolut conserva su aspecto de siempre;
@@ -1157,7 +1231,9 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
 }
 /* Vista previa de DEGIRO / IBKR. Por fila: qué trae el fichero (participaciones, valor en su
    moneda) y el coste, o «—» con el porqué. Nada se aplica sin elegir a qué posición va. */
-function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, setGone, mappedN, goneN, natAmt, apply, cancel}){
+function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, setGone, mappedN, goneN, natAmt, apply, cancel, api}){
+  // `api`: la misma vista para la conexión automática; solo cambian las frases que hablan de «fichero».
+  const brokerName=entOf(ent).short||entOf(ent).label;
   const setOne=function(k,v){ setMap(function(m){ const n=Object.assign({},m); n[k]=v; return n; }); };
   const sinPareja=parsed.positions.filter(function(p){ return !map[p.key]; });
   const warn=parsed.warnings||[];
@@ -1188,7 +1264,7 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
           (state.investments||[]).filter(function(i){ return brkTargetOk(i, ent); }).map(function(i){ return React.createElement("option",{key:i.id,value:i.id}, i.ent===ent?i.name:i.name+" · "+(entOf(i.ent).short||entOf(i.ent).label)); })));
     }),
     goneList.length>0 && React.createElement("div",{style:{marginTop:10}},
-      React.createElement("div",{className:"bk-sec",style:{marginBottom:4}}, t("bf_gone_title")),
+      React.createElement("div",{className:"bk-sec",style:{marginBottom:4}}, api?tf("bx_gone_title",{x:brokerName}):t("bf_gone_title")),
       goneList.map(function(i){
         // El selector debajo y a todo el ancho, como en las filas de arriba: al lado, con letra
         // Enorme, el nombre bajaba a tres líneas.
@@ -1201,8 +1277,8 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
       })),
     warn.map(function(w,j){ return React.createElement("div",{key:j,className:"hint",style:{marginTop:4}}, tf("bf_w_"+w.k,{x:w.name||"",n:w.n||0})); }),
     (parsed.cash||[]).length>0 && React.createElement("div",{className:"hint",style:{marginTop:4}},
-      tf("bf_cash",{x:parsed.cash.map(function(c){ return natAmt(c.amt,c.cur); }).join(" · ")})),
-    React.createElement("div",{className:"hint",style:{marginTop:4}}, t("bf_value_file")),
+      tf(api?"bx_cash":"bf_cash",{x:parsed.cash.map(function(c){ return natAmt(c.amt,c.cur); }).join(" · ")})),
+    React.createElement("div",{className:"hint",style:{marginTop:4}}, api?tf("bx_value",{x:brokerName}):t("bf_value_file")),
     React.createElement("div",{className:"bf-foot"},
       React.createElement("button",{className:"btn btn-ghost",style:{flex:"0 0 auto",minHeight:44},onClick:cancel}, t("fj_cancel")),
       React.createElement("button",{className:"btn btn-primary",style:{flex:1,minHeight:44},disabled:nAp===0,onClick:apply}, tf(nAp===1?"bi_apply_one":"bi_apply",{n:nAp})))

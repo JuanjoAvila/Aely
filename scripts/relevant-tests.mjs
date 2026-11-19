@@ -68,6 +68,15 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Brókers por conexión (19/11/2026): alta de IBKR/Kraken en su hoja, vista previa de la primera
+  // lectura y lo nuevo propuesto sin crearse. La tarjeta vive en 06; el motor, en 05; la sync al
+  // abrir, en 11; `cloud.broker*`, en 00; los textos, en 01; la entrada en Conexiones, en 10.
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/broker-api.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/broker-api.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/broker-api.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/broker-api.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/broker-api.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/broker-api.spec.mjs"] },
   // Ronda D (18/11/2026): «Para revisar» tocable, deslizar desde el buscador de Gastos, nombres de
   // «Últimos movimientos» sin cortar, dianas de 44 px de pantalla y cifras de Categorías.
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
@@ -709,6 +718,8 @@ const STEPS_SUPABASE = [
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "ingest-native-slots", "ingest-native-phase1", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "h2-account-phases", "h2-account-identity", "bank-sync-paging", "bank-rate-contracts", "bank-callback-state", "bank-confirm", "bank-rate-client", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
   "categorize-limitador", "categorize-handler",
+  // Cruza los códigos cerrados de las Edge de brókers con los textos de la app (19/11).
+  "broker-api",
 ];
 
 export function posixPath(p) {

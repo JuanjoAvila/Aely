@@ -62,4 +62,24 @@ t("la 0027 quita a anon las funciones SECURITY DEFINER de Hogar", () => {
   assert.doesNotMatch(sentencias, /authenticated/);
 });
 
+/* 0031 (brókers por API): el cliente lee su estado y NADA de la credencial. Si un día se añade
+   `cred_a` al select, o un grant la expone, un XSS con la sesión leería la clave de Kraken. */
+t("broker_links: el cliente lee solo columnas concedidas y nunca cred_* ni el nonce", () => {
+  const core = fs.readFileSync(path.join(root, "src", "modules", "00-core.js"), "utf8");
+  const m = /from\('broker_links'\)\.select\('([^']+)'\)/.exec(core);
+  assert.ok(m, "no encuentro el select de broker_links en 00-core.js");
+  const pide = m[1].split(",").map((s) => s.trim());
+  const sql = fs.readFileSync(path.join(migDir, "0031_broker_links.sql"), "utf8");
+  const g = /grant select \(([^)]+)\)\s*on table public\.broker_links to authenticated/.exec(sql);
+  assert.ok(g, "falta el grant por columnas");
+  const concedidas = g[1].split(",").map((c) => c.trim());
+  assert.deepEqual(pide.filter((c) => !concedidas.includes(c)), []);
+  for (const prohibida of ["cred_a", "cred_b", "nonce", "connection_version"]) {
+    assert.ok(!concedidas.includes(prohibida) && !pide.includes(prohibida), prohibida);
+  }
+  assert.match(sql, /revoke all on table public\.broker_links from anon, authenticated;/);
+  assert.match(sql, /revoke execute on function public\.broker_next_nonce\(uuid, text\) from public, anon, authenticated;/);
+  assert.match(sql, /enable row level security/);
+});
+
 console.log("  ok");
