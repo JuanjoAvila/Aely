@@ -3908,6 +3908,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "native": [
@@ -5648,6 +5668,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "native": [
@@ -6668,6 +6708,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "native": [
@@ -10117,6 +10177,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "native": [
@@ -15949,6 +16029,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -16072,7 +16172,7 @@
       {
         "file": "src/modules/04-tab-gastos.js",
         "from": "      setCat:setCat, setCuota:setCuota,",
-        "to": "      showToast:showToast, aiBusy:"
+        "to": "      showToast:showToast, state:state"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
@@ -17531,6 +17631,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -19256,6 +19376,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "native": [
@@ -20567,7 +20707,6 @@
           "setExpenseDup",
           "setExpenseNoCard",
           "setExpenseNote",
-          "suggestCategory",
           "setExpenseRecibo",
           "renameExpense",
           "setExpenseMeta",
@@ -21886,6 +22025,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -22095,7 +22254,6 @@
           "addExpense",
           "enabled",
           "logEvent",
-          "suggestCategory",
           "setExpenseRecibo",
           "deleteExpense"
         ]
@@ -22795,6 +22953,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankAccounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -23740,6 +23918,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "filasRecompensaCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -24801,7 +24999,6 @@
           "addExpense",
           "enabled",
           "logEvent",
-          "suggestCategory",
           "pullExpenses",
           "setExpenseCat",
           "setExpenseDup",
@@ -26547,6 +26744,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankAccounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "edge": [
@@ -27677,7 +27894,6 @@
           "setExpenseDup",
           "setExpenseNoCard",
           "setExpenseNote",
-          "suggestCategory",
           "setExpenseRecibo",
           "renameExpense",
           "setExpenseMeta",
@@ -29001,6 +29217,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -29629,7 +29865,6 @@
           "setExpenseDup",
           "setExpenseNoCard",
           "setExpenseNote",
-          "suggestCategory",
           "setExpenseRecibo",
           "renameExpense",
           "setExpenseMeta",
@@ -30953,6 +31188,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -33293,6 +33548,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -35621,6 +35896,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -37361,6 +37656,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "native": [
@@ -38847,6 +39162,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -40572,6 +40907,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "apuntarBancoReserva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "native": [
@@ -43859,6 +44214,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "edge": [
@@ -46017,6 +46392,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "edge": [
@@ -50252,6 +50647,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "saldoTrasResolverRepetido"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "edge": [
@@ -53706,6 +54121,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -53903,7 +54338,7 @@
       {
         "file": "src/modules/04-tab-gastos.js",
         "from": "      resolveDup:resolveDup, separarGemelo:separarGemelo,",
-        "to": "      showToast:showToast, aiBusy:aiBusy"
+        "to": "      showToast:showToast, state:state"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
@@ -56049,6 +56484,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -57358,6 +57813,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -60013,6 +60488,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "edge": [
@@ -61983,6 +62478,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -63815,6 +64330,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -65305,6 +65840,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -66704,6 +67259,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -68003,6 +68578,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -69435,6 +70030,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -70437,6 +71052,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -71773,6 +72408,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -73267,6 +73922,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -75154,6 +75829,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -76328,6 +77023,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -77742,6 +78457,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -79167,6 +79902,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -82044,6 +82799,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -84042,6 +84817,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -85589,6 +86384,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -88434,6 +89249,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -90340,6 +91175,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -92883,6 +93738,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -95561,6 +96436,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -97295,6 +98190,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -99730,6 +100645,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -101019,6 +101954,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -102369,6 +103324,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -104220,6 +105195,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "compraDeRecompensa"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "edge": [
@@ -105441,6 +106436,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -106723,6 +107738,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankAccounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "edge": [
@@ -108117,6 +109152,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -109931,6 +110986,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -112066,6 +113141,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -113841,6 +114936,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -115611,6 +116726,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -117377,6 +118512,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -119019,6 +120174,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -119163,7 +120338,6 @@
           "setExpenseDeuda",
           "setExpenseNoCard",
           "setExpenseNote",
-          "suggestCategory",
           "confirmTrMonthlyInvestment",
           "session",
           "decideOwnTransfer",
@@ -120907,6 +122081,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -122817,6 +124011,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -124598,6 +125812,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -126443,6 +127677,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -129981,6 +131235,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -132059,6 +133333,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -133953,6 +135247,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -135694,6 +137008,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -137521,6 +138855,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -138813,6 +140167,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "edge": [
@@ -140884,6 +142258,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -142312,6 +143706,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -143515,6 +144929,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "paidNetDeCuenta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "native": [
@@ -146024,6 +147458,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -147233,6 +148687,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -149538,6 +151012,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -151552,6 +153046,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -153530,6 +155044,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -156062,6 +157596,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -156143,7 +157697,7 @@
       {
         "file": "src/modules/04-tab-gastos.js",
         "from": "withdrawalStatus:withdrawalStatus,confirmMonthlyInvestment:confirmMonthlyInvestment",
-        "to": "      showToast:showToast, aiBusy:aiBusy"
+        "to": "      showToast:showToast, state:state"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
@@ -157199,6 +158753,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "RECOMPENSA_POR_NOMBRE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -158916,6 +160490,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -159022,7 +160616,6 @@
           "setExpenseMeta",
           "setExpenseNoCard",
           "setExpenseNote",
-          "suggestCategory",
           "deleteExpense",
           "addExpense",
           "renameExpense",
@@ -160686,6 +162279,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -162184,6 +163797,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -164082,6 +165715,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -165236,6 +166889,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -166651,6 +168324,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -166694,7 +168387,6 @@
           "confirmExpenseWithdrawal",
           "setExpenseDeuda",
           "setExpenseNoCard",
-          "suggestCategory",
           "deleteExpense",
           "addExpense",
           "renameExpense"
@@ -168376,6 +170068,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -170357,6 +172069,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -172323,6 +174055,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -174297,6 +176049,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -176754,6 +178526,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -179235,6 +181027,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -181679,6 +183491,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankAccounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -183929,6 +185761,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -186356,6 +188208,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -188059,6 +189931,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -190339,6 +192231,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -191964,6 +193876,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "gastoDelSobre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -193627,6 +195559,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -194943,6 +196895,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankAccounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -196477,6 +198449,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboPagadoCon"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -197779,6 +199771,26 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankAccounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -199559,6 +201571,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mobilityCategoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -201072,6 +203104,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentComercioDelRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -202473,6 +204525,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboPagadoCon"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       }
     ],
     "unidades": true
@@ -203053,10 +205125,6 @@
         "function": "uid"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "errTxt"
-      },
-      {
         "file": "src/modules/01-i18n.js",
         "function": "monthShort"
       },
@@ -203119,6 +205187,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseCountsBudget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "errTxt"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -204230,6 +206302,10 @@
       },
       {
         "file": "src/modules/00-core.js",
+        "function": "aprendidoPorBase"
+      },
+      {
+        "file": "src/modules/00-core.js",
         "function": "mobilityCategoryOfNewMerchant"
       },
       {
@@ -204291,6 +206367,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "debenPersonaFisica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "comercioBase"
       },
       {
         "file": "src/modules/00-core.js",
@@ -204753,6 +206833,10 @@
         "data": "DEBEN_NOMBRES"
       },
       {
+        "file": "src/modules/00-core.js",
+        "data": "_baseIdx"
+      },
+      {
         "file": "src/modules/08-motor-bank.js",
         "data": "RECIBO_NO_ADEUDO_RE"
       },
@@ -204763,6 +206847,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "DEBEN_COMERCIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_SOCIEDAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BASE_GENERICA"
       },
       {
         "file": "src/modules/00-core.js",

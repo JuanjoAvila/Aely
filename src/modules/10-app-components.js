@@ -2403,7 +2403,6 @@ const SET_ICO=(function(){
     trnotif:[["path",{d:"M4 5h16v11H9l-5 4z"}],["path",{d:"M9 10.5l2 2 4-4"}]],
     access:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M8 12.5l3 3 5-6"}]],
     narestr:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"}],["path",{d:"M12 17.5h.01"}]],
-    aicat:[["path",{d:"M3 12V4h8l10 10-8 8z"}],["circle",{cx:7.5,cy:8.5,r:1.3}]],
     helpai:[["path",{d:"M9 18h6M10 21h4"}],["path",{d:"M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"}]],
     widget:[["rect",{x:3.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:3.5,y:13.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:13.5,width:7,height:7,rx:1.8}]],
     easy:[["path",{d:"M5 19C5 10.5 10.5 5 20 4c-.8 9.5-6.3 15-15 15z"}],["path",{d:"M5 19l7.5-7.5"}]],
@@ -2924,7 +2923,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
           setS({trIngest:false}); showToast(t("st_tring_off"));
         }
       };
-      const aiOn=!!(state.settings&&state.settings.aiCat);
       /* NOTIFICACIONES, rehecha el 16/11 («hiper cutre», suyo): eran cuatro interruptores iguales con
          un párrafo debajo de cada uno y el permiso, que es lo que decide si algo funciona, en una caja
          roja FUERA del grupo, entre secciones. Ahora el permiso es la primera fila y se ve sin abrir
@@ -2950,7 +2948,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
             sub && React.createElement("span",{className:"sr-sub"},sub)),
           right);
       };
-      return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications permiso acceso apunte automatico gastos trade republic google wallet avisos banco sync caixabank sabadell ia ai categoria",permiso,
+      return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications permiso acceso apunte automatico gastos trade republic google wallet avisos banco sync caixabank sabadell",permiso,
         nat.notifAccess && fila("access","📲",t("nt_access"),null,abrirAcceso,
           // El estado ya lo dice la cabecera del grupo; aquí, sin permiso, lo que toca: activarlo.
           React.createElement(React.Fragment,null,
@@ -2962,9 +2960,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
         fila("tring",React.createElement(Mono,{ent:"trade_republic",size:24}),t("st_tring"),t("st_tring_hint"),toggleIng,sw(ingOn)),
         nat.setNotifPrefs && fila("banksync","🏦",t("st_banksync_notif"),
           React.createElement(React.Fragment,null,bancos.length?logos(bancos):null,t("st_banksync_notif_hint")),function(){ setS({bankSyncOnNotif:!bankSyncOn}); },sw(bankSyncOn)),
-        React.createElement("div",{className:"sc-title"},t("nt_sec_tell")),
-        nat.setNotifPrefs && fila("trnotif","🔔",t("st_trnotif"),t("st_trnotif_hint"),function(){ setS({trNotifyConfirm:!on}); },sw(on)),
-        fila("aicat","✨",t("st_aicat"),t("st_aicat_hint"),function(){ setS({aiCat:!aiOn}); },sw(aiOn))
+        nat.setNotifPrefs && React.createElement("div",{className:"sc-title"},t("nt_sec_tell")),
+        nat.setNotifPrefs && fila("trnotif","🔔",t("st_trnotif"),t("st_trnotif_hint"),function(){ setS({trNotifyConfirm:!on}); },sw(on))
       );
     })(),
     natPlugin() && grp("widget","💳",t("st_widget_bank"),"widget banco bank cuenta tarjeta puedes gastar",null,

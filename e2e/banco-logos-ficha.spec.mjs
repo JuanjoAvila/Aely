@@ -239,7 +239,7 @@ test("Ficha: del banco sin tarjeta de origen, con candado y bloqueada; a mano, b
   await expect(hoja.locator(".v4-keys")).toHaveCount(0);
   await hoja.locator(".v4-ficha-concept").blur();
 
-  // Ajustes: UNA fila de baldosas iguales a las de categoría, y ✨ junto a «Todas ›».
+  // Ajustes: UNA fila de baldosas iguales a las de categoría; sin el ✨ de IA (19/11: la Edge nunca tuvo clave).
   const filas = await hoja.evaluate((s) => {
     const aj = [...s.querySelectorAll(".v4-ficha-ajustes > .v4-ficha-cat")].map((b) => b.getBoundingClientRect());
     const cat = s.querySelector(".v4-ficha-cats:not(.v4-ficha-ajustes) .v4-ficha-cat").getBoundingClientRect();
@@ -253,6 +253,8 @@ test("Ficha: del banco sin tarjeta de origen, con candado y bloqueada; a mano, b
   if (filas.n > 1) expect(Math.abs(filas.alto - filas.altoCat), "mismo alto que una categoría").toBeLessThan(1);
   else await expect(hoja.locator(".v4-ficha-ajustes")).toHaveClass(/\bsolo\b/);
   expect(filas.dentro).toBe(true);
+  expect(filas.ia, "sin botón de IA junto a «Todas ›»").toBe(false);
+  await expect(hoja.getByTestId("exp-ai")).toHaveCount(0);
   await expect(hoja.locator(".v4-ficha-adjust-row")).toHaveCount(0);
   await hoja.getByTestId("exp-note").click();
   await expect(hoja.locator(".v4-ficha-fold")).toHaveClass(/open/);

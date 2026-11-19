@@ -8,7 +8,7 @@ const label={es:"Coche",en:"Car",ca:"Cotxe"};
 for(const lang of ["es","en","ca"]){
   test(lang+": la categoría Coche está en la lista y se sugiere para «Taller Pepe»",async({page})=>{
     await installFixtureClock(page);
-    await seedLoggedInDashboard(page,{accounts,settings:{lang,autoPrices:false,aiCat:false,expenseBanks:["trade_republic"],gTotalMode:"split"},expenses:[],budget:500,__seedOnce:true});
+    await seedLoggedInDashboard(page,{accounts,settings:{lang,autoPrices:false,expenseBanks:["trade_republic"],gTotalMode:"split"},expenses:[],budget:500,__seedOnce:true});
     await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await dismissNews(page);
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await page.locator(".botnav-fab").click();

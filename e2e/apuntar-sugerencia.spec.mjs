@@ -2,13 +2,13 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 /* Sugerir categoría al escribir el concepto en Apuntar (13/9, opción A).
- * Palabras clave se aplican solas; la IA ofrece un chip (nunca sola). */
+ * Lo aprendido de sus correcciones y las palabras clave se aplican solos; sin IA de pago (19/11). */
 
 test.use({ viewport: { width: 375, height: 812 } });
 
 async function openApuntar(page, settingsExtra, cloudFns) {
   const settings = Object.assign(
-    { autoPrices: false, theme: "green", currency: "EUR", lang: "es", aiCat: true },
+    { autoPrices: false, theme: "green", currency: "EUR", lang: "es" },
     settingsExtra || {}
   );
   const overrides = { settings };
@@ -48,28 +48,30 @@ test("Apuntar: si tocas otra categoría a mano, escribir más no la mueve", asyn
   await expect(sheet.locator('[data-testid="ap-cat-super"]')).not.toHaveClass(/on/);
 });
 
-test("Apuntar: la IA ofrece chip ✨ y solo se aplica al tocarlo", async ({ page }) => {
-  const sheet = await openApuntar(page, null, {
-    categorize: { data: { ok: true, category: "ocio", source: "ai" }, error: null },
-  });
-  await sheet.locator(".v4-input").fill("Xyzzy Studio");
-  const ia = sheet.locator('[data-testid="ap-ia-chip"]');
-  await expect(ia, "debe aparecer el chip de IA").toBeVisible({ timeout: 5_000 });
-  await expect(ia).toContainText("Ocio");
-  // Opción A: no se aplica sola — sigue el defecto (supermercado) hasta el toque.
-  await expect(sheet.locator('[data-testid="ap-cat-super"]')).toHaveClass(/on/);
-  // Ocio puede no estar entre las cuatro de la fila hasta que se elige (DIS-01): que no esté marcada.
-  await expect(sheet.locator('[data-testid="ap-cat-ocio"].on')).toHaveCount(0);
-  await ia.click();
-  await expect(sheet.locator('[data-testid="ap-cat-ocio"]')).toHaveClass(/on/);
-  await expect(sheet.locator('[data-testid="ap-cat-super"]')).not.toHaveClass(/on/);
-});
-
-test("Apuntar: con IA apagada no sale el chip aunque la Edge respondería", async ({ page }) => {
-  const sheet = await openApuntar(page, { aiCat: false }, {
+/* Sin IA de pago desde el 19/11: la Edge `categorize` nunca tuvo clave y solo repetía las palabras
+   clave. Ni chip, ni llamada, aunque quede el ajuste viejo guardado y la Edge respondiera. */
+test("Apuntar: un concepto desconocido no pide nada a la nube ni ofrece chip de IA", async ({ page }) => {
+  const sheet = await openApuntar(page, { aiCat: true }, {
     categorize: { data: { ok: true, category: "ocio", source: "ai" }, error: null },
   });
   await sheet.locator(".v4-input").fill("Xyzzy Studio");
   await page.waitForTimeout(1200);
   await expect(sheet.locator('[data-testid="ap-ia-chip"]')).toHaveCount(0);
+  await expect(sheet.locator('[data-testid="ap-cat-super"]'), "sigue el defecto").toHaveClass(/on/);
+  expect(await page.evaluate(() => (window.__e2eInvokes || []).filter((x) => x.name === "categorize").length)).toBe(0);
+});
+
+test("Apuntar: lo que él corrigió antes se aplica solo al escribir el mismo comercio", async ({ page }) => {
+  await seedLoggedInDashboard(page, { settings: { autoPrices: false, theme: "green", currency: "EUR", lang: "es" },
+    catOverrides: { "mercadona 1234": "bares" } });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.locator(".botnav-fab").click();
+  const sheet = page.locator(".v4-sheet");
+  await expect(sheet).toBeVisible();
+  await page.waitForTimeout(450);
+  await sheet.locator(".v4-input").fill("MERCADONA");
+  await expect(sheet.locator('[data-testid="ap-cat-bares"]'), "lo aprendido gana a la palabra clave").toHaveClass(/on/, { timeout: 3_000 });
+  await expect(sheet.locator('[data-testid="ap-cat-super"]')).not.toHaveClass(/on/);
 });

@@ -1277,10 +1277,8 @@ por palabra clave.
         ▼
 [importObExpenses]  settings.expenseBanks → Gastos (ent en source ob:…)
 
-[Sugerir categoría]
-        │  cloud.suggestCategory(merchant)
-        ▼
-[Edge `categorize`]  KW → si otros y OPENAI_API_KEY → LLM acotado
+[Categoría de un alta]  lo aprendido (catOverrides/catRules, también por comercioBase) → KW
+        (la app ya no llama a la Edge `categorize`: ver CATEGORIZE.md)
 ```
 
 El lector Android asigna a cada notificación de compra una identidad estable con origen, paquete,
@@ -1511,10 +1509,10 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - **Hecho:** tipos vivos USD/GBP/CHF→EUR; patrimonio/inversiones/OB vía `toEurAmt` / `invValueEur` / `invCostEur`; anclar `costEur` al editar coste.
 - **No es (ni se persigue):** contabilidad de doble partida con FX histórico por cada compra antigua sin fecha, ni paridad al céntimo con Revolut (spread del bróker).
 
-### Categorías IA (v3.113)
+### Categorías (v3.113; sin IA desde el 19/11/2026)
 
-- KW locales + Edge `categorize` + toggle Ajustes. Ver [CATEGORIZE.md](CATEGORIZE.md).
-- Sin `OPENAI_API_KEY`: solo KW (comportamiento seguro y barato).
+- KW locales + lo aprendido de cada corrección (`setCat` → `catOverrides`/`catRules`). Ver [CATEGORIZE.md](CATEGORIZE.md).
+- El ajuste de IA y la llamada a la Edge `categorize` se quitaron: nunca hubo `OPENAI_API_KEY`. La Edge sigue desplegada, sin uso.
 
 ---
 

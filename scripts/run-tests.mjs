@@ -181,6 +181,8 @@ const steps = [
   ["fin19-cross-bank-identity", ["node", "--test", "--test-concurrency=1", "tests/fin19-cross-bank-identity.test.mjs"]],
   // La categoría que él elige no la deshace un pull ni la palabra clave del servidor (INC-0210-02).
   ["categoria-manual-persistente", ["node", "tests/categoria-manual-persistente.test.mjs"]],
+  // Lo que él corrige se aplica al siguiente cargo del mismo comercio sin pisar lo puesto a mano (19/11).
+  ["categoria-aprendida", ["node", "tests/categoria-aprendida.test.mjs"]],
   ["security", ["node", "tests/security.test.mjs"]],
   ["no-lock-icons", ["node", "tests/no-lock-icons.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],

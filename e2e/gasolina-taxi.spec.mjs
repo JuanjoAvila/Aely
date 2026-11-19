@@ -3,7 +3,7 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock, gastosSeccion,
 
 const labels={es:{gasolina:"Gasolina",taxi:"Taxi",transporte:"Transporte"},en:{gasolina:"Fuel",taxi:"Taxi",transporte:"Transport"},ca:{gasolina:"Benzina",taxi:"Taxi",transporte:"Transport"}};
 const accounts=[{id:"mobility",ent:"trade_republic",name:"Diario",value:2000,role:"diario",spendFrom:true}];
-const settings=lang=>({lang,autoPrices:false,aiCat:false,expenseBanks:["trade_republic"],gTotalMode:"split"});
+const settings=lang=>({lang,autoPrices:false,expenseBanks:["trade_republic"],gTotalMode:"split"});
 async function open(page){
   await page.goto("/"); await expect(page.locator(".botnav")).toBeVisible(); await dismissNews(page);
   await page.waitForFunction(()=>!document.getElementById("mc-load"));

@@ -205,7 +205,7 @@ npm run test:e2e                  # solo Playwright
 ```
 
 **Sentry en prod:** secret `SENTRY_DSN` en GitHub Actions (inyectado al deploy) — [docs/SENTRY.md](docs/SENTRY.md).  
-**Categorías IA (opcional):** Edge `categorize` + `OPENAI_API_KEY` en Supabase — [docs/CATEGORIZE.md](docs/CATEGORIZE.md). Sin key, la app ya usa un diccionario amplio de keywords (incluye impuestos/multas).
+**Categorías:** diccionario amplio de keywords (incluye impuestos/multas) + lo que aprende de cada corrección, también con el comercio escrito distinto — [docs/CATEGORIZE.md](docs/CATEGORIZE.md). Sin IA de pago desde el 19/11/2026 (la Edge `categorize` sigue desplegada, sin uso).
 **Pregúntame:** guía local y offline para presupuesto, recibos, cuentas y uso de la app. La interpretación con OpenAI es opcional, requiere consentimiento y permanece apagada hasta configurar el backend — [brief y límites](docs/briefs/asistente-hibrido-2026-09-16.md).
 
 ```bash

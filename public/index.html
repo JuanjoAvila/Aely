@@ -2236,9 +2236,6 @@
   .v4-ficha-cat-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;font-size:11px;font-weight:800;
     letter-spacing:1.1px;text-transform:uppercase;color:var(--muted-2);}
   .v4-ficha-cat-acts{display:flex;align-items:center;gap:2px;}
-  /* ✨ Sugerir categoría, al lado de «Todas ›»: una acción, no una fila más (16/11). */
-  .v4-ficha-cat-title .v4-ficha-ia{min-width:40px;margin:-12px -4px -12px 0;padding:0;font-size:16px;letter-spacing:0;}
-  .v4-ficha-cat-title .v4-ficha-ia:disabled{opacity:.45;}
   .v4-ficha-cat-title button{min-height:44px;margin:-12px -4px -12px 0;padding:0 4px;color:var(--mint);font-size:12px;font-weight:800;
     letter-spacing:0;text-transform:none;}
   /* Tres columnas y cuatro solo desde 460 px (`useCatCols` usa la misma media): en un móvil, con la
@@ -4075,13 +4072,13 @@ const KW = {
   cine:["cinema","cine","cinesa","yelmo","kinepolis","odeon","mk2","renoir","multicines","entradas.com","atrapalo","ticketmaster","imax","cinemes","filmotech"],
   // Heladería ANTES que bares: si no, «heladería X» caía en restaurantes.
   heladeria:["heladeria","gelateria","ice cream","llaollao","llao llao","ocool","frosti","haagen","ben & jerry","ben and jerry","grom ","amorino"],
-  bares:["restaurante","bar","cafe","cafeteria","mcdonald","burger","pizza","sushi","tapas","cerveceria","bodega","bocadillo","kebab","pollo","grill","braseria","taberna","comida","food","lunch","dinner","brunch","desayuno","telepizza","glovo","just eat","uber eats","kfc","five guys","fiveguys","goiko","tgb","taco bell","tacobell","domino","papa john","subway","starbucks","vips","foster","montadito","rodilla","pans &","pans ","wok ","ramen","poke","taco","churreria","churros","asador","brasa","marisqueria","mariscos","pub ","shawarma","doner","döner","nandos","popeyes","dunkin","donut","tim hortons","cien montaditos","la sureña","sureña","muerde la pasta","ginos","la tagliatella","tagliatella","udon","wagamama","honest greens","croqueteria","tortilleria","gastrobar","vermuteria","coctel","cocktail","vending","expendedor","deliveroo","too good to go","toogoodtogo","mcdonalds","mcdonald's","burger king","hamburgues","cervecer","cerveseria","fosters hollywood","ladydiana","100 montaditos","comida a domicilio"],
+  bares:["restaurante","bar","cafe","cafeteria","mcdonald","burger","pizza","sushi","tapas","cerveceria","bodega","bocadillo","kebab","pollo","grill","braseria","taberna","comida","food","lunch","dinner","brunch","desayuno","telepizza","glovo","just eat","uber eats","kfc","five guys","fiveguys","goiko","tgb","taco bell","tacobell","domino","papa john","subway","starbucks","vips","foster","montadito","rodilla","pans &","pans ","wok ","ramen","poke","taco","churreria","churros","asador","brasa","marisqueria","mariscos","pub ","shawarma","doner","döner","nandos","popeyes","dunkin","donut","tim hortons","cien montaditos","la sureña","sureña","muerde la pasta","ginos","la tagliatella","tagliatella","udon","wagamama","honest greens","croqueteria","tortilleria","gastrobar","vermuteria","coctel","cocktail","vending","expendedor","deliveroo","too good to go","toogoodtogo","mcdonalds","mcdonald's","burger king","hamburgues","cervecer","cerveseria","fosters hollywood","ladydiana","100 montaditos","comida a domicilio","lizarran","bocatta"],
   // Pádel DESPUÉS de bares: «restaurante de pádel» debe ser comida (feedback histórico).
   padel:["padel","pádel","playtomic","paddle","club de padel","club padel","pista padel","padel pro","world padel","premier padel","indoor padel"],
-  super:["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","ahorramás","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","compra online mercadona"],
+  super:["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","ahorramás","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","compra online mercadona","bonarea","bon area","coviran","covirán","masymas","hiperdino","ametller","plusfresc","cash fresh","leclerc","sorli"],
   // Viajes ANTES que ocio/transporte: booking/vueling no son «ocio» ni solo «metro».
   viajes:["booking","airbnb","hotel","hostal","hostel","apartament turistic","apartamento turistico","vueling","iberia","ryanair","easyjet","vuelos","vuelo ","aeropuerto","airport","expedia","trivago","kayak","edreams","rumbo","logitravel","civitatis","getyourguide","amadeus","renfe ave","hotelbeds","marriott","hilton","ibis ","nh hotel","melia","meliá","barcelo","barceló","ac hotel","travelodge","pension ","pensión ","camping","ferry","balearia","grimaldi","cruise","crucero","tourist","turismo"],
-  transporte:["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus"],
+  transporte:["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus","waylet","petronor","meroil","esclatoil","cooltra","zity","free2move","yego"],
   parking:["parking","parquimetro","parkimetro","parquímetro","aparcament","aparcamiento","saba","b:sm","bsm","empark","interparking","apk2","apk80","onepark","elparking","easypark","telpark","zona azul","zona verde","area verde","àrea verda","grua municipal","indigo parking","secure parking"],
   // Coche tras parking. Sin «aire» suelto (choca con aire acondicionado y gasolineras); solo afecta a altas nuevas.
   coche:["taller","itv","lavado de coche","lavado coche","lavadero","autolavado","car wash","neumatico","neumatic","norauto","midas","feu vert","cambio de aceite","recambio","carglass"],
@@ -4112,16 +4109,16 @@ const KW = {
   // Suscripciones de IA separadas de Ocio (feedback 2026-09-07): son herramientas de trabajo
   // distintas de Netflix/Spotify y el presupuesto tiene que poder enseñarlas por separado.
   ia:["anthropic","claude","claude.ai","openai","chatgpt","chat gpt","gpt-","cursor","midjourney","perplexity","github copilot"],
-  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo"],
+  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo","skyshowtime","vivagym","viva gym","altafit","anytime fitness","holmes place","go fit","dreamfit"],
   // Recibos DESPUÉS de ocio: «movistar plus» es streaming; el teléfono Movistar, no.
   // Impuestos en tasas; Sanitas/Adeslas en salud (luz/agua/gas ya van por su lista).
-  recibos:["vodafone","yoigo","masmovil","mas movil","pepephone","jazztel","finetwork","simyo","lowi","parlem","digi espa","digi mobil","digi mov","movistar","orange es","orange espana","orange spain","orange fibra","orange movil","o2 es","o2 espa","telefonia","telefonica","fibra optica","factura movil","recibo movil","mapfre","allianz","axa ","axa.","pelayo","zurich","genesis seguro","direct seguros","mutua madrilena","linea directa","reale seguro","helvetia","alquiler","comunidad de prop","administracion de finca","adm fincas","cuota comunidad","prosegur","securitas direct"],
+  recibos:["vodafone","yoigo","masmovil","mas movil","pepephone","jazztel","finetwork","simyo","lowi","parlem","digi espa","digi mobil","digi mov","movistar","orange es","orange espana","orange spain","orange fibra","orange movil","o2 es","o2 espa","telefonia","telefonica","fibra optica","factura movil","recibo movil","mapfre","allianz","axa ","axa.","pelayo","zurich","genesis seguro","direct seguros","mutua madrilena","linea directa","reale seguro","helvetia","alquiler","comunidad de prop","administracion de finca","adm fincas","cuota comunidad","prosegur","securitas direct","avatel","adamo","euskaltel","telecable","catalana occidente"],
   compras:["zara","mango","primark","stradivarius","bershka","pull &","pull&","el corte","amazon","amzn","aliexpress","pccomponentes","mediamarkt","worten","nike","adidas","foot locker","alehop","ale hop","ale-hop","tiger","flying tiger","normal ","tedi","action","casa ","muy mucho","sostrene","søstrene","kiabi","lefties","springfield","cortefiel","jd sports","sprinter","shein","temu","massimo","oysho","cyrillus","calzedonia","intimissimi","clas ohlson","veritas","douglas perfum","cofidis","papeleria","papelería","copisteria","copistería","liberia","libreria","druni","primor","sephora","perfumeria","fnac ","game ","app store","apple store","samsung store","xiaomi store","coolmod","uniqlo","h&m","hm ","pull and bear","bimba y lola","swatch"],
   salud:["farmacia","fcia","clinica","clínica","medico","médico","doctor","dra.","dr.","consulta","ambulatorio","urgencias","hospital","optica","óptica","fisio","fisioterapia","masaje","podologo","podólogo","psicologo","psicólogo","psiquiatra","sanitas","adeslas","asisa","dkv","mutua","quiron","quirón","cima","cap ","centro medico","centro médico","laboratorio","analisis","análisis","radiologia","radiología","dentista","dental","ortodoncia","oculista","oftalmo","cruz verde","procare","vitaldent","vital dent","donte","dental company","general optic","multiopticas","multioptics","promofarma","dosfarma","atida","pocoyofarma"],
   pelu:["peluqueria","perruqueria","barberia","barber","estilis","hair","salon de belleza","nails","manicura","pedicura","lash","cejas","estetica","belleza","depilacion","depilación","corte de pelo","tinte pelo","balayage"],
   // Mascotas ANTES que hogar.
   mascotas:["zooplus","kivet","tiendanimal","miscota","animalis","kiwoko","pienso","veterinario","veterinari","clinica veterinaria","clínica veterinaria","peluqueria canina","peluquería canina","petsia","dogfy","affinity pet","royal canin","hills pet","purina","advance dog","advance cat","gos ","gat ","perro","gato","mascota"],
-  hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka"],
+  hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka","conforama","jysk","maisons du monde","kave home","bricor"],
   regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo ","douglas"],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
 };
@@ -4215,33 +4212,65 @@ const KW_INICIO={
    cambiaría totales de meses ya cerrados (bloqueo Claude 2026-09-08, misma regla que IA). */
 /* QUÉ CATEGORÍA SUGERIR MIENTRAS ESCRIBES EL CONCEPTO EN APUNTAR (13/9, brief
    `docs/briefs/brief-ia-al-escribir-concepto.md`, opción A elegida por él).
-   Función pura: la pantalla le pasa lo que hay y ella dice qué hacer. Tres reglas:
+   Función pura: la pantalla le pasa lo que hay y ella dice qué hacer. Dos reglas:
    1. Lo que TÚ tocas manda: si ya elegiste un chip a mano, nada lo mueve (`kwCat` null).
-   2. Palabras clave primero (gratis): si saben, se aplica sola esa categoría y NO se pregunta a la IA.
-   3. La IA solo si las palabras clave dicen «otros», está encendida y hay nube; su respuesta se
-      OFRECE como chip (no se aplica) y solo si es para el texto que hay AHORA (una vieja se tira).
-   o = { concepto, tocadaAMano, iaOn, nube, iaPara, iaCat } */
+   2. Lo aprendido de tus correcciones y las palabras clave (`categoryOfNewMerchant`) se aplican solas.
+   Sin chip de IA desde el 19/11: la Edge `categorize` nunca tuvo OPENAI_API_KEY, así que la «IA»
+   solo repetía estas mismas palabras clave con una llamada de red de por medio.
+   o = { concepto, tocadaAMano } */
 function sugerenciaApuntar(o){
   o=o||{};
   const texto=String(o.concepto||"").trim();
-  const nada={ kwCat:null, pedirIA:false, chipIA:null };
-  if(texto.length<3) return nada;
+  if(texto.length<3) return { kwCat:null };
   const kw=categoryOfNewMerchant(texto);
-  if(kw && kw!=="otros" && CAT[kw]){
-    return { kwCat: o.tocadaAMano ? null : kw, pedirIA:false, chipIA:null };
-  }
-  const iaVigente = o.iaPara===texto && o.iaCat && o.iaCat!=="otros" && o.iaCat!=="bizum" && CAT[o.iaCat] ? o.iaCat : null;
-  return {
-    kwCat:null,
-    pedirIA: !!(o.iaOn && o.nube && o.iaPara!==texto),
-    chipIA: iaVigente
-  };
+  return { kwCat: kw && kw!=="otros" && CAT[kw] && !o.tocadaAMano ? kw : null };
 }
 function categoryOfNewMerchant(merchant){
   if(isAtmWithdrawal(merchant)) return "traspaso";
   const cat=autoCategory(merchant);
   if(USER_OVERRIDES[catKey(merchant)] && !CAT_NEUTRAS[USER_OVERRIDES[catKey(merchant)]]) return cat;
+  const base=aprendidoPorBase(USER_OVERRIDES, merchant, function(v){ return v; });
+  if(base && CAT[base] && !CAT_NEUTRAS[base]) return base;
   return mobilityCategoryOfNewMerchant(merchant,cat);
+}
+/* LO APRENDIDO VALE PARA EL MISMO COMERCIO AUNQUE EL BANCO LO ESCRIBA DISTINTO (19/11).
+   Lo que él corrige se guardaba por el texto EXACTO: «Mercadona 1234» no enseñaba nada a
+   «MERCADONA 5678», ni «Pepe Mobile, S.L.U.» a «PEPE MOBILE SLU». Medido antes de tocar: las tres
+   parejas caían otra vez en la palabra clave, y él veía que «no aprende».
+   La base quita lo que cambia de un cargo a otro sin cambiar de sitio: signos, números (tienda,
+   tarjeta, fecha) y letras sueltas (S.A., S.L.U.). Solo para ALTAS: `autoCategory` también relee
+   el «Otros» viejo y movería meses cerrados. Y no vale si lo que queda es genérico («Compra 123»,
+   «Transferencia») —el mismo agujero que «Movimiento» en `setCat`— ni si dos correcciones de la
+   misma base dicen cosas distintas: entonces no se sabe cuál quiso y manda la palabra clave. */
+const BASE_GENERICA={compra:1,compras:1,pago:1,pagos:1,tarjeta:1,tarj:1,transferencia:1,transf:1,trf:1,bizum:1,
+  recibo:1,cargo:1,abono:1,ingreso:1,traspaso:1,nomina:1,movimiento:1,gasto:1,operacion:1,adeudo:1,domiciliacion:1,
+  devolucion:1,comision:1,de:1,del:1,en:1,la:1,el:1,con:1,por:1,para:1,enviado:1,recibido:1};
+// La forma jurídica («SLU» junta o «S.L.U.» en letras sueltas) no distingue un comercio de otro.
+const BASE_SOCIEDAD={sa:1,sl:1,slu:1,sau:1,sll:1,slp:1,scp:1,sccl:1,cb:1,ltd:1,inc:1,gmbh:1,bv:1,srl:1};
+function comercioBase(merchant){
+  const w=catKey(merchant).replace(/[^a-z0-9]+/g," ").split(" ").filter(function(x){ return x.length>1 && !/\d/.test(x) && !BASE_SOCIEDAD[x]; });
+  return w.some(function(x){ return x.length>=3 && !BASE_GENERICA[x]; }) ? w.join(" ") : "";
+}
+const _baseIdx=new WeakMap();
+/* `map` es USER_OVERRIDES o USER_CAT_RULES (se reasignan enteros al cambiar: el índice se
+   recalcula solo). `sufijo` separa la base del resto de la clave; `cat` saca la categoría. */
+function aprendidoPorBase(map, merchant, cat, sufijo){
+  const b=comercioBase(merchant);
+  if(!b || !map) return null;
+  let idx=_baseIdx.get(map);
+  if(!idx){
+    idx={};
+    for(const k in map){
+      const i=sufijo?k.indexOf("|"):-1, kb=comercioBase(i<0?k:k.slice(0,i))+(i<0?"":k.slice(i)), v=map[k], c=cat(v);
+      if(!kb || kb.charAt(0)==="|" || !c) continue;
+      if(idx[kb]===undefined) idx[kb]=v;
+      else if(idx[kb] && cat(idx[kb])!==c) idx[kb]=null;
+      // Misma categoría por dos caminos: vale desde la PRIMERA vez que lo enseñó.
+      else if(idx[kb] && sufijo && v.at<idx[kb].at) idx[kb]=v;
+    }
+    _baseIdx.set(map, idx);
+  }
+  return idx[b+(sufijo||"")]||null;
 }
 // Solo altas nuevas: autoCategory también se usa para leer/migrar «Otros» antiguos.
 // Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
@@ -5430,8 +5459,6 @@ const cloud = (function(){
       if(error) throw error;
       return data;
     },
-    // IA / KW: sugiere categoría de gasto (Edge Function `categorize`). Sin OPENAI_API_KEY
-    // en Supabase cae a keywords; si hay key, solo se usa cuando KW dice «otros».
     async askHelp(question,language){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke("help-assistant",{body:{question:String(question||"").slice(0,600),language:language}});
@@ -5439,13 +5466,6 @@ const cloud = (function(){
         if(error.context&&error.context.status===429) return {ok:false,error:"limited"};
         throw error;
       }
-      return data;
-    },
-    async suggestCategory(merchant){
-      if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke("categorize",{ body:{ merchant:String(merchant||"").slice(0,120) } });
-      if(error) throw error;
-      if(data?.category==="bizum") data.category="otros";
       return data;
     },
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
@@ -6377,7 +6397,7 @@ const CLOUD_WRITES=[
 
 /* Lecturas que METEN DATOS en la cartera. Solo se cortan en MODO INICIAL (mcSandboxVacio), nunca
    en el banco de pruebas normal. Sin esto, la cartera vacía dura lo que tarda el primer pull.
-   `prices`, `suggestCategory` y las de sesión se quedan fuera a propósito: no traen movimientos
+   `prices` y las de sesión se quedan fuera a propósito: no traen movimientos
    ni saldos, y cortarlas haría que la app pareciera rota en vez de recién instalada. */
 const CLOUD_READS_QUE_LLENAN=[
   "pullState","pullExpenses","bankSync","bankSyncHistory","bankLinks","bankAspsps",
@@ -8192,7 +8212,9 @@ function keepCategoryChoices(prevList, incoming, readStartedAt,identityScope){
     if(!(inc.date>minIso)) return;
     // Fecha ilegible = no se sabe si es posterior: no se toca (`dateMs` la daría por hoy).
     const ms=Date.parse(inc.date);
-    const rule=USER_CAT_RULES[catRuleKey(inc)];
+    const rk=catRuleKey(inc);
+    // Mismo banco y forma de pago, aunque el comercio venga escrito distinto (`aprendidoPorBase`).
+    const rule=USER_CAT_RULES[rk] || aprendidoPorBase(USER_CAT_RULES, inc.merchant, function(v){ return v&&v.cat; }, rk.slice(rk.indexOf("|")));
     if(!rule || rule.cat===inc.category || !CAT[rule.cat] || !(ms>rule.at)) return;
     if(!esNueva(mergeKey(inc))) return;
     swap(i, Object.assign({},inc,{category:rule.cat, catStale:[inc.category]}));
@@ -9250,7 +9272,6 @@ const LANG = {
     st_trnotif:"Un aviso por cada gasto apuntado", st_trnotif_hint:"Los de presupuesto llegan igual",
     st_tring:"Apuntar mis compras solas", st_tring_hint:"Trade Republic y Google Wallet de este móvil", st_tring_on:"✓ Listo · tus compras con la tarjeta de Trade Republic entrarán solas en esta cuenta", st_tring_off:"Apuntado de Trade Republic desactivado", st_tring_nornd:"✕ Este navegador no puede generar una clave segura · no se activa (mejor eso que una clave adivinable)",
     st_banksync_notif:"Sincronizar al llegar un aviso del banco", st_banksync_notif_hint:"Como mucho cada 12 h",
-    st_aicat:"Sugerir categoría con IA", st_aicat_hint:"Solo en «Otros» · sin el importe",
     th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
     rp_saved:"Informe guardado en Descargas",
     rp_saved_notif:"{f} · Toca para abrirlo", rp_saved_app:"Informe guardado. Toca el aviso para abrirlo.", rp_need_apk:"Para guardar el informe, actualiza la app.", rp_share:"Compartir",
@@ -9701,7 +9722,6 @@ Object.assign(LANG.es,{
   g_filters:"Filtros",
   g_filters_search:"Buscar categoría…", g_filters_cats:"Categorías", g_filters_banks:"bancos",
   g_filters_clear:"Limpiar",
-  ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría con IA» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
   g_cycle_budget_hint:"La nómina abre el ciclo. Los ingresos posteriores, incluidos Bizums y alquileres, aumentan el margen; traspasos no.",
   g_cycle_filter_hint:"Este filtro va del último cobro detectado a hoy; no cambia el presupuesto mensual.",
@@ -14768,7 +14788,7 @@ function useDespliegue(open){
 function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
   onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint,
   afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
-  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, catAction, todasEnFila, catRowsMax}){
+  adjustments, numpad, footer, testPrefix, catRows, catsFirst, onConceptFocus, kb, payRow, numpadOpen, onAmount, onCloseNumpad, todasEnFila, catRowsMax}){
   const isIn=kind==="ingreso";
   /* Modificar (`numpadOpen` definido): el teclado no está siempre puesto. Asomaba cortado bajo los
      ajustes y, en un movimiento del banco, ni siquiera servía (el dueño, 16/11). Al tocar el importe
@@ -14977,7 +14997,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       React.createElement("span",{className:"v4-ficha-todas"},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
     !todasEnFila && !elegida && React.createElement("div",{className:"v4-ficha-cat-title"},
       React.createElement("span",{className:"v4-ficha-cat-t"},t("f_cat")),
-      React.createElement("span",{className:"v4-ficha-cat-acts"},conTeclado?null:(catAction||null),
+      React.createElement("span",{className:"v4-ficha-cat-acts"},
         todasBtn("v4-ficha-todas",tf("f_cat_all",{n:(allCategoryItems||[]).length})))),
     visibles.length>0 && React.createElement(ExpenseCategoryGrid,{items:visibles,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat",
       fin:todasEnFila?todasBtn("v4-ficha-cat v4-ficha-todas-tile",[React.createElement("span",{key:"i",className:"v4-ficha-cat-icon","aria-hidden":"true"},"⋯"),
@@ -16102,7 +16122,6 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   const [filterOpen,setFilterOpen]=useState(false);
   const [visible,setVisible]=useState(CONFIG.PAGE_SIZE);
   const suppressOpenRef=useRef(0);
-  const [aiBusy,setAiBusy]=useState(false);
   const [undoDelete,setUndoDelete]=useState(null);
   const undoDeleteRef=useRef(null);
   const undoTimerRef=useRef(null);
@@ -17203,25 +17222,6 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       return true;
     });
   };
-  const suggestAi=function(ex){
-    if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
-    if(!ex||aiBusy) return;
-    // KW locales primero (mismas que ingest): Recibos/heladería/… no esperan a desplegar la Edge.
-    const local=autoCategory(ex.merchant||"");
-    if(local && local!=="otros" && CAT[local]){
-      setCat(ex,local);
-      showToast(tf("ai_cat_ok",{c:catName(local)}));
-      return;
-    }
-    if(!cloud.enabled()){ showToast(t("ai_cat_none")); return; }
-    setAiBusy(true);
-    cloud.suggestCategory(ex.merchant||"").then(function(res){
-      const cat=res&&res.category;
-      if(!cat||cat==="otros"||!CAT[cat]){ showToast(t("ai_cat_none")); return; }
-      setCat(ex,cat);
-      showToast(tf("ai_cat_ok",{c:catName(cat)}));
-    }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setAiBusy(false); });
-  };
   useEffect(()=>{ setVisible(CONFIG.PAGE_SIZE); },[preset,range,sel,bankSel,bucketSel,q,catFil]);
   /* LA PAGINACIÓN DE LA LISTA — sus fallos, y el de 2026-07-27.
      1. «Cuando bajas hacia abajo RAPIDÍSIMO deslizando se para cada cierto tiempo.» El centinela
@@ -17940,7 +17940,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
           const next=Object.assign({},current);delete next[key];return next;
         });});
       },
-      showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
+      showToast:showToast, state:state
     }),
     undoDelete && ReactDOM.createPortal(
       React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
@@ -18899,7 +18899,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -19257,8 +19257,6 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
           payRow:payRow,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
-          catAction:cloud.enabled()&&!isIncome?React.createElement("button",{type:"button",className:"v4-ficha-ia","data-testid":"exp-ai",
-            "aria-label":aiBusy?t("ai_cat_busy"):t("ai_cat_btn"),"aria-busy":aiBusy?"true":null,disabled:aiBusy,onClick:function(){ suggestAi(exp); }},"✨"):null,
           numpadOpen:editaImporte&&!auto,onAmount:function(){ setAdjustOpen(null); setEditaImporte(function(v){ return !v; }); },onCloseNumpad:function(){ setEditaImporte(false); },
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
@@ -34400,7 +34398,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="df007183e5fdf69526a7db75be459c40a1cbe1bbc6963fff691ba7473fa0dbbd";
+var _rnSha="631dbb93ce8dad7ab3dee2851ed84c30bbf462352f8118653e2da5917cc6ebdf";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -34620,7 +34618,6 @@ const SET_ICO=(function(){
     trnotif:[["path",{d:"M4 5h16v11H9l-5 4z"}],["path",{d:"M9 10.5l2 2 4-4"}]],
     access:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M8 12.5l3 3 5-6"}]],
     narestr:[["circle",{cx:12,cy:12,r:9}],["path",{d:"M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"}],["path",{d:"M12 17.5h.01"}]],
-    aicat:[["path",{d:"M3 12V4h8l10 10-8 8z"}],["circle",{cx:7.5,cy:8.5,r:1.3}]],
     helpai:[["path",{d:"M9 18h6M10 21h4"}],["path",{d:"M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"}]],
     widget:[["rect",{x:3.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:3.5,width:7,height:7,rx:1.8}],["rect",{x:3.5,y:13.5,width:7,height:7,rx:1.8}],["rect",{x:13.5,y:13.5,width:7,height:7,rx:1.8}]],
     easy:[["path",{d:"M5 19C5 10.5 10.5 5 20 4c-.8 9.5-6.3 15-15 15z"}],["path",{d:"M5 19l7.5-7.5"}]],
@@ -35141,7 +35138,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
           setS({trIngest:false}); showToast(t("st_tring_off"));
         }
       };
-      const aiOn=!!(state.settings&&state.settings.aiCat);
       /* NOTIFICACIONES, rehecha el 16/11 («hiper cutre», suyo): eran cuatro interruptores iguales con
          un párrafo debajo de cada uno y el permiso, que es lo que decide si algo funciona, en una caja
          roja FUERA del grupo, entre secciones. Ahora el permiso es la primera fila y se ve sin abrir
@@ -35167,7 +35163,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
             sub && React.createElement("span",{className:"sr-sub"},sub)),
           right);
       };
-      return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications permiso acceso apunte automatico gastos trade republic google wallet avisos banco sync caixabank sabadell ia ai categoria",permiso,
+      return grp("notifs","🔔",t("st_notifs"),"notificaciones notifications permiso acceso apunte automatico gastos trade republic google wallet avisos banco sync caixabank sabadell",permiso,
         nat.notifAccess && fila("access","📲",t("nt_access"),null,abrirAcceso,
           // El estado ya lo dice la cabecera del grupo; aquí, sin permiso, lo que toca: activarlo.
           React.createElement(React.Fragment,null,
@@ -35179,9 +35175,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
         fila("tring",React.createElement(Mono,{ent:"trade_republic",size:24}),t("st_tring"),t("st_tring_hint"),toggleIng,sw(ingOn)),
         nat.setNotifPrefs && fila("banksync","🏦",t("st_banksync_notif"),
           React.createElement(React.Fragment,null,bancos.length?logos(bancos):null,t("st_banksync_notif_hint")),function(){ setS({bankSyncOnNotif:!bankSyncOn}); },sw(bankSyncOn)),
-        React.createElement("div",{className:"sc-title"},t("nt_sec_tell")),
-        nat.setNotifPrefs && fila("trnotif","🔔",t("st_trnotif"),t("st_trnotif_hint"),function(){ setS({trNotifyConfirm:!on}); },sw(on)),
-        fila("aicat","✨",t("st_aicat"),t("st_aicat_hint"),function(){ setS({aiCat:!aiOn}); },sw(aiOn))
+        nat.setNotifPrefs && React.createElement("div",{className:"sc-title"},t("nt_sec_tell")),
+        nat.setNotifPrefs && fila("trnotif","🔔",t("st_trnotif"),t("st_trnotif_hint"),function(){ setS({trNotifyConfirm:!on}); },sw(on))
       );
     })(),
     natPlugin() && grp("widget","💳",t("st_widget_bank"),"widget banco bank cuenta tarjeta puedes gastar",null,
@@ -40878,11 +40873,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const [date,setDate]=useState(function(){ return isoLocal(); });
   const [calOpen,setCalOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
-  /* Sugerir categoría al escribir el concepto (13/9, opción A): palabras clave se aplican solas;
-     la IA solo ofrece un chip. Lo que tocas a mano manda. */
+  /* Sugerir categoría al escribir el concepto (13/9, opción A): lo aprendido y las palabras clave
+     se aplican solas. Lo que tocas a mano manda. */
   const [tocadaAMano,setTocadaAMano]=useState(false);
-  const [iaPara,setIaPara]=useState(null);
-  const [iaCat,setIaCat]=useState(null);
   const [sugKw,setSugKw]=useState(null);
   /* Escribiendo el concepto (DIS-05, 15/11): el teclado del sistema tapaba el campo, o el teclado
      numérico pegado abajo lo tapaba a él, y se escribía a ciegas. Con el foco en el concepto el
@@ -40924,9 +40917,6 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const dedoRef=useRef(false);
   const noteRef=useRef(note); noteRef.current=note;
   const tocadaRef=useRef(tocadaAMano); tocadaRef.current=tocadaAMano;
-  const iaParaRef=useRef(iaPara); iaParaRef.current=iaPara;
-  const iaCatRef=useRef(iaCat); iaCatRef.current=iaCat;
-  const aiOn=!!(state.settings&&state.settings.aiCat);
   const bankOpts=useMemo(function(){
     const seen={}; const out=[];
     (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
@@ -40951,7 +40941,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     if(open&&!ensayo){
       guardadoRef.current=false;
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
-      setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
+      setTocadaAMano(false); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       setConceptoFoco(false); setKbPad(0); setVvAlto(0); setKbVista(false); kbTokRef.current++;
       setKbPrevio(false); previoRef.current=false; tecladoVistoRef.current=false; clearTimeout(previoTmRef.current); setKbYa(false);
@@ -40965,35 +40955,16 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       setEntryCur(String(last).toUpperCase());
     }
   },[open]);
-  /* Debounce 400 ms KW / 900 ms IA (brief opción A). Refs: el timer no debe pillarse el texto viejo. */
+  /* Debounce 400 ms (brief opción A). Refs: el timer no debe pillarse el texto viejo. */
   useEffect(function(){
     if(!open || kind!=="gasto") return undefined;
     const tKw=setTimeout(function(){
-      const texto=String(noteRef.current||"").trim();
-      const sug=sugerenciaApuntar({
-        concepto:texto, tocadaAMano:tocadaRef.current, iaOn:aiOn, nube:cloud.enabled(),
-        iaPara:iaParaRef.current, iaCat:iaCatRef.current
-      });
+      const sug=sugerenciaApuntar({ concepto:String(noteRef.current||"").trim(), tocadaAMano:tocadaRef.current });
       if(sug.kwCat){ setCat(sug.kwCat); setSugKw(sug.kwCat); }
       else if(!tocadaRef.current) setSugKw(null);
     }, 400);
-    const tIa=setTimeout(function(){
-      const texto=String(noteRef.current||"").trim();
-      const sug=sugerenciaApuntar({
-        concepto:texto, tocadaAMano:tocadaRef.current, iaOn:aiOn, nube:cloud.enabled(),
-        iaPara:iaParaRef.current, iaCat:iaCatRef.current
-      });
-      if(!sug.pedirIA) return;
-      setIaPara(texto);
-      cloud.suggestCategory(texto).then(function(res){
-        if(String(noteRef.current||"").trim()!==texto) return;
-        const c=res&&res.category;
-        if(c && c!=="otros" && CAT[c]) setIaCat(c);
-        else setIaCat(null);
-      }).catch(function(){ /* ya marcamos iaPara: no reintentar en bucle */ });
-    }, 900);
-    return function(){ clearTimeout(tKw); clearTimeout(tIa); };
-  },[open, note, kind, aiOn]);
+    return function(){ clearTimeout(tKw); };
+  },[open, note, kind]);
   /* Si el teclado se superpone sin encoger la WebView, lo que tapa es lo que sobra entre el alto de
      la ventana y el de visualViewport: la hoja se sube eso (como la ayuda, 16-help-assistant). Si
      la WebView se encoge, ese hueco es 0; en los dos casos el tope es el alto que queda a la vista. */
@@ -41169,10 +41140,6 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     }
   };
   const cats=XC.filter(function(c){ return c.id!=="otros"; }).concat(XC.filter(function(c){ return c.id==="otros"; }));
-  const chipIA=(kind==="gasto") ? sugerenciaApuntar({
-    concepto:note.trim(), tocadaAMano:tocadaAMano, iaOn:aiOn, nube:cloud.enabled(),
-    iaPara:iaPara, iaCat:iaCat
-  }).chipIA : null;
   const pickCat=function(id){
     setCat(id); setTocadaAMano(true); setSugKw(null);
   };
@@ -41208,10 +41175,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
     curOpen && React.createElement("div",{className:"v4-chips wrap","aria-label":t("ap_cur_lbl")},
       curChips.map(function(c){ return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),
         onClick:function(){ pickCur(c); setCurOpen(false); }},(CUR_SYM[c]||c)+" "+c); })),
-    calOpen && React.createElement(McCal,{value:date,onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
-    chipIA && kind==="gasto" && React.createElement("div",{className:"v4-chips",style:{marginBottom:4}},
-      React.createElement("button",{type:"button",className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
-        onClick:function(){ pickCat(chipIA); }},"✨ "+catName(chipIA)))
+    calOpen && React.createElement(McCal,{value:date,onPick:function(iso){ setDate(iso); setCalOpen(false); }})
   );
   const fxHint=entryCur!=="EUR" ? (toEurAmt(amt,entryCur,state)==null?t("fx_no_rate"):tf("f_fx_eq",{
     x:NF.format(toEurAmt(amt,entryCur,state))+" €",date:fmtIsoCorto(state.fxDate||date)
