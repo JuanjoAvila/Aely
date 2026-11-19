@@ -4864,6 +4864,85 @@ async function mcPullExpensesPaged(fetchPage){
 }
 
 
+/* HOGAR ENDURECIDO (SEG-10, ronda F, 19/11/2026). La migración 0028 trae `join_household`, que
+   devuelve {ok,code} en vez de lanzar: con la excepción de `join_household_by_code` el freno de la
+   0022 deshacía su propio contador y no contaba los fallos. Trae también la caducidad del código y
+   que el dueño pueda expulsar. Está escrita, pero una BD puede no tenerla aún: por eso cada paso
+   sabe caer a lo de antes en vez de romper el Hogar de la familia. Puras y con `sb` por parámetro
+   para poder probarlas sin red (tests/hogar-endurecido.test.mjs). */
+const HH_CODIGO_DIAS=30;
+function hhSinRpc(error){
+  const e=error||{};
+  return e.code==="PGRST202"||e.status===404||/could not find the function/i.test(String(e.message||""));
+}
+function hhSinColumna(error){
+  const e=error||{}, m=String(e.message||"");
+  return (e.code==="PGRST204"||e.code==="42703"||/column/i.test(m))&&/invite_expires_at/.test(m);
+}
+async function hhUnirse(sb, code){
+  const p={ p_code:String(code||"").trim() };
+  const r=await sb.rpc("join_household",p);
+  if(!r.error){
+    const d=r.data||{};
+    if(d.ok) return d.household_id||null;
+    throw new Error(String(d.code||"invalid_code"));
+  }
+  if(!hhSinRpc(r.error)) throw r.error;
+  const v=await sb.rpc("join_household_by_code",p);
+  if(v.error) throw v.error;
+  return v.data;
+}
+// El `.select()` distingue «hecho» de «la política no te deja»: sin permiso, la RLS no da error,
+// simplemente no toca ninguna fila.
+async function hhRegenerarCodigo(sb, hid, code, nowMs){
+  let caduca=new Date((nowMs!=null?nowMs:Date.now())+HH_CODIGO_DIAS*864e5).toISOString();
+  let r=await sb.from("households").update({ invite_code:code, invite_expires_at:caduca }).eq("id",hid).select("id");
+  if(r.error&&hhSinColumna(r.error)){
+    caduca=null;
+    r=await sb.from("households").update({ invite_code:code }).eq("id",hid).select("id");
+  }
+  if(r.error) throw r.error;
+  if(!r.data||!r.data.length) throw new Error("not_allowed");
+  return { invite_code:code, invite_expires_at:caduca };
+}
+async function hhExpulsar(sb, hid, userId){
+  const r=await sb.from("household_members").delete().eq("household_id",hid).eq("user_id",userId).select("user_id");
+  if(r.error) throw r.error;
+  if(!r.data||!r.data.length) throw new Error("not_allowed");
+}
+/* La fila propia se busca por `user_id`: la RLS deja ver a TODOS los miembros del hogar, así que el
+   `.limit(1)` de antes podía devolver la de otro y dar su rol (un miembro viéndose dueño o al revés).
+   La lista de miembros es solo para expulsar: si falla, el Hogar se pinta igual. */
+async function hhLeerHogar(sb){
+  const {data:ses}=await sb.auth.getSession();
+  const me=ses&&ses.session&&ses.session.user&&ses.session.user.id;
+  if(!me) return { household:null, snapshots:[], members:[] };
+  const {data:mem,error:e1}=await sb.from("household_members").select("household_id,role").eq("user_id",me).limit(1);
+  if(e1) throw e1;
+  if(!mem||!mem.length) return { household:null, snapshots:[], members:[] };
+  const hid=mem[0].household_id;
+  const {data:hh,error:e2}=await sb.from("households").select("*").eq("id",hid).maybeSingle();
+  if(e2) throw e2;
+  if(!hh) return { household:null, snapshots:[], members:[] };
+  const {data:snaps,error:e3}=await sb.from("household_snapshots")
+    .select("user_id,payload,published_at").eq("household_id",hid);
+  if(e3) throw e3;
+  let members=[];
+  try{
+    const r=await sb.from("household_members").select("user_id,role").eq("household_id",hid);
+    if(!r.error&&Array.isArray(r.data)) members=r.data;
+  }catch(e){}
+  return { household:hh, snapshots:snaps||[], myRole:mem[0].role, me:me, members:members };
+}
+// Un código viejo (los de 6 de antes del 13/9) o caducado: el dueño ve «Regenerar» destacado.
+function hhCodigoFlojo(hh, nowMs){
+  if(!hh) return false;
+  const c=String(hh.invite_code||"").replace(/[^A-Za-z0-9]/g,"");
+  if(c.length<10) return true;
+  const ms=hh.invite_expires_at?Date.parse(hh.invite_expires_at):NaN;
+  return isFinite(ms)&&ms<(nowMs!=null?nowMs:Date.now());
+}
+
 const cloud = (function(){
   let sb = null;
   const statePushCache=new Map();
@@ -5735,23 +5814,19 @@ const cloud = (function(){
     },
     async joinHousehold(code){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.rpc("join_household_by_code",{ p_code:String(code||"").trim() });
-      if(error) throw error;
-      return data;
+      return hhUnirse(sb, code);
+    },
+    async regenHouseholdCode(householdId, code){
+      if(!sb) throw new Error("nube no disponible");
+      return hhRegenerarCodigo(sb, householdId, code);
+    },
+    async kickHouseholdMember(householdId, userId){
+      if(!sb) throw new Error("nube no disponible");
+      return hhExpulsar(sb, householdId, userId);
     },
     async fetchHouseholdBundle(){
-      if(!sb) return { household:null, snapshots:[] };
-      const {data:mem,error:e1}=await sb.from("household_members").select("household_id,role").limit(1);
-      if(e1) throw e1;
-      if(!mem||!mem.length) return { household:null, snapshots:[] };
-      const hid=mem[0].household_id;
-      const {data:hh,error:e2}=await sb.from("households").select("*").eq("id",hid).maybeSingle();
-      if(e2) throw e2;
-      if(!hh) return { household:null, snapshots:[] };
-      const {data:snaps,error:e3}=await sb.from("household_snapshots")
-        .select("user_id,payload,published_at").eq("household_id",hid);
-      if(e3) throw e3;
-      return { household:hh, snapshots:snaps||[], myRole:mem[0].role };
+      if(!sb) return { household:null, snapshots:[], members:[] };
+      return hhLeerHogar(sb);
     },
     async publishHouseholdSnapshot(householdId, payload){
       if(!sb) throw new Error("nube no disponible");
@@ -6373,6 +6448,7 @@ const CLOUD_WRITES=[
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
+  "regenHouseholdCode","kickHouseholdMember",
 ];
 
 /* Lecturas que METEN DATOS en la cartera. Solo se cortan en MODO INICIAL (mcSandboxVacio), nunca
@@ -9400,6 +9476,11 @@ Object.assign(LANG.es,{
   hh_rls_fix:"No se ha podido guardar en el hogar. Prueba más tarde.",
   hh_spent_m:"Gastado este mes", hh_fixed_m:"Fijos /mes", hh_cats:"Gastos del hogar por categoría",
   hh_fixed_top:"Sus fijos principales",
+  hh_regen:"Regenerar código", hh_regen_q:"¿Regenerar el código?", hh_regen_sub:"El código de ahora dejará de valer.",
+  hh_regen_ok:"✓ Código nuevo", hh_code_old:"Este código es antiguo: regenéralo.", hh_code_until:"hasta el {d}",
+  hh_members:"Miembros", hh_member:"Miembro", hh_kick:"Quitar", hh_kick_q:"¿Quitar a {name} del hogar?",
+  hh_kick_sub:"Su vista dejará de verse aquí. Sus datos no se borran.", hh_kick_ok:"Sí, quitar", hh_kicked:"Miembro quitado",
+  hh_kick_no:"Aún no se puede quitar a nadie. Prueba más tarde.",
   rc_title:"Recibo gordo cerca", rc_body:"{name}: {x} el día {d}",
   rc_title_tmrw:"Mañana toca recibo", rc_body_tmrw:"{name}: mañana se cobran {x}. Si algo no cuadra, aún estás a tiempo.",
   rc_body_tmrw_enough:"{name}: mañana se cobran {x}. Mínimo previsto este mes en {bank}: {saldo}.",
@@ -9444,9 +9525,9 @@ Object.assign(LANG.es,{
   bi_file:"📄 Elegir CSV (puedes marcar varios)", bi_paste_ph:"…o pega aquí el contenido del CSV", bi_analyze:"Analizar",
   bi_err:"No he podido leer el CSV (¿formato raro?). Pega unas líneas y dime qué columnas tiene.",
   bi_err_pnl:"Ese es el «Extracto de Pérdidas y Ganancias»: solo trae lo que YA vendiste, no lo que tienes. Necesito el «Extracto de cuenta» (el de arriba del todo en Documentos). Ojo: alguno se llama «trading-account-statement» pero por dentro es el de P&G.",
-  bi_err_fiat:"✓ Este es el extracto de tu cuenta normal en €, y lo he leído bien: de aquí saco lo que te costaron el oro y la plata, y ya me lo he guardado. Lo que falta son las ONZAS: sube ahora el de Invest → Documentos → «Materias primas» → «Extracto de cuenta» y te lo junto con esto (si ya lo habías subido antes, vuelve a subirlo: esta vez sí saldrá el coste).",
+  bi_err_fiat:"✓ De este extracto sale lo que pagaste por el oro y la plata, y ya está guardado. Falta el de Materias primas (las onzas): súbelo ahora, aunque ya lo hubieras subido.",
   met_xau:"Oro (XAU)", met_xag:"Plata (XAG)", met_xpt:"Platino (XPT)", met_xpd:"Paladio (XPD)", bi_oz:"onzas",
-  bi_metal_hint:"🥇 Materias primas: este extracto solo trae ONZAS. Lo que pagaste en € está en el extracto de tu cuenta NORMAL de Revolut (la de euros, fuera de Invest): súbelo también y te calculo el «sube/baja» solo. Si lo prefieres, escribe abajo el coste total en € y con eso me vale.",
+  bi_metal_hint:"🥇 Este extracto solo trae onzas. Para saber lo que pagaste, sube también el de tu cuenta en euros de Revolut o escribe abajo el coste total.",
   bi_metal_auto:"🥇 El coste sale de tu extracto de la cuenta en €: cada conversión a metal se casa con los euros que pusiste ese mismo momento. Si no te cuadra con tu app de Revolut, escribe abajo el coste total y manda el tuyo.",
   bi_metal_cost_ph:"Coste en € (opcional, para ver el %)",
   bi_summary:"{n} posiciones detectadas · {from} → {to}", bi_skipped:"{n} filas no reconocidas (ignoradas)",
@@ -9881,7 +9962,7 @@ Object.assign(LANG.es,{
   bank_upd_mov1:"1 movimiento nuevo", bank_upd_movn:"{n} movimientos nuevos",
   sync_result_title:"Resultado de la sincronización", sync_result_close:"Cerrar",
   bank_expired_re:"permiso caducado · reconéctate",
-  bank_nolink:"esta cuenta aún no está dada de alta en Enable Banking (modo restringido). Enlázala en el panel de Enable Banking y vuelve a conectar.",
+  bank_nolink:"esta cuenta no ha llegado del banco. Vuelve a conectar.",
   bank_refresh:"Actualizar todos", bank_reconnect:"Reconectar",
   bank_pending:"Pendiente de autorizar en el banco",
   bank_updated:"Saldo actualizado: {x}", bank_neversync:"Aún sin sincronizar",
@@ -20609,8 +20690,13 @@ function miDeviceLogin(http, loginBody, devId, captchaToken){
 }
 function MyInvestorSync({state, set, open, onToggle}){
   const [step,setStep]=useState("idle");     // idle | otp | connected | preview
-  // usuario recordado (NUNCA la contraseña): reconectar tras una caducidad = solo contraseña+OTP
-  const [cid,setCid]=useState(function(){ try{ return localStorage.getItem("_miCid")||""; }catch(e){ return ""; } });
+  /* El DNI/NIE ya no se recuerda (SEG-19, 19/11/2026): en localStorage queda en claro y al alcance
+     de cualquier script de la página. Reconectar tras una caducidad pide escribirlo otra vez; la
+     copia que dejaron las versiones de antes se borra al abrir esta tarjeta. */
+  const [cid,setCid]=useState("");
+  useEffect(function(){ try{ localStorage.removeItem("_miCid"); }catch(e){} },[]);
+  // El campo del «site key» de reCAPTCHA es cosa del admin: a la familia le pedía F12 (F-03).
+  const rcAdmin=useMemo(function(){ try{ const x=JSON.parse(localStorage.getItem("_mcAdminProfile")||"null"); return !!(x&&x.isAdmin===true); }catch(e){ return false; } },[]);
   const [expired,setExpired]=useState(false);
   const [pass,setPass]=useState("");
   const [code,setCode]=useState("");
@@ -20663,7 +20749,7 @@ function MyInvestorSync({state, set, open, onToggle}){
   const storeTokens=function(tk){
     return cloud.myinvestorStore({ deviceId:deviceId(), accessToken:tk.accessToken, refreshToken:tk.refreshToken, refreshExpiresIn:tk.refreshExpiresIn }).then(function(r){
       setBusy(false);
-      if(r&&r.connected){ try{ localStorage.setItem("_miCid",cid.trim()); }catch(e){} setExpired(false); setPass(""); setCode(""); setStep("connected"); doSync(); return; }
+      if(r&&r.connected){ setExpired(false); setPass(""); setCode(""); setStep("connected"); doSync(); return; }
       fail(r);
     }).catch(fail);
   };
@@ -20682,7 +20768,7 @@ function MyInvestorSync({state, set, open, onToggle}){
         return;
       }
       if(r.otp){ setOtpInfo({otpId:r.otpId, signatureRequestId:r.signatureRequestId}); setStep("otp"); return; }
-      if(r.connected){ try{ localStorage.setItem("_miCid",cid.trim()); }catch(e){} setExpired(false); setStep("connected"); doSync(); return; }
+      if(r.connected){ setExpired(false); setStep("connected"); doSync(); return; }
       fail(r);
     }).catch(fail);
   };
@@ -20729,7 +20815,7 @@ function MyInvestorSync({state, set, open, onToggle}){
   const otpViaEdge=function(){
     cloud.myinvestorConnect({ customerId:cid.trim(), password:pass, deviceId:deviceId(), otpId:otpInfo.otpId, signatureRequestId:otpInfo.signatureRequestId, code:code.trim() }).then(function(r){
       setBusy(false);
-      if(r&&r.connected){ try{ localStorage.setItem("_miCid",cid.trim()); }catch(e){} setExpired(false); setPass(""); setCode(""); setStep("connected"); doSync(); return; }
+      if(r&&r.connected){ setExpired(false); setPass(""); setCode(""); setStep("connected"); doSync(); return; }
       fail(r);
     }).catch(fail);
   };
@@ -20781,7 +20867,7 @@ function MyInvestorSync({state, set, open, onToggle}){
     });
     setDoneN(mappedN); setPositions(null); setStep("connected");
   };
-  const disconnect=function(){ cloud.myinvestorDisconnect(); try{ localStorage.removeItem("_miCid"); }catch(e){} setExpired(false); setStep("idle"); setPositions(null); setCid(""); setPass(""); setOtpInfo(null); };
+  const disconnect=function(){ cloud.myinvestorDisconnect(); setExpired(false); setStep("idle"); setPositions(null); setCid(""); setPass(""); setOtpInfo(null); };
   const inpStyle={marginTop:8};
   // UI plana v4 (sin CollapsibleCard pesada) — feedback 2026-07-17 redesing bancos.
   const body=noSession
@@ -20794,13 +20880,15 @@ function MyInvestorSync({state, set, open, onToggle}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||!cid.trim()||!pass,onClick:doConnect}, busy?t("mi_connecting"):t("mi_connect")),
           // Campo avanzado del site key de reCAPTCHA: aparece al saltar el captcha (o si ya hay uno
           // guardado). Con él la app intenta resolver el captcha sola en la WebView (2026-07-20).
-          (err===t("mi_recaptcha") || err===t("mi_rc_fail_gen") || err===t("mi_rc_rejected") || rcKey) && React.createElement("div",{style:{marginTop:12,paddingTop:10,borderTop:"1px solid var(--line-soft)"}},
+          rcAdmin && (err===t("mi_recaptcha") || err===t("mi_rc_fail_gen") || err===t("mi_rc_rejected") || rcKey) && React.createElement("div",{style:{marginTop:12,paddingTop:10,borderTop:"1px solid var(--line-soft)"}},
             React.createElement("div",{style:{fontSize:12,color:"var(--muted)",lineHeight:1.5,marginBottom:6}}, t("mi_rc_key_hint")),
             React.createElement("input",{className:"af-in",style:Object.assign({},inpStyle,{fontFamily:"monospace",fontSize:13}),placeholder:"6L…",autoComplete:"off",value:rcKey,onChange:function(e){ const v=e.target.value.trim(); setRcKey(v); try{ if(v) localStorage.setItem("_miRcKey",v); else localStorage.removeItem("_miRcKey"); }catch(_){} }}),
             rcKey && React.createElement("div",{style:{fontSize:11.5,color:"var(--mint)",marginTop:6}}, t("mi_rc_key_saved")),
             // Atribución obligatoria: el badge flotante de Google se oculta por CSS (salía FIJO en
             // toda la app, no solo aquí — feedback 2026-07-21) y sus términos piden citarlo en el flujo.
-            rcKey && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",marginTop:4}}, t("mi_rc_badge_note")))
+            rcKey && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",marginTop:4}}, t("mi_rc_badge_note"))),
+          // Con un site key guardado de antes la app lo sigue usando: la cita a Google se queda.
+          !rcAdmin && rcKey && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",marginTop:8}}, t("mi_rc_badge_note"))
         ),
         step==="otp" && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:0}},t("mi_otp_intro")),
@@ -34400,7 +34488,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="df007183e5fdf69526a7db75be459c40a1cbe1bbc6963fff691ba7473fa0dbbd";
+var _rnSha="3d7ae591a81949a47cf85bcdb21ecd40eefce9d830474c363dae9df62d8aac48";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -35783,12 +35871,14 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
   const [joinCode,setJoinCode]=useState("");
   const [createName,setCreateName]=useState("");
   const [mode,setMode]=useState(null);
+  const [members,setMembers]=useState([]);
+  const [myRole,setMyRole]=useState(null);
 
   const reload=function(){
     if(!cloud.enabled()||!uid) return Promise.resolve();
     setBusy(true);
     return cloud.fetchHouseholdBundle().then(function(b){
-      setHh(b.household); setSnaps(b.snapshots||[]);
+      setHh(b.household); setSnaps(b.snapshots||[]); setMembers(b.members||[]); setMyRole(b.myRole||null);
     }).catch(function(e){
       showToast(errTxt(e));
     }).finally(function(){ setBusy(false); });
@@ -35849,6 +35939,36 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
     });
   };
 
+  /* SEG-10: el código ya no vale para siempre. Regenerarlo invalida el anterior (quien lo tuviera
+     apuntado ya no entra) y, con la migración 0028, caduca a los 30 días. */
+  const doRegen=function(){
+    if(!hh) return;
+    askConfirm({ title:t("hh_regen_q"), sub:t("hh_regen_sub"), ok:t("hh_regen") }).then(function(yes){
+      if(!yes) return;
+      setBusy(true);
+      cloud.regenHouseholdCode(hh.id, mcInviteCode()).then(function(r){
+        if(r) setHh(Object.assign({},hh,r));
+        showToast(t("hh_regen_ok"));
+      }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(false); });
+    });
+  };
+  // Quitar a alguien solo lo puede el dueño, y solo con la 0028 aplicada (su política de borrado):
+  // sin ella la RLS no borra nada y lo decimos en vez de fingir que salió.
+  const doKick=function(m){
+    if(!hh||!m) return;
+    askConfirm({ title:tf("hh_kick_q",{name:m.name}), sub:t("hh_kick_sub"), ok:t("hh_kick_ok"), danger:true }).then(function(yes){
+      if(!yes) return;
+      setBusy(true);
+      cloud.kickHouseholdMember(hh.id, m.userId).then(function(){
+        showToast(t("hh_kicked"));
+        return reload();
+      }).catch(function(e){
+        const msg=(e&&e.message)||String(e);
+        showToast(msg.indexOf("not_allowed")>=0 ? ("⚠ "+t("hh_kick_no")) : errTxt(e));
+      }).finally(function(){ setBusy(false); });
+    });
+  };
+
   if(!cloud.enabled()){
     return React.createElement("div",{className:"card",style:{padding:"14px 16px",marginBottom:14}},
       React.createElement("div",{className:"gm-sec-h"},"🏠 "+t("hh_title")),
@@ -35884,14 +36004,27 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
   }
 
   const maxCat=merged.expensesByCat.length?merged.expensesByCat[0].spent:1;
+  const isOwner=myRole==="owner"||(!!uid&&hh.created_by===uid);
+  const flojo=isOwner&&hhCodigoFlojo(hh);
+  const caduca=hh.invite_expires_at?new Date(hh.invite_expires_at):null;
+  // Los nombres salen de la vista que cada uno publica; quien aún no ha publicado es «Miembro».
+  const otros=isOwner?members.filter(function(m){ return m&&m.user_id&&m.user_id!==uid; }).map(function(m){
+    const s=merged.members.find(function(x){ return x.userId===m.user_id; });
+    return { userId:m.user_id, name:(s&&s.name&&s.name!=="?")?s.name:t("hh_member") };
+  }):[];
 
-  return React.createElement("div",{className:"card",style:{padding:"14px 16px",marginBottom:14}},
+  return React.createElement("div",{className:"card",style:{padding:"14px 16px",marginBottom:14},"data-hogar":"1"},
     React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}},
-      React.createElement("div",null,
+      React.createElement("div",{style:{minWidth:0}},
         React.createElement("div",{className:"gm-sec-h"},"🏠 "+hh.name),
-        React.createElement("div",{className:"hint"}, tf("hh_code_show",{c:hh.invite_code}))),
+        React.createElement("div",{className:"hint","data-hogar-code":"1",style:{overflowWrap:"anywhere"}}, tf("hh_code_show",{c:hh.invite_code})
+          +(caduca&&isFinite(caduca.getTime())&&!flojo?" · "+tf("hh_code_until",{d:caduca.toLocaleDateString(loc(),{day:"2-digit",month:"2-digit"})}):""))),
       React.createElement("button",{className:"btn btn-ghost",style:{flex:"0 0 auto",fontSize:12},onClick:doLeave}, t("hh_leave"))
     ),
+    flojo && React.createElement("div",{"data-hogar-flojo":"1",style:{marginTop:10}},
+      React.createElement("div",{className:"hint",style:{color:"var(--coral)"}}, t("hh_code_old")),
+      React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},disabled:busy,"data-act":"hh-regen",onClick:doRegen}, t("hh_regen"))),
+    isOwner && !flojo && React.createElement("button",{className:"chip",style:{marginTop:8},disabled:busy,"data-act":"hh-regen",onClick:doRegen}, t("hh_regen")),
     React.createElement("div",{className:"total-bar",style:{marginTop:12,marginBottom:0}},
       React.createElement("div",null,
         React.createElement("div",{className:"tl"}, t("hh_fused_net")),
@@ -35946,6 +36079,13 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
           t("hh_updated")+" "+new Date(m.publishedAt).toLocaleString())
       );
     }),
+    otros.length>0 && React.createElement("div",{"data-hogar-miembros":"1",style:{marginTop:14,paddingTop:12,borderTop:"1px solid var(--line-soft)"}},
+      React.createElement("div",{className:"gm-sec-h"}, t("hh_members")),
+      otros.map(function(m){
+        return React.createElement("div",{key:m.userId,className:"liqrow","data-hogar-miembro":m.userId,style:{alignItems:"center",gap:8,marginTop:6}},
+          React.createElement("span",{style:{minWidth:0,overflowWrap:"anywhere"}}, m.name),
+          React.createElement("button",{className:"chip",style:{flex:"0 0 auto"},disabled:busy,onClick:function(){ doKick(m); }}, t("hh_kick")));
+      })),
     React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:14},onClick:publish,disabled:busy},
       busy?t("hh_pub_busy"):t("hh_publish")),
     React.createElement("div",{className:"hint",style:{marginTop:8}}, t("hh_pub_hint"))

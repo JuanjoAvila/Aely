@@ -98,6 +98,10 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
     delete overrides.__cloudErrors;
     const sessionDelay = overrides.__sessionDelayMs || 0;
     delete overrides.__sessionDelayMs;
+    // Respuestas de `sb.rpc(nombre)` por nombre (SEG-10, Hogar). Sin entrada, la de una BD que no
+    // tiene esa función (PGRST202), que es justo lo que el cliente tiene que saber esquivar.
+    const cloudRpc = overrides.__cloudRpc || {};
+    delete overrides.__cloudRpc;
     const authEvent = overrides.__authEvent || "INITIAL_SESSION";
     delete overrides.__authEvent;
     const authEventDelay = overrides.__authEventDelayMs || 0;
@@ -342,6 +346,10 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
           signOut: async () => {},
         },
         from: (t) => makeChain(t),
+        rpc: async (nombre, args) => {
+          (window.__e2eRpcCalls || (window.__e2eRpcCalls = [])).push({ name: nombre, args: args || null });
+          return cloudRpc[nombre] || { data: null, error: { code: "PGRST202", message: "Could not find the function public." + nombre } };
+        },
         functions: { invoke: async (nombre, opts) => {
           const rec = window.__e2eInvokes || (window.__e2eInvokes = []);
           rec.push({ name: nombre, body: (opts && opts.body) || null });

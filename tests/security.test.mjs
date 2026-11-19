@@ -49,7 +49,13 @@ console.log("security");
       const m = cloudBody.match(re);
       if (!m) continue;
       const body = m[0];
-      const mutates = /\.(insert|update|upsert|delete)\(/.test(body);
+      // Un método que delega en una función de fuera con el cliente (`hhExpulsar(sb, …)`, SEG-10)
+      // escribe si esa función escribe: si no, sacar la escritura del método la escondía de aquí.
+      const delegated = [...body.matchAll(/\b([A-Za-z_]\w*)\(sb\b/g)].map((d) => {
+        const at = core.search(new RegExp(`\\n(?:async\\s+)?function\\s+${d[1]}\\s*\\(`));
+        return at < 0 ? "" : core.slice(at, core.indexOf("\n}\n", at));
+      }).join("\n");
+      const mutates = /\.(insert|update|upsert|delete)\(/.test(body) || /\.(insert|update|upsert|delete|rpc)\(/.test(delegated);
       const fnCall = body.match(/functions\.invoke\(\s*['"]([a-z-]+)['"]/);
       const invokesWriter = fnCall && !READ_ONLY_FNS.has(fnCall[1]);
       if (mutates || invokesWriter) writers.push(name);

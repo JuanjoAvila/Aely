@@ -10,12 +10,27 @@
 
 Como la cuenta conjunta de CaixaBank, pero **sin mezclar datos**:
 
-1. Persona A crea un **Hogar** → recibe código de 6 letras
+1. Persona A crea un **Hogar** → recibe un código de 10 caracteres (los de 6 de antes siguen valiendo)
 2. Persona B entra en **Hogar y compartido → Unirme con código**
 3. Cada uno pulsa **Actualizar mi vista** → publica un snapshot (patrimonio, cuentas)
 4. Todos ven la **suma fusionada** + detalle por miembro (solo lectura)
 
 Des-compartir = salir del hogar (borra tu snapshot, no toca el `app_state` del otro).
+
+### El dueño (SEG-10, ronda F, 19/11/2026)
+
+- **Regenerar código**: chip junto al código. Un código viejo (menos de 10 caracteres) o caducado
+  sale en rojo con «Regenerar código» como botón principal. El código anterior deja de valer.
+  Con la `0028` aplicada caduca a los 30 días (`invite_expires_at`); sin ella el cliente reintenta
+  sin la columna y el código no caduca.
+- **Quitar a un miembro**: sección «Miembros», solo para el dueño. Necesita la política de la
+  `0028`: sin ella la RLS no borra nada (sin error) y la app avisa «Aún no se puede quitar a nadie».
+- **Unirse**: primero `join_household` (0028, cuenta los fallos en el freno); si la BD no la tiene
+  (`PGRST202`), `join_household_by_code` como antes.
+- El rol propio se lee por `user_id`: la RLS deja ver a todos los miembros y el `.limit(1)` de antes
+  podía devolver la fila de otro.
+- Lógica en `00-core.js` (`hhUnirse`, `hhRegenerarCodigo`, `hhExpulsar`, `hhLeerHogar`,
+  `hhCodigoFlojo`); pruebas en `tests/hogar-endurecido.test.mjs` y `e2e/hogar-endurecido.spec.mjs`.
 
 ## Migraciones Supabase
 
@@ -32,6 +47,9 @@ Des-compartir = salir del hogar (borra tu snapshot, no toca el `app_state` del o
    EXECUTE de `join_household_by_code` e `is_household_member` (Supabase se lo da explícito a cada
    función nueva y el `revoke … from public` de 0013–0022 no lo quitaba). No cambia nada con
    sesión: las políticas son `to authenticated`. Idempotente.
+5. `0028_hogar_endurecer.sql` (ronda A, en fuente, sin aplicar) — `join_household`, caducidad del
+   código, códigos nuevos de ≥10, expulsar (dueño) y borrar la vista del que sale. El cliente de la
+   ronda F funciona con y sin ella (ver «El dueño»).
 
 > **Desde 2026-07-18 el CI aplica las migraciones solo** (workflow «Deploy Supabase»,
 > `db push --include-all`; antes abortaba en silencio por las dos «0012» aplicadas a mano).
