@@ -79,14 +79,18 @@ test('UX16 ronda 9: el anillo de Inicio manda toques que el motor puede sentir',
   // Desde la 4.26.187 el anillo cuenta lo USADO y la ristra sigue al trazo: con el mes sin gastar
   // (0 %) no hay nada que rellenar y calla a propósito. Para el trazo entero, el límite agotado.
   await boot(page,null,{budget:1000,accounts:[],expenses:[{id:'g',date:new Date().toISOString(),amount:1000,category:'super'}]});
-  await expect.poll(()=>page.evaluate(()=>window.__ux16.filter(c=>c.cycle).length),{timeout:6_000}).toBe(13);
+  // Desde el 19/11/2026 los de serie son los que eligió él con el ajustador (ciclo 40/601 ms), y esta
+  // rampa es justo la que sintió y aprobó en su móvil. Con 601 ms caben 11 toques con su hueco
+  // (floor(601/50)-1), no los 13 de un trazo de 1100 ms, y la fuerza sube de la mitad (20) a la suya
+  // (40): el suelo de 60 y el techo de 140 eran de los valores adivinados de la ronda 10, no de los suyos.
+  await expect.poll(()=>page.evaluate(()=>window.__ux16.filter(c=>c.cycle).length),{timeout:6_000}).toBe(11);
   const ring=await page.evaluate(()=>window.__ux16.filter(c=>c.cycle));
   expect(ring.every(c=>c.usage==='hardware'),'uso hardware: OxygenOS no lo cambia por su efecto de serie').toBe(true);
-  // Ronda 10: rampa que crece, de suave a la fuerza del deslizador, sin toques que el motor no arranca.
+  // Ronda 10: rampa que crece, de suave a la fuerza que él eligió, sin toques que el motor no arranca.
   expect(Math.min(...ring.map(c=>c.durationMs)),'ningún toque de 10 ms').toBeGreaterThanOrEqual(12);
-  expect(Math.min(...ring.map(c=>c.amplitude)),'el primero ya se siente').toBeGreaterThanOrEqual(60);
+  expect(ring[0].amplitude,'el primero, a la mitad de su fuerza').toBe(20);
   expect(ring.every((c,i)=>i===0||c.amplitude>ring[i-1].amplitude),'cada toque más fuerte').toBe(true);
-  expect(ring.at(-1).amplitude).toBe(140);
+  expect(ring.at(-1).amplitude,'el último, la fuerza que él eligió').toBe(40);
 });
 
 test('UX16 ronda 9: el anillo de Inicio vacío (nada gastado) no vibra',async({page})=>{
