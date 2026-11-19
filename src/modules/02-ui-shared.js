@@ -1991,7 +1991,9 @@ function useEdgePageClose(open,onClose,on,ref,opts){
     el.classList.remove("mc-page-dragging");
     el.style.transition="transform .42s cubic-bezier(.32,.72,0,1), opacity .34s ease";
     el.style.setProperty("transform","translate3d(104%,0,0) rotateY(-1.2deg)","important");
-    el.style.opacity=".78";
+    /* `opaca`: la hija sale entera, sin fundido. Con el fundido, en Mis bancos (encima de Ajustes)
+       se leían a través las filas de Ajustes durante ~120 ms: texto doble (filtro de diseño 19/11). */
+    if(!opts.opaca) el.style.opacity=".78";
     tm.current=setTimeout(function(){
       tm.current=null;
       cb.current&&cb.current();
@@ -2035,7 +2037,7 @@ function useEdgePageClose(open,onClose,on,ref,opts){
     // compositor debe ganar solo mientras el gesto está vivo y no puede fiarlo a una clase.
     el.style.setProperty("transition","none","important");
     el.style.setProperty("transform","translate3d("+x+"px,0,0) rotateY("+(-1.2*p)+"deg)","important");
-    el.style.opacity=String(1-p*.22);
+    if(!opts.opaca) el.style.opacity=String(1-p*.22);
   };
   useEffect(function(){
     if(!open||!on) return undefined;

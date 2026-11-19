@@ -701,10 +701,13 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   ));
 }
 
-/* Los brókers con integración propia (DEGIRO e IBKR por fichero desde el 18/11). El id es el mismo
-   `ent` que llevan las posiciones en `state.investments`, para poder deducir de la cartera cuáles
-   usa el usuario sin preguntarle. */
-var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"],["degiro","DEGIRO"],["ibkr","Interactive Brokers"]];
+/* Los brókers con integración propia. El id es el mismo `ent` que llevan las posiciones en
+   `state.investments`, para poder deducir de la cartera cuáles usa el usuario sin preguntarle.
+   DEGIRO e IBKR salieron de aquí el 19/11, un día después de entrar por fichero: él no quiere
+   brókers por fichero («que nadie tenga que entrar en la app del bróker»). Sus lectores
+   (`brokerAnalyze`, `brkApplyFile`, `BrokerFilePreview`) se quedan para cuando entren por conexión,
+   que también tendrá que enseñar la vista previa y dejar mapear antes de tocar nada (AGENTS §9). */
+var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"]];
 /* CONEXIONES ES UNA PANTALLA HIJA, no un `div` fijo (ronda R2 del rediseño de bancos, 18/11).
    Antes aparecía y desaparecía en un fotograma y al cerrar siempre caía en Ajustes, vinieras de
    donde vinieras («me deja donde no estaba»). Ahora entra por la derecha como Inversiones, se
@@ -782,7 +785,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
      la hoja está arriba, el borde no arrastra la página de debajo (`on` = sin hoja). */
   const pk=useSheetSwipe(picking, function(){ setPicking(false); setQ(""); });
   useBackClose(picking, pk.close);
-  const pg=useEdgePageClose(true,function(){ onClose(accionRef.current); },!picking,sr);
+  const pg=useEdgePageClose(true,function(){ onClose(accionRef.current); },!picking,sr,{opaca:true});
   useBackClose(true, pg.close);
   useLayoutEffect(function(){
     let e2=0;
@@ -1094,10 +1097,6 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
       open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }}),
     brokersOn.indexOf("revolut")>=0 && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
-    ["degiro","ibkr"].map(function(k){
-      return brokersOn.indexOf(k)>=0 && React.createElement(BrokerImport,{key:k,ent:k,state:state,set:set,fetchPrices:fetchPrices,
-        open:openBank==="br:"+k, onToggle:function(){ setOpenBank(openBank==="br:"+k?"":"br:"+k); }});
-    }),
     /* «¿Cuadran tus recibos con el banco?» vive aquí, que es donde se busca lo del banco.
        Sin datos del banco no pinta nada. */
     React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),
@@ -2478,6 +2477,7 @@ const SET_ICO=(function(){
     budgetcycle:[["rect",{x:3,y:5,width:18,height:16,rx:2.5}],["path",{d:"M3 10h18M8 3v4M16 3v4"}]],
     bills:[["path",{d:"M6 3h12v18l-3-2-3 2-3-2-3 2z"}],["path",{d:"M9 8h6M9 12h6"}]],
     banks:banco,
+    bankmanage:[["path",{d:"M4 7h9M17 7h3M4 17h3M11 17h9"}],["circle",{cx:15,cy:7,r:2}],["circle",{cx:9,cy:17,r:2}]],
     banksync:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M4 13a8 8 0 0 0 14.5 4.5L20 16"}],["path",{d:"M20 20v-4h-4"}]],
     notifs:[["path",{d:"M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"}],["path",{d:"M10 21h4"}]],
     trnotif:[["path",{d:"M4 5h16v11H9l-5 4z"}],["path",{d:"M9 10.5l2 2 4-4"}]],
@@ -2965,32 +2965,29 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
         if(r.status!=='active') return false;
         return !issueAsp[String(r.aspsp_name||"").toLowerCase()];
       }).length + (!enPruebas && trConn?1:0);
-      const dead=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; })
-        .map(function(r){ const e=entFromAspsp(r.aspsp_name); return e?entOf(e).label:r.aspsp_name; });
-      if(!enPruebas && trKnown&&trExpired) dead.push("Trade Republic");
-      /* CONEXIONES A UN TOQUE (R2). Era un grupo plegado con una sola fila dentro y un resumen de
-         tres renglones; ahora es una fila de primer nivel, con su icono como las demás, los logos
-         de lo conectado y una línea de estado: «4 de 5 al día · CaixaBank pide renovar». */
-      const ents=[];
-      (links||[]).forEach(function(r){ const e=entFromAspsp(r.aspsp_name); if(e&&ents.indexOf(e)<0) ents.push(e); });
-      if(!enPruebas && (trConn||trKnown) && ents.indexOf("trade_republic")<0) ents.push("trade_republic");
-      const nTot=nActive+dead.length;
-      const st = links===null ? "…"
-        : !nTot ? t((links||[]).some(function(r){return r.status==='pending';}) ? "bank_pending" : "bp_summary_none")
-        : (dead.length ? tf("cx_of",{n:nActive,m:nTot})+" · "+tf("cx_renew",{bank:dead.join(", ")}) : tf("cx_ok",{n:nActive}));
-      const nq=normQ(q).trim();
-      if(nq && normQ(t("bp_title")+" banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking").indexOf(nq)<0) return null;
-      grpMatches++;
-      return React.createElement("div",{className:"set-sub"},
-        React.createElement("button",{type:"button",className:"set-row cx-row","data-cx-row":"",onClick:function(){
+      const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
+      const trDead=!enPruebas && trKnown&&trExpired;
+      const nDead=nDeadDb + (trDead?1:0);
+      // Plural de verdad y sin «⚠ … — reconéctalo»: con letra Enorme el resumen ocupaba tres
+      // renglones (filtro de diseño 19/11, textos mínimos).
+      const nC=function(n){ return n===1?t("bp_summary_n_one"):tf("bp_summary_n",{n:n}); };
+      const nX=function(n){ return n===1?t("bp_summary_exp_one"):tf("bp_summary_exp",{n:n}); };
+      let summary = links===null ? "…"
+        : nActive>0 ? (nC(nActive) + (nDead?" · "+nX(nDead):""))
+        : nDead>0 ? nX(nDead)
+        : ((links||[]).some(function(r){return r.status==='pending';}) ? t("bank_pending") : t("bp_summary_none"));
+      if(trDead && summary.indexOf("Trade Republic")<0) summary += (summary&&summary!=="…"?" · ":"") + t("bp_summary_tr_dead");
+      /* La entrada vuelve a ser la de siempre: el grupo «Bancos» con «Gestionar mis bancos» dentro
+         (petición suya del 19/11, «dejarlo como antes»). De la R2 se queda cómo entra y sale la
+         pantalla —deslizando y montada por App—, así que la fila no la abre aquí: se lo pide a App.
+         `data-bank-grp` es a quien resalta App al volver con algo hecho: la cabecera del grupo, que
+         es la que enseña el resumen y se ve también con el grupo plegado. */
+      const g=grp("banks","🏦",t("bank_section"),"banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking sincronizar",summary,
+        React.cloneElement(row("bankmanage","🏦",t("bp_manage"),null,function(){
           try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null,origin:"settings"}})); }catch(e){}
-        }},
-          React.createElement("span",{className:"sr-ic"},setIco("banks")),
-          React.createElement("span",{className:"sr-tx"},
-            React.createElement("span",{className:"sr-lb"},t("bp_title")),
-            ents.length>0 && React.createElement("span",{className:"nt-logos"}, ents.slice(0,5).map(function(e){ return React.createElement(Mono,{key:e,ent:e,size:24}); })),
-            React.createElement("span",{className:"sr-sub"}, nTot>0 && React.createElement("i",{className:"cx-dot"+(dead.length?" warn":"")}), st)),
-          React.createElement("span",{className:"sr-chev"},"›")));
+        }),{"data-bank-manage":""})
+      );
+      return g && React.cloneElement(g,{"data-bank-grp":""});
     })(),
     (function(){
       const nat=natPlugin();

@@ -2632,17 +2632,8 @@
      a la derecha), el buscador fijo y la lista desplazándose sola debajo (`.v4-sheet-body`). */
   .bk-pick h1{flex:1;}
   .bk-pick input{margin:10px 0 12px;}
-  /* Fila «Conexiones» de Ajustes: logos de lo conectado (los de Notificaciones) y un punto de
-     estado, menta al día y tan si algo pide renovar. */
-  .cx-row .nt-logos{margin:5px 0 3px;gap:4px;}
-  .cx-row .nt-logos .mono+.mono{margin-left:0;}   /* a 24 px, solapados se comían media «S» de Sabadell */
-  /* El icono va a la altura del título, como en las filas de una línea, y el punto pegado a su
-     texto: con letra Enorme se quedaba solo en un renglón y la frase en el siguiente. */
-  .set-row.cx-row .sr-ic{align-self:flex-start;margin-top:3px;}
-  .set-row.cx-row .sr-sub{display:block;}
-  .cx-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-right:6px;vertical-align:1px;}
-  .cx-dot.warn{background:var(--tan);}
-  /* Vuelta al origen tras conectar o renovar: la fila de ese banco se marca y se apaga sola. */
+  /* Vuelta al origen tras conectar o renovar: la fila de ese banco (o la del grupo «Bancos» si se
+     abrió desde Ajustes) se marca y se apaga sola. */
   .cx-vuelta{animation:cxVuelta 1.8s ease-out forwards;}
   @keyframes cxVuelta{0%,45%{background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}100%{background:transparent;box-shadow:inset 3px 0 0 transparent;}}
   html.reduce-motion .cx-vuelta{animation:none;background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}

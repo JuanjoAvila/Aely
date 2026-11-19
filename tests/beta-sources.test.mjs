@@ -6806,7 +6806,7 @@ test("Catálogo243 histórico conserva dinero-242 sin veredicto, abre beta-243 (
     ...fn(A0,["BankPanel","SettingsPanel"]),{file:A0,data:"SET_ICO"},
     ...fn("src/modules/05-dialogs-inv.js",["BrokerImport","BrokerFilePreview","brkApplyFile"]),{file:"src/modules/05-dialogs-inv.js",data:"BROKER_FILE_CARDS"},{file:A0,data:"BROKER_CHIPS"},
     {file:"src/modules/11-app-main.js",from:"  /* CONEXIONES SE ABRE SUELTA, sin Ajustes debajo (R2, 18/11).",to:"  const cierraBancos=function(ac){"},
-    {file:SH,from:"  .settings-push.v4-banks-push{",to:"}"},{file:SH,from:"  .set-row.cx-row .sr-ic{",to:"}"},
+    {file:SH,from:"  .settings-push.v4-banks-push{",to:"}"},{file:SH,from:"  .cx-vuelta{",to:"}"},
     {file:SH,from:"  .v4-section[data-testid=\"inicio-recent\"] .v4-mov .nm{font-weight:600",to:".v4-mov > .am{grid-column:3;grid-row:2;align-self:start;margin-top:2px;}",includeTo:true},G];
   {
     const ahora=scopes[nueva];

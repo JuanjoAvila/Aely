@@ -92,8 +92,8 @@ test("cada entrada de Ajustes abre lo suyo", async ({ page }) => {
   await despliega(page, await aLaVista(page, "v4_set_money", await tx(page, "st_gview")));
   await interruptor(page, await aLaVista(page, "v4_set_money", await tx(page, "st_budget_cycle")));
 
-  // Conexiones: fila de primer nivel desde R2 (18/11), sin grupo que desplegar.
-  await abrePantalla(page, await aLaVista(page, "bp_title", await tx(page, "bp_title")));
+  // Bancos: el grupo de siempre con «Gestionar mis bancos» dentro (vuelve el 19/11).
+  await abrePantalla(page, await aLaVista(page, "bank_section", await tx(page, "bp_manage")));
 
   // Para empezar fácil: modo sencillo y el tour.
   await interruptor(page, await aLaVista(page, "v4_set_easy", await tx(page, "st_simple_lbl")));
