@@ -661,10 +661,7 @@ function mobilityCategoryOfNewMerchant(merchant,cat){
     if(/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
     if(/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
   }
-  /* Un súper con surtidor (BonÀrea, Leclerc, Carrefour) cobra el carburante con su nombre: «BONAREA
-     GASOLINERA GUISSONA» era gasolina hasta que «bonarea» entró en super, que se mira antes
-     (revisión de dinero, 19/11). Solo cuando el texto dice que es el surtidor. */
-  if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\b(gasolinera|gasoleo|carburante)\b|\bestacion de servicio\b|\bcarrefour gas\b/.test(c))) return cat;
+  if(cat!=="transporte" && cat!=="otros") return cat;
   if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
   if(/\brepsol\b/.test(c)){
@@ -727,7 +724,20 @@ function autoCategoryKw(c){
     }
     return false;
   };
-  for(const cat in KW){ if(KW[cat].some(function(k){ return hit(c,k); })) return cat; }
+  /* El NOMBRE de una cadena no manda sobre lo que dice el resto del texto (revisión de dinero,
+     19/11; misma regla en `ingest_logic.ts`). Un súper con surtidor (BonÀrea, Leclerc, Carrefour)
+     cobra el carburante con su nombre, y «super» se mira antes: «BONAREA GASOLINERA GUISSONA» es
+     gasolina, también al releer lo guardado. El aparcamiento de un súper («Parking Leclerc») sigue
+     buscando en las listas de después. Y «Adamo Telecom Iberia» es una operadora, no la aerolínea. */
+  for(const cat in KW){
+    if(!KW[cat].some(function(k){ return hit(c,k); })) continue;
+    if(cat==="super"){
+      if(/\b(gasolinera|gasoleo|carburante)\b|\bestacion de servicio\b|\bcarrefour gas\b/.test(c)) return "gasolina";
+      if(/\b(parking|aparcamiento|aparcament)\b/.test(c)) continue;
+    }
+    if(cat==="viajes" && /\btelecom\b/.test(c)) continue;
+    return cat;
+  }
   return "otros";
 }
 function resolveCategory(sheetCat, merchant){

@@ -155,8 +155,15 @@ t("★ los comercios del 19/11 caen en SU categoría, en la app y en el servidor
        persona, un apellido, otra empresa, la farmacia de la calle y el surtidor del súper. */
     ["Transferencia a Diego Fitó", "otros"], ["Santiago Fita", "otros"], ["CARBON AREA SL", "otros"],
     ["Leclercq Abogados", "tasas"], ["Farmacia Ametller", "salud"],
-    ["BONAREA GASOLINERA GUISSONA", "gasolina", "super"], ["E.LECLERC ESTACION DE SERVICIO", "gasolina", "super"],
-    ["LECLERC CARBURANTE", "gasolina", "super"], ["PETRONOR BILBAO", "gasolina", "transporte"],
+    ["PETRONOR BILBAO", "gasolina", "transporte"],
+    /* El nombre de la cadena no manda sobre el resto del texto, tampoco al releer lo guardado:
+       el surtidor es gasolina, el aparcamiento es parking y una operadora no es la aerolínea.
+       Con sus contrarios, para que la regla no se lleve el súper ni la aerolínea de verdad. */
+    ["BONAREA GASOLINERA GUISSONA", "gasolina"], ["E.LECLERC ESTACION DE SERVICIO", "gasolina"],
+    ["LECLERC CARBURANTE", "gasolina"], ["Carrefour gas", "gasolina"],
+    ["Parking Leclerc", "parking"], ["PARKING MERCADONA", "parking"], ["Aparcament Bonpreu", "parking"],
+    ["ADAMO TELECOM IBERIA", "recibos"], ["Adamo Telecom", "recibos"],
+    ["IBERIA LAE", "viajes"], ["Iberia Express", "viajes"], ["Mercadona", "super"], ["Carrefour Market", "super"],
   ];
   const mal = [];
   for (const [m, alta, hist] of debe) {

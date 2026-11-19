@@ -129,9 +129,7 @@ function mobilityCategoryOfNewMerchant(comercio: string, cat: string): string {
     if (/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
     if (/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
   }
-  // El surtidor de un súper (BonÀrea, Leclerc, Carrefour) es carburante aunque el nombre del súper
-  // se mire antes. Misma expresión que en `00-core.js` (19/11).
-  if (cat !== "transporte" && cat !== "otros" && !(cat === "super" && /\b(gasolinera|gasoleo|carburante)\b|\bestacion de servicio\b|\bcarrefour gas\b/.test(c))) return cat;
+  if (cat !== "transporte" && cat !== "otros") return cat;
   if (/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if (/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
   if (/\brepsol\b/.test(c)) {
@@ -162,8 +160,17 @@ export function categorizar(comercio: string): string {
     }
     return false;
   };
+  // El NOMBRE de una cadena no manda sobre el resto del texto; espejo EXACTO de las tres reglas de
+  // `autoCategoryKw` en `00-core.js` (19/11): el surtidor de un súper es gasolina, su aparcamiento
+  // sigue buscando en las listas de después, y «Adamo Telecom Iberia» no es la aerolínea.
   for (const [cat, kws] of Object.entries(CATEGORIAS)) {
-    for (const kw of kws) if (hit(c, kw)) return mobilityCategoryOfNewMerchant(comercio, cat);
+    if (!kws.some((kw) => hit(c, kw))) continue;
+    if (cat === "super") {
+      if (/\b(gasolinera|gasoleo|carburante)\b|\bestacion de servicio\b|\bcarrefour gas\b/.test(c)) return "gasolina";
+      if (/\b(parking|aparcamiento|aparcament)\b/.test(c)) continue;
+    }
+    if (cat === "viajes" && /\btelecom\b/.test(c)) continue;
+    return mobilityCategoryOfNewMerchant(comercio, cat);
   }
   return mobilityCategoryOfNewMerchant(comercio, "otros");
 }
