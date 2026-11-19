@@ -1,5 +1,82 @@
 [
   {
+    "v": "4.26.248",
+    "d": "2026-11-19",
+    "t": {
+      "es": "Metas con su ahorro, y categorías que aprenden",
+      "en": "Goals with their own saving, and categories that learn",
+      "ca": "Metes amb el seu estalvi, i categories que aprenen"
+    },
+    "items": {
+      "es": [
+        "En Metas, «Ahorro mensual» es lo que apartas cada mes para cada meta, y su fecha prevista sale de ahí: una meta sin ahorro mensual ya no da fecha. Lo que aportas cada mes a tu bróker está ahora en Cartera, junto a la proyección de tus inversiones.",
+        "El ojo para ocultar importes también está en Inicio, y lo oculta todo. Si te pasas del límite del mes, Inicio lo cuenta sin alarmas en rojo.",
+        "La app aprende de verdad cuando cambias la categoría de un gasto: los siguientes del mismo comercio llegan ya bien, aunque el banco los escriba un poco distinto. Reconoce solos más supermercados, gimnasios, gasolineras y compañías, y lo que tenías en «Otros» de esos comercios, también de meses pasados, pasa a su categoría.",
+        "Los nombres de los recibos se leen enteros, y al cambiar el precio de un recibo que descuentas de una deuda, la app pregunta cómo queda la deuda.",
+        "Tu perfil pide el nombre del titular. Sin bancos en la app, al apuntar un gasto solo se ofrece efectivo. Con la letra más grande y el teclado abierto, los diálogos con importe dejan a la vista el campo, los atajos y los botones.",
+        "Hogar: quien lo creó puede generar un código nuevo y quitar a un miembro. La app ya no guarda tu DNI de MyInvestor en el móvil, y desaparece el ajuste de sugerir categoría con IA, que no aportaba nada."
+      ],
+      "en": [
+        "In Goals, «Monthly saving» is what you set aside each month for each goal, and its expected date comes from that: a goal with no monthly saving no longer gets a date. What you put into your broker each month now lives in Portfolio, next to your investment projection.",
+        "The eye that hides amounts is now on Home too, and it hides everything. Going over your monthly limit no longer shows up as a red alarm on Home.",
+        "The app now really learns when you change a spending category: the next ones from the same shop arrive right, even if the bank writes them slightly differently. It recognises more supermarkets, gyms, petrol stations and providers by itself, and what you had in «Other» from those shops, past months included, moves to its category.",
+        "Bill names show in full, and when you change the price of a bill you take off a debt, the app asks how the debt should end up.",
+        "Your profile asks for the account holder's name. With no banks in the app, adding an expense only offers cash. With the largest text and the keyboard open, amount dialogs keep the field, shortcuts and buttons in view.",
+        "Household: whoever created it can make a new code and remove a member. The app no longer keeps your MyInvestor ID on the phone, and the AI category suggestion setting is gone; it added nothing."
+      ],
+      "ca": [
+        "A Metes, «Estalvi mensual» és el que apartes cada mes per a cada meta, i la data prevista surt d'aquí: una meta sense estalvi mensual ja no dona data. El que aportes cada mes al teu bròker ara és a Cartera, al costat de la projecció de les teves inversions.",
+        "L'ull per amagar imports també és a Inici, i ho amaga tot. Si et passes del límit del mes, Inici ho diu sense alarmes en vermell.",
+        "L'app aprèn de debò quan canvies la categoria d'una despesa: les següents del mateix comerç ja arriben bé, encara que el banc les escrigui una mica diferent. Reconeix sols més supermercats, gimnasos, benzineres i companyies, i el que tenies a «Altres» d'aquests comerços, també de mesos passats, passa a la seva categoria.",
+        "Els noms dels rebuts es llegeixen sencers, i en canviar el preu d'un rebut que descomptes d'un deute, l'app pregunta com queda el deute.",
+        "El teu perfil demana el nom del titular. Sense bancs a l'app, en apuntar una despesa només s'ofereix efectiu. Amb la lletra més gran i el teclat obert, els diàlegs amb import deixen a la vista el camp, les dreceres i els botons.",
+        "Llar: qui la va crear pot generar un codi nou i treure un membre. L'app ja no desa el teu DNI de MyInvestor al mòbil, i desapareix l'ajust de suggerir categoria amb IA, que no aportava res."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-248",
+        "t": {
+          "es": "Metas, Inicio, Perfil, Recibos, Hogar y categorías",
+          "en": "Goals, Home, Profile, Bills, Household and categories",
+          "ca": "Metes, Inici, Perfil, Rebuts, Llar i categories"
+        },
+        "items": {
+          "es": [
+            "1. Plan › Metas: mira la tarjeta «Ahorro mensual» y una meta con fecha. BIEN: la tarjeta lleva el botón «Añadir ahorro»; una meta con ahorro mensual o reglas dice su fecha prevista, y una sin nada apartado dice «Necesitas … /mes para llegar a tiempo 🟠» en vez de «Vas bien». MAL: una meta sin ahorro sale con fecha o con «Vas bien», o la tarjeta sale cortada.",
+            "2. Cartera › «Ver todas tus inversiones»: baja hasta «Aportación mensual». BIEN: el título va a lo ancho, la cifra y «Editar» en la misma fila, sin cortarse; ya no está en Metas. MAL: la tarjeta sigue en Metas, falta aquí o la cifra se monta sobre «Editar».",
+            "3. Inicio: toca el ojo de la cabecera y luego vuelve a tocarlo. BIEN: se ocultan todas las cifras, también la de «… más que el mes pasado», y vuelven al tocar otra vez; si este mes te has pasado del límite, el anillo va en verde y el importe en color normal, sin rojo. MAL: queda alguna cifra a la vista, o sale en rojo.",
+            "4. Abre tu perfil y toca tu nombre. BIEN: el campo y su diálogo dicen «Nombre del titular» y ya no sale ningún «@usuario». MAL: sigue saliendo «@usuario» o el título no cuadra.",
+            "5. Plan › Recibos, con la letra en «Enorme» (Ajustes › «Tamaño de letra»; después vuelve a tu tamaño). BIEN: los nombres largos bajan de renglón y se leen enteros, sin «…». MAL: un nombre con «…» o una cifra montada sobre el nombre.",
+            "6. En Gastos abre un gasto y mira su categoría; después toca el botón de apuntar un gasto, escribe un concepto y ciérralo sin guardar. BIEN: ni en la ficha ni al apuntar sale ningún ✨, y en Ajustes › «Notificaciones» ya no está «Sugerir categoría con IA». MAL: sale un ✨ o el ajuste sigue ahí.",
+            "7. Solo si cambias la categoría de un comercio que se repite (por ejemplo, un súper): cámbiala en uno y espera al siguiente cargo de ese comercio. BIEN: el nuevo llega ya con tu categoría aunque el banco lo escriba un poco distinto. MAL: vuelve a llegar con la de antes.",
+            "8. Solo si tienes Hogar compartido y lo creaste tú: ábrelo desde tu perfil. BIEN: «Actualizado» lleva día y hora sin segundos ni año, y salen «Regenerar código» y «Quitar» junto a cada miembro (no quites a nadie). MAL: fechas con segundos, o faltan los botones."
+          ],
+          "en": [
+            "1. Plan › Goals: look at the «Monthly saving» card and at a goal with a date. RIGHT: the card has the «Add saving» button; a goal with a monthly saving or rules shows its expected date, and one with nothing set aside says «You need … /mo to make it in time 🟠» instead of «On track». WRONG: a goal with no saving shows a date or «On track», or the card is cut off.",
+            "2. Portfolio › «See all your investments»: scroll down to «Monthly contribution». RIGHT: the title spans the width, the figure and «Edit» sit on the same row, nothing cut; it is no longer in Goals. WRONG: the card is still in Goals, missing here, or the figure overlaps «Edit».",
+            "3. Home: tap the eye in the header, then tap it again. RIGHT: every figure is hidden, including «… more than last month», and they come back on the second tap; if you went over this month's limit, the ring is green and the amount in normal colour, with no red. WRONG: some figure stays visible, or it shows in red.",
+            "4. Open your profile and tap your name. RIGHT: the field and its dialog say «Account holder name» and no «@username» shows anywhere. WRONG: «@username» still shows or the title doesn't match.",
+            "5. Plan › Bills, with text size set to «Huge» (Settings › «Text size»; then go back to your size). RIGHT: long names wrap and read in full, without «…». WRONG: a name with «…» or a figure overlapping the name.",
+            "6. In Spending open an expense and look at its category; then tap the add-expense button, type a description and close without saving. RIGHT: no ✨ anywhere, neither in the card nor when adding, and Settings › «Notifications» no longer has the AI category suggestion. WRONG: a ✨ shows or the setting is still there.",
+            "7. Only if you change the category of a shop that repeats (a supermarket, say): change it on one and wait for that shop's next charge. RIGHT: the new one arrives with your category even if the bank writes it slightly differently. WRONG: it arrives with the old one again.",
+            "8. Only if you have a shared household and you created it: open it from your profile. RIGHT: «Updated» shows day and time without seconds or year, and «New code» and «Remove» show next to each member (don't remove anyone). WRONG: dates with seconds, or the buttons are missing."
+          ],
+          "ca": [
+            "1. Pla › Metes: mira la targeta «Estalvi mensual» i una meta amb data. BÉ: la targeta porta el botó «Afegeix estalvi»; una meta amb estalvi mensual o regles diu la data prevista, i una sense res apartat diu «Necessites … /mes per arribar a temps 🟠» en lloc de «Vas bé». MALAMENT: una meta sense estalvi surt amb data o amb «Vas bé», o la targeta surt tallada.",
+            "2. Cartera › «Veure totes les inversions»: baixa fins a «Aportació mensual». BÉ: el títol va d'amplada sencera, la xifra i «Edita» a la mateixa fila, sense tallar-se; ja no és a Metes. MALAMENT: la targeta continua a Metes, hi falta aquí o la xifra es munta sobre «Edita».",
+            "3. Inici: toca l'ull de la capçalera i torna'l a tocar. BÉ: s'amaguen totes les xifres, també la de «… més que el mes passat», i tornen en tocar-lo de nou; si aquest mes t'has passat del límit, l'anell va en verd i l'import en color normal, sense vermell. MALAMENT: queda alguna xifra a la vista, o surt en vermell.",
+            "4. Obre el teu perfil i toca el teu nom. BÉ: el camp i el seu diàleg diuen «Nom del titular» i ja no surt cap «@usuari». MALAMENT: continua sortint «@usuari» o el títol no quadra.",
+            "5. Pla › Rebuts, amb la lletra a «Enorme» (Configuració › «Mida de la lletra»; després torna a la teva mida). BÉ: els noms llargs baixen de línia i es llegeixen sencers, sense «…». MALAMENT: un nom amb «…» o una xifra muntada sobre el nom.",
+            "6. A Despeses obre una despesa i mira la categoria; després toca el botó d'apuntar una despesa, escriu un concepte i tanca sense desar. BÉ: no surt cap ✨, ni a la fitxa ni en apuntar, i a Configuració › «Notificacions» ja no hi ha el suggeriment de categoria amb IA. MALAMENT: surt un ✨ o l'ajust continua allà.",
+            "7. Només si canvies la categoria d'un comerç que es repeteix (per exemple, un súper): canvia-la en un i espera el següent càrrec d'aquell comerç. BÉ: el nou ja arriba amb la teva categoria encara que el banc l'escrigui una mica diferent. MALAMENT: torna a arribar amb la d'abans.",
+            "8. Només si tens Llar compartida i la vas crear tu: obre-la des del teu perfil. BÉ: «Actualitzat» porta dia i hora sense segons ni any, i surten «Regenerar codi» i «Treure» al costat de cada membre (no treguis ningú). MALAMENT: dates amb segons, o hi falten els botons."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.247",
     "d": "2026-11-19",
     "t": {
