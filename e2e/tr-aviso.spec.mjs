@@ -38,8 +38,8 @@ test("al verificar el 2FA sale el toast de conectado (una vez)", async ({ page }
     };
   });
 
-  const tr = page.locator(".bk-card.bk-tr");
-  await tr.locator(".bk-brand").click();
+  await page.locator('.v4-banks-push .bk-row[data-broker="trade_republic"]').click();
+  const tr = page.locator('.bk-ficha [data-broker-flow="trade_republic"]');
   await tr.locator('input[type="password"]').fill("1234");
   await tr.getByRole("button", { name: "Conectar", exact: true }).click();
   await tr.locator('input[maxlength="6"]').fill("123456");
@@ -78,8 +78,8 @@ test("si el verify falla no hay toast de conectado", async ({ page }) => {
     };
   });
 
-  const tr = page.locator(".bk-card.bk-tr");
-  await tr.locator(".bk-brand").click();
+  await page.locator('.v4-banks-push .bk-row[data-broker="trade_republic"]').click();
+  const tr = page.locator('.bk-ficha [data-broker-flow="trade_republic"]');
   await tr.locator('input[type="password"]').fill("1234");
   await tr.getByRole("button", { name: "Conectar", exact: true }).click();
   await tr.locator('input[maxlength="6"]').fill("0000");
@@ -101,8 +101,8 @@ test("Sync manual con sesión ya viva también avisa una vez", async ({ page }) 
     };
   });
 
-  const tr = page.locator(".bk-card.bk-tr");
-  await tr.locator(".bk-brand").click();
+  await page.locator('.v4-banks-push .bk-row[data-broker="trade_republic"]').click();
+  const tr = page.locator('.bk-ficha [data-broker-flow="trade_republic"]');
   await tr.getByRole("button", { name: "Sincronizar ahora", exact: true }).click();
   await expect(page.locator(".toast").filter({ hasText: toastOk })).toBeVisible({ timeout: 10_000 });
 });
@@ -117,8 +117,8 @@ test("un login rechazado pinta una sola línea, sin el diagnóstico del puente",
     };
   });
 
-  const tr = page.locator(".bk-card.bk-tr");
-  await tr.locator(".bk-brand").click();
+  await page.locator('.v4-banks-push .bk-row[data-broker="trade_republic"]').click();
+  const tr = page.locator('.bk-ficha [data-broker-flow="trade_republic"]');
   await tr.locator('input[type="password"]').fill("1234");
   await tr.getByRole("button", { name: "Conectar", exact: true }).click();
   const box = tr.locator(".alarmbox");
@@ -141,8 +141,8 @@ test("login v2 por aviso: espera la aprobación sin pedir código y conecta", as
     };
   });
 
-  const tr = page.locator(".bk-card.bk-tr");
-  await tr.locator(".bk-brand").click();
+  await page.locator('.v4-banks-push .bk-row[data-broker="trade_republic"]').click();
+  const tr = page.locator('.bk-ficha [data-broker-flow="trade_republic"]');
   await tr.locator('input[type="password"]').fill("1234");
   await tr.getByRole("button", { name: "Conectar", exact: true }).click();
   await expect(tr).toContainText("Abre la app de Trade Republic y aprueba el inicio de sesión.");

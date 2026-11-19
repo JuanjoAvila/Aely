@@ -85,6 +85,12 @@ export const E2E_MAP = [
   { file: "src/modules/10-app-components.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/mis-bancos-d1.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs", "e2e/bancos-lista-fresca.spec.mjs", "e2e/brokers-selector.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/bancos-reconnect.spec.mjs", "e2e/brokers-selector.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/mis-bancos-d1.spec.mjs"] },
+  // D1 tras la pasada 3 (19/11): TR, MyInvestor y el CSV de Revolut son filas con su conexión en la
+  // ficha, así que sus componentes y la hoja que los lleva caen en las mismas pruebas de la pantalla.
+  { file: "src/modules/10-app-components.js", specs: ["e2e/tr-aviso.spec.mjs", "e2e/tr-aprobar-vuelve.spec.mjs", "e2e/revolut-csv-import.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/mis-bancos-d1.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/mis-bancos-d1.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/mis-bancos-d1.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/mis-bancos-d1.spec.mjs"] },
   // Lectura sola del banco al entrar, con tope (orden del dueño, 16/11/2026): el tope vive en 08,
   // el contador en `cloud.bankSync` (00) y el efecto que la lanza en App (11).

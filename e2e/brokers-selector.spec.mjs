@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* Brókers: los eliges tú, y sus tarjetas se pliegan (feedback 2026-07-25).
+/* Brókers: los eliges tú, y su conexión va en su ficha (feedback 2026-07-25; filas desde D1, 19/11).
  *
  * Dos quejas distintas del usuario, las dos aquí:
  *   1. «Que te salgan directamente para loguear sin tenerlo es muy raro — ni mi pareja ni mi
  *      padre tienen MyInvestor y les sale». Las tres tarjetas se pintaban SIEMPRE.
- *   2. «El colapsable de los brókers tampoco está»: el acordeón solo se hizo para los bancos de
- *      Open Banking, y los brókers seguían con todo desplegado.
+ *   2. «El colapsable de los brókers tampoco está»: los brókers salían con todo desplegado. Desde
+ *      D1 son filas como las de los bancos y el formulario vive en su ficha.
  *
  * Va con e2e por la lección de la 4.7.1 (AGENTS §7): esto es render derivado del estado, que es
  * exactamente lo que `npm test` no ve. Y lo crítico que hay que blindar es que el filtrado NO
@@ -23,13 +23,14 @@ async function abrirBancos(page, overrides) {
   await expect(page.locator(".v4-banks-push")).toHaveClass(/open/, { timeout: 10_000 });
 }
 
-test("sin brókers en cartera no sale NINGUNA tarjeta de login (el caso del padre)", async ({ page }) => {
+const fila = (page, k) => page.locator(`.v4-banks-push .bk-row[data-broker="${k}"]`);
+
+test("sin brókers en cartera no sale NINGUNA fila de bróker ni formulario (el caso del padre)", async ({ page }) => {
   await abrirBancos(page, { investments: [] });
   // La puerta para conectar uno sí está: desde D1 (19/11) es «+» → Conectar, no los chips.
   await expect(page.locator('[data-act="bk-conectar"]')).toBeVisible();
-  await expect(page.locator(".bk-card.bk-tr")).toHaveCount(0);
-  await expect(page.locator(".bk-card.bk-mi")).toHaveCount(0);
-  await expect(page.locator(".bk-card.bk-csv")).toHaveCount(0);
+  await expect(page.locator(".v4-banks-push [data-broker]")).toHaveCount(0);
+  await expect(page.locator(".bk-flow")).toHaveCount(0);
 });
 
 test("un bróker que YA usas aparece solo, sin tener que marcarlo", async ({ page }) => {
@@ -37,44 +38,41 @@ test("un bróker que YA usas aparece solo, sin tener que marcarlo", async ({ pag
   await abrirBancos(page, {
     investments: [{ id: "i1", ent: "trade_republic", name: "VWCE", ticker: "VWCE", shares: 10, cost: 1000 }],
   });
-  await expect(page.locator(".bk-card.bk-tr")).toHaveCount(1);
-  await expect(page.locator(".bk-card.bk-mi")).toHaveCount(0);   // MyInvestor no, que no lo usa
+  await expect(fila(page, "trade_republic")).toHaveCount(1);
+  await expect(fila(page, "myinvestor")).toHaveCount(0);   // MyInvestor no, que no lo usa
 });
 
-test("elegir un bróker en Conectar trae su tarjeta", async ({ page }) => {
+test("elegir un bróker en Conectar trae su fila y abre su ficha; el ✓ solo si está conectado", async ({ page }) => {
   await abrirBancos(page, { investments: [] });
   await page.locator('[data-act="bk-conectar"]').click();
   await page.locator('.bk-pick [data-bk-tile="myinvestor"]').click();
-  await expect(page.locator(".bk-card.bk-mi")).toHaveCount(1);
-  // Y ya sale con ✓ la siguiente vez.
+  await expect(page.locator('.bk-ficha[data-bk-ficha="myinvestor"] [data-broker-flow="myinvestor"]')).toBeVisible();
+  await page.goBack();
+  await expect(page.locator(".bk-ficha")).toHaveCount(0);
+  await expect(fila(page, "myinvestor")).toHaveCount(1);
+  // Tenerlo en la lista no es estar conectado: sin sesión en la nube, Conectar no le pone ✓.
   await page.locator('[data-act="bk-conectar"]').click();
-  await expect(page.locator('.bk-pick [data-bk-tile="myinvestor"] .bk-tile-ok')).toHaveCount(1);
+  await expect(page.locator('.bk-pick [data-bk-tile="myinvestor"]')).toBeVisible();
+  await expect(page.locator('.bk-pick [data-bk-tile="myinvestor"] .bk-tile-ok')).toHaveCount(0);
 });
 
-test("las tarjetas de bróker nacen plegadas y se abren al tocarlas, de una en una", async ({ page }) => {
+test("los brókers son filas como las de los bancos y su conexión va dentro de la ficha", async ({ page }) => {
   await abrirBancos(page, {
     investments: [
       { id: "i1", ent: "trade_republic", name: "VWCE", ticker: "VWCE", shares: 10, cost: 1000 },
       { id: "i2", ent: "myinvestor", name: "Fondo", ticker: "F1", shares: 5, cost: 500 },
     ],
   });
-  const tr = page.locator(".bk-card.bk-tr");
-  const mi = page.locator(".bk-card.bk-mi");
-  await expect(tr).toHaveCount(1);
-  await expect(mi).toHaveCount(1);
-
-  // Plegadas: solo cabecera, sin el cuerpo con formularios y botones.
-  await expect(tr.locator(".bk-brand")).toHaveAttribute("aria-expanded", "false");
-  await expect(tr.locator(".hint")).toHaveCount(0);
-
-  await tr.locator(".bk-brand").click();
-  await expect(tr.locator(".bk-brand")).toHaveAttribute("aria-expanded", "true");
-  await expect(tr.locator(".hint").first()).toBeVisible();
-
-  // Acordeón: abrir MyInvestor cierra Trade Republic.
-  await mi.locator(".bk-brand").click();
-  await expect(mi.locator(".bk-brand")).toHaveAttribute("aria-expanded", "true");
-  await expect(tr.locator(".bk-brand")).toHaveAttribute("aria-expanded", "false");
+  await expect(fila(page, "trade_republic")).toHaveCount(1);
+  await expect(fila(page, "myinvestor")).toHaveCount(1);
+  // En la lista no hay formularios: solo la fila.
+  await expect(page.locator(".v4-banks-push .bk-flow")).toHaveCount(0);
+  await fila(page, "trade_republic").locator(".bk-nm").click();
+  await expect(page.locator('.bk-ficha [data-broker-flow="trade_republic"] .hint').first()).toBeVisible();
+  await page.goBack();
+  await fila(page, "myinvestor").locator(".bk-nm").click();
+  await expect(page.locator('.bk-ficha [data-broker-flow="myinvestor"]')).toBeVisible();
+  await expect(page.locator('.bk-ficha [data-broker-flow="trade_republic"]')).toHaveCount(0);
 });
 
 test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", async ({ page }) => {
@@ -114,8 +112,8 @@ test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", 
 
   // Completar PIN + código. Antes solo cambiaba el estado local de TRSync; el resumen que queda
   // detrás conservaba el caído hasta matar la app.
-  const tr = page.locator(".bk-card.bk-tr");
-  await tr.locator(".bk-brand").click();
+  await page.locator('.v4-banks-push .bk-row[data-broker="trade_republic"]').click();
+  const tr = page.locator('.bk-ficha [data-broker-flow="trade_republic"]');
   await tr.locator('input[type="password"]').fill("1234");
   await tr.getByRole("button", { name: "Conectar", exact: true }).click();
   await tr.locator('input[maxlength="6"]').fill("123456");
@@ -126,7 +124,9 @@ test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", 
   await expect(bankSummary).not.toContainText("caducado");
   await expect(bankSummary).not.toContainText(/Trade Republic desconectado/i);
 
-  // Y al salir, vuelta con acción: Ajustes con la fila marcada y el aviso de lo conectado.
+  // Y al salir (primero baja la ficha), vuelta con acción: Ajustes con la fila marcada y el aviso.
+  await page.goBack();
+  await expect(page.locator(".bk-ficha")).toHaveCount(0);
   await page.locator(".v4-banks-push .settings-push-h .back").click();
   await expect(page.locator(".v4-banks-push")).toHaveCount(0);
   await expect(page.locator("[data-bank-grp] > .set-row")).toHaveClass(/cx-vuelta/);

@@ -727,10 +727,11 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
   const [picking,setPicking]=useState(false);     // hoja «Conectar»
   const [otro,setOtro]=useState(false);           // dentro de Conectar: buscador con todos los bancos
   const [ficha,setFicha]=useState("");            // aspsp cuya hoja está abierta
-  /* Tarjeta de bróker desplegada ("br:tr", "br:mi", "br:rev"), de una en una. Los bancos ya no
-     usan acordeón: su ficha es una hoja (D1, 19/11), porque los tres botones iguales por banco
-     eran el «198349123 funciones» de su feedback del 25/7. */
-  const [openBank,setOpenBank]=useState("");
+  /* Estado REAL de los brókers con conexión propia: "ok" | "dead" | "off" (null = aún sin saber).
+     La lista y el ✓ de Conectar leen esto mismo: el ✓ salía de `brokersOn` («lo enseño») y ponía
+     Trade Republic conectado con su fila diciendo lo contrario (filtro de diseño 19/11). */
+  const [trSt,setTrSt]=useState(null);
+  const [miSt,setMiSt]=useState(null);
   // Qué brókers usa este usuario. Sin elección previa se deducen de las posiciones que ya tiene
   // en cartera: así nadie pierde de vista un bróker que estaba usando, y quien no tiene ninguno
   // no ve formularios de login que no le sirven de nada. Uno nuevo se añade desde Conectar.
@@ -742,26 +743,20 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
   })();
   // Banco a resaltar al entrar (viene del sync o del banner de Cartera): lo centramos en
   // pantalla, que con tres o cuatro bancos enlazados el bueno se pierde en la lista (2026-07-24).
-  // TR llega como focus «trade_republic» → abre su tarjeta de bróker (br:tr), no una fila OB.
+  // TR llega como focus «trade_republic» → abre su ficha de bróker, no una fila OB.
   const focusRef=useRef(null);
-  const trFocusRef=useRef(null);   // tarjeta de TR (bróker): vive DEBAJO de la lista de bancos OB
   useEffect(function(){
     if(!focusAspsp) return;
     if(focusAspsp==="trade_republic" || focusAspsp==="tr"){
-      setOpenBank("br:tr");
-      // La tarjeta de TR solo se pinta si el chip «Trade Republic» está encendido (línea ~653).
-      // Si venías a reconectar y el chip estaba apagado (settings.brokersOn desactualizado), la
-      // tarjeta ni existía: el deep-link aterrizaba en una lista vacía, sin fallo visible ni
-      // forma de saber por qué (2026-07-31). Reconectar SIEMPRE implica que la quieres ver.
+      // Si venías a reconectar y TR no estaba en `brokersOn`, su fila ni existía: el deep-link
+      // aterrizaba en una lista sin TR, sin fallo visible (2026-07-31). Reconectar SIEMPRE implica
+      // que la quieres ver. Y se abre su ficha directamente: antes había que bajar a buscarla
+      // («le doy y no me lleva a Trade Republic», 2026-07-31).
       if(brokersOn.indexOf("trade_republic")<0){
         set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{brokersOn:brokersOn.concat(["trade_republic"])})}); });
       }
-      // Sin esto, el padre aterrizaba en Mis bancos (arriba del todo) con la tarjeta de TR YA
-      // abierta pero fuera de pantalla —tenía que bajar él mismo a buscarla entre los bancos OB—
-      // y de ahí «le doy y no me lleva a Trade Republic» (2026-07-31). Mismo patrón que el resto
-      // de bancos (más abajo), solo que la tarjeta de TR no tiene fila en `links`.
-      const tm=setTimeout(function(){ try{ trFocusRef.current && trFocusRef.current.scrollIntoView({block:"center",behavior:"smooth"}); }catch(e){} }, 220);
-      return function(){ clearTimeout(tm); };
+      setFicha("br:trade_republic");
+      return;
     }
     if(!links || !links.length) return;
     // El banco al que venías a arreglar lleva «Renovar» en su propia fila: basta con centrarlo.
@@ -773,6 +768,30 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
      la hoja está arriba, el borde no arrastra la página de debajo (`on` = sin hoja). */
   const pk=useSheetSwipe(picking, function(){ setPicking(false); setOtro(false); setQ(""); });
   useBackClose(picking, pk.close);
+  /* «Otro banco» es un paso más de atrás (vuelve a las baldosas, no cierra Conectar) y la hoja
+     crece hasta su alto deslizando: antes pasaba de 392 a 96 px de top en un fotograma
+     (filtro de diseño 19/11). Se mide el alto de antes, se fija y se deja ir al nuevo. */
+  const pickH=useRef(0);
+  const irOtro=function(v){ const el=pk.sheetRef.current; pickH.current=el?el.offsetHeight:0; setOtro(v); if(!v) setQ(""); };
+  useBackClose(picking&&otro, function(){ irOtro(false); });
+  useLayoutEffect(function(){
+    const el=pk.sheetRef.current, h0=pickH.current; pickH.current=0;
+    if(!el||!h0||mcReduced()) return undefined;
+    const h1=el.offsetHeight;
+    if(Math.abs(h1-h0)<2) return undefined;
+    el.style.transition="none"; el.style.height=h0+"px";
+    void el.offsetHeight;
+    el.style.transition="height .42s cubic-bezier(.22,.61,.36,1), transform .3s cubic-bezier(.22,.61,.36,1)";
+    el.style.height=h1+"px";
+    // Se suelta al acabar la transición de verdad, no a ojo con un reloj: con la CPU frenada el reloj
+    // llegaba antes y la hoja terminaba de un salto. El reloj largo es solo la red de seguridad.
+    let vivo=true;
+    const fin=function(){ if(!vivo) return; vivo=false; el.style.height=""; el.style.transition=""; };
+    const an=(el.getAnimations?el.getAnimations():[]).filter(function(a){ return a.transitionProperty==="height"; })[0];
+    if(an) an.finished.then(fin,fin);
+    const tm=setTimeout(fin,an?2000:460);
+    return function(){ clearTimeout(tm); fin(); };
+  },[otro]);
   const fs=useSheetSwipe(!!ficha, function(){ setFicha(""); });
   useBackClose(!!ficha, fs.close);
   const pg=useEdgePageClose(true,function(){ onClose(accionRef.current); },!picking&&!ficha,sr,{opaca:true});
@@ -784,11 +803,23 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
     return function(){ cancelAnimationFrame(e1); if(e2) cancelAnimationFrame(e2); mcSheetUnlock(); };
   },[]);
   // Conectar Trade Republic aquí dentro también es «volver con acción».
+  // Y la fila de TR sigue al puente: conectar, caducar o desconectar en su ficha se ve detrás.
   useEffect(function(){
-    const h=function(e){ const d=e&&e.detail; if(d&&d.ack&&d.connected) accionRef.current={ent:"trade_republic",k:"c"}; };
+    const h=function(e){ const d=e&&e.detail; if(!d) return;
+      if(d.ack&&d.connected) accionRef.current={ent:"trade_republic",k:"c"};
+      setTrSt(d.connected?"ok":(d.authExpired||trAuthExpiredSaved()?"dead":"off")); };
     window.addEventListener("mc-tr-status",h);
     return function(){ window.removeEventListener("mc-tr-status",h); };
   },[]);
+  /* De dónde sale «conectado»: TR, del puente del móvil (la sesión vive en el aparato); MyInvestor,
+     de su fila en la nube. Sin puente (web) TR no está conectado aquí, tenga o no posiciones. */
+  useEffect(function(){
+    const b=trBridge();
+    if(b&&b.status) Promise.resolve(b.status()).then(function(r){ setTrSt(r&&r.connected?"ok":(trAuthExpiredSaved()?"dead":"off")); }).catch(function(){ setTrSt("off"); });
+    else setTrSt(trAuthExpiredSaved()?"dead":"off");
+    if(!cloud.enabled()){ setMiSt("off"); return; }
+    Promise.resolve(cloud.myinvestorStatus()).then(function(r){ setMiSt(r&&r.status==="active"?"ok":(r&&r.status==="expired"?"dead":"off")); }).catch(function(){ setMiSt("off"); });
+  },[uid]);
   const loadLinks=function(){ if(!cloud.enabled()){ setLinks([]); return; } cloud.bankLinks().then(function(rows){ setLinks(rows||[]);
     // El resumen de la fila de Ajustes se entera al momento, esté o no montado debajo.
     try{ window.dispatchEvent(new CustomEvent("mc-bank-links",{detail:rows||[]})); }catch(e){}
@@ -933,7 +964,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
   const bankLabel=function(nm){ const e=entFromAspsp(nm); return e?entOf(e).label:nm; };
   const connected={}; (links||[]).forEach(function(l){ connected[(l.aspsp_name||"").toLowerCase()]=l; });
   const ql=q.trim().toLowerCase();
-  const shown=(aspsps||[]).filter(function(a){ return !ql || (a.name||"").toLowerCase().indexOf(ql)>=0; });
+  // Lo ya conectado no se repite en «Otro banco»: ya sale con ✓ en las baldosas y en la lista.
+  const shown=(aspsps||[]).filter(function(a){ const n=(a.name||"").toLowerCase(); return !connected[n] && (!ql || n.indexOf(ql)>=0 || bankLabel(a.name).toLowerCase().indexOf(ql)>=0); });
   const inp={width:"100%",padding:"12px 14px",borderRadius:12,border:"1px solid var(--line-soft)",background:"var(--sur)",color:"var(--text)",fontSize:16,boxSizing:"border-box"};
   const logoBox=function(a){
     const ent=entFromAspsp(a.name);
@@ -973,15 +1005,21 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
         kind==="warn" && React.createElement("circle",{className:"val",cx:(lado+12)/2,cy:(lado+12)/2,r:r,strokeDasharray:(Math.max(0.06,(st.dias||0)/90)*c).toFixed(1)+" "+c.toFixed(1)})),
       React.createElement(Mono,{ent:ent||"",size:lado}));
   };
+  /* Un trozo más del subtítulo («· hace 2 días», «· 2 cuentas»). El espacio va FUERA del `nowrap`,
+     que es por donde puede saltar; con el «·» pegado por un espacio duro no había por dónde y con
+     Enorme a 360 se salía de la fila (filtro de diseño 19/11). El «·» viaja con su texto. */
+  const trozo=function(txt){ return React.createElement(React.Fragment,null," ",React.createElement("span",{className:"nw"},"· "+txt)); };
   const lineaEstado=function(st){
     if(st.noAcct) return React.createElement("span",{className:"warn"}, t("bp_st_noacct"));
     if(st.pending) return React.createElement("span",{className:"warn"}, t("bp_st_pending"));
-    if(st.dead) return React.createElement(React.Fragment,null, React.createElement("span",{className:"bad"}, t("mb_st_dead")), st.at?React.createElement("span",{className:"nw"},"\u00a0· "+bkHace(st.at)):null);
+    if(st.dead) return React.createElement(React.Fragment,null, React.createElement("span",{className:"bad"}, t("mb_st_dead")), st.at?trozo(bkHace(st.at)):null);
     if(st.soon) return React.createElement("span",{className:"warn"}, bkCaduca(st.dias));
-    return st.at?bkHace(st.at):t("bank_neversync");
+    return React.createElement("span",{className:"nw"}, st.at?bkHace(st.at):t("bank_neversync"));
   };
   const renovar=function(l,st){ return function(e){ if(e) e.stopPropagation(); setFicha(""); connect(l.aspsp_name, l.aspsp_country||"ES"); }; };
   const masNuevo=(links||[]).reduce(function(m,l){ const at=estado(l).at, x=at?new Date(at).getTime():0; return x>m?x:m; },0);
+  const obEnts={}; (links||[]).forEach(function(l){ const e=entFromAspsp(l.aspsp_name); if(e) obEnts[e]=1; });
+  const brFilas=brokersOn.filter(function(k){ return !(k==="revolut"&&obEnts.revolut); });
 
   /* CONECTAR: una hoja con los logos de los bancos que la app conoce (sin teclado al entrar), ✓ en
      lo ya conectado, y «Otro banco» abre el buscador con la lista entera. Los brókers con conexión
@@ -997,29 +1035,32 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
         on && React.createElement("span",{className:"bk-tile-ok","aria-hidden":"true"},"✓")),
       React.createElement("span",{className:"bk-tile-lb"}, label));
   };
+  // Un bróker desde Conectar: entra en la lista (si no estaba) y se abre su ficha, con la conexión.
   const abreBroker=function(k){
     if(brokersOn.indexOf(k)<0) set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{brokersOn:brokersOn.concat([k])})}); });
-    setOpenBank(k==="trade_republic"?"br:tr":(k==="myinvestor"?"br:mi":"br:rev"));
-    pk.close(); setFicha("");
-    setTimeout(function(){ try{ const el=sr.current&&sr.current.querySelector('[data-broker="'+k+'"]'); if(el) el.scrollIntoView({block:"center",behavior:mcReduced()?"auto":"smooth"}); }catch(e){} },360);
+    if(picking) pk.close();
+    setFicha("br:"+k);
   };
+  const brSt=function(k){ return k==="trade_republic"?trSt:(k==="myinvestor"?miSt:null); };
   const hoja=picking && ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:pk.close},
-    React.createElement("div",Object.assign({className:"v4-sheet bk-pick",role:"dialog","aria-modal":"true","aria-label":t("mb_connect"),ref:pk.sheetRef,onClick:function(e){ e.stopPropagation(); }},pk.sheetTouch),
+    React.createElement("div",Object.assign({className:"v4-sheet bk-pick"+(otro?" otro":""),role:"dialog","aria-modal":"true","aria-label":t("mb_connect"),ref:pk.sheetRef,onClick:function(e){ e.stopPropagation(); }},pk.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"sub-push-h"},
         React.createElement("h1",null, t("mb_connect")),
         React.createElement("button",{type:"button",className:"back","aria-label":t("au_close"),onClick:pk.close},"✕")),
       React.createElement("div",{className:"v4-sheet-body"},
+        // La clave cambia con el paso: lo nuevo entra con un fundido corto mientras la hoja crece.
+        React.createElement("div",{key:otro?"otro":"grid",className:"bk-pick-in"},
         !otro && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"bk-sec"}, t("mb_sec_cuentas")),
           loadingA && React.createElement("div",{className:"hint"}, t("bp_loading")),
           React.createElement("div",{className:"bk-grid","data-bk-grid":"bancos"},
             conocidos.map(function(a){ const e=entFromAspsp(a.name); return tileBtn(a.name,e,entOf(e).label,!!connected[(a.name||"").toLowerCase()],function(){ connect(a.name,a.country); },{"data-bk-tile":e}); }),
-            tileBtn("__otro",null,t("mb_other"),false,function(){ setOtro(true); },{"data-bk-tile":"otro"})),
+            tileBtn("__otro",null,t("mb_other"),false,function(){ irOtro(true); },{"data-bk-tile":"otro"})),
           React.createElement("div",{className:"bk-sec"}, t("mb_sec_inv")),
           React.createElement("div",{className:"bk-grid","data-bk-grid":"inv"},
             [["trade_republic","Trade Republic"],["myinvestor","MyInvestor"]].map(function(b){
-              return tileBtn(b[0],b[0],b[1],brokersOn.indexOf(b[0])>=0,function(){ abreBroker(b[0]); },{"data-bk-tile":b[0]}); }),
+              return tileBtn(b[0],b[0],b[1],brSt(b[0])==="ok",function(){ abreBroker(b[0]); },{"data-bk-tile":b[0]}); }),
             /* IBKR y Kraken por API (rama brokers-api): sus baldosas solo salen si esa conexión
                existe en el bundle, y la abren por evento (`mc-open-broker-api`), así esta pantalla no
                depende de su código ni deja botones muertos sin ella. */
@@ -1034,7 +1075,6 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
           loadingA && React.createElement("div",{className:"hint"}, t("bp_loading")),
           (!loadingA && aspsps!==null && shown.length===0) && React.createElement("div",{className:"hint"}, t("bp_noresults")),
           shown.slice(0,80).map(function(a){
-            const isC=!!connected[(a.name||"").toLowerCase()];
             // TR ya no se bloquea: se avisa de QUÉ va a aportar por aquí (los movimientos) para que
             // nadie crea que está conectando el bróker por segunda vez. Ver `bankConnectOnce`.
             const esTR=entFromAspsp(a.name)==="trade_republic";
@@ -1042,20 +1082,40 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
               className:"v4-mov bk-pick-row",style:{opacity:(busy&&busy!==a.name)?0.5:1}},
               logoBox(a),
               React.createElement("div",{style:{flex:1,minWidth:0}},
-                React.createElement("div",{className:"nm"}, a.name),
-                isC? React.createElement("div",{className:"meta",style:{color:"var(--mint)"}}, "✓ "+t("bp_already"))
-                  : (esTR? React.createElement("div",{className:"meta"}, t("bp_tr_ob"))
-                  : (a.beta? React.createElement("div",{className:"meta"}, "beta") : null))),
+                React.createElement("div",{className:"nm"}, bankLabel(a.name)),
+                esTR? React.createElement("div",{className:"meta"}, t("bp_tr_ob"))
+                  : (a.beta? React.createElement("div",{className:"meta"}, "beta") : null)),
               React.createElement("span",{style:{color:"var(--muted-2)",fontWeight:800,fontSize:18}}, busy===a.name?"…":"›"));
-          }))
+          })))
       )
     )), document.body);
 
   /* LA FICHA DE UN BANCO, en hoja (D1): sustituye al acordeón de tres botones iguales. Arriba el
-     estado; la acción que toca con el botón principal (renovar si caducó, actualizar si no); el
-     último saldo; y «Quitar», aparte y en coral, que pregunta qué hacer con sus movimientos. */
-  const fl=ficha && (links||[]).find(function(l){ return l.aspsp_name===ficha; });
-  const fichaHoja=fl && (function(){
+     estado; «Renovar» con el botón principal si caducó (actualizar es el ↻ de la cabecera, que
+     lee todos: «Actualizar todos» dentro de un solo banco confundía); el último saldo; y «Quitar»,
+     aparte y en coral, que pregunta qué hacer con sus movimientos. */
+  const fbk=ficha&&ficha.indexOf("br:")===0?ficha.slice(3):"";
+  const fl=ficha && !fbk && (links||[]).find(function(l){ return l.aspsp_name===ficha; });
+  /* La de un bróker: la misma cabecera, y dentro su conexión tal cual (las hojas por pasos de TR y
+     MyInvestor son D2). Revolut aquí es solo su CSV de oro y acciones. */
+  const fichaBroker=fbk && (function(){
+    const s=brSt(fbk);
+    const chip=s==="ok"?["","mb_st_ok"]:(s==="dead"?[" bad","mb_st_dead_c"]:(s==="off"?[" warn","mb_st_off_c"]:null));
+    return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:fs.close},
+      React.createElement("div",Object.assign({className:"v4-sheet bk-ficha",role:"dialog","aria-modal":"true","aria-label":entOf(fbk).label,"data-bk-ficha":fbk,ref:fs.sheetRef,onClick:function(e){ e.stopPropagation(); }},fs.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{className:"bk-fh"},
+          React.createElement(Mono,{ent:fbk,size:48}),
+          React.createElement("div",{className:"bk-fh-t"},
+            React.createElement("h2",null, entOf(fbk).label),
+            chip && React.createElement("span",{className:"bk-chip"+chip[0]}, t(chip[1]))),
+          React.createElement("button",{type:"button",className:"bk-x","aria-label":t("au_close"),onClick:fs.close},"✕")),
+        fbk==="trade_republic" && React.createElement(TRSync,{state:state,set:set,totals:totals}),
+        fbk==="myinvestor" && React.createElement(MyInvestorSync,{state:state,set:set,onConn:function(v){ setMiSt(v?"ok":"off"); }}),
+        fbk==="revolut" && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices})
+      )), document.body);
+  })();
+  const fichaHoja=fichaBroker || fl && (function(){
     const st=estado(fl), ent=entFromAspsp(fl.aspsp_name), sal=saldoDe(fl), roto=st.dead||st.noAcct;
     const pct=st.dias==null?0:Math.max(0,Math.min(1,st.dias/90));
     return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:fs.close},
@@ -1072,11 +1132,9 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
           React.createElement("div",{className:"bk-bar"+(roto?" bad":(st.soon?" warn":""))}, React.createElement("i",{style:{width:(roto?100:pct*100).toFixed(0)+"%"}})),
           React.createElement("div",{className:"bk-life-l"}, st.dias<0?bkCaducado(-st.dias):bkCaduca(st.dias))),
         st.noAcct && React.createElement("div",{className:"hint bk-noacct"}, t("bp_noacct_help")),
-        roto
-          ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-act":"bk-renovar",onClick:renovar(fl,st)}, st.noAcct?t("bp_retry_link"):t("mb_renew_long"))
-          : React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-act":"bk-actualizar",disabled:!!busy,onClick:refresh}, busy==="__sync"?t("bp_syncing"):"↻ "+t("bank_refresh")),
+        roto && React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-act":"bk-renovar",onClick:renovar(fl,st)}, st.noAcct?t("bp_retry_link"):t("mb_renew_long")),
         React.createElement("div",{className:"bk-last num"}, (sal!=null?tf("mb_last",{x:eur(sal)})+(st.at?" · ":""):"")+(st.at?bkHace(st.at):(sal==null?t("bank_neversync"):""))),
-        ent==="revolut" && React.createElement("button",{type:"button",className:"bk-opt",onClick:function(){ abreBroker("revolut"); }}, t("mb_rev_csv"), React.createElement("span",{className:"sr-chev"},"›")),
+        ent==="revolut" && React.createElement("button",{type:"button",className:"bk-opt",onClick:function(){ setFicha("br:revolut"); }}, t("mb_rev_csv"), React.createElement("span",{className:"sr-chev"},"›")),
         React.createElement("button",{type:"button",className:"bk-del","data-act":"bk-quitar",disabled:!!busy,onClick:function(){ const n=fl.aspsp_name; fs.close(); remove(n); }},
           TRASH_ICO(), tf("mb_quitar",{bank:bankLabel(fl.aspsp_name)}))
       )), document.body);
@@ -1112,20 +1170,40 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
             React.createElement("div",{className:"bk-top"},
               React.createElement("span",{className:"bk-nm"}, bankLabel(l.aspsp_name)),
               React.createElement("span",{className:"bk-am num"+((st.dead||st.noAcct)?" fade":"")}, sal!=null?eur(sal):"—")),
-            React.createElement("div",{className:"bk-mt"}, lineaEstado(st), nA>1?React.createElement("span",{className:"nw"},"\u00a0· "+tf("bp_naccts",{n:nA})):null),
+            React.createElement("div",{className:"bk-mt"}, lineaEstado(st), nA>1?trozo(tf("bp_naccts",{n:nA})):null),
             (st.dead||st.noAcct) && React.createElement("div",{className:"bk-act"},
               React.createElement("button",{type:"button",className:"bk-renew","data-act":"bk-renovar",disabled:!!busy,onClick:renovar(l,st)}, busy===l.aspsp_name?"…":(st.noAcct?t("bp_retry_link"):t("mb_renew"))))));
       })),
     /* Histórico del banco: solo Ajustes → Importaciones (tanda 4 / plan K). El rol Recibos / Gasto
        diario vive en Cartera → editar cuenta. Aquí, solo bancos. */
-    brokersOn.length>0 && React.createElement("div",{className:"bk-sec"}, t("mb_sec_inv")),
-    brokersOn.indexOf("trade_republic")>=0 && React.createElement("div",{ref:trFocusRef,"data-broker":"trade_republic"},
-      React.createElement(TRSync,{state:state,set:set,totals:totals,
-        open:openBank==="br:tr", onToggle:function(){ setOpenBank(openBank==="br:tr"?"":"br:tr"); }})),
-    brokersOn.indexOf("myinvestor")>=0 && React.createElement("div",{"data-broker":"myinvestor"}, React.createElement(MyInvestorSync,{state:state,set:set,
-      open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }})),
-    brokersOn.indexOf("revolut")>=0 && React.createElement("div",{"data-broker":"revolut"}, React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
-      open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }})),
+    /* INVERSIONES, con las mismas filas que los bancos (filtro de diseño 19/11: las tarjetas de la
+       243, con monograma y franja de color, eran otro diseño en mitad de la pantalla). La conexión
+       va dentro de su ficha. Revolut sale una vez: si ya está como banco, su CSV vive en esa ficha. */
+    brFilas.length>0 && React.createElement("div",{className:"bk-sec"}, t("mb_sec_inv")),
+    brFilas.length>0 && React.createElement("div",{className:"bk-list","data-bk-list":"inv"},
+      brFilas.map(function(k){
+        const s=brSt(k), its=(state.investments||[]).filter(function(i){ return i&&i.ent===k; });
+        const val=its.length?its.reduce(function(tot,i){ const v=invValueEur(i,state); return tot==null||v==null?null:tot+v; },0):null;
+        const at=k==="trade_republic"?state.lastTrSync:(k==="myinvestor"?state.lastMiSync:null);
+        const abre=function(){ setFicha("br:"+k); };
+        const nPos=its.length===1?t("v4_inv_position"):tf("iv_positions",{n:its.length});
+        const linea=k==="revolut" ? t("mb_rev_csv")
+          : s==="dead" ? React.createElement("span",{className:"bad"}, t("mb_st_ses"))
+          : s==="off" ? React.createElement("span",{className:"warn"}, t("mb_st_off"))
+          : s==="ok" ? (at?React.createElement("span",{className:"nw"}, bkHace(at)):null) : null;
+        return React.createElement("div",{key:k,"data-broker":k,
+          className:"bk-row"+(s==="dead"?" bad":""),role:"button",tabIndex:0,onClick:abre,
+          onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); abre(); } }},
+          hueco(k,{dead:s==="dead"},44),
+          React.createElement("div",{className:"bk-tx"},
+            React.createElement("div",{className:"bk-top"},
+              React.createElement("span",{className:"bk-nm"}, entOf(k).label),
+              React.createElement("span",{className:"bk-am num"+(s==="ok"||k==="revolut"?"":" fade")}, val!=null?eur(val):"—")),
+            React.createElement("div",{className:"bk-mt"}, linea,
+              its.length>0?(linea?trozo(nPos):React.createElement("span",{className:"nw"},nPos)):null),
+            (s==="dead"||s==="off") && React.createElement("div",{className:"bk-act"},
+              React.createElement("button",{type:"button",className:"bk-renew","data-act":"bk-br-conectar",onClick:function(e){ e.stopPropagation(); abre(); }}, t(s==="dead"?"mb_renew":"mb_connect")))));
+      })),
     /* «¿Cuadran tus recibos con el banco?» vive aquí, que es donde se busca lo del banco.
        Sin datos del banco no pinta nada. */
     React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),

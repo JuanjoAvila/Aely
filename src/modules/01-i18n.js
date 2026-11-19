@@ -1469,7 +1469,6 @@ Object.assign(LANG.ca,{
 });
 /* Brókers por fichero: DEGIRO e Interactive Brokers (18/11). Textos mínimos: una línea útil. */
 Object.assign(LANG.es,{
-  bf_degiro_title:"DEGIRO", bf_ibkr_title:"Interactive Brokers", bf_sub:"importar fichero",
   bf_steps_btn:"Cómo exportarlo", bf_file:"📄 Elegir fichero (puedes marcar varios)",
   bf_degiro_steps:["Web de DEGIRO → «Cartera» → «Exportar» → CSV.","«Bandeja de entrada» → «Transacciones», desde que abriste la cuenta → «Exportar» → CSV.","Sube los dos, juntos o de uno en uno."],
   bf_ibkr_steps:["Web de IBKR → «Rendimiento e informes» → «Consultas Flex».","Consulta de actividad con «Posiciones abiertas» y «Efectivo», en XML.","Ejecútala y súbela. También vale el Activity Statement en CSV."],
@@ -1489,7 +1488,6 @@ Object.assign(LANG.es,{
   bi_summary_one:"1 posición detectada · {from} → {to}", bi_apply_one:"Aplicar a 1 posición", bi_done_one:"✓ 1 posición re-anclada con el extracto"
 });
 Object.assign(LANG.en,{
-  bf_degiro_title:"DEGIRO", bf_ibkr_title:"Interactive Brokers", bf_sub:"import a file",
   bf_steps_btn:"How to export it", bf_file:"📄 Choose file (you can pick several)",
   bf_degiro_steps:["DEGIRO website → «Portfolio» → «Export» → CSV.","«Inbox» → «Transactions», from account opening → «Export» → CSV.","Upload both, together or one at a time."],
   bf_ibkr_steps:["IBKR website → «Performance & Reports» → «Flex Queries».","Activity query with «Open Positions» and «Cash Report», in XML.","Run it and upload it. The Activity Statement CSV also works."],
@@ -1509,7 +1507,6 @@ Object.assign(LANG.en,{
   bi_summary_one:"1 position detected · {from} → {to}", bi_apply_one:"Apply to 1 position", bi_done_one:"✓ 1 position re-anchored to the statement"
 });
 Object.assign(LANG.ca,{
-  bf_degiro_title:"DEGIRO", bf_ibkr_title:"Interactive Brokers", bf_sub:"importar fitxer",
   bf_steps_btn:"Com exportar-lo", bf_file:"📄 Tria el fitxer (en pots marcar diversos)",
   bf_degiro_steps:["Web de DEGIRO → «Cartera» → «Exportar» → CSV.","«Safata d'entrada» → «Transaccions», des que vas obrir el compte → «Exportar» → CSV.","Puja'ls tots dos, junts o d'un en un."],
   bf_ibkr_steps:["Web d'IBKR → «Rendiment i informes» → «Consultes Flex».","Consulta d'activitat amb «Posicions obertes» i «Efectiu», en XML.","Executa-la i puja-la. També val l'Activity Statement en CSV."],
@@ -1530,7 +1527,6 @@ Object.assign(LANG.ca,{
 });
 /* Sincronización Trade Republic (beta · nativa en Android) */
 Object.assign(LANG.es,{
-  tr_title:"Conectar Trade Republic", tr_sub:"un botón · trae tus posiciones",
   tr_hint:"Posiciones y efectivo al momento · solo lectura · conexión no oficial (puede pedir el 2FA).",
   tr_web_only:"Esta conexión funciona dentro de la app de Android (necesita un navegador real para el acceso seguro de TR). Ábrelo desde la app del móvil.",
   na_toast:"⚠ El apunte automático de gastos está desactivado — actívalo en Ajustes",
@@ -1583,7 +1579,6 @@ Object.assign(LANG.es,{
   tr_open_app:"Abrir Trade Republic", tr_notif_ok:"Trade Republic conectado. Toca para volver.",
   tr_push_expired:"La aprobación caducó. Vuelve a conectar.",
   tr_auth_intro:"Mete el código de tu app autenticadora.",
-  mi_title:"Conectar MyInvestor", mi_sub:"trae tus fondos indexados",
   mi_expired:"Tu sesión de MyInvestor caducó y no se pudo renovar sola. Vuelve a entrar (usuario recordado): contraseña y, si lo pide, el código SMS.",
   mi_hint:"Login con tu usuario de MyInvestor · la contraseña no se guarda nunca.",
   mi_need_login:"Para conectar MyInvestor primero inicia sesión en Aely (arriba, «Iniciar sesión»).",
@@ -1603,7 +1598,6 @@ Object.assign(LANG.es,{
   mi_err:"No se pudo conectar con MyInvestor. Revisa usuario/contraseña o el código, e inténtalo otra vez.",
 });
 Object.assign(LANG.en,{
-  tr_title:"Connect Trade Republic", tr_sub:"one button · pulls your positions",
   tr_hint:"Positions and cash in one tap · read-only · unofficial connection (may ask for 2FA).",
   tr_web_only:"This connection runs inside the Android app (it needs a real browser for TR's secure login). Open it from the mobile app.",
   na_toast:"⚠ Automatic expense capture is off — enable it in Settings",
@@ -1646,7 +1640,6 @@ Object.assign(LANG.en,{
   ob2_go:"Start", ob2_next:"Next",
   ob2_budget_t:"How much do you want to spend per month?", ob2_budget_d:"Your day-to-day budget (groceries, eating out, treats…). The app warns you before you go over.",
   tr_createnew:"➕ Create as a new position", tr_apply:"Apply to {n} positions", tr_apply_hint:"Shares, value and cost are set to what Trade Republic says now.",
-  mi_title:"Connect MyInvestor", mi_sub:"pulls your index funds",
   mi_expired:"Your MyInvestor session expired and couldn't renew itself. Sign in again (username remembered): password and, if asked, the SMS code.",
   mi_hint:"Log in with your MyInvestor user · the password is never stored.",
   mi_need_login:"To connect MyInvestor, first sign in to Aely (top, «Sign in»).",
@@ -1676,7 +1669,6 @@ Object.assign(LANG.en,{
   tr_auth_intro:"Enter the code from your authenticator app.",
 });
 Object.assign(LANG.ca,{
-  tr_title:"Connecta Trade Republic", tr_sub:"un botó · porta les teves posicions",
   tr_hint:"Posicions i efectiu a l'instant · només lectura · connexió no oficial (pot demanar el 2FA).",
   tr_web_only:"Aquesta connexió funciona dins l'app d'Android (necessita un navegador real per a l'accés segur de TR). Obre-ho des de l'app del mòbil.",
   na_toast:"⚠ L'apunt automàtic de despeses està desactivat — activa'l a Configuració",
@@ -1719,7 +1711,6 @@ Object.assign(LANG.ca,{
   ob2_go:"Comença", ob2_next:"Següent",
   ob2_budget_t:"Quant vols gastar al mes?", ob2_budget_d:"El teu pressupost del dia a dia (súper, bars, capricis…). L'app t'avisa abans de passar-te.",
   tr_createnew:"➕ Crea com a posició nova", tr_apply:"Aplica a {n} posicions", tr_apply_hint:"Participacions, valor i cost s'ajusten al que diu Trade Republic ara.",
-  mi_title:"Connecta MyInvestor", mi_sub:"porta els teus fons indexats",
   mi_expired:"La teva sessió de MyInvestor ha caducat i no s'ha pogut renovar sola. Torna a entrar (usuari recordat): contrasenya i, si el demana, el codi SMS.",
   mi_hint:"Login amb el teu usuari de MyInvestor · la contrasenya no es desa mai.",
   mi_need_login:"Per connectar MyInvestor primer inicia sessió a Aely (a dalt, «Inicia sessió»).",
@@ -2416,7 +2407,7 @@ Object.assign(LANG.es,{
   sync_result_title:"Resultado de la sincronización", sync_result_close:"Cerrar",
   bank_expired_re:"permiso caducado · reconéctate",
   bank_nolink:"esta cuenta aún no está dada de alta en Enable Banking (modo restringido). Enlázala en el panel de Enable Banking y vuelve a conectar.",
-  bank_refresh:"Actualizar todos", bank_reconnect:"Reconectar",
+  bank_reconnect:"Reconectar",
   bank_pending:"Pendiente de autorizar en el banco",
   bank_neversync:"Aún sin sincronizar",
 });
@@ -2439,7 +2430,7 @@ Object.assign(LANG.en,{
   sync_result_title:"Sync results", sync_result_close:"Close",
   bank_expired_re:"consent expired · reconnect",
   bank_nolink:"this account isn't linked in Enable Banking yet (restricted mode). Link it in the Enable Banking control panel and reconnect.",
-  bank_refresh:"Refresh all", bank_reconnect:"Reconnect",
+  bank_reconnect:"Reconnect",
   bank_pending:"Pending authorization at the bank",
   bank_neversync:"Not synced yet",
 });
@@ -2462,7 +2453,7 @@ Object.assign(LANG.ca,{
   sync_result_title:"Resultat de la sincronització", sync_result_close:"Tanca",
   bank_expired_re:"permís caducat · reconnecta't",
   bank_nolink:"aquest compte encara no està donat d'alta a Enable Banking (mode restringit). Enllaça'l al panell d'Enable Banking i torna a connectar.",
-  bank_refresh:"Actualitza tots", bank_reconnect:"Reconnecta",
+  bank_reconnect:"Reconnecta",
   bank_pending:"Pendent d'autoritzar al banc",
   bank_neversync:"Encara sense sincronitzar",
 });
@@ -2520,7 +2511,7 @@ Object.assign(LANG.es,{
   bp_title:"Mis bancos",
   bp_manage:"Gestionar mis bancos",
   mb_connect:"Conectar", mb_other:"Otro banco", mb_sec_cuentas:"Cuentas", mb_sec_inv:"Inversiones", mb_vacio:"Aún no hay nada conectado",
-  mb_st_dead:"Permiso caducado", mb_st_dead_c:"● Caducado", mb_st_ok:"● Al día", mb_renew:"Renovar", mb_renew_long:"Renovar permiso",
+  mb_st_dead:"Permiso caducado", mb_st_dead_c:"● Caducado", mb_st_ses:"Sesión caducada", mb_st_off:"Sin conectar", mb_st_off_c:"● Sin conectar", mb_st_ok:"● Al día", mb_renew:"Renovar", mb_renew_long:"Renovar permiso",
   mb_last:"Último saldo {x}", mb_quitar:"Quitar {bank}", mb_rev_csv:"Oro y acciones (CSV)", mb_refresh_aria:"Actualizar",
   mb_rel_now:"ahora", mb_rel_min:"hace {n} min", mb_rel_h:"hace {n} h", mb_rel_ayer:"ayer", mb_rel_d:"hace {n} días",
   mb_left_0:"caduca hoy", mb_left_1:"caduca mañana", mb_left_d:"caduca en {n} días", mb_dead_1:"caducó ayer", mb_dead_d:"caducó hace {n} días",
@@ -2567,7 +2558,7 @@ Object.assign(LANG.es,{
   bp_summary_tr_dead:"Trade Republic desconectado",
   exp_pull_invalid:"No se pudo completar la descarga. Lo guardado se conserva; vuelve a intentarlo.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
-  bp_search:"Buscar banco…", bp_loading:"Cargando bancos…", bp_noresults:"Ningún banco coincide.", bp_already:"ya conectado",
+  bp_search:"Buscar banco…", bp_loading:"Cargando bancos…", bp_noresults:"Ningún banco coincide.",
   bp_need_login:"Inicia sesión para conectar tu banco", bp_syncing:"Actualizando…",
   bp_st_pending:"pendiente", bp_st_expired:"caducado", bp_st_noacct:"sin cuentas",
   bp_noacct_help:"Autorizaste el banco pero no llegó ninguna cuenta. En modo restringido, Enable Banking solo trae las cuentas que has dado de alta en su panel de control. Entra en el panel de Enable Banking, enlaza (whitelistea) esta cuenta y pulsa «Volver a intentar».",
@@ -2575,19 +2566,19 @@ Object.assign(LANG.es,{
   bp_removed:"{bank} quitado · puedes reconectarlo cuando quieras",
   bp_removed_acc:"{bank} quitado · su cuenta sale de Cartera. Sus movimientos se quedan todos en Gastos",
   bp_rm_title:"¿Quitar {bank}?",
-  bp_rm_sub:"Sus movimientos NO se borran: se quedan en tu historial pase lo que pase. Lo único que eliges es si siguen contando en el gasto del mes.",
+  bp_rm_sub:"Sus movimientos no se borran. Eliges si siguen contando en el gasto del mes.",
   bp_rm_keep:"Que sigan contando",
-  bp_rm_keep_sub:"Solo se corta la conexión. Tus cifras se quedan exactamente como están.",
-  bp_rm_sub_diario:"Es tu banco del día a día, así que sus compras cuentan siempre: eso no se puede cambiar quitando el banco. Sus movimientos NO se borran.",
-  bp_rm_keep_diario_sub:"Se corta la conexión y nada más. Si quieres que dejen de contar, primero cambia cuál es tu cuenta del día a día en Patrimonio.",
+  bp_rm_keep_sub:"Solo se corta la conexión.",
+  bp_rm_sub_diario:"Es tu banco del día a día: sus compras cuentan siempre. Sus movimientos no se borran.",
+  bp_rm_keep_diario_sub:"Solo se corta la conexión. Para que dejen de contar, cambia tu cuenta del día a día en Patrimonio.",
   bp_rm_stop:"Que dejen de contar",
-  bp_rm_stop_sub:"Sus compras salen del gasto del mes. Ojo: también cambia lo que ves en los meses ya pasados, porque la cifra se recalcula.",
+  bp_rm_stop_sub:"Salen del gasto del mes, también de los meses pasados.",
 });
 Object.assign(LANG.en,{
   bp_title:"My banks",
   bp_manage:"Manage my banks",
   mb_connect:"Connect", mb_other:"Other bank", mb_sec_cuentas:"Accounts", mb_sec_inv:"Investments", mb_vacio:"Nothing connected yet",
-  mb_st_dead:"Consent expired", mb_st_dead_c:"● Expired", mb_st_ok:"● Up to date", mb_renew:"Renew", mb_renew_long:"Renew consent",
+  mb_st_dead:"Consent expired", mb_st_dead_c:"● Expired", mb_st_ses:"Session expired", mb_st_off:"Not connected", mb_st_off_c:"● Not connected", mb_st_ok:"● Up to date", mb_renew:"Renew", mb_renew_long:"Renew consent",
   mb_last:"Last balance {x}", mb_quitar:"Remove {bank}", mb_rev_csv:"Gold and stocks (CSV)", mb_refresh_aria:"Refresh",
   mb_rel_now:"just now", mb_rel_min:"{n} min ago", mb_rel_h:"{n} h ago", mb_rel_ayer:"yesterday", mb_rel_d:"{n} days ago",
   mb_left_0:"expires today", mb_left_1:"expires tomorrow", mb_left_d:"expires in {n} days", mb_dead_1:"expired yesterday", mb_dead_d:"expired {n} days ago",
@@ -2634,7 +2625,7 @@ Object.assign(LANG.en,{
   bp_summary_tr_dead:"Trade Republic disconnected",
   exp_pull_invalid:"The download could not be completed. Saved transactions are kept; please try again.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
-  bp_search:"Search bank…", bp_loading:"Loading banks…", bp_noresults:"No bank matches.", bp_already:"already connected",
+  bp_search:"Search bank…", bp_loading:"Loading banks…", bp_noresults:"No bank matches.",
   bp_need_login:"Sign in to connect your bank", bp_syncing:"Refreshing…",
   bp_st_pending:"pending", bp_st_expired:"expired", bp_st_noacct:"no accounts",
   bp_noacct_help:"You authorised the bank but no account came through. In restricted mode, Enable Banking only returns accounts you've registered in its control panel. Open the Enable Banking panel, link (whitelist) this account and tap «Try again».",
@@ -2642,19 +2633,19 @@ Object.assign(LANG.en,{
   bp_removed:"{bank} removed · you can reconnect it whenever you want",
   bp_removed_acc:"{bank} removed · its account leaves Wallet. All its transactions stay in Expenses",
   bp_rm_title:"Remove {bank}?",
-  bp_rm_sub:"Its transactions are NOT deleted: they stay in your history no matter what. All you choose is whether they keep counting towards this month's spending.",
+  bp_rm_sub:"Its transactions aren't deleted. You choose whether they keep counting towards this month's spending.",
   bp_rm_keep:"Keep them counting",
-  bp_rm_keep_sub:"Only the connection is cut. Your figures stay exactly as they are.",
-  bp_rm_sub_diario:"This is your everyday bank, so its purchases always count: removing the bank cannot change that. Its transactions are NOT deleted.",
-  bp_rm_keep_diario_sub:"The connection is cut and nothing else. If you want them to stop counting, first change which account is your everyday one, in Net worth.",
+  bp_rm_keep_sub:"Only the connection is cut.",
+  bp_rm_sub_diario:"This is your everyday bank: its purchases always count. Its transactions aren't deleted.",
+  bp_rm_keep_diario_sub:"Only the connection is cut. To stop them counting, change your everyday account in Net worth.",
   bp_rm_stop:"Stop them counting",
-  bp_rm_stop_sub:"Its purchases leave this month's spending. Careful: past months change too, because the figure is always recalculated.",
+  bp_rm_stop_sub:"They leave this month's spending, and past months too.",
 });
 Object.assign(LANG.ca,{
   bp_title:"Els meus bancs",
   bp_manage:"Gestiona els meus bancs",
   mb_connect:"Connecta", mb_other:"Un altre banc", mb_sec_cuentas:"Comptes", mb_sec_inv:"Inversions", mb_vacio:"Encara no hi ha res connectat",
-  mb_st_dead:"Permís caducat", mb_st_dead_c:"● Caducat", mb_st_ok:"● Al dia", mb_renew:"Renova", mb_renew_long:"Renova el permís",
+  mb_st_dead:"Permís caducat", mb_st_dead_c:"● Caducat", mb_st_ses:"Sessió caducada", mb_st_off:"Sense connectar", mb_st_off_c:"● Sense connectar", mb_st_ok:"● Al dia", mb_renew:"Renova", mb_renew_long:"Renova el permís",
   mb_last:"Últim saldo {x}", mb_quitar:"Treu {bank}", mb_rev_csv:"Or i accions (CSV)", mb_refresh_aria:"Actualitza",
   mb_rel_now:"ara", mb_rel_min:"fa {n} min", mb_rel_h:"fa {n} h", mb_rel_ayer:"ahir", mb_rel_d:"fa {n} dies",
   mb_left_0:"caduca avui", mb_left_1:"caduca demà", mb_left_d:"caduca d'aquí a {n} dies", mb_dead_1:"va caducar ahir", mb_dead_d:"va caducar fa {n} dies",
@@ -2701,7 +2692,7 @@ Object.assign(LANG.ca,{
   bp_summary_tr_dead:"Trade Republic desconnectat",
   exp_pull_invalid:"No s'ha pogut completar la descàrrega. Els moviments desats es conserven; torna-ho a intentar.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
-  bp_search:"Cerca banc…", bp_loading:"Carregant bancs…", bp_noresults:"Cap banc coincideix.", bp_already:"ja connectat",
+  bp_search:"Cerca banc…", bp_loading:"Carregant bancs…", bp_noresults:"Cap banc coincideix.",
   bp_need_login:"Inicia sessió per connectar el teu banc", bp_syncing:"Actualitzant…",
   bp_st_pending:"pendent", bp_st_expired:"caducat", bp_st_noacct:"sense comptes",
   bp_noacct_help:"Vas autoritzar el banc però no va arribar cap compte. En mode restringit, Enable Banking només porta els comptes que has donat d'alta al seu panell de control. Entra al panell d'Enable Banking, enllaça (whitelist) aquest compte i prem «Torna-ho a provar».",
@@ -2709,13 +2700,13 @@ Object.assign(LANG.ca,{
   bp_removed:"{bank} tret · pots reconnectar-lo quan vulguis",
   bp_removed_acc:"{bank} tret · el seu compte surt de Cartera. Els seus moviments es queden tots a Despeses",
   bp_rm_title:"Vols treure {bank}?",
-  bp_rm_sub:"Els seus moviments NO s'esborren: es queden al teu historial passi el que passi. L'únic que tries és si segueixen comptant en la despesa del mes.",
+  bp_rm_sub:"Els seus moviments no s'esborren. Tries si segueixen comptant en la despesa del mes.",
   bp_rm_keep:"Que segueixin comptant",
-  bp_rm_keep_sub:"Només es talla la connexió. Les teves xifres es queden exactament com estan.",
-  bp_rm_sub_diario:"És el teu banc del dia a dia, així que les seves compres compten sempre: això no es pot canviar traient el banc. Els seus moviments NO s'esborren.",
-  bp_rm_keep_diario_sub:"Es talla la connexió i res més. Si vols que deixin de comptar, primer canvia quin és el teu compte del dia a dia a Patrimoni.",
+  bp_rm_keep_sub:"Només es talla la connexió.",
+  bp_rm_sub_diario:"És el teu banc del dia a dia: les seves compres compten sempre. Els seus moviments no s'esborren.",
+  bp_rm_keep_diario_sub:"Només es talla la connexió. Perquè deixin de comptar, canvia el teu compte del dia a dia a Patrimoni.",
   bp_rm_stop:"Que deixin de comptar",
-  bp_rm_stop_sub:"Les seves compres surten de la despesa del mes. Compte: també canvia el que veus als mesos ja passats, perquè la xifra es recalcula.",
+  bp_rm_stop_sub:"Surten de la despesa del mes, també dels mesos passats.",
 });
 Object.assign(LANG.en,{
   rec_title:"Do your bills match the bank?",

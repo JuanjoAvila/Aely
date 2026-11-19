@@ -26,6 +26,7 @@ async function abre(page, extra = {}) {
   await seedLoggedInDashboard(page, Object.assign({
     __cloudRows: { bank_links: LINKS }, __cloudFns: { "bank-aspsps": { data: { ok: true, aspsps: ASPSPS }, error: null } },
     hasBankLink: true, obAccounts: OB, accounts: [],
+    investments: [{ id: "i1", ent: "trade_republic", name: "Fondo e2e", isin: "IE00E2E", shares: 1, value: 90, cost: 80, cur: "EUR" }],
     settings: { autoPrices: false, theme: "green", brokersOn: ["trade_republic"] },
   }, extra));
   await page.goto("/");
@@ -41,7 +42,7 @@ const fila = (push, n) => push.locator(`.bk-row[data-aspsp="${n}"]`);
 
 test("la lista: baldosa de 44, anillo solo si hay que actuar, saldo del caducado y fechas en relativo", async ({ page }) => {
   const push = await abre(page);
-  await expect(push.locator(".bk-row")).toHaveCount(3);
+  await expect(push.locator(".bk-row[data-aspsp]")).toHaveCount(3);
   // Logo real en baldosa de 44 px.
   const lado = await fila(push, "Banco de Sabadell").locator(".bk-slot .mono").evaluate((el) => el.getBoundingClientRect().width);
   expect(Math.round(lado)).toBe(44);
@@ -64,7 +65,57 @@ test("la lista: baldosa de 44, anillo solo si hay que actuar, saldo del caducado
   await expect(push.locator(".bk-upd")).toHaveText(/^hace 1 h$/);
   // Sin chips de brókers: los brókers entran por Conectar.
   await expect(push.locator(".v4-chip")).toHaveCount(0);
-  await expect(push.locator('[data-broker="trade_republic"]')).toHaveCount(1);
+  /* Inversiones con las MISMAS filas (pasada 3 del filtro, bloqueante 1): nada de la tarjeta de la
+     243 con monograma «TR» y franja negra; su conexión va en la ficha, no en la lista. */
+  const tr = push.locator('[data-bk-list="inv"] .bk-row[data-broker="trade_republic"]');
+  await expect(tr).toHaveCount(1);
+  expect(Math.round(await tr.locator(".bk-slot .mono").evaluate((el) => el.getBoundingClientRect().width))).toBe(44);
+  await expect(tr.locator(".bk-nm")).toHaveText("Trade Republic");
+  await expect(tr.locator(".bk-am")).toHaveText(/90,00\s*€/);
+  await expect(tr.locator(".bk-mt")).toHaveText(/^Sin conectar\s·\s1 posición$/);
+  await expect(push.locator(".bk-flow, .bk-card, .bk-brand, .bk-logo")).toHaveCount(0);
+  await tr.locator(".bk-nm").click();
+  const ficha = page.locator('.bk-ficha[data-bk-ficha="trade_republic"]');
+  await expect(ficha.locator(".bk-fh h2")).toHaveText("Trade Republic");
+  await expect(ficha.locator(".bk-chip")).toHaveText("● Sin conectar");
+  await expect(ficha.locator('[data-broker-flow="trade_republic"]')).toBeVisible();
+});
+
+test("Conectar: el ✓ de un bróker sale de su conexión real, no de tenerlo en la lista", async ({ page }) => {
+  // TR en la lista pero sin sesión en el móvil y MyInvestor sin fila en la nube: ningún ✓.
+  let push = await abre(page, { settings: { autoPrices: false, theme: "green", brokersOn: ["trade_republic", "myinvestor"] } });
+  await push.locator('[data-act="bk-conectar"]').click();
+  await expect(page.locator('.bk-pick [data-bk-tile="trade_republic"]')).toBeVisible();
+  await expect(page.locator('.bk-pick [data-bk-tile="trade_republic"] .bk-tile-ok')).toHaveCount(0);
+  await expect(page.locator('.bk-pick [data-bk-tile="myinvestor"] .bk-tile-ok')).toHaveCount(0);
+
+  // Con la sesión de TR viva en el puente y MyInvestor activo en la nube: ✓ en los dos, y la fila
+  // dice lo mismo que la baldosa.
+  const p2 = await page.context().newPage();
+  await page.close();
+  await p2.addInitScript(() => { window.MiCarteraTR = { status: async () => ({ connected: true }) }; });
+  push = await abre(p2, {
+    __cloudRows: { bank_links: LINKS, myinvestor_links: [{ status: "active", last_sync: hace(3) }] },
+    settings: { autoPrices: false, theme: "green", brokersOn: ["trade_republic", "myinvestor"] },
+  });
+  await expect(push.locator('.bk-row[data-broker="trade_republic"] .bk-mt')).not.toContainText("Sin conectar");
+  await expect(push.locator('.bk-row[data-broker="myinvestor"] .bk-mt')).not.toContainText("Sin conectar");
+  await push.locator('[data-act="bk-conectar"]').click();
+  await expect(p2.locator('.bk-pick [data-bk-tile="trade_republic"] .bk-tile-ok')).toHaveCount(1);
+  await expect(p2.locator('.bk-pick [data-bk-tile="myinvestor"] .bk-tile-ok')).toHaveCount(1);
+});
+
+test("con letra Enorme a 360, ningún trozo del subtítulo se parte («Permiso / caducado»)", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  const push = await abre(page, { settings: { autoPrices: false, theme: "green", textSize: "huge", brokersOn: ["trade_republic"] } });
+  await expect(page.locator("html")).toHaveClass(/hugetext/);
+  await expect(push.locator(".bk-row")).toHaveCount(4);
+  const partidos = await push.locator(".bk-mt > span").evaluateAll((els) =>
+    els.filter((e) => e.getClientRects().length > 1).map((e) => e.textContent));
+  expect(partidos).toEqual([]);
+  // Y lo que no cabe salta entero al renglón siguiente sin salirse de la fila.
+  const fuera = await push.locator(".bk-mt").evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.innerText));
+  expect(fuera).toEqual([]);
 });
 
 test("la ficha en hoja: «Renovar permiso» si caducó, «Actualizar» si no, y «Quitar» pregunta qué hacer con los movimientos", async ({ page }) => {
@@ -84,9 +135,14 @@ test("la ficha en hoja: «Renovar permiso» si caducó, «Actualizar» si no, y 
   });
   expect(aire).toBeGreaterThanOrEqual(12);
   // Quitar: askChoice en hoja inferior con las dos opciones; cancelar no quita nada.
+  // El logo lleva la misma baldosa que en la lista (en claro quedaba suelto sobre la hoja).
+  expect(await ficha.locator(".bk-fh .mono").evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe("1px");
   await ficha.locator('[data-act="bk-quitar"]').click();
   await expect(page.locator(".ask-opt")).toHaveCount(2);
   await expect(page.locator(".ask-opt").first()).toContainText("Que sigan contando");
+  // Textos cortos (boceto 2c): una línea por opción, sin la entradilla de cuatro renglones.
+  await expect(page.locator(".ask-opt").first()).toContainText("Solo se corta la conexión.");
+  await expect(page.locator(".ask-opt").last()).toContainText("Salen del gasto del mes, también de los meses pasados.");
   await page.keyboard.press("Escape").catch(() => {});
   await page.goBack();
   await expect(page.locator(".ask-opt")).toHaveCount(0);
@@ -96,7 +152,9 @@ test("la ficha en hoja: «Renovar permiso» si caducó, «Actualizar» si no, y 
   await fila(push, "Banco de Sabadell").locator(".bk-nm").click();
   const sab = page.locator('.bk-ficha[data-bk-ficha="Banco de Sabadell"]');
   await expect(sab.locator(".bk-chip")).toHaveText("● Al día");
-  await expect(sab.locator('[data-act="bk-actualizar"]')).toBeVisible();
+  // Sin «↻ Actualizar todos» dentro de un solo banco: actualizar es el ↻ de la cabecera.
+  await expect(sab.locator('[data-act="bk-actualizar"]')).toHaveCount(0);
+  await expect(sab).not.toContainText("todos");
   await expect(sab.locator('[data-act="bk-renovar"]')).toHaveCount(0);
   await expect(sab.locator(".bk-life-l")).toHaveText(/^caduca en (59|60) días$/);
   // Atrás baja la hoja antes que la pantalla.
@@ -116,19 +174,50 @@ test("la hoja Conectar: logos sin teclado, ✓ en lo conectado, «Otro banco» a
   await expect(hoja.locator('[data-bk-tile="myinvestor"] .bk-tile-ok')).toHaveCount(0);
   // Sin brókers por fichero.
   await expect(hoja.locator('[data-bk-tile="degiro"], [data-bk-tile="ibkr"]')).toHaveCount(0);
-  // Otro banco: el buscador con la lista entera.
+  // Otro banco: el buscador con la lista entera, sin repetir lo que ya está conectado.
   await hoja.locator('[data-bk-tile="otro"]').click();
   await expect(hoja.locator("input")).toBeVisible();
-  await expect(hoja.locator(".bk-pick-row")).toHaveCount(5);
+  await expect(hoja.locator(".bk-pick-row")).toHaveCount(2);
+  expect(await hoja.locator(".bk-pick-row .nm").allTextContents()).toEqual(["BBVA", "ING"]);
   await hoja.locator("input").fill("bbv");
   await expect(hoja.locator(".bk-pick-row")).toHaveCount(1);
+  // Atrás desde «Otro banco» vuelve a las baldosas; el segundo atrás cierra Conectar.
+  await page.goBack();
+  await expect(hoja.locator('[data-bk-grid="bancos"]')).toBeVisible();
+  await expect(hoja.locator("input")).toHaveCount(0);
   await page.goBack();
   await expect(hoja).toHaveCount(0);
-  // Un bróker desde Conectar: su tarjeta aparece en Inversiones.
+  // Un bróker desde Conectar: se abre su ficha con la conexión y queda como fila en Inversiones.
   await push.locator('[data-act="bk-conectar"]').click();
   await page.locator('.bk-pick [data-bk-tile="myinvestor"]').click();
   await expect(page.locator(".bk-pick")).toHaveCount(0);
-  await expect(push.locator('[data-broker="myinvestor"]')).toHaveCount(1);
+  await expect(page.locator('.bk-ficha[data-bk-ficha="myinvestor"] [data-broker-flow="myinvestor"]')).toBeVisible();
+  await expect(push.locator('.bk-row[data-broker="myinvestor"]')).toHaveCount(1);
+});
+
+test("«Otro banco» crece deslizando, sin salto, y su lista llega hasta el borde de la hoja", async ({ page }) => {
+  const push = await abre(page);
+  await push.locator('[data-act="bk-conectar"]').click();
+  const hoja = page.locator(".bk-pick");
+  await expect(hoja.locator('[data-bk-tile="otro"]')).toBeVisible();
+  await page.waitForTimeout(600);   // que acabe de subir la hoja
+  const altos = await page.evaluate(() => new Promise((ok) => {
+    const el = document.querySelector(".bk-pick"), hs = [el.offsetHeight];
+    el.querySelector('[data-bk-tile="otro"]').click();
+    const t0 = performance.now();
+    const paso = () => { hs.push(el.offsetHeight); if (performance.now() - t0 < 700) requestAnimationFrame(paso); else ok(hs); };
+    requestAnimationFrame(paso);
+  }));
+  const h0 = altos[0], h1 = altos[altos.length - 1];
+  expect(h1 - h0).toBeGreaterThan(100);
+  // Pasa por varios altos intermedios (antes saltaba de golpe al final en un fotograma).
+  const medios = new Set(altos.filter((h) => h > h0 + 2 && h < h1 - 2));
+  expect(medios.size).toBeGreaterThanOrEqual(4);
+  // Nunca encoge ni se pasa por el camino.
+  for (let i = 1; i < altos.length; i++) expect(altos[i]).toBeGreaterThanOrEqual(altos[i - 1] - 1);
+  // El scroll acaba en el borde de la hoja (antes dejaba 66 px vacíos y cortaba una fila en seco).
+  const hueco = await hoja.evaluate((s) => s.getBoundingClientRect().bottom - s.querySelector(".v4-sheet-body").getBoundingClientRect().bottom);
+  expect(Math.abs(hueco)).toBeLessThanOrEqual(1);
 });
 
 test("sin bancos: «Aún no hay nada conectado» y un botón que abre Conectar", async ({ page }) => {

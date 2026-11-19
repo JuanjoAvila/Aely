@@ -491,7 +491,10 @@ const PRESUPUESTO = {
   // bancos por dentro: fila con logo de 44 px y anillo solo si hay que actuar, ficha en hoja, hoja Conectar con
   // logos, fechas en relativo en tres idiomas—. Se fueron el acordeón, los chips de brókers y las fechas absolutas,
   // pero la lista, la ficha y Conectar son pantalla nueva. Mismo mandato del 11/10: al mínimo medido, 2024 / 558 KiB.
-  minificado: 2024 * 1024,
+  // D1 tras la pasada 3 del filtro: TR, MyInvestor y el CSV de Revolut pasan a filas con ficha, el ✓ sale del estado
+  // real y «Otro banco» crece animado. Se fueron `bkBrand`, las tarjetas y sus colores, y aun así suma: 2.073.207 B
+  // minificado y 571.076 B gzip. Al mínimo medido: 2025 / 558 KiB.
+  minificado: 2025 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

@@ -2558,30 +2558,6 @@ function brokerGroupsInOrder(s, groups){
   });
 }
 
-/* Cabecera de una tarjeta de bróker (TR / MyInvestor / CSV de Revolut), pulsable para plegar.
-   Compartida porque las tres eran el MISMO bloque copiado tres veces, y con el acordeón habría
-   habido que mantenerlo por triplicado (feedback 2026-07-25: «el colapsable de los brókers
-   tampoco está»). Sin `onToggle` se comporta como antes —cabecera fija, no pulsable— para que
-   ningún otro sitio herede un plegado que no espera. */
-function bkBrand({logo, logoStyle, title, sub, badge, open, onToggle}){
-  const props={className:"bk-brand"};
-  if(onToggle){
-    props.role="button"; props.tabIndex=0; props["aria-expanded"]=open?"true":"false";
-    props.style={cursor:"pointer"};
-    props.onClick=onToggle;
-    props.onKeyDown=function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); onToggle(); } };
-  }
-  return React.createElement("div",props,
-    React.createElement("div",{className:"bk-logo",style:logoStyle}, logo),
-    React.createElement("div",{style:{flex:1,minWidth:0}},
-      React.createElement("div",{className:"ttl",style:{fontWeight:800,fontSize:16}}, title),
-      React.createElement("div",{className:"sub",style:{fontSize:12.5,color:"var(--muted)",fontWeight:600}}, sub)
-    ),
-    badge?React.createElement("span",{style:{fontSize:11,fontWeight:800,color:"var(--mint)"}}, badge):null,
-    onToggle?React.createElement("span",{"aria-hidden":"true",style:{marginLeft:6,color:"var(--muted)",fontSize:12,transition:"transform .18s ease",transform:open?"rotate(180deg)":"none"}}, "▾"):null
-  );
-}
-
 /* Calendario de la casa (2026-08-17). El `input type="date"` abre el picker nativo de Android
    (gris, en inglés, tipografía ajena) — el mismo rechazo que se llevó a prompt/confirm en la
    v3.100.0. Aquí se elige el día con la misma pinta que el resto de sheets. Fecha LOCAL, no

@@ -96,7 +96,7 @@ function miDeviceLogin(http, loginBody, devId, captchaToken){
     return { ok:false, status:st, error:(j.status&&j.status.message)||d.message||("login HTTP "+st) };
   });
 }
-function MyInvestorSync({state, set, open, onToggle}){
+function MyInvestorSync({state, set, onConn}){
   const [step,setStep]=useState("idle");     // idle | otp | connected | preview
   // usuario recordado (NUNCA la contraseña): reconectar tras una caducidad = solo contraseña+OTP
   const [cid,setCid]=useState(function(){ try{ return localStorage.getItem("_miCid")||""; }catch(e){ return ""; } });
@@ -147,6 +147,9 @@ function MyInvestorSync({state, set, open, onToggle}){
       }).catch(function(){});
     }).catch(function(){ setNoSession(true); });
   },[]);
+  // La fila de Mis bancos lleva el estado de la conexión (D1, 19/11): sin este aviso seguía
+  // diciendo «Sin conectar» detrás de la hoja después de conectar aquí dentro.
+  useEffect(function(){ if(step==="connected"&&onConn) onConn(true); },[step]);
   const fail=function(r){ setBusy(false); const m=(r&&(r.error||r.message))||t("mi_err"); setErr(m); try{ cloud.logEvent('error','MI: '+m); }catch(e){} };
   // Éxito del login en el móvil → subir tokens (la Edge los valida contra la API antes de guardar).
   const storeTokens=function(tk){
@@ -270,7 +273,7 @@ function MyInvestorSync({state, set, open, onToggle}){
     });
     setDoneN(mappedN); setPositions(null); setStep("connected");
   };
-  const disconnect=function(){ cloud.myinvestorDisconnect(); try{ localStorage.removeItem("_miCid"); }catch(e){} setExpired(false); setStep("idle"); setPositions(null); setCid(""); setPass(""); setOtpInfo(null); };
+  const disconnect=function(){ cloud.myinvestorDisconnect(); try{ localStorage.removeItem("_miCid"); }catch(e){} if(onConn) onConn(false); setExpired(false); setStep("idle"); setPositions(null); setCid(""); setPass(""); setOtpInfo(null); };
   const inpStyle={marginTop:8};
   // UI plana v4 (sin CollapsibleCard pesada) — feedback 2026-07-17 redesing bancos.
   const body=noSession
@@ -324,11 +327,10 @@ function MyInvestorSync({state, set, open, onToggle}){
         doneN!=null && step==="connected" && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700,marginTop:8}},tf("mi_done",{n:doneN})),
         err && React.createElement("div",{className:"alarmbox",style:{marginTop:10}}, err)
       );
-  return React.createElement("div",{className:"bk-card bk-mi"},
-    bkBrand({logo:"MI", logoStyle:{background:"#C9A0E022",color:"#C9A0E0"}, title:t("mi_title"), sub:t("mi_sub"),
-             badge:step==="connected"?"✓":null, open:open, onToggle:onToggle}),
-    open && React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("mi_hint")),
-    open && body
+  // Vive dentro de la ficha de MyInvestor (D1): el logo, el nombre y el estado los pone la ficha.
+  return React.createElement("div",{className:"bk-flow","data-broker-flow":"myinvestor"},
+    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("mi_hint")),
+    body
   );
 }
 
@@ -426,7 +428,7 @@ function trNotifyApproved(){
   const nat=natPlugin();
   if(nat&&nat.showNotification){ try{ Promise.resolve(nat.showNotification({title:"Aely", body:t("tr_notif_ok"), tag:"tr-approved"})).catch(function(){}); }catch(e){} }
 }
-function TRSync({state, set, totals, open, onToggle}){
+function TRSync({state, set, totals}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
   const [phone,setPhone]=useState(trPhoneSaved());
@@ -672,11 +674,10 @@ function TRSync({state, set, totals, open, onToggle}){
         doneN!=null && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700}},tf("tr_done",{n:doneN})),
         err && React.createElement("div",{className:"alarmbox",style:{marginTop:10}}, t(errKey||"tr_err"))
       );
-  return React.createElement("div",{className:"bk-card bk-tr"},
-    bkBrand({logo:"TR", logoStyle:{background:"#111",color:"#fff"}, title:t("tr_title"), sub:t("tr_sub"),
-             badge:connected?"✓":null, open:open, onToggle:onToggle}),
-    open && React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("tr_hint")),
-    open && body
+  // Vive dentro de la ficha de Trade Republic (D1): cabecera y estado son de la ficha.
+  return React.createElement("div",{className:"bk-flow","data-broker-flow":"trade_republic"},
+    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("tr_hint")),
+    body
   );
 }
 

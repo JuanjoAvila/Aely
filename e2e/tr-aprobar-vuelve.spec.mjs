@@ -65,8 +65,8 @@ async function conectarTR(page, opts) {
   await dismissNews(page);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
   await expect(page.locator(".bk-sec").first()).toBeVisible({ timeout: 10_000 });
-  const tr = page.locator(".bk-card.bk-tr");
-  await tr.locator(".bk-brand").click();
+  await page.locator('.v4-banks-push .bk-row[data-broker="trade_republic"]').click();
+  const tr = page.locator('.bk-ficha [data-broker-flow="trade_republic"]');
   await tr.locator('input[type="password"]').fill("1234");
   await tr.getByRole("button", { name: "Conectar", exact: true }).click();
   await expect(tr).toContainText("Abre la app de Trade Republic y aprueba el inicio de sesión.");
