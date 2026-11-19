@@ -159,11 +159,16 @@ function AskHost(){
    otros brókers que se sincronizan solos. Lo demás (manual, de fichero, de cualquier `ent`) sigue
    siendo candidato, como hasta hoy: hay carteras con posiciones de TR que se crearon a mano con
    otro `ent` y que, con un filtro por `ent` estricto, dejarían de actualizarse sin aviso. */
+// D8 (tercera revisión): fuera también lo importado por fichero de OTRO bróker (`csv:degiro` con el
+// mismo ISIN que TR), y las del propio bróker primero, para que la suya gane a una manual que case.
 function brkSyncCandidates(investments, ent){
-  return (investments||[]).filter(function(i){
-    if(String(i.src||"").indexOf("api:")===0) return false;
+  const out=(investments||[]).filter(function(i){
+    const src=String(i.src||"");
+    if(src.indexOf("api:")===0) return false;
+    if(src.indexOf("csv:")===0 && src!=="csv:"+ent) return false;
     return i.ent===ent || !BRK_OWN_SYNC[i.ent];
   });
+  return out.filter(function(i){ return i.ent===ent; }).concat(out.filter(function(i){ return i.ent!==ent; }));
 }
 // sugerencia de mapeo ISIN→posición (la usa la sincro TR): primero por ISIN guardado, luego por palabras del nombre
 function brokerSuggest(pos, investments){

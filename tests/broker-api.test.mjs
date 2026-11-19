@@ -210,8 +210,8 @@ const btc = (shares, value) => ({ key: "BTC", sym: "BTC", name: "BTC", shares, c
   assert.equal(ctx.brokerSuggest({ ticker: "BTC", name: "Bitcoin" }, ctx.brkSyncCandidates(inv, "revolut")), null, "Revolut no propone la de Kraken");
   // Sin la de TR, no se va a la de IBKR: mejor nada que pisar otra sincronización.
   assert.equal(ctx.brokerSuggest({ isin: "IE00BK5BQT80", name: "VWCE" }, ctx.brkSyncCandidates(inv.filter((i) => i.id !== "tr"), "trade_republic")), null);
-  // Lo manual o de fichero sigue siendo candidato (no se rompe lo que ya se re-anclaba).
-  assert.equal(ctx.brkSyncCandidates([{ id: "m", ent: "revolut", isin: "X" }, { id: "c", ent: "degiro", src: "csv:degiro" }], "trade_republic").length, 2);
+  // Lo manual sigue siendo candidato (no se rompe lo que ya se re-anclaba); lo de fichero de otro bróker no (D8).
+  assert.deepEqual(J(ctx.brkSyncCandidates([{ id: "m", ent: "revolut", isin: "X" }, { id: "c", ent: "degiro", src: "csv:degiro" }], "trade_republic").map((i) => i.id)), ["m"]);
   ok("D7: TR/MyInvestor/Revolut solo emparejan fuera de lo que lleva otra sincronización");
 }
 
@@ -222,4 +222,22 @@ const btc = (shares, value) => ({ key: "BTC", sym: "BTC", name: "BTC", shares, c
   const m = J(r.s).brokerApi.kraken;
   assert.deepEqual([r.pend, m.links.BTC, m.known.indexOf("BTC")], [1, undefined, -1]);
   ok("R1: vínculo a una posición borrada → se suelta y se vuelve a proponer");
+}
+
+/* D8: la del propio bróker gana, y lo de fichero de otro bróker no es candidato (casos de bench5). */
+{
+  const trPos = { id: "tr", ent: "trade_republic", isin: "IE00BK5BQT80", shares: 4, value: 500, cur: "EUR" };
+  const casos = [
+    { id: "dg", ent: "degiro", src: "csv:degiro", isin: "IE00BK5BQT80", shares: 3, value: 375, cur: "EUR" },
+    { id: "rv", ent: "revolut", isin: "IE00BK5BQT80", shares: 1, value: 125, cur: "EUR" },
+    { id: "ib", ent: "ibkr", src: "csv:ibkr", isin: "IE00BK5BQT80", shares: 7, value: 875, cur: "EUR" },
+  ];
+  for (const otro of casos) {
+    const cand = ctx.brkSyncCandidates([otro, trPos], "trade_republic");
+    assert.equal(ctx.brokerSuggest({ isin: "IE00BK5BQT80", name: "VWCE" }, cand), "tr", otro.id);
+  }
+  // Sin la de TR: lo de fichero de otro bróker tampoco; la manual sí (lo que ya se re-anclaba).
+  assert.equal(ctx.brokerSuggest({ isin: "IE00BK5BQT80", name: "x" }, ctx.brkSyncCandidates([casos[0], casos[2]], "trade_republic")), null);
+  assert.equal(ctx.brokerSuggest({ isin: "IE00BK5BQT80", name: "x" }, ctx.brkSyncCandidates([casos[1]], "trade_republic")), "rv");
+  ok("D8: el sync de TR se queda con la suya frente a DEGIRO csv, una manual de Revolut o csv:ibkr");
 }
