@@ -9514,8 +9514,8 @@ Object.assign(LANG.es,{
 Object.assign(LANG.es,{
   bx_connect:"Conectar", bx_reconnect:"Volver a conectar", bx_connecting:"Conectando…", bx_connect_title:"Conectar {x}",
   bx_steps_btn:"Cómo conseguirlos", bx_open:"Abrir {x}", bx_safe:"Solo lectura. Se guarda cifrado y puedes quitarlo cuando quieras.",
-  bx_ibkr_need:"Necesitas dos datos de IBKR: un token y un número de consulta. Se sacan una vez, desde el navegador.", bx_ibkr_a:"Token", bx_ibkr_b:"Número de consulta (Query ID)",
-  bx_ibkr_steps:["Entra en IBKR desde el navegador y ve a «Rendimiento e informes» → «Consultas Flex» (Performance & Reports → Flex Queries).","En «Consulta Flex de actividad» (Activity Flex Query) toca «+» y ponle un nombre, por ejemplo Aely.","Marca las secciones «Posiciones abiertas» (Open Positions) y «Informe de efectivo» (Cash Report).","Abajo, formato XML y periodo «Último día hábil» (Last Business Day). Toca «Continuar» y «Crear».","En la lista, toca la ⓘ de tu consulta y copia su número: es el número de consulta.","En la misma pantalla, «Configuración del servicio web Flex» (Flex Web Service Configuration): actívalo y toca «Generar nuevo token». Caducidad 1 año, la IP en blanco. Copia el token."],
+  bx_ibkr_need:"Necesitas dos datos de IBKR: un token y el Query ID de una consulta. Se sacan una vez, desde el navegador.", bx_ibkr_a:"Token", bx_ibkr_b:"Query ID",
+  bx_ibkr_steps:["Entra en IBKR desde el navegador y ve a «Rendimiento e informes» → «Consultas Flex» (Performance & Reports → Flex Queries).","En «Consulta Flex de actividad» (Activity Flex Query) toca «+», ponle un nombre y marca «Posiciones abiertas» (Open Positions) y «Informe de efectivo» (Cash Report).","Abajo, formato XML y periodo «Último día hábil» (Last Business Day). Toca «Continuar» y «Crear».","Copia el Query ID de tu consulta: es un número que sale en sus detalles.","En «Configuración del servicio web Flex» (Flex Web Service Configuration), actívalo y toca «Generar nuevo token»: caducidad 1 año y la IP en blanco. Copia el token."],
   bx_kraken_need:"Necesitas dos datos de Kraken: la clave API y la clave privada.", bx_kraken_a:"Clave API", bx_kraken_b:"Clave privada (Private key)",
   bx_kraken_steps:["Entra en Kraken y ve a «Configuración» → «API» → «Crear clave API».","Marca solo «Consultar fondos» (Query Funds). No marques nada más y deja la IP en blanco.","Toca «Generar clave» y copia la clave API y la clave privada."],
   bx_ph_paste:"Pega aquí", bx_ph_token:"Pega aquí el token", bx_ph_query:"Por ejemplo 123456",
@@ -9610,7 +9610,7 @@ Object.assign(LANG.es,{
 
   ob2_go:"Empezar", ob2_next:"Siguiente",
   ob2_budget_t:"¿Cuánto quieres gastar al mes?", ob2_budget_d:"Tu presupuesto para el día a día (súper, bares, caprichos…). La app te avisa antes de pasarte.",
-  tr_createnew:"➕ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Participaciones, valor y coste se ajustan a lo que dice Trade Republic ahora.",
+  tr_createnew:"+ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Participaciones, valor y coste se ajustan a lo que dice Trade Republic ahora.",
   tr_done:"✓ {n} posiciones actualizadas desde Trade Republic",
   tr_err:"No se pudo conectar con Trade Republic. Revisa teléfono/PIN o el código, e inténtalo otra vez.",
   tr_expired_re:"Tu sesión de Trade Republic caducó. Vuelve a conectar: el teléfono ya está puesto, solo falta el PIN.",
@@ -21276,7 +21276,8 @@ function BrokerApiSheet({ent, onClose, onDone}){
       setErr(t(brkApiErr(r&&r.code)));
     }).catch(function(){ setBusy(false); setErr(t("bx_e_error")); });
   };
-  const label=entOf(ent).label;
+  // Título con el nombre corto («Conectar IBKR»): el largo partía en tres renglones con letra Enorme.
+  const label=entOf(ent).short||entOf(ent).label;
   const campo=function(k, lab, ph, mode, val, setVal){
     return React.createElement("label",{className:"bx-field"}, t(lab),
       React.createElement("input",{className:"af-in bx-in",value:val,"data-bx":k,placeholder:t(ph),inputMode:mode,autoComplete:"off",autoCapitalize:"off",spellCheck:false,onChange:function(e){ setVal(e.target.value); }}));

@@ -1472,8 +1472,8 @@ Object.assign(LANG.ca,{
 Object.assign(LANG.es,{
   bx_connect:"Conectar", bx_reconnect:"Volver a conectar", bx_connecting:"Conectando…", bx_connect_title:"Conectar {x}",
   bx_steps_btn:"Cómo conseguirlos", bx_open:"Abrir {x}", bx_safe:"Solo lectura. Se guarda cifrado y puedes quitarlo cuando quieras.",
-  bx_ibkr_need:"Necesitas dos datos de IBKR: un token y un número de consulta. Se sacan una vez, desde el navegador.", bx_ibkr_a:"Token", bx_ibkr_b:"Número de consulta (Query ID)",
-  bx_ibkr_steps:["Entra en IBKR desde el navegador y ve a «Rendimiento e informes» → «Consultas Flex» (Performance & Reports → Flex Queries).","En «Consulta Flex de actividad» (Activity Flex Query) toca «+» y ponle un nombre, por ejemplo Aely.","Marca las secciones «Posiciones abiertas» (Open Positions) y «Informe de efectivo» (Cash Report).","Abajo, formato XML y periodo «Último día hábil» (Last Business Day). Toca «Continuar» y «Crear».","En la lista, toca la ⓘ de tu consulta y copia su número: es el número de consulta.","En la misma pantalla, «Configuración del servicio web Flex» (Flex Web Service Configuration): actívalo y toca «Generar nuevo token». Caducidad 1 año, la IP en blanco. Copia el token."],
+  bx_ibkr_need:"Necesitas dos datos de IBKR: un token y el Query ID de una consulta. Se sacan una vez, desde el navegador.", bx_ibkr_a:"Token", bx_ibkr_b:"Query ID",
+  bx_ibkr_steps:["Entra en IBKR desde el navegador y ve a «Rendimiento e informes» → «Consultas Flex» (Performance & Reports → Flex Queries).","En «Consulta Flex de actividad» (Activity Flex Query) toca «+», ponle un nombre y marca «Posiciones abiertas» (Open Positions) y «Informe de efectivo» (Cash Report).","Abajo, formato XML y periodo «Último día hábil» (Last Business Day). Toca «Continuar» y «Crear».","Copia el Query ID de tu consulta: es un número que sale en sus detalles.","En «Configuración del servicio web Flex» (Flex Web Service Configuration), actívalo y toca «Generar nuevo token»: caducidad 1 año y la IP en blanco. Copia el token."],
   bx_kraken_need:"Necesitas dos datos de Kraken: la clave API y la clave privada.", bx_kraken_a:"Clave API", bx_kraken_b:"Clave privada (Private key)",
   bx_kraken_steps:["Entra en Kraken y ve a «Configuración» → «API» → «Crear clave API».","Marca solo «Consultar fondos» (Query Funds). No marques nada más y deja la IP en blanco.","Toca «Generar clave» y copia la clave API y la clave privada."],
   bx_ph_paste:"Pega aquí", bx_ph_token:"Pega aquí el token", bx_ph_query:"Por ejemplo 123456",
@@ -1502,8 +1502,8 @@ Object.assign(LANG.es,{
 Object.assign(LANG.en,{
   bx_connect:"Connect", bx_reconnect:"Reconnect", bx_connecting:"Connecting…", bx_connect_title:"Connect {x}",
   bx_steps_btn:"How to get them", bx_open:"Open {x}", bx_safe:"Read-only. Stored encrypted; remove it whenever you like.",
-  bx_ibkr_need:"You need two things from IBKR: a token and a query number. You get them once, from the browser.", bx_ibkr_a:"Token", bx_ibkr_b:"Query number (Query ID)",
-  bx_ibkr_steps:["Log in to IBKR in the browser and go to «Performance & Reports» → «Flex Queries».","Under «Activity Flex Query» tap «+» and give it a name, for example Aely.","Tick the «Open Positions» and «Cash Report» sections.","Below, format XML and period «Last Business Day». Tap «Continue» and «Create».","In the list, tap the ⓘ next to your query and copy its number: that's the query number.","On the same screen, «Flex Web Service Configuration»: enable it and tap «Generate New Token». Expiry 1 year, IP blank. Copy the token."],
+  bx_ibkr_need:"You need two things from IBKR: a token and a query's Query ID. You get them once, from the browser.", bx_ibkr_a:"Token", bx_ibkr_b:"Query ID",
+  bx_ibkr_steps:["Log in to IBKR in the browser and go to «Performance & Reports» → «Flex Queries».","Under «Activity Flex Query» tap «+», give it a name and tick «Open Positions» and «Cash Report».","Below, format XML and period «Last Business Day». Tap «Continue» and «Create».","Copy your query's Query ID: a number shown in its details.","In «Flex Web Service Configuration», enable it and tap «Generate New Token»: expiry 1 year, IP blank. Copy the token."],
   bx_kraken_need:"You need two things from Kraken: the API key and the private key.", bx_kraken_a:"API key", bx_kraken_b:"Private key",
   bx_kraken_steps:["Log in to Kraken and go to «Settings» → «API» → «Create API key».","Tick only «Query Funds». Nothing else, and leave the IP blank.","Tap «Generate key» and copy the API key and the private key."],
   bx_ph_paste:"Paste here", bx_ph_token:"Paste the token here", bx_ph_query:"For example 123456",
@@ -1532,8 +1532,8 @@ Object.assign(LANG.en,{
 Object.assign(LANG.ca,{
   bx_connect:"Connectar", bx_reconnect:"Tornar a connectar", bx_connecting:"Connectant…", bx_connect_title:"Connectar {x}",
   bx_steps_btn:"Com aconseguir-los", bx_open:"Obrir {x}", bx_safe:"Només lectura. Es desa xifrat i el pots treure quan vulguis.",
-  bx_ibkr_need:"Necessites dues dades d'IBKR: un token i un número de consulta. Es treuen un cop, des del navegador.", bx_ibkr_a:"Token", bx_ibkr_b:"Número de consulta (Query ID)",
-  bx_ibkr_steps:["Entra a IBKR des del navegador i ves a «Rendiment i informes» → «Consultes Flex» (Performance & Reports → Flex Queries).","A «Consulta Flex d'activitat» (Activity Flex Query) toca «+» i posa-li un nom, per exemple Aely.","Marca les seccions «Posicions obertes» (Open Positions) i «Informe d'efectiu» (Cash Report).","A sota, format XML i període «Últim dia hàbil» (Last Business Day). Toca «Continuar» i «Crear».","A la llista, toca la ⓘ de la teva consulta i copia'n el número: és el número de consulta.","A la mateixa pantalla, «Configuració del servei web Flex» (Flex Web Service Configuration): activa'l i toca «Generar un token nou». Caducitat 1 any, la IP en blanc. Copia el token."],
+  bx_ibkr_need:"Necessites dues dades d'IBKR: un token i el Query ID d'una consulta. Es treuen un cop, des del navegador.", bx_ibkr_a:"Token", bx_ibkr_b:"Query ID",
+  bx_ibkr_steps:["Entra a IBKR des del navegador i ves a «Rendiment i informes» → «Consultes Flex» (Performance & Reports → Flex Queries).","A «Consulta Flex d'activitat» (Activity Flex Query) toca «+», posa-li un nom i marca «Posicions obertes» (Open Positions) i «Informe d'efectiu» (Cash Report).","A sota, format XML i període «Últim dia hàbil» (Last Business Day). Toca «Continuar» i «Crear».","Copia el Query ID de la teva consulta: és un número que surt als seus detalls.","A «Configuració del servei web Flex» (Flex Web Service Configuration), activa'l i toca «Generar un token nou»: caducitat 1 any i la IP en blanc. Copia el token."],
   bx_kraken_need:"Necessites dues dades de Kraken: la clau API i la clau privada.", bx_kraken_a:"Clau API", bx_kraken_b:"Clau privada (Private key)",
   bx_kraken_steps:["Entra a Kraken i ves a «Configuració» → «API» → «Crear clau API».","Marca només «Consultar fons» (Query Funds). No marquis res més i deixa la IP en blanc.","Toca «Generar clau» i copia la clau API i la clau privada."],
   bx_ph_paste:"Enganxa aquí", bx_ph_token:"Enganxa aquí el token", bx_ph_query:"Per exemple 123456",
@@ -1664,7 +1664,7 @@ Object.assign(LANG.es,{
 
   ob2_go:"Empezar", ob2_next:"Siguiente",
   ob2_budget_t:"¿Cuánto quieres gastar al mes?", ob2_budget_d:"Tu presupuesto para el día a día (súper, bares, caprichos…). La app te avisa antes de pasarte.",
-  tr_createnew:"➕ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Participaciones, valor y coste se ajustan a lo que dice Trade Republic ahora.",
+  tr_createnew:"+ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Participaciones, valor y coste se ajustan a lo que dice Trade Republic ahora.",
   tr_done:"✓ {n} posiciones actualizadas desde Trade Republic",
   tr_err:"No se pudo conectar con Trade Republic. Revisa teléfono/PIN o el código, e inténtalo otra vez.",
   tr_expired_re:"Tu sesión de Trade Republic caducó. Vuelve a conectar: el teléfono ya está puesto, solo falta el PIN.",
@@ -1737,7 +1737,7 @@ Object.assign(LANG.en,{
 
   ob2_go:"Start", ob2_next:"Next",
   ob2_budget_t:"How much do you want to spend per month?", ob2_budget_d:"Your day-to-day budget (groceries, eating out, treats…). The app warns you before you go over.",
-  tr_createnew:"➕ Create as a new position", tr_apply:"Apply to {n} positions", tr_apply_hint:"Shares, value and cost are set to what Trade Republic says now.",
+  tr_createnew:"+ Create as a new position", tr_apply:"Apply to {n} positions", tr_apply_hint:"Shares, value and cost are set to what Trade Republic says now.",
   mi_title:"Connect MyInvestor", mi_sub:"pulls your index funds",
   mi_expired:"Your MyInvestor session expired and couldn't renew itself. Sign in again (username remembered): password and, if asked, the SMS code.",
   mi_hint:"Log in with your MyInvestor user · the password is never stored.",
@@ -1810,7 +1810,7 @@ Object.assign(LANG.ca,{
 
   ob2_go:"Comença", ob2_next:"Següent",
   ob2_budget_t:"Quant vols gastar al mes?", ob2_budget_d:"El teu pressupost del dia a dia (súper, bars, capricis…). L'app t'avisa abans de passar-te.",
-  tr_createnew:"➕ Crea com a posició nova", tr_apply:"Aplica a {n} posicions", tr_apply_hint:"Participacions, valor i cost s'ajusten al que diu Trade Republic ara.",
+  tr_createnew:"+ Crea com a posició nova", tr_apply:"Aplica a {n} posicions", tr_apply_hint:"Participacions, valor i cost s'ajusten al que diu Trade Republic ara.",
   mi_title:"Connecta MyInvestor", mi_sub:"porta els teus fons indexats",
   mi_expired:"La teva sessió de MyInvestor ha caducat i no s'ha pogut renovar sola. Torna a entrar (usuari recordat): contrasenya i, si el demana, el codi SMS.",
   mi_hint:"Login amb el teu usuari de MyInvestor · la contrasenya no es desa mai.",

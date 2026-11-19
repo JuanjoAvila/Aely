@@ -712,7 +712,8 @@ function BrokerApiSheet({ent, onClose, onDone}){
       setErr(t(brkApiErr(r&&r.code)));
     }).catch(function(){ setBusy(false); setErr(t("bx_e_error")); });
   };
-  const label=entOf(ent).label;
+  // Título con el nombre corto («Conectar IBKR»): el largo partía en tres renglones con letra Enorme.
+  const label=entOf(ent).short||entOf(ent).label;
   const campo=function(k, lab, ph, mode, val, setVal){
     return React.createElement("label",{className:"bx-field"}, t(lab),
       React.createElement("input",{className:"af-in bx-in",value:val,"data-bx":k,placeholder:t(ph),inputMode:mode,autoComplete:"off",autoCapitalize:"off",spellCheck:false,onChange:function(e){ setVal(e.target.value); }}));

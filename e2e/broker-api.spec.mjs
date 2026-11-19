@@ -124,7 +124,9 @@ test("hoja con letra Enorme a 360: los pasos abiertos desplazan el cuerpo y «Co
   await page.locator('[data-broker-api="ibkr"] [data-act="bx-open"]').click();
   const sheet = page.locator('[data-broker-api-sheet="ibkr"]');
   await sheet.locator('[data-act="bx-steps"]').click();
-  await expect(sheet.locator(".bx-steps li")).toHaveCount(6);
+  await expect(sheet.locator(".bx-steps li")).toHaveCount(5);
+  await expect(sheet.locator(".bx-head h2")).toHaveText("Conectar IBKR");
+  await expect(sheet.locator("label.bx-field").nth(1)).toContainText("Query ID");
   await expect(sheet.locator(".bx-x")).toBeVisible();
   const vp = page.viewportSize();
   const btn = await sheet.locator('[data-act="bx-connect"]').boundingBox();
