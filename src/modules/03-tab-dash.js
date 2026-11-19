@@ -299,7 +299,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       // Lo marcado «Lo pagué de otra forma» ya no está vencido: la misma lectura que Recibos.
       const status=fixedEstadoMes(state,f,tt.curYear,cm,today);
       if(status.paid||fixedSinCobroIn(f,tt.curYear,cm)) return;
-      const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
+      const row={rid:"fixed_"+f.id, day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
       (status.overdue?overdue:rows).push(row);
     });
     (state.debts||[]).forEach(function(d){
@@ -307,7 +307,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       // Con «Lo descuento» la cuota es la tuya entera, como en Plan (pagas 197 € + 53 € del recibo).
       const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt, q=debtCuotaIn(d,tt.curYear,cm);
-      rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
+      rows.push({rid:"debt_"+d.id, day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
     });
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
@@ -315,7 +315,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       // La misma regla que Plan (`flowEstadoMes`): lo que allí ya ha entrado aquí no sale como próximo.
       if(flowEstadoMes(state,f,tt.curYear,cm,today).llego) return;
       const day=flowDay(f,tt.curYear,cm)||1;
-      rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
+      rows.push({rid:"flow_"+f.id, day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });
     rows.sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); });
     return rows.slice(0,3);
@@ -334,7 +334,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     return p.pendingBills.concat(p.incomePending).sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); }).slice(0,3);
   },[nada,novato,sigM,sigY,state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.reciboNo,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner])
     // Los textos fuera del memo: cambiar de idioma no toca sus dependencias.
-    .map(function(x){ return {day:x.day, name:x.name, sub:x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):(entOf(x.bank).label||""), amount:Math.abs(x.amount), pos:x.kind==="income"}; });
+    .map(function(x){ return {rid:x.id, day:x.day, name:x.name, sub:x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):(entOf(x.bank).label||""), amount:Math.abs(x.amount), pos:x.kind==="income"}; });
   const sigName=monthLong(sigM-1);
 
   // 🎉 Deudas a las que les queda LA ÚLTIMA cuota: alegría en Inicio (petición 2026-07-18
@@ -387,8 +387,18 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
+  /* TOCAR UNA FILA LLEVA A SU SITIO Y LA ABRE (dueño, 19/11/2026). Antes un cargo, un movimiento o
+     una meta de Inicio no hacían nada al tocarlos —parecían tocables y no lo eran— y «Ver todo»
+     dejaba en la lista, a buscar a mano. Ahora el recibo abre su ficha en Plan › Recibos, el
+     movimiento la suya en Gastos y la meta la suya en Plan › Metas. `role="button"` y no `<button>`:
+     la fila conserva su maqueta (la de Enorme incluida) y responde a Intro/Espacio igual. */
+  const tocable=function(fn){
+    return {role:"button",tabIndex:0,onClick:fn,
+      onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); fn(); } }};
+  };
+  const abreRecibo=function(rid){ if(onGoPlan) onGoPlan("recibos",rid?{reciboId:rid}:null); };
 
-  return React.createElement("div",{className:"v4-screen",onAnimationStart:mcInicioFillHaptic},
+  return React.createElement("div",{className:"v4-screen v4-inicio",onAnimationStart:mcInicioFillHaptic},
     React.createElement("div",{className:"v4-inicio-head rise"},
       React.createElement("div",null,
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),
@@ -526,7 +536,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       ),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         (upcoming.length>0?upcoming:nextUp).map(function(u,i){
-              return React.createElement("div",{key:i,className:"v4-charge"},
+              return React.createElement("div",Object.assign({key:i,className:"v4-charge v4-tocable","data-inicio-recibo":u.rid},tocable(function(){ abreRecibo(u.rid); })),
                 React.createElement("div",{className:"dt"},
                   React.createElement("div",{className:"d"}, u.day==null?"—":String(u.day).padStart(2,"0")),
                   React.createElement("div",{className:"m"}, (upcoming.length>0?monthName:sigName).slice(0,3))
@@ -549,10 +559,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_all"))),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
-          // Cada fila lleva a Recibos, como «Ver todo»: parecían tocables (y en Recibos lo son) y no
-          // hacían nada (triage 18/11, F-07).
-          return React.createElement("button",{key:i,type:"button",className:"v4-charge v4-charge-btn","data-testid":"inicio-revisar-fila",
-              onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},
+          // Cada fila lleva a Recibos (triage 18/11, F-07) y abre la ficha de ESE recibo (19/11).
+          return React.createElement("button",{key:i,type:"button",className:"v4-charge v4-charge-btn","data-testid":"inicio-revisar-fila","data-inicio-recibo":u.rid,
+              onClick:function(){ abreRecibo(u.rid); }},
             // `span` y no `div`: dentro de un botón solo cabe contenido en línea (el CSS los pone en bloque).
             React.createElement("span",{className:"dt"},React.createElement("span",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("span",{className:"m"},monthName.slice(0,3))),
             React.createElement("span",{style:{flex:1,minWidth:0}},React.createElement("span",{className:"nm"},u.name),React.createElement("span",{className:"sub"},u.sub+" · "+t("pr6_no_llegado"))),
@@ -586,7 +595,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           // Con lo marcado desde Gastos, como en Plan → Metas: la misma meta no puede decir dos cifras.
           const g=metaConAportes(g0,state);
           const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual);
-          return React.createElement("div",{key:g.id,className:"v4-goal"},
+          return React.createElement("div",Object.assign({key:g.id,className:"v4-goal v4-tocable","data-inicio-meta":g.id,"aria-label":g.name},
+              tocable(function(){ if(onGoPlan) onGoPlan("metas",{goalId:g.id}); })),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
               React.createElement("span",{style:{fontSize:28}}, g.emoji||"🎯"),
               React.createElement("div",{style:{flex:1,minWidth:0}},
@@ -607,14 +617,15 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("span",null, t("v4_recent")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }}, t("v4_all"))
       ),
-      React.createElement("div",{className:"v4-card",style:{padding:"6px 14px"}},
+      React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
         recent.length===0
           ? React.createElement("div",{style:{padding:"18px 4px",color:"var(--muted)",fontSize:14}}, t("v4_recent_empty"))
           : recent.map(function(e){
               const c=catOf(e.category); const pos=e.amount<0;
               // El cargo de un recibo se ve igual que en Gastos: atenuado y diciendo de cuál es.
               const recibo=reciboEtiqueta(state,e);
-              return React.createElement("div",{key:e.id||(e.date+e.amount+e.merchant),className:"v4-mov"+(recibo?" v4-mov-skip":""),style:recibo?{opacity:.72}:null},
+              return React.createElement("div",Object.assign({key:e.id||(e.date+e.amount+e.merchant),className:"v4-mov v4-tocable"+(recibo?" v4-mov-skip":""),style:recibo?{opacity:.72}:null,"data-inicio-gasto":e.id},
+                  tocable(function(){ if(onGoGastos) onGoGastos(e); })),
                 React.createElement("div",{className:"tile",style:{background:(c.color||"#5FD08A")+"22"}}, c.icon||"📦"),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
                   React.createElement("div",{className:"nm"}, e.merchant||catName(e.category)),

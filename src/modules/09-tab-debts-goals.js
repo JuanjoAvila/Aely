@@ -1038,11 +1038,17 @@ function SavingsPlanCard({state, set, totals, showToast}){
 }
 
 
-function Goals({state, set, totals, showToast}){
+function Goals({state, set, totals, showToast, abrir}){
   const tt=totals||{};
   const goals=state.goals||[];
   const [adding,setAdding]=useState(false);
   const [editingGoal,setEditingGoal]=useState(null);
+  // La meta tocada en Inicio ({id,ts}) se abre como si se hubiera tocado aquí (PlanTab ya la ha centrado).
+  useEffect(function(){
+    if(!abrir) return;
+    const g=goals.find(function(x){ return String(x.id)===abrir.id; });
+    if(g) setEditingGoal(g);
+  },[abrir&&abrir.ts]);
   const [contribGoal,setContribGoal]=useState(null);   // meta abierta en la hoja de aportar
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);

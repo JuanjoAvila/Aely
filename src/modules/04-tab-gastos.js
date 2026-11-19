@@ -1096,11 +1096,22 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
   useEffect(function(){
     if(!focusExp) return;
-    const cands=(state.expenses||[]).filter(function(e){
+    // Desde Inicio llega el id exacto (19/11/2026): dos cafés de 1,50 € no se pueden confundir.
+    const porId=focusExp.id!=null&&(state.expenses||[]).find(function(e){ return e.id===focusExp.id; });
+    const cands=porId?[porId]:(state.expenses||[]).filter(function(e){
       if(Math.abs(Math.abs(e.amount)-focusExp.amount)>0.005) return false;
       if(focusExp.merchant){ const m=(e.merchant||"").toLowerCase(), fm=focusExp.merchant.toLowerCase(); if(m.indexOf(fm.slice(0,Math.min(6,fm.length)))<0 && fm.indexOf(m)<0) return false; }
       return true;
     }).sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
+    if(porId){
+      // La ficha sube cuando Gastos ya ha llegado (ver `mcTrasLlegar`), no a mitad del carrusel.
+      // Sin cancelarla al limpiar: `clearFocus` vacía `focusExp` en este mismo paso y la anularía.
+      mcTrasLlegar(function(){ return document.querySelector(".gx-root"); },function(){
+        setDetailId(porId.id); setEditExp({id:porId.id, merchant:porId.merchant||"", amount:montoEditable(porId.amount), income:porId.amount<0, date:String(porId.date||"").slice(0,10)});
+      });
+      if(clearFocus) clearFocus();
+      return;
+    }
     if(cands[0]){
       setDetailId(cands[0].id); setEditExp({id:cands[0].id, merchant:cands[0].merchant||"", amount:montoEditable(cands[0].amount), income:cands[0].amount<0, date:String(cands[0].date||"").slice(0,10)});
       if(clearFocus) clearFocus();

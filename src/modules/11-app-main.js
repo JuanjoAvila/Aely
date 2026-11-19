@@ -4206,8 +4206,14 @@ function App(){
         setProfileMounted(true);
         requestAnimationFrame(function(){ requestAnimationFrame(function(){ profSetOrigin(); setProfileOpen(true); }); });
       },
-      onGoGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); },
-      onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
+      // Con un movimiento, Gastos abre SU ficha por id: el mismo camino que la noti de un gasto
+      // (`focusExp`), que sin id casa por importe y comercio.
+      onGoGastos:function(e){
+        if(e&&e.id) setGotoExp({id:e.id,amount:Math.abs(Number(e.amount)||0),merchant:e.merchant||"",ts:Date.now()});
+        const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i);
+      },
+      // `foco`: {reciboId} o {goalId} para abrir ese recibo o esa meta al llegar (ver PlanTab).
+      onGoPlan:function(seg,foco){ if(seg) setPlanGoto(Object.assign({id:seg,ts:Date.now()},foco||null)); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
     // reconstruye el árbol entero encima del gesto (asimetría Deudas→Gastos vs →Cartera).
     if(id==="gastos") return React.createElement(Expenses,{state:state,set:set,showToast:showToast,stopSwipe:stopSwipe,focusExp:gotoExp,clearFocus:function(){ setGotoExp(null); },forceAllTs:gastosForceAll,onRefreshExpenses:syncCloudExpenses,

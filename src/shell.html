@@ -1509,9 +1509,8 @@
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
   /* «Últimos movimientos» ya va dentro de su tarjeta: con fondo y borde propios cada fila era una
      tarjeta dentro de otra (auditoría 15/11). Filas planas con raya, como «Próximos cargos». */
-  .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:10px 0;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov{background:none;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;margin-top:0;padding:12px 0;}
   .v4-section[data-testid="inicio-recent"] .v4-mov:last-child{border-bottom:0;}
-  /* La misma fila que Gastos (237, P2-5): nombre a 16/600, «Categoría · Banco» a 13 en gris. */
   /* El nombre baja a una segunda línea en vez de cortarse con «…» (D-03: los recortes que quedaban
      en Inicio eran estos, sobre todo con letra Enorme a 360). Más de dos líneas solo con nombres de
      banco kilométricos; ahí sí se corta, que una fila de cinco líneas rompe la lista. Una palabra
@@ -1527,10 +1526,28 @@
   @media (max-width:430px){
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;align-items:center;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .tile{grid-row:1 / span 2;}
-    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > div:not(.tile){display:contents;}
+    /* Sin `:not(.am)` el importe (también un `div`) perdía su caja y su sitio en la rejilla. */
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > div:not(.tile):not(.am){display:contents;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov .nm{grid-column:2 / 4;align-self:end;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov .meta{grid-column:2;align-self:start;min-width:0;}
     html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .am{grid-column:3;grid-row:2;align-self:start;margin-top:2px;}
+  }
+  /* LA MISMA FILA QUE «PRÓXIMOS CARGOS», QUE VA JUSTO ENCIMA (dueño, 19/11/2026: «Últimos
+     movimientos debe tener el mismo tamaño que Próximos cargos»). Medido en el DOM: nombre a 16/600
+     contra 15/700, gris a 13/400 contra 12,5/500, relleno de 10 contra 12 y un icono de 46 px que
+     sacaba la columna del texto 2 px más allá que la fecha. Ahora nombre, gris, importe, relleno y
+     columna de la izquierda (44 px) cuadran con la de arriba; la ficha de Gastos sigue con lo suyo.
+     Va aparte, después del bloque de la ronda D, para no mover sus anclas del panel de beta. */
+  .v4-section[data-testid="inicio-recent"] .v4-mov .tile{width:40px;height:40px;margin:0 2px;border-radius:12px;font-size:19px;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .nm{font-size:15px;font-weight:700;line-height:1.5;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .meta{display:block;font-size:12.5px;font-weight:500;margin-top:2px;}
+  .v4-section[data-testid="inicio-recent"] .v4-mov .am{font-weight:550;}
+  @media (max-width:430px){
+    /* El `gap:12px` de `.v4-mov` también separaba en vertical nombre y categoría en la rejilla de
+       Enorme: la fila salía 25 px más alta que la de «Próximos cargos» (medido 19/11). Sin hueco (la
+       línea gris ya trae sus 2 px) y el importe a la altura de esa línea, miden lo mismo. */
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov{row-gap:0;}
+    html.hugetext .v4-section[data-testid="inicio-recent"] .v4-mov > .am{align-self:center;margin-top:0;line-height:1.15;}
   }
   /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
      Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
@@ -1538,6 +1555,12 @@
      porque una fila entera moviendose mucho marea. Solo :active, sin JS ni transiciones nuevas. */
   .v4-charge:active,.v4-mov:active{transform:scale(.995);background:var(--sur2);transition:transform .12s var(--ease),background .12s var(--ease);}
   @media (prefers-reduced-motion:reduce){ .v4-charge:active,.v4-mov:active{transform:none;} }
+  /* Filas y metas de Inicio que abren su ficha (19/11/2026): la meta responde al dedo como las filas. */
+  .v4-tocable{cursor:pointer;}
+  .v4-tocable:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .v4-goal.v4-tocable{transition:transform .12s var(--ease);}
+  .v4-goal.v4-tocable:active{transform:scale(.985);}
+  @media (prefers-reduced-motion:reduce){ .v4-goal.v4-tocable:active{transform:none;} }
   .v4-mov .tile{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:21px;flex:0 0 auto;}
   .v4-mov button.tile{border:1px solid var(--line-soft);}
   .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:var(--fs-row-title);}
@@ -1635,6 +1658,15 @@
      `mcSinSeleccionHastaSoltar`): nada se selecciona, tampoco en la hoja del portal. */
   html.mc-sin-sel,html.mc-sin-sel *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;}
   .gx-root input,.gx-root textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
+  /* INICIO, IGUAL: NADA SE SELECCIONA (dueño, 19/11/2026: «mantener pulsado en Próximos cargos me
+     marca Últimos movimientos; en Metas aún peor, se puede subrayar»). La fila de un cargo ya era
+     `user-select:none`, pero lo de alrededor no: cabeceras de sección, el relleno de las tarjetas y
+     las metas enteras. Con una pulsación larga sobre algo no seleccionable el WebView no se rinde:
+     busca la posición de texto seleccionable MÁS CERCANA siguiendo el documento y la selecciona,
+     y la siguiente que encontraba bajando desde «Próximos cargos» era el título de «Tus metas» o el
+     de «Últimos movimientos». Por eso arreglarlo fila a fila no servía: la pantalla entera. */
+  .v4-inicio,.v4-inicio *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+  .v4-inicio input,.v4-inicio textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
   /* CABECERA FIJA. La caja NUNCA cambia de alto: encogerse es `transform` de la cifra y de la
      línea, y la fila de meses sale por debajo (posición absoluta) sobre la lista que ya ha
      pasado. Así bajar no recoloca ni una fila: es lo que medían los tirones del 27/7.
