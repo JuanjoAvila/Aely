@@ -934,7 +934,7 @@ function ReservaRules({state, set}){
      cancela; no se elige ni se crea otra meta por él. */
   if(!goals.length && !rules.length && !adding) return null;
   const closeForm=function(){ saving.current=false; setSent(null); setEditing(null); setAdding(false); setErr(""); setForm(blank); };
-  return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"var(--mint)",storageKey:"g_reserva_rules",help:t("h_reserva")},
+  return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length===1?t("rr_sub_one"):rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"var(--mint)",storageKey:"g_reserva_rules",help:t("h_reserva")},
     rules.map(function(r){
       return React.createElement("div",{key:r.id,className:"sub-row plan-rule-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},

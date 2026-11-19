@@ -40,3 +40,13 @@ test("deuda que ya cuadraba: la cuota baja sola y no se pregunta nada", () => {
   assert.equal(tras.debts[0].monthly, 200);
   assert.deepEqual(plain(c.descuentoDescuadre(s, tras)), []);
 });
+
+// La ficha usa lo que se contesta y, si la pregunta falla, el botón vuelve a valer (rev. dinero ronda F).
+test("la ficha guarda con la respuesta a la pregunta, no con el cambio a secas", () => {
+  const ini = screens.indexOf("const nuevoPrecio=function(){");
+  const cuerpo = screens.slice(ini, screens.indexOf("\n  };", ini));
+  assert.ok(ini > 0, "nuevoPrecio existe");
+  assert.match(cuerpo, /descuentoPregunta\(state,cambio\)\.then\(function\(fix\)\{/);
+  assert.match(cuerpo, /let n=conDescuentoFijado\(fix,cambio\(s\)\);/);
+  assert.match(cuerpo, /\},function\(\)\{[^}]*precioEnviado\.current=false;/);
+});

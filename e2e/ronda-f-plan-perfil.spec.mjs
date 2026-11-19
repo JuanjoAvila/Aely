@@ -104,6 +104,29 @@ test("con aportaciones: el título a lo ancho y «Editar» junto a la cifra, a 3
   expect(m.dentro).toBe(true);
 });
 
+// Filtro de diseño (ronda F): con Enorme a 360, «MyInvestor» se montaba encima de su importe.
+test("la fila del bróker no monta el nombre sobre el importe, a 360 con Enorme", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await abre(page, { settings: { ...estado().settings, textSize: "huge" } });
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  const solape = (fila) => fila.evaluate((el) => {
+    // El texto, no su caja: una palabra que no cabe se sale del div sin ensancharlo.
+    const caja = (n) => { const r = document.createRange(); r.selectNodeContents(n); return r.getBoundingClientRect(); };
+    const nm = caja(el.querySelector(".nm > div:first-child")), am = caja(el.querySelector(".am"));
+    const corta = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+    return { solapa: corta(nm, am), dentro: Math.max(nm.right, am.right) <= el.getBoundingClientRect().right + 0.5 };
+  });
+  const enCartera = page.locator('.page-scroll-host button.v4-mov[data-broker-key="myinvestor"]').first();
+  await enCartera.scrollIntoViewIfNeeded();
+  expect(await solape(enCartera)).toEqual({ solapa: false, dentro: true });
+  await page.getByRole("button", { name: /Ver todas tus inversiones/i }).click();
+  const enInv = page.locator('[data-inv-screen] button.v4-mov[data-broker-key="myinvestor"]');
+  await enInv.scrollIntoViewIfNeeded();
+  await expect(enInv.locator(".nm")).toContainText("MyInvestor");
+  expect(await solape(enInv)).toEqual({ solapa: false, dentro: true });
+  await enInv.screenshot({ path: "test-results/ronda-f-broker-360-enorme.png" });
+});
+
 test("Perfil: «Nombre del titular» y sin «@usuario»", async ({ page }) => {
   await abre(page);
   await page.locator(".v4-avatar").click();

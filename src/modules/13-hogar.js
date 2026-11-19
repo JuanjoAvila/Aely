@@ -280,7 +280,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       React.createElement("div",null,
         React.createElement("div",{className:"tl"}, t("hh_fused_net")),
         React.createElement("div",{className:"tn num"}, eur(merged.netWorth)),
-        React.createElement("div",{className:"hint"}, tf("hh_members_n",{n:merged.members.length}))
+        React.createElement("div",{className:"hint"}, merged.members.length===1?t("hh_members_one"):tf("hh_members_n",{n:merged.members.length}))
       )
     ),
     // Fase 2 · gasto del hogar este mes
@@ -327,7 +327,8 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
           })
         ),
         m.publishedAt && React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:4}},
-          t("hh_updated")+" "+new Date(m.publishedAt).toLocaleString())
+          // Sin segundos ni año: «Actualizado 18 nov, 11:00» (filtro de diseño, ronda F).
+          t("hh_updated")+" "+new Date(m.publishedAt).toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))
       );
     }),
     otros.length>0 && React.createElement("div",{"data-hogar-miembros":"1",style:{marginTop:14,paddingTop:12,borderTop:"1px solid var(--line-soft)"}},

@@ -1156,6 +1156,14 @@
     html.hugetext .pr6-sec .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
     html.hugetext .pr6-sec .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;}
     html.hugetext .pr6-sec .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+    /* La fila de cada bróker (Inversiones y Cartera): con Enorme, «MyInvestor» no cabe al lado de
+       «2.000 €» y se montaba encima (filtro de diseño, ronda F). El importe baja bajo el nombre. */
+    html.hugetext button.v4-mov[data-broker-key]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
+    html.hugetext button.v4-mov[data-broker-key] > .tile{grid-row:1 / span 2;}
+    html.hugetext button.v4-mov[data-broker-key] > .nm{grid-column:2;grid-row:1;min-width:0;}
+    html.hugetext button.v4-mov[data-broker-key] > div:nth-child(3){grid-column:2;grid-row:2;justify-self:start;text-align:left !important;}
+    html.hugetext button.v4-mov[data-broker-key] > div:nth-child(3):has(.chev){grid-column:2 / 4;justify-self:stretch;justify-content:space-between;}
+    html.hugetext button.v4-mov[data-broker-key] > .chev{grid-column:3;grid-row:1 / span 2;}
   }
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
   /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
@@ -9509,7 +9517,7 @@ Object.assign(LANG.es,{
   hh_create_go:"Crear y obtener código", hh_join_go:"Unirme", hh_default_name:"Mi hogar",
   hh_created:"✓ Hogar creado · comparte el código", hh_joined:"✓ Te has unido al hogar", hh_code_short:"Escribe el código completo",
   hh_code_bad:"Código no encontrado", hh_code_wait:"Demasiados intentos seguidos · espera unos minutos", hh_code_show:"Código invitación: {c}", hh_fused_net:"Patrimonio del hogar",
-  hh_members_n:"{n} miembro(s) con vista publicada", hh_publish:"Actualizar mi vista en el hogar", hh_pub_ok:"✓ Vista publicada",
+  hh_members_n:"{n} miembros con vista publicada", hh_members_one:"1 miembro con vista publicada", hh_publish:"Actualizar mi vista en el hogar", hh_pub_ok:"✓ Vista publicada",
   hh_pub_busy:"Publicando…", hh_pub_hint:"Los demás solo ven lo que publicas; nunca editan tus datos.",
   hh_updated:"Actualizado", hh_leave:"Salir", hh_leave_q:"¿Salir del hogar?", hh_leave_sub:"Tu vista dejará de mostrarse. Tus datos locales no se borran.",
   hh_leave_ok:"Sí, salir", hh_left:"Has salido del hogar",
@@ -9949,7 +9957,7 @@ Object.assign(LANG.es,{
   // INC-0310-01 es: límite para no invalidar textos ajenos al borrado.
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
   // INC-0410 es: los avisos del alta y el estado del reparto también deben invalidar su revisión.
-  rr_title:"Ahorro mensual", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
+  rr_title:"Ahorro mensual", rr_sub:"{n} reglas", rr_sub_one:"1 regla", rr_sub_empty:"sin reglas",
   rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% del ingreso",
   rr_row_fixed:"{v} fijos", rr_row_pct:"{v} %",
   rr_goal_gone:"(meta borrada)",
@@ -9967,7 +9975,7 @@ Object.assign(LANG.es,{
   rr_st_noplan:"Con estas reglas no hay ningún importe que repartir. Revisa las reglas y sus metas.",
   rr_kind_pct_m:"% del presupuesto mensual",
   rr_row_fixed_m:"{v} cada mes", rr_row_pct_m:"{v} % del presupuesto, cada mes",
-  rr_m_ok:"Este mes: {x} descontados del presupuesto y aportados a la meta.",
+  rr_m_ok:"Este mes: {x} aportados",
   rr_m_base:"Este mes: —. Sin presupuesto mensual no se puede calcular el porcentaje.",
   rr_m_meta:"Este mes: —. La meta ya no está activa.",
   rr_m_none:"Este mes: —. Aún no se ha aplicado.",
@@ -31184,7 +31192,7 @@ function ReservaRules({state, set}){
      cancela; no se elige ni se crea otra meta por él. */
   if(!goals.length && !rules.length && !adding) return null;
   const closeForm=function(){ saving.current=false; setSent(null); setEditing(null); setAdding(false); setErr(""); setForm(blank); };
-  return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"var(--mint)",storageKey:"g_reserva_rules",help:t("h_reserva")},
+  return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length===1?t("rr_sub_one"):rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"var(--mint)",storageKey:"g_reserva_rules",help:t("h_reserva")},
     rules.map(function(r){
       return React.createElement("div",{key:r.id,className:"sub-row plan-rule-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
@@ -36102,7 +36110,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       React.createElement("div",null,
         React.createElement("div",{className:"tl"}, t("hh_fused_net")),
         React.createElement("div",{className:"tn num"}, eur(merged.netWorth)),
-        React.createElement("div",{className:"hint"}, tf("hh_members_n",{n:merged.members.length}))
+        React.createElement("div",{className:"hint"}, merged.members.length===1?t("hh_members_one"):tf("hh_members_n",{n:merged.members.length}))
       )
     ),
     // Fase 2 · gasto del hogar este mes
@@ -36149,7 +36157,8 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
           })
         ),
         m.publishedAt && React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:4}},
-          t("hh_updated")+" "+new Date(m.publishedAt).toLocaleString())
+          // Sin segundos ni año: «Actualizado 18 nov, 11:00» (filtro de diseño, ronda F).
+          t("hh_updated")+" "+new Date(m.publishedAt).toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))
       );
     }),
     otros.length>0 && React.createElement("div",{"data-hogar-miembros":"1",style:{marginTop:14,paddingTop:12,borderTop:"1px solid var(--line-soft)"}},
@@ -38519,6 +38528,9 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
         return n===s?s:conSaldoMostrado(s,n);
       });
       cerrarCon(tf("pr6_precio_toast",{name:row.name,x:eur(aviso.cobrado)}));
+    },function(){
+      // Si la pregunta falla, no se guarda nada y el botón vuelve a valer (rev. dinero ronda F).
+      precioEnviado.current=false;
     });
   };
   /* «Cobró distinto» sin pagar (P1-11): el cargo lo propone el motor y lo decide él. «Sí, es este»

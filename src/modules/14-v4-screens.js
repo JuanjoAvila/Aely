@@ -2353,6 +2353,9 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
         return n===s?s:conSaldoMostrado(s,n);
       });
       cerrarCon(tf("pr6_precio_toast",{name:row.name,x:eur(aviso.cobrado)}));
+    },function(){
+      // Si la pregunta falla, no se guarda nada y el botón vuelve a valer (rev. dinero ronda F).
+      precioEnviado.current=false;
     });
   };
   /* «Cobró distinto» sin pagar (P1-11): el cargo lo propone el motor y lo decide él. «Sí, es este»

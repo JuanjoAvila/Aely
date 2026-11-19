@@ -1156,6 +1156,14 @@
     html.hugetext .pr6-sec .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
     html.hugetext .pr6-sec .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;}
     html.hugetext .pr6-sec .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+    /* La fila de cada bróker (Inversiones y Cartera): con Enorme, «MyInvestor» no cabe al lado de
+       «2.000 €» y se montaba encima (filtro de diseño, ronda F). El importe baja bajo el nombre. */
+    html.hugetext button.v4-mov[data-broker-key]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
+    html.hugetext button.v4-mov[data-broker-key] > .tile{grid-row:1 / span 2;}
+    html.hugetext button.v4-mov[data-broker-key] > .nm{grid-column:2;grid-row:1;min-width:0;}
+    html.hugetext button.v4-mov[data-broker-key] > div:nth-child(3){grid-column:2;grid-row:2;justify-self:start;text-align:left !important;}
+    html.hugetext button.v4-mov[data-broker-key] > div:nth-child(3):has(.chev){grid-column:2 / 4;justify-self:stretch;justify-content:space-between;}
+    html.hugetext button.v4-mov[data-broker-key] > .chev{grid-column:3;grid-row:1 / span 2;}
   }
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
   /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
