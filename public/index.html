@@ -2584,17 +2584,8 @@
      a la derecha), el buscador fijo y la lista desplazándose sola debajo (`.v4-sheet-body`). */
   .bk-pick h1{flex:1;}
   .bk-pick input{margin:10px 0 12px;}
-  /* Fila «Conexiones» de Ajustes: logos de lo conectado (los de Notificaciones) y un punto de
-     estado, menta al día y tan si algo pide renovar. */
-  .cx-row .nt-logos{margin:5px 0 3px;gap:4px;}
-  .cx-row .nt-logos .mono+.mono{margin-left:0;}   /* a 24 px, solapados se comían media «S» de Sabadell */
-  /* El icono va a la altura del título, como en las filas de una línea, y el punto pegado a su
-     texto: con letra Enorme se quedaba solo en un renglón y la frase en el siguiente. */
-  .set-row.cx-row .sr-ic{align-self:flex-start;margin-top:3px;}
-  .set-row.cx-row .sr-sub{display:block;}
-  .cx-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mint);margin-right:6px;vertical-align:1px;}
-  .cx-dot.warn{background:var(--tan);}
-  /* Vuelta al origen tras conectar o renovar: la fila de ese banco se marca y se apaga sola. */
+  /* Vuelta al origen tras conectar o renovar: la fila de ese banco (o la del grupo «Bancos» si se
+     abrió desde Ajustes) se marca y se apaga sola. */
   .cx-vuelta{animation:cxVuelta 1.8s ease-out forwards;}
   @keyframes cxVuelta{0%,45%{background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}100%{background:transparent;box-shadow:inset 3px 0 0 transparent;}}
   html.reduce-motion .cx-vuelta{animation:none;background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}
@@ -9807,6 +9798,7 @@ Object.assign(LANG.es,{
 
 // --- Open Banking (Capa 2: el saldo real del banco) ---
 Object.assign(LANG.es,{
+  bank_section:"Bancos",
   bank_connect:"Conectar mi banco", bank_connecting:"Abriendo tu banco…",
   bank_connected:"Banco conectado ✓", bank_error:"No se pudo conectar el banco",
   bank_error_invalid:"Ese permiso ya se usó o caducó · vuelve a pulsar Reconectar y termina solo esa autorización",
@@ -9869,8 +9861,9 @@ Object.assign(LANG.es,{
 });
 // --- Open Banking · sección "Mis bancos" (multibanco) ---
 Object.assign(LANG.es,{
-  bp_title:"Conexiones",
-  cx_ok:"{n} al día", cx_of:"{n} de {m} al día", cx_renew:"{bank} pide renovar", cx_renewed:"{bank} renovado", cx_connected:"{bank} conectado",
+  bp_title:"Mis bancos",
+  bp_manage:"Gestionar mis bancos",
+  cx_renewed:"{bank} renovado", cx_connected:"{bank} conectado",
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae los últimos meses de {banks} a Gastos. Los recibos fijos, solo si los marcas.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya está en tu Plan · se cuenta una sola vez",
@@ -9909,7 +9902,8 @@ Object.assign(LANG.es,{
   bp_hist_undo_cloud_fail:"Quitado en el móvil, pero la nube no ha confirmado el borrado. Si vuelven a aparecer, vuelve a deshacer con conexión.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
-  bp_summary_none:"Ninguno",
+  bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ninguno",
+  bp_summary_tr_dead:"⚠ Trade Republic desconectado",
   exp_pull_invalid:"No se pudo completar la descarga. Lo guardado se conserva; vuelve a intentarlo.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
   bp_pick_title:"Elige tu banco", bp_pick_sub:"Solo verás las cuentas que autorices.",
@@ -32759,10 +32753,13 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   ));
 }
 
-/* Los brókers con integración propia (DEGIRO e IBKR por fichero desde el 18/11). El id es el mismo
-   `ent` que llevan las posiciones en `state.investments`, para poder deducir de la cartera cuáles
-   usa el usuario sin preguntarle. */
-var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"],["degiro","DEGIRO"],["ibkr","Interactive Brokers"]];
+/* Los brókers con integración propia. El id es el mismo `ent` que llevan las posiciones en
+   `state.investments`, para poder deducir de la cartera cuáles usa el usuario sin preguntarle.
+   DEGIRO e IBKR salieron de aquí el 19/11, un día después de entrar por fichero: él no quiere
+   brókers por fichero («que nadie tenga que entrar en la app del bróker»). Sus lectores
+   (`brokerAnalyze`, `brkApplyFile`, `BrokerFilePreview`) se quedan para cuando entren por conexión,
+   que también tendrá que enseñar la vista previa y dejar mapear antes de tocar nada (AGENTS §9). */
+var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"]];
 /* CONEXIONES ES UNA PANTALLA HIJA, no un `div` fijo (ronda R2 del rediseño de bancos, 18/11).
    Antes aparecía y desaparecía en un fotograma y al cerrar siempre caía en Ajustes, vinieras de
    donde vinieras («me deja donde no estaba»). Ahora entra por la derecha como Inversiones, se
@@ -33152,10 +33149,6 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
       open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }}),
     brokersOn.indexOf("revolut")>=0 && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
-    ["degiro","ibkr"].map(function(k){
-      return brokersOn.indexOf(k)>=0 && React.createElement(BrokerImport,{key:k,ent:k,state:state,set:set,fetchPrices:fetchPrices,
-        open:openBank==="br:"+k, onToggle:function(){ setOpenBank(openBank==="br:"+k?"":"br:"+k); }});
-    }),
     /* «¿Cuadran tus recibos con el banco?» vive aquí, que es donde se busca lo del banco.
        Sin datos del banco no pinta nada. */
     React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),
@@ -34242,7 +34235,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="d07d52cdd5219e73bc6a809318919c06c6f262b05605f060dd686833a07d56fc";
+var _rnSha="62d7b54a0b8b58af85de9b01bcf265dcbaf9865bffcee99ebb9b2c1434a4e65d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -34536,6 +34529,7 @@ const SET_ICO=(function(){
     budgetcycle:[["rect",{x:3,y:5,width:18,height:16,rx:2.5}],["path",{d:"M3 10h18M8 3v4M16 3v4"}]],
     bills:[["path",{d:"M6 3h12v18l-3-2-3 2-3-2-3 2z"}],["path",{d:"M9 8h6M9 12h6"}]],
     banks:banco,
+    bankmanage:[["path",{d:"M4 7h9M17 7h3M4 17h3M11 17h9"}],["circle",{cx:15,cy:7,r:2}],["circle",{cx:9,cy:17,r:2}]],
     banksync:[["path",{d:"M20 11a8 8 0 0 0-14.5-4.5L4 8"}],["path",{d:"M4 4v4h4"}],["path",{d:"M4 13a8 8 0 0 0 14.5 4.5L20 16"}],["path",{d:"M20 20v-4h-4"}]],
     notifs:[["path",{d:"M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"}],["path",{d:"M10 21h4"}]],
     trnotif:[["path",{d:"M4 5h16v11H9l-5 4z"}],["path",{d:"M9 10.5l2 2 4-4"}]],
@@ -35023,32 +35017,25 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
         if(r.status!=='active') return false;
         return !issueAsp[String(r.aspsp_name||"").toLowerCase()];
       }).length + (!enPruebas && trConn?1:0);
-      const dead=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; })
-        .map(function(r){ const e=entFromAspsp(r.aspsp_name); return e?entOf(e).label:r.aspsp_name; });
-      if(!enPruebas && trKnown&&trExpired) dead.push("Trade Republic");
-      /* CONEXIONES A UN TOQUE (R2). Era un grupo plegado con una sola fila dentro y un resumen de
-         tres renglones; ahora es una fila de primer nivel, con su icono como las demás, los logos
-         de lo conectado y una línea de estado: «4 de 5 al día · CaixaBank pide renovar». */
-      const ents=[];
-      (links||[]).forEach(function(r){ const e=entFromAspsp(r.aspsp_name); if(e&&ents.indexOf(e)<0) ents.push(e); });
-      if(!enPruebas && (trConn||trKnown) && ents.indexOf("trade_republic")<0) ents.push("trade_republic");
-      const nTot=nActive+dead.length;
-      const st = links===null ? "…"
-        : !nTot ? t((links||[]).some(function(r){return r.status==='pending';}) ? "bank_pending" : "bp_summary_none")
-        : (dead.length ? tf("cx_of",{n:nActive,m:nTot})+" · "+tf("cx_renew",{bank:dead.join(", ")}) : tf("cx_ok",{n:nActive}));
-      const nq=normQ(q).trim();
-      if(nq && normQ(t("bp_title")+" banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking").indexOf(nq)<0) return null;
-      grpMatches++;
-      return React.createElement("div",{className:"set-sub"},
-        React.createElement("button",{type:"button",className:"set-row cx-row","data-cx-row":"",onClick:function(){
+      const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
+      const trDead=!enPruebas && trKnown&&trExpired;
+      const nDead=nDeadDb + (trDead?1:0);
+      let summary = links===null ? "…"
+        : nActive>0 ? (tf("bp_summary_n",{n:nActive}) + (nDead?" · "+tf("bp_summary_exp",{n:nDead}):""))
+        : nDead>0 ? tf("bp_summary_exp",{n:nDead})
+        : ((links||[]).some(function(r){return r.status==='pending';}) ? t("bank_pending") : t("bp_summary_none"));
+      if(trDead && summary.indexOf("Trade Republic")<0) summary += (summary&&summary!=="…"?" · ":"") + t("bp_summary_tr_dead");
+      /* La entrada vuelve a ser la de siempre: el grupo «Bancos» con «Gestionar mis bancos» dentro
+         (petición suya del 19/11, «dejarlo como antes»). De la R2 se queda cómo entra y sale la
+         pantalla —deslizando y montada por App—, así que la fila no la abre aquí: se lo pide a App.
+         `data-bank-grp` es a quien resalta App al volver con algo hecho: la cabecera del grupo, que
+         es la que enseña el resumen y se ve también con el grupo plegado. */
+      const g=grp("banks","🏦",t("bank_section"),"banco bancos bank conectar caixabank revolut sabadell trade republic myinvestor broker open banking sincronizar",summary,
+        React.cloneElement(row("bankmanage","🏦",t("bp_manage"),null,function(){
           try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null,origin:"settings"}})); }catch(e){}
-        }},
-          React.createElement("span",{className:"sr-ic"},setIco("banks")),
-          React.createElement("span",{className:"sr-tx"},
-            React.createElement("span",{className:"sr-lb"},t("bp_title")),
-            ents.length>0 && React.createElement("span",{className:"nt-logos"}, ents.slice(0,5).map(function(e){ return React.createElement(Mono,{key:e,ent:e,size:24}); })),
-            React.createElement("span",{className:"sr-sub"}, nTot>0 && React.createElement("i",{className:"cx-dot"+(dead.length?" warn":"")}), st)),
-          React.createElement("span",{className:"sr-chev"},"›")));
+        }),{"data-bank-manage":""})
+      );
+      return g && React.cloneElement(g,{"data-bank-grp":""});
     })(),
     (function(){
       const nat=natPlugin();
@@ -43889,7 +43876,7 @@ function App(){
     showToast(avisoSync.current || "✓ "+tf(ac.k==="r"?"cx_renewed":"cx_connected",{bank:ent?entOf(ent).label:ac.n}));
     try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
     let el=null;
-    if(b.origen==="settings") el=drawerRef.current&&drawerRef.current.querySelector("[data-cx-row]");
+    if(b.origen==="settings") el=drawerRef.current&&drawerRef.current.querySelector("[data-bank-grp] > .set-row");
     else {
       // Las filas de «Tus cuentas» de ese banco: las manuales por id y las del banco por su clave.
       const s=stateRef.current, sel=[], pg=trackRef.current&&trackRef.current.children[tabOrderOf(s).indexOf(b.origen)];

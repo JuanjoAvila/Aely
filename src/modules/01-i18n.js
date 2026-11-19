@@ -2391,6 +2391,7 @@ Object.assign(LANG.ca,{
 });
 // --- Open Banking (Capa 2: el saldo real del banco) ---
 Object.assign(LANG.es,{
+  bank_section:"Bancos",
   bank_connect:"Conectar mi banco", bank_connecting:"Abriendo tu banco…",
   bank_connected:"Banco conectado ✓", bank_error:"No se pudo conectar el banco",
   bank_error_invalid:"Ese permiso ya se usó o caducó · vuelve a pulsar Reconectar y termina solo esa autorización",
@@ -2421,6 +2422,7 @@ Object.assign(LANG.es,{
   bank_consent:"Permiso válido hasta {x}",
 });
 Object.assign(LANG.en,{
+  bank_section:"Banks",
   bank_connect:"Connect my bank", bank_connecting:"Opening your bank…",
   bank_connected:"Bank connected ✓", bank_error:"Couldn't connect the bank",
   bank_error_invalid:"That permission was already used or expired · tap Reconnect again and finish only that one authorization",
@@ -2444,6 +2446,7 @@ Object.assign(LANG.en,{
   bank_consent:"Consent valid until {x}",
 });
 Object.assign(LANG.ca,{
+  bank_section:"Bancs",
   bank_connect:"Connecta el meu banc", bank_connecting:"Obrint el teu banc…",
   bank_connected:"Banc connectat ✓", bank_error:"No s'ha pogut connectar el banc",
   bank_error_invalid:"Aquest permís ja s'ha usat o ha caducat · torna a prémer Reconnecta i acaba només aquesta autorització",
@@ -2517,8 +2520,9 @@ Object.assign(LANG.es,{
 });
 // --- Open Banking · sección "Mis bancos" (multibanco) ---
 Object.assign(LANG.es,{
-  bp_title:"Conexiones",
-  cx_ok:"{n} al día", cx_of:"{n} de {m} al día", cx_renew:"{bank} pide renovar", cx_renewed:"{bank} renovado", cx_connected:"{bank} conectado",
+  bp_title:"Mis bancos",
+  bp_manage:"Gestionar mis bancos",
+  cx_renewed:"{bank} renovado", cx_connected:"{bank} conectado",
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae los últimos meses de {banks} a Gastos. Los recibos fijos, solo si los marcas.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya está en tu Plan · se cuenta una sola vez",
@@ -2557,7 +2561,8 @@ Object.assign(LANG.es,{
   bp_hist_undo_cloud_fail:"Quitado en el móvil, pero la nube no ha confirmado el borrado. Si vuelven a aparecer, vuelve a deshacer con conexión.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
-  bp_summary_none:"Ninguno",
+  bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ninguno",
+  bp_summary_tr_dead:"⚠ Trade Republic desconectado",
   exp_pull_invalid:"No se pudo completar la descarga. Lo guardado se conserva; vuelve a intentarlo.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
   bp_pick_title:"Elige tu banco", bp_pick_sub:"Solo verás las cuentas que autorices.",
@@ -2581,8 +2586,9 @@ Object.assign(LANG.es,{
   bp_which:"¿Qué brókers usas? Toca para añadir o quitar.",
 });
 Object.assign(LANG.en,{
-  bp_title:"Connections",
-  cx_ok:"{n} up to date", cx_of:"{n} of {m} up to date", cx_renew:"{bank} needs renewing", cx_renewed:"{bank} renewed", cx_connected:"{bank} connected",
+  bp_title:"My banks",
+  bp_manage:"Manage my banks",
+  cx_renewed:"{bank} renewed", cx_connected:"{bank} connected",
   bp_empty:"You haven't connected any bank yet.", bp_add:"Connect a bank",
   bp_hist_pickbank:"Choose which bank to query. Initially, only daily-spending banks are selected.",
   bp_hist_btn:"Import history", bp_hist_title:"Import history", bp_hist_sub:"Brings recent months from {banks} into Spending. Recurring bills only if you mark them.", bp_hist_m:"{n} month(s)", bp_hist_search:"Find transactions", bp_hist_searching:"Searching…", bp_hist_none:"No new transactions in that period (or they're all logged already). Remember: the bank only shows ~90 days.", bp_hist_all_logged:"Accounts shared by {bank}: {accounts}. Transactions supplied: {n}, all already logged. If another account is missing, reconnect the bank and select it; if it still does not appear, the bank is not sharing it with Aely.", bp_hist_view_logged:"View them in Spending", bp_hist_found:"{n} transactions · check and pick destination", bp_hist_notcard:"not a card purchase", bp_hist_import:"Import {n}", bp_hist_done:"✓ {n} imported", bp_hist_as_gasto:"🛒 Spend", bp_hist_as_recibo:"🧾 Bill", bp_hist_as_ingreso:"💰 Income", bp_hist_recibo:"Bill", bp_hist_done_g:"✓ {n} in Spending", bp_hist_done_i:"✓ {n} income", bp_hist_done_r:"✓ {n} bills", bp_hist_dup:"already in your Plan · counted once",
@@ -2621,7 +2627,8 @@ Object.assign(LANG.en,{
   bp_hist_undo_cloud_fail:"Removed on this phone, but the cloud did not confirm the deletion. If they come back, undo again while online.",
   bp_hist_f_all:"All", bp_hist_f_gastos:"🛒 Spending", bp_hist_f_ingresos:"💰 Income", bp_hist_f_allmonths:"All months",
   bp_hist_nofilter:"No transactions match this filter. Try removing one.",
-  bp_summary_none:"None",
+  bp_summary_n:"{n} connected", bp_summary_exp:"⚠ {n} expired — reconnect it", bp_summary_none:"None",
+  bp_summary_tr_dead:"⚠ Trade Republic disconnected",
   exp_pull_invalid:"The download could not be completed. Saved transactions are kept; please try again.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
   bp_pick_title:"Choose your bank", bp_pick_sub:"You'll only see the accounts you authorize.",
@@ -2645,8 +2652,9 @@ Object.assign(LANG.en,{
   bp_which:"Which brokers do you use? Tap to add or remove.",
 });
 Object.assign(LANG.ca,{
-  bp_title:"Connexions",
-  cx_ok:"{n} al dia", cx_of:"{n} de {m} al dia", cx_renew:"{bank} demana renovar", cx_renewed:"{bank} renovat", cx_connected:"{bank} connectat",
+  bp_title:"Els meus bancs",
+  bp_manage:"Gestiona els meus bancs",
+  cx_renewed:"{bank} renovat", cx_connected:"{bank} connectat",
   bp_empty:"Encara no has connectat cap banc.", bp_add:"Connecta un banc",
   bp_hist_pickbank:"Tria quin banc vols consultar. D'entrada, només estan marcats els bancs de despesa diària.",
   bp_hist_btn:"Importar històric", bp_hist_title:"Importar històric", bp_hist_sub:"Porta els últims mesos de {banks} a Despeses. Els rebuts fixos, només si els marques.", bp_hist_m:"{n} mes(os)", bp_hist_search:"Cerca moviments", bp_hist_searching:"Cercant…", bp_hist_none:"No hi ha moviments nous en aquest període (o ja estan tots apuntats). Recorda: el banc només deixa veure ~90 dies.", bp_hist_all_logged:"Comptes compartits per {bank}: {accounts}. Moviments lliurats: {n}, tots ja apuntats. Si falta un altre compte, torna a connectar el banc i selecciona'l; si encara no apareix, el banc no l'està compartint amb Aely.", bp_hist_view_logged:"Veure'ls a Despeses", bp_hist_found:"{n} moviments · marca i tria destinació", bp_hist_notcard:"no és targeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importats", bp_hist_as_gasto:"🛒 Despesa", bp_hist_as_recibo:"🧾 Rebut", bp_hist_as_ingreso:"💰 Ingrés", bp_hist_recibo:"Rebut", bp_hist_done_g:"✓ {n} a Despeses", bp_hist_done_i:"✓ {n} ingressos", bp_hist_done_r:"✓ {n} rebuts", bp_hist_dup:"ja és al teu Pla · es compta una sola vegada",
@@ -2685,7 +2693,8 @@ Object.assign(LANG.ca,{
   bp_hist_undo_cloud_fail:"Tret al mòbil, però el núvol no ha confirmat l'esborrat. Si tornen a aparèixer, torna a desfer amb connexió.",
   bp_hist_f_all:"Tots", bp_hist_f_gastos:"🛒 Despeses", bp_hist_f_ingresos:"💰 Ingressos", bp_hist_f_allmonths:"Tots els mesos",
   bp_hist_nofilter:"Cap moviment amb aquest filtre. Prova de treure'n algun.",
-  bp_summary_none:"Cap",
+  bp_summary_n:"{n} connectat(s)", bp_summary_exp:"⚠ {n} caducat(s) — reconnecta'l", bp_summary_none:"Cap",
+  bp_summary_tr_dead:"⚠ Trade Republic desconnectat",
   exp_pull_invalid:"No s'ha pogut completar la descàrrega. Els moviments desats es conserven; torna-ho a intentar.",
   st_ver_web:"web v{v}", st_ver_both:"web v{w} · app {a}",
   bp_pick_title:"Tria el teu banc", bp_pick_sub:"Només veuràs els comptes que autoritzis.",

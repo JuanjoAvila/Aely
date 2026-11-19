@@ -2053,7 +2053,7 @@ function App(){
     showToast(avisoSync.current || "✓ "+tf(ac.k==="r"?"cx_renewed":"cx_connected",{bank:ent?entOf(ent).label:ac.n}));
     try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
     let el=null;
-    if(b.origen==="settings") el=drawerRef.current&&drawerRef.current.querySelector("[data-cx-row]");
+    if(b.origen==="settings") el=drawerRef.current&&drawerRef.current.querySelector("[data-bank-grp] > .set-row");
     else {
       // Las filas de «Tus cuentas» de ese banco: las manuales por id y las del banco por su clave.
       const s=stateRef.current, sel=[], pg=trackRef.current&&trackRef.current.children[tabOrderOf(s).indexOf(b.origen)];

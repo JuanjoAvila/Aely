@@ -199527,7 +199527,7 @@
       },
       {
         "file": "src/shell.html",
-        "from": "  .set-row.cx-row .sr-ic{",
+        "from": "  .cx-vuelta{",
         "to": "}"
       },
       {

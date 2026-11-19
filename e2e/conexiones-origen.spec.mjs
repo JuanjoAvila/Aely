@@ -1,13 +1,15 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* CONEXIONES: ENTRAR, SALIR Y VOLVER A DONDE ESTABAS (ronda R2 del rediseño de bancos, 18/11).
+/* MIS BANCOS: ENTRAR, SALIR Y VOLVER A DONDE ESTABAS (ronda R2 del rediseño de bancos, 18/11).
  *
- * Antes «Mis bancos» era un `div` fijo que salía de golpe, al que se llegaba desplegando un grupo
- * de Ajustes, y que al cerrar dejaba SIEMPRE en Ajustes aunque vinieras de Cartera. Lo que aquí se
- * blinda es lo que se ve y se toca, no el código: la fila de un toque, que desde Cartera no haya
- * Ajustes debajo, que atrás vaya por pasos, que el borde la cierre, que el selector no abra el
- * teclado y que solo una vuelta con acción resalte la fila y avise. */
+ * Antes «Mis bancos» era un `div` fijo que salía de golpe y que al cerrar dejaba SIEMPRE en
+ * Ajustes aunque vinieras de Cartera. La R2 la hizo pantalla hija y cambió también la entrada de
+ * Ajustes por una fila «Conexiones»; esa entrada él la quiso como antes (19/11): el grupo «Bancos»
+ * con «Gestionar mis bancos» dentro, pero entrando y saliendo deslizando. Lo que aquí se blinda es
+ * lo que se ve y se toca: la entrada de siempre sin saltos, que desde Cartera no haya Ajustes
+ * debajo, que atrás vaya por pasos, que el borde la cierre, que el selector no abra el teclado y
+ * que solo una vuelta con acción resalte la fila y avise. */
 
 const LINKS = [
   { aspsp_name: "Banco de Sabadell", aspsp_country: "ES", iban: "ES11", status: "active",
@@ -32,26 +34,63 @@ async function aCartera(page) {
   await expect(page.locator('.botnav-tab[data-tour="cartera"]')).toHaveClass(/active/);
 }
 
-test("Ajustes: «Conexiones» es una fila de un toque, con su icono y los logos; ‹ vuelve a Ajustes", async ({ page }) => {
+/* Muestrea en cada fotograma el borde izquierdo de la pantalla de bancos hasta que se asienta o
+   desaparece. Un salto es un fotograma que va hacia atrás o que la quita antes de haber salido. */
+async function muestrea(page, hasta) {
+  return page.evaluate((fin) => new Promise((ok) => {
+    const xs = []; const t0 = performance.now();
+    const paso = () => {
+      const el = document.querySelector(".v4-banks-push");
+      xs.push(el ? Math.round(el.getBoundingClientRect().left) : null);
+      const quieto = el && xs.length > 4 && xs.slice(-4).every((x) => x === 0);
+      if ((fin === "dentro" && quieto) || (fin === "fuera" && !el) || performance.now() - t0 > 3000) ok(xs); else requestAnimationFrame(paso);
+    };
+    requestAnimationFrame(paso);
+  }), hasta);
+}
+
+test("Ajustes: el grupo «Bancos» de siempre con «Gestionar mis bancos»; entra y sale deslizando, sin saltos", async ({ page }) => {
   await arranca(page);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
-  const fila = page.locator("[data-cx-row]");
-  // A la vista sin desplegar ningún grupo: era la queja de los tres niveles.
-  await expect(fila).toBeVisible({ timeout: 10_000 });
-  await expect(fila.locator('[data-set-ico="banks"]')).toHaveCount(1);
-  await expect(fila.locator(".mono")).toHaveCount(2);
-  await expect(fila).toContainText(/1 de 2 al día · CaixaBank pide renovar/);
-  expect(await alto(fila)).toBeGreaterThanOrEqual(44);
+  await expect(ajustesAbierto(page)).toBeVisible({ timeout: 10_000 });
+  // La entrada de antes (19/11): nada de fila «Conexiones», un grupo «Bancos» con su resumen.
+  await expect(page.locator("[data-cx-row]")).toHaveCount(0);
+  const grupo = page.locator("[data-bank-grp]");
+  const cabecera = grupo.locator("> .set-row");
+  await expect(cabecera.locator(".sr-lb")).toHaveText("Bancos");
+  await expect(cabecera.locator(".sr-val")).toHaveText(/1 conectado\(s\) · ⚠ 1 caducado\(s\)/);
+  await cabecera.click();
+  const gestionar = page.locator("[data-bank-manage]");
+  await expect(gestionar).toBeVisible();
+  await expect(gestionar).toHaveText(/Gestionar mis bancos/);
+  expect(await alto(gestionar)).toBeGreaterThanOrEqual(44);
+  await page.waitForTimeout(400);   // que termine de desplegarse antes de medir dónde está
+  const antes = await gestionar.evaluate((el) => Math.round(el.getBoundingClientRect().top));
 
-  await fila.click();
+  await gestionar.click();
+  const entrada = await muestrea(page, "dentro");
   await expect(push(page)).toHaveClass(/open/);
+  await expect(push(page).locator(".settings-push-h h1")).toHaveText("Mis bancos");
   await expect(push(page).locator("[data-aspsp]")).toHaveCount(2);
+  // Entra desde la derecha y avanza siempre hacia la izquierda: ni aparece de golpe ni rebota.
+  const e = entrada.filter((x) => x != null);
+  expect(e.some((x) => x > 40), "entra deslizando: " + e.join(",")).toBe(true);
+  for (let i = 1; i < e.length; i++) expect(e[i], "fotograma " + i + ": " + e.join(",")).toBeLessThanOrEqual(e[i - 1]);
+
   const atras = push(page).locator(".settings-push-h .back");
   expect(await alto(atras)).toBeGreaterThanOrEqual(44);
   await atras.click();
+  const salida = await muestrea(page, "fuera");
+  const s2 = salida.filter((x) => x != null);
+  // Sale hacia la derecha antes de desmontarse, sin volver atrás en ningún fotograma.
+  expect(s2.some((x) => x > 40), "sale deslizando: " + s2.join(",")).toBe(true);
+  for (let i = 1; i < s2.length; i++) expect(s2[i], "fotograma " + i + ": " + s2.join(",")).toBeGreaterThanOrEqual(s2[i - 1]);
   await expect(push(page)).toHaveCount(0);
-  // Se aterriza donde se estaba, y callado: no ha pasado nada que contar.
+  // Se aterriza donde se estaba: Ajustes, el grupo aún abierto y la fila en el mismo sitio.
   await expect(ajustesAbierto(page)).toBeVisible();
+  await expect(gestionar).toBeVisible();
+  expect(await gestionar.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(antes);
+  // Y callado: no ha pasado nada que contar.
   await expect(page.locator(".cx-vuelta")).toHaveCount(0);
   await expect(page.locator(".toast")).toHaveCount(0);
 });
@@ -146,18 +185,18 @@ test("si leer el banco falla tras renovar, ese aviso no queda tapado por «renov
   await expect(page.locator(".toast")).not.toContainText(/renovado/);
 });
 
-test("volviendo a Ajustes, la fila «Conexiones» deja de decir «pide renovar»", async ({ page }) => {
+test("volviendo a Ajustes, el resumen de «Bancos» deja de contar el caducado", async ({ page }) => {
   await vuelveDeRenovar(page, "CaixaBank", "settings", LECTURA_OK);
   // El banco ya confirmó el permiso nuevo: la tabla de enlaces lo da por activo.
   await page.evaluate(() => { window.__e2eCloudRows.bank_links.forEach((l) => { l.status = "active"; l.valid_until = "2027-02-15T00:00:00Z"; }); });
   await page.waitForTimeout(800);
   await push(page).locator(".settings-push-h .back").click();
   await expect(push(page)).toHaveCount(0);
-  const fila = page.locator("[data-cx-row]");
+  const fila = page.locator("[data-bank-grp] > .set-row");
   await expect(fila).toHaveClass(/cx-vuelta/);
   await expect(page.locator(".toast")).toContainText(/CaixaBank renovado/);
-  await expect(fila).toContainText(/2 al día/);
-  await expect(fila).not.toContainText(/pide renovar/);
+  await expect(fila).toContainText(/2 conectado\(s\)/);
+  await expect(fila).not.toContainText(/caducado/);
   // Y con Conexiones ya cerrada: una lectura que acaba después (`runBankSync` avisa al terminar)
   // también llega a la fila, sin tener que salir y volver a entrar en Ajustes.
   await page.evaluate(() => {
@@ -165,7 +204,7 @@ test("volviendo a Ajustes, la fila «Conexiones» deja de decir «pide renovar»
     window.dispatchEvent(new CustomEvent("mc-bank-links-changed"));
   });
   // Al momento: sin escuchar el aviso, la fila tardaba en enterarse por caminos ajenos.
-  await expect(fila).toContainText(/1 de 2 al día · Sabadell pide renovar/, { timeout: 1_500 });
+  await expect(fila).toContainText(/1 conectado\(s\) · ⚠ 1 caducado\(s\)/, { timeout: 1_500 });
 });
 
 test("con «reducir animaciones» la pantalla entra y sale sin deslizar", async ({ page }) => {

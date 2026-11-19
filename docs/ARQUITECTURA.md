@@ -1,12 +1,13 @@
 Candidata de entrada propia: writer singular setIncomeOwnTransfer en CLOUD_WRITES, CAS/ACK por fila y resultado parcial en operación secuencial. No incorpora marcas a source ni cambia schema; inversa individual. [Contrato y concurrencia](briefs/own-transfer-income-manual.md).
 
-## Conexiones: pantalla hija y vuelta al origen (ronda R2 de bancos, 18/11/2026)
+## Mis bancos: pantalla hija y vuelta al origen (ronda R2 de bancos, 18/11/2026; entrada de antes desde el 19/11)
 
 - `BankPanel` (10) es un `.settings-push.v4-banks-push` que monta **App** (11), no Ajustes: entra por la derecha, sale con ‹, atrás o arrastre (`useEdgePageClose`) y el selector de bancos es una hoja (`useSheetSwipe`) que atrás cierra antes que la pantalla.
+- En Ajustes la entrada es la de siempre (19/11, a petición suya): el grupo «Bancos» con su resumen y dentro «Gestionar mis bancos» (`[data-bank-manage]`), que dispara `mc-open-banks` con `origin:"settings"`. La fila de un toque «Conexiones» de la R2 ya no existe.
 - Toda puerta dispara `mc-open-banks` (`detail.focus`, `detail.origin`). App guarda `banks={origen,focus,accion}`: el origen es `settings` si Ajustes está abierto o lo pide su fila; si no, la pestaña de delante. Desde Cartera ya no se abre Ajustes debajo.
-- Al cerrar, `BankPanel` llama `onClose(accion)`. Solo con acción (conectar TR por `mc-tr-status` con `ack`, o la vuelta de autorizar un banco) App avisa y resalta la fila del origen (`.cx-vuelta`, 1,8 s): la fila «Conexiones» de Ajustes (`[data-cx-row]`) o la cuenta de ese banco en Cartera.
-- Autorizar sale de la app: `connect` deja `sessionStorage.mc_bk_vuelta` = `{n,k,o}` y `bank|ok` / `?bank=ok` (`vueltaDelBanco`) reabren Conexiones con ese banco y el mismo origen.
-- La fila de Ajustes se entera de la lista por `mc-bank-links`, que emite `BankPanel` al cargarla.
+- Al cerrar, `BankPanel` llama `onClose(accion)`. Solo con acción (conectar TR por `mc-tr-status` con `ack`, o la vuelta de autorizar un banco) App avisa y resalta la fila del origen (`.cx-vuelta`, 1,8 s): la cabecera del grupo «Bancos» de Ajustes (`[data-bank-grp] > .set-row`, la que lleva el resumen) o la cuenta de ese banco en Cartera.
+- Autorizar sale de la app: `connect` deja `sessionStorage.mc_bk_vuelta` = `{n,k,o}` y `bank|ok` / `?bank=ok` (`vueltaDelBanco`) reabren Mis bancos con ese banco y el mismo origen.
+- El resumen del grupo «Bancos» se entera de la lista por `mc-bank-links`, que emite `BankPanel` al cargarla.
 
 ## Confirmación de traspaso propio (candidata, 01/11/2026)
 
@@ -1340,7 +1341,7 @@ Disparadores:
 |---|---|
 | Al entrar (arranque o primer plano) | con el tope de arriba |
 | Botón «↻ Sincronizar bancos» | Cartera, junto a «Tus cuentas» (visible con `hasBankLink`) |
-| «Actualizar» de un banco | Conexiones (Ajustes → Conexiones, o el aviso de Cartera) |
+| «Actualizar» de un banco | Mis bancos (Ajustes → Bancos → Gestionar mis bancos, o el aviso de Cartera) |
 | Recién autorizado (`?bank=ok` / goto `bank\|ok`) | `11-app-main.js` |
 | Cambio del rol de un banco (`mc-bank-role-changed`) | `11-app-main.js` |
 | Noti del banco (evento real del usuario) | apagado por defecto; si se activa expresamente, presupuesto persistente de 1 cada 12 h |
