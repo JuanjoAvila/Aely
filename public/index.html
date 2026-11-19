@@ -1121,7 +1121,21 @@
   .pr6-row .dt .d{font-size:22px;}
   .pr6-row .dt .m{font-size:11.5px;letter-spacing:1px;color:var(--muted);}
   .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
-  .pr6-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Nada cortado (gate-240, D-03): «Seguro …» o «Comuni…» no decían qué recibo era, y con letra
+     Enorme a 360 la elipsis se comía casi todos. El nombre parte en renglones (entre palabras; solo
+     una palabra que no cabe sola se parte). */
+  .pr6-nm{min-width:0;overflow-wrap:break-word;}
+  /* Con Enorme en un móvil estrecho, partir no basta: el importe se quedaba ~40 % de la fila y el
+     nombre bajaba a nueve renglones. La rejilla de «Próximos cargos» de Inicio: el nombre ocupa todo
+     el ancho y el importe (con su «cuándo») baja a la línea gris, a la derecha. */
+  @media (max-width:430px){
+    html.hugetext .pr6-sec .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
+    html.hugetext .pr6-sec .v4-charge > :first-child{grid-row:1 / span 2;}
+    html.hugetext .pr6-sec .v4-charge > .nm{display:contents;}
+    html.hugetext .pr6-sec .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
+    html.hugetext .pr6-sec .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;}
+    html.hugetext .pr6-sec .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+  }
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
   /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
      renglón parte ENTRE trozos (`mcTrozos`, también en Cartera); cada trozo corto va entero. */
@@ -38003,6 +38017,20 @@ function deudaCargoEnlazado(s, d, y, m, today){
   const motivo=cleanDay(dayOf(d))==null?"sin_dia":Math.round(cuota*100)!==Math.round(Number(x.amount)*100)?"importe":"banco";
   return {x:x, acredita:false, motivo:motivo, cuota:cuota};
 }
+/* Las fichas de Recibos calculan sobre el estado entero, pero `set()` sella `_savedAt` y el objeto
+   es nuevo en cada escritura: un useMemo con [state] no acertaba nunca (R-09, AGENTS §7 bis). Se
+   sigue usando el estado anterior mientras no cambie ninguna porción salvo los sellos. Así no hay
+   que adivinar qué lee cada función del motor: olvidarse una dejaba la ficha con datos viejos. */
+const ESTADO_SELLOS={_savedAt:1,lastSync:1};
+function estadoMismasPorciones(a,b){
+  const ka=Object.keys(a).filter(function(k){ return !ESTADO_SELLOS[k]; }), kb=Object.keys(b).filter(function(k){ return !ESTADO_SELLOS[k]; });
+  return ka.length===kb.length&&ka.every(function(k){ return Object.prototype.hasOwnProperty.call(b,k)&&a[k]===b[k]; });
+}
+function useEstadoEstable(state){
+  const ref=useRef(state);
+  if(ref.current!==state&&!(state&&ref.current&&estadoMismasPorciones(ref.current,state))) ref.current=state;
+  return ref.current;
+}
 function DeudaFicha({row, state, totals, onClose, onGoDebts}){
   const swipe=useSheetSwipe(true,onClose);
   useBackClose(true,swipe.close);
@@ -38011,7 +38039,8 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
   const y=totals.curYear, m=totals.curMonth, today=totals.today;
   const id=String(row.id).replace(/^(debt|balloon)_/,"");
   const d=(state.debts||[]).find(function(o){ return String(o.id)===id; })||null;
-  const ce=useMemo(function(){ return deudaCargoEnlazado(state,d,y,m,today); },[state,d,y,m,today]);
+  const sE=useEstadoEstable(state);
+  const ce=useMemo(function(){ return deudaCargoEnlazado(sE,d,y,m,today); },[sE,d,y,m,today]);
   const x=ce&&ce.x, b=x?expenseBankOf(x)||row.bank:row.bank;
   // Pagada con otro importe: se dice lo previsto, como en los recibos («Esperabas X»).
   const nota=!ce?"":ce.acredita?(Math.round(ce.cuota*100)!==Math.round(Number(x.amount)*100)?tf("pr6_esperabas",{x:eur(ce.cuota)}):""):ce.motivo==="importe"?tf("pr6_deuda_importe",{x:eur(Number(x.amount)),y:eur(ce.cuota)})
@@ -38058,6 +38087,7 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   const linkState=useRef(state);linkState.current=state;
   const [linkPending,setLinkPending]=useState(null);
   const linkSerial=useRef(0),linkHandled=useRef(0);
+  const precioEnviado=useRef(false);
   useEffect(function(){ linkLive.current=true;return function(){ linkLive.current=false; }; },[]);
   const [otros,setOtros]=useState(false);
   const [q,setQ]=useState("");
@@ -38069,7 +38099,8 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
   const oneoffId=/^oneoff_/.test(String(row.id))?String(row.id).slice(7):null;
   const f=fixedId!=null?(state.fixed||[]).find(function(e){ return String(e.id)===fixedId; }):null;
   const compartido=!!f&&Number(f.bankAmount)>0&&Math.round(Number(f.bankAmount)*100)!==Math.round(Math.abs(row.amount)*100);
-  const st=useMemo(function(){ return f?fixedPaymentState(state,f,y,m,today):null; },[state,f,y,m,today]);
+  const sE=useEstadoEstable(state);
+  const st=useMemo(function(){ return f?fixedPaymentState(sE,f,y,m,today):null; },[sE,f,y,m,today]);
   useEffect(function(){
     // Si el padre rechaza el updater, el mismo estado también debe cerrar con el aviso de fallo.
     if(!linkPending||linkHandled.current===linkPending.serial) return;
@@ -38088,16 +38119,16 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
     swipe.close();
   },[state,linkPending,y,m,today]);
   const confirmado=row.paid&&evidence.confirmed[row.id]!==false;
-  const fila=useMemo(function(){ return f&&confirmado?reciboCargoFila(state,evidence,f.id):null; },[state,evidence,f,confirmado]);
+  const fila=useMemo(function(){ return f&&confirmado?reciboCargoFila(sE,evidence,f.id):null; },[sE,evidence,f,confirmado]);
   const desenlace=useMemo(function(){
     if(!f||!fila) return null;
-    const r=reciboDesenlazar(state,f,fila,y,m,today);
+    const r=reciboDesenlazar(sE,f,fila,y,m,today);
     // Solo se ofrece si de verdad deja de estar pagado con ESE cargo (si no, el botón mentiría).
     const f2=r&&(r.state.fixed||[]).find(function(e){ return e.id===f.id; });
     return f2&&reciboPagadoCon(fixedPaymentState(r.state,f2,y,m,today))!==fixedPaymentIdentity(expenseBankOf(fila),fila)?r:null;
-  },[state,f,fila,y,m,today]);
-  const ano=useMemo(function(){ return f?reciboPagadoEnAno(state,f,y,m,today):null; },[state,f,y,m,today]);
-  const base=rechazo&&desenlace?desenlace.state:state;
+  },[sE,f,fila,y,m,today]);
+  const ano=useMemo(function(){ return f?reciboPagadoEnAno(sE,f,y,m,today):null; },[sE,f,y,m,today]);
+  const base=rechazo&&desenlace?desenlace.state:sE;
   // Tras «No es este recibo» no se vuelve a ofrecer el cargo que se acaba de rechazar.
   const pool=useMemo(function(){
     if(paso!==1||!f) return [];
@@ -38258,34 +38289,38 @@ function ReciboFicha({row, state, set, totals, evidence, showToast, onClose, onE
     // rehacen y tu parte es lo que queda, para que siga cuadrando al céntimo.
     const rv=repartoVigente(f), rr=rv?repartoResolver(rv,aviso.cobrado):null;
     const parche=rr&&rr.ok?{bankAmount:aviso.cobrado,amount:rr.mia,reparto:rr.partes}:f.bankAmount>0?{bankAmount:aviso.cobrado}:{amount:aviso.cobrado};
-    // La edición de siempre (`patchFixedById`), pero recogida como updater para hacerlo todo en uno.
-    let editar=null;
-    patchFixedById(function(u){ editar=u; },f.id,parche);
+    const cambio=reciboPrecioCambio(f.id,parche);
     const previa=f.paymentProofs&&f.paymentProofs[cur];
-    set(function(s){
-      // Una parte «Lo descuento» a partes iguales cambia con el precio: la cuota de su deuda también.
-      let n=deudasTrasReparto(s,editar(s));
-      const e=(n.fixed||[]).find(function(o){ return o.id===f.id; });
-      /* El importe forma parte del contrato de la prueba de pago: al cambiarlo, la de este mes deja
-         de valer y el recibo volvía a pendiente, con la cifra de arriba sumando un pago ya hecho
-         (banco de pruebas, 28/10/2026). La misma prueba se ata al importe nuevo; si no basta, se
-         vuelve a enlazar el MISMO cargo, como desde Gastos. */
-      if(e&&!fixedPaymentState(n,e,y,m,today).paid){
-        if(previa){
-          const r=Object.assign({},n,{fixed:n.fixed.map(function(o){
-            return o.id===e.id?Object.assign({},o,{paymentProofs:Object.assign({},o.paymentProofs,{[cur]:fixedPaymentBind(previa,o,m)})}):o;
-          })});
-          if(fixedPaymentState(r,r.fixed.find(function(o){ return o.id===e.id; }),y,m,today).paid) n=r;
+    /* Una parte «Lo descuento» a partes iguales cambia con el precio: si su deuda no cuadra, se
+       pregunta como al editar o quitar el recibo (DIN-10; antes se guardaba callando y la tarjeta
+       sumaba de más). Mientras pregunta, otro toque no guarda dos veces. */
+    if(precioEnviado.current) return;
+    precioEnviado.current=true;
+    descuentoPregunta(state,cambio).then(function(fix){
+      set(function(s){
+        let n=conDescuentoFijado(fix,cambio(s));
+        const e=(n.fixed||[]).find(function(o){ return o.id===f.id; });
+        /* El importe forma parte del contrato de la prueba de pago: al cambiarlo, la de este mes deja
+           de valer y el recibo volvía a pendiente, con la cifra de arriba sumando un pago ya hecho
+           (banco de pruebas, 28/10/2026). La misma prueba se ata al importe nuevo; si no basta, se
+           vuelve a enlazar el MISMO cargo, como desde Gastos. */
+        if(e&&!fixedPaymentState(n,e,y,m,today).paid){
+          if(previa){
+            const r=Object.assign({},n,{fixed:n.fixed.map(function(o){
+              return o.id===e.id?Object.assign({},o,{paymentProofs:Object.assign({},o.paymentProofs,{[cur]:fixedPaymentBind(previa,o,m)})}):o;
+            })});
+            if(fixedPaymentState(r,r.fixed.find(function(o){ return o.id===e.id; }),y,m,today).paid) n=r;
+          }
+          const e2=(n.fixed||[]).find(function(o){ return o.id===f.id; });
+          if(fila&&!fixedPaymentState(n,e2,y,m,today).paid) n=linkFixedPayment(n,fila.id,f.id,y,m,today);
         }
-        const e2=(n.fixed||[]).find(function(o){ return o.id===f.id; });
-        if(fila&&!fixedPaymentState(n,e2,y,m,today).paid) n=linkFixedPayment(n,fila.id,f.id,y,m,today);
-      }
-      /* El saldo que se ve no se mueve: la previsión del mes resta el importe PREVISTO de lo ya
-         pagado, y cambiarlo restaba la diferencia de precio a un saldo que ya era el del banco
-         (Luz 50 cobrada a 50,90: 2000 → 1999,10; revisión de dinero 28/10/2026). */
-      return n===s?s:conSaldoMostrado(s,n);
+        /* El saldo que se ve no se mueve: la previsión del mes resta el importe PREVISTO de lo ya
+           pagado, y cambiarlo restaba la diferencia de precio a un saldo que ya era el del banco
+           (Luz 50 cobrada a 50,90: 2000 → 1999,10; revisión de dinero 28/10/2026). */
+        return n===s?s:conSaldoMostrado(s,n);
+      });
+      cerrarCon(tf("pr6_precio_toast",{name:row.name,x:eur(aviso.cobrado)}));
     });
-    cerrarCon(tf("pr6_precio_toast",{name:row.name,x:eur(aviso.cobrado)}));
   };
   /* «Cobró distinto» sin pagar (P1-11): el cargo lo propone el motor y lo decide él. «Sí, es este»
      enlaza ESE cargo por el camino de «¿Cuál es el cargo?» (`linkFixedPayment`); «No es este
@@ -38469,7 +38504,8 @@ function FlujoFicha({row, state, set, totals, showToast, onClose, onEdit, onDesh
   const y=totals.curYear, m=totals.curMonth, today=totals.today;
   const flowId=String(row.id).replace(/^flow_/,"");
   const f=(state.flows||[]).find(function(o){ return o&&String(o.id)===flowId; })||null;
-  const st=useMemo(function(){ return f?flowEstadoMes(state,f,y,m,today):null; },[state,f,y,m,today]);
+  const sE=useEstadoEstable(state);
+  const st=useMemo(function(){ return f?flowEstadoMes(sE,f,y,m,today):null; },[sE,f,y,m,today]);
   const tr=!!f&&f.kind==="transfer";
   const entra=f?flowBancoEntra(f):null, sale=f?flowBancoSale(f):null;
   // Tras «No es este» no se vuelve a ofrecer el movimiento que se acaba de rechazar.
@@ -39514,6 +39550,14 @@ function descuentoPregunta(state,cambio){
   return descuentoDescuadre(state,cambio(state)).reduce(function(p,q){
     return p.then(function(){ return descuentoBajaPregunta(q).then(function(f){ if(f) fixes.push(f); }); });
   },Promise.resolve()).then(function(){ return fixes; });
+}
+/* «Nuevo precio» desde Para revisar como transformación del estado: la edición de siempre
+   (`patchFixedById`) recogida como updater, más la cuota de las deudas «Lo descuento» que se mueven
+   con él. Es la misma que se le pasa a `descuentoPregunta`: lo que se pregunta es lo que se guarda. */
+function reciboPrecioCambio(id,parche){
+  let editar=null;
+  patchFixedById(function(u){ editar=u; },id,parche);
+  return function(s){ return deudasTrasReparto(s,editar(s)); };
 }
 function conDescuentoFijado(fixes,s){ return (fixes||[]).reduce(function(o,f){ return deudaFijarDescuento(o,f.id,f.paga,f.baja); },s); }
 /* El descuadre ya guardado (R1): primero cuánto le pasa (puede que la cuota guardada ya sea esa),

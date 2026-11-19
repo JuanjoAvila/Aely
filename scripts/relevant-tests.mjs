@@ -407,6 +407,11 @@ export const E2E_MAP = [
   // Ronda 242: Apuntar sin banco diario usa el banco del widget (`apuntarBancoReserva`) si su gasto cuenta.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-banco-reserva.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/apuntar-banco-reserva.spec.mjs"] },
+  // Ronda F: «Nuevo precio» desde Para revisar pregunta por la deuda «Lo descuento» que no cuadra
+  // (DIN-10), y el nombre de los recibos entero, sin elipsis, también con letra Enorme (D-03).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
   // Revisión 237: fecha de fin de una deuda sin plazo contada en céntimos (`debtLeftInfo`).
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-fin-centimos.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },
