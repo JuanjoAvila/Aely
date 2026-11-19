@@ -2599,6 +2599,38 @@
   @keyframes cxVuelta{0%,45%{background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}100%{background:transparent;box-shadow:inset 3px 0 0 transparent;}}
   html.reduce-motion .cx-vuelta{animation:none;background:color-mix(in srgb,var(--mint) 16%,transparent);box-shadow:inset 3px 0 0 var(--mint);}
   .v4-banks .bk-card.bk-file{border-left:4px solid var(--line);}
+  /* Brókers por conexión (IBKR, Kraken; filtro de diseño 19/11). Tarjeta: logo, nombre y UNA cosa a la
+     derecha (Conectar o la flecha), sin borde de color. Hoja: `.tabsheet` por encima de Conexiones (72),
+     cuerpo que desplaza y botón fijo abajo, que con letra Enorme se cortaba dentro del cuerpo. */
+  .v4-banks .bx-card-h{display:flex;align-items:center;gap:12px;min-height:44px;flex-wrap:wrap;cursor:default;}
+  .v4-banks .bx-card-h[role="button"]{cursor:pointer;}
+  .v4-banks .bx-card-t{flex:1 1 120px;min-width:0;}
+  .v4-banks .bx-card-t .nm{font-weight:800;font-size:16px;overflow-wrap:anywhere;}
+  .v4-banks .bx-card-t .meta{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .v4-banks .bx-card-t .meta.bx-warn{color:var(--coral);}
+  .v4-banks .bx-cta{flex:0 0 auto;min-height:44px;padding:0 18px;margin-left:auto;}
+  .v4-banks .bx-chev{color:var(--muted);font-size:12px;transition:transform .18s ease;}
+  .v4-banks .bx-chev.open{transform:rotate(180deg);}
+  .v4-banks .bx-card-b{margin-top:12px;}
+  .bx-sheet-back{z-index:85;}
+  .bx-sheet{display:flex;flex-direction:column;max-height:calc(90dvh / var(--zoom,1));padding-bottom:0;box-sizing:border-box;}
+  .bx-head{display:flex;align-items:center;gap:12px;margin:6px 0 10px;flex:0 0 auto;}
+  .bx-head h2{flex:1;min-width:0;margin:0;font-size:22px;line-height:1.15;overflow-wrap:anywhere;}
+  .bx-x{margin-left:auto;flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid var(--line-soft);background:transparent;color:var(--text);font-size:17px;cursor:pointer;}
+  .bx-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:8px;}
+  .bx-steps-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0;background:none;border:0;color:var(--mint);font:inherit;font-weight:700;font-size:14px;cursor:pointer;}
+  .bx-caret{display:inline-block;font-size:18px;line-height:1;transition:transform .18s ease;}
+  .bx-caret.open{transform:rotate(90deg);}
+  .bx-steps{margin:0 0 6px;padding-left:22px;font-size:13.5px;color:var(--muted);line-height:1.55;}
+  .bx-steps li{margin-bottom:6px;}
+  .bx-open{display:inline-flex;align-items:center;min-height:44px;color:var(--mint);font-weight:700;}
+  .bx-field{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-top:10px;}
+  .bx-in{display:block;width:100%;box-sizing:border-box;margin-top:6px;font-family:monospace;font-size:16px;}
+  .bx-body .alarmbox{margin-top:12px;}
+  .bx-foot{flex:0 0 auto;padding:12px 0 calc(14px + var(--safe-bottom));border-top:1px solid var(--line-soft);background:var(--surface);}
+  .bx-foot .btn{min-height:48px;}
+  .bx-safe{text-align:center;margin:8px 0 0;}
+  html.reduce-motion .bx-caret,html.reduce-motion .v4-banks .bx-chev{transition:none;}
   /* Importar por fichero (filtro de diseño 18/11): el selector de mapeo corta con «…» y deja sitio
      a la flecha; el pie con Aplicar/Cancelar se queda a la vista en vistas previas largas; lo que
      se despliega (pasos, vista previa) entra suave. */

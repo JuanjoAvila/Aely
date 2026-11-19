@@ -689,18 +689,20 @@ function TRSync({state, set, totals, open, onToggle}){
    vista previa de la 243 (`BrokerFilePreview` en modo `api`). Las siguientes las hace
    `runBrokerSync` sola (App), y lo nuevo se queda propuesto aquí hasta que se revisa. */
 var BRK_API_UI={
-  ibkr:{ need:"bx_ibkr_need", steps:"bx_ibkr_steps", a:"bx_ibkr_a", b:"bx_ibkr_b", bMode:"numeric", url:"https://www.interactivebrokers.com/" },
-  kraken:{ need:"bx_kraken_need", steps:"bx_kraken_steps", a:"bx_kraken_a", b:"bx_kraken_b", bMode:"text", url:"https://www.kraken.com/" }
+  ibkr:{ need:"bx_ibkr_need", steps:"bx_ibkr_steps", a:"bx_ibkr_a", b:"bx_ibkr_b", bMode:"numeric", phA:"bx_ph_token", phB:"bx_ph_query", url:"https://www.interactivebrokers.com/" },
+  kraken:{ need:"bx_kraken_need", steps:"bx_kraken_steps", a:"bx_kraken_a", b:"bx_kraken_b", bMode:"text", phA:"bx_ph_paste", phB:"bx_ph_paste", url:"https://www.kraken.com/" }
 };
+/* Hoja de alta (filtro de diseño 19/11): `.tabsheet` como el resto de hojas de la casa, cabecera
+   con la ✕ a la derecha, cuerpo que DESPLAZA y el botón fijo abajo. En la primera versión el botón
+   vivía dentro del cuerpo y con letra Enorme quedaba cortado por la mitad. Los pasos empiezan
+   plegados en una línea: quien ya tiene la clave no tiene por qué leerlos. */
 function BrokerApiSheet({ent, onClose, onDone}){
   const ui=BRK_API_UI[ent];
   const [a,setA]=useState(""), [b,setB]=useState("");
   const [busy,setBusy]=useState(false), [err,setErr]=useState("");
   const [steps,setSteps]=useState(false);
-  const sh=useSheetSwipe(true, onClose);
+  const sh=useSheetSwipe(true, onClose, {nativeScroll:true});
   useBackClose(true, sh.close);
-  const inp={width:"100%",padding:"12px 14px",margin:"4px 0 10px",borderRadius:12,border:"1px solid var(--line-soft)",background:"var(--sur)",color:"var(--text)",fontSize:16,boxSizing:"border-box",fontFamily:"monospace"};
-  const lab={fontSize:12.5,fontWeight:700,color:"var(--muted)"};
   const go=function(){
     if(busy) return;
     setBusy(true); setErr("");
@@ -711,28 +713,36 @@ function BrokerApiSheet({ent, onClose, onDone}){
     }).catch(function(){ setBusy(false); setErr(t("bx_e_error")); });
   };
   const label=entOf(ent).label;
-  return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:sh.close},
-    React.createElement("div",Object.assign({className:"v4-sheet","data-broker-api-sheet":ent,role:"dialog","aria-modal":"true","aria-label":tf("bx_connect_title",{x:label}),ref:sh.sheetRef,onClick:function(e){ e.stopPropagation(); }},sh.sheetTouch),
+  const campo=function(k, lab, ph, mode, val, setVal){
+    return React.createElement("label",{className:"bx-field"}, t(lab),
+      React.createElement("input",{className:"af-in bx-in",value:val,"data-bx":k,placeholder:t(ph),inputMode:mode,autoComplete:"off",autoCapitalize:"off",spellCheck:false,onChange:function(e){ setVal(e.target.value); }}));
+  };
+  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back bx-sheet-back",onClick:sh.close},
+    React.createElement("div",Object.assign({className:"tabsheet bx-sheet","data-broker-api-sheet":ent,role:"dialog","aria-modal":"true","aria-label":tf("bx_connect_title",{x:label}),ref:sh.sheetRef,onClick:function(e){ e.stopPropagation(); }},sh.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
-      React.createElement("div",{className:"sub-push-h"},
-        React.createElement("h1",null, tf("bx_connect_title",{x:label})),
-        React.createElement("button",{type:"button",className:"back","aria-label":t("au_close"),onClick:sh.close},"✕")),
-      React.createElement("div",{className:"v4-sheet-body"},
+      React.createElement("div",{className:"bx-head"},
+        React.createElement(Mono,{ent:ent,size:40}),
+        React.createElement("h2",{className:"serif"}, tf("bx_connect_title",{x:label})),
+        React.createElement("button",{type:"button",className:"bx-x","aria-label":t("au_close"),onClick:sh.close},"✕")),
+      React.createElement("div",{className:"bx-body"},
         React.createElement("div",{className:"hint",style:{marginTop:0}}, t(ui.need)),
-        React.createElement("button",{type:"button",className:"chip",style:{minHeight:44,marginBottom:8},"aria-expanded":steps?"true":"false",onClick:function(){ setSteps(!steps); }}, (steps?"▾ ":"▸ ")+t("bx_steps_btn")),
-        steps && React.createElement("ol",{style:{margin:"0 0 10px",paddingLeft:18,fontSize:12.5,color:"var(--muted)",lineHeight:1.6}},
-          (t(ui.steps)||[]).map(function(st,i){ return React.createElement("li",{key:i,style:{marginBottom:4}}, st); }),
-          React.createElement("li",{style:{listStyle:"none",marginLeft:-18,marginTop:6}},
-            React.createElement("a",{href:ui.url,target:"_blank",rel:"noopener noreferrer",style:{color:"var(--mint)",fontWeight:700}}, tf("bx_open",{x:entOf(ent).short||label})+" ↗"))),
-        React.createElement("label",{style:lab}, t(ui.a),
-          React.createElement("input",{style:inp,value:a,"data-bx":"a",autoComplete:"off",autoCapitalize:"off",spellCheck:false,onChange:function(e){ setA(e.target.value); }})),
-        React.createElement("label",{style:lab}, t(ui.b),
-          React.createElement("input",{style:inp,value:b,"data-bx":"b",inputMode:ui.bMode,autoComplete:"off",autoCapitalize:"off",spellCheck:false,onChange:function(e){ setB(e.target.value); }})),
-        err && React.createElement("div",{className:"alarmbox",role:"alert",style:{marginBottom:10}}, err),
-        React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{minHeight:48},"data-act":"bx-connect",disabled:busy||!a.trim()||!b.trim(),onClick:go}, busy?t("bx_connecting"):t("bx_connect")),
-        React.createElement("div",{className:"hint"}, t("bx_safe"))))
+        React.createElement("button",{type:"button",className:"bx-steps-btn","data-act":"bx-steps","aria-expanded":steps?"true":"false",onClick:function(){ setSteps(!steps); }},
+          React.createElement("span",{"aria-hidden":"true",className:"bx-caret"+(steps?" open":"")},"›"), t("bx_steps_btn")),
+        steps && React.createElement("ol",{className:"bx-steps bf-in"},
+          (t(ui.steps)||[]).map(function(st,i){ return React.createElement("li",{key:i}, st); })),
+        steps && React.createElement("a",{className:"bx-open",href:ui.url,target:"_blank",rel:"noopener noreferrer"}, tf("bx_open",{x:entOf(ent).short||label})+" ↗"),
+        campo("a", ui.a, ui.phA, "text", a, setA),
+        campo("b", ui.b, ui.phB, ui.bMode, b, setB),
+        err && React.createElement("div",{className:"alarmbox",role:"alert"}, err)),
+      React.createElement("div",{className:"bx-foot"},
+        React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-act":"bx-connect",disabled:busy||!a.trim()||!b.trim(),onClick:go}, busy?t("bx_connecting"):t("bx_connect")),
+        React.createElement("div",{className:"hint bx-safe"}, t("bx_safe"))))
   ), document.body);
 }
+/* Tarjeta: el logo de la casa (`Mono`, el mismo de las filas de bancos), el nombre y UNA cosa a la
+   derecha. Sin conectar, el botón «Conectar» y nada más: el subtítulo «conectar» repetía el botón
+   y la flecha de plegar no tenía nada que enseñar (filtro de diseño 19/11). Conectada, su estado
+   y el acordeón con Actualizar / Revisar / Desconectar. */
 function BrokerApiCard({state, set, ent, link, open, onToggle, reload}){
   const [sheet,setSheet]=useState(false);
   const [preview,setPreview]=useState(null);   // {parsed, map, gone}
@@ -743,10 +753,13 @@ function BrokerApiCard({state, set, ent, link, open, onToggle, reload}){
   const st=link&&link.status;
   const label=entOf(ent).label, short=entOf(ent).short||label;
   const pend=(meta&&meta.pend)||[];
-  /* La vista previa: lo que trae el bróker contra tu cartera. Por defecto casa por ISIN o símbolo
-     del mismo bróker y, si no, «no tocar»; con `onlyNew` solo enseña lo que se propone. */
+  /* La vista previa: casa por ISIN o símbolo del mismo bróker y, si no, «no tocar». Solo cuando
+     no hay NADA en tu cartera a lo que pudiera ir (ni de este bróker ni manual) sale «crear» de
+     serie: si no, el usuario se quedaba ante «Aplicar a 0» sin salida (filtro de diseño 19/11). Es
+     la misma regla del importador de Revolut con la cartera vacía. Aplicar sigue siendo cosa suya. */
   const openPreview=function(parsed){
-    const m={}; parsed.positions.forEach(function(po){ m[po.key]=brkSuggest(po, state.investments, ent)||""; });
+    const nada=!(state.investments||[]).some(function(i){ return brkTargetOk(i, ent); });
+    const m={}; parsed.positions.forEach(function(po){ m[po.key]=brkSuggest(po, state.investments, ent)||(nada?"__new":""); });
     setPreview({parsed:parsed, map:m, gone:{}});
   };
   /* Lectura de una respuesta del servidor: sin primera revisión, vista previa; con ella, al día sola. */
@@ -771,16 +784,27 @@ function BrokerApiCard({state, set, ent, link, open, onToggle, reload}){
     });
   };
   const fmt=function(x){ try{ return new Date(x).toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); }catch(e){ return ""; } };
-  const sub=!link?t("bx_sub_off")
-    : (st==="active"?(pend.length?tf(pend.length===1?"bx_new_one":"bx_new_n",{n:pend.length,x:short}):(link.last_sync?tf("bx_sub_on",{x:fmt(link.last_sync)}):t("bx_sub_off")))
+  const activa=st==="active";
+  // Mientras se revisa la primera lectura la cabecera no dice nada: lo dice la vista previa.
+  const sub=preview||!link?null
+    : (activa?(pend.length?tf(pend.length===1?"bx_new_one":"bx_new_n",{n:pend.length,x:short}):(link.last_sync?tf("bx_sub_on",{x:fmt(link.last_sync)}):null))
     : t("bx_sub_exp"));
-  const e=entOf(ent);
-  const brand=bkBrand({logo:e.mono, logoStyle:{background:entTint(e.color,13),color:e.ink||e.color,borderColor:entTint(e.color,27)},
-    title:label, sub:sub, badge:st==="active"&&!pend.length?"✓":null, open:open, onToggle:onToggle});
-  const cardProps={className:"bk-card bk-file","data-broker-api":ent,style:{borderLeftColor:e.color}};
+  // Se pliega solo lo conectado. Durante la vista previa no: ahí se está decidiendo algo y la flecha
+  // invitaba a cerrarlo a medias.
+  const plegable=!!link&&!preview;
+  const head=React.createElement("div",Object.assign({className:"bx-card-h"}, plegable?{role:"button",tabIndex:0,"aria-expanded":open?"true":"false",
+      onClick:onToggle, onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); onToggle(); } }}:{}),
+    React.createElement(Mono,{ent:ent,size:40}),
+    React.createElement("div",{className:"bx-card-t"},
+      React.createElement("div",{className:"nm"}, label),
+      sub && React.createElement("div",{className:"meta"+(activa?"":" bx-warn")}, sub)),
+    !link && !preview && React.createElement("button",{type:"button",className:"btn btn-primary bx-cta","data-act":"bx-open",onClick:function(){ setErr(""); setSheet(true); }}, t("bx_connect")),
+    plegable && React.createElement("span",{"aria-hidden":"true",className:"bx-chev"+(open?" open":"")},"▾"));
+  const cardProps={className:"bk-card bx-card","data-broker-api":ent};
   const hoja=sheet && React.createElement(BrokerApiSheet,{ent:ent, onClose:function(){ setSheet(false); },
     onDone:function(res){ setSheet(false); reload(); if(!open) onToggle(); take(res); }});
-  if(!open) return React.createElement("div",cardProps, brand, hoja);
+  const errBox=err && React.createElement("div",{className:"alarmbox",role:"alert",style:{marginTop:10}}, err);
+  if(!preview&&!(link&&open)) return React.createElement("div",cardProps, head, errBox, hoja);
   const mb={flex:"1 1 auto",minWidth:0,minHeight:44,background:"var(--sur)",border:"1px solid var(--line-soft)",color:"var(--text)",borderRadius:12,padding:"10px 12px",fontSize:13,fontWeight:700,cursor:"pointer"};
   let body;
   if(preview){
@@ -796,7 +820,7 @@ function BrokerApiCard({state, set, ent, link, open, onToggle, reload}){
       apply:function(){ set(function(s){ return brkApiReview(s, ent, p, map, goneMark); }); setPreview(null); setMsg(tf("bx_done",{x:short})); },
       // Cancelar no decide nada: lo propuesto sigue esperando y la primera lectura se puede repetir.
       cancel:function(){ setPreview(null); }});
-  } else if(st==="active"){
+  } else if(activa){
     body=React.createElement(React.Fragment,null,
       (!meta||!Array.isArray(meta.known)) && React.createElement("div",{className:"hint",style:{marginTop:0}}, t("bx_first")),
       pend.length>0 && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{minHeight:44,marginBottom:8},"data-act":"bx-review",
@@ -807,14 +831,13 @@ function BrokerApiCard({state, set, ent, link, open, onToggle, reload}){
         React.createElement("button",{type:"button",style:Object.assign({},mb,{color:"var(--muted)",flex:"0 0 auto"}),"data-act":"bx-remove",disabled:!!busy,onClick:disconnect}, t("bx_remove"))));
   } else {
     body=React.createElement(React.Fragment,null,
-      link && link.last_code && React.createElement("div",{className:"alarmbox",style:{marginTop:0,marginBottom:8}}, t(brkApiErr(link.last_code))),
-      React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{minHeight:48},"data-act":"bx-open",onClick:function(){ setErr(""); setSheet(true); }},
-        link?t("bx_reconnect"):t("bx_connect")),
-      link && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{minHeight:44,marginTop:8},disabled:!!busy,onClick:disconnect}, t("bx_remove")));
+      link.last_code && React.createElement("div",{className:"alarmbox",style:{marginTop:0,marginBottom:8}}, t(brkApiErr(link.last_code))),
+      React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{minHeight:48},"data-act":"bx-open",onClick:function(){ setErr(""); setSheet(true); }}, t("bx_reconnect")),
+      React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{minHeight:44,marginTop:8},disabled:!!busy,onClick:disconnect}, t("bx_remove")));
   }
-  return React.createElement("div",cardProps, brand,
-    body,
-    err && React.createElement("div",{className:"alarmbox",role:"alert",style:{marginTop:10}}, err),
+  return React.createElement("div",cardProps, head,
+    React.createElement("div",{className:"bx-card-b bf-in"}, body),
+    errBox,
     msg && !preview && React.createElement("div",{className:"hint",style:{color:"var(--mint)",fontWeight:700,marginTop:8}}, msg),
     hoja);
 }

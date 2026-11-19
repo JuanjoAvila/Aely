@@ -33,11 +33,17 @@ test("Kraken: conectar en la hoja → vista previa → la posición entra en Car
     __cloudFns: { "broker-connect": { data: { ok: true, connected: true, broker: "kraken", sync: KRAKEN_SYNC }, error: null } } });
   const card = page.locator('[data-broker-api="kraken"]');
   await expect(card).toHaveCount(1);
-  await card.locator(".bk-brand").click();
+  // Sin conectar, la tarjeta es logo, nombre y «Conectar»: sin subtítulo que repita el botón.
+  await expect(card.locator(".meta")).toHaveCount(0);
   await card.locator('[data-act="bx-open"]').click();
   const sheet = page.locator('[data-broker-api-sheet="kraken"]');
   await expect(sheet).toBeVisible();
-  await expect(sheet).toContainText("Consultar fondos");
+  // Pasos plegados en una línea; al abrirlos, lo que hay que marcar en Kraken.
+  await expect(sheet.locator(".bx-steps")).toHaveCount(0);
+  await sheet.locator('[data-act="bx-steps"]').click();
+  await expect(sheet.locator('[data-act="bx-steps"]')).toHaveAttribute("aria-expanded", "true");
+  await expect(sheet.locator(".bx-steps")).toContainText("Consultar fondos");
+  await expect(sheet.locator('[data-bx="a"]')).toHaveAttribute("placeholder", "Pega aquí");
   const connect = sheet.locator('[data-act="bx-connect"]');
   await expect(connect).toBeDisabled();
   await sheet.locator('[data-bx="a"]').fill("SINTETICAPUBLICKEY000000");
@@ -52,11 +58,15 @@ test("Kraken: conectar en la hoja → vista previa → la posición entra en Car
   // Primera lectura: vista previa, con «—» de coste y su porqué; nada aplicado aún.
   const row = card.locator('[data-bf-row="BTC"]');
   await expect(row).toBeVisible();
-  await expect(row).toContainText("—");
+  // Cripto en su unidad, sin «participaciones» ni un «—» suelto; el porqué del coste, en su línea.
+  await expect(row).toContainText("0,25 BTC");
+  await expect(row).not.toContainText("particip");
+  await expect(row.locator(".rval")).toHaveCount(0);
   await expect(row).toContainText("el bróker no lo da");
   await expect(card).toContainText("incluye lo que tienes en staking");
   expect(await page.evaluate(() => (localStorage.getItem("micartera_v3") || "").indexOf("api:kraken"))).toBe(-1);
-  await card.locator('[data-act="bf-create-all"]').click();
+  // Cartera vacía: no hay nada que pisar, así que «crear» viene puesto y Aplicar no se queda en 0.
+  await expect(row.locator("select")).toHaveValue("__new");
   await card.getByRole("button", { name: /Aplicar a 1/ }).click();
   await expect(card).toContainText("Kraken al día");
   await page.waitForFunction(() => (localStorage.getItem("micartera_v3") || "").indexOf("api:kraken") >= 0);
@@ -71,7 +81,6 @@ test("Kraken: una clave que puede retirar se rechaza con su texto y no guarda na
   await abrirBancos(page, { investments: [], settings: { brokersOn: ["kraken"] }, __cloudRows: { broker_links: [] },
     __cloudFns: { "broker-connect": { data: { ok: false, rejected: true, code: "kraken_perm", perm: "withdraw-funds" }, error: null } } });
   const card = page.locator('[data-broker-api="kraken"]');
-  await card.locator(".bk-brand").click();
   await card.locator('[data-act="bx-open"]').click();
   const sheet = page.locator('[data-broker-api-sheet="kraken"]');
   await sheet.locator('[data-bx="a"]').fill("SINTETICAPUBLICKEY000000");
@@ -103,8 +112,30 @@ test("IBKR ya revisado: al abrir re-ancla lo que casa y PROPONE lo nuevo sin cre
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
   const card = page.locator('[data-broker-api="ibkr"]');
   await expect(card).toContainText("2 posiciones nuevas en IBKR");
-  await card.locator(".bk-brand").click();
+  await card.locator(".bx-card-h").click();
   await card.locator('[data-act="bx-review"]').click();
   await expect(card.locator("[data-bf-row]")).toHaveCount(2);
   await expect(card.locator('[data-bf-row="US0378331005"] select')).toHaveValue("");
+});
+
+test("hoja con letra Enorme a 360: los pasos abiertos desplazan el cuerpo y «Conectar» queda entero a la vista", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await abrirBancos(page, { investments: [], settings: { brokersOn: ["ibkr"], textSize: "huge" }, __cloudRows: { broker_links: [] } });
+  await page.locator('[data-broker-api="ibkr"] [data-act="bx-open"]').click();
+  const sheet = page.locator('[data-broker-api-sheet="ibkr"]');
+  await sheet.locator('[data-act="bx-steps"]').click();
+  await expect(sheet.locator(".bx-steps li")).toHaveCount(6);
+  await expect(sheet.locator(".bx-x")).toBeVisible();
+  const vp = page.viewportSize();
+  const btn = await sheet.locator('[data-act="bx-connect"]').boundingBox();
+  expect(btn.y).toBeGreaterThanOrEqual(0);
+  expect(btn.y + btn.height).toBeLessThanOrEqual(vp.height);
+  await expect(sheet.locator(".bx-safe")).toBeVisible();
+  // El cuerpo es el que desplaza: el último campo se alcanza sin mover el botón.
+  await sheet.locator('[data-bx="b"]').scrollIntoViewIfNeeded();
+  await expect(sheet.locator('[data-bx="b"]')).toBeInViewport();
+  expect((await sheet.locator('[data-act="bx-connect"]').boundingBox()).y).toBeCloseTo(btn.y, 0);
+  // La ✕ a la derecha del título, también en Enorme.
+  const x = await sheet.locator(".bx-x").boundingBox(), h = await sheet.locator(".bx-head h2").boundingBox();
+  expect(x.x).toBeGreaterThan(h.x + h.width - 1);
 });

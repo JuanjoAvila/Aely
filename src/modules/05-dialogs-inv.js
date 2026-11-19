@@ -1248,14 +1248,19 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
         setMap(function(m){ const n=Object.assign({},m); sinPareja.forEach(function(p){ n[p.key]="__new"; }); return n; }); }},
         sinPareja.length===1?t("bf_create_one"):tf("bf_create_all",{n:sinPareja.length}))),
     parsed.positions.map(function(po){
-      const cost=po.costEur!=null?eur(po.costEur):(po.cost!=null?natAmt(po.cost,po.cur):"—");
+      // En la vía por conexión un coste que no llega no se pinta como «—» suelto: ya lo dice su línea.
+      const cost=po.costEur!=null?eur(po.costEur):(po.cost!=null?natAmt(po.cost,po.cur):(api?null:"—"));
+      /* Cripto (Kraken): la cantidad va en su unidad («0,25 BTC»), no en «participaciones», que son de
+         fondos; y el símbolo no se repite en una tercera línea si ya es el nombre (filtro de diseño 19/11). */
+      const cripto=api && !po.isin && po.sym && po.sym===po.name;
+      const qty=po.shares.toLocaleString(loc(),{maximumFractionDigits:8})+" "+(cripto?po.sym:t("bi_shares"));
       return React.createElement("div",{key:po.key,className:"row","data-bf-row":po.key,style:{alignItems:"flex-start",flexDirection:"column",gap:6}},
         React.createElement("div",{style:{display:"flex",justifyContent:"space-between",width:"100%",gap:10}},
           React.createElement("div",{style:{minWidth:0}},
             React.createElement("div",{className:"rname",style:{overflowWrap:"anywhere"}}, po.name+(po.cur!=="EUR"?" · "+po.cur:"")),
-            React.createElement("div",{className:"rsub"}, po.shares.toLocaleString(loc(),{maximumFractionDigits:8})+" "+t("bi_shares")+" · "+natAmt(po.valueHint,po.cur)),
-            (po.isin||po.sym) && React.createElement("div",{className:"rsub",style:{opacity:.8}}, po.isin||po.sym)),
-          React.createElement("div",{className:"rval num",style:{flex:"0 0 auto"}}, cost)),
+            React.createElement("div",{className:"rsub"}, qty+" · "+natAmt(po.valueHint,po.cur)),
+            (po.isin||po.sym) && !cripto && React.createElement("div",{className:"rsub",style:{opacity:.8}}, po.isin||po.sym)),
+          cost && React.createElement("div",{className:"rval num",style:{flex:"0 0 auto"}}, cost)),
         // Sin coste, o con coste sin anclar en €: se dice por qué en una línea.
         po.costWhy && React.createElement("div",{style:sm}, t("bf_cost_"+po.costWhy)),
         React.createElement("select",{className:"af-in bf-sel",value:map[po.key]||"",onChange:function(e){ setOne(po.key,e.target.value); }},
