@@ -314,33 +314,59 @@ function shareMonthReport(state, tt, showToast, opt){
       if(!b){ if(showToast) showToast(errTxt()); return; }
       // Con el nombre de la app de hoy: «mi-cartera-…» era el de antes de llamarse Aely.
       const fname="aely-informe-"+ymFile+".png";
-      const dl=function(){
-        const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
-        setTimeout(function(){ URL.revokeObjectURL(u); },1000);
-      };
-      // Al descargar, decir DÓNDE queda (toast + notificación con el nombre del fichero): antes
-      // solo «descargado» y el usuario no sabía ni dónde buscarlo (feedback 2026-07-18).
-      const saidSaved=function(){
-        if(showToast) showToast(t("rp_saved"));
-        const nat=natPlugin();
-        if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely", body:tf("rp_saved_notif",{f:fname})}).catch(function(){}); }catch(e){} }
-      };
-      const file=new File([b], fname, {type:"image/png"});
-      if(navigator.canShare && navigator.canShare({files:[file]})){
-        // El share de la WebView puede rechazar en silencio («el informe no hace nada»,
-        // feedback 2026-07-18): si falla, descargamos la imagen igualmente y lo decimos.
-        navigator.share({files:[file], title:"Aely"}).catch(function(err){
-          const aborted=err && (err.name==="AbortError");   // canceló el usuario: no insistir
-          if(aborted) return;
-          dl();
-          saidSaved();
-        });
-      } else {
-        dl();
-        saidSaved();
-      }
+      monthReportPreview(b, fname, mes.charAt(0).toUpperCase()+mes.slice(1), showToast);
     },"image/png");
   }catch(e){ if(showToast) showToast(errTxt(e)); }
+}
+/* Primero se ENSEÑA y luego se guarda (19/11/2026: «no guarda nada; que lo enseñe primero, que
+   lo guarde después y que al tocar el archivo se abra»). Antes se lanzaba directo a compartir o
+   a descargar sin ver qué salía. Compartir solo aparece donde el navegador sabe compartir
+   ficheros de verdad: en la APK no hay Web Share y el botón no haría nada. */
+function monthReportPreview(blob, fname, title, showToast){
+  const url=URL.createObjectURL(blob);
+  const file=typeof File==="function"?new File([blob], fname, {type:"image/png"}):null;
+  const canShare=!!(file&&!natPlugin()&&navigator.canShare&&navigator.canShare({files:[file]}));
+  askConfirm({title:title, img:url, ok:t("fj_save"), cancel:t("au_close"), alt:canShare?t("rp_share"):null})
+    .then(function(v){
+      // La imagen ya se ha desmontado con la hoja: la URL sobra.
+      setTimeout(function(){ URL.revokeObjectURL(url); },0);
+      if(v===true) saveMonthReport(blob, fname, showToast);
+      else if(v==="alt") navigator.share({files:[file], title:"Aely"}).catch(function(err){
+        // Cancelar el menú de compartir no es un error; que falle de verdad, sí: se guarda.
+        if(err&&err.name==="AbortError") return;
+        saveMonthReport(blob, fname, showToast);
+      });
+    });
+}
+/* Guardar DE VERDAD. Hasta ahora era un `<a download>` con URL `blob:`, que en la WebView de la
+   APK no hace nada, y aun así se decía «guardado en Descargas» con notificación incluida: en la
+   carpeta no había nada. Desde la APK 65 los bytes cruzan al nativo (saveToDownloads → MediaStore)
+   y su notificación abre el fichero al tocarla. Una APK anterior no tiene cómo: se dice, no se
+   finge. En el navegador, la descarga de siempre, que ahí sí funciona. */
+function saveMonthReport(blob, fname, showToast){
+  const say=function(m){ if(showToast) showToast(m); };
+  const nat=natPlugin();
+  if(nat&&typeof nat.saveToDownloads==="function"){
+    const rd=new FileReader();
+    rd.onerror=function(){ say(errTxt()); };
+    rd.onload=function(){
+      // Sin permiso de notificaciones (Android 13+) se guarda igual; solo falta el aviso.
+      Promise.resolve(typeof nat.ensureNotifPerm==="function"?nat.ensureNotifPerm():null).catch(function(){})
+        .then(function(){
+          return nat.saveToDownloads({name:fname, mime:"image/png", data:String(rd.result||""),
+            title:t("rp_saved"), body:t("rp_saved_notif")});
+        })
+        .then(function(r){ say(r&&r.inDownloads===false?t("rp_saved_app"):t("rp_saved")); },
+          function(e){ say(errTxt(e)); });
+    };
+    rd.readAsDataURL(blob);
+    return;
+  }
+  if(nat){ say(t("rp_need_apk")); return; }
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download=fname; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(u); },1000);
+  say(t("rp_saved"));
 }
 
 /* ============================================================
@@ -640,25 +666,29 @@ function mcCurvaCasa(p){
   return 3*t*(1-t)*(1-t)*.61+3*t*t*(1-t)+t*t*t;
 }
 
-/* UX16 ronda 4: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada»,
-   «dura un montón»). Ahora las elige él con el ajustador de Ajustes (solo en beta) y se quedan
-   en ESTE móvil: es una preferencia del motor de su teléfono, no un dato que viaje a la nube.
-   Por defecto, los de la ronda 3 salvo borde y gráfica, que pedían «un pelín más». */
-const MC_HAPTIC_KEY="_mcHapticTune";
-/* Ronda 9 (beta 4.26.155): «el anillo no vibra» y «la fuerza del borde no cambia nada». Sí se
-   llamaba al motor, pero con toques de 10–12 ms a un tercio de fuerza: en el motor de su
-   OnePlus 13 eso no llega a arrancar, y entre fuerza 1 y 255 en 12 ms no hay diferencia que se
-   note. Por eso suben ciclo y borde, y el cambio de segmento tiene su propio par (seg*), un
-   poco más suave que el efecto de serie que le gustaba. La gráfica (tick*) se queda como está. */
+/* UX16: cuatro rondas adivinando fuerzas y él las rechazó todas («no vibra apenas nada», «dura un
+   montón»), así que en la ronda 4 se le dio un ajustador en Ajustes (solo beta) y eligió él. El
+   19/11/2026 pidió quitarlo: «la intensidad que elegí, que sea la de todos». Sus números NO están
+   en la nube —el ajustador guardaba solo en su móvil, en `_mcHapticTune`— y se copian aquí a mano.
+   ⚠ MC_HAPTIC_PENDIENTE: mientras exista, tests/vibracion-fija.test.mjs falla A PROPÓSITO. Se
+   ponen en MC_HAPTIC_DEF y MC_HAPTIC_DEF_USAGE los valores que copió él y se borra esa línea. */
+const MC_HAPTIC_PENDIENTE="RELLENAR_CON_LOS_VALORES_DEL_DUEÑO";
+/* Ronda 9 (beta 4.26.155): «el anillo no vibra» y «la fuerza del borde no cambia nada». Con toques
+   de 10–12 ms a un tercio de fuerza el motor de su OnePlus 13 no llega a arrancar; por eso los de
+   serie suben ciclo y borde, y el cambio de segmento tiene su propio par (seg*). */
 const MC_HAPTIC_DEF={fillAmp:140,fillMs:1100,edgeAmp:120,edgeMs:20,edgeEvery:150,tickAmp:70,tickMs:10,segAmp:150,segMs:24};
-const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40],segAmp:[1,255],segMs:[4,60]};
-/* Lo guardado antes de la ronda 9 se eligió con toques que no se notaban: sus fuerzas y
-   duraciones de ciclo y borde no valen para la escala nueva y se vuelven a los de serie. La
-   gráfica, el intervalo, la duración del anillo y el tipo se conservan: esos sí se sentían. */
-const MC_HAPTIC_VER=2, MC_HAPTIC_STALE=["fillAmp","edgeAmp","edgeMs"];
 /* Ronda 6: con uso «toque» su OnePlus 13 tira nuestra onda y toca su efecto de serie (dumpsys,
-   OplusPrebakedSegment de 45 ms). El ajustador deja elegir el uso hasta ver cuál la respeta. */
+   OplusPrebakedSegment de 45 ms). Los toques que se sienten van siempre con «hardware»
+   (MC_FELT_USAGE); este es el de las demás llamadas al motor. */
+const MC_HAPTIC_DEF_USAGE="touch";
+const MC_HAPTIC_RANGE={fillAmp:[1,255],fillMs:[300,2500],edgeAmp:[1,255],edgeMs:[4,60],edgeEvery:[60,400],tickAmp:[1,255],tickMs:[4,40],segAmp:[1,255],segMs:[4,60]};
 const MC_HAPTIC_USAGES=["touch","hardware","media","unknown"];
+/* Lo que eligió con el ajustador se sigue respetando en SU móvil aunque el ajustador ya no
+   exista: así, aunque los de serie no se hayan rellenado aún, él no pierde lo suyo. Lo guardado
+   antes de la ronda 9 se eligió con toques que no se notaban y sus fuerzas y duraciones de ciclo
+   y borde se vuelven a las de serie (MC_HAPTIC_STALE). */
+const MC_HAPTIC_KEY="_mcHapticTune";
+const MC_HAPTIC_VER=2, MC_HAPTIC_STALE=["fillAmp","edgeAmp","edgeMs"];
 function mcHapticClamp(raw){
   const out={};
   if(raw&&raw.v!==MC_HAPTIC_VER){ raw=Object.assign({},raw); MC_HAPTIC_STALE.forEach(function(k){ delete raw[k]; }); }
@@ -666,7 +696,7 @@ function mcHapticClamp(raw){
     const v=raw&&typeof raw[k]==="number"&&Number.isFinite(raw[k])?Math.round(raw[k]):MC_HAPTIC_DEF[k];
     out[k]=Math.max(MC_HAPTIC_RANGE[k][0],Math.min(MC_HAPTIC_RANGE[k][1],v));
   });
-  out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_USAGES[0];
+  out.usage=raw&&MC_HAPTIC_USAGES.indexOf(raw.usage)>=0?raw.usage:MC_HAPTIC_DEF_USAGE;
   out.v=MC_HAPTIC_VER;
   return out;
 }
@@ -674,27 +704,11 @@ function mcHapticTune(){
   try{ return mcHapticClamp(JSON.parse(localStorage.getItem(MC_HAPTIC_KEY)||"null")); }catch(e){ return mcHapticClamp(null); }
 }
 // La duración del relleno manda también sobre la animación del anillo: así la vibración dura
-// exactamente lo que se ve rellenarse, la mueva él a donde la mueva.
+// exactamente lo que se ve rellenarse.
 function mcHapticApplyCss(tune){
   try{ document.documentElement.style.setProperty("--v42-cycle-ms",(tune||mcHapticTune()).fillMs+"ms"); }catch(e){}
 }
-function mcHapticTuneSave(patch){
-  const next=mcHapticClamp(Object.assign({},mcHapticTune(),patch||{}));
-  try{ localStorage.setItem(MC_HAPTIC_KEY,JSON.stringify(next)); }catch(e){}
-  mcHapticApplyCss(next);
-  return next;
-}
-function mcHapticTuneReset(){
-  try{ localStorage.removeItem(MC_HAPTIC_KEY); }catch(e){}
-  mcHapticApplyCss(MC_HAPTIC_DEF);
-  return mcHapticClamp(null);
-}
 mcHapticApplyCss();
-// El texto que él copia y nos manda: corto y sin nada personal, solo los siete números.
-function mcHapticTuneText(tune){
-  const v=tune||mcHapticTune();
-  return "Vibración ("+v.usage+") · ciclo "+v.fillAmp+"/"+v.fillMs+"ms · borde "+v.edgeAmp+"/"+v.edgeMs+"ms cada "+v.edgeEvery+"ms · segmento "+v.segAmp+"/"+v.segMs+"ms · gráfica "+v.tickAmp+"/"+v.tickMs+"ms";
-}
 // Misma curva que `.v42-cycle-draw` en shell.html: si cambia allí, cambia aquí.
 const MC_CYCLE_EASE=[.65,0,.35,1];
 function mcBezierY(x,p){
@@ -772,13 +786,13 @@ function mcHaptic(method, args){
   try{
     const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
     if(!plugin||typeof plugin[method]!=="function") return;
-    // Devuelve lo que contesta Android (null si falla): el ajustador lo usa para saber si la APK
-    // instalada ya entiende fuerza y duración.
+    // Devuelve lo que contesta Android (null si falla; `shaped` dice si la APK ya entiende fuerza
+    // y duración).
     return Promise.resolve(plugin[method](Object.assign({usage:mcHapticTune().usage},args||{}))).catch(function(){ return null; });
   }catch(e){}
 }
-// Un toque del borde con los valores que haya elegido él. La APK 58 ignora fuerza y duración y
-// sigue dando su toque fijo; desde la 59 manda lo del ajustador.
+// Un toque del borde con los valores de mcHapticTune. La APK 58 ignora fuerza y duración y sigue
+// dando su toque fijo; desde la 59 manda lo que pide la web.
 function mcEdgeHaptic(){
   const v=mcHapticTune();
   /* Ronda 8: «da igual la fuerza que pongas, solo vibra suave». La fuerza sí llegaba, pero con
@@ -793,8 +807,8 @@ function mcEdgeHaptic(){
 const MC_SEG_HUSH_MS=450;
 // Píxeles de vuelta atrás que convierten el siguiente empuje en otro gesto: menos es temblor.
 const MC_EDGE_REARM=12;
-/* Cambiar de segmento (Recibos/Deudas/Metas y gasto/ingreso): UN toque con su propio par del
-   ajustador. Hasta la ronda 8 usaba el de la gráfica con uso «toque», que OxygenOS cambia por su
+/* Cambiar de segmento (Recibos/Deudas/Metas y gasto/ingreso): UN toque con su propio par
+   (seg*). Hasta la ronda 8 usaba el de la gráfica con uso «toque», que OxygenOS cambia por su
    efecto de serie: le gustaba, pero ningún deslizador lo movía («me gustaría un poquito más
    suave»). Con uso hardware la fuerza y la duración son suyas. */
 function mcTickHaptic(){

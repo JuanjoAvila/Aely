@@ -59,6 +59,9 @@ import com.getcapacitor.annotation.PermissionCallback;
  *                                «la víspera» con la app CERRADA (AlertCheckWorker). Devuelve
  *                                { fired:[ids] } con lo que el nativo ya avisó, para que la web
  *                                selle sus claves y no avise dos veces.
+ *   - saveToDownloads({name, mime, data, title, body}) -> guarda el fichero (base64) en Descargas
+ *                                y avisa con una noti que lo abre. { ok, uri, name, inDownloads }.
+ *                                Desde la APK 65; antes la web no podía guardar nada (FileSaver).
  *   - evento JS `bankNotif`   -> cuando llega noti de Caixa/Sabadell/… (app en caliente)
  */
 @CapacitorPlugin(
@@ -452,6 +455,37 @@ public class MiCarteraPlugin extends Plugin {
         getContext().getSharedPreferences("micartera_ingest", Context.MODE_PRIVATE)
                 .edit().putString("url", url != null ? url : "").apply();
         call.resolve();
+    }
+
+    /* Informe del mes (19/11/2026): la web manda el PNG en base64 y aquí se guarda en Descargas
+     * (FileSaver) y se avisa con una notificación que, al tocarla, abre el fichero. `body` puede
+     * llevar `{f}`, que se cambia por el nombre REAL (MediaStore renombra si ya existe). */
+    @PluginMethod
+    public void saveToDownloads(PluginCall call) {
+        final String name = FileSaver.safeName(call.getString("name"), "aely.bin");
+        final String mime = call.getString("mime", "application/octet-stream");
+        final String data = FileSaver.stripDataUrl(call.getString("data"));
+        final String title = call.getString("title", "Aely");
+        final String body = call.getString("body", "{f}");
+        if (data.isEmpty()) { call.reject("sin datos"); return; }
+        final Context ctx = getContext();
+        new Thread(() -> {
+            try {
+                byte[] bytes = android.util.Base64.decode(data, android.util.Base64.DEFAULT);
+                if (bytes.length == 0) { call.reject("sin datos"); return; }
+                FileSaver.Saved saved = FileSaver.save(ctx, name, mime, bytes);
+                Notif.showFile(ctx, title, body.replace("{f}", saved.name),
+                        Notif.idFor("file|" + saved.name), saved.uri, mime);
+                JSObject r = new JSObject();
+                r.put("ok", true);
+                r.put("uri", saved.uri.toString());
+                r.put("name", saved.name);
+                r.put("inDownloads", saved.inDownloads);
+                call.resolve(r);
+            } catch (Exception e) {
+                call.reject("guardar falló: " + e.getMessage());
+            }
+        }).start();
     }
 
     @PluginMethod

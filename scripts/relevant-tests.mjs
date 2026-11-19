@@ -68,6 +68,13 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Informe del mes con vista previa y guardado de verdad (19/11/2026): la hoja vive en AskHost
+  // (05), la imagen y el guardado en 02, la entrada en Ajustes (10) y en Inicio (03).
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/informe-vista-previa.spec.mjs", "e2e/informe-mes.spec.mjs"] },
+  { file: "src/modules/05-dialogs-inv.js", specs: ["e2e/informe-vista-previa.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/informe-vista-previa.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/informe-mes.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/informe-vista-previa.spec.mjs"] },
   // Ronda D (18/11/2026): «Para revisar» tocable, deslizar desde el buscador de Gastos, nombres de
   // «Últimos movimientos» sin cortar, dianas de 44 px de pantalla y cifras de Categorías.
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },

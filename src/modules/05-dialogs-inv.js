@@ -115,10 +115,12 @@ function AskHost(){
   return React.createElement(React.Fragment,null,
     React.createElement(HelpHost,null),
     ReactDOM.createPortal(
-    React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
+    React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":"")+(cur.img?" ask-preview":""),onClick:cancel},
       React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true","aria-labelledby":"ask-dialog-title",tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
         React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
+        // `img`: vista previa de lo que se va a guardar (informe del mes, 19/11/2026).
+        cur.img && React.createElement("img",{className:"ask-img",src:cur.img,alt:cur.title||"",draggable:false}),
         // `live(valor)`: una línea que depende de lo tecleado (p. ej. cuotas que quita amortizar).
         // null = no se pinta: el diálogo no enseña nada que aún no se sabe.
         cur.input && cur.live && (function(){ const x=cur.live(val); return x?React.createElement("div",{className:"ts-hint","data-ask-live":"1"},x):null; })(),
@@ -141,6 +143,8 @@ function AskHost(){
           })),
         React.createElement("div",{className:"ask-btns"},
           React.createElement("button",{className:"btn btn-ghost",onClick:cancel}, cur.cancel||t("fj_cancel")),
+          // `alt`: una segunda acción que no es cancelar (Compartir junto a Guardar). Resuelve "alt".
+          cur.alt && React.createElement("button",{className:"btn btn-ghost",onClick:function(){ done("alt"); }}, cur.alt),
           // Con opciones, el botón de aceptar sobra: elegir una YA es aceptar.
           (cur.options||[]).length===0 && React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
             onClick:ok}, cur.ok||t("ask_ok")))

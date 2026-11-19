@@ -432,8 +432,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
         closedCard.saved>=0 ? tf("mr_saved",{x:eur0(closedCard.saved)}) : tf("mr_over",{x:eur0(Math.abs(closedCard.saved))})),
       React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:12},onClick:function(){
+        // Abre la vista previa; el aviso llega al guardar (antes «listo para compartir» sin ver nada).
         shareMonthReport(state, totals, showToast, {startMs:closedCard.startMs, endMs:closedCard.endMs, ym:closedCard.ym});
-        if(showToast) showToast(t("mr_shared"));
       }}, t("mr_share"))
     ),
 

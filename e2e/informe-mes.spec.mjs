@@ -87,9 +87,17 @@ async function open(page,state,iso="2026-11-02T10:00:00Z"){
   await page.goto("/");await expect(page.locator(".botnav")).toBeVisible({timeout:15000});await dismissNews(page);
   const card=page.locator("[data-tour='closed-month']");await expect(card).toBeVisible();return card;
 }
+async function shareFromPreview(page){
+  const sheet=page.locator(".askback.ask-preview");
+  await expect(sheet.locator("img.ask-img")).toBeVisible();
+  expect(await page.evaluate(()=>window.__reportShares.length),"nada se comparte sin verlo antes").toBe(0);
+  await sheet.getByRole("button",{name:/^Compartir$/}).click();
+  await expect.poll(()=>page.evaluate(()=>window.__reportShares.length)).toBe(1);
+}
 async function share(page,card,filename){
   await card.getByRole("button",{name:/Crear imagen del informe/i}).click();
-  await expect.poll(()=>page.evaluate(()=>window.__reportShares.length)).toBe(1);
+  // Primero la vista previa (19/11/2026); compartir es una acción de ella, no un salto directo.
+  await shareFromPreview(page);
   const data=await page.evaluate(()=>({text:window.__reportTexts.join(" ").replace(/\s/g," "),files:window.__reportShares[0]}));
   expect(data.files).toHaveLength(1);expect(data.files[0].name).toBe(filename);
   expect(data.files[0].type).toBe("image/png");expect(data.files[0].size).toBeGreaterThan(0);
@@ -132,7 +140,7 @@ test("reporte sin opt mantiene el presupuesto actual al compartir desde Ajustes"
     const s=mcLoadRaw(mcStateKey());
     shareMonthReport(s,{netWorth:0});
   });
-  await expect.poll(()=>page.evaluate(()=>window.__reportShares.length)).toBe(1);
+  await shareFromPreview(page);
   const data=await page.evaluate(()=>({text:window.__reportTexts.join(" ").replace(/\s/g," "),file:window.__reportShares[0][0].name}));
   expect(data.text).toMatch(/Noviembre 2026/);expect(data.text).toMatch(/801 €.*12%/);expect(data.file).toBe("aely-informe-2026-11.png");
 });
