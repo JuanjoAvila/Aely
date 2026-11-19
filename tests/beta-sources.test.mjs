@@ -6667,7 +6667,8 @@ test("Catálogo230 histórico retira la tanda aprobada en la 229 con tandas: [],
 // aportación al bróker en Cartera, el ojo en Inicio, Recibos sin cortes y «Nuevo precio» que pregunta por la deuda, Hogar con código
 // nuevo y «Quitar»; PASS del filtro y GO de dinero) y claude/ia-categorias hasta cdcc057c2 (fuera la IA de pago que nunca corrió, lo
 // corregido vale para el mismo comercio aunque el banco lo escriba distinto y 40 comercios nuevos; PASS y GO con remates).
-// Las seis tandas anteriores siguen SIN veredicto, en su versión y con sus pasos; sus huellas se mueven. UNA tanda nueva, beta-248, solo web.
+// Las seis tandas anteriores siguen SIN veredicto, en su versión y con sus pasos; se mueven las huellas de cinco (beta-246 no lee nada
+// de lo que cambia y se queda quieta). UNA tanda nueva, beta-248, solo web.
 // Registro: un descriptor nuevo, el último. Lo de ia-categorias se reaplicó sobre el de la 247 (no se mezcló a mano): fuera
 // `suggestCategory` de las nubes, la reancla de `aiBusy` a `state:state` y las cinco unidades de `comercioBase` al final de quien
 // lee `categoryOfNewMerchant`/`keepCategoryChoices`; tres rondas del ajustador no las tenían en la rama (en su base su ancla de
@@ -6778,12 +6779,15 @@ test("Catálogo248 conserva las seis tandas sin veredicto, abre beta-248 (solo w
   // Mutantes sobre la fuente real: el ritmo de una meta, la base del comercio, el aro, Hogar y la fila de pago reabren la tanda.
   for(const [file,a] of [[V09,"function metaRitmoMensual("],[C0,"function comercioBase("],[D,"function cyclePaceState("],[H,"function HogarSection("],[U,"function ExpensePayRow("]]){
     assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
-    const i=source(file).indexOf("{",source(file).indexOf(a))+1;
+    // Dentro del cuerpo: el primer «{» de una firma con destructuring es el de los parámetros.
+    const i=source(file).indexOf("){",source(file).indexOf(a))+2;
     const mutated=betaRevision(nueva,x=>x===file?source(x).slice(0,i)+" void 0;"+source(x).slice(i):source(x),undefined,scopes[nueva]);
     assert.notEqual(mutated.web,current.web,nueva+" reabre la tanda web: "+a);
   }
-  // Las seis de antes siguen sin veredicto y en su versión, pero su huella se mueve: el panel las vuelve a pedir.
-  for(const id of previas)assert.notEqual(betaRevision(id,source,undefined,scopes[id]).web,betaRevision(id,old,undefined,integrated[id]).web,id+": su huella se mueve");
+  // Las seis de antes siguen sin veredicto y en su versión. Cinco mueven su huella (leen 00, la nube o lo que tocan las ramas) y el panel
+  // las vuelve a pedir; beta-246 (IBKR y Kraken) no lee nada de lo que cambia y se queda como estaba.
+  const mueve=id=>betaRevision(id,source,undefined,scopes[id]).web!==betaRevision(id,old,undefined,integrated[id]).web;
+  assert.deepEqual(previas.filter(mueve),["beta-247","beta-245","beta-244","beta-243","dinero-242"],"se mueven las cinco que leen lo que cambia; beta-246, quieta");
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
   const g0=built[0].tandas[0];
@@ -15593,7 +15597,8 @@ test("META91 vigila el lector de importes, los avisos, el estado y los céntimos
     ["src/modules/08-motor-bank.js",'function reservaMensualClave(nowMs){ return madridYmdParts(nowMs!=null?nowMs:Date.now()).ym; }','function reservaMensualClave(nowMs){ return "x"; }'],
     ["src/modules/08-motor-bank.js",'    if(hechos[id]) return;\n',''],
     ["src/modules/09-tab-debts-goals.js",'goalId:form.goalId,mensual:true};','goalId:form.goalId};'],
-    ["src/modules/01-i18n.js",'rr_title:"Reservar dinero de tus ingresos"','rr_title:"Reservar dinero de tu nómina"'],
+    // La ronda F (4.26.248) renombra la tarjeta a «Ahorro mensual»: el mutante sigue el título vigente.
+    ["src/modules/01-i18n.js",'rr_title:"Ahorro mensual"','rr_title:"Reservar dinero de tu nómina"'],
     ["src/modules/01-i18n.js",'rr_detect_t:"💰 Ingrés detectat: {x}"','rr_detect_t:"💰 Nòmina detectada: {x}"'],
     ["src/modules/01-i18n.js",'h_reserva:"Each rule takes its amount','h_reserva:"Each paycheck takes its amount'],
     ["src/modules/01-i18n.js",'rr_err_goal:"Elige una meta que siga activa."','rr_err_goal:"Elige una meta."'],
