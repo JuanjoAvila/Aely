@@ -120,7 +120,8 @@ test("Tus recibos: chip relleno, el banco filtra avisos y personas, cuota en una
 
 test("el ojo: esconde todas las cifras de dinero, deja los conteos y se recuerda al volver", async ({ page }) => {
   const rec = await abrePlan(page);
-  const ojo = page.locator('.page-live [data-testid="ojo-importes"]');
+  // El de la cabecera de Plan: desde la ronda F (4.26.248) Inicio lleva su propio ojo y las dos páginas son `page-live`.
+  const ojo = page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]');
   await expect(ojo).toHaveAttribute("aria-pressed", "false");
   const cifras = () => page.evaluate(() => {
     const out = []; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
@@ -152,9 +153,9 @@ test("el ojo: esconde todas las cifras de dinero, deja los conteos y se recuerda
   await page.reload();
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.locator('.page-live [data-testid="ojo-importes"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]')).toHaveAttribute("aria-pressed", "true");
   expect(await cifras()).toEqual([]);
-  await page.locator('.page-live [data-testid="ojo-importes"]').click();
+  await page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]').click();
   await expect(rec.getByTestId("plan-summary").locator(".pr6-big")).not.toHaveText("•••• €");
   expect((await cifras()).length).toBeGreaterThan(0);
 });
@@ -174,7 +175,7 @@ test("el ojo esconde también la cifra de un aviso que ya está en pantalla (aud
   const toast = page.locator(".toast").filter({ hasText: "agotado" });
   await expect(toast).toContainText("€ de");
   expect(await toast.innerText()).toMatch(/\d\s?€ de \d/);
-  await page.locator('.page-live [data-testid="ojo-importes"]').click();
+  await page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]').click();
   await expect(toast).toContainText("•••• € de •••• €");
 });
 
