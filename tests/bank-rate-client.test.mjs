@@ -24,7 +24,7 @@ async function flow(kind, lang, error, extra = {}) {
   const messages = [], calls = [], lock = { current: false };
   const t = k => LANG[lang][k] || LANG.es[k] || k;
   const env = { cloud: { enabled: () => true, bankLinks: async () => [], bankSync: async () => { calls.push("sync"); throw error; }, logEvent() {} },
-    uid: "synthetic", sessionRef: { current: {} }, bankSyncing: lock, pullOkRef: { current: Promise.resolve(true) },
+    uid: "synthetic", sessionRef: { current: {} }, bankSyncing: lock, bankSyncEnCurso: { current: null }, pullOkRef: { current: Promise.resolve(true) },
     syncCloudExpenses: async () => {}, SYNC_SIN_NUBE: {}, obAckLoad: () => ({}), navigator: { onLine: true },
     window: { dispatchEvent() {} }, CustomEvent: function () {},
     showToast: x => messages.push(x), avisoSync: { current: null }, avisaSync: (opts, x) => opts?.collect ? opts.collect.push(x) : messages.push(x),

@@ -2708,6 +2708,30 @@ function subirGasto(e, donde){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
 }
+/* La primera subida del histórico (nada en la nube: móvil nuevo o cuenta recién creada) iba fila a
+   fila: 20.000 gastos eran 20.000 peticiones, cada una con su sesión. Ahora va en lotes por
+   `addExpensesBatch`, el mismo alta idempotente (ignoreDuplicates sobre la terna) que ya usa el
+   importador del histórico, uno detrás de otro para no saturar la conexión del móvil. Los cargos de
+   recibo siguen sueltos por `subirGasto`: son los únicos que, si la fila ya estaba, tienen que
+   ponerle la marca (`setExpenseRecibo`). Un lote que falla se apunta y el siguiente pull lo reintenta,
+   como antes una fila suelta. */
+const GASTOS_POR_LOTE=500;
+function subirGastosEnLotes(list, donde){
+  if(!cloud.enabled()) return Promise.resolve();
+  const sueltos=[], lote=[];
+  (list||[]).forEach(function(e){ if(e) (e.reciboId||!cloud.addExpensesBatch ? sueltos : lote).push(e); });
+  // Uno solo no gana nada con el lote y `subirGasto` es el camino de siempre.
+  if(lote.length===1) sueltos.push(lote.pop());
+  const ps=sueltos.map(function(e){ return subirGasto(e, donde); });
+  let cadena=Promise.resolve();
+  for(let i=0;i<lote.length;i+=GASTOS_POR_LOTE){
+    const trozo=lote.slice(i,i+GASTOS_POR_LOTE);
+    cadena=cadena.then(function(){ return cloud.addExpensesBatch(trozo); }).then(null, function(err){
+      cloud.logEvent("error","addExpensesBatch "+(donde||"?")+": "+trozo.length, _errCloudMsg(err));
+    });
+  }
+  return Promise.all(ps.concat([cadena]));
+}
 // → true si la nube lo borró (o no hay nube); false si falló: quien encadena un alta lo mira.
 function borrarGastoNube(e, donde){
   if(!cloud.enabled()) return Promise.resolve(true);

@@ -81,7 +81,7 @@ function checkMirror(env,mirror,wireRows,expected,total,record,stage){
 async function reimport(env,bank='sabadell',account='account-a',ref='ref-1'){
  env.cloud.bankLinks=async()=>[];
  env.cloud.bankSync=async()=>({links:[{aspsp:bank==='sabadell'?'Banco Sabadell':'CaixaBank',ok:true,syncFrom:'2026-01-01',accounts:[{uid:account,ok:true,transactions:[{ext_id:ref,date:'2026-10-19',amount:3.2,merchant:'BAR SL',status:'BOOK'}]}]}]});
- const factory=vm.runInContext('(function(stateRef,set,cloud,setTimeout){const sessionRef={current:{user:{id:"'+owner+'"}}},bankSyncing={current:false},pullOkRef={current:Promise.resolve(true)},obAckPend={current:null},SYNC_SIN_NUBE={},showToast=function(){},avisaSync=function(){},avisoSync={current:null},setTab=function(){};const syncCloudExpenses=function(){throw Error("unexpected implicit pull");};'+section(html,'  const runBankSync=function(opts){','  /* EL ACUSE SE GUARDA DETRÁS')+'return runBankSync;})',env.c);
+ const factory=vm.runInContext('(function(stateRef,set,cloud,setTimeout){const sessionRef={current:{user:{id:"'+owner+'"}}},bankSyncing={current:false},bankSyncEnCurso={current:null},pullOkRef={current:Promise.resolve(true)},obAckPend={current:null},SYNC_SIN_NUBE={},showToast=function(){},avisaSync=function(){},avisoSync={current:null},setTab=function(){};const syncCloudExpenses=function(){throw Error("unexpected implicit pull");};'+section(html,'  const runBankSync=function(opts){','  /* EL ACUSE SE GUARDA DETRÁS')+'return runBankSync;})',env.c);
  await factory(env.stateRef,env.set,env.cloud,(fn,ms)=>{env.timers.push({fn,ms});return env.timers.length;})({manual:false});
  await env.flush();
 }
