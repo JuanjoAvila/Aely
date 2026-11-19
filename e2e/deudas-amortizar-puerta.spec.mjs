@@ -41,8 +41,9 @@ test("el simulador ya no amortiza y «Amortizar ahora» sí, contando las cuotas
   await expect(dlg.locator("[data-ask-live]")).toHaveCount(0);
   await dlg.locator(".ask-in").fill("500");
   const live=dlg.locator("[data-ask-live]");
-  await expect(live).toHaveText(/^📆 Te quitas \d+ cuotas\.$/);
-  const shown=Number((await live.textContent()).match(/\d+/)[0]);
+  // Con el importe ya formateado (el campo lo enseña en crudo): ronda 242.
+  await expect(live).toHaveText(/^📆 500,00 € · Te quitas \d+ cuotas\.$/);
+  const shown=Number((await live.textContent()).match(/Te quitas (\d+)/)[1]);
   await dlg.getByRole("button",{name:/Amortizar/}).click();
 
   // Comprobación por la otra vía: lo que dijo el diálogo es lo que de verdad baja el plazo.

@@ -53,3 +53,46 @@ test("si el banco del widget ya no existe, la baldosa sigue vacía", async ({ pa
   const hoja = await abreApuntar(page, dos({}, { widgetBank: "bbva" }));
   await expect(hoja.getByTestId("ap-bank")).toContainText("Sin banco");
 });
+
+/* Revisión de dinero 242, P2 (fallo previo): sin cuenta diaria, pasar de Efectivo a Tarjeta ponía el
+ * primer banco de la lista (Sabadell), que no cuenta, y el gasto dejaba de sumar sin avisar. Ahora
+ * vuelve a la reserva o a ningún banco. */
+const conSobre = (settings) => {
+  const s = dos({}, settings);
+  s.accounts = s.accounts.concat([{ id: "ef", ent: "efectivo", name: "El sobre", value: 80, role: "fijos" }]);
+  return s;
+};
+async function deEfectivoATarjeta(hoja) {
+  await hoja.getByTestId("ap-efectivo").click();
+  await expect(hoja.getByTestId("ap-efectivo")).toHaveAttribute("aria-pressed", "true");
+  await hoja.getByTestId("ap-pay-card").click();
+  await expect(hoja.getByTestId("ap-pay-card")).toHaveAttribute("aria-pressed", "true");
+}
+async function guardaYMira(page, hoja, concepto) {
+  for (const d of ["4", "2"]) await hoja.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
+  await hoja.locator(".v4-ficha-concept").fill(concepto);
+  await hoja.locator(".v4-ficha-concept").press("Enter");
+  await hoja.locator(".v4-cta").click();
+  await expect(hoja).toHaveCount(0, { timeout: 5_000 });
+  return page.evaluate((concepto) => {
+    const s = JSON.parse(localStorage.getItem("micartera_v3"));
+    s.expenses = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
+    const e = s.expenses.find((x) => x.merchant === concepto);
+    return e && { ent: e.ent || null, cuenta: expenseCountsCash(e, s), cajon: expenseBucket(e, s) };
+  }, concepto);
+}
+
+test("sin diario ni reserva, de Efectivo a Tarjeta no pone un banco que no cuenta", async ({ page }) => {
+  const hoja = await abreApuntar(page, conSobre({ widgetBank: "bbva", expenseBanks: ["caixabank", "efectivo"] }));
+  await expect(hoja.getByTestId("ap-bank")).toContainText("Sin banco");
+  await deEfectivoATarjeta(hoja);
+  await expect(hoja.getByTestId("ap-bank")).toContainText("Sin banco");
+  expect(await guardaYMira(page, hoja, "Vuelta sin banco")).toEqual({ ent: null, cuenta: true, cajon: "cuenta" });
+});
+
+test("con reserva, de Efectivo a Tarjeta vuelve al banco del widget", async ({ page }) => {
+  const hoja = await abreApuntar(page, conSobre({ widgetBank: "caixabank", expenseBanks: ["caixabank", "efectivo"] }));
+  await deEfectivoATarjeta(hoja);
+  await expect(hoja.getByTestId("ap-bank")).toContainText("CaixaBank");
+  expect(await guardaYMira(page, hoja, "Vuelta a la reserva")).toEqual({ ent: "caixabank", cuenta: true, cajon: "cuenta" });
+});

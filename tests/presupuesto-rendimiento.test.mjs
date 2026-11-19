@@ -442,9 +442,10 @@ const PRESUPUESTO = {
   // el ocultado sin «Listo»), con el sello y la nota: 2.012.797 B minificado y 553.461 B gzip. Mismo mandato del 11/10: al mínimo
   // medido, 1966 / 541 KiB.
   // Ronda 242 (18/11): «Amortizar ahora» pasa a la ficha de la deuda (cierre al aplicarse y apagado con algo tecleado) y
-  // el banco de reserva de Apuntar: 2.013.657 B minificado y 553.663 B gzip. Mismo mandato del 11/10: el minificado, al
-  // mínimo medido, 1967 KiB; el gzip cabe en 541.
-  minificado: 1967 * 1024,
+  // el banco de reserva de Apuntar; con los arreglos de la revisión (P2, P3) y del filtro (por qué está apagado, importe
+  // con formato): 2.014.306 B minificado y 553.812 B gzip. Mismo mandato del 11/10: el minificado, al mínimo medido,
+  // 1968 KiB; el gzip cabe en 541.
+  minificado: 1968 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

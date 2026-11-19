@@ -447,6 +447,10 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
       disabled:tocado||save.pending||confirmPending,onClick:function(){
         onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
       }},t("v4_amort_now")),
+    // Apagado sin decir por qué parecía roto (filtro de diseño 242). Guardar y amortizar de un toque
+    // se descartó: Guardar puede pedir confirmación del plazo o rechazar la cuota, y amortizar sobre un
+    // borrador a medio validar es justo lo que hay que evitar.
+    onAmortize&&tocado&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first")),
     !recovery&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
@@ -548,6 +552,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
   const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
   const [showArchive,setShowArchive]=useState(false);
+  // El último estado pintado: amortizar comprueba contra él al confirmar, no contra el del toque.
+  const estadoRef=useRef(state); estadoRef.current=state;
   const [editingDebt,setEditingDebt]=useState(null);
   const [reviewDebt,setReviewDebt]=useState(null);
   const [dayFocus,setDayFocus]=useState(false);
@@ -647,6 +653,11 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     const amt=Math.min(rawAmt||0, bal);
     if(amt<=0) return false;
     const nb=+(bal-amt).toFixed(2);
+    /* La deuda pudo cambiar con el diálogo abierto (otro móvil, un pull): entonces `deudaAmortizada` no
+       aplica nada y aquí se decía «Amortizado» y se cerraba la ficha sin haber amortizado (revisión 242,
+       P3). Se mira contra el estado de AHORA, no el del pintado en que se abrió el diálogo. */
+    const viva=(estadoRef.current.debts||[]).find(function(x){ return x.id===d.id; });
+    if(!viva||deudaAmortizada(viva,bal,amt)===viva){ showToast(t("db_amortize_changed")); return false; }
     set(function(s){
       let changed=false;
       const debts=s.debts.map(function(x){
@@ -669,11 +680,14 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
         .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}]),
       // Lo que antes solo contaba el asesor (DIS-26): con el importe ya puesto, cuántas cuotas
-      // quita. Sin importe o sin plazo no hay cifra honesta que dar, y no se pinta nada.
+      // quita. Sin importe no hay cifra honesta que dar, y no se pinta nada. El campo enseña lo tecleado
+      // en crudo («2500»); aquí va con formato lo que de verdad se amortiza, ya topado al pendiente
+      // (filtro de diseño 242). En euros como el campo, no con eur(), que pasa a la moneda de pantalla.
       live:function(raw){
         const a=Math.min(parseFloat(String(raw).replace(',','.'))||0, bal);
-        const rc=a>0?amortRecorte(d,a):null;
-        return rc&&rc.cut>0?"📆 "+tf("db_amortize_cut",{n:rc.cut}):null;
+        if(!(a>0)) return null;
+        const rc=amortRecorte(d,a), cifra=NF.format(a)+" €";
+        return rc&&rc.cut>0?"📆 "+cifra+" · "+tf("db_amortize_cut",{n:rc.cut}):cifra;
       }
     }).then(function(raw){
       if(raw==null) return;

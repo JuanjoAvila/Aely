@@ -5196,8 +5196,12 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      (`catRuleKey`) y el mismo redondeo que hasta ahora (propuesta en la nota del 15/11). */
   /* Al salir de Efectivo se vuelve a un BANCO. Si el diario es el propio sobre, `dailyBankEnt` es
      "efectivo" y Tarjeta/Bizum se quedaban guardando efectivo con la píldora del banco escondida
-     (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno. */
-  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:(reservaBankEnt||bankOpts[0]||null);
+     (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno.
+     Solo uno cuyo gasto CUENTE (revisión 242, P2): sin cuenta diaria, `bankOpts[0]` podía ser un banco
+     fuera de `expenseBankEnts` y el gasto dejaba de sumar sin avisar. Sin cuenta diaria, la reserva
+     o ningún banco (sin banco sí suma); con el sobre de diario, el primero que cuente o ninguno. */
+  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:
+    dailyBankEnt?(bankOpts.find(function(b){ return expenseBankEnts(state).indexOf(b)>=0; })||null):reservaBankEnt;
   const onPayMode=function(m){
     if(m==="cash"){ setBank("efectivo"); setNc(false); }
     else { if(bank==="efectivo") setBank(cardBankEnt); setNc(m==="transfer"); }

@@ -194970,6 +194970,10 @@
       },
       {
         "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
         "function": "textSizeOf"
       },
       {
@@ -195003,10 +195007,6 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "widgetBankOf"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "function": "expenseBankEnts"
       },
       {
         "file": "src/modules/00-core.js",
