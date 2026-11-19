@@ -303,6 +303,7 @@ const steps = [
   ["onboarding", ["node", "tests/onboarding.test.mjs"]],
   ["expense-bank", ["node", "tests/expense-bank.test.mjs"]],
   ["apuntar-banco-reserva", ["node", "tests/apuntar-banco-reserva.test.mjs"]],
+  ["recibo-precio-descuento", ["node", "--test", "tests/recibo-precio-descuento.test.mjs"]],
   ["saldo-por-banco", ["node", "tests/saldo-por-banco.test.mjs"]],
   ["traspaso-abona-destino", ["node", "tests/traspaso-abona-destino.test.mjs"]],
   ["ingresos-como-recibos", ["node", "tests/ingresos-como-recibos.test.mjs"]],

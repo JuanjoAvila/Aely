@@ -1142,7 +1142,21 @@
   .pr6-row .dt .d{font-size:22px;}
   .pr6-row .dt .m{font-size:11.5px;letter-spacing:1px;color:var(--muted);}
   .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
-  .pr6-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Nada cortado (gate-240, D-03): «Seguro …» o «Comuni…» no decían qué recibo era, y con letra
+     Enorme a 360 la elipsis se comía casi todos. El nombre parte en renglones (entre palabras; solo
+     una palabra que no cabe sola se parte). */
+  .pr6-nm{min-width:0;overflow-wrap:break-word;}
+  /* Con Enorme en un móvil estrecho, partir no basta: el importe se quedaba ~40 % de la fila y el
+     nombre bajaba a nueve renglones. La rejilla de «Próximos cargos» de Inicio: el nombre ocupa todo
+     el ancho y el importe (con su «cuándo») baja a la línea gris, a la derecha. */
+  @media (max-width:430px){
+    html.hugetext .pr6-sec .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
+    html.hugetext .pr6-sec .v4-charge > :first-child{grid-row:1 / span 2;}
+    html.hugetext .pr6-sec .v4-charge > .nm{display:contents;}
+    html.hugetext .pr6-sec .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
+    html.hugetext .pr6-sec .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;}
+    html.hugetext .pr6-sec .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+  }
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
   /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
      renglón parte ENTRE trozos (`mcTrozos`, también en Cartera); cada trozo corto va entero. */
