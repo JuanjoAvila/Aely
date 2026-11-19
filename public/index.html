@@ -6470,6 +6470,35 @@ function subirGasto(e, donde){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
 }
+/* La primera subida del histórico (nada en la nube: móvil nuevo o cuenta recién creada) iba fila a
+   fila: 20.000 gastos eran 20.000 peticiones, cada una con su sesión. Ahora va en lotes por
+   `addExpensesBatch`, el mismo alta idempotente (ignoreDuplicates sobre la terna) que ya usa el
+   importador del histórico, uno detrás de otro para no saturar la conexión del móvil. Los cargos de
+   recibo siguen sueltos por `subirGasto`: son los únicos que, si la fila ya estaba, tienen que
+   ponerle la marca (`setExpenseRecibo`).
+   Un lote que falla por el SERVIDOR se repite fila a fila: el upsert es una sola sentencia y una fila
+   mala (el `23505` de una edición cuya fila vieja sigue en la nube) tumbaba las 500, en cada pull y
+   para siempre, porque la mala no sale nunca del repaso (rev. de la ronda E1: 700 de 1.199 subidos).
+   Sin red no: 500 peticiones fallando no ganan nada; se apunta una vez y lo reintenta el pull. */
+const GASTOS_POR_LOTE=500;
+function subirGastosEnLotes(list, donde){
+  if(!cloud.enabled()) return Promise.resolve();
+  const sueltos=[], lote=[];
+  (list||[]).forEach(function(e){ if(e) (e.reciboId||!cloud.addExpensesBatch ? sueltos : lote).push(e); });
+  // Uno solo no gana nada con el lote y `subirGasto` es el camino de siempre.
+  if(lote.length===1) sueltos.push(lote.pop());
+  const ps=sueltos.map(function(e){ return subirGasto(e, donde); });
+  let cadena=Promise.resolve();
+  for(let i=0;i<lote.length;i+=GASTOS_POR_LOTE){
+    const trozo=lote.slice(i,i+GASTOS_POR_LOTE);
+    cadena=cadena.then(function(){ return cloud.addExpensesBatch(trozo); }).then(null, function(err){
+      // «addExpense <origen>:» para que Actividad lo clasifique con su código y su origen.
+      if(renameFalloDeRed(err)){ cloud.logEvent("error","addExpense "+(donde||"?")+": lote de "+trozo.length, _errCloudMsg(err)); return; }
+      return Promise.all(trozo.map(function(e){ return subirGasto(e, donde); }));
+    });
+  }
+  return Promise.all(ps.concat([cadena]));
+}
 // → true si la nube lo borró (o no hay nube); false si falló: quien encadena un alta lo mira.
 function borrarGastoNube(e, donde){
   if(!cloud.enabled()) return Promise.resolve(true);
@@ -10026,7 +10055,7 @@ Object.assign(LANG.es,{
   /* Antes esto era el aviso de un BLOQUEO. Desde el 2026-08-01 TR sí se puede conectar aquí y las
      dos integraciones conviven, así que el texto explica el reparto en vez de cerrar la puerta. */
   bp_tr_ob:"suma tus movimientos (el saldo lo sigue dando el bróker)",
-  bank_syncfail:"No pude leer el saldo ahora. No reconectes: vuelve a intentarlo más tarde", bank_sync_sin_nube:"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento", bank_none:"No tienes ningún banco conectado",
+  bank_syncfail:"No pude leer el saldo ahora. No reconectes: vuelve a intentarlo más tarde", bank_sync_sin_nube:"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento", bank_none:"No tienes ningún banco conectado", bank_sync_ya:"Ya se están leyendo tus bancos",
   bank_syncsoft:"{bank}: el banco no respondió ahora. No hace falta reconectar; inténtalo más tarde",
   // Resultado de «↻ Sincronizar bancos» (2026-07-26). Antes salía «🏦 CaixaBank: 1.234,56 €»:
   // un número suelto sin decir qué había pasado, que además solo enseñaba el PRIMER banco aunque
@@ -13288,7 +13317,9 @@ function netWorthDebtPolicy(state, today, current){
     // Una fecha de referencia explícita no pone la deuda a cero antes: con una hipoteca sellada
     // al darla de alta inflaría el patrimonio anterior en todo su principal (revisión 13/10).
     // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
-    const p=day.split("-").map(Number), charge=debtChargeDay(d);
+    // El día de cuota de CADA mes (un 31 cobra el 30 en noviembre), como `debtCuotasDesdeAncla`:
+    // si no, el último punto no sería el saldo que pinta la app (DIN-05).
+    const p=day.split("-").map(Number), charge=debtChargeDay(d,parts[0],parts[1]), chargeP=debtChargeDay(d,p[0],p[1]);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
     // Las altas nuevas acreditan el día real, distinto de la primera cuota. Las anteriores
     // sólo conocen el mes; asOf también se migra/reancla y nunca acredita el nacimiento.
@@ -13298,7 +13329,7 @@ function netWorthDebtPolicy(state, today, current){
       if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
     }
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
-    const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));
+    const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(chargeP<=p[2]?1:0));
     let n=paidToday-between;
     // Con plazo, antes de la primera cuota del mes inicial se debe el saldo ancla.
     // Sin plazo, la hipoteca o el préstamo existían ya; sin cuota o liquidada, se mantiene.
@@ -15469,7 +15500,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       // Con «Lo descuento» la cuota es la tuya entera, como en Plan (pagas 197 € + 53 € del recibo).
       const desc=deudaDescuentoMes(state,d,tt.curYear,cm,today).amt, q=debtCuotaIn(d,tt.curYear,cm);
-      rows.push({rid:"debt_"+d.id, day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
+      rows.push({rid:"debt_"+d.id, day:debtChargeDay(d,tt.curYear,cm), name:d.name, sub:t("fj_debt_tag"), amount:desc>0?Math.round((q+desc)*100)/100:q, pos:false});
     });
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
@@ -23063,6 +23094,11 @@ const occAmount=(e)=> occAmountIn(e, chargeMonths(e)[0]||(new Date().getMonth()+
 const accOf=(e)=> e.account||"sabadell";
 // día válido (1-31) o null — global para que lo usen Fijos y Deudas
 const cleanDay=(v)=>{ const n=parseInt(String(v),10); return (n>=1&&n<=31)?n:null; };
+// Un día que el mes no tiene (31 en noviembre, 30 en febrero) es su último día: el banco cobra ahí.
+// `dayIn` ya recortaba los recibos; las cuotas y las nóminas/traspasos no, y una
+// hipoteca del 31 no vencía en todo noviembre ni restaba del saldo hasta cerrar el mes (DIN-05).
+// Sin año o con un día imposible se devuelve tal cual, como `dayIn`.
+function diaDelMes(d,y,m){ const n=cleanDay(d); if(n==null||n!==Number(d)||!y||!(m>=1&&m<=12)) return d; const fin=new Date(y,m,0).getDate(); return n>fin?fin:n; }
 // día del cobro en el mes m (schedule tiene su propio día por cobro)
 // Un «día 31» en un mes de 30 es el último día de ese mes: el banco lo cobra ahí. Sin recortarlo
 // salía «31 NOV», «en 22 días» y no vencía nunca, así que tampoco restaba del saldo (auditoría 9/11, P1-5).
@@ -23083,8 +23119,9 @@ function dayIn(e,m,y){
 const dayOf=(e)=> (e&&e.day)||null;
 // Deudas sin día explícito: día 1 (entran en el motor de líquido como los fijos; antes quedaban
 // fuera hasta cerrar mes — bug #2 «deuda no dinámica»).
-function debtChargeDay(d){ const dd=dayOf(d); return (dd!=null && dd>0) ? dd : 1; }
-function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,today).paid || debtChargeDay(d)<=today; }
+// Con año y mes, el día de ESE mes (`diaDelMes`); sin ellos, el guardado (la ficha lo edita tal cual).
+function debtChargeDay(d,y,m){ const dd=dayOf(d), n=(dd!=null && dd>0) ? dd : 1; return y ? diaDelMes(n,y,m) : n; }
+function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,today).paid || debtChargeDay(d,y,m)<=today; }
 // ¿ya se cobró en el mes m? (su día ya pasó o ES HOY). Solo tiene sentido para el mes actual.
 // `<=`: lo programado para HOY cuenta como hecho. Clave para no duplicar la nómina/cargos del día
 // con el saldo real del banco (que ya los refleja) → si no, fin de mes los sumaría por segunda vez.
@@ -23336,7 +23373,7 @@ const hasSchedule=(e)=> !!(e&&e.schedule&&e.schedule.length);
 function firstWorkDom(y,m){ for(let d=1;d<=7;d++){ const wd=new Date(y,m-1,d).getDay(); if(wd!==0 && wd!==6) return d; } return 1; }
 function lastWorkDom(y,m){ const last=new Date(y,m,0).getDate(); for(let d=last;d>=1;d--){ const wd=new Date(y,m-1,d).getDay(); if(wd!==0 && wd!==6) return d; } return last; }
 // día efectivo de un movimiento recurrente según su regla (`when`) o su día fijo
-function flowDay(f,y,m){ if(f.when==="last") return lastWorkDom(y,m); if(f.when==="first") return firstWorkDom(y,m); return f.day||null; }
+function flowDay(f,y,m){ if(f.when==="last") return lastWorkDom(y,m); if(f.when==="first") return firstWorkDom(y,m); return diaDelMes(f.day||null,y,m); }
 const flowPaid=(f,y,m,today)=>{ const d=flowDay(f,y,m); return d!=null && d<=today; };
 // Movimientos recurrentes (nómina/transferencias): por defecto cada mes salvo que tengan months
 const flowMonths=(f)=> (f&&f.months&&f.months.length)?f.months:[1,2,3,4,5,6,7,8,9,10,11,12];
@@ -23369,7 +23406,7 @@ function debtPaidCount(d){ const n=debtCuotasDesdeAncla(d); return d.months!=nul
 /* Lo mismo SIN tope: las cuotas que han vencido desde el ancla. Lo usan solo editar y amortizar, que
    re-anclan una deuda ya vencida con saldo (dato heredado) contando desde hoy: con el tope, el plazo
    nuevo quedaba antes de hoy y la deuda no volvía a cobrar nunca. */
-function debtCuotasDesdeAncla(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+function debtCuotasDesdeAncla(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const hoy=madridYmdParts(Date.now()), dd=debtChargeDay(d,hoy.y,hoy.m); if(dd<=hoy.d) n+=1; } return n; }
 /* LA ÚLTIMA CUOTA SE LLEVA EL REDONDEO (revisión externa 15/11/2026). La cuota se guarda redondeada al
    céntimo y se cobraba igual los n meses: 600,03 en 12 sumaba 600,00 y dejaba 0,03 debidos para
    siempre; 1.199,99 en 7 cobraba 1.200,01. En céntimos, la última amortiza lo que falta: principal
@@ -23457,7 +23494,7 @@ function monthNetForAccount(s, ent, y, m, t){
   let net=0;
   // El recibo, con la regla compartida con «¿Te llega?» (`fixedRestaDelSaldo`).
   (s.fixed||[]).forEach(function(e){ if(accOf(e)===ent && fixedRestaDelSaldo(s,e,y,m,t,bp)) net -= occAmountIn(e,m,y); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d,y,m))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.
   (s.flows||[]).forEach(function(f){
@@ -23992,7 +24029,7 @@ function fixedPaymentContenders(s,y,m){
   return (s.fixed||[]).filter(function(f){ return occursIn(f,m,y); }).map(function(f){
     return fixedPaymentContender(f,y,m);
   }).concat((s.debts||[]).filter(function(d){ return debtActive(d)||debtUltimaCuotaEn(d,y,m); }).map(function(d){
-    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d)),debt:d};
+    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m),day:diaDelMes(cleanDay(dayOf(d)),y,m),debt:d};
   }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
     return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount,day:cleanDay(o.day)};
   }));
@@ -24724,7 +24761,9 @@ function fixedPaymentState(s,e,y,m,today){
    la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el
    saldo ni el principal: el banco ya incluye el pago (feedback 2/10/2026). */
 function debtPaymentState(s,d,y,m,today){
-  var day=cleanDay(dayOf(d)),target=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
+  // El día de ESE mes (`diaDelMes`, DIN-05): con el 31 sin recortar, el 30 de noviembre la cuota
+  // seguía «por venir» aquí mientras el saldo ya la restaba, y «¿Te llega?» la quitaba dos veces.
+  var day=diaDelMes(cleanDay(dayOf(d)),y,m),target=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
   var unique=!!d.id&&(s.debts||[]).filter(function(other){ return other.id===d.id; }).length===1;
   var deleted=expenseDeletedSet(s),end=new Date(y,m-1,today,23,59,59).getTime();
   var rows=(s.expenses||[]).filter(function(x){
@@ -25388,10 +25427,19 @@ function debenAliasDe(s,pid){
   }
   return idx.get(String(pid))||[];
 }
-// Tu propio nombre (dos palabras del titular del perfil, o «yo mismo…»): la misma regla de `teDebenRecibido`.
+/* ¿El texto nombra al titular? Dos palabras de su nombre que no son de la persona (`suyas`) Y, entre
+   ellas, su nombre de pila (la primera de `fullName`). Solo con los apellidos es un hermano o una
+   hermana: «BIZUM DE LAURA <tus dos apellidos>» se daba por dinero tuyo y Laura no pagaba nunca
+   (DIN-06, rev. de «Te deben» de la 228). Si la pila es también de la persona, la regla de antes. */
+function debenTitularEn(titular,suyas,txt){
+  const en=function(w){ return (suyas||[]).indexOf(w)<0&&txt.indexOf(" "+w+" ")>=0; };
+  if(titular.filter(en).length<2) return false;
+  return !titular.length||(suyas||[]).indexOf(titular[0])>=0||en(titular[0]);
+}
+// Tu propio nombre (dos palabras del titular del perfil, con la pila, o «yo mismo…»): la misma regla de `teDebenRecibido`.
 function debenEsTitular(s,txt){
   const titular=recNorm(s&&s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
-  return DEBEN_PROPIO.test(txt)||titular.filter(function(w){ return txt.indexOf(" "+w+" ")>=0; }).length>=2;
+  return DEBEN_PROPIO.test(txt)||debenTitularEn(titular,null,txt);
 }
 function debenAliasValido(s,a){ const w=String(a||"").split(" ").filter(Boolean); return w.length>=2&&!TRASPASO_PALABRA.test(" "+a+" ")&&!/ bizum /.test(" "+a+" ")&&debenPersonaFisica(a)&&!debenEsTitular(s," "+a+" "); }
 function debenAprenderAlias(s,pid,x,on,ahora){
@@ -25439,14 +25487,14 @@ function teDebenRecibido(s,y,m,personas,today){
     // Lo que coge sola, con el mismo filtro del titular que el camino normal: dos palabras de tu nombre
     // que no son de la persona = dinero tuyo (re-revisión de la 231). Lo que él enlaza a mano, lo dijo él.
     const wa=a&&debenNombre(p.n), ta=a&&" "+recNorm([a.merchant,a.obName,a.concept,a.note].join(" "))+" ";
-    const suyo=a&&titular.filter(function(k){ return (wa||[]).indexOf(k)<0&&ta.indexOf(" "+k+" ")>=0; }).length>=2;
+    const suyo=a&&debenTitularEn(titular,wa,ta);
     if(a&&!suyo&&debenNombra(s,p,a,personas)&&delMes(a)&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
   });
   Object.keys(forz).forEach(function(id){
     const z=forz[id], e=z.row, ms=_pdMs(String(e.date||"").trim());
     if(!isFinite(ms)||!(Number(e.amount)<0)||expenseIsTombstoned(e,deleted)) return;
     const d=new Date(ms), txt=" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ";
-    (cand[z.pid]=cand[z.pid]||[]).push({id:id,c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),via:/ bizum /.test(txt)?"bizum":"transfer",mano:z.mano});
+    (cand[z.pid]=cand[z.pid]||[]).push({id:id,c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),src:String(e.source||"").split(":")[0],via:/ bizum /.test(txt)?"bizum":"transfer",mano:z.mano});
   });
   (s.expenses||[]).forEach(function(e){
     if(!e||e.id==null||forz[String(e.id)]||!e.date||!(Number(e.amount)<0)||e.possibleDup||e.category==="traspaso"||e.reciboId||e.debtId||e.goalId||deEntrada.has(String(e.id))) return;
@@ -25460,9 +25508,9 @@ function teDebenRecibido(s,y,m,personas,today){
     const quien=nombres.filter(function(x){ return debenNombra(s,x.p,e,personas); });
     if(quien.length!==1) return;
     const suyas=quien[0].w;
-    if(titular.filter(function(w){ return suyas.indexOf(w)<0&&txt.indexOf(" "+w+" ")>=0; }).length>=2) return;
+    if(debenTitularEn(titular,suyas,txt)) return;
     const pid=quien[0].p.id;
-    (cand[pid]=cand[pid]||[]).push({id:String(e.id),c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),via:/ bizum /.test(txt)?"bizum":"transfer"});
+    (cand[pid]=cand[pid]||[]).push({id:String(e.id),c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),src:String(e.source||"").split(":")[0],via:/ bizum /.test(txt)?"bizum":"transfer"});
   });
   const pids=Object.keys(cand);
   if(!pids.length) return {};
@@ -25472,7 +25520,9 @@ function teDebenRecibido(s,y,m,personas,today){
   const salidas={};
   pids.forEach(function(pid){ cand[pid].forEach(function(x){ salidas[x.c]=salidas[x.c]||[]; }); });
   (s.expenses||[]).forEach(function(e){
-    if(!e||!(Number(e.amount)>0)) return;
+    /* Un cargo que ya es de un recibo, una deuda o una meta (el alquiler por transferencia) es un pago
+       a otro, no la pata de un traspaso tuyo: tapaba el Bizum del mismo importe de una persona (DIN-06). */
+    if(!e||!(Number(e.amount)>0)||e.reciboId||e.debtId||e.goalId) return;
     const c=Math.round(Number(e.amount)*100);
     if(!salidas[c]||e.category!=="traspaso"&&!/ (transferencia|transferencias|transfer|traspaso|traspasos|transf) /.test(" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ")) return;
     const ms=_pdMs(String(e.date||"").trim());
@@ -25487,7 +25537,10 @@ function teDebenRecibido(s,y,m,personas,today){
       if(p.veto[x.id]||x.c*2<minParte||c+x.c>tope) return;
       // Lo que él enlazó a la entrada gemela lo dijo él: no se le discute por una salida parecida.
       if(!x.mano&&salidas[x.c].some(function(o){ return o.ent!==x.ent&&Math.abs(o.d-x.d)<=2; })) return;
-      if(ok.some(function(v){ return v.c===x.c&&v.banco!==x.banco&&Math.abs(v.ms-x.ms)<=3*864e5; })) return;
+      /* El mismo ingreso por dos caminos: la fila del banco y un aviso, o dos avisos de canales distintos
+         (la noti del banco y la de Wallet). Dos del MISMO canal son dos pagos de verdad (los de TR llegan
+         así). Antes dos avisos de canales distintos sumaban dos veces hasta que llegaba el banco (DIN-06). */
+      if(ok.some(function(v){ return v.c===x.c&&(v.banco!==x.banco||!v.banco&&!x.banco&&v.src!==x.src)&&Math.abs(v.ms-x.ms)<=3*864e5; })) return;
       ok.push(x); c+=x.c;
     });
     if(c>0){ const ult=ok[ok.length-1]; out[p.id]={c:c,dia:ult.dia,via:ult.via,ids:ok.map(function(x){ return x.id; })}; }
@@ -26427,7 +26480,7 @@ function reconcileBank(state, y, m, today){
   // cargos modelados de este mes por entidad
   const modeled=[];
   (state.fixed||[]).forEach(function(e){ const ent=accOf(e); if(!obEnts[ent]||!occursIn(e,m,y)) return; const amt=occAmountIn(e,m,y),day=dayIn(e,m,y); if(amt<=0) return; modeled.push({name:e.name,amount:amt,day:day,ent:ent,id:e.id,kind:"fixed",bankAmount:(typeof e.bankAmount==="number"?e.bankAmount:null)}); if(feedCovers(ent,day)) res.covered[e.id]=1; });
-  (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:d.day||null,ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
+  (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:diaDelMes(d.day||null,y,m),ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
   (state.oneoffs||[]).forEach(function(o){ const ent=o.account||"sabadell"; if(!obEnts[ent]||!oneoffOccurs(o,y,m)||(o.amount||0)<=0) return; modeled.push({name:o.name||"Cargo",amount:o.amount,day:o.day||null,ent:ent,id:o.id,kind:"oneoff",bankAmount:(typeof o.bankAmount==="number"?o.bankAmount:null)}); });
 
   const debits=month.filter(function(t){ return (t.amount||0)>0; }).map(function(t){ return Object.assign({},t,{_used:false}); });
@@ -35006,7 +35059,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="ff1857ca60358d978975d883a02c7c3292571e554af5250b101966189973885e";
+var _rnSha="c0d957091d4eeadab810fc9dbfb269fdb1121f024e8fb1901fc3fea990f056f9";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -43138,6 +43191,7 @@ function App(){
     notifyGoalConflicts();
   },[state._goalSync,uid]);
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
+  const bankSyncEnCurso=useRef(null);       // la promesa de esa lectura, para quien pulse a la vez
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
   /* Las reglas mensuales de Metas se aplican al guardarlas; esto asienta el MES EN CURSO al abrir
@@ -43277,7 +43331,10 @@ function App(){
       // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
       // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
       // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableRenames[renameCoverageKey(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
+      // En lotes (`subirGastosEnLotes`): la primera vez, sin nada en la nube, es el histórico entero.
+      const backfill=[];
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableRenames[renameCoverageKey(e)] && !expenseIsTombstoned(e, delSet)) backfill.push(e); });
+      subirGastosEnLotes(backfill, "backfill");
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -43626,7 +43683,14 @@ function App(){
   const avisaSync=function(opts,m){ if(String(m).charAt(0)==="⚠") avisoSync.current=m; if(opts&&opts.collect) opts.collect.push(m); else showToast(m); };
   const runBankSync=function(opts){
     opts=opts||{};
-    if(!cloud.enabled() || !sessionRef.current || bankSyncing.current) return Promise.resolve();
+    if(!cloud.enabled() || !sessionRef.current) return Promise.resolve();
+    /* Pulsar «Actualizar» con la lectura sola de al entrar aún en marcha no hacía nada y no decía
+       nada (F-10): parecía que el botón no iba. Se avisa al momento y se espera a esa misma lectura,
+       sin lanzar otra encima (los bancos leen dos seguidas como un bot). */
+    if(bankSyncing.current){
+      if(opts.manual) showToast(t("bank_sync_ya"));
+      return bankSyncEnCurso.current||Promise.resolve();
+    }
     bankSyncing.current=true; avisoSync.current=null;
     /* Las filas de `bank_links` en crudo, EN PARALELO al sync. Hacen falta porque el sync no ve
        los enlaces `pending` (la Edge solo consulta active/expired/error), y un banco que se quedó
@@ -43647,7 +43711,7 @@ function App(){
       return syncCloudExpenses().then(function(){ pullOkRef.current=Promise.resolve(true); return true; },
         function(){ return false; });
     });
-    return nubeLista.then(function(ok){
+    const enCurso=nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
       /* ACUSE (12/10). El servidor movía su cursor al LEER del banco: si la respuesta no llegaba
          al móvil, ese trozo no se volvía a pedir nunca. Ahora cada respuesta trae el cursor que
@@ -43850,6 +43914,8 @@ function App(){
          de conectar, que es cuando la fila acaba de nacer. */
       try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
     });
+    bankSyncEnCurso.current=enCurso;
+    return enCurso;
   };
   /* EL ACUSE SE GUARDA DETRÁS DE SUS FILAS, NUNCA DELANTE. Aquí el estado que las lleva ya está
      comprometido (su `lastBankSync` es la marca de esa respuesta) y el guardado lo tiene
@@ -45586,7 +45652,7 @@ function App(){
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
-      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d)};
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d,cy,cm)};
       c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
@@ -45642,7 +45708,7 @@ function App(){
       (state.debts||[]).forEach(function(d){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
-        if(debtChargeDay(d)-today!==1) return;
+        if(debtChargeDay(d,cy,cm)-today!==1) return;
         const msg=messageOf("debt_"+d.id,d.name,debtCuotaIn(d,cy,cm));
         notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });

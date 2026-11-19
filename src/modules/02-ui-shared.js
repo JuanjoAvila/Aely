@@ -1291,7 +1291,9 @@ function netWorthDebtPolicy(state, today, current){
     // Una fecha de referencia explícita no pone la deuda a cero antes: con una hipoteca sellada
     // al darla de alta inflaría el patrimonio anterior en todo su principal (revisión 13/10).
     // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
-    const p=day.split("-").map(Number), charge=debtChargeDay(d);
+    // El día de cuota de CADA mes (un 31 cobra el 30 en noviembre), como `debtCuotasDesdeAncla`:
+    // si no, el último punto no sería el saldo que pinta la app (DIN-05).
+    const p=day.split("-").map(Number), charge=debtChargeDay(d,parts[0],parts[1]), chargeP=debtChargeDay(d,p[0],p[1]);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
     // Las altas nuevas acreditan el día real, distinto de la primera cuota. Las anteriores
     // sólo conocen el mes; asOf también se migra/reancla y nunca acredita el nacimiento.
@@ -1301,7 +1303,7 @@ function netWorthDebtPolicy(state, today, current){
       if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
     }
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
-    const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));
+    const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(chargeP<=p[2]?1:0));
     let n=paidToday-between;
     // Con plazo, antes de la primera cuota del mes inicial se debe el saldo ancla.
     // Sin plazo, la hipoteca o el préstamo existían ya; sin cuota o liquidada, se mantiene.

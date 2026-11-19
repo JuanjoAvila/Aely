@@ -734,6 +734,11 @@ const occAmount=(e)=> occAmountIn(e, chargeMonths(e)[0]||(new Date().getMonth()+
 const accOf=(e)=> e.account||"sabadell";
 // día válido (1-31) o null — global para que lo usen Fijos y Deudas
 const cleanDay=(v)=>{ const n=parseInt(String(v),10); return (n>=1&&n<=31)?n:null; };
+// Un día que el mes no tiene (31 en noviembre, 30 en febrero) es su último día: el banco cobra ahí.
+// `dayIn` ya recortaba los recibos; las cuotas y las nóminas/traspasos no, y una
+// hipoteca del 31 no vencía en todo noviembre ni restaba del saldo hasta cerrar el mes (DIN-05).
+// Sin año o con un día imposible se devuelve tal cual, como `dayIn`.
+function diaDelMes(d,y,m){ const n=cleanDay(d); if(n==null||n!==Number(d)||!y||!(m>=1&&m<=12)) return d; const fin=new Date(y,m,0).getDate(); return n>fin?fin:n; }
 // día del cobro en el mes m (schedule tiene su propio día por cobro)
 // Un «día 31» en un mes de 30 es el último día de ese mes: el banco lo cobra ahí. Sin recortarlo
 // salía «31 NOV», «en 22 días» y no vencía nunca, así que tampoco restaba del saldo (auditoría 9/11, P1-5).
@@ -754,8 +759,9 @@ function dayIn(e,m,y){
 const dayOf=(e)=> (e&&e.day)||null;
 // Deudas sin día explícito: día 1 (entran en el motor de líquido como los fijos; antes quedaban
 // fuera hasta cerrar mes — bug #2 «deuda no dinámica»).
-function debtChargeDay(d){ const dd=dayOf(d); return (dd!=null && dd>0) ? dd : 1; }
-function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,today).paid || debtChargeDay(d)<=today; }
+// Con año y mes, el día de ESE mes (`diaDelMes`); sin ellos, el guardado (la ficha lo edita tal cual).
+function debtChargeDay(d,y,m){ const dd=dayOf(d), n=(dd!=null && dd>0) ? dd : 1; return y ? diaDelMes(n,y,m) : n; }
+function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,today).paid || debtChargeDay(d,y,m)<=today; }
 // ¿ya se cobró en el mes m? (su día ya pasó o ES HOY). Solo tiene sentido para el mes actual.
 // `<=`: lo programado para HOY cuenta como hecho. Clave para no duplicar la nómina/cargos del día
 // con el saldo real del banco (que ya los refleja) → si no, fin de mes los sumaría por segunda vez.
@@ -1007,7 +1013,7 @@ const hasSchedule=(e)=> !!(e&&e.schedule&&e.schedule.length);
 function firstWorkDom(y,m){ for(let d=1;d<=7;d++){ const wd=new Date(y,m-1,d).getDay(); if(wd!==0 && wd!==6) return d; } return 1; }
 function lastWorkDom(y,m){ const last=new Date(y,m,0).getDate(); for(let d=last;d>=1;d--){ const wd=new Date(y,m-1,d).getDay(); if(wd!==0 && wd!==6) return d; } return last; }
 // día efectivo de un movimiento recurrente según su regla (`when`) o su día fijo
-function flowDay(f,y,m){ if(f.when==="last") return lastWorkDom(y,m); if(f.when==="first") return firstWorkDom(y,m); return f.day||null; }
+function flowDay(f,y,m){ if(f.when==="last") return lastWorkDom(y,m); if(f.when==="first") return firstWorkDom(y,m); return diaDelMes(f.day||null,y,m); }
 const flowPaid=(f,y,m,today)=>{ const d=flowDay(f,y,m); return d!=null && d<=today; };
 // Movimientos recurrentes (nómina/transferencias): por defecto cada mes salvo que tengan months
 const flowMonths=(f)=> (f&&f.months&&f.months.length)?f.months:[1,2,3,4,5,6,7,8,9,10,11,12];
@@ -1040,7 +1046,7 @@ function debtPaidCount(d){ const n=debtCuotasDesdeAncla(d); return d.months!=nul
 /* Lo mismo SIN tope: las cuotas que han vencido desde el ancla. Lo usan solo editar y amortizar, que
    re-anclan una deuda ya vencida con saldo (dato heredado) contando desde hoy: con el tope, el plazo
    nuevo quedaba antes de hoy y la deuda no volvía a cobrar nunca. */
-function debtCuotasDesdeAncla(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const dd=debtChargeDay(d); if(dd<=madridYmdParts(Date.now()).d) n+=1; } return n; }
+function debtCuotasDesdeAncla(d){ const anchor=(typeof d.asOf==="number")?d.asOf:ymNow(); if(anchor>ymNow()) return 0; let n=Math.max(0, ymNow()-anchor); if(d.months!=null){ const hoy=madridYmdParts(Date.now()), dd=debtChargeDay(d,hoy.y,hoy.m); if(dd<=hoy.d) n+=1; } return n; }
 /* LA ÚLTIMA CUOTA SE LLEVA EL REDONDEO (revisión externa 15/11/2026). La cuota se guarda redondeada al
    céntimo y se cobraba igual los n meses: 600,03 en 12 sumaba 600,00 y dejaba 0,03 debidos para
    siempre; 1.199,99 en 7 cobraba 1.200,01. En céntimos, la última amortiza lo que falta: principal
@@ -1128,7 +1134,7 @@ function monthNetForAccount(s, ent, y, m, t){
   let net=0;
   // El recibo, con la regla compartida con «¿Te llega?» (`fixedRestaDelSaldo`).
   (s.fixed||[]).forEach(function(e){ if(accOf(e)===ent && fixedRestaDelSaldo(s,e,y,m,t,bp)) net -= occAmountIn(e,m,y); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d,y,m))) net -= debtCuotaIn(d,y,m) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   // El traspaso sale el día previsto; al destino llega ese día, o antes si su banco ya lo trajo.
   (s.flows||[]).forEach(function(f){

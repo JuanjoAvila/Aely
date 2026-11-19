@@ -596,6 +596,7 @@ function App(){
     notifyGoalConflicts();
   },[state._goalSync,uid]);
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
+  const bankSyncEnCurso=useRef(null);       // la promesa de esa lectura, para quien pulse a la vez
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
   /* Las reglas mensuales de Metas se aplican al guardarlas; esto asienta el MES EN CURSO al abrir
@@ -735,7 +736,10 @@ function App(){
       // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
       // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
       // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableRenames[renameCoverageKey(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
+      // En lotes (`subirGastosEnLotes`): la primera vez, sin nada en la nube, es el histórico entero.
+      const backfill=[];
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableRenames[renameCoverageKey(e)] && !expenseIsTombstoned(e, delSet)) backfill.push(e); });
+      subirGastosEnLotes(backfill, "backfill");
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -1084,7 +1088,14 @@ function App(){
   const avisaSync=function(opts,m){ if(String(m).charAt(0)==="⚠") avisoSync.current=m; if(opts&&opts.collect) opts.collect.push(m); else showToast(m); };
   const runBankSync=function(opts){
     opts=opts||{};
-    if(!cloud.enabled() || !sessionRef.current || bankSyncing.current) return Promise.resolve();
+    if(!cloud.enabled() || !sessionRef.current) return Promise.resolve();
+    /* Pulsar «Actualizar» con la lectura sola de al entrar aún en marcha no hacía nada y no decía
+       nada (F-10): parecía que el botón no iba. Se avisa al momento y se espera a esa misma lectura,
+       sin lanzar otra encima (los bancos leen dos seguidas como un bot). */
+    if(bankSyncing.current){
+      if(opts.manual) showToast(t("bank_sync_ya"));
+      return bankSyncEnCurso.current||Promise.resolve();
+    }
     bankSyncing.current=true; avisoSync.current=null;
     /* Las filas de `bank_links` en crudo, EN PARALELO al sync. Hacen falta porque el sync no ve
        los enlaces `pending` (la Edge solo consulta active/expired/error), y un banco que se quedó
@@ -1105,7 +1116,7 @@ function App(){
       return syncCloudExpenses().then(function(){ pullOkRef.current=Promise.resolve(true); return true; },
         function(){ return false; });
     });
-    return nubeLista.then(function(ok){
+    const enCurso=nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
       /* ACUSE (12/10). El servidor movía su cursor al LEER del banco: si la respuesta no llegaba
          al móvil, ese trozo no se volvía a pedir nunca. Ahora cada respuesta trae el cursor que
@@ -1308,6 +1319,8 @@ function App(){
          de conectar, que es cuando la fila acaba de nacer. */
       try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
     });
+    bankSyncEnCurso.current=enCurso;
+    return enCurso;
   };
   /* EL ACUSE SE GUARDA DETRÁS DE SUS FILAS, NUNCA DELANTE. Aquí el estado que las lleva ya está
      comprometido (su `lastBankSync` es la marca de esa respuesta) y el guardado lo tiene
@@ -3044,7 +3057,7 @@ function App(){
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
-      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d)};
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d,cy,cm)};
       c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
@@ -3100,7 +3113,7 @@ function App(){
       (state.debts||[]).forEach(function(d){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
-        if(debtChargeDay(d)-today!==1) return;
+        if(debtChargeDay(d,cy,cm)-today!==1) return;
         const msg=messageOf("debt_"+d.id,d.name,debtCuotaIn(d,cy,cm));
         notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });

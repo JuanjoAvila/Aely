@@ -515,7 +515,10 @@ const PRESUPUESTO = {
   // D1 tras la pasada 3 del filtro: TR, MyInvestor y el CSV de Revolut pasan a filas con ficha, el ✓ sale del estado
   // real y «Otro banco» crece animado. Se fueron `bkBrand`, las tarjetas y sus colores, y aun así suma: 2.073.207 B
   // minificado y 571.076 B gzip. Al mínimo medido: 2025 / 558 KiB.
-  minificado: 2025 * 1024,
+  // Ronda E1 de dinero (19/11, sin sello ni nota): el día 31 en los meses cortos, «Te deben» con sus tres
+  // remates, la primera subida del histórico en lotes y el aviso de «Actualizar» con una lectura en marcha.
+  // Lógica de dinero (mandato 11/10): el minificado sube al mínimo medido, 2017 KiB; el gzip cabe en 556.
+  minificado: 2017 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

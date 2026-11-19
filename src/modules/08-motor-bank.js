@@ -518,7 +518,7 @@ function fixedPaymentContenders(s,y,m){
   return (s.fixed||[]).filter(function(f){ return occursIn(f,m,y); }).map(function(f){
     return fixedPaymentContender(f,y,m);
   }).concat((s.debts||[]).filter(function(d){ return debtActive(d)||debtUltimaCuotaEn(d,y,m); }).map(function(d){
-    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d)),debt:d};
+    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m),day:diaDelMes(cleanDay(dayOf(d)),y,m),debt:d};
   }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
     return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount,day:cleanDay(o.day)};
   }));
@@ -1250,7 +1250,9 @@ function fixedPaymentState(s,e,y,m,today){
    la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el
    saldo ni el principal: el banco ya incluye el pago (feedback 2/10/2026). */
 function debtPaymentState(s,d,y,m,today){
-  var day=cleanDay(dayOf(d)),target=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
+  // El día de ESE mes (`diaDelMes`, DIN-05): con el 31 sin recortar, el 30 de noviembre la cuota
+  // seguía «por venir» aquí mientras el saldo ya la restaba, y «¿Te llega?» la quitaba dos veces.
+  var day=diaDelMes(cleanDay(dayOf(d)),y,m),target=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
   var unique=!!d.id&&(s.debts||[]).filter(function(other){ return other.id===d.id; }).length===1;
   var deleted=expenseDeletedSet(s),end=new Date(y,m-1,today,23,59,59).getTime();
   var rows=(s.expenses||[]).filter(function(x){
@@ -1914,10 +1916,19 @@ function debenAliasDe(s,pid){
   }
   return idx.get(String(pid))||[];
 }
-// Tu propio nombre (dos palabras del titular del perfil, o «yo mismo…»): la misma regla de `teDebenRecibido`.
+/* ¿El texto nombra al titular? Dos palabras de su nombre que no son de la persona (`suyas`) Y, entre
+   ellas, su nombre de pila (la primera de `fullName`). Solo con los apellidos es un hermano o una
+   hermana: «BIZUM DE LAURA <tus dos apellidos>» se daba por dinero tuyo y Laura no pagaba nunca
+   (DIN-06, rev. de «Te deben» de la 228). Si la pila es también de la persona, la regla de antes. */
+function debenTitularEn(titular,suyas,txt){
+  const en=function(w){ return (suyas||[]).indexOf(w)<0&&txt.indexOf(" "+w+" ")>=0; };
+  if(titular.filter(en).length<2) return false;
+  return !titular.length||(suyas||[]).indexOf(titular[0])>=0||en(titular[0]);
+}
+// Tu propio nombre (dos palabras del titular del perfil, con la pila, o «yo mismo…»): la misma regla de `teDebenRecibido`.
 function debenEsTitular(s,txt){
   const titular=recNorm(s&&s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
-  return DEBEN_PROPIO.test(txt)||titular.filter(function(w){ return txt.indexOf(" "+w+" ")>=0; }).length>=2;
+  return DEBEN_PROPIO.test(txt)||debenTitularEn(titular,null,txt);
 }
 function debenAliasValido(s,a){ const w=String(a||"").split(" ").filter(Boolean); return w.length>=2&&!TRASPASO_PALABRA.test(" "+a+" ")&&!/ bizum /.test(" "+a+" ")&&debenPersonaFisica(a)&&!debenEsTitular(s," "+a+" "); }
 function debenAprenderAlias(s,pid,x,on,ahora){
@@ -1965,14 +1976,14 @@ function teDebenRecibido(s,y,m,personas,today){
     // Lo que coge sola, con el mismo filtro del titular que el camino normal: dos palabras de tu nombre
     // que no son de la persona = dinero tuyo (re-revisión de la 231). Lo que él enlaza a mano, lo dijo él.
     const wa=a&&debenNombre(p.n), ta=a&&" "+recNorm([a.merchant,a.obName,a.concept,a.note].join(" "))+" ";
-    const suyo=a&&titular.filter(function(k){ return (wa||[]).indexOf(k)<0&&ta.indexOf(" "+k+" ")>=0; }).length>=2;
+    const suyo=a&&debenTitularEn(titular,wa,ta);
     if(a&&!suyo&&debenNombra(s,p,a,personas)&&delMes(a)&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
   });
   Object.keys(forz).forEach(function(id){
     const z=forz[id], e=z.row, ms=_pdMs(String(e.date||"").trim());
     if(!isFinite(ms)||!(Number(e.amount)<0)||expenseIsTombstoned(e,deleted)) return;
     const d=new Date(ms), txt=" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ";
-    (cand[z.pid]=cand[z.pid]||[]).push({id:id,c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),via:/ bizum /.test(txt)?"bizum":"transfer",mano:z.mano});
+    (cand[z.pid]=cand[z.pid]||[]).push({id:id,c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),src:String(e.source||"").split(":")[0],via:/ bizum /.test(txt)?"bizum":"transfer",mano:z.mano});
   });
   (s.expenses||[]).forEach(function(e){
     if(!e||e.id==null||forz[String(e.id)]||!e.date||!(Number(e.amount)<0)||e.possibleDup||e.category==="traspaso"||e.reciboId||e.debtId||e.goalId||deEntrada.has(String(e.id))) return;
@@ -1986,9 +1997,9 @@ function teDebenRecibido(s,y,m,personas,today){
     const quien=nombres.filter(function(x){ return debenNombra(s,x.p,e,personas); });
     if(quien.length!==1) return;
     const suyas=quien[0].w;
-    if(titular.filter(function(w){ return suyas.indexOf(w)<0&&txt.indexOf(" "+w+" ")>=0; }).length>=2) return;
+    if(debenTitularEn(titular,suyas,txt)) return;
     const pid=quien[0].p.id;
-    (cand[pid]=cand[pid]||[]).push({id:String(e.id),c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),via:/ bizum /.test(txt)?"bizum":"transfer"});
+    (cand[pid]=cand[pid]||[]).push({id:String(e.id),c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),src:String(e.source||"").split(":")[0],via:/ bizum /.test(txt)?"bizum":"transfer"});
   });
   const pids=Object.keys(cand);
   if(!pids.length) return {};
@@ -1998,7 +2009,9 @@ function teDebenRecibido(s,y,m,personas,today){
   const salidas={};
   pids.forEach(function(pid){ cand[pid].forEach(function(x){ salidas[x.c]=salidas[x.c]||[]; }); });
   (s.expenses||[]).forEach(function(e){
-    if(!e||!(Number(e.amount)>0)) return;
+    /* Un cargo que ya es de un recibo, una deuda o una meta (el alquiler por transferencia) es un pago
+       a otro, no la pata de un traspaso tuyo: tapaba el Bizum del mismo importe de una persona (DIN-06). */
+    if(!e||!(Number(e.amount)>0)||e.reciboId||e.debtId||e.goalId) return;
     const c=Math.round(Number(e.amount)*100);
     if(!salidas[c]||e.category!=="traspaso"&&!/ (transferencia|transferencias|transfer|traspaso|traspasos|transf) /.test(" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ")) return;
     const ms=_pdMs(String(e.date||"").trim());
@@ -2013,7 +2026,10 @@ function teDebenRecibido(s,y,m,personas,today){
       if(p.veto[x.id]||x.c*2<minParte||c+x.c>tope) return;
       // Lo que él enlazó a la entrada gemela lo dijo él: no se le discute por una salida parecida.
       if(!x.mano&&salidas[x.c].some(function(o){ return o.ent!==x.ent&&Math.abs(o.d-x.d)<=2; })) return;
-      if(ok.some(function(v){ return v.c===x.c&&v.banco!==x.banco&&Math.abs(v.ms-x.ms)<=3*864e5; })) return;
+      /* El mismo ingreso por dos caminos: la fila del banco y un aviso, o dos avisos de canales distintos
+         (la noti del banco y la de Wallet). Dos del MISMO canal son dos pagos de verdad (los de TR llegan
+         así). Antes dos avisos de canales distintos sumaban dos veces hasta que llegaba el banco (DIN-06). */
+      if(ok.some(function(v){ return v.c===x.c&&(v.banco!==x.banco||!v.banco&&!x.banco&&v.src!==x.src)&&Math.abs(v.ms-x.ms)<=3*864e5; })) return;
       ok.push(x); c+=x.c;
     });
     if(c>0){ const ult=ok[ok.length-1]; out[p.id]={c:c,dia:ult.dia,via:ult.via,ids:ok.map(function(x){ return x.id; })}; }
@@ -2953,7 +2969,7 @@ function reconcileBank(state, y, m, today){
   // cargos modelados de este mes por entidad
   const modeled=[];
   (state.fixed||[]).forEach(function(e){ const ent=accOf(e); if(!obEnts[ent]||!occursIn(e,m,y)) return; const amt=occAmountIn(e,m,y),day=dayIn(e,m,y); if(amt<=0) return; modeled.push({name:e.name,amount:amt,day:day,ent:ent,id:e.id,kind:"fixed",bankAmount:(typeof e.bankAmount==="number"?e.bankAmount:null)}); if(feedCovers(ent,day)) res.covered[e.id]=1; });
-  (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:d.day||null,ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
+  (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:diaDelMes(d.day||null,y,m),ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
   (state.oneoffs||[]).forEach(function(o){ const ent=o.account||"sabadell"; if(!obEnts[ent]||!oneoffOccurs(o,y,m)||(o.amount||0)<=0) return; modeled.push({name:o.name||"Cargo",amount:o.amount,day:o.day||null,ent:ent,id:o.id,kind:"oneoff",bankAmount:(typeof o.bankAmount==="number"?o.bankAmount:null)}); });
 
   const debits=month.filter(function(t){ return (t.amount||0)>0; }).map(function(t){ return Object.assign({},t,{_used:false}); });

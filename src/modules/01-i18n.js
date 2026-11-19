@@ -2488,7 +2488,7 @@ Object.assign(LANG.es,{
   /* Antes esto era el aviso de un BLOQUEO. Desde el 2026-08-01 TR sí se puede conectar aquí y las
      dos integraciones conviven, así que el texto explica el reparto en vez de cerrar la puerta. */
   bp_tr_ob:"suma tus movimientos (el saldo lo sigue dando el bróker)",
-  bank_syncfail:"No pude leer el saldo ahora. No reconectes: vuelve a intentarlo más tarde", bank_sync_sin_nube:"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento", bank_none:"No tienes ningún banco conectado",
+  bank_syncfail:"No pude leer el saldo ahora. No reconectes: vuelve a intentarlo más tarde", bank_sync_sin_nube:"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento", bank_none:"No tienes ningún banco conectado", bank_sync_ya:"Ya se están leyendo tus bancos",
   bank_syncsoft:"{bank}: el banco no respondió ahora. No hace falta reconectar; inténtalo más tarde",
   // Resultado de «↻ Sincronizar bancos» (2026-07-26). Antes salía «🏦 CaixaBank: 1.234,56 €»:
   // un número suelto sin decir qué había pasado, que además solo enseñaba el PRIMER banco aunque
@@ -2515,7 +2515,7 @@ Object.assign(LANG.en,{
   bank_err_state:"That authorization doesn't match · tap Connect again from the app",
   bank_err_sin_cuenta:"The bank returned no account · check at the bank and reconnect",
   bp_tr_ob:"adds your transactions (the balance still comes from the broker)",
-  bank_syncfail:"I couldn't read the bank balance now. Do not reconnect; try again later", bank_sync_sin_nube:"I couldn't fetch your data from the cloud, so I didn't check the bank (to avoid repeating transactions). Try again in a moment", bank_none:"No bank connected",
+  bank_syncfail:"I couldn't read the bank balance now. Do not reconnect; try again later", bank_sync_sin_nube:"I couldn't fetch your data from the cloud, so I didn't check the bank (to avoid repeating transactions). Try again in a moment", bank_none:"No bank connected", bank_sync_ya:"Your banks are already being read",
   bank_syncsoft:"{bank}: the bank didn't answer just now. No need to reconnect; try again later",
   bank_upd_one:"✓ {bank} up to date · {x}", bank_upd_n:"✓ {n} banks up to date",
   bank_upd_mov1:"1 new transaction", bank_upd_movn:"{n} new transactions",
@@ -2538,7 +2538,7 @@ Object.assign(LANG.ca,{
   bank_err_state:"L'autorització no encaixa · torna a prémer Connecta des de l'app",
   bank_err_sin_cuenta:"El banc no ha tornat cap compte · revisa al banc i torna a connectar",
   bp_tr_ob:"suma els teus moviments (el saldo el continua donant el bróker)",
-  bank_syncfail:"No he pogut llegir el saldo ara. No reconnectis; torna-ho a provar més tard", bank_sync_sin_nube:"No he pogut baixar les teves dades del núvol, així que no he mirat el banc (per no repetir moviments). Prova-ho d'aquí a un moment", bank_none:"No tens cap banc connectat",
+  bank_syncfail:"No he pogut llegir el saldo ara. No reconnectis; torna-ho a provar més tard", bank_sync_sin_nube:"No he pogut baixar les teves dades del núvol, així que no he mirat el banc (per no repetir moviments). Prova-ho d'aquí a un moment", bank_none:"No tens cap banc connectat", bank_sync_ya:"Ja s'estan llegint els teus bancs",
   bank_syncsoft:"{bank}: el banc no ha respost ara. No cal reconnectar; torna-ho a provar més tard",
   bank_upd_one:"✓ {bank} al dia · {x}", bank_upd_n:"✓ {n} bancs al dia",
   bank_upd_mov1:"1 moviment nou", bank_upd_movn:"{n} moviments nous",
