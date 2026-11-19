@@ -102,7 +102,7 @@ for (const [id, nombre, tinte] of [["otono", /Otoño/, "#E3A04F"], ["primavera",
     await appLista(page);
     const ajustes = await abrirAjustes(page);
     await abrirApariencia(ajustes);
-    await ajustes.getByRole("button", { name: /Temática|Theme|Temàtica/ }).first().click();
+    await ajustes.getByRole("button", { name: /Decoración de temporada|Seasonal decor|Decoració de temporada/ }).first().click();
     await ajustes.getByRole("button", { name: nombre }).click();
 
     const a = await vars(page);

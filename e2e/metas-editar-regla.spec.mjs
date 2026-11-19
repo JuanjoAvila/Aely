@@ -2,9 +2,9 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta } from "./fixtures.mjs";
 
 const textos={
-  es:{metas:"Metas",title:"Reservar dinero de tus ingresos",edit:"Editar regla",save:"Guardar regla",cancel:"Cancelar",hint:"Lo ya aportado no cambia. Si esta regla ya se aplicó este mes, los cambios se aplicarán el próximo mes."},
-  en:{metas:"Goals",title:"Reserve money from your income",edit:"Edit rule",save:"Save rule",cancel:"Cancel",hint:"Past contributions stay unchanged. If this rule has already been applied this month, changes will apply next month."},
-  ca:{metas:"Metes",title:"Reservar diners dels teus ingressos",edit:"Edita la regla",save:"Desar regla",cancel:"Cancel·la",hint:"Les aportacions fetes no canvien. Si aquesta regla ja s'ha aplicat aquest mes, els canvis s'aplicaran el mes vinent."}
+  es:{metas:"Metas",title:"Ahorro mensual",edit:"Editar regla",save:"Guardar regla",cancel:"Cancelar",hint:"Lo ya aportado no cambia. Si esta regla ya se aplicó este mes, los cambios se aplicarán el próximo mes."},
+  en:{metas:"Goals",title:"Monthly saving",edit:"Edit rule",save:"Save rule",cancel:"Cancel",hint:"Past contributions stay unchanged. If this rule has already been applied this month, changes will apply next month."},
+  ca:{metas:"Metes",title:"Estalvi mensual",edit:"Edita la regla",save:"Desar regla",cancel:"Cancel·la",hint:"Les aportacions fetes no canvien. Si aquesta regla ja s'ha aplicat aquest mes, els canvis s'aplicaran el mes vinent."}
 };
 const rule={id:"monthly-a",name:"Reserva mensual",kind:"fixed",value:100,goalId:"g1",mensual:true,unknown:{keep:7}};
 const log={id:"mensual|monthly-a|2026-10",ruleId:"monthly-a",goalId:"g1",name:"Reserva mensual",amount:100,date:"2026-10-01T12:00:00Z",incomeKey:"mensual|monthly-a|2026-10",mensual:"2026-10"};
@@ -44,7 +44,7 @@ async function nav(page,id){
 const errors={
   es:{amount:"Escribe un importe mayor que 0, por ejemplo 1200 o 1200,50.",pct:"El porcentaje tiene que ser mayor que 0 y como máximo 100.",goal:"Elige una meta que siga activa.",changed:"Esta regla cambió o se borró. Cancela y vuelve a abrirla para editar la versión actual.",income:"Lo ya repartido no cambia. Los cambios se aplicarán al siguiente ingreso que se reparta."},
   en:{amount:"Enter an amount above 0, for example 1200 or 1200.50.",pct:"The percentage must be above 0 and no more than 100.",goal:"Choose a goal that is still active.",changed:"This rule changed or was deleted. Cancel and reopen it to edit the current version.",income:"Past distributions stay unchanged. Changes will apply to the next income you distribute."},
-  ca:{amount:"Escriu un import més gran que 0, per exemple 1200 o 1200,50.",pct:"El percentatge ha de ser més gran que 0 i com a màxim 100.",goal:"Tria un objectiu que encara estigui actiu.",changed:"Aquesta regla ha canviat o s'ha esborrat. Cancel·la i torna-la a obrir per editar la versió actual.",income:"El que ja s'ha repartit no canvia. Els canvis s'aplicaran al següent ingrés que es reparteixi."}
+  ca:{amount:"Escriu un import més gran que 0, per exemple 1200 o 1200,50.",pct:"El percentatge ha de ser més gran que 0 i com a màxim 100.",goal:"Tria una meta que encara estigui activa.",changed:"Aquesta regla ha canviat o s'ha esborrat. Cancel·la i torna-la a obrir per editar la versió actual.",income:"El que ja s'ha repartit no canvia. Els canvis s'aplicaran al següent ingrés que es reparteixi."}
 };
 // La escritura usa el set REAL de App. Encolar antes del toque comprueba el estado fresco
 // aun cuando React todavía pinta la copia antigua; no se escribe localStorage por detrás.

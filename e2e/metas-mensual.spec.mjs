@@ -2,9 +2,9 @@ import { test, expect, devices } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 const textos={
-  es:{metas:"Metas",title:"Reservar dinero de tus ingresos",add:"+ Añadir regla",save:"Guardar regla"},
-  en:{metas:"Goals",title:"Reserve money from your income",add:"+ Add rule",save:"Save rule"},
-  ca:{metas:"Metes",title:"Reservar diners dels teus ingressos",add:"+ Afegir regla",save:"Desar regla"}
+  es:{metas:"Metas",title:"Ahorro mensual",add:"Añadir ahorro",save:"Guardar regla"},
+  en:{metas:"Goals",title:"Monthly saving",add:"Add saving",save:"Save rule"},
+  ca:{metas:"Metes",title:"Estalvi mensual",add:"Afegeix estalvi",save:"Desar regla"}
 };
 const octubre="2026-10-31T12:00:00Z", noviembre="2026-11-02T12:00:00Z";
 const goal={id:"g1",name:"Ahorro sintetico",emoji:"🎯",target:5000,saved:0};

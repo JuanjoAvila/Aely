@@ -108,30 +108,18 @@ for (const [w, h] of ANCHOS) for (const letra of ["small", "huge"]) {
       expect(await partidas(deudas, ".v4-debt-name, .v4-debt-bal, .plan-summary-amount, .v4-micro"), "palabras o cifras partidas").toEqual([]);
     });
 
-    test(`Metas: resumen como Recibos, ahorro mensual en una fila y sin «Empieza a ahorrar» — ${w} ${letra}`, async ({ page }) => {
+    test(`Metas: resumen como Recibos, sin la aportación al bróker y sin «Empieza a ahorrar» — ${w} ${letra}`, async ({ page }) => {
       await abre(page, { settings: { textSize: letra } });
       const metas = await abrePlan(page, "metas");
       const res = metas.getByTestId("goals-summary");
       await expect(res).toContainText("Ahorrado en metas");
       expect(await res.evaluate((el) => getComputedStyle(el).textAlign)).toBe("left");
-      const ahorro = metas.locator("[data-savings-plan]");
-      await expect(ahorro.locator("[data-savings-total]")).toHaveCount(0);
-      await expect(ahorro.locator("[data-savings-edit]")).toHaveText("Añadir");
-      await expect(ahorro).not.toContainText(/no mueve dinero|Aún no has apuntado/);
-      // Una fila: el rótulo y «Añadir» comparten renglón (con letra Enorme el rótulo puede ir en dos).
-      const fila = await ahorro.evaluate((el) => {
-        const a = el.querySelector(".v4-micro").getBoundingClientRect(), b = el.querySelector("[data-savings-edit]").getBoundingClientRect();
-        return { mismaFila: b.top < a.bottom && a.top < b.bottom, dentro: b.right <= el.getBoundingClientRect().right + 0.5 };
-      });
-      expect(fila.mismaFila, "la tarjeta vacía es una fila").toBe(true);
-      expect(fila.dentro).toBe(true);
+      // La aportación al bróker se mudó a Cartera › Inversiones (19/11): su fila vacía la mira ronda-f-plan.
+      await expect(metas.locator("[data-savings-plan]")).toHaveCount(0);
       await expect(metas.locator('[data-goal-id="g1"] .goal-eta')).toHaveCount(0);
       await expect(metas.locator('[data-goal-id="g2"] .goal-eta')).toContainText("150");
       await expect(metas.getByText(/Empieza a ahorrar|Añade una para apartar/)).toHaveCount(0);
-      // «Añadir» abre la edición con una fila lista para escribir.
-      await ahorro.locator("[data-savings-edit]").click();
-      await expect(ahorro.locator("[data-savings-draft]")).toHaveCount(1);
-      expect(await cortes(metas, ".plan-summary-amount, .plan-summary-sub, .v4-debt-name, .aely-savings-edit")).toEqual([]);
+      expect(await cortes(metas, ".plan-summary-amount, .plan-summary-sub, .v4-debt-name")).toEqual([]);
       expect(await partidas(metas, ".plan-summary-amount, .v4-debt-name, .v4-micro")).toEqual([]);
     });
   });

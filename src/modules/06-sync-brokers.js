@@ -98,8 +98,13 @@ function miDeviceLogin(http, loginBody, devId, captchaToken){
 }
 function MyInvestorSync({state, set, onConn}){
   const [step,setStep]=useState("idle");     // idle | otp | connected | preview
-  // usuario recordado (NUNCA la contraseña): reconectar tras una caducidad = solo contraseña+OTP
-  const [cid,setCid]=useState(function(){ try{ return localStorage.getItem("_miCid")||""; }catch(e){ return ""; } });
+  /* El DNI/NIE ya no se recuerda (SEG-19, 19/11/2026): en localStorage queda en claro y al alcance
+     de cualquier script de la página. Reconectar tras una caducidad pide escribirlo otra vez; la
+     copia que dejaron las versiones de antes se borra al abrir esta tarjeta. */
+  const [cid,setCid]=useState("");
+  useEffect(function(){ try{ localStorage.removeItem("_miCid"); }catch(e){} },[]);
+  // El campo del «site key» de reCAPTCHA es cosa del admin: a la familia le pedía F12 (F-03).
+  const rcAdmin=useMemo(function(){ try{ const x=JSON.parse(localStorage.getItem("_mcAdminProfile")||"null"); return !!(x&&x.isAdmin===true); }catch(e){ return false; } },[]);
   const [expired,setExpired]=useState(false);
   const [pass,setPass]=useState("");
   const [code,setCode]=useState("");
@@ -155,7 +160,7 @@ function MyInvestorSync({state, set, onConn}){
   const storeTokens=function(tk){
     return cloud.myinvestorStore({ deviceId:deviceId(), accessToken:tk.accessToken, refreshToken:tk.refreshToken, refreshExpiresIn:tk.refreshExpiresIn }).then(function(r){
       setBusy(false);
-      if(r&&r.connected){ try{ localStorage.setItem("_miCid",cid.trim()); }catch(e){} setExpired(false); setPass(""); setCode(""); setStep("connected"); doSync(); return; }
+      if(r&&r.connected){ setExpired(false); setPass(""); setCode(""); setStep("connected"); doSync(); return; }
       fail(r);
     }).catch(fail);
   };
@@ -174,7 +179,7 @@ function MyInvestorSync({state, set, onConn}){
         return;
       }
       if(r.otp){ setOtpInfo({otpId:r.otpId, signatureRequestId:r.signatureRequestId}); setStep("otp"); return; }
-      if(r.connected){ try{ localStorage.setItem("_miCid",cid.trim()); }catch(e){} setExpired(false); setStep("connected"); doSync(); return; }
+      if(r.connected){ setExpired(false); setStep("connected"); doSync(); return; }
       fail(r);
     }).catch(fail);
   };
@@ -221,7 +226,7 @@ function MyInvestorSync({state, set, onConn}){
   const otpViaEdge=function(){
     cloud.myinvestorConnect({ customerId:cid.trim(), password:pass, deviceId:deviceId(), otpId:otpInfo.otpId, signatureRequestId:otpInfo.signatureRequestId, code:code.trim() }).then(function(r){
       setBusy(false);
-      if(r&&r.connected){ try{ localStorage.setItem("_miCid",cid.trim()); }catch(e){} setExpired(false); setPass(""); setCode(""); setStep("connected"); doSync(); return; }
+      if(r&&r.connected){ setExpired(false); setPass(""); setCode(""); setStep("connected"); doSync(); return; }
       fail(r);
     }).catch(fail);
   };
@@ -273,7 +278,7 @@ function MyInvestorSync({state, set, onConn}){
     });
     setDoneN(mappedN); setPositions(null); setStep("connected");
   };
-  const disconnect=function(){ cloud.myinvestorDisconnect(); try{ localStorage.removeItem("_miCid"); }catch(e){} if(onConn) onConn(false); setExpired(false); setStep("idle"); setPositions(null); setCid(""); setPass(""); setOtpInfo(null); };
+  const disconnect=function(){ cloud.myinvestorDisconnect(); if(onConn) onConn(false); setExpired(false); setStep("idle"); setPositions(null); setCid(""); setPass(""); setOtpInfo(null); };
   const inpStyle={marginTop:8};
   // UI plana v4 (sin CollapsibleCard pesada) — feedback 2026-07-17 redesing bancos.
   const body=noSession
@@ -286,13 +291,15 @@ function MyInvestorSync({state, set, onConn}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||!cid.trim()||!pass,onClick:doConnect}, busy?t("mi_connecting"):t("mi_connect")),
           // Campo avanzado del site key de reCAPTCHA: aparece al saltar el captcha (o si ya hay uno
           // guardado). Con él la app intenta resolver el captcha sola en la WebView (2026-07-20).
-          (err===t("mi_recaptcha") || err===t("mi_rc_fail_gen") || err===t("mi_rc_rejected") || rcKey) && React.createElement("div",{style:{marginTop:12,paddingTop:10,borderTop:"1px solid var(--line-soft)"}},
+          rcAdmin && (err===t("mi_recaptcha") || err===t("mi_rc_fail_gen") || err===t("mi_rc_rejected") || rcKey) && React.createElement("div",{style:{marginTop:12,paddingTop:10,borderTop:"1px solid var(--line-soft)"}},
             React.createElement("div",{style:{fontSize:12,color:"var(--muted)",lineHeight:1.5,marginBottom:6}}, t("mi_rc_key_hint")),
             React.createElement("input",{className:"af-in",style:Object.assign({},inpStyle,{fontFamily:"monospace",fontSize:13}),placeholder:"6L…",autoComplete:"off",value:rcKey,onChange:function(e){ const v=e.target.value.trim(); setRcKey(v); try{ if(v) localStorage.setItem("_miRcKey",v); else localStorage.removeItem("_miRcKey"); }catch(_){} }}),
             rcKey && React.createElement("div",{style:{fontSize:11.5,color:"var(--mint)",marginTop:6}}, t("mi_rc_key_saved")),
             // Atribución obligatoria: el badge flotante de Google se oculta por CSS (salía FIJO en
             // toda la app, no solo aquí — feedback 2026-07-21) y sus términos piden citarlo en el flujo.
-            rcKey && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",marginTop:4}}, t("mi_rc_badge_note")))
+            rcKey && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",marginTop:4}}, t("mi_rc_badge_note"))),
+          // Con un site key guardado de antes la app lo sigue usando: la cita a Google se queda.
+          !rcAdmin && rcKey && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",marginTop:8}}, t("mi_rc_badge_note"))
         ),
         step==="otp" && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:0}},t("mi_otp_intro")),

@@ -104,6 +104,14 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  // Ronda F (19/11): Metas con «Ahorro mensual» = reglas y la aportación al bróker en Inversiones,
+  // Perfil sin «@usuario», el ojo en Inicio, Apuntar sin bancos, diálogos con teclado y el aviso ancho.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs", "e2e/plan-ahorro.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
   // Ronda R2 de bancos (18/11): Conexiones como pantalla hija; entrar, salir y volver al origen.
   { file: "src/modules/10-app-components.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/mis-bancos-d1.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs", "e2e/bancos-lista-fresca.spec.mjs", "e2e/brokers-selector.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/bancos-reconnect.spec.mjs", "e2e/brokers-selector.spec.mjs"] },
@@ -422,6 +430,14 @@ export const E2E_MAP = [
   // Ronda 242: Apuntar sin banco diario usa el banco del widget (`apuntarBancoReserva`) si su gasto cuenta.
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/apuntar-banco-reserva.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/apuntar-banco-reserva.spec.mjs"] },
+  // Ronda F: «Nuevo precio» desde Para revisar pregunta por la deuda «Lo descuento» que no cuadra
+  // (DIN-10), y el nombre de los recibos entero, sin elipsis, también con letra Enorme (D-03).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/recibos-ronda-f.spec.mjs"] },
+  // SEG-10 (ronda F): Hogar con y sin la 0028, regenerar el código y quitar a un miembro.
+  { file: "src/modules/13-hogar.js", specs: ["e2e/hogar-endurecido.spec.mjs"] },
+  { file: "src/modules/00-core.js", specs: ["e2e/hogar-endurecido.spec.mjs"] },
   // Revisión 237: fecha de fin de una deuda sin plazo contada en céntimos (`debtLeftInfo`).
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deudas-fin-centimos.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/deudas-lo-descuento.spec.mjs"] },

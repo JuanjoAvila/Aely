@@ -61,7 +61,7 @@ for(const start of ["2026-03-27T20:00:00Z","2026-10-23T20:00:00Z"]){
   assert.equal(result.at(-1).value,current);
 }
 
-for(const [spent,budget,elapsed,days,id,tone] of [[1001,1000,1,30,"over","coral"],[900,1000,2,30,"start","mint"],
+for(const [spent,budget,elapsed,days,id,tone] of [[1001,1000,1,30,"over","mint"],[900,1000,2,30,"start","mint"],
   [250,1000,12,30,"comfort","mint"],[500,1000,12,30,"good","mint"],[800,1000,12,30,"tight","tan"],[801,1000,12,30,"slow","tan"]]){
   const result=c.cyclePaceState(spent,budget,elapsed,days); assert.equal(result.id,id); assert.equal(result.tone,tone);
 }
@@ -169,6 +169,10 @@ for(const values of [[0,0,0,100],[-100,0,0,0],[1000,1001,1000,1002]]){
   assert.ok(plot.span>=Math.abs(values.reduce((a,b)=>a+b,0)/values.length)*.06);
 }
 assert.equal(c.netWorthDeltaMoney(-1234.4),"1.234 €","variación sin signo ni decimales y con miles separados");
+// D-11 (ronda F): con el ojo cerrado, «X € más que el mes pasado» tampoco enseña la cifra.
+vm.runInContext("DISP.oculto=true;",c);
+try{ assert.equal(c.netWorthDeltaMoney(-1234.4),"•••• €","el ojo también tapa la variación de Inicio"); }
+finally{ vm.runInContext("DISP.oculto=false;",c); }
 console.log("inicio-v42: motor, cobertura, seis estados, límites y rangos OK");
 
 // Los totales salen del mismo camino de saldo pintado que App, nunca de un líquido

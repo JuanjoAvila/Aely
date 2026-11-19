@@ -1,9 +1,10 @@
-/* AHORRO MENSUAL EN PLAN → METAS (feedback 18/9, punto 6).
+/* APORTACIÓN MENSUAL EN CARTERA › INVERSIONES (feedback 18/9, punto 6; se mudó de Metas el 19/11).
  *
- * El rediseño v4 dejó `state.aportaciones` sin pantalla: seguía moviendo `totals.ahorroMensual`
- * (fechas de las metas, proyección de Inversiones) pero no había dónde cambiarlo. Aquí se prueba
- * la puerta REAL: Plan → Metas → Editar → Guardar, lo que se ve, que Cancelar no escribe nada y
- * que sobrevive a recargar. Y que un importe largo no se corta. */
+ * `state.aportaciones` (lo que se aporta cada mes al bróker) alimenta la proyección de Inversiones.
+ * Vivía en Metas como «Ahorro mensual» y se confundía con las reglas que sí apartan para una meta
+ * (dueño, 18/11/2026). Aquí se prueba la puerta REAL: Cartera → Ver todas tus inversiones → Editar
+ * → Guardar, lo que se ve, que Cancelar no escribe nada y que sobrevive a recargar. Y que un importe
+ * largo no se corta. */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -12,24 +13,32 @@ const aportaciones = [
   { id: "ap2", ent: "trade_republic", name: "Plan TR", amount: 50 },
 ];
 
-async function abrirMetas(page, extra = {}) {
-  await seedLoggedInDashboard(page, Object.assign({ __seedOnce: true, aportaciones, goals: [] }, extra));
+const investments = [{ id: "i1", ent: "myinvestor", name: "Fondo sintético", shares: 3, value: 2000, cost: 1800, cur: "EUR" }];
+async function abreInversiones(page) {
+  await page.locator(".page").evaluateAll((pages) => pages.forEach((el) => { el.scrollTop = 0; }));
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.getByRole("button", { name: /Ver todas tus inversiones/i }).click();
+  const card = page.locator("[data-inv-screen] [data-savings-plan]");
+  await card.scrollIntoViewIfNeeded();
+  await expect(card).toBeVisible();
+  return card;
+}
+async function abrirAportaciones(page, extra = {}) {
+  await seedLoggedInDashboard(page, Object.assign({ __seedOnce: true, aportaciones, investments, goals: [] }, extra));
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
   await dismissNews(page);
   const ajustes=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes|Settings|Ajustos/i})});
   if(await ajustes.count()) await ajustes.locator(".settings-push-h .back").click();
-  await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await page.getByRole("tab",{name:/Metas|Goals/i}).click();
-  const card = page.locator('.v4-screen > [data-seg="metas"] [data-savings-plan]');
-  await expect(card).toBeVisible();
-  return card;
+  return abreInversiones(page);
 }
 
-test("★ Metas enseña el ahorro mensual y se edita, guarda y persiste", async ({ page }) => {
-  const card = await abrirMetas(page);
-  await expect(card).toContainText("Ahorro mensual");
+test("★ Inversiones enseña la aportación mensual y se edita, guarda y persiste", async ({ page }) => {
+  const card = await abrirAportaciones(page);
+  await expect(card).toContainText("Aportación mensual");
+  // Y ya no está en Metas: allí «Ahorro mensual» son las reglas que apartan para cada meta.
+  expect(await page.locator('[data-seg="metas"] [data-savings-plan]').count()).toBe(0);
   await expect(card.locator("[data-savings-total]")).toContainText(/250,00\s*€\/mes/);
   // Honesto: planifica, no mueve dinero.
   await expect(card).toContainText(/no mueve dinero/i); // la 182 acortó el texto («Solo planifica: no mueve dinero ni crea movimientos.»)
@@ -66,9 +75,7 @@ test("★ Metas enseña el ahorro mensual y se edita, guarda y persiste", async 
   await dismissNews(page);
   const ajustes=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes|Settings|Ajustos/i})});
   if(await ajustes.count()) await ajustes.locator(".settings-push-h .back").click();
-  await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await page.getByRole("tab",{name:/Metas|Goals/i}).click();
-  const tras = page.locator('.v4-screen > [data-seg="metas"] [data-savings-plan]');
+  const tras = await abreInversiones(page);
   await expect(tras.locator("[data-savings-total]")).toContainText(/325,50\s*€\/mes/);
   const exp = await page.evaluate(() => {
     const k = localStorage.getItem("_mcSandbox") === "1" ? "micartera_sandbox" : "micartera_v3";
@@ -78,7 +85,7 @@ test("★ Metas enseña el ahorro mensual y se edita, guarda y persiste", async 
 });
 
 test("Cancelar no escribe nada, ni altas ni bajas", async ({ page }) => {
-  const card = await abrirMetas(page);
+  const card = await abrirAportaciones(page);
   await card.locator("[data-savings-edit]").click();
   await card.locator('[data-savings-draft="ap1"]').getByLabel("Quitar esta aportación").click();
   await card.getByRole("button", { name: /Añadir aportación/ }).click();
@@ -89,7 +96,7 @@ test("Cancelar no escribe nada, ni altas ni bajas", async ({ page }) => {
 });
 
 test("los separadores europeos no convierten miles en uno o dos euros", async ({ page }) => {
-  const card = await abrirMetas(page);
+  const card = await abrirAportaciones(page);
   await card.locator("[data-savings-edit]").click();
   await card.locator('[data-savings-draft="ap1"]').getByLabel("Importe al mes").fill("1.000");
   await card.locator('[data-savings-draft="ap2"]').getByLabel("Importe al mes").fill("1.200,50");
@@ -104,7 +111,7 @@ test("los separadores europeos no convierten miles en uno o dos euros", async ({
 
 test("un importe largo no se corta en móvil estrecho", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  const card = await abrirMetas(page, {
+  const card = await abrirAportaciones(page, {
     aportaciones: [{ id: "big", ent: "myinvestor", name: "Aportación con un nombre larguísimo para el fondo indexado", amount: 1234567.89 }],
   });
   const medidas = await card.evaluate((el) => {

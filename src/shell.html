@@ -234,6 +234,27 @@
      líneas quedaba cortado arriba (filtro de diseño 242). Nunca pasa del margen seguro de arriba: si no
      cabe, se desplaza por dentro y los botones se quedan pegados abajo. Cuando cabe, nada cambia. */
   .askback>.tabsheet{max-height:100%;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;}
+  /* Con campo, lo que se desplaza es SOLO la explicación: el campo, los atajos y los botones se quedan
+     a la vista. Desplazando la hoja entera, a 360 con Enorme y teclado el atajo «Todo» quedaba debajo
+     de los botones pegados y nada decía que hubiera más (19/11/2026). La explicación encoge hasta dos
+     líneas y, mientras le quede texto por debajo, se funde abajo: la pista de que se desplaza. */
+  @property --ask-fade{syntax:"<length>";inherits:false;initial-value:0px;}
+  .askback>.tabsheet:has(> .ask-in){display:flex;flex-direction:column;}
+  .askback>.tabsheet:has(> .ask-in)>*{flex:none;}
+  /* Aquí la hoja no pasa por debajo de los botones: su sombra tapaba el borde del último atajo. */
+  .askback>.tabsheet:has(> .ask-in)>.ask-btns{box-shadow:none;}
+  .askback>.tabsheet:has(> .ask-in)>.ts-hint:not(.ask-live){flex:0 1 auto;min-height:2.9em;overflow-y:auto;overscroll-behavior:contain;
+    -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - var(--ask-fade)),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - var(--ask-fade)),transparent);
+    animation:ask-fade linear both;animation-timeline:scroll(self);}
+  @keyframes ask-fade{from{--ask-fade:22px;}to{--ask-fade:0px;}}
+  /* Con poco alto (el teclado abierto) se aprietan los márgenes para que todo quepa sin desplazar. */
+  @media (max-height:520px){
+    .askback>.tabsheet:has(> .ask-in){padding-top:12px;}
+    .askback>.tabsheet:has(> .ask-in)>.ts-hint:not(.ask-live){margin-bottom:6px;min-height:2.4em;}
+    .askback .ask-in{margin-bottom:6px;padding-top:9px;padding-bottom:9px;}
+    .askback .ask-btns{margin-top:8px;}
+  }
   .ts-hint.ask-live{text-align:right;min-height:1.5em;line-height:1.5;margin:0 2px 6px;}
   .ask-in{width:100%;box-sizing:border-box;text-align:right;font-size:19px;font-weight:800;padding:12px 14px;margin:2px 0 10px;}
   /* Perfil / texto libre: mismo tamaño que el valor ya guardado (no el teclado de importes). */
@@ -1121,7 +1142,29 @@
   .pr6-row .dt .d{font-size:22px;}
   .pr6-row .dt .m{font-size:11.5px;letter-spacing:1px;color:var(--muted);}
   .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
-  .pr6-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* Nada cortado (gate-240, D-03): «Seguro …» o «Comuni…» no decían qué recibo era, y con letra
+     Enorme a 360 la elipsis se comía casi todos. El nombre parte en renglones (entre palabras; solo
+     una palabra que no cabe sola se parte). */
+  .pr6-nm{min-width:0;overflow-wrap:break-word;}
+  /* Con Enorme en un móvil estrecho, partir no basta: el importe se quedaba ~40 % de la fila y el
+     nombre bajaba a nueve renglones. La rejilla de «Próximos cargos» de Inicio: el nombre ocupa todo
+     el ancho y el importe (con su «cuándo») baja a la línea gris, a la derecha. */
+  @media (max-width:430px){
+    html.hugetext .pr6-sec .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
+    html.hugetext .pr6-sec .v4-charge > :first-child{grid-row:1 / span 2;}
+    html.hugetext .pr6-sec .v4-charge > .nm{display:contents;}
+    html.hugetext .pr6-sec .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
+    html.hugetext .pr6-sec .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;}
+    html.hugetext .pr6-sec .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+    /* La fila de cada bróker (Inversiones y Cartera): con Enorme, «MyInvestor» no cabe al lado de
+       «2.000 €» y se montaba encima (filtro de diseño, ronda F). El importe baja bajo el nombre. */
+    html.hugetext button.v4-mov[data-broker-key]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
+    html.hugetext button.v4-mov[data-broker-key] > .tile{grid-row:1 / span 2;}
+    html.hugetext button.v4-mov[data-broker-key] > .nm{grid-column:2;grid-row:1;min-width:0;}
+    html.hugetext button.v4-mov[data-broker-key] > div:nth-child(3){grid-column:2;grid-row:2;justify-self:start;text-align:left !important;}
+    html.hugetext button.v4-mov[data-broker-key] > div:nth-child(3):has(.chev){grid-column:2 / 4;justify-self:stretch;justify-content:space-between;}
+    html.hugetext button.v4-mov[data-broker-key] > .chev{grid-column:3;grid-row:1 / span 2;}
+  }
   .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
   /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
      renglón parte ENTRE trozos (`mcTrozos`, también en Cartera); cada trozo corto va entero. */
@@ -1626,7 +1669,6 @@
   html[data-theme="light"] .pr6-baja,
   html[data-theme="light"] .pr6-paid-h .pr6-chev,
   html[data-theme="light"] .pr6-ll-row .num.pos,
-  html[data-theme="light"] .profile-handle,
   html[data-theme="light"] .profile-row .pr-edit,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
@@ -2198,7 +2240,7 @@
     transition:background-color .2s ease,color .2s ease;}
   .v4-ficha-pay .v4-seg-btn:disabled{opacity:.45;cursor:default;}
   .v4-ficha-pay > .v4-ficha-meta-pill{flex:0 0 52px;transition:opacity .2s ease,visibility 0s;}
-  .v4-ficha-pay.income > .v4-ficha-meta-pill{flex:1 1 0;}
+  .v4-ficha-pay.income > .v4-ficha-meta-pill,.v4-ficha-pay.solo > .v4-ficha-meta-pill{flex:1 1 0;}
   /* En un gasto la píldora del banco es solo su logo: el nombre, para el lector (a 360 se cortaba
      en «Sab…»). En un ingreso hay sitio y va entero. */
   .v4-ficha-pay:not(.income) .v4-bank-nom{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
@@ -2603,7 +2645,6 @@
   .pr6-back::after{inset:-5px;}
   .profile-pull-h .ph-main{flex:1;min-width:0;}
   .profile-pull-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;line-height:1.15;}
-  .profile-handle{font-size:12.5px;font-weight:700;color:var(--mint);display:inline-flex;align-items:center;gap:5px;margin-top:2px;}
   .profile-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
     display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--text);flex:0 0 auto;position:relative;}
   .profile-sec{font-size:13px;font-weight:700;color:var(--muted);margin:16px 2px 8px;}
@@ -2942,16 +2983,20 @@
   .v4-inv-drop{animation:rise .26s var(--ease) both;}
   .chip.active{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .v4-paid{opacity:.55;}
-  /* Ahorro mensual en Metas (punto 6, 18/9). Importes largos: la cifra nunca se parte ni se
-     corta — el nombre cede (ellipsis) y la cifra baja de línea si no cabe. */
-  .aely-savings{margin-top:12px;padding:16px;}
-  .aely-savings-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-  .aely-savings-total{font-size:26px;font-weight:550;letter-spacing:-.5px;line-height:1.15;margin-top:4px;white-space:nowrap;}
-  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;min-height:44px;}
-  .aely-savings-vacia .aely-savings-h{align-items:center;flex-wrap:nowrap;}
+  /* Aportación mensual en Cartera › Inversiones (antes «Ahorro mensual» en Metas). Importes largos:
+     la cifra nunca se parte ni se corta y baja de línea si no cabe; el nombre parte entre palabras.
+     El título va a lo ancho y el botón en la fila de la cifra: a su lado, con Enorme a 360, el
+     título se partía y el botón caía debajo de todo (gate 240, D-05). */
+  .aely-savings{margin-top:12px;padding:16px;container-type:inline-size;}
+  .aely-savings-h{display:flex;align-items:center;column-gap:12px;row-gap:6px;flex-wrap:wrap;}
+  .aely-savings-t{flex:1 0 100%;}
+  /* La cifra encoge con la tarjeta (como la de Recibos) para dejar sitio a «Editar» a su lado. */
+  .aely-savings-total{font-size:clamp(19px,9cqi,26px);font-weight:550;letter-spacing:-.5px;line-height:1.15;white-space:nowrap;margin-right:auto;}
+  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0 0 0 auto;min-height:44px;}
+  .aely-savings-vacia .aely-savings-t{flex:1 1 0;min-width:0;}
   .aely-savings-note{margin:8px 0 4px;font-size:12.5px;line-height:1.45;}
   .aely-savings-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line-soft);}
-  .aely-savings-name{min-width:0;flex:1 1 140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;}
+  .aely-savings-name{min-width:0;flex:1 1 140px;overflow-wrap:anywhere;font-weight:650;}
   .aely-savings-bank{display:block;font-weight:500;font-size:12px;color:var(--muted);}
   .aely-savings-amt{white-space:nowrap;font-weight:700;color:var(--mint);margin-left:auto;}
   .aely-savings-edit-row{padding:10px 0;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:6px;}
@@ -3263,7 +3308,9 @@
   .dots .d{width:7px;height:7px;border-radius:50%;background:var(--muted-2);transition:all .25s;}
   .dots .d.on{width:22px;background:linear-gradient(90deg,var(--mint-bright),var(--mint));}
 
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-bottom));background:var(--sur2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:16px;font-size:14px;font-weight:700;z-index:200;box-shadow:var(--shadow);animation:toastin .3s ease;}
+  /* Centrado con los dos bordes y `fit-content`, no con left:50%: así el aviso solo podía usar la mitad
+     de la pantalla y una frase larga (el del informe del mes) salía en una columna estrecha (D-05). */
+  .toast{position:fixed;left:16px;right:16px;margin:0 auto;width:fit-content;box-sizing:border-box;text-align:center;bottom:calc(96px + var(--safe-bottom));background:var(--sur2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:16px;font-size:14px;font-weight:700;z-index:200;box-shadow:var(--shadow);animation:toastsube .3s ease;}
   .toast.toast-low{bottom:calc(24px + var(--safe-bottom));}
   .offline-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:rgba(226,160,95,.16);border:1px solid rgba(226,160,95,.5);color:#E2A05F;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;z-index:210;white-space:nowrap;box-shadow:var(--shadow);}
   .update-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:var(--on-mint);padding:9px 18px;border-radius:20px;font-size:12.5px;font-weight:800;z-index:215;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(95,208,138,.7);border:none;cursor:pointer;animation:updin .35s ease;}
@@ -3271,6 +3318,7 @@
   .update-pill:active{transform:translateX(-50%) translateY(1px);}
   @keyframes updin{from{opacity:0;transform:translate(-50%,-10px);}to{opacity:1;transform:translate(-50%,0);}}
   @keyframes toastin{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+  @keyframes toastsube{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
 
   /* SPLASH DE ENTRADA (#mc-load). Vive en el HTML, fuera de React: es LO ÚNICO que se ve
      mientras arranca el bundle, y hasta ahora era un emoji con «Cargando…» en la tipografía del

@@ -4,7 +4,9 @@
 const CYCLE_COMFORT_DIFF=-15, CYCLE_GOOD_DIFF=10, CYCLE_TIGHT_DIFF=40;
 function cyclePaceState(spent,budget,elapsed,days){
   const used=Math.round(spent*100), limit=Math.round(budget*100), excess=Math.max(0,used-limit)/100;
-  if(used>limit) return {id:"over",tone:"coral",excess:excess};
+  // Pasado el límite, en menta como el «de más» de Recibos y no en coral: el coral se lee como error,
+  // y pasarse del límite de gasto es un dato, no un fallo de la app (dueño, 18/11/2026).
+  if(used>limit) return {id:"over",tone:"mint",excess:excess};
   if(elapsed<3) return {id:"start",tone:"mint",excess:0};
   const diff=limit>0&&days>0?used/limit*100-elapsed/days*100:0;
   return {id:diff<=CYCLE_COMFORT_DIFF?"comfort":diff<=CYCLE_GOOD_DIFF?"good":diff<=CYCLE_TIGHT_DIFF?"tight":"slow",
@@ -365,7 +367,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const recent=useMemo(function(){ return gastosDePortada(state,3); },[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,
     state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,state.reciboBorrado]);
   /* El anillo cuenta SIEMPRE lo USADO del límite: de 0 % a 100 % según se gasta y, pasado el límite,
-     sigue subiendo (127 %) en coral. Entre 2798bfda9 y la 4.26.186 pintaba lo que QUEDA por debajo
+     sigue subiendo (127 %). Entre 2798bfda9 y la 4.26.186 pintaba lo que QUEDA por debajo
      del límite y saltaba de 0 % a 100 % al agotarlo; el dueño lo rechazó (26/10/2026: con 1.436,47
      de 1.500 debe marcar 96 %). Hacia abajo en el exceso, para que 100,4 % no parezca justo el
      límite; si redondea a 100 o el límite está todo reservado, «>100 %». Por debajo, nunca «100 %»
@@ -405,6 +407,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("div",{className:"v4-inicio-hi"}, greetName?tf("v4_hola",{n:greetName}):t("v4_hola_anon"))
       ),
       React.createElement("div",{className:"aely-help-head-actions"},
+        // El ojo también aquí: es donde más se enseña el móvil a otros (dueño, 18/11/2026; SPEC §8).
+        React.createElement(OjoImportes,{state:state,set:set}),
         React.createElement("button",{type:"button",className:"aely-help-entry-mini","aria-label":t("help_title"),onClick:function(){
           try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, tt, {
             onConsent:function(ok){ set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{helpAiOk:!!ok,helpAiAsked:true})}); }); }
@@ -482,7 +486,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           React.createElement("div",{className:"v42-cycle-percent num"},ringLabel.slice(0,-1),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:"ph v42-cycle-amount"},
-            React.createElement("span",{className:"serif num",style:{color:over?"var(--coral)":"var(--text)"}},amountTxt),
+            React.createElement("span",{className:"serif num",style:{color:"var(--text)"}},amountTxt),
             React.createElement("span",{className:"v42-cycle-of"},amountOf)),
           dailyMoney!=null&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},
             React.createElement("b",null,tf("v42_cycle_daily",{x:dailyMoney})),
@@ -594,7 +598,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         goals.map(function(g0){
           // Con lo marcado desde Gastos, como en Plan → Metas: la misma meta no puede decir dos cifras.
           const g=metaConAportes(g0,state);
-          const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual);
+          const pct=goalPct(g); const eta=goalEta(g, metaRitmoMensual(state,g0));
           return React.createElement("div",Object.assign({key:g.id,className:"v4-goal v4-tocable","data-inicio-meta":g.id,"aria-label":g.name},
               tocable(function(){ if(onGoPlan) onGoPlan("metas",{goalId:g.id}); })),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW, estadoHeredado, esperaNubeQuieta } from "./fixtures.mjs";
 export const states=[
-  {id:"over",spent:1001,text:"Te has pasado 1 €",tone:"coral"},
+  {id:"over",spent:1001,text:"Te has pasado 1 €",tone:"mint"},
   {id:"start",spent:900,text:"Ciclo recién empezado",tone:"mint",day:3},
   {id:"comfort",spent:250,text:"Vas sobrado",tone:"mint"},
   {id:"good",spent:500,text:"Vas bien",tone:"mint"},
