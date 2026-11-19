@@ -1916,10 +1916,19 @@ function debenAliasDe(s,pid){
   }
   return idx.get(String(pid))||[];
 }
-// Tu propio nombre (dos palabras del titular del perfil, o «yo mismo…»): la misma regla de `teDebenRecibido`.
+/* ¿El texto nombra al titular? Dos palabras de su nombre que no son de la persona (`suyas`) Y, entre
+   ellas, su nombre de pila (la primera de `fullName`). Solo con los apellidos es un hermano o una
+   hermana: «BIZUM DE LAURA <tus dos apellidos>» se daba por dinero tuyo y Laura no pagaba nunca
+   (DIN-06, rev. de «Te deben» de la 228). Si la pila es también de la persona, la regla de antes. */
+function debenTitularEn(titular,suyas,txt){
+  const en=function(w){ return (suyas||[]).indexOf(w)<0&&txt.indexOf(" "+w+" ")>=0; };
+  if(titular.filter(en).length<2) return false;
+  return !titular.length||(suyas||[]).indexOf(titular[0])>=0||en(titular[0]);
+}
+// Tu propio nombre (dos palabras del titular del perfil, con la pila, o «yo mismo…»): la misma regla de `teDebenRecibido`.
 function debenEsTitular(s,txt){
   const titular=recNorm(s&&s.settings&&s.settings.profile&&s.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3&&!DEBEN_PALABRAS_NO[w]; });
-  return DEBEN_PROPIO.test(txt)||titular.filter(function(w){ return txt.indexOf(" "+w+" ")>=0; }).length>=2;
+  return DEBEN_PROPIO.test(txt)||debenTitularEn(titular,null,txt);
 }
 function debenAliasValido(s,a){ const w=String(a||"").split(" ").filter(Boolean); return w.length>=2&&!TRASPASO_PALABRA.test(" "+a+" ")&&!/ bizum /.test(" "+a+" ")&&debenPersonaFisica(a)&&!debenEsTitular(s," "+a+" "); }
 function debenAprenderAlias(s,pid,x,on,ahora){
@@ -1967,14 +1976,14 @@ function teDebenRecibido(s,y,m,personas,today){
     // Lo que coge sola, con el mismo filtro del titular que el camino normal: dos palabras de tu nombre
     // que no son de la persona = dinero tuyo (re-revisión de la 231). Lo que él enlaza a mano, lo dijo él.
     const wa=a&&debenNombre(p.n), ta=a&&" "+recNorm([a.merchant,a.obName,a.concept,a.note].join(" "))+" ";
-    const suyo=a&&titular.filter(function(k){ return (wa||[]).indexOf(k)<0&&ta.indexOf(" "+k+" ")>=0; }).length>=2;
+    const suyo=a&&debenTitularEn(titular,wa,ta);
     if(a&&!suyo&&debenNombra(s,p,a,personas)&&delMes(a)&&!forz[String(a.id)]) forz[String(a.id)]={pid:p.id,mano:false,row:a};
   });
   Object.keys(forz).forEach(function(id){
     const z=forz[id], e=z.row, ms=_pdMs(String(e.date||"").trim());
     if(!isFinite(ms)||!(Number(e.amount)<0)||expenseIsTombstoned(e,deleted)) return;
     const d=new Date(ms), txt=" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ";
-    (cand[z.pid]=cand[z.pid]||[]).push({id:id,c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),via:/ bizum /.test(txt)?"bizum":"transfer",mano:z.mano});
+    (cand[z.pid]=cand[z.pid]||[]).push({id:id,c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),src:String(e.source||"").split(":")[0],via:/ bizum /.test(txt)?"bizum":"transfer",mano:z.mano});
   });
   (s.expenses||[]).forEach(function(e){
     if(!e||e.id==null||forz[String(e.id)]||!e.date||!(Number(e.amount)<0)||e.possibleDup||e.category==="traspaso"||e.reciboId||e.debtId||e.goalId||deEntrada.has(String(e.id))) return;
@@ -1988,9 +1997,9 @@ function teDebenRecibido(s,y,m,personas,today){
     const quien=nombres.filter(function(x){ return debenNombra(s,x.p,e,personas); });
     if(quien.length!==1) return;
     const suyas=quien[0].w;
-    if(titular.filter(function(w){ return suyas.indexOf(w)<0&&txt.indexOf(" "+w+" ")>=0; }).length>=2) return;
+    if(debenTitularEn(titular,suyas,txt)) return;
     const pid=quien[0].p.id;
-    (cand[pid]=cand[pid]||[]).push({id:String(e.id),c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),via:/ bizum /.test(txt)?"bizum":"transfer"});
+    (cand[pid]=cand[pid]||[]).push({id:String(e.id),c:Math.round(-Number(e.amount)*100),ms:ms,dia:d.getDate(),d:debenDia(ms),banco:esFilaDeBanco(e),ent:expenseBankOf(e),src:String(e.source||"").split(":")[0],via:/ bizum /.test(txt)?"bizum":"transfer"});
   });
   const pids=Object.keys(cand);
   if(!pids.length) return {};
@@ -2000,7 +2009,9 @@ function teDebenRecibido(s,y,m,personas,today){
   const salidas={};
   pids.forEach(function(pid){ cand[pid].forEach(function(x){ salidas[x.c]=salidas[x.c]||[]; }); });
   (s.expenses||[]).forEach(function(e){
-    if(!e||!(Number(e.amount)>0)) return;
+    /* Un cargo que ya es de un recibo, una deuda o una meta (el alquiler por transferencia) es un pago
+       a otro, no la pata de un traspaso tuyo: tapaba el Bizum del mismo importe de una persona (DIN-06). */
+    if(!e||!(Number(e.amount)>0)||e.reciboId||e.debtId||e.goalId) return;
     const c=Math.round(Number(e.amount)*100);
     if(!salidas[c]||e.category!=="traspaso"&&!/ (transferencia|transferencias|transfer|traspaso|traspasos|transf) /.test(" "+recNorm([e.merchant,e.obName,e.concept,e.note].join(" "))+" ")) return;
     const ms=_pdMs(String(e.date||"").trim());
@@ -2015,7 +2026,10 @@ function teDebenRecibido(s,y,m,personas,today){
       if(p.veto[x.id]||x.c*2<minParte||c+x.c>tope) return;
       // Lo que él enlazó a la entrada gemela lo dijo él: no se le discute por una salida parecida.
       if(!x.mano&&salidas[x.c].some(function(o){ return o.ent!==x.ent&&Math.abs(o.d-x.d)<=2; })) return;
-      if(ok.some(function(v){ return v.c===x.c&&v.banco!==x.banco&&Math.abs(v.ms-x.ms)<=3*864e5; })) return;
+      /* El mismo ingreso por dos caminos: la fila del banco y un aviso, o dos avisos de canales distintos
+         (la noti del banco y la de Wallet). Dos del MISMO canal son dos pagos de verdad (los de TR llegan
+         así). Antes dos avisos de canales distintos sumaban dos veces hasta que llegaba el banco (DIN-06). */
+      if(ok.some(function(v){ return v.c===x.c&&(v.banco!==x.banco||!v.banco&&!x.banco&&v.src!==x.src)&&Math.abs(v.ms-x.ms)<=3*864e5; })) return;
       ok.push(x); c+=x.c;
     });
     if(c>0){ const ult=ok[ok.length-1]; out[p.id]={c:c,dia:ult.dia,via:ult.via,ids:ok.map(function(x){ return x.id; })}; }
