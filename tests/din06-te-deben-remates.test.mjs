@@ -44,6 +44,15 @@ test("2 · el alquiler por transferencia (cargo de recibo) en otro banco no tapa
   assert.equal(de(s,"pe_iker").pagado,true);
 });
 
+// R3 (rev. de la ronda E1): la cuota de una deuda y la aportación a una meta tampoco son la otra pata.
+for(const [marca,v] of [["debtId","hipo"],["goalId","viaje"]]){
+  test("2 · un cargo con "+marca+" en otro banco no tapa el Bizum",()=>{
+    const s=estado([ing("i1","BIZUM DE IKER",5,"2026-11-05"),
+      {id:"g1",merchant:"TRANSFERENCIA A CASERO",amount:5,date:"2026-11-06",category:"vivienda",ent:"bbva",source:"ob",[marca]:v}]);
+    assert.equal(de(s,"pe_iker").pagado,true);
+  });
+}
+
 test("2 · un traspaso de verdad a otro banco tuyo sigue tapándolo (lado seguro)",()=>{
   const s=estado([ing("i1","BIZUM DE IKER",5,"2026-11-05"),
     {id:"g1",merchant:"TRASPASO",amount:5,date:"2026-11-06",category:"traspaso",ent:"bbva",source:"ob"}]);
@@ -52,7 +61,7 @@ test("2 · un traspaso de verdad a otro banco tuyo sigue tapándolo (lado seguro
 
 test("3 · el mismo Bizum avisado por el banco y por Wallet cuenta una vez",()=>{
   const s=estado([
-    ing("a1","BIZUM DE ONA",2.5,"2026-11-05",{source:"native:sabadell"}),
+    ing("a1","BIZUM DE ONA",2.5,"2026-11-05",{source:"macrodroid"}),
     ing("a2","BIZUM DE ONA",2.5,"2026-11-05",{source:"wallet"})]);
   const a=de(s,"pe_ona");
   assert.equal(cts(a.recibido),250,"dos avisos de un pago son un pago");
@@ -63,7 +72,7 @@ test("3 · el mismo Bizum avisado por el banco y por Wallet cuenta una vez",()=>
 
 test("3 · dos pagos del mismo canal siguen siendo dos",()=>{
   const s=estado([
-    ing("a1","BIZUM DE ONA",2.5,"2026-11-05",{source:"native:sabadell"}),
-    ing("a2","BIZUM DE ONA",2.5,"2026-11-06",{source:"native:sabadell"})]);
+    ing("a1","BIZUM DE ONA",2.5,"2026-11-05",{source:"macrodroid"}),
+    ing("a2","BIZUM DE ONA",2.5,"2026-11-06",{source:"macrodroid"})]);
   assert.equal(de(s,"pe_ona").pagado,true);
 });

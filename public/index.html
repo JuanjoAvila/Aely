@@ -6351,8 +6351,11 @@ function subirGasto(e, donde){
    `addExpensesBatch`, el mismo alta idempotente (ignoreDuplicates sobre la terna) que ya usa el
    importador del histórico, uno detrás de otro para no saturar la conexión del móvil. Los cargos de
    recibo siguen sueltos por `subirGasto`: son los únicos que, si la fila ya estaba, tienen que
-   ponerle la marca (`setExpenseRecibo`). Un lote que falla se apunta y el siguiente pull lo reintenta,
-   como antes una fila suelta. */
+   ponerle la marca (`setExpenseRecibo`).
+   Un lote que falla por el SERVIDOR se repite fila a fila: el upsert es una sola sentencia y una fila
+   mala (el `23505` de una edición cuya fila vieja sigue en la nube) tumbaba las 500, en cada pull y
+   para siempre, porque la mala no sale nunca del repaso (rev. de la ronda E1: 700 de 1.199 subidos).
+   Sin red no: 500 peticiones fallando no ganan nada; se apunta una vez y lo reintenta el pull. */
 const GASTOS_POR_LOTE=500;
 function subirGastosEnLotes(list, donde){
   if(!cloud.enabled()) return Promise.resolve();
@@ -6365,7 +6368,9 @@ function subirGastosEnLotes(list, donde){
   for(let i=0;i<lote.length;i+=GASTOS_POR_LOTE){
     const trozo=lote.slice(i,i+GASTOS_POR_LOTE);
     cadena=cadena.then(function(){ return cloud.addExpensesBatch(trozo); }).then(null, function(err){
-      cloud.logEvent("error","addExpensesBatch "+(donde||"?")+": "+trozo.length, _errCloudMsg(err));
+      // «addExpense <origen>:» para que Actividad lo clasifique con su código y su origen.
+      if(renameFalloDeRed(err)){ cloud.logEvent("error","addExpense "+(donde||"?")+": lote de "+trozo.length, _errCloudMsg(err)); return; }
+      return Promise.all(trozo.map(function(e){ return subirGasto(e, donde); }));
     });
   }
   return Promise.all(ps.concat([cadena]));

@@ -17,8 +17,10 @@ function harness(opts={}){
   // `cloud` es un const del monolito: no cuelga del sandbox, se coge del contexto.
   c.cloud=vm.runInContext("cloud",c);
   c.cloud.enabled=()=>true;
-  c.cloud.addExpensesBatch=async function(l){ log.lotes.push(l.length); if(opts.fallaPrimero&&log.lotes.length===1) throw new Error("x"); return {cloudIds:[],offline:false}; };
-  c.cloud.addExpense=async function(e){ log.sueltos.push(e.id); return opts.yaEstaba?false:true; };
+  log.nube=new Set();
+  // Como Postgres: el upsert multi-fila es UNA sentencia; una fila con error tumba el lote entero.
+  c.cloud.addExpensesBatch=async function(l){ log.lotes.push(l.length); if(opts.fallaPrimero&&log.lotes.length===1) throw opts.fallaPrimero; if(l.some(e=>e.id==="veneno")) throw {code:"23505",message:"duplicate key value violates unique constraint \"expenses_pkey\""}; l.forEach(e=>log.nube.add(e.id)); return {cloudIds:[],offline:false}; };
+  c.cloud.addExpense=async function(e){ log.sueltos.push(e.id); if(e.id==="veneno") throw {code:"23505",message:"duplicate key"}; log.nube.add(e.id); return opts.yaEstaba?false:true; };
   c.cloud.setExpenseRecibo=async function(){ log.recibos++; };
   c.cloud.logEvent=function(kind,msg){ log.errores.push(msg); };
   return {c,log};
@@ -39,12 +41,27 @@ await test("el recibo que ya estaba en la nube sigue recibiendo su marca",async(
   assert.deepEqual(log.lotes,[3]);
 });
 
-await test("un lote que falla se apunta y los demás siguen",async()=>{
-  const {c,log}=harness({fallaPrimero:true});
+await test("un lote que falla por la red se apunta una vez (sin 500 peticiones) y los demás siguen",async()=>{
+  const {c,log}=harness({fallaPrimero:new TypeError("Failed to fetch")});
   await c.subirGastosEnLotes(gastos(1100),"backfill");
   assert.deepEqual(log.lotes,[500,500,100]);
+  assert.deepEqual(log.sueltos,[]);
   assert.equal(log.errores.length,1);
-  assert.match(log.errores[0],/^addExpensesBatch backfill: 500$/);
+  // «addExpense <origen>:» es lo que Actividad sabe clasificar (ruta y origen).
+  assert.match(log.errores[0],/^addExpense backfill: lote de 500$/);
+});
+
+/* R1 de la revisión de la ronda E1: una fila que el servidor rechaza (el 23505 de una edición cuya fila
+   vieja sigue en la nube) tumbaba su lote ENTERO en cada pull: 700 de 1.199 subidos, para siempre. */
+await test("una fila mala no deja fuera a las otras 499 de su lote: ese lote se repite fila a fila",async()=>{
+  const {c,log}=harness();
+  const g=gastos(1200); g[10].id="veneno";
+  for(let pull=1;pull<=2;pull++) await c.subirGastosEnLotes(g.filter(e=>!log.nube.has(e.id)),"backfill");
+  assert.equal(log.nube.size,1199);
+  assert.ok(!log.nube.has("veneno"));
+  // Solo el lote de la mala va fila a fila; los otros dos, en lote.
+  assert.equal(log.sueltos.filter(id=>id!=="veneno").length,499);
+  assert.ok(log.errores.length>=1&&log.errores.every(m=>/^addExpense backfill: /.test(m)));
 });
 
 await test("uno solo va por el camino de siempre; sin nube no sale nada",async()=>{
