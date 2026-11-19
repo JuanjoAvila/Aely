@@ -2,7 +2,7 @@ import {test,expect} from "@playwright/test";
 import {seedLoggedInDashboard,dismissNews,estadoHeredado} from "./fixtures.mjs";
 const texts={es:{debts:"Deudas",goals:"Metas",editDebt:"Editar deuda",editGoal:"Editar meta",saveDebt:"Guardar cambios",saveGoal:"Guardar cambios",saved:"Cambios guardados",cancel:"Cancelar",deleteDebt:"Eliminar esta deuda",deleteGoal:"Eliminar meta"},
  en:{debts:"Debts",goals:"Goals",editDebt:"Edit debt",editGoal:"Edit goal",saveDebt:"Save changes",saveGoal:"Save changes",saved:"Changes saved",cancel:"Cancel",deleteDebt:"Delete this debt",deleteGoal:"Delete goal"},
- ca:{debts:"Deutes",goals:"Metes",editDebt:"Edita el deute",editGoal:"Edita l’objectiu",saveDebt:"Desa els canvis",saveGoal:"Desa els canvis",saved:"Canvis desats",cancel:"Cancel·la",deleteDebt:"Elimina aquest deute",deleteGoal:"Elimina objectiu"}};
+ ca:{debts:"Deutes",goals:"Metes",editDebt:"Edita el deute",editGoal:"Edita la meta",saveDebt:"Desa els canvis",saveGoal:"Desa els canvis",saved:"Canvis desats",cancel:"Cancel·la",deleteDebt:"Elimina aquest deute",deleteGoal:"Elimina la meta"}};
 const debt={id:"debt",name:"Préstamo sintético",value:176714.8,original:180000,monthly:660.85,amort:450.15,months:309,asOf:2026*12+9-40,day:1,apr:2,account:"sabadell",unknown:{keep:7}};
 const goal={id:"goal",name:"Viaje sintético",target:4000.55,saved:1500.25,monthly:75.1,emoji:"✈️",unknown:{keep:8}};
 const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));

@@ -7,7 +7,7 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
    editor no contaba que la regla nueva entra en el siguiente. Datos sintéticos; los textos
    esperados están escritos aquí a mano, no salen de la app. */
 const textos={
-  es:{metas:"Metas",title:"Reservar dinero de tus ingresos",add:"+ Añadir regla",save:"Guardar regla",cancel:"Cancelar",
+  es:{metas:"Metas",title:"Ahorro mensual",add:"Añadir ahorro",save:"Guardar regla",cancel:"Cancelar",
     miles:"1.200",mixto:"1.200,50",filaMiles:/1\.200\s€ cada mes/,filaMixto:/1\.200,50\s€ cada mes/,ambiguo:"1,200",
     errImporte:"Escribe un importe mayor que 0, por ejemplo 1200 o 1200,50.",errPct:"El porcentaje tiene que ser mayor que 0 y como máximo 100.",
     repartido:/^El ingreso del \d{1,2}\/\d{1,2} ya se repartió\. Las reglas que añadas ahora no cambian ese reparto: entran en el siguiente que se detecte\.$/,
@@ -15,7 +15,7 @@ const textos={
     borrar:"Borrar regla",guardarMetas:"Guardar cambios",editar:"Editar metas",eliminar:"Eliminar meta",aviso:/Ingreso detectado: 2\.100\s€/,pctTipo:"% del presupuesto mensual",mesOk:(x)=>new RegExp("^Este mes: "+x+"\\s€ descontados del presupuesto y aportados a la meta\\.$"),
     sinIngreso:"Ahora mismo no hay ningún ingreso detectado para repartir. Las reglas esperan al siguiente.",
     pendiente:/^Hay un ingreso del \d{1,2}\/\d{1,2} pendiente de repartir: confírmalo en el aviso de arriba\.$/,apply:"Aplicar reparto"},
-  en:{metas:"Goals",title:"Reserve money from your income",add:"+ Add rule",save:"Save rule",cancel:"Cancel",
+  en:{metas:"Goals",title:"Monthly saving",add:"Add saving",save:"Save rule",cancel:"Cancel",
     miles:"1,200",mixto:"1,200.50",filaMiles:/1,200\s€ every month/,filaMixto:/1,200\.50\s€ every month/,ambiguo:"1.200",
     errImporte:"Enter an amount above 0, for example 1200 or 1200.50.",errPct:"The percentage must be above 0 and no more than 100.",
     repartido:/^The income from \d{1,2}\/\d{1,2} has already been split\. Rules you add now don't change that split: they apply to the next one detected\.$/,
@@ -23,12 +23,12 @@ const textos={
     borrar:"Delete rule",guardarMetas:"Save changes",editar:"Edit goals",eliminar:"Delete goal",aviso:/Income detected: 2,100\s€/,pctTipo:"% of monthly budget",mesOk:(x)=>new RegExp("^This month: "+x+"\\s€ deducted from the budget and added to the goal\\.$"),
     sinIngreso:"There's no detected income to split right now. Your rules are waiting for the next one.",
     pendiente:/^There's income from \d{1,2}\/\d{1,2} waiting to be split: confirm it in the notice above\.$/,apply:"Apply split"},
-  ca:{metas:"Metes",title:"Reservar diners dels teus ingressos",add:"+ Afegir regla",save:"Desar regla",cancel:"Cancel·la",
+  ca:{metas:"Metes",title:"Estalvi mensual",add:"Afegeix estalvi",save:"Desar regla",cancel:"Cancel·la",
     miles:"1.200",mixto:"1.200,50",filaMiles:/1\.200\s€ cada mes/,filaMixto:/1\.200,50\s€ cada mes/,ambiguo:"1,200",
     errImporte:"Escriu un import més gran que 0, per exemple 1200 o 1200,50.",errPct:"El percentatge ha de ser més gran que 0 i com a màxim 100.",
     repartido:/^L'ingrés del \d{1,2}\/\d{1,2} ja es va repartir\. Les regles que afegeixis ara no canvien aquest repartiment: entren en el següent que es detecti\.$/,
-    errMeta:"Tria un objectiu que encara estigui actiu.",sinPlan:"Amb aquestes regles no hi ha cap import per repartir. Revisa les regles i els seus objectius.",
-    borrar:"Esborrar regla",guardarMetas:"Desa els canvis",editar:"Edita objectius",eliminar:"Elimina objectiu",aviso:/Ingrés detectat: 2\.100\s€/,pctTipo:"% del pressupost mensual",mesOk:(x)=>new RegExp("^Aquest mes: "+x+"\\s€ descomptats del pressupost i aportats a l'objectiu\\.$"),
+    errMeta:"Tria una meta que encara estigui activa.",sinPlan:"Amb aquestes regles no hi ha cap import per repartir. Revisa les regles i les seves metes.",
+    borrar:"Esborrar regla",guardarMetas:"Desa els canvis",editar:"Edita metes",eliminar:"Elimina la meta",aviso:/Ingrés detectat: 2\.100\s€/,pctTipo:"% del pressupost mensual",mesOk:(x)=>new RegExp("^Aquest mes: "+x+"\\s€ descomptats del pressupost i aportats a la meta\\.$"),
     sinIngreso:"Ara mateix no hi ha cap ingrés detectat per repartir. Les regles esperen el següent.",
     pendiente:/^Hi ha un ingrés del \d{1,2}\/\d{1,2} pendent de repartir: confirma'l a l'avís de dalt\.$/,apply:"Aplicar repartiment"},
 };

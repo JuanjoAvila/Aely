@@ -1767,6 +1767,8 @@ function netWorthChartGeometry(points){
   return {xy:xy,path:path,fill:path+" L316 80 L4 80 Z",span:span};
 }
 function netWorthDeltaMoney(value){
+  // Con el ojo cerrado, como `eur`: «1.429 € más que el mes pasado» se quedaba a la vista en Inicio.
+  if(DISP.oculto) return "•••• "+DISP.sym;
   return String(Math.round(Math.abs(value)*DISP.k)).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" "+DISP.sym;
 }
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
@@ -2886,6 +2888,16 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
         React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))),
       picker);
   }
+  /* Sin ningún banco en la app no hay tarjeta ni Bizum que elegir: ofrecer «Tarjeta» marcada era
+     afirmar un pago que nadie puede tener (dueño, 19/11/2026). Queda el efectivo como interruptor,
+     igual que en un ingreso, si hay sobre; si no, nada. */
+  if(sinBancos){
+    if(cashDisabled) return null;
+    return React.createElement("div",{className:cls+" solo"},
+      React.createElement("button",{type:"button",className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
+        "data-testid":p+"-efectivo","aria-pressed":mode==="cash",onClick:function(){ mcTickHaptic(); onMode(mode==="cash"?"card":"cash"); }},
+        React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))));
+  }
   const opt=function(id,label,testId,disabled){
     const on=mode===id;
     return React.createElement("button",{type:"button",className:"v4-seg-btn"+(on?" on":""),"aria-pressed":on,disabled:!!disabled,
@@ -2896,7 +2908,7 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
       opt("card",t("ap_pay_card"),p+"-pay-card"),
       opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
       opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
-    sinBancos?null:bankPill(mode==="cash"),
+    bankPill(mode==="cash"),
     picker);
 }
 /* El logo del banco, o un hueco con «+» si no hay banco: el 🏦 genérico parecía un banco más. */

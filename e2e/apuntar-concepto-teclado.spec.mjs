@@ -203,6 +203,8 @@ test("Apuntar: sin ningún banco que elegir la baldosa no sale", async ({ page }
   await page.locator(".botnav-fab").click();
   const hoja = page.locator(".v4-exp-sheet");
   await expect(hoja.locator(".v4-keys button")).toHaveCount(12);
-  await expect(hoja.getByTestId("ap-pay-card")).toBeVisible();
+  // Sin bancos tampoco hay «Tarjeta» ni «Bizum» (dueño, 19/11/2026): queda el efectivo como interruptor.
+  await expect(hoja.getByTestId("ap-pay-card")).toHaveCount(0);
+  await expect(hoja.getByTestId("ap-efectivo")).toBeVisible();
   await expect(hoja.getByTestId("ap-bank")).toHaveCount(0);
 });

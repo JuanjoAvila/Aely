@@ -353,8 +353,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
 }
 
 /* El ojo (SPEC Plan Recibos §8): esconde TODAS las cifras de dinero de la app («•••• €») desde los
-   formateadores; los conteos se siguen viendo. La SPEC deja al dueño elegir dónde va: de momento en
-   la cabecera de Plan, que es donde se diseñó. Se guarda en `settings` para que dure y viaje. */
+   formateadores; los conteos se siguen viendo. Va en la cabecera de Plan, donde se diseñó, y en la de
+   Inicio (decisión del dueño, 18/11/2026). Se guarda en `settings` para que dure y viaje. */
 function OjoImportes({state, set}){
   const oculto=!!(state.settings&&state.settings.ocultarImportes);
   return React.createElement("button",{type:"button",className:"v4-ojo"+(oculto?" on":""),"data-testid":"ojo-importes",
@@ -4876,7 +4876,9 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:closePush},"‹"),
         React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:tr}, t("iv_title"))
       ),
-      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,fullMode:true,showToast:showToast})
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,fullMode:true,showToast:showToast}),
+      // Lo que aportas cada mes al bróker, junto a la proyección que lo usa (venía de Metas, 18/11).
+      React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast})
     ), document.body);
 }
 
@@ -5263,7 +5265,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const fxHint=entryCur!=="EUR" ? (toEurAmt(amt,entryCur,state)==null?t("fx_no_rate"):tf("f_fx_eq",{
     x:NF.format(toEurAmt(amt,entryCur,state))+" €",date:fmtIsoCorto(state.fxDate||date)
   })) : null;
-  const ctaAmount=NF.format(amt)+(entrySym.length>1?" ":"")+entrySym;
+  // Con espacio, como el resto de importes de la app: «Apuntar 12,50€» desentonaba (D-02).
+  const ctaAmount=NF.format(amt)+" "+entrySym;
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
@@ -5355,7 +5358,6 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     return "";
   })();
   const initials=avatarIniciales(nameGuess, email);
-  const handleShow=p.handle ? (p.handle.charAt(0)==="@"?p.handle:("@"+p.handle)) : "@"+(email?email.split("@")[0]:"micartera");
   const patch=function(key,val){
     set(function(s){
       const cur=profileOf(s);
@@ -5383,10 +5385,9 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
   return React.createElement(React.Fragment,null,
     React.createElement("div",{className:"profile-pull-h"},
       React.createElement("button",{type:"button",className:"back","aria-label":t("v4_back"),onClick:onClose},"✕"),
+      // Sin «@usuario»: no se usaba en ningún sitio y parecía una cuenta pública (dueño, 18/11/2026).
       React.createElement("div",{className:"ph-main"},
-        React.createElement("h1",null, t("pf_title")),
-        React.createElement("button",{type:"button",className:"profile-handle",onClick:function(){ edit("handle", t("pf_handle"), "@usuario"); }},
-          handleShow, React.createElement("span",{"aria-hidden":"true"},"✎"))
+        React.createElement("h1",null, t("pf_title"))
       ),
       React.createElement("div",{className:"profile-av","aria-hidden":"true"}, initials)
     ),
@@ -5413,7 +5414,9 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     ),
     React.createElement("div",{className:"profile-sec"}, t("pf_personal")),
     React.createElement("div",{className:"profile-card"},
-      row(t("pf_basic"), val(p.fullName), function(){ edit("fullName", t("pf_name"), t("pf_name_ph")); }),
+      // «Nombre del titular» y no «Información básica»: es el nombre con el que se reconocen tus
+      // traspasos y aportaciones en los extractos, no un dato de adorno.
+      row(t("pf_basic"), val(p.fullName), function(){ edit("fullName", t("pf_basic"), t("pf_name_ph")); }),
       row(t("pf_email"), email||null, function(){
         if(onOpenSettings) onOpenSettings();
       })

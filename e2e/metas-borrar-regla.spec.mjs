@@ -2,9 +2,9 @@ import { test, expect, devices } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 const textos={
-  es:{metas:"Metas",title:"Reservar dinero de tus ingresos",add:"+ Añadir regla",save:"Guardar regla",apply:"Aplicar reparto",del:"Borrar regla",cancel:"Cancelar",question:"¿Borrar esta regla?",explanation:"Se libera del presupuesto lo que siga reservado por esta regla y pueda comprobarse. Las aportaciones ya guardadas en la meta y su historial se conservan; no se mueve dinero."},
-  en:{metas:"Goals",title:"Reserve money from your income",add:"+ Add rule",save:"Save rule",apply:"Apply split",del:"Delete rule",cancel:"Cancel",question:"Delete this rule?",explanation:"Any remaining reservation that can be verified is released from the budget. Contributions already saved towards the goal and their history are kept; no money moves."},
-  ca:{metas:"Metes",title:"Reservar diners dels teus ingressos",add:"+ Afegir regla",save:"Desar regla",apply:"Aplicar repartiment",del:"Esborrar regla",cancel:"Cancel·la",question:"Vols esborrar aquesta regla?",explanation:"S’allibera del pressupost el que segueixi reservat per aquesta regla i es pugui comprovar. Es conserven les aportacions ja desades a la meta i el seu historial; no es mouen diners."}
+  es:{metas:"Metas",title:"Ahorro mensual",add:"Añadir ahorro",save:"Guardar regla",apply:"Aplicar reparto",del:"Borrar regla",cancel:"Cancelar",question:"¿Borrar esta regla?",explanation:"Se libera del presupuesto lo que siga reservado por esta regla y pueda comprobarse. Las aportaciones ya guardadas en la meta y su historial se conservan; no se mueve dinero."},
+  en:{metas:"Goals",title:"Monthly saving",add:"Add saving",save:"Save rule",apply:"Apply split",del:"Delete rule",cancel:"Cancel",question:"Delete this rule?",explanation:"Any remaining reservation that can be verified is released from the budget. Contributions already saved towards the goal and their history are kept; no money moves."},
+  ca:{metas:"Metes",title:"Estalvi mensual",add:"Afegeix estalvi",save:"Desar regla",apply:"Aplicar repartiment",del:"Esborrar regla",cancel:"Cancel·la",question:"Vols esborrar aquesta regla?",explanation:"S’allibera del pressupost el que segueixi reservat per aquesta regla i es pugui comprovar. Es conserven les aportacions ja desades a la meta i el seu historial; no es mouen diners."}
 };
 const goals=[{id:"g1",name:"Reserva A",emoji:"🎯",target:5000,saved:125},
   {id:"g2",name:"Reserva B",emoji:"🎯",target:5000,saved:50}];

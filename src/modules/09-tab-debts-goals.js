@@ -833,6 +833,22 @@ function reservaEstadoTexto(st){
   if(st.estado==="sinPlan") return t("rr_st_noplan");
   return t("rr_st_none");
 }
+/* Lo que llega a UNA meta cada mes, para su previsión. «Ahorro mensual» y las reglas de reservar
+   eran dos tarjetas para lo mismo, y la previsión de cada meta usaba la suma de las aportaciones al
+   bróker, que no van a ninguna meta: con 200 € al fondo, una meta sin un euro apartado decía «llegas
+   en marzo» (dueño, 18/11/2026: se fusionan en las reglas). Manda el aporte elegido en la propia
+   meta; si no, lo que sus reglas apartan al mes. Las de % del presupuesto, con el presupuesto de hoy
+   (`reservaMensualImporte`); las antiguas por ingreso, solo las de importe fijo: un % de un ingreso
+   que aún no ha llegado no es una cifra. */
+function metaRitmoMensual(state, g){
+  if(!g) return 0;
+  if(g.monthly>0) return g.monthly;
+  return ((state&&state.settings&&state.settings.reservaRules)||[]).reduce(function(n,r){
+    if(!r||r.goalId!==g.id) return n;
+    if(r.mensual===true){ const imp=reservaMensualImporte(state,r); return n+(imp.amount||0); }
+    return n+(r.kind==="fixed"&&r.value>0?r.value:0);
+  },0);
+}
 // Editor de reglas: nombre opcional, importe fijo o % de la nómina, y a qué meta va.
 function ReservaRules({state, set}){
   const goals=(state.goals||[]).filter(function(g){ return !g.done; });
@@ -983,10 +999,11 @@ function ReservaDetect({state, set, showToast}){
     )
   );
 }
-/* AHORRO MENSUAL — la puerta que el rediseño v4 dejó huérfana (feedback 18/9, punto 6).
-   `state.aportaciones` sigue alimentando `totals.ahorroMensual`, que es con lo que `goalEta`
-   calcula cuándo llegas a cada meta, y la proyección de Inversiones; pero desde la v4 no había
-   dónde editarlo. Vive aquí, en Metas, porque es justo lo que mueve esas fechas.
+/* APORTACIÓN MENSUAL a bancos y brókers (`state.aportaciones`). Vivía en Metas como «Ahorro
+   mensual», junto a las reglas que sí apartan dinero para cada meta, y se confundían (dueño,
+   18/11/2026). No va a ninguna meta: alimenta la proyección de Inversiones y reconoce la salida al
+   bróker en la gráfica de Inicio. Por eso vive ahora en Cartera › Inversiones, al lado de esa
+   proyección; el ahorro de cada meta son sus reglas (`metaRitmoMensual`).
    Es PLANIFICACIÓN: no crea movimientos ni toca saldos. Se edita en borrador y solo se escribe
    al Guardar (el editor v3, commit 87191f41, añadía y borraba en vivo y Cancelar no deshacía). */
 function SavingsPlanCard({state, set, totals, showToast}){
@@ -1031,16 +1048,17 @@ function SavingsPlanCard({state, set, totals, showToast}){
     if(showToast) showToast(t("sv_saved"));
   };
   const editing=!!drafts;
-  /* Sin aportaciones la tarjeta es UNA fila, «Ahorro mensual · Añadir»: «0,00 €/mes» en grande y
+  /* Sin aportaciones la tarjeta es UNA fila, «Aportación mensual · Añadir»: «0,00 €/mes» en grande y
      dos frases de ayuda para no decir nada ocupaban media pantalla (auditoría 237, P1-7). La nota
      de que solo planifica se queda cuando hay algo que planificar: es la línea que evita creer que
      esto mueve dinero. */
   const vacia=!editing && aps.length===0 && !(Math.round(total*100)>0);
   return React.createElement("div",{className:"v4-card rise aely-savings"+(vacia?" aely-savings-vacia":""),"data-savings-plan":"1"},
+    // Título a lo ancho y el botón en la fila de la cifra: al lado del título, con Enorme a 360 el
+    // título se partía en dos y «Editar» caía debajo de todo (gate 240, D-05).
     React.createElement("div",{className:"aely-savings-h"},
-      React.createElement("div",{style:{minWidth:0}},
-        React.createElement("div",{className:"v4-micro"}, t("sv_title")),
-        !vacia && React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
+      React.createElement("div",{className:"v4-micro aely-savings-t"}, t("sv_title")),
+      !vacia && React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)})),
       React.createElement("button",{type:"button",className:"btn btn-ghost aely-savings-edit","data-savings-edit":"1",
         onClick:function(){ editing?setDrafts(null):(vacia?setDrafts([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]):start()); }},
         editing?t("fj_cancel"):(vacia?t("sv_add_short"):t("fj_edit")))),
@@ -1142,14 +1160,13 @@ function Goals({state, set, totals, showToast, abrir}){
       React.createElement("div",{className:"serif num plan-summary-amount"},eur(totalSaved)),
       totalTarget>0 && React.createElement("div",{className:"plan-summary-sub"},tf("gl_total_sub",{x:eur0(totalTarget)}))
     ),
-    React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
 
     goals.map(function(g){
       const gv=metaConAportes(g,state);
-      const pct=goalPct(gv); const eta=goalEta(gv, tt.ahorroMensual||0);
+      const pct=goalPct(gv); const eta=goalEta(gv, metaRitmoMensual(state,g));
       return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
           React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),

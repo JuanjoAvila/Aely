@@ -95,6 +95,14 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/diseno-240-plan-ajustes.spec.mjs"] },
+  // Ronda F (19/11): Metas con «Ahorro mensual» = reglas y la aportación al bróker en Inversiones,
+  // Perfil sin «@usuario», el ojo en Inicio, Apuntar sin bancos, diálogos con teclado y el aviso ancho.
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs", "e2e/plan-ahorro.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
   // Ronda R2 de bancos (18/11): Conexiones como pantalla hija; entrar, salir y volver al origen.
   { file: "src/modules/10-app-components.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs", "e2e/bancos-lista-fresca.spec.mjs", "e2e/brokers-selector.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/conexiones-origen.spec.mjs", "e2e/bancos-reconnect.spec.mjs", "e2e/brokers-selector.spec.mjs"] },

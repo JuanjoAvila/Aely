@@ -234,6 +234,27 @@
      líneas quedaba cortado arriba (filtro de diseño 242). Nunca pasa del margen seguro de arriba: si no
      cabe, se desplaza por dentro y los botones se quedan pegados abajo. Cuando cabe, nada cambia. */
   .askback>.tabsheet{max-height:100%;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;}
+  /* Con campo, lo que se desplaza es SOLO la explicación: el campo, los atajos y los botones se quedan
+     a la vista. Desplazando la hoja entera, a 360 con Enorme y teclado el atajo «Todo» quedaba debajo
+     de los botones pegados y nada decía que hubiera más (19/11/2026). La explicación encoge hasta dos
+     líneas y, mientras le quede texto por debajo, se funde abajo: la pista de que se desplaza. */
+  @property --ask-fade{syntax:"<length>";inherits:false;initial-value:0px;}
+  .askback>.tabsheet:has(> .ask-in){display:flex;flex-direction:column;}
+  .askback>.tabsheet:has(> .ask-in)>*{flex:none;}
+  /* Aquí la hoja no pasa por debajo de los botones: su sombra tapaba el borde del último atajo. */
+  .askback>.tabsheet:has(> .ask-in)>.ask-btns{box-shadow:none;}
+  .askback>.tabsheet:has(> .ask-in)>.ts-hint:not(.ask-live){flex:0 1 auto;min-height:2.9em;overflow-y:auto;overscroll-behavior:contain;
+    -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - var(--ask-fade)),transparent);
+    mask-image:linear-gradient(to bottom,#000 calc(100% - var(--ask-fade)),transparent);
+    animation:ask-fade linear both;animation-timeline:scroll(self);}
+  @keyframes ask-fade{from{--ask-fade:22px;}to{--ask-fade:0px;}}
+  /* Con poco alto (el teclado abierto) se aprietan los márgenes para que todo quepa sin desplazar. */
+  @media (max-height:520px){
+    .askback>.tabsheet:has(> .ask-in){padding-top:12px;}
+    .askback>.tabsheet:has(> .ask-in)>.ts-hint:not(.ask-live){margin-bottom:6px;min-height:2.4em;}
+    .askback .ask-in{margin-bottom:6px;padding-top:9px;padding-bottom:9px;}
+    .askback .ask-btns{margin-top:8px;}
+  }
   .ts-hint.ask-live{text-align:right;min-height:1.5em;line-height:1.5;margin:0 2px 6px;}
   .ask-in{width:100%;box-sizing:border-box;text-align:right;font-size:19px;font-weight:800;padding:12px 14px;margin:2px 0 10px;}
   /* Perfil / texto libre: mismo tamaño que el valor ya guardado (no el teclado de importes). */
@@ -1626,7 +1647,6 @@
   html[data-theme="light"] .pr6-baja,
   html[data-theme="light"] .pr6-paid-h .pr6-chev,
   html[data-theme="light"] .pr6-ll-row .num.pos,
-  html[data-theme="light"] .profile-handle,
   html[data-theme="light"] .profile-row .pr-edit,
   html[data-theme="light"] .row .rval .rvsub,
   html[data-theme="light"] .botnav-tab.active,
@@ -2198,7 +2218,7 @@
     transition:background-color .2s ease,color .2s ease;}
   .v4-ficha-pay .v4-seg-btn:disabled{opacity:.45;cursor:default;}
   .v4-ficha-pay > .v4-ficha-meta-pill{flex:0 0 52px;transition:opacity .2s ease,visibility 0s;}
-  .v4-ficha-pay.income > .v4-ficha-meta-pill{flex:1 1 0;}
+  .v4-ficha-pay.income > .v4-ficha-meta-pill,.v4-ficha-pay.solo > .v4-ficha-meta-pill{flex:1 1 0;}
   /* En un gasto la píldora del banco es solo su logo: el nombre, para el lector (a 360 se cortaba
      en «Sab…»). En un ingreso hay sitio y va entero. */
   .v4-ficha-pay:not(.income) .v4-bank-nom{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
@@ -2603,7 +2623,6 @@
   .pr6-back::after{inset:-5px;}
   .profile-pull-h .ph-main{flex:1;min-width:0;}
   .profile-pull-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;line-height:1.15;}
-  .profile-handle{font-size:12.5px;font-weight:700;color:var(--mint);display:inline-flex;align-items:center;gap:5px;margin-top:2px;}
   .profile-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(150deg,var(--sur2),var(--sur));border:1px solid var(--line);
     display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--text);flex:0 0 auto;position:relative;}
   .profile-sec{font-size:13px;font-weight:700;color:var(--muted);margin:16px 2px 8px;}
@@ -2848,16 +2867,20 @@
   .v4-inv-drop{animation:rise .26s var(--ease) both;}
   .chip.active{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .v4-paid{opacity:.55;}
-  /* Ahorro mensual en Metas (punto 6, 18/9). Importes largos: la cifra nunca se parte ni se
-     corta — el nombre cede (ellipsis) y la cifra baja de línea si no cabe. */
-  .aely-savings{margin-top:12px;padding:16px;}
-  .aely-savings-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-  .aely-savings-total{font-size:26px;font-weight:550;letter-spacing:-.5px;line-height:1.15;margin-top:4px;white-space:nowrap;}
-  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;min-height:44px;}
-  .aely-savings-vacia .aely-savings-h{align-items:center;flex-wrap:nowrap;}
+  /* Aportación mensual en Cartera › Inversiones (antes «Ahorro mensual» en Metas). Importes largos:
+     la cifra nunca se parte ni se corta y baja de línea si no cabe; el nombre parte entre palabras.
+     El título va a lo ancho y el botón en la fila de la cifra: a su lado, con Enorme a 360, el
+     título se partía y el botón caía debajo de todo (gate 240, D-05). */
+  .aely-savings{margin-top:12px;padding:16px;container-type:inline-size;}
+  .aely-savings-h{display:flex;align-items:center;column-gap:12px;row-gap:6px;flex-wrap:wrap;}
+  .aely-savings-t{flex:1 0 100%;}
+  /* La cifra encoge con la tarjeta (como la de Recibos) para dejar sitio a «Editar» a su lado. */
+  .aely-savings-total{font-size:clamp(19px,9cqi,26px);font-weight:550;letter-spacing:-.5px;line-height:1.15;white-space:nowrap;margin-right:auto;}
+  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0 0 0 auto;min-height:44px;}
+  .aely-savings-vacia .aely-savings-t{flex:1 1 0;min-width:0;}
   .aely-savings-note{margin:8px 0 4px;font-size:12.5px;line-height:1.45;}
   .aely-savings-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line-soft);}
-  .aely-savings-name{min-width:0;flex:1 1 140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;}
+  .aely-savings-name{min-width:0;flex:1 1 140px;overflow-wrap:anywhere;font-weight:650;}
   .aely-savings-bank{display:block;font-weight:500;font-size:12px;color:var(--muted);}
   .aely-savings-amt{white-space:nowrap;font-weight:700;color:var(--mint);margin-left:auto;}
   .aely-savings-edit-row{padding:10px 0;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:6px;}
@@ -3169,7 +3192,9 @@
   .dots .d{width:7px;height:7px;border-radius:50%;background:var(--muted-2);transition:all .25s;}
   .dots .d.on{width:22px;background:linear-gradient(90deg,var(--mint-bright),var(--mint));}
 
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + var(--safe-bottom));background:var(--sur2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:16px;font-size:14px;font-weight:700;z-index:200;box-shadow:var(--shadow);animation:toastin .3s ease;}
+  /* Centrado con los dos bordes y `fit-content`, no con left:50%: así el aviso solo podía usar la mitad
+     de la pantalla y una frase larga (el del informe del mes) salía en una columna estrecha (D-05). */
+  .toast{position:fixed;left:16px;right:16px;margin:0 auto;width:fit-content;box-sizing:border-box;text-align:center;bottom:calc(96px + var(--safe-bottom));background:var(--sur2);border:1px solid var(--line);color:var(--text);padding:11px 18px;border-radius:16px;font-size:14px;font-weight:700;z-index:200;box-shadow:var(--shadow);animation:toastsube .3s ease;}
   .toast.toast-low{bottom:calc(24px + var(--safe-bottom));}
   .offline-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:rgba(226,160,95,.16);border:1px solid rgba(226,160,95,.5);color:#E2A05F;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;z-index:210;white-space:nowrap;box-shadow:var(--shadow);}
   .update-pill{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--safe-top) + 8px);background:linear-gradient(160deg,var(--mint-bright),var(--mint));color:var(--on-mint);padding:9px 18px;border-radius:20px;font-size:12.5px;font-weight:800;z-index:215;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(95,208,138,.7);border:none;cursor:pointer;animation:updin .35s ease;}
@@ -3177,6 +3202,7 @@
   .update-pill:active{transform:translateX(-50%) translateY(1px);}
   @keyframes updin{from{opacity:0;transform:translate(-50%,-10px);}to{opacity:1;transform:translate(-50%,0);}}
   @keyframes toastin{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+  @keyframes toastsube{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
 
   /* SPLASH DE ENTRADA (#mc-load). Vive en el HTML, fuera de React: es LO ÚNICO que se ve
      mientras arranca el bundle, y hasta ahora era un emoji con «Cargando…» en la tipografía del
@@ -9160,7 +9186,7 @@ const LANG = {
     v4_debts_hero:"Debes en total", v4_debts_sub:"{x}/mes en cuotas · bajando cada mes",
     v4_debts_ends:"acabas en {d}", v4_amort_now:"Amortizar ahora",
     v4_debt_party_1:"🎉 {name}: ¡ÚLTIMA cuota este mes ({x})!", v4_debt_party_sub:"Después, {x}/mes libres para ti.",
-    v4_goals_hero:"Ahorrado en metas", v4_goal_new:"+ Nueva meta de ahorro",
+    v4_goals_hero:"Ahorrado en metas", v4_goal_new:"Nueva meta de ahorro",
     v4_ob_skip:"Saltar", v4_ob_title1:"Bienvenido/a",
     v4_ob_sub1:"Tus cuentas, gastos y deudas en un sitio.",
     v4_ob_c1t:"Todo tu dinero",
@@ -9181,7 +9207,7 @@ const LANG = {
    hv_copied:"Valores copiados", hv_copy_fail:"No se pudieron copiar",
     v4_moved_cat:"Movido a {cat}", v4_cuota_confirmada:"Confirmada como cuota de {name}", 
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
-    f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
+    f_amount_aria:"Importe", f_concept_ph:"Añade el concepto", f_cat:"Categoría",
     f_cat_all:"Todas ›", f_kb_done:"Listo", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", 
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Guardado ✓", f_del:"Borrar gasto", f_del_in:"Borrar ingreso",
     f_note_row:"Nota", f_debt_row:"Es la cuota de una deuda", f_no:"No",
@@ -9234,7 +9260,7 @@ const LANG = {
     st_updates:"Actualizaciones", st_update:"Buscar actualización",
     st_up_ok:"✓ Estás a la última", st_up_applying:"⬇️ Actualizando a la v{v}… la app se recarga sola en unos segundos", st_up_apk:"⬇️ App {v} disponible · descargando, se abrirá el instalador",
     st_widget_hint:"📱 Widget: mantén pulsado el escritorio → Widgets → Aely. Verás el gasto del mes y lo que te queda.",
-    st_news:"Novedades", st_news_row:"Historial de novedades",
+    st_news:"Novedades", st_news_row:"Ver novedades",
     st_feedback:"Enviar sugerencia o error", st_shared:"Hogar y gastos compartidos",
     st_account:"Tu cuenta", st_privacy:"Privacidad y datos", st_delete_acc:"Borrar mi cuenta",
     st_delete_acc_sub:"Se borrarán todos tus datos en la nube (gastos, cuentas, inversiones…). No se puede deshacer.",
@@ -9264,7 +9290,7 @@ const LANG = {
     st_reduce_motion:"Reducir animaciones",
     st_contrast:"Más contraste",
     // Temáticas de temporada
-    st_theme_season:"Temática", st_theme_season_hint:"Colores y un detalle suave de fondo según la estación.",
+    st_theme_season:"Decoración de temporada", st_theme_season_hint:"Colores y un detalle suave de fondo según la estación.",
     th_none:"Ninguna", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Navidad 🎄", th_verano:"Verano ☀️", th_invierno:"Invierno ❄️", th_pascua:"Pascua 🐣", th_otono:"Otoño 🍂", th_primavera:"Primavera 🌸",
     // Bancos de gasto diario (varios)
     // Comparativa de monedas
@@ -9398,8 +9424,8 @@ Object.assign(LANG.es,{
   hh_updated:"Actualizado", hh_leave:"Salir", hh_leave_q:"¿Salir del hogar?", hh_leave_sub:"Tu vista dejará de mostrarse. Tus datos locales no se borran.",
   hh_leave_ok:"Sí, salir", hh_left:"Has salido del hogar",
   hh_rls_fix:"No se ha podido guardar en el hogar. Prueba más tarde.",
-  hh_spent_m:"Gastado este mes", hh_fixed_m:"Fijos /mes", hh_cats:"Gastos del hogar por categoría",
-  hh_fixed_top:"Sus fijos principales",
+  hh_spent_m:"Gastado este mes", hh_fixed_m:"Recibos /mes", hh_cats:"Gastos del hogar por categoría",
+  hh_fixed_top:"Sus recibos principales",
   rc_title:"Recibo gordo cerca", rc_body:"{name}: {x} el día {d}",
   rc_title_tmrw:"Mañana toca recibo", rc_body_tmrw:"{name}: mañana se cobran {x}. Si algo no cuadra, aún estás a tiempo.",
   rc_body_tmrw_enough:"{name}: mañana se cobran {x}. Mínimo previsto este mes en {bank}: {saldo}.",
@@ -9712,7 +9738,7 @@ Object.assign(LANG.es,{
   g_search:"Buscar comercio o categoría…",
   sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
   st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"Gastos en grande; ingresos y balance debajo.", st_gview_net:"Balance", st_gview_net_d:"El balance en grande; gastos e ingresos debajo. Verde si te sobra, rojo si no.", st_budget_cycle:"Ciclo de cobro",
-  sv_title:"Ahorro mensual", sv_note:"Solo planifica: no mueve dinero ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_add_short:"Añadir",
+  sv_title:"Aportación mensual", sv_note:"Solo es un plan: no mueve dinero.", sv_saved:"Aportación guardada", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_add_short:"Añadir",
   g_syncing:"Sincronizando…",
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
   ap_pay_card:"Tarjeta", ap_pay_cash:"Efectivo", ap_pay_transfer:"Bizum/transf.", ap_pay_aria:"Forma de pago",
@@ -9801,7 +9827,7 @@ Object.assign(LANG.es,{
   gl_create:"Crear meta", gl_cancel:"Cancelar",
   gl_name_ph:"Ej.: vacaciones", gl_target_ph:"Objetivo €", gl_saved_ph:"Ya ahorrado €", gl_deadline:"Fecha límite (opcional)", gl_deadline_none:"Sin fecha", gl_monthly_ph:"Aporte al mes € (opcional)",
   gl_newdefault:"Mi meta",
-  gl_contribute:"+ Aportar",
+  gl_contribute:"Aportar",
   gl_save:"Guardar cambios", gl_delete:"Eliminar meta", gl_of:"de",
   gl_eta:"A tu ritmo ({x}/mes) la cumples en {when} 🟢",
   gl_eta_ok:"Vas bien 🟢 · faltan {x}", gl_eta_behind:"Necesitas {x}/mes para llegar a tiempo 🟠",
@@ -9816,7 +9842,7 @@ Object.assign(LANG.es,{
   sh_expenses:"Gastos del grupo", sh_noexp:"Aún no hay gastos. Añade el primero.", sh_paidby:"Pagó {who}", sh_addexp:"Añadir gasto", sh_exp:"Gasto", sh_exp_ph:"Concepto (ej. Cena)", sh_split:"¿Entre quién se reparte?",
   sh_back:"Grupos", sh_delgroup:"Borrar grupo", sh_delgroup_q:"¿Borrar este grupo y sus gastos?",
   gl_empty_t:"Aún no tienes metas", gl_first:"Crear mi primera meta", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
-  rr_add:"+ Añadir regla", rr_save:"Guardar regla",
+  rr_add:"Añadir ahorro", rr_save:"Guardar regla",
   // INC-0810 es: textos propios de edición de reglas, sin cambiar el contrato de alta.
   rr_edit:"Editar regla",
   rr_edit_monthly_hint:"Lo ya aportado no cambia. Si esta regla ya se aplicó este mes, los cambios se aplicarán el próximo mes.",
@@ -9828,7 +9854,7 @@ Object.assign(LANG.es,{
   // INC-0310-01 es: límite para no invalidar textos ajenos al borrado.
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
   // INC-0410 es: los avisos del alta y el estado del reparto también deben invalidar su revisión.
-  rr_title:"Reservar dinero de tus ingresos", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
+  rr_title:"Ahorro mensual", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
   rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% del ingreso",
   rr_row_fixed:"{v} fijos", rr_row_pct:"{v} %",
   rr_goal_gone:"(meta borrada)",
@@ -9993,7 +10019,7 @@ Object.assign(LANG.es,{
 // --- Perfil personal (pull-down Inicio) ---
 Object.assign(LANG.es,{
   pf_title:"Tu perfil", pf_people:"Tu gente", pf_personal:"Personal", 
-  pf_add:"Añadir", pf_handle:"Usuario", pf_basic:"Información básica", pf_name:"Nombre", pf_name_ph:"Tu nombre",
+  pf_add:"Añadir", pf_basic:"Nombre del titular", pf_name_ph:"Tu nombre",
   pf_email:"Correo",
   pf_to_settings:"Ir a Ajustes", pf_shared_row:"Hogar compartido",
 });
@@ -13609,6 +13635,8 @@ function netWorthChartGeometry(points){
   return {xy:xy,path:path,fill:path+" L316 80 L4 80 Z",span:span};
 }
 function netWorthDeltaMoney(value){
+  // Con el ojo cerrado, como `eur`: «1.429 € más que el mes pasado» se quedaba a la vista en Inicio.
+  if(DISP.oculto) return "•••• "+DISP.sym;
   return String(Math.round(Math.abs(value)*DISP.k)).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" "+DISP.sym;
 }
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
@@ -14728,6 +14756,16 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
         React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))),
       picker);
   }
+  /* Sin ningún banco en la app no hay tarjeta ni Bizum que elegir: ofrecer «Tarjeta» marcada era
+     afirmar un pago que nadie puede tener (dueño, 19/11/2026). Queda el efectivo como interruptor,
+     igual que en un ingreso, si hay sobre; si no, nada. */
+  if(sinBancos){
+    if(cashDisabled) return null;
+    return React.createElement("div",{className:cls+" solo"},
+      React.createElement("button",{type:"button",className:"v4-ficha-meta-pill"+(mode==="cash"?" on sel":"")+(cashLocked?" locked"+(mode!=="cash"?" bloqueada":""):""),
+        "data-testid":p+"-efectivo","aria-pressed":mode==="cash",onClick:function(){ mcTickHaptic(); onMode(mode==="cash"?"card":"cash"); }},
+        React.createElement("span",null,"💶"),React.createElement("span",null,t("f_meta_cash"))));
+  }
   const opt=function(id,label,testId,disabled){
     const on=mode===id;
     return React.createElement("button",{type:"button",className:"v4-seg-btn"+(on?" on":""),"aria-pressed":on,disabled:!!disabled,
@@ -14738,7 +14776,7 @@ function ExpensePayRow({income, mode, onMode, cashDisabled, bankEnt, bankOn, onB
       opt("card",t("ap_pay_card"),p+"-pay-card"),
       opt("cash",t("ap_pay_cash"),p+"-efectivo",cashDisabled),
       opt("transfer",t("ap_pay_transfer"),p+"-pay-transfer")),
-    sinBancos?null:bankPill(mode==="cash"),
+    bankPill(mode==="cash"),
     picker);
 }
 /* El logo del banco, o un hueco con «+» si no hay banco: el 🏦 genérico parecía un banco más. */
@@ -15035,7 +15073,9 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
 const CYCLE_COMFORT_DIFF=-15, CYCLE_GOOD_DIFF=10, CYCLE_TIGHT_DIFF=40;
 function cyclePaceState(spent,budget,elapsed,days){
   const used=Math.round(spent*100), limit=Math.round(budget*100), excess=Math.max(0,used-limit)/100;
-  if(used>limit) return {id:"over",tone:"coral",excess:excess};
+  // Pasado el límite, en menta como el «de más» de Recibos y no en coral: el coral se lee como error,
+  // y pasarse del límite de gasto es un dato, no un fallo de la app (dueño, 18/11/2026).
+  if(used>limit) return {id:"over",tone:"mint",excess:excess};
   if(elapsed<3) return {id:"start",tone:"mint",excess:0};
   const diff=limit>0&&days>0?used/limit*100-elapsed/days*100:0;
   return {id:diff<=CYCLE_COMFORT_DIFF?"comfort":diff<=CYCLE_GOOD_DIFF?"good":diff<=CYCLE_TIGHT_DIFF?"tight":"slow",
@@ -15396,7 +15436,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const recent=useMemo(function(){ return gastosDePortada(state,3); },[state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,
     state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,state.reciboBorrado]);
   /* El anillo cuenta SIEMPRE lo USADO del límite: de 0 % a 100 % según se gasta y, pasado el límite,
-     sigue subiendo (127 %) en coral. Entre 2798bfda9 y la 4.26.186 pintaba lo que QUEDA por debajo
+     sigue subiendo (127 %). Entre 2798bfda9 y la 4.26.186 pintaba lo que QUEDA por debajo
      del límite y saltaba de 0 % a 100 % al agotarlo; el dueño lo rechazó (26/10/2026: con 1.436,47
      de 1.500 debe marcar 96 %). Hacia abajo en el exceso, para que 100,4 % no parezca justo el
      límite; si redondea a 100 o el límite está todo reservado, «>100 %». Por debajo, nunca «100 %»
@@ -15436,6 +15476,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("div",{className:"v4-inicio-hi"}, greetName?tf("v4_hola",{n:greetName}):t("v4_hola_anon"))
       ),
       React.createElement("div",{className:"aely-help-head-actions"},
+        // El ojo también aquí: es donde más se enseña el móvil a otros (dueño, 18/11/2026; SPEC §8).
+        React.createElement(OjoImportes,{state:state,set:set}),
         React.createElement("button",{type:"button",className:"aely-help-entry-mini","aria-label":t("help_title"),onClick:function(){
           try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, tt, {
             onConsent:function(ok){ set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{helpAiOk:!!ok,helpAiAsked:true})}); }); }
@@ -15513,7 +15555,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           React.createElement("div",{className:"v42-cycle-percent num"},ringLabel.slice(0,-1),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:"ph v42-cycle-amount"},
-            React.createElement("span",{className:"serif num",style:{color:over?"var(--coral)":"var(--text)"}},amountTxt),
+            React.createElement("span",{className:"serif num",style:{color:"var(--text)"}},amountTxt),
             React.createElement("span",{className:"v42-cycle-of"},amountOf)),
           dailyMoney!=null&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},
             React.createElement("b",null,tf("v42_cycle_daily",{x:dailyMoney})),
@@ -15625,7 +15667,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         goals.map(function(g0){
           // Con lo marcado desde Gastos, como en Plan → Metas: la misma meta no puede decir dos cifras.
           const g=metaConAportes(g0,state);
-          const pct=goalPct(g); const eta=goalEta(g, tt.ahorroMensual);
+          const pct=goalPct(g); const eta=goalEta(g, metaRitmoMensual(state,g0));
           return React.createElement("div",Object.assign({key:g.id,className:"v4-goal v4-tocable","data-inicio-meta":g.id,"aria-label":g.name},
               tocable(function(){ if(onGoPlan) onGoPlan("metas",{goalId:g.id}); })),
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
@@ -30939,6 +30981,22 @@ function reservaEstadoTexto(st){
   if(st.estado==="sinPlan") return t("rr_st_noplan");
   return t("rr_st_none");
 }
+/* Lo que llega a UNA meta cada mes, para su previsión. «Ahorro mensual» y las reglas de reservar
+   eran dos tarjetas para lo mismo, y la previsión de cada meta usaba la suma de las aportaciones al
+   bróker, que no van a ninguna meta: con 200 € al fondo, una meta sin un euro apartado decía «llegas
+   en marzo» (dueño, 18/11/2026: se fusionan en las reglas). Manda el aporte elegido en la propia
+   meta; si no, lo que sus reglas apartan al mes. Las de % del presupuesto, con el presupuesto de hoy
+   (`reservaMensualImporte`); las antiguas por ingreso, solo las de importe fijo: un % de un ingreso
+   que aún no ha llegado no es una cifra. */
+function metaRitmoMensual(state, g){
+  if(!g) return 0;
+  if(g.monthly>0) return g.monthly;
+  return ((state&&state.settings&&state.settings.reservaRules)||[]).reduce(function(n,r){
+    if(!r||r.goalId!==g.id) return n;
+    if(r.mensual===true){ const imp=reservaMensualImporte(state,r); return n+(imp.amount||0); }
+    return n+(r.kind==="fixed"&&r.value>0?r.value:0);
+  },0);
+}
 // Editor de reglas: nombre opcional, importe fijo o % de la nómina, y a qué meta va.
 function ReservaRules({state, set}){
   const goals=(state.goals||[]).filter(function(g){ return !g.done; });
@@ -31089,10 +31147,11 @@ function ReservaDetect({state, set, showToast}){
     )
   );
 }
-/* AHORRO MENSUAL — la puerta que el rediseño v4 dejó huérfana (feedback 18/9, punto 6).
-   `state.aportaciones` sigue alimentando `totals.ahorroMensual`, que es con lo que `goalEta`
-   calcula cuándo llegas a cada meta, y la proyección de Inversiones; pero desde la v4 no había
-   dónde editarlo. Vive aquí, en Metas, porque es justo lo que mueve esas fechas.
+/* APORTACIÓN MENSUAL a bancos y brókers (`state.aportaciones`). Vivía en Metas como «Ahorro
+   mensual», junto a las reglas que sí apartan dinero para cada meta, y se confundían (dueño,
+   18/11/2026). No va a ninguna meta: alimenta la proyección de Inversiones y reconoce la salida al
+   bróker en la gráfica de Inicio. Por eso vive ahora en Cartera › Inversiones, al lado de esa
+   proyección; el ahorro de cada meta son sus reglas (`metaRitmoMensual`).
    Es PLANIFICACIÓN: no crea movimientos ni toca saldos. Se edita en borrador y solo se escribe
    al Guardar (el editor v3, commit 87191f41, añadía y borraba en vivo y Cancelar no deshacía). */
 function SavingsPlanCard({state, set, totals, showToast}){
@@ -31137,16 +31196,17 @@ function SavingsPlanCard({state, set, totals, showToast}){
     if(showToast) showToast(t("sv_saved"));
   };
   const editing=!!drafts;
-  /* Sin aportaciones la tarjeta es UNA fila, «Ahorro mensual · Añadir»: «0,00 €/mes» en grande y
+  /* Sin aportaciones la tarjeta es UNA fila, «Aportación mensual · Añadir»: «0,00 €/mes» en grande y
      dos frases de ayuda para no decir nada ocupaban media pantalla (auditoría 237, P1-7). La nota
      de que solo planifica se queda cuando hay algo que planificar: es la línea que evita creer que
      esto mueve dinero. */
   const vacia=!editing && aps.length===0 && !(Math.round(total*100)>0);
   return React.createElement("div",{className:"v4-card rise aely-savings"+(vacia?" aely-savings-vacia":""),"data-savings-plan":"1"},
+    // Título a lo ancho y el botón en la fila de la cifra: al lado del título, con Enorme a 360 el
+    // título se partía en dos y «Editar» caía debajo de todo (gate 240, D-05).
     React.createElement("div",{className:"aely-savings-h"},
-      React.createElement("div",{style:{minWidth:0}},
-        React.createElement("div",{className:"v4-micro"}, t("sv_title")),
-        !vacia && React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
+      React.createElement("div",{className:"v4-micro aely-savings-t"}, t("sv_title")),
+      !vacia && React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)})),
       React.createElement("button",{type:"button",className:"btn btn-ghost aely-savings-edit","data-savings-edit":"1",
         onClick:function(){ editing?setDrafts(null):(vacia?setDrafts([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]):start()); }},
         editing?t("fj_cancel"):(vacia?t("sv_add_short"):t("fj_edit")))),
@@ -31248,14 +31308,13 @@ function Goals({state, set, totals, showToast, abrir}){
       React.createElement("div",{className:"serif num plan-summary-amount"},eur(totalSaved)),
       totalTarget>0 && React.createElement("div",{className:"plan-summary-sub"},tf("gl_total_sub",{x:eur0(totalTarget)}))
     ),
-    React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
 
     goals.map(function(g){
       const gv=metaConAportes(g,state);
-      const pct=goalPct(gv); const eta=goalEta(gv, tt.ahorroMensual||0);
+      const pct=goalPct(gv); const eta=goalEta(gv, metaRitmoMensual(state,g));
       return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
         React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
           React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
@@ -34400,7 +34459,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="df007183e5fdf69526a7db75be459c40a1cbe1bbc6963fff691ba7473fa0dbbd";
+var _rnSha="5eb528496e842bcf688f04c9495f86fc093baa19d7396793ad71b4e669a426fd";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -36306,8 +36365,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
 }
 
 /* El ojo (SPEC Plan Recibos §8): esconde TODAS las cifras de dinero de la app («•••• €») desde los
-   formateadores; los conteos se siguen viendo. La SPEC deja al dueño elegir dónde va: de momento en
-   la cabecera de Plan, que es donde se diseñó. Se guarda en `settings` para que dure y viaje. */
+   formateadores; los conteos se siguen viendo. Va en la cabecera de Plan, donde se diseñó, y en la de
+   Inicio (decisión del dueño, 18/11/2026). Se guarda en `settings` para que dure y viaje. */
 function OjoImportes({state, set}){
   const oculto=!!(state.settings&&state.settings.ocultarImportes);
   return React.createElement("button",{type:"button",className:"v4-ojo"+(oculto?" on":""),"data-testid":"ojo-importes",
@@ -40829,7 +40888,9 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:closePush},"‹"),
         React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:tr}, t("iv_title"))
       ),
-      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,fullMode:true,showToast:showToast})
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,fullMode:true,showToast:showToast}),
+      // Lo que aportas cada mes al bróker, junto a la proyección que lo usa (venía de Metas, 18/11).
+      React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast})
     ), document.body);
 }
 
@@ -41216,7 +41277,8 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
   const fxHint=entryCur!=="EUR" ? (toEurAmt(amt,entryCur,state)==null?t("fx_no_rate"):tf("f_fx_eq",{
     x:NF.format(toEurAmt(amt,entryCur,state))+" €",date:fmtIsoCorto(state.fxDate||date)
   })) : null;
-  const ctaAmount=NF.format(amt)+(entrySym.length>1?" ":"")+entrySym;
+  // Con espacio, como el resto de importes de la app: «Apuntar 12,50€» desentonaba (D-02).
+  const ctaAmount=NF.format(amt)+" "+entrySym;
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
@@ -41308,7 +41370,6 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     return "";
   })();
   const initials=avatarIniciales(nameGuess, email);
-  const handleShow=p.handle ? (p.handle.charAt(0)==="@"?p.handle:("@"+p.handle)) : "@"+(email?email.split("@")[0]:"micartera");
   const patch=function(key,val){
     set(function(s){
       const cur=profileOf(s);
@@ -41336,10 +41397,9 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
   return React.createElement(React.Fragment,null,
     React.createElement("div",{className:"profile-pull-h"},
       React.createElement("button",{type:"button",className:"back","aria-label":t("v4_back"),onClick:onClose},"✕"),
+      // Sin «@usuario»: no se usaba en ningún sitio y parecía una cuenta pública (dueño, 18/11/2026).
       React.createElement("div",{className:"ph-main"},
-        React.createElement("h1",null, t("pf_title")),
-        React.createElement("button",{type:"button",className:"profile-handle",onClick:function(){ edit("handle", t("pf_handle"), "@usuario"); }},
-          handleShow, React.createElement("span",{"aria-hidden":"true"},"✎"))
+        React.createElement("h1",null, t("pf_title"))
       ),
       React.createElement("div",{className:"profile-av","aria-hidden":"true"}, initials)
     ),
@@ -41366,7 +41426,9 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     ),
     React.createElement("div",{className:"profile-sec"}, t("pf_personal")),
     React.createElement("div",{className:"profile-card"},
-      row(t("pf_basic"), val(p.fullName), function(){ edit("fullName", t("pf_name"), t("pf_name_ph")); }),
+      // «Nombre del titular» y no «Información básica»: es el nombre con el que se reconocen tus
+      // traspasos y aportaciones en los extractos, no un dato de adorno.
+      row(t("pf_basic"), val(p.fullName), function(){ edit("fullName", t("pf_basic"), t("pf_name_ph")); }),
       row(t("pf_email"), email||null, function(){
         if(onOpenSettings) onOpenSettings();
       })
