@@ -4959,6 +4959,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       || (state.accounts||[]).find(function(a){ return a && accDaily(a); });
     return (d&&d.ent)||null;
   },[state.accounts]);
+  // Sin cuenta diaria, el banco del widget si su gasto cuenta (`apuntarBancoReserva`); si no, vacía como antes.
+  const reservaBankEnt=useMemo(function(){
+    return dailyBankEnt?null:apuntarBancoReserva(state);
+  },[dailyBankEnt,state.accounts,state.settings]);
   useEffect(function(){
     // En el ensayo no: se comería la marca de efectivo que deja la ayuda para la apertura de verdad.
     if(open&&!ensayo){
@@ -4973,7 +4977,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
       try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
-      setBank(wantCash&&hasEfectivo?"efectivo":dailyBankEnt);
+      setBank(wantCash&&hasEfectivo?"efectivo":(dailyBankEnt||reservaBankEnt));
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());
     }
@@ -5199,8 +5203,14 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      (`catRuleKey`) y el mismo redondeo que hasta ahora (propuesta en la nota del 15/11). */
   /* Al salir de Efectivo se vuelve a un BANCO. Si el diario es el propio sobre, `dailyBankEnt` es
      "efectivo" y Tarjeta/Bizum se quedaban guardando efectivo con la píldora del banco escondida
-     (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno. */
-  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:(bankOpts[0]||null);
+     (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno.
+     Solo uno cuyo gasto CUENTE (revisión 242, P2): sin cuenta diaria, `bankOpts[0]` podía ser un banco
+     fuera de `expenseBankEnts` y el gasto dejaba de sumar sin avisar. Sin cuenta diaria, la reserva
+     o ningún banco (sin banco sí suma). Con el sobre de diario, NUNCA sin banco: un gasto sin banco se
+     atribuye a la diaria y el sobre bajaba por un pago con tarjeta (D1 otra vez, revisión 242b); el
+     primero que cuente y, si ninguno cuenta, `bankOpts[0]` como en producción. */
+  const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:
+    dailyBankEnt?(bankOpts.find(function(b){ return expenseBankEnts(state).indexOf(b)>=0; })||bankOpts[0]||null):reservaBankEnt;
   const onPayMode=function(m){
     if(m==="cash"){ setBank("efectivo"); setNc(false); }
     else { if(bank==="efectivo") setBank(cardBankEnt); setNc(m==="transfer"); }

@@ -343,13 +343,19 @@ function DebtDayPrompt({debt,onOpen}){
     "aria-label":debt.name+" · "+t("db_day_prompt"),style:{display:"block",minHeight:44,textAlign:"left",color:"var(--mint)",textDecoration:"underline",textUnderlineOffset:3},
     onClick:function(){ onOpen(debt); }},t("db_day_prompt"));
 }
-function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recovery,initialFocus}){
+function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,review,recovery,initialFocus}){
   const [form,setForm]=useState(function(){
     const source=planReviewDraft(debt,review),draft=debtEditDraft(source);
     // Revisar un conflicto conserva el día local aunque la copia remota aún no tenga uno.
     if(initialFocus==="day"&&!recovery&&debtNeedsChargeDay(debt)&&cleanDay(dayOf(source))==null) draft.day="";
     return draft;
   });
+  // Amortizar desde la ficha (decisión del dueño, 18/11/2026) cierra la hoja al aplicarse: su borrador
+  // lleva el pendiente de antes y «Guardar cambios» lo devolvería. Con algo ya tecleado no se ofrece
+  // por lo mismo, para no tirar lo escrito.
+  const formInicial=useRef(form).current;
+  const tocado=Object.keys(form).some(function(k){ return form[k]!==formInicial[k]; });
+  const viva=(state.debts||[]).find(function(x){ return x.id===debt.id; });
   /* Si «Baja la deuda» va ligada a la cuota se decide UNA vez, con la deuda tal y como se abre. Antes
      se decidía en cada tecla comparando los dos campos en vivo: en un préstamo familiar (paga 197,
      baja 250) la cuota pasaba un instante por «250» al teclearla, la bajada se enganchaba y se
@@ -437,6 +443,17 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast,review,recover
       if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
     }},tf("db_extend_term",{n:extension.months})),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
+    // Botón y su porqué en un mismo bloque: sueltos, la línea quedaba más cerca de «Eliminar esta deuda»
+    // y parecía avisar de ese botón (filtro de diseño 242b).
+    onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"debt-amort-wrap"},
+      React.createElement("button",{type:"button",className:"v4-debt-amort","data-act":"debt-amortize",
+        disabled:tocado||save.pending||confirmPending,onClick:function(){
+          onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
+        }},t("v4_amort_now")),
+      // Apagado sin decir por qué parecía roto (filtro de diseño 242). Guardar y amortizar de un toque
+      // se descartó: Guardar puede pedir confirmación del plazo o rechazar la cuota, y amortizar sobre un
+      // borrador a medio validar es justo lo que hay que evitar.
+      tocado&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first"))),
     !recovery&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
@@ -462,8 +479,9 @@ function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
    (interestApr de las cuentas, p.ej. TR). Sin él, al menos simula cuántas cuotas te quitas.
    Los números usan el modelo lineal de la app (ver debtBalance): son una estimación honesta,
    no la liquidación exacta del banco.
-   Solo informa: amortizar se hace desde «Amortizar ahora» de cada deuda (decisión DIS-26,
-   15/11/2026: dos puertas al mismo dinero eran una de más). */
+   Solo informa: amortizar se hace desde «Amortizar ahora», dentro de la ficha de cada deuda
+   (decisión DIS-26, 15/11/2026: dos puertas al mismo dinero eran una de más; el botón pasó de la
+   tarjeta a la ficha el 18/11). */
 // Cuotas que quita un importe: la usan el asesor y el diálogo de amortizar, para que los dos
 // cuenten lo mismo. null si la deuda no tiene plazo (no hay cuotas que contar).
 function amortRecorte(d,amt){
@@ -537,6 +555,8 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
   const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
   const [showArchive,setShowArchive]=useState(false);
+  // El último estado pintado: amortizar comprueba contra él al confirmar, no contra el del toque.
+  const estadoRef=useRef(state); estadoRef.current=state;
   const [editingDebt,setEditingDebt]=useState(null);
   const [reviewDebt,setReviewDebt]=useState(null);
   const [dayFocus,setDayFocus]=useState(false);
@@ -634,8 +654,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   const doAmort=(d,rawAmt)=>{
     const bal=debtBalance(d);
     const amt=Math.min(rawAmt||0, bal);
-    if(amt<=0) return;
+    if(amt<=0) return false;
     const nb=+(bal-amt).toFixed(2);
+    /* La deuda pudo cambiar con el diálogo abierto (otro móvil, un pull): entonces `deudaAmortizada` no
+       aplica nada y aquí se decía «Amortizado» y se cerraba la ficha sin haber amortizado (revisión 242,
+       P3). Se mira contra el estado de AHORA, no el del pintado en que se abrió el diálogo. */
+    const viva=(estadoRef.current.debts||[]).find(function(x){ return x.id===d.id; });
+    if(!viva||deudaAmortizada(viva,bal,amt)===viva){ showToast(t("db_amortize_changed")); return false; }
     set(function(s){
       let changed=false;
       const debts=s.debts.map(function(x){
@@ -647,8 +672,10 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       return changed?Object.assign({},s,{debts:debts}):s;
     });
     showToast(nb<=0.005?t("db_amortize_full"):tf("db_amortized",{x:eur(amt),y:eur(nb)}));
+    return true;
   };
-  const amortize=(d)=>{
+  // `hecho`: lo que sigue a una amortización aplicada (la ficha se cierra); cancelar o un 0 no lo llaman.
+  const amortize=(d,hecho)=>{
     const bal=debtBalance(d);
     askText({ title:tf("db_amortize_prompt",{name:d.name}), sub:tf("db_amortize_sub",{x:eur(bal)}),
       ph:NF.format(0)+" €", ok:t("db_amortize"),
@@ -656,15 +683,18 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       chips:[100,250,500].filter(function(v){ return v<bal; }).map(function(v){ return {v:v,label:eur0(v)}; })
         .concat([{v:+bal.toFixed(2), label:tf("ask_all",{x:eur0(bal)})}]),
       // Lo que antes solo contaba el asesor (DIS-26): con el importe ya puesto, cuántas cuotas
-      // quita. Sin importe o sin plazo no hay cifra honesta que dar, y no se pinta nada.
+      // quita. Sin importe no hay cifra honesta que dar, y no se pinta nada. El campo enseña lo tecleado
+      // en crudo («2500»); aquí va con formato lo que de verdad se amortiza, ya topado al pendiente
+      // (filtro de diseño 242). En euros como el campo, no con eur(), que pasa a la moneda de pantalla.
       live:function(raw){
         const a=Math.min(parseFloat(String(raw).replace(',','.'))||0, bal);
-        const rc=a>0?amortRecorte(d,a):null;
-        return rc&&rc.cut>0?"📆 "+tf("db_amortize_cut",{n:rc.cut}):null;
+        if(!(a>0)) return null;
+        const rc=amortRecorte(d,a), cifra=NF.format(a)+" €";
+        return rc&&rc.cut>0?"📆 "+cifra+" · "+tf("db_amortize_cut",{n:rc.cut}):cifra;
       }
     }).then(function(raw){
       if(raw==null) return;
-      doAmort(d, parseFloat(String(raw).replace(',','.'))||0);
+      if(doAmort(d, parseFloat(String(raw).replace(',','.'))||0)&&hecho) hecho();
     });
   };
   /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
@@ -695,7 +725,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     onClose:function(){setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},
     onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
     React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,initialFocus:dayFocus?"day":undefined,
-      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,showToast:showToast}));
+      onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,onAmortize:amortize,showToast:showToast}));
   if(editorOnly) return editor;
   return React.createElement("div",null,
     // La misma tarjeta que Recibos (etiqueta, cifra y una línea, a la izquierda): centrada, la cifra
@@ -744,7 +774,6 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         (d.balloon>0||d.downPayment>0) && React.createElement("div",{className:"v4-debt-sub",style:{marginTop:6,color:"var(--tan)"}},
           d.balloon>0?tf("db_balloon_line",{x:eur0(d.balloon)}):"",
           d.downPayment>0?(d.balloon>0?" · ":"")+tf("db_down_line",{x:eur0(d.downPayment)}):""),
-        bal>0.005 && React.createElement("button",{className:"v4-debt-amort",onClick:function(){ amortize(d); }},t("v4_amort_now")),
         bal<=0.005 && React.createElement("div",{className:"hint",style:{marginTop:10}},t(d.settledAt?"db_settled":"db_est_zero")),
         bal<=0.005 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ d.settledAt?archiveDebt(d):confirmSettled(d); }},t(d.settledAt?"db_archive":"db_settle_ok"))
       );

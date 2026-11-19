@@ -228,7 +228,13 @@
      cuadro NATIVO del sistema: gris, tipografía ajena y botones «CANCEL/OK» en inglés aunque
      la app esté en español (petición 2026-07-15). Misma hoja inferior que .tabsheet, pero por
      encima de TODO: los paneles de Ajustes/Bancos llegan a z-index 215. */
-  .askback{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:230;display:flex;align-items:flex-end;justify-content:center;}
+  .askback{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:230;display:flex;align-items:flex-end;justify-content:center;
+    box-sizing:border-box;padding-top:calc(var(--safe-top) + 12px);}
+  /* Con 360, letra Enorme y el teclado abierto, la hoja era más alta que la ventana y el título de dos
+     líneas quedaba cortado arriba (filtro de diseño 242). Nunca pasa del margen seguro de arriba: si no
+     cabe, se desplaza por dentro y los botones se quedan pegados abajo. Cuando cabe, nada cambia. */
+  .askback>.tabsheet{max-height:100%;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;}
+  .ts-hint.ask-live{text-align:right;min-height:1.5em;line-height:1.5;margin:0 2px 6px;}
   .ask-in{width:100%;box-sizing:border-box;text-align:right;font-size:19px;font-weight:800;padding:12px 14px;margin:2px 0 10px;}
   /* Perfil / texto libre: mismo tamaño que el valor ya guardado (no el teclado de importes). */
   .ask-in.ask-in-compact{text-align:left;font-size:15px;font-weight:600;padding:10px 12px;letter-spacing:0;}
@@ -245,7 +251,9 @@
   .ask-opt:active{background:var(--sur2);}
   .ask-opt-t{font-size:14.5px;font-weight:700;}
   .ask-opt-s{font-size:12px;color:var(--muted);line-height:1.45;}
-  .ask-btns{display:flex;gap:8px;margin-top:14px;}
+  /* Pegados abajo cuando la hoja se desplaza por dentro. El fondo y la sombra sólida tapan el texto que
+     pasa por debajo sin mover nada: un relleno cambiaba el hueco de siempre en los diálogos sin campo. */
+  .ask-btns{display:flex;gap:8px;margin-top:14px;position:sticky;bottom:0;background:var(--surface);box-shadow:0 -14px 0 var(--surface);}
   .ask-btns .btn{flex:1;margin:0;}
   /* Roles de cuenta (Patrimonio → Editar) */
   .rchip{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:9px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--muted);}
@@ -2831,7 +2839,11 @@
   .v4-debt-bar i{display:block;height:100%;border-radius:6px;background:var(--mint);transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-goal-bar i{display:block;height:100%;border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-debt-foot{font-size:12.5px;color:var(--muted);line-height:1.4;}
-  .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;}
+  .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;transition:opacity .2s ease;}
+  /* En la ficha, con algo tecleado no se puede amortizar (cerrarla tiraría lo escrito): se apaga suave. */
+  .v4-debt-amort:disabled{opacity:.55;cursor:default;}
+  /* Su porqué, pegado debajo y separado de «Eliminar esta deuda» (filtro de diseño 242b). */
+  .debt-amort-wrap .hint{margin:6px 2px 8px;text-align:center;}
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
   /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
      montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */
@@ -2859,7 +2871,7 @@
   .plan-item .v4-debt-bar,.plan-item .v4-goal-bar{height:4px;margin:10px 0 8px;}
   .plan-item .v4-debt-bar i{background:var(--mint);}
   .plan-item .v4-debt-foot{font-size:12px;}
-  .plan-item .v4-debt-amort,.plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
+  .plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
   .plan-rule-row{gap:8px;padding:12px 0;align-items:center;}
   .plan-rule-row .sub-meta{line-height:1.45;}
   .plan-edit-sheet{max-height:calc(90dvh / var(--zoom,1));overflow-y:auto;overscroll-behavior:contain;}
