@@ -1,5 +1,67 @@
 [
   {
+    "v": "4.26.246",
+    "d": "2026-11-19",
+    "t": {
+      "es": "Interactive Brokers y Kraken se conectan sin ficheros",
+      "en": "Interactive Brokers and Kraken connect without files",
+      "ca": "Interactive Brokers i Kraken es connecten sense fitxers"
+    },
+    "items": {
+      "es": [
+        "Interactive Brokers y Kraken se pueden conectar con una clave de solo lectura, sin descargar ficheros: en «Mis bancos», marca el bróker y toca «Conectar». Los pasos para conseguir la clave están en la misma hoja.",
+        "La primera lectura se enseña antes de tocar tu cartera, para que elijas dónde va cada cosa. Después se actualiza sola, y lo nuevo que aparezca se te propone en vez de añadirse.",
+        "La clave solo sirve para consultar: si una clave de Kraken permite operar o sacar dinero, se rechaza y no se guarda.",
+        "Trade Republic y MyInvestor ya no se quedan con inversiones que son de otro bróker."
+      ],
+      "en": [
+        "Interactive Brokers and Kraken can be connected with a read-only key, without downloading files: in «My banks», tick the broker and tap «Connect». The steps to get the key are on the same sheet.",
+        "The first read is shown before it touches your portfolio, so you choose where each item goes. After that it updates on its own, and anything new is suggested instead of being added.",
+        "The key can only look: if a Kraken key can trade or withdraw money, it's rejected and not stored.",
+        "Trade Republic and MyInvestor no longer take over investments that belong to another broker."
+      ],
+      "ca": [
+        "Interactive Brokers i Kraken es poden connectar amb una clau només de lectura, sense descarregar fitxers: a «Els meus bancs», marca el bròker i toca «Connectar». Els passos per aconseguir la clau són al mateix full.",
+        "La primera lectura es mostra abans de tocar la teva cartera, perquè triïs on va cada cosa. Després s'actualitza sola, i el que aparegui de nou se't proposa en lloc d'afegir-se.",
+        "La clau només serveix per consultar: si una clau de Kraken permet operar o treure diners, es rebutja i no es desa.",
+        "Trade Republic i MyInvestor ja no es queden inversions que són d'un altre bròker."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-246",
+        "t": {
+          "es": "Interactive Brokers y Kraken por conexión: la tarjeta y la hoja de conectar",
+          "en": "Interactive Brokers and Kraken by connection: the card and the connect sheet",
+          "ca": "Interactive Brokers i Kraken per connexió: la targeta i el full de connectar"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes abre «Bancos», toca «Gestionar mis bancos» y baja hasta «Brókers». BIEN: en «¿Qué brókers usas? Toca para añadir o quitar.» salen Trade Republic, MyInvestor, Revolut, Interactive Brokers y Kraken, y no sale DEGIRO. MAL: falta Interactive Brokers o Kraken, o sale DEGIRO.",
+            "2. Toca el chip «Kraken» (después, si no lo usas, vuelve a tocarlo para quitarlo). BIEN: aparece una tarjeta de Kraken con su nombre y el botón «Conectar», sin más texto, y al quitar el chip la tarjeta se va. MAL: no aparece, aparece una tarjeta para subir un fichero, o se queda al quitar el chip.",
+            "3. En la tarjeta de Kraken toca «Conectar» y luego «Cómo conseguirlos». Todavía no pegues ninguna clave. BIEN: sube una hoja «Conectar Kraken» con dos campos vacíos, «Clave API» y «Clave privada (Private key)»; los pasos se despliegan y piden marcar solo «Consultar fondos»; el botón «Conectar» de abajo está apagado mientras los campos estén vacíos. MAL: falta un campo, los pasos piden marcar más permisos, o el botón se puede tocar con los campos vacíos.",
+            "4. Con la hoja abierta, vuelve atrás con el gesto o el botón del móvil; después ábrela otra vez y ciérrala con la ✕. BIEN: lo primero que se cierra es la hoja y sigues en «Mis bancos»; con la ✕ también. MAL: se cierra «Mis bancos» entera o vas a otra pantalla.",
+            "5. En Ajustes pon «Tamaño de letra» en «Enorme», marca el chip «Interactive Brokers», toca «Conectar» en su tarjeta y abre «Cómo conseguirlos» (después vuelve a tu tamaño y quita el chip si no lo usas). BIEN: la hoja «Conectar IBKR» tiene los campos «Token» y «Query ID», cinco pasos que se leen enteros desplazando, y el botón «Conectar» se ve entero abajo, sin cortarse. MAL: el título choca con la ✕, el botón queda cortado o tapado, o algún texto se sale."
+          ],
+          "en": [
+            "1. In Settings open «Banks», tap «Manage my banks» and scroll down to «Brokers». RIGHT: under «Which brokers do you use? Tap to add or remove.» you see Trade Republic, MyInvestor, Revolut, Interactive Brokers and Kraken, and no DEGIRO. WRONG: Interactive Brokers or Kraken is missing, or DEGIRO shows up.",
+            "2. Tap the «Kraken» chip (afterwards, if you don't use it, tap it again to remove it). RIGHT: a Kraken card appears with its name and a «Connect» button, with no other text, and when you remove the chip the card goes away. WRONG: it doesn't appear, a card to upload a file appears, or it stays after removing the chip.",
+            "3. On the Kraken card tap «Connect» and then «How to get them». Don't paste any key yet. RIGHT: a «Connect Kraken» sheet slides up with two empty fields, «API key» and «Private key»; the steps open and ask you to tick only «Query Funds»; the «Connect» button at the bottom is greyed out while the fields are empty. WRONG: a field is missing, the steps ask for more permissions, or the button can be tapped with the fields empty.",
+            "4. With the sheet open, go back with the gesture or the phone's back button; then open it again and close it with the ✕. RIGHT: the sheet is what closes first and you stay in «My banks»; with the ✕ too. WRONG: the whole «My banks» screen closes or you end up on another screen.",
+            "5. In Settings set «Text size» to «Huge», tick the «Interactive Brokers» chip, tap «Connect» on its card and open «How to get them» (then go back to your size and remove the chip if you don't use it). RIGHT: the «Connect IBKR» sheet has the «Token» and «Query ID» fields, five steps you can read in full by scrolling, and the «Connect» button is fully visible at the bottom, not cut off. WRONG: the title runs into the ✕, the button is cut off or covered, or some text spills out."
+          ],
+          "ca": [
+            "1. A Configuració obre «Bancs», toca «Gestiona els meus bancs» i baixa fins a «Brókers». BÉ: a «Quins bròkers fas servir? Toca per afegir o treure.» surten Trade Republic, MyInvestor, Revolut, Interactive Brokers i Kraken, i no surt DEGIRO. MALAMENT: falta Interactive Brokers o Kraken, o surt DEGIRO.",
+            "2. Toca el xip «Kraken» (després, si no el fas servir, torna'l a tocar per treure'l). BÉ: apareix una targeta de Kraken amb el seu nom i el botó «Connectar», sense més text, i en treure el xip la targeta se'n va. MALAMENT: no apareix, apareix una targeta per pujar un fitxer, o es queda en treure el xip.",
+            "3. A la targeta de Kraken toca «Connectar» i després «Com aconseguir-los». Encara no enganxis cap clau. BÉ: puja un full «Connectar Kraken» amb dos camps buits, «Clau API» i «Clau privada (Private key)»; els passos es despleguen i demanen marcar només «Consultar fons»; el botó «Connectar» de baix està apagat mentre els camps estiguin buits. MALAMENT: falta un camp, els passos demanen marcar més permisos, o el botó es pot tocar amb els camps buits.",
+            "4. Amb el full obert, torna enrere amb el gest o el botó del mòbil; després obre'l un altre cop i tanca'l amb la ✕. BÉ: el primer que es tanca és el full i continues a «Els meus bancs»; amb la ✕ també. MALAMENT: es tanca «Els meus bancs» sencera o vas a una altra pantalla.",
+            "5. A Configuració posa «Mida de la lletra» a «Enorme», marca el xip «Interactive Brokers», toca «Connectar» a la seva targeta i obre «Com aconseguir-los» (després torna a la teva mida i treu el xip si no el fas servir). BÉ: el full «Connectar IBKR» té els camps «Token» i «Query ID», cinc passos que es llegeixen sencers desplaçant, i el botó «Connectar» es veu sencer a baix, sense tallar-se. MALAMENT: el títol xoca amb la ✕, el botó queda tallat o tapat, o algun text en surt."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.245",
     "d": "2026-11-19",
     "t": {

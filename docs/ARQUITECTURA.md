@@ -1699,7 +1699,7 @@ Las filas de «Próximos cargos» y «Últimos movimientos» y las metas de Inic
 
 No hay ajustador: `MC_HAPTIC_DEF`/`MC_HAPTIC_DEF_USAGE` (02) son los valores que eligió el dueño, y `mcHapticTune` solo lee `_mcHapticTune` del móvil si existe (lo que guardó él). `mcHapticApplyCss` fija también la duración del anillo de Inicio. El informe del mes (`shareMonthReport` → `monthReportPreview` → `saveMonthReport`, 02) pinta un canvas 1080×1350, lo enseña en `AskHost` con `img` y guarda con `MiCarteraPlugin.saveToDownloads` (MediaStore en Android 10+, `Notif.showFile` para abrirlo); sin ese método nativo (APK anterior a la 65) avisa de actualizar y no escribe nada; en un navegador, descarga normal.
 
-### Brókers por conexión: IBKR Flex y Kraken (19/11/2026, rama `claude/brokers-api`, sin desplegar)
+### Brókers por conexión: IBKR Flex y Kraken (4.26.246; el servidor, sin desplegar hasta la promoción)
 
 Sustituye al fichero como camino principal (el dueño: «que nadie tenga que entrar en la app del bróker»). Molde MyInvestor, pero solo con credenciales de **solo lectura**:
 
