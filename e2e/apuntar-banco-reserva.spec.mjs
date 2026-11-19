@@ -96,3 +96,33 @@ test("con reserva, de Efectivo a Tarjeta vuelve al banco del widget", async ({ p
   await expect(hoja.getByTestId("ap-bank")).toContainText("CaixaBank");
   expect(await guardaYMira(page, hoja, "Vuelta a la reserva")).toEqual({ ent: "caixabank", cuenta: true, cajon: "cuenta" });
 });
+
+/* Revisión de dinero 242b: con el sobre como cuenta DIARIA y ningún banco que cuente, salir de Efectivo
+ * no puede dejar el gasto sin banco: sin banco se atribuye a la diaria y el sobre bajaba por un pago con
+ * tarjeta (D1 del 15/11 por otra puerta). Va al banco, como en producción, y el sobre no se mueve. */
+test("con el sobre como diario y ningún banco que cuente, Tarjeta no baja el sobre", async ({ page }) => {
+  const hoja = await abreApuntar(page, {
+    accounts: [
+      { id: "sb", ent: "sabadell", name: "Cuenta uno", value: 1000, role: "fijos" },
+      { id: "ef", ent: "efectivo", name: "El sobre", value: 80, role: "diario", spendFrom: true },
+    ],
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["efectivo"] },
+    expenses: [],
+  });
+  const sobre = () => page.evaluate(() => {
+    const s = mcLoadRaw(mcStateKey());
+    return Math.round(saldoCuentaMostrada(s.accounts.find((a) => a.ent === "efectivo"), insumosSaldoGasto(s)) * 100);
+  });
+  const antes = await sobre();
+  await expect(hoja.getByTestId("ap-efectivo")).toHaveAttribute("aria-pressed", "true");
+  await hoja.getByTestId("ap-pay-card").click();
+  await expect(hoja.getByTestId("ap-bank")).toContainText("Sabadell");
+  for (const d of ["2", "0"]) await hoja.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
+  await hoja.locator(".v4-ficha-concept").fill("Tarjeta con sobre diario");
+  await hoja.locator(".v4-ficha-concept").press("Enter");
+  await hoja.locator(".v4-cta").click();
+  await expect(hoja).toHaveCount(0, { timeout: 5_000 });
+  const e = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]").find((x) => x.merchant === "Tarjeta con sobre diario"));
+  expect(e && e.ent).toBe("sabadell");
+  expect(await sobre()).toBe(antes);
+});

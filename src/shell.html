@@ -227,6 +227,7 @@
      la app esté en español (petición 2026-07-15). Misma hoja inferior que .tabsheet, pero por
      encima de TODO: los paneles de Ajustes/Bancos llegan a z-index 215. */
   .askback{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:230;display:flex;align-items:flex-end;justify-content:center;}
+  .ts-hint.ask-live{text-align:right;min-height:1.5em;line-height:1.5;margin:0 2px 6px;}
   .ask-in{width:100%;box-sizing:border-box;text-align:right;font-size:19px;font-weight:800;padding:12px 14px;margin:2px 0 10px;}
   /* Perfil / texto libre: mismo tamaño que el valor ya guardado (no el teclado de importes). */
   .ask-in.ask-in-compact{text-align:left;font-size:15px;font-weight:600;padding:10px 12px;letter-spacing:0;}
@@ -2741,6 +2742,8 @@
   .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;transition:opacity .2s ease;}
   /* En la ficha, con algo tecleado no se puede amortizar (cerrarla tiraría lo escrito): se apaga suave. */
   .v4-debt-amort:disabled{opacity:.55;cursor:default;}
+  /* Su porqué, pegado debajo y separado de «Eliminar esta deuda» (filtro de diseño 242b). */
+  .debt-amort-wrap .hint{margin:6px 2px 8px;text-align:center;}
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
   /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
      montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */

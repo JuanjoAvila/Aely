@@ -120,8 +120,10 @@ function AskHost(){
         React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
         // `live(valor)`: una línea que depende de lo tecleado (p. ej. cuotas que quita amortizar).
-        // null = no se pinta: el diálogo no enseña nada que aún no se sabe.
-        cur.input && cur.live && (function(){ const x=cur.live(val); return x?React.createElement("div",{className:"ts-hint","data-ask-live":"1"},x):null; })(),
+        // null = no se pinta: el diálogo no enseña nada que aún no se sabe. Su hueco sí se guarda: si
+        // apareciera con la primera cifra, el campo bajaba un renglón bajo el dedo (filtro de diseño 242).
+        // A la derecha, encima de la cifra que acompaña.
+        cur.input && cur.live && (function(){ const x=cur.live(val); return React.createElement("div",{className:"ts-hint ask-live","data-ask-live":x?"1":undefined},x||""); })(),
         cur.input && React.createElement("input",{className:"af-in num ask-in"+(cur.compact?" ask-in-compact":""),autoFocus:true,
           type:cur.secret?"password":"text",
           inputMode:cur.secret?"text":(cur.mode||"decimal"), placeholder:cur.ph||"", value:val,

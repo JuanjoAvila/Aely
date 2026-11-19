@@ -443,14 +443,17 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
       if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
     }},tf("db_extend_term",{n:extension.months})),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
-    onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("button",{type:"button",className:"v4-debt-amort","data-act":"debt-amortize",
-      disabled:tocado||save.pending||confirmPending,onClick:function(){
-        onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
-      }},t("v4_amort_now")),
-    // Apagado sin decir por qué parecía roto (filtro de diseño 242). Guardar y amortizar de un toque
-    // se descartó: Guardar puede pedir confirmación del plazo o rechazar la cuota, y amortizar sobre un
-    // borrador a medio validar es justo lo que hay que evitar.
-    onAmortize&&tocado&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first")),
+    // Botón y su porqué en un mismo bloque: sueltos, la línea quedaba más cerca de «Eliminar esta deuda»
+    // y parecía avisar de ese botón (filtro de diseño 242b).
+    onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"debt-amort-wrap"},
+      React.createElement("button",{type:"button",className:"v4-debt-amort","data-act":"debt-amortize",
+        disabled:tocado||save.pending||confirmPending,onClick:function(){
+          onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
+        }},t("v4_amort_now")),
+      // Apagado sin decir por qué parecía roto (filtro de diseño 242). Guardar y amortizar de un toque
+      // se descartó: Guardar puede pedir confirmación del plazo o rechazar la cuota, y amortizar sobre un
+      // borrador a medio validar es justo lo que hay que evitar.
+      tocado&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first"))),
     !recovery&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){

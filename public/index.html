@@ -227,6 +227,7 @@
      la app esté en español (petición 2026-07-15). Misma hoja inferior que .tabsheet, pero por
      encima de TODO: los paneles de Ajustes/Bancos llegan a z-index 215. */
   .askback{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:230;display:flex;align-items:flex-end;justify-content:center;}
+  .ts-hint.ask-live{text-align:right;min-height:1.5em;line-height:1.5;margin:0 2px 6px;}
   .ask-in{width:100%;box-sizing:border-box;text-align:right;font-size:19px;font-weight:800;padding:12px 14px;margin:2px 0 10px;}
   /* Perfil / texto libre: mismo tamaño que el valor ya guardado (no el teclado de importes). */
   .ask-in.ask-in-compact{text-align:left;font-size:15px;font-weight:600;padding:10px 12px;letter-spacing:0;}
@@ -2741,6 +2742,8 @@
   .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;transition:opacity .2s ease;}
   /* En la ficha, con algo tecleado no se puede amortizar (cerrarla tiraría lo escrito): se apaga suave. */
   .v4-debt-amort:disabled{opacity:.55;cursor:default;}
+  /* Su porqué, pegado debajo y separado de «Eliminar esta deuda» (filtro de diseño 242b). */
+  .debt-amort-wrap .hint{margin:6px 2px 8px;text-align:center;}
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
   /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
      montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */
@@ -18976,8 +18979,10 @@ function AskHost(){
         React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
         // `live(valor)`: una línea que depende de lo tecleado (p. ej. cuotas que quita amortizar).
-        // null = no se pinta: el diálogo no enseña nada que aún no se sabe.
-        cur.input && cur.live && (function(){ const x=cur.live(val); return x?React.createElement("div",{className:"ts-hint","data-ask-live":"1"},x):null; })(),
+        // null = no se pinta: el diálogo no enseña nada que aún no se sabe. Su hueco sí se guarda: si
+        // apareciera con la primera cifra, el campo bajaba un renglón bajo el dedo (filtro de diseño 242).
+        // A la derecha, encima de la cifra que acompaña.
+        cur.input && cur.live && (function(){ const x=cur.live(val); return React.createElement("div",{className:"ts-hint ask-live","data-ask-live":x?"1":undefined},x||""); })(),
         cur.input && React.createElement("input",{className:"af-in num ask-in"+(cur.compact?" ask-in-compact":""),autoFocus:true,
           type:cur.secret?"password":"text",
           inputMode:cur.secret?"text":(cur.mode||"decimal"), placeholder:cur.ph||"", value:val,
@@ -29253,14 +29258,17 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
       if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
     }},tf("db_extend_term",{n:extension.months})),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
-    onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("button",{type:"button",className:"v4-debt-amort","data-act":"debt-amortize",
-      disabled:tocado||save.pending||confirmPending,onClick:function(){
-        onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
-      }},t("v4_amort_now")),
-    // Apagado sin decir por qué parecía roto (filtro de diseño 242). Guardar y amortizar de un toque
-    // se descartó: Guardar puede pedir confirmación del plazo o rechazar la cuota, y amortizar sobre un
-    // borrador a medio validar es justo lo que hay que evitar.
-    onAmortize&&tocado&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first")),
+    // Botón y su porqué en un mismo bloque: sueltos, la línea quedaba más cerca de «Eliminar esta deuda»
+    // y parecía avisar de ese botón (filtro de diseño 242b).
+    onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"debt-amort-wrap"},
+      React.createElement("button",{type:"button",className:"v4-debt-amort","data-act":"debt-amortize",
+        disabled:tocado||save.pending||confirmPending,onClick:function(){
+          onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
+        }},t("v4_amort_now")),
+      // Apagado sin decir por qué parecía roto (filtro de diseño 242). Guardar y amortizar de un toque
+      // se descartó: Guardar puede pedir confirmación del plazo o rechazar la cuota, y amortizar sobre un
+      // borrador a medio validar es justo lo que hay que evitar.
+      tocado&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first"))),
     !recovery&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
@@ -33056,7 +33064,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="6dd2fb603d87b0412086deadd28f6eedd990d34c911fb821c1b72276ed53459b";
+var _rnSha="53bec1ed067117c35a65d78acb9630f787e6f8411b4c5c88b32a5a6a335d5d7e";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39881,9 +39889,11 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno.
      Solo uno cuyo gasto CUENTE (revisión 242, P2): sin cuenta diaria, `bankOpts[0]` podía ser un banco
      fuera de `expenseBankEnts` y el gasto dejaba de sumar sin avisar. Sin cuenta diaria, la reserva
-     o ningún banco (sin banco sí suma); con el sobre de diario, el primero que cuente o ninguno. */
+     o ningún banco (sin banco sí suma). Con el sobre de diario, NUNCA sin banco: un gasto sin banco se
+     atribuye a la diaria y el sobre bajaba por un pago con tarjeta (D1 otra vez, revisión 242b); el
+     primero que cuente y, si ninguno cuenta, `bankOpts[0]` como en producción. */
   const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:
-    dailyBankEnt?(bankOpts.find(function(b){ return expenseBankEnts(state).indexOf(b)>=0; })||null):reservaBankEnt;
+    dailyBankEnt?(bankOpts.find(function(b){ return expenseBankEnts(state).indexOf(b)>=0; })||bankOpts[0]||null):reservaBankEnt;
   const onPayMode=function(m){
     if(m==="cash"){ setBank("efectivo"); setNc(false); }
     else { if(bank==="efectivo") setBank(cardBankEnt); setNc(m==="transfer"); }

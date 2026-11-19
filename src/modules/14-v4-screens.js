@@ -5199,9 +5199,11 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos, ensayo}){
      (revisión de dinero 15/11, D1): se usa el primer banco que no sea el sobre, o ninguno.
      Solo uno cuyo gasto CUENTE (revisión 242, P2): sin cuenta diaria, `bankOpts[0]` podía ser un banco
      fuera de `expenseBankEnts` y el gasto dejaba de sumar sin avisar. Sin cuenta diaria, la reserva
-     o ningún banco (sin banco sí suma); con el sobre de diario, el primero que cuente o ninguno. */
+     o ningún banco (sin banco sí suma). Con el sobre de diario, NUNCA sin banco: un gasto sin banco se
+     atribuye a la diaria y el sobre bajaba por un pago con tarjeta (D1 otra vez, revisión 242b); el
+     primero que cuente y, si ninguno cuenta, `bankOpts[0]` como en producción. */
   const cardBankEnt=(dailyBankEnt&&!isEfectivoEnt(dailyBankEnt))?dailyBankEnt:
-    dailyBankEnt?(bankOpts.find(function(b){ return expenseBankEnts(state).indexOf(b)>=0; })||null):reservaBankEnt;
+    dailyBankEnt?(bankOpts.find(function(b){ return expenseBankEnts(state).indexOf(b)>=0; })||bankOpts[0]||null):reservaBankEnt;
   const onPayMode=function(m){
     if(m==="cash"){ setBank("efectivo"); setNc(false); }
     else { if(bank==="efectivo") setBank(cardBankEnt); setNc(m==="transfer"); }
