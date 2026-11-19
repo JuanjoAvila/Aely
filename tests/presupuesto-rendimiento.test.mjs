@@ -492,7 +492,9 @@ const PRESUPUESTO = {
   // minificado y ~4 KiB gzip. Es lógica de dinero (qué re-ancla y qué no); SUBE (mandato 11/10) al mínimo medido.
   // Su filtro de diseño (hoja `.tabsheet` con pie fijo, pasos de IBKR para quien no es técnico, tarjeta sin
   // ruido, cripto en su unidad) suma ~3,5 KiB minificado: 2036 / 562 KiB.
-  minificado: 2036 * 1024,
+  // Las dos revisiones de dinero (vínculo explícito, cuenta vacía, sync de TR/MI fuera de lo que lleva otra
+  // conexión, una posición por fila) suman ~1 KiB: 2037 KiB.
+  minificado: 2037 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

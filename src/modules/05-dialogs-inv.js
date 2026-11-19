@@ -151,6 +151,20 @@ function AskHost(){
 /* ============================================================
    TAB: INVERSIONES
    ============================================================ */
+/* CANDIDATAS DE UN BRÓKER QUE SE SINCRONIZA SOLO (revisión de dinero 19/11, D7). `brokerSuggest`
+   busca por ISIN o ticker en TODA la cartera, y el sync de TR/MyInvestor lo usa sin vista previa
+   cada 30 min: con VWCE en IBKR (por conexión) y en TR, el de TR le ponía sus 4 participaciones a
+   la de IBKR, IBKR se las devolvía a las 12 h, y mientras tanto el patrimonio contaba TR dos veces.
+   Fuera lo que ya lleva otra sincronización: lo que puso una conexión (`src:"api:…"`) y lo de los
+   otros brókers que se sincronizan solos. Lo demás (manual, de fichero, de cualquier `ent`) sigue
+   siendo candidato, como hasta hoy: hay carteras con posiciones de TR que se crearon a mano con
+   otro `ent` y que, con un filtro por `ent` estricto, dejarían de actualizarse sin aviso. */
+function brkSyncCandidates(investments, ent){
+  return (investments||[]).filter(function(i){
+    if(String(i.src||"").indexOf("api:")===0) return false;
+    return i.ent===ent || !BRK_OWN_SYNC[i.ent];
+  });
+}
 // sugerencia de mapeo ISIN→posición (la usa la sincro TR): primero por ISIN guardado, luego por palabras del nombre
 function brokerSuggest(pos, investments){
   const byIsin=investments.find(function(i){ return i.isin && i.isin===pos.isin; });
@@ -1056,17 +1070,23 @@ function brkApiAuto(s, ent, parsed){
   const was=(s.brokerApi||{})[ent];
   if(!was||!Array.isArray(was.known)||!parsed||!parsed.snapshot) return null;
   const map={}, pend=[];
-  const links=was.links||{};
+  /* Un vínculo a una posición que ya no existe (la borraste) se suelta y la clave vuelve a
+     proponerse: si no, desaparecía para siempre sin forma de recuperarla (revisión 19/11, R1). */
+  const inv=s.investments||[], links={}, known=was.known.slice();
+  Object.keys(was.links||{}).forEach(function(k){
+    if(inv.some(function(i){ return i.id===was.links[k]; })) links[k]=was.links[k];
+    else { const j=known.indexOf(k); if(j>=0) known.splice(j,1); }
+  });
   parsed.positions.forEach(function(po){
-    const id=brkApiLinkOf(s.investments||[], ent, links, po);
+    const id=brkApiLinkOf(inv, ent, links, po);
     if(id) map[po.key]=id;
-    else if(was.known.indexOf(po.key)<0) pend.push(po);
+    else if(known.indexOf(po.key)<0) pend.push(po);
   });
   const goneMark={};
   brkGoneOf(s.investments, ent, parsed.positions, map, parsed.present).forEach(function(i){ if(i.src==="api:"+ent && !i.fileGone) goneMark[i.id]=1; });
   const at=parsed.to||isoLocal();
   const next=brkApplyFile(s, ent, parsed.positions, map, goneMark, at, "api:"+ent);
-  return { s:brkApiMeta(next, ent, Object.assign({},was,{pend:pend, at:Date.now(), asOf:at})),
+  return { s:brkApiMeta(next, ent, Object.assign({},was,{known:known, links:links, pend:pend, at:Date.now(), asOf:at})),
     n:Object.keys(map).length, pend:pend.length, gone:Object.keys(goneMark).length };
 }
 
@@ -1127,7 +1147,7 @@ function BrokerImport({state, set, fetchPrices, open, onToggle, ent}){
       if(!rev){ m[po.key]=brkSuggest(po, state.investments, ent)||""; return; }
       // el metal primero por su vía (más específica que el matcher por palabras del nombre)
       const sug=(po.metal?revoMetalSuggest(po.ticker,state.investments):null)
-        || brokerSuggest({ticker:po.ticker,name:po.name}, state.investments);
+        || brokerSuggest({ticker:po.ticker,name:po.name}, brkSyncCandidates(state.investments, "revolut"));
       // Sin sugerencia clara el defecto es NO TOCAR (antes era «crear nueva» y el import
       // sembraba posiciones extra de valores ya vendidos — feedback 2026-07-13). Solo con
       // la cartera vacía compensa crear todo de serie.
@@ -1274,6 +1294,7 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
   // `api`: la misma vista para la conexión automática; solo cambian las frases que hablan de «fichero».
   const brokerName=entOf(ent).short||entOf(ent).label;
   const setOne=function(k,v){ setMap(function(m){ const n=Object.assign({},m); n[k]=v; return n; }); };
+  const taken={}; Object.keys(map).forEach(function(k){ const v=map[k]; if(v && v!=="__new") taken[v]=1; });
   const sinPareja=parsed.positions.filter(function(p){ return !map[p.key]; });
   const warn=parsed.warnings||[];
   const sm={fontSize:12,color:"var(--muted)",lineHeight:1.4};
@@ -1305,7 +1326,9 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
         React.createElement("select",{className:"af-in bf-sel",value:map[po.key]||"",onChange:function(e){ setOne(po.key,e.target.value); }},
           React.createElement("option",{value:""},t("bi_notouch")),
           React.createElement("option",{value:"__new"},t("tr_createnew")),
-          (state.investments||[]).filter(function(i){ return brkTargetOk(i, ent); }).map(function(i){ return React.createElement("option",{key:i.id,value:i.id}, i.ent===ent?i.name:i.name+" · "+(entOf(i.ent).short||entOf(i.ent).label)); })));
+          /* Una posición, una fila (revisión de dinero 19/11, R3): con dos filas a la misma solo se
+             aplicaba la primera y la otra no sumaba nunca. La ya elegida en otra fila sale apagada. */
+          (state.investments||[]).filter(function(i){ return brkTargetOk(i, ent); }).map(function(i){ return React.createElement("option",{key:i.id,value:i.id,disabled:!!taken[i.id]&&map[po.key]!==i.id}, i.ent===ent?i.name:i.name+" · "+(entOf(i.ent).short||entOf(i.ent).label)); })));
     }),
     goneList.length>0 && React.createElement("div",{style:{marginTop:10}},
       React.createElement("div",{className:"bk-sec",style:{marginBottom:4}}, api?tf("bx_gone_title",{x:brokerName}):t("bf_gone_title")),

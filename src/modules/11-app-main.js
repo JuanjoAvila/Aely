@@ -1376,7 +1376,9 @@ function App(){
     set(function(s){
       const keyOf=function(p){ return p.isin||p.ticker||p.name; };
       const m={};
-      (positions||[]).forEach(function(po){ const sug=brokerSuggest(po, s.investments); if(sug) m[keyOf(po)]=sug; });
+      // Solo entre lo que no lleva otra sincronización (D7): ver `brkSyncCandidates`.
+      const cand=brkSyncCandidates(s.investments, stampKey==="lastTrSync"?"trade_republic":"myinvestor");
+      (positions||[]).forEach(function(po){ const sug=brokerSuggest(po, cand); if(sug) m[keyOf(po)]=sug; });
       const inv=(s.investments||[]).map(function(i){
         const po=(positions||[]).find(function(p){ return m[keyOf(p)]===i.id; });
         if(!po) return i;

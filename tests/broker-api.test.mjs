@@ -195,3 +195,31 @@ const btc = (shares, value) => ({ key: "BTC", sym: "BTC", name: "BTC", shares, c
   assert.match(sql, /grant execute on function public\.broker_next_nonce\(uuid, text\) to service_role;/);
   ok("verify_jwt en las tres, delete-account borra broker_links y el nonce no lo ejecuta el cliente");
 }
+
+/* D7: el sync de TR/MyInvestor no se apropia de lo que lleva otra sincronización. */
+{
+  const inv = [
+    { id: "ib", ent: "ibkr", src: "api:ibkr", isin: "IE00BK5BQT80", fileSym: "VWCE", shares: 10, value: 1250, cur: "EUR" },
+    { id: "kr", ent: "kraken", src: "api:kraken", fileSym: "BTC", ticker: "BTC", shares: 0.5, value: 30000, cur: "EUR" },
+    { id: "mi", ent: "myinvestor", isin: "IE00BK5BQT80", shares: 1, value: 125, cur: "EUR" },
+    { id: "tr", ent: "trade_republic", isin: "IE00BK5BQT80", shares: 4, value: 500, cur: "EUR" },
+  ];
+  const tr = ctx.brkSyncCandidates(inv, "trade_republic");
+  assert.equal(ctx.brokerSuggest({ isin: "IE00BK5BQT80", name: "VWCE" }, tr), "tr", "TR casa con la de TR, no con la de IBKR");
+  assert.deepEqual(J(tr.map((i) => i.id)), ["tr"]);
+  assert.equal(ctx.brokerSuggest({ ticker: "BTC", name: "Bitcoin" }, ctx.brkSyncCandidates(inv, "revolut")), null, "Revolut no propone la de Kraken");
+  // Sin la de TR, no se va a la de IBKR: mejor nada que pisar otra sincronización.
+  assert.equal(ctx.brokerSuggest({ isin: "IE00BK5BQT80", name: "VWCE" }, ctx.brkSyncCandidates(inv.filter((i) => i.id !== "tr"), "trade_republic")), null);
+  // Lo manual o de fichero sigue siendo candidato (no se rompe lo que ya se re-anclaba).
+  assert.equal(ctx.brkSyncCandidates([{ id: "m", ent: "revolut", isin: "X" }, { id: "c", ent: "degiro", src: "csv:degiro" }], "trade_republic").length, 2);
+  ok("D7: TR/MyInvestor/Revolut solo emparejan fuera de lo que lleva otra sincronización");
+}
+
+/* R1: borrar la posición vinculada suelta el vínculo y la vuelve a proponer. */
+{
+  const s = { investments: [], brokerApi: { kraken: { known: ["BTC"], links: { BTC: "borrada" }, pend: [] } } };
+  const r = ctx.brkApiAuto(s, "kraken", ctx.brkApiSnapshot(kraken([btc(0.5, 30000)])));
+  const m = J(r.s).brokerApi.kraken;
+  assert.deepEqual([r.pend, m.links.BTC, m.known.indexOf("BTC")], [1, undefined, -1]);
+  ok("R1: vínculo a una posición borrada → se suelta y se vuelve a proponer");
+}

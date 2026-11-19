@@ -244,7 +244,7 @@ function MyInvestorSync({state, set, open, onToggle}){
       if(r&&r.authExpired){ setStep("idle"); setExpired(true); fail(r); return; }
       if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
       const m={};
-      r.positions.forEach(function(po){ const k=po.isin||po.name; const sug=brokerSuggest({isin:po.isin,name:po.name}, state.investments); m[k]=sug||"__new"; });
+      r.positions.forEach(function(po){ const k=po.isin||po.name; const sug=brokerSuggest({isin:po.isin,name:po.name}, brkSyncCandidates(state.investments, "myinvestor")); m[k]=sug||"__new"; });
       setPositions(r.positions); setMap(m); setStep("preview");
     }).catch(fail);
   };
@@ -483,7 +483,7 @@ function TRSync({state, set, totals, open, onToggle}){
       markTrConnected(opts.ack?{ack:true}:undefined);
       const m={};
       r.positions.forEach(function(po){
-        const sug=brokerSuggest(po, state.investments);
+        const sug=brokerSuggest(po, brkSyncCandidates(state.investments, "trade_republic"));
         // Sin cartera previa (usuario nuevo, p.ej. la pareja) el mapeo por defecto es CREAR la
         // posición: antes todo quedaba en "no tocar" y el botón se moría en "Aplicar a 0".
         if(sug) m[po.isin]=sug;
