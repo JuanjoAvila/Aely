@@ -518,7 +518,7 @@ function fixedPaymentContenders(s,y,m){
   return (s.fixed||[]).filter(function(f){ return occursIn(f,m,y); }).map(function(f){
     return fixedPaymentContender(f,y,m);
   }).concat((s.debts||[]).filter(function(d){ return debtActive(d)||debtUltimaCuotaEn(d,y,m); }).map(function(d){
-    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m),day:cleanDay(dayOf(d)),debt:d};
+    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m),day:diaDelMes(cleanDay(dayOf(d)),y,m),debt:d};
   }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
     return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount,day:cleanDay(o.day)};
   }));
@@ -1250,7 +1250,9 @@ function fixedPaymentState(s,e,y,m,today){
    la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el
    saldo ni el principal: el banco ya incluye el pago (feedback 2/10/2026). */
 function debtPaymentState(s,d,y,m,today){
-  var day=cleanDay(dayOf(d)),target=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
+  // El día de ESE mes (`diaDelMes`, DIN-05): con el 31 sin recortar, el 30 de noviembre la cuota
+  // seguía «por venir» aquí mientras el saldo ya la restaba, y «¿Te llega?» la quitaba dos veces.
+  var day=diaDelMes(cleanDay(dayOf(d)),y,m),target=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m);
   var unique=!!d.id&&(s.debts||[]).filter(function(other){ return other.id===d.id; }).length===1;
   var deleted=expenseDeletedSet(s),end=new Date(y,m-1,today,23,59,59).getTime();
   var rows=(s.expenses||[]).filter(function(x){
@@ -2953,7 +2955,7 @@ function reconcileBank(state, y, m, today){
   // cargos modelados de este mes por entidad
   const modeled=[];
   (state.fixed||[]).forEach(function(e){ const ent=accOf(e); if(!obEnts[ent]||!occursIn(e,m,y)) return; const amt=occAmountIn(e,m,y),day=dayIn(e,m,y); if(amt<=0) return; modeled.push({name:e.name,amount:amt,day:day,ent:ent,id:e.id,kind:"fixed",bankAmount:(typeof e.bankAmount==="number"?e.bankAmount:null)}); if(feedCovers(ent,day)) res.covered[e.id]=1; });
-  (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:d.day||null,ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
+  (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=debtCuotaIn(d,y,m)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:diaDelMes(d.day||null,y,m),ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
   (state.oneoffs||[]).forEach(function(o){ const ent=o.account||"sabadell"; if(!obEnts[ent]||!oneoffOccurs(o,y,m)||(o.amount||0)<=0) return; modeled.push({name:o.name||"Cargo",amount:o.amount,day:o.day||null,ent:ent,id:o.id,kind:"oneoff",bankAmount:(typeof o.bankAmount==="number"?o.bankAmount:null)}); });
 
   const debits=month.filter(function(t){ return (t.amount||0)>0; }).map(function(t){ return Object.assign({},t,{_used:false}); });

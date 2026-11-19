@@ -3018,7 +3018,7 @@ function App(){
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
       if(isDebtPaidThisMonth(d,totals.today,state,cy,cm)) return;
-      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d)};
+      const c={id:"debt_"+d.id,name:d.name||"Cuota",amount:+debtCuotaIn(d,cy,cm).toFixed(2),day:debtChargeDay(d,cy,cm)};
       c.eve=eveOf(c,d.account); charges.push(c);
     });
     const fired=[];
@@ -3074,7 +3074,7 @@ function App(){
       (state.debts||[]).forEach(function(d){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
-        if(debtChargeDay(d)-today!==1) return;
+        if(debtChargeDay(d,cy,cm)-today!==1) return;
         const msg=messageOf("debt_"+d.id,d.name,debtCuotaIn(d,cy,cm));
         notify("_rc1_debt_"+d.id+"_"+ym, msg.title, msg.body);
       });
