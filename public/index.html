@@ -226,7 +226,12 @@
      cuadro NATIVO del sistema: gris, tipografía ajena y botones «CANCEL/OK» en inglés aunque
      la app esté en español (petición 2026-07-15). Misma hoja inferior que .tabsheet, pero por
      encima de TODO: los paneles de Ajustes/Bancos llegan a z-index 215. */
-  .askback{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:230;display:flex;align-items:flex-end;justify-content:center;}
+  .askback{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:230;display:flex;align-items:flex-end;justify-content:center;
+    box-sizing:border-box;padding-top:calc(var(--safe-top) + 12px);}
+  /* Con 360, letra Enorme y el teclado abierto, la hoja era más alta que la ventana y el título de dos
+     líneas quedaba cortado arriba (filtro de diseño 242). Nunca pasa del margen seguro de arriba: si no
+     cabe, se desplaza por dentro y los botones se quedan pegados abajo. Cuando cabe, nada cambia. */
+  .askback>.tabsheet{max-height:100%;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;}
   .ts-hint.ask-live{text-align:right;min-height:1.5em;line-height:1.5;margin:0 2px 6px;}
   .ask-in{width:100%;box-sizing:border-box;text-align:right;font-size:19px;font-weight:800;padding:12px 14px;margin:2px 0 10px;}
   /* Perfil / texto libre: mismo tamaño que el valor ya guardado (no el teclado de importes). */
@@ -244,7 +249,9 @@
   .ask-opt:active{background:var(--sur2);}
   .ask-opt-t{font-size:14.5px;font-weight:700;}
   .ask-opt-s{font-size:12px;color:var(--muted);line-height:1.45;}
-  .ask-btns{display:flex;gap:8px;margin-top:14px;}
+  /* Pegados abajo cuando la hoja se desplaza por dentro. El fondo y la sombra sólida tapan el texto que
+     pasa por debajo sin mover nada: un relleno cambiaba el hueco de siempre en los diálogos sin campo. */
+  .ask-btns{display:flex;gap:8px;margin-top:14px;position:sticky;bottom:0;background:var(--surface);box-shadow:0 -14px 0 var(--surface);}
   .ask-btns .btn{flex:1;margin:0;}
   /* Roles de cuenta (Patrimonio → Editar) */
   .rchip{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:9px;background:var(--bg-2);border:1px solid var(--line-soft);color:var(--muted);}
