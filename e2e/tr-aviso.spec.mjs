@@ -17,7 +17,7 @@ async function abrirBancosConTR(page, bridgeInit) {
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
   await dismissNews(page);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  await expect(page.locator(".bk-sec")).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(".bk-sec").first()).toBeVisible({ timeout: 10_000 });
 }
 
 const toastOk = /Conectado a Trade Republic|Connected to Trade Republic|Connectat a Trade Republic/i;

@@ -135,12 +135,13 @@ test("el selector sube en hoja sin teclado, y atrás va por pasos: hoja, pantall
   await push(page).getByRole("button", { name: /Conectar un banco/ }).click();
   const hoja = page.locator(".bk-pick");
   await expect(hoja).toBeVisible();
-  await expect(hoja.locator("button.v4-mov")).toHaveCount(3);
+  // Desde D1 (19/11) son los logos de los bancos más «Otro banco».
+  await expect(hoja.locator('[data-bk-grid="bancos"] .bk-tile')).toHaveCount(4);
   // Nada enfocado al entrar: el teclado no tapa la lista hasta que se toca el buscador.
   expect(await page.evaluate(() => document.activeElement && document.activeElement.tagName)).not.toBe("INPUT");
   const cerrar = hoja.locator(".sub-push-h .back");
   expect(await alto(cerrar)).toBeGreaterThanOrEqual(44);
-  expect(await alto(hoja.locator("button.v4-mov").first())).toBeGreaterThanOrEqual(44);
+  expect(await alto(hoja.locator(".bk-tile").first())).toBeGreaterThanOrEqual(44);
 
   await page.goBack();
   await expect(hoja).toHaveCount(0);

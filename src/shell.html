@@ -2583,7 +2583,66 @@
   /* Selector de bancos en hoja: la cabecera es la de las subpantallas (`.sub-push-h`, ✕ de 44 px
      a la derecha), el buscador fijo y la lista desplazándose sola debajo (`.v4-sheet-body`). */
   .bk-pick h1{flex:1;}
-  .bk-pick input{margin:10px 0 12px;}
+  /* MIS BANCOS POR DENTRO (D1, 19/11; maquetas `dentro-v2` con el filtro de diseño). Fila con su
+     logo en baldosa de 44 px; el anillo solo cuando hay que hacer algo (caducado punteado en coral,
+     caduca pronto en un arco `--tan`); importe a la derecha y, con letra Enorme, apilado. */
+  /* «+» de Conectar: el mismo botón redondo de superficie que ‹, con el signo en menta. */
+  .settings-push-h .bk-add{margin-left:auto;width:44px;height:44px;border-radius:50%;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;color:var(--mint);font-size:24px;font-weight:600;cursor:pointer;flex:0 0 auto;}
+  .bk-upd{display:flex;align-items:center;gap:10px;margin:-6px 2px 14px;font-size:13.5px;font-weight:700;color:var(--muted-2);}
+  .bk-rf{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--mint);background:var(--sur);border:1px solid var(--line-soft);cursor:pointer;flex:0 0 auto;}
+  .bk-rf:disabled{opacity:.5;}
+  .bk-list{background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;margin-bottom:6px;}
+  .bk-row{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;position:relative;}
+  .bk-row+.bk-row{border-top:1px solid var(--line-soft);}
+  .bk-row:active{background:var(--sur2);}
+  .bk-slot{flex:0 0 auto;display:grid;place-items:center;position:relative;}
+  .bk-slot svg{position:absolute;inset:0;transform:rotate(-90deg);}
+  .bk-slot circle{fill:none;stroke-width:2.5;}
+  .bk-slot.bad .trk{stroke:var(--coral);stroke-dasharray:3 4.6;}
+  .bk-slot.warn .trk{stroke:var(--line);} .bk-slot.warn .val{stroke:var(--tan);stroke-linecap:round;}
+  .bk-slot .mono{border:1px solid var(--line-soft)!important;}
+  .bk-tx{flex:1;min-width:0;}
+  .bk-top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:2px 12px;}
+  .bk-nm{font-size:var(--fs-row-title,16px);font-weight:800;overflow-wrap:break-word;min-width:0;}
+  .bk-am{font-size:16px;font-weight:700;white-space:nowrap;margin-left:auto;}
+  .bk-am.fade{color:var(--muted-2);font-weight:600;}
+  .bk-mt{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:3px;}
+  /* Cada trozo de la línea («· hace 2 días», «· 2 cuentas») salta entero: nada de «hace» / «2 días». */
+  .bk-mt .nw{white-space:nowrap;}
+  .bk-mt .bad{color:var(--coral);font-weight:800;} .bk-mt .warn{color:var(--tan);font-weight:700;}
+  .bk-act{margin-top:8px;}
+  .bk-renew{min-height:44px;border-radius:14px;padding:0 18px;border:none;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer;
+    background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);}
+  html.hugetext .bk-top{flex-direction:column;align-items:flex-start;}
+  html.hugetext .bk-am{margin-left:0;}
+  .bk-vacio{text-align:center;padding:36px 12px 8px;}
+  .bk-vacio-t{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:600;margin-bottom:16px;}
+  .bk-pick .bk-sec,.bk-ficha .bk-sec{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);margin:14px 2px 10px;}
+  .bk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:12px 8px;margin-bottom:8px;}
+  .bk-tile{display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;font-weight:700;text-align:center;min-width:0;overflow-wrap:anywhere;cursor:pointer;padding:4px 0;}
+  .bk-tile-ic{position:relative;}
+  .bk-tile-ic .mono{border:1px solid var(--line-soft)!important;}
+  .bk-tile-otro{width:56px;height:56px;border-radius:16px;background:var(--surface-2);display:grid;place-items:center;color:var(--muted);position:relative;}
+  .bk-tile-otro .set-search-ic{position:static;}
+  .bk-tile-ok{position:absolute;right:-5px;top:-5px;width:22px;height:22px;border-radius:50%;background:var(--mint);color:var(--on-mint);font-size:11px;font-weight:900;display:grid;place-items:center;border:2px solid var(--bg-2);}
+  .bk-search{margin:4px 0 12px;}
+  .bk-pick-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;border:1px solid var(--line-soft);background:var(--sur);margin-bottom:8px;cursor:pointer;text-align:left;color:var(--text);font-family:inherit;}
+  .bk-fh{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .bk-fh-t{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
+  .bk-fh-t h2{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:600;line-height:1.15;margin:0;overflow-wrap:break-word;max-width:100%;}
+  .bk-x{width:44px;height:44px;border-radius:50%;background:var(--surface-2);border:none;color:var(--muted);font-size:17px;display:grid;place-items:center;flex:0 0 auto;cursor:pointer;}
+  .bk-chip{display:inline-flex;border-radius:20px;padding:4px 11px;font-size:12px;font-weight:800;white-space:nowrap;background:color-mix(in srgb,var(--mint) 16%,transparent);color:var(--mint);}
+  .bk-chip.bad{background:color-mix(in srgb,var(--coral) 16%,transparent);color:var(--coral);}
+  .bk-chip.warn{background:color-mix(in srgb,var(--tan) 16%,transparent);color:var(--tan);}
+  .bk-life{margin:2px 0 16px;}
+  .bk-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;}
+  .bk-bar i{display:block;height:100%;background:var(--mint);border-radius:3px;}
+  .bk-bar.warn i{background:var(--tan);} .bk-bar.bad i{background:var(--coral);}
+  .bk-life-l{font-size:12.5px;color:var(--muted-2);font-weight:700;margin-top:6px;text-align:right;}
+  .bk-noacct{margin:0 0 12px;}
+  .bk-last{margin:12px 4px 6px;font-size:13px;font-weight:700;color:var(--muted-2);}
+  .bk-opt{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:52px;padding:8px 4px;border:none;border-top:1px solid var(--line-soft);background:none;color:var(--text);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;text-align:left;}
+  .bk-del{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;margin-top:18px;padding:0 4px;border:none;background:none;color:var(--coral);font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;}
   /* Vuelta al origen tras conectar o renovar: la fila de ese banco (o la del grupo «Bancos» si se
      abrió desde Ajustes) se marca y se apaga sola. */
   .cx-vuelta{animation:cxVuelta 1.8s ease-out forwards;}
@@ -2625,13 +2684,11 @@
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .v4-banks .bk-sec{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);margin:18px 2px 8px;}
   .v4-banks .v4-mov{margin-bottom:8px;}
-  .v4-banks .bk-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;padding:0 2px;}
   /* Banco al que te manda el aviso de «reconéctalo»: un latido corto para que salte a la vista
      sin marear (respeta «reducir animaciones»). */
   .bk-focus{border-radius:18px;animation:bkfocus 1.6s ease-out 2;}
   @keyframes bkfocus{0%,100%{box-shadow:0 0 0 0 rgba(226,112,95,0);}35%{box-shadow:0 0 0 4px rgba(226,112,95,.30);}}
   html.reduce-motion .bk-focus{animation:none;box-shadow:0 0 0 3px rgba(226,112,95,.28);}
-  .v4-banks .bk-actions .btn{flex:1 1 auto;min-width:0;padding:10px 12px;font-size:13px;}
 
   @keyframes sheetup{from{transform:translateY(100%);}to{transform:translateY(0);}}
   /* Fundido del velo, en paralelo con `sheetup` (misma curva y 0,42 s). Solo opacity, que

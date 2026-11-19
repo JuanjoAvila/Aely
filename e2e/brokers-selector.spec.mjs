@@ -20,13 +20,13 @@ async function abrirBancos(page, overrides) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  await expect(page.locator(".bk-sec")).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(".v4-banks-push")).toHaveClass(/open/, { timeout: 10_000 });
 }
 
 test("sin brókers en cartera no sale NINGUNA tarjeta de login (el caso del padre)", async ({ page }) => {
   await abrirBancos(page, { investments: [] });
-  // Los chips para elegir sí están: sin ellos no habría forma de conectar nada.
-  await expect(page.getByText(/Qué brókers usas/i)).toBeVisible();
+  // La puerta para conectar uno sí está: desde D1 (19/11) es «+» → Conectar, no los chips.
+  await expect(page.locator('[data-act="bk-conectar"]')).toBeVisible();
   await expect(page.locator(".bk-card.bk-tr")).toHaveCount(0);
   await expect(page.locator(".bk-card.bk-mi")).toHaveCount(0);
   await expect(page.locator(".bk-card.bk-csv")).toHaveCount(0);
@@ -41,15 +41,14 @@ test("un bróker que YA usas aparece solo, sin tener que marcarlo", async ({ pag
   await expect(page.locator(".bk-card.bk-mi")).toHaveCount(0);   // MyInvestor no, que no lo usa
 });
 
-test("marcar un chip trae su tarjeta; desmarcarlo se la lleva", async ({ page }) => {
+test("elegir un bróker en Conectar trae su tarjeta", async ({ page }) => {
   await abrirBancos(page, { investments: [] });
-  const chip = page.locator(".v4-chip").filter({ hasText: "MyInvestor" });
-
-  await chip.click();
+  await page.locator('[data-act="bk-conectar"]').click();
+  await page.locator('.bk-pick [data-bk-tile="myinvestor"]').click();
   await expect(page.locator(".bk-card.bk-mi")).toHaveCount(1);
-
-  await chip.click();
-  await expect(page.locator(".bk-card.bk-mi")).toHaveCount(0);
+  // Y ya sale con ✓ la siguiente vez.
+  await page.locator('[data-act="bk-conectar"]').click();
+  await expect(page.locator('.bk-pick [data-bk-tile="myinvestor"] .bk-tile-ok')).toHaveCount(1);
 });
 
 test("las tarjetas de bróker nacen plegadas y se abren al tocarlas, de una en una", async ({ page }) => {
@@ -111,7 +110,7 @@ test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", 
   await expect(bankSummary).toContainText(/1 caducado.*Trade Republic desconectado/i, { timeout: 10_000 });
   await bankSummary.locator(".set-row").first().click();
   await page.locator("[data-bank-manage]").click();
-  await expect(page.locator(".bk-sec")).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(".bk-sec").first()).toBeVisible({ timeout: 10_000 });
 
   // Completar PIN + código. Antes solo cambiaba el estado local de TRSync; el resumen que queda
   // detrás conservaba el caído hasta matar la app.

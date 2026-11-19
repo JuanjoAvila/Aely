@@ -55,10 +55,11 @@ async function bloqueIbkr(page, investments) {
 test("Mis bancos ya no ofrece Interactive Brokers por fichero, tampoco a quien ya lo usa", async ({ page }) => {
   await arranca(page, { investments: [{ id: "x1", ent: "ibkr", src: "csv:ibkr", name: "APPLE INC", isin: "US0378331005", shares: 1, value: 200, cost: 150, cur: "USD" }] });
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  await expect(page.locator(".bk-sec").first()).toBeVisible({ timeout: 10_000 });
-  await expect(page.locator(".v4-chip").filter({ hasText: "Trade Republic" })).toHaveCount(1);
-  await expect(page.locator(".v4-chip").filter({ hasText: /^Interactive Brokers$/ })).toHaveCount(0);
+  await expect(page.locator(".v4-banks-push")).toHaveClass(/open/, { timeout: 10_000 });
   await expect(page.locator('[data-broker-file="ibkr"]')).toHaveCount(0);
+  await page.locator('[data-act="bk-conectar"]').click();
+  await expect(page.locator('.bk-pick [data-bk-tile="trade_republic"]')).toHaveCount(1);
+  await expect(page.locator(".bk-pick")).not.toContainText("Interactive Brokers");
 });
 
 test("Flex XML → bloque IBKR en Cartera; el derivado no entra y se avisa", async ({ page }) => {

@@ -63,13 +63,9 @@ test("quitar Caixa pendiente limpia bankIssues al momento", async ({ page }) => 
   const panel = page.locator(".v4-banks");
   await expect(panel).toBeVisible({ timeout: 10_000 });
   await expect(panel.locator('[data-aspsp="CaixaBank"]')).toBeVisible();
-  /* focusAspsp ya abre el acordeón; un click en la fila lo cerraría. */
-  const quitar = panel.getByRole("button", { name: /Quitar|Remove|Treu/i });
-  if (!(await quitar.count())) {
-    await panel.locator('[data-aspsp="CaixaBank"] .v4-mov').first().click();
-  }
-  await quitar.click();
-  await panel.getByRole("button", { name: /Sí, quitar|Yes, remove|Sí, treu/i }).click();
+  // Desde D1 (19/11): la ficha del banco en hoja, «Quitar» al final y la pregunta de siempre.
+  await panel.locator('.bk-row[data-aspsp="CaixaBank"] .bk-nm').click();
+  await page.locator('.bk-ficha [data-act="bk-quitar"]').click();
   await page.locator(".ask-opt").first().click();
 
   await expect.poll(() => page.evaluate(() => {
