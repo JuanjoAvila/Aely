@@ -104,3 +104,94 @@ const btc = (shares, value) => ({ key: "BTC", sym: "BTC", name: "BTC", shares, c
   assert.equal(ctx.brkApiErr("algo raro del bróker <b>"), "bx_e_error");
   ok("todos los códigos del servidor tienen texto; lo desconocido va al genérico");
 }
+
+/* 7. Revisión de dinero (19/11). D1: «no tocar» se respeta en automático aunque coincida el ISIN. */
+{
+  const xml = (n, v) => `<FlexQueryResponse><FlexStatements><FlexStatement accountId="U0000000" toDate="20261118"><OpenPositions><OpenPosition accountId="U0000000" currency="EUR" assetCategory="STK" symbol="VWCE" description="VANGUARD FTSE ALL-WORLD" isin="IE00BK5BQT80" listingExchange="IBIS2" position="${n}" markPrice="${v / n}" positionValue="${v}" levelOfDetail="SUMMARY"/></OpenPositions></FlexStatement></FlexStatements></FlexQueryResponse>`;
+  const res = (n, v) => ({ ok: true, broker: "ibkr", snapshot: true, flexXml: xml(n, v) });
+  const s0 = { investments: [
+    { id: "mio", ent: "ibkr", name: "VWCE mío", isin: "IE00BK5BQT80", shares: 5, value: 600, cost: 500, cur: "EUR" },
+    { id: "pareja", ent: "ibkr", name: "VWCE pareja", isin: "IE00BK5BQT80", shares: 5, value: 600, cost: 500, cur: "EUR" }] };
+  const total = (s) => s.investments.reduce((a, i) => a + ctx.invValueEur(i, s), 0);
+  const s1 = J(ctx.brkApiReview(s0, "ibkr", ctx.brkApiSnapshot(res(10, 1250)), { IE00BK5BQT80: "" }, {}));
+  assert.equal(total(s1), 1200);
+  const s2 = J(ctx.brkApiAuto(s1, "ibkr", ctx.brkApiSnapshot(res(10, 1250))).s);
+  assert.equal(total(s2), 1200, "dejadas en «no tocar»: la automática no las re-ancla (antes 1.850 €)");
+  assert.ok(s2.investments.every((i) => !i.src), "ni les cambia el origen");
+  assert.deepEqual(s2.brokerApi.ibkr.pend, [], "y no vuelve a proponerla");
+  // Mapeada a «mío», solo esa sigue al bróker.
+  const m1 = J(ctx.brkApiReview(s0, "ibkr", ctx.brkApiSnapshot(res(10, 1250)), { IE00BK5BQT80: "mio" }, {}));
+  const m2 = J(ctx.brkApiAuto(m1, "ibkr", ctx.brkApiSnapshot(res(12, 1500))).s);
+  assert.deepEqual(m2.investments.map((i) => [i.id, i.shares, i.value]), [["mio", 12, 1500], ["pareja", 5, 600]]);
+  ok("D1: «no tocar» se respeta en automático aunque el ISIN case; solo sigue al bróker lo vinculado");
+}
+
+/* D2: vinculada a una posición con ticker distinto del símbolo del bróker, NO se congela. */
+{
+  const s0 = { investments: [{ id: "btc", ent: "kraken", name: "Bitcoin", ticker: "BTC-EUR", shares: 0.5, value: 30000, cost: 20000, cur: "EUR" }] };
+  const s1 = J(ctx.brkApiReview(s0, "kraken", ctx.brkApiSnapshot(kraken([btc(0.5, 30000)])), { BTC: "btc" }, {}));
+  assert.equal(s1.brokerApi.kraken.links.BTC, "btc");
+  const s2 = J(ctx.brkApiAuto(s1, "kraken", ctx.brkApiSnapshot(kraken([btc(0.9, 54000)]))).s);
+  const i = s2.investments[0];
+  assert.deepEqual([i.shares, i.value, i.cost], [0.9, 54000, 20000]);
+  // Las creadas en la vista previa quedan vinculadas por su id.
+  const c1 = J(ctx.brkApiReview({ investments: [] }, "kraken", ctx.brkApiSnapshot(kraken([btc(0.5, 30000)])), { BTC: "__new" }, {}));
+  assert.equal(c1.brokerApi.kraken.links.BTC, c1.investments[0].id);
+  ok("D2: el vínculo es por id: un ticker «BTC-EUR» sigue al «BTC» del bróker");
+}
+
+/* D3: IBKR sin ninguna posición (y sin Cash Report) es una lectura completa: lo vendido sale. */
+{
+  const vacio = { ok: true, broker: "ibkr", snapshot: true, flexXml: `<FlexQueryResponse><FlexStatements><FlexStatement accountId="U0000000" toDate="20261118"><OpenPositions /></FlexStatement></FlexStatements></FlexQueryResponse>` };
+  const p = ctx.brkApiSnapshot(vacio);
+  assert.deepEqual(J(p.positions), []); assert.equal(p.snapshot, true); assert.equal(p.to, "2026-11-18");
+  const s = { investments: [{ id: "v", ent: "ibkr", src: "api:ibkr", isin: "IE00BK5BQT80", fileSym: "VWCE", shares: 10, value: 1250, cur: "EUR" }],
+    brokerApi: { ibkr: { known: ["IE00BK5BQT80"], links: { IE00BK5BQT80: "v" }, pend: [] } } };
+  const r = ctx.brkApiAuto(s, "ibkr", p);
+  assert.equal(r.gone, 1);
+  assert.equal(ctx.invValueEur(J(r.s).investments[0], r.s), 0, "vendido todo: deja de sumar");
+  // Una posición que el parser no entiende NO es «vacía»: sigue siendo error.
+  assert.equal(ctx.brkApiSnapshot({ ok: true, broker: "ibkr", snapshot: true, flexXml: vacio.flexXml.replace("<OpenPositions />", '<OpenPositions><OpenPosition symbol="X" position="abc"/></OpenPositions>') }), null);
+  ok("D3: cuenta IBKR vacía = lectura completa (marca lo vendido); ilegible sigue siendo error");
+}
+
+/* Mutante vivo 6: la automática NO marca vendido lo manual ni lo de fichero, aunque sea del mismo bróker. */
+{
+  const s = { investments: [
+      { id: "api", ent: "kraken", src: "api:kraken", fileSym: "BTC", shares: 0.5, value: 30000, cur: "EUR" },
+      { id: "man", ent: "kraken", isin: "XX0000000001", name: "Manual con ISIN", shares: 1, value: 100, cur: "EUR" },
+      { id: "csv", ent: "kraken", src: "csv:kraken", fileSym: "ETH", shares: 2, value: 6000, cur: "EUR" }],
+    brokerApi: { kraken: { known: ["BTC"], links: { BTC: "api" }, pend: [] } } };
+  const r = ctx.brkApiAuto(s, "kraken", ctx.brkApiSnapshot(kraken([])));
+  const by = Object.fromEntries(J(r.s).investments.map((i) => [i.id, i]));
+  assert.ok(by.api.fileGone, "lo de la conexión que ya no está, sí");
+  assert.ok(!by.man.fileGone && !by.csv.fileGone, "lo manual y lo de fichero, no");
+  ok("la automática solo marca vendido lo que puso la conexión");
+}
+
+/* Mutante vivo 7: un activo en $ se queda en $ (nunca se suma como €). */
+{
+  const usd = kraken([{ key: "FOO", sym: "FOO", name: "FOO", shares: 10, cur: "USD", valueHint: 250, price: 25 }]);
+  const p = ctx.brkApiSnapshot(usd);
+  assert.equal(p.positions[0].cur, "USD");
+  const s1 = J(ctx.brkApiReview({ investments: [] }, "kraken", p, { FOO: "__new" }, {}));
+  const i = s1.investments[0];
+  assert.deepEqual([i.cur, i.value], ["USD", 250]);
+  assert.equal(ctx.invValueEur(i, { fxRates: { USD: 0.92 } }), 230, "a € con el cambio");
+  assert.notEqual(ctx.invValueEur(i, { fxRates: {} }), 250, "sin cambio, nunca 250 € a pelo");
+  ok("un valor en $ se guarda en $ y se convierte; nunca cuenta como €");
+}
+
+/* Seguridad que no se ve en un diff: JWT exigido, borrado de cuenta, y el nonce solo para el servidor. */
+{
+  const cfg = fs.readFileSync(path.join(root, "supabase", "config.toml"), "utf8");
+  for (const f of ["broker-connect", "broker-sync", "broker-disconnect"]) {
+    assert.match(cfg, new RegExp("\\[functions\\." + f + "\\]\\s*verify_jwt\\s*=\\s*true"), f + " sin verify_jwt=true");
+  }
+  const del = fs.readFileSync(path.join(root, "supabase", "functions", "delete-account", "index.ts"), "utf8");
+  assert.match(del, /from\("broker_links"\)\.delete\(\)\.eq\("user_id", user\.id\)/, "borrar la cuenta borra las claves de brókers");
+  const sql = fs.readFileSync(path.join(root, "supabase", "migrations", "0031_broker_links.sql"), "utf8").split(/\r?\n/).filter((l) => !l.trim().startsWith("--")).join("\n");
+  assert.doesNotMatch(sql, /grant\s+execute\s+on\s+function\s+public\.broker_next_nonce[^;]*to[^;]*\b(authenticated|anon|public)\b/i);
+  assert.match(sql, /grant execute on function public\.broker_next_nonce\(uuid, text\) to service_role;/);
+  ok("verify_jwt en las tres, delete-account borra broker_links y el nonce no lo ejecuta el cliente");
+}

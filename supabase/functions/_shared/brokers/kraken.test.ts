@@ -29,6 +29,9 @@ Deno.test("permisos: solo «Consultar fondos» entra; cualquiera que mueva diner
   assert.equal((krakenCheckKeyInfo({ permissions: ["query-funds", "withdraw-funds", "query-open-trades", "modify-trades"], ipAllowlist: [] }) as { code: string }).code, "kraken_perm");
   assert.deepEqual(krakenCheckKeyInfo({ permissions: ["query-open-trades"] }), { ok: false, code: "kraken_no_funds" });
   assert.deepEqual(krakenCheckKeyInfo({ permissions: ["query-funds"], ipAllowlist: ["192.0.2.1"] }), { ok: false, code: "kraken_ip" });
+  // Lista PERMITIDA: un permiso nuevo que Kraken añada mañana se rechaza, y sin repetir su nombre.
+  assert.deepEqual(krakenCheckKeyInfo({ permissions: ["query-funds", "transfer-everything-new"] }), { ok: false, code: "kraken_perm", perm: undefined });
+  assert.equal(krakenCheckKeyInfo({ permissions: ["query-funds", "query-open-trades", "query-closed-trades", "query-ledger", "export-data", "create-ws-token"] }).ok, true);
   // Lo que no se puede verificar no se acepta.
   assert.deepEqual(krakenCheckKeyInfo({}), { ok: false, code: "kraken_bad" });
   assert.deepEqual(krakenCheckKeyInfo(null), { ok: false, code: "kraken_bad" });
@@ -42,6 +45,9 @@ Deno.test("errores de Kraken → códigos cerrados", () => {
   assert.equal(krakenErrorCode(["EAPI:Rate limit exceeded"]), "kraken_rate");
   assert.equal(krakenErrorCode(["EService:Unavailable"]), "kraken_temp");
   assert.equal(krakenErrorCode(["EGeneral:Invalid arguments:otp"]), "kraken_otp");
+  // Un error desconocido nunca vuelve con su texto: código cerrado genérico.
+  const raro = "EFoo:llama al 600 000 000 <b>ya</b>";
+  assert.equal(krakenErrorCode([raro]), "kraken_bad");
 });
 
 Deno.test("saldos: XXBT es BTC, el staking se suma al base y el dinero va aparte", () => {
@@ -55,6 +61,8 @@ Deno.test("saldos: XXBT es BTC, el staking se suma al base y el dinero va aparte
   assert.equal(by.DOT.qty, 12); assert.equal(by.ETH.qty, 1.25); assert.equal(by.ETH.base, "ETH");
   assert.equal(by.ADA, undefined, "saldo 0 no es una posición");
   assert.deepEqual(h.fiat, [{ cur: "EUR", amt: 130.5 }]);
+  // «.T» (tokenizado) no es staking: no se avisa como tal.
+  assert.equal(krakenHoldings({ "SOL.T": { balance: "1" } }).crypto[0].staked, false);
 });
 
 Deno.test("precio: par en EUR primero, USD si no hay; sin par no entra y se avisa", () => {

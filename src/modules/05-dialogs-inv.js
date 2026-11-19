@@ -984,7 +984,19 @@ function brkApiErr(code){ return BRK_API_CODES.indexOf(code)>=0?"bx_e_"+code:"bx
    una cantidad o un valor que no sea un número positivo no entra (quedaría en 0 €). */
 function brkApiSnapshot(res){
   if(!res||res.ok!==true||res.snapshot!==true) return null;
-  if(res.broker==="ibkr") return ibkrParseFlexXml(res.flexXml||"");
+  if(res.broker==="ibkr"){
+    const xml=String(res.flexXml||"");
+    const p=ibkrParseFlexXml(xml);
+    if(p) return p;
+    /* Cuenta VACÍA (revisión de dinero 19/11): sin ninguna <OpenPosition> y sin efectivo, el parser
+       del fichero devuelve null y se tomaba por un error, así que al venderlo TODO nada salía como
+       «ya no está» y el valor viejo seguía sumando. El servidor ya ha comprobado que la sección
+       existe: una lectura completa con cero posiciones es un dato, no un fallo. Si hay alguna
+       posición que el parser no supo leer, sigue siendo error (no se marca nada). */
+    if(xml.indexOf("<FlexQueryResponse")<0 || !/<OpenPositions[\s/>]/.test(xml) || /<OpenPosition\s/.test(xml)) return null;
+    const st=brkXmlTags(xml,"FlexStatement")[0]||{};
+    return { positions:[], present:[], cash:[], warnings:[], skipped:0, dividends:0, fees:0, from:null, to:brkIsoDate(st.todate||"")||null, snapshot:true };
+  }
   if(res.broker!=="kraken"||!Array.isArray(res.positions)) return null;
   const present=(Array.isArray(res.present)?res.present:[]).map(String);
   const positions=[];
@@ -1002,15 +1014,41 @@ function brkApiMeta(s, ent, meta){
   const o=Object.assign({},s.brokerApi||{}); o[ent]=meta;
   return Object.assign({},s,{brokerApi:o});
 }
+/* EL VÍNCULO ES LA DECISIÓN (revisión de dinero 19/11). La vista previa guarda en `links` a qué
+   posición fue cada clave del bróker, y la lectura automática SOLO re-ancla esos vínculos. Antes
+   volvía a emparejar por ISIN o ticker con `brkSuggest`, que también encuentra lo que el usuario
+   dejó en «no tocar»: VWCE llevado a mano en dos posiciones (suya y de su pareja, mismo ISIN)
+   pasaba a valer el bróker entero en una y seguía sumando la otra (+600 € inventados). Y una
+   posición con ticker distinto del símbolo del bróker («BTC-EUR» frente a «BTC») dejaba de casar
+   y se congelaba sin aviso. */
+function brkApiLinkOf(inv, ent, links, po){
+  const id=links[po.key];
+  if(id && inv.some(function(i){ return i.id===id; })) return id;
+  // De reserva, solo lo que ya puso esta conexión y por lo que guardó ella (ISIN o su símbolo).
+  const own=inv.find(function(i){ return i.ent===ent && i.src==="api:"+ent && ((po.isin && i.isin===po.isin) || (!po.isin && po.sym && i.fileSym===po.sym)); });
+  return own?own.id:null;
+}
 /** Lo que el usuario decidió en la vista previa (primera lectura o revisión de nuevas). */
 function brkApiReview(s, ent, parsed, map, goneMark){
   const was=(s.brokerApi||{})[ent]||{};
   const at=parsed.to||isoLocal();
+  const before={}; (s.investments||[]).forEach(function(i){ before[i.id]=1; });
   const next=brkApplyFile(s, ent, parsed.positions, map, goneMark||{}, at, "api:"+ent);
+  const nuevas=(next.investments||[]).filter(function(i){ return !before[i.id]; });
+  const links=Object.assign({},was.links||{});
+  parsed.positions.forEach(function(po){
+    const v=map[po.key];
+    if(v && v!=="__new") links[po.key]=v;
+    else if(v==="__new"){
+      const c=nuevas.find(function(i){ return po.isin?i.isin===po.isin:(i.fileSym===po.sym && !i.isin); });
+      if(c) links[po.key]=c.id;
+    }
+    // «no tocar» no deja vínculo: esa clave queda conocida y la automática no la toca nunca.
+  });
   const known=(was.known||[]).slice();
   parsed.positions.forEach(function(p){ if(known.indexOf(p.key)<0) known.push(p.key); });
   const pend=(was.pend||[]).filter(function(p){ return known.indexOf(p.key)<0; });
-  return brkApiMeta(next, ent, Object.assign({},was,{known:known, pend:pend, at:Date.now(), asOf:at}));
+  return brkApiMeta(next, ent, Object.assign({},was,{known:known, links:links, pend:pend, at:Date.now(), asOf:at}));
 }
 /** Lectura automática tras la primera: re-ancla lo que casa, marca lo vendido, PROPONE lo nuevo.
  *  Sin primera revisión (`known`) no toca nada: devuelve null. */
@@ -1018,8 +1056,9 @@ function brkApiAuto(s, ent, parsed){
   const was=(s.brokerApi||{})[ent];
   if(!was||!Array.isArray(was.known)||!parsed||!parsed.snapshot) return null;
   const map={}, pend=[];
+  const links=was.links||{};
   parsed.positions.forEach(function(po){
-    const id=brkSuggest(po, s.investments, ent);
+    const id=brkApiLinkOf(s.investments||[], ent, links, po);
     if(id) map[po.key]=id;
     else if(was.known.indexOf(po.key)<0) pend.push(po);
   });
@@ -1286,7 +1325,9 @@ function BrokerFilePreview({parsed, ent, state, map, setMap, goneList, gone, set
     React.createElement("div",{className:"hint",style:{marginTop:4}}, api?tf("bx_value",{x:brokerName}):t("bf_value_file")),
     React.createElement("div",{className:"bf-foot"},
       React.createElement("button",{className:"btn btn-ghost",style:{flex:"0 0 auto",minHeight:44},onClick:cancel}, t("fj_cancel")),
-      React.createElement("button",{className:"btn btn-primary",style:{flex:1,minHeight:44},disabled:nAp===0,onClick:apply}, tf(nAp===1?"bi_apply_one":"bi_apply",{n:nAp})))
+      /* Por conexión, «nada que aplicar» también es una respuesta: una cuenta vacía o todo en «no
+         tocar» se confirma con «Listo» y queda decidido; si no, la primera lectura no acababa nunca. */
+      React.createElement("button",{className:"btn btn-primary","data-act":"bf-apply",style:{flex:1,minHeight:44},disabled:nAp===0&&!api,onClick:apply}, nAp===0&&api?t("bx_review_done"):tf(nAp===1?"bi_apply_one":"bi_apply",{n:nAp})))
   );
 }
 

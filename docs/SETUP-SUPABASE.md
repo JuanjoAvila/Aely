@@ -81,7 +81,7 @@ antes de mandar la credencial al bróker. Además, no escribe nada que no salga 
 
 | Función | Cuerpo (tope) | Qué hace |
 |---|---|---|
-| `broker-connect` | `{broker, a, b}` (2 KiB) | IBKR: `SendRequest` + `GetStatement` de prueba (v3, reintenta 1019 hasta ~30 s) y exige la sección Open Positions. Kraken: `GetApiKeyInfo` y **rechaza sin guardar** cualquier clave con `withdraw-funds`, `modify-trades`, `close-trades`, `add-funds`, `earn-funds`, `add-withdraw-address` o `update-withdraw-address`, sin `query-funds` o con lista de IP. Si todo cuadra, guarda cifrado y devuelve la primera lectura |
+| `broker-connect` | `{broker, a, b}` (2 KiB) | IBKR: `SendRequest` + `GetStatement` de prueba (v3, reintenta 1019 hasta ~30 s) y exige la sección Open Positions. Kraken: `GetApiKeyInfo` y **rechaza sin guardar** cualquier clave con un permiso fuera de la lista PERMITIDA de consulta (`query-funds`, `query-open-trades`, `query-closed-trades`, `query-ledger`, `export-data`, `create-ws-token`; uno nuevo de Kraken también se rechaza), sin `query-funds` o con lista de IP. Si todo cuadra, guarda cifrado y devuelve la primera lectura |
 | `broker-sync` | `{broker, userInitiated?}` (1 KiB) | Lee y **devuelve** (no escribe posiciones). IBKR: el XML de Flex tal cual, que interpreta `ibkrParseFlexXml` en el móvil. Kraken: vuelve a comprobar los permisos (si la clave ganó alguno peligroso, **borra la credencial** y deja la fila `rejected`), `BalanceEx` y precio con el `Ticker` público. Los fallos solo tocan la fila de la misma `connection_version` |
 | `broker-disconnect` | `{broker}` (1 KiB) | Borra la fila. Revocar el token o la clave en el bróker lo hace el usuario (la app lo dice) |
 
@@ -96,6 +96,8 @@ select col, has_column_privilege('authenticated', 'public.broker_links', col, 'S
 -- cred_a, cred_b y nonce tienen que salir en false.
 select has_function_privilege('authenticated', 'public.broker_next_nonce(uuid, text)', 'EXECUTE'); -- false
 ```
+
+**Pendiente antes de enseñar Kraken a nadie:** comprobar con una cuenta real si `BalanceEx` ya incluye en el saldo base lo que trae con sufijo `.F` (auto-earn); si lo incluye, `krakenHoldings` lo contaría dos veces. La doc oficial no lo aclara.
 
 **Fuera de esta ronda:** DEGIRO (sesión no oficial, necesita una cuenta real para medir), Binance
 (cierra en España el 31/12/2026) y el coste de Kraken (`TradesHistory`): hoy es «—».

@@ -71,6 +71,8 @@ Deno.test("la URL de GetStatement solo se sigue si es de IBKR y HTTPS", () => {
   assert.equal(ibkrStatementUrl("https://evil.example/GetStatement"), def);
   assert.equal(ibkrStatementUrl("http://ndcdyn.interactivebrokers.com/x"), def);
   assert.equal(ibkrStatementUrl("https://interactivebrokers.com.evil.example/x"), def);
+  // Sin el punto delante no es un subdominio de IBKR.
+  assert.equal(ibkrStatementUrl("https://evilinteractivebrokers.com/GetStatement"), def);
   assert.equal(ibkrStatementUrl(null), def);
 });
 

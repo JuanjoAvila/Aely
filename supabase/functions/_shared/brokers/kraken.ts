@@ -35,13 +35,19 @@ export async function krakenSign(path: string, nonce: string, postData: string, 
   return bytesToB64(new Uint8Array(await crypto.subtle.sign("HMAC", key, msg)));
 }
 
-/* Lo que una clave NO puede tener para que la guardemos. Si se filtra la BD, con una clave de solo
-   consulta se lee la cartera; con cualquiera de estas se mueve dinero. Se rechaza aunque además
-   tenga «Consultar fondos». */
-export const KRAKEN_PELIGROSOS = [
+/* LISTA PERMITIDA, no prohibida (revisión de seguridad 19/11). La doc de GetApiKeyInfo no cierra
+   la lista de permisos: si Kraken añade uno nuevo que mueva dinero, con una lista de los peligrosos
+   entraría sin que nadie lo viera. Aquí solo pasan los de CONSULTA; cualquier otro, conocido o no,
+   rechaza la clave. Si se filtra la BD, con estos se lee la cartera y no se mueve un euro. */
+export const KRAKEN_PERMITIDOS = [
+  "query-funds", "query-open-trades", "query-closed-trades", "query-ledger", "export-data", "create-ws-token",
+];
+// Los que sí se pueden nombrar al usuario: la lista oficial de hoy. Uno desconocido no se repite
+// (sería texto del bróker en la respuesta), se rechaza igual sin nombre.
+const KRAKEN_CONOCIDOS = KRAKEN_PERMITIDOS.concat([
   "withdraw-funds", "modify-trades", "close-trades", "add-funds", "earn-funds",
   "add-withdraw-address", "update-withdraw-address",
-];
+]);
 
 export type KrakenCode =
   | "kraken_perm" | "kraken_no_funds" | "kraken_ip" | "kraken_otp" | "kraken_key"
@@ -53,8 +59,8 @@ export function krakenCheckKeyInfo(result: unknown): { ok: true; meta: Record<st
   const r = (result && typeof result === "object") ? result as any : null;
   if (!r || !Array.isArray(r.permissions)) return { ok: false, code: "kraken_bad" };
   const perms: string[] = r.permissions.map((p: unknown) => String(p));
-  const malo = perms.find((p) => KRAKEN_PELIGROSOS.includes(p));
-  if (malo) return { ok: false, code: "kraken_perm", perm: malo };
+  const malo = perms.find((p) => !KRAKEN_PERMITIDOS.includes(p));
+  if (malo !== undefined) return { ok: false, code: "kraken_perm", perm: KRAKEN_CONOCIDOS.includes(malo) ? malo : undefined };
   if (!perms.includes("query-funds")) return { ok: false, code: "kraken_no_funds" };
   // La doc trae el esquema en snake_case y el ejemplo en camelCase: se aceptan los dos.
   const ips = r.ip_allowlist ?? r.ipAllowlist;
@@ -141,7 +147,8 @@ export function krakenHoldings(balance: unknown): { crypto: KrakenHolding[]; fia
     const sym = krakenSym(base);
     const h = by[sym] || (by[sym] = { base: base === "ETH2" ? "ETH" : base, sym, qty: 0, staked: false });
     h.qty += q;
-    if (k.indexOf(".") > 0 || base === "ETH2") h.staked = true;
+    // Solo los sufijos de staking/earn: «.T» (activos tokenizados) y «.HOLD» no son staking.
+    if (/\.(S|M|B|F|P)$/.test(k) || base === "ETH2") h.staked = true;
   }
   return {
     crypto: Object.values(by).map((h) => ({ ...h, qty: +h.qty.toFixed(10) })),
