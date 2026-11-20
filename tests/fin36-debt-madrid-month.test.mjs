@@ -111,10 +111,11 @@ try{
   const monthSource=html.replace(calendar[0],local),monthContext=context(cases[0].iso,"UTC",monthSource),monthDebt=manual(monthContext,{},monthSource);
   assert.notEqual(cents(monthContext.netWorthDebtPolicy({debts:[monthDebt]},cases[0].today).current),100000,"mutante mensual muere por saldo de Inicio sin current suministrado");checks++;
   // Desde el tope de cuotas (15/11/2026) el recuento vive en `debtCuotasDesdeAncla`; debtPaidCount lo acota.
+  // DIN-05 guarda el día de Madrid en `hoy` y compara `hoy.d`: ya no va pegado a la llamada.
   const charge=html.match(/function debtCuotasDesdeAncla\(d\)\{[^\n]+\}/);
   assert.ok(charge,"cálculo real de pagos presente");
-  assert.equal(charge[0].split("madridYmdParts(Date.now()).d").length,2,"punto diario único");
-  const daySource=html.replace(charge[0],charge[0].replace("madridYmdParts(Date.now()).d","new Date().getDate()")),dayContext=context(cases[0].iso,"UTC",daySource),dayDebt=manual(dayContext,{},daySource);
+  assert.equal(charge[0].split("madridYmdParts(Date.now())").length,2,"punto diario único");
+  const daySource=html.replace(charge[0],charge[0].replace("madridYmdParts(Date.now())","{y:new Date().getFullYear(),m:new Date().getMonth()+1,d:new Date().getDate()}")),dayContext=context(cases[0].iso,"UTC",daySource),dayDebt=manual(dayContext,{},daySource);
   assert.notEqual(cents(dayContext.debtBalance(dayDebt)),100000,"mutante diario muere por saldo de deuda");checks++;
   console.log("FIN36 PASS "+checks+" comprobaciones al céntimo");
 }finally{if(originalTZ===undefined)delete process.env.TZ;else process.env.TZ=originalTZ;}

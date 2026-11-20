@@ -191,7 +191,9 @@ async function bankPullBarrier({source=main,pullFails=false,deleteFails=false}={
  const a=source.indexOf('  const syncCloudExpenses=function(){'),z=source.indexOf('\n  // Al iniciar sesión:',a);
  const n=source.indexOf('    const nubeLista='),end=source.indexOf('    }).then(function(par){',n);
  assert.ok(a>=0&&z>a&&n>z&&end>n);
- const factory=vm.runInContext('(function(state,session,drain){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null},wOwner={current:null},pullOkRef={current:Promise.resolve(false)};const set=fn=>stateRef.current=fn(stateRef.current);const retryObAbsorbedCloud=drain;const SYNC_SIN_NUBE=new Error("synthetic-no-cloud");'+source.slice(a,z)+'return {run:function(){const pDb=Promise.resolve([]);'+source.slice(n,end)+'});},state:()=>stateRef.current};})',e.c);
+ // El corte sigue justo antes del cuerpo de la importación. Desde F-10 la cadena es
+ // `const enCurso=…` y `runBankSync` la devuelve: sin ese return el arnés llamaba a undefined.then.
+ const factory=vm.runInContext('(function(state,session,drain){const stateRef={current:state},sessionRef={current:session};const wR={current:false},wS={current:0},wP={current:null},wC={current:[]},wRead={current:null},wOwner={current:null},pullOkRef={current:Promise.resolve(false)};const set=fn=>stateRef.current=fn(stateRef.current);const retryObAbsorbedCloud=drain;const SYNC_SIN_NUBE=new Error("synthetic-no-cloud");'+source.slice(a,z)+'return {run:function(){const pDb=Promise.resolve([]);'+source.slice(n,end)+'}); return enCurso;},state:()=>stateRef.current};})',e.c);
  let release,cleanupStarted=false,cleanupDone=false,bankCalls=0;
  const pending=new Promise((resolve,reject)=>{release=()=>deleteFails?reject(Error('synthetic-delete')):resolve();});
  const api=factory(e.state,{user:{id:owner}},()=>{cleanupStarted=true;return pending.then(()=>{cleanupDone=true;});});

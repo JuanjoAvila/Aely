@@ -60,8 +60,11 @@ t("debtBalance: financiación con balloon se liquida entera al llegar al último
 t("debtLeft: financiación 4 cuotas recién creada", () => {
   // El cargo sigue por delante del día de Madrid, aunque UTC/Los Ángeles aún estén en la
   // víspera. Calcularlo con getDate() local daba 3 en vez de 4 tras FIN36 (26/10/2026).
+  // DIN-05 (4.26.247): un 31 en un mes de 30 vence el 30. En el reloj del 30 de septiembre
+  // (21:30Z) ese cargo ya es hoy, así que queda 3, no 4.
   const d = { value: 400, monthly: 100, months: 4, day: now.d + 1, asOf: ymAbs(now.y, now.m0) };
-  assert.equal(ctx.debtLeft(d), 4);
+  const dia31YaEsHoy = now.y === 2026 && now.m0 === 8 && now.d === 30;
+  assert.equal(ctx.debtLeft(d), dia31YaEsHoy ? 3 : 4);
 });
 
 t("debtLeft: null si no tiene plazo (hipoteca/préstamo abierto)", () => {
@@ -84,7 +87,9 @@ t("debtActive: sin cuota mensual = inactiva", () => {
 
 t("debtBalance: céntimos exactos antes y en el día de cargo de Madrid", () => {
   const d = { value: 79.96, monthly: 19.99, months: 4, asOf: ymAbs(now.y, now.m0) };
-  assert.equal(Math.round(ctx.debtBalance({ ...d, day: now.d + 1 }) * 100), 7996);
+  // Mismo recorte DIN-05: el 31 de septiembre ya venció el 30, y el saldo ya bajó una cuota.
+  const dia31YaEsHoy = now.y === 2026 && now.m0 === 8 && now.d === 30;
+  assert.equal(Math.round(ctx.debtBalance({ ...d, day: now.d + 1 }) * 100), dia31YaEsHoy ? 5997 : 7996);
   assert.equal(Math.round(ctx.debtBalance({ ...d, day: now.d }) * 100), 5997);
 });
 

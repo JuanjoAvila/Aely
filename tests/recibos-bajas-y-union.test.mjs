@@ -457,7 +457,8 @@ test("6 · el evento de error lleva el origen solo si es una puerta conocida, y 
   assert.equal(detalle("addExpense es12-0000-0000: 2026-10-05|10|Café Sol"),j({code:"23505"}));
   assert.equal(detalle("TOAST: gastos-editar: algo"),j({code:"23505"}));
   const conocidas=vm.runInContext("GASTO_ORIGENES",c), usadas=new Set();
-  for(const m of js.matchAll(/(?:subirGasto|borrarGastoNube)\([^()]*?,\s*"([^"]+)"\)/g)) usadas.add(m[1]);
+  // `backfill` sale por `subirGastosEnLotes` desde la subida en lotes (4.26.247); las demás puertas siguen en subirGasto/borrarGastoNube.
+  for(const m of js.matchAll(/(?:subirGasto|subirGastosEnLotes|borrarGastoNube)\([^()]*?,\s*"([^"]+)"\)/g)) usadas.add(m[1]);
   // Siete puertas desde la limpieza de la 129 (quitó `addExpense` de Gastos, código muerto y el único que usaba el origen `gastos-apuntar`).
   assert.equal(usadas.size>=7,true,"se leen las puertas del código");
   for(const d of usadas) assert.equal(conocidas.indexOf(d)>=0,true,"la puerta «"+d+"» no está en GASTO_ORIGENES: su error llegaría sin origen");

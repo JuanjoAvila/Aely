@@ -548,9 +548,10 @@ t("vínculo sin lápida (A contestó, B pisó el estado, A baja la unión): el b
 // que ejecuta el móvil: una mutación sobre `public/index.html` también los alcanza.
 const mainSrc = H.read("public/index.html");
 t("backfill: una fila local con lápida no se resube en cada pull", () => {
-  const m = mainSrc.match(/const delSet=expenseDeletedSet\(stateRef\.current\);[\s\S]*?subirGasto\(e, "backfill"\); \}\);/);
+  // Desde la 4.26.247 el repaso no llama a `subirGasto` fila a fila: junta las vivas y sube el lote.
+  const m = mainSrc.match(/const delSet=expenseDeletedSet\(stateRef\.current\);[\s\S]*?subirGastosEnLotes\(backfill, "backfill"\);/);
   assert.ok(m, "no se encuentra el bloque del backfill en syncCloudExpenses");
-  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGasto", "expenseDeletedSet", "expensesFromRows", "isExpenseUuid", "expenseRenameKey", "expenseKnownIdentity", "obOrdinalOf", "readProof", "readOwner", "sessionRef", "readSession", m[0]);
+  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGastosEnLotes", "expenseDeletedSet", "expensesFromRows", "isExpenseUuid", "expenseRenameKey", "expenseKnownIdentity", "obOrdinalOf", "readProof", "readOwner", "sessionRef", "readSession", m[0]);
   // FIN-29/30 (4.26.191): el bloque lee la prueba de lectura y la cobertura por renombrado (renameCoverageKey); se le da una lectura válida del mismo titular, como en la app.
   const readSession = { user: { id: "synthetic" } };
   const s = estado();
@@ -558,7 +559,7 @@ t("backfill: una fila local con lápida no se resube en cada pull", () => {
   const muerta = Object.assign({}, viva, { id: c.mcExpenseId(), amount: 29.9 });
   s._historyOwner = "synthetic"; s.expenses = [viva, muerta]; s.deleted = [c.keyOfExpense(muerta)];
   const subidas = [];
-  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (e, why) => subidas.push(why + ":" + e.amount), c.expenseDeletedSet, c.expensesFromRows, c.isExpenseUuid, c.expenseRenameKey, c.expenseKnownIdentity, c.obOrdinalOf, { valid: true, userId: "synthetic" }, "synthetic", { current: readSession }, readSession);
+  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (list, why) => { for (const e of list || []) subidas.push(why + ":" + e.amount); }, c.expenseDeletedSet, c.expensesFromRows, c.isExpenseUuid, c.expenseRenameKey, c.expenseKnownIdentity, c.obOrdinalOf, { valid: true, userId: "synthetic" }, "synthetic", { current: readSession }, readSession);
   same(subidas, ["backfill:12"], "solo la viva");
 });
 

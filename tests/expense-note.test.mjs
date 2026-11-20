@@ -191,7 +191,9 @@ t('renombrado en vuelo sin aviso; lento, rechazado o apartado con aviso',()=>{
   assert.equal(c.expenseRenameSlow(nueva,orig,orig.renamePending),nueva,'no marca una intención más nueva');
 });
 for(const [name,from,to,witness] of [
-  ['red cuenta como rechazo','if(renameFalloDeRed(err)){','if(false){',networkQueueWitness],
+  // La misma guarda está ahora también en `subirGastosEnLotes`, y un replace suelto solo tocaba esa.
+  // El mutante tiene que apagar la de la cola de renombrar, que es la que mira el testigo.
+  ['red cuenta como rechazo','if(renameFalloDeRed(err)){ if(p.fail)p.fail(orig,null,false,true); return; }','if(false){ if(p.fail)p.fail(orig,null,false,true); return; }',networkQueueWitness],
   ['espera ignorada','if(p.waitUntil>Date.now())return;','',networkQueueWitness],
   ['nunca apartar','const quarantined=failures>=3;','const quarantined=false;',queueWitness],
   ['avisar cada fallo','p.fail(orig,failures,quarantined)','p.fail(orig,failures,true)',queueWitness],

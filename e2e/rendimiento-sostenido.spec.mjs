@@ -157,8 +157,12 @@ async function cycle(page,cdp) {
     if(tab==="cartera"){
       await markAction(page,"banks-open");
       await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})));await delay(850);
-      await markAction(page,"banks-expand");await click(page,'[data-aspsp="Sabadell"] .v4-mov');
-      if(await page.evaluate(()=>document.querySelectorAll(".bk-actions").length)!==1)throw new Error("Conexión sintética no aterrizó");
+      // D1 (4.26.247): la fila es el botón y abre una ficha. El acordeón `.v4-mov` / `.bk-actions` ya no está.
+      await markAction(page,"banks-expand");await click(page,'[data-aspsp="Sabadell"]');
+      if(await page.evaluate(()=>document.querySelector('[data-bk-ficha="Sabadell"]')==null))throw new Error("Conexión sintética no aterrizó");
+      // La hoja tarda 420 ms en desmontarse (useSheetSwipe, sin dedo). El mismo margen que el resto de atrás.
+      await markAction(page,"banks-ficha-back");await page.evaluate(()=>history.back());await delay(850);
+      if(await page.evaluate(()=>document.querySelector('[data-bk-ficha="Sabadell"]')!=null||document.querySelector(".v4-banks")==null))throw new Error("Ficha de banco no cerró");
       await markAction(page,"banks-back");await page.evaluate(()=>history.back());await delay(850);
       if(await page.evaluate(()=>!!document.querySelector(".v4-banks")))throw new Error("Back bancos no cerró");
       /* Desde Bancos R2 (4.26.243) Conexiones es pantalla hija y vuelve a su origen, aquí Cartera,
