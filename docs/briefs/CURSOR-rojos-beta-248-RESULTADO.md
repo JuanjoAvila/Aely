@@ -56,4 +56,9 @@ exitCode 0 (2,2 min). La pasada anterior, con 400 ms de espera al cerrar la fich
 
 - Cero cambios en `src/`, `public/`, `VERSION`, `package.json`, `CHANGELOG.md`, `RELEASE_NOTES`, catálogos y `docs/ROADMAP.md`.
 - Cero merge, cero push a `beta` o `main`, cero deploy.
-- La pasada de CI de esta rama queda fuera de este corte: este documento registra lo ejecutado en local.
+
+## Entrega
+
+- Tests: `233f7de399dd75a474dab10f471d3c5c94214a73` en `cursor/rojos-beta-248`.
+- PR borrador contra `beta`: https://github.com/JuanjoAvila/Aely/pull/362
+- Este párrafo solo anota esa PR. La pasada de Actions de #362 no está en este corte: aquí está lo ejecutado en local.
