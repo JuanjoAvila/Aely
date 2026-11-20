@@ -55,7 +55,7 @@ const provider=async url=>{
   return Response.json({chart:{result:[{meta:{regularMarketPrice:sym==='NVDA'?123.45:sym==='GC=F'?2345.67:0}}]}});
 };
 new Function('Deno','withCors','fetch',transformSync(strip(pricesSource),{loader:'ts'}).code)(Deno,corsModule.exports.withCors,provider);
-const core=read('src/modules/00-core.js'),a=core.indexOf('    async prices(symbols){'),b=core.indexOf('    // IA / KW:',a);
+const core=read('src/modules/00-core.js'),a=core.indexOf('    async prices(symbols){'),b=core.indexOf('    async askHelp(',a); // el método siguiente: el comentario «IA / KW» que servía de fin se fue con la IA de categorías (4.26.248)
 assert.ok(a>0&&b>a,'método prices real del cliente');
 const invocation=[];
 const sb={functions:{invoke:async(name,opts)=>{

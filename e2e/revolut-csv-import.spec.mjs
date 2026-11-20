@@ -60,8 +60,8 @@ test("el extracto de la cuenta en € no se rechaza: dice qué falta y guarda lo
 
   // Lo que salía antes y no debe volver a salir.
   await expect(csv.getByText(/No he podido leer el CSV/i)).toHaveCount(0);
-  // Lo que sale ahora: confirmación + qué fichero falta.
-  await expect(csv.getByText(/extracto de tu cuenta normal en €/i)).toBeVisible();
+  // Lo que sale ahora: confirmación + qué fichero falta (texto corto de la ronda F, F-03, 4.26.248).
+  await expect(csv.getByText(/lo que pagaste por el oro y la plata/i)).toBeVisible();
   await expect(csv.getByText(/Materias primas/i).first()).toBeVisible();
   // Y no es una alarma: el fichero está bien.
   await expect(csv.locator(".alarmbox")).toHaveCount(0);
@@ -70,7 +70,7 @@ test("el extracto de la cuenta en € no se rechaza: dice qué falta y guarda lo
 test("al subir después el de materias primas, el coste del oro sale solo", async ({ page }) => {
   const csv = await abrirTarjetaCsv(page);
   await analizar(csv, CUENTA_EUR);
-  await expect(csv.getByText(/extracto de tu cuenta normal en €/i)).toBeVisible();
+  await expect(csv.getByText(/lo que pagaste por el oro y la plata/i)).toBeVisible();
 
   // Segunda tanda en la MISMA tarjeta: los euros de antes siguen guardados.
   await analizar(csv, MATERIAS);

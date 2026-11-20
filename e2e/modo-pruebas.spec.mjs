@@ -147,7 +147,8 @@ for(const [lang,action] of [['es','activate'],['en','activate'],['ca','activate'
     expect(dialogs).toEqual(['beforeunload']);expect(guarded.transition).toBe(true);expect(guarded.pinned).toBe(action!=='activate');
     // 37 con `confirmTrMonthlyInvestment` (4.26.208) y `decideOwnTransfer`: también se corta, igual que `setExpenseMeta`, al cambiar de modo.
     // 39 con `brokerConnect` y `brokerDisconnect` (brókers por API, 19/11): mandan y borran una clave de verdad.
-    expect(guarded.results).toHaveLength(39);expect(guarded.writers).toContain('renameExpense');expect(guarded.writers).toContain('setExpenseMeta');expect(guarded.writers).toContain('confirmTrMonthlyInvestment');expect(guarded.writers).toContain('decideOwnTransfer');expect(guarded.writers).toContain('setIncomeOwnTransfer');expect(new Set(guarded.writers).size).toBe(39);expect(guarded.results.every(r=>r===null)).toBe(true);
+    // 41 con `regenHouseholdCode` y `kickHouseholdMember` (Hogar, 4.26.248): cambian el código y quitan miembros de verdad.
+    expect(guarded.results).toHaveLength(41);expect(guarded.writers).toContain('regenHouseholdCode');expect(guarded.writers).toContain('kickHouseholdMember');expect(guarded.writers).toContain('renameExpense');expect(guarded.writers).toContain('setExpenseMeta');expect(guarded.writers).toContain('confirmTrMonthlyInvestment');expect(guarded.writers).toContain('decideOwnTransfer');expect(guarded.writers).toContain('setIncomeOwnTransfer');expect(new Set(guarded.writers).size).toBe(41);expect(guarded.results.every(r=>r===null)).toBe(true);
     expect(guarded.marks).toEqual([{name:'mc_mode_change_reopen_required',detail:null}]);expect(guarded.realBudget).toBe(500);
     // The same browser reload, now allowed, stands in for closing/reopening this document.
     await page.evaluate(()=>{window._incCancelReload=false;});await page.reload();
@@ -236,7 +237,7 @@ for(const action of ['activate','empty','deactivate']) test(`INC171001 window fe
     expect(interval.flag).toBe(action!=='activate');
     const probe=await page.evaluate(async()=>{const results=[];for(const name of CLOUD_WRITES)results.push({name,result:await cloud[name]()});return results;});
     probes[0].allWriters=probe;
-    expect(probe).toHaveLength(39);expect(probe.map(p=>p.name)).toContain('renameExpense');expect(probe.map(p=>p.name)).toContain('brokerConnect');expect(probe.map(p=>p.name)).toContain('setExpenseMeta');expect(probe.map(p=>p.name)).toContain('confirmTrMonthlyInvestment');expect(probe.map(p=>p.name)).toContain('decideOwnTransfer');expect(probe.map(p=>p.name)).toContain('setIncomeOwnTransfer');expect(new Set(probe.map(p=>p.name)).size).toBe(39);
+    expect(probe).toHaveLength(41);expect(probe.map(p=>p.name)).toContain('regenHouseholdCode');expect(probe.map(p=>p.name)).toContain('kickHouseholdMember');expect(probe.map(p=>p.name)).toContain('renameExpense');expect(probe.map(p=>p.name)).toContain('brokerConnect');expect(probe.map(p=>p.name)).toContain('setExpenseMeta');expect(probe.map(p=>p.name)).toContain('confirmTrMonthlyInvestment');expect(probe.map(p=>p.name)).toContain('decideOwnTransfer');expect(probe.map(p=>p.name)).toContain('setIncomeOwnTransfer');expect(new Set(probe.map(p=>p.name)).size).toBe(41);
     expect(probe.every(p=>p.result===null)).toBe(true);
     await Promise.all([page.waitForEvent('load'),page.evaluate(()=>{window._incHoldAsk=false;window._incHeldBack();})]);
     await ready(2);
