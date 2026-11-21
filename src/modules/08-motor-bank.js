@@ -824,7 +824,8 @@ function reciboNoPon(s,claves,vetar,ahora){
    los últimos en caer: son pocos, los confirmó él uno a uno y perderlos deja a una persona «pendiente»
    sin que nada lo diga, mientras que un veto viejo de un cargo de hace meses ya no se vuelve a ver
    (revisión de la 231). */
-function reciboNoEsAlias(k){ return String(k).indexOf("debenAlias|")===0; }
+/* Tampoco caduca el veto «no es un traspaso mío» (`traspasoNo|…`): si cayera, la pareja reaparecería sola. */
+function reciboNoEsAlias(k){ k=String(k); return k.indexOf("debenAlias|")===0||k.indexOf("traspasoNo|")===0; }
 function reciboNoTope(no,at){
   var claves=Object.keys(at);
   if(claves.length>RECIBO_NO_MAX) claves.sort(function(a,b){ return (reciboNoEsAlias(b)-reciboNoEsAlias(a))||(at[b]-at[a]); }).slice(RECIBO_NO_MAX).forEach(function(k){ delete at[k]; });
@@ -5019,7 +5020,7 @@ function budgetRowSigned(e, state, period, delSet){
   // Los ingresos reales del ciclo pueden llegar a otro banco: cuentan para el
   // balance elegido por el dueño, incluso si superan las compras del período.
   if(period.cycle && e.amount<0){
-    if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet)) return 0;
+    if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet) || traspasoPropioDerivado(e,state)) return 0;
     return e.amount;
   }
   // El gasto conserva la selección de bancos diarios; el mes natural y el widget no cambian.
@@ -5044,11 +5045,13 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // ya la aparta `budgetRowSigned`: es la que lo abre. `nominas`/`noNominas` son las claves de los
   // ingresos grandes que se decidieron aquí, para que ingest no tenga que adivinarlos (widget).
   const flows=period.cycle?null:nominaFlowsOf(state);
-  const nominas=[], noNominas=[];
+  const nominas=[], noNominas=[], traspasos=[];
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
+    // El servidor no ve Plan ni el titular: se le dice qué filas son traspaso, como con las nóminas.
+    if(!CAT_NEUTRAS[e.category]&&traspasoPropioDerivado(e,state)) traspasos.push(keyOfExpense(e));
     const v=budgetRowSigned(e, state, period, delSet);
     if(v>0) spent+=v;
     else if(v<0){
@@ -5067,7 +5070,7 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
   const mode=period.cycle?"net":(budgetMode||(state.settings&&state.settings.gTotalMode)||"split");
   return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina),
-    {periodStart:startMs,cycle:!!period.cycle,nomina:+nomina.toFixed(2),nominas:nominas,noNominas:noNominas});
+    {periodStart:startMs,cycle:!!period.cycle,nomina:+nomina.toFixed(2),nominas:nominas,noNominas:noNominas,traspasos:traspasos});
 }
 
 // V2 confirma recepción también fuera del ciclo: una fila anterior puede mover el saldo.
@@ -5086,7 +5089,10 @@ function widgetCoveredEvents(rows,start,now,history){
 // widget del dueño se quedó en la regla vieja («1.922 € · 422 € de más») mientras Inicio decía
 // «quedan 63,53» (APK 62 + beta 4.26.185, 26/10/2026). En el mes el ancla siempre está vacía.
 function widgetScopeOf(state,stats,anchor,bank){
-  const lists=stats.cycle?(anchor||""):[(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()];
+  const tras=(stats.traspasos||[]).slice().sort();
+  /* Con traspasos derivados el hueco cambia de forma A PROPÓSITO: un ingest sin esta regla calcula otro
+     alcance y no responde, en vez de contar esa llegada como ingreso. Sin ellos, el alcance de siempre. */
+  const lists=stats.cycle?(tras.length?[anchor||"",tras]:(anchor||"")):[(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()].concat(tras.length?[tras]:[]);
   return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
     lists,stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
 }
@@ -5094,6 +5100,7 @@ function widgetScopeOf(state,stats,anchor,bank){
 function widgetPeriodOf(stats,anchor,scope){
   const w={v:2,kind:stats.cycle?"ciclo":"mes",start:stats.periodStart,anchor:anchor||"",scope:scope};
   if(!stats.cycle){ w.nominas=(stats.nominas||[]).slice(); w.noNominas=(stats.noNominas||[]).slice(); }
+  if(stats.traspasos&&stats.traspasos.length) w.traspasos=stats.traspasos.slice();
   return w;
 }
 // Inicio, Gastos (margen) y el widget v2 comparan con el límite lo mismo: en el mes natural, gasto
@@ -5334,6 +5341,106 @@ function aNombreDelTitular(s,e){
   if(!(w.indexOf(" ")>0&&palabras(sinPre.replace(TRASPASO_COLA_RE,""))===w)) return false;
   return sinPre!==benef||benef!==recNorm(e.concept)&&benef!==recNorm(String(e.note||"").split(" · ")[0]);
 }
+/* EL TRASPASO ENTRE TUS CUENTAS SE RECONOCE AL LEER (caso real del 21/11/2026). Una usuaria cobró su
+   nómina y ese día se pasó dinero de un banco a otro sin tenerlo en Plan: la llegada, sin nombre, contó
+   como ingreso y la cabecera enseñó ese neto como si fuera gasto. Dejó de usar la app.
+   Se DERIVA en cada lectura y no se escribe: ni fila, ni nube, ni saldo (`expenseCountsCash` no lo mira),
+   así que si la regla se equivoca, quitarla deja los datos como estaban. Solo se empareja lo inequívoco:
+   · una salida y una entrada, mismo céntimo, en dos bancos DISTINTOS tuyos, a ±2 días civiles;
+   · únicas en los dos sentidos, contando TODA fila viva del importe (también las que no serían aptas:
+     un cobro de un tercero por lo mismo crea la duda, y con duda no se empareja);
+   · la entrada, sin nombre o a nombre del titular, y sin rastro de nómina, Bizum ni de un ingreso de Plan;
+   · la salida, ya marcada traspaso, o en «Otros» y dirigida a ti, a ese banco o sin beneficiario.
+   Lo que él decidió manda: «no es un traspaso» (`traspasoPropioNoPon`) rompe la pareja en los dos móviles. */
+const TRASPASO_VENTANA_DIAS=2;
+const TRASPASO_SOLO_RE=/^(?:transferencias?|transfer|traspasos?|transf)(?: (?:emitida|realizada|enviada|ordenada|recibida|inmediata|sepa|nacional|internacional|ordinaria|periodica|online))*$/;
+const TRASPASO_DE_RE=/^(?:transferencias?|transfer|traspasos?|transf)(?: (?:recibida|emitida|inmediata|sepa|nacional|internacional|ordinaria|periodica|online))* (?:de|desde|from) /;
+const traspasosPropiosCache=new WeakMap();
+function traspasoPalabras(x){ return recNorm(x).split(" ").filter(function(k){ return k.length>=2&&!DEBEN_PALABRAS_NO[k]; }).sort().join(" "); }
+function traspasoDelTitular(titular,x){
+  return titular.indexOf(" ")>0&&traspasoPalabras(recNorm(x).replace(TRASPASO_DE_RE,"").replace(TRASPASO_COLA_RE,""))===titular;
+}
+// El concepto o la nota solo pueden decir «transferencia» o tu nombre: cualquier otra cosa es un motivo que no conocemos.
+function traspasoTextoNeutro(titular,x){
+  const n=recNorm(x);
+  return !n||TRASPASO_SOLO_RE.test(n)||traspasoDelTitular(titular,n);
+}
+function traspasoEntradaApta(s,e,titular){
+  if(e.category!=="ingreso"&&e.category!=="traspaso") return false;
+  if(e.category==="ingreso"&&e.catAckAt!=null) return false;
+  const nombres=[e.merchant,e.obName].filter(function(x){ return x!=null&&String(x).trim(); });
+  if(!nombres.every(function(x){ const m=String(x).trim().toLowerCase(); return m==="movimiento"||m==="ingreso"||traspasoDelTitular(titular,x); })) return false;
+  if(!traspasoTextoNeutro(titular,e.concept)||!traspasoTextoNeutro(titular,e.note)) return false;
+  // Un ingreso que Plan espera en ese banco por un importe parecido es ese ingreso, no un traspaso.
+  const banco=expenseBankOf(e), importe=Math.abs(Number(e.amount));
+  return !(s.flows||[]).some(function(f){ return f&&f.kind==="income"&&flowBancoEntra(f)===banco&&recAmtClose(Number(f.amount),importe); });
+}
+function traspasoSalidaApta(s,o,destino,e,titular){
+  if(isAtmWithdrawal(o.merchant)||isAtmWithdrawal(o.obName)||o.withdrawalConfirmedAt) return false;
+  if(o.category==="traspaso") return true;
+  if(o.category!=="otros"||o.catAckAt!=null) return false;
+  const reglas=(typeof USER_CAT_RULES!=="undefined"&&USER_CAT_RULES)||{}, rule=reglas[catRuleKey(o)], ov=s.catOverrides&&s.catOverrides[catKey(o.merchant)];
+  if(rule&&rule.cat==="otros"||ov==="otros") return false;
+  if(aNombreDelTitular(s,o)) return true;
+  const benef=recNorm(o.obName!=null&&String(o.obName).trim()?o.obName:o.merchant), sinPre=benef.replace(TRASPASO_A_RE,""), banco=recNorm(entOf(destino).label);
+  if(TRASPASO_SOLO_RE.test(benef)) return traspasoTextoNeutro("",o.concept)&&traspasoTextoNeutro("",o.note);
+  /* TR nombra «Movimiento» a sus salidas: sin beneficiario solo vale si la llegada del otro banco lleva el
+     nombre ENTERO del titular (una llegada también anónima, o de un tercero, no basta). */
+  if(benef==="movimiento") return !!(e&&titular)&&traspasoTextoNeutro("",o.concept)&&traspasoTextoNeutro("",o.note)&&[e.merchant,e.obName].some(function(x){ return x!=null&&String(x).trim()&&traspasoDelTitular(titular,x); });
+  return sinPre!==benef&&banco.length>=4&&(sinPre===banco||sinPre.indexOf(banco+" ")===0);
+}
+function traspasosPropiosCalc(s){
+  const out=new Map(), propios=new Set((s.accounts||[]).map(function(a){ return a&&a.ent; }).filter(function(b){ return b&&b!=="efectivo"&&b!=="familia"; }));
+  if(propios.size<2) return out;
+  const deleted=expenseDeletedSet(s), titular=traspasoPalabras(s.settings&&s.settings.profile&&s.settings.profile.fullName);
+  const porCent=new Map(), veces=new Map(), dia=new Map();
+  (s.expenses||[]).forEach(function(x){
+    if(!x||x.possibleDup||x.autoGemelo||expenseIsTombstoned(x,deleted)) return;
+    const c=ownTransferCents(x), d=diaCivilDe(x);
+    if(!c||!isFinite(d)) return;
+    veces.set(String(x.id),(veces.get(String(x.id))||0)+1); dia.set(x,d);
+    const k=Math.abs(c); let g=porCent.get(k); if(!g){ g={ent:[],sal:[]}; porCent.set(k,g); }
+    (c<0?g.ent:g.sal).push(x);
+  });
+  const firme=function(x){
+    if(!esFilaDeBanco(x)||x.obPending||veces.get(String(x.id))!==1||!propios.has(expenseBankOf(x))) return false;
+    if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
+    if((x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
+    if(x.reciboId||x.debtId||x.goalId||x.metaPend||x.ownTransferRejected||incomeOwnTransferPending(x)) return false;
+    return !reciboVetado(s,TRASPASO_NO,traspasoPropioClave(x));
+  };
+  const cerca=function(lista,x){ const b=expenseBankOf(x), d=dia.get(x); return lista.filter(function(o){ return expenseBankOf(o)!==b&&Math.abs(dia.get(o)-d)<=TRASPASO_VENTANA_DIAS; }); };
+  porCent.forEach(function(g){
+    if(!g.ent.length||!g.sal.length) return;
+    g.ent.forEach(function(e){
+      const salen=cerca(g.sal,e);
+      if(salen.length!==1) return;
+      const o=salen[0], entran=cerca(g.ent,o);
+      if(entran.length!==1||entran[0]!==e||!firme(e)||!firme(o)) return;
+      if(!traspasoEntradaApta(s,e,titular)||!traspasoSalidaApta(s,o,expenseBankOf(e),e,titular)) return;
+      out.set(String(e.id),ownTransferCents(e)); out.set(String(o.id),ownTransferCents(o));
+    });
+  });
+  return out;
+}
+function traspasosPropiosDe(s){
+  const lista=s&&s.expenses;
+  if(!Array.isArray(lista)) return new Map();
+  const nombre=s.settings&&s.settings.profile&&s.settings.profile.fullName, deleted=expenseDeletedSet(s), reglas=typeof USER_CAT_RULES!=="undefined"?USER_CAT_RULES:null;
+  const c=traspasosPropiosCache.get(lista);
+  if(c&&c.accounts===s.accounts&&c.deleted===deleted&&c.reciboNo===s.reciboNo&&c.flows===s.flows&&c.ov===s.catOverrides&&c.nombre===nombre&&c.reglas===reglas) return c.pares;
+  const pares=traspasosPropiosCalc(s);
+  traspasosPropiosCache.set(lista,{accounts:s.accounts,deleted:deleted,reciboNo:s.reciboNo,flows:s.flows,ov:s.catOverrides,nombre:nombre,reglas:reglas,pares:pares});
+  return pares;
+}
+// Por id y céntimo: Gastos pinta con el estado diferido y la fila puede ser otra copia del mismo apunte.
+function traspasoPropioDerivado(e,s){
+  if(!e||!s) return false;
+  const pares=traspasosPropiosDe(s);
+  return pares.size>0&&pares.get(String(e.id))===ownTransferCents(e);
+}
+// Un traspaso no abre tu mes: si no, Mi ciclo se ancla a él y la nómina del mismo día cuenta como ingreso extra.
+function noEsTraspasoDerivado(s){ return function(e){ return !traspasoPropioDerivado(e,s); }; }
 function salidasTraspasoPropio(s){
   const n=new Date(), exps=(s&&s.expenses)||[], deleted=expenseDeletedSet(s), Y=n.getFullYear(), M=n.getMonth()+1;
   const traspasos=(s.flows||[]).filter(function(f){ return f&&f.kind==="transfer"&&f.to&&Number(f.amount)>0&&f.to!==flowBancoSale(f); });

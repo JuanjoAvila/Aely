@@ -1106,7 +1106,7 @@
   /* Plan › Recibos v6 (docs/design/plan-recibos/SPEC.md §2). Paleta texto/gris/menta: aquí no
      hay rojos ni amarillos de alarma, lo que hay que mirar ya va en «Para revisar». */
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
-  .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
+  .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;white-space:nowrap;}
   .pr6-count{font-size:14px;color:var(--muted);}
   /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. En FILA también a 360 y
      393 (SPEC §2.2; auditoría de diseño 237, P2-2): apiladas, la tarjeta cambiaba de forma según el
@@ -1128,20 +1128,17 @@
   @media (prefers-reduced-motion:reduce){ .pr6-paid-in{animation:none;} }
   html.reduce-motion .pr6-paid-in{animation:none;}
   .pr6-sec{margin-top:22px;display:flex;flex-direction:column;gap:8px;}
-  .pr6-sec-h{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:0;font-size:17px;font-weight:800;}
+  .pr6-sec-h{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:0;font-size:15px;font-weight:800;}
   /* El botón «Todos» lleva 8 px de relleno propio: sin compensarlo el texto acababa ~16 px antes del borde de las tarjetas. */
   .pr6-sec-h button.link{margin-right:-8px;}
-  .pr6-sec-h button.pr6-todos{display:flex;align-items:center;gap:4px;font-size:15px;color:var(--mint-bright);}
+  .pr6-sec-h button.pr6-todos{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--mint-bright);}
   /* Traspasos y entradas: la misma tarjeta que Pendiente, pero no se tocan. */
   .pr6-sec div.v4-charge.pr6-row{cursor:default;}
-  .pr6-n{margin-left:8px;font-size:14px;font-weight:700;color:var(--muted);}
-  .pr6-sec .v4-charge.pr6-row,.pr6-sec .v4-charge.pr6-rev{width:100%;gap:14px;padding:12px 16px 12px 12px;border:1px solid var(--line-soft);
+  .pr6-n{margin-left:8px;white-space:nowrap;font-size:13px;font-weight:700;color:var(--muted);}
+  .pr6-sec .v4-charge.pr6-row,.pr6-sec .v4-charge.pr6-rev{width:100%;padding:12px 16px;border:1px solid var(--line-soft);
     border-radius:20px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;}
-  .pr6-sec .v4-charge.pr6-rev{padding:14px 16px;}
-  .pr6-row .dt{width:52px;height:56px;border-radius:14px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
-  .pr6-row .dt .d{font-size:22px;}
-  .pr6-row .dt .m{font-size:11.5px;letter-spacing:1px;color:var(--muted);}
-  .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;font-weight:600;font-size:16px;}
+  .pr6-row .dt{width:44px;height:44px;border-radius:12px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .pr6-row .nm,.pr6-rev .nm,.pr6-prow .nm{display:flex;flex-direction:column;gap:2px;}
   /* Nada cortado (gate-240, D-03): «Seguro …» o «Comuni…» no decían qué recibo era, y con letra
      Enorme a 360 la elipsis se comía casi todos. El nombre parte en renglones (entre palabras; solo
      una palabra que no cabe sola se parte). */
@@ -1150,12 +1147,16 @@
      nombre bajaba a nueve renglones. La rejilla de «Próximos cargos» de Inicio: el nombre ocupa todo
      el ancho y el importe (con su «cuándo») baja a la línea gris, a la derecha. */
   @media (max-width:430px){
-    html.hugetext .pr6-sec .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
-    html.hugetext .pr6-sec .v4-charge > :first-child{grid-row:1 / span 2;}
-    html.hugetext .pr6-sec .v4-charge > .nm{display:contents;}
-    html.hugetext .pr6-sec .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
-    html.hugetext .pr6-sec .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;}
-    html.hugetext .pr6-sec .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge > :first-child{grid-row:1 / span 2;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge > .nm{display:contents;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;overflow-wrap:anywhere;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge .nm > .sub .mc-pt{white-space:normal;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+    html.hugetext .pr6-mg-sec .pr6-row .sub{white-space:normal;overflow:visible;text-overflow:clip;}
+    /* La cifra grande no parte «1.298,02 / €»: se encoge con la tarjeta antes que bajar el €. */
+    html.hugetext .pr6-sum .pr6-big{font-size:min(46px,14cqw);}
     /* La fila de cada bróker (Inversiones y Cartera): con Enorme, «MyInvestor» no cabe al lado de
        «2.000 €» y se montaba encima (filtro de diseño, ronda F). El importe baja bajo el nombre. */
     html.hugetext button.v4-mov[data-broker-key]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
@@ -1165,7 +1166,7 @@
     html.hugetext button.v4-mov[data-broker-key] > div:nth-child(3):has(.chev){grid-column:2 / 4;justify-self:stretch;justify-content:space-between;}
     html.hugetext button.v4-mov[data-broker-key] > .chev{grid-column:3;grid-row:1 / span 2;}
   }
-  .pr6-row .sub,.pr6-rev .sub{font-size:13px;margin-top:0;}
+  .pr6-row .sub,.pr6-rev .sub{margin-top:0;}
   /* Sin elipsis (auditoría de diseño 237, P1-1): «Sabadell · f…» no decía nada. Si no cabe, el
      renglón parte ENTRE trozos (`mcTrozos`, también en Cartera); cada trozo corto va entero. */
   .pr6-sub-cat{display:block;min-width:0;}
@@ -1173,12 +1174,13 @@
   /* Baldosa de los bienes: la caja de 44 de las cuentas, en superficie (el blanco es de los logos). */
   .v4-mov .tile.v4-bien-tile{width:44px;height:44px;margin:0 1px;background:var(--surface-2);}
   /* Columna derecha: el importe y, debajo, cuándo toca (como Suscripciones). */
-  .pr6-am{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
-  .pr6-when{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;}
+  .pr6-am{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:0;}
+  .pr6-when{font-size:12.5px;font-weight:500;color:var(--muted);white-space:nowrap;}
   .pr6-when.soon{color:var(--text);}
-  /* 19 px y no --fs-row-amt: es la medida del SPEC de Recibos (docs/design/plan-recibos),
-     que manda sobre la escala general (lote 235, DIS-38). */
-  .pr6-row .am,.pr6-rev .am{font-size:19px;font-weight:600;white-space:nowrap;}
+  /* Nombre, día, mes, importe y secundario de las filas son los de «Próximos cargos» de Inicio
+     (`.v4-charge`): Recibos tenía los suyos, más grandes, y el dueño veía la app en dos escalas
+     (21/11/2026). Aquí solo queda lo que Inicio no tiene. */
+  .pr6-row .am,.pr6-rev .am{white-space:nowrap;}
   /* El motivo es una subfila más, como la de «Por pagar»: en negrita y blanco pesaba lo mismo que
      el nombre (auditoría de diseño 237, P2-3). El icono y la sección ya dicen que hay que mirarlo. */
   .pr6-rev .pr6-why{font-weight:500;color:var(--muted);}
@@ -1190,7 +1192,7 @@
      tarjeta; en Recibos era fondo: «Ver menos» bajaba y las filas llegaban después (vídeo 12/11). */
   .pr6-fold{display:grid;grid-template-rows:0fr;overflow:hidden;opacity:0;margin-top:-8px;transition:grid-template-rows var(--pr6-fd,.35s) var(--ease),opacity calc(var(--pr6-fd,.35s)*.714) ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
-  .pr6-fold-in{min-height:0;display:flex;flex-direction:column;gap:8px;transition:padding var(--pr6-fd,.35s) var(--ease);}
+  .pr6-fold-in{min-height:0;min-width:0;display:flex;flex-direction:column;gap:8px;transition:padding var(--pr6-fd,.35s) var(--ease);}
   /* Listas con «Ver los N» (`pr6Tres`): lo que aparece es lo que hay DENTRO de cada fila, no la fila.
      En Personas las filas no tienen fondo (el fondo es la tarjeta, fuera del pliegue): el ojo ve la
      tarjeta crecer con el borde y el texto encenderse. Recibos son tarjetas sueltas DENTRO del pliegue
@@ -1216,28 +1218,29 @@
   .pr6-chev,.rp4-prog i::after{will-change:transform;}
   .pr6-sec .pr6-fold.open .pr6-fold-in{padding-top:8px;}
   .pr6-more{align-self:center;display:flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border:0;background:transparent;
-    color:var(--mint-bright);font-size:15px;font-weight:700;cursor:pointer;}
+    color:var(--mint-bright);font-size:13px;font-weight:700;cursor:pointer;}
   .pr6-chev{flex:none;transition:transform .3s var(--ease);}
   .pr6-more[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
   .pr6-empty{padding:14px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--line-soft);font-size:15px;font-weight:700;}
   .pr6-paid{margin-top:14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;}
-  .pr6-paid-h{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
+  .pr6-paid-h{width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;min-height:56px;padding:6px 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
   .pr6-tick{width:28px;height:28px;flex:none;border-radius:14px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
   /* Una línea donde cabe; sin elipsis (auditoría de diseño 237: «Ya ha entra…»). Con la letra muy
      grande el título baja de renglón entero antes que cortarse. */
-  .pr6-paid-t{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;font-size:16px;font-weight:700;}
+  .pr6-paid-t{flex:1 0 auto;display:flex;align-items:baseline;font-size:15px;font-weight:800;}
   .pr6-paid-l{white-space:nowrap;}
   .pr6-paid-t .pr6-n{flex:none;margin-left:4px;}
-  .pr6-paid-amt{flex:none;white-space:nowrap;font-size:15px;font-weight:700;color:var(--muted);}
+  .pr6-paid-amt{flex:none;margin-left:auto;white-space:nowrap;font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;color:var(--muted);}
   .pr6-paid-h .pr6-chev{display:block;color:var(--mint-bright);}
   .pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
   .pr6-paid .pr6-fold{margin-top:0;}
   .pr6-paid .pr6-fold-in{gap:0;}
   .pr6-paid .v4-charge.pr6-prow{width:100%;padding:11px 16px;gap:12px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .pr6-prow .pr6-tick{width:24px;height:24px;font-size:12px;}
-  .pr6-prow .nm{font-size:15px;color:var(--muted);}
-  .pr6-prow .sub{font-size:12px;}
-  .pr6-prow .am{font-family:inherit;font-size:15px;font-weight:700;color:var(--muted);}
+  .pr6-prow .nm{color:var(--muted);}
+  .pr6-prow .am{color:var(--muted);}
+  /* En claro, .55 de opacidad dejaba las filas pagadas en ~2,3:1. */
+  html[data-theme="light"] .pr6-paid .v4-paid{opacity:.75;}
   /* Ficha del recibo: dos pasos en un carril (ficha → «¿Cuál es el cargo?»), el que no se ve se
      pliega en alto para que la hoja mida lo que enseña. */
   .v4-sheet.pr6-ficha{padding-left:0;padding-right:0;overflow-x:hidden;}
@@ -1251,14 +1254,18 @@
     transition:opacity .28s ease,max-height .36s var(--ease);}
   .pr6-step.on{max-height:none;overflow:visible;opacity:1;}
   .pr6-ficha-h,.pr6-pick-h{display:flex;align-items:center;gap:14px;}
-  .pr6-dt{width:56px;height:60px;flex:none;border-radius:16px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
-  .pr6-dt .d{font-size:24px;font-weight:600;line-height:1;}
-  .pr6-dt .m{font-size:11.5px;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
-  .pr6-ficha-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  /* Nombre largo + importe: el importe baja bajo el nombre antes que pisarlo, y una palabra que no cabe
+     sola se parte (filtro de diseño 21/11/2026: «compania» sobre «1.052,71 €» a 360). */
+  .pr6-ficha-h{flex-wrap:wrap;}
+  .pr6-ficha-h .pr6-ficha-a{margin-left:auto;}
+  .pr6-dt{width:48px;height:52px;flex:none;border-radius:14px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .pr6-dt .d{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;line-height:1;}
+  .pr6-dt .m{font-size:10px;font-weight:700;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;}
+  .pr6-ficha-t{flex:1 1 9em;min-width:0;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere;}
   .pr6-ficha-n{font-size:20px;font-weight:700;outline:none;}
-  .pr6-ficha-s{font-size:14px;color:var(--muted);}
+  .pr6-ficha-s{font-size:13px;color:var(--muted);}
   .pr6-ficha-a{font-size:24px;font-weight:600;white-space:nowrap;}
-  .pr6-pick-t{font-size:22px;font-weight:600;}
+  .pr6-pick-t{font-size:22px;font-weight:550;}
   .pr6-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:-6px;}
   .pr6-chip{display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:15px;background:var(--bg);font-size:13px;font-weight:700;color:var(--muted);}
   .pr6-cargo{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--bg);}
@@ -1280,9 +1287,14 @@
   .pr6-cand.on{border-color:var(--mint);}
   .pr6-cand.pend{cursor:default;opacity:.62;border-style:dashed;}
   .pr6-cand-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
-  .pr6-cand-n{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-cand-s{font-size:13px;color:var(--muted);}
-  .pr6-cand-a{font-family:'Fraunces',Georgia,serif;font-size:18px;font-weight:600;white-space:nowrap;}
+  .pr6-cand-n{font-size:15px;font-weight:700;overflow-wrap:break-word;}
+  /* Con Enorme el importe baja bajo el nombre (la fila envuelve) y el nombre nunca se parte a mitad de
+     palabra salvo que una sola no quepa en la tarjeta («Sab/adel/l» a 360, filtro 21/11/2026). */
+  html.hugetext .pr6-cand{flex-wrap:wrap;}
+  html.hugetext .pr6-cand-t{flex:1 1 7em;min-width:min(100%,min-content);}
+  html.hugetext .pr6-cand-a{margin-left:auto;}
+  .pr6-cand-s{font-size:12.5px;color:var(--muted);}
+  .pr6-cand-a{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;white-space:nowrap;}
   .pr6-ring{width:24px;height:24px;flex:none;border-radius:12px;border:2px solid var(--muted-2);color:transparent;display:flex;align-items:center;justify-content:center;
     font-size:12px;font-weight:900;transition:background .2s ease,border-color .2s ease,color .2s ease;}
   .pr6-cand.on .pr6-ring,.pr6-ring.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
@@ -1301,7 +1313,7 @@
      el que no se ve se pliega en alto. El botón de abajo va pegado para que no lo tape el teclado. */
   /* Alto fijo: cada paso mide distinto y la hoja subía y bajaba de golpe al pasar de uno a otro
      (beta 4.26.200, «el botón de Siguiente hace cosas raras»). Ahora solo se mueve el carril. */
-  .v4-sheet.rp4{padding-bottom:0;height:88dvh;display:flex;flex-direction:column;overflow:hidden;}
+  .v4-sheet.rp4{padding-bottom:0;height:calc(88dvh / var(--zoom,1));display:flex;flex-direction:column;overflow:hidden;}
   /* Solo scrollea el cuerpo: la cabecera (Atrás y progreso) y el botón quedan fuera. Con el botón
      pegado DENTRO del scroll, la hoja pasaba de no scrollear a scrollear al abrir «Más opciones» o
      «En varios pagos»; Chromium crea entonces una capa nueva para el contenido y en su móvil (120 Hz)
@@ -1316,7 +1328,7 @@
   .rp4-prog i{flex:1;height:4px;border-radius:2px;background:var(--line);position:relative;overflow:hidden;}
   .rp4-prog i::after{content:"";position:absolute;inset:0;background:var(--mint);transform:scaleX(0);transform-origin:left;transition:transform .36s var(--ease);}
   .rp4-prog i.on::after{transform:scaleX(1);}
-  .rp4-h{margin:0;font-size:24px;font-weight:600;font-family:'Fraunces',Georgia,serif;outline:none;}
+  .rp4-h{margin:0;font-size:22px;font-weight:550;font-family:'Fraunces',Georgia,serif;outline:none;}
   .rp4-step{padding-bottom:12px;}
   .rp4-dim{color:var(--muted);font-weight:600;}
   .rp4-dup{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface-2);color:inherit;font:inherit;text-align:left;cursor:pointer;}
@@ -1325,8 +1337,6 @@
   .rp4-visto{display:flex;flex-direction:column;gap:8px;}
   .rp4-visto-bank{white-space:normal;overflow:visible;text-overflow:unset;line-height:1.35;}
   .pr6-dt.rp4-dt-s{width:42px;height:44px;border-radius:12px;background:var(--bg);}
-  .pr6-dt.rp4-dt-s .d{font-size:17px;}
-  .pr6-dt.rp4-dt-s .m{font-size:11px;}
   .rp4-sugs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
   .rp4-sug{display:flex;align-items:center;gap:10px;height:48px;padding:0 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface);color:var(--text);
     font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:border-color .2s ease,background .2s ease;}
@@ -1337,9 +1347,11 @@
   /* El nombre, en un renglón y centrado: uno largo ocupaba dos, alineados a la izquierda, y empujaba
      «¿Cuánto es?» por debajo de la barra de progreso (auditoría 9/11). */
   .rp4-amt > .rp4-dim{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  /* En pantallas bajas (393×727) el paso del importe no cabía por 19 px y al tocar las teclas de abajo
-     el cuerpo se desplazaba y tapaba el título: teclas algo más bajas y el paso entero a la vista. */
-  @media (max-height:760px){ .v4-sheet.rp4 .v4-keys button{height:50px;} }
+  /* Las teclas se quedan en 56 (dueño, D-13): con Enorme o en pantalla baja el paso se desplaza y
+     «Siguiente» queda fuera del carril que scrollea, nunca encima de una tecla. Con Enorme el
+     nombre sobra (ya va en la barra de pasos) y el bloque del importe pierde aire. */
+  html.hugetext .rp4-amt{gap:4px;padding:0;}
+  html.hugetext .rp4-amt > .rp4-dim{display:none;}
   .rp4-amt-v{font-size:44px;font-weight:600;border-radius:12px;padding:0 8px;transition:background .2s ease;}
   .rp4-amt-v.fresh{background:var(--surface-2);}
   .rp4-var,.rp4-mode,.rp4-mes{border:1px solid var(--line-soft);background:var(--surface);color:var(--text);font:inherit;font-weight:700;cursor:pointer;
@@ -1382,7 +1394,7 @@
   .rp4-row:first-child{border-top:0;}
   .rp4-row:disabled{cursor:default;}
   .rp4-row-k{flex:none;font-size:14px;color:var(--muted);font-weight:700;}
-  .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;overflow-wrap:anywhere;}
   .rp4-foot{flex:none;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
   .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
   .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
@@ -1448,14 +1460,14 @@
      persona con Bizum quedaba un vacío entre los chips y «Sus recibos» (auditoría 4.26.218). */
   .v4-sheet.pr6-ll>.pr6-fold{margin-top:-16px;}
   .v4-sheet.pr6-ll>.pr6-fold.open>.pr6-fold-in{padding-top:16px;}
-  .pr6-ll-t{margin:0;font-size:24px;font-weight:600;outline:none;}
+  .pr6-ll-t{margin:0;font-size:22px;font-weight:550;outline:none;}
   .pr6-ll-b{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:18px;background:var(--surface-2);}
   .pr6-ll-h{display:flex;align-items:center;gap:12px;}
-  .pr6-ll-n{font-size:16px;font-weight:700;}
-  .pr6-ll-f{font-size:12px;}
+  .pr6-ll-n{font-size:15px;font-weight:700;}
+  .pr6-ll-f{font-size:12.5px;}
   .pr6-ll-r{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:none;}
-  .pr6-ll-l{font-size:11.5px;font-weight:700;color:var(--muted);}
-  .pr6-ll-a{font-size:22px;font-weight:600;white-space:nowrap;}
+  .pr6-ll-l{font-size:12.5px;font-weight:700;color:var(--muted);}
+  .pr6-ll-a{font-size:var(--fs-row-amt);font-weight:550;white-space:nowrap;}
   .pr6-ll-b .pr6-fold{margin-top:-10px;}
   .pr6-ll-det{gap:6px;font-size:14px;}
   .pr6-ll-b .pr6-fold.open .pr6-ll-det{padding-top:10px;}
@@ -1524,7 +1536,7 @@
   .pr6-cerr-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;}
   button.pr6-cerr-t{cursor:pointer;}
   .pr6-cerr-n{font-size:15px;font-weight:800;}
-  .pr6-cerr-l{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-cerr-l{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .pr6-cerr-x{width:44px;height:44px;margin:-4px -4px -4px 0;flex:none;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;}
   .pr6-cerr .pr6-fold{margin-top:-10px;}
   .pr6-cerr-det{gap:6px;padding:0 8px 0 44px;}
@@ -1535,20 +1547,20 @@
   .pr6-onb{display:flex;flex-direction:column;gap:14px;padding:20px;border-color:var(--mint);}
   .pr6-onb-ico{width:48px;height:48px;border-radius:24px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;}
   .pr6-onb-t{display:flex;flex-direction:column;gap:4px;}
-  .pr6-onb-n{font-size:24px;font-weight:600;}
+  .pr6-onb-n{font-size:22px;font-weight:550;}
   .pr6-onb-s{font-size:14px;color:var(--muted);}
   .pr6-onb .pr6-cta{height:52px;font-size:16px;}
   .v4-sheet.pr6-imp{display:flex;flex-direction:column;gap:14px;}
   .pr6-imp-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
   .pr6-imp-h .link{flex:none;}
-  .pr6-imp-l{display:flex;flex-direction:column;border-radius:18px;background:var(--surface-2);overflow:hidden;}
-  .pr6-imp-row{display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 14px;border:0;border-top:1px solid var(--line-soft);
+  .pr6-imp-l{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;border-radius:18px;background:var(--surface-2);overflow-x:hidden;overflow-y:auto;}
+  .pr6-imp-row{flex:none;display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 14px;border:0;border-top:1px solid var(--line-soft);
     background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:opacity .2s ease;}
   .pr6-imp-row:first-child{border-top:0;}
   .pr6-imp-row.off{opacity:.45;}
-  .pr6-imp-row .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:600;}
+  .pr6-imp-row .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:700;}
   .pr6-imp-row .sub{font-size:12.5px;font-weight:500;color:var(--muted);}
-  .pr6-imp-row .am{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:600;white-space:nowrap;}
+  .pr6-imp-row .am{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;white-space:nowrap;}
   .pr6-imp-dot{width:22px;height:22px;flex:none;border-radius:11px;border:2px solid var(--mint);background:radial-gradient(circle,var(--mint) 0 5px,transparent 6px);
     transition:border-color .2s ease,background .2s ease;}
   .pr6-imp-row.off .pr6-imp-dot{border-color:var(--line);background:transparent;}
@@ -2456,21 +2468,17 @@
   html[data-theme="light"] .pr6-mg-chips .v4-chip.on{background:var(--mint-ink);border-color:var(--mint-ink);color:var(--on-mint);}
   .pr6-mg-sec{margin-top:24px;}
   .pr6-mg-st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
-  .pr6-mg-ss{font-size:13px;font-weight:500;color:var(--muted);}
-  .pr6-mg-add{display:flex;align-items:center;gap:5px;flex:none;color:var(--mint-bright)!important;font-size:15px!important;font-weight:700!important;position:relative;}
+  .pr6-mg-ss{font-size:12.5px;font-weight:500;color:var(--muted);}
+  .pr6-mg-add{display:flex;align-items:center;gap:5px;flex:none;color:var(--mint-bright)!important;font-size:13px!important;font-weight:700!important;position:relative;}
   /* El `!important` de arriba (para ganar a `button.link` de la cabecera) se comía el verde hondo
      del tema Claro (2,4:1): este lo repite con más peso. */
   html[data-theme="light"] .pr6-mg-add{color:var(--mint-ink)!important;}
   /* «+ Añadir» mide 23 px de alto: el toque se agranda a 44 sin mover el dibujo. */
   .pr6-mg-add::after{content:"";position:absolute;inset:-11px -6px;}
-  .pr6-mg-sec .pr6-row .dt{width:46px;height:48px;border-radius:13px;}
-  .pr6-mg-sec .pr6-row .dt .d{font-size:19px;font-weight:600;line-height:1;}
-  .pr6-mg-sec .pr6-row .dt .m{font-size:10px;font-weight:800;text-transform:uppercase;}
-  .pr6-mg-sec .pr6-row .nm{min-width:0;flex:1;font-size:15px;}
+  .pr6-mg-sec .pr6-row .nm{min-width:0;flex:1;}
   /* Un renglón y con elipsis, como en la portada: «Hogar · Sabadell · cada tres meses · compartido»
      partía la fila en dos a 412 px (11/11/2026). La frase entera va en el aria-label. */
-  .pr6-mg-sec .pr6-row .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .pr6-mg-sec .pr6-row .am{font-size:var(--fs-row-amt);}
+  .pr6-mg-sec .pr6-row .sub{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .pr6-mg-sec .pr6-row .am.pos{color:var(--mint-bright);}
   .pr6-mg-sec .pr6-row.pr6-mg-off{opacity:.5;}
   .pr6-mg-ov{margin:24px 0 0;}
@@ -2488,7 +2496,7 @@
   .pr6-mg-pe .pe-ava{width:34px;height:34px;background:var(--surface-2);border:0;color:var(--mint-bright);font-size:14px;}
   .pr6-mg-pe .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;font-size:15px;font-weight:700;}
   /* Hasta dos renglones: en uno se cortaba justo antes de «se descuenta de Mamá» (N2). */
-  .pr6-mg-pe .sub{font-size:12px;font-weight:500;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;}
+  .pr6-mg-pe .sub{font-size:12.5px;font-weight:500;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;}
   .pr6-mg-go{flex:none;color:var(--muted);}
   .pr6-mg-pe:focus-visible,.pr6-mg-sum:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .pr6-mg-nada{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 0 8px;color:var(--muted);font-size:15px;text-align:center;}
@@ -9523,7 +9531,7 @@ const LANG = {
     f_withdraw_sub:"Estos {x} pasarán a Traspaso y dejarán de contar como gasto. El importe y el origen bancario se conservan. No se sumará dinero al efectivo.",
     f_withdraw_ok:"Marcar como traspaso",
     f_withdraw_pending:"Confirmando la retirada…",
-    f_withdraw_done:"Traspaso: no cuenta como gasto.",
+    f_withdraw_done:"Traspaso: no cuenta como gasto.",f_traspaso_derivado:"Traspaso entre tus cuentas: no cuenta.",f_traspaso_no:"No es un traspaso",
     f_withdraw_unconfirmed:"Retirada sin confirmar",
     f_withdraw_error:"No se ha confirmado el cambio. Sincroniza los movimientos y revisa la categoría antes de intentarlo otra vez.",
     f_withdraw_cash_limit:"Esta retirada no suma dinero a Efectivo: aún no se puede confirmar una única suma entre móviles. Los apuntes manuales de efectivo siguen disponibles en Cartera.",
@@ -9967,7 +9975,7 @@ Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
   gv5_cycle:"en tu ciclo", gv5_all:"todo el histórico",
   gv5_no_cuentan:"{x} · no cuentan", gv5_traspasos:"Traspasos", gv5_plan_open:"Abrir en Plan · {x}", gv5_end:"Hasta aquí: {d}",
-  gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
+  gv5_net_sub:"gastos {g} · ingresos {i}", gv5_net_sub_ciclo:"gastos {g} · otros ingresos {i}", gv5_favor:"a tu favor", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
 
 
 // «Es aportación a la meta X» en la ficha de un gasto y su fila gris de Metas (24/10/2026).
@@ -10591,7 +10599,7 @@ function gastoDelSobre(gastos, s){
 }
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
-  if(!e || CAT_NEUTRAS[e.category]) return false;
+  if(!e || CAT_NEUTRAS[e.category] || traspasoPropioDerivado(e,s)) return false;
   // El servidor excluye lápidas; contarlas aquí hacía saltar el gasto del widget al pagar
   // con la app cerrada (27/9/2026). No se altera cash: sus bases pueden estar ya ancladas
   // incluyendo estas filas. Las lápidas cambian por copia; el índice evita N recorridos.
@@ -10633,14 +10641,14 @@ function expenseBucket(e, s){
      «+291,25 Traspaso» salían en verde normal sin sumar. Ahora dicen «no es del día a día» / «no es
      un gasto», igual que un gasto de ese banco o una inversión. */
   if((e.amount||0)<0){
-    if(CAT_NEUTRAS[e.category]) return "neutra";
+    if(CAT_NEUTRAS[e.category]||traspasoPropioDerivado(e,s)) return "neutra";
     if(!expenseCountsCash(e, s)) return "otrobanco";
     return "ingreso";
   }
   if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
   if(cargoDeRecibo(e, s)) return "recibo";
   if(metaDeGasto(e)) return "meta";
-  if(CAT_NEUTRAS[e.category]) return "neutra";
+  if(CAT_NEUTRAS[e.category]||traspasoPropioDerivado(e,s)) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
   return "cuenta";
 }
@@ -13550,7 +13558,7 @@ function netWorthDebtPolicy(state, today, current){
    ajuste, va aquí o la cifra se quedará vieja: lo vigila `tests/inicio-deps-ajustes.test.mjs`,
    que recorre el código y además ejecuta las dos con los ajustes espiados. */
 const NET_WORTH_SETTINGS=["accountListOrder","accountShare","accountShareLegacy","expenseBanks","profile"];
-const BUDGET_SETTINGS=["budgetCycle","expenseBanks","gTotalMode"];
+const BUDGET_SETTINGS=["budgetCycle","expenseBanks","gTotalMode","profile"];
 function settingsDeps(settings, keys){
   const s=settings||{};
   return keys.map(function(k){ return s[k]; });
@@ -13564,7 +13572,7 @@ function settingsDeps(settings, keys){
    `trRecompensas` (4.26.237): el libro de avisos de TR decide qué Round up sigue pendiente y suma
    al patrimonio de hoy (`rewardsPending`); sin declararlo, elegir destino dejaba la gráfica vieja. */
 const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trRecompensas","trasAbonoDesde"];
-const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
+const BUDGET_STATE=["_historyOwner","accounts","budget","catOverrides","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
   return keys.map(function(k){ return s[k]; });
@@ -16693,7 +16701,9 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
         if(!live()||!sandbox&&!ack)throw new Error("income transfer unconfirmed");
         let applied=false;const incomingAt=Date.now();
         // React puede reproducir el updater después del finally: la decisión con ACK es pura.
-        ReactDOM.flushSync(function(){set(function(s){const next=applyIncomeOwnTransfer(s,plan,incomingAt,ack);applied=next!==s;return next;});});
+        ReactDOM.flushSync(function(){set(function(s){const next=applyIncomeOwnTransfer(s,plan,incomingAt,ack);applied=next!==s;
+          // «Contar como ingreso» es su decisión: la pareja derivada no puede devolverla a traspaso.
+          return applied&&plan.category==="ingreso"?Object.assign({},next,traspasoPropioNoPon(next,plan.incoming,incomingAt)):next;});});
         const committedIncoming=(withdrawalState.current.expenses||[]).find(function(e){return e.id===plan.incoming.id;});
         if(!applied||!incomeOwnTransferPlanValid(withdrawalState.current,plan,true)||!committedIncoming||committedIncoming.category!==plan.category)throw new Error("income transfer changed");incomingConfirmed=true;
         if(peer){
@@ -16879,7 +16889,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       /* Sacar él de traspaso una salida del banco es «esto no es un traspaso mío»: sin comercio
          («Movimiento») no se aprende regla ni override y la sincronización la volvía a pasar a traspaso
          (`salidasTraspasoPropio`, re-revisión 230, P2-2). Va en `reciboNo`, que viaja entre móviles. */
-      if(ex.category==="traspaso"&&newCat!=="traspaso"&&esFilaDeBanco(ex)&&Number(ex.amount)>0) Object.assign(fuera,traspasoPropioNoPon(s,ex,Date.now()));
+      if((ex.category==="traspaso"||traspasoPropioDerivado(ex,s))&&newCat!=="traspaso"&&esFilaDeBanco(ex)) Object.assign(fuera,traspasoPropioNoPon(s,ex,Date.now()));
       // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
         const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];
@@ -16892,6 +16902,11 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     });
     const cc=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).find(function(x){ return x.id===newCat; });
     if(showToast) showToast(tf("v4_moved_cat",{cat:(cc?cc.icon+" ":"")+catName(newCat)}));
+  };
+  // La pareja reconocida al leer no toca ninguna fila: decir que no es solo apuntar el veto, que viaja entre móviles.
+  const noEsTraspaso=function(ex){
+    set(function(s){ return Object.assign({},s,traspasoPropioNoPon(s,ex,Date.now())); });
+    if(showToast) showToast(tf("v4_moved_cat",{cat:catName(ex.category)}));
   };
   /* «Es la cuota de…» desde la ficha (4.22.2, su rechazo: «no la puedo cambiar manualmente?»).
      La fila va a «Deudas» con esa deuda y el comercio se aprende para el mes que viene. */
@@ -17226,7 +17241,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   // en un dispositivo de otra zona no coincide con `todayKey`.
   const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
   const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(stateDef,null,expensesDef)
-    :lastPaydayOf(expensesDef,null,expenseDeletedSet(lapidasDef)),
+    :lastPaydayOf(expensesDef,null,expenseDeletedSet(lapidasDef),noEsTraspasoDerivado(stateDef)),
     [lapidasDef,state.flows,cycleEnabled,todayKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
@@ -17241,7 +17256,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   const ciclos=useMemo(function(){
     if(preset!=="cycle" || !cycle) return null;
     const delSet=expenseDeletedSet(lapidasDef);
-    const busca=function(ms){ return cycleEnabled?budgetPaydayOf(stateDef,ms,expensesDef):lastPaydayOf(expensesDef,ms,delSet); };
+    const busca=function(ms){ return cycleEnabled?budgetPaydayOf(stateDef,ms,expensesDef):lastPaydayOf(expensesDef,ms,delSet,noEsTraspasoDerivado(stateDef)); };
     const out=[{start:cycle.start, inc:cycle.inc, from:cycle.start.getTime(), to:null}];
     for(let i=0;i<GX_CICLOS_MAX;i++){
       const sig=out[out.length-1], prev=busca(sig.from-1);
@@ -17396,7 +17411,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[lapidasDef,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[lapidasDef,state.budget,state.reservaLog,state.accounts,state.settings,state.flows,state.catOverrides,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   /* Sumas por día para la cifra viva. Mismas porciones del estado que la cabecera (las lee
      `expenseCountsBudget`); NO depende de la búsqueda ni de los filtros: la cifra es la del
      presupuesto, igual que antes la tarjeta («buscar no redefine el límite»). */
@@ -17404,7 +17419,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     const months=preset==="months";
     const to=months||bounds.to===Infinity?Infinity:bounds.to+1;
     return gastosCifraDias(stateDef, expensesDef, months?{cycle:null}:selectedPeriod, months?-Infinity:bounds.from, to, months);
-  },[lapidasDef,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,bounds,todayKey,madridDay]);
+  },[lapidasDef,state.accounts,state.settings,state.flows,state.catOverrides,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,bounds,todayKey,madridDay]);
   /* Lo mismo para el filtro de categoría: sus sumas por día con la regla del desglose. En «meses»
      se acumula por mes sobre el histórico entero (para comparar con la misma categoría el mes
      anterior); en Mi ciclo / Rango / Todo, dentro de la ventana. Solo existe con filtro puesto. */
@@ -17706,22 +17721,27 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   const cab=useMemo(function(){
     const mode=monthSummary.mode;
     const fmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
+    /* UN NETO A FAVOR NO ES UN GASTO (caso real del 21/11/2026: «1.448 €» arriba eran dinero que había
+       entrado). La cifra sigue en valor absoluto para sus dígitos, pero lleva «+» y lo dice. */
+    const conFavor=function(o,neto){ return gxConFavor(o,neto,t("gv5_favor")); };
     const mesDe=function(ym){ return monthLong(+ym.slice(5,7)-1); };
     // En modo balance la cifra se enseña sin signo, como `shown` de `monthBudgetStats`.
     const shownOf=function(v){ return mode==="net"?Math.abs(v):v; };
     // En balance la cifra es un neto: debajo se dice de qué sale, como hacía la tarjeta de antes
     // («Mi ciclo explica el margen», 28/9). Con gasto bruto no hace falta: la cifra ES el gasto.
-    const subDe=function(x){ return mode==="net"?tf("gv5_net_sub",{g:eur(x.sp),i:eur(x.inc)}):null; };
+    // En Mi ciclo la nómina que lo abre no suma aquí (`budgetRowSigned`): «ingresos» a secas haría creer que no ha entrado.
+    const subDe=function(x){ return mode==="net"?tf(monthSummary.cycle?"gv5_net_sub_ciclo":"gv5_net_sub",{g:gxEur(x.sp),i:gxEur(x.inc)}):null; };
     const cubre=function(ym){ return cifra.earliest<gastosYmInicioMs(ym); };
     const vsBudget=function(){
       const r=monthSummary.remaining;
-      if(r==null) return null;
+      if(r==null||!gxCifraOk(r)) return null;
       // Sin «gastos» delante desde el 26/10/2026: el margen ya no es del gasto bruto sino del gasto
       // menos lo recibido sin la nómina, y él lo quería dicho así: «64 € por debajo».
       return r<0?{tail:tf("gv5_over",{x:fmt(r)}),tone:"coral"}:{tail:tf("gv5_under",{x:fmt(r)}),tone:"mint"};
     };
     const vsPrev=function(cur,prev,ym,mismoDia){
       const diff=cur-prev, mes=mesDe(ym), sd=mismoDia?"_sd":"";
+      if(!gxCifraOk(diff)) return null;
       if(Math.abs(diff)<1) return {tail:tf("gv5_same"+sd,{mes:mes}),tone:"muted"};
       // Cada clave como prefijo pegado a `+sd`: así `i18n-keys` sabe que las `_sd` se usan.
       return {tail:tf(diff>0?"gv5_more"+sd:"gv5_less"+sd,{x:fmt(diff),mes:mes}),tone:diff>0?"coral":"mint"};
@@ -17771,6 +17791,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       top={n:monthSummary.shown, pre:cicloRango?cicloTxt(cicloRango.fin):t("gv5_cycle"), tail:st&&st.tail, tone:st&&st.tone, ym:cicloYm};
     } else top={n:monthSummary.shown, pre:monthSummary.periodLabel, ym:null};
     top.sub=subDe({sp:monthSummary.spent, inc:monthSummary.income});
+    conFavor(top, mode==="net"?monthSummary.spent-monthSummary.income:monthSummary.spent);
     /* CON FILTROS DE LA HOJA (categorías, bancos o qué contar; tanda 6, su «cuando
        tocas un filtro el número de arriba no cambia»): el MISMO camino que el filtro de categoría,
        con las sumas de lo que se ve (`cifraFil`). La cifra es lo gastado menos lo que ha entrado
@@ -17782,7 +17803,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       const nTxt=function(n){ return tf(n===1?"gv5_fil_n1":"gv5_fil_n",{n:n}); };
       // Con el filtro de categoría `inc` es siempre 0 (solo suma gasto): su cifra no cambia.
       const val=function(x){ return x.sp-x.inc; };
-      const subF=function(x){ return x.inc>0?tf("gv5_net_sub",{g:eur(x.sp),i:eur(x.inc)}):null; };
+      const subF=function(x){ return x.inc>0?tf("gv5_net_sub",{g:gxEur(x.sp),i:gxEur(x.inc)}):null; };
       let ftop;
       if(months){
         const m=fc.months[fym]||{sp:0,inc:0,n:0}, pym=gastosYmPrev(fym);
@@ -17793,15 +17814,15 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
             st=vsPrev(val(m), val(gastosCumDia(fc,prevK,pym)), pym, true);
           } else st=vsPrev(val(m), val(fc.months[pym]||{sp:0,inc:0}), pym, false);
         }
-        ftop={n:Math.abs(val(m)), pre:nTxt(m.n), tail:st&&st.tail, tone:st&&st.tone, ym:fym, sub:subF(m)};
-      } else ftop={n:Math.abs(val(fc.tot)), pre:nTxt(fc.tot.n), ym:cicloYm, sub:subF(fc.tot)};
+        ftop=conFavor({n:Math.abs(val(m)), pre:nTxt(m.n), tail:st&&st.tail, tone:st&&st.tone, ym:fym, sub:subF(m)},val(m));
+      } else ftop=conFavor({n:Math.abs(val(fc.tot)), pre:nTxt(fc.tot.n), ym:cicloYm, sub:subF(fc.tot)},val(fc.tot));
       // En balance la línea de debajo existe siempre: la caja no cambia de alto al bajar.
       if(ftop.sub==null && monthSummary.mode==="net") ftop.sub="";
       const fline=function(k, ym){
         if(k===mesesLista.newestK && ym===mesesLista.newestYm) return ftop;
         const c=gastosCumDia(fc,k,months?ym:undefined), d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase();
-        return Object.assign({n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c)},
-          months?{pre:tf("gv5_spent_in",{mes:mesDe(ym)}),hasta:tf("gv5_hasta_dia",{d:k%100})}:preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})});
+        return conFavor(Object.assign({n:Math.abs(val(c)), ym:months?ym:null, sub:subF(c)},
+          months?{pre:tf(val(c)<0?"gv5_net_in":"gv5_spent_in",{mes:mesDe(ym)}),hasta:tf("gv5_hasta_dia",{d:k%100})}:preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})}),val(c));
       };
       if(catFil){
         const fmeses=ciclosFila||mesesPres;
@@ -17817,15 +17838,15 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
         if(esPrimero && ym<mad.ym){
           const m=cifra.months[ym]||{sp:0,inc:0}, v=gastosValor(m,mode), pym=gastosYmPrev(ym);
           const st=cubre(pym)?vsPrev(v,gastosValor(cifra.months[pym]||{sp:0,inc:0},mode),pym,false):null;
-          return {n:shownOf(v), pre:tf("gv5_closed",{mes:mesDe(ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:ym, sub:subDe(m)};
+          return conFavor({n:shownOf(v), pre:tf("gv5_closed",{mes:mesDe(ym)}), tail:st&&st.tail, tone:st&&st.tone, ym:ym, sub:subDe(m)},v);
         }
         const c=gastosCumDia(cifra,k,ym);
-        return {n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_net_in":"gv5_spent_in",{mes:mesDe(ym)}), hasta:tf("gv5_hasta_dia",{d:k%100}), ym:ym, sub:subDe(c)};
+        return conFavor({n:shownOf(gastosValor(c,mode)), pre:tf(mode==="net"?"gv5_net_in":"gv5_spent_in",{mes:mesDe(ym)}), hasta:tf("gv5_hasta_dia",{d:k%100}), ym:ym, sub:subDe(c)},gastosValor(c,mode));
       }
       if(k===mesesLista.newestK && ym===mesesLista.newestYm) return top;
       const d=(k%100)+" "+monthShort(Math.floor(k/100)%100-1).toLowerCase(), c=gastosCumDia(cifra,k);
-      return Object.assign({n:shownOf(gastosValor(c,mode)), sub:subDe(c), ym:null},
-        preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})});
+      return conFavor(Object.assign({n:shownOf(gastosValor(c,mode)), sub:subDe(c), ym:null},
+        preset==="cycle"?cicloHasta(k,d):{pre:monthSummary.periodLabel,hasta:tf("gv5_hasta",{d:d})}),gastosValor(c,mode));
     };
     const meses=preset==="months"?mesesLista.orden.map(function(ym){ return {ym:ym, label:etiquetaMes(ym)}; }):ciclosFila;
     return {top:top, line:line, meses:meses, fijos:false, mesesPres:mesesPres, ciclos:ciclosFila, etiquetaMes:etiquetaMes};
@@ -17840,14 +17861,14 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     if(secc==="cats" && !catsActual){
       // Un mes cerrado: su total con la regla de la cifra y sin margen (no hay límite del pasado).
       const mode=monthSummary.mode, m=cifra.months[catsYm]||{sp:0,inc:0}, v=gastosValor(m,mode);
-      top={n:mode==="net"?Math.abs(v):v, ym:catsYm, pre:tf("gv5_cats_pre",{period:cab.etiquetaMes(catsYm)}),
-        sub:mode==="net"?tf("gv5_net_sub",{g:eur(m.sp),i:eur(m.inc)}):null};
+      top={n:mode==="net"?Math.abs(v):v, favor:gxCifraOk(v)&&Math.round(v*100)<0, ym:catsYm, pre:tf("gv5_cats_pre",{period:cab.etiquetaMes(catsYm)}),
+        sub:mode==="net"?tf("gv5_net_sub",{g:gxEur(m.sp),i:gxEur(m.inc)}):null};
     } else if(secc==="cats"){
       const per=preset==="months"?monthLong(mad.m-1):preset==="cycle"&&!cicloPas?t("g_cycle"):monthSummary.periodLabel;
-      const r=monthSummary.remaining, x=r==null?null:Math.abs(r)<1?eur(Math.abs(r)):eur0(Math.abs(r));
+      const r=gxCifraOk(monthSummary.remaining)?monthSummary.remaining:null, x=r==null?null:Math.abs(r)<1?eur(Math.abs(r)):eur0(Math.abs(r));
       // Categorías enseña siempre la cifra del presupuesto: su desglose no sigue a los filtros.
       const pres=cab.pres||cab.top;
-      top={n:pres.n, sub:pres.sub, ym:cab.ciclos?cab.top.ym:catsYm, pre:tf("gv5_cats_pre",{period:per}),
+      top={n:pres.n, favor:pres.favor, sub:pres.sub, ym:cab.ciclos?cab.top.ym:catsYm, pre:tf("gv5_cats_pre",{period:per}),
         tail:r==null?null:tf(r<0?"gv5_over":"gv5_under",{x:x}), tone:r==null?null:r<0?"coral":"mint"};
     } else {
       const n=novelSubs.length;
@@ -18273,7 +18294,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
           const next=Object.assign({},current);delete next[key];return next;
         });});
       },
-      showToast:showToast, state:state
+      showToast:showToast, state:state, noEsTraspaso:noEsTraspaso
     }),
     undoDelete && ReactDOM.createPortal(
       React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
@@ -18621,7 +18642,7 @@ function GastosCabecera({rootRef, cab, meses, fijos, onMes, mesesAria, stopSwipe
     React.createElement("div",{className:"gx-titulo"},
       React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
       React.createElement(GxSecciones,{secc:secc, onSecc:onSecc, nSubs:nSubs})),
-    React.createElement(GxCifra,{n:line.n}),
+    React.createElement(GxCifra,{n:line.n, favor:!!line.favor}),
     React.createElement("div",{className:"gx-status"+(onInfo?" con-info":""),"data-testid":"gastos-estado"},
       line.hasta ? React.createElement(React.Fragment,null,React.createElement("span",{className:"gx-hasta"},line.hasta)," · ") : null,
       React.createElement("span",null,line.pre),
@@ -18672,8 +18693,20 @@ function GxSecciones({secc, onSecc, nSubs}){
    `.gx-num`. El ancho solo cambia con el dígito y rueda a la vez que la tira. */
 const GX_DIGITOS=["0","1","2","3","4","5","6","7","8","9"];
 const GX_ANCHO=[.665,.452,.607,.557,.617,.578,.611,.520,.604,.613];
-function GxCifra({n}){
-  const ok=typeof n==="number"&&isFinite(n);
+/* Por encima de esto no es dinero de una familia sino un dato roto: se enseña «—», nunca el número
+   (con más movimientos llegó a ver cifras enormes en negativo y dejó la app, 21/11/2026). */
+const GX_TOPE_CIFRA=1e7;
+function gxCifraOk(x){ return typeof x==="number"&&isFinite(x)&&Math.abs(x)<=GX_TOPE_CIFRA; }
+function gxConFavor(o,neto,texto){
+  if(gxCifraOk(neto)&&Math.round(neto*100)<0){
+    o.favor=true;
+    if(!o.tail&&!o.hasta){ o.tail=texto; o.tone="mint"; }
+  }
+  return o;
+}
+function gxEur(x){ return gxCifraOk(x)?eur(x):"—"; }
+function GxCifra({n, favor}){
+  const ok=gxCifraOk(n);
   if(!ok) return React.createElement("div",{className:"gx-num num"},React.createElement("span",{"data-testid":"gastos-cifra"},"—"));
   const p=eurParts(n), ent=p.ent, dec=p.sep+p.dec;
   const celdas=function(txt, base){
@@ -18691,10 +18724,10 @@ function GxCifra({n}){
   };
   // El texto entero va en un nodo oculto a la vista: es el que leen los lectores de pantalla (las
   // tiras de dígitos son `aria-hidden`) y el que comprueban los e2e.
-  const txt=ent+dec+" "+p.sym;
+  const signo=favor?"+":"", txt=signo+ent+dec+" "+p.sym;
   return React.createElement("div",{className:"gx-num num"},
     React.createElement("span",{className:"gx-num-txt","data-testid":"gastos-cifra"},txt),
-    React.createElement("span",{className:"gx-num-ent","aria-hidden":true},celdas(ent,"e")),
+    React.createElement("span",{className:"gx-num-ent","aria-hidden":true},signo?React.createElement("span",{key:"signo",className:"gx-sep"},signo):null,celdas(ent,"e")),
     React.createElement("span",{className:"gx-num-dec","aria-hidden":true},celdas(dec,"d")," "+p.sym));
 }
 /* FILA GRIS: los cargos de un día que pagan cuotas, van a una meta o a un bróker, o son traspasos (SPEC §4.4). Se
@@ -18721,7 +18754,8 @@ function grisDeGasto(e, bucket){
   if(bucket==="recibo"||bucket==="deuda"||bucket==="meta") return bucket;
   if(bucket==="neutra" && e && e.category==="inversion" && (e.amount||0)>0) return "inversion";
   // El traspaso, en los dos sentidos: las dos patas son el mismo dinero cambiando de cuenta.
-  if(bucket==="neutra" && e && e.category==="traspaso") return "traspaso";
+  // Sin esa categoría en la fila también: la pareja reconocida al leer (`traspasoPropioDerivado`).
+  if(bucket==="neutra" && e && e.category!=="inversion" && e.category!=="deudas") return "traspaso";
   return null;
 }
 /* ¿Va plegada en su bloque del día? Los recibos no (van sueltos desde el 26/10/2026). La usan la
@@ -19232,7 +19266,7 @@ function expensePaymentLabelUI(state,e,kind,relation){
   var rows=(kind==="debt"?state.debts||[]:(state.fixed||[]).concat(state.oneoffs||[])).filter(function(x){return x&&x.id===id;});
   return rows.length===1&&String(rows[0].name||"").trim()?tf("f_link_unconfirmed",{name:rows[0].name}):"—";
 }
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setMeta, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, state, recognizeWithdrawal, withdrawalStatus,confirmMonthlyInvestment,monthlyStatus, recognizeOwnTransfer, ownTransferStatus, setIncomeTransfer, incomeTransferStatus, sourceActionStatus, refreshSourceAction, ensayo, noEsTraspaso}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -19419,11 +19453,14 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("div",{style:{marginBottom:8}},tf(paymentRelation&&paymentRelation.kind==="fixed"&&paymentRelation.id===reciboDe.id?"f_recibo_marca":"f_recibo_quiza",{name:reciboMarca})),
     React.createElement("div",{className:"v4-chips wrap"},reciboSi,
       React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no"))));
+  const parDerivado=!CAT_NEUTRAS[exp.category]&&traspasoPropioDerivado(exp,state);
   const afterMeta=React.createElement(React.Fragment,null,
+    parDerivado&&React.createElement("div",{className:"hint","data-testid":"exp-traspaso-derivado"},t("f_traspaso_derivado")),
+    parDerivado&&noEsTraspaso&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-traspaso-no",onClick:function(){ noEsTraspaso(exp); }},t("f_traspaso_no")),
     calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
     duplicate,paired,reciboAviso,
     sourceActionStatus&&sourceActionStatus.id===exp.id&&React.createElement("div",{role:"status","data-testid":"exp-source-save-status"},React.createElement("div",null,t(sourceActionStatus.status==="pending"?"f_source_pending":"f_source_save_error")),sourceActionStatus.status==="error"&&React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-source-refresh",onClick:function(){refreshSourceAction().catch(function(){});}},t("f_source_refresh"))),
-    incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
+    !parDerivado&&incomePlan&&incomeOffer===incomePlan&&React.createElement("div",{"data-testid":"exp-income-own-controls"},
       incomePlan.category==="ingreso"&&React.createElement("div",{className:"hint"},t("f_incomeown_income_hint")),
       incomePeer&&incomePeerOffer===incomePeer&&React.createElement("label",{className:"hint"},React.createElement("input",{type:"checkbox","data-testid":"exp-income-own-peer",checked:incomeWithPeer,disabled:incomeTransferStatus&&incomeTransferStatus.status==="pending",onChange:function(e){setIncomeWithPeer(e.target.checked);}}),tf("f_incomeown_peer",{bank:entOf(incomePeer.outgoing.ent).label,amount:eur(incomePeer.outgoing.amount)})),
       React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-income-own",disabled:incomeTransferStatus&&incomeTransferStatus.status==="pending",onClick:function(){setIncomeTransfer(incomePlan,incomeWithPeer&&incomePeerOffer===incomePeer?incomePeer:null);}},t(incomePlan.category==="ingreso"?"f_incomeown_income":"f_incomeown_action"))),
@@ -24511,7 +24548,8 @@ function reciboNoPon(s,claves,vetar,ahora){
    los últimos en caer: son pocos, los confirmó él uno a uno y perderlos deja a una persona «pendiente»
    sin que nada lo diga, mientras que un veto viejo de un cargo de hace meses ya no se vuelve a ver
    (revisión de la 231). */
-function reciboNoEsAlias(k){ return String(k).indexOf("debenAlias|")===0; }
+/* Tampoco caduca el veto «no es un traspaso mío» (`traspasoNo|…`): si cayera, la pareja reaparecería sola. */
+function reciboNoEsAlias(k){ k=String(k); return k.indexOf("debenAlias|")===0||k.indexOf("traspasoNo|")===0; }
 function reciboNoTope(no,at){
   var claves=Object.keys(at);
   if(claves.length>RECIBO_NO_MAX) claves.sort(function(a,b){ return (reciboNoEsAlias(b)-reciboNoEsAlias(a))||(at[b]-at[a]); }).slice(RECIBO_NO_MAX).forEach(function(k){ delete at[k]; });
@@ -28706,7 +28744,7 @@ function budgetRowSigned(e, state, period, delSet){
   // Los ingresos reales del ciclo pueden llegar a otro banco: cuentan para el
   // balance elegido por el dueño, incluso si superan las compras del período.
   if(period.cycle && e.amount<0){
-    if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet)) return 0;
+    if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet) || traspasoPropioDerivado(e,state)) return 0;
     return e.amount;
   }
   // El gasto conserva la selección de bancos diarios; el mes natural y el widget no cambian.
@@ -28731,11 +28769,13 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // ya la aparta `budgetRowSigned`: es la que lo abre. `nominas`/`noNominas` son las claves de los
   // ingresos grandes que se decidieron aquí, para que ingest no tenga que adivinarlos (widget).
   const flows=period.cycle?null:nominaFlowsOf(state);
-  const nominas=[], noNominas=[];
+  const nominas=[], noNominas=[], traspasos=[];
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
+    // El servidor no ve Plan ni el titular: se le dice qué filas son traspaso, como con las nóminas.
+    if(!CAT_NEUTRAS[e.category]&&traspasoPropioDerivado(e,state)) traspasos.push(keyOfExpense(e));
     const v=budgetRowSigned(e, state, period, delSet);
     if(v>0) spent+=v;
     else if(v<0){
@@ -28754,7 +28794,7 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
   const mode=period.cycle?"net":(budgetMode||(state.settings&&state.settings.gTotalMode)||"split");
   return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina),
-    {periodStart:startMs,cycle:!!period.cycle,nomina:+nomina.toFixed(2),nominas:nominas,noNominas:noNominas});
+    {periodStart:startMs,cycle:!!period.cycle,nomina:+nomina.toFixed(2),nominas:nominas,noNominas:noNominas,traspasos:traspasos});
 }
 
 // V2 confirma recepción también fuera del ciclo: una fila anterior puede mover el saldo.
@@ -28773,7 +28813,10 @@ function widgetCoveredEvents(rows,start,now,history){
 // widget del dueño se quedó en la regla vieja («1.922 € · 422 € de más») mientras Inicio decía
 // «quedan 63,53» (APK 62 + beta 4.26.185, 26/10/2026). En el mes el ancla siempre está vacía.
 function widgetScopeOf(state,stats,anchor,bank){
-  const lists=stats.cycle?(anchor||""):[(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()];
+  const tras=(stats.traspasos||[]).slice().sort();
+  /* Con traspasos derivados el hueco cambia de forma A PROPÓSITO: un ingest sin esta regla calcula otro
+     alcance y no responde, en vez de contar esa llegada como ingreso. Sin ellos, el alcance de siempre. */
+  const lists=stats.cycle?(tras.length?[anchor||"",tras]:(anchor||"")):[(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()].concat(tras.length?[tras]:[]);
   return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
     lists,stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
 }
@@ -28781,6 +28824,7 @@ function widgetScopeOf(state,stats,anchor,bank){
 function widgetPeriodOf(stats,anchor,scope){
   const w={v:2,kind:stats.cycle?"ciclo":"mes",start:stats.periodStart,anchor:anchor||"",scope:scope};
   if(!stats.cycle){ w.nominas=(stats.nominas||[]).slice(); w.noNominas=(stats.noNominas||[]).slice(); }
+  if(stats.traspasos&&stats.traspasos.length) w.traspasos=stats.traspasos.slice();
   return w;
 }
 // Inicio, Gastos (margen) y el widget v2 comparan con el límite lo mismo: en el mes natural, gasto
@@ -29021,6 +29065,106 @@ function aNombreDelTitular(s,e){
   if(!(w.indexOf(" ")>0&&palabras(sinPre.replace(TRASPASO_COLA_RE,""))===w)) return false;
   return sinPre!==benef||benef!==recNorm(e.concept)&&benef!==recNorm(String(e.note||"").split(" · ")[0]);
 }
+/* EL TRASPASO ENTRE TUS CUENTAS SE RECONOCE AL LEER (caso real del 21/11/2026). Una usuaria cobró su
+   nómina y ese día se pasó dinero de un banco a otro sin tenerlo en Plan: la llegada, sin nombre, contó
+   como ingreso y la cabecera enseñó ese neto como si fuera gasto. Dejó de usar la app.
+   Se DERIVA en cada lectura y no se escribe: ni fila, ni nube, ni saldo (`expenseCountsCash` no lo mira),
+   así que si la regla se equivoca, quitarla deja los datos como estaban. Solo se empareja lo inequívoco:
+   · una salida y una entrada, mismo céntimo, en dos bancos DISTINTOS tuyos, a ±2 días civiles;
+   · únicas en los dos sentidos, contando TODA fila viva del importe (también las que no serían aptas:
+     un cobro de un tercero por lo mismo crea la duda, y con duda no se empareja);
+   · la entrada, sin nombre o a nombre del titular, y sin rastro de nómina, Bizum ni de un ingreso de Plan;
+   · la salida, ya marcada traspaso, o en «Otros» y dirigida a ti, a ese banco o sin beneficiario.
+   Lo que él decidió manda: «no es un traspaso» (`traspasoPropioNoPon`) rompe la pareja en los dos móviles. */
+const TRASPASO_VENTANA_DIAS=2;
+const TRASPASO_SOLO_RE=/^(?:transferencias?|transfer|traspasos?|transf)(?: (?:emitida|realizada|enviada|ordenada|recibida|inmediata|sepa|nacional|internacional|ordinaria|periodica|online))*$/;
+const TRASPASO_DE_RE=/^(?:transferencias?|transfer|traspasos?|transf)(?: (?:recibida|emitida|inmediata|sepa|nacional|internacional|ordinaria|periodica|online))* (?:de|desde|from) /;
+const traspasosPropiosCache=new WeakMap();
+function traspasoPalabras(x){ return recNorm(x).split(" ").filter(function(k){ return k.length>=2&&!DEBEN_PALABRAS_NO[k]; }).sort().join(" "); }
+function traspasoDelTitular(titular,x){
+  return titular.indexOf(" ")>0&&traspasoPalabras(recNorm(x).replace(TRASPASO_DE_RE,"").replace(TRASPASO_COLA_RE,""))===titular;
+}
+// El concepto o la nota solo pueden decir «transferencia» o tu nombre: cualquier otra cosa es un motivo que no conocemos.
+function traspasoTextoNeutro(titular,x){
+  const n=recNorm(x);
+  return !n||TRASPASO_SOLO_RE.test(n)||traspasoDelTitular(titular,n);
+}
+function traspasoEntradaApta(s,e,titular){
+  if(e.category!=="ingreso"&&e.category!=="traspaso") return false;
+  if(e.category==="ingreso"&&e.catAckAt!=null) return false;
+  const nombres=[e.merchant,e.obName].filter(function(x){ return x!=null&&String(x).trim(); });
+  if(!nombres.every(function(x){ const m=String(x).trim().toLowerCase(); return m==="movimiento"||m==="ingreso"||traspasoDelTitular(titular,x); })) return false;
+  if(!traspasoTextoNeutro(titular,e.concept)||!traspasoTextoNeutro(titular,e.note)) return false;
+  // Un ingreso que Plan espera en ese banco por un importe parecido es ese ingreso, no un traspaso.
+  const banco=expenseBankOf(e), importe=Math.abs(Number(e.amount));
+  return !(s.flows||[]).some(function(f){ return f&&f.kind==="income"&&flowBancoEntra(f)===banco&&recAmtClose(Number(f.amount),importe); });
+}
+function traspasoSalidaApta(s,o,destino,e,titular){
+  if(isAtmWithdrawal(o.merchant)||isAtmWithdrawal(o.obName)||o.withdrawalConfirmedAt) return false;
+  if(o.category==="traspaso") return true;
+  if(o.category!=="otros"||o.catAckAt!=null) return false;
+  const reglas=(typeof USER_CAT_RULES!=="undefined"&&USER_CAT_RULES)||{}, rule=reglas[catRuleKey(o)], ov=s.catOverrides&&s.catOverrides[catKey(o.merchant)];
+  if(rule&&rule.cat==="otros"||ov==="otros") return false;
+  if(aNombreDelTitular(s,o)) return true;
+  const benef=recNorm(o.obName!=null&&String(o.obName).trim()?o.obName:o.merchant), sinPre=benef.replace(TRASPASO_A_RE,""), banco=recNorm(entOf(destino).label);
+  if(TRASPASO_SOLO_RE.test(benef)) return traspasoTextoNeutro("",o.concept)&&traspasoTextoNeutro("",o.note);
+  /* TR nombra «Movimiento» a sus salidas: sin beneficiario solo vale si la llegada del otro banco lleva el
+     nombre ENTERO del titular (una llegada también anónima, o de un tercero, no basta). */
+  if(benef==="movimiento") return !!(e&&titular)&&traspasoTextoNeutro("",o.concept)&&traspasoTextoNeutro("",o.note)&&[e.merchant,e.obName].some(function(x){ return x!=null&&String(x).trim()&&traspasoDelTitular(titular,x); });
+  return sinPre!==benef&&banco.length>=4&&(sinPre===banco||sinPre.indexOf(banco+" ")===0);
+}
+function traspasosPropiosCalc(s){
+  const out=new Map(), propios=new Set((s.accounts||[]).map(function(a){ return a&&a.ent; }).filter(function(b){ return b&&b!=="efectivo"&&b!=="familia"; }));
+  if(propios.size<2) return out;
+  const deleted=expenseDeletedSet(s), titular=traspasoPalabras(s.settings&&s.settings.profile&&s.settings.profile.fullName);
+  const porCent=new Map(), veces=new Map(), dia=new Map();
+  (s.expenses||[]).forEach(function(x){
+    if(!x||x.possibleDup||x.autoGemelo||expenseIsTombstoned(x,deleted)) return;
+    const c=ownTransferCents(x), d=diaCivilDe(x);
+    if(!c||!isFinite(d)) return;
+    veces.set(String(x.id),(veces.get(String(x.id))||0)+1); dia.set(x,d);
+    const k=Math.abs(c); let g=porCent.get(k); if(!g){ g={ent:[],sal:[]}; porCent.set(k,g); }
+    (c<0?g.ent:g.sal).push(x);
+  });
+  const firme=function(x){
+    if(!esFilaDeBanco(x)||x.obPending||veces.get(String(x.id))!==1||!propios.has(expenseBankOf(x))) return false;
+    if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
+    if((x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
+    if(x.reciboId||x.debtId||x.goalId||x.metaPend||x.ownTransferRejected||incomeOwnTransferPending(x)) return false;
+    return !reciboVetado(s,TRASPASO_NO,traspasoPropioClave(x));
+  };
+  const cerca=function(lista,x){ const b=expenseBankOf(x), d=dia.get(x); return lista.filter(function(o){ return expenseBankOf(o)!==b&&Math.abs(dia.get(o)-d)<=TRASPASO_VENTANA_DIAS; }); };
+  porCent.forEach(function(g){
+    if(!g.ent.length||!g.sal.length) return;
+    g.ent.forEach(function(e){
+      const salen=cerca(g.sal,e);
+      if(salen.length!==1) return;
+      const o=salen[0], entran=cerca(g.ent,o);
+      if(entran.length!==1||entran[0]!==e||!firme(e)||!firme(o)) return;
+      if(!traspasoEntradaApta(s,e,titular)||!traspasoSalidaApta(s,o,expenseBankOf(e),e,titular)) return;
+      out.set(String(e.id),ownTransferCents(e)); out.set(String(o.id),ownTransferCents(o));
+    });
+  });
+  return out;
+}
+function traspasosPropiosDe(s){
+  const lista=s&&s.expenses;
+  if(!Array.isArray(lista)) return new Map();
+  const nombre=s.settings&&s.settings.profile&&s.settings.profile.fullName, deleted=expenseDeletedSet(s), reglas=typeof USER_CAT_RULES!=="undefined"?USER_CAT_RULES:null;
+  const c=traspasosPropiosCache.get(lista);
+  if(c&&c.accounts===s.accounts&&c.deleted===deleted&&c.reciboNo===s.reciboNo&&c.flows===s.flows&&c.ov===s.catOverrides&&c.nombre===nombre&&c.reglas===reglas) return c.pares;
+  const pares=traspasosPropiosCalc(s);
+  traspasosPropiosCache.set(lista,{accounts:s.accounts,deleted:deleted,reciboNo:s.reciboNo,flows:s.flows,ov:s.catOverrides,nombre:nombre,reglas:reglas,pares:pares});
+  return pares;
+}
+// Por id y céntimo: Gastos pinta con el estado diferido y la fila puede ser otra copia del mismo apunte.
+function traspasoPropioDerivado(e,s){
+  if(!e||!s) return false;
+  const pares=traspasosPropiosDe(s);
+  return pares.size>0&&pares.get(String(e.id))===ownTransferCents(e);
+}
+// Un traspaso no abre tu mes: si no, Mi ciclo se ancla a él y la nómina del mismo día cuenta como ingreso extra.
+function noEsTraspasoDerivado(s){ return function(e){ return !traspasoPropioDerivado(e,s); }; }
 function salidasTraspasoPropio(s){
   const n=new Date(), exps=(s&&s.expenses)||[], deleted=expenseDeletedSet(s), Y=n.getFullYear(), M=n.getMonth()+1;
   const traspasos=(s.flows||[]).filter(function(f){ return f&&f.kind==="transfer"&&f.to&&Number(f.amount)>0&&f.to!==flowBancoSale(f); });
@@ -31676,7 +31820,7 @@ function ReservaRules({state, set}){
   const blank={name:"",kind:"fixed",value:"",goalId:goals[0]&&goals[0].id||""};
   const [form,setForm]=useState(blank);
   const [err,setErr]=useState("");
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state),noEsTraspasoDerivado(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.flows,state.reciboNo,state.settings]);
   const st=reservaEstadoDe(state,cycle);
   // La línea de cada regla mensual dice lo que ESTE mes tiene asentado, no lo que «debería».
   const clave=reservaMensualClave();
@@ -31792,7 +31936,7 @@ function ReservaRules({state, set}){
 // no se ha repartido ni descartado. Nunca aplica en silencio — siempre pide confirmación, porque
 // aunque solo mueva cifras dentro de la app, es DINERO DE VERDAD para quien lo mira.
 function ReservaDetect({state, set, showToast}){
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state),noEsTraspasoDerivado(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.flows,state.reciboNo,state.settings]);
   const st=reservaEstadoDe(state,cycle);
   if(st.estado!=="pendiente") return null;
   const income=st.income;
@@ -35263,7 +35407,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="f7902c2170009eae070a8b4163f8d128921d706907f9560f069f5a53e0262d2c";
+var _rnSha="21a023eef8ec04542a89f1f8b0163705d14ac2de58dd80ecf7e09302b1da3908";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -36562,12 +36706,24 @@ function buildHouseholdSnapshot(state, totals, email){
     if(cargoDeRecibo(e, state)) return;
     // Lo que va a una meta no es gasto: tampoco lo es en la foto del hogar.
     if(metaDeGasto(e)) return;
+    // Dinero que cambia de cuenta: la foto del hogar lo enseñaría como gasto de «Otros».
+    if(traspasoPropioDerivado(e,state)) return;
     const k=e.category||"otros";
     byCat[k]=(byCat[k]||0)+e.amount;
   });
   const expensesByCat=Object.keys(byCat).map(function(id){
     return { id:id, spent:+Number(byCat[id]).toFixed(2) };
   }).sort(function(a,b){ return b.spent-a.spent; }).slice(0,8);
+  /* «Gastado» = el bruto menos las patas de un traspaso entre tus cuentas (derivado al leer): con las patas en
+     meses distintos (31/10 y 02/11) el bruto de noviembre queda en negativo y no cuadra con el desglose.
+     Sin tocar `thisMonthSpent` ni los saldos; nunca por debajo de 0. */
+  let gastadoHogar=Number(totals.thisMonthSpent||0);
+  if(gastadoHogar!==0){
+    (state.expenses||[]).forEach(function(e){
+      if(parseDate(e.date)>=monthStart&&expenseCountsCash(e,state)&&traspasoPropioDerivado(e,state)) gastadoHogar-=Number(e.amount)||0;
+    });
+    gastadoHogar=Math.max(0,gastadoHogar);
+  }
   // Fijos: total mensual + top 5 (nombre + importe, sin cuentas bancarias)
   const fixedTop=(state.fixed||[]).map(function(f){
     // Misma mensualidad que el total de arriba (`fixedMonthlyOf`): respeta los importes por cobro.
@@ -36581,7 +36737,7 @@ function buildHouseholdSnapshot(state, totals, email){
     debtTotal:+Number(totals.debtTotal||0).toFixed(2),
     invested:+Number(totals.invested||0).toFixed(2),
     liquid:+Number((totals.liquid)||0).toFixed(2),
-    thisMonthSpent:+Number(totals.thisMonthSpent||0).toFixed(2),
+    thisMonthSpent:+Number(gastadoHogar).toFixed(2),
     budget:state.budget||0,
     accounts:accounts,
     expensesByCat:expensesByCat,
@@ -40245,11 +40401,11 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         onClose:function(){setReviewBill(null);closeDetail();}, onRemove:removeWithUndo
       })),
       addStep && React.createElement(BillsAddWizard,{
-        step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
+        step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList, destinos:banks.filter(function(b){ return b!=="familia"; }),
         onClose:closeAdd, set:set, onSaved:confirmSaved
       }),
       pasos && React.createElement(ReciboPasos,{key:pasos.mode+"_"+(pasos.row?pasos.row.kind+pasos.row.id:"n")+"_"+pasos.n,
-        mode:pasos.mode, row:pasos.row, once:pasos.once, flujo:pasos.flujo, nombre:pasos.nombre, conPersona:pasos.conPersona, state:state, set:set, totals:totals, banks:bankList,
+        mode:pasos.mode, row:pasos.row, once:pasos.once, flujo:pasos.flujo, nombre:pasos.nombre, conPersona:pasos.conPersona, state:state, set:set, totals:totals, banks:bankList, destinos:banks.filter(function(b){ return b!=="familia"; }),
         onClose:closePasos, onSaved:confirmSaved, onRemove:removeWithUndo,
         onEditOther:function(id){ const r=billsGroupRows(state,"serv",cm,cy).find(function(x){ return x.id===id; }); if(r) setPasos({mode:"edit",row:r,n:Date.now()}); }
       }),
@@ -40613,9 +40769,12 @@ function usePasosCarril(trackRef, scrollRef, paso){
     return function(){ clearTimeout(t); fin(); };
   },[paso]);
 }
-function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove, ensayo}){
+function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, totals, banks, destinos, onClose, onSaved, onEditOther, onRemove, ensayo}){
   const edit=mode==="edit";
   const y=totals.curYear, m=totals.curMonth, today=totals.today, cur=y*12+m;
+  // El origen son los bancos de recibos; el destino, cualquier cuenta tuya: con solo un banco de
+  // recibos la lista salía vacía y no se podía crear el traspaso (caso real del 21/11/2026).
+  const bancosDestino=Array.from(new Set((destinos||[]).concat(banks)));
   /* Lo que entra y lo que mueves (`flujo`) se da de alta y se edita con ESTOS pasos desde el
      12/11/2026 («incluso la creación es diferente»): nombre, importe, cuándo, cuenta y resumen, como
      un recibo. Sin «En varios pagos» ni Más opciones (un flujo no los tiene); el día puede ir por
@@ -41025,7 +41184,7 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
     [["income","gb_flow_income"],["transfer","gb_flow_move"]].map(function(k){
       const on=f.fk===k[0];
       return React.createElement("button",{type:"button",role:"radio","aria-checked":on?"true":"false",key:k[0],className:"rp4-mode"+(on?" on":""),"data-rp4-tipo":k[0],
-        onClick:function(){ if(on) return; upd({fk:k[0],to:k[0]==="transfer"?(banks.find(function(b){ return b!==f.account; })||null):null}); toca("account"); }}, gbTxt(k[1]));
+        onClick:function(){ if(on) return; upd({fk:k[0],to:k[0]==="transfer"?(bancosDestino.find(function(b){ return b!==f.account; })||null):null}); toca("account"); }}, gbTxt(k[1]));
     }));
   const flujoSugs=esFlujo&&f.fk==="income"&&!edit&&React.createElement("div",{key:"fsg",className:"rp4-sugs"},
     ["fl_s_nomina","fl_s_pension"].map(function(k){
@@ -41207,7 +41366,7 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
       })),
     traspaso&&React.createElement("div",{key:"dl",className:"pr6-lbl"}, t("fl_t_dest")),
     traspaso&&React.createElement("div",{key:"d",className:"pr6-cands","data-rp4":"destino"},
-      banks.filter(function(b){ return b!==f.account; }).map(function(b){
+      bancosDestino.filter(function(b){ return b!==f.account; }).map(function(b){
         return bancoCand(b,f.to===b,{"data-rp4-destino":b},function(){ upd({to:b}); toca("account"); if(f.account) alResumen(); });
       }))
   ]);
@@ -41392,7 +41551,7 @@ function bankListButtons(banks, current, onPick){
     }));
 }
 
-function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSaved}){
+function BillsAddWizard({step, setStep, form, setForm, banks, destinos, onClose, set, onSaved}){
   const setF=function(patch){ setForm(function(f){ return Object.assign({},f,patch); }); };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   const stepRef=React.useRef(step), formRef=React.useRef(form);
@@ -41459,7 +41618,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     if(form.kind==="flow"){
       const it={id:uid(),kind:form.flowKind||"income",name:form.name||(form.flowKind==="income"?"Ingreso":"Movimiento"),amount:amt};
       if(form.when) it.when=form.when; else { const d=cleanDay(form.day); if(d) it.day=d; }
-      if(it.kind==="income") it.to=form.account; else { it.from=form.account; it.to=banks.find(function(b){ return b!==form.account; })||form.account; }
+      if(it.kind==="income") it.to=form.account; else { it.from=form.account; it.to=(destinos||banks).find(function(b){ return b!==form.account; })||form.account; }
       addFlowItem(set,it);
     } else if(form.kind==="oneoff"){
       const it={id:uid(),name:form.name||"Cargo",amount:amt,month:form.month,year:form.year,account:form.account};

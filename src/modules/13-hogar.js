@@ -41,12 +41,24 @@ function buildHouseholdSnapshot(state, totals, email){
     if(cargoDeRecibo(e, state)) return;
     // Lo que va a una meta no es gasto: tampoco lo es en la foto del hogar.
     if(metaDeGasto(e)) return;
+    // Dinero que cambia de cuenta: la foto del hogar lo enseñaría como gasto de «Otros».
+    if(traspasoPropioDerivado(e,state)) return;
     const k=e.category||"otros";
     byCat[k]=(byCat[k]||0)+e.amount;
   });
   const expensesByCat=Object.keys(byCat).map(function(id){
     return { id:id, spent:+Number(byCat[id]).toFixed(2) };
   }).sort(function(a,b){ return b.spent-a.spent; }).slice(0,8);
+  /* «Gastado» = el bruto menos las patas de un traspaso entre tus cuentas (derivado al leer): con las patas en
+     meses distintos (31/10 y 02/11) el bruto de noviembre queda en negativo y no cuadra con el desglose.
+     Sin tocar `thisMonthSpent` ni los saldos; nunca por debajo de 0. */
+  let gastadoHogar=Number(totals.thisMonthSpent||0);
+  if(gastadoHogar!==0){
+    (state.expenses||[]).forEach(function(e){
+      if(parseDate(e.date)>=monthStart&&expenseCountsCash(e,state)&&traspasoPropioDerivado(e,state)) gastadoHogar-=Number(e.amount)||0;
+    });
+    gastadoHogar=Math.max(0,gastadoHogar);
+  }
   // Fijos: total mensual + top 5 (nombre + importe, sin cuentas bancarias)
   const fixedTop=(state.fixed||[]).map(function(f){
     // Misma mensualidad que el total de arriba (`fixedMonthlyOf`): respeta los importes por cobro.
@@ -60,7 +72,7 @@ function buildHouseholdSnapshot(state, totals, email){
     debtTotal:+Number(totals.debtTotal||0).toFixed(2),
     invested:+Number(totals.invested||0).toFixed(2),
     liquid:+Number((totals.liquid)||0).toFixed(2),
-    thisMonthSpent:+Number(totals.thisMonthSpent||0).toFixed(2),
+    thisMonthSpent:+Number(gastadoHogar).toFixed(2),
     budget:state.budget||0,
     accounts:accounts,
     expensesByCat:expensesByCat,

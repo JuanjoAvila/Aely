@@ -238,6 +238,7 @@ const steps = [
   ["cuotas-deudas", ["node", "tests/cuotas-deudas.test.mjs"]],
   ["meta-aportacion", ["node", "tests/meta-aportacion.test.mjs"]],
   ["widget-coherente", ["node", "tests/widget-coherente.test.mjs"]],
+  ["traspaso-propio-derivado", ["node", "tests/traspaso-propio-derivado.test.mjs"]],
   ["widget-arbitraje", ["node", "tests/widget-arbitraje.test.mjs"]],
   ["native-event-debounce", ["node", "tests/native-event-debounce.test.mjs"]],
   ["pro03-native-precomputed-alert", ["node", "tests/pro03-native-precomputed-alert.test.mjs"]],

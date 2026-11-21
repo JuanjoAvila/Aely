@@ -868,7 +868,7 @@ function ReservaRules({state, set}){
   const blank={name:"",kind:"fixed",value:"",goalId:goals[0]&&goals[0].id||""};
   const [form,setForm]=useState(blank);
   const [err,setErr]=useState("");
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state),noEsTraspasoDerivado(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.flows,state.reciboNo,state.settings]);
   const st=reservaEstadoDe(state,cycle);
   // La línea de cada regla mensual dice lo que ESTE mes tiene asentado, no lo que «debería».
   const clave=reservaMensualClave();
@@ -984,7 +984,7 @@ function ReservaRules({state, set}){
 // no se ha repartido ni descartado. Nunca aplica en silencio — siempre pide confirmación, porque
 // aunque solo mueva cifras dentro de la app, es DINERO DE VERDAD para quien lo mira.
 function ReservaDetect({state, set, showToast}){
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state),noEsTraspasoDerivado(state)); },[state.expenses,state.deleted,state.obAbsorbedConfirmed,state._historyOwner,state.accounts,state.flows,state.reciboNo,state.settings]);
   const st=reservaEstadoDe(state,cycle);
   if(st.estado!=="pendiente") return null;
   const income=st.income;

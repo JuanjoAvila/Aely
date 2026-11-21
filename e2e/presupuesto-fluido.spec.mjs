@@ -113,8 +113,8 @@ for(const caso of [
   else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosEstado(page)).toContainText(caso.income===780?"1.680 € por debajo":"150 € por encima");
-  // Con más ingresos que gasto el balance es a favor: la cifra es su valor, sin signo.
-  await expect(gastosCifra(page)).toHaveText(caso.income===780?"680,00 €":"1.150,00 €");
+  // Con más ingresos que gasto el balance es a favor: la cifra lleva «+» (un neto a favor no es un gasto, 21/11/2026).
+  await expect(gastosCifra(page)).toHaveText(caso.income===780?"+680,00 €":"1.150,00 €");
   await expect(gastosEstado(page).locator(caso.income===780?".gx-tone-mint":".gx-tone-coral")).toHaveCount(1);
 });
 
@@ -227,7 +227,7 @@ test("Mi ciclo muestra la cena neta de los Bizums recibidos aunque el modo mensu
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
   await expect(gastosEstado(page)).toHaveText("26 sep – 25 oct · 980 € por debajo");
   await expect(gastosCifra(page)).toHaveText("20,00 €");
-  await expect(desglose(page)).toHaveText("gastos 100,00 € · ingresos 80,00 €");
+  await expect(desglose(page)).toHaveText("gastos 100,00 € · otros ingresos 80,00 €");
 });
 
 test("Mi ciclo incluye el alquiler recibido y puede dejar más margen que el límite inicial",async({page})=>{
@@ -250,7 +250,7 @@ test("Mi ciclo incluye el alquiler recibido y puede dejar más margen que el lí
   if(await ajustes.count()) await ajustes.locator(".settings-push-h .back").click();
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosRoot(page)).toHaveAttribute("data-periodo","cycle");
-  await expect(gastosCifra(page)).toHaveText("680,00 €");
+  await expect(gastosCifra(page)).toHaveText("+680,00 €");
   await expect(desglose(page)).toContainText("780");
   await expect(gastosEstado(page)).toContainText("1.680 € por debajo");
 });
