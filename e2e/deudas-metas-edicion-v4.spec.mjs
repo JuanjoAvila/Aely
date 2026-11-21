@@ -310,7 +310,7 @@ for(const scenario of [{kind:"debt",how:"save"},{kind:"debt",how:"x"},{kind:"goa
  const {kind,how}=scenario;
  await open(page,"es",reviewRows,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
  if(kind==="apuntar")await page.locator(".botnav-fab").evaluate(b=>b.click());
- else await page.locator(kind==="debt"?'[data-debt-id="debt"]':'[data-goal-id="goal"]').evaluate(b=>b.click());await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
+ else{ await page.locator(kind==="debt"?'[data-debt-id="debt"]':'[data-goal-id="goal"]').evaluate(b=>b.click());await page.locator('.rpt-sheet [data-act="ficha-editar"]').click(); }
  await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
  const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:4});
  await page.evaluate(()=>{const rec=window.__cierre=[],t0=performance.now();(function f(){const sh=document.querySelector(".v4-sheet"),bk=document.querySelector(".v4-sheet-back");
@@ -341,7 +341,7 @@ for(const scenario of [{kind:"debt",how:"back"},{kind:"debt",how:"x"},{kind:"deb
  await open(page,"es",reviewRows,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
  if(kind==="apuntar")await page.locator(".botnav-fab").evaluate(b=>b.click());
  else if(kind==="filtros"){await page.locator('.botnav-tab[data-tour="gastos"]').click();await page.locator('.page-scroll-host .gx-root').getByTestId("gastos-filtros").evaluate(b=>b.click());}
- else await page.locator(kind==="debt"?'[data-debt-id="debt"]':'[data-goal-id="goal"]').evaluate(b=>b.click());await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
+ else{ await page.locator(kind==="debt"?'[data-debt-id="debt"]':'[data-goal-id="goal"]').evaluate(b=>b.click());await page.locator('.rpt-sheet [data-act="ficha-editar"]').click(); }
  await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
  await page.waitForTimeout(150);
  await page.evaluate(how=>{const sh=document.querySelector(".v4-sheet"),top0=sh.getBoundingClientRect().top,rec=window.__salida={top0,h:innerHeight,f:[]};
