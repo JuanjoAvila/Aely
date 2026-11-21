@@ -40,10 +40,8 @@ test("lo pagué de otra forma: sale de Para revisar, deja de sumar, se deshace y
   await expect(recibos.getByTestId("plan-review")).toHaveCount(0);
   await expect(queda(recibos)).toHaveText(await eur(50));
   const pagados = recibos.getByTestId("plan-paid");
-  await pagados.locator(".pr6-paid-h").click();
-  await expect(pagados.locator('[data-recibo="fixed_agua"]')).toContainText("marcado a mano");
   await expect.poll(async () => (await guardado(page, "agua")).pagadoAMano).toEqual({ [2026 * 12 + 10]: 18 });
-  // Deshacer lo devuelve a como estaba.
+  // Deshacer lo devuelve a como estaba. (4.26.250: con la barra del reparto arriba, el aviso de 5 s tapa «Ya pagados»: se usa antes de abrirlo.)
   const toast = recibos.getByTestId("plan-deshacer");
   await expect(toast).toContainText("Agua marcado a mano");
   await toast.getByRole("button", { name: "Deshacer" }).click();
@@ -52,6 +50,9 @@ test("lo pagué de otra forma: sale de Para revisar, deja de sumar, se deshace y
   await expect.poll(async () => (await guardado(page, "agua")).pagadoAMano).toBeUndefined();
   // La ficha de un recibo marcado a mano lo dice y ofrece Desmarcar, no «Ya está pagado».
   await marcar();
+  await expect(toast).toHaveCount(0, { timeout: 8000 });
+  await pagados.locator(".pr6-paid-h").click();
+  await expect(pagados.locator('[data-recibo="fixed_agua"]')).toContainText("marcado a mano");
   await pagados.locator('[data-recibo="fixed_agua"]').click();
   const ficha = page.locator('.v4-sheet[data-sheet="recibo"]');
   await expect(ficha.getByTestId("recibo-a-mano")).toContainText("Marcado a mano");
