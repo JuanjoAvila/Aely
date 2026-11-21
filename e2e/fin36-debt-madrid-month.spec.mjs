@@ -25,8 +25,11 @@ for(const tz of ["UTC","Europe/Madrid","America/Los_Angeles"])test.describe(tz,(
     await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole("tab",{name:"Deudas",exact:true}).click();await page.getByRole("button",{name:"Añadir deuda",exact:true}).click();
     const form=page.locator(".add-form");await form.getByLabel("Nombre",{exact:true}).fill("Deuda FIN36 sintética");await form.getByLabel("Importe €",{exact:true}).fill("1000");await form.getByLabel("Cuota al mes (€)",{exact:true}).fill("100");await form.getByLabel("Plazo (meses)",{exact:true}).fill("10");await form.getByLabel("Día",{exact:true}).fill(String(day));await form.getByRole("button",{name:"Añadir deuda",exact:true}).click();
     const expectedBalance=day===1?"900,00 €":"1.000,00 €",current=day===1?"4.100,00 €":"4.000,00 €";
-    await expect(page.locator(".v4-debt-bal")).toContainText(expectedBalance);
-    await expect(page.locator(".plan-summary").filter({has:page.getByText("Debes en total",{exact:true})}).locator(".plan-summary-amount")).toContainText(expectedBalance);
+    await page.locator("[data-debt-id]").click();
+    const fichaDeuda=page.getByTestId("plan-deuda-ficha");
+    await expect(fichaDeuda.getByTestId("ficha-saldo")).toContainText(expectedBalance);
+    await fichaDeuda.locator(".rpt-sx").click();await expect(fichaDeuda).toHaveCount(0);
+    await expect(page.getByTestId("debts-summary").locator(".rpt-dl b").first()).toHaveText(expectedBalance.replace(",00",""));
     const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).debts);
     await expect.poll(async()=> (await stored()).length).toBe(1);const debts=await stored();
     expect(debts[0]).toMatchObject({value:1000,monthly:100,amort:100,months:10,day,asOf:sample.month,startMonth:sample.month,startDay:sample.today});

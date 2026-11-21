@@ -93,11 +93,13 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
   // Plan → Metas: 100 a mano + 250 marcados = 350 (35 %), y dice de dónde vienen.
   await aMetas(page);
   const card = page.locator('[data-goal-id="viaje"]');
-  await expect(card.getByTestId("goal-saved")).toHaveText("350 € de 1.000 €");
-  await expect(card.getByTestId("goal-from-gastos")).toHaveText("250,00 € desde Gastos");
-  await expect(card).toContainText("35%");
+  await card.click();
+  const fichaMeta = page.getByTestId("plan-meta-ficha");
+  await expect(fichaMeta.getByTestId("goal-saved")).toHaveText("350 €");
+  await expect(fichaMeta).toContainText("de 1.000 € · 35%");
+  await expect(fichaMeta.getByTestId("goal-from-gastos")).toHaveText("Desde Gastos250,00 €");
   // Lo apuntado a mano NO cambia: el campo de la meta sigue diciendo 100.
-  await card.click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
+  await page.locator('[data-act="ficha-editar"]').click();
   await expect(page.locator('[data-goal-field="saved"]')).toHaveValue("100");
   await expect(page.getByTestId("goal-edit-from-gastos")).toHaveText("250,00 € desde Gastos");
   await page.keyboard.press("Escape").catch(() => {});
@@ -116,8 +118,11 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
   await expect(gastosCifra(page)).toHaveText("300,00 €");
   await expect(dia20(page).getByTestId("gastos-dia-total")).toHaveText("280,00 €");
   await aMetas(page);
-  await expect(page.locator('[data-goal-id="viaje"]').getByTestId("goal-saved")).toHaveText("100 € de 1.000 €");
-  await expect(page.locator('[data-goal-id="viaje"]').getByTestId("goal-from-gastos")).toHaveCount(0);
+  await page.locator('[data-goal-id="viaje"]').click();
+  const fichaMeta2 = page.getByTestId("plan-meta-ficha");
+  await expect(fichaMeta2.getByTestId("goal-saved")).toHaveText("100 €");
+  await expect(fichaMeta2).toContainText("de 1.000 €");
+  await expect(fichaMeta2.getByTestId("goal-from-gastos")).toHaveCount(0);
 });
 
 test("una cuota o un apunte a mano no ofrecen la marca de meta", async ({ page }) => {

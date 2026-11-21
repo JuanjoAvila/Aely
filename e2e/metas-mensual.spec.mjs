@@ -35,7 +35,11 @@ async function disk(page){ return page.evaluate(()=>{
 }); }
 async function saved(page,amount){
   // Se comprueba la cifra del progreso, no un porcentaje o el nombre de la regla.
-  await expect(page.locator("[data-goal-id]").filter({hasText:goal.name}).locator(".v4-debt-sub")).toHaveText(new RegExp("^"+amount+"\\s"));
+  await page.locator("[data-goal-id]").filter({hasText:goal.name}).click();
+  const ficha=page.getByTestId("plan-meta-ficha");
+  await expect(ficha.getByTestId("goal-saved")).toHaveText(new RegExp("^"+amount+"\\s"));
+  await ficha.locator(".rpt-sx").click();
+  await expect(ficha).toHaveCount(0);
 }
 async function presupuesto(page,amount){
   await nav(page,"gastos");

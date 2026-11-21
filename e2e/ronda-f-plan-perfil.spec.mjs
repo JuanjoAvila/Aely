@@ -51,10 +51,20 @@ test("Metas: «Ahorro mensual» son las reglas, sin la aportación al bróker, y
   await expect(reglas).toContainText("Ahorro mensual");
   await expect(metas(page).getByText("Reservar dinero de tus ingresos")).toHaveCount(0);
   // Con 200 € al bróker y sin reglas, la meta no promete fecha; la de la regla, sí y con su ritmo.
-  await expect(metas(page).locator('[data-goal-id="g-sin"] .goal-eta')).toHaveCount(0);
-  await expect(metas(page).locator('[data-goal-id="g-con"] .goal-eta')).toContainText("100");
+  // Plan A: la previsión y el ritmo viven en la ficha de la meta (Estado y Al mes).
+  const fichaMeta = page.getByTestId("plan-meta-ficha");
+  await metas(page).locator('[data-goal-id="g-sin"]').click();
+  await expect(fichaMeta).toContainText("Sin previsión");
+  await fichaMeta.locator(".rpt-sx").click();
+  await expect(fichaMeta).toHaveCount(0);
+  await metas(page).locator('[data-goal-id="g-con"]').click();
+  await expect(fichaMeta).toContainText("100");
+  await fichaMeta.locator(".rpt-sx").click();
+  await expect(fichaMeta).toHaveCount(0);
   await expect(metas(page).getByRole("button", { name: "Añadir ahorro" })).toBeVisible();
-  await expect(metas(page).getByRole("button", { name: /^Aportar$/ }).first()).toBeVisible();
+  // Plan A: «Aportar» vive en el pie de la ficha de la meta.
+  await metas(page).locator('[data-goal-id="g-con"]').click();
+  await expect(page.getByTestId("plan-meta-ficha").locator('[data-act="ficha-aportar"]')).toBeVisible();
 });
 
 test("Inicio › Tus metas usa el mismo ritmo que Metas", async ({ page }) => {
@@ -191,7 +201,8 @@ test("diálogo con campo a 360, Enorme y teclado: campo, atajos y botones a la v
   await abre(page, { settings: { ...estado().settings, textSize: "huge" } });
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await page.locator(".page-scroll-host .v4-seg-btn").filter({ hasText: "Deudas" }).first().click();
-  await page.locator('[data-debt-id="d1"]').getByRole("button", { name: /^Editar / }).click();
+  await page.locator('[data-debt-id="d1"]').click();
+  await page.locator('[data-act="ficha-editar"]').click();
   await page.getByRole("button", { name: "Amortizar ahora" }).click();
   const hoja = page.locator(".askback .tabsheet");
   await expect(hoja.locator(".ask-in")).toBeVisible();

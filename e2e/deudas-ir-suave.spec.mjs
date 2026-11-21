@@ -24,8 +24,8 @@ test.beforeEach(async ({ page }) => {
 
 const YM = 2026 * 12 + 8;
 const settings = { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["trade_republic"] };
-// Siete deudas: la última queda muy por debajo de la pantalla y hay que bajar a por ella.
-const debts = Array.from({ length: 7 }, (_, i) => ({ id: "d" + i, ent: "familia", name: "Deuda " + i, value: 900 + i, original: 1200,
+// Dieciséis deudas (las filas son compactas desde Plan A): la última queda muy por debajo de la pantalla y hay que bajar a por ella.
+const debts = Array.from({ length: 16 }, (_, i) => ({ id: "d" + i, ent: "familia", name: "Deuda " + i, value: 900 + i, original: 1200,
   monthly: 100 + i, amort: 100, months: 12, day: 27 + (i % 3), asOf: YM - 1, account: "trade_republic" }));
 const fixed = Array.from({ length: 6 }, (_, i) => ({ id: "f" + i, name: "Recibo " + i, amount: 20 + i, freq: "mes", day: 27 + (i % 3), account: "trade_republic" }));
 const accounts = [{ id: "tr", ent: "trade_republic", name: "Efectivo", value: 5000, role: "diario", spendFrom: true }];
@@ -69,14 +69,14 @@ test("desde Plan › Recibos: la cuota lleva a su deuda deslizando, y queda ente
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const due = page.locator('.page-live .v4-screen > [data-seg="recibos"]').getByTestId("plan-due");
   await due.getByRole("button", { name: /Ver los/ }).click();
-  const fila = due.locator(".v4-charge").filter({ hasText: "Deuda 6" });
+  const fila = due.locator(".v4-charge").filter({ hasText: "Deuda 15" });
   await fila.scrollIntoViewIfNeeded();
   // Desde la 4.26.200 la cuota abre su ficha (con el cargo enlazado en Gastos) y «Ver en Deudas» lleva a ella.
   await fila.click();
   await page.locator('.v4-sheet[data-sheet="deuda"] [data-act="ver-deuda"]').click();
-  await grabaScroll(page, "d6");
+  await grabaScroll(page, "d15");
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
-  await enVista(page, "d6");
+  await enVista(page, "d15");
   // Entra con la animación de las secciones y se resalta, sin inventar otra transición.
   await expect(page.locator('[data-seg="deudas"]').first()).not.toHaveClass(/v4-seg-enter-down/, { timeout: 2_000 });
   expect(await page.evaluate(() => window.__scrollPedidos.map((p) => p.behavior))).toContain("smooth");
@@ -99,14 +99,14 @@ test("desde Tus recibos: la cuota descubre su deuda ya en su sitio, en un solo m
   await page.locator('.page-live .v4-screen > [data-seg="recibos"]').getByTestId("plan-todos").click();
   const hub = page.locator('[data-bills-manage] [data-screen="bills-home"]');
   await hub.locator('[data-mg-more="debt"]').click();
-  const fila = hub.locator('[data-mg-sec="debt"] [data-bill-id="d6"]');
+  const fila = hub.locator('[data-mg-sec="debt"] [data-bill-id="d15"]');
   await fila.scrollIntoViewIfNeeded();
   await page.waitForTimeout(500);
   const f = await page.evaluate(() => new Promise((ok) => {
     const push = document.querySelector("[data-bills-manage]"), out = [], t0 = performance.now();
-    document.querySelector('[data-mg-sec="debt"] [data-bill-id="d6"]').click();
+    document.querySelector('[data-mg-sec="debt"] [data-bill-id="d15"]').click();
     const paso = () => {
-      const c = document.querySelector('[data-debt-id="d6"]'), pg = c && c.closest(".page"), capa = document.querySelector('.page-live .v4-screen > [data-seg="deudas"]');
+      const c = document.querySelector('[data-debt-id="d15"]'), pg = c && c.closest(".page"), capa = document.querySelector('.page-live .v4-screen > [data-seg="deudas"]');
       const p = document.querySelector("[data-bills-manage]");
       out.push({ t: performance.now() - t0, x: p ? p.getBoundingClientRect().left : null, st: pg ? Math.round(pg.scrollTop) : null,
         entra: !!(capa && /v4-seg-enter/.test(capa.className)), foco: !!(c && c.classList.contains("v4-foco")) });
@@ -116,7 +116,7 @@ test("desde Tus recibos: la cuota descubre su deuda ya en su sitio, en un solo m
   }));
   const dbg = JSON.stringify(f.map((x) => Math.round(x.t) + ":" + (x.x == null ? "-" : Math.round(x.x)) + "/" + x.st));
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
-  await enVista(page, "d6");
+  await enVista(page, "d15");
   const fin = f[f.length - 1].st;
   // Mientras Tus recibos se va, la página de debajo ya está quieta en la tarjeta: nada se mueve a la vez.
   const saliendo = f.filter((x) => x.x != null && x.x > 2);
@@ -133,7 +133,7 @@ test("desde Tus recibos: la cuota descubre su deuda ya en su sitio, en un solo m
 });
 
 test("desde Gastos: «Abrir en Plan · Deudas» con cuotas de una sola deuda aterriza en su tarjeta", async ({ page }) => {
-  await abre(page, { expenses: [{ id: "c6", merchant: "CUOTA D6", date: "2026-09-20T12:00:00Z", amount: 106, category: "deudas", debtId: "d6", source: "ob", ent: "trade_republic" }] });
+  await abre(page, { expenses: [{ id: "c6", merchant: "CUOTA D15", date: "2026-09-20T12:00:00Z", amount: 115, category: "deudas", debtId: "d15", source: "ob", ent: "trade_republic" }] });
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(gastosCifra(page)).toBeVisible();
   const gris = gastosRoot(page).locator('[data-gx-day="20260920"] .gx-gris[data-gris="deuda"]');
@@ -141,7 +141,7 @@ test("desde Gastos: «Abrir en Plan · Deudas» con cuotas de una sola deuda ate
   await gris.locator(".gx-gris-plan").click();
   await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
   await expect(page.locator('.page-scroll-host .v4-seg-btn.on')).toContainText("Deudas");
-  await enVista(page, "d6");
+  await enVista(page, "d15");
 });
 
 test("con movimiento reducido llega igual de exacto, sin deslizar ni resaltar", async ({ page }) => {
@@ -150,10 +150,10 @@ test("con movimiento reducido llega igual de exacto, sin deslizar ni resaltar", 
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const due = page.locator('.page-live .v4-screen > [data-seg="recibos"]').getByTestId("plan-due");
   await due.getByRole("button", { name: /Ver los/ }).click();
-  const fila = due.locator(".v4-charge").filter({ hasText: "Deuda 6" });
+  const fila = due.locator(".v4-charge").filter({ hasText: "Deuda 15" });
   await fila.scrollIntoViewIfNeeded();
   await fila.click();
   await page.locator('.v4-sheet[data-sheet="deuda"] [data-act="ver-deuda"]').click();
-  await enVista(page, "d6");
+  await enVista(page, "d15");
   expect(await page.evaluate(() => window.__scrollPedidos.map((p) => p.behavior))).not.toContain("smooth");
 });
