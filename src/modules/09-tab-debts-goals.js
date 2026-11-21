@@ -697,17 +697,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       if(doAmort(d, parseFloat(String(raw).replace(',','.'))||0)&&hecho) hecho();
     });
   };
-  // Cuotas que quedan: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
-  // a mano) se ESTIMA con el ritmo de amortización actual. Devuelve {n,tot} o null.
   const leftInfo=debtLeftInfo;
+  // «Acabas en …» de una deuda. La cuenta del mes es `debtUltimoMes` (17-plan-reparto.js), la MISMA que usa la
+  // escalera de la ficha: una sola fuente para que las dos fechas no se separen (test plan-fin-deuda).
   const endsLabel=function(d){
-    // Mismo texto para TODAS las deudas (feedback 2026-07-21: el «a este ritmo acabas ~» de
-    // hipoteca/préstamo cantaba distinto del «acabas en» de las financiaciones). La fecha sin
-    // plazo sigue siendo una estimación con la amortización actual, igual de honesta.
-    const li=leftInfo(d);
-    if(!li) return null;
-    const p=madridYmdParts(Date.now()), m=p.m-1+li.n;
-    return tf("v4_debts_ends",{d:monthLong(m%12)+" "+(p.y+Math.floor(m/12))});
+    const m=debtUltimoMes(d,undefined,leftInfo(d));
+    if(m==null) return null;
+    return tf("v4_debts_ends",{d:monthLong(m%12)+" "+Math.floor(m/12)});
   };
   const editor=editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
     onClose:function(){setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},

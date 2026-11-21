@@ -243,21 +243,32 @@ function planReparto(state, o){
     nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso};
 }
 
+/* MES DE LA ÚLTIMA CUOTA de una deuda (año*12+mes0), o null sin plazo ni saldo. UNA sola fuente: la usan la
+   fecha «acabas en» de la ficha y la escalera. Con plazo, `debtLeft` solo descuenta la cuota de ESTE mes si su
+   día ya pasó: si aún está por cobrar sigue contando y la última cae en mes actual + n − 1. Una compra con
+   el ancla en un mes futuro aún no ha pagado nada: su 1.ª cuota cae en el ancla y la última en ancla + n − 1.
+   Sin plazo (saldo estimado) el saldo solo baja al cambiar de mes: mes actual + n. */
+function debtUltimoMes(d, nowMs, li){
+  if(li===undefined) li=debtLeftInfo(d);
+  if(!li) return null;
+  const p=madridYmdParts(nowMs!=null?nowMs:Date.now());
+  const futura=d.months!=null&&li.n>0&&typeof d.asOf==="number"&&d.asOf>ymAbs(p.y,p.m-1);
+  const pendiente=d.months!=null&&li.n>0&&!futura&&debtChargeDay(d,p.y,p.m)>p.d;
+  return futura?d.asOf+li.n-1:p.y*12+p.m-1+li.n-(pendiente?1:0);
+}
 /* LA ESCALERA DE CUOTAS (ficha de Deudas): cuánto pagas de cuotas hoy y cuánto bajará cuando acabe cada
    deuda, en orden de fin. Cifras de TU parte (la misma que el reparto) y fechas del plan; sin plazo,
    estimadas con lo que amortizas (`debtLeftInfo`). Sin saldo o sin cuota que acabe, la deuda no sale.
    → {hoy: céntimos, pasos:[{id, v: céntimos que quedan, ultimo: mes absoluto (año*12+mes0) de su última
    cuota, desde: el mes siguiente, final: céntimos del pago final}]} */
 function deudasEscalera(state, nowMs){
-  const hoy=madridYmdParts(nowMs!=null?nowMs:Date.now()), ahora=hoy.y*12+hoy.m-1;
+  const hoy=madridYmdParts(nowMs!=null?nowMs:Date.now());
   const vivas=[];
   (state&&state.debts||[]).forEach(function(d){
     if(!d||!debtActive(d)) return;
     const q=repCuotaPropia(state,d,hoy.y,hoy.m,hoy.d), li=debtLeftInfo(d);
     if(!(q.propia>0)||!li||!(li.n>0)) return;
-    // Con plazo, la cuota de este mes ya cuenta como pagada si pasó su día; sin plazo, aún se debe.
-    const incluyeEste=d.months==null||!(debtChargeDay(d,hoy.y,hoy.m)<=hoy.d);
-    vivas.push({id:d.id,c:q.propia,ultimo:ahora+(incluyeEste?li.n-1:li.n),final:repCts(d.balloon)});
+    vivas.push({id:d.id,c:q.propia,ultimo:debtUltimoMes(d,nowMs),final:repCts(d.balloon)});
   });
   vivas.sort(function(a,b){ return a.ultimo-b.ultimo; });
   let v=vivas.reduce(function(a,x){ return a+x.c; },0);
