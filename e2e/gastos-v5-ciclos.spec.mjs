@@ -118,7 +118,7 @@ test("Mi ciclo tiene su fila de ciclos, marcada; cambiar de ciclo cambia lista, 
   // 30 × 10 − 25 de la devolución; la nómina que abre el ciclo no suma. Sin límite: es pasado.
   await expect(gastosCifra(page)).toHaveText("275,00 €");
   await expect(gastosEstado(page)).toHaveText("24 ago – 23 sep");
-  await expect(gastosRoot(page).getByTestId("gastos-desglose")).toHaveText("gastos 300,00 € · ingresos 25,00 €");
+  await expect(gastosRoot(page).getByTestId("gastos-desglose")).toHaveText("gastos 300,00 € · otros ingresos 25,00 €");
   await alFinal(page);
   expect(await sumaDias(page), "los días suman la cifra de arriba").toBe(275);
   // Abajo del todo, lo sumado va del inicio del ciclo al último día de la lista.

@@ -3379,11 +3379,11 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
         onClose:function(){setReviewBill(null);closeDetail();}, onRemove:removeWithUndo
       })),
       addStep && React.createElement(BillsAddWizard,{
-        step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
+        step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList, destinos:banks.filter(function(b){ return b!=="familia"; }),
         onClose:closeAdd, set:set, onSaved:confirmSaved
       }),
       pasos && React.createElement(ReciboPasos,{key:pasos.mode+"_"+(pasos.row?pasos.row.kind+pasos.row.id:"n")+"_"+pasos.n,
-        mode:pasos.mode, row:pasos.row, once:pasos.once, flujo:pasos.flujo, nombre:pasos.nombre, conPersona:pasos.conPersona, state:state, set:set, totals:totals, banks:bankList,
+        mode:pasos.mode, row:pasos.row, once:pasos.once, flujo:pasos.flujo, nombre:pasos.nombre, conPersona:pasos.conPersona, state:state, set:set, totals:totals, banks:bankList, destinos:banks.filter(function(b){ return b!=="familia"; }),
         onClose:closePasos, onSaved:confirmSaved, onRemove:removeWithUndo,
         onEditOther:function(id){ const r=billsGroupRows(state,"serv",cm,cy).find(function(x){ return x.id===id; }); if(r) setPasos({mode:"edit",row:r,n:Date.now()}); }
       }),
@@ -3747,9 +3747,12 @@ function usePasosCarril(trackRef, scrollRef, paso){
     return function(){ clearTimeout(t); fin(); };
   },[paso]);
 }
-function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, totals, banks, onClose, onSaved, onEditOther, onRemove, ensayo}){
+function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, totals, banks, destinos, onClose, onSaved, onEditOther, onRemove, ensayo}){
   const edit=mode==="edit";
   const y=totals.curYear, m=totals.curMonth, today=totals.today, cur=y*12+m;
+  // El origen son los bancos de recibos; el destino, cualquier cuenta tuya: con solo un banco de
+  // recibos la lista salía vacía y no se podía crear el traspaso (caso real del 21/11/2026).
+  const bancosDestino=Array.from(new Set((destinos||[]).concat(banks)));
   /* Lo que entra y lo que mueves (`flujo`) se da de alta y se edita con ESTOS pasos desde el
      12/11/2026 («incluso la creación es diferente»): nombre, importe, cuándo, cuenta y resumen, como
      un recibo. Sin «En varios pagos» ni Más opciones (un flujo no los tiene); el día puede ir por
@@ -4159,7 +4162,7 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
     [["income","gb_flow_income"],["transfer","gb_flow_move"]].map(function(k){
       const on=f.fk===k[0];
       return React.createElement("button",{type:"button",role:"radio","aria-checked":on?"true":"false",key:k[0],className:"rp4-mode"+(on?" on":""),"data-rp4-tipo":k[0],
-        onClick:function(){ if(on) return; upd({fk:k[0],to:k[0]==="transfer"?(banks.find(function(b){ return b!==f.account; })||null):null}); toca("account"); }}, gbTxt(k[1]));
+        onClick:function(){ if(on) return; upd({fk:k[0],to:k[0]==="transfer"?(bancosDestino.find(function(b){ return b!==f.account; })||null):null}); toca("account"); }}, gbTxt(k[1]));
     }));
   const flujoSugs=esFlujo&&f.fk==="income"&&!edit&&React.createElement("div",{key:"fsg",className:"rp4-sugs"},
     ["fl_s_nomina","fl_s_pension"].map(function(k){
@@ -4341,7 +4344,7 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
       })),
     traspaso&&React.createElement("div",{key:"dl",className:"pr6-lbl"}, t("fl_t_dest")),
     traspaso&&React.createElement("div",{key:"d",className:"pr6-cands","data-rp4":"destino"},
-      banks.filter(function(b){ return b!==f.account; }).map(function(b){
+      bancosDestino.filter(function(b){ return b!==f.account; }).map(function(b){
         return bancoCand(b,f.to===b,{"data-rp4-destino":b},function(){ upd({to:b}); toca("account"); if(f.account) alResumen(); });
       }))
   ]);
@@ -4526,7 +4529,7 @@ function bankListButtons(banks, current, onPick){
     }));
 }
 
-function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSaved}){
+function BillsAddWizard({step, setStep, form, setForm, banks, destinos, onClose, set, onSaved}){
   const setF=function(patch){ setForm(function(f){ return Object.assign({},f,patch); }); };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   const stepRef=React.useRef(step), formRef=React.useRef(form);
@@ -4593,7 +4596,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     if(form.kind==="flow"){
       const it={id:uid(),kind:form.flowKind||"income",name:form.name||(form.flowKind==="income"?"Ingreso":"Movimiento"),amount:amt};
       if(form.when) it.when=form.when; else { const d=cleanDay(form.day); if(d) it.day=d; }
-      if(it.kind==="income") it.to=form.account; else { it.from=form.account; it.to=banks.find(function(b){ return b!==form.account; })||form.account; }
+      if(it.kind==="income") it.to=form.account; else { it.from=form.account; it.to=(destinos||banks).find(function(b){ return b!==form.account; })||form.account; }
       addFlowItem(set,it);
     } else if(form.kind==="oneoff"){
       const it={id:uid(),name:form.name||"Cargo",amount:amt,month:form.month,year:form.year,account:form.account};

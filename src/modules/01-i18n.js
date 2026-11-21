@@ -258,7 +258,7 @@ const LANG = {
     f_withdraw_sub:"Estos {x} pasarán a Traspaso y dejarán de contar como gasto. El importe y el origen bancario se conservan. No se sumará dinero al efectivo.",
     f_withdraw_ok:"Marcar como traspaso",
     f_withdraw_pending:"Confirmando la retirada…",
-    f_withdraw_done:"Traspaso: no cuenta como gasto.",
+    f_withdraw_done:"Traspaso: no cuenta como gasto.",f_traspaso_derivado:"Traspaso entre tus cuentas: no cuenta.",f_traspaso_no:"No es un traspaso",
     f_withdraw_unconfirmed:"Retirada sin confirmar",
     f_withdraw_error:"No se ha confirmado el cambio. Sincroniza los movimientos y revisa la categoría antes de intentarlo otra vez.",
     f_withdraw_cash_limit:"Esta retirada no suma dinero a Efectivo: aún no se puede confirmar una única suma entre móviles. Los apuntes manuales de efectivo siguen disponibles en Cartera.",
@@ -592,7 +592,7 @@ const LANG = {
     f_withdraw_sub:"These {x} will be marked as Transfer and stop counting as spending. The amount and bank origin stay the same. No money will be added to cash.",
     f_withdraw_ok:"Mark as transfer",
     f_withdraw_pending:"Confirming the withdrawal…",
-    f_withdraw_done:"Transfer: does not count as spending.",
+    f_withdraw_done:"Transfer: does not count as spending.",f_traspaso_derivado:"Transfer between your accounts: not counted.",f_traspaso_no:"Not a transfer",
     f_withdraw_unconfirmed:"Withdrawal unconfirmed",
     f_withdraw_error:"The change has not been confirmed. Sync transactions and check the category before trying again.",
     f_withdraw_cash_limit:"This withdrawal does not add money to Cash: a single addition across phones cannot yet be confirmed. Manual cash entries remain available in Portfolio.",
@@ -915,7 +915,7 @@ const LANG = {
     f_withdraw_sub:"Aquests {x} passaran a Traspàs i deixaran de comptar com a despesa. L'import i l'origen bancari es conserven. No se sumaran diners a l'efectiu.",
     f_withdraw_ok:"Marcar com a traspàs",
     f_withdraw_pending:"Confirmant la retirada…",
-    f_withdraw_done:"Traspàs: no compta com a despesa.",
+    f_withdraw_done:"Traspàs: no compta com a despesa.",f_traspaso_derivado:"Traspàs entre els teus comptes: no compta.",f_traspaso_no:"No és un traspàs",
     f_withdraw_unconfirmed:"Retirada sense confirmar",
     f_withdraw_error:"No s'ha confirmat el canvi. Sincronitza els moviments i revisa la categoria abans de tornar-ho a provar.",
     f_withdraw_cash_limit:"Aquesta retirada no suma diners a Efectiu: encara no es pot confirmar una única suma entre mòbils. Els apunts manuals d'efectiu continuen disponibles a Cartera.",
@@ -1854,7 +1854,7 @@ Object.assign(LANG.es,{gv5_spent_in:"gastado en {mes}", gv5_net_in:"balance de {
   gv5_more_sd:"{x} más que en {mes} a estas alturas", gv5_less_sd:"{x} menos que en {mes} a estas alturas", gv5_same_sd:"igual que en {mes} a estas alturas",
   gv5_cycle:"en tu ciclo", gv5_all:"todo el histórico",
   gv5_no_cuentan:"{x} · no cuentan", gv5_traspasos:"Traspasos", gv5_plan_open:"Abrir en Plan · {x}", gv5_end:"Hasta aquí: {d}",
-  gv5_net_sub:"gastos {g} · ingresos {i}", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
+  gv5_net_sub:"gastos {g} · ingresos {i}", gv5_net_sub_ciclo:"gastos {g} · otros ingresos {i}", gv5_favor:"a tu favor", gv5_meses:"Meses", gv5_periodo:"Periodo", gv5_p_months:"Meses", gv5_p_range:"Rango"});
 Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {mes}",
   gv5_hasta_dia:"through day {d}", gv5_hasta:"through {d}",
   gv5_closed:"{mes} · closed", gv5_over:"{x} over", gv5_under:"{x} under",
@@ -1862,7 +1862,7 @@ Object.assign(LANG.en,{gv5_spent_in:"spent in {mes}", gv5_net_in:"balance for {m
   gv5_more_sd:"{x} more than {mes} at this point", gv5_less_sd:"{x} less than {mes} at this point", gv5_same_sd:"same as {mes} at this point",
   gv5_cycle:"in your cycle", gv5_all:"all history",
   gv5_no_cuentan:"{x} · don't count", gv5_traspasos:"Transfers", gv5_plan_open:"Open in Plan · {x}", gv5_end:"That's everything: {d}",
-  gv5_net_sub:"spent {g} · income {i}", gv5_meses:"Months", gv5_periodo:"Period", gv5_p_months:"Months", gv5_p_range:"Range"});
+  gv5_net_sub:"spent {g} · income {i}", gv5_net_sub_ciclo:"spent {g} · other income {i}", gv5_favor:"in your favour", gv5_meses:"Months", gv5_periodo:"Period", gv5_p_months:"Months", gv5_p_range:"Range"});
 Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {mes}",
   gv5_hasta_dia:"fins al dia {d}", gv5_hasta:"fins al {d}",
   gv5_closed:"{mes} · tancat", gv5_over:"{x} per sobre", gv5_under:"{x} per sota",
@@ -1870,7 +1870,7 @@ Object.assign(LANG.ca,{gv5_spent_in:"gastat al {mes}", gv5_net_in:"balanç al {m
   gv5_more_sd:"{x} més que al {mes} a aquestes alçades", gv5_less_sd:"{x} menys que al {mes} a aquestes alçades", gv5_same_sd:"igual que al {mes} a aquestes alçades",
   gv5_cycle:"al teu cicle", gv5_all:"tot l'historial",
   gv5_no_cuentan:"{x} · no compten", gv5_traspasos:"Traspassos", gv5_plan_open:"Obre al Pla · {x}", gv5_end:"Fins aquí: {d}",
-  gv5_net_sub:"despeses {g} · ingressos {i}", gv5_meses:"Mesos", gv5_periodo:"Període", gv5_p_months:"Mesos", gv5_p_range:"Rang"});
+  gv5_net_sub:"despeses {g} · ingressos {i}", gv5_net_sub_ciclo:"despeses {g} · altres ingressos {i}", gv5_favor:"a favor teu", gv5_meses:"Mesos", gv5_periodo:"Període", gv5_p_months:"Mesos", gv5_p_range:"Rang"});
 // «Es aportación a la meta X» en la ficha de un gasto y su fila gris de Metas (24/10/2026).
 Object.assign(LANG.es,{f_meta_row:"Es aportación a una meta", f_meta_hint:"Elige la meta: el cargo deja de contar como gasto y suma a lo ahorrado.",
   f_meta_quitar:"No es una aportación", f_meta_otra:"Este cargo ya cuenta en el Plan como cuota o recibo. Cada gasto lleva una sola marca.",
@@ -3112,7 +3112,7 @@ function gastoDelSobre(gastos, s){
 }
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
-  if(!e || CAT_NEUTRAS[e.category]) return false;
+  if(!e || CAT_NEUTRAS[e.category] || traspasoPropioDerivado(e,s)) return false;
   // El servidor excluye lápidas; contarlas aquí hacía saltar el gasto del widget al pagar
   // con la app cerrada (27/9/2026). No se altera cash: sus bases pueden estar ya ancladas
   // incluyendo estas filas. Las lápidas cambian por copia; el índice evita N recorridos.
@@ -3154,14 +3154,14 @@ function expenseBucket(e, s){
      «+291,25 Traspaso» salían en verde normal sin sumar. Ahora dicen «no es del día a día» / «no es
      un gasto», igual que un gasto de ese banco o una inversión. */
   if((e.amount||0)<0){
-    if(CAT_NEUTRAS[e.category]) return "neutra";
+    if(CAT_NEUTRAS[e.category]||traspasoPropioDerivado(e,s)) return "neutra";
     if(!expenseCountsCash(e, s)) return "otrobanco";
     return "ingreso";
   }
   if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
   if(cargoDeRecibo(e, s)) return "recibo";
   if(metaDeGasto(e)) return "meta";
-  if(CAT_NEUTRAS[e.category]) return "neutra";
+  if(CAT_NEUTRAS[e.category]||traspasoPropioDerivado(e,s)) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
   return "cuenta";
 }

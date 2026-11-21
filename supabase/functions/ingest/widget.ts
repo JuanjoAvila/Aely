@@ -67,9 +67,11 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   const start: number = candidateStart;
   // El mes de Madrid incluye sus días futuros, pero ni movimientos ni reservas del siguiente.
   const w = data.widgetPeriod, cycle = w.kind === "ciclo", end = cycle ? tomorrow(now) : inicioDeMesMs(start + 35 * 864e5);
+  // La app dice qué filas son un traspaso entre cuentas propias: aquí valen como neutras, sin tocarlas.
+  const traspasos = new Set<string>(Array.isArray(data.widgetPeriod?.traspasos) ? data.widgetPeriod.traspasos.filter((k: unknown) => typeof k === "string") : []);
   const visible = filasComoLaApp(rows, data.deleted, data.obAbsorbedPending, owner, data.obAbsorbedConfirmed).filter(f => {
     const ms = Date.parse(String(f.fecha)); return ms >= start && ms < end;
-  });
+  }).map(f => traspasos.has(claveComoLaApp(f)) ? { ...f, cat: "traspaso" } : f);
   // Una lectura vacía/parcial o una fila retirada no prueba el delta de este pago.
   if (!visible.some(f => String(f.id) === payment.id)) return null;
   if (cycle) {
@@ -136,7 +138,8 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   // Las listas entran en el alcance como en `widgetScopeOf`, solo si la web las escribió, y en el
   // hueco del ancla (vacío en el mes): el nativo exige 8 elementos y un noveno lo descartaba (26/10/2026).
   const parts: unknown[] = [2, start, w.kind, cycle ? "neto" : "gasto",
-    conListas ? [[...nominas].sort(), [...noNominas].sort()] : (w.anchor || ""),
+    conListas ? [[...nominas].sort(), [...noNominas].sort(), ...(traspasos.size ? [[...traspasos].sort()] : [])]
+      : cycle && traspasos.size ? [w.anchor || "", [...traspasos].sort()] : (w.anchor || ""),
     budgetKnown ? after.budget : null, ents.slice().sort(), bank?.ent || ""];
   const scope = JSON.stringify(parts);
   // No repetir un scope de la app si reservas/bancos/ancla ya han cambiado en la nube.

@@ -498,9 +498,12 @@ export type StatsMes = {
 // deno-lint-ignore no-explicit-any
 export function statsDelMes(filas: FilaGasto[], data: any, desdeMs: number): StatsMes {
   const ents = bancosDeGastoDiario(data);
+  // Los traspasos entre cuentas propias los reconoce la app (conoce Plan y al titular) y deja sus claves.
+  const lista = data?.widgetPeriod?.traspasos;
+  const traspasos = new Set<string>(Array.isArray(lista) ? lista.filter((k: unknown) => typeof k === "string") : []);
   let spent = 0, income = 0;
   for (const f of filas || []) {
-    if (!cuentaParaPresupuesto(f, ents)) continue;
+    if (!cuentaParaPresupuesto(f, ents) || traspasos.has(claveComoLaApp(f))) continue;
     const n = Number(f.importe) || 0;
     if (n > 0) spent += n; else if (n < 0) income += Math.abs(n);
   }

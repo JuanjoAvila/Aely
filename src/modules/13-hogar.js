@@ -41,6 +41,8 @@ function buildHouseholdSnapshot(state, totals, email){
     if(cargoDeRecibo(e, state)) return;
     // Lo que va a una meta no es gasto: tampoco lo es en la foto del hogar.
     if(metaDeGasto(e)) return;
+    // Dinero que cambia de cuenta: la foto del hogar lo enseñaría como gasto de «Otros».
+    if(traspasoPropioDerivado(e,state)) return;
     const k=e.category||"otros";
     byCat[k]=(byCat[k]||0)+e.amount;
   });
