@@ -133,7 +133,7 @@ function planReparto(state, o){
   const viva=function(e){ return e&&!e.possibleDup&&!e.autoGemelo&&!expenseIsTombstoned(e,delSet); };
   const sinEnlazar=repCuotasSinEnlazar(state);
   /* ---- Entra, y lo que se gastó ---- */
-  let entra=0, devolucion=0, nominaLlego=false, gastado=0, metaGastos={}, inversion=0;
+  let entra=0, devolucion=0, traspaso=0, nominaLlego=false, gastado=0, metaGastos={}, inversion=0;
   const desdePrevio=P.startMs-REP_DIAS_ENTRADA_PREVIA*864e5;
   let nominaAntes=flows.length>0;
   (state.expenses||[]).forEach(function(e){
@@ -142,7 +142,7 @@ function planReparto(state, o){
     if(neg&&!nominaAntes&&ms>=desdePrevio&&ms<P.startMs&&e.amount<=-200&&viva(e)&&!CAT_NEUTRAS[e.category]&&esNomina(e,flows)) nominaAntes=true;
     if(ms<P.startMs||ms>=P.gastoEndMs||!viva(e)) return;
     if(neg){
-      if(CAT_NEUTRAS[e.category]) return;
+      if(CAT_NEUTRAS[e.category]){ if(e.category==="traspaso") traspaso+=repCts(-e.amount); return; }
       const c=repCts(-e.amount);
       if(repEsDevolucion(e)) devolucion+=c;
       else{
@@ -240,5 +240,59 @@ function planReparto(state, o){
     rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoBruto:bud,reservasC:reservasC,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
-    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion};
+    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso};
+}
+
+/* LA ESCALERA DE CUOTAS (ficha de Deudas): cuánto pagas de cuotas hoy y cuánto bajará cuando acabe cada
+   deuda, en orden de fin. Cifras de TU parte (la misma que el reparto) y fechas del plan; sin plazo,
+   estimadas con lo que amortizas (`debtLeftInfo`). Sin saldo o sin cuota que acabe, la deuda no sale.
+   → {hoy: céntimos, pasos:[{id, v: céntimos que quedan, ultimo: mes absoluto (año*12+mes0) de su última
+   cuota, desde: el mes siguiente, final: céntimos del pago final}]} */
+function deudasEscalera(state, nowMs){
+  const hoy=madridYmdParts(nowMs!=null?nowMs:Date.now()), ahora=hoy.y*12+hoy.m-1;
+  const vivas=[];
+  (state&&state.debts||[]).forEach(function(d){
+    if(!d||!debtActive(d)) return;
+    const q=repCuotaPropia(state,d,hoy.y,hoy.m,hoy.d), li=debtLeftInfo(d);
+    if(!(q.propia>0)||!li||!(li.n>0)) return;
+    // Con plazo, la cuota de este mes ya cuenta como pagada si pasó su día; sin plazo, aún se debe.
+    const incluyeEste=d.months==null||!(debtChargeDay(d,hoy.y,hoy.m)<=hoy.d);
+    vivas.push({id:d.id,c:q.propia,ultimo:ahora+(incluyeEste?li.n-1:li.n),final:repCts(d.balloon)});
+  });
+  vivas.sort(function(a,b){ return a.ultimo-b.ultimo; });
+  let v=vivas.reduce(function(a,x){ return a+x.c; },0);
+  const hoyC=v, pasos=vivas.map(function(x){ v-=x.c; return {id:x.id,c:x.c,v:Math.max(0,v),ultimo:x.ultimo,desde:x.ultimo+1,final:x.final}; });
+  return {hoy:hoyC,pasos:pasos};
+}
+/* Lo de arriba de Metas: lo que apartas al mes y lo que te falta para llegar a tiempo. La previsión de
+   cada meta es la de siempre (`goalEta` con `metaRitmoMensual`); aquí solo se suma. */
+function metasResumen(state){
+  let ritmo=0, ahorrado=0, objetivo=0, hueco=0, vencidas=0;
+  (state&&state.goals||[]).forEach(function(g){
+    if(!g) return;
+    const gv=metaConAportes(g,state);
+    ahorrado+=repCts(gv.saved); objetivo+=repCts(g.target);
+    if(g.done||goalRemaining(gv)<=0) return;
+    const r=repCts(metaRitmoMensual(state,g));
+    ritmo+=r;
+    const eta=goalEta(gv,metaRitmoMensual(state,g));
+    if(eta.cls!=="warn") return;
+    const dl=monthsUntil(g.deadline);
+    if(dl!=null&&dl<=0) vencidas++;
+    else if(dl!=null) hueco+=Math.max(0,Math.ceil(repCts(goalRemaining(gv))/dl)-r);
+  });
+  return {ritmo:ritmo,ahorrado:ahorrado,objetivo:objetivo,hueco:hueco,vencidas:vencidas};
+}
+
+/* EL ICONO SALE DEL NOMBRE (no lo elige nadie). Por palabra entera: «casa» a secas no es la hipoteca (una
+   «financiación del gimnasio en casa» salía con la casita) y «uni» dentro de «unidad» no es estudios.
+   Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica. */
+function debtIcoKind(name){
+  const n=String(name||"").toLowerCase();
+  const w=function(re){ return new RegExp("(^|[^a-záéíóúàèòïüñç])(?:"+re+")(?=$|[^a-záéíóúàèòïüñç])").test(n); };
+  // Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica: «Mamá»
+  // con una tarjeta parecía una financiación del banco (auditoría 237, P2-7). Va por palabra entera
+  // para que «papelería» no sea «papá».
+  const persona=/(^|[^a-záéíóúàèòïüñç])(mam[aá]|pap[aá]|madre|padre|famil\w*|herman[oa]s?|abuel[oa]s?|t[ií][oa]s?|amig[oa]s?|suegr[oa]s?|mum|mom|dad|mother|father|brother|sister|friend|grandma|grandpa|mare|pare|germ[àa]n?a?|avi|[àa]via)(?=$|[^a-záéíóúàèòïüñç])/;
+  return w("coche|auto|car|seat|bmw|moto")?"car":w("hipoteca|hipotecas|mortgage|piso|vivienda")?"home":w("m[óo]vil|phone|iphone")?"phone":w("estudios?|m[áa]ster|master|universidad|uni|carrera")?"study":persona.test(n)?"person":"card";
 }

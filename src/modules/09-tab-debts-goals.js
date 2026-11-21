@@ -700,12 +700,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
   /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
      vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
   const debtIco=function(d){
-    const n=String(d.name||"").toLowerCase();
-    // Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica: «Mamá»
-    // con una tarjeta parecía una financiación del banco (auditoría 237, P2-7). Va por palabra entera
-    // para que «papelería» no sea «papá».
-    const persona=/(^|[^a-záéíóúàèòïüñç])(mam[aá]|pap[aá]|madre|padre|famil\w*|herman[oa]s?|abuel[oa]s?|t[ií][oa]s?|amig[oa]s?|suegr[oa]s?|mum|mom|dad|mother|father|brother|sister|friend|grandma|grandpa|mare|pare|germ[àa]n?a?|avi|[àa]via)(?=$|[^a-záéíóúàèòïüñç])/;
-    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":persona.test(n)?"person":"card";
+    const k=debtIcoKind(d.name);
     return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
       DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
   };

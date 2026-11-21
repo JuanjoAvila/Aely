@@ -174,6 +174,44 @@ const SUITE=[
   const n=c.planReparto(Object.assign({},s,{settings:{expenseBanks:["sabadell"]}}),{});
   assert.equal(n.periodo.cycle,false);assert.equal(n.rec,Math.round((95+40+12+7)*100));assert.equal(n.gastado,102900);
 }],
+["Traspaso propio: se enseña aparte y no suma a lo que entra",c=>{
+  const r=c.planReparto(base({expenses:base().expenses.concat([mov("t1",7,-500,{category:"traspaso"})])}),{});
+  assert.equal(r.traspaso,50000);assert.equal(r.entra,300000);
+}],
+["Escalera: tu cuota hoy y cuánto baja al acabar cada deuda, en orden de fin",c=>{
+  const largo=deuda({id:"dl",monthly:300,months:40,asOf:NOV-6,day:5});
+  const corto=deuda({id:"dc",monthly:50,months:10,asOf:NOV-6,day:25,value:500,name:"Corta"});
+  const medio=deuda({id:"dm",monthly:100,months:12,asOf:NOV-6,day:10,value:1200,name:"Media"});
+  const e=c.deudasEscalera(base({debts:[largo,corto,medio]}));
+  assert.equal(e.hoy,45000);
+  assert.deepEqual(Array.from(e.pasos.map(x=>x.id)),["dc","dm","dl"],"orden de fin");
+  assert.deepEqual(Array.from(e.pasos.map(x=>x.v)),[40000,30000,0]);
+  // dc: 10 cuotas con 6 pagadas y la del día 25 aún sin pagar: quedan 4 (nov, dic, ene, feb) y baja desde marzo.
+  assert.equal(e.pasos[0].ultimo,2026*12+10+3);
+  assert.equal(e.pasos[0].desde,e.pasos[0].ultimo+1);
+  // Una deuda con descuento escala con tu parte entera (banco + descontado).
+  assert.equal(c.deudasEscalera(base({debts:[deuda()],fixed:[reciboAna]})).hoy,30000);
+  // Sin deudas vivas no hay escalera.
+  assert.deepEqual(JSON.parse(JSON.stringify(c.deudasEscalera(base({debts:[deuda({months:6,asOf:NOV-12})]})))),{hoy:0,pasos:[]});
+}],
+["Metas arriba: ritmo, hueco para llegar a tiempo y fechas pasadas con la previsión de siempre",c=>{
+  const gs=[meta({id:"a",target:1200,saved:0,monthly:50,deadline:"2027-11"}),
+    meta({id:"b",target:600,saved:0,monthly:200,deadline:"2027-05"}),
+    meta({id:"c",target:500,saved:100,monthly:null,deadline:"2026-09"}),
+    meta({id:"d",target:100,saved:100,monthly:null,done:true})];
+  const r=c.metasResumen(base({goals:gs}));
+  assert.equal(r.ritmo,25000);assert.equal(r.vencidas,1);
+  assert.equal(r.hueco,Math.ceil(120000/12)-5000,"solo la que va tarde, lo que le falta al mes");
+  assert.equal(r.ahorrado,20000);assert.equal(r.objetivo,240000);
+}],
+["Icono de deuda: «casa» en el nombre no fuerza la casa",c=>{
+  const k=n=>c.debtIcoKind(n);
+  assert.equal(k("Financiación del gimnasio en casa con cinta"),"card");
+  assert.equal(k("Hipoteca del piso"),"home");assert.equal(k("Préstamo del coche"),"car");
+  assert.equal(k("Reforma de la casa"),"card","«casa» a secas no es la hipoteca");
+  assert.equal(k("Móvil nuevo"),"phone");assert.equal(k("Préstamo a mamá"),"person");
+  assert.equal(k("Máster de la universidad"),"study");assert.equal(k("Unidad de cocina"),"card","«uni» dentro de otra palabra no es estudios");
+}],
 ["Interruptor: la reserva se calcula, mueve el dinero de Gastos a Libre y no escribe nada",c=>{
   const off=base({debts:[deuda()],fixed:[reciboAna]}),on=base({debts:[deuda({restarPres:true})],fixed:[reciboAna]});
   const antes=JSON.stringify(on),a=c.planReparto(off,{}),b=c.planReparto(on,{});
@@ -246,7 +284,7 @@ const MUTANTES=[
   ["El cargo de cuota sin enlazar cuenta como gasto","if(!sinEnlazar.has(e)) gastado+=c;","gastado+=c;"],
   ["El interruptor no baja el límite","limRaw=bud==null?null:bud-reservasC-resD.total","limRaw=bud==null?null:bud-reservasC"],
   ["Libre mal calculado","libre=entraC==null?null:entraC-total,","libre=entraC==null?null:entraC-total+1,"],
-  ["Los traspasos entran como ingreso","if(CAT_NEUTRAS[e.category]) return;\n      const c=repCts(-e.amount);","const c=repCts(-e.amount);"],
+  ["Los traspasos entran como ingreso","if(CAT_NEUTRAS[e.category]){ if(e.category===\"traspaso\") traspaso+=repCts(-e.amount); return; }","if(false){ return; }"],
   ["Una reserva no cuenta como Meta","reservasC+=c;","reservasC+=0;"],
   ["El saldo justo no cubre","saldoC>=quedaC","saldoC>quedaC"],
   ["El ciclo no acota recibos","return v>=k(P.ini.y,P.ini.m,P.ini.d) && v<k(P.fin.y,P.fin.m,P.fin.d);","return true;"],
