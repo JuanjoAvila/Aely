@@ -72,9 +72,22 @@ const BANCOS_CON_LOGO={sabadell:1,revolut:1,trade_republic:1,myinvestor:1,caixab
    que se lee. Un billete con su moneda delante — distinto de un vistazo de cualquier logo de
    banco, que es de lo que se trata. */
 const ENTS_DIBUJADAS={efectivo:"efectivo.svg"};
-function Mono({ent, size, logo}){
+/* Monograma para un banco que Enable Banking nombra pero la app no mapea a ENT (Mis bancos →
+   «Otro banco»). Sin esto caía al «··» genérico con nombres raros, cortos o con acentos. */
+function aspspMono(name){
+  const raw=String(name||"").trim();
+  const trozos=raw.replace(/[^\p{L}\p{N} ]+/gu," ").trim().split(/\s+/).filter(Boolean);
+  let ini;
+  if(trozos.length>=2) ini=trozos.slice(0,2).map(function(w){ return w[0]||""; }).join("");
+  else if(trozos.length===1) ini=trozos[0].slice(0,4);
+  else ini=raw.replace(/[^\p{L}\p{N}]/gu,"").slice(0,4);
+  ini=String(ini||"").replace(/[^\p{L}\p{N}]/gu,"");
+  return (ini||"?").toUpperCase();
+}
+function Mono({ent, size, logo, aspspName}){
   const e=entOf(ent); size=size||40;
   const id=String(ent||"");
+  const mono=(id&&e.mono!=="··")?e.mono:(aspspName?aspspMono(aspspName):e.mono);
   const [roto,setRoto]=React.useState(false);
   /* `logo:false` = el monograma de colores de siempre.
      LA REGLA, que me costó dos rondas (11/9): **si la fila es un BANCO, el logo del banco; si es
@@ -85,7 +98,7 @@ function Mono({ent, size, logo}){
      que salgan los de las empresas, pero no los bancos donde están las inversiones».
      Hoy `logo:false` no lo usa nadie; se deja porque una fila puede no ser ninguna de las dos.
      Va DESPUÉS del useState a propósito: un hook no puede quedarse detrás de un return. */
-  if(logo===false) return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
+  if(logo===false) return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, mono);
   if((BANCOS_CON_LOGO[id]||ENTS_DIBUJADAS[id]) && !roto){
     const dib=ENTS_DIBUJADAS[id];
     /* El dibujado se enseña más pequeño dentro del cuadro (0,66), como los de Inversiones: un
@@ -99,7 +112,7 @@ function Mono({ent, size, logo}){
         decoding:"async",onError:function(){ setRoto(true); },
         style:{width:lado,height:lado,objectFit:"contain",display:"block"}}));
   }
-  return React.createElement("div",{className:"mono",style:{width:size,height:size,background:entTint(e.color,13),color:e.ink||e.color,borderColor:entTint(e.color,27)}}, e.mono);
+  return React.createElement("div",{className:"mono",style:{width:size,height:size,background:entTint(e.color,13),color:e.ink||e.color,borderColor:entTint(e.color,27)}}, mono);
 }
 /* Fondo y borde translúcidos del color de una entidad. Con un hex se le pega el alfa como siempre
    («22» ≈ 13 %, «44» ≈ 27 %); con una variable CSS (IBKR va en `var(--blue)`, que cambia con el
