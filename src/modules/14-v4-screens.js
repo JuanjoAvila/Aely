@@ -335,6 +335,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
           tf("v4_plan_biggest",{name:biggestForCover.name,amount:eur0(biggestForCover.amount)}))
       )
     ),
+    // La barra fina del reparto (prototipo aprobado): el estado de lo que entra y a dónde va, siempre a la vista.
+    !simple && React.createElement(RptBarra,{state:state,totals:totals,onJump:function(id){
+      setSegMounted(function(m){ return m[id]?m:Object.assign({},m,{[id]:true}); });
+      setSeg(id);
+      requestAnimationFrame(function(){
+        const sg=planScreenRef.current&&planScreenRef.current.querySelector(".v4-seg");
+        if(sg&&sg.scrollIntoView) sg.scrollIntoView({behavior:mcReduced()?"auto":"smooth",block:"start"});
+      });
+    }}),
     !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,

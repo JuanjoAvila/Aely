@@ -697,13 +697,6 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       if(doAmort(d, parseFloat(String(raw).replace(',','.'))||0)&&hecho) hecho();
     });
   };
-  /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
-     vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
-  const debtIco=function(d){
-    const k=debtIcoKind(d.name);
-    return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
-      DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
-  };
   // Cuotas que quedan: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
   // a mano) se ESTIMA con el ritmo de amortización actual. Devuelve {n,tot} o null.
   const leftInfo=debtLeftInfo;
@@ -721,16 +714,14 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
     React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,initialFocus:dayFocus?"day":undefined,
       onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,onAmortize:amortize,showToast:showToast}));
+  // Plan › Deudas nuevo: la lista sale del reparto del periodo y cada deuda abre su ficha (escalera, interruptor y datos).
+  const rep=useMemo(function(){ return planReparto(state,{}); },RPT_DEPS_REPARTO(state));
+  const [fichaId,setFichaId]=useState(null);
+  const fichaDeuda=fichaId?state.debts.find(function(x){ return x.id===fichaId; }):null;
+  const hFicha={abrir:function(d){ setFichaId(d.id); },amortizar:amortize,eliminar:delDebt,archivar:archiveDebt,liquidada:confirmSettled,ponerDia:openDay,
+    editar:function(d){ setDayFocus(false);setReviewDebt(null);setEditingDebt(d); }};
   if(editorOnly) return editor;
   return React.createElement("div",null,
-    // La misma tarjeta que Recibos (etiqueta, cifra y una línea, a la izquierda): centrada, la cifra
-    // saltaba de sitio al cambiar de segmento dentro de Plan (auditoría 237, P2-1).
-    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"debts-summary"},
-      React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount"},eur(total)),
-      // Con céntimos, como la cuota de cada tarjeta y Recibos: «661 €» al lado de 660,85 parecía otra cifra (DIS-30).
-      React.createElement("div",{className:"plan-summary-sub"},tf("v4_debts_sub",{x:eur(monthly)}))
-    ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
       React.createElement("div",{className:"hint"},t("plan_deleted_while_editing")),
       React.createElement("div",{style:{marginTop:8,fontWeight:700}},record.local.name||"—"),
@@ -738,41 +729,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-act":"plan-orphan-discard",onClick:function(){
         askConfirm({title:t("plan_discard_draft_q"),sub:t("plan_discard_draft_sub"),ok:t("plan_conflict_discard"),danger:true}).then(function(yes){if(yes)set(function(s){return planSyncDiscard(s,record);});});
       }},t("plan_conflict_discard")));}),
-    visibleDebts.map(function(d){
-      const bal=debtBalance(d);
-      const paid=Math.max(0,(d.original||bal)-bal);
-      const pct=Math.min(100,(paid/(d.original||1))*100);
-      // «Quedan n/tot cuotas» en TODAS las deudas (feedback 2026-07-21): sin plazo va estimado.
-      const li=leftInfo(d);
-      const day=cleanDay(dayOf(d));
-      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
-        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
-          React.createElement("span",{className:"v4-debt-emoji v4-debt-ico"},debtIco(d)),
-          React.createElement("div",{className:"plan-item-main"},
-            React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
-          ),
-          React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
-        ),
-        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
-        React.createElement(DebtDayPrompt,{debt:d,onOpen:openDay}),
-        // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
-        (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
-          return c&&c.amt>0?React.createElement("div",{className:"v4-debt-sub","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(", ")})):null; })(),
-        // El descuadre ya guardado no se pregunta solo (rev. lo-descuento R1): se señala y se ajusta si quiere.
-        descuentoDescuadreGuardado(state,d)&&React.createElement("button",{type:"button",className:"chip","data-act":"debt-descuadre",style:{alignSelf:"flex-start",marginTop:6},
-          onClick:function(){ descuentoAjustarGuardado(state,set,d); }},t("rp6_no_cuadra")),
-        React.createElement("div",{className:"v4-debt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
-        React.createElement("div",{className:"v4-debt-foot"},
-          React.createElement("span",null,tf("db_paidoff",{x:eur0(paid),p:Math.round(pct)})),
-          endsLabel(d) && React.createElement("span",null," · "+endsLabel(d))
-        ),
-        (d.balloon>0||d.downPayment>0) && React.createElement("div",{className:"v4-debt-sub",style:{marginTop:6,color:"var(--tan)"}},
-          d.balloon>0?tf("db_balloon_line",{x:eur0(d.balloon)}):"",
-          d.downPayment>0?(d.balloon>0?" · ":"")+tf("db_down_line",{x:eur0(d.downPayment)}):""),
-        bal<=0.005 && React.createElement("div",{className:"hint",style:{marginTop:10}},t(d.settledAt?"db_settled":"db_est_zero")),
-        bal<=0.005 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ d.settledAt?archiveDebt(d):confirmSettled(d); }},t(d.settledAt?"db_archive":"db_settle_ok"))
-      );
-    }),
+    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive}),
     archivedDebts.length>0 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},"aria-expanded":showArchive,onClick:function(){ setShowArchive(!showArchive); }},tf("db_archive_title",{n:archivedDebts.length})),
     showArchive && archivedDebts.length>0 && React.createElement("div",{className:"v4-card",style:{marginTop:8}},
       React.createElement("div",{className:"hint"},t("db_archive_hint")),
@@ -802,6 +759,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
         React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
     React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
+    fichaDeuda&&React.createElement(RptDeudaFicha,{key:fichaDeuda.id,d:fichaDeuda,state:state,set:set,r:rep,h:hFicha,onClose:function(){ setFichaId(null); }}),
     editor
   );
 }
@@ -1089,9 +1047,12 @@ function Goals({state, set, totals, showToast, abrir}){
   useEffect(function(){
     if(!abrir) return;
     const g=goals.find(function(x){ return String(x.id)===abrir.id; });
-    if(g) setEditingGoal(g);
+    if(g) setFichaMetaId(g.id);
   },[abrir&&abrir.ts]);
   const [contribGoal,setContribGoal]=useState(null);   // meta abierta en la hoja de aportar
+  // Plan › Metas nuevo: cada meta abre su ficha (estado, ritmo, fecha) con aportar, editar y eliminar al pie.
+  const [fichaMetaId,setFichaMetaId]=useState(null);
+  const fichaMeta=fichaMetaId?goals.find(function(x){ return x.id===fichaMetaId; }):null;
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);
   const [dlCal,setDlCal]=useState(false);
@@ -1137,9 +1098,7 @@ function Goals({state, set, totals, showToast, abrir}){
     });
   };
 
-  // Lo que se PINTA lleva lo marcado desde Gastos (`metaConAportes`); lo que se edita, la meta tal cual.
-  const totalSaved=goals.reduce(function(a,g){return a+metaAhorrado(g,state);},0);
-  const totalTarget=goals.reduce(function(a,g){return a+(g.target||0);},0);
+  const hMeta={abrir:function(g){ setFichaMetaId(g.id); },aportar:contribute,eliminar:delGoal,editar:function(g){ setEditingGoal(g); }};
 
   const emojiPicker=function(cur,onPick){
     return React.createElement("div",{className:"emoji-pick"}, GOAL_EMOJIS.map(function(e){
@@ -1148,36 +1107,10 @@ function Goals({state, set, totals, showToast, abrir}){
   };
 
   return React.createElement("div",null,
-    // Sin metas, «Ahorrado en metas 0,00 €» en grande era un cero que no decía nada (DIS-28).
-    // Misma tarjeta que Recibos y Deudas, con la cifra en el color del texto (P2-1).
-    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"goals-summary"},
-      React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount"},eur(totalSaved)),
-      totalTarget>0 && React.createElement("div",{className:"plan-summary-sub"},tf("gl_total_sub",{x:eur0(totalTarget)}))
-    ),
+    goals.length>0 && React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
-
-    goals.map(function(g){
-      const gv=metaConAportes(g,state);
-      const pct=goalPct(gv); const eta=goalEta(gv, metaRitmoMensual(state,g));
-      return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
-        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
-          React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
-          React.createElement("div",{className:"plan-item-main"},
-            React.createElement("div",{className:"v4-debt-name"},g.name,g.done&&React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
-            React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-saved"}, eur0(gv.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0)),
-            gv.aportado>0 && React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-from-gastos"}, tf("gl_from_gastos",{x:eur(gv.aportado)}))
-          ),
-          React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}},Math.round(pct)+"%"),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
-        ),
-        React.createElement("div",{className:"v4-goal-bar"},React.createElement("i",{style:{width:pct+"%",background:g.done?"var(--tan)":"var(--mint)"}})),
-        eta.text && React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
-        !g.done&&React.createElement("button",{className:"v4-goal-cta",onClick:function(){contribute(g);}},t("gl_contribute"))
-      );
-    }),
-
 
     React.createElement("div",{style:{marginTop:14}}, React.createElement(ReservaRules,{state:state,set:set})),
 
@@ -1203,6 +1136,7 @@ function Goals({state, set, totals, showToast, abrir}){
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
       onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),
+    fichaMeta&&React.createElement(RptMetaFicha,{key:fichaMeta.id,g:fichaMeta,state:state,h:hMeta,onClose:function(){ setFichaMetaId(null); }}),
     editingGoal&&React.createElement(GoalEditSheet,{key:editingGoal.id,goal:editingGoal,state:state,set:set,onClose:function(){setEditingGoal(null);},onDelete:delGoal,showToast:showToast})
   );
 }

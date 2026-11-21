@@ -237,7 +237,7 @@ function planReparto(state, o){
   else if(bud==null) st="nobud";
   return {periodo:P,now:now,st:st,entra:entraC,esperaNomina:esperaNomina,trozos:trozos,total:total,libre:libre,falta:falta,
     siGastasTodo:lim!=null&&gastado<lim,sinPresupuesto:bud==null,
-    rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoBruto:bud,reservasC:reservasC,
+    rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
     nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso};
