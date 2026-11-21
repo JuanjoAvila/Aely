@@ -479,6 +479,148 @@ export function reservadoDesde(data: any, desdeMs: number): number {
   }, 0);
 }
 
+/**
+ * «Restar del presupuesto» (Plan › Deudas): cada deuda con `restarPres: true` baja el límite de gastos
+ * lo que cuesta su cuota ese periodo. Espejo de `reservaDeudasPeriodo()` (`src/modules/17-plan-reparto.js`):
+ * se CALCULA del plan cada vez, nunca se escribe en `reservaLog`. Sin ninguna deuda con el interruptor,
+ * devuelve 0 sin tocar nada. Cuenta TU parte de la cuota: lo que sale del banco (`debtCuotaIn`) más lo que
+ * se descuenta de un recibo compartido (`deudaDescuentoMes`).
+ *
+ * Lo que este espejo NO sabe: si un recibo con pausa o prueba gratis está ya pagado (en el cliente un
+ * recibo sin cobro que ya se pagó sí reparte), y el cargo de cuota que el banco trae sin enlazar (el cliente
+ * lo saca del gastado hasta que lo marca `cuotasDeDeudaPorMarcar`; aquí llega ya con `~deuda.` o cuenta).
+ * En esos dos casos el widget puede ir un poco por detrás de Inicio hasta que la app enlace el cargo.
+ */
+const cleanDayTs = (v: unknown): number | null => { const n = parseInt(String(v), 10); return n >= 1 && n <= 31 ? n : null; };
+function ymdMadrid(ms: number): { y: number; m: number; d: number } {
+  const p = new Intl.DateTimeFormat("en-CA", { timeZone: MC_TZ, year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(new Date(ms)).split("-");
+  return { y: +p[0], m: +p[1], d: +p[2] };
+}
+// deno-lint-ignore no-explicit-any
+function chargeMonthsTs(e: any): number[] {
+  const months = e?.schedule?.length ? e.schedule.map((x: { m: number }) => x.m) : e?.months?.length ? e.months : null;
+  if (months) return Array.from(new Set<number>(months.filter((m: number) => Number.isInteger(m) && m >= 1 && m <= 12))).sort((a, b) => a - b);
+  const f = e?.freq;
+  if (f === "mes" || f === "mensual") return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  if (f === "bimestral") return [1, 3, 5, 7, 9, 11];
+  if (f === "trimestral") return [1, 4, 7, 10];
+  if (f === "semestral") return [1, 7];
+  return [];
+}
+// deno-lint-ignore no-explicit-any
+export function reservadoDeudas(data: any, desdeMs: number, ahoraMs: number = Date.now()): number {
+  // deno-lint-ignore no-explicit-any
+  const debts: any[] = (data?.debts || []).filter((d: any) => d && d.restarPres === true);
+  if (!debts.length) return 0;
+  const hoy = ymdMadrid(ahoraMs), ymNow = hoy.y * 12 + (hoy.m - 1);
+  const cts = (x: unknown) => Math.round((Number(x) || 0) * 100);
+  // deno-lint-ignore no-explicit-any
+  const amort = (d: any) => d.amort != null ? d.amort : (d.monthly || 0);
+  // deno-lint-ignore no-explicit-any
+  const chargeDay = (d: any, y: number, m: number) => {
+    const dd = cleanDayTs(d.day), n = dd != null && dd > 0 ? dd : 1;
+    return Math.min(n, new Date(y, m, 0).getDate());
+  };
+  // deno-lint-ignore no-explicit-any
+  const anchorOf = (d: any) => typeof d.asOf === "number" ? d.asOf : ymNow;
+  // deno-lint-ignore no-explicit-any
+  const desdeAncla = (d: any) => {
+    const a = anchorOf(d);
+    if (a > ymNow) return 0;
+    let n = Math.max(0, ymNow - a);
+    if (d.months != null && chargeDay(d, hoy.y, hoy.m) <= hoy.d) n += 1;
+    return n;
+  };
+  // deno-lint-ignore no-explicit-any
+  const pagadas = (d: any) => { const n = desdeAncla(d); return d.months != null ? Math.min(n, Math.max(0, d.months)) : n; };
+  // deno-lint-ignore no-explicit-any
+  const ultimaAjuste = (d: any): number | null => {
+    if (!d || d.months == null || !(d.months >= 1)) return null;
+    const n = d.months, A = cts(amort(d)), P = cts(d.value) - cts(d.balloon);
+    if (!(A > 0) || !(P > 0)) return null;
+    const last = P - (n - 1) * A;
+    return last > 0 && last <= A + n ? last - A : null;
+  };
+  // deno-lint-ignore no-explicit-any
+  const saldo = (d: any) => {
+    if (d.value == null) return 0;
+    let n = pagadas(d);
+    if (d.months != null) { n = Math.min(n, d.months); if (n >= d.months && ultimaAjuste(d) != null) return 0; }
+    let b = d.value - amort(d) * n;
+    if (d.balloon > 0 && d.months != null && n >= d.months) b -= d.balloon;
+    return Math.max(0, b);
+  };
+  // deno-lint-ignore no-explicit-any
+  const activa = (d: any) => {
+    if (!d || !d.monthly) return false;
+    const bal = saldo(d);
+    if (d.months != null) { const a = anchorOf(d); return ymNow >= a && (ymNow - a) < d.months && bal > 0.005; }
+    return bal > 0.005;
+  };
+  // deno-lint-ignore no-explicit-any
+  const activaEn = (d: any, y: number, m: number) => {
+    const a = anchorOf(d);
+    if (!d || !d.monthly || d.months == null || a <= ymNow) return activa(d);
+    const ym = y * 12 + (m - 1);
+    return ym >= a && ym < a + d.months && Number(d.value) > 0.005;
+  };
+  // deno-lint-ignore no-explicit-any
+  const cuotaEn = (d: any, y: number, m: number) => {
+    const q = Number(d.monthly) || 0;
+    if (!(q > 0) || d.months == null || cts(amort(d)) !== cts(q)) return q;
+    const adj = ultimaAjuste(d);
+    return adj != null && (y * 12 + (m - 1)) === anchorOf(d) + d.months - 1 ? (cts(q) + adj) / 100 : q;
+  };
+  // Lo que se descuenta de recibos compartidos ese mes (`deudaDescuentoMes`), solo deudas sin interés.
+  // deno-lint-ignore no-explicit-any
+  const descuentoEn = (d: any, y: number, m: number): number => {
+    if (!activa(d) || Number(d.apr) > 0) return 0;
+    let c = 0;
+    // deno-lint-ignore no-explicit-any
+    (data?.fixed || []).forEach((e: any) => {
+      if (!e || chargeMonthsTs(e).length !== 12 || e.freq === "año" || e.freq === "anual" || e.schedule?.length || !(Number(e.bankAmount) > 0)) return;
+      const ym = y * 12 + m, pausa = Number(e.pausedUntil) > 0 && ym >= (Number(e.pausedFrom) || 0) && ym < Number(e.pausedUntil);
+      const k = /^(\d{4})-(\d{2})-\d{2}$/.exec(String(e.pruebaHasta || "")), prueba = !!k && ym < Number(k[1]) * 12 + Number(k[2]);
+      if (pausa || prueba) return;
+      const solo = e.soloMes && typeof e.soloMes[ym] === "object" ? e.soloMes[ym] : null;
+      if (solo && typeof solo.amt === "number" && !(solo.amt > 0)) return;
+      const mia = solo && solo.amt != null ? solo.amt : e.amount, lista = solo && solo.amt != null ? solo.reparto : e.reparto;
+      if (!Array.isArray(lista) || !lista.length) return;
+      const ids: Record<string, number> = {};
+      let partes = 0;
+      for (const x of lista) {
+        if (!x || typeof x.id !== "string" || !x.id || ids[x.id] || !String(x.n || "").trim() ||
+          ["bizum", "transfer", "debt"].indexOf(x.via) < 0 || !(Number(x.amt) > 0)) return;
+        ids[x.id] = 1; partes += cts(x.amt);
+      }
+      if (!(cts(mia) > 0) || cts(mia) + partes !== cts(e.bankAmount)) return;
+      lista.forEach((x: { via: string; debtId: unknown; amt: number }) => { if (x.via === "debt" && x.debtId === d.id) c += cts(x.amt); });
+    });
+    return c;
+  };
+  // El periodo: el mes natural que empieza en `desdeMs`, o un ciclo (día de cobro → mismo día del mes siguiente).
+  const ini = ymdMadrid(desdeMs + 12 * 3600000), natural = desdeMs === inicioDeMesMs(desdeMs);
+  const meses: { y: number; m: number }[] = [{ y: ini.y, m: ini.m }];
+  const fin = { y: ini.y + (ini.m === 12 ? 1 : 0), m: ini.m % 12 + 1, d: Math.min(ini.d, new Date(ini.y + (ini.m === 12 ? 1 : 0), ini.m % 12 + 1, 0).getDate()) };
+  if (!natural) meses.push({ y: fin.y, m: fin.m });
+  const k = (y: number, m: number, d: number) => (y * 12 + m - 1) * 32 + d;
+  const dentro = (y: number, m: number, day: number | null) => {
+    if (natural) return true;
+    const v = k(y, m, day == null ? 1 : Math.min(day, new Date(y, m, 0).getDate()));
+    return v >= k(ini.y, ini.m, ini.d) && v < k(fin.y, fin.m, fin.d);
+  };
+  let total = 0;
+  for (const d of debts) {
+    for (const mm of meses) {
+      if (!activaEn(d, mm.y, mm.m) || !dentro(mm.y, mm.m, cleanDayTs(d.day))) continue;
+      const a = cts(cuotaEn(d, mm.y, mm.m));
+      if (a > 0) total += a + descuentoEn(d, mm.y, mm.m);
+    }
+  }
+  return total / 100;
+}
+
 export type StatsMes = {
   spent: number;      // gasto bruto que cuenta
   income: number;     // ingresos que cuentan (en positivo)
@@ -504,7 +646,7 @@ export function statsDelMes(filas: FilaGasto[], data: any, desdeMs: number): Sta
     const n = Number(f.importe) || 0;
     if (n > 0) spent += n; else if (n < 0) income += Math.abs(n);
   }
-  const reserved = reservadoDesde(data, desdeMs);
+  const reserved = reservadoDesde(data, desdeMs) + reservadoDeudas(data, desdeMs);
   const bruto = Number(data?.budget) || 0;
   const budget = bruto > 0 ? Math.max(0, +(bruto - reserved).toFixed(2)) : 0;
   const modo = data?.settings?.gTotalMode || "split";
