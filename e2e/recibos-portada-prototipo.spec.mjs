@@ -180,6 +180,7 @@ test("«¿Cuánto es?» con un nombre largo: el nombre en un renglón y el títu
     return { top: t.top - b.getBoundingClientRect().top, sobra: b.scrollHeight - b.clientHeight };
   });
   expect(m.top).toBeGreaterThanOrEqual(-1);
-  // El paso cabe entero: no hay nada que desplazar (el carril mide 1 px más a propósito).
-  expect(m.sobra).toBeLessThanOrEqual(2);
+  // Las teclas se quedan en 56 px (dueño, D-13, 21/11/2026): en pantalla baja el paso se desplaza en vez de
+  // encoger las teclas; lo que importa es que el título se vea y que «Siguiente» no tape una tecla
+  // (recibos-escala-inicio.spec.mjs).
 });

@@ -1106,7 +1106,7 @@
   /* Plan › Recibos v6 (docs/design/plan-recibos/SPEC.md §2). Paleta texto/gris/menta: aquí no
      hay rojos ni amarillos de alarma, lo que hay que mirar ya va en «Para revisar». */
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
-  .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;}
+  .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;white-space:nowrap;}
   .pr6-count{font-size:14px;color:var(--muted);}
   /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. En FILA también a 360 y
      393 (SPEC §2.2; auditoría de diseño 237, P2-2): apiladas, la tarjeta cambiaba de forma según el
@@ -1134,7 +1134,7 @@
   .pr6-sec-h button.pr6-todos{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--mint-bright);}
   /* Traspasos y entradas: la misma tarjeta que Pendiente, pero no se tocan. */
   .pr6-sec div.v4-charge.pr6-row{cursor:default;}
-  .pr6-n{margin-left:8px;font-size:13px;font-weight:700;color:var(--muted);}
+  .pr6-n{margin-left:8px;white-space:nowrap;font-size:13px;font-weight:700;color:var(--muted);}
   .pr6-sec .v4-charge.pr6-row,.pr6-sec .v4-charge.pr6-rev{width:100%;padding:12px 16px;border:1px solid var(--line-soft);
     border-radius:20px;background:var(--surface);color:inherit;font:inherit;text-align:left;cursor:pointer;}
   .pr6-row .dt{width:44px;height:44px;border-radius:12px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
@@ -1147,12 +1147,16 @@
      nombre bajaba a nueve renglones. La rejilla de «Próximos cargos» de Inicio: el nombre ocupa todo
      el ancho y el importe (con su «cuándo») baja a la línea gris, a la derecha. */
   @media (max-width:430px){
-    html.hugetext .pr6-sec .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
-    html.hugetext .pr6-sec .v4-charge > :first-child{grid-row:1 / span 2;}
-    html.hugetext .pr6-sec .v4-charge > .nm{display:contents;}
-    html.hugetext .pr6-sec .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
-    html.hugetext .pr6-sec .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;}
-    html.hugetext .pr6-sec .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge > :first-child{grid-row:1 / span 2;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge > .nm{display:contents;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge .pr6-nm{grid-column:2 / 4;grid-row:1;align-self:end;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge .nm > .sub{grid-column:2;grid-row:2;align-self:start;min-width:0;overflow-wrap:anywhere;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge .nm > .sub .mc-pt{white-space:normal;}
+    html.hugetext :is(.pr6-sec,.pr6-paid) .v4-charge > :last-child{grid-column:3;grid-row:2;align-self:start;}
+    html.hugetext .pr6-mg-sec .pr6-row .sub{white-space:normal;overflow:visible;text-overflow:clip;}
+    /* La cifra grande no parte «1.298,02 / €»: se encoge con la tarjeta antes que bajar el €. */
+    html.hugetext .pr6-sum .pr6-big{font-size:min(46px,14cqw);}
     /* La fila de cada bróker (Inversiones y Cartera): con Enorme, «MyInvestor» no cabe al lado de
        «2.000 €» y se montaba encima (filtro de diseño, ronda F). El importe baja bajo el nombre. */
     html.hugetext button.v4-mov[data-broker-key]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;row-gap:2px;align-items:center;}
@@ -1188,7 +1192,7 @@
      tarjeta; en Recibos era fondo: «Ver menos» bajaba y las filas llegaban después (vídeo 12/11). */
   .pr6-fold{display:grid;grid-template-rows:0fr;overflow:hidden;opacity:0;margin-top:-8px;transition:grid-template-rows var(--pr6-fd,.35s) var(--ease),opacity calc(var(--pr6-fd,.35s)*.714) ease;}
   .pr6-fold.open{grid-template-rows:1fr;opacity:1;}
-  .pr6-fold-in{min-height:0;display:flex;flex-direction:column;gap:8px;transition:padding var(--pr6-fd,.35s) var(--ease);}
+  .pr6-fold-in{min-height:0;min-width:0;display:flex;flex-direction:column;gap:8px;transition:padding var(--pr6-fd,.35s) var(--ease);}
   /* Listas con «Ver los N» (`pr6Tres`): lo que aparece es lo que hay DENTRO de cada fila, no la fila.
      En Personas las filas no tienen fondo (el fondo es la tarjeta, fuera del pliegue): el ojo ve la
      tarjeta crecer con el borde y el texto encenderse. Recibos son tarjetas sueltas DENTRO del pliegue
@@ -1219,14 +1223,14 @@
   .pr6-more[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
   .pr6-empty{padding:14px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--line-soft);font-size:15px;font-weight:700;}
   .pr6-paid{margin-top:14px;background:var(--surface);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;}
-  .pr6-paid-h{width:100%;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
+  .pr6-paid-h{width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;min-height:56px;padding:6px 16px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
   .pr6-tick{width:28px;height:28px;flex:none;border-radius:14px;background:var(--surface-2);color:var(--mint-bright);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
   /* Una línea donde cabe; sin elipsis (auditoría de diseño 237: «Ya ha entra…»). Con la letra muy
      grande el título baja de renglón entero antes que cortarse. */
-  .pr6-paid-t{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;font-size:15px;font-weight:800;}
+  .pr6-paid-t{flex:1 0 auto;display:flex;align-items:baseline;font-size:15px;font-weight:800;}
   .pr6-paid-l{white-space:nowrap;}
   .pr6-paid-t .pr6-n{flex:none;margin-left:4px;}
-  .pr6-paid-amt{flex:none;white-space:nowrap;font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;color:var(--muted);}
+  .pr6-paid-amt{flex:none;margin-left:auto;white-space:nowrap;font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;color:var(--muted);}
   .pr6-paid-h .pr6-chev{display:block;color:var(--mint-bright);}
   .pr6-paid-h[aria-expanded="true"] .pr6-chev{transform:rotate(180deg);}
   .pr6-paid .pr6-fold{margin-top:0;}
@@ -1235,6 +1239,8 @@
   .pr6-prow .pr6-tick{width:24px;height:24px;font-size:12px;}
   .pr6-prow .nm{color:var(--muted);}
   .pr6-prow .am{color:var(--muted);}
+  /* En claro, .55 de opacidad dejaba las filas pagadas en ~2,3:1. */
+  html[data-theme="light"] .pr6-paid .v4-paid{opacity:.75;}
   /* Ficha del recibo: dos pasos en un carril (ficha → «¿Cuál es el cargo?»), el que no se ve se
      pliega en alto para que la hoja mida lo que enseña. */
   .v4-sheet.pr6-ficha{padding-left:0;padding-right:0;overflow-x:hidden;}
@@ -1248,10 +1254,14 @@
     transition:opacity .28s ease,max-height .36s var(--ease);}
   .pr6-step.on{max-height:none;overflow:visible;opacity:1;}
   .pr6-ficha-h,.pr6-pick-h{display:flex;align-items:center;gap:14px;}
+  /* Nombre largo + importe: el importe baja bajo el nombre antes que pisarlo, y una palabra que no cabe
+     sola se parte (filtro de diseño 21/11/2026: «compania» sobre «1.052,71 €» a 360). */
+  .pr6-ficha-h{flex-wrap:wrap;}
+  .pr6-ficha-h .pr6-ficha-a{margin-left:auto;}
   .pr6-dt{width:48px;height:52px;flex:none;border-radius:14px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .pr6-dt .d{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;line-height:1;}
   .pr6-dt .m{font-size:10px;font-weight:700;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;}
-  .pr6-ficha-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .pr6-ficha-t{flex:1 1 9em;min-width:0;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere;}
   .pr6-ficha-n{font-size:20px;font-weight:700;outline:none;}
   .pr6-ficha-s{font-size:13px;color:var(--muted);}
   .pr6-ficha-a{font-size:24px;font-weight:600;white-space:nowrap;}
@@ -1277,7 +1287,7 @@
   .pr6-cand.on{border-color:var(--mint);}
   .pr6-cand.pend{cursor:default;opacity:.62;border-style:dashed;}
   .pr6-cand-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
-  .pr6-cand-n{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pr6-cand-n{font-size:15px;font-weight:700;min-width:0;overflow-wrap:anywhere;}
   .pr6-cand-s{font-size:12.5px;color:var(--muted);}
   .pr6-cand-a{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;white-space:nowrap;}
   .pr6-ring{width:24px;height:24px;flex:none;border-radius:12px;border:2px solid var(--muted-2);color:transparent;display:flex;align-items:center;justify-content:center;
@@ -1298,7 +1308,7 @@
      el que no se ve se pliega en alto. El botón de abajo va pegado para que no lo tape el teclado. */
   /* Alto fijo: cada paso mide distinto y la hoja subía y bajaba de golpe al pasar de uno a otro
      (beta 4.26.200, «el botón de Siguiente hace cosas raras»). Ahora solo se mueve el carril. */
-  .v4-sheet.rp4{padding-bottom:0;height:88dvh;display:flex;flex-direction:column;overflow:hidden;}
+  .v4-sheet.rp4{padding-bottom:0;height:calc(88dvh / var(--zoom,1));display:flex;flex-direction:column;overflow:hidden;}
   /* Solo scrollea el cuerpo: la cabecera (Atrás y progreso) y el botón quedan fuera. Con el botón
      pegado DENTRO del scroll, la hoja pasaba de no scrollear a scrollear al abrir «Más opciones» o
      «En varios pagos»; Chromium crea entonces una capa nueva para el contenido y en su móvil (120 Hz)
@@ -1332,9 +1342,11 @@
   /* El nombre, en un renglón y centrado: uno largo ocupaba dos, alineados a la izquierda, y empujaba
      «¿Cuánto es?» por debajo de la barra de progreso (auditoría 9/11). */
   .rp4-amt > .rp4-dim{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  /* En pantallas bajas (393×727) el paso del importe no cabía por 19 px y al tocar las teclas de abajo
-     el cuerpo se desplazaba y tapaba el título: teclas algo más bajas y el paso entero a la vista. */
-  @media (max-height:760px){ .v4-sheet.rp4 .v4-keys button{height:50px;} }
+  /* Las teclas se quedan en 56 (dueño, D-13): con Enorme o en pantalla baja el paso se desplaza y
+     «Siguiente» queda fuera del carril que scrollea, nunca encima de una tecla. Con Enorme el
+     nombre sobra (ya va en la barra de pasos) y el bloque del importe pierde aire. */
+  html.hugetext .rp4-amt{gap:4px;padding:0;}
+  html.hugetext .rp4-amt > .rp4-dim{display:none;}
   .rp4-amt-v{font-size:44px;font-weight:600;border-radius:12px;padding:0 8px;transition:background .2s ease;}
   .rp4-amt-v.fresh{background:var(--surface-2);}
   .rp4-var,.rp4-mode,.rp4-mes{border:1px solid var(--line-soft);background:var(--surface);color:var(--text);font:inherit;font-weight:700;cursor:pointer;
@@ -1377,7 +1389,7 @@
   .rp4-row:first-child{border-top:0;}
   .rp4-row:disabled{cursor:default;}
   .rp4-row-k{flex:none;font-size:14px;color:var(--muted);font-weight:700;}
-  .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .rp4-row-v{flex:1;min-width:0;text-align:right;font-size:15px;font-weight:700;overflow-wrap:anywhere;}
   .rp4-foot{flex:none;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
   .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
   .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
@@ -1536,8 +1548,8 @@
   .v4-sheet.pr6-imp{display:flex;flex-direction:column;gap:14px;}
   .pr6-imp-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
   .pr6-imp-h .link{flex:none;}
-  .pr6-imp-l{display:flex;flex-direction:column;border-radius:18px;background:var(--surface-2);overflow:hidden;}
-  .pr6-imp-row{display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 14px;border:0;border-top:1px solid var(--line-soft);
+  .pr6-imp-l{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;border-radius:18px;background:var(--surface-2);overflow-x:hidden;overflow-y:auto;}
+  .pr6-imp-row{flex:none;display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 14px;border:0;border-top:1px solid var(--line-soft);
     background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:opacity .2s ease;}
   .pr6-imp-row:first-child{border-top:0;}
   .pr6-imp-row.off{opacity:.45;}
