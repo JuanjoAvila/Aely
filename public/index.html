@@ -9646,7 +9646,7 @@ const LANG = {
     st_notifs:"Notificaciones", st_simple_lbl:"Modo sencillo",
     st_search_ph:"Buscar en ajustes…", st_search_none:"Nada con ese nombre. Prueba con «tema», «banco», «copia»…",
     st_updates:"Actualizaciones", st_update:"Buscar actualización",
-    st_up_ok:"✓ Estás a la última", st_up_applying:"⬇️ Actualizando a la v{v}… la app se recarga sola en unos segundos", st_up_apk:"⬇️ App {v} disponible · descargando, se abrirá el instalador",
+    st_up_ok:"✓ Estás a la última", ota_sin_firma:"Actualización sin firma: no se instala", st_up_applying:"⬇️ Actualizando a la v{v}… la app se recarga sola en unos segundos", st_up_apk:"⬇️ App {v} disponible · descargando, se abrirá el instalador",
     st_widget_hint:"📱 Widget: mantén pulsado el escritorio → Widgets → Aely. Verás el gasto del mes y lo que te queda.",
     st_news:"Novedades", st_news_row:"Ver novedades",
     st_feedback:"Enviar sugerencia o error", st_shared:"Hogar y gastos compartidos",
@@ -33261,7 +33261,7 @@ function useUpdates(){
       return;
     }
     if(showToast) showToast(t("apk_downloading"));
-    nat.installApk({url:apkUpd.url}).then(function(r){
+    nat.installApk(mcApkArgs(apkUpd)).then(function(r){
       if(r&&r.needsPermission&&showToast){ showToast(t("apk_perm")); return; }   // Android abrió el ajuste; reintocar
     }).catch(function(e){ if(showToast) showToast(errTxt(e)); });
   };
@@ -44890,19 +44890,19 @@ function App(){
     // llegaba al instalador (feedback 2026-07-17 — padre/pareja tocaban la noti y no pasaba).
     if(g==="update|apk"){
       const nat=natPlugin();
-      const run=function(url){
+      const run=function(apk){
         // Igual que en el pill: una noti que al tocarla no hace nada ni dice nada es indistinguible
         // de una noti rota (2026-07-26).
         if(!nat){ showToast(t("apk_why_noapp")); return; }
         if(!nat.installApk){ showToast(t("apk_why_oldapk")); return; }
-        if(!url){ showToast(window._mcApkWhy||t("st_up_ok")); return; }
+        if(!apk||!apk.url){ showToast(window._mcApkWhy||t("st_up_ok")); return; }
         showToast(t("apk_downloading"));
-        nat.installApk({url:url}).then(function(r){
+        nat.installApk(mcApkArgs(apk)).then(function(r){
           if(r&&r.needsPermission) showToast(t("apk_perm"));
         }).catch(function(e){ showToast(errTxt(e)); });
       };
       if(window._mcApkUpdate&&window._mcApkUpdate.url){
-        run(window._mcApkUpdate.url);
+        run(window._mcApkUpdate);
         return;
       }
       // Frío: la noti abre la app antes de que el chequeo de apk.json acabe.
@@ -47724,6 +47724,80 @@ function mcBundleOpts(v){
   return o;
 }
 
+/* LA FIRMA DEL OTA (SEG-01, ronda C2, 21/11/2026).
+   La APK que lleva la clave pública (65 en adelante) lo dice en `appInfo().otaKeyId`. En esa APK
+   el actualizador solo comprueba la firma si se le manda `sessionKey` no vacío: con el checksum
+   en claro lo daría por bueno, y quien escribiera en Pages colaría su bundle. Así que, con clave,
+   se manda la `signature` del manifiesto y, si el manifiesto no la trae, NO se descarga.
+   `sessionKey` va sin `:` a propósito: con dos partes el actualizador intentaría descifrar el zip.
+   Sin clave (APK 64 o anterior) todo sigue como antes: esa APK no sabría abrir la firma.
+   Si `appInfo` falla se trata como «sin clave»: quien ataca Pages no puede hacerlo fallar, y lo
+   contrario dejaría sin actualizaciones a un móvil sano por un tropiezo del puente. */
+function mcOtaKeyId(){
+  var mc=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.MiCartera;
+  if(!mc||!mc.appInfo) return Promise.resolve("");
+  return Promise.resolve().then(function(){ return mc.appInfo(); }).then(function(i){
+    return (i&&typeof i.otaKeyId==="string")?i.otaKeyId:"";
+  }, function(){ return ""; });
+}
+function mcOtaOpts(v){
+  return mcOtaKeyId().then(function(k){
+    var o=mcBundleOpts(v);
+    if(!k) return o;
+    var f=typeof v.signature==="string"?v.signature.trim().toLowerCase():"";
+    if(!/^[0-9a-f]{512}$/.test(f)) throw new Error(t("ota_sin_firma"));
+    o.checksum=f; o.sessionKey="firmado";
+    return o;
+  });
+}
+
+/* UN BUNDLE VIEJO NO PUEDE VOLVER CON NÚMERO NUEVO (R2 de la revisión de la ronda B).
+   La firma cubre el zip, no la versión: quien escribiera en Pages podría servir un bundle antiguo
+   —bien firmado en su día— anunciándolo como el último. Lo para el propio bundle al arrancar: el
+   actualizador recuerda con qué versión se lo anunciaron y, si no es la que lleva sellada dentro,
+   no se da por bueno y se vuelve al anterior. Todo bundle firmado lleva ya esta comprobación,
+   porque la firma en CI nace con ella. Solo con clave: sin ella no hay firma que reutilizar.
+   Devuelve la versión anunciada si hay que rechazar, o "" en cualquier otro caso (también si
+   algo falla: ante la duda el bundle se confirma, que no confirmarlo lo desinstala). */
+function mcOtaVueltaAtras(up){
+  return mcOtaKeyId().then(function(k){
+    if(!k||!up.current) return "";
+    return up.current().then(function(c){
+      var b=c&&c.bundle;
+      if(!b||b.id==="builtin"||typeof b.version!=="string"||!b.version) return "";
+      return b.version!==CONFIG.APP_VERSION?b.version:"";
+    });
+  }).catch(function(){ return ""; });
+}
+/* Confirma el bundle al actualizador (si no, a los 10 s lo desinstala) salvo que sea una vuelta
+   atrás. El plazo existe para que nada de la comprobación pueda dejar el bundle sin confirmar. */
+function mcOtaConfirmar(up){
+  var hecho=false;
+  var listo=function(){ if(hecho) return; hecho=true; up.notifyAppReady().catch(function(){}); };
+  var plazo=setTimeout(listo, 3000);
+  var mira; try{ mira=mcOtaVueltaAtras(up); }catch(e){ mira=Promise.resolve(""); }
+  return mira.then(function(anunciada){
+    clearTimeout(plazo);
+    if(!anunciada||hecho){ listo(); return false; }
+    hecho=true;
+    // Se apunta para no volver a bajarla en cada arranque mientras siga publicada.
+    try{ localStorage.setItem("_otaRechazada", anunciada); localStorage.removeItem("_otaPending"); }catch(e){}
+    try{ cloud.logEvent('error','OTA vuelta atrás: anunciada '+anunciada+', dentro '+CONFIG.APP_VERSION); }catch(_){}
+    if(up.reset) up.reset({toLastSuccessful:true}).catch(function(){});
+    return true;
+  }, function(){ clearTimeout(plazo); listo(); return false; });
+}
+
+/* La APK comprueba el SHA-256 del fichero que baja si se le pasa (desde la 65; las anteriores
+   ignoran el campo). Sale de `apk.json`; si no viene o no tiene forma de SHA-256 no se manda,
+   porque la APK rechaza uno mal escrito en vez de instalar sin comprobar. */
+function mcApkArgs(info){
+  var o={url:info&&info.url};
+  var s=info&&typeof info.sha256==="string"?info.sha256.trim().toLowerCase():"";
+  if(/^[0-9a-f]{64}$/.test(s)) o.sha256=s;
+  return o;
+}
+
 /* QUÉ VERSIÓN SIRVE PRODUCCIÓN AHORA MISMO (2026-07-28).
    Siempre desde Pages (`_mcOtaBASE`), pase lo que pase con el canal: producción ES `main`, y el
    móvil en beta también tiene derecho a saber por dónde va el resto de la familia.
@@ -47806,7 +47880,7 @@ window._mcApplyChannelBundle=function(opts){
          seguía anunciando `.../Mi-Cartera/bundle.zip` y el cambio de canal petaba aunque el
          bundle existiera en `/Aely/`. La base la decide el cliente (`mcUpdBase`); el manifiesto
          solo aporta el número de versión (y el checksum del zip, ver mcBundleOpts). */
-      return up.download(mcBundleOpts(v))
+      return mcOtaOpts(v).then(function(o){ return up.download(o); })
         .then(function(b){
           try{ localStorage.setItem("_otaPending", v.version); }catch(e){}
           return up.set({id:b.id}).then(function(){ return true; });
@@ -47953,7 +48027,7 @@ window._mcDownloadOta=function(up, v, opts){
   // Pill YA mientras descarga (antes solo al terminar → «tarda un montón», 2026-07-16).
   if(!manual) window._mcSignalOtaPending(v.version);
   if(manual&&toast) toast(tf("st_up_applying",{v:v.version}));
-  return up.download(mcBundleOpts(v))
+  return mcOtaOpts(v).then(function(o){ return up.download(o); })
     .then(function(b){
       if(manual){
         try{ localStorage.setItem("_otaPending", v.version); }catch(e){}
@@ -47982,6 +48056,10 @@ window._mcCheckOtaUpdates=function(opts){
         return false;
       }
       if(!window._mcNewerVer(v.version, CONFIG.APP_VERSION)) return false;
+      // Una versión que ya se rechazó al arrancar (ver mcOtaVueltaAtras) no se vuelve a bajar
+      // sola en cada arranque; a mano sí se puede reintentar.
+      var rech=null; try{ rech=localStorage.getItem("_otaRechazada"); }catch(e){}
+      if(!manual&&rech===v.version) return false;
       var pend=null; try{ pend=localStorage.getItem("_otaPending"); }catch(e){}
       if(pend===v.version){
         if(window._mcOtaReady&&window._mcOtaReady.id){
@@ -48047,11 +48125,11 @@ window._mcCheckApkUpdate=function(opts){
         if(mia==null) return porque(t("apk_why_noinfo"));
         window._mcApkWhy=tf("apk_why_state",{ch:canal, want:String(a.versionCode), have:String(mia)});
         if(Number(a.versionCode)<=mia) return false;
-        var payload={url:a.url, versionName:a.versionName||("v"+a.versionCode)};
+        var payload={url:a.url, versionName:a.versionName||("v"+a.versionCode), sha256:a.sha256};
         window._mcSignalApkUpdate(payload, !!manual);
         var startInstall=function(){
           if(toast) toast(tf("st_up_apk",{v:payload.versionName}));
-          return mc.installApk({url:payload.url}).then(function(r){
+          return mc.installApk(mcApkArgs(payload)).then(function(r){
             if(r&&r.needsPermission&&toast) toast(t("apk_perm"));
             return true;
           });
@@ -48081,7 +48159,7 @@ window._mcCheckApkUpdate=function(opts){
   try{
     var up=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.CapacitorUpdater;
     if(!up) return;
-    up.notifyAppReady().catch(function(){});
+    mcOtaConfirmar(up);
     window._mcSyncOtaNative();
     window._mcRestoreOtaPending();
     setTimeout(function(){

@@ -369,6 +369,7 @@ const steps = [
   ["inv-dashboard", ["node", "tests/inv-dashboard.test.mjs"]],
   ["financing", ["node", "tests/financing.test.mjs"]],
   ["updates", ["node", "tests/updates.test.mjs"]],
+  ["ota-firma", ["node", "tests/ota-firma.test.mjs"]],
 ];
 
 /* UN TEST QUE NO ESTÁ EN ESTA LISTA NO EXISTE (2026-08-17).

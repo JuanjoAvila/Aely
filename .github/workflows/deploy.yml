@@ -81,14 +81,17 @@ jobs:
       # `checksum` (SEG-01): SHA-256 del zip. El plugin lo recalcula al bajarlo y tira el bundle
       # si no casa (zip truncado o el viejo aún en la caché de Pages). Va DESPUÉS de mover el zip
       # y ANTES de nada más: si algo tocara el zip después, ningún móvil se actualizaría.
+      # `signature`: ese mismo SHA-256 firmado con la clave del OTA, solo si existe el secreto
+      # (`scripts/ota-manifiesto.mjs`). El `checksum` en claro se queda para las APK sin clave.
       - name: Empaquetar bundle OTA (bundle.zip + version.json)
+        env:
+          OTA_SIGNING_KEY: ${{ secrets.OTA_SIGNING_KEY }}
         run: |
           VERSION=$(cat VERSION | tr -d '[:space:]')
           (cd public && zip -qr ../bundle.zip .)
           mv bundle.zip public/bundle.zip
-          SUMA=$(sha256sum public/bundle.zip | cut -d' ' -f1)
-          printf '{"version":"%s","url":"https://juanjoavila.github.io/Aely/bundle.zip","checksum":"%s"}\n' "$VERSION" "$SUMA" > public/version.json
-          echo "OTA $VERSION → $(du -h public/bundle.zip | cut -f1) · sha256 $SUMA"
+          node scripts/ota-manifiesto.mjs --zip public/bundle.zip --out public/version.json --version "$VERSION" --url "https://juanjoavila.github.io/Aely/bundle.zip"
+          echo "OTA $VERSION → $(du -h public/bundle.zip | cut -f1)"
 
       - name: Configurar Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0

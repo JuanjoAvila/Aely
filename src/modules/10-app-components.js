@@ -89,7 +89,7 @@ function useUpdates(){
       return;
     }
     if(showToast) showToast(t("apk_downloading"));
-    nat.installApk({url:apkUpd.url}).then(function(r){
+    nat.installApk(mcApkArgs(apkUpd)).then(function(r){
       if(r&&r.needsPermission&&showToast){ showToast(t("apk_perm")); return; }   // Android abrió el ajuste; reintocar
     }).catch(function(e){ if(showToast) showToast(errTxt(e)); });
   };
