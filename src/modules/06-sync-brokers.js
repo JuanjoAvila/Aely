@@ -96,7 +96,7 @@ function miDeviceLogin(http, loginBody, devId, captchaToken){
     return { ok:false, status:st, error:(j.status&&j.status.message)||d.message||("login HTTP "+st) };
   });
 }
-function MyInvestorSync({state, set, onConn, ficha}){
+function MyInvestorSync({state, set, onConn, ficha, quitarBank}){
   const [step,setStep]=useState("idle");     // idle | otp | connected | preview
   /* El DNI/NIE ya no se recuerda (SEG-19, 19/11/2026): en localStorage queda en claro y al alcance
      de cualquier script de la página. Reconectar tras una caducidad pide escribirlo otra vez; la
@@ -311,7 +311,7 @@ function MyInvestorSync({state, set, onConn, ficha}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:doSync}, busy?t("mi_syncing"):t("mi_sync")),
           ficha
             ? React.createElement("button",{type:"button",className:"bk-del","data-act":"bk-br-quitar",disabled:busy,onClick:disconnect},
-                TRASH_ICO(), tf("mb_quitar",{bank:entOf("myinvestor").label}))
+                TRASH_ICO(), tf("mb_quitar",{bank:quitarBank||"MyInvestor"}))
             : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("mi_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
@@ -438,7 +438,7 @@ function trNotifyApproved(){
   const nat=natPlugin();
   if(nat&&nat.showNotification){ try{ Promise.resolve(nat.showNotification({title:"Aely", body:t("tr_notif_ok"), tag:"tr-approved"})).catch(function(){}); }catch(e){} }
 }
-function TRSync({state, set, totals, ficha}){
+function TRSync({state, set, totals, ficha, quitarBank}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
   const [phone,setPhone]=useState(trPhoneSaved());
@@ -656,7 +656,7 @@ function TRSync({state, set, totals, ficha}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:function(){ doSync({ack:true}); }}, busy?t("tr_syncing"):t("tr_sync")),
           ficha
             ? React.createElement("button",{type:"button",className:"bk-del","data-act":"bk-br-quitar",disabled:busy,onClick:disconnect},
-                TRASH_ICO(), tf("mb_quitar",{bank:entOf("trade_republic").label}))
+                TRASH_ICO(), tf("mb_quitar",{bank:quitarBank||"Trade Republic"}))
             : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("tr_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,

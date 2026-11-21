@@ -12274,22 +12274,19 @@ const BANCOS_CON_LOGO={sabadell:1,revolut:1,trade_republic:1,myinvestor:1,caixab
    que se lee. Un billete con su moneda delante — distinto de un vistazo de cualquier logo de
    banco, que es de lo que se trata. */
 const ENTS_DIBUJADAS={efectivo:"efectivo.svg"};
-/* Monograma para un banco que Enable Banking nombra pero la app no mapea a ENT (Mis bancos →
-   «Otro banco»). Sin esto caía al «··» genérico con nombres raros, cortos o con acentos. */
-function aspspMono(name){
-  const raw=String(name||"").trim();
-  const trozos=raw.replace(/[^\p{L}\p{N} ]+/gu," ").trim().split(/\s+/).filter(Boolean);
-  let ini;
-  if(trozos.length>=2) ini=trozos.slice(0,2).map(function(w){ return w[0]||""; }).join("");
-  else if(trozos.length===1) ini=trozos[0].slice(0,4);
-  else ini=raw.replace(/[^\p{L}\p{N}]/gu,"").slice(0,4);
-  ini=String(ini||"").replace(/[^\p{L}\p{N}]/gu,"");
-  return (ini||"?").toUpperCase();
-}
 function Mono({ent, size, logo, aspspName}){
   const e=entOf(ent); size=size||40;
   const id=String(ent||"");
-  const mono=(id&&e.mono!=="··")?e.mono:(aspspName?aspspMono(aspspName):e.mono);
+  var mono=e.mono;
+  if(!(id&&e.mono!=="··")&&aspspName){
+    const raw=String(aspspName||"").trim(), trozos=raw.replace(/[^\p{L}\p{N} ]+/gu," ").trim().split(/\s+/).filter(Boolean);
+    let ini;
+    if(trozos.length>=2) ini=trozos.slice(0,2).map(function(w){ return w[0]||""; }).join("");
+    else if(trozos.length===1) ini=trozos[0].slice(0,4);
+    else ini=raw.replace(/[^\p{L}\p{N}]/gu,"").slice(0,4);
+    ini=String(ini||"").replace(/[^\p{L}\p{N}]/gu,"");
+    mono=(ini||"?").toUpperCase();
+  }
   const [roto,setRoto]=React.useState(false);
   /* `logo:false` = el monograma de colores de siempre.
      LA REGLA, que me costó dos rondas (11/9): **si la fila es un BANCO, el logo del banco; si es
@@ -21093,7 +21090,7 @@ function miDeviceLogin(http, loginBody, devId, captchaToken){
     return { ok:false, status:st, error:(j.status&&j.status.message)||d.message||("login HTTP "+st) };
   });
 }
-function MyInvestorSync({state, set, onConn, ficha}){
+function MyInvestorSync({state, set, onConn, ficha, quitarBank}){
   const [step,setStep]=useState("idle");     // idle | otp | connected | preview
   /* El DNI/NIE ya no se recuerda (SEG-19, 19/11/2026): en localStorage queda en claro y al alcance
      de cualquier script de la página. Reconectar tras una caducidad pide escribirlo otra vez; la
@@ -21308,7 +21305,7 @@ function MyInvestorSync({state, set, onConn, ficha}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:doSync}, busy?t("mi_syncing"):t("mi_sync")),
           ficha
             ? React.createElement("button",{type:"button",className:"bk-del","data-act":"bk-br-quitar",disabled:busy,onClick:disconnect},
-                TRASH_ICO(), tf("mb_quitar",{bank:entOf("myinvestor").label}))
+                TRASH_ICO(), tf("mb_quitar",{bank:quitarBank||"MyInvestor"}))
             : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("mi_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
@@ -21435,7 +21432,7 @@ function trNotifyApproved(){
   const nat=natPlugin();
   if(nat&&nat.showNotification){ try{ Promise.resolve(nat.showNotification({title:"Aely", body:t("tr_notif_ok"), tag:"tr-approved"})).catch(function(){}); }catch(e){} }
 }
-function TRSync({state, set, totals, ficha}){
+function TRSync({state, set, totals, ficha, quitarBank}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
   const [phone,setPhone]=useState(trPhoneSaved());
@@ -21653,7 +21650,7 @@ function TRSync({state, set, totals, ficha}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:function(){ doSync({ack:true}); }}, busy?t("tr_syncing"):t("tr_sync")),
           ficha
             ? React.createElement("button",{type:"button",className:"bk-del","data-act":"bk-br-quitar",disabled:busy,onClick:disconnect},
-                TRASH_ICO(), tf("mb_quitar",{bank:entOf("trade_republic").label}))
+                TRASH_ICO(), tf("mb_quitar",{bank:quitarBank||"Trade Republic"}))
             : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("tr_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
@@ -33673,31 +33670,30 @@ var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"
    desde Cartera ya no hay Ajustes debajo. `origen` es a dónde vuelve; `accion` llega cuando se
    vuelve de autorizar un banco. Lo que se hizo aquí dentro viaja en `onClose(accion)`, y solo
    entonces la pantalla de origen resalta la fila y avisa: un atrás sin cambios vuelve callado. */
-/* Subtítulo de una fila en Mis bancos: trozos unidos con «·» al FINAL del anterior (como
-   `mcTrozos` en Cartera), para que con letra Enorme a 360 ningún renglón empiece por «·». */
-function bkMtLine(parts){
-  const ps=(parts||[]).map(function(p){ return typeof p==="string"?{t:p}:p; }).filter(function(p){ return p&&p.t; });
-  if(!ps.length) return null;
-  if(ps.length===1&&!ps[0].cls&&!ps[0].nw) return React.createElement("span",null, ps[0].t);
-  return React.createElement("span",{className:"mc-trozos"},
-    ps.map(function(p,i){
-      const cls=p.cls||(String(p.t).length<=28?"mc-pt":null);
-      return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
-        React.createElement("span",{className:[cls,p.nw?"nw":null].filter(Boolean).join(" ")||undefined}, p.t+(i<ps.length-1?" ·":"")));
-    }));
-}
-function lineaEstadoParts(st){
-  if(st.noAcct) return [{t:t("bp_st_noacct"),cls:"warn mc-pt"}];
-  if(st.pending) return [{t:t("bp_st_pending"),cls:"warn mc-pt"}];
-  if(st.dead){
-    const ps=[{t:t("mb_st_dead"),cls:"bad mc-pt"}];
-    if(st.at) ps.push({t:bkHace(st.at),nw:true});
-    return ps;
-  }
-  if(st.soon) return [{t:bkCaduca(st.dias),cls:"warn mc-pt"}];
-  return [{t:st.at?bkHace(st.at):t("bank_neversync"),nw:true,cls:"mc-pt"}];
-}
 function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fetchPrices, focusAspsp, origen, accion}){
+  /* Subtítulo de fila Mis bancos: «·» al final del trozo anterior (mcTrozos), sin «·» huérfano Enorme. */
+  const bkMtLine=function(parts){
+    const ps=(parts||[]).map(function(p){ return typeof p==="string"?{t:p}:p; }).filter(function(p){ return p&&p.t; });
+    if(!ps.length) return null;
+    if(ps.length===1&&!ps[0].cls&&!ps[0].nw) return React.createElement("span",null, ps[0].t);
+    return React.createElement("span",{className:"mc-trozos"},
+      ps.map(function(p,i){
+        const cls=p.cls||(String(p.t).length<=28?"mc-pt":null);
+        return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
+          React.createElement("span",{className:[cls,p.nw?"nw":null].filter(Boolean).join(" ")||undefined}, p.t+(i<ps.length-1?" ·":"")));
+      }));
+  };
+  const lineaEstadoParts=function(st){
+    if(st.noAcct) return [{t:t("bp_st_noacct"),cls:"warn mc-pt"}];
+    if(st.pending) return [{t:t("bp_st_pending"),cls:"warn mc-pt"}];
+    if(st.dead){
+      const ps=[{t:t("mb_st_dead"),cls:"bad mc-pt"}];
+      if(st.at) ps.push({t:bkHace(st.at),nw:true});
+      return ps;
+    }
+    if(st.soon) return [{t:bkCaduca(st.dias),cls:"warn mc-pt"}];
+    return [{t:st.at?bkHace(st.at):t("bank_neversync"),nw:true,cls:"mc-pt"}];
+  };
   const sr=useRef(null), accionRef=useRef(accion||null);
   useEffect(function(){ if(accion) accionRef.current=accion; },[accion]);
   const [vis,setVis]=useState(false);
@@ -34083,8 +34079,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
             React.createElement("h2",null, entOf(fbk).label),
             chip && React.createElement("span",{className:"bk-chip"+chip[0]}, t(chip[1]))),
           React.createElement("button",{type:"button",className:"bk-x","aria-label":t("au_close"),onClick:fs.close},"✕")),
-        fbk==="trade_republic" && React.createElement(TRSync,{state:state,set:set,totals:totals,ficha:true}),
-        fbk==="myinvestor" && React.createElement(MyInvestorSync,{state:state,set:set,ficha:true,onConn:function(v){ setMiSt(v?"ok":"off"); }}),
+        fbk==="trade_republic" && React.createElement(TRSync,{state:state,set:set,totals:totals,ficha:true,quitarBank:entOf(fbk).label}),
+        fbk==="myinvestor" && React.createElement(MyInvestorSync,{state:state,set:set,ficha:true,quitarBank:entOf(fbk).label,onConn:function(v){ setMiSt(v?"ok":"off"); }}),
         fbk==="revolut" && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices})
       )), document.body);
   })();
@@ -35297,7 +35293,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a9a6884c2a8401510ac0928ad7c8dc640111f3e0e89e70272cb91bd25737a29f";
+var _rnSha="09b1203f307d9931c0d343fc82d2d9bbdc427fd4488dfc8a5b59504c4874b9af";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

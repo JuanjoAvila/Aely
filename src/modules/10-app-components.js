@@ -717,31 +717,30 @@ var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"
    desde Cartera ya no hay Ajustes debajo. `origen` es a dónde vuelve; `accion` llega cuando se
    vuelve de autorizar un banco. Lo que se hizo aquí dentro viaja en `onClose(accion)`, y solo
    entonces la pantalla de origen resalta la fila y avisa: un atrás sin cambios vuelve callado. */
-/* Subtítulo de una fila en Mis bancos: trozos unidos con «·» al FINAL del anterior (como
-   `mcTrozos` en Cartera), para que con letra Enorme a 360 ningún renglón empiece por «·». */
-function bkMtLine(parts){
-  const ps=(parts||[]).map(function(p){ return typeof p==="string"?{t:p}:p; }).filter(function(p){ return p&&p.t; });
-  if(!ps.length) return null;
-  if(ps.length===1&&!ps[0].cls&&!ps[0].nw) return React.createElement("span",null, ps[0].t);
-  return React.createElement("span",{className:"mc-trozos"},
-    ps.map(function(p,i){
-      const cls=p.cls||(String(p.t).length<=28?"mc-pt":null);
-      return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
-        React.createElement("span",{className:[cls,p.nw?"nw":null].filter(Boolean).join(" ")||undefined}, p.t+(i<ps.length-1?" ·":"")));
-    }));
-}
-function lineaEstadoParts(st){
-  if(st.noAcct) return [{t:t("bp_st_noacct"),cls:"warn mc-pt"}];
-  if(st.pending) return [{t:t("bp_st_pending"),cls:"warn mc-pt"}];
-  if(st.dead){
-    const ps=[{t:t("mb_st_dead"),cls:"bad mc-pt"}];
-    if(st.at) ps.push({t:bkHace(st.at),nw:true});
-    return ps;
-  }
-  if(st.soon) return [{t:bkCaduca(st.dias),cls:"warn mc-pt"}];
-  return [{t:st.at?bkHace(st.at):t("bank_neversync"),nw:true,cls:"mc-pt"}];
-}
 function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fetchPrices, focusAspsp, origen, accion}){
+  /* Subtítulo de fila Mis bancos: «·» al final del trozo anterior (mcTrozos), sin «·» huérfano Enorme. */
+  const bkMtLine=function(parts){
+    const ps=(parts||[]).map(function(p){ return typeof p==="string"?{t:p}:p; }).filter(function(p){ return p&&p.t; });
+    if(!ps.length) return null;
+    if(ps.length===1&&!ps[0].cls&&!ps[0].nw) return React.createElement("span",null, ps[0].t);
+    return React.createElement("span",{className:"mc-trozos"},
+      ps.map(function(p,i){
+        const cls=p.cls||(String(p.t).length<=28?"mc-pt":null);
+        return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
+          React.createElement("span",{className:[cls,p.nw?"nw":null].filter(Boolean).join(" ")||undefined}, p.t+(i<ps.length-1?" ·":"")));
+      }));
+  };
+  const lineaEstadoParts=function(st){
+    if(st.noAcct) return [{t:t("bp_st_noacct"),cls:"warn mc-pt"}];
+    if(st.pending) return [{t:t("bp_st_pending"),cls:"warn mc-pt"}];
+    if(st.dead){
+      const ps=[{t:t("mb_st_dead"),cls:"bad mc-pt"}];
+      if(st.at) ps.push({t:bkHace(st.at),nw:true});
+      return ps;
+    }
+    if(st.soon) return [{t:bkCaduca(st.dias),cls:"warn mc-pt"}];
+    return [{t:st.at?bkHace(st.at):t("bank_neversync"),nw:true,cls:"mc-pt"}];
+  };
   const sr=useRef(null), accionRef=useRef(accion||null);
   useEffect(function(){ if(accion) accionRef.current=accion; },[accion]);
   const [vis,setVis]=useState(false);
@@ -1127,8 +1126,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
             React.createElement("h2",null, entOf(fbk).label),
             chip && React.createElement("span",{className:"bk-chip"+chip[0]}, t(chip[1]))),
           React.createElement("button",{type:"button",className:"bk-x","aria-label":t("au_close"),onClick:fs.close},"✕")),
-        fbk==="trade_republic" && React.createElement(TRSync,{state:state,set:set,totals:totals,ficha:true}),
-        fbk==="myinvestor" && React.createElement(MyInvestorSync,{state:state,set:set,ficha:true,onConn:function(v){ setMiSt(v?"ok":"off"); }}),
+        fbk==="trade_republic" && React.createElement(TRSync,{state:state,set:set,totals:totals,ficha:true,quitarBank:entOf(fbk).label}),
+        fbk==="myinvestor" && React.createElement(MyInvestorSync,{state:state,set:set,ficha:true,quitarBank:entOf(fbk).label,onConn:function(v){ setMiSt(v?"ok":"off"); }}),
         fbk==="revolut" && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices})
       )), document.body);
   })();

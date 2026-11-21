@@ -72,22 +72,19 @@ const BANCOS_CON_LOGO={sabadell:1,revolut:1,trade_republic:1,myinvestor:1,caixab
    que se lee. Un billete con su moneda delante — distinto de un vistazo de cualquier logo de
    banco, que es de lo que se trata. */
 const ENTS_DIBUJADAS={efectivo:"efectivo.svg"};
-/* Monograma para un banco que Enable Banking nombra pero la app no mapea a ENT (Mis bancos →
-   «Otro banco»). Sin esto caía al «··» genérico con nombres raros, cortos o con acentos. */
-function aspspMono(name){
-  const raw=String(name||"").trim();
-  const trozos=raw.replace(/[^\p{L}\p{N} ]+/gu," ").trim().split(/\s+/).filter(Boolean);
-  let ini;
-  if(trozos.length>=2) ini=trozos.slice(0,2).map(function(w){ return w[0]||""; }).join("");
-  else if(trozos.length===1) ini=trozos[0].slice(0,4);
-  else ini=raw.replace(/[^\p{L}\p{N}]/gu,"").slice(0,4);
-  ini=String(ini||"").replace(/[^\p{L}\p{N}]/gu,"");
-  return (ini||"?").toUpperCase();
-}
 function Mono({ent, size, logo, aspspName}){
   const e=entOf(ent); size=size||40;
   const id=String(ent||"");
-  const mono=(id&&e.mono!=="··")?e.mono:(aspspName?aspspMono(aspspName):e.mono);
+  var mono=e.mono;
+  if(!(id&&e.mono!=="··")&&aspspName){
+    const raw=String(aspspName||"").trim(), trozos=raw.replace(/[^\p{L}\p{N} ]+/gu," ").trim().split(/\s+/).filter(Boolean);
+    let ini;
+    if(trozos.length>=2) ini=trozos.slice(0,2).map(function(w){ return w[0]||""; }).join("");
+    else if(trozos.length===1) ini=trozos[0].slice(0,4);
+    else ini=raw.replace(/[^\p{L}\p{N}]/gu,"").slice(0,4);
+    ini=String(ini||"").replace(/[^\p{L}\p{N}]/gu,"");
+    mono=(ini||"?").toUpperCase();
+  }
   const [roto,setRoto]=React.useState(false);
   /* `logo:false` = el monograma de colores de siempre.
      LA REGLA, que me costó dos rondas (11/9): **si la fila es un BANCO, el logo del banco; si es
