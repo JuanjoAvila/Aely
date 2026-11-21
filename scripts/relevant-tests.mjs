@@ -175,6 +175,8 @@ export const E2E_MAP = [
   // un solo botón principal y colores del tema en candado y panel de cuenta.
   { file: "src/modules/10-app-components.js", specs: ["e2e/atras-y-bienvenida.spec.mjs", "e2e/backup-restauracion.spec.mjs"] },
   { file: "src/modules/16-help-assistant.js", specs: ["e2e/atras-y-bienvenida.spec.mjs"] },
+  { file: "src/modules/16-help-assistant.js", specs: ["e2e/red-falsa-offline.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/red-falsa-offline.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/debt-day-prompt.spec.mjs"] },
   // DIS-31 y DIS-11 (15/11/2026): altas de deuda y meta en hoja, y el Gasto/Ingreso como único
   // mando de la ficha. Tocan dinero: comparan lo guardado con lo que dejaba la base.

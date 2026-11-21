@@ -178,7 +178,7 @@ test("App lanza la sola con opts.auto, tras el pull, en idle y fuera del modo pr
 test("la sola calla sus fallos: el banner de bancos ya los enseña", () => {
   const sync = cut(main, "  const runBankSync=function(opts){", "  /* EL ACUSE SE GUARDA");
   assert.match(sync, /if\(!opts\.auto\) avisaSync\(opts\.manual\?opts:null, "⚠ "\+msg\)/);
-  assert.match(sync, /opts\.manual \|\| \(!opts\.auto && navigator\.onLine!==false\)/);
+  assert.match(sync, /if\(opts\.manual\) avisaSync\(opts,[\s\S]*else if\(!opts\.auto\) mcSiRedViva\(/);
 });
 
 console.log(`bank-autosync: ${count} pruebas OK`);
