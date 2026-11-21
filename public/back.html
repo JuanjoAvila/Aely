@@ -12,7 +12,11 @@
 
      SEC-01 (4.23.0): NO pintar ni reenviar `msg` crudo. Quien mande
      `…/back.html?msg=<texto>` no puede enseñar un aviso falso en una página de Aely.
-     Solo reenviamos códigos cortos o `nolink:…`; el resto → `error`. -->
+     Solo reenviamos códigos cortos o `nolink:…`; el resto → `error`.
+
+     SEG-02: con `?confirm=<token>` el banco aún NO está conectado: lo activa la app al canjear
+     el token con su sesión. Viaja dentro de `msg` (`confirm:<token>`) porque es lo único que la
+     APK instalada pasa a la web, y se quita de la barra para que no quede en el historial. -->
 <style>
   body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0B1410;color:#E8F0EB;font-family:sans-serif;text-align:center;padding:24px;box-sizing:border-box}
   .ico{font-size:44px}
@@ -37,9 +41,15 @@
   }
   var q=new URLSearchParams(location.search);
   var ok=q.get("ok")==="1";
-  var msg=ok?"":sanitizeMsg(q.get("msg"));
-  var target="micartera://bank"+(ok?"?ok=1":"?msg="+encodeURIComponent(msg||"error"));
-  if(!ok){
+  var tok=String(q.get("confirm")||"");
+  if(!/^[A-Za-z0-9_-]{43}$/.test(tok)) tok="";
+  var msg=ok||tok?"":sanitizeMsg(q.get("msg"));
+  var target="micartera://bank"+(ok?"?ok=1":"?msg="+encodeURIComponent(tok?"confirm:"+tok:(msg||"error")));
+  if(tok){
+    try{ history.replaceState(null,"",location.pathname); }catch(e){}
+    document.getElementById("ico").textContent="🏦";
+    document.getElementById("ttl").textContent="Vuelve a Aely para terminar";
+  } else if(!ok){
     document.getElementById("ico").textContent="⚠️";
     document.getElementById("ttl").textContent="No se pudo conectar el banco";
     // Mensaje fijo: nunca el `msg` de la URL (SEC-01).

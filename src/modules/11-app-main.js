@@ -239,22 +239,6 @@ function App(){
      dedo: lo que de verdad separa los dos casos es que en uno cambia `scrollHeight` y en el otro
      no. */
   const ultimoScrollH=useRef(0);
-  /* Ola nativa (`touch-action:pan-y` en `.page`) vs gestos de borde.
-     Mapa: Gastos/Cartera = ola arriba y abajo (pan-y siempre). Resumen = ola solo abajo
-     (arriba = perfil → `.mc-touch-own`). Plan = pan-y SIEMPRE en reposo: si lo poníamos en
-     `mc-touch-own` al estar arriba, `touch-action:none` bloqueaba TAMBIÉN bajar a ver el
-     contenido (feedback 5/8: «me has bloqueado incluso que pueda bajar»). Plan no pone esa
-     clase nunca: ponerla dentro del touchstart no gobierna el gesto en curso (medido
-     2026-10-13), el segmento se reclama con preventDefault (14-v4-screens.js). */
-  const syncPageTouchAction=function(pageEl, pageIdx){
-    if(!pageEl||!pageEl.classList) return;
-    const id=tabIds[pageIdx];
-    const y=pageEl.scrollTop||0;
-    const atTop=y<=2;
-    // Solo Inicio arriba. Plan lo gestiona su propio listener al reclamar el segmento.
-    const own=(id==="inicio" && atTop);
-    pageEl.classList.toggle("mc-touch-own", !!own);
-  };
   const onPageScroll=function(e){
     // Las páginas premontadas se recolocan al cambiar sus datos; su scroll no puede esconder
     // la barra ni pisar la lectura de la pantalla visible (DOM Metas, 4/10).
@@ -275,8 +259,6 @@ function App(){
        bien; lo que no llegaba era el aviso del dedo. */
     if(dragging.current && gestureMode.current==="tab") return;
     const y=e.currentTarget.scrollTop;
-    // touch-action de la página (ola vs gestos de borde): ver syncPageTouchAction.
-    syncPageTouchAction(e.currentTarget, tab);
     // Cambió la pestaña (o es la primera lectura): sincroniza sin actuar. Cada .page tiene su propio
     // scrollTop y sin esto pasar de una tab scrolleada a otra escondería la barra de golpe.
     /* El pin era de 1000 ms y se comía el PRIMER gesto entero: entras en una pestaña, bajas, y la
@@ -1766,17 +1748,48 @@ function App(){
       });
     }).catch(function(){});
   };
+  /* LA VUELTA DEL BANCO, igual para la APK (`bank|…`) y la web (`?bank=…`).
+     Solo cuenta si este móvil salió a conectar hace poco (`bankVueltaAdmite`, SEG-16): un `ok`
+     que abra otra web o app no pinta nada ni gasta una lectura del banco. */
+  const bancoConectado=function(){
+    showToast("✓ "+t("bank_connected"));
+    set(function(s){ return s.hasBankLink?s:Object.assign({},s,{hasBankLink:true}); });
+    vueltaDelBanco();
+    // Sin sesión todavía (arranque en frío): la lectura sale del efecto de `uid`, más abajo.
+    if(sessionRef.current){ limpiaCartelReconectado(); runBankSync({manual:true}); }
+    else bankJustConnected.current=true;
+  };
+  const vueltaBancoOk=function(){
+    if(bankVueltaAdmite("ok", sessionRef.current&&sessionRef.current.user.id, Date.now())) bancoConectado();
+  };
+  /* SEG-02: el banco vuelve con un token de un solo uso y el enlace sigue sin activar hasta que
+     esta app lo canjea con su sesión. Un token que no salió de aquí no se manda al servidor. Un
+     corte de red se reintenta una vez; si no, el enlace queda a medias y hay que reconectar. */
+  const vueltaBancoConfirma=function(raw){
+    const tok=bankConfirmToken(raw);
+    if(!tok || !bankVueltaAdmite("confirm", sessionRef.current&&sessionRef.current.user.id, Date.now())){
+      showToast("⚠ "+t("bank_err_state")); return;
+    }
+    const canjea=function(){ return cloud.bankConfirm(tok).then(function(d){ if(!d) throw new Error("error"); }); };
+    canjea().then(null,function(e){
+      if(!bankCanjeFalloDeRed(e)) throw e;
+      return new Promise(function(res){ setTimeout(res,2500); }).then(canjea);
+    }).then(function(){
+      bankVueltaCierra();
+      bancoConectado();
+    },function(e){
+      showToast("⚠ "+t("bank_error"));
+      try{ cloud.logEvent("error","bankConfirm: "+String((e&&e.message)||e).slice(0,120)); }catch(_){}
+    });
+  };
   const handleGoto=function(g){
     if(!g||typeof g!=="string") return;
     if(g.indexOf("bank|")===0){
-      const parts=g.split("|");
-      if(parts[1]==="ok"){
-        showToast("✓ "+t("bank_connected"));
-        set(function(s){ return s.hasBankLink?s:Object.assign({},s,{hasBankLink:true}); });
-        limpiaCartelReconectado();
-        runBankSync({manual:true});
-        vueltaDelBanco();
-      } else {
+      const parts=g.split("|"), resto=parts.slice(2).join("|");
+      if(parts[1]==="ok") vueltaBancoOk();
+      // La APK solo sabe pasar `ok` o un `msg`: el token de confirmar viaja como `confirm:<token>`.
+      else if(resto.indexOf("confirm:")===0) vueltaBancoConfirma(resto.slice(8));
+      else {
         // SEC-01: códigos cortos del Edge; el texto crudo de la URL NO se pinta (4.23.0).
         showToast(bankCallbackErrorToast(parts.slice(2).join("|")));
       }
@@ -1888,14 +1901,15 @@ function App(){
     if(window._mcApplyChannelBundle) window._mcApplyChannelBundle({showToast:showToast});
   },[]);
 
-  // CAPA 2 — vuelta del banco (?bank=ok / ?bank=error tras autorizar). Avisa y limpia la URL.
+  // CAPA 2 — vuelta del banco (?bank=ok, ?bank=confirm&t=… o ?bank=error). Avisa y limpia la URL.
   useEffect(function(){
     if(!cloud.enabled()) return;
     let params=null; try{ params=new URLSearchParams(location.search); }catch(e){}
     const bankParam=params && params.get("bank");
     if(!bankParam) return;
     try{ history.replaceState(null, "", location.pathname + location.hash); }catch(e){}   // que no se repita al recargar
-    if(bankParam==="ok"){ showToast("✓ "+t("bank_connected")); bankJustConnected.current=true; vueltaDelBanco(); }
+    if(bankParam==="ok") vueltaBancoOk();
+    else if(bankParam==="confirm") vueltaBancoConfirma(params.get("t"));
     else if(bankParam==="error"){
       // SEC-01: mismos códigos que el puente nativo; NUNCA pintar `msg` crudo (4.23.0).
       showToast(bankCallbackErrorToast(params.get("msg")||""));
@@ -2828,8 +2842,11 @@ function App(){
   // Telemetría solo-admin: errores no capturados de CUALQUIER usuario → app_events (RLS: solo
   // los lee el admin) + ping 1×/día para saber quién usa la app. Cero datos financieros.
   useEffect(function(){
-    const onErr=function(ev){ try{ cloud.logEvent('error', ev.message||'error', ((ev.error&&ev.error.stack)||String(ev.filename||'')+':'+(ev.lineno||'')) ); }catch(e){} };
-    const onRej=function(ev){ try{ const r=ev.reason; cloud.logEvent('error', 'Promise: '+(((r&&r.message)||String(r))).slice(0,300), r&&r.stack); }catch(e){} };
+    // Sentry ya no está cargado de entrada (R-06): hasta que lo esté, el error se le pasa a mano.
+    // Una vez cargado los recoge él solo, y pasárselos otra vez los duplicaría.
+    const aSentry=function(err){ if(!_mcSentryReady) mcCaptureError(err); };
+    const onErr=function(ev){ aSentry(ev.error||new Error(ev.message||"error")); try{ cloud.logEvent('error', ev.message||'error', ((ev.error&&ev.error.stack)||String(ev.filename||'')+':'+(ev.lineno||'')) ); }catch(e){} };
+    const onRej=function(ev){ aSentry(ev.reason); try{ const r=ev.reason; cloud.logEvent('error', 'Promise: '+(((r&&r.message)||String(r))).slice(0,300), r&&r.stack); }catch(e){} };
     window.addEventListener("error", onErr);
     window.addEventListener("unhandledrejection", onRej);
     return function(){ window.removeEventListener("error", onErr); window.removeEventListener("unhandledrejection", onRej); };
@@ -2863,11 +2880,29 @@ function App(){
     const nat=natPlugin();
     if(!nat || !nat.setIngestUrl) return;
     const on=!!(state.settings&&state.settings.trIngest);
-    const tok=state.settings&&state.settings.ingestToken;
-    if(!on || !tok) return;
-    const url=CONFIG.SUPABASE_URL+"/functions/v1/ingest?token="+encodeURIComponent(tok);
-    try{ nat.setIngestUrl({url:url}).catch(function(){}); }catch(e){}
-  },[state.settings&&state.settings.trIngest, state.settings&&state.settings.ingestToken]);
+    if(!on || !uid) return;
+    /* El token se lee de su tabla y ya no vive en `settings` (SEG-08). El que dejó ahí una versión
+       anterior se usa una última vez si la tabla no responde, y se quita del estado en cuanto la
+       tabla lo tiene: así deja de subir a la nube y a sus copias. Sin red no se re-propaga nada;
+       el lector conserva la URL que ya tenía. */
+    const viejo=(state.settings&&state.settings.ingestToken)||"";
+    let off=false;
+    cloud.getIngestToken().then(function(enNube){
+      if(off) return;
+      const tok=enNube||viejo;
+      if(!tok) return;
+      try{ nat.setIngestUrl({url:mcIngestUrl(tok)}).catch(function(){}); }catch(e){}
+      if(viejo && enNube) set(function(s){
+        if(!s.settings||!s.settings.ingestToken) return s;
+        const st=Object.assign({},s.settings); delete st.ingestToken;
+        return Object.assign({},s,{settings:st});
+      });
+    }).catch(function(){
+      if(off || !viejo) return;
+      try{ nat.setIngestUrl({url:mcIngestUrl(viejo)}).catch(function(){}); }catch(e){}
+    });
+    return function(){ off=true; };
+  },[state.settings&&state.settings.trIngest, uid]);
   // App Android: alimenta el widget de pantalla de inicio (gasto + saldo de la cuenta diaria).
   // La APK 51 conserva su payload mensual histórico, igual que ingest activo. Un widget v2
   // declara `widgetContract` y pinta ventana/cifra de Inicio en su idioma (INC-2909-01).
@@ -3303,7 +3338,7 @@ function App(){
     if(i<0) return;
     goTab(i);
     const pg=trackRef.current&&trackRef.current.children&&trackRef.current.children[i];
-    if(pg){ pg.scrollTop=0; syncPageTouchAction(pg, i); }
+    if(pg) pg.scrollTop=0;
   };
   /* ADÓNDE LLEVA «Abrir en Cartera ›» DE LA FILA GRIS DE INVERSIONES (Gastos v5, 25/10/2026).
      El destino vive SOLO aquí a propósito: cuando exista la pestaña de inversiones (petición
@@ -3504,7 +3539,6 @@ function App(){
       const nav=document.querySelector(".botnav");
       if(nav) nav.classList.remove("botnav-ola-clear");
     }catch(e){}
-    if(pgs[i]) syncPageTouchAction(pgs[i], i);
   };
   // Red de seguridad: si el host se perdió (gesto cancelado / settle a medias), recuperarlo.
   const ensureScrollHost=function(){
@@ -4315,21 +4349,6 @@ function App(){
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
   useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);
-  // Al cambiar de pestaña (o del orden), recalcular qué páginas necesitan `mc-touch-own`.
-  // Sin esto, Inicio se quedaba en pan-y tras volver desde Gastos scrolleado, o Plan perdía el
-  // gesto de segmento al aterrizar ya arriba del todo sin haber disparado onScroll.
-  // También tras CUALQUIER re-render: React pisa className y se lleva el `mc-touch-own` que
-  // solo vivía en classList (mismo agujero que page-scroll-host).
-  useLayoutEffect(function(){
-    const pages=trackRef.current&&trackRef.current.children;
-    if(!pages) return;
-    for(let i=0;i<pages.length;i++) syncPageTouchAction(pages[i], i);
-  });
-  useEffect(function(){
-    const pages=trackRef.current&&trackRef.current.children;
-    if(!pages) return;
-    for(let i=0;i<pages.length;i++) syncPageTouchAction(pages[i], i);
-  },[tab, tabIds.join("|")]);
   // Build .22: portal en `#root` z-0; `.app`/`.page` transparentes; lavado en `.season-glow`.
   const season=(state.settings&&state.settings.season)||"";
   const reduceMo=!!(state.settings&&state.settings.reduceMotion);

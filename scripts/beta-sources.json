@@ -24420,7 +24420,7 @@
       },
       {
         "file": "src/modules/11-app-main.js",
-        "from": "  const syncPageTouchAction=function(pageEl, pageIdx){",
+        "from": "  const ultimoScrollH=useRef(0);",
         "to": "  const onPageScroll=function(e){"
       },
       {
@@ -32457,7 +32457,7 @@
       },
       {
         "file": "src/modules/11-app-main.js",
-        "from": "  const syncPageTouchAction=function(pageEl, pageIdx){",
+        "from": "  const ultimoScrollH=useRef(0);",
         "to": "  const onPageScroll=function(e){"
       },
       {
@@ -50982,7 +50982,7 @@
       },
       {
         "file": "src/modules/11-app-main.js",
-        "from": "  /* Ola nativa (`touch-action:pan-y` en `.page`) vs gestos de borde.",
+        "from": "  const ultimoScrollH=useRef(0);",
         "to": "  const onPageScroll=function(e){"
       },
       {
