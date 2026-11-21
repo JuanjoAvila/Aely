@@ -453,6 +453,10 @@ export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-t6.spec.mjs"] },
+  // Recibos con la escala de letra de Inicio (dueño, 21/11/2026): se compara contra lo computado en Inicio.
+  { file: "src/shell.html", specs: ["e2e/recibos-escala-inicio.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-escala-inicio.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/recibos-escala-inicio.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round2-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-round9-haptics.spec.mjs", "e2e/ux16-haptics.spec.mjs", "e2e/ux16-round3-haptics.spec.mjs", "e2e/ux16-ajustador.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
