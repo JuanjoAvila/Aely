@@ -111,8 +111,7 @@ t("el canje reintenta ante el error REAL de supabase-js (FunctionsFetchError), n
   const i = core.indexOf("function renameFalloDeRed("), f = core.indexOf("function bankCanjeFalloDeRed("), s = core.indexOf("function mcSinRed(");
   assert.ok(i > 0 && f > 0 && s > 0);
   // 4.26.250: `renameFalloDeRed` mira primero `mcSinRed` (aviso de sin conexión que ya no falla con VPN), que lee `_redVivaAt`.
-  const red = new Function("navigator", "var _redVivaAt=0;
-" + core.slice(s, fin(s)) + core.slice(i, fin(i)) + core.slice(f, fin(f)) + "\nreturn bankCanjeFalloDeRed;")({ onLine: true });
+  const red = new Function("navigator", "var _redVivaAt=0;\n" + core.slice(s, fin(s)) + core.slice(i, fin(i)) + core.slice(f, fin(f)) + "\nreturn bankCanjeFalloDeRed;")({ onLine: true });
   const real = Object.assign(new Error("Failed to send a request to the Edge Function"), { name: "FunctionsFetchError" });
   assert.equal(red(real), true, "forma real del error");
   assert.equal(red(Object.assign(new Error("x"), { name: "FunctionsFetchError" })), true, "por nombre");
