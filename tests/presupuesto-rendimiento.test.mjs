@@ -532,7 +532,11 @@ const PRESUPUESTO = {
   // Ronda C2 (21/11): la firma del OTA en el cliente (`mcOtaOpts`), el bundle que no se confirma si se anunció con otro número
   // (`mcOtaConfirmar`) y el sha256 de la APK: 2.109.780 B minificado y 580.615 B gzip (+1.919 / +545 B; el gzip pasa el tope por
   // 7 B). Es la seguridad de las actualizaciones, sin grasa que quitar; mismo mandato del 11/10: al mínimo medido, 2061 / 568 KiB.
-  minificado: 2061 * 1024,
+  // Integración 4.26.249 (21/11): las cinco ramas juntas (fecha final de la deuda a plazos, Recibos con la escala de Inicio, traspaso entre
+  // cuentas propias, núcleo de seguridad E2 y firma del OTA C2), con el sello y la nota: 2.121.379 B minificado y 583.695 B gzip (+13.518 /
+  // +3.625 B sobre la 248). Casi todo es el traspaso propio (la regla derivada y su cierre, la cabecera y el veto), lógica de dinero revisada
+  // (GO con remates); lo demás es seguridad. Mismo mandato del 11/10: los dos topes, al mínimo medido, 2072 / 571 KiB.
+  minificado: 2072 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -575,7 +579,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 568 * 1024, // ver el comentario de minificado (medido el 21/11/2026 con E2 y C2 juntas, integra 249).
+  gzip: 571 * 1024, // ver el comentario de minificado (570,01 KiB medidos el 21/11/2026 en la integración 249).
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

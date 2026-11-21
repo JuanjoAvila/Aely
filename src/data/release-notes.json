@@ -1,5 +1,67 @@
 [
   {
+    "v": "4.26.249",
+    "d": "2026-11-21",
+    "t": {
+      "es": "Traspasos entre tus cuentas, Recibos con la letra del resto y la fecha final de las compras a plazos",
+      "en": "Transfers between your accounts, Bills in the same type size as the rest, and the end date of instalment purchases",
+      "ca": "Traspassos entre els teus comptes, Rebuts amb la lletra de la resta i la data final de les compres a terminis"
+    },
+    "items": {
+      "es": [
+        "Mover dinero entre tus propias cuentas ya no cuenta como ingreso ni como gasto: si sacas 300 € de un banco y entran en otro, tu mes se queda igual. Si ingresas más de lo que gastas, la cifra de arriba sale con «+» y «a tu favor». Al crear un traspaso, ya puedes elegir cualquiera de tus cuentas como destino.",
+        "Recibos usa el mismo tamaño de letra que Inicio, y con la letra más grande los nombres largos y la cifra del mes se leen enteros.",
+        "Una compra a plazos que todavía no ha empezado dice que acaba en el mes de su última cuota, no contando desde hoy.",
+        "Más seguridad al conectar un banco: al volver, la app lo comprueba antes de darlo por conectado, y la clave del aviso automático de tus compras ya no se guarda con tus ajustes."
+      ],
+      "en": [
+        "Moving money between your own accounts no longer counts as income or as spending: if you take 300 € out of one bank and it lands in another, your month stays the same. If you take in more than you spend, the figure at the top shows «+» and «in your favour». When you create a transfer, you can now pick any of your accounts as the destination.",
+        "Bills uses the same type size as Home, and with the largest text, long names and the month's figure are shown in full.",
+        "An instalment purchase that hasn't started yet says it ends in the month of its last instalment, not counting from today.",
+        "More security when connecting a bank: on the way back, the app checks it before treating it as connected, and the key for the automatic purchase alert is no longer stored with your settings."
+      ],
+      "ca": [
+        "Moure diners entre els teus propis comptes ja no compta com a ingrés ni com a despesa: si treus 300 € d'un banc i entren en un altre, el teu mes es queda igual. Si ingresses més del que gastes, la xifra de dalt surt amb «+» i «a favor teu». En crear un traspàs, ja pots triar qualsevol dels teus comptes com a destinació.",
+        "Rebuts fa servir la mateixa mida de lletra que Inici, i amb la lletra més gran els noms llargs i la xifra del mes es llegeixen sencers.",
+        "Una compra a terminis que encara no ha començat diu que acaba el mes de la seva última quota, no comptant des d'avui.",
+        "Més seguretat en connectar un banc: en tornar, l'app ho comprova abans de donar-lo per connectat, i la clau de l'avís automàtic de les teves compres ja no es desa amb els teus ajustes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-249",
+        "t": {
+          "es": "Traspasos propios, Recibos y compra a plazos",
+          "en": "Own transfers, Bills and instalment purchase",
+          "ca": "Traspassos propis, Rebuts i compra a terminis"
+        },
+        "items": {
+          "es": [
+            "1. Gastos: busca un movimiento de este mes en que pasaste dinero de un banco tuyo a otro (sale de uno y entra en el otro, mismo importe, con dos días de margen) y ábrelo. BIEN: la ficha dice «Traspaso entre tus cuentas: no cuenta.» y hay un botón «No es un traspaso»; ni la salida ni la entrada suben el gasto o el ingreso del mes. MAL: la entrada cuenta como ingreso. Si no tienes ningún caso así, salta este paso.",
+            "2. Gastos: mira la cifra grande de arriba en un mes con más ingresos que gastos. BIEN: sale con «+» y «a tu favor»; si pasas a ver el balance, dice «gastos … · ingresos …», y en «Mi ciclo», «otros ingresos». MAL: la cifra sale sin «+» o con la nómina de otro mes sumada. Si este mes gastas más de lo que ingresas, salta este paso.",
+            "3. Plan › Recibos, con la letra normal: compara con «Próximos cargos» de Inicio. BIEN: los nombres, importes y fechas de las filas se ven del mismo tamaño que en Inicio, sin que la fila parezca más grande. MAL: Recibos se ve con letra claramente mayor que Inicio.",
+            "4. Ajustes › «Tamaño de letra» › «Enorme»; después Plan › Recibos (y vuelve a tu tamaño al acabar). BIEN: los nombres largos bajan de renglón y se leen enteros, y la cifra grande de arriba no parte el «€» a otro renglón. MAL: un nombre con «…» o una cifra partida.",
+            "5. Plan › Recibos › «¿Te llega?» › «¿Y si gasto…?»: escribe 600, toca «A plazos», elige 6 meses y anota el mes de «hasta …». Toca «Crear la deuda» y abre Plan › Deudas. BIEN: la deuda dice «acabas en» el mismo mes que anotaste (la primera cuota cae el mes que viene y la última, a los 6 meses). MAL: acaba un mes más tarde o contando desde hoy. Borra la deuda al terminar."
+          ],
+          "en": [
+            "1. Spending: find a movement from this month where you moved money from one of your banks to another (it leaves one and lands in the other, same amount, two days apart at most) and open it. RIGHT: the card says «Transfer between your accounts: not counted.» and there is a «Not a transfer» button; neither the outgoing nor the incoming one raises the month's spending or income. WRONG: the incoming one counts as income. If you have no such case, skip this step.",
+            "2. Spending: look at the big figure at the top in a month with more income than spending. RIGHT: it shows «+» and «in your favour»; if you switch to the balance, it says «spent … · income …», and in «My cycle», «other income». WRONG: the figure has no «+» or has another month's salary added. If you spend more than you take in this month, skip this step.",
+            "3. Plan › Bills, with the normal text size: compare with «Upcoming» on Home. RIGHT: names, amounts and dates look the same size as on Home, and the rows don't look bigger. WRONG: Bills shows clearly bigger text than Home.",
+            "4. Settings › «Text size» › «Huge»; then Plan › Bills (and go back to your size when done). RIGHT: long names wrap and read in full, and the big figure at the top doesn't push the «€» onto another line. WRONG: a name ending in «…» or a split figure.",
+            "5. Plan › Bills › «Will it cover?» › «What if I spend…?»: type 600, tap «In instalments», choose 6 months and note the month in «until …». Tap «Create the debt» and open Plan › Debts. RIGHT: the debt says «done by» the same month you noted (the first instalment falls next month and the last one 6 months on). WRONG: it ends a month later or counts from today. Delete the debt when you finish."
+          ],
+          "ca": [
+            "1. Despeses: busca un moviment d'aquest mes en què vas passar diners d'un banc teu a un altre (surt d'un i entra a l'altre, mateix import, amb dos dies de marge) i obre'l. BÉ: la fitxa diu «Traspàs entre els teus comptes: no compta.» i hi ha un botó «No és un traspàs»; ni la sortida ni l'entrada pugen la despesa o l'ingrés del mes. MALAMENT: l'entrada compta com a ingrés. Si no tens cap cas així, salta aquest pas.",
+            "2. Despeses: mira la xifra gran de dalt en un mes amb més ingressos que despeses. BÉ: surt amb «+» i «a favor teu»; si passes a veure el balanç, diu «despeses … · ingressos …», i a «El meu cicle», «altres ingressos». MALAMENT: la xifra surt sense «+» o amb la nòmina d'un altre mes sumada. Si aquest mes gastes més del que ingresses, salta aquest pas.",
+            "3. Pla › Rebuts, amb la lletra normal: compara amb «Pròxims càrrecs» d'Inici. BÉ: els noms, imports i dates de les files es veuen de la mateixa mida que a Inici, sense que la fila sembli més gran. MALAMENT: Rebuts es veu amb lletra clarament més gran que Inici.",
+            "4. Configuració › «Mida de la lletra» › «Enorme»; després Pla › Rebuts (i torna a la teva mida en acabar). BÉ: els noms llargs baixen de renglò i es llegeixen sencers, i la xifra gran de dalt no parteix l'«€» a un altre renglò. MALAMENT: un nom amb «…» o una xifra partida.",
+            "5. Pla › Rebuts › «T'arriba?» › «I si gasto…?»: escriu 600, toca «A terminis», tria 6 mesos i anota el mes de «fins a …». Toca «Crear el deute» i obre Pla › Deutes. BÉ: el deute diu «acabes el» el mateix mes que has anotat (la primera quota cau el mes que ve i l'última, als 6 mesos). MALAMENT: acaba un mes més tard o comptant des d'avui. Esborra el deute en acabar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.248",
     "d": "2026-11-19",
     "t": {
