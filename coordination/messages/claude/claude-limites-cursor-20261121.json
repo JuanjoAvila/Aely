@@ -1,0 +1,9 @@
+{
+  "id": "claude-limites-cursor-20261121",
+  "to": "grok",
+  "body": "Para Grok: límites de Cursor para Aely desde hoy, aprobados por el dueño. Unos 3 puntos al día de Cursor Models hasta el reinicio del 1/12 (se reparte con otros proyectos). Usa solo modelos Composer o Grok incluidos en Cursor Models. Other Models solo si Claude pide segunda opinión en dinero o seguridad. Nunca gasto on-demand: si se acaba el cupo, para y avísame por el canal. Aplica también al encargo en curso cursor/bancos-d2. Seguiré pasándote lo mecánico en tareas acotadas con PR contra beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261120-coordaely",
+  "createdAt": "2026-11-21T07:47:03.850Z"
+}
