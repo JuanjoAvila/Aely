@@ -108,9 +108,11 @@ await ta("en la APK solo se pide confirmar si el `back.html` publicado ya reenv√
 
 t("el canje reintenta ante el error REAL de supabase-js (FunctionsFetchError), no solo ante TypeError", () => {
   const fin = (desde) => core.indexOf("\n}", desde) + 2;
-  const i = core.indexOf("function renameFalloDeRed("), f = core.indexOf("function bankCanjeFalloDeRed(");
-  assert.ok(i > 0 && f > 0);
-  const red = new Function("navigator", core.slice(i, fin(i)) + core.slice(f, fin(f)) + "\nreturn bankCanjeFalloDeRed;")({ onLine: true });
+  const i = core.indexOf("function renameFalloDeRed("), f = core.indexOf("function bankCanjeFalloDeRed("), s = core.indexOf("function mcSinRed(");
+  assert.ok(i > 0 && f > 0 && s > 0);
+  // 4.26.250: `renameFalloDeRed` mira primero `mcSinRed` (aviso de sin conexi√≥n que ya no falla con VPN), que lee `_redVivaAt`.
+  const red = new Function("navigator", "var _redVivaAt=0;
+" + core.slice(s, fin(s)) + core.slice(i, fin(i)) + core.slice(f, fin(f)) + "\nreturn bankCanjeFalloDeRed;")({ onLine: true });
   const real = Object.assign(new Error("Failed to send a request to the Edge Function"), { name: "FunctionsFetchError" });
   assert.equal(red(real), true, "forma real del error");
   assert.equal(red(Object.assign(new Error("x"), { name: "FunctionsFetchError" })), true, "por nombre");

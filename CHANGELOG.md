@@ -1,3 +1,11 @@
+## [4.26.250] — 2026-11-21 · Candidata de beta, solo web: Plan nuevo (a dónde va tu sueldo, Deudas y Metas rediseñadas, «Restar del presupuesto») y aviso de sin conexión que ya no falla con VPN
+
+- **Qué lleva (sobre la 4.26.249, 891d0a567).** Dos ramas, mezcladas con `merge`: `claude/plan-a` hasta `a94a21932` (nacida de la 4.26.248, d2e500fd6) y `claude/offline-falso` hasta `a9a6e7fa5`.
+- **Conflictos al mezclar.** En ficheros generados (`public/*`): se tomó un lado y se regeneró con `npm run build`. En `src/`: `BUDGET_STATE` (02, unión de las dos listas: `catOverrides` de la 249 más `bankTx`, `cuotaAlias`, `cuotaNo` y `debts` de plan-a), `monthBudgetStats` (08, conviven `traspasos` y `resDeu`, con sus dos filtros) y `Debts.endsLabel` (09, gana `debtUltimoMes`, que ya contiene la fórmula de la 249 con ancla futura y cuota pendiente de este mes). Tope de tamaño de `presupuesto-rendimiento` subido al mínimo medido.
+- **Plan nuevo.** Barra del reparto (`RptBarra`, 14), motor `17-plan-reparto.js`, hojas de Deudas y Metas con escalera (`18-plan-deudas-metas.js`). `Restar del presupuesto`: apagado por defecto; encendido, la cuota baja el límite y su cargo sin enlazar no cuenta como gastado (cliente `reservaDeudasParaPresupuesto`, servidor `reservadoDeudas` en `presupuesto.ts`; sin interruptor nada cambia).
+- **Sin conexión falso.** La comprobación de red ya no da «sin conexión» con VPN o red filtrada (`00-core.js`, `11-app-main.js`; e2e `red-falsa-offline`, test `red-viva`).
+- **Panel de beta.** Nota sin tanda nueva (`tandas:[]`); las anteriores siguen en su versión.
+
 ## [4.26.249] — 2026-11-21 · Candidata de beta, solo web: traspaso entre cuentas propias, fecha final de las compras a plazos, Recibos con la escala de Inicio y el núcleo de seguridad del cliente
 
 - **Qué lleva (sobre la 4.26.248, d2e500fd6).** Cinco ramas nacidas de ella, mezcladas en este orden: `claude/fin-deuda-mes` hasta `5bed2b7f3`, `claude/tipos-recibos` hasta `eec5c32b8`, `claude/traspaso-propio` hasta `72816c915` (revisión de dinero: GO con remates), `claude/ronda-e2-nucleo` hasta `9d8e22b95` (revisión: GO con dos remates, ya hechos) y `claude/ronda-c2-ota` hasta `cdc233c17` (revisión de seguridad: GO). Sin APK nueva: `apk.json` y `versionName` no se tocan.

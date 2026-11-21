@@ -6457,6 +6457,8 @@ const sourceBeta246=sourceAt("57c6551af9ac541b8902a1708405c4e95527b343");
 const sourceBeta247=sourceAt("02a58340b4e48430b13501e848c7eeb08cfa3271");
 // La 248 servida (cabeza de beta antes de la 249): d2e500fd6.
 const sourceBeta248=sourceAt("d2e500fd6f1fe30b3d681b35a2abc9f4b6adab43");
+// La 249 servida (cabeza de beta antes de la 250): 891d0a567. Catálogo249 pasa a histórico con la 250.
+const sourceBeta249=sourceAt("891d0a567438542ec8c58b42a55f223000cbe341");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -6817,11 +6819,11 @@ test("Catálogo248 histórico conserva las seis tandas sin veredicto, abre beta-
 // quitar `syncPageTouchAction`) y `recibos-zona-pulida` a `.v4-sheet.rp4{padding-bottom:0;height:calc(88dvh` (tipos-recibos le puso zoom).
 // El resto solo crece con el cierre de lectores exacto: el traspaso propio y su cierre, el canje de la vuelta del banco y Sentry diferido;
 // `beta-248` gana `getIngestToken` en los miembros de su nube.
-test("Catálogo249 conserva las siete tandas sin veredicto, abre beta-249 (solo web), declara sus reanclas y hace crecer el registro con el cierre de lectores",()=>{
+test("Catálogo249 histórico conserva las siete tandas sin veredicto, abre beta-249 (solo web), declara sus reanclas y hace crecer el registro con el cierre de lectores",()=>{
   const nueva="beta-249",previas=["beta-248","beta-247","beta-246","beta-245","beta-244","beta-243","dinero-242"];
   const C0="src/modules/00-core.js",I18N="src/modules/01-i18n.js",G4="src/modules/04-tab-gastos.js",M8="src/modules/08-motor-bank.js",V09="src/modules/09-tab-debts-goals.js",A1="src/modules/11-app-main.js",H="src/modules/13-hogar.js",V14="src/modules/14-v4-screens.js",SH="src/shell.html",java="android/app/src/main/java/com/micartera/app/",F="supabase/functions/";
   const integrated=JSON.parse(sourceBeta248("scripts/beta-sources.json")),before=JSON.parse(sourceBeta248("src/data/release-notes.json"));
-  const source=f=>nl(read(f)),old=f=>nl(sourceBeta248(f));
+  const source=f=>nl(sourceBeta249(f)),old=f=>nl(sourceBeta248(f));
   assert.equal(before[0].v,"4.26.248");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>g.id)),previas,"la 248 llevaba beta-248, beta-247, beta-246, beta-245, beta-244, beta-243 y dinero-242");
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -6943,6 +6945,33 @@ test("Catálogo249 conserva las siete tandas sin veredicto, abre beta-249 (solo 
   const pruebas={[nueva]:{v:"4.26.249",contenido:JSON.stringify([nueva,g0.t.es,g0.items.es,1])}};
   ["4.26.248","4.26.247","4.26.246","4.26.245","4.26.244","4.26.243","4.26.242"].forEach((v,i)=>{pruebas[gs[i].id]={v,contenido:JSON.stringify([gs[i].id,gs[i].t.es,gs[i].items.es,1])};});
   assert.deepEqual(receipt.pruebas,pruebas,"ocho guiones por probar: el nuevo y los siete de antes");
+});
+
+// 4.26.250 (21/11/2026): sobre la 4.26.249 (891d0a567), dos ramas: claude/plan-a hasta a94a21932 (Plan nuevo: «a dónde va tu sueldo», Deudas y
+// Metas rediseñadas con su escalera, «Restar del presupuesto» apagado por defecto; nacida de la 248) y claude/offline-falso hasta a9a6e7fa5 (el
+// aviso de sin conexión ya no falla con VPN). Mezcladas con merge. Nota SIN tanda nueva (`tandas:[]`): las siete de la 249 y la propia
+// beta-249 siguen en el panel, en su versión y con sus pasos; el registro no cambia (sus huellas se mueven solas si leen lo que cambia).
+test("Catálogo250 abre la nota 4.26.250 sin tanda nueva, deja intactas las ocho vivas y el registro, y no toca la APK",()=>{
+  const before=JSON.parse(sourceBeta249("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta249("scripts/beta-sources.json"));
+  const source=f=>nl(read(f));
+  assert.equal(before[0].v,"4.26.249");
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.equal(notes[0].v,"4.26.250");assert.equal(notes.length,before.length+1);
+  assert.deepEqual(notes.slice(1),before,"todo lo anterior intacto, también los pasos de las ocho tandas vivas");
+  assert.deepEqual(notes[0].tandas,[],"sin tanda nueva");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,["beta-249","beta-248","beta-247","beta-246","beta-245","beta-244","beta-243","dinero-242"],"en el panel, las ocho de antes");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|PSD2|FIN-|SES-|UX-|SEC-|DIS-|DIN-|zoom|PRO-|checksum|CSP|SHA|Flex|API|nonce|cifrad|lote|backfill|ingest|KW|regla de|d+.d+.d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,4,lang+": cuatro puntos familiares");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  assert.deepEqual(JSON.parse(source("scripts/beta-sources.json")),integrated,"el registro de la 249, sin tocar");
+  assert.equal(source("VERSION").trim(),"4.26.250");
+  const apk=JSON.parse(source("public/apk.json"));
+  assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
+  const built=betaNotes(notes,source,integrated);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
 });
 
 // 4.26.247 (19/11/2026): sobre la 4.26.246 (57c6551af), dos ramas: claude/bancos-1911 hasta 7789c1180 (D1 de Mis bancos, PASS del

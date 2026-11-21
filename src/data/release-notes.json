@@ -1,5 +1,35 @@
 [
   {
+    "v": "4.26.250",
+    "d": "2026-11-21",
+    "t": {
+      "es": "Plan nuevo: a dónde va tu sueldo, Deudas y Metas rediseñadas y un aviso de sin conexión que ya no falla con VPN",
+      "en": "New Plan: where your pay goes, redesigned Debts and Goals, and an offline notice that no longer misfires with a VPN",
+      "ca": "Pla nou: on va la teva nòmina, Deutes i Metes redissenyats i un avís de sense connexió que ja no falla amb VPN"
+    },
+    "items": {
+      "es": [
+        "El Plan estrena una barra con lo que te queda libre: tu ingreso, lo que ya está comprometido (recibos, deudas, metas, ahorro) y lo que sobra para gastar. Tocas un tramo y vas a su sección.",
+        "Deudas y Metas se ven rediseñadas, con una escalera que muestra cuánto bajará tu pago mensual cada vez que acabe una deuda, y la fecha en que acaba cada una.",
+        "Nuevo interruptor «Restar del presupuesto» en cada deuda, apagado por defecto: si lo enciendes, su cuota baja el límite del mes y su cargo no cuenta además como gastado. Si no lo tocas, nada cambia.",
+        "El aviso de «sin conexión» ya no sale cuando sí tienes internet pero usas VPN o una red con filtros."
+      ],
+      "en": [
+        "Plan gets a new bar with what stays free: your income, what is already committed (bills, debts, goals, savings) and what is left to spend. Tap a segment to jump to its section.",
+        "Debts and Goals are redesigned, with a ladder showing how much your monthly payment drops each time a debt ends, and the date each one ends.",
+        "New «Subtract from budget» switch on each debt, off by default: turn it on and its instalment lowers the month's limit and its charge is not also counted as spent. If you leave it alone, nothing changes.",
+        "The «offline» notice no longer shows when you do have internet but use a VPN or a filtered network."
+      ],
+      "ca": [
+        "El Pla estrena una barra amb el que et queda lliure: el teu ingrés, el que ja està compromès (rebuts, deutes, metes, estalvi) i el que sobra per gastar. Toques un tram i vas a la seva secció.",
+        "Deutes i Metes es veuen redissenyats, amb una escala que mostra quant baixarà el teu pagament mensual cada cop que acabi un deute, i la data en què acaba cadascun.",
+        "Nou interruptor «Restar del pressupost» a cada deute, apagat per defecte: si l'actives, la seva quota abaixa el límit del mes i el seu càrrec no compta a més com a gastat. Si no el toques, no canvia res.",
+        "L'avís de «sense connexió» ja no surt quan sí que tens internet però fas servir VPN o una xarxa amb filtres."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.249",
     "d": "2026-11-21",
     "t": {

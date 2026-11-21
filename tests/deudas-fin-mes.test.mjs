@@ -11,11 +11,12 @@ const pure=all.slice(0,all.search(/\nclass ErrorBoundary\b/));
 const ENDS=/const endsLabel=(function\(d\)\{[\s\S]*?\n  \};)/;
 const endsSrc=source.match(ENDS)[1].slice(0,-1);
 // El mutante es el cálculo de antes del arreglo: siempre mes actual + n, con la cuota de este mes pendiente o no.
-const mutante=endsSrc.replace('li.n-(pendiente?1:0)','li.n');
-assert.notEqual(mutante,endsSrc,'el mutante debe cambiar algo');
+// Desde la 4.26.250 la cuenta vive en `debtUltimoMes` (17-plan-reparto.js), que usan `endsLabel` y la escalera: los mutantes tocan esa función.
+const mutante=pure.replace('li.n-(pendiente?1:0)','li.n');
+assert.notEqual(mutante,pure,'el mutante debe cambiar algo');
 // Segundo mutante: sin la rama del ancla futura (compra a plazos sin empezar) sigue contando desde hoy.
-const mutanteFutura=endsSrc.replace('futura?d.asOf+li.n-1-p.y*12:','');
-assert.notEqual(mutanteFutura,endsSrc,'el mutante de ancla futura debe cambiar algo');
+const mutanteFutura=pure.replace('futura?d.asOf+li.n-1:','');
+assert.notEqual(mutanteFutura,pure,'el mutante de ancla futura debe cambiar algo');
 
 // Cada caso fija «hoy» (mediodía UTC: el mismo día en Madrid y en UTC) y una deuda que queda a `quedan` cuotas.
 const ym=(y,m)=>y*12+(m-1);
@@ -43,11 +44,11 @@ const casos=[
   {n:'sin plazo, cuota pendiente: no cambia (saldo 1000, 100/mes = 10 cuotas)',hoy:'2026-11-21',day:29,sinPlazo:true,esperado:'septiembre 2027'},
   {n:'sin plazo, cuota pasada: misma fecha',hoy:'2026-11-21',day:3,sinPlazo:true,esperado:'septiembre 2027'}
 ];
-function etiquetas(endsFn){
+function etiquetas(endsFn,puro=pure){
   return casos.map(c=>{
     const epoch=Date.parse(c.hoy+'T12:00:00Z');
     class Clock extends Date{constructor(...a){super(...(a.length?a:[epoch]));}static now(){return epoch;}}
-    const ctx=createLogicSandbox({Date:Clock});vm.createContext(ctx);vm.runInContext(pure,ctx);
+    const ctx=createLogicSandbox({Date:Clock});vm.createContext(ctx);vm.runInContext(puro,ctx);
     vm.runInContext('CURLANG="es";globalThis.leftInfo=debtLeftInfo;globalThis.subject='+endsFn,ctx);
     const [y,m]=c.hoy.split('-').map(Number);
     const d=c.ancla?{id:'x',name:'Compra a plazos inventada',value:1200,monthly:100,months:12,day:c.day,asOf:ym(c.ancla[0],c.ancla[1])}:c.sinPlazo?{id:'x',name:'Préstamo inventado',value:1000,monthly:100,day:c.day,asOf:ym(y,m)}:deuda(c.hoy,c.day,c.quedan);
@@ -68,13 +69,13 @@ for(const tz of [undefined,'UTC','America/Los_Angeles','Asia/Tokyo'])test('fecha
   }finally{if(previous===undefined)delete process.env.TZ;else process.env.TZ=previous;}
 });
 test('el mutante (mes actual + n siempre) lo caza el test',()=>{
-  const out=etiquetas(mutante);
+  const out=etiquetas(endsSrc,mutante);
   const fallan=casos.filter((c,i)=>out[i]!=='acabas en '+c.esperado).map(c=>c.n);
   assert.ok(fallan.length>=3,'el mutante tiene que romper los casos de cuota pendiente: '+fallan.length);
   assert.ok(fallan.every(n=>!/ya pasada|justo hoy|sin plazo|ya cuenta|ancla futura/.test(n)),'solo rompe los de cuota pendiente: '+fallan.join(' | '));
 });
 test('el mutante de ancla futura (contar desde hoy) lo caza el test',()=>{
-  const out=etiquetas(mutanteFutura);
+  const out=etiquetas(endsSrc,mutanteFutura);
   const fallan=casos.filter((c,i)=>out[i]!=='acabas en '+c.esperado).map(c=>c.n);
   assert.equal(fallan.length,3,'rompe las tres anclas a 2+ meses: '+fallan.join(' | '));
   assert.ok(fallan.every(n=>/ancla futura/.test(n)));

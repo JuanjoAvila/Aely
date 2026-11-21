@@ -3064,6 +3064,143 @@
   .plan-edit-sheet label .af-in{margin-top:5px;width:100%;}
   .plan-edit-sheet .af-row>label{flex:1;min-width:0;}
   .plan-edit-sheet [role="alert"]{color:var(--coral);}
+  /* ===== Plan › barra de reparto, hoja «A dónde va tu sueldo», Deudas y Metas nuevas =====
+     Prototipo aprobado (coord-notas/diseno-deudas-metas/prototipo.html): mismas medidas que «Próximos
+     cargos» de Inicio (fila de 44 + texto + importe). Solo tokens de la app; los seis colores del reparto
+     son los del prototipo. */
+  :root{--s-rec:var(--blue);--s-deu:var(--tan);--s-met:var(--mint-dim);--s-aho:var(--cream);--s-gas:var(--muted-2);--s-lib:var(--mint-bright);
+    --track:color-mix(in srgb,var(--muted-2) 62%,var(--bg));}
+  html[data-theme="light"]{--s-deu:color-mix(in srgb,var(--tan) 86%,var(--text));--s-met:color-mix(in srgb,var(--mint) 72%,var(--mint-dim));
+    --s-aho:var(--text);--s-gas:var(--cream);--s-lib:var(--mint);--track:color-mix(in srgb,var(--muted-2) 78%,var(--bg));}
+  .rpt-lb{display:block;width:100%;min-height:0;margin:0 0 12px;padding:2px 0 4px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer;
+    transition:transform .14s var(--ease);}
+  .rpt-lb:active{transform:scale(.995);}
+  .rpt-lb:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:8px;}
+  .rpt-lb-h{display:flex;align-items:center;gap:8px;}
+  .rpt-lb-m{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:7px;}
+  .rpt-lb-l{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--muted);line-height:1.5;}
+  .rpt-lb-a{font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .rpt-lb-d{flex:none;font-size:12.5px;font-weight:500;color:var(--muted);white-space:nowrap;}
+  .rpt-lb-c{flex:none;color:var(--muted-2);transform:rotate(-90deg);}
+  .rpt-lb-p{display:block;margin-top:6px;font-size:12.5px;font-weight:600;line-height:1.35;color:var(--muted);}
+  .rpt-lb.ok .rpt-lb-l{color:var(--mint-ink,var(--mint));font-size:15px;font-weight:800;}
+  .rpt-lb.neg .rpt-lb-a,.rpt-lb.bad .rpt-lb-a,.rpt-lb.bad .rpt-lb-p{color:var(--coral);}
+  .rpt-lb.wrn .rpt-lb-p{color:var(--coral);font-weight:700;}
+  .rpt-pb{position:relative;display:block;height:6px;margin-top:7px;}
+  .rpt-pb.lg{height:14px;margin-top:14px;}
+  .rpt-pb.lg.short{margin-top:30px;}
+  .rpt-pb>i{position:absolute;top:0;bottom:0;border-radius:2px;transition:left .4s var(--ease),width .4s var(--ease);}
+  .rpt-pb>.x{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,var(--coral) 0 3px,transparent 3px 6px);border-radius:2px;}
+  .rpt-pb>.cut{position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:1px;background:var(--text);}
+  .rpt-pb>.sl{position:absolute;bottom:calc(100% + 5px);margin-right:-1px;font-size:10px;font-weight:700;line-height:1.2;color:var(--text);white-space:nowrap;}
+  .rpt-pb.none{border:1.5px dashed var(--muted-2);border-radius:4px;}
+  /* Cabecera y bloques de las listas */
+  .rpt-hero{container-type:inline-size;padding:6px 0 2px;}
+  .rpt-ht{font-size:15px;font-weight:800;line-height:1.4;}
+  .rpt-big{font-family:'Fraunces',Georgia,serif;font-size:30px;font-weight:550;line-height:1.15;letter-spacing:-.01em;font-variant-numeric:tabular-nums;margin-top:4px;white-space:nowrap;}
+  .rpt-sheet .rpt-big{font-size:var(--fs-hero);line-height:1.08;}
+  .rpt-hs{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:6px;}
+  .rpt-hs b{color:var(--text);font-weight:700;}
+  .rpt-split{display:flex;gap:3px;height:6px;margin-top:14px;}
+  .rpt-split i{display:block;border-radius:3px;background:var(--track);min-width:4px;transition:flex-grow .4s var(--ease);}
+  .rpt-split i.on{background:var(--mint);}
+  .rpt-facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .rpt-fact{flex:1 1 130px;min-width:0;min-height:44px;padding:7px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft);display:flex;flex-direction:column;justify-content:center;}
+  .rpt-fact span{font-size:12.5px;color:var(--muted);line-height:1.3;}
+  .rpt-fact b{font-size:17px;font-weight:550;line-height:1.35;overflow-wrap:anywhere;}
+  .rpt-dl{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:2px 12px;margin-top:6px;font-size:12.5px;line-height:1.5;color:var(--muted);}
+  .rpt-dl b{color:var(--text);font-weight:700;}
+  .rpt-dl button{display:block;padding-block:13px;margin-block:-13px;font-size:12.5px;color:var(--muted);background:none;border:0;text-align:left;cursor:pointer;}
+  .rpt-sec{margin-top:22px;}
+  .rpt-hero+.rpt-sec{margin-top:6px;}
+  .rpt-sech{display:flex;align-items:center;justify-content:space-between;min-height:44px;margin-bottom:10px;font-size:15px;font-weight:800;}
+  .rpt-link{color:var(--mint-ink,var(--mint));font-weight:700;font-size:13px;min-height:48px;padding:12px 8px;background:none;border:0;cursor:pointer;}
+  .rpt-row{position:relative;width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"l n a" "l s a";column-gap:12px;align-items:center;padding:12px 0;
+    border:0;border-top:1px solid var(--line-soft);background:none;color:inherit;text-align:left;font:inherit;cursor:pointer;transition:background .14s var(--ease),transform .14s var(--ease);}
+  div.rpt-row{cursor:default;}
+  .rpt-list>.rpt-row:first-child{border-top:0;}
+  .rpt-row:active{transform:scale(.995);background:var(--surface-2);}
+  div.rpt-row:active{transform:none;background:none;}
+  .rpt-row:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .rpt-l{grid-area:l;width:44px;text-align:center;}
+  .rpt-d{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;line-height:1;}
+  .rpt-m{font-size:10px;line-height:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted-2);font-weight:700;margin-top:2px;}
+  .rpt-nm{grid-area:n;min-width:0;font-size:15px;font-weight:700;line-height:1.5;overflow-wrap:anywhere;align-self:end;}
+  .rpt-sub{grid-area:s;min-width:0;font-size:12.5px;font-weight:500;line-height:1.5;color:var(--muted);margin-top:2px;align-self:start;}
+  .rpt-sub.go{color:var(--mint-ink,var(--mint));font-weight:700;}
+  .rpt-am{grid-area:a;font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;line-height:1.5;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .rpt-am.q{color:var(--muted);}
+  .rpt-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--tan);margin-right:6px;vertical-align:1px;}
+  .rpt-dot.ok{background:var(--mint);}
+  .rpt-sw{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px;vertical-align:1px;}
+  .rpt-sw.ov{background:var(--coral);}
+  html.hugetext .rpt-row{grid-template-areas:"l n" "l s" "l a";grid-template-columns:44px minmax(0,1fr);}
+  html.hugetext .rpt-am{justify-self:end;align-self:center;}
+  .rpt-lvl{position:relative;width:44px;height:44px;border-radius:12px;background:var(--surface-2);overflow:hidden;display:grid;place-items:center;}
+  .rpt-lvl>i{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--mint) 34%,transparent);transition:height .45s var(--ease);}
+  .rpt-lvl>span{position:relative;font-family:'Fraunces',Georgia,serif;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .rpt-lvl.empty{background:none;border:1.5px dashed var(--muted-2);color:var(--muted);}
+  .rpt-lvl.full{background:var(--mint);color:var(--on-mint);}
+  /* Hoja: asa, título, cuerpo con scroll y pie fijo */
+  .v4-sheet.rpt-sheet:has(>.v4-sheet-body){padding:12px 0 0;}
+  .rpt-sb{padding:2px 18px 12px;container-type:inline-size;}
+  .rpt-sh{display:flex;align-items:center;gap:6px;}
+  .rpt-st{flex:1;min-width:0;font-size:15px;font-weight:800;line-height:1.4;overflow-wrap:anywhere;padding-right:4px;}
+  .rpt-sback{flex:none;width:44px;height:44px;margin-left:-12px;display:grid;place-items:center;background:none;border:0;color:inherit;cursor:pointer;}
+  .rpt-sx{flex:none;width:44px;height:44px;margin:-8px -10px -8px auto;display:grid;place-items:center;color:var(--muted);border-radius:12px;background:none;border:0;cursor:pointer;}
+  .rpt-dico{flex:none;width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--muted);}
+  .rpt-sf{flex:none;display:flex;flex-wrap:wrap;gap:8px;padding:10px 18px calc(14px + var(--safe-bottom));border-top:1px solid var(--line-soft);background:var(--bg-2);}
+  .rpt-sg{margin-top:12px;}
+  .rpt-kv{display:flex;justify-content:space-between;gap:14px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line-soft);font-size:12.5px;color:var(--muted);}
+  .rpt-kv b{color:var(--text);font-size:15px;font-weight:700;text-align:right;overflow-wrap:anywhere;min-width:0;}
+  .rpt-bar{position:relative;height:6px;border-radius:3px;background:var(--track);margin-top:12px;}
+  .rpt-bar i{display:block;height:100%;background:var(--mint);border-radius:3px;transition:width .45s var(--ease);}
+  .rpt-btn{flex:1 1 120px;min-height:48px;padding:8px 12px;border-radius:14px;text-align:center;font-size:14px;font-weight:800;background:var(--surface-2);color:var(--text);border:0;cursor:pointer;transition:transform .12s var(--ease),opacity .2s;}
+  .rpt-btn:active{transform:scale(.98);}
+  .rpt-btn.pri{background:var(--mint);color:var(--on-mint);}
+  .rpt-btn.wide{flex-basis:100%;}
+  .rpt-btn.del{flex:0 1 auto;background:none;color:var(--coral);font-weight:700;}
+  .rpt-btn:disabled{opacity:.45;cursor:default;}
+  .rpt-rph .rpt-big{margin-top:2px;}
+  .rpt-rph.neg .rpt-big{color:var(--coral);}
+  .rpt-rp{font-size:13px;font-weight:700;margin-top:6px;}
+  .rpt-rph.ok .rpt-rp{color:var(--mint-ink,var(--mint));}
+  .rpt-rph.bad .rpt-rp,.rpt-rph.wrn .rpt-rp{color:var(--coral);}
+  .rpt-own{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:12.5px;color:var(--muted);}
+  /* Restar del presupuesto */
+  .rpt-rsv{margin-top:14px;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft);}
+  .rpt-rsv-h{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;background:none;border:0;color:inherit;text-align:left;font:inherit;cursor:pointer;}
+  .rpt-rsv-h>span:first-child{min-width:0;}
+  .rpt-rsv-t{display:block;font-size:15px;font-weight:700;line-height:1.3;}
+  .rpt-rsv-s{display:block;font-size:12.5px;color:var(--muted);line-height:1.4;}
+  .rpt-rsv>.rpt-rsv-t+.rpt-rsv-s{margin-top:2px;}
+  .rpt-swt{flex:none;position:relative;width:48px;height:28px;border-radius:14px;background:var(--surface-2);border:1px solid var(--muted-2);transition:background .22s var(--ease);}
+  .rpt-swt::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform .22s var(--ease),background .22s var(--ease);}
+  [aria-checked=true] .rpt-swt{background:var(--mint);border-color:var(--mint);}
+  [aria-checked=true] .rpt-swt::after{transform:translateX(20px);background:var(--on-mint);}
+  .rpt-pvg{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;padding-top:8px;margin-top:8px;border-top:1px solid var(--line-soft);font-size:12.5px;color:var(--muted);}
+  .rpt-pvg b{justify-self:end;color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .rpt-pvm{margin-top:3px;font-size:12.5px;line-height:1.4;color:var(--muted);}
+  .rpt-pvw{margin-top:3px;font-size:13px;font-weight:700;color:var(--coral);}
+  /* Escalera de cuotas */
+  .rpt-stairs{display:grid;gap:4px;margin-top:4px;align-items:end;}
+  .rpt-stp{display:flex;flex-direction:column;justify-content:flex-end;height:96px;min-width:0;text-align:center;border-radius:8px;background:none;border:0;color:inherit;font:inherit;cursor:pointer;}
+  .rpt-stp em{font-style:normal;font-family:'Fraunces',Georgia,serif;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted);line-height:1.3;margin-bottom:3px;}
+  .rpt-stp i{display:block;border-radius:6px 6px 2px 2px;background:var(--track);min-height:3px;transition:background .22s var(--ease);}
+  .rpt-stp small{display:block;font-size:10px;font-weight:700;line-height:1.25;color:var(--muted-2);margin-top:5px;}
+  .rpt-stp[aria-pressed=true] i{background:var(--mint);}
+  .rpt-stp[aria-pressed=true] em,.rpt-stp[aria-pressed=true] small,.rpt-stp[aria-pressed=true] .rpt-fin{color:var(--text);}
+  .rpt-fin{display:block;font-size:10px;font-weight:700;line-height:1.3;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .rpt-stc{margin-top:6px;font-size:12.5px;font-weight:600;color:var(--muted);text-align:center;overflow-wrap:anywhere;}
+  .rpt-door{width:100%;min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:0;border-top:1px solid var(--line-soft);background:none;color:inherit;font:inherit;font-size:15px;font-weight:700;cursor:pointer;}
+  .rpt-door.dat{margin-top:12px;}
+  .rpt-door .rpt-chev{color:var(--muted-2);transition:transform .28s var(--ease);}
+  .rpt-door[aria-expanded=true] .rpt-chev{transform:rotate(180deg);}
+  .rpt-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s var(--ease);}
+  .rpt-fold.open{grid-template-rows:1fr;}
+  .rpt-fold>div{overflow:hidden;min-height:0;}
+  .rpt-sheet .chip{min-height:44px;}
+  @media (prefers-reduced-motion:reduce){.rpt-pb>i,.rpt-fold,.rpt-split i,.rpt-bar i,.rpt-lvl>i{transition-duration:.01ms !important;}}
   .plan-item-open:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:12px;}
   .v4-ghost-add{width:100%;margin-top:12px;min-height:52px;border-radius:18px;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;}
   .v4-goal-first{margin-top:12px;min-height:48px;font-size:15px;}
@@ -9616,7 +9753,7 @@ const LANG = {
     v4_apuntar:"Apuntar", v4_gasto:"Gasto", v4_ingreso:"Ingreso", 
     v4_apuntar_need:"Pon un importe 🙂", v4_apuntar_ok:"✓ Gasto apuntado", v4_apuntar_ok_in:"✓ Ingreso apuntado",
     v4_back:"Volver",
-    v4_debts_hero:"Debes en total", v4_debts_sub:"{x}/mes en cuotas · bajando cada mes",
+    
     v4_debts_ends:"acabas en {d}", v4_amort_now:"Amortizar ahora",
     v4_debt_party_1:"🎉 {name}: ¡ÚLTIMA cuota este mes ({x})!", v4_debt_party_sub:"Después, {x}/mes libres para ti.",
     v4_goals_hero:"Ahorrado en metas", v4_goal_new:"Nueva meta de ahorro",
@@ -10225,7 +10362,7 @@ Object.assign(LANG.es,{
   ask_ok:"Aceptar", ask_all:"Todo · {x}",
   fj_cancel:"Cancelar", 
   fj_amort:"amortiza/mes", 
-  fj_day_n:"día {d}",
+  
   fj_income:"Ingreso", fj_transfer:"Transferencia", 
 });
 
@@ -10251,7 +10388,7 @@ Object.assign(LANG.es,{
   pj_gain:"Ganancia estimada en {y} años", pj_hint:"Sobre lo ya invertido ({x}). La banda es ±2% sobre el interés. Estimación, no garantía.",
   pt_ob_extra:"Cuenta", pt_ob_badge:"del banco", pt_ob_stale:"sin actualizar", pt_ob_joint:"Conjunta", pt_ob_saving:"Ahorro", pt_ob_current:"Corriente",
   pt_goods:"Bienes", 
-  db_quota:"Cuota {x}/mes", db_paidoff:"Amortizado {x} ({p}%)",
+  
   db_pending:"Pendiente", db_delete:"Eliminar esta deuda", db_savechanges:"Guardar cambios",
   db_concept:"Ej.: financiación del móvil", db_amount:"Importe €", db_quota_ph:"Vacía si es al 0 %", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
   db_months_ph:"Plazo (meses)", db_day_ph:"Día", db_financing_hint:"Plazo en meses: la cuota se apunta sola y para al acabar. Al 0 % déjala vacía; con interés, pon la real.",
@@ -10290,7 +10427,7 @@ Object.assign(LANG.es,{
 /* ---- Metas de ahorro (#15) ---- */
 Object.assign(LANG.es,{
   tab_metas:"Metas", tab_logros:"Logros",
-  gl_total_sub:"de {x} en total",
+  
   gl_create:"Crear meta", gl_cancel:"Cancelar",
   gl_name_ph:"Ej.: vacaciones", gl_target_ph:"Objetivo €", gl_saved_ph:"Ya ahorrado €", gl_deadline:"Fecha límite (opcional)", gl_deadline_none:"Sin fecha", gl_monthly_ph:"Aporte al mes € (opcional)",
   gl_newdefault:"Mi meta",
@@ -10299,7 +10436,7 @@ Object.assign(LANG.es,{
   gl_eta:"A tu ritmo ({x}/mes) la cumples en {when} 🟢",
   gl_eta_ok:"Vas bien 🟢 · faltan {x}", gl_eta_behind:"Necesitas {x}/mes para llegar a tiempo 🟠",
   gl_eta_reached:"🎉 ¡Conseguida!", gl_eta_overdue:"La fecha ya pasó 🟠 · ajústala",
-  gl_done_badge:"🏅 Cumplida", gl_celebrate:"🎉 ¡Meta «{name}» cumplida!",
+  gl_celebrate:"🎉 ¡Meta «{name}» cumplida!",
   gm_levelup:"🎉 ¡Subiste al nivel {n}!", gm_badge_new:"🏅 Logro: {x}",
   gm_b_first_goal:"1ª meta cumplida", gm_b_first_underbudget:"1er mes bajo presupuesto", gm_b_first_reto:"1er reto completado", gm_b_streak_3:"Racha de 3 meses",
   gm_b_save_100:"100 € ahorrado", gm_b_save_500:"500 € ahorrado", gm_b_save_1000:"1.000 € ahorrado", gm_b_save_5000:"5.000 € ahorrado",
@@ -12253,7 +12390,7 @@ Object.assign(LANG.es, {
   plan_edit_changed:"Este dato cambió o se borró. Cierra y vuelve a abrir la edición para ver la versión actual.",
   plan_edit_saved:"Cambios guardados",
   db_edit_title:"Editar deuda",
-  db_edit_named:"Editar {name}", db_day_prompt:"Sin día de cobro · ponle día",
+  db_day_prompt:"Sin día de cobro · ponle día",
   db_left_count:"Quedan {n}/{tot} cuotas",
   db_term_hint:"Plazo total, incluidas las cuotas ya pagadas. Déjalo vacío si no lo conoces.",
   db_edit_term_confirm:"¿Guardar con el nuevo plazo?",
@@ -12265,7 +12402,7 @@ Object.assign(LANG.es, {
   db_rate_discount_remove:"Primero quita el descuento del recibo compartido para poner una TAE positiva.",
   db_set_rate:"Añadir interés",
   gl_edit_title:"Editar meta",
-  gl_edit_named:"Editar {name}",
+  
   gl_delete_q:"¿Eliminar «{name}»?",
   gl_delete_sub:"La meta desaparecerá de la lista. Las reglas y las aportaciones anteriores se conservan."
 });
@@ -12330,6 +12467,119 @@ Object.assign(LANG.es,{
 fl_t_name:"¿Qué entra?", fl_t_name_tr:"¿Qué mueves?", fl_name_ph:"Nómina, pensión…",
   fl_t_amount:"¿Cuánto?", fl_t_when:"¿Cuándo?", fl_t_to:"¿En qué cuenta entra?", fl_t_from:"¿De qué cuenta sale?", fl_t_dest:"¿A qué cuenta va?",
   fl_t_edit:"Editar", fl_r_to:"Entra en", fl_r_from:"Sale de", fl_r_dest:"Va a", fl_s_nomina:"Nómina", fl_s_pension:"Pensión"
+});
+
+
+/* Plan › barra de reparto, hoja «A dónde va tu sueldo», Deudas y Metas nuevas (prototipo aprobado). */
+Object.assign(LANG.es,{
+  rpt_libre:"Libre",
+  rpt_libre_hasta:"Libre hasta hoy",
+  rpt_todo:"Todo asignado",
+  rpt_todo_sub:"Cada euro tiene su sitio",
+  rpt_faltan:"Te faltan",
+  rpt_wait:"Falta tu nómina",
+  rpt_de:"de {x}",
+  rpt_si_todo:"Si gastas todo el presupuesto · ",
+  rpt_si_todo_s:"Si gastas todo el presupuesto",
+  rpt_cubre:"tu saldo lo cubre",
+  rpt_nollega:"tu saldo no llega · faltan {x}",
+  rpt_pasas:"Te pasas {x}",
+  rpt_de_tu_pres:"de tu presupuesto",
+  rpt_moved:"{x} pasan de Gastos a Libre · no entra dinero",
+  rpt_res_info:"{x} de cuotas salen de tu presupuesto",
+  rpt_sheet_title:"A dónde va tu sueldo",
+  rpt_entran:"Entran",
+  rpt_sobre_entra:"Sobre lo que entra",
+  rpt_sin_asignar:"Sin asignar",
+  rpt_rec:"Recibos",
+  rpt_deu:"Deudas",
+  rpt_met:"Metas",
+  rpt_aho:"Ahorro",
+  rpt_gas:"Gastos",
+  rpt_n_rec:"{n} recibos",
+  rpt_n_rec_1:"1 recibo",
+  rpt_n_cuotas:"{n} cuotas",
+  rpt_n_cuotas_1:"1 cuota",
+  rpt_n_ritmo:"{n} con ritmo",
+  rpt_plan_mensual:"Plan mensual",
+  rpt_gastado_hasta_hoy:"Gastado hasta hoy",
+  rpt_sobre_pres:"{x} sobre presupuesto",
+  rpt_de_x:"{a} de {b}",
+  rpt_q_rec:"Recibos pendientes",
+  rpt_q_deu:"Cuotas pendientes",
+  rpt_q_gas:"Resto del presupuesto",
+  rpt_q_mov:"Metas y ahorro sin mover",
+  rpt_q_total:"Queda por pagar",
+  rpt_q_saldo:"Tu saldo",
+  rpt_gastado:"Gastado",
+  rpt_presupuesto:"Presupuesto",
+  rpt_de_mas:"De más",
+  rpt_quedan:"Quedan",
+  rpt_invertido:"Invertido este mes",
+  rpt_traspaso:"Traspaso propio · no suma",
+  rpt_sueldo:"Sueldo",
+  rpt_ver_reparto:"Ver reparto",
+  rpt_volver:"Volver",
+  rpt_resta_t:"Restar del presupuesto",
+  rpt_resta_s:"{x} al mes",
+  rpt_para_gastar:"Para gastar",
+  rpt_salen:"{x} salen de tu presupuesto de gastos",
+  rpt_te_pasas:"Te pasas",
+  rpt_te_pasarias:"Te pasarías",
+  rpt_sin_pres:"Sin presupuesto",
+  rpt_esc_aria:"Cómo baja tu cuota",
+  rpt_esc_hoy:"Hoy · {x}/mes",
+  rpt_esc_desde:"Desde {m} · {name} · −{x}/mes",
+  rpt_esc_final:"pago final {x} en {m}",
+  rpt_hoy:"Hoy",
+  rpt_datos:"Datos",
+  rpt_eliminar:"Eliminar",
+  rpt_d_hero:"Este mes pagas",
+  rpt_d_sub:"{a} pagados · faltan {b}",
+  rpt_d_debes:"Debes",
+  rpt_d_acaba_antes:"Acaba antes",
+  rpt_d_por_pagar:"Por pagar",
+  rpt_d_pagado:"Ya pagado",
+  rpt_d_terminadas:"Terminadas",
+  rpt_d_sin_cuota:"Sin cuota este mes",
+  rpt_d_falta_dia:"Falta el día",
+  rpt_d_dia:"día",
+  rpt_d_ultima:"Última cuota · acaba {m}",
+  rpt_d_quedan:"Quedan {n} · acaba {m}",
+  rpt_d_acaba:"Acaba {m}",
+  rpt_d_dia_acaba:"Día {d} · acaba {m}",
+  rpt_d_amortizado:"Pendiente · {p}% amortizado",
+  rpt_d_dia_cobro:"Día de cobro",
+  rpt_d_poner_dia:"Poner día",
+  rpt_d_cuota:"Cuota",
+  rpt_d_cuotas:"Cuotas",
+  rpt_d_n_de:"{n} de {tot}",
+  rpt_d_acaba_k:"Acaba",
+  rpt_d_pago_final:"Pago final",
+  rpt_d_interes:"Interés",
+  rpt_d_sin_interes:"Sin interés",
+  rpt_m_de:"de {x} · {p}%",
+  rpt_m_de_solo:"de {x}",
+  rpt_m_de_total:"de {x}",
+  rpt_m_estado:"Estado",
+  rpt_m_sin_prevision:"Sin previsión",
+  rpt_m_faltan:"Faltan",
+  rpt_m_al_mes:"Al mes",
+  rpt_m_sin_ritmo:"Sin ritmo",
+  rpt_m_fecha:"Fecha",
+  rpt_m_sin_fecha:"Sin fecha",
+  rpt_m_desde_gastos:"Desde Gastos",
+  rpt_m_banco:"Banco",
+  rpt_m_apartas:"Apartas",
+  rpt_m_mes:"/mes",
+  rpt_m_a_tiempo_falta:"Para llegar a tiempo",
+  rpt_m_fecha_pasada:"Fecha pasada",
+  rpt_m_n_metas:"{n} metas",
+  rpt_m_n_metas_1:"1 meta",
+  rpt_m_a_tiempo:"A tiempo",
+  rpt_m_todas:"Todas",
+  rpt_m_en_marcha:"En marcha",
+  rpt_m_conseguidas:"Conseguidas"
 });
 
 
@@ -13698,7 +13948,7 @@ function settingsDeps(settings, keys){
    `trRecompensas` (4.26.237): el libro de avisos de TR decide qué Round up sigue pendiente y suma
    al patrimonio de hoy (`rewardsPending`); sin declararlo, elegir destino dejaba la gráfica vieja. */
 const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trRecompensas","trasAbonoDesde"];
-const BUDGET_STATE=["_historyOwner","accounts","budget","catOverrides","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
+const BUDGET_STATE=["_historyOwner","accounts","bankTx","budget","catOverrides","cuotaAlias","cuotaNo","debts","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
   return keys.map(function(k){ return s[k]; });
@@ -28896,12 +29146,16 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // ingresos grandes que se decidieron aquí, para que ingest no tenga que adivinarlos (widget).
   const flows=period.cycle?null:nominaFlowsOf(state);
   const nominas=[], noNominas=[], traspasos=[];
+  // «Restar del presupuesto» (Plan › Deudas): la cuota de cada deuda con el interruptor puesto baja el límite
+  // y su cargo sin enlazar no cuenta además como gastado. Sin ningún interruptor, nada cambia.
+  const resDeu=reservaDeudasParaPresupuesto(state,startMs,period.cycle?period.cycle.start:null,nowMs);
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
     // El servidor no ve Plan ni el titular: se le dice qué filas son traspaso, como con las nóminas.
     if(!CAT_NEUTRAS[e.category]&&traspasoPropioDerivado(e,state)) traspasos.push(keyOfExpense(e));
+    if(resDeu.sinContar&&resDeu.sinContar.has(e)) return;
     const v=budgetRowSigned(e, state, period, delSet);
     if(v>0) spent+=v;
     else if(v<0){
@@ -28914,7 +29168,7 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
       }
     }
   });
-  const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
+  const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs)+resDeu.euros;
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
@@ -31775,56 +32029,27 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       if(doAmort(d, parseFloat(String(raw).replace(',','.'))||0)&&hecho) hecho();
     });
   };
-  /* El icono sale del nombre (no lo elige nadie), así que va con el trazo de la barra de abajo en
-     vez de emojis de colores: cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
-  const debtIco=function(d){
-    const n=String(d.name||"").toLowerCase();
-    // Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica: «Mamá»
-    // con una tarjeta parecía una financiación del banco (auditoría 237, P2-7). Va por palabra entera
-    // para que «papelería» no sea «papá».
-    const persona=/(^|[^a-záéíóúàèòïüñç])(mam[aá]|pap[aá]|madre|padre|famil\w*|herman[oa]s?|abuel[oa]s?|t[ií][oa]s?|amig[oa]s?|suegr[oa]s?|mum|mom|dad|mother|father|brother|sister|friend|grandma|grandpa|mare|pare|germ[àa]n?a?|avi|[àa]via)(?=$|[^a-záéíóúàèòïüñç])/;
-    const k=/coche|auto|car|seat|bmw/.test(n)?"car":/casa|hipo|piso|mort/.test(n)?"home":/móvil|movil|phone|iphone/.test(n)?"phone":/estudio|máster|master|uni/.test(n)?"study":persona.test(n)?"person":"card";
-    return React.createElement("svg",{viewBox:"0 0 24 24",width:24,height:24,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",strokeLinejoin:"round","aria-hidden":"true","data-ico":k},
-      DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); }));
-  };
-  // Cuotas que quedan: las financiaciones lo saben por su plazo; sin plazo (hipoteca/préstamo
-  // a mano) se ESTIMA con el ritmo de amortización actual. Devuelve {n,tot} o null.
   const leftInfo=debtLeftInfo;
+  // «Acabas en …» de una deuda. La cuenta del mes es `debtUltimoMes` (17-plan-reparto.js), la MISMA que usa la
+  // escalera de la ficha: una sola fuente para que las dos fechas no se separen (test plan-fin-deuda).
   const endsLabel=function(d){
-    // Mismo texto para TODAS las deudas (feedback 2026-07-21: el «a este ritmo acabas ~» de
-    // hipoteca/préstamo cantaba distinto del «acabas en» de las financiaciones). La fecha sin
-    // plazo sigue siendo una estimación con la amortización actual, igual de honesta.
-    const li=leftInfo(d);
-    if(!li) return null;
-    const p=madridYmdParts(Date.now());
-    // Con plazo, `debtLeft` solo descuenta la cuota de ESTE mes si su día ya pasó (`debtCuotasDesdeAncla`:
-    // día <= hoy). Si aún está por cobrar, esa cuota sigue contando entre las que quedan y la última cae
-    // en mes actual + n − 1, no + n: con cuota el 29, hoy 21 y una restante decía «acabas en diciembre»
-    // cuando acaba en noviembre. Mismo día efectivo (recorte del 31 en meses cortos, DIN-05) y mismo
-    // calendario Madrid que el contador. Sin plazo (saldo estimado) el saldo solo baja al cambiar de mes,
-    // así que la fecha se queda como estaba.
-    // Una compra a plazos con el ancla en un mes futuro («¿Y si gasto…?») aún no ha pagado nada: su 1.ª
-    // cuota cae en el ancla y la última en ancla + plazo − 1, sin depender de hoy (antes salía hoy + plazo).
-    const futura=d.months!=null&&li.n>0&&typeof d.asOf==="number"&&d.asOf>ymAbs(p.y,p.m-1);
-    const pendiente=d.months!=null&&li.n>0&&!futura&&debtChargeDay(d,p.y,p.m)>p.d;
-    const m=futura?d.asOf+li.n-1-p.y*12:p.m-1+li.n-(pendiente?1:0);
-    return tf("v4_debts_ends",{d:monthLong(m%12)+" "+(p.y+Math.floor(m/12))});
+    const m=debtUltimoMes(d,undefined,leftInfo(d));
+    if(m==null) return null;
+    return tf("v4_debts_ends",{d:monthLong(m%12)+" "+Math.floor(m/12)});
   };
   const editor=editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
     onClose:function(){setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},onDiscard:function(){set(function(s){return planSyncDiscard(s,conflict);});setEditingDebt(null);setReviewDebt(null);if(onEditDayClose)onEditDayClose();},
     onReview:function(){setEditingDebt(state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt);setReviewDebt(conflict);}}):
     React.createElement(DebtEditSheet,{key:editingDebt.id,debt:editingDebt,state:state,set:set,review:reviewDebt,recovery:recovering,initialFocus:dayFocus?"day":undefined,
       onClose:function(){setEditingDebt(null);setReviewDebt(null);setDayFocus(false);if(onEditDayClose)onEditDayClose();},onDelete:delDebt,onAmortize:amortize,showToast:showToast}));
+  // Plan › Deudas nuevo: la lista sale del reparto del periodo y cada deuda abre su ficha (escalera, interruptor y datos).
+  const rep=useMemo(function(){ return planReparto(state,{}); },RPT_DEPS_REPARTO(state));
+  const [fichaId,setFichaId]=useState(null);
+  const fichaDeuda=fichaId?state.debts.find(function(x){ return x.id===fichaId; }):null;
+  const hFicha={abrir:function(d){ setFichaId(d.id); },amortizar:amortize,eliminar:delDebt,archivar:archiveDebt,liquidada:confirmSettled,ponerDia:openDay,
+    editar:function(d){ setDayFocus(false);setReviewDebt(null);setEditingDebt(d); }};
   if(editorOnly) return editor;
   return React.createElement("div",null,
-    // La misma tarjeta que Recibos (etiqueta, cifra y una línea, a la izquierda): centrada, la cifra
-    // saltaba de sitio al cambiar de segmento dentro de Plan (auditoría 237, P2-1).
-    React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"debts-summary"},
-      React.createElement("div",{className:"v4-micro"},t("v4_debts_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount"},eur(total)),
-      // Con céntimos, como la cuota de cada tarjeta y Recibos: «661 €» al lado de 660,85 parecía otra cifra (DIS-30).
-      React.createElement("div",{className:"plan-summary-sub"},tf("v4_debts_sub",{x:eur(monthly)}))
-    ),
     orphaned.map(function(record){return React.createElement("div",{key:record.id,className:"v4-card","data-plan-orphan":record.id},
       React.createElement("div",{className:"hint"},t("plan_deleted_while_editing")),
       React.createElement("div",{style:{marginTop:8,fontWeight:700}},record.local.name||"—"),
@@ -31832,41 +32057,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-act":"plan-orphan-discard",onClick:function(){
         askConfirm({title:t("plan_discard_draft_q"),sub:t("plan_discard_draft_sub"),ok:t("plan_conflict_discard"),danger:true}).then(function(yes){if(yes)set(function(s){return planSyncDiscard(s,record);});});
       }},t("plan_conflict_discard")));}),
-    visibleDebts.map(function(d){
-      const bal=debtBalance(d);
-      const paid=Math.max(0,(d.original||bal)-bal);
-      const pct=Math.min(100,(paid/(d.original||1))*100);
-      // «Quedan n/tot cuotas» en TODAS las deudas (feedback 2026-07-21): sin plazo va estimado.
-      const li=leftInfo(d);
-      const day=cleanDay(dayOf(d));
-      return React.createElement("div",{className:"v4-debt-card rise plan-item",key:d.id,"data-debt-id":d.id,onClick:function(e){if(!e.target.closest("button")){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);}}},
-        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setDayFocus(false);setReviewDebt(null);setEditingDebt(d);},"aria-label":tf("db_edit_named",{name:d.name})},
-          React.createElement("span",{className:"v4-debt-emoji v4-debt-ico"},debtIco(d)),
-          React.createElement("div",{className:"plan-item-main"},
-            React.createElement("div",{className:"v4-debt-name"},d.name,React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}))
-          ),
-          React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"v4-debt-bal serif num"},eur(bal)),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
-        ),
-        React.createElement("div",{className:"v4-debt-sub plan-debt-details"},[d.monthly?tf("db_quota",{x:eur(d.monthly)}):null,day?tf("fj_day_n",{d:day}):null,li?tf("db_left_count",{n:li.n,tot:li.tot}):null].filter(Boolean).join(" · ")),
-        React.createElement(DebtDayPrompt,{debt:d,onOpen:openDay}),
-        // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).
-        (function(){ const hoy=madridYmdParts(Date.now()), c=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
-          return c&&c.amt>0?React.createElement("div",{className:"v4-debt-sub","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(", ")})):null; })(),
-        // El descuadre ya guardado no se pregunta solo (rev. lo-descuento R1): se señala y se ajusta si quiere.
-        descuentoDescuadreGuardado(state,d)&&React.createElement("button",{type:"button",className:"chip","data-act":"debt-descuadre",style:{alignSelf:"flex-start",marginTop:6},
-          onClick:function(){ descuentoAjustarGuardado(state,set,d); }},t("rp6_no_cuadra")),
-        React.createElement("div",{className:"v4-debt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
-        React.createElement("div",{className:"v4-debt-foot"},
-          React.createElement("span",null,tf("db_paidoff",{x:eur0(paid),p:Math.round(pct)})),
-          endsLabel(d) && React.createElement("span",null," · "+endsLabel(d))
-        ),
-        (d.balloon>0||d.downPayment>0) && React.createElement("div",{className:"v4-debt-sub",style:{marginTop:6,color:"var(--tan)"}},
-          d.balloon>0?tf("db_balloon_line",{x:eur0(d.balloon)}):"",
-          d.downPayment>0?(d.balloon>0?" · ":"")+tf("db_down_line",{x:eur0(d.downPayment)}):""),
-        bal<=0.005 && React.createElement("div",{className:"hint",style:{marginTop:10}},t(d.settledAt?"db_settled":"db_est_zero")),
-        bal<=0.005 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ d.settledAt?archiveDebt(d):confirmSettled(d); }},t(d.settledAt?"db_archive":"db_settle_ok"))
-      );
-    }),
+    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive}),
     archivedDebts.length>0 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},"aria-expanded":showArchive,onClick:function(){ setShowArchive(!showArchive); }},tf("db_archive_title",{n:archivedDebts.length})),
     showArchive && archivedDebts.length>0 && React.createElement("div",{className:"v4-card",style:{marginTop:8}},
       React.createElement("div",{className:"hint"},t("db_archive_hint")),
@@ -31896,6 +32087,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
         React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
     React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
+    fichaDeuda&&React.createElement(RptDeudaFicha,{key:fichaDeuda.id,d:fichaDeuda,state:state,set:set,r:rep,h:hFicha,onClose:function(){ setFichaId(null); }}),
     editor
   );
 }
@@ -32183,9 +32375,12 @@ function Goals({state, set, totals, showToast, abrir}){
   useEffect(function(){
     if(!abrir) return;
     const g=goals.find(function(x){ return String(x.id)===abrir.id; });
-    if(g) setEditingGoal(g);
+    if(g) setFichaMetaId(g.id);
   },[abrir&&abrir.ts]);
   const [contribGoal,setContribGoal]=useState(null);   // meta abierta en la hoja de aportar
+  // Plan › Metas nuevo: cada meta abre su ficha (estado, ritmo, fecha) con aportar, editar y eliminar al pie.
+  const [fichaMetaId,setFichaMetaId]=useState(null);
+  const fichaMeta=fichaMetaId?goals.find(function(x){ return x.id===fichaMetaId; }):null;
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);
   const [dlCal,setDlCal]=useState(false);
@@ -32231,9 +32426,7 @@ function Goals({state, set, totals, showToast, abrir}){
     });
   };
 
-  // Lo que se PINTA lleva lo marcado desde Gastos (`metaConAportes`); lo que se edita, la meta tal cual.
-  const totalSaved=goals.reduce(function(a,g){return a+metaAhorrado(g,state);},0);
-  const totalTarget=goals.reduce(function(a,g){return a+(g.target||0);},0);
+  const hMeta={abrir:function(g){ setFichaMetaId(g.id); },aportar:contribute,eliminar:delGoal,editar:function(g){ setEditingGoal(g); }};
 
   const emojiPicker=function(cur,onPick){
     return React.createElement("div",{className:"emoji-pick"}, GOAL_EMOJIS.map(function(e){
@@ -32242,36 +32435,10 @@ function Goals({state, set, totals, showToast, abrir}){
   };
 
   return React.createElement("div",null,
-    // Sin metas, «Ahorrado en metas 0,00 €» en grande era un cero que no decía nada (DIS-28).
-    // Misma tarjeta que Recibos y Deudas, con la cifra en el color del texto (P2-1).
-    goals.length>0 && React.createElement("div",{className:"v4-card v4-card-hero rise plan-summary","data-testid":"goals-summary"},
-      React.createElement("div",{className:"v4-micro"},t("v4_goals_hero")),
-      React.createElement("div",{className:"serif num plan-summary-amount"},eur(totalSaved)),
-      totalTarget>0 && React.createElement("div",{className:"plan-summary-sub"},tf("gl_total_sub",{x:eur0(totalTarget)}))
-    ),
+    goals.length>0 && React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
-
-    goals.map(function(g){
-      const gv=metaConAportes(g,state);
-      const pct=goalPct(gv); const eta=goalEta(gv, metaRitmoMensual(state,g));
-      return React.createElement("div",{className:"v4-goal-card rise plan-item",key:g.id,"data-goal-id":g.id,onClick:function(e){if(!e.target.closest("button"))setEditingGoal(g);}},
-        React.createElement("button",{type:"button",className:"v4-debt-top plan-item-open",onClick:function(){setEditingGoal(g);},"aria-label":tf("gl_edit_named",{name:g.name})},
-          React.createElement("span",{className:"v4-debt-emoji"},g.emoji||"🎯"),
-          React.createElement("div",{className:"plan-item-main"},
-            React.createElement("div",{className:"v4-debt-name"},g.name,g.done&&React.createElement("span",{className:"goal-medal"}," "+t("gl_done_badge"))),
-            React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-saved"}, eur0(gv.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0)),
-            gv.aportado>0 && React.createElement("div",{className:"v4-debt-sub","data-testid":"goal-from-gastos"}, tf("gl_from_gastos",{x:eur(gv.aportado)}))
-          ),
-          React.createElement("div",{className:"plan-item-value"},React.createElement("div",{className:"serif num",style:{fontSize:22,fontWeight:550,color:"var(--mint)"}},Math.round(pct)+"%"),React.createElement("span",{className:"plan-item-edit"},t("fj_edit")))
-        ),
-        React.createElement("div",{className:"v4-goal-bar"},React.createElement("i",{style:{width:pct+"%",background:g.done?"var(--tan)":"var(--mint)"}})),
-        eta.text && React.createElement("div",{className:"goal-eta "+eta.cls,style:{marginTop:8}},eta.text),
-        !g.done&&React.createElement("button",{className:"v4-goal-cta",onClick:function(){contribute(g);}},t("gl_contribute"))
-      );
-    }),
-
 
     React.createElement("div",{style:{marginTop:14}}, React.createElement(ReservaRules,{state:state,set:set})),
 
@@ -32297,6 +32464,7 @@ function Goals({state, set, totals, showToast, abrir}){
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
       onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),
+    fichaMeta&&React.createElement(RptMetaFicha,{key:fichaMeta.id,g:fichaMeta,state:state,h:hMeta,onClose:function(){ setFichaMetaId(null); }}),
     editingGoal&&React.createElement(GoalEditSheet,{key:editingGoal.id,goal:editingGoal,state:state,set:set,onClose:function(){setEditingGoal(null);},onDelete:delGoal,showToast:showToast})
   );
 }
@@ -32353,6 +32521,692 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
     ), document.body);
 }
 
+/* ============================================================
+   PLAN › REPARTO DEL PERIODO (A dónde va tu sueldo) — motor puro
+   Prototipo aprobado por el dueño: coord-notas/diseno-deudas-metas/prototipo.html.
+   TODO en céntimos enteros y cada euro en UN solo trozo:
+     Recibos · Deudas · Metas · Ahorro · Gastos · Libre = lo que entra.
+   Respeta el mes natural y «Mi ciclo» (`repPeriodo`). Nada de esto se escribe en el estado: se
+   calcula al vuelo, así que apagar el interruptor devuelve cada cifra a como estaba.
+   ============================================================ */
+const REP_DIAS_ENTRADA_PREVIA=120;
+const repCts=function(x){ return Math.round((Number(x)||0)*100); };
+const repDiasDe=function(y,m){ return new Date(y,m,0).getDate(); };
+/* La ventana del periodo. Mes natural: día 1 de Madrid → día 1 siguiente. «Mi ciclo»: del cobro de la
+   nómina al mismo día del mes siguiente. `meses` son los meses de calendario que toca: los recibos y
+   las cuotas son de calendario, y en un ciclo caen en dos. */
+function repPeriodoDe(startMs, cycleStart, nowMs){
+  const now=nowMs!=null?nowMs:Date.now(), hoy=madridYmdParts(now);
+  if(cycleStart){
+    const sy=cycleStart.getFullYear(), sm=cycleStart.getMonth()+1, sd=cycleStart.getDate();
+    const em0=sm%12, ey=sy+(sm===12?1:0), em=em0+1, ed=Math.min(sd,repDiasDe(ey,em));
+    const endMs=new Date(ey,em-1,ed).getTime();
+    const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+    return {cycle:true,startMs:startMs,endMs:endMs,gastoEndMs:Math.min(endMs,tomorrow.getTime()),hoy:hoy,
+      meses:[{y:sy,m:sm},{y:ey,m:em}],ini:{y:sy,m:sm,d:sd},fin:{y:ey,m:em,d:ed}};
+  }
+  const p=madridYmdParts(startMs+12*3600000), endMs=inicioDeMesMs(startMs+35*864e5);
+  return {cycle:false,startMs:startMs,endMs:endMs,gastoEndMs:endMs,hoy:hoy,meses:[{y:p.y,m:p.m}],ini:null,fin:null,y:p.y,m:p.m};
+}
+function repPeriodo(state, nowMs){
+  const now=nowMs!=null?nowMs:Date.now();
+  const payday=state&&state.settings&&state.settings.budgetCycle?budgetPaydayOf(state,now):null;
+  return payday?repPeriodoDe(payday.start.getTime(),payday.start,now):repPeriodoDe(inicioDeMesMs(now),null,now);
+}
+/* ¿Cae este cargo (año, mes 1-12, día o null) dentro del periodo? Un cargo sin día se cuenta en el
+   periodo que contiene el día 1 de su mes: una sola vez por mes, nunca en dos ciclos. */
+function repEnPeriodo(P, y, m, day){
+  if(!P.cycle) return y===P.y && m===P.m;
+  const k=function(yy,mm,dd){ return (yy*12+mm-1)*32+dd; };
+  const dd=day==null?1:Math.min(day,repDiasDe(y,m));
+  const v=k(y,m,dd);
+  return v>=k(P.ini.y,P.ini.m,P.ini.d) && v<k(P.fin.y,P.fin.m,P.fin.d);
+}
+// «Hoy» de cada mes para el motor de recibos: el actual, el que ya pasó entero, o el que aún no ha llegado.
+function repHoyDe(P, y, m){
+  const a=y*12+m, b=P.hoy.y*12+P.hoy.m;
+  return a===b?P.hoy.d:(a<b?31:0);
+}
+/* Lo que una deuda cuesta de TU bolsillo ese mes (céntimos): lo que sale del banco (`debtCuotaIn`) MÁS lo
+   que descuentas de un recibo compartido (`deudaDescuentoMes`: ese dinero también es tuyo, solo que sale
+   del banco dentro del recibo). Es la misma cifra que cuenta la fila de la deuda en Recibos («pagas 197 € + 53 €
+   de Pepephone» = 250) y lo que cuenta «Queda por pagar». Restar el descuento en vez de sumarlo dejaría fuera
+   del reparto dinero que sí sale (197 − 53 = 144 cuando de verdad se pagan 250). Con el recibo, que cuenta SOLO
+   tu parte, cada euro queda en un solo trozo: recibo 90 € (50 tuyos) + cuota 260 € = 50 + 300. */
+function repCuotaPropia(state, d, y, m, today){
+  const a=repCts(debtCuotaIn(d,y,m));
+  if(!(a>0)) return {cuota:0,desc:0,propia:0};
+  const desc=repCts(deudaDescuentoMes(state,d,y,m,today).amt);
+  return {cuota:a,desc:desc,propia:a+desc};
+}
+/* Los cargos del banco que SON la cuota de una deuda pero siguen sin enlazar (`cuotasDeDeudaPorMarcar`
+   es la misma regla que los enlaza). Cuentan como gastado hasta que alguien los marque; si además la
+   cuota resta del presupuesto, restaría dos veces. Se guarda por referencia de gastos y deudas. */
+const _repSinEnlazarMemo=new WeakMap();
+function repCuotasSinEnlazar(state){
+  const exps=(state&&state.expenses)||[];
+  const k=[state&&state.debts,state&&state.cuotaNo,state&&state.cuotaAlias];
+  const hit=_repSinEnlazarMemo.get(exps);
+  if(hit&&hit.k.every(function(x,i){ return x===k[i]; })) return hit.m;
+  const m=new Map();
+  try{ (cuotasDeDeudaPorMarcar(state)||[]).forEach(function(a){ m.set(a.e,a.debtId); }); }catch(e){}
+  _repSinEnlazarMemo.set(exps,{k:k,m:m});
+  return m;
+}
+function repHayInterruptor(state){ return (state&&state.debts||[]).some(function(d){ return d&&d.restarPres===true; }); }
+/* LA RESERVA DE CADA DEUDA, CALCULADA (céntimos): el interruptor «Restar del presupuesto» significa
+   «mi presupuesto ya incluye esta cuota», así que en su periodo el límite de gastos baja lo que cuesta
+   la cuota. NO se escribe en `reservaLog`: se deduce del plan cada vez, así apagarlo (o acabar la deuda)
+   devuelve el presupuesto sin liberar nada a mano ni poder quedarse a medias. Solo la cuota (tu parte);
+   el pago final no entra: no es una cuota que un presupuesto mensual vaya a incluir.
+   → {total, porDeuda:{id:céntimos}} */
+function reservaDeudasPeriodo(state, P){
+  const out={total:0,porDeuda:{}};
+  if(!repHayInterruptor(state)) return out;
+  (state.debts||[]).forEach(function(d){
+    if(!d||d.restarPres!==true) return;
+    let c=0;
+    P.meses.forEach(function(mm){
+      if(!debtActiveIn(d,mm.y,mm.m)) return;
+      const dy=cleanDay(dayOf(d));
+      if(!repEnPeriodo(P,mm.y,mm.m,dy)) return;
+      c+=repCuotaPropia(state,d,mm.y,mm.m,repHoyDe(P,mm.y,mm.m)).propia;
+    });
+    if(c>0){ out.porDeuda[d.id]=c; out.total+=c; }
+  });
+  return out;
+}
+/* Lo que `monthBudgetStats` necesita de todo esto: euros que restan del límite y las filas que no deben
+   contar dos veces. Sin ningún interruptor encendido no toca nada (misma cifra que siempre). */
+function reservaDeudasParaPresupuesto(state, startMs, cycleStart, nowMs){
+  if(!repHayInterruptor(state)) return {euros:0,sinContar:null};
+  const P=repPeriodoDe(startMs,cycleStart||null,nowMs);
+  // Solo el periodo en curso o futuro: uno ya cerrado (meses pasados, racha, imagen de mes cerrado)
+  // queda como sin el interruptor, porque las deudas de HOY no dicen lo que pasó entonces.
+  // El reloj es el real: `nowMs` de un mes cerrado apunta a ese mes, no a hoy.
+  if(P.endMs<=Date.now()) return {euros:0,sinContar:null};
+  const r=reservaDeudasPeriodo(state,P);
+  if(!(r.total>0)) return {euros:0,sinContar:null};
+  const sin=new Set();
+  repCuotasSinEnlazar(state).forEach(function(debtId,e){ if(r.porDeuda[debtId]>0) sin.add(e); });
+  return {euros:r.total/100,sinContar:sin.size?sin:null};
+}
+
+const REP_DEVOLUCION_RE=/\b(devolucion|devoluciones|reembolso|retrocesion|anulacion|refund|chargeback|reversal|rechazo)\b/;
+// Una devolución, o un Bizum recibido: el dinero vuelve a lo que gastaste, no es ingreso (misma idea que el límite de Gastos).
+function repEsDevolucion(e){
+  if(e.category==="bizum") return true;
+  return REP_DEVOLUCION_RE.test(recNorm([e.merchant,e.note,e.concept,e.obName].join(" ")));
+}
+/* Los porcentajes del reparto: enteros que suman 100 (o el total sobre lo que entra si falta
+   dinero), repartiendo los restos a los trozos con más decimales. */
+function repPorcentajes(trozos, entra, total, falta){
+  if(!(entra>0)) return trozos.map(function(){ return null; });
+  const target=falta?Math.round(total*100/entra):100;
+  const raw=trozos.map(function(x){ return x.c*100/entra; }), fl=raw.map(Math.floor);
+  const resto=target-fl.reduce(function(p,q){ return p+q; },0);
+  raw.map(function(x,i){ return [x-fl[i],i]; }).sort(function(p,q){ return q[0]-p[0]||p[1]-q[1]; })
+    .slice(0,Math.max(0,resto)).forEach(function(p){ fl[p[1]]++; });
+  return fl;
+}
+/* EL REPARTO. `o.saldo` (euros) es lo que hay en tus cuentas; sin él no se dice si «lo cubre».
+   Devuelve céntimos en todo menos `saldo`/`queda`, que también lo son (`*C`). Invariante, probada en
+   test: trozos + libre = entra, al céntimo, en todos los estados. */
+function planReparto(state, o){
+  o=o||{};
+  state=state||{};
+  const P=o.periodo||repPeriodo(state,o.nowMs), now=o.nowMs!=null?o.nowMs:Date.now();
+  const delSet=expenseDeletedSet(state), flows=nominaFlowsOf(state);
+  const viva=function(e){ return e&&!e.possibleDup&&!e.autoGemelo&&!expenseIsTombstoned(e,delSet); };
+  const sinEnlazar=repCuotasSinEnlazar(state);
+  /* ---- Entra, y lo que se gastó ---- */
+  let entra=0, devolucion=0, traspaso=0, nominaLlego=false, gastado=0, metaGastos={}, inversion=0;
+  const desdePrevio=P.startMs-REP_DIAS_ENTRADA_PREVIA*864e5;
+  let nominaAntes=flows.length>0;
+  (state.expenses||[]).forEach(function(e){
+    if(!e) return;
+    const ms=dateMs(e.date), neg=Number(e.amount)<0;
+    if(neg&&!nominaAntes&&ms>=desdePrevio&&ms<P.startMs&&e.amount<=-200&&viva(e)&&!CAT_NEUTRAS[e.category]&&esNomina(e,flows)) nominaAntes=true;
+    if(ms<P.startMs||ms>=P.gastoEndMs||!viva(e)) return;
+    if(neg){
+      if(CAT_NEUTRAS[e.category]){ if(e.category==="traspaso") traspaso+=repCts(-e.amount); return; }
+      const c=repCts(-e.amount);
+      if(repEsDevolucion(e)) devolucion+=c;
+      else{
+        entra+=c;
+        if(e.amount<=-200&&esNomina(e,flows)) nominaLlego=true;
+      }
+      return;
+    }
+    if(!(e.amount>0)) return;
+    const b=expenseBucket(e,state), c=repCts(e.amount);
+    if(b==="cuenta"||b==="otrobanco"){ if(!sinEnlazar.has(e)) gastado+=c; }
+    else if(b==="meta"){ const id=metaDeGasto(e); metaGastos[id]=(metaGastos[id]||0)+c; }
+    else if(b==="neutra"&&e.category==="inversion"&&recompensaDe(e)!=="saveback") inversion+=c;
+  });
+  gastado=Math.max(0,gastado-devolucion);
+  // Con nómina esperada y sin llegar, nada de % ni de Libre. Sin nómina de ninguna clase, lo que haya entrado.
+  const esperaNomina=!nominaLlego&&nominaAntes;
+  const entraC=esperaNomina||!(entra>0)?null:entra;
+  /* ---- Recibos (tu parte, sin deudas) ---- */
+  let recC=0, recQ=0, nRec=0;
+  P.meses.forEach(function(mm){
+    const pack=planChargesMonth(state,mm.m,mm.y,repHoyDe(P,mm.y,mm.m));
+    pack.pendingBills.concat(pack.paidBills).forEach(function(x){
+      if(x.kind==="debt"||x.kind==="balloon"||x.kind==="transfer"||x.kind==="income"||!(x.amount>0)) return;
+      if(!repEnPeriodo(P,mm.y,mm.m,x.day)) return;
+      const c=repCts(x.amount);
+      recC+=c; nRec++;
+      if(!x.paid) recQ+=c;
+    });
+  });
+  /* ---- Deudas: tu parte de la cuota (banco + lo descontado de un recibo compartido) y el pago final, que es dinero que sale ---- */
+  let deuC=0, deuQ=0, nDeu=0; const deudas=[];
+  P.meses.forEach(function(mm){
+    (state.debts||[]).forEach(function(d){
+      if(!d||!debtActiveIn(d,mm.y,mm.m)) return;
+      const dy=cleanDay(dayOf(d));
+      if(!repEnPeriodo(P,mm.y,mm.m,dy)) return;
+      const hoyM=repHoyDe(P,mm.y,mm.m), q=repCuotaPropia(state,d,mm.y,mm.m,hoyM), bl=repCts(debtBalloonIn(d,mm.y,mm.m));
+      if(!(q.cuota>0)&&!(bl>0)) return;
+      const pagada=!!debtPaymentState(state,d,mm.y,mm.m,hoyM).paid;
+      deuC+=q.propia+bl; nDeu++;
+      if(!pagada) deuQ+=q.propia+bl;
+      deudas.push({id:d.id,c:q.propia,finalC:bl,pagada:pagada,restar:d.restarPres===true});
+    });
+  });
+  const resD=reservaDeudasPeriodo(state,P);
+  /* ---- Metas: lo mayor entre el ritmo previsto y lo ya movido (reservas + gastos con meta) ---- */
+  const hecho={};
+  let reservasC=0;
+  (state.reservaLog||[]).forEach(function(x){
+    const ms=new Date(x&&x.date).getTime();
+    if(!isFinite(ms)||ms<P.startMs||ms>=P.endMs) return;
+    const c=repCts(x.amount);
+    reservasC+=c;
+    const id=x.goalId||"?"; hecho[id]=(hecho[id]||0)+c;
+  });
+  Object.keys(metaGastos).forEach(function(id){ hecho[id]=(hecho[id]||0)+metaGastos[id]; });
+  let metC=0, metQ=0, nMet=0;
+  const abiertas={};
+  (state.goals||[]).forEach(function(g){
+    if(!g||g.done||(g.saved||0)>=(g.target||0)&&g.target>0) return;
+    abiertas[g.id]=1;
+    const ritmo=repCts(metaRitmoMensual(state,g)), h=Math.max(0,hecho[g.id]||0);
+    if(ritmo>0) nMet++;
+    metC+=Math.max(ritmo,h); metQ+=Math.max(0,ritmo-h);
+  });
+  Object.keys(hecho).forEach(function(id){ if(!abiertas[id]) metC+=Math.max(0,hecho[id]); });
+  /* ---- Ahorro: aportaciones planificadas o inversión real, sin lo que ya va a una meta ---- */
+  const ahoPlan=(state.aportaciones||[]).reduce(function(a,x){ return a+repCts(x&&x.amount); },0);
+  const ahoC=Math.max(ahoPlan,inversion), ahoQ=Math.max(0,ahoPlan-inversion);
+  /* ---- Gastos: max(presupuesto, gastado) ---- */
+  const bud=typeof state.budget==="number"&&state.budget>0?repCts(state.budget):null;
+  const limRaw=bud==null?null:bud-reservasC-resD.total, lim=limRaw==null?null:Math.max(0,limRaw);
+  const lim0=bud==null?null:Math.max(0,bud-reservasC);
+  const gasC=lim==null?gastado:Math.max(lim,gastado), gas0=lim0==null?gastado:Math.max(lim0,gastado);
+  const movido=Math.max(0,gas0-gasC);
+  const gasQ=lim==null?0:Math.max(0,lim-gastado);
+  const total=recC+deuC+metC+ahoC+gasC;
+  const libre=entraC==null?null:entraC-total, falta=libre!=null&&libre<0?-libre:0;
+  const trozos=[{k:"rec",c:recC},{k:"deu",c:deuC},{k:"met",c:metC},{k:"aho",c:ahoC},{k:"gas",c:gasC}];
+  if(libre!=null&&libre>0) trozos.push({k:"lib",c:libre});
+  const pct=repPorcentajes(trozos,entraC,total,falta>0);
+  trozos.forEach(function(x,i){ x.p=pct[i]; });
+  /* ---- Lo que QUEDA por pagar este mes y si tu saldo lo cubre ---- */
+  const quedaC=recQ+deuQ+gasQ+metQ+ahoQ;
+  const saldoC=o.saldo==null||!isFinite(o.saldo)?null:repCts(o.saldo);
+  const pasa=resD.total>0&&limRaw!=null&&gastado>limRaw;
+  let st="normal";
+  if(entraC==null) st="wait";
+  else if(falta>0) st=saldoC==null?"faltan":(saldoC>=quedaC?"cubre":"nollega");
+  else if(libre===0) st="todo";
+  else if(bud==null) st="nobud";
+  return {periodo:P,now:now,st:st,entra:entraC,esperaNomina:esperaNomina,trozos:trozos,total:total,libre:libre,falta:falta,
+    siGastasTodo:lim!=null&&gastado<lim,sinPresupuesto:bud==null,
+    rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
+    reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
+    queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
+    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso};
+}
+
+/* MES DE LA ÚLTIMA CUOTA de una deuda (año*12+mes0), o null sin plazo ni saldo. UNA sola fuente: la usan la
+   fecha «acabas en» de la ficha y la escalera. Con plazo, `debtLeft` solo descuenta la cuota de ESTE mes si su
+   día ya pasó: si aún está por cobrar sigue contando y la última cae en mes actual + n − 1. Una compra con
+   el ancla en un mes futuro aún no ha pagado nada: su 1.ª cuota cae en el ancla y la última en ancla + n − 1.
+   Sin plazo (saldo estimado) el saldo solo baja al cambiar de mes: mes actual + n. */
+function debtUltimoMes(d, nowMs, li){
+  if(li===undefined) li=debtLeftInfo(d);
+  if(!li) return null;
+  const p=madridYmdParts(nowMs!=null?nowMs:Date.now());
+  const futura=d.months!=null&&li.n>0&&typeof d.asOf==="number"&&d.asOf>ymAbs(p.y,p.m-1);
+  const pendiente=d.months!=null&&li.n>0&&!futura&&debtChargeDay(d,p.y,p.m)>p.d;
+  return futura?d.asOf+li.n-1:p.y*12+p.m-1+li.n-(pendiente?1:0);
+}
+/* LA ESCALERA DE CUOTAS (ficha de Deudas): cuánto pagas de cuotas hoy y cuánto bajará cuando acabe cada
+   deuda, en orden de fin. Cifras de TU parte (la misma que el reparto) y fechas del plan; sin plazo,
+   estimadas con lo que amortizas (`debtLeftInfo`). Sin saldo o sin cuota que acabe, la deuda no sale.
+   → {hoy: céntimos, pasos:[{id, v: céntimos que quedan, ultimo: mes absoluto (año*12+mes0) de su última
+   cuota, desde: el mes siguiente, final: céntimos del pago final}]} */
+function deudasEscalera(state, nowMs){
+  const hoy=madridYmdParts(nowMs!=null?nowMs:Date.now());
+  const vivas=[];
+  (state&&state.debts||[]).forEach(function(d){
+    if(!d||!debtActive(d)) return;
+    const q=repCuotaPropia(state,d,hoy.y,hoy.m,hoy.d), li=debtLeftInfo(d);
+    if(!(q.propia>0)||!li||!(li.n>0)) return;
+    vivas.push({id:d.id,c:q.propia,ultimo:debtUltimoMes(d,nowMs),final:repCts(d.balloon)});
+  });
+  vivas.sort(function(a,b){ return a.ultimo-b.ultimo; });
+  let v=vivas.reduce(function(a,x){ return a+x.c; },0);
+  const hoyC=v, pasos=vivas.map(function(x){ v-=x.c; return {id:x.id,c:x.c,v:Math.max(0,v),ultimo:x.ultimo,desde:x.ultimo+1,final:x.final}; });
+  return {hoy:hoyC,pasos:pasos};
+}
+/* Lo de arriba de Metas: lo que apartas al mes y lo que te falta para llegar a tiempo. La previsión de
+   cada meta es la de siempre (`goalEta` con `metaRitmoMensual`); aquí solo se suma. */
+function metasResumen(state){
+  let ritmo=0, ahorrado=0, objetivo=0, hueco=0, vencidas=0;
+  (state&&state.goals||[]).forEach(function(g){
+    if(!g) return;
+    const gv=metaConAportes(g,state);
+    ahorrado+=repCts(gv.saved); objetivo+=repCts(g.target);
+    if(g.done||goalRemaining(gv)<=0) return;
+    const r=repCts(metaRitmoMensual(state,g));
+    ritmo+=r;
+    const eta=goalEta(gv,metaRitmoMensual(state,g));
+    if(eta.cls!=="warn") return;
+    const dl=monthsUntil(g.deadline);
+    if(dl!=null&&dl<=0) vencidas++;
+    else if(dl!=null) hueco+=Math.max(0,Math.ceil(repCts(goalRemaining(gv))/dl)-r);
+  });
+  return {ritmo:ritmo,ahorrado:ahorrado,objetivo:objetivo,hueco:hueco,vencidas:vencidas};
+}
+
+/* EL ICONO SALE DEL NOMBRE (no lo elige nadie). Por palabra entera: «casa» a secas no es la hipoteca (una
+   «financiación del gimnasio en casa» salía con la casita) y «uni» dentro de «unidad» no es estudios.
+   Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica. */
+function debtIcoKind(name){
+  const n=String(name||"").toLowerCase();
+  const w=function(re){ return new RegExp("(^|[^a-záéíóúàèòïüñç])(?:"+re+")(?=$|[^a-záéíóúàèòïüñç])").test(n); };
+  // Lo que se le debe a alguien de la familia lleva una persona, no la tarjeta genérica: «Mamá»
+  // con una tarjeta parecía una financiación del banco (auditoría 237, P2-7). Va por palabra entera
+  // para que «papelería» no sea «papá».
+  const persona=/(^|[^a-záéíóúàèòïüñç])(mam[aá]|pap[aá]|madre|padre|famil\w*|herman[oa]s?|abuel[oa]s?|t[ií][oa]s?|amig[oa]s?|suegr[oa]s?|mum|mom|dad|mother|father|brother|sister|friend|grandma|grandpa|mare|pare|germ[àa]n?a?|avi|[àa]via)(?=$|[^a-záéíóúàèòïüñç])/;
+  return w("coche|auto|car|seat|bmw|moto")?"car":w("hipoteca|hipotecas|mortgage|piso|vivienda")?"home":w("m[óo]vil|phone|iphone")?"phone":w("estudios?|m[áa]ster|master|universidad|uni|carrera")?"study":persona.test(n)?"person":"card";
+}
+/* ============================================================
+   PLAN › BARRA DE REPARTO, HOJA «A DÓNDE VA TU SUELDO», DEUDAS Y METAS NUEVAS
+   Prototipo aprobado: coord-notas/diseno-deudas-metas/prototipo.html. Las cifras salen del motor
+   (`planReparto`, `deudasEscalera`, `metasResumen`, en 17-plan-reparto.js); aquí solo se pinta.
+   ============================================================ */
+const RPT_COLS={rec:"--s-rec",deu:"--s-deu",met:"--s-met",aho:"--s-aho",gas:"--s-gas",lib:"--s-lib"};
+const RPT_I={
+  chev:"M6 9.5l6 6 6-6", check:"M5 12.5l4.5 4.5L19 7.5", plus:"M12 5v14M5 12h14", x:"M6 6l12 12M18 6L6 18", back:"M15 5l-7 7 7 7"
+};
+function rptIcon(k,size,style){
+  return React.createElement("svg",{viewBox:"0 0 24 24",width:size||16,height:size||16,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",
+    strokeLinejoin:"round","aria-hidden":"true",style:style||undefined},React.createElement("path",{d:RPT_I[k]}));
+}
+// Céntimos → texto con la moneda de pantalla (y el ojo): sin signo, el signo lo pone la frase.
+const rptC=function(c){ return eur(Math.abs(c||0)/100); };
+const rptC0=function(c){ return eur0(Math.abs(c||0)/100); };
+const rptPl=function(n,uno,muchos){ return n===1?uno:muchos; };
+// Mes absoluto (año*12+mes0) → «feb 2027».
+function rptMes(abs){
+  const s=monthShort(abs%12);
+  return (CURLANG==="en"?s:s.toLowerCase())+" "+Math.floor(abs/12);
+}
+// Y en corto para el pie de cada escalón: «feb 27».
+function rptMesCorto(abs){
+  const s=monthShort(abs%12);
+  return (CURLANG==="en"?s:s.toLowerCase())+" "+String(Math.floor(abs/12)).slice(2);
+}
+// El estado de la barra y de la hoja: una sola función para las dos, como en el prototipo.
+function rptTitular(r){
+  const pre=r.siGastasTodo&&r.presupuesto!=null;
+  const fr=function(txt){ return pre?t("rpt_si_todo")+txt:txt.charAt(0).toUpperCase()+txt.slice(1); };
+  const mv=r.movido>0?tf("rpt_moved",{x:rptC(r.movido)}):"";
+  const pasa=r.pasa;
+  const inc=pasa?tf("rpt_pasas",{x:rptC(r.pasaC)})+(mv?" · "+mv:" "+t("rpt_de_tu_pres")):(mv||(r.reservaDeudas>0?tf("rpt_res_info",{x:rptC(r.reservaDeudas)}):""));
+  const w=pasa?" wrn":"";
+  if(r.st==="wait") return {l:t("rpt_libre"),a:"—",cls:"",p:t("rpt_wait")};
+  if(r.st==="todo") return {l:t("rpt_todo"),a:"",cls:"ok"+w,p:inc||t("rpt_todo_sub")};
+  if(r.st==="cubre") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg",p:fr(t("rpt_cubre"))};
+  if(r.st==="nollega") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg bad",p:fr(tf("rpt_nollega",{x:rptC(r.hueco)}))};
+  if(r.st==="faltan") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg",p:pre?t("rpt_si_todo_s"):""};
+  return {l:r.st==="nobud"?t("rpt_libre_hasta"):t("rpt_libre"),a:rptC(r.libre),cls:w.trim(),p:inc};
+}
+// La barra apilada: cada trozo con su color, el gasto partido en lo gastado y lo que aún queda de presupuesto.
+function RptBarraTrozos({r,grande}){
+  if(r.entra==null) return React.createElement("div",{className:"rpt-pb none"+(grande?" lg":""),"aria-hidden":"true"});
+  const scale=Math.max(r.entra,r.total), parts=[];
+  let x=0;
+  const put=function(k,c,bg){ if(c<=0) return; parts.push(React.createElement("i",{key:k,"data-k":k,style:{left:(x/scale*100)+"%",width:"calc("+(c/scale*100)+"% - 2px)",background:bg}})); x+=c; };
+  r.trozos.forEach(function(p){
+    if(p.k==="gas"){ const s=Math.min(r.gastado,p.c); put("gas",s,"var(--s-gas)"); put("gasl",p.c-s,"color-mix(in srgb,var(--s-gas) 42%,var(--bg))"); }
+    else put(p.k,p.c,"var("+RPT_COLS[p.k]+")");
+  });
+  const corta=r.falta>0&&grande, cut=r.entra/scale*100;
+  return React.createElement("div",{className:"rpt-pb"+(grande?" lg":"")+(corta?" short":""),"aria-hidden":"true"},parts,
+    corta&&React.createElement("b",{className:"x",style:{left:cut+"%",right:0}}),
+    corta&&React.createElement("b",{className:"cut",style:{left:"calc("+cut+"% - 1px)"}}),
+    corta&&React.createElement("span",{className:"sl",style:{right:"calc("+(100-cut)+"% + 4px)"}},t("rpt_sueldo")));
+}
+const RPT_DEPS_REPARTO=function(s){
+  return [s.expenses,s.fixed,s.debts,s.goals,s.reservaLog,s.aportaciones,s.budget,s.settings,s.flows,s.oneoffs,s.accounts,s.deleted,s.reciboNo,
+    s.bankTx,s.obAbsorbedPending,s.obAbsorbedConfirmed,s._historyOwner,s.cuotaNo,s.cuotaAlias,s.reciboBorrado];
+};
+function useReparto(state,totals){
+  const hoy=totals&&totals.today;
+  return useMemo(function(){ return planReparto(state,{saldo:totals&&typeof totals.liquid==="number"?totals.liquid:null}); },
+    RPT_DEPS_REPARTO(state).concat([totals&&totals.liquid,hoy,totals&&totals.curMonth]));
+}
+/* La barra fina de arriba de Plan: el estado en una línea y el reparto en una barra. Tocarla abre la hoja. */
+function RptBarra({state,totals,onJump}){
+  const r=useReparto(state,totals), [abierta,setAbierta]=useState(false), H=rptTitular(r);
+  return React.createElement(React.Fragment,null,
+    React.createElement("button",{type:"button",className:"rpt-lb "+H.cls,"data-testid":"plan-reparto-barra","data-st":r.st,
+      "aria-label":H.l+(H.a?" "+H.a:"")+". "+t("rpt_ver_reparto"),onClick:function(){ setAbierta(true); }},
+      React.createElement("span",{className:"rpt-lb-h"},
+        React.createElement("span",{className:"rpt-lb-m"},
+          React.createElement("span",{className:"rpt-lb-l"},H.cls.indexOf("ok")===0&&rptIcon("check",15),H.l),
+          H.a&&React.createElement("span",{className:"rpt-lb-a"},H.a)),
+        r.entra!=null&&React.createElement("span",{className:"rpt-lb-d"},tf("rpt_de",{x:rptC(r.entra)})),
+        React.createElement("span",{className:"rpt-lb-c"},rptIcon("chev",16))),
+      React.createElement(RptBarraTrozos,{r:r}),
+      H.p&&React.createElement("span",{className:"rpt-lb-p"},H.p)),
+    abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
+      onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }}));
+}
+/* Hoja genérica de esta pantalla: asa, título con cerrar, cuerpo con scroll y pie fijo opcional. */
+function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
+  const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);
+  if(closer) closer.current=swipe.close;
+  return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({className:"v4-sheet rpt-sheet",role:"dialog","aria-modal":true,"aria-label":title,"data-testid":testid||undefined,
+      ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"v4-sheet-body rpt-sb"},
+        React.createElement("div",{className:"rpt-sh"},
+          back&&React.createElement("button",{type:"button",className:"rpt-sback","aria-label":t("rpt_volver"),onClick:onBack},rptIcon("back",20)),
+          icono||null,
+          React.createElement("div",{className:"rpt-st"},title),
+          React.createElement("button",{type:"button",className:"rpt-sx","aria-label":t("gl_cancel"),onClick:swipe.close},rptIcon("x",20))),
+        children),
+      foot&&React.createElement("div",{className:"rpt-sf"},foot))),document.body);
+}
+const rptKv=function(k,v,key){ return v==null?null:React.createElement("div",{className:"rpt-kv",key:key||k},React.createElement("span",null,k),React.createElement("b",null,v)); };
+function RptRepartoHoja({r,state,onClose,onJump}){
+  const [vista,setVista]=useState("reparto"), H=rptTitular(r);
+  const suma=r.trozos.reduce(function(a,x){ return a+(x.p||0); },0);
+  const subDe=function(k){
+    if(k==="rec") return rptPl(r.nRec,t("rpt_n_rec_1"),tf("rpt_n_rec",{n:r.nRec}));
+    if(k==="deu") return rptPl(r.nDeu,t("rpt_n_cuotas_1"),tf("rpt_n_cuotas",{n:r.nDeu}));
+    if(k==="met") return tf("rpt_n_ritmo",{n:r.nMet});
+    if(k==="aho") return t("rpt_plan_mensual");
+    if(k==="gas") return r.sinPresupuesto?t("rpt_gastado_hasta_hoy"):r.gastado>r.presupuesto?tf("rpt_sobre_pres",{x:rptC(r.gastado-r.presupuesto)}):tf("rpt_de_x",{a:rptC(r.gastado),b:rptC(r.presupuesto)});
+    return t("rpt_sin_asignar");
+  };
+  const nombre={rec:t("rpt_rec"),deu:t("rpt_deu"),met:t("rpt_met"),aho:t("rpt_aho"),gas:t("rpt_gas"),lib:r.sinPresupuesto?t("rpt_libre_hasta"):t("rpt_libre")};
+  const fila=function(x){
+    const enlace=x.k!=="lib", p=x.p==null?"—":x.p;
+    return React.createElement(enlace?"button":"div",{key:x.k,type:enlace?"button":undefined,className:"rpt-row","data-k":x.k,"data-p":x.p==null?"":x.p,
+      onClick:enlace?function(){ if(x.k==="aho"||x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }:undefined},
+      React.createElement("span",{className:"rpt-l"},React.createElement("div",{className:"rpt-d"},p),React.createElement("div",{className:"rpt-m"},x.p==null?" ":"%")),
+      React.createElement("span",{className:"rpt-nm"},React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x.k]+")"}}),nombre[x.k]),
+      React.createElement("span",{className:"rpt-sub"},subDe(x.k)),
+      React.createElement("span",{className:"rpt-am"},rptC(x.c)));
+  };
+  if(vista==="gas"){
+    return React.createElement(RptHoja,{title:t("rpt_gas"),onClose:onClose,back:true,onBack:function(){ setVista("reparto"); },testid:"plan-reparto-detalle"},
+      React.createElement("div",{className:"rpt-sg"},rptKv(t("rpt_gastado"),rptC(r.gastado)),
+        r.presupuesto==null?null:rptKv(t("rpt_presupuesto"),rptC(r.presupuesto)),
+        r.presupuesto==null?null:rptKv(r.gastado>r.presupuesto?t("rpt_de_mas"):t("rpt_quedan"),rptC(Math.abs(r.presupuesto-r.gastado)))));
+  }
+  if(vista==="aho"){
+    const aps=(state.aportaciones||[]).filter(function(a){ return a&&Number(a.amount)>0; });
+    return React.createElement(RptHoja,{title:t("rpt_aho"),onClose:onClose,back:true,onBack:function(){ setVista("reparto"); },testid:"plan-reparto-detalle"},
+      React.createElement("div",{className:"rpt-sg"},aps.map(function(a){ return rptKv(a.name||t("d_saving"),rptC(Math.round(Number(a.amount)*100)),a.id); }),
+        rptKv(t("rpt_invertido"),rptC(r.inversion))));
+  }
+  return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
+    React.createElement("div",{className:"rpt-rph "+H.cls},
+      React.createElement("div",{className:"rpt-hs",style:{fontSize:13,marginTop:8}},H.cls.indexOf("ok")===0?React.createElement("span",{style:{color:"var(--mint-ink,var(--mint))",fontWeight:800}},H.l):H.l),
+      H.a&&React.createElement("div",{className:"rpt-big","data-testid":"plan-reparto-cifra"},H.a),
+      H.p&&React.createElement("div",{className:"rpt-rp"},H.p),
+      React.createElement("div",{className:"rpt-hs"},t("rpt_entran")+" ",React.createElement("b",{"data-testid":"plan-reparto-entra"},r.entra==null?"—":rptC(r.entra))),
+      r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso)))),
+    React.createElement(RptBarraTrozos,{r:r,grande:true}),
+    React.createElement("div",{className:"rpt-list",style:{marginTop:10}},r.trozos.map(fila),
+      r.falta>0&&React.createElement("div",{className:"rpt-row","data-k":"short","data-p":suma-100},
+        React.createElement("span",{className:"rpt-l"},React.createElement("div",{className:"rpt-d"},suma-100),React.createElement("div",{className:"rpt-m"},"%")),
+        React.createElement("span",{className:"rpt-nm"},React.createElement("i",{className:"rpt-sw ov"}),t("rpt_faltan")),
+        React.createElement("span",{className:"rpt-sub"},t("rpt_sobre_entra")),
+        React.createElement("span",{className:"rpt-am",style:{color:"var(--coral)"}},rptC(r.falta)))),
+    r.falta>0&&React.createElement("div",{className:"rpt-sg","data-queda":"1"},
+      rptKv(t("rpt_q_rec"),rptC(r.qRec)),rptKv(t("rpt_q_deu"),rptC(r.qDeu)),rptKv(t("rpt_q_gas"),rptC(r.qGas)),
+      rptKv(t("rpt_q_mov"),rptC(r.qMet+r.qAho)),rptKv(t("rpt_q_total"),rptC(r.queda)),rptKv(t("rpt_q_saldo"),r.saldo==null?"—":rptC(r.saldo))));
+}
+
+/* ---------------- Interruptor «Restar del presupuesto» (ficha de una deuda) ---------------- */
+// Cuánto cambia el reparto al encender o apagar ESTA deuda; las demás se quedan como están.
+function rptRestarNums(state,d){
+  const con=function(on){ return Object.assign({},state,{debts:(state.debts||[]).map(function(x){
+    if(x.id!==d.id) return x;
+    const y=Object.assign({},x); if(on) y.restarPres=true; else delete y.restarPres;
+    return y; })}); };
+  const off=planReparto(con(false),{}), on=planReparto(con(true),{}), enc=d.restarPres===true;
+  const mover=Math.max(0,off.gas-on.gas);
+  const parte=Math.max(0,(on.presupuestoRaw==null?0:on.presupuestoRaw));
+  const antes=off.presupuestoRaw==null?0:off.presupuestoRaw-off.gastado, despues=on.presupuestoRaw==null?0:on.presupuestoRaw-on.gastado;
+  const q=on.reservaDeudas-off.reservaDeudas;
+  return {sinPresupuesto:off.sinPresupuesto,
+    p:enc?rptC(Math.max(0,despues)):rptC(Math.max(0,antes))+" → "+rptC(Math.max(0,despues)),
+    m:mover>0?tf("rpt_moved",{x:rptC(mover)}):tf("rpt_salen",{x:rptC(q)}),
+    w:despues<0?(enc?t("rpt_te_pasas"):t("rpt_te_pasarias"))+" "+rptC(-despues):"", parte:parte};
+}
+function RptRestar({state,set,d,cuota}){
+  const n=rptRestarNums(state,d), enc=d.restarPres===true;
+  if(n.sinPresupuesto) return React.createElement("div",{className:"rpt-rsv"},React.createElement("span",{className:"rpt-rsv-t"},t("rpt_resta_t")),React.createElement("span",{className:"rpt-rsv-s"},t("rpt_sin_pres")));
+  const cambia=function(){
+    set(function(s){ return Object.assign({},s,{debts:(s.debts||[]).map(function(x){
+      if(x.id!==d.id) return x;
+      const y=Object.assign({},x); if(enc) delete y.restarPres; else y.restarPres=true;
+      return y; })}); });
+  };
+  return React.createElement("div",{className:"rpt-rsv","data-rsv":d.id},
+    React.createElement("button",{type:"button",className:"rpt-rsv-h",role:"switch","aria-checked":enc,"data-act":"restar-presupuesto",onClick:cambia},
+      React.createElement("span",null,React.createElement("span",{className:"rpt-rsv-t"},t("rpt_resta_t")),React.createElement("span",{className:"rpt-rsv-s"},tf("rpt_resta_s",{x:rptC(cuota)}))),
+      React.createElement("span",{className:"rpt-swt"})),
+    React.createElement("div",{className:"rpt-pvg"},React.createElement("span",null,t("rpt_para_gastar")),React.createElement("b",{"data-pv":"p"},n.p)),
+    React.createElement("div",{className:"rpt-pvm","data-pv":"m"},n.m),
+    n.w&&React.createElement("div",{className:"rpt-pvw","data-pv":"w"},n.w));
+}
+
+/* ---------------- Escalera de cuotas ---------------- */
+function RptEscalera({state,d}){
+  const [sel,setSel]=useState(null);
+  const e=useMemo(function(){ return deudasEscalera(state); },[state.debts,state.fixed,state.expenses,state.deleted,state.accounts]);
+  const i=e.pasos.findIndex(function(x){ return x.id===d.id; });
+  if(i<0) return null;
+  const pasos=[{k:"hoy",v:e.hoy}].concat(e.pasos.map(function(x){ return {k:x.id,v:x.v,ultimo:x.ultimo,desde:x.desde,final:x.final,c:x.c}; }));
+  const idx=i+1, show=idx>4?pasos.slice(0,4).concat([pasos[idx]]):pasos.slice(0,5);
+  const max=Math.max.apply(null,show.map(function(x){ return x.v; }).concat([1]));
+  const nombreDe=function(id){ const dd=(state.debts||[]).find(function(x){ return x.id===id; }); return dd?dd.name:""; };
+  const cap=function(x){
+    if(x.k==="hoy") return tf("rpt_esc_hoy",{x:rptC0(x.v)});
+    return tf("rpt_esc_desde",{m:rptMes(x.desde),name:nombreDe(x.k),x:rptC0(x.c)})+(x.final>0?" · "+tf("rpt_esc_final",{x:rptC0(x.final),m:rptMes(x.ultimo)}):"");
+  };
+  const act=sel!=null&&show[sel]?sel:show.findIndex(function(x){ return x===pasos[idx]; });
+  return React.createElement("div",{className:"rpt-sg","data-stair":d.id},
+    React.createElement("div",{className:"rpt-stairs",role:"group","aria-label":t("rpt_esc_aria"),style:{gridTemplateColumns:"repeat("+show.length+",minmax(0,1fr))"}},
+      show.map(function(x,n){
+        return React.createElement("button",{key:x.k,type:"button",className:"rpt-stp","aria-pressed":n===act,"aria-label":cap(x),"data-cap":cap(x),onClick:function(){ setSel(n); }},
+          x.final>0&&React.createElement("span",{className:"rpt-fin"},"+"+Math.round(x.final/100).toLocaleString(CURLANG==="en"?"en-GB":"es-ES")),
+          React.createElement("em",null,Math.round(x.v/100).toLocaleString(CURLANG==="en"?"en-GB":"es-ES")),
+          React.createElement("i",{style:{height:Math.max(3,x.v/max*44)+"px"}}),
+          React.createElement("small",null,x.k==="hoy"?t("rpt_hoy"):rptMesCorto(x.desde)));
+      })),
+    React.createElement("div",{className:"rpt-stc","aria-live":"polite"},cap(show[act]||show[0])));
+}
+
+/* ---------------- Deudas: lista y ficha ---------------- */
+function rptFinTexto(finAbs,n){
+  if(finAbs==null) return "";
+  return n===1?tf("rpt_d_ultima",{m:rptMes(finAbs)}):n!=null&&n<=3?tf("rpt_d_quedan",{n:n,m:rptMes(finAbs)}):tf("rpt_d_acaba",{m:rptMes(finAbs)});
+}
+function RptFila({id,l,nombre,punto,sub,subCls,subTest,am,amCls,onClick,attrs}){
+  return React.createElement("button",Object.assign({type:"button",className:"rpt-row","aria-label":nombre,onClick:onClick},attrs||{}),
+    React.createElement("span",{className:"rpt-l"},l),
+    React.createElement("span",{className:"rpt-nm"},nombre,punto||null),
+    React.createElement("span",{className:"rpt-sub "+(subCls||""),"data-testid":subTest||undefined},sub),
+    React.createElement("span",{className:"rpt-am "+(amCls||"")},am));
+}
+const rptDia=function(d,m){ return [React.createElement("div",{className:"rpt-d",key:"d"},d),React.createElement("div",{className:"rpt-m",key:"m"},m)]; };
+/* El icono sale del nombre (no lo elige nadie), con el trazo de la barra de abajo en vez de emojis de colores:
+   cada móvil los pinta distinto y desentonaban (auditoría 15/11, DIS-27). */
+function rptDebtIco(name){
+  const k=debtIcoKind(name);
+  return React.createElement("span",{className:"rpt-dico"},React.createElement("svg",{viewBox:"0 0 24 24",width:22,height:22,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",
+    strokeLinejoin:"round","aria-hidden":"true","data-ico":k},DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); })));
+}
+/* Ficha de una deuda: lo que debes, el interruptor, la escalera y los datos; amortizar, editar y eliminar al pie. */
+function RptDeudaFicha({d,state,set,r,h,onClose}){
+  const bal=debtBalance(d), orig=d.original||bal, paid=Math.max(0,orig-bal), pct=Math.min(100,orig>0?paid/orig*100:0);
+  const li=debtLeftInfo(d), hoy=madridYmdParts(Date.now());
+  const fila=r.deudas.find(function(x){ return x.id===d.id; }), cuota=fila?fila.c:repCts(d.monthly);
+  const e=useMemo(function(){ return deudasEscalera(state); },[state.debts,state.fixed,state.expenses,state.deleted]);
+  const paso=e.pasos.find(function(x){ return x.id===d.id; });
+  const day=cleanDay(dayOf(d)), desc=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
+  const [datos,setDatos]=useState(false);
+  const viva=bal>0.005;
+  const cierra=useRef(null);
+  const pie=viva
+    ?[React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-amortizar",onClick:function(){ h.amortizar(d,function(){ if(cierra.current) cierra.current(); }); }},t("db_amortize")),
+      React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(d); }},t("fj_edit")),
+      React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(d); }},t("rpt_eliminar"))]
+    :[React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-cerrar-deuda",onClick:function(){ if(d.settledAt) h.archivar(d); else h.liquidada(d); onClose(); }},t(d.settledAt?"db_archive":"db_settle_ok")),
+      React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(d); }},t("fj_edit")),
+      React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(d); }},t("rpt_eliminar"))];
+  return React.createElement(RptHoja,{title:d.name,icono:rptDebtIco(d.name),onClose:onClose,closer:cierra,foot:pie,testid:"plan-deuda-ficha"},
+    React.createElement("div",{className:"rpt-big","data-testid":"ficha-saldo",style:{marginTop:8}},eur(bal)),
+    viva&&React.createElement("div",{className:"rpt-hs"},tf("rpt_d_amortizado",{p:Math.round(pct)})),
+    viva&&React.createElement("div",{className:"rpt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
+    !viva&&React.createElement("div",{className:"rpt-hs"},t(d.settledAt?"db_settled":"db_est_zero")),
+    viva&&React.createElement(RptRestar,{state:state,set:set,d:d,cuota:cuota}),
+    viva&&React.createElement(RptEscalera,{state:state,d:d}),
+    viva&&day==null&&React.createElement("div",{className:"rpt-kv",style:{marginTop:10}},React.createElement("span",null,t("rpt_d_dia_cobro")),
+      React.createElement("button",{type:"button",className:"rpt-link",style:{minHeight:44,padding:8,margin:"-10px -8px"},"data-act":"ficha-poner-dia",onClick:function(){ onClose(); h.ponerDia(d); }},t("rpt_d_poner_dia"))),
+    desc&&desc.amt>0&&React.createElement("div",{className:"rpt-hs","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(desc.amt),from:desc.from.join(", ")})),
+    descuentoDescuadreGuardado(state,d)&&React.createElement("button",{type:"button",className:"chip","data-act":"debt-descuadre",style:{alignSelf:"flex-start",marginTop:6},
+      onClick:function(){ descuentoAjustarGuardado(state,set,d); }},t("rp6_no_cuadra")),
+    (d.balloon>0||d.downPayment>0)&&React.createElement("div",{className:"rpt-hs",style:{color:"var(--tan)"}},
+      d.balloon>0?tf("db_balloon_line",{x:eur0(d.balloon)}):"",d.downPayment>0?(d.balloon>0?" · ":"")+tf("db_down_line",{x:eur0(d.downPayment)}):""),
+    viva&&React.createElement("button",{type:"button",className:"rpt-door dat","aria-expanded":datos,onClick:function(){ setDatos(!datos); }},
+      React.createElement("span",null,t("rpt_datos")),React.createElement("span",{className:"rpt-chev"},rptIcon("chev",16))),
+    viva&&React.createElement("div",{className:"rpt-fold"+(datos?" open":"")},React.createElement("div",{inert:datos?undefined:""},
+      rptKv(t("rpt_d_cuota"),eur(d.monthly||0)),day==null?null:rptKv(t("rpt_d_dia_cobro"),String(day)),
+      li?rptKv(t("rpt_d_cuotas"),tf("rpt_d_n_de",{n:li.n,tot:li.tot})):null,paso?rptKv(t("rpt_d_acaba_k"),rptMes(paso.ultimo)):null,
+      d.balloon>0?rptKv(t("rpt_d_pago_final"),eur(d.balloon)):null,
+      rptKv(t("rpt_d_interes"),d.apr>0?String(d.apr).replace(".",",")+" %":t("rpt_d_sin_interes")),
+      rptKv(t("plan_conflict_account"),entOf(d.account||"sabadell").label))));
+}
+/* La lista de Deudas: cabecera «Este mes pagas», por pagar, ya pagado, terminadas y sin cuota este mes. */
+function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShowArchive}){
+  const hoy=madridYmdParts(Date.now());
+  const esc=useMemo(function(){ return deudasEscalera(state); },[state.debts,state.fixed,state.expenses,state.deleted]);
+  const finDe=function(id){ const p=esc.pasos.find(function(x){ return x.id===id; }); return p?p.ultimo:null; };
+  const porId={}; r.deudas.forEach(function(x){ porId[x.id]=x; });
+  const vivas=visibles.filter(function(d){ return debtBalance(d)>0.005; }), cero=visibles.filter(function(d){ return debtBalance(d)<=0.005; });
+  const enPeriodo=vivas.filter(function(d){ return porId[d.id]; }), otras=vivas.filter(function(d){ return !porId[d.id]; });
+  const tot=r.deudas.reduce(function(a,x){ return a+x.c+x.finalC; },0), pag=r.deudas.reduce(function(a,x){ return a+(x.pagada?x.c+x.finalC:0); },0);
+  const pend=enPeriodo.filter(function(d){ return !porId[d.id].pagada; }).sort(function(a,b){ const x=cleanDay(dayOf(a)),y=cleanDay(dayOf(b)); return (x==null?99:x)-(y==null?99:y); });
+  const hechas=enPeriodo.filter(function(d){ return porId[d.id].pagada; });
+  const pri=esc.pasos[0], priDeuda=pri&&(state.debts||[]).find(function(x){ return x.id===pri.id; });
+  const fila=function(d,tipo){
+    const day=cleanDay(dayOf(d)), li=debtLeftInfo(d), fin=finDe(d.id), x=porId[d.id];
+    const desc=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
+    let sub, subCls="", subTest, l, amCls=tipo==="hecha"?"q":"";
+    if(day==null&&tipo!=="otra"&&tipo!=="cero"){ sub=t("rpt_d_falta_dia"); subCls="go"; }
+    else if(desc&&desc.amt>0){ sub=tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(desc.amt),from:desc.from.join(", ")}); subTest="debt-descuento"; }
+    else if(tipo==="cero") sub=t(d.settledAt?"db_settled":"db_est_zero");
+    else sub=tipo==="hecha"?(day?tf("rpt_d_dia_acaba",{d:day,m:fin!=null?rptMes(fin):"—"}):rptFinTexto(fin,li&&li.n)):(fin!=null?rptFinTexto(fin,li&&li.n):(li?tf("db_left_count",{n:li.n,tot:li.tot}):""));
+    if(tipo==="hecha") l=React.createElement("div",{style:{display:"grid",placeItems:"center",color:"var(--mint-ink,var(--mint))"}},rptIcon("check",22));
+    else l=rptDia(day==null?"—":String(day).padStart(2,"0"),day==null?t("rpt_d_dia"):monthShort(hoy.m-1).toLowerCase());
+    const importe=x?x.c:repCts(d.monthly);
+    return React.createElement(RptFila,{key:d.id,nombre:d.name,punto:React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}),l:l,sub:sub,subCls:subCls,subTest:subTest,am:rptC(importe),amCls:amCls,onClick:function(){ h.abrir(d); },attrs:{"data-debt-id":d.id,"data-act":"debt-open"}});
+  };
+  const seccion=function(titulo,lista,tipo,id){ return lista.length>0&&React.createElement("section",{className:"rpt-sec","data-sec":id,key:id},
+    React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,titulo)),React.createElement("div",{className:"rpt-list"},lista.map(function(d){ return fila(d,tipo); }))); };
+  return React.createElement("div",{className:"rpt"},
+    React.createElement("section",{className:"rpt-hero","data-testid":"debts-summary"},
+      React.createElement("div",{className:"rpt-ht"},t("rpt_d_hero")),
+      React.createElement("div",{className:"rpt-big plan-summary-amount"},rptC(tot)),
+      React.createElement("div",{className:"rpt-hs"},tf("rpt_d_sub",{a:rptC(pag),b:rptC(tot-pag)})),
+      React.createElement("div",{className:"rpt-dl"},
+        React.createElement("span",null,t("rpt_d_debes")+" ",React.createElement("b",null,eur0(total))),
+        priDeuda&&React.createElement("button",{type:"button",onClick:function(){ h.abrir(priDeuda); },"aria-label":t("rpt_d_acaba_antes")+": "+priDeuda.name},
+          t("rpt_d_acaba_antes")+" ",React.createElement("b",null,priDeuda.name),(" · "+rptMes(pri.ultimo))))),
+    seccion(t("rpt_d_por_pagar"),pend,"pend","pend"),
+    seccion(t("rpt_d_pagado"),hechas,"hecha","hechas"),
+    seccion(t("rpt_d_sin_cuota"),otras,"otra","otras"),
+    seccion(t("rpt_d_terminadas"),cero,"cero","cero"));
+}
+
+/* ---------------- Metas: lista y ficha ---------------- */
+/* La previsión de siempre (`goalEta`) trae un círculo de color en el texto; aquí el estado lo da el punto de la fila,
+   así que se quita para no pintarlo dos veces. */
+function rptSinPunto(texto){
+  return Array.from(String(texto||"")).filter(function(ch){ const c=ch.codePointAt(0); return !(c>=0x1F7E0&&c<=0x1F7EB||c===0x1F534||c===0x1F535); })
+    .join("").replace(/ +/g," ").replace(/ +·/g," ·").trim();
+}
+function RptMetaNivel({g,gv}){
+  const pct=goalPct(gv);
+  if(g.done||pct>=100) return React.createElement("div",{className:"rpt-lvl full"},rptIcon("check",22));
+  if(!(gv.saved>0)) return React.createElement("div",{className:"rpt-lvl empty"},rptIcon("plus",18));
+  return React.createElement("div",{className:"rpt-lvl"},React.createElement("i",{style:{height:pct+"%"}}),React.createElement("span",null,Math.round(pct)+"%"));
+}
+function RptMetaFicha({g,state,h,onClose}){
+  const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoMensual(state,g), eta=goalEta(gv,metaRitmoMensual(state,g)), rem=goalRemaining(gv);
+  const cierra=useRef(null);
+  const pie=[!g.done&&rem>0&&React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-aportar",onClick:function(){ onClose(); h.aportar(g); }},t("gl_contribute")),
+    React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(g); }},t("fj_edit")),
+    React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(g); }},t("rpt_eliminar"))];
+  return React.createElement(RptHoja,{title:(g.emoji||"🎯")+" "+g.name,onClose:onClose,closer:cierra,foot:pie,testid:"plan-meta-ficha"},
+    React.createElement("div",{className:"rpt-big","data-testid":"goal-saved",style:{marginTop:8}},eur0(gv.saved||0)),
+    React.createElement("div",{className:"rpt-hs"},eur0(g.target||0)!==""?tf("rpt_m_de",{x:eur0(g.target||0),p:Math.round(pct)}):""),
+    React.createElement("div",{className:"rpt-bar"},React.createElement("i",{style:{width:pct+"%"}})),
+    React.createElement("div",{className:"rpt-sg"},
+      rptKv(t("rpt_m_estado"),rptSinPunto(eta.text)||t("rpt_m_sin_prevision")),
+      rem>0?rptKv(t("rpt_m_faltan"),eur0(rem)):null,
+      rptKv(t("rpt_m_al_mes"),ritmo>0?eur0(ritmo):t("rpt_m_sin_ritmo")),
+      rptKv(t("rpt_m_fecha"),g.deadline?monthLong(+g.deadline.slice(5,7)-1)+" "+g.deadline.slice(0,4):t("rpt_m_sin_fecha")),
+      gv.aportado>0?React.createElement("div",{className:"rpt-kv",key:"gx","data-testid":"goal-from-gastos"},React.createElement("span",null,t("rpt_m_desde_gastos")),React.createElement("b",null,eur(gv.aportado))):null,
+      g.fromBank?rptKv(t("rpt_m_banco"),entOf(g.fromBank).label):null));
+}
+function RptMetasVista({state,goals,h}){
+  const res=useMemo(function(){ return metasResumen(state); },[state.goals,state.expenses,state.deleted,state.settings,state.reservaLog]);
+  const abiertas=goals.filter(function(g){ return !g.done&&goalPct(metaConAportes(g,state))<100; }), hechas=goals.filter(function(g){ return abiertas.indexOf(g)<0; });
+  const fila=function(g){
+    const gv=metaConAportes(g,state), eta=goalEta(gv,metaRitmoMensual(state,g));
+    const dot=eta.cls==="warn"?React.createElement("i",{className:"rpt-dot",key:"p"}):eta.cls==="ok"?React.createElement("i",{className:"rpt-dot ok",key:"p"}):null;
+    return React.createElement(RptFila,{key:g.id,nombre:g.name,l:React.createElement(RptMetaNivel,{g:g,gv:gv}),sub:[dot,rptSinPunto(eta.text)||tf("rpt_m_de_solo",{x:eur0(g.target||0)})],
+      am:gv.saved>0?eur0(gv.saved):eur0(g.target||0),amCls:gv.saved>0?"":"q",onClick:function(){ h.abrir(g); },attrs:{"data-goal-id":g.id,"data-act":"goal-open"}});
+  };
+  const sv=res.ahorrado, tg=res.objetivo;
+  const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:[t("rpt_m_a_tiempo"),t("rpt_m_todas")];
+  return React.createElement("div",{className:"rpt"},
+    React.createElement("section",{className:"rpt-hero","data-testid":"goals-summary"},
+      React.createElement("div",{className:"rpt-ht"},t("v4_goals_hero")),
+      React.createElement("div",{className:"rpt-big plan-summary-amount"},rptC0(sv)),
+      React.createElement("div",{className:"rpt-split","aria-hidden":"true"},React.createElement("i",{className:"on",style:{flexGrow:sv}}),React.createElement("i",{style:{flexGrow:Math.max(0,tg-sv)}})),
+      React.createElement("div",{className:"rpt-hs"},tf("rpt_m_de_total",{x:rptC0(tg)})),
+      React.createElement("div",{className:"rpt-facts"},
+        React.createElement("div",{className:"rpt-fact"},React.createElement("span",null,t("rpt_m_apartas")),React.createElement("b",{className:"serif"},rptC0(res.ritmo)+t("rpt_m_mes"))),
+        React.createElement("div",{className:"rpt-fact"},React.createElement("span",null,f2[0]),React.createElement("b",{className:"serif"},f2[1])))),
+    abiertas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_en_marcha"))),React.createElement("div",{className:"rpt-list"},abiertas.map(fila))),
+    hechas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_conseguidas"))),React.createElement("div",{className:"rpt-list"},hechas.map(fila))));
+}
 /* ============================================================
    IMPORTAR UNA HOJA DE CÁLCULO CON GASTOS (Excel o CSV)
    ============================================================
@@ -35533,7 +36387,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b1c472c8b98b7a84158607ab9c75161f05c104fc9ad70ec5fc37a5b64a337457";
+var _rnSha="b8b058b56d25a1689c4cb065c688a19b241f7fcac10128c47c2b6561b406b838";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -37485,6 +38339,15 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
           tf("v4_plan_biggest",{name:biggestForCover.name,amount:eur0(biggestForCover.amount)}))
       )
     ),
+    // La barra fina del reparto (prototipo aprobado): el estado de lo que entra y a dónde va, siempre a la vista.
+    !simple && React.createElement(RptBarra,{state:state,totals:totals,onJump:function(id){
+      setSegMounted(function(m){ return m[id]?m:Object.assign({},m,{[id]:true}); });
+      setSeg(id);
+      requestAnimationFrame(function(){
+        const sg=planScreenRef.current&&planScreenRef.current.querySelector(".v4-seg");
+        if(sg&&sg.scrollIntoView) sg.scrollIntoView({behavior:mcReduced()?"auto":"smooth",block:"start"});
+      });
+    }}),
     !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
