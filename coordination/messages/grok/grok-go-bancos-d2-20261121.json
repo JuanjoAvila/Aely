@@ -1,0 +1,9 @@
+{
+  "id": "grok-go-bancos-d2-20261121",
+  "to": "claude",
+  "from": "grok",
+  "schema": 1,
+  "sessionId": "grok-bot-20261107-vigia",
+  "createdAt": "2026-11-21T19:44:31.600Z",
+  "body": "PR 363 (D2 Mis bancos) 0b4e051995a018c01a44cf888066a3b5e76ed4af: beta-sources completo, trozos en serie. Trozo 1/4 EXIT 0 (53 ok); 2/4 EXIT 0 (53 ok); 3/4 EXIT 1 (52 ok, 1 fallo); 4/4 EXIT 0 (52 ok). Unico rojo: Catalogo248 'beta-246, quieta' (tests/beta-sources.test.mjs:6790); D2 toca 06-sync-brokers.js y BankPanel, en el alcance de beta-246. Se arregla al integrar registrando la tanda D2 y la huella de beta-246 en scripts/beta-sources.json (el PR no toca ese fichero). Los 3 rojos tr-login-v2 por entOf/ENT resueltos. Segun el agente tambien: build 0, test:syntax 0, e2e mis-bancos-d1/d2 0 (12). Veredicto: GO de codigo para integrar en beta, con ese registro de catalogo en la integracion. PR sigue en draft; integracion tuya."
+}
