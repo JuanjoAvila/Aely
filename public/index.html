@@ -17715,13 +17715,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     const fmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
     /* UN NETO A FAVOR NO ES UN GASTO (caso real del 21/11/2026: «1.448 €» arriba eran dinero que había
        entrado). La cifra sigue en valor absoluto para sus dígitos, pero lleva «+» y lo dice. */
-    const conFavor=function(o,neto){
-      if(gxCifraOk(neto)&&Math.round(neto*100)<0){
-        o.favor=true;
-        if(!o.tail&&!o.hasta){ o.tail=t("gv5_favor"); o.tone="mint"; }
-      }
-      return o;
-    };
+    const conFavor=function(o,neto){ return gxConFavor(o,neto,t("gv5_favor")); };
     const mesDe=function(ym){ return monthLong(+ym.slice(5,7)-1); };
     // En modo balance la cifra se enseña sin signo, como `shown` de `monthBudgetStats`.
     const shownOf=function(v){ return mode==="net"?Math.abs(v):v; };
@@ -18695,6 +18689,13 @@ const GX_ANCHO=[.665,.452,.607,.557,.617,.578,.611,.520,.604,.613];
    (con más movimientos llegó a ver cifras enormes en negativo y dejó la app, 21/11/2026). */
 const GX_TOPE_CIFRA=1e7;
 function gxCifraOk(x){ return typeof x==="number"&&isFinite(x)&&Math.abs(x)<=GX_TOPE_CIFRA; }
+function gxConFavor(o,neto,texto){
+  if(gxCifraOk(neto)&&Math.round(neto*100)<0){
+    o.favor=true;
+    if(!o.tail&&!o.hasta){ o.tail=texto; o.tone="mint"; }
+  }
+  return o;
+}
 function gxEur(x){ return gxCifraOk(x)?eur(x):"—"; }
 function GxCifra({n, favor}){
   const ok=gxCifraOk(n);
@@ -24539,7 +24540,8 @@ function reciboNoPon(s,claves,vetar,ahora){
    los últimos en caer: son pocos, los confirmó él uno a uno y perderlos deja a una persona «pendiente»
    sin que nada lo diga, mientras que un veto viejo de un cargo de hace meses ya no se vuelve a ver
    (revisión de la 231). */
-function reciboNoEsAlias(k){ return String(k).indexOf("debenAlias|")===0; }
+/* Tampoco caduca el veto «no es un traspaso mío» (`traspasoNo|…`): si cayera, la pareja reaparecería sola. */
+function reciboNoEsAlias(k){ k=String(k); return k.indexOf("debenAlias|")===0||k.indexOf("traspasoNo|")===0; }
 function reciboNoTope(no,at){
   var claves=Object.keys(at);
   if(claves.length>RECIBO_NO_MAX) claves.sort(function(a,b){ return (reciboNoEsAlias(b)-reciboNoEsAlias(a))||(at[b]-at[a]); }).slice(RECIBO_NO_MAX).forEach(function(k){ delete at[k]; });
@@ -29089,7 +29091,7 @@ function traspasoEntradaApta(s,e,titular){
   const banco=expenseBankOf(e), importe=Math.abs(Number(e.amount));
   return !(s.flows||[]).some(function(f){ return f&&f.kind==="income"&&flowBancoEntra(f)===banco&&recAmtClose(Number(f.amount),importe); });
 }
-function traspasoSalidaApta(s,o,destino){
+function traspasoSalidaApta(s,o,destino,e,titular){
   if(isAtmWithdrawal(o.merchant)||isAtmWithdrawal(o.obName)||o.withdrawalConfirmedAt) return false;
   if(o.category==="traspaso") return true;
   if(o.category!=="otros"||o.catAckAt!=null) return false;
@@ -29098,6 +29100,9 @@ function traspasoSalidaApta(s,o,destino){
   if(aNombreDelTitular(s,o)) return true;
   const benef=recNorm(o.obName!=null&&String(o.obName).trim()?o.obName:o.merchant), sinPre=benef.replace(TRASPASO_A_RE,""), banco=recNorm(entOf(destino).label);
   if(TRASPASO_SOLO_RE.test(benef)) return traspasoTextoNeutro("",o.concept)&&traspasoTextoNeutro("",o.note);
+  /* TR nombra «Movimiento» a sus salidas: sin beneficiario solo vale si la llegada del otro banco lleva el
+     nombre ENTERO del titular (una llegada también anónima, o de un tercero, no basta). */
+  if(benef==="movimiento") return !!(e&&titular)&&traspasoTextoNeutro("",o.concept)&&traspasoTextoNeutro("",o.note)&&[e.merchant,e.obName].some(function(x){ return x!=null&&String(x).trim()&&traspasoDelTitular(titular,x); });
   return sinPre!==benef&&banco.length>=4&&(sinPre===banco||sinPre.indexOf(banco+" ")===0);
 }
 function traspasosPropiosCalc(s){
@@ -29128,7 +29133,7 @@ function traspasosPropiosCalc(s){
       if(salen.length!==1) return;
       const o=salen[0], entran=cerca(g.ent,o);
       if(entran.length!==1||entran[0]!==e||!firme(e)||!firme(o)) return;
-      if(!traspasoEntradaApta(s,e,titular)||!traspasoSalidaApta(s,o,expenseBankOf(e))) return;
+      if(!traspasoEntradaApta(s,e,titular)||!traspasoSalidaApta(s,o,expenseBankOf(e),e,titular)) return;
       out.set(String(e.id),ownTransferCents(e)); out.set(String(o.id),ownTransferCents(o));
     });
   });
@@ -35383,7 +35388,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9c64bd799ef5bf5a016f7e29b98b04ed3b8db082e2d281a034956a8ec8f538ce";
+var _rnSha="983c0652f5e622bf203ee73fa36c5b77c2ef4d7bfaa588027a78444ed407ff31";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -36690,6 +36695,16 @@ function buildHouseholdSnapshot(state, totals, email){
   const expensesByCat=Object.keys(byCat).map(function(id){
     return { id:id, spent:+Number(byCat[id]).toFixed(2) };
   }).sort(function(a,b){ return b.spent-a.spent; }).slice(0,8);
+  /* «Gastado» = el bruto menos las patas de un traspaso entre tus cuentas (derivado al leer): con las patas en
+     meses distintos (31/10 y 02/11) el bruto de noviembre queda en negativo y no cuadra con el desglose.
+     Sin tocar `thisMonthSpent` ni los saldos; nunca por debajo de 0. */
+  let gastadoHogar=Number(totals.thisMonthSpent||0);
+  if(gastadoHogar!==0){
+    (state.expenses||[]).forEach(function(e){
+      if(parseDate(e.date)>=monthStart&&expenseCountsCash(e,state)&&traspasoPropioDerivado(e,state)) gastadoHogar-=Number(e.amount)||0;
+    });
+    gastadoHogar=Math.max(0,gastadoHogar);
+  }
   // Fijos: total mensual + top 5 (nombre + importe, sin cuentas bancarias)
   const fixedTop=(state.fixed||[]).map(function(f){
     // Misma mensualidad que el total de arriba (`fixedMonthlyOf`): respeta los importes por cobro.
@@ -36703,7 +36718,7 @@ function buildHouseholdSnapshot(state, totals, email){
     debtTotal:+Number(totals.debtTotal||0).toFixed(2),
     invested:+Number(totals.invested||0).toFixed(2),
     liquid:+Number((totals.liquid)||0).toFixed(2),
-    thisMonthSpent:+Number(totals.thisMonthSpent||0).toFixed(2),
+    thisMonthSpent:+Number(gastadoHogar).toFixed(2),
     budget:state.budget||0,
     accounts:accounts,
     expensesByCat:expensesByCat,

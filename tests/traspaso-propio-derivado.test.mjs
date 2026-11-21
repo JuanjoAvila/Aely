@@ -5,6 +5,7 @@
 // Nombres, bancos de ejemplo e importes inventados: nunca los de una cartera real.
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import vm from "node:vm";
 import { transformSync } from "esbuild";
 import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
@@ -16,6 +17,9 @@ const cargar=(cambiar)=>{
   const c=loadPureLogic(shell.replace("<!--MC_APP_SCRIPT-->",()=>order.map(f=>{
     const s=source("src/modules/"+f); return cambiar?cambiar(f,s):s; }).join("\n")));
   c.Date=class extends Date{ constructor(...a){ super(...(a.length?a:[AHORA])); } static now(){ return AHORA; } };
+  // 13-hogar queda fuera del corte de la lógica pura (va tras ErrorBoundary): se carga a mano su foto.
+  const h0=source("src/modules/13-hogar.js"), h=cambiar?cambiar("13-hogar.js",h0):h0, hs=h.indexOf("function buildHouseholdSnapshot("), he=h.indexOf("\nfunction mergeHouseholdSnapshots",hs);
+  vm.runInContext(h.slice(hs,he),c);
   return c;
 };
 const edge=(file,imports={})=>{
@@ -114,6 +118,59 @@ function suite(c){
       assert.deepEqual(pares(r),[]);
     }
   });
+  caso("sentido TR→banco: la salida «Movimiento» solo vale con el nombre ENTERO del titular en la llegada",()=>{
+    const sm=fila("sm","trade_republic","2026-11-18",IMPORTE,"Movimiento","otros");
+    const llega=(n,extra)=>fila("ll","caixabank","2026-11-18",-IMPORTE,n,"ingreso",extra);
+    assert.deepEqual(pares(estado([sm,llega("TRANSFERENCIA DE "+TITULAR.toUpperCase())])),["ll","sm"],"con nombre completo empareja");
+    assert.deepEqual(pares(estado([sm,llega("TRANSFERENCIA DE MARTA VIDAL")])),[],"con un tercero no");
+    assert.deepEqual(pares(estado([sm,llega("Movimiento")])),[],"con llegada anónima no");
+    assert.deepEqual(pares(estado([sm,llega("TRANSFERENCIA DE NADIA PRUEBA")])),[],"con nombre a medias no");
+  });
+  caso("el alcance del widget lleva los traspasos, en el mes y en Mi ciclo",()=>{
+    const s=estado([NOMINA,SALE,ENTRA,CAFE]);
+    const mes=JSON.parse(c.widgetScopeOf(s,c.dashboardBudgetStats(s),"","trade_republic"));
+    assert.equal(mes[4].length,3,"nóminas, no nóminas y traspasos");
+    assert.deepEqual(mes[4][2],[c.keyOfExpense(s.expenses[2])]);
+    s.settings.budgetCycle=true;
+    const st=c.monthBudgetStats(s);
+    const ciclo=JSON.parse(c.widgetScopeOf(s,st,"nom","trade_republic"));
+    assert.equal(ciclo[4].length,2,"ancla y traspasos");
+  });
+  caso("firme: una fila de recibo, deuda, meta o con meta pendiente no empareja",()=>{
+    for(const k of ["reciboId","debtId","goalId","metaPend"]){
+      for(const i of [0,1]){
+        const s=estado([SALE,ENTRA]); s.expenses[i][k]="x1";
+        assert.deepEqual(pares(s),[],k+" en la pata "+i);
+      }
+    }
+  });
+  caso("Hogar: «gastado» no se ve negativo con las patas en meses distintos y no cuenta las patas del traspaso",()=>{
+    const s=estado([fila("sale","caixabank","2026-10-31",300.5,"TRANSFERENCIA A "+TITULAR.toUpperCase(),"traspaso"),fila("entra","trade_republic","2026-11-02",-300.5,"Movimiento","ingreso")]);
+    assert.equal(c.traspasosPropiosDe(s).size,2);
+    const bruto=-300.5;
+    const h=c.buildHouseholdSnapshot(s,{thisMonthSpent:bruto},"a@b.c");
+    assert.equal(h.thisMonthSpent,0);
+    const h2=c.buildHouseholdSnapshot(s,{thisMonthSpent:bruto+10},"a@b.c");
+    assert.equal(h2.thisMonthSpent,10,"el bruto sin la llegada");
+    assert.equal(c.buildHouseholdSnapshot(estado([]),{thisMonthSpent:-50},"a@b.c").thisMonthSpent,0,"nunca negativo");
+    const o=estado([fila("o","caixabank","2026-11-18",IMPORTE,"TRANSFERENCIA A "+TITULAR.toUpperCase(),"otros"),ENTRA,CAFE]);
+    assert.equal(c.traspasosPropiosDe(o).size,2);
+    assert.deepEqual(Array.from(c.buildHouseholdSnapshot(o,{},"a@b.c").expensesByCat,x=>x.id),["super"],"el desglose no cuenta la pata «otros»");
+  });
+  caso("el veto «no es un traspaso» no caduca por el tope de RECIBO_NO_MAX",()=>{
+    let s={reciboNo:[],reciboNoAt:{}};
+    s=Object.assign(s,c.reciboNoPon(s,["traspasoNo|vieja"],true,1));
+    for(let i=0;i<450;i++) s=Object.assign(s,c.reciboNoPon(s,["x|"+i],true,10+i));
+    assert.ok(s.reciboNo.indexOf("traspasoNo|vieja")>=0,"sigue vetada");
+    assert.ok(s.reciboNoAt["traspasoNo|vieja"]>0);
+  });
+  caso("un neto a favor lleva «+»: justo 0 no, y -0,01 sí",()=>{
+    assert.equal(c.gxConFavor({}, 0, "f").favor,undefined);
+    assert.equal(c.gxConFavor({}, 0.004, "f").favor,undefined);
+    assert.equal(c.gxConFavor({}, -0.01, "f").favor,true);
+    assert.equal(c.gxConFavor({}, -0.01, "f").tail,"f");
+    assert.equal(c.gxConFavor({}, 5, "f").favor,undefined);
+  });
   caso("un importe imposible no se enseña",()=>{
     for(const x of [NaN,Infinity,-Infinity,1e7+1,-1e12,"12",null]) assert.equal(c.gxCifraOk(x),false,String(x));
     for(const x of [0,-1448.2,1e7]) assert.equal(c.gxCifraOk(x),true,String(x));
@@ -168,6 +225,18 @@ const MUTANTES=[
   ["01-i18n.js","if(!e || CAT_NEUTRAS[e.category] || traspasoPropioDerivado(e,s)) return false;","if(!e || CAT_NEUTRAS[e.category]) return false;"],
   ["01-i18n.js","if((e.amount||0)<0){\n    if(CAT_NEUTRAS[e.category]||traspasoPropioDerivado(e,s)) return \"neutra\";","if((e.amount||0)<0){\n    if(CAT_NEUTRAS[e.category]) return \"neutra\";"],
   ["08-motor-bank.js","function noEsTraspasoDerivado(s){ return function(e){ return !traspasoPropioDerivado(e,s); }; }","function noEsTraspasoDerivado(s){ return function(){ return true; }; }"],
+  ["08-motor-bank.js","if(x.reciboId||x.debtId||x.goalId||x.metaPend||","if("],
+  ["08-motor-bank.js","if(x.reciboId||x.debtId||x.goalId||x.metaPend||","if(x.debtId||x.goalId||x.metaPend||"],
+  ["08-motor-bank.js","if(x.reciboId||x.debtId||x.goalId||x.metaPend||","if(x.reciboId||x.goalId||x.metaPend||"],
+  ["08-motor-bank.js","if(x.reciboId||x.debtId||x.goalId||x.metaPend||","if(x.reciboId||x.debtId||x.metaPend||"],
+  ["08-motor-bank.js","if(x.reciboId||x.debtId||x.goalId||x.metaPend||","if(x.reciboId||x.debtId||x.goalId||"],
+  ["08-motor-bank.js","].concat(tras.length?[tras]:[]);","];"],
+  ["08-motor-bank.js","&&[e.merchant,e.obName].some(function(x){ return x!=null&&String(x).trim()&&traspasoDelTitular(titular,x); });","&&true;"],
+  ["08-motor-bank.js","k.indexOf(\"traspasoNo|\")===0; }","false; }"],
+  ["13-hogar.js","if(parseDate(e.date)>=monthStart&&expenseCountsCash(e,state)&&traspasoPropioDerivado(e,state)) gastadoHogar-=Number(e.amount)||0;",""],
+  ["13-hogar.js","gastadoHogar=Math.max(0,gastadoHogar);",""],
+  ["13-hogar.js","if(traspasoPropioDerivado(e,state)) return;","" ],
+  ["04-tab-gastos.js","Math.round(neto*100)<0","Math.round(neto*100)<=0"],
   ["04-tab-gastos.js","function gxCifraOk(x){ return typeof x===\"number\"&&isFinite(x)&&Math.abs(x)<=GX_TOPE_CIFRA; }","function gxCifraOk(x){ return typeof x===\"number\"&&isFinite(x); }"],
 ];
 for(const [file,de,a] of MUTANTES){

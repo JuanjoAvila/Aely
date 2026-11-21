@@ -1691,13 +1691,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
     const fmt=function(x){ x=Math.abs(x); return x<1?eur(x):eur0(x); };
     /* UN NETO A FAVOR NO ES UN GASTO (caso real del 21/11/2026: «1.448 €» arriba eran dinero que había
        entrado). La cifra sigue en valor absoluto para sus dígitos, pero lleva «+» y lo dice. */
-    const conFavor=function(o,neto){
-      if(gxCifraOk(neto)&&Math.round(neto*100)<0){
-        o.favor=true;
-        if(!o.tail&&!o.hasta){ o.tail=t("gv5_favor"); o.tone="mint"; }
-      }
-      return o;
-    };
+    const conFavor=function(o,neto){ return gxConFavor(o,neto,t("gv5_favor")); };
     const mesDe=function(ym){ return monthLong(+ym.slice(5,7)-1); };
     // En modo balance la cifra se enseña sin signo, como `shown` de `monthBudgetStats`.
     const shownOf=function(v){ return mode==="net"?Math.abs(v):v; };
@@ -2671,6 +2665,13 @@ const GX_ANCHO=[.665,.452,.607,.557,.617,.578,.611,.520,.604,.613];
    (con más movimientos llegó a ver cifras enormes en negativo y dejó la app, 21/11/2026). */
 const GX_TOPE_CIFRA=1e7;
 function gxCifraOk(x){ return typeof x==="number"&&isFinite(x)&&Math.abs(x)<=GX_TOPE_CIFRA; }
+function gxConFavor(o,neto,texto){
+  if(gxCifraOk(neto)&&Math.round(neto*100)<0){
+    o.favor=true;
+    if(!o.tail&&!o.hasta){ o.tail=texto; o.tone="mint"; }
+  }
+  return o;
+}
 function gxEur(x){ return gxCifraOk(x)?eur(x):"—"; }
 function GxCifra({n, favor}){
   const ok=gxCifraOk(n);

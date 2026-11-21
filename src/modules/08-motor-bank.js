@@ -824,7 +824,8 @@ function reciboNoPon(s,claves,vetar,ahora){
    los últimos en caer: son pocos, los confirmó él uno a uno y perderlos deja a una persona «pendiente»
    sin que nada lo diga, mientras que un veto viejo de un cargo de hace meses ya no se vuelve a ver
    (revisión de la 231). */
-function reciboNoEsAlias(k){ return String(k).indexOf("debenAlias|")===0; }
+/* Tampoco caduca el veto «no es un traspaso mío» (`traspasoNo|…`): si cayera, la pareja reaparecería sola. */
+function reciboNoEsAlias(k){ k=String(k); return k.indexOf("debenAlias|")===0||k.indexOf("traspasoNo|")===0; }
 function reciboNoTope(no,at){
   var claves=Object.keys(at);
   if(claves.length>RECIBO_NO_MAX) claves.sort(function(a,b){ return (reciboNoEsAlias(b)-reciboNoEsAlias(a))||(at[b]-at[a]); }).slice(RECIBO_NO_MAX).forEach(function(k){ delete at[k]; });
@@ -5374,7 +5375,7 @@ function traspasoEntradaApta(s,e,titular){
   const banco=expenseBankOf(e), importe=Math.abs(Number(e.amount));
   return !(s.flows||[]).some(function(f){ return f&&f.kind==="income"&&flowBancoEntra(f)===banco&&recAmtClose(Number(f.amount),importe); });
 }
-function traspasoSalidaApta(s,o,destino){
+function traspasoSalidaApta(s,o,destino,e,titular){
   if(isAtmWithdrawal(o.merchant)||isAtmWithdrawal(o.obName)||o.withdrawalConfirmedAt) return false;
   if(o.category==="traspaso") return true;
   if(o.category!=="otros"||o.catAckAt!=null) return false;
@@ -5383,6 +5384,9 @@ function traspasoSalidaApta(s,o,destino){
   if(aNombreDelTitular(s,o)) return true;
   const benef=recNorm(o.obName!=null&&String(o.obName).trim()?o.obName:o.merchant), sinPre=benef.replace(TRASPASO_A_RE,""), banco=recNorm(entOf(destino).label);
   if(TRASPASO_SOLO_RE.test(benef)) return traspasoTextoNeutro("",o.concept)&&traspasoTextoNeutro("",o.note);
+  /* TR nombra «Movimiento» a sus salidas: sin beneficiario solo vale si la llegada del otro banco lleva el
+     nombre ENTERO del titular (una llegada también anónima, o de un tercero, no basta). */
+  if(benef==="movimiento") return !!(e&&titular)&&traspasoTextoNeutro("",o.concept)&&traspasoTextoNeutro("",o.note)&&[e.merchant,e.obName].some(function(x){ return x!=null&&String(x).trim()&&traspasoDelTitular(titular,x); });
   return sinPre!==benef&&banco.length>=4&&(sinPre===banco||sinPre.indexOf(banco+" ")===0);
 }
 function traspasosPropiosCalc(s){
@@ -5413,7 +5417,7 @@ function traspasosPropiosCalc(s){
       if(salen.length!==1) return;
       const o=salen[0], entran=cerca(g.ent,o);
       if(entran.length!==1||entran[0]!==e||!firme(e)||!firme(o)) return;
-      if(!traspasoEntradaApta(s,e,titular)||!traspasoSalidaApta(s,o,expenseBankOf(e))) return;
+      if(!traspasoEntradaApta(s,e,titular)||!traspasoSalidaApta(s,o,expenseBankOf(e),e,titular)) return;
       out.set(String(e.id),ownTransferCents(e)); out.set(String(o.id),ownTransferCents(o));
     });
   });

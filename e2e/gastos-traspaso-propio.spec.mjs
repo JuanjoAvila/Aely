@@ -66,3 +66,18 @@ test("★ el destino de un traspaso ofrece también las cuentas que no son de re
   await expect(hoja.locator('[data-rp4-destino="trade_republic"]')).toHaveCount(1);
   await expect(hoja.locator('[data-rp4-banco="trade_republic"]')).toHaveCount(0);
 });
+
+test("★ «No es un traspaso» en la ficha devuelve la llegada a ingreso y no borra nada", async ({ page }) => {
+  await abreGastos(page, { expenses: [NOMINA, SALE, ENTRA, CAFE] });
+  await expect.poll(async () => limpio(await gastosCifra(page).textContent())).toBe("+909,10 €");
+  // Las dos patas van plegadas en «Traspasos · no cuentan»: se abre el bloque y se toca la llegada.
+  await page.locator('.gx-gris[data-gris="traspaso"] .gx-gris-h').first().click();
+  await page.locator('.gx-gris[data-gris="traspaso"] .gx-gris-it[data-gris-id="entra"]').click();
+  const hoja = page.locator(".v4-exp-sheet");
+  await expect(hoja.getByTestId("exp-traspaso-derivado")).toBeVisible();
+  await hoja.getByTestId("exp-traspaso-no").click();
+  await expect.poll(async () => limpio(await gastosCifra(page).textContent())).toBe("+1.782,55 €");
+  const guardado = await page.evaluate(() => loadState());
+  expect(guardado.expenses.length).toBe(4);
+  await expect.poll(() => page.evaluate(() => (loadState().reciboNo || []).some((k) => k.indexOf("traspasoNo|") === 0))).toBe(true);
+});
