@@ -63,7 +63,7 @@ for (const nomina of [false, true]) {
     // Gastos: su preferencia en grande (el balance) y el mismo margen que Inicio y el widget.
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await expect(gastosRoot(page)).toBeVisible();
-    await expect(gastosCifra(page)).toHaveText(nomina ? "1.896,53 €" : "1.436,47 €");
+    await expect(gastosCifra(page)).toHaveText(nomina ? "+1.896,53 €" : "1.436,47 €");
     await expect(gastosEstado(page)).toHaveText("balance de octubre · 64 € por debajo");
     await expect(gastosEstado(page).locator(".gx-tail")).toHaveClass(/gx-tone-mint/);
     // Segunda vía: el margen que dice Gastos es el del widget redondeado a euros.
