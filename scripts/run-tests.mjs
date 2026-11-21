@@ -110,6 +110,7 @@ const steps = [
   ["plazos-deuda", ["node", "tests/plazos-deuda.test.mjs"]],
   ["deuda-ultima-cuota", ["node", "tests/deuda-ultima-cuota.test.mjs"]],
   ["amortizar-centimos", ["node", "tests/amortizar-centimos.test.mjs"]],
+  ["red-viva", ["node", "tests/red-viva.test.mjs"]],
   ["deudas-fin-centimos", ["node", "tests/deudas-fin-centimos.test.mjs"]],
   ["din05-dia-31", ["node", "tests/din05-dia-31.test.mjs"]],
   ["backfill-lotes", ["node", "tests/backfill-lotes.test.mjs"]],

@@ -453,7 +453,7 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
 function HelpHost(){
   const [open,setOpen]=React.useState(false);
   const [ctx,setCtx]=React.useState({simple:false,hiddenTabs:[],hasCash:true,snap:{},helpAiOk:false,helpAiAsked:false,onConsent:null});
-  const [online,setOnline]=React.useState(typeof navigator!=="undefined"?navigator.onLine:true);
+  const [online,setOnline]=React.useState(true);
   const triggerRef=React.useRef(null);
   React.useEffect(function(){
     const onOpen=function(e){
@@ -470,10 +470,11 @@ function HelpHost(){
       });
       setOpen(true);
     };
-    const onNet=function(){ setOnline(!!navigator.onLine); };
+    const onNet=function(){ if(navigator.onLine!==false) setOnline(true); else redViva().then(function(ok){ setOnline(!!ok); }); };
     window.addEventListener("mc-open-help", onOpen);
     window.addEventListener("online", onNet);
     window.addEventListener("offline", onNet);
+    try{ if(navigator.onLine===false) onNet(); }catch(e){}
     return function(){
       window.removeEventListener("mc-open-help", onOpen);
       window.removeEventListener("online", onNet);

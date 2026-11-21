@@ -1051,7 +1051,7 @@ function App(){
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
-    completed.catch(function(e){ if(!read.replacement&&navigator.onLine!==false&&sessionRef.current===readSession) showToast(errTxt(e,"err_cloud_pull")); })   // si estás sin conexión, ni avisamos (es normal)
+    completed.catch(function(e){ if(!read.replacement&&sessionRef.current===readSession) mcSiRedViva(function(){ if(sessionRef.current===readSession) showToast(errTxt(e,"err_cloud_pull")); }); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
       .then(mcBootReady, mcBootReady);
@@ -1289,7 +1289,8 @@ function App(){
         if(opts.manual) avisaSync(opts, "⚠ "+t("bank_sync_sin_nube"));
         return;
       }
-      if(opts.manual || (!opts.auto && navigator.onLine!==false)) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
+      if(opts.manual) avisaSync(opts, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
+      else if(!opts.auto) mcSiRedViva(function(){ avisaSync(null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail")); });
     }).finally(function(){
       bankSyncing.current=false;
       /* AVISA DE QUE LA LISTA DE BANCOS HA CAMBIADO (2026-09-12, reportado por el desde la app:
@@ -2052,7 +2053,7 @@ function App(){
 
   // Estado de conexión: la app es offline-first (todo en localStorage); esto solo informa y, al
   // reconectar, sube los cambios hechos sin red. Sin conexión NO se rompe ni se pierde nada.
-  const [online,setOnline]=useState(typeof navigator==="undefined" || navigator.onLine!==false);
+  const [online,setOnline]=useState(true);   // el aviso de «sin conexión» solo sale si una prueba REAL de red falla (redViva)
   const wasOnline=useRef(online);
   // Actualizaciones (SW web + OTA + APK): TODO el estado vive en useUpdates (10-app-components).
   // Antes eran tres efectos sueltos aquí — el «spaghetti» del feedback 2026-07-18.
@@ -2173,9 +2174,24 @@ function App(){
       });
   };
   useEffect(function(){
-    const on=function(){ setOnline(true); }; const off=function(){ setOnline(false); };
+    // navigator.onLine / el evento offline MIENTEN con VPN (Tailscale) en la WebView de Android:
+    // solo cuentan como «posible corte»; el aviso sale si redViva() falla y se reintenta espaciado.
+    let vivo=true, tok=0, timer=null, intento=0;
+    const para=function(){ if(timer){ clearTimeout(timer); timer=null; } };
+    const comprueba=function(){
+      para(); const mio=++tok;
+      redViva().then(function(ok){
+        if(!vivo||mio!==tok) return;
+        setOnline(!!ok);
+        if(ok){ intento=0; return; }
+        timer=setTimeout(comprueba,Math.min(30000,4000*Math.pow(2,intento++)));
+      });
+    };
+    const on=function(){ tok++; para(); intento=0; setOnline(true); };
+    const off=function(){ intento=0; comprueba(); };
     window.addEventListener("online",on); window.addEventListener("offline",off);
-    return function(){ window.removeEventListener("online",on); window.removeEventListener("offline",off); };
+    try{ if(navigator.onLine===false) comprueba(); }catch(e){}
+    return function(){ vivo=false; para(); window.removeEventListener("online",on); window.removeEventListener("offline",off); };
   },[]);
   useEffect(function(){
     if(online && !wasOnline.current && uid){ retryObAbsorbedCloud().then(function(){

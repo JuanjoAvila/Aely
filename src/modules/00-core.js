@@ -164,7 +164,7 @@ function errTxt(e,generica){
     :/contraseña incorrecta|wrong password/i.test(m)?"err_pass"
     :/already (been )?registered/i.test(m)?"err_registered"
     :/email not confirmed/i.test(m)?"err_unconfirmed"
-    :/failed to fetch|network|load failed/i.test(m)||(typeof navigator!=="undefined"&&navigator.onLine===false)?"err_offline"
+    :/failed to fetch|network|load failed/i.test(m)||mcSinRed()?"err_offline"
     :generica||"err_generic";
   return "✕ "+t(k);
 }
@@ -3255,9 +3255,54 @@ function lapidasAlRenombrar(s,orig,upd){
    `cola` = {pend:[{orig,upd}], fin:Promise}. */
 // Fallo de transporte (sin conexión, fetch caído, sesión que no se pudo leer), no respuesta
 // del servidor. El cliente de Supabase devuelve el fetch caído como `{message:"TypeError: …"}`.
+/* RED VIVA. `navigator.onLine` y el evento `offline` mienten con VPN (Tailscale) en la WebView de
+   Android: dan false con red buena. Solo son una SOSPECHA; la prueba es una petición ligera
+   (timeout ~4 s, sin caché, cualquier respuesta HTTP vale): al propio origen (HEAD no pasa por el
+   service worker; no en la APK, donde el origen es local) y al backend de Supabase ya configurado.
+   Solo se llama cuando el navegador dice «offline»: con la red buena no hay sondeos. */
+let _redVivaAt=0, _redVivaPend=null;
+function redViva(o){
+  o=o||{};
+  const f=o.fetch||(typeof fetch==="function"?fetch:null);
+  if(!f) return Promise.resolve(false);
+  if(_redVivaPend&&!o.fetch) return _redVivaPend;
+  const ms=o.timeoutMs||4000, urls=[], q="?_="+Date.now();
+  try{
+    const nat=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+    if(!nat&&typeof location!=="undefined"&&/^https?:$/.test(location.protocol)) urls.push("./manifest.json"+q);
+  }catch(e){}
+  if(CONFIG.SUPABASE_URL) urls.push(CONFIG.SUPABASE_URL+"/auth/v1/health"+q);
+  const una=function(u){ return new Promise(function(res){
+    let fin=false; const ac=typeof AbortController==="function"?new AbortController():null;
+    const acaba=function(v){ if(fin)return; fin=true; clearTimeout(tm); res(v); };
+    const tm=setTimeout(function(){ try{ ac&&ac.abort(); }catch(e){} acaba(false); },ms);
+    try{ Promise.resolve(f(u,{method:"HEAD",mode:o.fetch?undefined:"no-cors",cache:"no-store",signal:ac?ac.signal:undefined})).then(function(){ acaba(true); },function(){ acaba(false); }); }catch(e){ acaba(false); }
+  }); };
+  const p=new Promise(function(res){
+    let n=urls.length, ya=false;
+    if(!n) return res(false);
+    urls.forEach(function(u){ una(u).then(function(ok){
+      if(ya) return;
+      if(ok){ ya=true; _redVivaAt=Date.now(); res(true); }
+      else if(--n===0){ ya=true; res(false); }
+    }); });
+  }).then(function(v){ if(_redVivaPend===p) _redVivaPend=null; return v; });
+  if(!o.fetch) _redVivaPend=p;
+  return p;
+}
+// Síncrono: el navegador dice offline Y no hay prueba reciente (60 s) de red viva.
+function mcSinRed(){
+  try{ return typeof navigator!=="undefined"&&navigator.onLine===false&&(Date.now()-_redVivaAt)>60000; }catch(e){ return false; }
+}
+// Ejecuta fn si hay red (flag bueno o prueba real OK); evita callar un error real por un flag falso.
+function mcSiRedViva(fn){
+  let off=false; try{ off=navigator.onLine===false; }catch(e){}
+  if(!off) return fn();
+  return redViva().then(function(ok){ if(ok) fn(); });
+}
 const RENAME_BACKOFF_MS=[2000,8000,30000];
 function renameFalloDeRed(err){
-  if(typeof navigator!=="undefined"&&navigator.onLine===false)return true;
+  if(mcSinRed())return true;
   if(!err)return false;
   if(err instanceof TypeError)return true;
   return /failed to fetch|networkerror|network request failed|load failed|internet ?disconnected|err_internet|session unavailable|cloud unavailable/i.test(String(err.message||err));
