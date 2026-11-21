@@ -13814,7 +13814,7 @@ function settingsDeps(settings, keys){
    `trRecompensas` (4.26.237): el libro de avisos de TR decide qué Round up sigue pendiente y suma
    al patrimonio de hoy (`rewardsPending`); sin declararlo, elegir destino dejaba la gráfica vieja. */
 const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trRecompensas","trasAbonoDesde"];
-const BUDGET_STATE=["_historyOwner","accounts","budget","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
+const BUDGET_STATE=["_historyOwner","accounts","bankTx","budget","cuotaAlias","cuotaNo","debts","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
   return keys.map(function(k){ return s[k]; });
@@ -32886,7 +32886,7 @@ function RptMetaNivel({g,gv}){
   return React.createElement("div",{className:"rpt-lvl"},React.createElement("i",{style:{height:pct+"%"}}),React.createElement("span",null,Math.round(pct)+"%"));
 }
 function RptMetaFicha({g,state,h,onClose}){
-  const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoMensual(state,g), eta=goalEta(gv,ritmo), rem=goalRemaining(gv);
+  const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoMensual(state,g), eta=goalEta(gv,metaRitmoMensual(state,g)), rem=goalRemaining(gv);
   const cierra=useRef(null);
   const pie=[!g.done&&rem>0&&React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-aportar",onClick:function(){ onClose(); h.aportar(g); }},t("gl_contribute")),
     React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(g); }},t("fj_edit")),

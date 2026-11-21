@@ -9,7 +9,7 @@ import {createLogicSandbox} from '../../scripts/load-pure-logic.mjs';
 const own=createRequire(new URL('../../package.json',import.meta.url));
 const {transformSync}=own('esbuild');
 const root=new URL('../../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8').replace(/\r\n/g,'\n');
-const files=JSON.parse(read('src/build-order.json')).slice(0,9).map(f=>'src/modules/'+f);
+const files=JSON.parse(read('src/build-order.json')).slice(0,9).concat(['17-plan-reparto.js']).map(f=>'src/modules/'+f);
 const original=files.map(read).join('\n'),main=read('src/modules/11-app-main.js');
 const serverSource=read('supabase/functions/_shared/presupuesto.ts');
 const server=await import('data:text/javascript;base64,'+Buffer.from(transformSync(serverSource,{loader:'ts',format:'esm'}).code).toString('base64'));

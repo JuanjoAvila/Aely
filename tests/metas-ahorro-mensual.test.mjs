@@ -50,7 +50,7 @@ test("una regla a una meta ya cumplida no da ritmo",()=>{
 });
 // Las dos pantallas que enseñan la previsión piden el ritmo de CADA meta, no el total del bróker.
 test("Metas e Inicio llaman a goalEta con metaRitmoMensual",()=>{
-  for(const f of ["src/modules/09-tab-debts-goals.js","src/modules/03-tab-dash.js"]){
+  for(const f of ["src/modules/18-plan-deudas-metas.js","src/modules/03-tab-dash.js"]){
     const llamadas=read(f).match(/goalEta\([^;]*?\)/g)||[];
     assert.ok(llamadas.length>0,f);
     for(const x of llamadas) assert.match(x,/metaRitmoMensual\(state,/,f+": "+x);

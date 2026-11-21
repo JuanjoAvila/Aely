@@ -12,7 +12,7 @@ const sourceFile=p=>rematesBase?execFileSync("git",["show",prHead+":"+p],{cwd:ne
 let now=Date.parse("2026-11-04T12:00:00Z"), count=0;
 function context(original=false,extra={}){
   const disk=new Map(), storage={getItem:k=>disk.get(k)??null,setItem:(k,v)=>disk.set(k,String(v)),removeItem:k=>disk.delete(k)};
-  const source=order.map(f=>original?execFileSync("git",["show",base+":src/modules/"+f],{cwd:new URL(".",root),maxBuffer:8e6}).toString():sourceFile("src/modules/"+f)).join("\n");
+  const source=order.map(f=>original?(()=>{try{return execFileSync("git",["show",base+":src/modules/"+f],{cwd:new URL(".",root),maxBuffer:8e6,stdio:["ignore","pipe","ignore"]}).toString();}catch{return "";}})():sourceFile("src/modules/"+f)).join("\n");
   const c=createLogicSandbox({localStorage:storage,Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}},...extra});
   c.window.localStorage=storage; vm.createContext(c);const end=source.indexOf("\nclass ErrorBoundary");assert.ok(end>0);
   vm.runInContext(source.slice(0,end),c);return {c,disk,storage};
