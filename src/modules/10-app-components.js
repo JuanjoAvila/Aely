@@ -717,6 +717,30 @@ var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"
    desde Cartera ya no hay Ajustes debajo. `origen` es a dónde vuelve; `accion` llega cuando se
    vuelve de autorizar un banco. Lo que se hizo aquí dentro viaja en `onClose(accion)`, y solo
    entonces la pantalla de origen resalta la fila y avisa: un atrás sin cambios vuelve callado. */
+/* Subtítulo de una fila en Mis bancos: trozos unidos con «·» al FINAL del anterior (como
+   `mcTrozos` en Cartera), para que con letra Enorme a 360 ningún renglón empiece por «·». */
+function bkMtLine(parts){
+  const ps=(parts||[]).map(function(p){ return typeof p==="string"?{t:p}:p; }).filter(function(p){ return p&&p.t; });
+  if(!ps.length) return null;
+  if(ps.length===1&&!ps[0].cls&&!ps[0].nw) return React.createElement("span",null, ps[0].t);
+  return React.createElement("span",{className:"mc-trozos"},
+    ps.map(function(p,i){
+      const cls=p.cls||(String(p.t).length<=28?"mc-pt":null);
+      return React.createElement(React.Fragment,{key:i}, i>0?" ":null,
+        React.createElement("span",{className:[cls,p.nw?"nw":null].filter(Boolean).join(" ")||undefined}, p.t+(i<ps.length-1?" ·":"")));
+    }));
+}
+function lineaEstadoParts(st){
+  if(st.noAcct) return [{t:t("bp_st_noacct"),cls:"warn mc-pt"}];
+  if(st.pending) return [{t:t("bp_st_pending"),cls:"warn mc-pt"}];
+  if(st.dead){
+    const ps=[{t:t("mb_st_dead"),cls:"bad mc-pt"}];
+    if(st.at) ps.push({t:bkHace(st.at),nw:true});
+    return ps;
+  }
+  if(st.soon) return [{t:bkCaduca(st.dias),cls:"warn mc-pt"}];
+  return [{t:st.at?bkHace(st.at):t("bank_neversync"),nw:true,cls:"mc-pt"}];
+}
 function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fetchPrices, focusAspsp, origen, accion}){
   const sr=useRef(null), accionRef=useRef(accion||null);
   useEffect(function(){ if(accion) accionRef.current=accion; },[accion]);
@@ -973,7 +997,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
   const logoBox=function(a){
     const ent=entFromAspsp(a.name);
     if(a.logo) return React.createElement("img",{src:a.logo,alt:"",style:{width:36,height:36,borderRadius:9,objectFit:"contain",background:"#fff",flexShrink:0},onError:function(e){ e.target.style.display="none"; }});
-    return React.createElement(Mono,{ent:ent||"",size:36});
+    return React.createElement(Mono,{ent:ent||"",aspspName:ent?null:a.name,size:36});
   };
   /* EL ESTADO DE UN BANCO, en un sitio (D1, 19/11). Gana el resultado de la ÚLTIMA sync sobre el
      status de la tabla: si no, un Sabadell caído seguía «al día» porque bank_links aún decía
@@ -999,26 +1023,16 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
   };
   /* Anillo SOLO cuando hay que hacer algo (filtro de diseño 19/11): caducado, punteado en coral;
      caduca pronto, un arco `--tan` con lo que le queda de 90 días. Al día, el logo limpio. */
-  const hueco=function(ent,st,lado){
+  const hueco=function(ent,st,lado,aspspName){
     const kind=(st.dead||st.noAcct)?"bad":(st.soon?"warn":"");
     const r=(lado+12)/2-1.5, c=2*Math.PI*r;
     return React.createElement("div",{className:"bk-slot"+(kind?" "+kind:""),style:{width:lado+12,height:lado+12}},
       kind && React.createElement("svg",{width:lado+12,height:lado+12,"aria-hidden":"true"},
         React.createElement("circle",{className:"trk",cx:(lado+12)/2,cy:(lado+12)/2,r:r}),
         kind==="warn" && React.createElement("circle",{className:"val",cx:(lado+12)/2,cy:(lado+12)/2,r:r,strokeDasharray:(Math.max(0.06,(st.dias||0)/90)*c).toFixed(1)+" "+c.toFixed(1)})),
-      React.createElement(Mono,{ent:ent||"",size:lado}));
+      React.createElement(Mono,{ent:ent||"",aspspName:ent?null:aspspName,size:lado}));
   };
-  /* Un trozo más del subtítulo («· hace 2 días», «· 2 cuentas»). El espacio va FUERA del `nowrap`,
-     que es por donde puede saltar; con el «·» pegado por un espacio duro no había por dónde y con
-     Enorme a 360 se salía de la fila (filtro de diseño 19/11). El «·» viaja con su texto. */
-  const trozo=function(txt){ return React.createElement(React.Fragment,null," ",React.createElement("span",{className:"nw"},"· "+txt)); };
-  const lineaEstado=function(st){
-    if(st.noAcct) return React.createElement("span",{className:"warn"}, t("bp_st_noacct"));
-    if(st.pending) return React.createElement("span",{className:"warn"}, t("bp_st_pending"));
-    if(st.dead) return React.createElement(React.Fragment,null, React.createElement("span",{className:"bad"}, t("mb_st_dead")), st.at?trozo(bkHace(st.at)):null);
-    if(st.soon) return React.createElement("span",{className:"warn"}, bkCaduca(st.dias));
-    return React.createElement("span",{className:"nw"}, st.at?bkHace(st.at):t("bank_neversync"));
-  };
+  const lineaEstado=function(st){ return bkMtLine(lineaEstadoParts(st)); };
   const renovar=function(l,st){ return function(e){ if(e) e.stopPropagation(); setFicha(""); connect(l.aspsp_name, l.aspsp_country||"ES"); }; };
   const masNuevo=(links||[]).reduce(function(m,l){ const at=estado(l).at, x=at?new Date(at).getTime():0; return x>m?x:m; },0);
   const obEnts={}; (links||[]).forEach(function(l){ const e=entFromAspsp(l.aspsp_name); if(e) obEnts[e]=1; });
@@ -1113,8 +1127,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
             React.createElement("h2",null, entOf(fbk).label),
             chip && React.createElement("span",{className:"bk-chip"+chip[0]}, t(chip[1]))),
           React.createElement("button",{type:"button",className:"bk-x","aria-label":t("au_close"),onClick:fs.close},"✕")),
-        fbk==="trade_republic" && React.createElement(TRSync,{state:state,set:set,totals:totals}),
-        fbk==="myinvestor" && React.createElement(MyInvestorSync,{state:state,set:set,onConn:function(v){ setMiSt(v?"ok":"off"); }}),
+        fbk==="trade_republic" && React.createElement(TRSync,{state:state,set:set,totals:totals,ficha:true}),
+        fbk==="myinvestor" && React.createElement(MyInvestorSync,{state:state,set:set,ficha:true,onConn:function(v){ setMiSt(v?"ok":"off"); }}),
         fbk==="revolut" && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices})
       )), document.body);
   })();
@@ -1125,7 +1139,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
       React.createElement("div",Object.assign({className:"v4-sheet bk-ficha",role:"dialog","aria-modal":"true","aria-label":bankLabel(fl.aspsp_name),"data-bk-ficha":fl.aspsp_name,ref:fs.sheetRef,onClick:function(e){ e.stopPropagation(); }},fs.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"bk-fh"},
-          React.createElement(Mono,{ent:ent||"",size:48}),
+          React.createElement(Mono,{ent:ent||"",aspspName:ent?null:fl.aspsp_name,size:48}),
           React.createElement("div",{className:"bk-fh-t"},
             React.createElement("h2",null, bankLabel(fl.aspsp_name)),
             React.createElement("span",{className:"bk-chip"+(roto?" bad":(st.soon||st.pending?" warn":""))},
@@ -1136,7 +1150,11 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
           React.createElement("div",{className:"bk-life-l"}, st.dias<0?bkCaducado(-st.dias):bkCaduca(st.dias))),
         st.noAcct && React.createElement("div",{className:"hint bk-noacct"}, t("bp_noacct_help")),
         roto && React.createElement("button",{type:"button",className:"btn btn-primary btn-block","data-act":"bk-renovar",onClick:renovar(fl,st)}, st.noAcct?t("bp_retry_link"):t("mb_renew_long")),
-        React.createElement("div",{className:"bk-last num"}, (sal!=null?tf("mb_last",{x:eur(sal)})+(st.at?" · ":""):"")+(st.at?bkHace(st.at):(sal==null?t("bank_neversync"):""))),
+        React.createElement("div",{className:"bk-last num"},
+          sal!=null&&st.at?bkMtLine([tf("mb_last",{x:eur(sal)}),{t:bkHace(st.at),nw:true}]):
+          sal!=null?tf("mb_last",{x:eur(sal)}):
+          st.at?bkHace(st.at):
+          sal==null?t("bank_neversync"):""),
         ent==="revolut" && React.createElement("button",{type:"button",className:"bk-opt",onClick:function(){ setFicha("br:revolut"); }}, t("mb_rev_csv"), React.createElement("span",{className:"sr-chev"},"›")),
         React.createElement("button",{type:"button",className:"bk-del","data-act":"bk-quitar",disabled:!!busy,onClick:function(){ const n=fl.aspsp_name; fs.close(); remove(n); }},
           TRASH_ICO(), tf("mb_quitar",{bank:bankLabel(fl.aspsp_name)}))
@@ -1168,12 +1186,16 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
         return React.createElement("div",{key:l.aspsp_name,"data-aspsp":l.aspsp_name,ref:isFocus?focusRef:null,
           className:"bk-row"+(isFocus?" bk-focus":"")+((st.dead||st.noAcct)?" bad":""),role:"button",tabIndex:0,onClick:abre,
           onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); abre(); } }},
-          hueco(ent,st,44),
+          hueco(ent,st,44,l.aspsp_name),
           React.createElement("div",{className:"bk-tx"},
             React.createElement("div",{className:"bk-top"},
               React.createElement("span",{className:"bk-nm"}, bankLabel(l.aspsp_name)),
               React.createElement("span",{className:"bk-am num"+((st.dead||st.noAcct)?" fade":"")}, sal!=null?eur(sal):"—")),
-            React.createElement("div",{className:"bk-mt"}, lineaEstado(st), nA>1?trozo(tf("bp_naccts",{n:nA})):null),
+            React.createElement("div",{className:"bk-mt"}, (function(){
+              const ps=lineaEstadoParts(st);
+              if(nA>1) ps.push({t:tf("bp_naccts",{n:nA}),nw:true});
+              return bkMtLine(ps);
+            })()),
             (st.dead||st.noAcct) && React.createElement("div",{className:"bk-act"},
               React.createElement("button",{type:"button",className:"bk-renew","data-act":"bk-renovar",disabled:!!busy,onClick:renovar(l,st)}, busy===l.aspsp_name?"…":(st.noAcct?t("bp_retry_link"):t("mb_renew"))))));
       })),
@@ -1190,10 +1212,14 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
         const at=k==="trade_republic"?state.lastTrSync:(k==="myinvestor"?state.lastMiSync:null);
         const abre=function(){ setFicha("br:"+k); };
         const nPos=its.length===1?t("v4_inv_position"):tf("iv_positions",{n:its.length});
-        const linea=k==="revolut" ? t("mb_rev_csv")
-          : s==="dead" ? React.createElement("span",{className:"bad"}, t("mb_st_ses"))
-          : s==="off" ? React.createElement("span",{className:"warn"}, t("mb_st_off"))
-          : s==="ok" ? (at?React.createElement("span",{className:"nw"}, bkHace(at)):null) : null;
+        const mtParts=(function(){
+          if(k==="revolut") return [t("mb_rev_csv")];
+          if(s==="dead") return [{t:t("mb_st_ses"),cls:"bad mc-pt"}];
+          if(s==="off") return [{t:t("mb_st_off"),cls:"warn mc-pt"}];
+          if(s==="ok"&&at) return [{t:bkHace(at),nw:true,cls:"mc-pt"}];
+          return [];
+        })();
+        if(its.length>0) mtParts.push({t:nPos,nw:true});
         return React.createElement("div",{key:k,"data-broker":k,
           className:"bk-row"+(s==="dead"?" bad":""),role:"button",tabIndex:0,onClick:abre,
           onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); abre(); } }},
@@ -1202,8 +1228,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
             React.createElement("div",{className:"bk-top"},
               React.createElement("span",{className:"bk-nm"}, entOf(k).label),
               React.createElement("span",{className:"bk-am num"+(s==="ok"||k==="revolut"?"":" fade")}, val!=null?eur(val):"—")),
-            React.createElement("div",{className:"bk-mt"}, linea,
-              its.length>0?(linea?trozo(nPos):React.createElement("span",{className:"nw"},nPos)):null),
+            React.createElement("div",{className:"bk-mt"}, bkMtLine(mtParts)),
             (s==="dead"||s==="off") && React.createElement("div",{className:"bk-act"},
               React.createElement("button",{type:"button",className:"bk-renew","data-act":"bk-br-conectar",onClick:function(e){ e.stopPropagation(); abre(); }}, t(s==="dead"?"mb_renew":"mb_connect")))));
       })),

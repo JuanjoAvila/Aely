@@ -96,7 +96,7 @@ function miDeviceLogin(http, loginBody, devId, captchaToken){
     return { ok:false, status:st, error:(j.status&&j.status.message)||d.message||("login HTTP "+st) };
   });
 }
-function MyInvestorSync({state, set, onConn}){
+function MyInvestorSync({state, set, onConn, ficha}){
   const [step,setStep]=useState("idle");     // idle | otp | connected | preview
   /* El DNI/NIE ya no se recuerda (SEG-19, 19/11/2026): en localStorage queda en claro y al alcance
      de cualquier script de la página. Reconectar tras una caducidad pide escribirlo otra vez; la
@@ -307,9 +307,12 @@ function MyInvestorSync({state, set, onConn}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||code.trim().length<4,onClick:doOtp}, busy?t("mi_verifying"):t("mi_verify"))
         ),
         step==="connected" && React.createElement(React.Fragment,null,
-          React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("mi_connected")),
+          !ficha && React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("mi_connected")),
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:doSync}, busy?t("mi_syncing"):t("mi_sync")),
-          React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("mi_disconnect"))
+          ficha
+            ? React.createElement("button",{type:"button",className:"bk-del","data-act":"bk-br-quitar",disabled:busy,onClick:disconnect},
+                TRASH_ICO(), tf("mb_quitar",{bank:entOf("myinvestor").label}))
+            : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("mi_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:6}}, tf("mi_preview",{n:positions.length})),
@@ -336,7 +339,7 @@ function MyInvestorSync({state, set, onConn}){
       );
   // Vive dentro de la ficha de MyInvestor (D1): el logo, el nombre y el estado los pone la ficha.
   return React.createElement("div",{className:"bk-flow","data-broker-flow":"myinvestor"},
-    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("mi_hint")),
+    !(ficha&&step==="connected") && React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("mi_hint")),
     body
   );
 }
@@ -435,7 +438,7 @@ function trNotifyApproved(){
   const nat=natPlugin();
   if(nat&&nat.showNotification){ try{ Promise.resolve(nat.showNotification({title:"Aely", body:t("tr_notif_ok"), tag:"tr-approved"})).catch(function(){}); }catch(e){} }
 }
-function TRSync({state, set, totals}){
+function TRSync({state, set, totals, ficha}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
   const [phone,setPhone]=useState(trPhoneSaved());
@@ -649,9 +652,12 @@ function TRSync({state, set, totals}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||code.trim().length<4,onClick:function(){ doVerify(); }}, busy?t("tr_verifying"):t("tr_verify"))
         ),
         connected && step!=="preview" && React.createElement(React.Fragment,null,
-          React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("tr_connected")),
+          !ficha && React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("tr_connected")),
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:function(){ doSync({ack:true}); }}, busy?t("tr_syncing"):t("tr_sync")),
-          React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("tr_disconnect"))
+          ficha
+            ? React.createElement("button",{type:"button",className:"bk-del","data-act":"bk-br-quitar",disabled:busy,onClick:disconnect},
+                TRASH_ICO(), tf("mb_quitar",{bank:entOf("trade_republic").label}))
+            : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("tr_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:6}}, tf("tr_preview",{n:positions.length})),
@@ -683,7 +689,7 @@ function TRSync({state, set, totals}){
       );
   // Vive dentro de la ficha de Trade Republic (D1): cabecera y estado son de la ficha.
   return React.createElement("div",{className:"bk-flow","data-broker-flow":"trade_republic"},
-    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("tr_hint")),
+    !(ficha&&connected&&step!=="preview") && React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("tr_hint")),
     body
   );
 }

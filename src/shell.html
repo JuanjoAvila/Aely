@@ -2702,8 +2702,9 @@
   .bk-am{font-size:16px;font-weight:700;white-space:nowrap;margin-left:auto;}
   .bk-am.fade{color:var(--muted-2);font-weight:600;}
   .bk-mt{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:3px;}
-  /* Cada trozo de la línea («· hace 2 días», «· 2 cuentas») salta entero: nada de «hace» / «2 días». */
-  .bk-mt .nw{white-space:nowrap;}
+  /* Trozos unidos con «·» al final del anterior (`bkMtLine`, como `mcTrozos`): el salto va entre
+     trozos, nunca con «·» al inicio del renglón (Enorme a 360, D2). */
+  .bk-mt .nw,.bk-mt .mc-pt{white-space:nowrap;}
   /* Y el estado tampoco se parte: con Enorme a 360 salía «Permiso / caducado» (filtro 19/11). */
   .bk-mt .bad{color:var(--coral);font-weight:800;white-space:nowrap;} .bk-mt .warn{color:var(--tan);font-weight:700;white-space:nowrap;}
   .bk-act{margin-top:8px;}

@@ -110,7 +110,7 @@ test("con letra Enorme a 360, ningún trozo del subtítulo se parte («Permiso /
   const push = await abre(page, { settings: { autoPrices: false, theme: "green", textSize: "huge", brokersOn: ["trade_republic"] } });
   await expect(page.locator("html")).toHaveClass(/hugetext/);
   await expect(push.locator(".bk-row")).toHaveCount(4);
-  const partidos = await push.locator(".bk-mt > span").evaluateAll((els) =>
+  const partidos = await push.locator(".bk-mt .mc-pt, .bk-mt .bad, .bk-mt .warn, .bk-mt .nw").evaluateAll((els) =>
     els.filter((e) => e.getClientRects().length > 1).map((e) => e.textContent));
   expect(partidos).toEqual([]);
   // Y lo que no cabe salta entero al renglón siguiente sin salirse de la fila.
