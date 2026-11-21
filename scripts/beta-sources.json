@@ -2090,6 +2090,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -4089,6 +4101,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -5918,6 +5942,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -10588,6 +10624,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -16609,6 +16657,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -18280,6 +18348,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -20094,6 +20174,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -22823,6 +22915,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -27907,6 +28011,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "edge": [
@@ -30466,6 +30582,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -32513,6 +32641,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -39330,6 +39470,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -40861,6 +41013,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -42675,6 +42847,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -44575,6 +44759,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -46099,6 +46295,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "edge": [
@@ -48333,6 +48549,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "edge": [
@@ -52792,6 +53028,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "edge": [
@@ -56414,6 +56670,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -58877,6 +59145,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -63069,6 +63357,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "edge": [
@@ -67085,6 +67393,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -79196,6 +79516,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -84897,6 +85229,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -88612,6 +88956,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -91639,6 +91995,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -97957,6 +98325,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
       }
     ],
     "unidades": true
@@ -100807,6 +101195,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
       }
     ],
     "unidades": true
@@ -102681,6 +103089,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -104105,6 +104525,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "native": [
@@ -110154,6 +110586,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "edge": [
@@ -116197,6 +116641,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -118468,6 +118924,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -120383,6 +120851,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -122293,6 +122773,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -124199,6 +124691,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -125874,6 +126378,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BASE_GENERICA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -127857,6 +128381,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -129843,6 +130379,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSiRedViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "redViva"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -131764,6 +132320,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -133749,6 +134317,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -137515,6 +138095,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -139729,6 +140321,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -146759,6 +147363,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "edge": [
@@ -156092,6 +156708,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -158245,9 +158873,9 @@
         "includeTo": true
       },
       {
-        "file": "src/modules/09-tab-debts-goals.js",
-        "from": "        // Parte de un recibo compartido que se descuenta de esta deuda (Plan › Recibos v6, tanda 5).",
-        "to": "tf(\"pr6_pagas_mas\",{a:eur(d.monthly),b:eur(c.amt),from:c.from.join(\", \")})):null; })(),",
+        "file": "src/modules/18-plan-deudas-metas.js",
+        "from": "    desc&&desc.amt>0&&React.createElement(\"div\",{className:\"rpt-hs\",\"data-testid\":\"debt-descuento\"},tf(\"pr6_pagas_mas\",{",
+        "to": "from:desc.from.join(\", \")})),",
         "includeTo": true
       },
       {
@@ -169631,6 +170259,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -177676,6 +178316,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -186378,6 +187030,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -188979,6 +189643,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -191559,6 +192235,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -193929,6 +194617,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_DE_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -196496,6 +197196,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -198355,6 +199067,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -200771,6 +201495,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -204191,6 +204927,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -207265,6 +208013,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -212148,6 +212908,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -216175,6 +216947,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -217005,6 +217789,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -218065,6 +218861,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true
@@ -220102,6 +220910,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_redVivaPend"
       }
     ],
     "unidades": true

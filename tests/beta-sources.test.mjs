@@ -6951,7 +6951,7 @@ test("Catálogo249 histórico conserva las siete tandas sin veredicto, abre beta
 // Metas rediseñadas con su escalera, «Restar del presupuesto» apagado por defecto; nacida de la 248) y claude/offline-falso hasta a9a6e7fa5 (el
 // aviso de sin conexión ya no falla con VPN). Mezcladas con merge. Nota SIN tanda nueva (`tandas:[]`): las siete de la 249 y la propia
 // beta-249 siguen en el panel, en su versión y con sus pasos; el registro no cambia (sus huellas se mueven solas si leen lo que cambia).
-test("Catálogo250 abre la nota 4.26.250 sin tanda nueva, deja intactas las ocho vivas y el registro, y no toca la APK",()=>{
+test("Catálogo250 abre la nota 4.26.250 sin tanda nueva, deja intactas las ocho vivas, reancla plan-recibos-t5, crece el registro solo con el cierre de lectores del aviso de sin conexión y no toca la APK",()=>{
   const before=JSON.parse(sourceBeta249("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta249("scripts/beta-sources.json"));
   const source=f=>nl(read(f));
   assert.equal(before[0].v,"4.26.249");
@@ -6966,7 +6966,22 @@ test("Catálogo250 abre la nota 4.26.250 sin tanda nueva, deja intactas las ocho
     assert.equal(notes[0].items[lang].length,4,lang+": cuatro puntos familiares");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
-  assert.deepEqual(JSON.parse(source("scripts/beta-sources.json")),integrated,"el registro de la 249, sin tocar");
+  // Registro: sin descriptor nuevo. Cambian dos cosas: plan-recibos-t5 reancla su bloque «debt-descuento» de 09 (el rediseño de Deudas lo
+  // movió a la ficha y a la fila de 18-plan-deudas-metas.js) y 61 alcances crecen con el cierre de lectores del aviso de sin conexión
+  // (`mcSinRed`, `mcSiRedViva`, `redViva` y sus dos datos), que ahora leen `renameFalloDeRed` y el texto de error.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),nuevosRed=new Set(["mcSinRed","mcSiRedViva","redViva","_redVivaAt","_redVivaPend"]);
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"mismos descriptores, ninguno nuevo");
+  let crecen=0;
+  for(const [key,scope] of Object.entries(integrated)){
+    const ahora=scopes[key];
+    for(const k of Object.keys(scope))if(k!=="web")assert.deepEqual(ahora[k],scope[k],key+": "+k+" intacto");
+    const esperado=scope.web.map(u=>key==="plan-recibos-t5"&&u.file==="src/modules/09-tab-debts-goals.js"&&u.from&&u.from.includes("Parte de un recibo compartido")
+      ?{file:"src/modules/18-plan-deudas-metas.js",from:'    desc&&desc.amt>0&&React.createElement("div",{className:"rpt-hs","data-testid":"debt-descuento"},tf("pr6_pagas_mas",{',to:'from:desc.from.join(", ")})),',includeTo:true}:u);
+    assert.deepEqual(ahora.web.slice(0,esperado.length),esperado,key+": lo anterior, con su reancla");
+    const extra=ahora.web.slice(esperado.length);
+    if(extra.length){crecen++;for(const u of extra)assert.ok(nuevosRed.has(u.function||u.data),key+": crece solo con lo del aviso de sin conexión: "+(u.function||u.data));}
+  }
+  assert.equal(crecen,61,"crecen 61 alcances con el cierre de lectores");
   assert.equal(source("VERSION").trim(),"4.26.250");
   const apk=JSON.parse(source("public/apk.json"));
   assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
