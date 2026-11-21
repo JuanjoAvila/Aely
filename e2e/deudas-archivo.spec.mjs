@@ -16,20 +16,23 @@ async function openDebts(page){
   await page.locator(".v4-seg-btn").filter({hasText:/Deudas|Debts|Deutes/i}).click();
 }
 
+// El cierre de la deuda vive en su ficha (Plan A): tocar la fila y pulsar el botón principal.
+const abreCierre=async(fila)=>{ await fila.click(); await fila.page().locator('[data-act="ficha-cerrar-deuda"]').click(); };
+
 test("saldo proyectado cero pide confirmación; archivar conserva la cuota y permite volver a mostrar",async({page})=>{
   await seedLoggedInDashboard(page,{__seedOnce:true,debts:[debt],expenses:[expense]});
   await openDebts(page);
   const cards=page.locator("[data-debt-id]");
   await expect(cards).toHaveCount(1);
   await expect(cards.first()).toContainText("Saldo estimado: 0 €");
-  await cards.first().getByRole("button",{name:"Marcar liquidada"}).click();
+  await abreCierre(cards.first());
   await expect(page.getByRole("dialog")).toContainText("no crea pagos");
   await page.getByRole("dialog").getByRole("button",{name:"Cancelar"}).click();
   await expect(cards.first()).toContainText("Saldo estimado: 0 €");
-  await cards.first().getByRole("button",{name:"Marcar liquidada"}).click();
+  await abreCierre(cards.first());
   await page.getByRole("dialog").getByRole("button",{name:"Marcar liquidada"}).click();
   await expect(cards.first()).toContainText("Liquidada");
-  await cards.first().getByRole("button",{name:"Archivar deuda"}).click();
+  await abreCierre(cards.first());
   await expect(cards).toHaveCount(0);
   await expect(page.getByRole("button",{name:/Deudas archivadas \(1\)/})).toBeVisible();
   await page.getByRole("button",{name:/Deudas archivadas \(1\)/}).click();
@@ -61,8 +64,8 @@ test("la amortización total marca la deuda una vez y no crea un movimiento",asy
   await seedLoggedInDashboard(page,{debts:[live],expenses:[]});
   await openDebts(page);
   // «Amortizar ahora» vive en la ficha de la deuda (ronda 242).
-  await page.locator("[data-debt-id]").getByRole("button",{name:"Editar Préstamo ejemplo",exact:true}).click();
-  await page.getByRole("dialog",{name:"Editar deuda",exact:true}).getByRole("button",{name:/Amortizar/}).click();
+  await page.locator("[data-debt-id]").click();
+  await page.locator('[data-act="ficha-amortizar"]').click();
   const ask=page.getByRole("dialog").filter({has:page.locator(".ask-in")});
   await ask.locator(".ask-in").fill("80");
   await ask.getByRole("button",{name:/Amortizar/}).click();
@@ -79,7 +82,8 @@ test("la amortización total marca la deuda una vez y no crea un movimiento",asy
 test("una deuda con cuotas vinculadas no se puede borrar y conserva su nombre",async({page})=>{
   await seedLoggedInDashboard(page,{debts:[debt],expenses:[expense]});
   await openDebts(page);
-  await page.locator("[data-debt-id]").getByRole("button",{name:"Editar Préstamo ejemplo",exact:true}).click();
+  await page.locator("[data-debt-id]").click();
+  await page.locator('[data-act="ficha-editar"]').click();
   await page.getByRole("dialog",{name:"Editar deuda",exact:true}).getByRole("button",{name:"Eliminar esta deuda"}).click();
   await expect(page.locator("[data-debt-id]")).toHaveCount(1);
   await expect(page.locator("[data-debt-id]")).toContainText("Préstamo ejemplo");
@@ -101,7 +105,8 @@ for(const lang of [
   await openDebts(page);
   const card=page.locator("[data-debt-id]");
   await expect(card).toContainText(lang.estimated);
-  await card.getByRole("button",{name:lang.confirm}).click();
+  await abreCierre(card);
   await page.getByRole("dialog").getByRole("button",{name:lang.confirm}).click();
-  await expect(card.getByRole("button",{name:lang.archive})).toBeVisible();
+  await card.click();
+  await expect(page.locator('[data-act="ficha-cerrar-deuda"]')).toContainText(lang.archive);
 });

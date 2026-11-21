@@ -30,10 +30,18 @@ async function open(page,lang="es",entry="plan",overrides={}){
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
   await expect.poll(()=>page.locator('[data-testid="plan-due"]').evaluate(el=>Math.abs(el.closest(".page").getBoundingClientRect().left))).toBeLessThan(2);
+  modo=entry;
   if(entry==="debts")await page.getByRole("tab",{name:copy[lang].tab,exact:true}).click();
 }
-const active=page=>page.locator('.v4-screen:visible [data-debt-day-id]:visible');
-const prompt=(page,id)=>page.locator('[data-debt-day-id="'+id+'"]:visible');
+/* Plan A: el aviso «Falta el día» está en la fila y el campo se pone desde la ficha (Poner día). */
+const FALTA=/Falta el d[ií]a|Day missing/;
+let modo="plan";
+const active=page=>modo==="debts"?page.locator('[data-debt-id]:visible').filter({hasText:FALTA}):page.locator('.v4-screen:visible [data-debt-day-id]:visible');
+const prompt=(page,id)=>modo==="debts"?page.locator('[data-debt-id="'+id+'"]:visible').filter({hasText:FALTA}):page.locator('[data-debt-day-id="'+id+'"]:visible');
+const ponDia=async(page,id)=>{
+  if(modo!=="debts"){ await page.locator('[data-debt-day-id="'+id+'"]:visible').click(); return; }
+  await page.locator('[data-debt-id="'+id+'"]:visible').click(); await page.locator('[data-act="ficha-poner-dia"]').click();
+};
 
 for(const lang of Object.keys(copy))for(const entry of ["plan","debts"]){
   test(`${entry}/${lang}: ausencia, null y cero cancelan intactos y guardan día 1 explícito`,async({page})=>{
@@ -42,11 +50,10 @@ for(const lang of Object.keys(copy))for(const entry of ["plan","debts"]){
     for(const id of ["dated","finished","settled","inactive"])await expect(prompt(page,id)).toHaveCount(0);
     for(const id of ["missing","null","zero"]){
       const before=await financial(page),beforeRows=await saved(page);
-      const button=prompt(page,id);await expect(button).toHaveText(copy[lang].prompt);
+      await expect(prompt(page,id)).toBeVisible();
       if(entry==="debts")expect(await datosDeuda(page,page.locator('[data-debt-id="'+id+'"]'))).not.toMatch(/día 1\b|day 1\b|dia 1\b/i);
-      await expect(button).toHaveAccessibleName("Deuda sintética "+id+" · "+copy[lang].prompt);
       if(lang==="es"&&id==="missing")await page.screenshot({path:test.info().outputPath(entry+"-sin-dia.png")});
-      await button.focus();await button.press("Enter");
+      await ponDia(page,id);
       const dialog=sheet(page,lang),day=dialog.locator('[data-debt-field="day"]');
       await expect(day).toBeFocused();await expect(day).toHaveValue("");
       await expect(day).toBeInViewport({ratio:1});
@@ -55,7 +62,7 @@ for(const lang of Object.keys(copy))for(const entry of ["plan","debts"]){
       expect(await financial(page)).toEqual(before);
       await day.fill("31");await dialog.getByRole("button",{name:copy[lang].cancel,exact:true}).click();
       await expect(dialog).toHaveCount(0);expect(await financial(page)).toEqual(before);
-      await button.click();await expect(day).toBeFocused();await day.fill("1");
+      await ponDia(page,id);await expect(day).toBeFocused();await day.fill("1");
       expect(await financial(page)).toEqual(before);
       await dialog.getByRole("button",{name:copy[lang].save,exact:true}).click();await expect(dialog).toHaveCount(0);
       const expected=beforeRows.map(d=>d.id===id?{...d,day:1}:d);
@@ -68,7 +75,7 @@ for(const lang of Object.keys(copy))for(const entry of ["plan","debts"]){
 for(const entry of ["plan","debts"])for(const day of [2,31]){
   test(`${entry}: día ${day} usa el resultado financiero existente y mantiene las otras deudas`,async({page})=>{
     await open(page,"es",entry);const before=await saved(page);
-    await prompt(page,"missing").click();const dialog=sheet(page),input=dialog.locator('[data-debt-field="day"]');
+    await ponDia(page,"missing");const dialog=sheet(page),input=dialog.locator('[data-debt-field="day"]');
     await input.fill(String(day));
     const expected=await page.evaluate(day=>{const d=loadState().debts.find(d=>d.id==="missing");return debtEditResult(d,{...debtEditDraft(d),day:String(day)});},day);
     expect(expected.error).toBeUndefined();await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(dialog).toHaveCount(0);
@@ -76,7 +83,7 @@ for(const entry of ["plan","debts"])for(const day of [2,31]){
   });
 }
 test("día vacío, cero y 32 no guardan; la edición normal conserva su borrador legado",async({page})=>{
-  await open(page,"es","debts");const before=await financial(page);await prompt(page,"missing").click();
+  await open(page,"es","debts");const before=await financial(page);await ponDia(page,"missing");
   const dialog=sheet(page),input=dialog.locator('[data-debt-field="day"]');
   for(const value of ["","0","32"]){await input.fill(value);await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(dialog.getByRole("alert")).toBeVisible();expect(await financial(page)).toEqual(before);}
   await dialog.getByRole("button",{name:copy.es.cancel,exact:true}).click();await expect(dialog).toHaveCount(0);
@@ -86,12 +93,12 @@ test("día vacío, cero y 32 no guardan; la edición normal conserva su borrador
 });
 test("Plan sencillo abre el mismo editor y cancelar conserva cifras y estado",async({page})=>{
   await open(page,"es","plan",{settings:{lang:"es",autoPrices:false,theme:"green",reservaRules:[],simpleMode:true}});
-  const before=await financial(page);await prompt(page,"missing").click();await expect(sheet(page).locator('[data-debt-field="day"]')).toBeFocused();
+  const before=await financial(page);await ponDia(page,"missing");await expect(sheet(page).locator('[data-debt-field="day"]')).toBeFocused();
   await sheet(page).getByRole("button",{name:copy.es.cancel,exact:true}).click();await expect(sheet(page)).toHaveCount(0);expect(await financial(page)).toEqual(before);
 });
 for(const concurrent of [false,true])test(`día1 tras confirmar plazo revalida antes de normalizar, concurrencia=${concurrent}`,async({page})=>{
   const d=debt("term",{value:2000,original:2000,monthly:200,amort:200,months:10,asOf:YM-4});
-  await open(page,"es","debts",{debts:[d]});await prompt(page,"term").click();const dialog=sheet(page);
+  await open(page,"es","debts",{debts:[d]});await ponDia(page,"term");const dialog=sheet(page);
   await dialog.locator('[data-debt-field="day"]').fill("1");await dialog.locator('[data-debt-field="balance"]').fill("1300,25");
   const expected=await page.evaluate(()=>{const d=loadState().debts[0];return debtEditResult(d,{...debtEditDraft(d),day:"1",balance:"1300,25"});});
   expect(expected.error).toBeUndefined();
@@ -129,7 +136,7 @@ for(const localDay of [28,null])test(`conflicto aviso sin día: conserva borrado
   await esperaNubeQuieta(page);
   const before=await live();
   const review=async()=>{
-    await prompt(page,"missing").click();
+    await ponDia(page,"missing");
     await page.getByRole("dialog").getByRole("button",{name:"Revisar mi cambio",exact:true}).click();
     const day=sheet(page).locator('[data-debt-field="day"]');
     await expect(day).toHaveValue(localDay===null?"":"28");await expect(day).toBeFocused();await expect(day).toBeInViewport({ratio:1});

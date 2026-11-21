@@ -24,7 +24,8 @@ async function abreDeudas(page){
   await page.locator(".v4-seg-btn").filter({hasText:/Deudas/}).click();
 }
 async function abreFicha(page,id){
-  await page.locator(`[data-debt-id="${id}"]`).getByRole("button",{name:/^Editar /}).click();
+  await page.locator(`[data-debt-id="${id}"]`).click(); // Plan A: fila -> ficha nueva -> Editar
+  await page.locator('[data-act="ficha-editar"]').click();
   await expect(ficha(page)).toBeVisible();
 }
 
@@ -56,7 +57,9 @@ test("la tarjeta ya no lleva Amortizar; la ficha sí, y amortizar baja el saldo 
   await expect(ficha(page)).toHaveCount(0);
   await expect.poll(()=>saldo(page,"amf")).toBe(antes-25000);
   // La tarjeta pinta el saldo nuevo (con la cuota ya pasada este mes, por eso sale de `antes`).
-  await expect(page.locator('[data-debt-id="amf"] .v4-debt-bal')).toHaveText(await page.evaluate((c)=>eur(c/100),antes-25000));
+  await page.locator('[data-debt-id="amf"]').click();
+  await expect(page.getByTestId("ficha-saldo")).toHaveText(await page.evaluate((c)=>eur(c/100),antes-25000));
+  await page.locator(".rpt-sx").click();
   // Amortizar no es un gasto: no aparece ningún movimiento.
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]"))).toHaveLength(0);
 });

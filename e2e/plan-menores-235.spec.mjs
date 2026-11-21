@@ -42,15 +42,19 @@ test("Deudas: cuotas con céntimos y sin emojis", async ({ page }) => {
   await abrePlan(page);
   await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
   const deudas = segmento(page, "deudas");
-  const resumen = deudas.locator(".plan-summary");
-  await expect(resumen).toContainText("1.033,04 €/mes en cuotas");
+  const resumen = deudas.getByTestId("debts-summary");
+  await expect(resumen).toContainText("1.033,04");
   await expect(resumen).not.toContainText("📉");
   const hipo = deudas.locator('[data-debt-id="hipo"]');
   expect(await datosDeuda(page,hipo)).toContain("660,85");
-  await expect(hipo.locator('.v4-debt-ico svg[data-ico="home"]')).toHaveCount(1);
-  await expect(deudas.locator('[data-debt-id="coche"] .v4-debt-ico svg[data-ico="car"]')).toHaveCount(1);
-  // El icono es trazo, no texto: ningún emoji en la cabecera de la tarjeta.
-  expect(await hipo.locator(".v4-debt-ico").innerText()).toBe("");
+  // Plan A: el icono (trazo, no texto) vive en la cabecera de la ficha.
+  const ficha = page.getByTestId("plan-deuda-ficha");
+  await hipo.click();
+  await expect(ficha.locator('svg[data-ico="home"]')).toHaveCount(1);
+  await ficha.locator(".rpt-sx").click();
+  await deudas.locator('[data-debt-id="coche"]').click();
+  await expect(ficha.locator('svg[data-ico="car"]')).toHaveCount(1);
+  await ficha.locator(".rpt-sx").click();
 });
 
 test("Metas vacía: sin el cero grande y con un botón principal que abre el alta", async ({ page }) => {
