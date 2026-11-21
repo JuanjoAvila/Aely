@@ -19,7 +19,7 @@ async function harness(browser,baseURL,info,lang='es',count=1,link=false){
   await route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
  }
  async function client(actor){const c=await browser.newContext({viewport:{width:393,height:851},isMobile:true,hasTouch:true,timezoneId:'Europe/Madrid',serviceWorkers:'block'});contexts.push(c);
-  await c.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin===baseURL)return route.continue();
+  await c.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin===baseURL){if(offline.has(actor)&&url.pathname.endsWith('/manifest.json'))return route.abort();return route.continue();}// «sin red» real: la sonda redViva (4.26.250) tambien cae
    if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/rest/v1/')){if(offline.has(actor))return route.abort();if(hold?.(route.request(),actor)){held.push({route,actor});return;}return answer(route,actor);}
    if(url.hostname.endsWith('.supabase.co')&&url.pathname.startsWith('/functions/v1/'))return route.fulfill({status:200,contentType:'application/json',body:'{}'});return route.abort();});
   await c.addInitScript(({initial,owner})=>{let lib,cb,session={access_token:'synthetic-only',expires_at:4102444800,user:{id:owner}};

@@ -15,11 +15,12 @@ function seed(){return {fx:1,budget:500,monthStartNet:620,accounts:[
 
 async function harness(browser,baseURL,info,{holdFirst=false,failPack=false,holdPack=false}={}){
   let row={user_id:owner,data:seed(),updated_at:new Date().toISOString()},held=[],heldPacks=[],hold=holdFirst,failedPack=failPack,holdEnglish=holdPack;
-  const requests=[],packs=[],errors=[],snapshots=[];
+  let sinRed=false;const requests=[],packs=[],errors=[],snapshots=[];
   const ctx=await browser.newContext({viewport:{width:375,height:812},isMobile:true,hasTouch:true,timezoneId:"Europe/Madrid",serviceWorkers:"block"});
   await ctx.route("**/*",async route=>{
     const req=route.request(),url=new URL(req.url());
     if(url.origin===baseURL){
+      if(sinRed&&url.pathname.endsWith("/manifest.json"))return route.abort(); // corte real: la sonda redViva (4.26.250) tambien cae
       if(/\/i18n\/(en|ca)\.json$/.test(url.pathname)){
         packs.push({path:url.pathname,failed:failedPack});
         if(holdEnglish&&url.pathname.endsWith("/en.json")){heldPacks.push(route);return;}
@@ -83,7 +84,7 @@ async function harness(browser,baseURL,info,{holdFirst=false,failPack=false,hold
   async function ready(){await expect(page.locator(".botnav")).toBeVisible({timeout:15000});await page.waitForFunction(()=>!document.getElementById("mc-load"));await page.locator('.botnav-tab[data-tour="cartera"]').click();await expect(page.locator('.botnav-tab.active[data-tour="cartera"]')).toBeVisible();await expect(rows()).toHaveCount(3);await expect(title()).toBeVisible();await expect(title()).toBeInViewport();await expect.poll(()=>title().evaluate(e=>Math.abs(e.getBoundingClientRect().left))).toBeLessThan(40);}
   async function snap(label){snapshots.push({label,local:await page.evaluate(()=>loadState()),order:await keys(),title:await title().textContent(),row:copy(row),packs:copy(packs)});}
   async function quiet(){await expect.poll(async()=>(await page.evaluate(()=>loadState()._goalSync?.revision))===row.updated_at).toBe(true);await page.waitForTimeout(1600);}
-  async function reconnect(){await page.evaluate(()=>window.dispatchEvent(new Event("offline")));await expect(page.locator(".offline-pill")).toBeVisible();await page.evaluate(()=>window.dispatchEvent(new Event("online")));}
+  async function reconnect(){sinRed=true;await page.evaluate(()=>window.dispatchEvent(new Event("offline")));await expect(page.locator(".offline-pill")).toBeVisible();sinRed=false;await page.evaluate(()=>window.dispatchEvent(new Event("online")));}
   async function language(lang){
     await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-settings")));await expect(page.locator(".settings-push")).toHaveClass(/open/);
     const choice=page.getByRole("button",{name:{en:"English",ca:"Català",es:"Español"}[lang],exact:true});

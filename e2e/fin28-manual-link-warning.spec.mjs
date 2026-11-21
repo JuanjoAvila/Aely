@@ -30,6 +30,8 @@ async function choose(page,door){
   await page.locator('[data-act="pagado"]').click();await page.locator('[data-cargo="wallet"]').click();
  }
 }
+// Corte real: la sonda redViva (4.26.250) pega a manifest.json y al health de Supabase (aqui el cliente es un doble, la red es real); si no cae, el evento «offline» es un falso aviso y la app no lo trata como desconexion.
+async function corte(page){const cut=r=>r.abort(),pat=/manifest\.json|\/auth\/v1\/health/;await page.context().route(pat,cut);await page.evaluate(async()=>{window.dispatchEvent(new Event('offline'));await new Promise(requestAnimationFrame);});await page.waitForTimeout(400);await page.context().unroute(pat,cut);}
 const snapshot=page=>page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {fixed:s.fixed,expenses:s.expenses,bankTx:s.bankTx,accounts:s.accounts,spent:monthBudgetStats(s).spent,net:monthNetForAccount(s,'sabadell',2026,10,18)};});
 const linked=page=>page.evaluate(()=>!!mcLoadRaw(mcStateKey()).fixed.find(f=>f.id==='classes').paymentProofs?.[24322]);
 for(const door of ['gastos','plan'])for(const lang of ['es','en','ca'])test(door+' '+lang+': aviso, cancelar, segundo toque, recargar y deshacer',async({page})=>{
@@ -56,7 +58,7 @@ for(const door of ['gastos','plan'])test(door+': otro banco no añade aviso',asy
 });
 for(const door of ['gastos','plan'])test(door+': una edición remota con el aviso abierto impide guardar y anunciar éxito',async({page})=>{
  await open(page);await esperaNubeQuieta(page);await choose(page,door);await expect(page.locator('.askback')).toContainText(labels.es.warning);
- await page.evaluate(async()=>{window.dispatchEvent(new Event('offline'));await new Promise(requestAnimationFrame);});
+ await corte(page);
  await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey()),at=Date.now()+10000;const remote=planSyncEditState({...s,fixed:s.fixed.map(f=>f.id==='classes'?{...f,amount:13.99}:f)},at);window.__e2eCloudRows.app_state=[{user_id:'e2e-user',data:slimForCloud(remote),updated_at:new Date(at).toISOString()}];window.dispatchEvent(new Event('online'));});
  await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed.find(f=>f.id==='classes').amount)).toBe(13.99);
  const before=await snapshot(page),writes=await page.evaluate(()=>(window.__e2eUpdates||[]).filter(r=>r.tabla==='expenses').length);
@@ -76,7 +78,7 @@ test('plan: reponer la marca de un BOOK vetado conserva el flujo sin proof nueva
  await expect.poll(()=>page.evaluate(()=>(window.__e2eUpdates||[]).filter(r=>r.tabla==='expenses'&&String(r.value.source).includes('recibo.classes')).length)).toBe(1);
 });
 async function receiveBookProof(page,id,date,merchant){
- await page.evaluate(async()=>{window.dispatchEvent(new Event('offline'));await new Promise(requestAnimationFrame);});
+ await corte(page);
  await page.evaluate(({id,date,merchant})=>{const s=mcLoadRaw(mcStateKey()),at=Date.now()+10000;const fixed=s.fixed.map(f=>f.id!==id?f:{...f,paymentProofs:{...f.paymentProofs,24322:fixedPaymentBind({kind:'book',key:'sabadell|SYNTHETIC-'+id,identity:JSON.stringify(['sabadell',date,12.99,merchant]),date,bank:'sabadell',merchant,amount:12.99,model:fixedPaymentModel(f,10)},f,10)}});window.__e2eCloudRows.app_state=[{user_id:'e2e-user',data:slimForCloud(planSyncEditState({...s,fixed},at)),updated_at:new Date(at).toISOString()}];window.dispatchEvent(new Event('online'));},{id,date,merchant});
  await expect.poll(()=>page.evaluate(id=>!!mcLoadRaw(mcStateKey()).fixed.find(f=>f.id===id).paymentProofs?.[24322],id)).toBe(true);
 }

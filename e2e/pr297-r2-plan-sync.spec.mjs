@@ -41,7 +41,7 @@ for(const retry of ['reconnect','edit','pending-edit','expense-edit'])test('B3 i
   expect(snapshots[0].state.fixed).toHaveLength(1);expect(Math.round(snapshots[0].state.fixed[0].amount*100)).toBe(4237);expect(Math.round(snapshots[0].state.debts[0].value*100)).toBe(120023);
   recover=true;
   if(retry==='edit')await edit();
-  else{await page.evaluate(()=>window.dispatchEvent(new Event('offline')));await page.waitForTimeout(50);await page.evaluate(()=>window.dispatchEvent(new Event('online')));}
+  else{const cut=r=>r.abort();await page.context().route('**/manifest.json*',cut);/* corte real: la sonda redViva (4.26.250) tambien cae */await page.evaluate(()=>window.dispatchEvent(new Event('offline')));await page.waitForTimeout(400);await page.context().unroute('**/manifest.json*',cut);await page.evaluate(()=>window.dispatchEvent(new Event('online')));}
   }
   await expect.poll(()=>gets).toBe(2);await expect.poll(()=>page.evaluate(()=>loadState()._planSync?.owner)).toBe(owner);
   if(retry==='reconnect')await edit();
