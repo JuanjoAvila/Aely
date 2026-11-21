@@ -159,6 +159,8 @@ async function vuelveDeRenovar(page, banco, origen, lectura) {
     if (sessionStorage.getItem("_e2eVuelta")) return;
     sessionStorage.setItem("_e2eVuelta", "1");
     sessionStorage.setItem("mc_bk_vuelta", JSON.stringify({ n, k: "r", o }));
+    // La marca de «este móvil salió a conectar»: sin ella la vuelta no cuenta (SEG-16).
+    localStorage.setItem("mc_bk_pend", JSON.stringify({ u: "e2e-user", t: Date.now() }));
   }, [banco, origen]);
   await arranca(page, { __url: "/?bank=ok", __cloudFns: lectura ? { "bank-sync": lectura } : {} });
   await expect(push(page)).toHaveClass(/open/, { timeout: 10_000 });

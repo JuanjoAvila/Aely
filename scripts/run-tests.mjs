@@ -333,6 +333,7 @@ const steps = [
   ["myinvestor-user-initiated", ["node", "tests/myinvestor-user-initiated.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
   ["bank-callback-msg", ["node", "tests/bank-callback-msg.test.mjs"]],
+  ["ronda-e2-nucleo", ["node", "tests/ronda-e2-nucleo.test.mjs"]],
   ["categorize-limitador", ["node", "tests/categorize-limitador.test.mjs"]],
   ["categorize-handler", ["node", "tests/categorize-handler.test.mjs"]],
   ["seguridad-hogar-eventos", ["node", "tests/seguridad-hogar-eventos.test.mjs"]],

@@ -73,7 +73,11 @@ test("cada interruptor de Notificaciones cambia su ajuste de siempre", async ({ 
   await fila(page, "tring").click();
   await expect.poll(() => ajuste(page, "trIngest")).toBe(true);
   await expect(sw).toHaveClass(/swx on/);
-  expect(await ajuste(page, "ingestToken")).toBeTruthy();
+  // El token va a su tabla y NO a `settings`, que sube entero a la nube y a sus copias (SEG-08).
+  expect(await ajuste(page, "ingestToken")).toBeUndefined();
+  const enTabla = await page.evaluate(() => ((window.__e2eCloudRows.ingest_tokens || [])[0] || {}).token);
+  expect(enTabla).toMatch(/^[0-9a-f]{64}$/);
+  await expect.poll(() => page.evaluate((tk) => window.__nat.ingest.some((u) => u.endsWith("?token=" + tk)), enTabla)).toBe(true);
   await expect.poll(() => page.evaluate(() => window.__nat.ingest.some((u) => /\/functions\/v1\/ingest\?token=/.test(u)))).toBe(true);
   expect(await page.evaluate(() => window.__nat.ensurePerm)).toBeGreaterThan(0);
   await fila(page, "tring").click();

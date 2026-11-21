@@ -748,8 +748,11 @@ export const CROSSCUTTING = [
   "e2e/i18n-pack.spec.mjs",
   /* Regresión 4.19.100: hojas sin body tienen que scrollear; Apuntar mantiene CTA fijo. */
   "e2e/hojas-scroll.spec.mjs",
-  /* SEC-01: toast del bank-callback sin texto crudo de la URL. */
+  /* SEC-01: toast del bank-callback sin texto crudo de la URL. SEG-02/16: la vuelta solo cuenta
+     si este móvil salió a conectar, y el token se canjea antes de dar el banco por conectado. */
   "e2e/bank-callback-msg.spec.mjs",
+  /* R-07: un commit de App no lee el scroll de las páginas (maquetación forzada por commit). */
+  "e2e/commit-sin-leer-scroll.spec.mjs",
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];

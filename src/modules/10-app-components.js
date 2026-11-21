@@ -3039,16 +3039,18 @@ function SettingsPanel({state, set, onClose, showToast, uid, onTour, totals, ref
       const toggleIng=function(){
         if(!ingOn){
           try{ if(nat.ensureNotifPerm) nat.ensureNotifPerm().catch(function(){}); }catch(e){}
-          let tok=(state.settings&&state.settings.ingestToken);
-          if(!tok){
-            tok=mcRandomToken();
+          // El token ya no se guarda en `settings` (SEG-08): se reutiliza el de su tabla, o el que
+          // dejó ahí una versión anterior, y solo si no hay ninguno se crea uno.
+          const viejo=(state.settings&&state.settings.ingestToken)||"";
+          cloud.getIngestToken().then(function(enNube){
+            const tok=enNube||viejo||mcRandomToken();
             if(!tok){ showToast(t("st_tring_nornd")); return; }
-          }
-          cloud.setIngestToken(tok).then(function(){
-            const url=CONFIG.SUPABASE_URL+"/functions/v1/ingest?token="+encodeURIComponent(tok);
-            try{ if(nat.setIngestUrl) return nat.setIngestUrl({url:url}); }catch(e){}
-          }).then(function(){
-            setS({trIngest:true, ingestToken:tok}); showToast(t("st_tring_on"));
+            return Promise.resolve(enNube?null:cloud.setIngestToken(tok)).then(function(){
+              try{ if(nat.setIngestUrl) return nat.setIngestUrl({url:mcIngestUrl(tok)}); }catch(e){}
+            }).then(function(){
+              set(function(s){ const st=Object.assign({},s.settings,{trIngest:true}); delete st.ingestToken; return Object.assign({},s,{settings:st}); });
+              showToast(t("st_tring_on"));
+            });
           }).catch(function(e){ showToast(errTxt(e)); });
         } else {
           try{ if(nat.setIngestUrl) nat.setIngestUrl({url:""}).catch(function(){}); }catch(e){}

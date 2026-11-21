@@ -302,9 +302,12 @@ function mcInitSentry(){
     }
   }catch(e){}
 }
-// Sentry (~340 KB) NO se parsea en el cold start: se inyecta tras el primer pintado (feedback 2026-07-16).
+/* Sentry (~340 KB) solo se baja cuando hay un error que contar (R-06). Desde el 16/7 se inyectaba
+   tras el primer pintado, pero en CADA arranque: con DSN en producción eran 340 KB que se
+   parseaban siempre para no mandar casi nunca nada. El arranque sigue llamando aquí en reposo y
+   solo carga si algo falló antes; un error posterior lo carga desde `mcCaptureError`. */
 function mcLoadSentryDeferred(){
-  if(!CONFIG.SENTRY_DSN) return;
+  if(!CONFIG.SENTRY_DSN || !_mcSentryQueue.length) return;
   if(typeof Sentry!=="undefined"){ mcInitSentry(); return; }
   if(document.querySelector('script[data-mc-sentry]')) return;
   var s=document.createElement("script");
@@ -323,6 +326,7 @@ function mcCaptureError(err, ctx){
     if(typeof Sentry!=="undefined"&&_mcSentryReady){ Sentry.captureException(safe); return; }
     // Cola corta: un error justo al abrir no se pierde si Sentry aún está bajando.
     if(_mcSentryQueue.length<8) _mcSentryQueue.push({err:safe});
+    mcLoadSentryDeferred();
   }catch(e){}
 }
 
@@ -1978,10 +1982,25 @@ const cloud = (function(){
       // platform:"app" → bank-callback devuelve la página puente micartera:// (vuelve a la APP,
       // no al navegador — bloqueante 3 del feedback pareja). En web, redirect normal con ?bank=.
       const native=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-      const {data,error}=await sb.functions.invoke('bank-connect',{ body:{ aspsp_name:aspsp_name||"Banco de Sabadell", country:(country||"ES"), platform:(native?"app":"web") } });
+      // `confirm:true` (SEG-02): el banco no queda activo al volver, sino cuando ESTA app lo confirma
+      // con su sesión (`bankConfirm`). Un servidor que no conozca el campo lo ignora y vuelve con
+      // el `ok` de siempre, que la app sigue aceptando.
+      const confirm=native ? await bankPuenteConfirma() : true;
+      const {data,error}=await sb.functions.invoke('bank-connect',{ body:{ aspsp_name:aspsp_name||"Banco de Sabadell", country:(country||"ES"), platform:(native?"app":"web"), confirm:confirm } });
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"no se pudo conectar");
+      let u=""; try{ const s=(await sb.auth.getSession()).data.session; u=s?s.user.id:""; }catch(e){}
+      bankVueltaAbre(u, Date.now());
       return data;   // { ok, url }
+    },
+    // Segunda mitad de conectar un banco (SEG-02): canjea el token de un solo uso que trae la
+    // vuelta. El servidor solo activa el enlace si es del usuario de esta sesión.
+    async bankConfirm(token){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke('bank-confirm',{ body:{ token:token } });
+      if(error) throw error;
+      if(!data || !data.ok) throw new Error((data&&data.error)||"error");
+      return data;   // { ok, aspsp_name }
     },
     // Lista de bancos soportados por Enable Banking para el selector (con logo).
     async bankAspsps(country){
@@ -2107,6 +2126,14 @@ const cloud = (function(){
         { onConflict:'user_id' }
       );
       if(error) throw error;
+    },
+    // El token vive SOLO en su tabla (SEG-08): antes iba además en `settings`, y de ahí al estado
+    // de la nube y a sus copias diarias. Quien lo necesita (activar, reinstalar) lo lee de aquí.
+    async getIngestToken(){
+      if(!sb) return null;
+      const {data,error}=await sb.from('ingest_tokens').select('token').maybeSingle();
+      if(error) throw error;
+      return data&&data.token ? String(data.token) : null;
     },
     async clearIngestToken(){
       if(!sb) return;
@@ -2915,7 +2942,7 @@ const CLOUD_WRITES=[
   "setIncomeOwnTransfer",
   "decideOwnTransfer",
   "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","renameExpense","setExpenseCat","confirmExpenseWithdrawal","confirmTrMonthlyInvestment","setExpenseDeuda","setExpenseRecibo","setExpenseMeta","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
-  "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
+  "backupState","bankConnect","bankConfirm","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","brokerConnect","brokerDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
   "regenHouseholdCode","kickHouseholdMember",
@@ -3079,6 +3106,10 @@ function expenseSourceForCloud(e){
    Ahora: 32 bytes de crypto.getRandomValues en hexadecimal. Si el navegador no tiene un generador
    seguro devolvemos null y la función que llama AVISA en vez de generar un token flojo — más vale
    no activar la captura automática que activarla con un token adivinable (2026-07-24). */
+/* Lo que se le pasa al lector nativo. El token va en la URL porque es el único contrato que
+   entienden las APK instaladas (`setIngestUrl({url})`); el nativo lo separa y lo manda en la
+   cabecera `x-ingest-token`, así que por la red no viaja en la URL. */
+function mcIngestUrl(tok){ return CONFIG.SUPABASE_URL+"/functions/v1/ingest?token="+encodeURIComponent(tok); }
 function mcRandomToken(){
   try{
     const c=window.crypto||window.msCrypto;
@@ -5444,6 +5475,48 @@ var _bankConnectBusy=null;
    08-motor-bank.js), y Open Banking aporta los MOVIMIENTOS — que es lo que se ganaba y nadie
    estaba mirando: las compras con la tarjeta de TR entrando solas en Gastos en vez de a mano.
    Los movimientos van deduplicados por `ext_id`, así que no hay doble conteo posible. */
+/* LA VUELTA DEL BANCO SOLO VALE SI ESTE MÓVIL SALIÓ A CONECTAR (SEG-16, auditoría del 14/11).
+   `micartera://bank?ok=1` y `…/?bank=ok` los puede abrir cualquier web o app: sin esta marca, eso
+   pintaba «Banco conectado» y gastaba una lectura del cupo diario del banco. `bankConnect` la deja
+   al salir; dura lo que el servidor da para confirmar (una hora). Va en localStorage y no en
+   sessionStorage porque Android puede matar la app mientras se autoriza en el navegador.
+   · «ok» vale una vez. La marca no se borra: detrás aún puede llegar la confirmación de verdad.
+   · «confirm» vale mientras haya marca; la cierra `bankVueltaCierra` cuando el servidor acepta.
+   Los avisos de error no pasan por aquí: son textos fijos y no hacen nada. */
+const BANK_VUELTA_KEY="mc_bk_pend", BANK_VUELTA_MS=60*60*1000;
+function bankVueltaAbre(uid, now){
+  try{ localStorage.setItem(BANK_VUELTA_KEY, JSON.stringify({u:uid||"", t:now})); }catch(e){}
+}
+function bankVueltaCierra(){ try{ localStorage.removeItem(BANK_VUELTA_KEY); }catch(e){} }
+function bankVueltaAdmite(tipo, uid, now){
+  let p=null;
+  try{ p=JSON.parse(localStorage.getItem(BANK_VUELTA_KEY)); }catch(e){}
+  if(!p || typeof p.t!=="number") return false;
+  if(now<p.t || now-p.t>BANK_VUELTA_MS){ bankVueltaCierra(); return false; }
+  // Otra cuenta en el mismo móvil: no es la que salió a conectar.
+  if(uid && p.u && p.u!==uid) return false;
+  if(tipo==="confirm") return true;
+  if(tipo!=="ok" || p.ok) return false;
+  try{ localStorage.setItem(BANK_VUELTA_KEY, JSON.stringify({u:p.u, t:p.t, ok:1})); }catch(e){ return false; }
+  return true;
+}
+/* En la APK la vuelta pasa por `back.html` de PRODUCCIÓN, y una versión de la app puede llegar
+   al móvil antes que esa página (el canal beta solo cambia la app). Un `back.html` que no sepa
+   reenviar el token devolvería «error» con el banco a medio conectar, así que solo se pide
+   confirmar si la página publicada ya lo reenvía. Si no se puede saber, como hasta ahora. */
+function bankPuenteConfirma(){
+  const espera=new Promise(function(res){ setTimeout(function(){ res(false); },4000); });
+  const mira=Promise.resolve().then(function(){ return fetch(_mcOtaBASE+"back.html?ts="+Date.now(),{cache:"no-store"}); })
+    .then(function(r){ return r.ok ? r.text() : ""; })
+    .then(function(html){ return html.indexOf('"confirm:"')>=0; })
+    .catch(function(){ return false; });
+  return Promise.race([mira,espera]);
+}
+// El token de confirmación tal como lo emite el servidor (43 caracteres base64url), o "".
+function bankConfirmToken(raw){
+  const m=String(raw||"");
+  return /^[A-Za-z0-9_-]{43}$/.test(m) ? m : "";
+}
 function bankConnectOnce(aspsp_name, country){
   if(_bankConnectBusy){
     const err=new Error("busy");
