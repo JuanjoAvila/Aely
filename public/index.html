@@ -9289,6 +9289,14 @@ function bankPuenteConfirma(){
     .catch(function(){ return false; });
   return Promise.race([mira,espera]);
 }
+/* Un corte de red al invocar una Edge Function NO llega como `TypeError`: supabase-js lo envuelve en
+   `FunctionsFetchError` («Failed to send a request to the Edge Function»), que `renameFalloDeRed` no
+   reconoce. Sin esto el canje de la confirmación no se reintentaba nunca y el token, ya fuera de la
+   URL, se perdía con el banco a medio conectar (revisión de la ronda E2). */
+function bankCanjeFalloDeRed(err){
+  if(err&&(err.name==="FunctionsFetchError"||/failed to send a request to the edge function/i.test(String(err.message||"")))) return true;
+  return renameFalloDeRed(err);
+}
 // El token de confirmación tal como lo emite el servidor (43 caracteres base64url), o "".
 function bankConfirmToken(raw){
   const m=String(raw||"");
@@ -44685,7 +44693,7 @@ function App(){
     }
     const canjea=function(){ return cloud.bankConfirm(tok).then(function(d){ if(!d) throw new Error("error"); }); };
     canjea().then(null,function(e){
-      if(!renameFalloDeRed(e)) throw e;
+      if(!bankCanjeFalloDeRed(e)) throw e;
       return new Promise(function(res){ setTimeout(res,2500); }).then(canjea);
     }).then(function(){
       bankVueltaCierra();

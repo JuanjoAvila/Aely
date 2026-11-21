@@ -1772,7 +1772,7 @@ function App(){
     }
     const canjea=function(){ return cloud.bankConfirm(tok).then(function(d){ if(!d) throw new Error("error"); }); };
     canjea().then(null,function(e){
-      if(!renameFalloDeRed(e)) throw e;
+      if(!bankCanjeFalloDeRed(e)) throw e;
       return new Promise(function(res){ setTimeout(res,2500); }).then(canjea);
     }).then(function(){
       bankVueltaCierra();

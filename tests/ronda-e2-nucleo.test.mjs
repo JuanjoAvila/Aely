@@ -106,6 +106,21 @@ await ta("en la APK solo se pide confirmar si el `back.html` publicado ya reenvÃ
   assert.equal(plazo, 4000);
 });
 
+t("el canje reintenta ante el error REAL de supabase-js (FunctionsFetchError), no solo ante TypeError", () => {
+  const fin = (desde) => core.indexOf("\n}", desde) + 2;
+  const i = core.indexOf("function renameFalloDeRed("), f = core.indexOf("function bankCanjeFalloDeRed(");
+  assert.ok(i > 0 && f > 0);
+  const red = new Function("navigator", core.slice(i, fin(i)) + core.slice(f, fin(f)) + "\nreturn bankCanjeFalloDeRed;")({ onLine: true });
+  const real = Object.assign(new Error("Failed to send a request to the Edge Function"), { name: "FunctionsFetchError" });
+  assert.equal(red(real), true, "forma real del error");
+  assert.equal(red(Object.assign(new Error("x"), { name: "FunctionsFetchError" })), true, "por nombre");
+  assert.equal(red(new Error("Failed to send a request to the Edge Function")), true, "por texto");
+  assert.equal(red(new TypeError("Failed to fetch")), true);
+  assert.equal(red(new Error("state")), false, "un rechazo del servidor no se reintenta");
+  assert.equal(red(null), false);
+  assert.match(main, /if\(!bankCanjeFalloDeRed\(e\)\) throw e;/);
+});
+
 t("los dos retornos (APK y web) pasan por la marca y por el canje", () => {
   assert.match(main, /if\(parts\[1\]==="ok"\) vueltaBancoOk\(\);/);
   assert.match(main, /else if\(resto\.indexOf\("confirm:"\)===0\) vueltaBancoConfirma\(resto\.slice\(8\)\);/);

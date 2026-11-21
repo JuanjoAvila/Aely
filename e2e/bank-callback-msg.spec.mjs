@@ -133,6 +133,15 @@ test("si el servidor rechaza el token, no hay «Banco conectado» ni lectura, y 
   expect(await page.evaluate(() => localStorage.getItem("mc_bk_pend"))).not.toBeNull();
 });
 
+test("★ un corte de red al canjear (FunctionsFetchError) se reintenta una vez antes de dar error", async ({ page }) => {
+  await marca(page);
+  const corte = { data: null, error: { name: "FunctionsFetchError", message: "Failed to send a request to the Edge Function" } };
+  await abre(page, "/?bank=confirm&t=" + TOKEN, { "bank-confirm": corte });
+  await expect.poll(() => invocadas(page, "bank-confirm").then((r) => r.length), { timeout: 8_000 }).toBe(2);
+  await expect(page.locator(".toast")).toContainText(/No se pudo conectar el banco/, { timeout: 5_000 });
+  expect(await invocadas(page, "bank-sync")).toHaveLength(0);
+});
+
 test("★ en la APK el token llega dentro del msg (`bank|error|confirm:…`) y se canjea igual", async ({ page }) => {
   await marca(page);
   await page.addInitScript((tk) => {
