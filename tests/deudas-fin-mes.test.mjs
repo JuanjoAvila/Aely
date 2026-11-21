@@ -13,6 +13,9 @@ const endsSrc=source.match(ENDS)[1].slice(0,-1);
 // El mutante es el cálculo de antes del arreglo: siempre mes actual + n, con la cuota de este mes pendiente o no.
 const mutante=endsSrc.replace('li.n-(pendiente?1:0)','li.n');
 assert.notEqual(mutante,endsSrc,'el mutante debe cambiar algo');
+// Segundo mutante: sin la rama del ancla futura (compra a plazos sin empezar) sigue contando desde hoy.
+const mutanteFutura=endsSrc.replace('futura?d.asOf+li.n-1-p.y*12:','');
+assert.notEqual(mutanteFutura,endsSrc,'el mutante de ancla futura debe cambiar algo');
 
 // Cada caso fija «hoy» (mediodía UTC: el mismo día en Madrid y en UTC) y una deuda que queda a `quedan` cuotas.
 const ym=(y,m)=>y*12+(m-1);
@@ -33,6 +36,10 @@ const casos=[
   {n:'cambio de año: cuota pendiente en diciembre, queda 1',hoy:'2026-12-21',day:29,quedan:1,esperado:'diciembre 2026'},
   {n:'día 31 en mes de 30, hoy 29: el cobro cae el 30, aún pendiente',hoy:'2026-11-29',day:31,quedan:1,esperado:'noviembre 2026'},
   {n:'día 31 en mes de 30, hoy 30: el cobro del 30 ya cuenta',hoy:'2026-11-30',day:31,quedan:1,esperado:'diciembre 2026'},
+  {n:'ancla futura el mes que viene (dic 2026), 12 cuotas: ancla + 11',hoy:'2026-11-21',day:5,ancla:[2026,12],esperado:'noviembre 2027'},
+  {n:'ancla futura en 2 meses (ene 2027, cambio de año), 12 cuotas',hoy:'2026-11-21',day:5,ancla:[2027,1],esperado:'diciembre 2027'},
+  {n:'ancla futura, cuota pendiente el día 29: tampoco depende de hoy',hoy:'2026-11-21',day:29,ancla:[2027,2],esperado:'enero 2028'},
+  {n:'ancla futura con día 31 hacia mes corto (feb 2027)',hoy:'2026-11-21',day:31,ancla:[2027,2],esperado:'enero 2028'},
   {n:'sin plazo, cuota pendiente: no cambia (saldo 1000, 100/mes = 10 cuotas)',hoy:'2026-11-21',day:29,sinPlazo:true,esperado:'septiembre 2027'},
   {n:'sin plazo, cuota pasada: misma fecha',hoy:'2026-11-21',day:3,sinPlazo:true,esperado:'septiembre 2027'}
 ];
@@ -43,12 +50,13 @@ function etiquetas(endsFn){
     const ctx=createLogicSandbox({Date:Clock});vm.createContext(ctx);vm.runInContext(pure,ctx);
     vm.runInContext('CURLANG="es";globalThis.leftInfo=debtLeftInfo;globalThis.subject='+endsFn,ctx);
     const [y,m]=c.hoy.split('-').map(Number);
-    const d=c.sinPlazo?{id:'x',name:'Préstamo inventado',value:1000,monthly:100,day:c.day,asOf:ym(y,m)}:deuda(c.hoy,c.day,c.quedan);
+    const d=c.ancla?{id:'x',name:'Compra a plazos inventada',value:1200,monthly:100,months:12,day:c.day,asOf:ym(c.ancla[0],c.ancla[1])}:c.sinPlazo?{id:'x',name:'Préstamo inventado',value:1000,monthly:100,day:c.day,asOf:ym(y,m)}:deuda(c.hoy,c.day,c.quedan);
     const antes=vm.runInContext('(function(d){return [debtLeft(d),debtBalance(d),debtCuotaIn(d)]})',ctx)(d);
     const txt=ctx.subject(d);
     // Solo cambia el texto de la fecha: contador, saldo y cuota salen igual.
     assert.deepEqual(vm.runInContext('(function(d){return [debtLeft(d),debtBalance(d),debtCuotaIn(d)]})',ctx)(d),antes);
-    if(!c.sinPlazo) assert.equal(antes[0],c.quedan,c.n+': el contador de cuotas es el esperado');
+    if(c.ancla) assert.equal(antes[0],12,c.n+': nada pagado aún');
+    else if(!c.sinPlazo) assert.equal(antes[0],c.quedan,c.n+': el contador de cuotas es el esperado');
     return txt;
   });
 }
@@ -63,5 +71,11 @@ test('el mutante (mes actual + n siempre) lo caza el test',()=>{
   const out=etiquetas(mutante);
   const fallan=casos.filter((c,i)=>out[i]!=='acabas en '+c.esperado).map(c=>c.n);
   assert.ok(fallan.length>=3,'el mutante tiene que romper los casos de cuota pendiente: '+fallan.length);
-  assert.ok(fallan.every(n=>!/ya pasada|justo hoy|sin plazo|ya cuenta/.test(n)),'solo rompe los de cuota pendiente: '+fallan.join(' | '));
+  assert.ok(fallan.every(n=>!/ya pasada|justo hoy|sin plazo|ya cuenta|ancla futura/.test(n)),'solo rompe los de cuota pendiente: '+fallan.join(' | '));
+});
+test('el mutante de ancla futura (contar desde hoy) lo caza el test',()=>{
+  const out=etiquetas(mutanteFutura);
+  const fallan=casos.filter((c,i)=>out[i]!=='acabas en '+c.esperado).map(c=>c.n);
+  assert.equal(fallan.length,3,'rompe las tres anclas a 2+ meses: '+fallan.join(' | '));
+  assert.ok(fallan.every(n=>/ancla futura/.test(n)));
 });

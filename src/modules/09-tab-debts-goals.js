@@ -724,9 +724,12 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     // en mes actual + n − 1, no + n: con cuota el 29, hoy 21 y una restante decía «acabas en diciembre»
     // cuando acaba en noviembre. Mismo día efectivo (recorte del 31 en meses cortos, DIN-05) y mismo
     // calendario Madrid que el contador. Sin plazo (saldo estimado) el saldo solo baja al cambiar de mes,
-    // así que la fecha se queda como estaba. Un ancla futura (compra a plazos sin empezar) tampoco se toca.
-    const pendiente=d.months!=null&&li.n>0&&(typeof d.asOf!=="number"||d.asOf<=ymAbs(p.y,p.m-1))&&debtChargeDay(d,p.y,p.m)>p.d;
-    const m=p.m-1+li.n-(pendiente?1:0);
+    // así que la fecha se queda como estaba.
+    // Una compra a plazos con el ancla en un mes futuro («¿Y si gasto…?») aún no ha pagado nada: su 1.ª
+    // cuota cae en el ancla y la última en ancla + plazo − 1, sin depender de hoy (antes salía hoy + plazo).
+    const futura=d.months!=null&&li.n>0&&typeof d.asOf==="number"&&d.asOf>ymAbs(p.y,p.m-1);
+    const pendiente=d.months!=null&&li.n>0&&!futura&&debtChargeDay(d,p.y,p.m)>p.d;
+    const m=futura?d.asOf+li.n-1-p.y*12:p.m-1+li.n-(pendiente?1:0);
     return tf("v4_debts_ends",{d:monthLong(m%12)+" "+(p.y+Math.floor(m/12))});
   };
   const editor=editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,

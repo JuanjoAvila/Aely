@@ -31532,9 +31532,12 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
     // en mes actual + n − 1, no + n: con cuota el 29, hoy 21 y una restante decía «acabas en diciembre»
     // cuando acaba en noviembre. Mismo día efectivo (recorte del 31 en meses cortos, DIN-05) y mismo
     // calendario Madrid que el contador. Sin plazo (saldo estimado) el saldo solo baja al cambiar de mes,
-    // así que la fecha se queda como estaba. Un ancla futura (compra a plazos sin empezar) tampoco se toca.
-    const pendiente=d.months!=null&&li.n>0&&(typeof d.asOf!=="number"||d.asOf<=ymAbs(p.y,p.m-1))&&debtChargeDay(d,p.y,p.m)>p.d;
-    const m=p.m-1+li.n-(pendiente?1:0);
+    // así que la fecha se queda como estaba.
+    // Una compra a plazos con el ancla en un mes futuro («¿Y si gasto…?») aún no ha pagado nada: su 1.ª
+    // cuota cae en el ancla y la última en ancla + plazo − 1, sin depender de hoy (antes salía hoy + plazo).
+    const futura=d.months!=null&&li.n>0&&typeof d.asOf==="number"&&d.asOf>ymAbs(p.y,p.m-1);
+    const pendiente=d.months!=null&&li.n>0&&!futura&&debtChargeDay(d,p.y,p.m)>p.d;
+    const m=futura?d.asOf+li.n-1-p.y*12:p.m-1+li.n-(pendiente?1:0);
     return tf("v4_debts_ends",{d:monthLong(m%12)+" "+(p.y+Math.floor(m/12))});
   };
   const editor=editingDebt&&(conflict&&!reviewDebt?React.createElement(PlanConflictSheet,{record:conflict,current:state.debts.find(function(d){return d.id===editingDebt.id;})||editingDebt,
@@ -35260,7 +35263,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="e7476c1c71b3321fb26d264a9d3526216ed7aede94f965ae22b373ac13f02998";
+var _rnSha="f7902c2170009eae070a8b4163f8d128921d706907f9560f069f5a53e0262d2c";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
