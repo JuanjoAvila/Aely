@@ -543,7 +543,8 @@ const PRESUPUESTO = {
   // Integración 4.26.250 (21/11/2026): Plan A fase 1 y el aviso de sin conexión sobre la 249 (traspaso propio, E2 y C2); el hueco sobre la
   // 249 (2072 / 571 KiB) es el de Plan A (motor de reparto, barra, Deudas y Metas con su escalera). Mismo mandato del 11/10: los dos
   // topes, al mínimo medido, 2122 / 584 KiB.
-  minificado: 2122 * 1024,
+  // Pulido de Plan A (21/11/2026): hueco para el aviso de Deshacer, % del reparto sobre el total y Metas sin fechas (~0,6 KiB de lógica y texto): 2123 KiB.
+  minificado: 2123 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
