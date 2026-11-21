@@ -1363,7 +1363,7 @@ function settingsDeps(settings, keys){
    `trRecompensas` (4.26.237): el libro de avisos de TR decide qué Round up sigue pendiente y suma
    al patrimonio de hoy (`rewardsPending`); sin declararlo, elegir destino dejaba la gráfica vieja. */
 const NET_WORTH_STATE=["_historyOwner","accounts","aportaciones","assetValueHistory","assets","bankDismissed","bankTx","cuotaAlias","debts","deleted","expenses","fixed","flows","fx","fxRates","invHistory","investments","obAbsorbedConfirmed","obAbsorbedPending","obAccounts","oneoffs","reciboBorrado","reciboNo","shared","trRecompensas","trasAbonoDesde"];
-const BUDGET_STATE=["_historyOwner","accounts","budget","catOverrides","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
+const BUDGET_STATE=["_historyOwner","accounts","bankTx","budget","catOverrides","cuotaAlias","cuotaNo","debts","deleted","expenses","fixed","flows","obAbsorbedConfirmed","obAbsorbedPending","oneoffs","reciboBorrado","reciboNo","reservaLog"];
 function stateDeps(state, keys){
   const s=state||{};
   return keys.map(function(k){ return s[k]; });

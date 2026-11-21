@@ -98,7 +98,7 @@ test("en el recibo compartido: la parte se ve tecleable y al guardar se pregunta
 async function editarDeuda(page, debt) {
   await abrePlan(page, { fixed: [], debts: [debt] });
   await page.locator(".v4-seg-btn").filter({ hasText: "Deudas" }).click();
-  await page.locator('[data-debt-id="' + debt.id + '"] .plan-item-open').click();
+  await page.locator('[data-debt-id="' + debt.id + '"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
   return page.getByRole("dialog", { name: "Editar deuda", exact: true });
 }
 
@@ -142,7 +142,8 @@ test("descuadre ya guardado: la tarjeta lo señala y se ajusta preguntando, sin 
   await page.locator(".v4-seg-btn").filter({ hasText: "Deudas" }).click();
   const tarjeta = page.locator('[data-debt-id="fam"]');
   await expect(tarjeta.getByTestId("debt-descuento")).toHaveText("pagas 250,00 € + 53,00 € de Fibra");
-  await tarjeta.locator('[data-act="debt-descuadre"]').click();
+  await tarjeta.click(); // el aviso de descuadre vive en la ficha
+  await page.locator('[data-act="debt-descuadre"]').click();
   await expect(ask(page).locator("#ask-dialog-title")).toHaveText("¿Cuánto le pasas al mes?");
   await expect(ask(page).locator(".ask-in")).toHaveValue("197");
   await ask(page).locator(".btn-primary").click();
@@ -160,7 +161,8 @@ test("descuadre ya guardado: cancelar no toca nada", async ({ page }) => {
   const fibraComp = Object.assign({}, fibra, { amount: 32, bankAmount: 85, reparto: [{ id: "pe_fam", n: "Familia", via: "debt", debtId: "fam", amt: 53 }] });
   await abrePlan(page, { fixed: [fibraComp], debts: [prestamo] });
   await page.locator(".v4-seg-btn").filter({ hasText: "Deudas" }).click();
-  await page.locator('[data-debt-id="fam"] [data-act="debt-descuadre"]').click();
+  await page.locator('[data-debt-id="fam"]').click();
+  await page.locator('[data-act="debt-descuadre"]').click();
   await ask(page).locator(".btn-primary").click();
   await ask(page).getByRole("button", { name: "Dejarla como está" }).click();
   expect((await guardado(page)).debts[0]).toEqual(prestamo);

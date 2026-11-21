@@ -18,7 +18,7 @@ function seed(owner=OWNER){
 async function editDay(page,day){
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await page.getByRole('tab',{name:'Deudas',exact:true}).click();
-  await page.locator('[data-debt-id="debt"] .plan-item-open').click();
+  await page.locator('[data-debt-id="debt"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
   const sheet=page.getByRole('dialog',{name:'Editar deuda',exact:true});
   await sheet.locator('[data-debt-field="day"]').fill(String(day));
   await sheet.getByRole('button',{name:'Guardar cambios',exact:true}).click();

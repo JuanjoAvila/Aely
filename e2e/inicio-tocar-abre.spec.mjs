@@ -66,7 +66,7 @@ test("tocar una meta la centra y abre su ficha en Plan › Metas", async ({ page
   await expect(page.locator('.page-scroll-host .v4-seg-btn[data-seg="metas"]').first()).toHaveAttribute("aria-selected", "true");
   const hoja = page.locator('[role="dialog"]:visible');
   await expect(hoja).toHaveCount(1);
-  await expect(hoja.locator("input").first()).toHaveValue("Colchón ficticio");
+  await expect(page.getByTestId("plan-meta-ficha")).toContainText("Colchón ficticio");
 });
 
 test("mantener pulsado en Inicio no deja nada seleccionable ni seleccionado", async ({ page }) => {

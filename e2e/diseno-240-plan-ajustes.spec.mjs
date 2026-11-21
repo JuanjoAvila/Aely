@@ -88,24 +88,29 @@ for (const [w, h] of ANCHOS) for (const letra of ["small", "huge"]) {
       await abre(page, { settings: { textSize: letra } });
       const deudas = await abrePlan(page, "deudas");
       const res = deudas.getByTestId("debts-summary");
-      await expect(res).toContainText("Debes en total");
+      await expect(res).toContainText("Este mes pagas");
       const m = await res.evaluate((el) => {
         const r = (s) => el.querySelector(s).getBoundingClientRect();
         const probe = document.createElement("span"); probe.style.color = "var(--text)"; el.appendChild(probe);
         const texto = getComputedStyle(probe).color; probe.remove();
-        return { align: getComputedStyle(el).textAlign, etiqueta: r(".v4-micro").left, cifra: r(".plan-summary-amount").left,
-          linea: r(".plan-summary-sub").left, color: getComputedStyle(el.querySelector(".plan-summary-amount")).color, texto };
+        return { align: getComputedStyle(el).textAlign, etiqueta: r(".rpt-ht").left, cifra: r(".plan-summary-amount").left,
+          linea: r(".rpt-hs").left, color: getComputedStyle(el.querySelector(".plan-summary-amount")).color, texto };
       });
-      expect(m.align).toBe("left");
+      expect(m.align).toMatch(/^(left|start)$/);
       expect(Math.abs(m.etiqueta - m.cifra), "cifra alineada con la etiqueta").toBeLessThan(6);
       expect(Math.abs(m.etiqueta - m.linea)).toBeLessThan(2);
       expect(m.color).toBe(m.texto);
-      await expect(deudas.locator('[data-debt-id="mama"] .v4-debt-ico svg[data-ico="person"]')).toHaveCount(1);
-      await expect(deudas.locator('[data-debt-id="hipo"] .v4-debt-ico svg[data-ico="home"]')).toHaveCount(1);
-      for (const t of await deudas.locator(".v4-debt-amort").allTextContents()) expect(t).not.toMatch(EMOJI);
+      // Plan A: el icono por palabra vive en la ficha de la deuda, no en la fila.
+      await deudas.locator('[data-debt-id="mama"]').click();
+      await expect(page.getByTestId("plan-deuda-ficha").locator('svg[data-ico="person"]')).toHaveCount(1);
+      await page.getByTestId("plan-deuda-ficha").locator(".rpt-sx").click();
+      await deudas.locator('[data-debt-id="hipo"]').click();
+      await expect(page.getByTestId("plan-deuda-ficha").locator('svg[data-ico="home"]')).toHaveCount(1);
+      await page.getByTestId("plan-deuda-ficha").locator(".rpt-sx").click();
+      for (const t of await deudas.locator(".rpt-row").allTextContents()) expect(t).not.toMatch(EMOJI);
       await expect(deudas.getByText(/El saldo baja solo/)).toHaveCount(0);
-      expect(await cortes(deudas, ".v4-debt-name, .v4-debt-bal, .plan-summary-amount, .plan-summary-sub, .v4-debt-amort")).toEqual([]);
-      expect(await partidas(deudas, ".v4-debt-name, .v4-debt-bal, .plan-summary-amount, .v4-micro"), "palabras o cifras partidas").toEqual([]);
+      expect(await cortes(deudas, ".rpt-nm, .rpt-am, .plan-summary-amount, .rpt-hs, .rpt-sub")).toEqual([]);
+      expect(await partidas(deudas, ".rpt-nm, .rpt-am, .plan-summary-amount, .rpt-ht"), "palabras o cifras partidas").toEqual([]);
     });
 
     test(`Metas: resumen como Recibos, sin la aportación al bróker y sin «Empieza a ahorrar» — ${w} ${letra}`, async ({ page }) => {
@@ -113,14 +118,14 @@ for (const [w, h] of ANCHOS) for (const letra of ["small", "huge"]) {
       const metas = await abrePlan(page, "metas");
       const res = metas.getByTestId("goals-summary");
       await expect(res).toContainText("Ahorrado en metas");
-      expect(await res.evaluate((el) => getComputedStyle(el).textAlign)).toBe("left");
+      expect(await res.evaluate((el) => getComputedStyle(el).textAlign)).toMatch(/^(left|start)$/);
       // La aportación al bróker se mudó a Cartera › Inversiones (19/11): su fila vacía la mira ronda-f-plan.
       await expect(metas.locator("[data-savings-plan]")).toHaveCount(0);
-      await expect(metas.locator('[data-goal-id="g1"] .goal-eta')).toHaveCount(0);
-      await expect(metas.locator('[data-goal-id="g2"] .goal-eta')).toContainText("150");
+      await expect(metas.locator('[data-goal-id="g1"] .rpt-dot')).toHaveCount(0);
+      await expect(metas.locator('[data-goal-id="g2"] .rpt-sub')).toContainText("150");
       await expect(metas.getByText(/Empieza a ahorrar|Añade una para apartar/)).toHaveCount(0);
-      expect(await cortes(metas, ".plan-summary-amount, .plan-summary-sub, .v4-debt-name")).toEqual([]);
-      expect(await partidas(metas, ".plan-summary-amount, .v4-debt-name, .v4-micro")).toEqual([]);
+      expect(await cortes(metas, ".plan-summary-amount, .rpt-hs, .rpt-nm")).toEqual([]);
+      expect(await partidas(metas, ".plan-summary-amount, .rpt-nm, .rpt-ht")).toEqual([]);
     });
   });
 }

@@ -5,7 +5,7 @@ const original={id:'feedback',name:'Préstamo sintético',value:2000,monthly:200
 const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('micartera_v3')).debts);
 async function open(page,lang,debt=original){
  await page.clock.install({time:new Date('2026-10-18T12:00:00Z')});await seedLoggedInDashboard(page,{__seedOnce:true,debts:[debt],expenses:[],settings:{lang,autoPrices:false,theme:'green',reservaRules:[]}});
- await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:texts[lang].tab,exact:true}).click();await page.locator('[data-debt-id="feedback"] .plan-item-open').click();return page.getByRole('dialog',{name:texts[lang].edit,exact:true});
+ await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:texts[lang].tab,exact:true}).click();await page.locator('[data-debt-id="feedback"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();return page.getByRole('dialog',{name:texts[lang].edit,exact:true});
 }
 for(const lang of Object.keys(texts))test(`Guardar ${lang}: rechazo visible, segundo intento y corrección persistida`,async({page},info)=>{
  const sheet=await open(page,lang),t=texts[lang],before=await saved(page),button=sheet.getByRole('button',{name:t.save,exact:true});

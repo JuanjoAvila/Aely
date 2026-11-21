@@ -16,7 +16,7 @@ for(const row of cases)test.describe(row.zone,()=>{
   expect(await page.evaluate(d=>({left:debtLeft(d),balance:Math.round(debtBalance(d)*100)}),debt)).toEqual({left:12,balance:120000});
   // Esperado independiente y explícito: Madrid noviembre/octubre +12 y +7 meses, ambos en 2027.
   const end=copy[lang].months[row.madridMonth===10?1:0]+' 2027',short=copy[lang].months[row.madridMonth===10?3:2]+' 2027';
-  if(route==='lista')await expect(page.locator('[data-debt-id="madrid"] .v4-debt-foot')).toContainText(copy[lang].end+end);
+  if(route==='lista')await expect(page.locator('[data-debt-id="madrid"] .rpt-sub')).toContainText(new RegExp((row.madridMonth===10?'nov':'oct')+String.fromCharCode(92)+'s2027','i'));
   else{
    await page.getByText(copy[lang].advisor,{exact:false}).first().click();
    await expect(page.getByText(copy[lang].cut(short,end),{exact:false})).toBeVisible();

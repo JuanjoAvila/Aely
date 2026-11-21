@@ -34,7 +34,8 @@ test("el simulador ya no amortiza y «Amortizar ahora» sí, contando las cuotas
 
   // La puerta está en la ficha de la deuda (ronda 242), no en la tarjeta.
   await expect(page.locator('[data-debt-id="amz"]').getByRole("button",{name:/Amortizar/})).toHaveCount(0);
-  await page.locator('[data-debt-id="amz"]').getByRole("button",{name:/^Editar /}).click();
+  await page.locator('[data-debt-id="amz"]').click();
+  await page.locator('[data-act="ficha-editar"]').click();
   await page.getByRole("dialog",{name:"Editar deuda",exact:true}).getByRole("button",{name:/Amortizar ahora/}).click();
   const dlg=page.getByRole("dialog").filter({has:page.locator(".ask-in")});
   // Sin importe no se sabe cuántas cuotas quita: no se pinta nada.

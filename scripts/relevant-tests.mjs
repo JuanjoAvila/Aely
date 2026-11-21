@@ -68,6 +68,14 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Plan › barra de reparto, hoja «A dónde va tu sueldo», Deudas y Metas nuevas con ficha, escalera e interruptor
+  // «Restar del presupuesto» (motor en 17, pantallas en 18; las listas viven en 09 y la barra en 14).
+  { file: "src/modules/17-plan-reparto.js", specs: ["e2e/plan-reparto.spec.mjs"] },
+  { file: "src/modules/18-plan-deudas-metas.js", specs: ["e2e/plan-reparto.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-reparto.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-reparto.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-reparto.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-reparto.spec.mjs"] },
   // Informe del mes con vista previa y guardado de verdad (19/11/2026): la hoja vive en AskHost
   // (05), la imagen y el guardado en 02, la entrada en Ajustes (10) y en Inicio (03).
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/informe-vista-previa.spec.mjs", "e2e/informe-mes.spec.mjs"] },

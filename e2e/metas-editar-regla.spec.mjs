@@ -1,4 +1,12 @@
 import { test, expect } from "@playwright/test";
+// Plan A: lo ahorrado de la meta ya no va en la fila sino en su ficha (goal-saved).
+async function metaSaved(page,name,re){
+  await page.locator("[data-goal-id]").filter({hasText:name}).click();
+  const ficha=page.getByTestId("plan-meta-ficha");
+  await expect(ficha.getByTestId("goal-saved")).toHaveText(re);
+  await ficha.locator(".rpt-sx").click();
+  await expect(ficha).toHaveCount(0);
+}
 import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta } from "./fixtures.mjs";
 
 const textos={
@@ -93,8 +101,8 @@ for(const lang of Object.keys(textos)){
     expect(after.goals).toEqual(before.goals);
     expect(after.accounts).toEqual(before.accounts);
     expect(await expenseRaw(page)).toBe(expenses);
-    await expect(page.locator(".v4-goal-card").filter({hasText:"Meta A"}).locator(".v4-debt-sub")).toHaveText(/^100\s/);
-    await expect(page.locator(".v4-goal-card").filter({hasText:"Meta B"}).locator(".v4-debt-sub")).toHaveText(/^0\s/);
+    await metaSaved(page,"Meta A",/^100\s/);
+    await metaSaved(page,"Meta B",/^0\s/);
     // Gastos v5: sin gastos, el margen de la cabecera es el presupuesto que deja la reserva.
     await nav(page,"gastos"); await expect(page.locator('.page-scroll-host [data-testid="gastos-estado"]')).toContainText(/900 € (por debajo|under|per sota)/);
     await nav(page,"inicio"); await expect(page.locator(".v4-budget .ph")).toContainText("900");

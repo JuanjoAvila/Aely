@@ -5046,12 +5046,16 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // ingresos grandes que se decidieron aquí, para que ingest no tenga que adivinarlos (widget).
   const flows=period.cycle?null:nominaFlowsOf(state);
   const nominas=[], noNominas=[], traspasos=[];
+  // «Restar del presupuesto» (Plan › Deudas): la cuota de cada deuda con el interruptor puesto baja el límite
+  // y su cargo sin enlazar no cuenta además como gastado. Sin ningún interruptor, nada cambia.
+  const resDeu=reservaDeudasParaPresupuesto(state,startMs,period.cycle?period.cycle.start:null,nowMs);
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
     // El servidor no ve Plan ni el titular: se le dice qué filas son traspaso, como con las nóminas.
     if(!CAT_NEUTRAS[e.category]&&traspasoPropioDerivado(e,state)) traspasos.push(keyOfExpense(e));
+    if(resDeu.sinContar&&resDeu.sinContar.has(e)) return;
     const v=budgetRowSigned(e, state, period, delSet);
     if(v>0) spent+=v;
     else if(v<0){
@@ -5064,7 +5068,7 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
       }
     }
   });
-  const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
+  const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs)+resDeu.euros;
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).

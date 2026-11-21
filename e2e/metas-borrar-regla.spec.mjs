@@ -95,8 +95,8 @@ for(const lang of Object.keys(textos)) for(const mode of ["split","net"]){
     await metas(page,t);
     await page.getByRole("button",{name:t.apply,exact:true}).click();
     await expect(page.getByRole("button",{name:t.apply,exact:true})).toHaveCount(0);
-    await expect(page.locator(".v4-goal-card").filter({hasText:"Reserva A"})).toContainText("325");
-    await expect(page.locator(".v4-goal-card").filter({hasText:"Reserva B"})).toContainText("150");
+    await expect(page.locator("[data-goal-id]").filter({hasText:"Reserva A"})).toContainText("325");
+    await expect(page.locator("[data-goal-id]").filter({hasText:"Reserva B"})).toContainText("150");
     // La UI cambia antes del guardado diferido: el segundo cliente debe recibir dos reglas
     // realmente persistidas, no una captura vacía que depende del ritmo del runner.
     await expect.poll(async()=> (await disk(page)).settings.reservaRules.length).toBe(2);
@@ -142,7 +142,7 @@ for(const lang of Object.keys(textos)) for(const mode of ["split","net"]){
     await boot(second);
     await presupuesto(second,1000,mode);
     await metas(second,t);
-    await expect(second.locator(".v4-goal-card").filter({hasText:"Reserva A"})).toContainText("325");
+    await expect(second.locator("[data-goal-id]").filter({hasText:"Reserva A"})).toContainText("325");
     await expect(second.getByRole("button",{name:t.apply,exact:true})).toHaveCount(0);
     await expect(second.locator("[data-reserva-rule]")).toHaveCount(2);
     await erase(second,t,"Regla A");

@@ -16,20 +16,23 @@ async function openDebts(page){
   await page.locator(".v4-seg-btn").filter({hasText:/Deudas|Debts|Deutes/i}).click();
 }
 
+// El cierre de la deuda vive en su ficha (Plan A): tocar la fila y pulsar el botón principal.
+const abreCierre=async(fila)=>{ await fila.click(); await fila.page().locator('[data-act="ficha-cerrar-deuda"]').click(); };
+
 test("saldo proyectado cero pide confirmación; archivar conserva la cuota y permite volver a mostrar",async({page})=>{
   await seedLoggedInDashboard(page,{__seedOnce:true,debts:[debt],expenses:[expense]});
   await openDebts(page);
-  const cards=page.locator(".v4-debt-card");
+  const cards=page.locator("[data-debt-id]");
   await expect(cards).toHaveCount(1);
   await expect(cards.first()).toContainText("Saldo estimado: 0 €");
-  await cards.first().getByRole("button",{name:"Marcar liquidada"}).click();
+  await abreCierre(cards.first());
   await expect(page.getByRole("dialog")).toContainText("no crea pagos");
   await page.getByRole("dialog").getByRole("button",{name:"Cancelar"}).click();
   await expect(cards.first()).toContainText("Saldo estimado: 0 €");
-  await cards.first().getByRole("button",{name:"Marcar liquidada"}).click();
+  await abreCierre(cards.first());
   await page.getByRole("dialog").getByRole("button",{name:"Marcar liquidada"}).click();
   await expect(cards.first()).toContainText("Liquidada");
-  await cards.first().getByRole("button",{name:"Archivar deuda"}).click();
+  await abreCierre(cards.first());
   await expect(cards).toHaveCount(0);
   await expect(page.getByRole("button",{name:/Deudas archivadas \(1\)/})).toBeVisible();
   await page.getByRole("button",{name:/Deudas archivadas \(1\)/}).click();
@@ -61,13 +64,13 @@ test("la amortización total marca la deuda una vez y no crea un movimiento",asy
   await seedLoggedInDashboard(page,{debts:[live],expenses:[]});
   await openDebts(page);
   // «Amortizar ahora» vive en la ficha de la deuda (ronda 242).
-  await page.locator(".v4-debt-card").getByRole("button",{name:"Editar Préstamo ejemplo",exact:true}).click();
-  await page.getByRole("dialog",{name:"Editar deuda",exact:true}).getByRole("button",{name:/Amortizar/}).click();
+  await page.locator("[data-debt-id]").click();
+  await page.locator('[data-act="ficha-amortizar"]').click();
   const ask=page.getByRole("dialog").filter({has:page.locator(".ask-in")});
   await ask.locator(".ask-in").fill("80");
   await ask.getByRole("button",{name:/Amortizar/}).click();
   await expect(page.getByRole("dialog",{name:"Editar deuda",exact:true})).toHaveCount(0);
-  await expect(page.locator(".v4-debt-card")).toContainText("Liquidada");
+  await expect(page.locator("[data-debt-id]")).toContainText("Liquidada");
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).debts[0].settledAt)).toBeTruthy();
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));
   expect(saved.debts).toHaveLength(1);
@@ -79,17 +82,18 @@ test("la amortización total marca la deuda una vez y no crea un movimiento",asy
 test("una deuda con cuotas vinculadas no se puede borrar y conserva su nombre",async({page})=>{
   await seedLoggedInDashboard(page,{debts:[debt],expenses:[expense]});
   await openDebts(page);
-  await page.locator(".v4-debt-card").getByRole("button",{name:"Editar Préstamo ejemplo",exact:true}).click();
+  await page.locator("[data-debt-id]").click();
+  await page.locator('[data-act="ficha-editar"]').click();
   await page.getByRole("dialog",{name:"Editar deuda",exact:true}).getByRole("button",{name:"Eliminar esta deuda"}).click();
-  await expect(page.locator(".v4-debt-card")).toHaveCount(1);
-  await expect(page.locator(".v4-debt-card")).toContainText("Préstamo ejemplo");
+  await expect(page.locator("[data-debt-id]")).toHaveCount(1);
+  await expect(page.locator("[data-debt-id]")).toContainText("Préstamo ejemplo");
 });
 
 test("un saldo positivo corregido en otro dispositivo no queda oculto por el archivo",async({page})=>{
   await seedLoggedInDashboard(page,{debts:[Object.assign({},debt,{value:80,archivedAt:"2026-09-28T12:00:00Z",settledAt:"2026-09-28T12:00:00Z"})]});
   await openDebts(page);
-  await expect(page.locator(".v4-debt-card")).toHaveCount(1);
-  await expect(page.locator(".v4-debt-card")).toContainText("Préstamo ejemplo");
+  await expect(page.locator("[data-debt-id]")).toHaveCount(1);
+  await expect(page.locator("[data-debt-id]")).toContainText("Préstamo ejemplo");
   await expect(page.getByRole("button",{name:/Deudas archivadas/})).toHaveCount(0);
 });
 
@@ -99,9 +103,10 @@ for(const lang of [
 ]) test(`liquidación y archivo están traducidos (${lang.id})`,async({page})=>{
   await seedLoggedInDashboard(page,{debts:[debt],settings:{autoPrices:false,theme:"green",lang:lang.id}});
   await openDebts(page);
-  const card=page.locator(".v4-debt-card");
+  const card=page.locator("[data-debt-id]");
   await expect(card).toContainText(lang.estimated);
-  await card.getByRole("button",{name:lang.confirm}).click();
+  await abreCierre(card);
   await page.getByRole("dialog").getByRole("button",{name:lang.confirm}).click();
-  await expect(card.getByRole("button",{name:lang.archive})).toBeVisible();
+  await card.click();
+  await expect(page.locator('[data-act="ficha-cerrar-deuda"]')).toContainText(lang.archive);
 });

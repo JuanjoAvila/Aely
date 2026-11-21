@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {seedLoggedInDashboard,dismissNews} from "./fixtures.mjs";
+import { datosDeuda } from "./plan-ficha-helpers.mjs";
 const original={id:'extend',name:'Préstamo sintético',value:2000,monthly:200,amort:200,months:10,day:25,asOf:2026*12+5,original:2000,apr:0,paidYm:[24320],unknown:{keep:7}};
 const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem('micartera_v3')));
 const copy={es:{tab:'Deudas',edit:'Editar deuda',save:'Guardar cambios',action:'Alargar el plazo a 16 meses',error:'El plazo y la cuota no encajan',unknown:'No se puede calcular un plazo con esta TAE'},en:{tab:'Debts',edit:'Edit debt',save:'Save changes',action:'Extend the term to 16 months',error:'The term and payment do not match',unknown:'A term cannot be calculated with this APR'},ca:{tab:'Deutes',edit:'Edita el deute',save:'Desa els canvis',action:'Allarga el termini a 16 mesos',error:'El termini i la quota no encaixen',unknown:'No es pot calcular un termini amb aquesta TAE'}};
@@ -7,7 +8,7 @@ async function open(page,lang,debt=original){
  await page.clock.install({time:new Date('2026-10-19T12:00:00Z')});
  await seedLoggedInDashboard(page,{__seedOnce:true,debts:[debt],expenses:[{id:'linked-history',date:'2026-09-25',amount:200,account:'sabadell',category:'debt',debtId:'extend',reciboId:'historical-receipt',paymentProof:{version:2,keep:'synthetic'}}],settings:{lang,autoPrices:false,theme:'green',reservaRules:[]}});
  await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
- await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:copy[lang].tab,exact:true}).click();await page.locator('[data-debt-id="extend"] .plan-item-open').click();return page.getByRole('dialog',{name:copy[lang].edit,exact:true});
+ await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:copy[lang].tab,exact:true}).click();await page.locator('[data-debt-id="extend"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();return page.getByRole('dialog',{name:copy[lang].edit,exact:true});
 }
 const links=page=>page.evaluate(()=>localStorage.getItem('micartera_v3_exp'));
 for(const lang of Object.keys(copy))test(`Bajar cuota ${lang}: ofrece alargar, conserva borrador hasta elegir y guarda plazo explícito`,async({page},info)=>{
@@ -23,7 +24,7 @@ for(const lang of Object.keys(copy))test(`Bajar cuota ${lang}: ofrece alargar, c
  await expect.poll(async()=>(await saved(page)).debts).toEqual([expected]);
  expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),paid:debtPaidCount(d),left:debtLeft(d)}),expected)).toEqual({balance:120000,paid:4,left:12});
  expect(await links(page)).toBe(history);for(const key of ['accounts','fixed','flows','oneoffs','goals'])expect((await saved(page))[key]).toEqual(before[key]);
- await expect(page.locator('[data-debt-id="extend"]')).toContainText('12/16');
+ expect(await datosDeuda(page,page.locator('[data-debt-id="extend"]'))).toMatch(/12\s*(\/|de|of)\s*16/);
  await page.screenshot({path:info.outputPath('despues-guardado.png')});
  await page.reload();await page.waitForFunction(()=>!document.getElementById('mc-load'));expect((await saved(page)).debts).toEqual([expected]);expect(await links(page)).toBe(history);
 });
