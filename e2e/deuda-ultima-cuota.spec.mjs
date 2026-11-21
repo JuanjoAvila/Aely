@@ -35,5 +35,5 @@ test("Deudas: pasado el plazo no queda nada pendiente", async ({ page }) => {
   const deuda = await page.evaluate(() => { const d = mcLoadRaw(mcStateKey()).debts[0]; return { saldo: debtBalance(d), pagadas: debtPaidCount(d) }; });
   expect(deuda).toEqual({ saldo: 0, pagadas: 12 });
   await page.locator(".v4-seg-btn").filter({ hasText: /Deudas|Debts|Deutes/i }).click();
-  await expect(page.locator(".v4-debt-card").filter({ hasText: "Tele a plazos" })).not.toContainText("0,03");
+  await expect(page.locator("[data-debt-id]").filter({ hasText: "Tele a plazos" })).not.toContainText("0,03");
 });

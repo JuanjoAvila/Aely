@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { datosDeuda } from "./plan-ficha-helpers.mjs";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 /* LA FECHA DE FIN DE UNA DEUDA SIN PLAZO SE CUENTA EN CÉNTIMOS (revisión 237). 72,45 € pendientes con
@@ -22,7 +23,7 @@ test("Deudas: 72,45 con cuota de 10,35 acaba en junio, 7 de 10 cuotas", async ({
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await page.locator(".v4-seg-btn").filter({ hasText: /Deudas|Debts|Deutes/i }).click();
-  const tarjeta = page.locator(".v4-debt-card").filter({ hasText: "Préstamo familiar" });
-  await expect(tarjeta.locator(".plan-debt-details")).toContainText("Quedan 7/10 cuotas");
+  const tarjeta = page.locator("[data-debt-id]").filter({ hasText: "Préstamo familiar" });
+  expect(await datosDeuda(page,tarjeta)).toMatch(/7\D+10/);
   await expect(tarjeta.locator(".v4-debt-foot")).toContainText(/acabas en junio 2027/i);
 });

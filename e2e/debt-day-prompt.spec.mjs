@@ -1,4 +1,5 @@
 import {test,expect} from "@playwright/test";
+import { datosDeuda } from "./plan-ficha-helpers.mjs";
 import {seedLoggedInDashboard,dismissNews,esperaNubeQuieta} from "./fixtures.mjs";
 
 const YM=2026*12+9;
@@ -42,7 +43,7 @@ for(const lang of Object.keys(copy))for(const entry of ["plan","debts"]){
     for(const id of ["missing","null","zero"]){
       const before=await financial(page),beforeRows=await saved(page);
       const button=prompt(page,id);await expect(button).toHaveText(copy[lang].prompt);
-      if(entry==="debts")await expect(page.locator('[data-debt-id="'+id+'"] .plan-debt-details')).not.toContainText(/día 1|day 1|dia 1/i);
+      if(entry==="debts")expect(await datosDeuda(page,page.locator('[data-debt-id="'+id+'"]'))).not.toMatch(/día 1\b|day 1\b|dia 1\b/i);
       await expect(button).toHaveAccessibleName("Deuda sintética "+id+" · "+copy[lang].prompt);
       if(lang==="es"&&id==="missing")await page.screenshot({path:test.info().outputPath(entry+"-sin-dia.png")});
       await button.focus();await button.press("Enter");
@@ -79,7 +80,7 @@ test("día vacío, cero y 32 no guardan; la edición normal conserva su borrador
   const dialog=sheet(page),input=dialog.locator('[data-debt-field="day"]');
   for(const value of ["","0","32"]){await input.fill(value);await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(dialog.getByRole("alert")).toBeVisible();expect(await financial(page)).toEqual(before);}
   await dialog.getByRole("button",{name:copy.es.cancel,exact:true}).click();await expect(dialog).toHaveCount(0);
-  await page.locator('[data-debt-id="missing"] .plan-item-open').click();await expect(input).toHaveValue("1");
+  await page.locator('[data-debt-id="missing"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await expect(input).toHaveValue("1");
   await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(dialog).toHaveCount(0);
   expect(await financial(page)).toEqual(before);
 });

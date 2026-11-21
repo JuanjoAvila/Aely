@@ -29,7 +29,7 @@ for(const retry of ['reconnect','edit','pending-edit','expense-edit'])test('B3 i
   localStorage.setItem('micartera_v3',JSON.stringify(local));localStorage.setItem('_seenVersion','dev');['dash','metas','gastos','fijos','inv'].forEach(k=>localStorage.setItem('_coach_'+k,'1'));
  },{local,owner});
  const page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));
- const edit=async()=>{await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();await page.locator('[data-debt-id="d"] .plan-item-open').click();const dialog=page.getByRole('dialog',{name:'Editar deuda',exact:true});await dialog.locator('[data-debt-field="day"]').fill('30');await dialog.getByRole('button',{name:'Guardar cambios',exact:true}).click();await expect(dialog).toHaveCount(0);};
+ const edit=async()=>{await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();await page.locator('[data-debt-id="d"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();const dialog=page.getByRole('dialog',{name:'Editar deuda',exact:true});await dialog.locator('[data-debt-field="day"]').fill('30');await dialog.getByRole('button',{name:'Guardar cambios',exact:true}).click();await expect(dialog).toHaveCount(0);};
  try{
   await page.goto(baseURL+'/');await page.waitForFunction(()=>typeof loadState==='function'&&!document.getElementById('mc-load'));
   if(retry==='expense-edit'){await expect.poll(()=>page.evaluate(()=>window.__planNotices)).toBe(1);await expect.poll(()=>typeof releaseExpenses).toBe('function');await edit();await page.waitForTimeout(1500);expect(writes).toHaveLength(0);expect(gets).toBe(1);recover=true;releaseExpenses();}

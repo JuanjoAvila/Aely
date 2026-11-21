@@ -15,7 +15,7 @@ async function open(page){
  await seedLoggedInDashboard(page,{__seedOnce:true,debts:[debt],expenses:[],settings:{lang:'es',autoPrices:false,theme:'green',reservaRules:[]}});
  await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
  await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();
- await page.locator('[data-debt-id="inc1810"] .plan-item-open').click();await expect(sheet(page)).toBeVisible();
+ await page.locator('[data-debt-id="inc1810"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await expect(sheet(page)).toBeVisible();
 }
 async function reload(page,expected){
  await page.reload();await page.waitForFunction(()=>!document.getElementById('mc-load'));
@@ -75,7 +75,7 @@ test('INC1810: teclear la cuota de un préstamo no ligado no arrastra lo que baj
  await seedLoggedInDashboard(page,{__seedOnce:true,debts:[libre],expenses:[],settings:{lang:'es',autoPrices:false,theme:'green',reservaRules:[]}});
  await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
  await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();
- await page.locator('[data-debt-id="rv214"] .plan-item-open').click();await expect(sheet(page)).toBeVisible();
+ await page.locator('[data-debt-id="rv214"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await expect(sheet(page)).toBeVisible();
  const q=sheet(page).locator('[data-debt-field="monthly"]'),a=sheet(page).locator('[data-debt-field="amort"]');
  await expect(a).toHaveValue('250');
  await q.fill('');await q.pressSequentially('250');await q.press('Backspace');await q.pressSequentially('5');
@@ -93,7 +93,7 @@ test('INC1810: cuota con tres decimales y sin bajada propia abre ligada y la baj
  await seedLoggedInDashboard(page,{__seedOnce:true,debts:[fina],expenses:[],settings:{lang:'es',autoPrices:false,theme:'green',reservaRules:[]}});
  await page.goto('/');await page.waitForFunction(()=>!document.getElementById('mc-load'));await dismissNews(page);
  await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();
- await page.locator('[data-debt-id="rv214b"] .plan-item-open').click();await expect(sheet(page)).toBeVisible();
+ await page.locator('[data-debt-id="rv214b"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await expect(sheet(page)).toBeVisible();
  const q=sheet(page).locator('[data-debt-field="monthly"]'),a=sheet(page).locator('[data-debt-field="amort"]');
  await expect(a).toHaveValue('197.33');
  await q.fill('');await q.pressSequentially('210');

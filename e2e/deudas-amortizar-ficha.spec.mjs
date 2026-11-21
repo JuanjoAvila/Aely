@@ -31,9 +31,9 @@ async function abreFicha(page,id){
 test("la tarjeta ya no lleva Amortizar; la ficha sí, y amortizar baja el saldo y la cierra",async({page})=>{
   await seedLoggedInDashboard(page,{__seedOnce:true,debts:[viva],expenses:[]});
   await abreDeudas(page);
-  await expect(page.locator(".v4-debt-card")).toHaveCount(1);
-  await expect(page.locator(".v4-debt-card").getByRole("button",{name:/Amortizar/})).toHaveCount(0);
-  await expect(page.locator(".v4-debt-card .v4-debt-amort")).toHaveCount(0);
+  await expect(page.locator("[data-debt-id]")).toHaveCount(1);
+  await expect(page.locator("[data-debt-id]").getByRole("button",{name:/Amortizar/})).toHaveCount(0);
+  await expect(page.locator("[data-debt-id] .v4-debt-amort")).toHaveCount(0);
   const antes=await saldo(page,"amf");
 
   await abreFicha(page,"amf");

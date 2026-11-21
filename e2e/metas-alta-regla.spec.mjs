@@ -81,12 +81,12 @@ const disco=(page)=>page.evaluate(()=>{
     exp:JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]").map(e=>[e.id,e.amount])};
 });
 const fila=(page,name)=>page.locator("[data-reserva-rule]").filter({hasText:name});
-const tarjetaEditable=(page,nombre)=>page.locator(".v4-goal-card").filter({hasText:nombre});
+const tarjetaEditable=(page,nombre)=>page.locator("[data-goal-id]").filter({hasText:nombre});
 // Con la regla en una hoja modal, la otra escritura llega por el set real de Goals (como la
 // nube), sin cambiar localStorage por detrás ni debilitar los oráculos de carreras anteriores.
 async function cambiarMeta(page,nombre,saved){
   await page.evaluate(({nombre,saved})=>{
-    const card=[...document.querySelectorAll('.v4-goal-card')].find(c=>c.textContent.includes(nombre));
+    const card=[...document.querySelectorAll('[data-goal-id]')].find(c=>c.textContent.includes(nombre));
     let fiber=card[Object.keys(card).find(k=>k.startsWith('__reactFiber$'))];
     while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.state&&fiber.memoizedProps.set))fiber=fiber.return;
     if(!fiber)throw Error('No se encontró el set real de Goals');
@@ -98,7 +98,7 @@ async function eliminarMeta(page,t,nombre){
   await expect(card).toContainText(nombre);
   if(await page.locator('.add-form').count()) await cambiarMeta(page,nombre);
   else{
-    await card.locator('.plan-item-open').click();
+    await card.click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
     await page.locator('.plan-edit-sheet').getByRole('button',{name:t.eliminar,exact:true}).click();
     await page.locator('.askback').getByRole('button',{name:t.eliminar,exact:true}).click();
   }
@@ -254,11 +254,11 @@ for(const lang of Object.keys(textos)){
     const orden=await page.evaluate(([eliminar,guardar])=>{
       window.__volcados.length=0;
       const boton=(txt)=>[...document.querySelectorAll("button")].find(b=>b.textContent.trim()===txt);
-      const tarjeta=[...document.querySelectorAll(".v4-goal-card")].find(c=>c.textContent.includes("Reserva B"));
+      const tarjeta=[...document.querySelectorAll("[data-goal-id]")].find(c=>c.textContent.includes("Reserva B"));
       let fiber=tarjeta[Object.keys(tarjeta).find(k=>k.startsWith("__reactFiber$"))];
       while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.state&&fiber.memoizedProps.set))fiber=fiber.return;
       fiber.memoizedProps.set(s=>({...s,goals:s.goals.filter(g=>g.name!=="Reserva B")}));
-      const sigueEnPantalla=[...document.querySelectorAll(".v4-goal-card")].some(c=>c.textContent.includes("Reserva B"));
+      const sigueEnPantalla=[...document.querySelectorAll("[data-goal-id]")].some(c=>c.textContent.includes("Reserva B"));
       boton(guardar).click();
       return {sigueEnPantalla};
     },[t.eliminar,t.save]);
@@ -287,7 +287,7 @@ for(const lang of Object.keys(textos)){
     await abrirMetas(page,t);
     await expect(page.locator("[data-reserva-rule]")).toHaveCount(1);
     await expect(fila(page,"Carrera")).toHaveCount(0);
-    await expect(page.locator(".v4-goal-card")).toHaveCount(1);
+    await expect(page.locator("[data-goal-id]")).toHaveCount(1);
     expect((await disco(page)).reglas).toEqual(antes.reglas);
   });
 
@@ -317,7 +317,7 @@ for(const lang of Object.keys(textos)){
     await form.locator("input").last().fill("100");
     await form.locator("select").last().selectOption("g2");
     await page.evaluate(([eliminar,guardar])=>{
-      const tarjeta=[...document.querySelectorAll(".v4-goal-card")].find(c=>c.textContent.includes("Reserva B"));
+      const tarjeta=[...document.querySelectorAll("[data-goal-id]")].find(c=>c.textContent.includes("Reserva B"));
       let fiber=tarjeta[Object.keys(tarjeta).find(k=>k.startsWith("__reactFiber$"))];
       while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.state&&fiber.memoizedProps.set))fiber=fiber.return;
       window.__hold=true;

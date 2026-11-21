@@ -98,7 +98,7 @@ test("en el recibo compartido: la parte se ve tecleable y al guardar se pregunta
 async function editarDeuda(page, debt) {
   await abrePlan(page, { fixed: [], debts: [debt] });
   await page.locator(".v4-seg-btn").filter({ hasText: "Deudas" }).click();
-  await page.locator('[data-debt-id="' + debt.id + '"] .plan-item-open').click();
+  await page.locator('[data-debt-id="' + debt.id + '"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
   return page.getByRole("dialog", { name: "Editar deuda", exact: true });
 }
 

@@ -13,7 +13,7 @@ async function open(page,{lang="es",fixed=[bill]}={}){
   await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await page.locator('.v4-seg-btn').filter({hasText:lang==="en"?"Debts":lang==="ca"?"Deutes":"Deudas"}).click();
-  await page.locator('[data-debt-id="fam"] .plan-item-open').click();return page.locator(".plan-edit-sheet");
+  await page.locator('[data-debt-id="fam"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();return page.locator(".plan-edit-sheet");
 }
 const snapshot=page=>page.evaluate(()=>({state:mcLoadRaw(mcStateKey()),raw:localStorage.getItem(mcStateKey())}));
 for(const [name,options] of [["activa es",{}],["pausada en",{lang:"en",fixed:[{...bill,pausedFrom:YM,pausedUntil:YM+2}]}],["futura ca",{lang:"ca",fixed:[{...bill,freq:"anual",months:[12]}]}]]){
@@ -39,6 +39,6 @@ test("TAE tras quitar descuento desde persona conserva histórico pagado",async(
   const removed=(await snapshot(page)).state;expect(removed.fixed[0].reparto[0].via).toBe("bizum");
   expect(removed.fixed[0].soloMes[YM].reparto).toEqual([share]);
   const manage=page.locator('[data-bills-manage]');await expect(manage).toHaveAttribute("data-screen","bills-home");await manage.locator('[data-act="back"]').click();await expect(manage).toHaveCount(0);
-  await page.locator('.v4-seg-btn').filter({hasText:"Deudas"}).click();await page.locator('[data-debt-id="fam"] .plan-item-open').click();await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator("button.btn-primary.btn-block").click();await expect(sheet).toHaveCount(0);
+  await page.locator('.v4-seg-btn').filter({hasText:"Deudas"}).click();await page.locator('[data-debt-id="fam"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator("button.btn-primary.btn-block").click();await expect(sheet).toHaveCount(0);
   await expect.poll(async()=>(await snapshot(page)).state.debts[0].apr).toBe(2.5);expect((await snapshot(page)).state.fixed).toEqual(removed.fixed);
 });

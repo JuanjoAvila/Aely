@@ -219,11 +219,11 @@ function rptFinTexto(finAbs,n){
   if(finAbs==null) return "";
   return n===1?tf("rpt_d_ultima",{m:rptMes(finAbs)}):n!=null&&n<=3?tf("rpt_d_quedan",{n:n,m:rptMes(finAbs)}):tf("rpt_d_acaba",{m:rptMes(finAbs)});
 }
-function RptFila({id,l,nombre,sub,subCls,am,amCls,onClick,attrs}){
+function RptFila({id,l,nombre,punto,sub,subCls,subTest,am,amCls,onClick,attrs}){
   return React.createElement("button",Object.assign({type:"button",className:"rpt-row","aria-label":nombre,onClick:onClick},attrs||{}),
     React.createElement("span",{className:"rpt-l"},l),
-    React.createElement("span",{className:"rpt-nm"},nombre),
-    React.createElement("span",{className:"rpt-sub "+(subCls||"")},sub),
+    React.createElement("span",{className:"rpt-nm"},nombre,punto||null),
+    React.createElement("span",{className:"rpt-sub "+(subCls||""),"data-testid":subTest||undefined},sub),
     React.createElement("span",{className:"rpt-am "+(amCls||"")},am));
 }
 const rptDia=function(d,m){ return [React.createElement("div",{className:"rpt-d",key:"d"},d),React.createElement("div",{className:"rpt-m",key:"m"},m)]; };
@@ -290,14 +290,15 @@ function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShow
   const fila=function(d,tipo){
     const day=cleanDay(dayOf(d)), li=debtLeftInfo(d), fin=finDe(d.id), x=porId[d.id];
     const desc=d.monthly>0?deudaDescuentoMes(state,d,hoy.y,hoy.m,hoy.d):null;
-    let sub, subCls="", l, amCls=tipo==="hecha"?"q":"";
-    if(day==null&&tipo!=="otra"){ sub=t("rpt_d_falta_dia"); subCls="go"; }
-    else if(desc&&desc.amt>0) sub=tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(desc.amt),from:desc.from.join(", ")});
+    let sub, subCls="", subTest, l, amCls=tipo==="hecha"?"q":"";
+    if(day==null&&tipo!=="otra"&&tipo!=="cero"){ sub=t("rpt_d_falta_dia"); subCls="go"; }
+    else if(desc&&desc.amt>0){ sub=tf("pr6_pagas_mas",{a:eur(d.monthly),b:eur(desc.amt),from:desc.from.join(", ")}); subTest="debt-descuento"; }
+    else if(tipo==="cero") sub=t(d.settledAt?"db_settled":"db_est_zero");
     else sub=tipo==="hecha"?(day?tf("rpt_d_dia_acaba",{d:day,m:fin!=null?rptMes(fin):"—"}):rptFinTexto(fin,li&&li.n)):(fin!=null?rptFinTexto(fin,li&&li.n):(li?tf("db_left_count",{n:li.n,tot:li.tot}):""));
     if(tipo==="hecha") l=React.createElement("div",{style:{display:"grid",placeItems:"center",color:"var(--mint-ink,var(--mint))"}},rptIcon("check",22));
     else l=rptDia(day==null?"—":String(day).padStart(2,"0"),day==null?t("rpt_d_dia"):monthShort(hoy.m-1).toLowerCase());
     const importe=x?x.c:repCts(d.monthly);
-    return React.createElement(RptFila,{key:d.id,nombre:d.name,l:l,sub:sub,subCls:subCls,am:rptC(importe),amCls:amCls,onClick:function(){ h.abrir(d); },attrs:{"data-debt-id":d.id,"data-act":"debt-open"}});
+    return React.createElement(RptFila,{key:d.id,nombre:d.name,punto:React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}),l:l,sub:sub,subCls:subCls,subTest:subTest,am:rptC(importe),amCls:amCls,onClick:function(){ h.abrir(d); },attrs:{"data-debt-id":d.id,"data-act":"debt-open"}});
   };
   const seccion=function(titulo,lista,tipo,id){ return lista.length>0&&React.createElement("section",{className:"rpt-sec","data-sec":id,key:id},
     React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,titulo)),React.createElement("div",{className:"rpt-list"},lista.map(function(d){ return fila(d,tipo); }))); };

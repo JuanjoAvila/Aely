@@ -42,16 +42,16 @@ const debts = [
 
 test("Plan › Deudas: se pinta una tarjeta por deuda, con su nombre", async ({ page }) => {
   await abrirPlan(page, /Deudas|Debts|Deutes/i, { debts });
-  const cards = page.locator(".v4-debt-card");
+  const cards = page.locator("[data-debt-id]");
   await expect(cards).toHaveCount(2);
   await expect(cards.nth(0)).toContainText("Coche");
   await expect(cards.nth(1)).toContainText("Préstamo estudios");
-  await expect(cards.nth(0).getByRole("button",{name:"Editar Coche",exact:true})).toBeVisible();
+  await expect(cards.nth(0)).toBeVisible();
 });
 
 test("Plan › Deudas: sin deudas no quedan tarjetas fantasma", async ({ page }) => {
   await abrirPlan(page, /Deudas|Debts|Deutes/i, { debts: [] });
-  await expect(page.locator(".v4-debt-card")).toHaveCount(0);
+  await expect(page.locator("[data-debt-id]")).toHaveCount(0);
 });
 
 /* ---------------- Metas ---------------- */
@@ -62,16 +62,18 @@ const goals = [
 
 test("Metas: una tarjeta por meta, con lo ahorrado y el objetivo", async ({ page }) => {
   await abrirPlan(page, /Metas|Goals|Fites/i, { goals });
-  const cards = page.locator(".v4-goal-card");
+  const cards = page.locator("[data-goal-id]");
   await expect(cards).toHaveCount(2);
   await expect(cards.nth(0)).toContainText("Viaje a Japón");
   // El «X de Y» y el % son lo que de verdad mira el usuario: si el .map se rompe o el cálculo
   // deriva, aquí sale otra cosa (1500/4000 = 38 %).
   await expect(cards.nth(0)).toContainText("1.500 €");
-  await expect(cards.nth(0)).toContainText("4.000 €");
   await expect(cards.nth(0)).toContainText("38%");
   await expect(cards.nth(1)).toContainText("Colchón");
-  await expect(cards.nth(0).getByRole("button",{name:"Editar Viaje a Japón",exact:true})).toBeVisible();
+  await expect(cards.nth(0)).toBeVisible();
+  await cards.nth(0).click();
+  await expect(page.getByTestId("plan-meta-ficha")).toContainText("4.000 €");
+  await page.locator(".rpt-sheet .rpt-sx").click();
 });
 
 // El resumen no debe recortar el estado ni ocupar el hueco de una meta activa con una terminada.
@@ -90,8 +92,8 @@ for (const lang of ["es", "en", "ca"]) {
       // «Ver todo ›» es el mismo texto en cada sección de Inicio: el de las metas, en su sección.
       const zona=count? inicio.locator(".v4-section").filter({has:page.locator(".v4-goal")}) : inicio;
       await zona.getByRole("button",{name:link}).click();
-      await expect(paginaActiva(page).locator(".v4-goal-card")).toHaveCount(todas.length);
-      for(const g of todas) await expect(paginaActiva(page).locator(".v4-goal-card").filter({hasText:g.name}).first()).toBeVisible();
+      await expect(paginaActiva(page).locator("[data-goal-id]")).toHaveCount(todas.length);
+      for(const g of todas) await expect(paginaActiva(page).locator("[data-goal-id]").filter({hasText:g.name}).first()).toBeVisible();
       const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).goals);
       expect(saved).toEqual(todas);
     });
