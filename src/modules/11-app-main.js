@@ -1786,19 +1786,19 @@ function App(){
     // llegaba al instalador (feedback 2026-07-17 — padre/pareja tocaban la noti y no pasaba).
     if(g==="update|apk"){
       const nat=natPlugin();
-      const run=function(url){
+      const run=function(apk){
         // Igual que en el pill: una noti que al tocarla no hace nada ni dice nada es indistinguible
         // de una noti rota (2026-07-26).
         if(!nat){ showToast(t("apk_why_noapp")); return; }
         if(!nat.installApk){ showToast(t("apk_why_oldapk")); return; }
-        if(!url){ showToast(window._mcApkWhy||t("st_up_ok")); return; }
+        if(!apk||!apk.url){ showToast(window._mcApkWhy||t("st_up_ok")); return; }
         showToast(t("apk_downloading"));
-        nat.installApk({url:url}).then(function(r){
+        nat.installApk(mcApkArgs(apk)).then(function(r){
           if(r&&r.needsPermission) showToast(t("apk_perm"));
         }).catch(function(e){ showToast(errTxt(e)); });
       };
       if(window._mcApkUpdate&&window._mcApkUpdate.url){
-        run(window._mcApkUpdate.url);
+        run(window._mcApkUpdate);
         return;
       }
       // Frío: la noti abre la app antes de que el chequeo de apk.json acabe.

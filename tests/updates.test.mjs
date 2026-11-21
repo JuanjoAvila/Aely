@@ -180,7 +180,7 @@ assert.ok(desdeApk > 0 && hastaApk > desdeApk, "no se encontró _mcCheckApkUpdat
 const fuenteApk = html.slice(desdeApk, hastaApk);
 
 function sandboxApk({ canal = "stable", instalada = 34, manifiestos = {} } = {}) {
-  const llamadas = { install: [], toast: [], evento: [] };
+  const llamadas = { install: [], sha: [], toast: [], evento: [] };
   const responder = (url) => {
     const clave = Object.keys(manifiestos).find((k) => url.indexOf(k) >= 0);
     return manifiestos[clave] || { status: 404, body: "" };
@@ -192,6 +192,8 @@ function sandboxApk({ canal = "stable", instalada = 34, manifiestos = {} } = {})
     tf: (k, v) => k + " " + JSON.stringify(v),
     cloud: { logEvent: () => {} },
     mcChannel: () => canal,
+    // La de verdad: vive en el bloque de canal, antes del trozo que se ejecuta aquí.
+    mcApkArgs: sandboxCanal().sandbox.mcApkArgs,
     mcFetchManifest: (name) => {
       const usaBeta = canal === "beta" && responder("releases/download/beta/" + name).status === 200;
       const r = usaBeta ? responder("releases/download/beta/" + name) : responder("github.io/" + name);
@@ -205,7 +207,7 @@ function sandboxApk({ canal = "stable", instalada = 34, manifiestos = {} } = {})
         Plugins: {
           MiCartera: {
             appInfo: () => Promise.resolve(instalada == null ? {} : { versionName: "4.12.0", versionCode: instalada }),
-            installApk: ({ url }) => { llamadas.install.push(url); return Promise.resolve({ ok: true }); },
+            installApk: ({ url, sha256 }) => { llamadas.install.push(url); llamadas.sha.push(sha256); return Promise.resolve({ ok: true }); },
           },
         },
       },
@@ -237,13 +239,15 @@ await ta("con apk.json en la beta, la 35 sí se ofrece", async () => {
     canal: "beta",
     instalada: 34,
     manifiestos: {
-      "releases/download/beta/apk.json": { status: 200, body: '{"versionCode":35,"versionName":"4.12.0","url":"https://x/beta35.apk"}' },
+      "releases/download/beta/apk.json": { status: 200, body: '{"versionCode":35,"versionName":"4.12.0","url":"https://x/beta35.apk","sha256":"' + "f".repeat(64) + '"}' },
       "github.io/apk.json": { status: 200, body: '{"versionCode":34,"versionName":"4.11.0","url":"y"}' },
     },
   });
   const hay = await sandbox.window._mcCheckApkUpdate({ manual: true, showToast });
   assert.equal(hay, true);
   assert.deepEqual(llamadas.install, ["https://x/beta35.apk"], "la beta instala la APK de la beta, no la de producción");
+  assert.deepEqual(llamadas.sha, ["f".repeat(64)], "y con el sha256 de SU apk.json, para que la APK compruebe el fichero");
+  assert.equal(llamadas.evento[0].sha256, "f".repeat(64), "el pill y la noti instalan desde este aviso: también lo llevan");
   assert.match(sandbox.window._mcApkWhy, /"ch":"apk_ch_beta"/);
 });
 
@@ -343,20 +347,144 @@ t("OTA: los dos chequeos leen el manifiesto con mcManifestJson (que guarda el ca
   assert.equal(html.indexOf(".then(function(r){ return r.json(); })"), -1);
 });
 
-t("OTA: las dos descargas del bundle pasan por mcBundleOpts", () => {
-  // Una tercera descarga a mano se saltaría el checksum sin que nada lo dijera.
-  const descargas = html.match(/up\.download\([^\n;]*/g) || [];
+t("OTA: las dos descargas del bundle pasan por mcOtaOpts", () => {
+  // Una tercera descarga a mano se saltaría el checksum y la firma sin que nada lo dijera.
+  const descargas = html.match(/[^\n;]*up\.download\([^\n;]*/g) || [];
   assert.ok(descargas.length >= 2, "no se encontraron las descargas del bundle");
-  for (const d of descargas) assert.ok(d.startsWith("up.download(mcBundleOpts(v))"), d);
+  for (const d of descargas) assert.ok(d.includes("mcOtaOpts(v).then(function(o){ return up.download(o)"), d);
+});
+
+/* ---------- SEG-01, ronda C2: la firma del OTA (21/11/2026) ----------
+   La APK con clave pública lo dice en `appInfo().otaKeyId`. Con clave se manda la firma y
+   `sessionKey` (sin él, el actualizador da por bueno un checksum en claro); sin clave, lo de siempre. */
+function sandboxFirma({ keyId, appInfo } = {}) {
+  const c = sandboxCanal();
+  c.sandbox.t = (k) => k;
+  c.sandbox.window.Capacitor = { Plugins: { MiCartera: {
+    appInfo: appInfo || (() => Promise.resolve(keyId == null ? { versionCode: 64 } : { versionCode: 65, otaKeyId: keyId })),
+  } } };
+  return c;
+}
+const SUMA = "d".repeat(64), FIRMA = "ab".repeat(256);
+
+await ta("OTA firma: una APK sin clave (64) sigue con el checksum en claro aunque el manifiesto vaya firmado", async () => {
+  const { sandbox } = sandboxFirma();
+  const o = await sandbox.mcOtaOpts({ version: "4.27.0", checksum: SUMA, signature: FIRMA, keyId: "MIIB" });
+  assert.equal(o.checksum, SUMA, "la 64 no sabe abrir la firma: con ella se quedaría sin actualizaciones");
+  assert.equal("sessionKey" in o, false);
+  // Y sin la app nativa (web) o si appInfo falla, igual.
+  const web = sandboxCanal(); web.sandbox.t = (k) => k;
+  assert.equal((await web.sandbox.mcOtaOpts({ version: "4.27.0", checksum: SUMA })).checksum, SUMA);
+  const rota = sandboxFirma({ appInfo: () => Promise.reject(new Error("puente")) });
+  assert.equal((await rota.sandbox.mcOtaOpts({ version: "4.27.0", checksum: SUMA, signature: FIRMA })).checksum, SUMA);
+});
+
+await ta("OTA firma: una APK con clave manda la firma y sessionKey sin «:»", async () => {
+  const { sandbox } = sandboxFirma({ keyId: "MIIBCgKCAQEA3/1VToEJ" });
+  const o = await sandbox.mcOtaOpts({ version: "4.27.0", checksum: SUMA, signature: " " + FIRMA.toUpperCase() + " " });
+  assert.equal(o.checksum, FIRMA, "al actualizador le llega la firma, no el SHA-256 en claro");
+  assert.ok(o.sessionKey && o.sessionKey.indexOf(":") < 0, "con «:» el actualizador intentaría descifrar el zip");
+  assert.equal(o.url, "https://juanjoavila.github.io/Aely/bundle.zip?v=4.27.0");
+});
+
+await ta("OTA firma: con clave y sin firma válida NO se descarga", async () => {
+  const { sandbox } = sandboxFirma({ keyId: "MIIBCgKCAQEA3/1VToEJ" });
+  for (const v of [{ version: "4.27.0", checksum: SUMA }, { version: "4.27.0", checksum: SUMA, signature: SUMA },
+    { version: "4.27.0", checksum: SUMA, signature: "z".repeat(512) }, { version: "4.27.0", signature: 7 }]) {
+    await assert.rejects(() => sandbox.mcOtaOpts(v), /ota_sin_firma/, JSON.stringify(v));
+  }
+});
+
+/* ---------- R2: un bundle viejo no vuelve con número nuevo ----------
+   La firma cubre el zip, no la versión. El bundle compara al arrancar la versión con que se
+   anunció (la guarda el actualizador) con la que lleva sellada, y si no casan no se confirma. */
+function sandboxArranque({ keyId, bundle, appVersion = "4.27.0", current, appInfo } = {}) {
+  const c = sandboxFirma({ keyId, appInfo });
+  const up = { ready: 0, reset: [] };
+  up.notifyAppReady = () => { up.ready++; return Promise.resolve(); };
+  up.reset = Object.assign((o) => { up.reset.llamadas.push(o); return Promise.resolve(); }, { llamadas: [] });
+  up.current = current || (() => Promise.resolve({ bundle, native: "4.26.0" }));
+  c.sandbox.CONFIG = { APP_VERSION: appVersion };
+  c.sandbox.cloud = { logEvent: () => {} };
+  c.sandbox.clearTimeout = clearTimeout;
+  return { ...c, up };
+}
+
+await ta("arranque: sin clave se confirma el bundle sin mirar nada más", async () => {
+  const { sandbox, up } = sandboxArranque({ bundle: { id: "x1", version: "9.9.9" } });
+  assert.equal(await sandbox.mcOtaConfirmar(up), false);
+  assert.equal(up.ready, 1); assert.equal(up.reset.llamadas.length, 0);
+});
+
+await ta("arranque: con clave, el bundle anunciado con SU versión se confirma", async () => {
+  for (const bundle of [{ id: "x1", version: "4.27.0" }, { id: "builtin", version: "builtin" }, { id: "builtin", version: "" }]) {
+    const { sandbox, up } = sandboxArranque({ keyId: "MIIB", bundle });
+    assert.equal(await sandbox.mcOtaConfirmar(up), false, JSON.stringify(bundle));
+    assert.equal(up.ready, 1); assert.equal(up.reset.llamadas.length, 0);
+  }
+});
+
+await ta("arranque: con clave, un bundle viejo anunciado con número nuevo NO se confirma y se vuelve al anterior", async () => {
+  const { sandbox, up, store } = sandboxArranque({ keyId: "MIIB", bundle: { id: "x9", version: "4.30.0" }, appVersion: "4.27.0" });
+  store._otaPending = "4.30.0";
+  assert.equal(await sandbox.mcOtaConfirmar(up), true);
+  assert.equal(up.ready, 0, "confirmarlo lo dejaría como bundle bueno");
+  assert.deepEqual(JSON.parse(JSON.stringify(up.reset.llamadas)), [{ toLastSuccessful: true }]);
+  assert.equal(store._otaRechazada, "4.30.0", "apuntada: no se vuelve a bajar sola en cada arranque");
+  assert.equal("_otaPending" in store, false);
+});
+
+await ta("arranque: si la comprobación falla o no contesta, el bundle se confirma igual", async () => {
+  // No confirmar desinstala el bundle a los 10 s: ningún tropiezo de la comprobación puede costar eso.
+  const falla = sandboxArranque({ keyId: "MIIB", current: () => Promise.reject(new Error("x")) });
+  assert.equal(await falla.sandbox.mcOtaConfirmar(falla.up), false); assert.equal(falla.up.ready, 1);
+  const lanza = sandboxArranque({ keyId: "MIIB", current: () => { throw new Error("x"); } });
+  assert.equal(await lanza.sandbox.mcOtaConfirmar(lanza.up), false); assert.equal(lanza.up.ready, 1);
+  const sinInfo = sandboxArranque({ appInfo: () => { throw new Error("x"); }, bundle: { id: "x1", version: "9.9.9" } });
+  assert.equal(await sinInfo.sandbox.mcOtaConfirmar(sinInfo.up), false); assert.equal(sinInfo.up.ready, 1);
+  // Colgada: el plazo confirma, y una respuesta tardía ya no deshace nada.
+  let suelta;
+  const colgada = sandboxArranque({ keyId: "MIIB", current: () => new Promise((r) => { suelta = r; }) });
+  colgada.sandbox.setTimeout = (fn) => { fn(); return 0; };
+  const p = colgada.sandbox.mcOtaConfirmar(colgada.up);
+  assert.equal(colgada.up.ready, 1, "el plazo ha confirmado");
+  await new Promise((r) => setTimeout(r, 5));
+  suelta({ bundle: { id: "x9", version: "4.30.0" } });
+  assert.equal(await p, false);
+  assert.equal(colgada.up.ready, 1); assert.equal(colgada.up.reset.llamadas.length, 0);
+});
+
+t("arranque: notifyAppReady solo se llama desde mcOtaConfirmar, y una versión rechazada no se rebaja sola", () => {
+  assert.equal((html.match(/notifyAppReady\(/g) || []).length, 1);
+  assert.match(html, /mcOtaConfirmar\(up\);/);
+  assert.match(html, /if\(!manual&&rech===v\.version\) return false;/);
+});
+
+/* ---------- La APK comprueba el SHA-256 de `apk.json` (ronda B, desde la 65) ---------- */
+await ta("installApk: las tres llamadas pasan el sha256 de apk.json", async () => {
+  const { sandbox } = sandboxCanal();
+  const sha = "E".repeat(64);
+  assert.deepEqual({ ...sandbox.mcApkArgs({ url: "u", versionName: "x", sha256: sha }) }, { url: "u", sha256: "e".repeat(64) });
+  // Uno mal escrito no se manda: la APK lo rechazaría en vez de instalar sin comprobar.
+  for (const s of [undefined, "", "abc", 5, "z".repeat(64)]) assert.deepEqual({ ...sandbox.mcApkArgs({ url: "u", sha256: s }) }, { url: "u" });
+  // `upd.installApk(showToast)` es el método del hook, no el puente nativo: no cuenta.
+  const llamadas = (html.match(/\.installApk\([^)]*\)/g) || []).filter((l) => l !== ".installApk(showToast)");
+  assert.equal(llamadas.length, 3, "las tres: pill, noti y chequeo");
+  for (const l of llamadas) assert.match(l, /^\.installApk\(mcApkArgs\(/, l);
+  assert.match(html, /sha256:a\.sha256/, "el chequeo guarda el sha256 del manifiesto para el pill y la noti");
 });
 
 t("OTA: deploy.yml y beta.yml publican el checksum del MISMO zip que suben", () => {
   for (const [wf, zip] of [["deploy.yml", "public/bundle.zip"], ["beta.yml", "bundle.zip"]]) {
     const yml = fs.readFileSync(path.join(root, ".github", "workflows", wf), "utf8");
     const iZip = yml.indexOf("zip -qr ../bundle.zip .");
-    const iSuma = yml.indexOf("SUMA=$(sha256sum " + zip + " | cut -d' ' -f1)");
-    const iManif = yml.indexOf('"checksum":"%s"}\\n\'');
-    assert.ok(iZip > 0 && iSuma > iZip && iManif > iSuma, wf + ": el checksum tiene que salir del zip ya hecho y entrar en version.json");
+    // El manifiesto lo escribe ota-manifiesto (checksum y, con secreto, firma) leyendo el zip ya
+    // hecho y en su sitio definitivo; después nada puede tocar el zip.
+    const iManif = yml.indexOf("node scripts/ota-manifiesto.mjs --zip " + zip + " --out ");
+    assert.ok(iZip > 0 && iManif > iZip, wf + ": el checksum tiene que salir del zip ya hecho y entrar en version.json");
+    if (wf === "deploy.yml") assert.ok(yml.indexOf("mv bundle.zip public/bundle.zip") < iManif, "el zip se mueve antes de sumarlo");
+    assert.equal(yml.slice(iManif).search(/zip -q|mv bundle\.zip/), -1, wf + ": nada toca el zip después del manifiesto");
+    assert.match(yml, /OTA_SIGNING_KEY: \$\{\{ secrets\.OTA_SIGNING_KEY \}\}/, wf + ": la clave llega solo como secreto");
     // La CSP se sella ANTES de comprimir: después, el zip llevaría un index distinto al de Pages.
     const iCsp = yml.indexOf("node scripts/csp-sellar.mjs");
     const iMin = yml.indexOf("node scripts/minify-html.mjs");

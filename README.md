@@ -226,7 +226,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 - Rotación del token legacy: [docs/SETUP-INGEST-TOKEN.md](docs/SETUP-INGEST-TOKEN.md).
 - App Android: [docs/SETUP-ANDROID.md](docs/SETUP-ANDROID.md).
 - Política de privacidad: [public/privacy.html](public/privacy.html) (también en [inglés](public/privacy.en.html) y [catalán](public/privacy.ca.html)).
-- Lo que se publica (Pages y beta) lleva la CSP **sellada**: `scripts/csp-sellar.mjs` cambia `'unsafe-inline'` por la huella de cada script inline, y `version.json` trae el `checksum` SHA-256 del bundle OTA, que la app pasa al instalador.
+- Lo que se publica (Pages y beta) lleva la CSP **sellada**: `scripts/csp-sellar.mjs` cambia `'unsafe-inline'` por la huella de cada script inline, y `version.json` (lo escribe `scripts/ota-manifiesto.mjs`) trae el `checksum` SHA-256 del bundle OTA, que la app pasa al instalador, y su `signature` cuando existe el secreto `OTA_SIGNING_KEY` (ver `docs/RELEASE.md`).
 
 ## 🗺️ Roadmap
 

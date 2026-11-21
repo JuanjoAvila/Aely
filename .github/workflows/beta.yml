@@ -107,6 +107,7 @@ jobs:
         id: pack
         env:
           GH_TOKEN: ${{ github.token }}   # el resumen del «no ha cambiado» lee el título de la release
+          OTA_SIGNING_KEY: ${{ secrets.OTA_SIGNING_KEY }}   # firma del OTA; sin el secreto no se firma
         run: |
           BETA="${{ steps.num.outputs.beta }}"
 
@@ -135,9 +136,8 @@ jobs:
 
           (cd public && zip -qr ../bundle.zip .)
           # `checksum` (SEG-01): SHA-256 del zip; el plugin lo recalcula y tira el bundle si no casa.
-          SUMA=$(sha256sum bundle.zip | cut -d' ' -f1)
-          printf '{"version":"%s","src":"%s","url":"https://github.com/%s/releases/download/beta/bundle.zip","channel":"beta","checksum":"%s"}\n' \
-            "$BETA" "$HUELLA" "$GITHUB_REPOSITORY" "$SUMA" > version.json
+          # `signature`: el mismo SHA-256 firmado, solo si existe el secreto (ver deploy.yml).
+          node scripts/ota-manifiesto.mjs --zip bundle.zip --out version.json --version "$BETA" --src "$HUELLA" --url "https://github.com/$GITHUB_REPOSITORY/releases/download/beta/bundle.zip" --channel beta
           # El manifiesto de la APK va TAMBIÉN al canal (2026-07-26). Antes solo se subían el bundle
           # y version.json, así que en un móvil en beta `mcFetchManifest("apk.json")` daba 404, caía
           # a producción y leía el número de PRODUCCIÓN. Efecto: con la 34 puesta y la 35 anunciada

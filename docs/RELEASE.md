@@ -128,6 +128,16 @@ npm run apk:prep       # solo prep (también exige WEBDEBUG off)
 gh run list --workflow="Deploy a GitHub Pages" --limit 3
 ```
 
+## Firma del OTA en CI (ronda C2)
+
+`scripts/ota-manifiesto.mjs` escribe `version.json` en `deploy.yml` y `beta.yml`. Siempre pone el `checksum` (SHA-256 del zip, lo que leen las APK hasta la 64). **Si existe el secreto de Actions `OTA_SIGNING_KEY`** (la clave privada RSA-2048 en PEM), añade `signature` (ese SHA-256 cifrado con la privada, 512 caracteres hexadecimales) y `keyId`. Sin el secreto no firma, no corta el despliegue y lo deja dicho en el log («SIN FIRMA»).
+
+- **Corta el despliegue** si el secreto existe pero no es una clave RSA-2048 válida, o si `capacitor.config.json` lleva clave pública y la del secreto no es su pareja. Publicar sin firma creyendo que la lleva dejaría sin actualizaciones a las APK con clave.
+- **Cliente (`mcOtaOpts`, `12-boot`).** La APK con clave lo dice en `appInfo().otaKeyId`. Con clave, la app manda al actualizador la `signature` y `sessionKey:"firmado"`, y **no descarga un manifiesto sin `signature`**. Sin clave (APK 64 o anterior), sigue el `checksum` en claro.
+- **Antes de publicar una APK con clave pública (la 65):** el secreto tiene que existir y `version.json` de estable, de beta y del repo puente tienen que servir `signature`. Comprobarlo con `curl` justo antes. Si no, esos móviles se quedan sin actualizaciones hasta el siguiente despliegue firmado.
+- **El repo puente** copia `version.json` tal cual, con `signature` incluida, y `bundle.zip` del mismo despliegue.
+- **Vuelta atrás.** La firma cubre el zip, no la versión. Cada bundle compara al arrancar (`mcOtaConfirmar`) la versión con que se anunció con la que lleva sellada; si no casan, no se confirma, vuelve al bundle anterior y esa versión no se baja sola otra vez (`_otaRechazada`). Solo actúa en APK con clave. No cubre: cambiar de canal (instala a propósito en cualquier dirección) ni servir en estable un bundle de beta con su propio número.
+
 ## Checksum del OTA (4.26.243)
 
 `deploy.yml` y `beta.yml` escriben en `version.json` el `checksum` = SHA-256 de `bundle.zip`, y la app (`mcBundleOpts` en `12-boot`) se lo pasa al actualizador, que recalcula el SHA-256 del zip descargado y lo tira si no casa. Un manifiesto sin `checksum` válido se trata como antes (manifiestos viejos y el repo puente). Por eso **el puente tiene que copiar `version.json` y `bundle.zip` JUNTOS**, del mismo despliegue: con el manifiesto nuevo y el zip viejo, el móvil ya no instala el bundle viejo con número nuevo (lo que pasaba antes), sino que falla la descarga. En estable el zip lleva `?v=<versión>` para que la caché de Pages no sirva el zip viejo con el manifiesto nuevo. Es integridad, no autenticidad: la firma queda para la APK.
