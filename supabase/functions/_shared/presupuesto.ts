@@ -605,6 +605,8 @@ export function reservadoDeudas(data: any, desdeMs: number, ahoraMs: number = Da
   const fin = { y: ini.y + (ini.m === 12 ? 1 : 0), m: ini.m % 12 + 1, d: Math.min(ini.d, new Date(ini.y + (ini.m === 12 ? 1 : 0), ini.m % 12 + 1, 0).getDate()) };
   if (!natural) meses.push({ y: fin.y, m: fin.m });
   const k = (y: number, m: number, d: number) => (y * 12 + m - 1) * 32 + d;
+  // Solo el periodo en curso o futuro: uno ya cerrado no cambia por las deudas de hoy (espejo del cliente).
+  if (natural ? ini.y * 12 + ini.m < hoy.y * 12 + hoy.m : k(hoy.y, hoy.m, hoy.d) >= k(fin.y, fin.m, fin.d)) return 0;
   const dentro = (y: number, m: number, day: number | null) => {
     if (natural) return true;
     const v = k(y, m, day == null ? 1 : Math.min(day, new Date(y, m, 0).getDate()));

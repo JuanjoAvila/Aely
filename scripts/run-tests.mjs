@@ -236,6 +236,7 @@ const steps = [
   ["presupuesto-servidor", ["node", "tests/presupuesto-servidor.test.mjs"]],
   ["plan-reparto", ["node", "tests/plan-reparto.test.mjs"]],
   ["plan-fin-deuda", ["node", "tests/plan-fin-deuda.test.mjs"]],
+  ["plan-cerrado-interruptor", ["node", "tests/plan-cerrado-interruptor.test.mjs"]],
   ["presupuesto-deudas-servidor", ["node", "tests/presupuesto-deudas-servidor.test.mjs"]],
   ["cuotas-deudas", ["node", "tests/cuotas-deudas.test.mjs"]],
   ["meta-aportacion", ["node", "tests/meta-aportacion.test.mjs"]],

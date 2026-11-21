@@ -32351,6 +32351,10 @@ function reservaDeudasPeriodo(state, P){
 function reservaDeudasParaPresupuesto(state, startMs, cycleStart, nowMs){
   if(!repHayInterruptor(state)) return {euros:0,sinContar:null};
   const P=repPeriodoDe(startMs,cycleStart||null,nowMs);
+  // Solo el periodo en curso o futuro: uno ya cerrado (meses pasados, racha, imagen de mes cerrado)
+  // queda como sin el interruptor, porque las deudas de HOY no dicen lo que pasó entonces.
+  // El reloj es el real: `nowMs` de un mes cerrado apunta a ese mes, no a hoy.
+  if(P.endMs<=Date.now()) return {euros:0,sinContar:null};
   const r=reservaDeudasPeriodo(state,P);
   if(!(r.total>0)) return {euros:0,sinContar:null};
   const sin=new Set();
