@@ -85,6 +85,7 @@ const steps = [
   ["deudas-metas-edicion", ["node", "tests/deudas-metas-edicion.test.mjs"]],
   ["deudas-metas-revision", ["node", "tests/deudas-metas-revision.test.mjs", "--mutations"]],
   ["deudas-plazo-cuota", ["node", "tests/deudas-plazo-cuota.test.mjs"]],
+  ["deudas-fin-mes", ["node", "--test", "--test-concurrency=1", "tests/deudas-fin-mes.test.mjs"]],
   ["deudas-mes-madrid", ["node", "--test", "--test-concurrency=1", "tests/deudas-mes-madrid.test.mjs"]],
   ["deudas-alargar-plazo", ["node", "tests/deudas-alargar-plazo.test.mjs"]],
   ["deudas-lo-descuento", ["node", "tests/deudas-lo-descuento.test.mjs"]],
