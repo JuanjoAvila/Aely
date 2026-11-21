@@ -1272,6 +1272,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     importar,
     React.createElement(Pr6HojaHost,{hostRef:llegaHost,render:function(cerrar){ return React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:cerrar}); }}),
     React.createElement(Pr6HojaHost,{hostRef:debenHost,render:function(cerrar){ return React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:cerrar}); }}),
+    // El aviso flota 5 s sobre el final de la lista (medido: cubría 32 px de «Ya pagados» sin poder subirlo con el scroll): mientras está, un hueco debajo deja subir lo último.
+    deshacer&&React.createElement("div",{className:"pr6-toast-pad","aria-hidden":"true"}),
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, deshacer.msg),
       React.createElement("button",{type:"button",onClick:deshacerYa}, t("f_undo"))),

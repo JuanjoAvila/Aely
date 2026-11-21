@@ -162,7 +162,9 @@ const SUITE=[
     assert.equal(r.libre,r.entra-r.total,"Libre = entra − trozos");
     assert.equal(r.trozos.reduce((a,x)=>a+x.c,0)+(r.libre>0?0:r.libre),r.entra,"trozos + Libre = entra ("+JSON.stringify(r.trozos)+")");
     const p=r.trozos.reduce((a,x)=>a+x.p,0);
-    assert.equal(p,r.falta>0?Math.round(r.total*100/r.entra):100,"porcentajes");
+    assert.equal(p,100,"porcentajes: siempre 100, también con Te faltan");
+    if(r.falta>0){ assert.equal(r.faltaP,Math.min(100,Math.max(1,Math.round(r.falta*100/r.total))),"Te faltan sobre el total"); assert.ok(r.faltaP>=1&&r.faltaP<=100); }
+    else assert.equal(r.faltaP,0);
     comprobados++;
   }
   assert.ok(comprobados>250,"el banco de estados ejerce el caso con nómina ("+comprobados+")");
@@ -212,6 +214,21 @@ const SUITE=[
   assert.equal(r.ritmo,25000);assert.equal(r.vencidas,1);
   assert.equal(r.hueco,Math.ceil(120000/12)-5000,"solo la que va tarde, lo que le falta al mes");
   assert.equal(r.ahorrado,20000);assert.equal(r.objetivo,240000);
+  assert.equal(r.conFecha,3,"las abiertas con fecha (la hecha no cuenta)");
+  // Sin ninguna fecha no hay «A tiempo · Todas» que decir.
+  assert.equal(c.metasResumen(base({goals:[meta({id:"s",target:500,saved:0,monthly:50}),meta({id:"t",target:900,saved:0,monthly:null})]})).conFecha,0);
+}],
+["Te faltan: los porcentajes suman 100 sobre lo que hay que pagar y lo que falta es una parte de eso",c=>{
+  // Entran 1.500 y el plan pide mucho más: 1.500 de base daría 236 %, que no dice nada.
+  const e=base().expenses.map(x=>x.amount<0?Object.assign({},x,{amount:-1500}):x);
+  const r=c.planReparto(base({expenses:e,budget:900,goals:[meta({id:"a",monthly:800})]}),{});
+  assert.ok(r.falta>0&&r.entra===150000,"el caso es de Te faltan");
+  assert.equal(r.trozos.reduce((a,x)=>a+x.p,0),100,"suman 100");
+  assert.ok(r.trozos.every(x=>x.p>=0&&x.p<=100),"ninguno pasa de 100");
+  assert.equal(r.faltaP,Math.round(r.falta*100/r.total),"lo que falta, sobre el mismo total");
+  assert.ok(r.faltaP<=100);
+  const rec=r.trozos.find(x=>x.k==="rec");
+  assert.equal(rec.p,Math.round(rec.c*100/r.total),"cada trozo, su parte del total (entre redondeos)");
 }],
 ["Icono de deuda: «casa» en el nombre no fuerza la casa",c=>{
   const k=n=>c.debtIcoKind(n);

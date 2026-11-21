@@ -2514,6 +2514,7 @@
     width:min(calc(100% - 28px),430px);min-height:52px;padding:4px 6px 4px 16px;border-radius:16px;background:var(--sur2);
     border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:750;
     animation:toastin .3s ease;}
+  .pr6-toast-pad{height:calc(64px + var(--safe-bottom));pointer-events:none;}
   .v4-undo-toast span{flex:1;min-width:0;}
   .v4-undo-toast button{min-width:88px;min-height:44px;padding:0 12px;border-radius:12px;color:var(--mint);font-size:13.5px;font-weight:850;}
   .v4-bills-saved{pointer-events:none;}
@@ -3110,7 +3111,7 @@
   .rpt-fact b{font-size:17px;font-weight:550;line-height:1.35;overflow-wrap:anywhere;}
   .rpt-dl{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:2px 12px;margin-top:6px;font-size:12.5px;line-height:1.5;color:var(--muted);}
   .rpt-dl b{color:var(--text);font-weight:700;}
-  .rpt-dl button{display:block;padding-block:13px;margin-block:-13px;font-size:12.5px;color:var(--muted);background:none;border:0;text-align:left;cursor:pointer;}
+  .rpt-dl button{display:block;padding:13px 0;margin-block:-13px;font-size:12.5px;color:var(--muted);background:none;border:0;text-align:left;cursor:pointer;}
   .rpt-sec{margin-top:22px;}
   .rpt-hero+.rpt-sec{margin-top:6px;}
   .rpt-sech{display:flex;align-items:center;justify-content:space-between;min-height:44px;margin-bottom:10px;font-size:15px;font-weight:800;}
@@ -12489,7 +12490,7 @@ Object.assign(LANG.es,{
   rpt_res_info:"{x} de cuotas salen de tu presupuesto",
   rpt_sheet_title:"A dónde va tu sueldo",
   rpt_entran:"Entran",
-  rpt_sobre_entra:"Sobre lo que entra",
+  rpt_sobre_entra:"Ya va dentro de lo de arriba",
   rpt_sin_asignar:"Sin asignar",
   rpt_rec:"Recibos",
   rpt_deu:"Deudas",
@@ -32638,12 +32639,14 @@ function repEsDevolucion(e){
   if(e.category==="bizum") return true;
   return REP_DEVOLUCION_RE.test(recNorm([e.merchant,e.note,e.concept,e.obName].join(" ")));
 }
-/* Los porcentajes del reparto: enteros que suman 100 (o el total sobre lo que entra si falta
-   dinero), repartiendo los restos a los trozos con más decimales. */
+/* Los porcentajes del reparto: enteros que SIEMPRE suman 100, repartiendo los restos a los trozos con más
+   decimales. La base es lo que entra; si falta dinero, la base es lo que hay que pagar (el total asignado):
+   así cada trozo es su parte del plan y nunca se ve 236 % (sobre un sueldo de 1.500 se ven 3.539 de plan).
+   Lo que falta se dice aparte, también sobre ese total (faltaP), y ya va dentro de los trozos. */
 function repPorcentajes(trozos, entra, total, falta){
   if(!(entra>0)) return trozos.map(function(){ return null; });
-  const target=falta?Math.round(total*100/entra):100;
-  const raw=trozos.map(function(x){ return x.c*100/entra; }), fl=raw.map(Math.floor);
+  const base=falta&&total>0?total:entra, target=100;
+  const raw=trozos.map(function(x){ return x.c*100/base; }), fl=raw.map(Math.floor);
   const resto=target-fl.reduce(function(p,q){ return p+q; },0);
   raw.map(function(x,i){ return [x-fl[i],i]; }).sort(function(p,q){ return q[0]-p[0]||p[1]-q[1]; })
     .slice(0,Math.max(0,resto)).forEach(function(p){ fl[p[1]]++; });
@@ -32753,6 +32756,7 @@ function planReparto(state, o){
   if(libre!=null&&libre>0) trozos.push({k:"lib",c:libre});
   const pct=repPorcentajes(trozos,entraC,total,falta>0);
   trozos.forEach(function(x,i){ x.p=pct[i]; });
+  const faltaP=falta>0&&total>0?Math.min(100,Math.max(1,Math.round(falta*100/total))):0;
   /* ---- Lo que QUEDA por pagar este mes y si tu saldo lo cubre ---- */
   const quedaC=recQ+deuQ+gasQ+metQ+ahoQ;
   const saldoC=o.saldo==null||!isFinite(o.saldo)?null:repCts(o.saldo);
@@ -32764,7 +32768,7 @@ function planReparto(state, o){
   else if(bud==null) st="nobud";
   return {periodo:P,now:now,st:st,entra:entraC,esperaNomina:esperaNomina,trozos:trozos,total:total,libre:libre,falta:falta,
     siGastasTodo:lim!=null&&gastado<lim,sinPresupuesto:bud==null,
-    rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
+    faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
     nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso};
@@ -32805,7 +32809,7 @@ function deudasEscalera(state, nowMs){
 /* Lo de arriba de Metas: lo que apartas al mes y lo que te falta para llegar a tiempo. La previsión de
    cada meta es la de siempre (`goalEta` con `metaRitmoMensual`); aquí solo se suma. */
 function metasResumen(state){
-  let ritmo=0, ahorrado=0, objetivo=0, hueco=0, vencidas=0;
+  let ritmo=0, ahorrado=0, objetivo=0, hueco=0, vencidas=0, conFecha=0;
   (state&&state.goals||[]).forEach(function(g){
     if(!g) return;
     const gv=metaConAportes(g,state);
@@ -32813,13 +32817,14 @@ function metasResumen(state){
     if(g.done||goalRemaining(gv)<=0) return;
     const r=repCts(metaRitmoMensual(state,g));
     ritmo+=r;
+    if(g.deadline) conFecha++;
     const eta=goalEta(gv,metaRitmoMensual(state,g));
     if(eta.cls!=="warn") return;
     const dl=monthsUntil(g.deadline);
     if(dl!=null&&dl<=0) vencidas++;
     else if(dl!=null) hueco+=Math.max(0,Math.ceil(repCts(goalRemaining(gv))/dl)-r);
   });
-  return {ritmo:ritmo,ahorrado:ahorrado,objetivo:objetivo,hueco:hueco,vencidas:vencidas};
+  return {ritmo:ritmo,ahorrado:ahorrado,objetivo:objetivo,hueco:hueco,vencidas:vencidas,conFecha:conFecha};
 }
 
 /* EL ICONO SALE DEL NOMBRE (no lo elige nadie). Por palabra entera: «casa» a secas no es la hipoteca (una
@@ -32938,7 +32943,6 @@ function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
 const rptKv=function(k,v,key){ return v==null?null:React.createElement("div",{className:"rpt-kv",key:key||k},React.createElement("span",null,k),React.createElement("b",null,v)); };
 function RptRepartoHoja({r,state,onClose,onJump}){
   const [vista,setVista]=useState("reparto"), H=rptTitular(r);
-  const suma=r.trozos.reduce(function(a,x){ return a+(x.p||0); },0);
   const subDe=function(k){
     if(k==="rec") return rptPl(r.nRec,t("rpt_n_rec_1"),tf("rpt_n_rec",{n:r.nRec}));
     if(k==="deu") return rptPl(r.nDeu,t("rpt_n_cuotas_1"),tf("rpt_n_cuotas",{n:r.nDeu}));
@@ -32978,8 +32982,8 @@ function RptRepartoHoja({r,state,onClose,onJump}){
       r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso)))),
     React.createElement(RptBarraTrozos,{r:r,grande:true}),
     React.createElement("div",{className:"rpt-list",style:{marginTop:10}},r.trozos.map(fila),
-      r.falta>0&&React.createElement("div",{className:"rpt-row","data-k":"short","data-p":suma-100},
-        React.createElement("span",{className:"rpt-l"},React.createElement("div",{className:"rpt-d"},suma-100),React.createElement("div",{className:"rpt-m"},"%")),
+      r.falta>0&&React.createElement("div",{className:"rpt-row","data-k":"short","data-p":r.faltaP},
+        React.createElement("span",{className:"rpt-l"},React.createElement("div",{className:"rpt-d"},r.faltaP),React.createElement("div",{className:"rpt-m"},"%")),
         React.createElement("span",{className:"rpt-nm"},React.createElement("i",{className:"rpt-sw ov"}),t("rpt_faltan")),
         React.createElement("span",{className:"rpt-sub"},t("rpt_sobre_entra")),
         React.createElement("span",{className:"rpt-am",style:{color:"var(--coral)"}},rptC(r.falta)))),
@@ -33194,7 +33198,7 @@ function RptMetasVista({state,goals,h}){
       am:gv.saved>0?eur0(gv.saved):eur0(g.target||0),amCls:gv.saved>0?"":"q",onClick:function(){ h.abrir(g); },attrs:{"data-goal-id":g.id,"data-act":"goal-open"}});
   };
   const sv=res.ahorrado, tg=res.objetivo;
-  const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:[t("rpt_m_a_tiempo"),t("rpt_m_todas")];
+  const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:res.conFecha>0?[t("rpt_m_a_tiempo"),t("rpt_m_todas")]:[t("rpt_m_fecha"),t("rpt_m_sin_fecha")];
   return React.createElement("div",{className:"rpt"},
     React.createElement("section",{className:"rpt-hero","data-testid":"goals-summary"},
       React.createElement("div",{className:"rpt-ht"},t("v4_goals_hero")),
@@ -36387,7 +36391,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="f834935db76360f5fdee86f576bc811b656d230d315b1e575ad147a70c277eaf";
+var _rnSha="7f3a7282611038dc7cb17ca2245aed6aa75b8d8753ddd47b646a6b770a924d3f";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39276,6 +39280,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     importar,
     React.createElement(Pr6HojaHost,{hostRef:llegaHost,render:function(cerrar){ return React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:cerrar}); }}),
     React.createElement(Pr6HojaHost,{hostRef:debenHost,render:function(cerrar){ return React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:cerrar}); }}),
+    // El aviso flota 5 s sobre el final de la lista (medido: cubría 32 px de «Ya pagados» sin poder subirlo con el scroll): mientras está, un hueco debajo deja subir lo último.
+    deshacer&&React.createElement("div",{className:"pr6-toast-pad","aria-hidden":"true"}),
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, deshacer.msg),
       React.createElement("button",{type:"button",onClick:deshacerYa}, t("f_undo"))),

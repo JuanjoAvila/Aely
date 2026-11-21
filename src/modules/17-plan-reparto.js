@@ -115,12 +115,14 @@ function repEsDevolucion(e){
   if(e.category==="bizum") return true;
   return REP_DEVOLUCION_RE.test(recNorm([e.merchant,e.note,e.concept,e.obName].join(" ")));
 }
-/* Los porcentajes del reparto: enteros que suman 100 (o el total sobre lo que entra si falta
-   dinero), repartiendo los restos a los trozos con más decimales. */
+/* Los porcentajes del reparto: enteros que SIEMPRE suman 100, repartiendo los restos a los trozos con más
+   decimales. La base es lo que entra; si falta dinero, la base es lo que hay que pagar (el total asignado):
+   así cada trozo es su parte del plan y nunca se ve 236 % (sobre un sueldo de 1.500 se ven 3.539 de plan).
+   Lo que falta se dice aparte, también sobre ese total (faltaP), y ya va dentro de los trozos. */
 function repPorcentajes(trozos, entra, total, falta){
   if(!(entra>0)) return trozos.map(function(){ return null; });
-  const target=falta?Math.round(total*100/entra):100;
-  const raw=trozos.map(function(x){ return x.c*100/entra; }), fl=raw.map(Math.floor);
+  const base=falta&&total>0?total:entra, target=100;
+  const raw=trozos.map(function(x){ return x.c*100/base; }), fl=raw.map(Math.floor);
   const resto=target-fl.reduce(function(p,q){ return p+q; },0);
   raw.map(function(x,i){ return [x-fl[i],i]; }).sort(function(p,q){ return q[0]-p[0]||p[1]-q[1]; })
     .slice(0,Math.max(0,resto)).forEach(function(p){ fl[p[1]]++; });
@@ -230,6 +232,7 @@ function planReparto(state, o){
   if(libre!=null&&libre>0) trozos.push({k:"lib",c:libre});
   const pct=repPorcentajes(trozos,entraC,total,falta>0);
   trozos.forEach(function(x,i){ x.p=pct[i]; });
+  const faltaP=falta>0&&total>0?Math.min(100,Math.max(1,Math.round(falta*100/total))):0;
   /* ---- Lo que QUEDA por pagar este mes y si tu saldo lo cubre ---- */
   const quedaC=recQ+deuQ+gasQ+metQ+ahoQ;
   const saldoC=o.saldo==null||!isFinite(o.saldo)?null:repCts(o.saldo);
@@ -241,7 +244,7 @@ function planReparto(state, o){
   else if(bud==null) st="nobud";
   return {periodo:P,now:now,st:st,entra:entraC,esperaNomina:esperaNomina,trozos:trozos,total:total,libre:libre,falta:falta,
     siGastasTodo:lim!=null&&gastado<lim,sinPresupuesto:bud==null,
-    rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
+    faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
     nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso};
@@ -282,7 +285,7 @@ function deudasEscalera(state, nowMs){
 /* Lo de arriba de Metas: lo que apartas al mes y lo que te falta para llegar a tiempo. La previsión de
    cada meta es la de siempre (`goalEta` con `metaRitmoMensual`); aquí solo se suma. */
 function metasResumen(state){
-  let ritmo=0, ahorrado=0, objetivo=0, hueco=0, vencidas=0;
+  let ritmo=0, ahorrado=0, objetivo=0, hueco=0, vencidas=0, conFecha=0;
   (state&&state.goals||[]).forEach(function(g){
     if(!g) return;
     const gv=metaConAportes(g,state);
@@ -290,13 +293,14 @@ function metasResumen(state){
     if(g.done||goalRemaining(gv)<=0) return;
     const r=repCts(metaRitmoMensual(state,g));
     ritmo+=r;
+    if(g.deadline) conFecha++;
     const eta=goalEta(gv,metaRitmoMensual(state,g));
     if(eta.cls!=="warn") return;
     const dl=monthsUntil(g.deadline);
     if(dl!=null&&dl<=0) vencidas++;
     else if(dl!=null) hueco+=Math.max(0,Math.ceil(repCts(goalRemaining(gv))/dl)-r);
   });
-  return {ritmo:ritmo,ahorrado:ahorrado,objetivo:objetivo,hueco:hueco,vencidas:vencidas};
+  return {ritmo:ritmo,ahorrado:ahorrado,objetivo:objetivo,hueco:hueco,vencidas:vencidas,conFecha:conFecha};
 }
 
 /* EL ICONO SALE DEL NOMBRE (no lo elige nadie). Por palabra entera: «casa» a secas no es la hipoteca (una

@@ -102,7 +102,6 @@ function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
 const rptKv=function(k,v,key){ return v==null?null:React.createElement("div",{className:"rpt-kv",key:key||k},React.createElement("span",null,k),React.createElement("b",null,v)); };
 function RptRepartoHoja({r,state,onClose,onJump}){
   const [vista,setVista]=useState("reparto"), H=rptTitular(r);
-  const suma=r.trozos.reduce(function(a,x){ return a+(x.p||0); },0);
   const subDe=function(k){
     if(k==="rec") return rptPl(r.nRec,t("rpt_n_rec_1"),tf("rpt_n_rec",{n:r.nRec}));
     if(k==="deu") return rptPl(r.nDeu,t("rpt_n_cuotas_1"),tf("rpt_n_cuotas",{n:r.nDeu}));
@@ -142,8 +141,8 @@ function RptRepartoHoja({r,state,onClose,onJump}){
       r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso)))),
     React.createElement(RptBarraTrozos,{r:r,grande:true}),
     React.createElement("div",{className:"rpt-list",style:{marginTop:10}},r.trozos.map(fila),
-      r.falta>0&&React.createElement("div",{className:"rpt-row","data-k":"short","data-p":suma-100},
-        React.createElement("span",{className:"rpt-l"},React.createElement("div",{className:"rpt-d"},suma-100),React.createElement("div",{className:"rpt-m"},"%")),
+      r.falta>0&&React.createElement("div",{className:"rpt-row","data-k":"short","data-p":r.faltaP},
+        React.createElement("span",{className:"rpt-l"},React.createElement("div",{className:"rpt-d"},r.faltaP),React.createElement("div",{className:"rpt-m"},"%")),
         React.createElement("span",{className:"rpt-nm"},React.createElement("i",{className:"rpt-sw ov"}),t("rpt_faltan")),
         React.createElement("span",{className:"rpt-sub"},t("rpt_sobre_entra")),
         React.createElement("span",{className:"rpt-am",style:{color:"var(--coral)"}},rptC(r.falta)))),
@@ -358,7 +357,7 @@ function RptMetasVista({state,goals,h}){
       am:gv.saved>0?eur0(gv.saved):eur0(g.target||0),amCls:gv.saved>0?"":"q",onClick:function(){ h.abrir(g); },attrs:{"data-goal-id":g.id,"data-act":"goal-open"}});
   };
   const sv=res.ahorrado, tg=res.objetivo;
-  const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:[t("rpt_m_a_tiempo"),t("rpt_m_todas")];
+  const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:res.conFecha>0?[t("rpt_m_a_tiempo"),t("rpt_m_todas")]:[t("rpt_m_fecha"),t("rpt_m_sin_fecha")];
   return React.createElement("div",{className:"rpt"},
     React.createElement("section",{className:"rpt-hero","data-testid":"goals-summary"},
       React.createElement("div",{className:"rpt-ht"},t("v4_goals_hero")),
