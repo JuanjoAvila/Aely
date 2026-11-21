@@ -168,3 +168,23 @@ for (const vp of [{ width: 360, height: 780 }, { width: 360, height: 640 }]) {
     expect(m.hojaBottom).toBeLessThanOrEqual(m.vh + 1);
   });
 }
+
+test("Alta, paso cuenta a 360 con Enorme: el nombre del banco entero en un renglón, sin partir a mitad de palabra", async ({ page }) => {
+  await abre(page, { width: 360, height: 780 }, "huge");
+  await page.locator('.botnav-tab[data-tour="plan"]').dispatchEvent("click");
+  const rec = page.locator('.page-live .v4-screen > [data-seg="recibos"]');
+  await rec.getByTestId("plan-due").getByTestId("plan-todos").click();
+  await page.locator('[data-bills-manage] [data-act="bill-add"]').first().click();
+  const hoja = page.locator('.v4-sheet[data-sheet="recibo-pasos"]');
+  await hoja.locator('[data-rp4-paso="0"] [data-rp4="name"]').fill("Agua casa");
+  await hoja.locator(".rp4-cta").click();
+  await hoja.locator('[data-rp4-paso="1"] .v4-keys button[aria-label="5"]').click();
+  await hoja.locator(".rp4-cta").click();
+  await hoja.locator('[data-rp4-paso="2"] [data-rp4-dia="25"]').click();
+  await hoja.locator(".rp4-cta").click();
+  await expect(hoja).toHaveAttribute("data-paso", "3");
+  await page.waitForTimeout(700);
+  const nombres = await hoja.locator('[data-rp4-paso="3"] .pr6-cand-n').evaluateAll((els) => els.map((e) => ({ t: e.textContent, lineas: e.getBoundingClientRect().height / (parseFloat(getComputedStyle(e).fontSize) * 1.3) })));
+  expect(nombres.length).toBeGreaterThan(1);
+  for (const n of nombres) expect(n.lineas, n.t).toBeLessThan(1.5);
+});

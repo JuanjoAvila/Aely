@@ -1287,7 +1287,12 @@
   .pr6-cand.on{border-color:var(--mint);}
   .pr6-cand.pend{cursor:default;opacity:.62;border-style:dashed;}
   .pr6-cand-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
-  .pr6-cand-n{font-size:15px;font-weight:700;min-width:0;overflow-wrap:anywhere;}
+  .pr6-cand-n{font-size:15px;font-weight:700;overflow-wrap:break-word;}
+  /* Con Enorme el importe baja bajo el nombre (la fila envuelve) y el nombre nunca se parte a mitad de
+     palabra salvo que una sola no quepa en la tarjeta («Sab/adel/l» a 360, filtro 21/11/2026). */
+  html.hugetext .pr6-cand{flex-wrap:wrap;}
+  html.hugetext .pr6-cand-t{flex:1 1 7em;min-width:min(100%,min-content);}
+  html.hugetext .pr6-cand-a{margin-left:auto;}
   .pr6-cand-s{font-size:12.5px;color:var(--muted);}
   .pr6-cand-a{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;white-space:nowrap;}
   .pr6-ring{width:24px;height:24px;flex:none;border-radius:12px;border:2px solid var(--muted-2);color:transparent;display:flex;align-items:center;justify-content:center;
