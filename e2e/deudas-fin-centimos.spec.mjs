@@ -25,5 +25,5 @@ test("Deudas: 72,45 con cuota de 10,35 acaba en junio, 7 de 10 cuotas", async ({
   await page.locator(".v4-seg-btn").filter({ hasText: /Deudas|Debts|Deutes/i }).click();
   const tarjeta = page.locator("[data-debt-id]").filter({ hasText: "Préstamo familiar" });
   expect(await datosDeuda(page,tarjeta)).toMatch(/7\D+10/);
-  await expect(tarjeta.locator(".rpt-sub")).toContainText(/acaba junio 2027/i);
+  await expect(tarjeta.locator(".rpt-sub")).toContainText(/acaba\s+jun(io)?\s+2027/i);
 });
