@@ -62,6 +62,15 @@ const SUITE=[
   const hoy=21,pack=c.planChargesMonth(s,11,2026,hoy),fila=pack.pendingBills.concat(pack.paidBills).find(x=>x.kind==="debt");
   assert.equal(Math.round(fila.amount*100),r.deu,"lo mismo que cuenta Recibos para esa deuda");
 }],
+["Deuda con descuento (decisión de dinero): recibo de 100 con 53 a la deuda de 197 → Recibos 47, Deudas 250, suma 297",c=>{
+  const rec={id:"r5",name:"Suministro sintético",amount:47,bankAmount:100,day:12,freq:"mes",account:"sabadell",
+    reparto:[{id:"p5",n:"Ana",via:"debt",debtId:"d1",amt:53}]};
+  const s=base({debts:[deuda({monthly:197,value:7880,months:40})],fixed:[rec]});
+  const r=c.planReparto(s,{});
+  assert.equal(r.rec,4700,"del recibo de 100 solo tus 47: los 53 no cuentan también en Recibos");
+  assert.equal(r.deu,25000,"197 del banco + 53 descontados");
+  assert.equal(r.rec+r.deu,29700,"lo que realmente sale del banco: 100 del recibo + 197 de la cuota");
+}],
 ["Deuda con pago final: el pago final sale del banco y cuenta en Deudas ese mes",c=>{
   const d=deuda({months:7,asOf:NOV-6,value:2000,balloon:500,monthly:214.29,amort:214.29,day:25});
   const r=c.planReparto(base({debts:[d]}),{});
