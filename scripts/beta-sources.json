@@ -33249,6 +33249,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "MANUAL_BALANCE_TYPED"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "estadoSinIngestToken"
       }
     ],
     "unidades": true
@@ -98345,6 +98349,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "estadoSinIngestToken"
       }
     ],
     "unidades": true
@@ -101215,6 +101223,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaAt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "estadoSinIngestToken"
       }
     ],
     "unidades": true
@@ -126398,6 +126410,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "estadoSinIngestToken"
       }
     ],
     "unidades": true

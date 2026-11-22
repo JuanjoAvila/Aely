@@ -7035,7 +7035,10 @@ test("Catálogo252 abre la nota 4.26.252 sin tanda nueva, deja intactas las ocho
     assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
-  assert.deepEqual(JSON.parse(source("scripts/beta-sources.json")),integrated,"registro intacto");
+  // Único cambio del registro: el cierre de lectores suma estadoSinIngestToken (la llama el efecto de auth, SEG-08) al final de cuatro alcances.
+  const registro=JSON.parse(source("scripts/beta-sources.json")),cierre252=["cartera-sin-lagazo","inc-0710-auth-disposal","recibos-cifra-cuadra","sync-dos-moviles"];
+  for(const id of cierre252){const w=registro[id].web,ultimo=w.pop();assert.deepEqual(ultimo,{file:"src/modules/00-core.js",function:"estadoSinIngestToken"},id+": el cierre nuevo va al final");}
+  assert.deepEqual(registro,integrated,"registro intacto salvo ese cierre");
   assert.equal(source("VERSION").trim(),"4.26.252");
   const apk=JSON.parse(source("public/apk.json"));
   assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");

@@ -3,12 +3,18 @@ export function authFragments(core,app){
   const method=core.match(/^    onAuth\(cb\)\{.*\},$/m);
   const a=app.indexOf('  // Detecta sesión al cargar y escucha cambios'),b=app.indexOf('  // Empuja el estado a la nube',a);
   if(!method||a<0||b<a) throw Error('Fragmento auth no encontrado');
-  return {method:method[0].trim().replace(/,$/,''),effect:app.slice(a,b)};
+  // Helper real de 00-core.js que el efecto llama al salir o cambiar de cuenta (SEG-08); en commits viejos no existe.
+  const h=core.indexOf('function estadoSinIngestToken('),he=h<0?-1:core.indexOf(String.fromCharCode(10)+'}',h);
+  const parts={method:method[0].trim().replace(/,$/,''),effect:app.slice(a,b)};
+  // No enumerable: los tests comparan `parts` entero con el fragmento histórico (method + effect).
+  Object.defineProperty(parts,'helper',{value:h<0||he<0?'':core.slice(h,he+2),enumerable:false});
+  return parts;
 }
 export function authWorld(parts,{enabled=true,offline=false}={}){
   const live=new Set(),retained=[],sessions=[],idles=[],timers=new Map(),trace=[];
   let seq=0,removed=0;
   const sb=enabled?{auth:{onAuthStateChange(cb){live.add(cb);retained.push(cb);return {data:{subscription:{unsubscribe(){removed++;live.delete(cb);}}}};}}}:null;
+  const estadoSinIngestToken=parts.helper?new Function(parts.helper+';return estadoSinIngestToken;')():undefined;
   const cloud=new Function('sb','const statePushCache=new Map();return {'+parts.method+'};')(sb);
   cloud.enabled=()=>enabled;
   cloud.session=()=>new Promise((resolve,reject)=>sessions.push({resolve,reject}));
@@ -16,11 +22,11 @@ export function authWorld(parts,{enabled=true,offline=false}={}){
     setTimeout(fn){const n=++seq;timers.set(n,fn);return n;},clearTimeout(n){timers.delete(n);},
     mcBootReady(){trace.push({type:'boot'});},setSession(s){trace.push({type:'session',uid:s?.user?.id??null});},
     mcScheduleIdle(fn){idles.push(fn);},syncFromCloud(s,opts){trace.push({type:'sync',uid:s.user.id,opts:opts||null});},
-    set(fn){const result=fn({bankTx:['synthetic']});trace.push({type:'state',bankTx:result.bankTx});},
+    set(fn){if(fn===estadoSinIngestToken)return;/* sin settings en este estado sintético, quitar el token es un no-op sin rastro */const result=fn({bankTx:['synthetic']});trace.push({type:'state',bankTx:result.bankTx});},
     mcStateKey(){return 'synthetic';},goalSyncClear(){},planSyncClear(){},expenseRowMemoReset(){},obAbsorbedSignOut(){},
     obConfirmedStorageKey:owner=>'synthetic_oback_'+owner,obAbsorbedStorageKey:owner=>'synthetic_obabs_'+owner,
     obConfirmedStorage:()=>({removeItem(){}}),obConfirmedReadCache:new Map(),obConfirmedBlocked:new Set(),obAbsorbedClearNotice(){},
-    setRecovery(v){trace.push({type:'recovery',v});},setShowAuth(v){trace.push({type:'showAuth',v});}};
+    estadoSinIngestToken,setRecovery(v){trace.push({type:'recovery',v});},setShowAuth(v){trace.push({type:'showAuth',v});}};
   return {env,live,retained,sessions,idles,timers,trace,get removed(){return removed;},
     mount(){env.sessionRef={current:null};let cleanup;new Function(...Object.keys(env),'useEffect',parts.effect)(...Object.values(env),fn=>{cleanup=fn();});return ()=>{if(cleanup)cleanup();};},
     event(ev,s,stale=false){for(const cb of stale?retained:live)cb(ev,s);},
