@@ -56,6 +56,12 @@ self.addEventListener("fetch", (e) => {
   const bare = "./" + url.pathname.replace(/^\//, "");
   const isJson = url.pathname.endsWith(".json");
   const isNav = e.request.mode === "navigate";
+  /* Una URL con credenciales en la query (el enlace mágico, la vuelta del banco, la recuperación de
+     contraseña) NO se guarda en la caché con su clave: el token quedaría en disco tras caducar. Se
+     sirve igual (el shell no lleva el token) y se cachea solo la ruta limpia (H3 de la revisión E2).*/
+  const sensible = /^(code|token|t|access_token|refresh_token|id_token|token_hash|confirm|state|error_description)$/i;
+  let conToken = false;
+  url.searchParams.forEach(function (_v, k) { if (sensible.test(k)) conToken = true; });
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then((cached) => {
       const fresh = fetch(e.request)
@@ -64,7 +70,7 @@ self.addEventListener("fetch", (e) => {
             const forReq = res.clone();
             const forBare = res.clone();
             caches.open(CACHE).then((c) => {
-              c.put(e.request, forReq);
+              if (!conToken) c.put(e.request, forReq);
               c.put(bare, forBare).catch(function () {});
             });
           }

@@ -50,7 +50,10 @@ t("la marca caduca a la hora, como la ventana del servidor, y no vale la de otra
   assert.equal(v.BANK_VUELTA_MS, 60 * MIN);
   v.bankVueltaAbre("u1", T0);
   assert.equal(v.bankVueltaAdmite("ok", "u2", T0 + MIN), false, "otra cuenta en el mismo móvil");
-  assert.equal(v.bankVueltaAdmite("ok", "", T0 + MIN), true, "en frío aún no hay sesión: decide el servidor");
+  assert.equal(v.bankVueltaAdmite("ok", "", T0 + MIN), false, "sin sesión conocida (carga en frío) no vale la marca de una cuenta (H1)");
+  v.bankVueltaAbre("", T0);
+  assert.equal(v.bankVueltaAdmite("ok", "", T0 + MIN), true, "una marca sin titular sigue valiendo (decide el servidor)");
+  v.bankVueltaAbre("u1", T0);
   v.bankVueltaAbre("u1", T0);
   assert.equal(v.bankVueltaAdmite("confirm", "u1", T0 + 61 * MIN), false);
   assert.equal(Object.keys(v.mem).length, 0, "la marca caducada se borra");
@@ -147,7 +150,7 @@ t("SEG-08: el token de ingest no vuelve a `settings`", () => {
   assert.ok(!/ingestToken\s*:/.test(comps), "10 ya no escribe ingestToken");
   assert.ok(!/ingestToken\s*:/.test(main), "11 ya no escribe ingestToken");
   assert.match(comps, /delete st\.ingestToken;/);
-  assert.match(main, /delete st\.ingestToken;/);
+  assert.match(core, /delete st\.ingestToken;/);
   // La URL del lector se arma en un solo sitio.
   assert.equal((comps + main).split("/functions/v1/ingest").length - 1, 0);
   assert.equal(core.split("/functions/v1/ingest?token=").length - 1, 1);

@@ -5532,14 +5532,22 @@ const BANK_VUELTA_KEY="mc_bk_pend", BANK_VUELTA_MS=60*60*1000;
 function bankVueltaAbre(uid, now){
   try{ localStorage.setItem(BANK_VUELTA_KEY, JSON.stringify({u:uid||"", t:now})); }catch(e){}
 }
+/* SEG-08: el token de ingest vive en su tabla, no en `settings` (que sube a la nube y a sus copias).
+   Quita el que dejó una versión anterior; el estado va tal cual si no hay nada que quitar. */
+function estadoSinIngestToken(s){
+  if(!s||!s.settings||!s.settings.ingestToken) return s;
+  const st=Object.assign({},s.settings); delete st.ingestToken;
+  return Object.assign({},s,{settings:st});
+}
 function bankVueltaCierra(){ try{ localStorage.removeItem(BANK_VUELTA_KEY); }catch(e){} }
 function bankVueltaAdmite(tipo, uid, now){
   let p=null;
   try{ p=JSON.parse(localStorage.getItem(BANK_VUELTA_KEY)); }catch(e){}
   if(!p || typeof p.t!=="number") return false;
   if(now<p.t || now-p.t>BANK_VUELTA_MS){ bankVueltaCierra(); return false; }
-  // Otra cuenta en el mismo móvil: no es la que salió a conectar.
-  if(uid && p.u && p.u!==uid) return false;
+  // Otra cuenta en el mismo móvil: no es la que salió a conectar. Sin sesión conocida (carga en frío)
+  // tampoco vale: quien llama espera a la sesión antes de preguntar (H1 de la revisión E2).
+  if(p.u && p.u!==uid) return false;
   if(tipo==="confirm") return true;
   if(tipo!=="ok" || p.ok) return false;
   try{ localStorage.setItem(BANK_VUELTA_KEY, JSON.stringify({u:p.u, t:p.t, ok:1})); }catch(e){ return false; }

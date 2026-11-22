@@ -341,6 +341,7 @@ const steps = [
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
   ["bank-callback-msg", ["node", "tests/bank-callback-msg.test.mjs"]],
   ["ronda-e2-nucleo", ["node", "tests/ronda-e2-nucleo.test.mjs"]],
+  ["seg-e2-h", ["node", "tests/seg-e2-h.test.mjs"]],
   ["categorize-limitador", ["node", "tests/categorize-limitador.test.mjs"]],
   ["categorize-handler", ["node", "tests/categorize-handler.test.mjs"]],
   ["seguridad-hogar-eventos", ["node", "tests/seguridad-hogar-eventos.test.mjs"]],

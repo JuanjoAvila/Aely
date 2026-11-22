@@ -9456,14 +9456,22 @@ const BANK_VUELTA_KEY="mc_bk_pend", BANK_VUELTA_MS=60*60*1000;
 function bankVueltaAbre(uid, now){
   try{ localStorage.setItem(BANK_VUELTA_KEY, JSON.stringify({u:uid||"", t:now})); }catch(e){}
 }
+/* SEG-08: el token de ingest vive en su tabla, no en `settings` (que sube a la nube y a sus copias).
+   Quita el que dejó una versión anterior; el estado va tal cual si no hay nada que quitar. */
+function estadoSinIngestToken(s){
+  if(!s||!s.settings||!s.settings.ingestToken) return s;
+  const st=Object.assign({},s.settings); delete st.ingestToken;
+  return Object.assign({},s,{settings:st});
+}
 function bankVueltaCierra(){ try{ localStorage.removeItem(BANK_VUELTA_KEY); }catch(e){} }
 function bankVueltaAdmite(tipo, uid, now){
   let p=null;
   try{ p=JSON.parse(localStorage.getItem(BANK_VUELTA_KEY)); }catch(e){}
   if(!p || typeof p.t!=="number") return false;
   if(now<p.t || now-p.t>BANK_VUELTA_MS){ bankVueltaCierra(); return false; }
-  // Otra cuenta en el mismo móvil: no es la que salió a conectar.
-  if(uid && p.u && p.u!==uid) return false;
+  // Otra cuenta en el mismo móvil: no es la que salió a conectar. Sin sesión conocida (carga en frío)
+  // tampoco vale: quien llama espera a la sesión antes de preguntar (H1 de la revisión E2).
+  if(p.u && p.u!==uid) return false;
   if(tipo==="confirm") return true;
   if(tipo!=="ok" || p.ok) return false;
   try{ localStorage.setItem(BANK_VUELTA_KEY, JSON.stringify({u:p.u, t:p.t, ok:1})); }catch(e){ return false; }
@@ -45607,6 +45615,7 @@ function App(){
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
       // Otra cuenta (o ninguna): ni gastos memorizados ni hora de lectura de la anterior.
       if(login&&prev||!s&&ev==="SIGNED_OUT") expenseRowMemoReset();
+      if(login&&prev) set(estadoSinIngestToken);   // otra cuenta en el mismo móvil: sin el token de la anterior
       if(!s&&ev==="SIGNED_OUT"){
         // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.
         const owner=prev&&prev.user&&prev.user.id;
@@ -45617,7 +45626,8 @@ function App(){
           obAbsorbedClearNotice(owner);
         }
         if(prev&&prev.user){goalSyncClear(mcStateKey(),prev.user.id);planSyncClear(mcStateKey(),prev.user.id);}
-        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,_planSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
+        // Y el token de ingest de esa cuenta no se queda en el estado del móvil (SEG-08, también sin puente).
+        set(p=>{obAbsorbedSignOut(owner,p);return estadoSinIngestToken(Object.assign({},p,{bankTx:[],_goalSync:null,_planSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]}));});
       }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
@@ -45778,15 +45788,24 @@ function App(){
     if(sessionRef.current){ limpiaCartelReconectado(); runBankSync({manual:true}); }
     else bankJustConnected.current=true;
   };
+  /* En una carga en frío la sesión aún no está en `sessionRef`: se espera a que `getSession` conteste
+     antes de comparar la marca con la cuenta (H1). Sin sesión, una marca con titular no vale. */
+  const conTitular=function(fn){
+    const s=sessionRef.current;
+    if(s){ fn(s.user.id); return; }
+    Promise.resolve().then(function(){ return cloud.session(); }).then(function(x){ fn((x&&x.user&&x.user.id)||""); },function(){ fn(""); });
+  };
   const vueltaBancoOk=function(){
-    if(bankVueltaAdmite("ok", sessionRef.current&&sessionRef.current.user.id, Date.now())) bancoConectado();
+    conTitular(function(u){ if(bankVueltaAdmite("ok", u, Date.now())) bancoConectado(); });
   };
   /* SEG-02: el banco vuelve con un token de un solo uso y el enlace sigue sin activar hasta que
      esta app lo canjea con su sesión. Un token que no salió de aquí no se manda al servidor. Un
      corte de red se reintenta una vez; si no, el enlace queda a medias y hay que reconectar. */
   const vueltaBancoConfirma=function(raw){
     const tok=bankConfirmToken(raw);
-    if(!tok || !bankVueltaAdmite("confirm", sessionRef.current&&sessionRef.current.user.id, Date.now())){
+    if(!tok){ showToast("⚠ "+t("bank_err_state")); return; }
+    conTitular(function(u){
+    if(!bankVueltaAdmite("confirm", u, Date.now())){
       showToast("⚠ "+t("bank_err_state")); return;
     }
     const canjea=function(){ return cloud.bankConfirm(tok).then(function(d){ if(!d) throw new Error("error"); }); };
@@ -45799,6 +45818,7 @@ function App(){
     },function(e){
       showToast("⚠ "+t("bank_error"));
       try{ cloud.logEvent("error","bankConfirm: "+String((e&&e.message)||e).slice(0,120)); }catch(_){}
+    });
     });
   };
   const handleGoto=function(g){
@@ -46926,17 +46946,24 @@ function App(){
       const tok=enNube||viejo;
       if(!tok) return;
       try{ nat.setIngestUrl({url:mcIngestUrl(tok)}).catch(function(){}); }catch(e){}
-      if(viejo && enNube) set(function(s){
-        if(!s.settings||!s.settings.ingestToken) return s;
-        const st=Object.assign({},s.settings); delete st.ingestToken;
-        return Object.assign({},s,{settings:st});
-      });
     }).catch(function(){
       if(off || !viejo) return;
       try{ nat.setIngestUrl({url:mcIngestUrl(viejo)}).catch(function(){}); }catch(e){}
     });
     return function(){ off=true; };
   },[state.settings&&state.settings.trIngest, uid]);
+  /* SEG-08, también sin puente nativo (web/PWA, H4 de la revisión E2): el token que dejó una versión
+     anterior en `settings` se quita en cuanto su tabla lo tiene. Antes solo lo hacía el efecto de
+     arriba, que sale pronto sin la app nativa, y el token seguía subiendo a la nube y a sus copias. */
+  useEffect(function(){
+    if(!uid || !(state.settings&&state.settings.ingestToken)) return;
+    let off=false;
+    cloud.getIngestToken().then(function(enNube){
+      if(off||!enNube) return;
+      set(estadoSinIngestToken);
+    }).catch(function(){});
+    return function(){ off=true; };
+  },[state.settings&&state.settings.ingestToken, uid]);
   // App Android: alimenta el widget de pantalla de inicio (gasto + saldo de la cuenta diaria).
   // La APK 51 conserva su payload mensual histórico, igual que ingest activo. Un widget v2
   // declara `widgetContract` y pinta ventana/cifra de Inicio en su idioma (INC-2909-01).
