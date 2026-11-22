@@ -792,6 +792,13 @@ function reservaEstadoTexto(st){
 function metaRitmoMensual(state, g){
   if(!g) return 0;
   if(g.monthly>0) return g.monthly;
+  return metaRitmoReglas(state,g);
+}
+/* Lo que el PLAN cuenta como «apartas»: solo lo respaldado por una REGLA de reserva. El «importe mensual» de
+   la ficha de la meta (`g.monthly`) es una intención para la previsión (`goalEta`), no dinero asignado:
+   sin regla no resta de Libre ni sale como «Apartas» (22/11: 290 € en el Plan sin que él moviera nada). */
+function metaRitmoReglas(state, g){
+  if(!g) return 0;
   return ((state&&state.settings&&state.settings.reservaRules)||[]).reduce(function(n,r){
     if(!r||r.goalId!==g.id) return n;
     if(r.mensual===true){ const imp=reservaMensualImporte(state,r); return n+(imp.amount||0); }

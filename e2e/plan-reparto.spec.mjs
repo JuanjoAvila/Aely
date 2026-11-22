@@ -6,15 +6,15 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtu
    cada meta abre su ficha (escalera, interruptor «Restar del presupuesto», aportar) y apagar el
    interruptor deja las cifras como estaban. Cifras inventadas; reloj del 26/09/2026. */
 const YM = 2026 * 12 + 8;
-const settings = { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell"] };
+const settings = { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell"], reservaRules: [{ id: "rr1", name: "", kind: "fixed", value: 300, goalId: "g1", mensual: true }] };
 const accounts = [{ id: "sb", ent: "sabadell", name: "Cuenta", value: 2380, role: "diario", spendFrom: true }];
 const gasto = (id, d, amount, category) => ({ id, date: "2026-09-" + String(d).padStart(2, "0") + "T10:00:00.000Z", amount, category: category || "super", merchant: "Comercio " + id, ent: "sabadell", source: "manual" });
 const nomina = { id: "n1", date: "2026-09-03T10:00:00.000Z", amount: -3000, category: "ingreso", merchant: "Nómina Empresa SL", ent: "sabadell", source: "manual" };
 const prestamo = { id: "d1", ent: "familia", name: "Préstamo del piso", value: 12000, original: 12000, monthly: 260, months: 40, day: 28, asOf: YM - 6, account: "sabadell" };
 const gimnasio = { id: "d2", ent: "familia", name: "Financiación del gimnasio en casa con cinta y bicicleta", value: 400, original: 600, monthly: 50, amort: 50, months: 8, day: 28, asOf: YM - 2, account: "sabadell" };
-const base = (extra) => Object.assign({ __seedOnce: true, bankTx: [], flows: [], oneoffs: [], settings, accounts, budget: 900,
+const base = (extra) => Object.assign({ __seedOnce: true, bankTx: [], flows: [], oneoffs: [], settings, accounts, budget: 1200,
   expenses: [nomina, gasto("g1", 5, 120.5)], fixed: [{ id: "r1", name: "Comunidad", amount: 95, freq: "mes", day: 28, account: "sabadell" }],
-  debts: [prestamo], goals: [{ id: "g1", name: "Viaje a Japón", emoji: "✈️", target: 3000, saved: 100, monthly: 300, deadline: "2027-08" }],
+  debts: [prestamo], goals: [{ id: "g1", name: "Viaje a Japón", emoji: "✈️", target: 3000, saved: 100, deadline: "2027-08" }],
   aportaciones: [{ id: "a1", name: "Fondo indexado", amount: 200, ent: "myinvestor" }], reservaLog: [] }, extra || {});
 
 async function abrePlan(page, estado) {
@@ -160,7 +160,7 @@ test("Metas: cabecera, filas con su previsión de siempre y ficha con aportar, e
   await fila.click();
   const ficha = page.getByTestId("plan-meta-ficha");
   await expect(ficha).toBeVisible();
-  await expect(ficha.getByTestId("goal-saved")).toContainText(/100/);
+  await expect(ficha.getByTestId("goal-saved")).toContainText(/400/);
   await expect(ficha.locator('[data-act="ficha-aportar"]')).toBeVisible();
   await expect(ficha.locator('[data-act="ficha-editar"]')).toBeVisible();
   await expect(ficha.locator('[data-act="ficha-eliminar"]')).toBeVisible();

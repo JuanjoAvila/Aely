@@ -330,7 +330,7 @@ function RptMetaNivel({g,gv}){
   return React.createElement("div",{className:"rpt-lvl"},React.createElement("i",{style:{height:pct+"%"}}),React.createElement("span",null,Math.round(pct)+"%"));
 }
 function RptMetaFicha({g,state,h,onClose}){
-  const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoMensual(state,g), eta=goalEta(gv,metaRitmoMensual(state,g)), rem=goalRemaining(gv);
+  const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoReglas(state,g), eta=goalEta(gv,metaRitmoMensual(state,g)), rem=goalRemaining(gv);
   const cierra=useRef(null);
   const pie=[!g.done&&rem>0&&React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-aportar",onClick:function(){ onClose(); h.aportar(g); }},t("gl_contribute")),
     React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(g); }},t("fj_edit")),

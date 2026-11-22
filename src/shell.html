@@ -3137,10 +3137,11 @@
   .rpt-sw.ov{background:var(--coral);}
   html.hugetext .rpt-row{grid-template-areas:"l n" "l s" "l a";grid-template-columns:44px minmax(0,1fr);}
   html.hugetext .rpt-am{justify-self:end;align-self:center;}
-  .rpt-lvl{position:relative;width:44px;height:44px;border-radius:12px;background:var(--surface-2);overflow:hidden;display:grid;place-items:center;}
+  .rpt-lvl{position:relative;width:44px;height:44px;border-radius:12px;background:var(--surface-2);overflow:hidden;display:grid;place-items:center;flex:none;align-self:center;}
+  .rpt-lvl>svg{display:block;}
   .rpt-lvl>i{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--mint) 34%,transparent);transition:height .45s var(--ease);}
   .rpt-lvl>span{position:relative;font-family:'Fraunces',Georgia,serif;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
-  .rpt-lvl.empty{background:none;border:1.5px dashed var(--muted-2);color:var(--muted);}
+  .rpt-lvl.empty{padding:0;background:none;border:1.5px dashed var(--muted-2);color:var(--muted);}
   .rpt-lvl.full{background:var(--mint);color:var(--on-mint);}
   /* Hoja: asa, título, cuerpo con scroll y pie fijo */
   .v4-sheet.rpt-sheet:has(>.v4-sheet-body){padding:12px 0 0;}

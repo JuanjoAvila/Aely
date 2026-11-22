@@ -13,6 +13,7 @@ const deuda=extra=>Object.assign({id:"d1",name:"Préstamo sintético",value:1200
 const reciboAna={id:"r2",name:"Fibra sintética",amount:50,bankAmount:90,day:12,freq:"mes",account:"sabadell",
   reparto:[{id:"p1",n:"Ana",via:"debt",debtId:"d1",amt:40}]};
 const meta=extra=>Object.assign({id:"g1",name:"Viaje",target:3000,saved:100,monthly:300},extra||{});
+const rr=s=>Object.assign({},s,{settings:Object.assign({},s.settings,{reservaRules:(s.goals||[]).filter(g=>g.monthly>0).map(g=>({id:"rr"+g.id,name:"",kind:"fixed",value:g.monthly,goalId:g.id,mensual:true}))})});
 const suma=r=>r.trozos.reduce((a,x)=>a+x.c,0);
 const cargoCuota=mov("c1",5,260,{category:"otros",source:"ob:sabadell",merchant:"Cargo cuota"});
 
@@ -78,18 +79,18 @@ const SUITE=[
 }],
 ["Metas: el mayor entre el ritmo y lo ya movido; lo manual sin fecha no entra",c=>{
   const g=meta();
-  let r=c.planReparto(base({goals:[g]}),{});
+  let r=c.planReparto(rr(base({goals:[g]})),{});
   assert.equal(r.met,30000);assert.equal(r.qMet,30000);
   // Mover 120 con una reserva de este mes: sigue siendo 300 en el trozo, quedan 180.
-  const conReserva=base({goals:[g],reservaLog:[{id:"x",goalId:"g1",amount:120,date:dia(4)}]});
+  const conReserva=rr(base({goals:[g],reservaLog:[{id:"x",goalId:"g1",amount:120,date:dia(4)}]}));
   r=c.planReparto(conReserva,{});assert.equal(r.met,30000);assert.equal(r.qMet,18000);
   assert.equal(r.presupuesto,90000-12000,"lo reservado sale del presupuesto de gastos (como en Inicio)");assert.equal(r.gas,78000);assert.equal(r.reservasC,12000);
   // Más de lo previsto: manda lo movido (reserva 120 + gasto con meta 250).
-  const mas=base({goals:[g],reservaLog:[{id:"x",goalId:"g1",amount:120,date:dia(4)}],expenses:base().expenses.concat([mov("m1",9,250,{goalId:"g1"})])});
+  const mas=rr(base({goals:[g],reservaLog:[{id:"x",goalId:"g1",amount:120,date:dia(4)}],expenses:base().expenses.concat([mov("m1",9,250,{goalId:"g1"})])}));
   r=c.planReparto(mas,{});assert.equal(r.met,37000);assert.equal(r.qMet,0);
   assert.equal(r.gastado,18050,"el gasto con meta no es gasto");
   // Una reserva de OTRO mes no cuenta; una aportación manual (saved sube) tampoco inventa un mes.
-  const otro=base({goals:[meta({saved:2500})],reservaLog:[{id:"y",goalId:"g1",amount:700,date:dia(20,10)}]});
+  const otro=rr(base({goals:[meta({saved:2500})],reservaLog:[{id:"y",goalId:"g1",amount:700,date:dia(20,10)}]}));
   assert.equal(c.planReparto(otro,{}).met,30000);
 }],
 ["Ahorro: aportaciones o inversión, sin lo que va a una meta",c=>{
@@ -111,7 +112,7 @@ const SUITE=[
   assert.equal(r.gas,18050);assert.equal(r.sinPresupuesto,true);assert.equal(r.st,"nobud");assert.equal(r.qGas,0);
   const otroBanco=mov("o1",9,40,{ent:"revolut",category:"ocio"});
   r=c.planReparto(base({expenses:base().expenses.concat([otroBanco]),accounts:base().accounts.concat([{ent:"revolut",role:"ahorro",value:10}])}),{});
-  assert.equal(r.gastado,18050+4000,"cuenta + otro banco");
+  assert.equal(r.gastado,18050,"otro banco NO es gasto del Plan: ya va en Recibos/Deudas y Gastos no lo cuenta");
 }],
 ["Te faltan: sin signo, «si gastas todo» y saldo frente a lo que QUEDA",c=>{
   const e=[mov("n1",3,-1000,{merchant:"Nómina Empresa SL"}),mov("g1",5,120.5,{category:"super"})];
@@ -210,18 +211,18 @@ const SUITE=[
     meta({id:"b",target:600,saved:0,monthly:200,deadline:"2027-05"}),
     meta({id:"c",target:500,saved:100,monthly:null,deadline:"2026-09"}),
     meta({id:"d",target:100,saved:100,monthly:null,done:true})];
-  const r=c.metasResumen(base({goals:gs}));
+  const r=c.metasResumen(rr(base({goals:gs})));
   assert.equal(r.ritmo,25000);assert.equal(r.vencidas,1);
   assert.equal(r.hueco,Math.ceil(120000/12)-5000,"solo la que va tarde, lo que le falta al mes");
   assert.equal(r.ahorrado,20000);assert.equal(r.objetivo,240000);
   assert.equal(r.conFecha,3,"las abiertas con fecha (la hecha no cuenta)");
   // Sin ninguna fecha no hay «A tiempo · Todas» que decir.
-  assert.equal(c.metasResumen(base({goals:[meta({id:"s",target:500,saved:0,monthly:50}),meta({id:"t",target:900,saved:0,monthly:null})]})).conFecha,0);
+  assert.equal(c.metasResumen(rr(base({goals:[meta({id:"s",target:500,saved:0,monthly:50}),meta({id:"t",target:900,saved:0,monthly:null})]}))).conFecha,0);
 }],
 ["Te faltan: los porcentajes suman 100 sobre lo que hay que pagar y lo que falta es una parte de eso",c=>{
   // Entran 1.500 y el plan pide mucho más: 1.500 de base daría 236 %, que no dice nada.
   const e=base().expenses.map(x=>x.amount<0?Object.assign({},x,{amount:-1500}):x);
-  const r=c.planReparto(base({expenses:e,budget:900,goals:[meta({id:"a",monthly:800})]}),{});
+  const r=c.planReparto(rr(base({expenses:e,budget:900,goals:[meta({id:"a",monthly:800})]})),{});
   assert.ok(r.falta>0&&r.entra===150000,"el caso es de Te faltan");
   assert.equal(r.trozos.reduce((a,x)=>a+x.p,0),100,"suman 100");
   assert.ok(r.trozos.every(x=>x.p>=0&&x.p<=100),"ninguno pasa de 100");
@@ -283,6 +284,36 @@ const SUITE=[
   const real=escenariosApagado().map(s=>({mes:pick(c.monthBudgetStats(s)),dash:pick(c.dashboardBudgetStats(s)),res:c.reservedSince(s,0),modo:pick(c.monthBudgetStats(s,null,null,"net"))}));
   assert.deepEqual(JSON.parse(JSON.stringify(real)),ORACULO_APAGADO);
 }],
+["Gastos del Plan == gastado de Gastos (mismo state y periodo), con otro banco, cuota, recibo, devolución y traspaso",c=>{
+  for(const ciclo of [false,true]){
+    const s=base({settings:{expenseBanks:["sabadell"],budgetCycle:ciclo},
+      accounts:base().accounts.concat([{ent:"bbva",role:"ahorro",value:10}]),
+      debts:[deuda()],fixed:[{id:"r1",name:"Comunidad",amount:95,day:1,freq:"mes",account:"sabadell"}],
+      expenses:base().expenses.concat([
+        mov("o1",9,300,{ent:"bbva",category:"ocio"}),mov("o2",10,412.7,{ent:"bbva",category:"hogar"}),
+        mov("c1",5,260,{category:"deudas",source:"ob:sabadell",debtId:"d1"}),
+        mov("rc",6,95,{category:"otros",reciboId:"r1"}),
+        mov("dv",8,-30,{merchant:"Devolución pedido"}),
+        mov("tr",7,500,{category:"traspaso"}),mov("tr2",7,-500,{category:"traspaso"})])});
+    const bs=c.monthBudgetStats(s), r=c.planReparto(s,{});
+    assert.equal(r.gastado,Math.round(bs.spent*100)-r.devolucion,"ciclo="+ciclo+": Plan = Gastos menos devoluciones (que Gastos cuenta como ingreso)");
+    assert.equal(r.gastado,18050-3000,"solo super+ocio, sin otro banco, cuota, recibo ni traspaso");
+  }
+}],
+["Metas: un «importe mensual» suelto en la meta (sin regla) NO es «Apartas» ni resta de Libre; una regla sí",c=>{
+  const g=[{id:"g1",name:"Disney",target:1743,saved:395,monthly:290},{id:"g2",name:"Mueble",target:500,saved:0}];
+  const sin=c.planReparto(base({goals:g}),{});
+  assert.equal(sin.met,0,"sin regla ni movimientos, nada asignado");
+  assert.equal(sin.nMet,0);
+  assert.equal(c.metasResumen(base({goals:g})).ritmo,0,"la cabecera de Metas tampoco dice «apartas 290»");
+  assert.equal(sin.libre,sin.entra-sin.total);
+  const con=base({goals:g,settings:{expenseBanks:["sabadell"],reservaRules:[{id:"r1",name:"",kind:"fixed",value:150,goalId:"g1",mensual:true}]}});
+  assert.equal(c.planReparto(con,{}).met,15000,"con regla, su importe");
+  assert.equal(c.planReparto(con,{}).libre,sin.libre-15000);
+  const mov1=base({goals:g,reservaLog:[{id:"x",goalId:"g1",amount:40,date:dia(4)}]});
+  assert.equal(c.planReparto(mov1,{}).met,4000,"un movimiento real del periodo sí cuenta");
+  assert.equal(c.goalEta(g[0],c.metaRitmoMensual(base({goals:g}),g[0])).text!=="",true,"la previsión sigue usando el importe de la meta");
+}],
 ];
 
 let fallos=0;
@@ -314,9 +345,10 @@ const MUTANTES=[
   ["Una reserva no cuenta como Meta","reservasC+=c;","reservasC+=0;"],
   ["El saldo justo no cubre","saldoC>=quedaC","saldoC>quedaC"],
   ["El ciclo no acota recibos","return v>=k(P.ini.y,P.ini.m,P.ini.d) && v<k(P.fin.y,P.fin.m,P.fin.d);","return true;"],
-  ["El gasto con meta cuenta como gasto","if(b===\"cuenta\"||b===\"otrobanco\"){","if(b===\"cuenta\"||b===\"otrobanco\"||b===\"meta\"){"],
+  ["El gasto con meta cuenta como gasto","if(b===\"cuenta\"&&expenseCountsBudget(e,state)){","if((b===\"cuenta\"&&expenseCountsBudget(e,state))||b===\"meta\"){"],
   ["El presupuesto ignora lo reservado","limRaw=bud==null?null:bud-reservasC-resD.total","limRaw=bud==null?null:bud-resD.total"],
-  ["Otro banco no es gasto","if(b===\"cuenta\"||b===\"otrobanco\"){","if(b===\"cuenta\"){"],
+  ["Otro banco cuenta como gasto del Plan","if(b===\"cuenta\"&&expenseCountsBudget(e,state)){","if((b===\"cuenta\"&&expenseCountsBudget(e,state))||b===\"otrobanco\"){"],
+  ["El importe suelto de la meta cuenta como apartado","const ritmo=repCts(metaRitmoReglas(state,g))","const ritmo=repCts(metaRitmoMensual(state,g))"],
   ["Los porcentajes no reparten los restos",".slice(0,Math.max(0,resto))",".slice(0,0)"],
 ];
 let sobreviven=0;

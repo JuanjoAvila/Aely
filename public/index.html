@@ -3137,10 +3137,11 @@
   .rpt-sw.ov{background:var(--coral);}
   html.hugetext .rpt-row{grid-template-areas:"l n" "l s" "l a";grid-template-columns:44px minmax(0,1fr);}
   html.hugetext .rpt-am{justify-self:end;align-self:center;}
-  .rpt-lvl{position:relative;width:44px;height:44px;border-radius:12px;background:var(--surface-2);overflow:hidden;display:grid;place-items:center;}
+  .rpt-lvl{position:relative;width:44px;height:44px;border-radius:12px;background:var(--surface-2);overflow:hidden;display:grid;place-items:center;flex:none;align-self:center;}
+  .rpt-lvl>svg{display:block;}
   .rpt-lvl>i{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--mint) 34%,transparent);transition:height .45s var(--ease);}
   .rpt-lvl>span{position:relative;font-family:'Fraunces',Georgia,serif;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;}
-  .rpt-lvl.empty{background:none;border:1.5px dashed var(--muted-2);color:var(--muted);}
+  .rpt-lvl.empty{padding:0;background:none;border:1.5px dashed var(--muted-2);color:var(--muted);}
   .rpt-lvl.full{background:var(--mint);color:var(--on-mint);}
   /* Hoja: asa, título, cuerpo con scroll y pie fijo */
   .v4-sheet.rpt-sheet:has(>.v4-sheet-body){padding:12px 0 0;}
@@ -32125,6 +32126,13 @@ function reservaEstadoTexto(st){
 function metaRitmoMensual(state, g){
   if(!g) return 0;
   if(g.monthly>0) return g.monthly;
+  return metaRitmoReglas(state,g);
+}
+/* Lo que el PLAN cuenta como «apartas»: solo lo respaldado por una REGLA de reserva. El «importe mensual» de
+   la ficha de la meta (`g.monthly`) es una intención para la previsión (`goalEta`), no dinero asignado:
+   sin regla no resta de Libre ni sale como «Apartas» (22/11: 290 € en el Plan sin que él moviera nada). */
+function metaRitmoReglas(state, g){
+  if(!g) return 0;
   return ((state&&state.settings&&state.settings.reservaRules)||[]).reduce(function(n,r){
     if(!r||r.goalId!==g.id) return n;
     if(r.mensual===true){ const imp=reservaMensualImporte(state,r); return n+(imp.amount||0); }
@@ -32683,7 +32691,11 @@ function planReparto(state, o){
     }
     if(!(e.amount>0)) return;
     const b=expenseBucket(e,state), c=repCts(e.amount);
-    if(b==="cuenta"||b==="otrobanco"){ if(!sinEnlazar.has(e)) gastado+=c; }
+    /* UNA sola fuente con Gastos (`expenseCountsBudget`, la de `monthBudgetStats`): lo gastado del Plan es el
+       MISMO número que el de Gastos. Antes sumaba también el cajón «otrobanco» (cargos de bancos que no son
+       de gasto diario: recibos y cuotas que cobra ese banco), que ya van en Recibos y Deudas: se contaban
+       dos veces (22/11: 814 € en Gastos y 1.527 € en el Plan). */
+    if(b==="cuenta"&&expenseCountsBudget(e,state)){ if(!sinEnlazar.has(e)) gastado+=c; }
     else if(b==="meta"){ const id=metaDeGasto(e); metaGastos[id]=(metaGastos[id]||0)+c; }
     else if(b==="neutra"&&e.category==="inversion"&&recompensaDe(e)!=="saveback") inversion+=c;
   });
@@ -32735,7 +32747,7 @@ function planReparto(state, o){
   (state.goals||[]).forEach(function(g){
     if(!g||g.done||(g.saved||0)>=(g.target||0)&&g.target>0) return;
     abiertas[g.id]=1;
-    const ritmo=repCts(metaRitmoMensual(state,g)), h=Math.max(0,hecho[g.id]||0);
+    const ritmo=repCts(metaRitmoReglas(state,g)), h=Math.max(0,hecho[g.id]||0);
     if(ritmo>0) nMet++;
     metC+=Math.max(ritmo,h); metQ+=Math.max(0,ritmo-h);
   });
@@ -32815,7 +32827,7 @@ function metasResumen(state){
     const gv=metaConAportes(g,state);
     ahorrado+=repCts(gv.saved); objetivo+=repCts(g.target);
     if(g.done||goalRemaining(gv)<=0) return;
-    const r=repCts(metaRitmoMensual(state,g));
+    const r=repCts(metaRitmoReglas(state,g));
     ritmo+=r;
     if(g.deadline) conFecha++;
     const eta=goalEta(gv,metaRitmoMensual(state,g));
@@ -33171,7 +33183,7 @@ function RptMetaNivel({g,gv}){
   return React.createElement("div",{className:"rpt-lvl"},React.createElement("i",{style:{height:pct+"%"}}),React.createElement("span",null,Math.round(pct)+"%"));
 }
 function RptMetaFicha({g,state,h,onClose}){
-  const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoMensual(state,g), eta=goalEta(gv,metaRitmoMensual(state,g)), rem=goalRemaining(gv);
+  const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoReglas(state,g), eta=goalEta(gv,metaRitmoMensual(state,g)), rem=goalRemaining(gv);
   const cierra=useRef(null);
   const pie=[!g.done&&rem>0&&React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-aportar",onClick:function(){ onClose(); h.aportar(g); }},t("gl_contribute")),
     React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(g); }},t("fj_edit")),
@@ -36391,7 +36403,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7f3a7282611038dc7cb17ca2245aed6aa75b8d8753ddd47b646a6b770a924d3f";
+var _rnSha="e6c778fe9f81871f2e69ffc036b48c9e105fc0d822a63ce59f80e4f4d3f0cf7c";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

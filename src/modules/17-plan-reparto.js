@@ -159,7 +159,11 @@ function planReparto(state, o){
     }
     if(!(e.amount>0)) return;
     const b=expenseBucket(e,state), c=repCts(e.amount);
-    if(b==="cuenta"||b==="otrobanco"){ if(!sinEnlazar.has(e)) gastado+=c; }
+    /* UNA sola fuente con Gastos (`expenseCountsBudget`, la de `monthBudgetStats`): lo gastado del Plan es el
+       MISMO número que el de Gastos. Antes sumaba también el cajón «otrobanco» (cargos de bancos que no son
+       de gasto diario: recibos y cuotas que cobra ese banco), que ya van en Recibos y Deudas: se contaban
+       dos veces (22/11: 814 € en Gastos y 1.527 € en el Plan). */
+    if(b==="cuenta"&&expenseCountsBudget(e,state)){ if(!sinEnlazar.has(e)) gastado+=c; }
     else if(b==="meta"){ const id=metaDeGasto(e); metaGastos[id]=(metaGastos[id]||0)+c; }
     else if(b==="neutra"&&e.category==="inversion"&&recompensaDe(e)!=="saveback") inversion+=c;
   });
@@ -211,7 +215,7 @@ function planReparto(state, o){
   (state.goals||[]).forEach(function(g){
     if(!g||g.done||(g.saved||0)>=(g.target||0)&&g.target>0) return;
     abiertas[g.id]=1;
-    const ritmo=repCts(metaRitmoMensual(state,g)), h=Math.max(0,hecho[g.id]||0);
+    const ritmo=repCts(metaRitmoReglas(state,g)), h=Math.max(0,hecho[g.id]||0);
     if(ritmo>0) nMet++;
     metC+=Math.max(ritmo,h); metQ+=Math.max(0,ritmo-h);
   });
@@ -291,7 +295,7 @@ function metasResumen(state){
     const gv=metaConAportes(g,state);
     ahorrado+=repCts(gv.saved); objetivo+=repCts(g.target);
     if(g.done||goalRemaining(gv)<=0) return;
-    const r=repCts(metaRitmoMensual(state,g));
+    const r=repCts(metaRitmoReglas(state,g));
     ritmo+=r;
     if(g.deadline) conFecha++;
     const eta=goalEta(gv,metaRitmoMensual(state,g));
