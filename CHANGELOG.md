@@ -1,3 +1,12 @@
+## [4.26.251] — 2026-11-22 · Candidata de beta, solo web: el Plan deja de contar dos veces los gastos, Metas solo cuenta lo respaldado por regla y el + de las metas vacías queda centrado
+
+- **Qué lleva (sobre la 4.26.250, a3eeab222).** Una rama, `claude/plan-gastado` hasta `25806c214`. Sin APK nueva; Inicio no se toca.
+- **Gastado del Plan = el de Gastos (`17-plan-reparto.js`).** Antes sumaba también el cajón `otrobanco` (recibos y cuotas que cobra un banco que no es de gasto diario), que ya van en Recibos y Deudas: se contaban dos veces (814 € en Gastos y 1.527 € en el Plan). Ahora usa `expenseCountsBudget(e,state)`, la misma regla que `monthBudgetStats`.
+- **Metas: solo lo respaldado por regla (`metaRitmoReglas`, 09).** El «importe mensual» de la ficha (`g.monthly`) es una intención para la previsión (`goalEta`), no dinero asignado: sin regla de reserva ya no resta de Libre ni sale como «Apartas» (290 € en el Plan sin que nadie moviera nada). `goalEta` sigue usando `metaRitmoMensual`.
+- **Tile vacío de Metas (`shell.html`).** `.rpt-lvl` con `flex:none;align-self:center` y `.empty` sin relleno: el + queda centrado.
+- **Tests.** `tests/plan-reparto.test.mjs` y `e2e/plan-reparto.spec.mjs` ajustados.
+- **Panel de beta.** Nota sin tanda nueva (`tandas:[]`); las anteriores siguen en su versión.
+
 ## [4.26.250] — 2026-11-21 · Candidata de beta, solo web: Plan nuevo (a dónde va tu sueldo, Deudas y Metas rediseñadas, «Restar del presupuesto») y aviso de sin conexión que ya no falla con VPN
 
 - **Qué lleva (sobre la 4.26.249, 891d0a567).** Dos ramas, mezcladas con `merge`: `claude/plan-a` hasta `a94a21932` (nacida de la 4.26.248, d2e500fd6) y `claude/offline-falso` hasta `a9a6e7fa5`.

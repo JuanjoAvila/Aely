@@ -1,5 +1,32 @@
 [
   {
+    "v": "4.26.251",
+    "d": "2026-11-22",
+    "t": {
+      "es": "El Plan ya no cuenta dos veces los gastos y las metas se ven mejor",
+      "en": "Plan no longer counts spending twice and goals look better",
+      "ca": "El Pla ja no compta dues vegades les despeses i les metes es veuen millor"
+    },
+    "items": {
+      "es": [
+        "El Plan ya no cuenta dos veces los gastos de otros bancos y su cifra de Gastos coincide con la pantalla Gastos.",
+        "Una aportación mensual suelta en una meta ya no se resta de Libre.",
+        "El + de las metas vacías queda centrado."
+      ],
+      "en": [
+        "Plan no longer counts spending from other banks twice, and its Spending figure matches the Spending screen.",
+        "A loose monthly contribution to a goal is no longer subtracted from Free.",
+        "The + on empty goals is now centred."
+      ],
+      "ca": [
+        "El Pla ja no compta dues vegades les despeses d’altres bancs i la seva xifra de Despeses coincideix amb la pantalla Despeses.",
+        "Una aportació mensual solta en una meta ja no es resta de Lliure.",
+        "El + de les metes buides queda centrat."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.250",
     "d": "2026-11-21",
     "t": {
