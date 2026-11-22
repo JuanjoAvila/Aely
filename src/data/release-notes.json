@@ -1,5 +1,32 @@
 [
   {
+    "v": "4.26.252",
+    "d": "2026-11-22",
+    "t": {
+      "es": "Más seguridad al volver del banco y al cerrar sesión",
+      "en": "Safer when coming back from the bank and when signing out",
+      "ca": "Més seguretat en tornar del banc i en tancar la sessió"
+    },
+    "items": {
+      "es": [
+        "Si el móvil tiene otra cuenta, abrir el enlace de vuelta del banco ya no da por conectado el banco de la cuenta equivocada.",
+        "Los enlaces de acceso ya no se guardan en el móvil para usarlos sin conexión.",
+        "Al cerrar sesión o cambiar de cuenta no queda en el móvil la clave de los avisos de gasto de la cuenta anterior."
+      ],
+      "en": [
+        "If the phone has another account, opening the link that comes back from the bank no longer marks the wrong account's bank as connected.",
+        "Sign-in links are no longer kept on the phone for offline use.",
+        "When you sign out or switch account, the key for spending alerts of the previous account no longer stays on the phone."
+      ],
+      "ca": [
+        "Si el mòbil té un altre compte, obrir l’enllaç de tornada del banc ja no dona per connectat el banc del compte equivocat.",
+        "Els enllaços d’accés ja no es guarden al mòbil per fer-los servir sense connexió.",
+        "En tancar la sessió o canviar de compte no queda al mòbil la clau dels avisos de despesa del compte anterior."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.251",
     "d": "2026-11-22",
     "t": {

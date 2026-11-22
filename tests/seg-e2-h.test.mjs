@@ -58,10 +58,10 @@ async function sw(url, mode = "navigate") {
   return { res, puestas };
 }
 await ta("H3: una navegación con token en la query se sirve pero no se guarda con su clave", async () => {
-  for (const q of ["?code=abc123", "?token_hash=zzz&type=magiclink", "?bank=confirm&t=" + "A".repeat(43), "?access_token=x"]) {
+  for (const q of ["?code=abc123", "?token_hash=zzz&type=magiclink", "?bank=confirm&t=" + "A".repeat(43), "?access_token=x", "?apikey=k", "?provider_token=p", "?otp=123456", "?redirect_to=https%3A%2F%2Fx", "?algo_desconocido=1", "?v=3&otp=1"]) {
     const { res, puestas } = await sw("https://app.test/" + q);
     assert.equal(res.status, 200, q);
-    assert.ok(!puestas.some((k) => /[?&](code|token_hash|t|access_token)=/.test(k)), "token en la clave de la caché: " + q + " -> " + puestas);
+    assert.ok(!puestas.some((k) => /[?&](code|token_hash|t|access_token|apikey|provider_token|otp|redirect_to|algo_desconocido)=/.test(k)), "token en la clave de la caché: " + q + " -> " + puestas);
     assert.ok(puestas.includes("./"), "la ruta limpia sí se guarda: " + q);
   }
 });

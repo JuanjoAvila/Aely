@@ -1,3 +1,12 @@
+## [4.26.252] — 2026-11-22 · Candidata de beta, solo web: cierra tres pendientes de la revisión E2 del núcleo de seguridad (H1, H3 y H4)
+
+- **Qué lleva (sobre la 4.26.251, 335e3a059).** Una rama, `claude/seg-e2-h`. Sin APK nueva; Inicio no se toca. Quedan H5 (rotar el token de ingest), SEG-22 (PKCE) y `BANK_REQUIRE_CONFIRM=1`, que piden producción y el OK del dueño.
+- **H1: la marca «otra cuenta» actúa también en frío (`bankVueltaAdmite`, 00).** Con la app recién abierta no hay sesión en memoria y el filtro `uid && p.u && p.u!==uid` se saltaba la comprobación: la vuelta del banco de OTRA cuenta del móvil se daba por buena. Ahora una marca con titular no vale sin sesión conocida y `vueltaBancoOk`/`vueltaBancoConfirma` (11) esperan a `cloud.session()` (`conTitular`) antes de preguntar. Una marca sin titular sigue como antes.
+- **H3: `sw.js` no guarda navegaciones con credenciales (`public/sw.js`).** Una URL con `code`, `token`, `t`, `access_token`, `refresh_token`, `id_token`, `token_hash`, `confirm`, `state` o `error_description` en la query se servía y se guardaba en la caché con su clave completa (el enlace mágico o `?bank=confirm&t=…` quedaban en disco). Ahora se sirve igual pero solo se guarda la ruta limpia.
+- **H4: SEG-08 también sin puente nativo (`estadoSinIngestToken`, 00; efecto nuevo y cierre de sesión en 11).** Quitar `settings.ingestToken` solo ocurría dentro del efecto que sale pronto sin la app nativa, así que en web/PWA el token que dejó una versión anterior seguía subiendo a la nube y a sus copias. Ahora un efecto propio lo quita en cuanto su tabla lo tiene, y `SIGNED_OUT` y el cambio de cuenta lo quitan siempre.
+- **Tests.** `tests/seg-e2-h.test.mjs` (nuevo; cada arreglo verificado con una mutación que lo hace fallar) y `ronda-e2-nucleo` ajustado a la nueva regla en frío. Catálogo251 pasa a histórico y Catálogo252 abre la nota; `revisar-beta` cuenta la 252.
+- **Panel de beta.** Nota sin tanda nueva (`tandas: []`); las ocho anteriores siguen en su versión.
+
 ## [4.26.251] — 2026-11-22 · Candidata de beta, solo web: el Plan deja de contar dos veces los gastos, Metas solo cuenta lo respaldado por regla y el + de las metas vacías queda centrado
 
 - **Qué lleva (sobre la 4.26.250, a3eeab222).** Una rama, `claude/plan-gastado` hasta `25806c214`. Sin APK nueva; Inicio no se toca.
