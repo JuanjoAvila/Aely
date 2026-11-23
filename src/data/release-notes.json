@@ -1,5 +1,32 @@
 [
   {
+    "v": "4.26.254",
+    "d": "2026-11-24",
+    "t": {
+      "es": "Bancos más legibles, restos de deuda y hogares más seguros",
+      "en": "Cleaner banks, debt remainders and safer households",
+      "ca": "Bancs més clars, restes de deute i llars més segures"
+    },
+    "items": {
+      "es": [
+        "Mis bancos se ve más limpio y con letra grande, fácil de leer.",
+        "Al amortizar una deuda vencida, el resto de céntimos queda bien.",
+        "Unirse a un hogar con código es más seguro."
+      ],
+      "en": [
+        "Banks look cleaner and easier to read, with larger text.",
+        "Paying off an overdue debt now leaves the remaining cents right.",
+        "Joining a household with a code is now safer."
+      ],
+      "ca": [
+        "Els bancs es veuen més nets i amb lletra gran, fàcils de llegir.",
+        "En amortitzar un deute vençut, el que queda de cèntims surt ben fet.",
+        "Unir-se a una llar amb codi és més segur."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.253",
     "d": "2026-11-23",
     "t": {

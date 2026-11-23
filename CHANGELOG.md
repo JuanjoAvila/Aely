@@ -1,3 +1,12 @@
+## [4.26.254] — 2026-11-24 · Candidata de beta, solo web: zona de bancos más legible, amortizar el resto de una deuda vencida y unirse a un hogar con código endurecido
+
+- **Qué lleva (sobre la 4.26.253, 5972c1c80).** Integración con `merge` de tres ramas ya revisadas por separado: `claude/hogar-codigo-x` (`6ae43128e`), `claude/din-15-amortizar-resto` (`cce4444d1`) y `claude/d2-bancos-x` (`3040769e3`). Sin APK nueva; Inicio no se toca.
+- **Hogar (`00-core.js`, `13-hogar.js`).** El código de hogar exige al menos 10 caracteres y el alta va por `join_household`, para que un código corto no se pueda adivinar. Test `hogar-endurecido` ampliado.
+- **Dinero (`07-tab-patri-fijos.js`, `09-tab-debts-goals.js`).** Amortizar el resto de una deuda vencida dejaba céntimos colgados por redondeo; ahora el resto cuadra. Test nuevo `amortizar-resto-vencida`, en el runner.
+- **Bancos (D2: `01-i18n`, `02-ui-shared`, `06-sync-brokers`, `10-app-components`, `shell.html`).** Zona de bancos más limpia y con la escala de letra grande; textos en es/en/ca. e2e nuevo `bancos-d2`, con línea en `relevant-tests`.
+- **Integración.** El único conflicto fue `public/beta-delivery.json` (generado): se tomó el de beta y se regeneró con `npm run build`, igual que `public/index.html`. Sin duplicados tras el merge (`test:syntax`).
+- **Tests.** Catálogo253 pasa a histórico (`sourceBeta253`) y Catálogo254 abre la nota; `revisar-beta` cuenta la 254.
+
 ## [4.26.253] — 2026-11-23 · Candidata de beta, solo web: rediseño de Plan, Deudas y Metas (cabecera desplegable, herramientas, altas y ediciones nuevas, Metas sin barra en el resumen)
 
 - **Qué lleva (sobre la 4.26.252, dfe5b8dbf).** Integración de las ramas del rediseño de Plan/Deudas/Metas (`claude/integra-253`, `9f3be7579` y el remate de «Editar meta» `ff8b16755`), ya pasadas por el filtro de diseño. Sin APK nueva; Inicio no se toca.
