@@ -2740,6 +2740,9 @@
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);}
   html.hugetext .bk-top{flex-direction:column;align-items:flex-start;}
   html.hugetext .bk-am{margin-left:0;}
+  /* Sin saldo («—») no merece un renglón propio con Enorme: se queda a la derecha del nombre (filtro de diseño D2, 24/11). */
+  html.hugetext .bk-top:has(.bk-am.nil){flex-direction:row;flex-wrap:nowrap;align-items:baseline;}
+  html.hugetext .bk-top:has(.bk-am.nil) .bk-am{margin-left:auto;flex:0 0 auto;}
   .bk-vacio{text-align:center;padding:36px 12px 8px;}
   .bk-vacio-t{font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:600;margin-bottom:16px;}
   .bk-pick .bk-sec,.bk-ficha .bk-sec{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted-2);margin:14px 2px 10px;}
@@ -10650,7 +10653,7 @@ Object.assign(LANG.es,{
   bp_title:"Mis bancos",
   bp_manage:"Gestionar mis bancos",
   mb_connect:"Conectar", mb_other:"Otro banco", mb_sec_cuentas:"Cuentas", mb_sec_inv:"Inversiones", mb_vacio:"Aún no hay nada conectado",
-  mb_st_dead:"Permiso caducado", mb_st_dead_c:"● Caducado", mb_st_ses:"Sesión caducada", mb_st_off:"Sin conectar", mb_st_off_c:"● Sin conectar", mb_st_ok:"● Al día", mb_renew:"Renovar", mb_renew_long:"Renovar permiso",
+  bk_sin_saldo:"sin saldo", mb_st_dead:"Permiso caducado", mb_st_dead_c:"● Caducado", mb_st_ses:"Sesión caducada", mb_st_off:"Sin conectar", mb_st_off_c:"● Sin conectar", mb_st_ok:"● Al día", mb_renew:"Renovar", mb_renew_long:"Renovar permiso",
   mb_last:"Último saldo {x}", mb_quitar:"Quitar {bank}", mb_rev_csv:"Oro y acciones (CSV)", mb_refresh_aria:"Actualizar",
   mb_rel_now:"ahora", mb_rel_min:"hace {n} min", mb_rel_h:"hace {n} h", mb_rel_ayer:"ayer", mb_rel_d:"hace {n} días",
   mb_left_0:"caduca hoy", mb_left_1:"caduca mañana", mb_left_d:"caduca en {n} días", mb_dead_1:"caducó ayer", mb_dead_d:"caducó hace {n} días",
@@ -35464,7 +35467,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
           React.createElement("div",{className:"bk-tx"},
             React.createElement("div",{className:"bk-top"},
               React.createElement("span",{className:"bk-nm"}, bankLabel(l.aspsp_name)),
-              React.createElement("span",{className:"bk-am num"+((st.dead||st.noAcct)?" fade":"")}, sal!=null?eur(sal):"—")),
+              React.createElement("span",Object.assign({className:"bk-am num"+((st.dead||st.noAcct)?" fade":"")+(sal==null?" nil":"")},sal==null?{"aria-label":t("bk_sin_saldo")}:{}), sal!=null?eur(sal):"—")),
             React.createElement("div",{className:"bk-mt"}, lineaEstado(st), nA>1?trozo(tf("bp_naccts",{n:nA})):null),
             (st.dead||st.noAcct) && React.createElement("div",{className:"bk-act"},
               React.createElement("button",{type:"button",className:"bk-renew","data-act":"bk-renovar",disabled:!!busy,onClick:renovar(l,st)}, busy===l.aspsp_name?"…":(st.noAcct?t("bp_retry_link"):t("mb_renew"))))));
@@ -35493,7 +35496,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
           React.createElement("div",{className:"bk-tx"},
             React.createElement("div",{className:"bk-top"},
               React.createElement("span",{className:"bk-nm"}, entOf(k).label),
-              React.createElement("span",{className:"bk-am num"+(s==="ok"||k==="revolut"?"":" fade")}, val!=null?eur(val):"—")),
+              React.createElement("span",Object.assign({className:"bk-am num"+(s==="ok"||k==="revolut"?"":" fade")+(val==null?" nil":"")},val==null?{"aria-label":t("bk_sin_saldo")}:{}), val!=null?eur(val):"—")),
             React.createElement("div",{className:"bk-mt"}, linea,
               its.length>0?(linea?trozo(nPos):React.createElement("span",{className:"nw"},nPos)):null),
             (s==="dead"||s==="off") && React.createElement("div",{className:"bk-act"},
@@ -36608,7 +36611,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="fba6a2de23633c1037655ec28cef52bcb1532000629b82ebe070dae4c402c86b";
+var _rnSha="073bac32d6f57159bbfc69cbec2e57247b45fe8fc91b0b7d3e65f8af260c4e2b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

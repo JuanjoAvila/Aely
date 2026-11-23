@@ -1172,7 +1172,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
           React.createElement("div",{className:"bk-tx"},
             React.createElement("div",{className:"bk-top"},
               React.createElement("span",{className:"bk-nm"}, bankLabel(l.aspsp_name)),
-              React.createElement("span",{className:"bk-am num"+((st.dead||st.noAcct)?" fade":"")}, sal!=null?eur(sal):"—")),
+              React.createElement("span",Object.assign({className:"bk-am num"+((st.dead||st.noAcct)?" fade":"")+(sal==null?" nil":"")},sal==null?{"aria-label":t("bk_sin_saldo")}:{}), sal!=null?eur(sal):"—")),
             React.createElement("div",{className:"bk-mt"}, lineaEstado(st), nA>1?trozo(tf("bp_naccts",{n:nA})):null),
             (st.dead||st.noAcct) && React.createElement("div",{className:"bk-act"},
               React.createElement("button",{type:"button",className:"bk-renew","data-act":"bk-renovar",disabled:!!busy,onClick:renovar(l,st)}, busy===l.aspsp_name?"…":(st.noAcct?t("bp_retry_link"):t("mb_renew"))))));
@@ -1201,7 +1201,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
           React.createElement("div",{className:"bk-tx"},
             React.createElement("div",{className:"bk-top"},
               React.createElement("span",{className:"bk-nm"}, entOf(k).label),
-              React.createElement("span",{className:"bk-am num"+(s==="ok"||k==="revolut"?"":" fade")}, val!=null?eur(val):"—")),
+              React.createElement("span",Object.assign({className:"bk-am num"+(s==="ok"||k==="revolut"?"":" fade")+(val==null?" nil":"")},val==null?{"aria-label":t("bk_sin_saldo")}:{}), val!=null?eur(val):"—")),
             React.createElement("div",{className:"bk-mt"}, linea,
               its.length>0?(linea?trozo(nPos):React.createElement("span",{className:"nw"},nPos)):null),
             (s==="dead"||s==="off") && React.createElement("div",{className:"bk-act"},

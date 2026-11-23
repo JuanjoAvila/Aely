@@ -40,6 +40,15 @@ test("el «·» de la fila nunca abre renglón (Enorme a 360) y «Otro banco» l
   }).length);
   expect(caidos).toBe(0);
   await expect(push.locator('.bk-row[data-aspsp="Banco Cetelem"] .mono')).toHaveText("BC");
+  // Sin saldo: «—» con su etiqueta y en el MISMO renglón que el nombre, aunque sea Enorme (no hincha la tarjeta).
+  const am = push.locator('.bk-row[data-aspsp="Banco Cetelem"] .bk-am');
+  await expect(am).toHaveText("—");
+  await expect(am).toHaveAttribute("aria-label", "sin saldo");
+  const mismo = await am.evaluate((el) => {
+    const nm = el.parentElement.querySelector(".bk-nm");
+    return el.getBoundingClientRect().top < nm.getBoundingClientRect().bottom - 2;
+  });
+  expect(mismo).toBe(true);
 });
 
 test("la ficha de MyInvestor conectado no repite el estado y se «Quita», no se «Desconecta»", async ({ page }) => {
