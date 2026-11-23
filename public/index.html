@@ -1108,6 +1108,25 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;white-space:nowrap;}
   .pr6-count{font-size:14px;color:var(--muted);}
+  /* Cabecera tocable («Tu mes en cifras»): igual que antes a la vista; la flecha y el puntito de aviso van a la derecha de la cifra. */
+  button.pr6-sum-tap{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;row-gap:12px;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px;}
+  button.pr6-sum-tap>*{grid-column:1;min-width:0;}
+  button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:1 / span 2;position:relative;display:flex;width:28px;height:28px;align-items:center;justify-content:center;color:var(--muted);}
+  .pr6-sum-tap:focus-visible{outline:2px solid var(--mint-bright);outline-offset:4px;border-radius:10px;}
+  .pr6-sum-dot{position:absolute;top:1px;right:1px;width:9px;height:9px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 2px var(--surface);}
+  .pm-body{padding-top:4px;}
+  .pm-big{font-size:42px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:4px;white-space:nowrap;}
+  .pm-est{font-size:15px;font-weight:700;color:var(--mint-bright);margin-top:6px;}
+  .pm-est.bad{color:var(--coral);}
+  .pm-aviso{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--coral-dim);font-size:14px;font-weight:600;line-height:1.35;}
+  .pm-sub{font-size:13px;font-weight:800;margin-bottom:2px;}
+  .pm-banco{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:14px;padding:0 4px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--mint-bright);font:inherit;font-weight:700;cursor:pointer;}
+  html[data-theme="light"] .pm-est:not(.bad),html[data-theme="light"] .pm-banco{color:var(--mint-ink);}
+  /* Pestañas de Plan como el diseño plan-mezcla: sin caja, píldora menta suave sobre el fondo oscuro. */
+  .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;}
+  .v4-plan-tabs .v4-seg-btn{flex:0 0 auto;min-height:44px;padding:0 20px;border-radius:999px;transition:background .25s var(--ease),color .25s var(--ease);}
+  .v4-plan-tabs .v4-seg-btn.on{background:color-mix(in srgb,var(--mint) 16%,transparent);color:var(--mint-bright);}
+  html[data-theme="light"] .v4-plan-tabs .v4-seg-btn.on{color:var(--mint-ink);}
   /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. En FILA también a 360 y
      393 (SPEC §2.2; auditoría de diseño 237, P2-2): apiladas, la tarjeta cambiaba de forma según el
      móvil y empujaba «Para revisar» fuera del primer pantallazo. Las dos parten de cero y crecen igual
@@ -12529,6 +12548,17 @@ Object.assign(LANG.es,{
   rpt_traspaso:"Traspaso propio · no suma",
   rpt_sueldo:"Sueldo",
   rpt_ver_reparto:"Ver reparto",
+  pm_ver:"Ver el mes en cifras",
+  pm_title:"Tu mes en cifras",
+  pm_saldo:"Saldo en tus cuentas",
+  pm_sobran:"Te sobran",
+  pm_faltan:"Te faltan",
+  pm_donde:"Dónde va lo que queda",
+  pm_aviso:"Tus ingresos de este mes no llegan al plan completo: te faltan {x}.",
+  pm_banco:"Ver banco a banco",
+  pm_nada:"Nada por pagar este mes",
+  pm_cubre:"Tu saldo lo cubre.",
+  pm_nollega:"Tu saldo no llega a cubrirlo.",
   rpt_volver:"Volver",
   rpt_resta_t:"Restar del presupuesto",
   rpt_resta_s:"{x} al mes",
@@ -32943,6 +32973,60 @@ function RptBarra({state,totals,onJump}){
     abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
       onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }}));
 }
+/* «Tu mes en cifras» (diseño plan-mezcla, orden del dueño 23/11): se abre al tocar la cabecera de Recibos, que
+   no cambia de aspecto. Tres cosas distintas y cada una con su fuente: «Queda por pagar» y su reparto por tipo
+   (recibos, deudas, gastos, metas, ahorro) salen de `planReparto`; «cubre / no llega» es el saldo de hoy contra
+   eso; y «te faltan» (aviso) es que los ingresos del mes no llegan al plan completo. Lo que no se sabe va «—». */
+function PlanMesHoja({state,totals,mes,onClose,onBanco}){
+  const r=useReparto(state,totals), closer=useRef(null), rootRef=useRef(null);
+  const saldo=r.saldo, dif=saldo==null?null:saldo-r.queda;
+  // Como en el diseño: mientras la hoja está abierta, la pantalla de detrás ni se enfoca ni se lee.
+  useEffect(function(){
+    const app=document.getElementById("root"), antes=document.activeElement;
+    if(app) app.setAttribute("inert","");
+    const hoja=rootRef.current&&rootRef.current.closest(".v4-sheet"), x=hoja&&hoja.querySelector(".rpt-sx");
+    if(x) x.focus({preventScroll:true});
+    const key=function(e){ if(e.key==="Escape"&&closer.current){ e.stopPropagation(); closer.current(); } };
+    document.addEventListener("keydown",key);
+    return function(){
+      document.removeEventListener("keydown",key);
+      if(app) app.removeAttribute("inert");
+      if(antes&&antes.focus&&document.contains(antes)) antes.focus({preventScroll:true});
+    };
+  },[]);
+  const trozos=[["rec",r.qRec,"rpt_rec"],["deu",r.qDeu,"rpt_deu"],["gas",r.qGas,"rpt_gas"],["met",r.qMet,"rpt_met"],["aho",r.qAho,"rpt_aho"]].filter(function(x){ return x[1]>0; });
+  const estado=r.queda<=0?t("pm_nada"):dif==null?"":dif>=0?t("pm_cubre"):t("pm_nollega");
+  return React.createElement(RptHoja,{title:t("pm_title"),onClose:onClose,closer:closer,testid:"plan-mes-hoja"},
+    React.createElement("div",{ref:rootRef,className:"pm-body"},
+      React.createElement("div",{className:"v4-micro"},tf("v4_plan_left",{month:mes})),
+      React.createElement("div",{className:"serif num pm-big","data-testid":"plan-mes-queda"},rptC(r.queda)),
+      estado&&React.createElement("div",{className:"pm-est"+(dif!=null&&dif<0&&r.queda>0?" bad":""),"data-testid":"plan-mes-estado"},estado),
+      React.createElement("div",{className:"rpt-sg"},
+        rptKv(t("pm_saldo"),saldo==null?"—":rptC(saldo),"saldo"),
+        rptKv(dif!=null&&dif<0?t("pm_faltan"):t("pm_sobran"),dif==null?"—":rptC(dif),"dif")),
+      r.falta>0&&React.createElement("div",{className:"pm-aviso",role:"note","data-testid":"plan-mes-aviso"},tf("pm_aviso",{x:rptC(r.falta)})),
+      trozos.length>0&&React.createElement("div",{className:"rpt-sg"},
+        React.createElement("div",{className:"pm-sub"},t("pm_donde")),
+        React.createElement("div",{className:"rpt-pb lg",style:{display:"flex"},"aria-hidden":"true"},trozos.map(function(x,i){
+          return React.createElement("i",{key:x[0],style:{position:"static",flex:x[1],background:"var("+RPT_COLS[x[0]]+")",marginRight:i<trozos.length-1?2:0}});
+        })),
+        trozos.map(function(x){
+          return React.createElement("div",{className:"rpt-kv","data-k":x[0],key:x[0]},
+            React.createElement("span",null,React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x[0]]+")"}}),t(x[2])),
+            React.createElement("b",null,rptC(x[1])));
+        })),
+      onBanco&&React.createElement("button",{type:"button",className:"pm-banco","data-testid":"plan-mes-banco",onClick:onBanco},t("pm_banco"),rptIcon("chev",16,{transform:"rotate(-90deg)"}))));
+}
+/* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y una flecha pequeña que
+   dice que se abre. El aviso «te faltan X» vive DENTRO de la hoja (orden del dueño 23/11): cerrada, solo un
+   puntito en la flecha para que no quede escondido. */
+function PlanMesTap({state,totals,onOpen,children}){
+  const r=useReparto(state,totals), aviso=r.falta>0;
+  return React.createElement("button",{type:"button",className:"pr6-sum-tap","data-testid":"plan-cifras","data-aviso":aviso?"1":"0","aria-haspopup":"dialog",
+    "aria-label":t("pm_ver")+(aviso?". "+tf("pm_aviso",{x:rptC(r.falta)}):""),onClick:onOpen},
+    children,
+    React.createElement("span",{className:"pr6-sum-go","aria-hidden":"true"},rptIcon("chev",16),aviso&&React.createElement("i",{className:"pr6-sum-dot","data-testid":"plan-cifras-punto"})));
+}
 /* Hoja genérica de esta pantalla: asa, título con cerrar, cuerpo con scroll y pie fijo opcional. */
 function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
   const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);
@@ -36411,7 +36495,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="60430cf7983baea30b6951db51162b052b802a66d19d072d90cdfd7569188327";
+var _rnSha="25fdc18dcd44c215b8034f21e78cb38188b4ef8820c732501d713d664e9daba6";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -38372,7 +38456,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
         if(sg&&sg.scrollIntoView) sg.scrollIntoView({behavior:mcReduced()?"auto":"smooth",block:"start"});
       });
     }}),
-    !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
+    !simple && React.createElement("div",{className:"v4-seg v4-plan-tabs",role:"tablist"},
       segs.map(function(s){
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
           className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
@@ -38798,7 +38882,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     undoFicha&&React.createElement(BillUndoToast,{onUndo:function(){ if(fichaUndo.undo(undoFicha)!==false) setUndoFicha(null); }}),
     avisoFicha&&React.createElement(BillUndoToast,{notice:avisoFicha}));
   // Las hojas de «¿Te llega?» y «Te deben» guardan su abierto/cerrado en `Pr6HojaHost`: abrirlas no repinta Recibos.
-  const llegaHost=useRef(null), debenHost=useRef(null);
+  const llegaHost=useRef(null), debenHost=useRef(null), cifrasHost=useRef(null);
   const paidRef=useRef(null), entRef=useRef(null);
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
@@ -39166,10 +39250,14 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("div",{className:"v4-micro"}, sig?tf("pr6_se_van",{month:monthLong(sigM-1)}):tf("v4_plan_left",{month:monthLong(month-1)})),
         React.createElement("button",{type:"button",className:"pr6-mes-nav","data-testid":"plan-mes-nav",onClick:cambiarVista,
           "aria-label":sig?monthLong(month-1):monthLong(sigM-1)}, sig?"‹ "+monthShort(month-1):monthShort(sigM-1)+" ›")),
-      React.createElement("div",{className:"serif num pr6-big"}, eur(sig?sigPack.pendingBillsTotal:pack.pendingBillsTotal)),
       sig
-        ? sigN>0&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, tf(sigN===1?"pr6_count_one":"pr6_count",{n:sigN}))
-        : countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
+        ? React.createElement(React.Fragment,null,
+          React.createElement("div",{className:"serif num pr6-big"}, eur(sigPack.pendingBillsTotal)),
+          sigN>0&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, tf(sigN===1?"pr6_count_one":"pr6_count",{n:sigN})))
+        // Tocar cifra y cuenta abre «Tu mes en cifras»; el desglose es del mes en curso, no del siguiente.
+        : React.createElement(PlanMesTap,{state:state,totals:totals,onOpen:function(){ if(cifrasHost.current) cifrasHost.current(true); }},
+          React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
+          countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine)),
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
         llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
@@ -39299,6 +39387,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(entOpen)), flowsDone.map(entRow))))),
     importar,
     React.createElement(Pr6HojaHost,{hostRef:llegaHost,render:function(cerrar){ return React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:cerrar}); }}),
+    React.createElement(Pr6HojaHost,{hostRef:cifrasHost,render:function(cerrar){ return React.createElement(PlanMesHoja,{state:state,totals:totals,mes:monthLong(month-1),onClose:cerrar,
+      onBanco:llega&&nPend>0?function(){ cerrar(); setTimeout(function(){ if(llegaHost.current) llegaHost.current(true); },380); }:null}); }}),
     React.createElement(Pr6HojaHost,{hostRef:debenHost,render:function(cerrar){ return React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:cerrar}); }}),
     // El aviso flota 5 s sobre el final de la lista (medido: cubría 32 px de «Ya pagados» sin poder subirlo con el scroll): mientras está, un hueco debajo deja subir lo último.
     deshacer&&React.createElement("div",{className:"pr6-toast-pad","aria-hidden":"true"}),

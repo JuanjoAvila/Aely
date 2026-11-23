@@ -82,6 +82,60 @@ function RptBarra({state,totals,onJump}){
     abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
       onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }}));
 }
+/* «Tu mes en cifras» (diseño plan-mezcla, orden del dueño 23/11): se abre al tocar la cabecera de Recibos, que
+   no cambia de aspecto. Tres cosas distintas y cada una con su fuente: «Queda por pagar» y su reparto por tipo
+   (recibos, deudas, gastos, metas, ahorro) salen de `planReparto`; «cubre / no llega» es el saldo de hoy contra
+   eso; y «te faltan» (aviso) es que los ingresos del mes no llegan al plan completo. Lo que no se sabe va «—». */
+function PlanMesHoja({state,totals,mes,onClose,onBanco}){
+  const r=useReparto(state,totals), closer=useRef(null), rootRef=useRef(null);
+  const saldo=r.saldo, dif=saldo==null?null:saldo-r.queda;
+  // Como en el diseño: mientras la hoja está abierta, la pantalla de detrás ni se enfoca ni se lee.
+  useEffect(function(){
+    const app=document.getElementById("root"), antes=document.activeElement;
+    if(app) app.setAttribute("inert","");
+    const hoja=rootRef.current&&rootRef.current.closest(".v4-sheet"), x=hoja&&hoja.querySelector(".rpt-sx");
+    if(x) x.focus({preventScroll:true});
+    const key=function(e){ if(e.key==="Escape"&&closer.current){ e.stopPropagation(); closer.current(); } };
+    document.addEventListener("keydown",key);
+    return function(){
+      document.removeEventListener("keydown",key);
+      if(app) app.removeAttribute("inert");
+      if(antes&&antes.focus&&document.contains(antes)) antes.focus({preventScroll:true});
+    };
+  },[]);
+  const trozos=[["rec",r.qRec,"rpt_rec"],["deu",r.qDeu,"rpt_deu"],["gas",r.qGas,"rpt_gas"],["met",r.qMet,"rpt_met"],["aho",r.qAho,"rpt_aho"]].filter(function(x){ return x[1]>0; });
+  const estado=r.queda<=0?t("pm_nada"):dif==null?"":dif>=0?t("pm_cubre"):t("pm_nollega");
+  return React.createElement(RptHoja,{title:t("pm_title"),onClose:onClose,closer:closer,testid:"plan-mes-hoja"},
+    React.createElement("div",{ref:rootRef,className:"pm-body"},
+      React.createElement("div",{className:"v4-micro"},tf("v4_plan_left",{month:mes})),
+      React.createElement("div",{className:"serif num pm-big","data-testid":"plan-mes-queda"},rptC(r.queda)),
+      estado&&React.createElement("div",{className:"pm-est"+(dif!=null&&dif<0&&r.queda>0?" bad":""),"data-testid":"plan-mes-estado"},estado),
+      React.createElement("div",{className:"rpt-sg"},
+        rptKv(t("pm_saldo"),saldo==null?"—":rptC(saldo),"saldo"),
+        rptKv(dif!=null&&dif<0?t("pm_faltan"):t("pm_sobran"),dif==null?"—":rptC(dif),"dif")),
+      r.falta>0&&React.createElement("div",{className:"pm-aviso",role:"note","data-testid":"plan-mes-aviso"},tf("pm_aviso",{x:rptC(r.falta)})),
+      trozos.length>0&&React.createElement("div",{className:"rpt-sg"},
+        React.createElement("div",{className:"pm-sub"},t("pm_donde")),
+        React.createElement("div",{className:"rpt-pb lg",style:{display:"flex"},"aria-hidden":"true"},trozos.map(function(x,i){
+          return React.createElement("i",{key:x[0],style:{position:"static",flex:x[1],background:"var("+RPT_COLS[x[0]]+")",marginRight:i<trozos.length-1?2:0}});
+        })),
+        trozos.map(function(x){
+          return React.createElement("div",{className:"rpt-kv","data-k":x[0],key:x[0]},
+            React.createElement("span",null,React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x[0]]+")"}}),t(x[2])),
+            React.createElement("b",null,rptC(x[1])));
+        })),
+      onBanco&&React.createElement("button",{type:"button",className:"pm-banco","data-testid":"plan-mes-banco",onClick:onBanco},t("pm_banco"),rptIcon("chev",16,{transform:"rotate(-90deg)"}))));
+}
+/* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y una flecha pequeña que
+   dice que se abre. El aviso «te faltan X» vive DENTRO de la hoja (orden del dueño 23/11): cerrada, solo un
+   puntito en la flecha para que no quede escondido. */
+function PlanMesTap({state,totals,onOpen,children}){
+  const r=useReparto(state,totals), aviso=r.falta>0;
+  return React.createElement("button",{type:"button",className:"pr6-sum-tap","data-testid":"plan-cifras","data-aviso":aviso?"1":"0","aria-haspopup":"dialog",
+    "aria-label":t("pm_ver")+(aviso?". "+tf("pm_aviso",{x:rptC(r.falta)}):""),onClick:onOpen},
+    children,
+    React.createElement("span",{className:"pr6-sum-go","aria-hidden":"true"},rptIcon("chev",16),aviso&&React.createElement("i",{className:"pr6-sum-dot","data-testid":"plan-cifras-punto"})));
+}
 /* Hoja genérica de esta pantalla: asa, título con cerrar, cuerpo con scroll y pie fijo opcional. */
 function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
   const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);

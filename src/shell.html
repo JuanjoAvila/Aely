@@ -1108,6 +1108,25 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;white-space:nowrap;}
   .pr6-count{font-size:14px;color:var(--muted);}
+  /* Cabecera tocable («Tu mes en cifras»): igual que antes a la vista; la flecha y el puntito de aviso van a la derecha de la cifra. */
+  button.pr6-sum-tap{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;row-gap:12px;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px;}
+  button.pr6-sum-tap>*{grid-column:1;min-width:0;}
+  button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:1 / span 2;position:relative;display:flex;width:28px;height:28px;align-items:center;justify-content:center;color:var(--muted);}
+  .pr6-sum-tap:focus-visible{outline:2px solid var(--mint-bright);outline-offset:4px;border-radius:10px;}
+  .pr6-sum-dot{position:absolute;top:1px;right:1px;width:9px;height:9px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 2px var(--surface);}
+  .pm-body{padding-top:4px;}
+  .pm-big{font-size:42px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:4px;white-space:nowrap;}
+  .pm-est{font-size:15px;font-weight:700;color:var(--mint-bright);margin-top:6px;}
+  .pm-est.bad{color:var(--coral);}
+  .pm-aviso{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--coral-dim);font-size:14px;font-weight:600;line-height:1.35;}
+  .pm-sub{font-size:13px;font-weight:800;margin-bottom:2px;}
+  .pm-banco{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:14px;padding:0 4px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--mint-bright);font:inherit;font-weight:700;cursor:pointer;}
+  html[data-theme="light"] .pm-est:not(.bad),html[data-theme="light"] .pm-banco{color:var(--mint-ink);}
+  /* Pestañas de Plan como el diseño plan-mezcla: sin caja, píldora menta suave sobre el fondo oscuro. */
+  .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;}
+  .v4-plan-tabs .v4-seg-btn{flex:0 0 auto;min-height:44px;padding:0 20px;border-radius:999px;transition:background .25s var(--ease),color .25s var(--ease);}
+  .v4-plan-tabs .v4-seg-btn.on{background:color-mix(in srgb,var(--mint) 16%,transparent);color:var(--mint-bright);}
+  html[data-theme="light"] .v4-plan-tabs .v4-seg-btn.on{color:var(--mint-ink);}
   /* La flecha no se esconde nunca: sin ella no se ve que la píldora se abre. En FILA también a 360 y
      393 (SPEC §2.2; auditoría de diseño 237, P2-2): apiladas, la tarjeta cambiaba de forma según el
      móvil y empujaba «Para revisar» fuera del primer pantallazo. Las dos parten de cero y crecen igual

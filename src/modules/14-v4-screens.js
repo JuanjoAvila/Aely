@@ -344,7 +344,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
         if(sg&&sg.scrollIntoView) sg.scrollIntoView({behavior:mcReduced()?"auto":"smooth",block:"start"});
       });
     }}),
-    !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
+    !simple && React.createElement("div",{className:"v4-seg v4-plan-tabs",role:"tablist"},
       segs.map(function(s){
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
           className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
@@ -770,7 +770,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     undoFicha&&React.createElement(BillUndoToast,{onUndo:function(){ if(fichaUndo.undo(undoFicha)!==false) setUndoFicha(null); }}),
     avisoFicha&&React.createElement(BillUndoToast,{notice:avisoFicha}));
   // Las hojas de «¿Te llega?» y «Te deben» guardan su abierto/cerrado en `Pr6HojaHost`: abrirlas no repinta Recibos.
-  const llegaHost=useRef(null), debenHost=useRef(null);
+  const llegaHost=useRef(null), debenHost=useRef(null), cifrasHost=useRef(null);
   const paidRef=useRef(null), entRef=useRef(null);
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
@@ -1138,10 +1138,14 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("div",{className:"v4-micro"}, sig?tf("pr6_se_van",{month:monthLong(sigM-1)}):tf("v4_plan_left",{month:monthLong(month-1)})),
         React.createElement("button",{type:"button",className:"pr6-mes-nav","data-testid":"plan-mes-nav",onClick:cambiarVista,
           "aria-label":sig?monthLong(month-1):monthLong(sigM-1)}, sig?"‹ "+monthShort(month-1):monthShort(sigM-1)+" ›")),
-      React.createElement("div",{className:"serif num pr6-big"}, eur(sig?sigPack.pendingBillsTotal:pack.pendingBillsTotal)),
       sig
-        ? sigN>0&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, tf(sigN===1?"pr6_count_one":"pr6_count",{n:sigN}))
-        : countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine),
+        ? React.createElement(React.Fragment,null,
+          React.createElement("div",{className:"serif num pr6-big"}, eur(sigPack.pendingBillsTotal)),
+          sigN>0&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, tf(sigN===1?"pr6_count_one":"pr6_count",{n:sigN})))
+        // Tocar cifra y cuenta abre «Tu mes en cifras»; el desglose es del mes en curso, no del siguiente.
+        : React.createElement(PlanMesTap,{state:state,totals:totals,onOpen:function(){ if(cifrasHost.current) cifrasHost.current(true); }},
+          React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
+          countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine)),
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
         llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
@@ -1271,6 +1275,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(entOpen)), flowsDone.map(entRow))))),
     importar,
     React.createElement(Pr6HojaHost,{hostRef:llegaHost,render:function(cerrar){ return React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:cerrar}); }}),
+    React.createElement(Pr6HojaHost,{hostRef:cifrasHost,render:function(cerrar){ return React.createElement(PlanMesHoja,{state:state,totals:totals,mes:monthLong(month-1),onClose:cerrar,
+      onBanco:llega&&nPend>0?function(){ cerrar(); setTimeout(function(){ if(llegaHost.current) llegaHost.current(true); },380); }:null}); }}),
     React.createElement(Pr6HojaHost,{hostRef:debenHost,render:function(cerrar){ return React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:cerrar}); }}),
     // El aviso flota 5 s sobre el final de la lista (medido: cubría 32 px de «Ya pagados» sin poder subirlo con el scroll): mientras está, un hueco debajo deja subir lo último.
     deshacer&&React.createElement("div",{className:"pr6-toast-pad","aria-hidden":"true"}),
