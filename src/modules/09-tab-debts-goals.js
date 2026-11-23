@@ -447,7 +447,7 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
         const current=debtEditExtension(debt,form);
         if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
       }},tf("db_extend_term",{n:extension.months})),
-      React.createElement("button",{type:"button",className:"btn btn-primary btn-block dbx-cta",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
+      React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
       // Botón y su porqué en un mismo bloque: sueltos, la línea quedaba más cerca de «Eliminar esta deuda»
       // y parecía avisar de ese botón (filtro de diseño 242b).
       onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"debt-amort-wrap"},
@@ -502,6 +502,9 @@ function AmortAdvisor({state, onEdit}){
   const debts=(state.debts||[]).filter(function(d){ return debtBalance(d)>0.005; });
   const [selId,setSelId]=useState(null);
   const [amtStr,setAmtStr]=useState("500");
+  // Todos los hooks ANTES del `return null`: con la última deuda amortizada el asesor desaparece y, si este useState
+  // quedaba detrás, React tumbaba la pestaña entera («Rendered fewer hooks»).
+  const [open,setOpen]=useState(function(){ const g=store.get("col_debt_advisor"); return g==null?false:!!g; });
   if(!debts.length) return null;
   const d=debts.find(function(x){ return x.id===selId; })||debts[0];
   const bal=debtBalance(d);
@@ -522,7 +525,6 @@ function AmortAdvisor({state, onEdit}){
   const res=function(txt,tono){ return React.createElement("div",{className:"dbx-res-row"},React.createElement("i",{className:"rpt-dot"+(tono==="ok"?" ok":tono==="mute"?" mute":"")}),React.createElement("span",null,txt)); };
   // Plegable propio con la misma cabecera que «Deudas archivadas»: la tarjeta suelta de antes (borde amarillo y
   // CollapsibleCard dentro) era lo que chocaba con el lenguaje de Inicio (dueño, 23/11/2026).
-  const [open,setOpen]=useState(function(){ const g=store.get("col_debt_advisor"); return g==null?false:!!g; });
   const toggle=function(){ const n=!open; setOpen(n); store.set("col_debt_advisor",n); };
   return React.createElement("section",{className:"dbx-sec","data-open":open?"1":"0"},
     React.createElement("button",{type:"button",className:"dbx-hd","aria-expanded":open,onClick:toggle},
@@ -776,7 +778,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
           React.createElement("div",{className:"dbx-help"},t("db_balloon_hint")),
           campoDeuda("paid","db_paid_ph","numeric"),
           React.createElement("div",{className:"dbx-help"},t("db_paid_hint"))),
-        React.createElement("button",{className:"btn btn-primary btn-block dbx-cta",onClick:addDebt},t("db_add")))),
+        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block dbx-add",onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
     fichaDeuda&&React.createElement(RptDeudaFicha,{key:fichaDeuda.id,d:fichaDeuda,state:state,set:set,r:rep,h:hFicha,onClose:function(){ setFichaId(null); }}),
     editor
