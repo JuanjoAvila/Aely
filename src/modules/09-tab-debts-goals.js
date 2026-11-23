@@ -425,36 +425,41 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
         if(key==="monthly"&&tied&&!form.amortSet&&form.amort!==undefined) f.amort=e.target.value;
         if(key==="amort") f.amortSet=true;
         setForm(f); }})); };
-  return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
-    input("name","plan_edit_name"),input("note","plan_conflict_note"),input("balance","db_pending","decimal"),
-    React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
-    amortOn&&input("amort","db_amort_ph","decimal"),
-    amortOn&&React.createElement("div",{className:"hint"},t("db_amort_hint")),
-    input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
-    finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
-    input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),
-    save.error&&React.createElement("div",{className:"hint",role:"alert",tabIndex:-1,ref:errorRef},t(save.error),
+  return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form dbx-form"},
+    React.createElement("div",{className:"dbx-grp"},input("name","plan_edit_name"),input("note","plan_conflict_note")),
+    React.createElement("div",{className:"dbx-grp"},
+      input("balance","db_pending","decimal"),
+      React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
+      amortOn&&input("amort","db_amort_ph","decimal"),
+      amortOn&&React.createElement("div",{className:"dbx-help"},t("db_amort_hint")),
+      input("months","db_months_ph","numeric"),React.createElement("div",{className:"dbx-help"},t("db_term_hint")),
+      finished&&React.createElement("div",{className:"dbx-help"},t("db_finished_edit_hint"))),
+    React.createElement("div",{className:"dbx-grp"},
+      input("apr","da_rate","decimal"),React.createElement("div",{className:"dbx-help"},t("db_rate_edit_hint"))),
+    save.error&&React.createElement("div",{className:"hint dbx-err",role:"alert",tabIndex:-1,ref:errorRef},t(save.error),
       // En euros como el campo, no con eur(): esa pasa a la moneda de visualización (revisión d139d).
       save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:NF.format(save.range.min)+" €"}):
         tf("db_err_quota_range",{n:save.range.n,min:NF.format(save.range.min)+" €",max:NF.format(save.range.max)+" €"}))),
-    extension&&extension.error&&React.createElement("div",{className:"hint",role:"status"},t(extension.error)),
-    extension&&extension.months&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",disabled:save.pending||confirmPending,onClick:function(){
-      const current=debtEditExtension(debt,form);
-      if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
-    }},tf("db_extend_term",{n:extension.months})),
-    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
-    // Botón y su porqué en un mismo bloque: sueltos, la línea quedaba más cerca de «Eliminar esta deuda»
-    // y parecía avisar de ese botón (filtro de diseño 242b).
-    onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"debt-amort-wrap"},
-      React.createElement("button",{type:"button",className:"v4-debt-amort","data-act":"debt-amortize",
-        disabled:tocado||save.pending||confirmPending,onClick:function(){
-          onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
-        }},t("v4_amort_now")),
-      // Apagado sin decir por qué parecía roto (filtro de diseño 242). Guardar y amortizar de un toque
-      // se descartó: Guardar puede pedir confirmación del plazo o rechazar la cuota, y amortizar sobre un
-      // borrador a medio validar es justo lo que hay que evitar.
-      tocado&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first"))),
-    !recovery&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
+    extension&&extension.error&&React.createElement("div",{className:"hint dbx-err",role:"status"},t(extension.error)),
+    // Un solo botón primario (Guardar); lo demás es secundario o texto, en este orden de peso.
+    React.createElement("div",{className:"dbx-acts"},
+      extension&&extension.months&&React.createElement("button",{type:"button",className:"btn dbx-soft",disabled:save.pending||confirmPending,onClick:function(){
+        const current=debtEditExtension(debt,form);
+        if(current&&current.months){setForm(Object.assign({},form,{months:String(current.months)}));save.clearError();}
+      }},tf("db_extend_term",{n:extension.months})),
+      React.createElement("button",{type:"button",className:"btn btn-primary btn-block dbx-cta",disabled:save.pending||confirmPending,"data-act":recovery?"plan-orphan-save":undefined,onClick:submit},t("db_savechanges")),
+      // Botón y su porqué en un mismo bloque: sueltos, la línea quedaba más cerca de «Eliminar esta deuda»
+      // y parecía avisar de ese botón (filtro de diseño 242b).
+      onAmortize&&!recovery&&!review&&viva&&debtBalance(viva)>0.005&&React.createElement("div",{className:"debt-amort-wrap"},
+        React.createElement("button",{type:"button",className:"btn dbx-soft v4-debt-amort","data-act":"debt-amortize",
+          disabled:tocado||save.pending||confirmPending,onClick:function(){
+            onAmortize(viva,function(){ closer.current?closer.current():onClose(); });
+          }},t("v4_amort_now")),
+        // Apagado sin decir por qué parecía roto (filtro de diseño 242). Guardar y amortizar de un toque
+        // se descartó: Guardar puede pedir confirmación del plazo o rechazar la cuota, y amortizar sobre un
+        // borrador a medio validar es justo lo que hay que evitar.
+        tocado&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first"))),
+      !recovery&&React.createElement("button",{type:"button",className:"btn dbx-del",onClick:function(){onDelete(debt);}},t("db_delete")))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){return goalEditDraft(goal);});
@@ -512,33 +517,45 @@ function AmortAdvisor({state, onEdit}){
   const waitCost=(apr>0)?bal*r:null;
   const cashApr=(state.accounts||[]).reduce(function(mx,a){ return Math.max(mx,a.interestApr||0); },0);
   const ranked=debts.filter(function(x){ return x.apr>0; }).sort(function(a,b){ return b.apr-a.apr; });
-  const res=function(txt,color){ return React.createElement("div",{className:"hint",style:{marginTop:6,color:color||"var(--text)",lineHeight:1.5}}, txt); };
-  return React.createElement(CollapsibleCard,{title:t("da_title"),sub:t("da_sub"),dot:"var(--tan)",defaultOpen:false,storageKey:"debt_advisor"},
-    debts.length>1 && React.createElement("select",{className:"af-in",style:{marginBottom:8},value:d.id,onChange:function(e){ setSelId(e.target.value); }},
-      debts.map(function(x){ return React.createElement("option",{key:x.id,value:x.id}, x.name+" · "+eur0(debtBalance(x))); })),
-    React.createElement("div",{className:"row",style:{marginTop:0}},
-      React.createElement("span",{className:"muted"},t("da_rate")),
-      React.createElement("button",{type:"button",className:"chip",onClick:function(){onEdit(d);}},apr!=null?apr+" % · "+t("fj_edit"):t("db_set_rate"))),
-    apr==null && React.createElement("div",{className:"hint",style:{marginTop:4}}, t("da_rate_hint")),
-    React.createElement("div",{className:"row",style:{marginTop:6}},
-      React.createElement("span",{className:"muted"},t("da_amount")),
-      React.createElement("input",{className:"af-in num",style:{width:96,textAlign:"right",padding:"7px 9px"},inputMode:"decimal",value:amtStr,onChange:function(e){ setAmtStr(e.target.value); }})),
-    React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}},
-      [100,250,500,1000].filter(function(v){ return v<=bal; }).map(function(v){
-        return React.createElement("button",{key:v,className:"chip",onClick:function(){ setAmtStr(String(v)); }}, eur0(v)); })),
-    amt>0 && React.createElement("div",{style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)",border:"1px solid var(--line)"}},
-      cut!=null && (cut>0 ? res("📆 "+tf("da_cut",{n:cut,d:inMonths(leftNew),d0:inMonths(leftNow)})) : res("📆 "+t("da_nocut"))),
-      savedTerm!=null && savedTerm>=0.5 && res("💶 "+tf("da_saved",{x:eur(savedTerm)}),"var(--mint)"),
-      savedYr!=null && savedYr>=0.5 && res("💶 "+tf("da_saved_yr",{x:eur(savedYr)}),"var(--mint)"),
-      waitCost!=null && waitCost>=0.5 && res("⏳ "+tf("da_wait",{x:eur(waitCost)})),
-      apr===0 && res("🧊 "+tf("da_rate0",{p:cashApr>0?tf("da_rate0_cash",{b:cashApr}):""})),
-      apr>0 && cashApr>0 && (apr>=cashApr
-        ? res("✅ "+tf("da_beats_cash",{a:apr,b:cashApr}))
-        : res("⚖️ "+tf("da_under_cash",{a:apr,b:cashApr}))),
-      ranked.length>1 && res(tf("da_first",{name:ranked[0].name,p:ranked[0].apr}))
-    ),
-    React.createElement("div",{className:"hint",style:{marginTop:8,fontSize:11.5}}, t("da_est"))
-  );
+  // Cada lectura del simulador lleva su punto de color (ahorro = menta, espera/aviso = ocre): sin emojis, que cambian de
+  // dibujo según el móvil y no casan con los iconos de la casa.
+  const res=function(txt,tono){ return React.createElement("div",{className:"dbx-res-row"},React.createElement("i",{className:"rpt-dot"+(tono==="ok"?" ok":tono==="mute"?" mute":"")}),React.createElement("span",null,txt)); };
+  // Plegable propio con la misma cabecera que «Deudas archivadas»: la tarjeta suelta de antes (borde amarillo y
+  // CollapsibleCard dentro) era lo que chocaba con el lenguaje de Inicio (dueño, 23/11/2026).
+  const [open,setOpen]=useState(function(){ const g=store.get("col_debt_advisor"); return g==null?false:!!g; });
+  const toggle=function(){ const n=!open; setOpen(n); store.set("col_debt_advisor",n); };
+  return React.createElement("section",{className:"dbx-sec","data-open":open?"1":"0"},
+    React.createElement("button",{type:"button",className:"dbx-hd","aria-expanded":open,onClick:toggle},
+      React.createElement("span",{className:"dbx-hd-t"},React.createElement("b",null,t("da_title")),React.createElement("small",null,t("da_sub"))),
+      React.createElement(I.chev,{className:"dbx-chev"+(open?" open":"")})),
+    React.createElement("div",{className:"collapsible"+(open?" open":""),inert:open?undefined:""},React.createElement("div",null,React.createElement("div",{className:"dbx-in"},
+      debts.length>1 && React.createElement("div",{className:"chips dbx-pick",role:"group"},
+        debts.map(function(x){ return React.createElement("button",{type:"button",key:x.id,className:"chip"+(x.id===d.id?" active":""),"aria-pressed":x.id===d.id,onClick:function(){ setSelId(x.id); }},x.name); })),
+      React.createElement("div",{className:"dbx-tiles"},
+        React.createElement("button",{type:"button",className:"dbx-tile",onClick:function(){onEdit(d);}},
+          React.createElement("span",null,t("da_rate")),
+          React.createElement("b",{className:"serif"},apr!=null?String(apr).replace(".",",")+" %":"—"),
+          React.createElement("em",null,apr!=null?t("fj_edit"):t("db_set_rate"))),
+        React.createElement("label",{className:"dbx-tile"},
+          React.createElement("span",null,t("da_amount")),
+          React.createElement("div",{className:"dbx-amt"},React.createElement("input",{className:"serif num",inputMode:"decimal",value:amtStr,onChange:function(e){ setAmtStr(e.target.value); }}),
+            React.createElement("b",{className:"serif"},"€")))),
+      apr==null && React.createElement("div",{className:"dbx-help"}, t("da_rate_hint")),
+      React.createElement("div",{className:"chips dbx-quick"},
+        [100,250,500,1000].filter(function(v){ return v<=bal; }).map(function(v){
+          return React.createElement("button",{type:"button",key:v,className:"chip",onClick:function(){ setAmtStr(String(v)); }}, eur0(v)); })),
+      amt>0 && React.createElement("div",{className:"dbx-res"},
+        cut!=null && (cut>0 ? res(tf("da_cut",{n:cut,d:inMonths(leftNew),d0:inMonths(leftNow)}),"ok") : res(t("da_nocut"),"mute")),
+        savedTerm!=null && savedTerm>=0.5 && res(tf("da_saved",{x:eur(savedTerm)}),"ok"),
+        savedYr!=null && savedYr>=0.5 && res(tf("da_saved_yr",{x:eur(savedYr)}),"ok"),
+        waitCost!=null && waitCost>=0.5 && res(tf("da_wait",{x:eur(waitCost)})),
+        apr===0 && res(tf("da_rate0",{p:cashApr>0?tf("da_rate0_cash",{b:cashApr}):""}),"mute"),
+        apr>0 && cashApr>0 && (apr>=cashApr
+          ? res(tf("da_beats_cash",{a:apr,b:cashApr}),"ok")
+          : res(tf("da_under_cash",{a:apr,b:cashApr}))),
+        ranked.length>1 && res(tf("da_first",{name:ranked[0].name,p:ranked[0].apr}),"mute")
+      ),
+      React.createElement("div",{className:"dbx-help"}, t("da_est"))))));
 }
 // Trazos de 24 px como los de la barra de abajo (la casa es la misma de Inicio).
 const DEBT_ICO={
@@ -726,35 +743,41 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         askConfirm({title:t("plan_discard_draft_q"),sub:t("plan_discard_draft_sub"),ok:t("plan_conflict_discard"),danger:true}).then(function(yes){if(yes)set(function(s){return planSyncDiscard(s,record);});});
       }},t("plan_conflict_discard")));}),
     React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive}),
-    archivedDebts.length>0 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},"aria-expanded":showArchive,onClick:function(){ setShowArchive(!showArchive); }},tf("db_archive_title",{n:archivedDebts.length})),
-    showArchive && archivedDebts.length>0 && React.createElement("div",{className:"v4-card",style:{marginTop:8}},
-      React.createElement("div",{className:"hint"},t("db_archive_hint")),
-      archivedDebts.map(function(d){ return React.createElement("div",{className:"row",key:d.id,"data-archived-debt":d.id},
-        React.createElement("span",null,d.name),
-        React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ unarchiveDebt(d); }},t("db_unarchive"))
-      ); })
-    ),
-    React.createElement("div",{className:"v4-tip"},
-      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);}})
-    ),
+    // Asesor y archivadas en UNA tarjeta con dos filas plegables (antes: caja de borde amarillo, botón ghost suelto y
+    // otro ghost para añadir; dueño 23/11/2026). `.v4-tip` se queda como nombre: los e2e lo usan de ancla.
+    React.createElement("div",{className:"v4-tip dbx-tools"},
+      React.createElement(AmortAdvisor,{state:state,onEdit:function(d){setDayFocus(false);setEditingDebt(d);}}),
+      archivedDebts.length>0 && React.createElement("section",{className:"dbx-sec"},
+        React.createElement("button",{type:"button",className:"dbx-hd","aria-expanded":showArchive,onClick:function(){ setShowArchive(!showArchive); }},
+          React.createElement("span",{className:"dbx-hd-t"},React.createElement("b",null,tf("db_archive_title",{n:archivedDebts.length}))),
+          React.createElement(I.chev,{className:"dbx-chev"+(showArchive?" open":"")})),
+        showArchive && React.createElement("div",{className:"dbx-in rise"},
+          React.createElement("div",{className:"dbx-help"},t("db_archive_hint")),
+          archivedDebts.map(function(d){ return React.createElement("div",{className:"dbx-arow",key:d.id,"data-archived-debt":d.id},
+            React.createElement("span",null,d.name),
+            React.createElement("button",{type:"button",className:"dbx-link",onClick:function(){ unarchiveDebt(d); }},t("db_unarchive"))
+          ); })))),
     /* Añadir deuda va en su hoja con una etiqueta encima de cada campo (DIS-31, 15/11/2026): abierto
        dentro de la lista, el texto de ejemplo era la única pista y se cortaba («Cuota/mes € (vací…»).
        Los campos, `addDebt` y lo que guarda son los de antes; solo cambia dónde se pinta. */
     adding && React.createElement(PlanEditSheet,{title:t("db_add"),closer:addCloser,onClose:function(){
         setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } }},
-      React.createElement("div",{className:"add-form","data-testid":"debt-add-form"},
-        campoDeuda("name","plan_edit_name",null,"db_concept"),
-        React.createElement("div",{className:"af-row"},campoDeuda("value","db_amount","decimal"),campoDeuda("monthly","plan_edit_quota","decimal","db_quota_ph")),
-        React.createElement("div",{className:"af-row"},campoDeuda("months","db_months_ph","numeric"),campoDeuda("day","db_day_ph","numeric")),
-        React.createElement("label",null,t("plan_conflict_account"),
-          React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); }))),
-        React.createElement("div",{className:"af-row"},campoDeuda("down","db_down_ph","decimal"),campoDeuda("balloon","db_balloon_ph","decimal")),
-        campoDeuda("paid","db_paid_ph","numeric"),
-        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_paid_hint")),
-        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_financing_hint")),
-        React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:2}},t("db_balloon_hint")),
-        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
-    React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
+      React.createElement("div",{className:"add-form dbx-form","data-testid":"debt-add-form"},
+        React.createElement("div",{className:"dbx-grp"},
+          campoDeuda("name","plan_edit_name",null,"db_concept")),
+        React.createElement("div",{className:"dbx-grp"},
+          React.createElement("div",{className:"af-row"},campoDeuda("value","db_amount","decimal"),campoDeuda("monthly","plan_edit_quota","decimal","db_quota_ph")),
+          React.createElement("div",{className:"af-row"},campoDeuda("months","db_months_ph","numeric"),campoDeuda("day","db_day_ph","numeric")),
+          React.createElement("label",null,t("plan_conflict_account"),
+            React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); })))),
+        React.createElement("div",{className:"dbx-grp"},
+          React.createElement("div",{className:"af-row"},campoDeuda("down","db_down_ph","decimal"),campoDeuda("balloon","db_balloon_ph","decimal")),
+          React.createElement("div",{className:"dbx-help"},t("db_financing_hint")),
+          React.createElement("div",{className:"dbx-help"},t("db_balloon_hint")),
+          campoDeuda("paid","db_paid_ph","numeric"),
+          React.createElement("div",{className:"dbx-help"},t("db_paid_hint"))),
+        React.createElement("button",{className:"btn btn-primary btn-block dbx-cta",onClick:addDebt},t("db_add")))),
+    React.createElement("button",{type:"button",className:"btn btn-primary btn-block dbx-add",onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
     fichaDeuda&&React.createElement(RptDeudaFicha,{key:fichaDeuda.id,d:fichaDeuda,state:state,set:set,r:rep,h:hFicha,onClose:function(){ setFichaId(null); }}),
     editor
   );
