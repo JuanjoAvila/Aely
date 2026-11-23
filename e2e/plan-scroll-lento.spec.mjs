@@ -22,7 +22,8 @@ const debts = Array.from({ length: 16 }, (_, i) => ({
   id: "d" + i, name: "Préstamo " + i, value: 6000 + i * 900, monthly: 180 + i * 12,
   apr: 5.5, account: "e2e", start: "2024-01-15", anchor: 8000 + i * 900,
 }));
-const goals = Array.from({ length: 3 }, (_, i) => ({
+// Metas ya no lleva barra de progreso (4.26.253) y cada tarjeta ocupa menos: con 3 no sobra lista que bajar.
+const goals = Array.from({ length: 6 }, (_, i) => ({
   id: "g" + i, name: "Meta " + i, target: 3000 + i * 500, saved: 400 + i * 220, emoji: "🎯", account: "e2e",
 }));
 const fixed = Array.from({ length: 24 }, (_, i) => ({

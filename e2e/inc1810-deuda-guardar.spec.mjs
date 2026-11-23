@@ -95,7 +95,7 @@ test('INC1810: cuota con tres decimales y sin bajada propia abre ligada y la baj
  await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole('tab',{name:'Deudas',exact:true}).click();
  await page.locator('[data-debt-id="rv214b"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await expect(sheet(page)).toBeVisible();
  const q=sheet(page).locator('[data-debt-field="monthly"]'),a=sheet(page).locator('[data-debt-field="amort"]');
- await expect(a).toHaveValue('197.33');
+ await expect(a).toHaveValue('197,33');
  await q.fill('');await q.pressSequentially('210');
  await expect(a).toHaveValue('210');
  await save(page).click();await expect(sheet(page)).toHaveCount(0);
