@@ -474,25 +474,30 @@ function GoalFields({form,setForm,attr}){
   const campo=function(key,label,ph){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(ph?"":" num"),inputMode:ph?undefined:"decimal",placeholder:ph?t(ph):undefined,value:form[key],[attr]:key,
       onChange:function(e){ set1({[key]:e.target.value}); }})); };
+  // Un emoji que no está en la lista (el de una meta antigua) se suma al principio: si no, ninguno salía marcado (filtro 253b).
+  const emojis=form.emoji&&GOAL_EMOJIS.indexOf(form.emoji)<0?[form.emoji].concat(GOAL_EMOJIS):GOAL_EMOJIS;
+  // Dos tarjetas como en Editar deuda: quién es la meta y cuánto/cuándo.
   return React.createElement(React.Fragment,null,
+    React.createElement("div",{className:"dbx-grp"},
     campo("name","plan_edit_name","gl_name_ph"),
-    React.createElement("div",{className:"emoji-pick"},GOAL_EMOJIS.map(function(e){
+    React.createElement("div",{className:"emoji-pick"},emojis.map(function(e){
       return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){ set1({emoji:e}); }},e);
-    })),
+    }))),
+    React.createElement("div",{className:"dbx-grp"},
     React.createElement("div",{className:"af-row"},campo("target","gl_target_ph"),campo("saved","gl_saved_ph")),
     React.createElement("label",null,t("gl_deadline"),
       React.createElement("button",{type:"button",className:"af-in af-pick",[attr]:"deadline","aria-expanded":dlCal,
         onClick:function(){ setDlCal(function(v){ return !v; }); }},form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"))),
     dlCal && React.createElement(McCal,{soloMes:true,value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ set1({deadline:String(iso).slice(0,7)}); setDlCal(false); }}),
     dlCal && form.deadline && React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ set1({deadline:""}); setDlCal(false); }},t("gl_deadline_none")),
-    campo("monthly","gl_monthly_ph"));
+    campo("monthly","gl_monthly_ph")));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){return goalEditDraft(goal);});
   const closer=useRef(null);
   const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
   const aportado=metaConAportes(goal,state).aportado;
-  return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
+  return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form dbx-form"},
     React.createElement(GoalFields,{form:form,setForm:setForm,attr:"data-goal-field"}),
     // Lo marcado desde Gastos NO está en este campo (se suma al vuelo): se dice para que no lo apunte otra vez.
     aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(aportado)})),
@@ -1158,7 +1163,7 @@ function Goals({state, set, totals, showToast, abrir}){
        nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
        selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
     adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ sentRef.current=false; setAdding(false); setForm(blank); }},
-      React.createElement("div",{className:"add-form","data-testid":"goal-add-form"},
+      React.createElement("div",{className:"add-form dbx-form","data-testid":"goal-add-form"},
         React.createElement(GoalFields,{form:form,setForm:setForm,attr:"data-goal-add"}),
         React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")))),
     goals.length===0
