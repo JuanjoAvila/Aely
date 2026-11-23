@@ -456,22 +456,40 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
       tocado&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first"))),
     !recovery&&React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
+/* Campos de meta: los comparten la hoja de alta y la de edición para que sean la misma hoja
+   (etiqueta arriba de cada campo, emoji, fecha con el calendario de la app y no el selector de
+   mes nativo, que salía sin estilo). `attr` es el data-* que ya usaban los e2e de cada una. */
+function GoalFields({form,setForm,attr}){
+  const [dlCal,setDlCal]=useState(false);
+  const set1=function(patch){ setForm(Object.assign({},form,patch)); };
+  const campo=function(key,label,ph){ return React.createElement("label",{key:key},t(label),
+    React.createElement("input",{className:"af-in"+(ph?"":" num"),inputMode:ph?undefined:"decimal",placeholder:ph?t(ph):undefined,value:form[key],[attr]:key,
+      onChange:function(e){ set1({[key]:e.target.value}); }})); };
+  return React.createElement(React.Fragment,null,
+    campo("name","plan_edit_name","gl_name_ph"),
+    React.createElement("div",{className:"emoji-pick"},GOAL_EMOJIS.map(function(e){
+      return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){ set1({emoji:e}); }},e);
+    })),
+    React.createElement("div",{className:"af-row"},campo("target","gl_target_ph"),campo("saved","gl_saved_ph")),
+    React.createElement("label",null,t("gl_deadline"),
+      React.createElement("button",{type:"button",className:"af-in af-pick",[attr]:"deadline","aria-expanded":dlCal,
+        onClick:function(){ setDlCal(function(v){ return !v; }); }},form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"))),
+    dlCal && React.createElement(McCal,{value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ set1({deadline:String(iso).slice(0,7)}); setDlCal(false); }}),
+    dlCal && form.deadline && React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ set1({deadline:""}); setDlCal(false); }},t("gl_deadline_none")),
+    campo("monthly","gl_monthly_ph"));
+}
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){return goalEditDraft(goal);});
   const closer=useRef(null);
   const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
-  const input=function(key,label,type){ return React.createElement("label",{key:key},t(label),React.createElement("input",{
-    className:"af-in",type:type||"text",inputMode:key==="target"||key==="saved"||key==="monthly"?"decimal":undefined,value:form[key],"data-goal-field":key,
-    onChange:function(e){setForm(Object.assign({},form,{[key]:e.target.value}));}})); };
+  const aportado=metaConAportes(goal,state).aportado;
   return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
-    input("name","plan_edit_name"),React.createElement("div",{className:"af-row"},input("saved","gl_saved_ph"),input("target","gl_target_ph")),
+    React.createElement(GoalFields,{form:form,setForm:setForm,attr:"data-goal-field"}),
     // Lo marcado desde Gastos NO está en este campo (se suma al vuelo): se dice para que no lo apunte otra vez.
-    metaConAportes(goal,state).aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(metaConAportes(goal,state).aportado)})),
-    input("deadline","gl_deadline","month"),input("monthly","gl_monthly_ph"),
-    React.createElement("div",{className:"emoji-pick"},GOAL_EMOJIS.map(function(e){return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){setForm(Object.assign({},form,{emoji:e}));}},e);})),
+    aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(aportado)})),
     save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(goalEditResult(goal,form));}},t("gl_save")),
-    React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(goal);}},t("gl_delete"))));
+    React.createElement("button",{type:"button",className:"plan-sheet-del",onClick:function(){onDelete(goal);}},t("gl_delete"))));
 }
 /* ASESOR DE AMORTIZACIÓN (#11) — «¿cuándo amortizar?»
    El interés (TAE) es opcional por deuda (d.apr, se edita en su hoja): con él la tarjeta
@@ -1058,12 +1076,8 @@ function Goals({state, set, totals, showToast, abrir}){
   const fichaMeta=fichaMetaId?goals.find(function(x){ return x.id===fichaMetaId; }):null;
   const blank={name:"",emoji:"🎯",target:"",saved:"",deadline:"",monthly:""};
   const [form,setForm]=useState(blank);
-  const [dlCal,setDlCal]=useState(false);
   const addCloser=useRef(null), sentRef=useRef(false);
   const closeAdd=function(){ if(addCloser.current) addCloser.current(); else { sentRef.current=false; setAdding(false); setForm(blank); } };
-  const campoMeta=function(key,label,ph){ return React.createElement("label",{key:key},t(label),
-    React.createElement("input",{className:"af-in"+(ph?"":" num"),inputMode:ph?undefined:"decimal",placeholder:ph?t(ph):undefined,value:form[key],"data-goal-add":key,
-      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
 
   const addGoal=function(){
     // Igual que addDebt: mientras la hoja baja, otro toque no crea otra meta (revisión 235, M1).
@@ -1120,22 +1134,15 @@ function Goals({state, set, totals, showToast, abrir}){
     /* Nueva meta en su hoja, con etiquetas y el calendario de la app en vez del selector de mes
        nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
        selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
-    adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ sentRef.current=false; setAdding(false); setDlCal(false); setForm(blank); }},
+    adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ sentRef.current=false; setAdding(false); setForm(blank); }},
       React.createElement("div",{className:"add-form","data-testid":"goal-add-form"},
-        campoMeta("name","plan_edit_name","gl_name_ph"),
-        emojiPicker(form.emoji,function(e){ setForm(Object.assign({},form,{emoji:e})); }),
-        React.createElement("div",{className:"af-row"},campoMeta("target","gl_target_ph"),campoMeta("saved","gl_saved_ph")),
-        React.createElement("label",null,t("gl_deadline"),
-          React.createElement("button",{type:"button",className:"af-in","data-goal-add":"deadline","aria-expanded":dlCal,style:{display:"block",textAlign:"left",marginTop:5},
-            onClick:function(){ setDlCal(function(v){ return !v; }); }},form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"))),
-        dlCal && React.createElement(McCal,{value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ setForm(Object.assign({},form,{deadline:String(iso).slice(0,7)})); setDlCal(false); }}),
-        dlCal && form.deadline && React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ setForm(Object.assign({},form,{deadline:""})); setDlCal(false); }},t("gl_deadline_none")),
-        campoMeta("monthly","gl_monthly_ph"),
+        React.createElement(GoalFields,{form:form,setForm:setForm,attr:"data-goal-add"}),
         React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")))),
     goals.length===0
       // La primera meta es LA acción de la pantalla vacía: botón principal, no el fantasma punteado.
       ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first"))
-      : React.createElement("button",{className:"v4-ghost-add",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
+      // Una sola acción primaria, igual que la pantalla vacía (antes un fantasma punteado).
+      : React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-new",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
       onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),

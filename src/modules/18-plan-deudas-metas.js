@@ -362,11 +362,10 @@ function RptMetasVista({state,goals,h}){
     React.createElement("section",{className:"rpt-hero","data-testid":"goals-summary"},
       React.createElement("div",{className:"rpt-ht"},t("v4_goals_hero")),
       React.createElement("div",{className:"rpt-big plan-summary-amount"},rptC0(sv)),
-      React.createElement("div",{className:"rpt-split","aria-hidden":"true"},React.createElement("i",{className:"on",style:{flexGrow:sv}}),React.createElement("i",{style:{flexGrow:Math.max(0,tg-sv)}})),
       React.createElement("div",{className:"rpt-hs"},tf("rpt_m_de_total",{x:rptC0(tg)})),
-      React.createElement("div",{className:"rpt-facts"},
+      React.createElement("div",{className:"rpt-facts m"},
         React.createElement("div",{className:"rpt-fact"},React.createElement("span",null,t("rpt_m_apartas")),React.createElement("b",{className:"serif"},rptC0(res.ritmo)+t("rpt_m_mes"))),
-        React.createElement("div",{className:"rpt-fact"},React.createElement("span",null,f2[0]),React.createElement("b",{className:"serif"},f2[1])))),
+        React.createElement("div",{className:"rpt-fact"+(res.hueco>0||res.vencidas>0?" warn":res.conFecha>0?" ok":"")},React.createElement("span",null,f2[0]),React.createElement("b",{className:"serif"},f2[1])))),
     abiertas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_en_marcha"))),React.createElement("div",{className:"rpt-list"},abiertas.map(fila))),
     hechas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_conseguidas"))),React.createElement("div",{className:"rpt-list"},hechas.map(fila))));
 }
