@@ -1,3 +1,12 @@
+## [4.26.253] — 2026-11-23 · Candidata de beta, solo web: rediseño de Plan, Deudas y Metas (cabecera desplegable, herramientas, altas y ediciones nuevas, Metas sin barra en el resumen)
+
+- **Qué lleva (sobre la 4.26.252, dfe5b8dbf).** Integración de las ramas del rediseño de Plan/Deudas/Metas (`claude/integra-253`, `9f3be7579` y el remate de «Editar meta» `ff8b16755`), ya pasadas por el filtro de diseño. Sin APK nueva; Inicio no se toca.
+- **Plan.** La cabecera se despliega con el detalle del mes (`18-plan-deudas-metas.js`, `14-v4-screens.js`); e2e nuevo `plan-cabecera-cifras`.
+- **Deudas y Metas (`09-tab-debts-goals.js`).** Herramientas, hojas de alta y edición rediseñadas con tarjetas de campo, emoji elegido marcado en Editar meta; el resumen de Metas ya no pinta la barra (la cifra manda y evita decir dos veces lo mismo). Textos nuevos en es/en/ca.
+- **Corrección en «lo descuento» (`deudaFijarDescuento`, 08).** El borrador de Editar deuda lleva ahora el saldo con coma decimal y la función hacía `Number(form.balance)` (NaN con coma): el plazo no se recalculaba al aceptar. Usa `planEditNumber`; lo cazó `deudas-lo-descuento`.
+- **Tests.** Catálogo252 pasa a histórico y Catálogo253 abre la nota; `revisar-beta` cuenta la 253; tope de tamaño de `presupuesto-rendimiento` ajustado si hace falta. `relevant-tests` conoce el e2e nuevo.
+- **Panel de beta.** Nota sin tanda nueva (`tandas: []`); las ocho anteriores siguen en su versión.
+
 ## [4.26.252] — 2026-11-22 · Candidata de beta, solo web: cierra tres pendientes de la revisión E2 del núcleo de seguridad (H1, H3 y H4)
 
 - **Qué lleva (sobre la 4.26.251, 335e3a059).** Una rama, `claude/seg-e2-h`. Sin APK nueva; Inicio no se toca. Quedan H5 (rotar el token de ingest), SEG-22 (PKCE) y `BANK_REQUIRE_CONFIRM=1`, que piden producción y el OK del dueño.

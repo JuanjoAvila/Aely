@@ -1694,8 +1694,9 @@ function deudaFijarDescuento(s,id,paga,baja){
     if(d.id!==id||!deudaDescontable(d)||!(paga>0)||!(baja>0)) return d;
     const form=Object.assign(debtEditDraft(d),{monthly:String(Math.round(paga*100)/100),amort:String(Math.round(baja*100)/100),amortSet:true});
     if(d.months!=null){
+      // El borrador de Editar deuda lleva el saldo con coma decimal (4.26.253): Number("9828,56") era NaN y el plazo no se recalculaba.
       const tmp=Object.assign({},d,{monthly:Number(form.monthly),amort:Number(form.amort)});
-      const n=debtEditMonths(tmp,Number(form.balance),Number(form.amort),debtCuotasDesdeAncla(d));
+      const n=debtEditMonths(tmp,planEditNumber(form.balance),Number(form.amort),debtCuotasDesdeAncla(d));
       if(n!=null) form.months=String(n);
     }
     const r=debtEditResult(d,form);

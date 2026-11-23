@@ -73,7 +73,7 @@ caso("con interés: ni se pregunta, ni se ajusta, ni se ofrece editar lo que baj
 
 caso("Editar deuda: cambiar lo que baja re-ancla y saca el plazo (pide confirmarlo)",()=>{
   const d=debt({amort:271.43}),draft=c.debtEditDraft(d);
-  assert.equal(draft.amort,"271.43");
+  assert.equal(draft.amort,"271,43");
   assert.equal(c.debtEditResult(d,draft).item,d,"Guardar lo mismo no toca nada");
   const r=c.debtEditResult(d,{...draft,amort:"300"}),x=r.item,saldo=cents(c.debtBalance(d)),paid=c.debtPaidCount(d);
   assert.equal(r.error,undefined);assert.equal(x.amort,undefined,"Igual a la cuota: no se guarda aparte");assert.equal(x.monthly,300);
@@ -87,7 +87,7 @@ caso("Editar deuda: el plazo nuevo no se valida contra la bajada vieja",()=>{
   const d=debt({monthly:250,amort:196.68,months:60}),draft=c.debtEditDraft(d),saldo=cents(c.debtBalance(d)),paid=c.debtPaidCount(d);
   const plazo=paid+Math.ceil(saldo/25000),form={...draft,months:String(plazo)};
   assert.equal(c.debtEditResult(d,form).error,"db_err_term_quota","Sin recalcular, la bajada vieja no encaja");
-  const a=c.debtEditAmortDePlazo(d,form);assert.equal(a,String(Math.ceil(saldo/(plazo-paid))/100));
+  const a=c.debtEditAmortDePlazo(d,form);assert.equal(a,String(Math.ceil(saldo/(plazo-paid))/100).replace(".",","));
   const r=c.debtEditResult(d,{...form,amort:a});assert.equal(r.error,undefined);
   assert.equal(r.item.months,plazo);assert.equal(cents(c.debtBalance(r.item)),saldo);assert.equal(r.item.monthly,250);
 });

@@ -547,7 +547,9 @@ const PRESUPUESTO = {
   // 4.26.252 (22/11/2026): H1, H3 y H4 de la revisión E2 (seguridad del cliente: la vuelta del banco en frío, el SW sin tokens en la clave y el
   // token de ingest fuera de `settings` sin puente): ~+0,3 KiB minificado sobre la 251 (2122,8 / 583,9 KiB locales). Mismo mandato del 11/10:
   // al mínimo redondo que deja >= 2 KiB de aire en gzip (la build sellada de CI pesa ~1 KiB más): 2126 / 588 KiB.
-  minificado: 2126 * 1024,
+  // 4.26.253 (23/11/2026): rediseño de Plan, Deudas y Metas (herramientas, altas y ediciones nuevas, cabecera del Plan desplegable): +~11 KiB
+  // minificado sobre la 252 (2134 KiB medidos, gzip 586). Mismo mandato del 11/10: al mínimo redondo con aire: 2137 KiB; el gzip sigue en 588.
+  minificado: 2137 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

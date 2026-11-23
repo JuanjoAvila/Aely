@@ -1,5 +1,32 @@
 [
   {
+    "v": "4.26.253",
+    "d": "2026-11-23",
+    "t": {
+      "es": "Plan, Deudas y Metas más claros",
+      "en": "Clearer Plan, Debts and Goals",
+      "ca": "Pla, Deutes i Metes més clars"
+    },
+    "items": {
+      "es": [
+        "La cabecera del Plan se despliega y enseña el detalle del mes.",
+        "Deudas y Metas estrenan herramientas, altas y ediciones rediseñadas.",
+        "Metas ya no muestra la barra en el resumen."
+      ],
+      "en": [
+        "The Plan header expands to show the month's detail.",
+        "Debts and Goals get new tools and redesigned add and edit screens.",
+        "Goals no longer shows the bar in the summary."
+      ],
+      "ca": [
+        "La capçalera del Pla es desplega i mostra el detall del mes.",
+        "Deutes i Metes estrenen eines, altes i edicions redissenyades.",
+        "Metes ja no mostra la barra al resum."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.252",
     "d": "2026-11-22",
     "t": {

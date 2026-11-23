@@ -25903,8 +25903,9 @@ function deudaFijarDescuento(s,id,paga,baja){
     if(d.id!==id||!deudaDescontable(d)||!(paga>0)||!(baja>0)) return d;
     const form=Object.assign(debtEditDraft(d),{monthly:String(Math.round(paga*100)/100),amort:String(Math.round(baja*100)/100),amortSet:true});
     if(d.months!=null){
+      // El borrador de Editar deuda lleva el saldo con coma decimal (4.26.253): Number("9828,56") era NaN y el plazo no se recalculaba.
       const tmp=Object.assign({},d,{monthly:Number(form.monthly),amort:Number(form.amort)});
-      const n=debtEditMonths(tmp,Number(form.balance),Number(form.amort),debtCuotasDesdeAncla(d));
+      const n=debtEditMonths(tmp,planEditNumber(form.balance),Number(form.amort),debtCuotasDesdeAncla(d));
       if(n!=null) form.months=String(n);
     }
     const r=debtEditResult(d,form);
@@ -36600,7 +36601,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="3a927a357651594572ab94e30745cf1b1f95028850c4ed1bbc2fe91d3c967f96";
+var _rnSha="f11d838343104fb850c94a3d762c1f1c1e59f0a125d1739731c6e8a31f5e1fab";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
