@@ -72,8 +72,16 @@ const BANCOS_CON_LOGO={sabadell:1,revolut:1,trade_republic:1,myinvestor:1,caixab
    que se lee. Un billete con su moneda delante — distinto de un vistazo de cualquier logo de
    banco, que es de lo que se trata. */
 const ENTS_DIBUJADAS={efectivo:"efectivo.svg"};
-function Mono({ent, size, logo}){
-  const e=entOf(ent); size=size||40;
+/* Iniciales de un banco sin entidad propia («Banco Cetelem» → «BC», «Abanca» → «AB»): antes todos
+   los de «Otro banco» llevaban «··» (menores de la pasada 4 de bancos). */
+function monoDeNombre(name){
+  const w=String(name||"").replace(/[^A-Za-zÀ-ÿ0-9 ]+/g," ").trim().split(/\s+/).filter(Boolean);
+  if(!w.length) return "··";
+  return (w.length>1?w[0][0]+w[1][0]:w[0].slice(0,2)).toUpperCase();
+}
+function Mono({ent, size, logo, name}){
+  const e0=entOf(ent); size=size||40;
+  const e=(!ENT[String(ent||"")]&&name)?Object.assign({},e0,{mono:monoDeNombre(name),label:name}):e0;
   const id=String(ent||"");
   const [roto,setRoto]=React.useState(false);
   /* `logo:false` = el monograma de colores de siempre.

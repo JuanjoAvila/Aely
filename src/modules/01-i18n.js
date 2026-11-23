@@ -1631,7 +1631,7 @@ Object.assign(LANG.ca,{
 });
 /* Sincronización Trade Republic (beta · nativa en Android) */
 Object.assign(LANG.es,{
-  tr_hint:"Posiciones y efectivo al momento · solo lectura · conexión no oficial (puede pedir el 2FA).",
+  tr_hint:"Solo lectura · conexión no oficial.",
   tr_web_only:"Esta conexión funciona dentro de la app de Android (necesita un navegador real para el acceso seguro de TR). Ábrelo desde la app del móvil.",
   na_toast:"⚠ El apunte automático de gastos está desactivado — actívalo en Ajustes",
   nt_access:"Acceso a notificaciones", nt_fix:"Activar", nt_on:"Activo", nt_off:"Sin permiso", nt_restricted_q:"¿Android no te deja?", nt_sec_read:"Lo que lee", nt_sec_tell:"Al apuntar un gasto",
@@ -1642,7 +1642,7 @@ Object.assign(LANG.es,{
   tr_code_ph:"Código de 4 dígitos", tr_verify:"Verificar", tr_verifying:"Verificando…",
   tr_sync:"Sincronizar ahora", tr_syncing:"Trayendo posiciones…",
   tr_connected:"✓ Conectado a Trade Republic",
-  tr_disconnect:"Desconectar",
+  tr_disconnect:"Quitar",
   tr_preview:"{n} posiciones traídas de Trade Republic. Revisa el mapeo y aplica:",
   tr_cash:"Efectivo en TR: {x} · al aplicar se actualiza también tu cuenta TR",
   g_edited:"✓ Gasto corregido",
@@ -1696,13 +1696,13 @@ Object.assign(LANG.es,{
   mi_rc_fail_gen:"🛡 No se pudo resolver el captcha en la app. Espera unas horas y reintenta desde el WiFi de casa.",
   mi_rc_rejected:"🛡 MyInvestor rechazó el captcha. Espera unas horas y reintenta desde el WiFi de casa.",
   mi_rc_badge_note:"Protegido por reCAPTCHA · aplican la privacidad y los términos de Google.",
-  mi_connected:"✓ MyInvestor conectado", mi_sync:"Sincronizar posiciones", mi_syncing:"Sincronizando…", mi_disconnect:"Desconectar",
+  mi_sync:"Sincronizar posiciones", mi_syncing:"Sincronizando…", mi_disconnect:"Quitar",
   mi_preview:"{n} posiciones encontradas. Elige a cuál de tus posiciones va cada una:",
   mi_apply:"Aplicar a {n} posiciones", mi_done:"✓ {n} posiciones actualizadas desde MyInvestor",
   mi_err:"No se pudo conectar con MyInvestor. Revisa usuario/contraseña o el código, e inténtalo otra vez.",
 });
 Object.assign(LANG.en,{
-  tr_hint:"Positions and cash in one tap · read-only · unofficial connection (may ask for 2FA).",
+  tr_hint:"Read-only · unofficial connection.",
   tr_web_only:"This connection runs inside the Android app (it needs a real browser for TR's secure login). Open it from the mobile app.",
   na_toast:"⚠ Automatic expense capture is off — enable it in Settings",
   nt_access:"Notification access", nt_fix:"Turn on", nt_on:"On", nt_off:"No access", nt_restricted_q:"Android won’t let you?", nt_sec_read:"What it reads", nt_sec_tell:"When an expense is logged",
@@ -1713,7 +1713,7 @@ Object.assign(LANG.en,{
   tr_code_ph:"4-digit code", tr_verify:"Verify", tr_verifying:"Verifying…",
   tr_sync:"Sync now", tr_syncing:"Pulling positions…",
   tr_connected:"✓ Connected to Trade Republic",
-  tr_disconnect:"Disconnect",
+  tr_disconnect:"Remove",
   tr_preview:"{n} positions pulled from Trade Republic. Check the mapping and apply:",
   tr_cash:"Cash in TR: {x} · applying also updates your TR account",
   g_edited:"✓ Expense fixed",
@@ -1757,7 +1757,7 @@ Object.assign(LANG.en,{
   mi_rc_fail_gen:"🛡 The captcha couldn't be solved in the app. Wait a few hours and retry from your home WiFi.",
   mi_rc_rejected:"🛡 MyInvestor rejected the captcha. Wait a few hours and retry from your home WiFi.",
   mi_rc_badge_note:"Protected by reCAPTCHA · Google's privacy policy and terms apply.",
-  mi_connected:"✓ MyInvestor connected", mi_sync:"Sync positions", mi_syncing:"Syncing…", mi_disconnect:"Disconnect",
+  mi_sync:"Sync positions", mi_syncing:"Syncing…", mi_disconnect:"Remove",
   mi_preview:"{n} positions found. Choose which of your positions each maps to:",
   mi_apply:"Apply to {n} positions", mi_done:"✓ {n} positions updated from MyInvestor",
   mi_err:"Couldn't connect to MyInvestor. Check username/password or the code, and try again.",
@@ -1773,7 +1773,7 @@ Object.assign(LANG.en,{
   tr_auth_intro:"Enter the code from your authenticator app.",
 });
 Object.assign(LANG.ca,{
-  tr_hint:"Posicions i efectiu a l'instant · només lectura · connexió no oficial (pot demanar el 2FA).",
+  tr_hint:"Només lectura · connexió no oficial.",
   tr_web_only:"Aquesta connexió funciona dins l'app d'Android (necessita un navegador real per a l'accés segur de TR). Obre-ho des de l'app del mòbil.",
   na_toast:"⚠ L'apunt automàtic de despeses està desactivat — activa'l a Configuració",
   nt_access:"Accés a notificacions", nt_fix:"Activar", nt_on:"Actiu", nt_off:"Sense permís", nt_restricted_q:"Android no et deixa?", nt_sec_read:"El que llegeix", nt_sec_tell:"En apuntar una despesa",
@@ -1784,7 +1784,7 @@ Object.assign(LANG.ca,{
   tr_code_ph:"Codi de 4 dígits", tr_verify:"Verifica", tr_verifying:"Verificant…",
   tr_sync:"Sincronitza ara", tr_syncing:"Portant posicions…",
   tr_connected:"✓ Connectat a Trade Republic",
-  tr_disconnect:"Desconnecta",
+  tr_disconnect:"Treu",
   tr_preview:"{n} posicions portades de Trade Republic. Revisa el mapatge i aplica:",
   tr_cash:"Efectiu a TR: {x} · en aplicar s'actualitza també el teu compte TR",
   g_edited:"✓ Despesa corregida",
@@ -1828,7 +1828,7 @@ Object.assign(LANG.ca,{
   mi_rc_fail_gen:"🛡 No s'ha pogut resoldre el captcha a l'app. Espera unes hores i torna-ho a provar des del WiFi de casa.",
   mi_rc_rejected:"🛡 MyInvestor ha rebutjat el captcha. Espera unes hores i torna-ho a provar des del WiFi de casa.",
   mi_rc_badge_note:"Protegit per reCAPTCHA · s'apliquen la privadesa i els termes de Google.",
-  mi_connected:"✓ MyInvestor connectat", mi_sync:"Sincronitza posicions", mi_syncing:"Sincronitzant…", mi_disconnect:"Desconnecta",
+  mi_sync:"Sincronitza posicions", mi_syncing:"Sincronitzant…", mi_disconnect:"Treu",
   mi_preview:"{n} posicions trobades. Tria a quina de les teves posicions va cada una:",
   mi_apply:"Aplica a {n} posicions", mi_done:"✓ {n} posicions actualitzades des de MyInvestor",
   mi_err:"No s'ha pogut connectar amb MyInvestor. Revisa usuari/contrasenya o el codi, i torna-ho a provar.",

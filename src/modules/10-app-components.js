@@ -973,7 +973,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
   const logoBox=function(a){
     const ent=entFromAspsp(a.name);
     if(a.logo) return React.createElement("img",{src:a.logo,alt:"",style:{width:36,height:36,borderRadius:9,objectFit:"contain",background:"#fff",flexShrink:0},onError:function(e){ e.target.style.display="none"; }});
-    return React.createElement(Mono,{ent:ent||"",size:36});
+    return React.createElement(Mono,{ent:ent||"",size:36,name:bankLabel(a.name)});
   };
   /* EL ESTADO DE UN BANCO, en un sitio (D1, 19/11). Gana el resultado de la ÚLTIMA sync sobre el
      status de la tabla: si no, un Sabadell caído seguía «al día» porque bank_links aún decía
@@ -999,19 +999,19 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
   };
   /* Anillo SOLO cuando hay que hacer algo (filtro de diseño 19/11): caducado, punteado en coral;
      caduca pronto, un arco `--tan` con lo que le queda de 90 días. Al día, el logo limpio. */
-  const hueco=function(ent,st,lado){
+  const hueco=function(ent,st,lado,nombre){
     const kind=(st.dead||st.noAcct)?"bad":(st.soon?"warn":"");
     const r=(lado+12)/2-1.5, c=2*Math.PI*r;
     return React.createElement("div",{className:"bk-slot"+(kind?" "+kind:""),style:{width:lado+12,height:lado+12}},
       kind && React.createElement("svg",{width:lado+12,height:lado+12,"aria-hidden":"true"},
         React.createElement("circle",{className:"trk",cx:(lado+12)/2,cy:(lado+12)/2,r:r}),
         kind==="warn" && React.createElement("circle",{className:"val",cx:(lado+12)/2,cy:(lado+12)/2,r:r,strokeDasharray:(Math.max(0.06,(st.dias||0)/90)*c).toFixed(1)+" "+c.toFixed(1)})),
-      React.createElement(Mono,{ent:ent||"",size:lado}));
+      React.createElement(Mono,{ent:ent||"",size:lado,name:nombre}));
   };
   /* Un trozo más del subtítulo («· hace 2 días», «· 2 cuentas»). El espacio va FUERA del `nowrap`,
      que es por donde puede saltar; con el «·» pegado por un espacio duro no había por dónde y con
      Enorme a 360 se salía de la fila (filtro de diseño 19/11). El «·» viaja con su texto. */
-  const trozo=function(txt){ return React.createElement(React.Fragment,null," ",React.createElement("span",{className:"nw"},"· "+txt)); };
+  const trozo=function(txt){ return React.createElement(React.Fragment,null,React.createElement("span",{className:"nw"}," ·")," ",React.createElement("span",{className:"nw"},txt)); };
   const lineaEstado=function(st){
     if(st.noAcct) return React.createElement("span",{className:"warn"}, t("bp_st_noacct"));
     if(st.pending) return React.createElement("span",{className:"warn"}, t("bp_st_pending"));
@@ -1125,7 +1125,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
       React.createElement("div",Object.assign({className:"v4-sheet bk-ficha",role:"dialog","aria-modal":"true","aria-label":bankLabel(fl.aspsp_name),"data-bk-ficha":fl.aspsp_name,ref:fs.sheetRef,onClick:function(e){ e.stopPropagation(); }},fs.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"bk-fh"},
-          React.createElement(Mono,{ent:ent||"",size:48}),
+          React.createElement(Mono,{ent:ent||"",size:48,name:bankLabel(fl.aspsp_name)}),
           React.createElement("div",{className:"bk-fh-t"},
             React.createElement("h2",null, bankLabel(fl.aspsp_name)),
             React.createElement("span",{className:"bk-chip"+(roto?" bad":(st.soon||st.pending?" warn":""))},
@@ -1168,7 +1168,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, fet
         return React.createElement("div",{key:l.aspsp_name,"data-aspsp":l.aspsp_name,ref:isFocus?focusRef:null,
           className:"bk-row"+(isFocus?" bk-focus":"")+((st.dead||st.noAcct)?" bad":""),role:"button",tabIndex:0,onClick:abre,
           onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); abre(); } }},
-          hueco(ent,st,44),
+          hueco(ent,st,44,bankLabel(l.aspsp_name)),
           React.createElement("div",{className:"bk-tx"},
             React.createElement("div",{className:"bk-top"},
               React.createElement("span",{className:"bk-nm"}, bankLabel(l.aspsp_name)),

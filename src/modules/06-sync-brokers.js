@@ -307,8 +307,8 @@ function MyInvestorSync({state, set, onConn}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||code.trim().length<4,onClick:doOtp}, busy?t("mi_verifying"):t("mi_verify"))
         ),
         step==="connected" && React.createElement(React.Fragment,null,
-          React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("mi_connected")),
-          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:doSync}, busy?t("mi_syncing"):t("mi_sync")),
+          // El estado ya lo dice la cabecera de la ficha («● Conectado»): repetirlo aquí era ruido (pasada 4, 24/11/2026).
+          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:0},disabled:busy,onClick:doSync}, busy?t("mi_syncing"):t("mi_sync")),
           React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("mi_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
@@ -336,7 +336,7 @@ function MyInvestorSync({state, set, onConn}){
       );
   // Vive dentro de la ficha de MyInvestor (D1): el logo, el nombre y el estado los pone la ficha.
   return React.createElement("div",{className:"bk-flow","data-broker-flow":"myinvestor"},
-    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("mi_hint")),
+    step!=="connected" && React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("mi_hint")),
     body
   );
 }
@@ -649,8 +649,7 @@ function TRSync({state, set, totals}){
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},disabled:busy||code.trim().length<4,onClick:function(){ doVerify(); }}, busy?t("tr_verifying"):t("tr_verify"))
         ),
         connected && step!=="preview" && React.createElement(React.Fragment,null,
-          React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("tr_connected")),
-          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:function(){ doSync({ack:true}); }}, busy?t("tr_syncing"):t("tr_sync")),
+          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:0},disabled:busy,onClick:function(){ doSync({ack:true}); }}, busy?t("tr_syncing"):t("tr_sync")),
           React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("tr_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
@@ -683,7 +682,7 @@ function TRSync({state, set, totals}){
       );
   // Vive dentro de la ficha de Trade Republic (D1): cabecera y estado son de la ficha.
   return React.createElement("div",{className:"bk-flow","data-broker-flow":"trade_republic"},
-    React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("tr_hint")),
+    !connected && React.createElement("div",{className:"hint",style:{marginTop:0,marginBottom:8}},t("tr_hint")),
     body
   );
 }
