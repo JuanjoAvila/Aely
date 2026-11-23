@@ -1298,9 +1298,22 @@ async function mcPullExpensesPaged(fetchPage){
    sabe caer a lo de antes en vez de romper el Hogar de la familia. Puras y con `sb` por parámetro
    para poder probarlas sin red (tests/hogar-endurecido.test.mjs). */
 const HH_CODIGO_DIAS=30;
+/* La 0028 rechaza (23514, `households_codigo_largo`) cualquier invite_code nuevo o cambiado de menos
+   de 10 letras/cifras; los viejos de 6 siguen valiendo mientras no se toquen. Por eso el cliente no
+   deja salir uno corto: ni al crear ni al regenerar (un update con código corto en un hogar viejo
+   fallaría igual). 12 de tope: más y se truncaría al guardar (ver createHousehold). */
+const HH_CODIGO_MIN=10;
+function hhNormalizarCodigo(code){
+  return String(code||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12);
+}
+function hhCodigoNuevo(code){
+  const c=hhNormalizarCodigo(code);
+  if(c.length<HH_CODIGO_MIN) throw new Error("invite_code_too_short");
+  return c;
+}
 function hhSinRpc(error){
   const e=error||{};
-  return e.code==="PGRST202"||e.status===404||/could not find the function/i.test(String(e.message||""));
+  return e.code==="PGRST202"||e.code==="42883"||e.status===404||/could not find the function/i.test(String(e.message||""));
 }
 function hhSinColumna(error){
   const e=error||{}, m=String(e.message||"");
@@ -1322,6 +1335,7 @@ async function hhUnirse(sb, code){
 // El `.select()` distingue «hecho» de «la política no te deja»: sin permiso, la RLS no da error,
 // simplemente no toca ninguna fila.
 async function hhRegenerarCodigo(sb, hid, code, nowMs){
+  code=hhCodigoNuevo(code);
   let caduca=new Date((nowMs!=null?nowMs:Date.now())+HH_CODIGO_DIAS*864e5).toISOString();
   let r=await sb.from("households").update({ invite_code:code, invite_expires_at:caduca }).eq("id",hid).select("id");
   if(r.error&&hhSinColumna(r.error)){
@@ -2263,8 +2277,7 @@ const cloud = (function(){
       const {data:{session}}=await sb.auth.getSession();
       if(!session) throw new Error("sin sesión");
       // 12 y no 8 (13/9): los códigos nuevos son de 10; con 8 se truncaban al crear y nadie podía unirse.
-      const code=String(inviteCode||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12);
-      if(code.length<4) throw new Error("código inválido");
+      const code=hhCodigoNuevo(inviteCode);
       // id generado AQUÍ y sin .select(): el RETURNING del insert pasa por la policy de SELECT
       // y el creador aún no es miembro → 0 filas y el alta petaba (error real 2026-07-18:
       // «new row violates row-level security policy for table households» = además faltaba

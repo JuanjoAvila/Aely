@@ -107,6 +107,29 @@ await t("regenerar sin la 0028: reintenta sin la columna y no inventa caducidad"
   assert.equal(sb.log.filter((x) => x[0] === "update").length, 2);
 });
 
+await t("código corto: ni crear ni regenerar lo dejan salir (la 0028 lo rechazaría con 23514)", async () => {
+  assert.equal(ctx.hhCodigoNuevo("ab-cd efgh jk lm nop"), "ABCDEFGHJKLM");
+  assert.equal(ctx.hhCodigoNuevo("abcde12345"), "ABCDE12345");
+  assert.throws(() => ctx.hhCodigoNuevo("ABC123"), /too_short/);
+  assert.throws(() => ctx.hhCodigoNuevo("abc-123-45"), /too_short/);
+  const sb = fakeSb({ con0028: true, miembros, hogar });
+  await assert.rejects(ctx.hhRegenerarCodigo(sb, "h1", "ABC123", Date.now()), /too_short/);
+  assert.equal(sb.log.length, 0, "no llega a tocar la BD");
+  assert.equal(sb.tablas.households[0].invite_code, "ABC123", "el hogar viejo conserva su código");
+});
+
+await t("función inexistente por 42883 también cae a la antigua; un rechazo de la nueva NO", async () => {
+  const sb = fakeSb({ con0028: true, miembros, hogar });
+  sb.rpc = async (name) => name === "join_household"
+    ? { data: null, error: { code: "42883", message: "function public.join_household(text) does not exist" } }
+    : { data: "h1", error: null };
+  assert.equal(await ctx.hhUnirse(sb, "BUENCODIGO1"), "h1");
+  const llamadas = [];
+  sb.rpc = async (name) => { llamadas.push(name); return { data: { ok: false, code: "too_many_attempts" }, error: null }; };
+  await assert.rejects(ctx.hhUnirse(sb, "X"), /too_many_attempts/);
+  assert.deepEqual(llamadas, ["join_household"], "con rechazo/límite no se prueba la vieja");
+});
+
 await t("expulsar con la 0028 quita la fila; sin ella avisa not_allowed en vez de fingir", async () => {
   const con = fakeSb({ con0028: true, miembros, hogar });
   await ctx.hhExpulsar(con, "h1", "u-otro");
