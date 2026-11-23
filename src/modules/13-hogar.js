@@ -172,6 +172,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       const m=(e&&e.message)||String(e);
       // RLS rota en la BD (caso real 2026-07-18, se arregla con la migración 0015): a la familia
       // le decimos que no se guardó; lo de Supabase no lo puede arreglar ella (auditoría 14/11/2026).
+      if(m.indexOf("too_short")>=0){ showToast(t("hh_code_short")); return; }
       showToast(m.indexOf("row-level security")>=0 ? ("✕ "+t("hh_rls_fix")) : errTxt(e));
     }).finally(function(){ setBusy(false); });
   };
@@ -212,7 +213,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       cloud.regenHouseholdCode(hh.id, mcInviteCode()).then(function(r){
         if(r) setHh(Object.assign({},hh,r));
         showToast(t("hh_regen_ok"));
-      }).catch(function(e){ showToast(errTxt(e)); }).finally(function(){ setBusy(false); });
+      }).catch(function(e){ showToast(((e&&e.message)||"").indexOf("too_short")>=0?t("hh_code_short"):errTxt(e)); }).finally(function(){ setBusy(false); });
     });
   };
   // Quitar a alguien solo lo puede el dueño, y solo con la 0028 aplicada (su política de borrado):
