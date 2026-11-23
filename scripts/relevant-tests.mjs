@@ -122,6 +122,10 @@ export const E2E_MAP = [
   // Ronda F (19/11): Metas con «Ahorro mensual» = reglas y la aportación al bróker en Inversiones,
   // Perfil sin «@usuario», el ojo en Inicio, Apuntar sin bancos, diálogos con teclado y el aviso ancho.
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
+  { file: "src/modules/10-app-components.js", specs: ["e2e/bancos-d2.spec.mjs"] },
+  { file: "src/modules/06-sync-brokers.js", specs: ["e2e/bancos-d2.spec.mjs"] },
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/bancos-d2.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/bancos-d2.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs", "e2e/plan-ahorro.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ronda-f-plan-perfil.spec.mjs"] },
