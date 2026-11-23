@@ -3084,6 +3084,11 @@
   .plan-edit-sheet label .af-in{margin-top:5px;width:100%;}
   .plan-edit-sheet .af-row>label{flex:1;min-width:0;}
   .plan-edit-sheet [role="alert"]{color:var(--coral);}
+  .plan-edit-sheet .add-form{gap:14px;padding-bottom:4px;}
+  .plan-edit-sheet .af-in{min-height:46px;border-radius:14px;}
+  .plan-edit-sheet .af-pick{display:block;text-align:left;cursor:pointer;font:inherit;font-size:14px;}
+  .plan-edit-sheet .btn-block{min-height:50px;border-radius:14px;}
+  .plan-sheet-del{align-self:center;min-height:44px;padding:0 16px;background:none;border:0;color:var(--coral);font:inherit;font-size:14px;font-weight:600;cursor:pointer;}
   /* ===== Plan › barra de reparto, hoja «A dónde va tu sueldo», Deudas y Metas nuevas =====
      Prototipo aprobado (coord-notas/diseno-deudas-metas/prototipo.html): mismas medidas que «Próximos
      cargos» de Inicio (fila de 44 + texto + importe). Solo tokens de la app; los seis colores del reparto
@@ -3128,6 +3133,14 @@
   .rpt-fact{flex:1 1 130px;min-width:0;min-height:44px;padding:7px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft);display:flex;flex-direction:column;justify-content:center;}
   .rpt-fact span{font-size:12.5px;color:var(--muted);line-height:1.3;}
   .rpt-fact b{font-size:17px;font-weight:550;line-height:1.35;overflow-wrap:anywhere;}
+  /* Metas: las dos cifras en UNA tarjeta redondeada con filete en medio, como las de Inicio. */
+  .rpt-facts.m{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:16px;border-radius:20px;background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);box-shadow:var(--shadow);overflow:hidden;}
+  .rpt-facts.m .rpt-fact{flex:none;min-height:0;padding:14px 16px;border:0;border-radius:0;background:none;gap:3px;}
+  .rpt-facts.m .rpt-fact+.rpt-fact{border-left:1px solid var(--line-soft);}
+  .rpt-facts.m .rpt-fact span{font-size:12px;font-weight:600;letter-spacing:.02em;}
+  .rpt-facts.m .rpt-fact b{font-size:22px;line-height:1.15;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+  .rpt-facts.m .rpt-fact.ok b{color:var(--mint-ink,var(--mint));}
+  .rpt-facts.m .rpt-fact.warn b{color:var(--tan);}
   .rpt-dl{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:2px 12px;margin-top:6px;font-size:12.5px;line-height:1.5;color:var(--muted);}
   .rpt-dl b{color:var(--text);font-weight:700;}
   .rpt-dl button{display:block;padding:13px 0;margin-block:-13px;font-size:12.5px;color:var(--muted);background:none;border:0;text-align:left;cursor:pointer;}

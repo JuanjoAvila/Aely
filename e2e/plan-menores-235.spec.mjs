@@ -63,7 +63,7 @@ test("Metas vacía: sin el cero grande y con un botón principal que abre el alt
   const metas = segmento(page, "metas");
   await expect(metas.getByText("Aún no tienes metas")).toBeVisible();
   await expect(metas.getByText("Ahorrado en metas")).toHaveCount(0);
-  await expect(metas.locator(".v4-ghost-add", { hasText: "Nueva meta" })).toHaveCount(0);
+  await expect(metas.locator('[data-act="goal-new"]')).toHaveCount(0);
   const crear = metas.locator('[data-act="goal-first"]');
   await expect(crear).toHaveText("Crear mi primera meta");
   const caja = await crear.boundingBox();
@@ -78,6 +78,6 @@ test("Metas con una meta: vuelve el resumen y el botón de añadir otra", async 
   await page.locator('.v4-seg-btn[data-seg="metas"]').click();
   const metas = segmento(page, "metas");
   await expect(metas.getByText("Ahorrado en metas")).toBeVisible();
-  await expect(metas.locator(".v4-ghost-add", { hasText: "Nueva meta" })).toHaveCount(1);
+  await expect(metas.locator('[data-act="goal-new"]')).toHaveText("Nueva meta de ahorro");
   await expect(metas.locator('[data-act="goal-first"]')).toHaveCount(0);
 });
