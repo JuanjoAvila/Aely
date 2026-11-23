@@ -53,6 +53,10 @@ function deudaAmortizada(x, bal, amt){
     o.settledAt=new Date().toISOString();
   /* Una bajada de menos de medio céntimo no cuenta cuotas: el plazo se quedaba en las ya pagadas con
      saldo pendiente. Como `debtEditMonths`, sin cuotas que contar el plazo no se toca (revisión 237). */
+  }else if(vencida){
+    // Con el plazo agotado, lo que queda (99,95 de 100 → 0,05) no es el redondeo de ninguna última cuota
+    // (`debtUltimaAjuste` lo daba por cero, DIN-15): se marca para que `debtBalanceAfter` lo respete.
+    o.restoDe=o.value;
   }else if(x.months!=null&&!vencida&&Math.round(am*100)>0){ const n=cuotasQueQuedan(remaining-(x.balloon||0),am); o.months=paid+(n>0?n:(x.balloon>0?1:0)); }
   return o;
 }

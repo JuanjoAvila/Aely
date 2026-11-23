@@ -1056,6 +1056,10 @@ function debtCuotasDesdeAncla(d){ const anchor=(typeof d.asOf==="number")?d.asOf
    última parcial tras amortizar (350 con cuota 100 → 100, 100, 100 y 50) sí aplica. */
 function debtUltimaAjuste(d){
   if(!d||d.months==null||!(d.months>=1)) return null;
+  // Resto de una amortización sobre un plazo ya vencido (DIN-15): son céntimos debidos de verdad, no
+  // redondeo. La marca vale solo mientras `value` sea el que dejó esa amortización: cualquier edición
+  // que lo mueva la invalida sola y la última cuota vuelve a llevarse el redondeo.
+  if(d.restoDe!=null&&Math.round(d.restoDe*100)===Math.round((Number(d.value)||0)*100)) return null;
   const n=d.months, A=Math.round(debtAmort(d)*100), P=Math.round((Number(d.value)||0)*100)-Math.round((Number(d.balloon)||0)*100);
   if(!(A>0)||!(P>0)) return null;
   const last=P-(n-1)*A;
