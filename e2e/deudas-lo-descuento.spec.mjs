@@ -105,7 +105,7 @@ async function editarDeuda(page, debt) {
 test("Editar deuda: «Baja la deuda al mes» se ve, se corrige y el plazo se confirma", async ({ page }) => {
   const hoja = await editarDeuda(page, prestamo);
   const baja = hoja.locator('[data-debt-field="amort"]');
-  await expect(baja).toHaveValue("196.68");
+  await expect(baja).toHaveValue("196,68");
   await expect(hoja).toContainText("Puede no ser lo que sale del banco.");
   await baja.fill("250");
   await hoja.getByRole("button", { name: "Guardar cambios", exact: true }).click();

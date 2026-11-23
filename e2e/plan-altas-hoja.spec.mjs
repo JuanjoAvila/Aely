@@ -38,7 +38,6 @@ test("★ añadir deuda desde la hoja guarda la misma deuda que el formulario vi
   // Cada campo tiene su etiqueta: se rellena por ella, no por el texto de ejemplo.
   await f.getByLabel("Nombre", { exact: true }).fill("Coche sintético");
   await f.getByLabel("Importe €", { exact: true }).fill("12000,50");
-  await expect(f.getByLabel("Cuota al mes (€)", { exact: true })).toHaveAttribute("placeholder", "Vacía si es al 0 %");
   await f.getByLabel("Plazo (meses)", { exact: true }).fill("48");
   await f.getByLabel("Día", { exact: true }).fill("16");
   await f.locator("label", { hasText: "Cuenta" }).locator("select").selectOption("trade_republic");

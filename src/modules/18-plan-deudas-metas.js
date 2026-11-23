@@ -107,7 +107,9 @@ function PlanMesHoja({state,totals,mes,onClose,onBanco}){
   const estado=r.queda<=0?t("pm_nada"):dif==null?"":dif>=0?t("pm_cubre"):t("pm_nollega");
   return React.createElement(RptHoja,{title:t("pm_title"),onClose:onClose,closer:closer,testid:"plan-mes-hoja"},
     React.createElement("div",{ref:rootRef,className:"pm-body"},
-      React.createElement("div",{className:"v4-micro"},tf("v4_plan_left",{month:mes})),
+      // Otro rótulo que la cabecera a propósito: allí es lo que queda de RECIBOS; aquí, todo el plan (recibos,
+      // deudas, gastos, metas y ahorro). Con el mismo título y dos cifras distintas se leía como una contradicción (filtro 253).
+      React.createElement("div",{className:"v4-micro"},tf("pm_total",{month:mes})),
       React.createElement("div",{className:"serif num pm-big","data-testid":"plan-mes-queda"},rptC(r.queda)),
       estado&&React.createElement("div",{className:"pm-est"+(dif!=null&&dif<0&&r.queda>0?" bad":""),"data-testid":"plan-mes-estado"},estado),
       React.createElement("div",{className:"rpt-sg"},
@@ -418,8 +420,8 @@ function RptMetasVista({state,goals,h}){
       React.createElement("div",{className:"rpt-big plan-summary-amount"},rptC0(sv)),
       React.createElement("div",{className:"rpt-hs"},tf("rpt_m_de_total",{x:rptC0(tg)})),
       React.createElement("div",{className:"rpt-facts m"},
-        React.createElement("div",{className:"rpt-fact"},React.createElement("span",null,t("rpt_m_apartas")),React.createElement("b",{className:"serif"},rptC0(res.ritmo)+t("rpt_m_mes"))),
-        React.createElement("div",{className:"rpt-fact"+(res.hueco>0||res.vencidas>0?" warn":res.conFecha>0?" ok":"")},React.createElement("span",null,f2[0]),React.createElement("b",{className:"serif"},f2[1])))),
+        React.createElement("div",{className:"rpt-fact"},React.createElement("span",null,t("rpt_m_apartas")),React.createElement("b",null,rptC0(res.ritmo)+t("rpt_m_mes"))),
+        React.createElement("div",{className:"rpt-fact"+(res.hueco>0||res.vencidas>0?" warn":res.conFecha>0?" ok":"")},React.createElement("span",null,f2[0]),React.createElement("b",null,f2[1])))),
     abiertas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_en_marcha"))),React.createElement("div",{className:"rpt-list"},abiertas.map(fila))),
     hechas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_conseguidas"))),React.createElement("div",{className:"rpt-list"},hechas.map(fila))));
 }

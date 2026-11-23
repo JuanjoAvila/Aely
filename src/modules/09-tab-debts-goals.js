@@ -14,10 +14,12 @@ function planEditNumber(raw,optional){
    lineal no sabe separarlos (`deudaDescontable`, rev. t5 R1). El préstamo familiar dado de alta con
    plazo guardaba `amort` = saldo/plazo y no había forma de corregirlo (feedback 1/11/2026). */
 function debtEditAmortable(d){ return !(Number(d&&d.apr)>0); }
+// Los decimales se enseñan con coma, como en el resto de la app («4,5», no «4.5»); `planEditNumber` ya acepta las dos (filtro 253).
+const debtEditNum=function(n){ return String(n).replace(".",","); };
 function debtEditDraft(d){
-  const o={name:d.name||"",note:d.note==null?"":String(d.note),balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
-    day:String(debtChargeDay(d)),months:d.months==null?"":String(d.months),apr:d.apr==null?"":String(d.apr)};
-  if(debtEditAmortable(d)) o.amort=String(+debtAmort(d).toFixed(2));
+  const o={name:d.name||"",note:d.note==null?"":String(d.note),balance:debtEditNum(+debtBalance(d).toFixed(2)),monthly:debtEditNum(d.monthly||0),
+    day:String(debtChargeDay(d)),months:d.months==null?"":String(d.months),apr:d.apr==null?"":debtEditNum(d.apr)};
+  if(debtEditAmortable(d)) o.amort=debtEditNum(+debtAmort(d).toFixed(2));
   return o;
 }
 /* Cambiar el plazo de una deuda cuya bajada NO es la cuota (préstamo familiar) se validaba contra la
@@ -30,7 +32,7 @@ function debtEditAmortDePlazo(d,form){
   if(!(amort>0)||!(monthly>=0)||Math.round(amort*100)===Math.round(monthly*100)||months==null||!Number.isInteger(months)||!(balance>0)) return null;
   const remaining=months-debtCuotasDesdeAncla(d),principal=Math.round(balance*100)-Math.round((d.balloon||0)*100);
   if(!(remaining>0)||principal<=0) return null;
-  return String(Math.ceil(principal/remaining)/100);
+  return debtEditNum(Math.ceil(principal/remaining)/100);
 }
 /* AMORTIZAR `amt` de una deuda cuyo pendiente era `bal` (lo que vio el diálogo) → la deuda nueva, o la
    misma si no toca (un diálogo viejo o dos toques seguidos no amortizan dos veces). En curso, el ancla
@@ -412,8 +414,10 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
     });
   };
   const amortOn=form.amort!==undefined&&!(planEditNumber(form.apr,true)>0);
-  const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
-    React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
+  // `unit` (€, %) es un adorno a la derecha: el valor del campo sigue siendo solo el número que se parsea.
+  const input=function(key,label,mode,unit){ return React.createElement("label",{key:key},t(label),
+    React.createElement("span",{className:"af-wrap"},
+    React.createElement("input",{className:"af-in"+(mode?" num":"")+(unit?" af-u":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
       ref:key==="day"?dayRef:undefined,disabled:finished&&key!=="name"&&key!=="note",readOnly:!!recovery&&key!=="name"&&key!=="note",
       onChange:function(e){
         const f=Object.assign({},form,{[key]:e.target.value});
@@ -424,18 +428,18 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
         // (antes NaN!==NaN lo soltaba y Guardar fallaba: INC1810, beta 4.26.213).
         if(key==="monthly"&&tied&&!form.amortSet&&form.amort!==undefined) f.amort=e.target.value;
         if(key==="amort") f.amortSet=true;
-        setForm(f); }})); };
+        setForm(f); }}),unit&&React.createElement("span",{className:"af-unit","aria-hidden":"true"},unit))); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form dbx-form"},
     React.createElement("div",{className:"dbx-grp"},input("name","plan_edit_name"),input("note","plan_conflict_note")),
     React.createElement("div",{className:"dbx-grp"},
-      input("balance","db_pending","decimal"),
-      React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
-      amortOn&&input("amort","db_amort_ph","decimal"),
+      input("balance","db_pending","decimal","€"),
+      React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal","€"),input("day","db_day_ph","numeric")),
+      amortOn&&input("amort","db_amort_ph","decimal","€"),
       amortOn&&React.createElement("div",{className:"dbx-help"},t("db_amort_hint")),
-      input("months","db_months_ph","numeric"),React.createElement("div",{className:"dbx-help"},t("db_term_hint")),
+      input("months","db_months_ph","numeric"),
       finished&&React.createElement("div",{className:"dbx-help"},t("db_finished_edit_hint"))),
     React.createElement("div",{className:"dbx-grp"},
-      input("apr","da_rate","decimal"),React.createElement("div",{className:"dbx-help"},t("db_rate_edit_hint"))),
+      input("apr","da_rate","decimal","%")),
     save.error&&React.createElement("div",{className:"hint dbx-err",role:"alert",tabIndex:-1,ref:errorRef},t(save.error),
       // En euros como el campo, no con eur(): esa pasa a la moneda de visualización (revisión d139d).
       save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:NF.format(save.range.min)+" €"}):
@@ -479,7 +483,7 @@ function GoalFields({form,setForm,attr}){
     React.createElement("label",null,t("gl_deadline"),
       React.createElement("button",{type:"button",className:"af-in af-pick",[attr]:"deadline","aria-expanded":dlCal,
         onClick:function(){ setDlCal(function(v){ return !v; }); }},form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"))),
-    dlCal && React.createElement(McCal,{value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ set1({deadline:String(iso).slice(0,7)}); setDlCal(false); }}),
+    dlCal && React.createElement(McCal,{soloMes:true,value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ set1({deadline:String(iso).slice(0,7)}); setDlCal(false); }}),
     dlCal && form.deadline && React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ set1({deadline:""}); setDlCal(false); }},t("gl_deadline_none")),
     campo("monthly","gl_monthly_ph"));
 }
@@ -544,6 +548,13 @@ function AmortAdvisor({state, onEdit}){
   // Plegable propio con la misma cabecera que «Deudas archivadas»: la tarjeta suelta de antes (borde amarillo y
   // CollapsibleCard dentro) era lo que chocaba con el lenguaje de Inicio (dueño, 23/11/2026).
   const toggle=function(){ const n=!open; setOpen(n); store.set("col_debt_advisor",n); };
+  const lecturas=[
+    cut!=null && (cut>0 ? res(tf("da_cut",{n:cut,d:inMonths(leftNew),d0:inMonths(leftNow)}),"ok") : res(t("da_nocut"),"mute")),
+    savedTerm!=null && savedTerm>=0.5 && res(tf("da_saved",{x:eur(savedTerm)}),"ok"),
+    savedYr!=null && savedYr>=0.5 && res(tf("da_saved_yr",{x:eur(savedYr)}),"ok"),
+    waitCost!=null && waitCost>=0.5 && res(tf("da_wait",{x:eur(waitCost)})),
+    apr===0 && res(tf("da_rate0",{p:cashApr>0?tf("da_rate0_cash",{b:cashApr}):""}),"mute")
+  ].filter(Boolean).slice(0,2).map(function(x,i){ return React.cloneElement(x,{key:i}); });
   return React.createElement("section",{className:"dbx-sec","data-open":open?"1":"0"},
     React.createElement("button",{type:"button",className:"dbx-hd","aria-expanded":open,onClick:toggle},
       React.createElement("span",{className:"dbx-hd-t"},React.createElement("b",null,t("da_title")),React.createElement("small",null,t("da_sub"))),
@@ -562,20 +573,10 @@ function AmortAdvisor({state, onEdit}){
             React.createElement("b",{className:"serif"},"€")))),
       apr==null && React.createElement("div",{className:"dbx-help"}, t("da_rate_hint")),
       React.createElement("div",{className:"chips dbx-quick"},
-        [100,250,500,1000].filter(function(v){ return v<=bal; }).map(function(v){
+        [100,250,500].filter(function(v){ return v<=bal; }).map(function(v){
           return React.createElement("button",{type:"button",key:v,className:"chip",onClick:function(){ setAmtStr(String(v)); }}, eur0(v)); })),
-      amt>0 && React.createElement("div",{className:"dbx-res"},
-        cut!=null && (cut>0 ? res(tf("da_cut",{n:cut,d:inMonths(leftNew),d0:inMonths(leftNow)}),"ok") : res(t("da_nocut"),"mute")),
-        savedTerm!=null && savedTerm>=0.5 && res(tf("da_saved",{x:eur(savedTerm)}),"ok"),
-        savedYr!=null && savedYr>=0.5 && res(tf("da_saved_yr",{x:eur(savedYr)}),"ok"),
-        waitCost!=null && waitCost>=0.5 && res(tf("da_wait",{x:eur(waitCost)})),
-        apr===0 && res(tf("da_rate0",{p:cashApr>0?tf("da_rate0_cash",{b:cashApr}):""}),"mute"),
-        apr>0 && cashApr>0 && (apr>=cashApr
-          ? res(tf("da_beats_cash",{a:apr,b:cashApr}),"ok")
-          : res(tf("da_under_cash",{a:apr,b:cashApr}))),
-        ranked.length>1 && res(tf("da_first",{name:ranked[0].name,p:ranked[0].apr}),"mute")
-      ),
-      React.createElement("div",{className:"dbx-help"}, t("da_est"))))));
+      // Dos lecturas como mucho, las que más pesan (antes cinco o seis viñetas largas y una nota de «es una estimación»; filtro 253).
+      amt>0 && lecturas.length>0 && React.createElement("div",{className:"dbx-res"},lecturas)))));
 }
 // Trazos de 24 px como los de la barra de abajo (la casa es la misma de Inicio).
 const DEBT_ICO={
@@ -786,16 +787,13 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly})
         React.createElement("div",{className:"dbx-grp"},
           campoDeuda("name","plan_edit_name",null,"db_concept")),
         React.createElement("div",{className:"dbx-grp"},
-          React.createElement("div",{className:"af-row"},campoDeuda("value","db_amount","decimal"),campoDeuda("monthly","plan_edit_quota","decimal","db_quota_ph")),
+          React.createElement("div",{className:"af-row"},campoDeuda("value","db_amount","decimal"),campoDeuda("monthly","plan_edit_quota","decimal")),
           React.createElement("div",{className:"af-row"},campoDeuda("months","db_months_ph","numeric"),campoDeuda("day","db_day_ph","numeric")),
           React.createElement("label",null,t("plan_conflict_account"),
             React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); })))),
         React.createElement("div",{className:"dbx-grp"},
           React.createElement("div",{className:"af-row"},campoDeuda("down","db_down_ph","decimal"),campoDeuda("balloon","db_balloon_ph","decimal")),
-          React.createElement("div",{className:"dbx-help"},t("db_financing_hint")),
-          React.createElement("div",{className:"dbx-help"},t("db_balloon_hint")),
-          campoDeuda("paid","db_paid_ph","numeric"),
-          React.createElement("div",{className:"dbx-help"},t("db_paid_hint"))),
+          campoDeuda("paid","db_paid_ph","numeric")),
         React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block dbx-add",onClick:function(){ setAdding(true); }},React.createElement(I.plus,{width:16,height:16}),t("db_add")),
     fichaDeuda&&React.createElement(RptDeudaFicha,{key:fichaDeuda.id,d:fichaDeuda,state:state,set:set,r:rep,h:hFicha,onClose:function(){ setFichaId(null); }}),

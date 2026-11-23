@@ -37,7 +37,7 @@ test("la barra dice Libre y la hoja reparte cada euro: los porcentajes suman 100
   // 3.000 − (95 + 260 + 300 + 200 + 900) = 1.245
   await expect(barra).toContainText("Libre");
   await expect(barra).toContainText(/1\.245,00/);
-  await expect(barra).toContainText(/de 3\.000,00/);
+  await expect(barra).toContainText(/Entran 3\.000,00/);
   expect(await barra.locator(".rpt-pb > i").count()).toBeGreaterThanOrEqual(5);
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");

@@ -1113,14 +1113,14 @@
   button.pr6-sum-tap>*{grid-column:1;min-width:0;}
   button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:1 / span 2;position:relative;display:flex;width:28px;height:28px;align-items:center;justify-content:center;color:var(--muted);}
   .pr6-sum-tap:focus-visible{outline:2px solid var(--mint-bright);outline-offset:4px;border-radius:10px;}
-  .pr6-sum-dot{position:absolute;top:1px;right:1px;width:9px;height:9px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 2px var(--surface);}
+  .pr6-sum-dot{position:absolute;top:0;right:-7px;width:9px;height:9px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 2px var(--surface);}
   .pm-body{padding-top:4px;}
   .pm-big{font-size:42px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:4px;white-space:nowrap;}
   .pm-est{font-size:15px;font-weight:700;color:var(--mint-bright);margin-top:6px;}
   .pm-est.bad{color:var(--coral);}
   .pm-aviso{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--coral-dim);font-size:14px;font-weight:600;line-height:1.35;}
   .pm-sub{font-size:13px;font-weight:800;margin-bottom:2px;}
-  .pm-banco{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:14px;padding:0 4px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--mint-bright);font:inherit;font-weight:700;cursor:pointer;}
+  .pm-banco{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:14px;padding:0;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--mint-bright);font:inherit;font-weight:700;cursor:pointer;}
   html[data-theme="light"] .pm-est:not(.bad),html[data-theme="light"] .pm-banco{color:var(--mint-ink);}
   /* Pestañas de Plan como el diseño plan-mezcla: sin caja, píldora menta suave sobre el fondo oscuro. */
   .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;}
@@ -2575,7 +2575,8 @@
   .mc-cal{margin:4px 0 12px;padding:10px 8px 8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:14px;}
   .mc-cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
   .mc-cal-nav button{width:44px;height:44px;border-radius:12px;background:var(--bg-2);border:1px solid var(--line-soft);font-size:20px;font-weight:700;color:var(--text);}
-  .mc-cal-title{flex:1;text-align:center;font-size:14.5px;font-weight:800;text-transform:capitalize;}
+  .mc-cal-title{flex:1;text-align:center;font-size:14.5px;font-weight:800;text-transform:none;}
+  .mc-cal-title::first-letter{text-transform:uppercase;}
   .mc-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
   .mc-cal-wd{margin-bottom:4px;}
   .mc-cal-wd div{text-align:center;font-size:11px;font-weight:800;color:var(--muted-2);padding:4px 0;}
@@ -3138,10 +3139,12 @@
   .rpt-facts.m .rpt-fact{flex:none;min-height:0;padding:14px 16px;border:0;border-radius:0;background:none;gap:3px;}
   .rpt-facts.m .rpt-fact+.rpt-fact{border-left:1px solid var(--line-soft);}
   .rpt-facts.m .rpt-fact span{font-size:12px;font-weight:600;letter-spacing:.02em;}
-  .rpt-facts.m .rpt-fact b{font-size:22px;line-height:1.15;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+  /* Una sola cifra protagonista en Metas: la grande es lo ahorrado; estas dos son apoyo (filtro 253). */
+  .rpt-facts.m .rpt-fact b{font-family:inherit;font-size:15px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;}
   .rpt-facts.m .rpt-fact.ok b{color:var(--mint-ink,var(--mint));}
   .rpt-facts.m .rpt-fact.warn b{color:var(--tan);}
-  .rpt-dl{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:2px 12px;margin-top:6px;font-size:12.5px;line-height:1.5;color:var(--muted);}
+  html[data-theme="light"] .rpt-facts.m .rpt-fact.warn b{color:#82600A;}
+  .rpt-dl{display:flex;flex-direction:column;align-items:flex-start;gap:0;margin-top:6px;font-size:12.5px;line-height:1.5;color:var(--muted);}
   .rpt-dl b{color:var(--text);font-weight:700;}
   .rpt-dl button{display:block;padding:13px 0;margin-block:-13px;font-size:12.5px;color:var(--muted);background:none;border:0;text-align:left;cursor:pointer;}
   .rpt-sec{margin-top:22px;}
@@ -3178,10 +3181,11 @@
   /* Hoja: asa, título, cuerpo con scroll y pie fijo */
   .v4-sheet.rpt-sheet:has(>.v4-sheet-body){padding:12px 0 0;}
   .rpt-sb{padding:2px 18px 12px;container-type:inline-size;}
-  .rpt-sh{display:flex;align-items:center;gap:6px;}
-  .rpt-st{flex:1;min-width:0;font-size:15px;font-weight:800;line-height:1.4;overflow-wrap:anywhere;padding-right:4px;}
+  .rpt-sh{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  /* Mismo lenguaje que las hojas de alta y edición (.plan-edit-head): título en serif y cierre con caja (filtro 253). */
+  .rpt-st{flex:1;min-width:0;font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:560;line-height:1.25;overflow-wrap:anywhere;padding-right:4px;}
   .rpt-sback{flex:none;width:44px;height:44px;margin-left:-12px;display:grid;place-items:center;background:none;border:0;color:inherit;cursor:pointer;}
-  .rpt-sx{flex:none;width:44px;height:44px;margin:-8px -10px -8px auto;display:grid;place-items:center;color:var(--muted);border-radius:12px;background:none;border:0;cursor:pointer;}
+  .rpt-sx{flex:none;width:44px;height:44px;margin:0 0 0 auto;display:grid;place-items:center;color:var(--muted);border-radius:12px;background:var(--surface);border:1px solid var(--line-soft);cursor:pointer;}
   .rpt-dico{flex:none;width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--muted);}
   .rpt-sf{flex:none;display:flex;flex-wrap:wrap;gap:8px;padding:10px 18px calc(14px + var(--safe-bottom));border-top:1px solid var(--line-soft);background:var(--bg-2);}
   .rpt-sg{margin-top:12px;}
@@ -3264,6 +3268,12 @@
   label.dbx-tile{cursor:text;}
   .dbx-amt{display:flex;align-items:baseline;gap:4px;width:100%;}
   .dbx-amt b{color:var(--muted);}
+  .dbx-amt input{width:6ch;flex:none;}
+  .dbx-tiles .dbx-tile{min-height:84px;}
+  /* Unidad (€, %) pegada al número dentro del campo: el valor sigue siendo solo el número (filtro 253). */
+  .plan-edit-sheet .af-wrap{position:relative;display:block;}
+  .plan-edit-sheet .af-wrap .af-in.af-u{padding-right:34px;}
+  .af-unit{position:absolute;right:14px;bottom:0;height:46px;display:flex;align-items:center;color:var(--muted);font-size:14px;pointer-events:none;}
   .dbx-res{border-radius:16px;background:var(--surface-2);padding:4px 14px;animation:rise .35s var(--ease) both;}
   .dbx-res-row{display:flex;gap:8px;align-items:baseline;padding:10px 0;font-size:13.5px;line-height:1.5;border-top:1px solid var(--line-soft);}
   .dbx-res-row:first-child{border-top:0;}

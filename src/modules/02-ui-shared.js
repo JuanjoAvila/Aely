@@ -2603,7 +2603,8 @@ function fmtIsoCorto(iso){
   if(!d||isNaN(d.getTime())) return String(iso).slice(0,10);
   return d.toLocaleDateString(loc(),{weekday:"short",day:"numeric",month:"short"});
 }
-function McCal({value, onPick}){
+// `soloMes`: el valor es un mes sin día (la fecha límite de una meta); ningún día queda marcado como elegido (filtro 253).
+function McCal({value, onPick, soloMes}){
   const hoy=isoLocal();
   const sel=String(value||hoy).slice(0,10);
   const [view,setView]=useState(function(){
@@ -2642,7 +2643,7 @@ function McCal({value, onPick}){
         if(!d) return React.createElement("div",{key:"e"+i});
         const iso=isoOf(d);
         return React.createElement("button",{key:iso,type:"button",
-          className:"mc-cal-day"+(iso===sel?" on":"")+(iso===hoy?" hoy":""),
+          className:"mc-cal-day"+(iso===sel&&!soloMes?" on":"")+(iso===hoy?" hoy":""),
           onClick:function(){ onPick(iso); }}, d);
       })
     ),
