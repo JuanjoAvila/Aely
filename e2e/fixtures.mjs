@@ -524,6 +524,19 @@ export async function ponValorBien(hoja, texto) {
   await hoja.locator('[data-asset-field="value"]').click();
   await padTeclea(hoja, texto);
 }
+// Pone el valor de una celda de una hoja de AddHoja (editar deuda…): abre «Más datos» si la celda vive ahí y está plegado,
+// la elige y la teclea con el teclado propio (la primera tecla sustituye lo que había; texto "" la deja vacía borrando con ⌫).
+// `attr` es el data-* de los campos de la hoja (p. ej. "data-debt-field"); `clave`, el campo.
+export async function ponCelda(hoja, attr, clave, texto) {
+  const celda = hoja.locator("[" + attr + '="' + clave + '"]');
+  const mas = hoja.locator('[data-act="mas-datos"]');
+  const enMas = await celda.evaluate((el) => !!el.closest(".rpa-more"));
+  if (enMas && (await mas.getAttribute("aria-expanded")) !== "true") await mas.click();
+  await celda.click();
+  if (texto !== "") { await padTeclea(hoja, texto); return; }
+  const n = ((await celda.innerText()).match(/[0-9.,]/g) || []).length;
+  for (let i = 0; i < n; i++) await hoja.locator(".v4-keys button").nth(11).click();
+}
 // Da de alta una deuda por la hoja de «Añadir deuda» (abierta): nombre y las cifras con el teclado propio, y guarda.
 export async function rellenaDeuda(page, d) {
   const h = page.getByTestId("debt-add-form");

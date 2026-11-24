@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {ponCelda} from './fixtures.mjs';
 
 const OWNER='11111111-1111-4111-8111-111111111111';
 const OTHER='22222222-2222-4222-8222-222222222222';
@@ -20,7 +21,7 @@ async function editDay(page,day){
   await page.getByRole('tab',{name:'Deudas',exact:true}).click();
   await page.locator('[data-debt-id="debt"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
   const sheet=page.getByRole('dialog',{name:'Editar deuda',exact:true});
-  await sheet.locator('[data-debt-field="day"]').fill(String(day));
+  await ponCelda(sheet,"data-debt-field","day",String(day));
   await sheet.getByRole('button',{name:'Guardar cambios',exact:true}).click();
   await expect(sheet).toHaveCount(0);
 }

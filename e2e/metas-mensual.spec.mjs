@@ -1,5 +1,5 @@
 import { test, expect, devices } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, ponCelda } from "./fixtures.mjs";
 
 const textos={
   es:{metas:"Metas",title:"Ahorro mensual",add:"Añadir ahorro",save:"Guardar regla"},
@@ -27,7 +27,6 @@ async function nav(page,id){
 async function metas(page,t){
   await nav(page,"plan");
   await page.getByRole("tab",{name:t.metas,exact:true}).click();
-  if(!await page.getByRole("button",{name:t.add,exact:true}).isVisible()) await page.getByText(t.title,{exact:true}).click();
 }
 async function disk(page){ return page.evaluate(()=>{
   const s=JSON.parse(localStorage.getItem("micartera_v3"));
@@ -56,12 +55,15 @@ async function alta(page,lang,cycle=false){
   await boot(page);
   const t=textos[lang];
   await metas(page,t);
-  await page.getByRole("button",{name:t.add,exact:true}).click();
-  const form=page.locator(".add-form").filter({has:page.getByRole("button",{name:t.save,exact:true})});
-  await form.locator("input").first().fill("Mensual sintetica");
-  await form.locator("input").last().fill("100");
-  await form.getByRole("button",{name:t.save,exact:true}).click();
+  // La regla mensual nace del interruptor «Restar del presupuesto» en la hoja de la meta (la tarjeta «Ahorro mensual» ya no existe).
+  await page.locator("[data-goal-id]").filter({hasText:goal.name}).click();
+  await page.getByTestId("plan-meta-ficha").locator('[data-act="ficha-editar"]').click();
+  const form=page.getByTestId("goal-add-form");
+  await ponCelda(form,"data-goal-field","monthly","100");
+  await form.locator('[data-act="hoja-restar"]').click();
+  await form.locator('[data-act="hoja-guardar"]').click();
   await expect(form).toHaveCount(0);
+  if(await page.getByTestId("plan-meta-ficha").count()) await page.locator(".rpt-sx").click();
   await saved(page,100);
   await expect.poll(async()=> (await disk(page)).reservaLog?.length).toBe(1);
   await presupuesto(page,900);

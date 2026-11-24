@@ -29,11 +29,15 @@ function decimalComponent(raw){
  const d={...debts[1],apr:2};let state={debts:[d],accounts:[],expenses:[]};
  const render=()=>{cursor=0;return ui.DebtEditSheet?ui.DebtEditSheet({debt:d,state,set:f=>{state=f(state);},onClose(){},onDelete(){},showToast(){}}):ui.AmortAdvisor({state,set:f=>{state=f(state);}});};
  const nodes=()=>{const all=[],walk=n=>{if(!n||typeof n!=="object")return;all.push(n);(n.children||[]).forEach(walk);};walk(render());return all;};
+ // La hoja de edición es AddHoja (teclado propio): cada tecla llega como un `setVals` sobre el campo elegido; el asesor (baseline) sigue con su input.
+ const hoja=()=>{const r=render();return r&&r.props&&r.props.setVals?r:null;};
  const input=()=>nodes().find(n=>n.type==="input"&&(n.props["data-debt-field"]==="apr"||!ui.DebtEditSheet));
- input().props.onChange({target:{value:""}});
+ const value=()=>hoja()?String(hoja().props.vals.apr):String(input().props.value);
+ const tecla=f=>hoja()?hoja().props.setVals(o=>({...o,apr:f(String(o.apr))})):input().props.onChange({target:{value:f(String(input().props.value))}});
+ tecla(()=>"");
  let expected="";
- for(const char of raw){expected+=char;const before=input();before.props.onChange({target:{value:String(before.props.value)+char}});assert.equal(String(input().props.value),expected,"Se conserva texto intermedio "+expected);}
- if(ui.DebtEditSheet){assert.equal(state.debts[0].apr,2,"El borrador no escribe antes de Guardar");nodes().find(n=>n.type==="button"&&n.props.className==="btn btn-primary btn-block").props.onClick();}
+ for(const char of raw){expected+=char;tecla(v=>v+char);assert.equal(value(),expected,"Se conserva texto intermedio "+expected);}
+ if(ui.DebtEditSheet){assert.equal(state.debts[0].apr,2,"El borrador no escribe antes de Guardar");if(hoja())hoja().props.onSave();else nodes().find(n=>n.type==="button"&&n.props.className==="btn btn-primary btn-block").props.onClick();}
  return state.debts[0];
 }
 for(const raw of ["1,05","1.05","","0"])assert.equal(decimalComponent(raw).apr,raw===""?null:raw==="0"?0:1.05);

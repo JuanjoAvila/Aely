@@ -1,6 +1,6 @@
 import {test,expect} from "@playwright/test";
 import { datosDeuda } from "./plan-ficha-helpers.mjs";
-import {seedLoggedInDashboard,dismissNews,esperaNubeQuieta} from "./fixtures.mjs";
+import {seedLoggedInDashboard,dismissNews,esperaNubeQuieta,ponCelda} from "./fixtures.mjs";
 
 const YM=2026*12+9;
 const copy={
@@ -13,6 +13,8 @@ const rows=()=>[debt("missing"),debt("null",{day:null}),debt("zero",{day:0}),deb
   debt("finished",{value:0,months:1,asOf:YM-2}),debt("settled",{value:0,settledAt:"2026-10-01T10:00:00Z"}),debt("inactive",{monthly:0})];
 const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).debts);
 const sheet=(page,lang="es")=>page.getByRole("dialog",{name:copy[lang].edit,exact:true});
+// La hoja de edición es AddHoja: las cifras son celdas con teclado propio (se leen por su texto y «elegida» = aria-pressed).
+const F="data-debt-field",dia=(d)=>d.locator('[data-debt-field="day"]'),valor=(c)=>c.locator(".rpa-cell-v"),cancela=(d)=>d.locator(".pr6-back").click();
 const financial=page=>page.evaluate(()=>{
   const s=loadState();
   return {accounts:s.accounts,debts:s.debts,fixed:s.fixed,flows:s.flows,oneoffs:s.oneoffs,goals:s.goals,
@@ -54,15 +56,15 @@ for(const lang of Object.keys(copy))for(const entry of ["plan","debts"]){
       if(entry==="debts")expect(await datosDeuda(page,page.locator('[data-debt-id="'+id+'"]'))).not.toMatch(/día 1\b|day 1\b|dia 1\b/i);
       if(lang==="es"&&id==="missing")await page.screenshot({path:test.info().outputPath(entry+"-sin-dia.png")});
       await ponDia(page,id);
-      const dialog=sheet(page,lang),day=dialog.locator('[data-debt-field="day"]');
-      await expect(day).toBeFocused();await expect(day).toHaveValue("");
+      const dialog=sheet(page,lang),day=dia(dialog);
+      await expect(day).toHaveAttribute("aria-pressed","true");await expect(valor(day)).toHaveText("—");
       await expect(day).toBeInViewport({ratio:1});
       if(lang==="es"&&id==="missing")await page.screenshot({path:test.info().outputPath(entry+"-editor-dia.png")});
       await expect(dialog.locator('[data-debt-field="name"]')).toHaveValue("Deuda sintética "+id);
       expect(await financial(page)).toEqual(before);
-      await day.fill("31");await dialog.getByRole("button",{name:copy[lang].cancel,exact:true}).click();
+      await ponCelda(dialog,F,"day","31");await cancela(dialog);
       await expect(dialog).toHaveCount(0);expect(await financial(page)).toEqual(before);
-      await ponDia(page,id);await expect(day).toBeFocused();await day.fill("1");
+      await ponDia(page,id);await expect(day).toHaveAttribute("aria-pressed","true");await ponCelda(dialog,F,"day","1");
       expect(await financial(page)).toEqual(before);
       await dialog.getByRole("button",{name:copy[lang].save,exact:true}).click();await expect(dialog).toHaveCount(0);
       const expected=beforeRows.map(d=>d.id===id?{...d,day:1}:d);
@@ -75,8 +77,8 @@ for(const lang of Object.keys(copy))for(const entry of ["plan","debts"]){
 for(const entry of ["plan","debts"])for(const day of [2,31]){
   test(`${entry}: día ${day} usa el resultado financiero existente y mantiene las otras deudas`,async({page})=>{
     await open(page,"es",entry);const before=await saved(page);
-    await ponDia(page,"missing");const dialog=sheet(page),input=dialog.locator('[data-debt-field="day"]');
-    await input.fill(String(day));
+    await ponDia(page,"missing");const dialog=sheet(page);
+    await ponCelda(dialog,F,"day",String(day));
     const expected=await page.evaluate(day=>{const d=loadState().debts.find(d=>d.id==="missing");return debtEditResult(d,{...debtEditDraft(d),day:String(day)});},day);
     expect(expected.error).toBeUndefined();await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(dialog).toHaveCount(0);
     expect(await saved(page)).toEqual(before.map(d=>d.id==="missing"?expected.item:d));
@@ -84,28 +86,28 @@ for(const entry of ["plan","debts"])for(const day of [2,31]){
 }
 test("día vacío, cero y 32 no guardan; la edición normal conserva su borrador legado",async({page})=>{
   await open(page,"es","debts");const before=await financial(page);await ponDia(page,"missing");
-  const dialog=sheet(page),input=dialog.locator('[data-debt-field="day"]');
-  for(const value of ["","0","32"]){await input.fill(value);await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(dialog.getByRole("alert")).toBeVisible();expect(await financial(page)).toEqual(before);}
-  await dialog.getByRole("button",{name:copy.es.cancel,exact:true}).click();await expect(dialog).toHaveCount(0);
-  await page.locator('[data-debt-id="missing"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await expect(input).toHaveValue("1");
+  const dialog=sheet(page),input=dia(dialog);
+  for(const value of ["","0","32"]){await ponCelda(dialog,F,"day",value);await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(dialog.getByRole("alert")).toBeVisible();expect(await financial(page)).toEqual(before);}
+  await cancela(dialog);await expect(dialog).toHaveCount(0);
+  await page.locator('[data-debt-id="missing"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await expect(valor(input)).toHaveText("1");
   await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(dialog).toHaveCount(0);
   expect(await financial(page)).toEqual(before);
 });
 test("Plan sencillo abre el mismo editor y cancelar conserva cifras y estado",async({page})=>{
   await open(page,"es","plan",{settings:{lang:"es",autoPrices:false,theme:"green",reservaRules:[],simpleMode:true}});
-  const before=await financial(page);await ponDia(page,"missing");await expect(sheet(page).locator('[data-debt-field="day"]')).toBeFocused();
-  await sheet(page).getByRole("button",{name:copy.es.cancel,exact:true}).click();await expect(sheet(page)).toHaveCount(0);expect(await financial(page)).toEqual(before);
+  const before=await financial(page);await ponDia(page,"missing");await expect(dia(sheet(page))).toHaveAttribute("aria-pressed","true");
+  await cancela(sheet(page));await expect(sheet(page)).toHaveCount(0);expect(await financial(page)).toEqual(before);
 });
 for(const concurrent of [false,true])test(`día1 tras confirmar plazo revalida antes de normalizar, concurrencia=${concurrent}`,async({page})=>{
   const d=debt("term",{value:2000,original:2000,monthly:200,amort:200,months:10,asOf:YM-4});
   await open(page,"es","debts",{debts:[d]});await ponDia(page,"term");const dialog=sheet(page);
-  await dialog.locator('[data-debt-field="day"]').fill("1");await dialog.locator('[data-debt-field="balance"]').fill("1300,25");
+  await ponCelda(dialog,F,"day","1");await ponCelda(dialog,F,"balance","1300,25");
   const expected=await page.evaluate(()=>{const d=loadState().debts[0];return debtEditResult(d,{...debtEditDraft(d),day:"1",balance:"1300,25"});});
   expect(expected.error).toBeUndefined();
   await dialog.getByRole("button",{name:copy.es.save,exact:true}).click();await expect(page.locator(".askback")).toBeVisible();
   expect((await saved(page))[0]).toEqual(d);
   if(concurrent){
-    await page.evaluate(()=>{const el=document.querySelector('.plan-edit-sheet');let f=el[Object.keys(el).find(k=>k.startsWith("__reactFiber$"))];while(f&&!(f.memoizedProps?.state&&f.memoizedProps?.set))f=f.return;if(!f)throw Error("Falta editor real");f.memoizedProps.set(s=>({...s,debts:s.debts.map(d=>({...d,value:2050}))}));});
+    await page.evaluate(()=>{const el=document.querySelector('[data-testid="debt-edit-form"]');let f=el[Object.keys(el).find(k=>k.startsWith("__reactFiber$"))];while(f&&!(f.memoizedProps?.state&&f.memoizedProps?.set))f=f.return;if(!f)throw Error("Falta editor real");f.memoizedProps.set(s=>({...s,debts:s.debts.map(d=>({...d,value:2050}))}));});
     await expect.poll(async()=>(await saved(page))[0].value).toBe(2050);
   }
   await page.locator(".askback").getByRole("button",{name:copy.es.save,exact:true}).click();
@@ -138,17 +140,17 @@ for(const localDay of [28,null])test(`conflicto aviso sin día: conserva borrado
   const review=async()=>{
     await ponDia(page,"missing");
     await page.getByRole("dialog").getByRole("button",{name:"Revisar mi cambio",exact:true}).click();
-    const day=sheet(page).locator('[data-debt-field="day"]');
-    await expect(day).toHaveValue(localDay===null?"":"28");await expect(day).toBeFocused();await expect(day).toBeInViewport({ratio:1});
+    const day=dia(sheet(page));
+    await expect(valor(day)).toHaveText(localDay===null?"—":"28");await expect(day).toHaveAttribute("aria-pressed","true");await expect(day).toBeInViewport({ratio:1});
     await expect(sheet(page).locator('[data-debt-field="name"]')).toHaveValue("Borrador local");
     await expect(sheet(page).locator('[data-debt-field="note"]')).toHaveValue("Nota local conservada");
     return day;
   };
   await review();expect(await live()).toEqual(before);
-  await sheet(page).getByRole("button",{name:copy.es.cancel,exact:true}).click();await expect(sheet(page)).toHaveCount(0);
+  await cancela(sheet(page));await expect(sheet(page)).toHaveCount(0);
   expect(await live()).toEqual(before);
   if(localDay===null){
-    const day=await review();await day.fill("1");expect(await live()).toEqual(before);
+    await review();await ponCelda(sheet(page),F,"day","1");expect(await live()).toEqual(before);
     await sheet(page).getByRole("button",{name:copy.es.save,exact:true}).click();await expect(sheet(page)).toHaveCount(0);
     const after=await live();expect(after.debts).toEqual(before.debts.map(d=>d.id==="missing"?{...d,day:1,name:"Borrador local",note:"Nota local conservada"}:d));
     expect(after._planSync.conflicts).toEqual([]);

@@ -797,4 +797,48 @@ t("la cura corre al cargar y al adoptar la nube", () => {
   assert.ok(/return Object\.assign\(\{\},planSyncDerived\(next,prev\),[^\n]*\{\[cloudMergeKey\.current\]:\{read:read\}\}\)/.test(adopta),"el estado curado viaja con el marcador de commit");
 });
 
+// Hojas de meta (hojas-255): el interruptor «Restar del presupuesto» crea, actualiza y quita la regla mensual de ESA meta con el
+// motor de siempre. Antes de la tanda la tarjeta «Ahorro mensual» era el único camino; sin esta función no hay otro.
+t("metaReservaSync: encender crea una mensual fija, cambiar el «Al mes» la actualiza sin duplicar y apagar libera lo apartado", () => {
+  assert.equal(typeof ctx.metaReservaSync, "function", "la función de la hoja de meta existe");
+  const base = { goals: [{ id: "g1", name: "Viaje", target: 3000, saved: 0 }, { id: "g2", name: "Otra", target: 500, saved: 0 }], settings: { reservaRules: [] }, reservaLog: [], expenses: [], accounts: [] };
+  const on = ctx.metaReservaSync(base, "g1", true, 80, "r-nueva");
+  const reglas = on.settings.reservaRules;
+  assert.equal(reglas.length, 1);
+  assert.deepEqual({ id: reglas[0].id, goalId: reglas[0].goalId, kind: reglas[0].kind, value: reglas[0].value, mensual: reglas[0].mensual }, { id: "r-nueva", goalId: "g1", kind: "fixed", value: 80, mensual: true });
+  // Doble escritura (updater repetido) = una regla.
+  assert.equal(ctx.metaReservaSync(on, "g1", true, 80, "r-nueva").settings.reservaRules.length, 1);
+  const cambia = ctx.metaReservaSync(on, "g1", true, 95.5, "otro-id");
+  assert.deepEqual(cambia.settings.reservaRules.map(r => [r.id, r.value]), [["r-nueva", 95.5]]);
+  // Sin «Al mes» no inventa un importe; las reglas de otra meta no se tocan.
+  assert.equal(ctx.metaReservaSync(base, "g1", true, 0, "x"), base);
+  const dos = ctx.metaReservaSync(on, "g2", true, 20, "r-g2");
+  assert.equal(dos.settings.reservaRules.length, 2);
+  const off = ctx.metaReservaSync(dos, "g1", false, 80, "x");
+  assert.deepEqual(off.settings.reservaRules.map(r => r.goalId), ["g2"]);
+  // Una regla con % o de reparto por ingreso no se reescribe mientras siga encendido, y apagar sí la quita.
+  const pct = { id: "p1", name: "Extra", kind: "pct", value: 10, goalId: "g1", mensual: false };
+  const conPct = { ...base, settings: { reservaRules: [pct] } };
+  assert.equal(ctx.metaReservaSync(conPct, "g1", true, 90, "x"), conPct);
+  assert.equal(ctx.metaReservaSync(conPct, "g1", false, 90, "x").settings.reservaRules.length, 0);
+  // Varias reglas de la misma meta: encendido no reescribe ninguna; apagar las quita todas.
+  const mens = { id: "m1", name: "", kind: "fixed", value: 50, goalId: "g1", mensual: true };
+  const dosReglas = { ...base, settings: { reservaRules: [mens, pct] } };
+  assert.equal(ctx.metaReservaSync(dosReglas, "g1", true, 90, "x"), dosReglas);
+  assert.equal(ctx.metaReservaSync(dosReglas, "g1", false, 90, "x").settings.reservaRules.length, 0);
+  // Céntimos: se redondea a 2 decimales.
+  assert.equal(ctx.metaReservaSync(base, "g1", true, 33.333, "q").settings.reservaRules[0].value, 33.33);
+});
+
+t("debtEditResult: el interruptor de la hoja escribe restarPres solo si cambia y al apagar quita el campo", () => {
+  const d = { id: "d", name: "Deuda", value: 1000, original: 1000, monthly: 100, months: 10, day: 5, asOf: 2026 * 12 + 8, account: "sabadell" };
+  const form = ctx.debtEditDraft(d);
+  assert.equal(ctx.debtEditResult(d, form).item, d, "sin tocar nada devuelve la misma deuda");
+  const on = ctx.debtEditResult(d, { ...form, restarPres: true }).item;
+  assert.equal(on.restarPres, true);
+  const off = ctx.debtEditResult(on, { ...ctx.debtEditDraft(on), restarPres: false }).item;
+  assert.equal("restarPres" in off, false, "apagado se quita, no queda a false");
+  assert.equal(ctx.debtEditResult(on, ctx.debtEditDraft(on)).item, on, "un borrador sin el campo no lo toca");
+});
+
 console.log("\nreserva-dinero: OK");

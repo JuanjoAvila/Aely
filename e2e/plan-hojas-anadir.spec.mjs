@@ -125,7 +125,7 @@ test("Ficha de deuda: Amortizar como acción principal; Editar y Eliminar discre
   await seg(page, "deudas");
   await page.locator('[data-debt-id="d1"]').click();
   await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
-  await expect(page.locator(".plan-edit-sheet")).toBeVisible();
+  await expect(page.getByTestId("debt-edit-form")).toBeVisible();
 });
 
 test("Meta: se edita por la hoja nueva (objetivo con el teclado propio) y se puede borrar con confirmación", async ({ page }) => {

@@ -1425,6 +1425,8 @@
     color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s ease,background .2s ease;}
   .rpa-cell.on{border-color:var(--mint);background:var(--surface-2);}
   .rpa-cell.wide{grid-column:1/-1;}
+  .rpa-cell:disabled,.rpa-amt:disabled{opacity:.5;cursor:default;}
+  .rpa .rpt-rsv{margin-top:2px;}
   .rpa-cell-l{font-size:12px;font-weight:600;color:var(--muted);}
   .rpa-cell-v{font-size:15px;font-weight:700;overflow-wrap:anywhere;}
   .rpa-cell-v.ph{color:var(--muted-2);font-weight:600;}
@@ -3263,10 +3265,8 @@
   .rpt-swt::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:transform .22s var(--ease),background .22s var(--ease);}
   [aria-checked=true] .rpt-swt{background:var(--mint);border-color:var(--mint);}
   [aria-checked=true] .rpt-swt::after{transform:translateX(20px);background:var(--on-mint);}
-  .rpt-pvg{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;padding-top:8px;margin-top:8px;border-top:1px solid var(--line-soft);font-size:12.5px;color:var(--muted);}
-  .rpt-pvg b{justify-self:end;color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .rpt-pvm{margin-top:3px;font-size:12.5px;line-height:1.4;color:var(--muted);}
-  .rpt-pvw{margin-top:3px;font-size:13px;font-weight:700;color:var(--coral);}
+  .rpt-pvb{display:grid;gap:4px;padding-top:8px;margin-top:8px;border-top:1px solid var(--line-soft);font-size:12.5px;line-height:1.4;color:var(--muted);}
+  .rpt-pvb .rpt-pvw{font-size:13px;font-weight:700;color:var(--coral);}
   /* Escalera de cuotas */
   .rpt-stairs{display:grid;gap:4px;margin-top:4px;align-items:end;}
   .rpt-stp{display:flex;flex-direction:column;justify-content:flex-end;height:96px;min-width:0;text-align:center;border-radius:8px;background:none;border:0;color:inherit;font:inherit;cursor:pointer;}

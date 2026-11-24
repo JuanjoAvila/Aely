@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews,ponCelda} from "./fixtures.mjs";
 
 /* «Lo descuento» con una deuda que NO cuadra y «Baja la deuda al mes» en Editar deuda (feedback
    1/11/2026). El préstamo familiar se dio de alta con plazo y guardó como bajada saldo/plazo, no la
@@ -105,9 +105,9 @@ async function editarDeuda(page, debt) {
 test("Editar deuda: «Baja la deuda al mes» se ve, se corrige y el plazo se confirma", async ({ page }) => {
   const hoja = await editarDeuda(page, prestamo);
   const baja = hoja.locator('[data-debt-field="amort"]');
-  await expect(baja).toHaveValue("196,68");
+  await expect(baja).toContainText("196,68");
   await expect(hoja).toContainText("Puede no ser lo que sale del banco.");
-  await baja.fill("250");
+  await ponCelda(hoja, "data-debt-field", "amort", "250");
   await hoja.getByRole("button", { name: "Guardar cambios", exact: true }).click();
   // Cambia el plazo (31 → 24): se pide confirmarlo como cualquier recálculo.
   await expect(ask(page)).toContainText("24");
@@ -121,8 +121,8 @@ test("Editar deuda: «Baja la deuda al mes» se ve, se corrige y el plazo se con
 
 test("Editar deuda: cambiar el plazo mueve lo que baja en vez de rechazarlo", async ({ page }) => {
   const hoja = await editarDeuda(page, prestamo);
-  await hoja.locator('[data-debt-field="months"]').fill("24");
-  await expect(hoja.locator('[data-debt-field="amort"]')).toHaveValue("250");
+  await ponCelda(hoja,"data-debt-field","months","24");
+  await expect(hoja.locator('[data-debt-field="amort"]')).toContainText("250");
   await hoja.getByRole("button", { name: "Guardar cambios", exact: true }).click();
   await expect(hoja).toHaveCount(0);
   const s = await guardado(page);
@@ -171,10 +171,10 @@ test("descuadre ya guardado: cancelar no toca nada", async ({ page }) => {
 test("Editar deuda ligada: cuota 197 y «Baja la deuda al mes» 250 se guardan las dos", async ({ page }) => {
   const ligada = { id: "lig", name: "Préstamo ligado", monthly: 250, value: 6000, account: "sabadell", day: 20, asOf: YM - 1 };
   const hoja = await editarDeuda(page, ligada);
-  await hoja.locator('[data-debt-field="monthly"]').fill("197");
+  await ponCelda(hoja,"data-debt-field","monthly","197");
   // Sin tocarla, la bajada sigue a la cuota en pantalla: lo que se ve es lo que se guarda.
-  await expect(hoja.locator('[data-debt-field="amort"]')).toHaveValue("197");
-  await hoja.locator('[data-debt-field="amort"]').fill("250");
+  await expect(hoja.locator('[data-debt-field="amort"]')).toContainText("197");
+  await ponCelda(hoja,"data-debt-field","amort","250");
   await hoja.getByRole("button", { name: "Guardar cambios", exact: true }).click();
   await expect(hoja).toHaveCount(0);
   expect((await guardado(page)).debts[0]).toMatchObject({ monthly: 197, amort: 250, value: 6000 });

@@ -133,8 +133,9 @@ function RptRepartoHoja({r,state,onClose,onJump}){
         :React.createElement("div",{className:"rpt-kv"},t("pm_nada"))));
 }
 
-/* ---------------- Interruptor «Restar del presupuesto» (ficha de una deuda) ---------------- */
-// Cuánto cambia el reparto al encender o apagar ESTA deuda; las demás se quedan como están.
+/* ---------------- Interruptor «Restar del presupuesto» (ficha de una deuda y hoja de alta/edición) ---------------- */
+// Cuánto cambia el reparto al encender o apagar ESTA deuda; las demás se quedan como están. Todo sale de `planReparto`
+// con y sin el interruptor: aquí no se calcula dinero, solo se eligen las cifras que explican el efecto en tu presupuesto de Gastos.
 function rptRestarNums(state,d){
   const con=function(on){ return Object.assign({},state,{debts:(state.debts||[]).map(function(x){
     if(x.id!==d.id) return x;
@@ -142,13 +143,28 @@ function rptRestarNums(state,d){
     return y; })}); };
   const off=planReparto(con(false),{}), on=planReparto(con(true),{}), enc=d.restarPres===true;
   const mover=Math.max(0,off.gas-on.gas);
-  const parte=Math.max(0,(on.presupuestoRaw==null?0:on.presupuestoRaw));
   const antes=off.presupuestoRaw==null?0:off.presupuestoRaw-off.gastado, despues=on.presupuestoRaw==null?0:on.presupuestoRaw-on.gastado;
   const q=on.reservaDeudas-off.reservaDeudas;
+  // Tu presupuesto de Gastos, con y sin la cuota dentro; el aviso de pasarte compara lo gastado con el de después.
+  const pa=off.presupuesto==null?0:off.presupuesto, pb=on.presupuesto==null?0:on.presupuesto;
   return {sinPresupuesto:off.sinPresupuesto,
-    p:enc?rptC(Math.max(0,despues)):rptC(Math.max(0,antes))+" → "+rptC(Math.max(0,despues)),
-    m:mover>0?tf("rpt_moved",{x:rptC(mover)}):tf("rpt_salen",{x:rptC(q)}),
-    w:despues<0?(enc?t("rpt_te_pasas"):t("rpt_te_pasarias"))+" "+rptC(-despues):"", parte:parte};
+    p:pa!==pb?tf("rpt_gas_pasa",{a:rptC(pa),b:rptC(pb)}):"",
+    m:mover>0?tf("rpt_libre_sube",{x:rptC(mover)}):tf("rpt_salen",{x:rptC(q)}),
+    w:despues<0?tf(enc?"rpt_te_pasas":"rpt_te_pasarias",{x:rptC(-despues)}):""};
+}
+/* La fila del interruptor, una sola para la ficha de la deuda, la hoja de alta y la de edición (y la de metas). */
+function RptSwitch({on,onClick,sub,act}){
+  return React.createElement("button",{type:"button",className:"rpt-rsv-h",role:"switch","aria-checked":!!on,"data-act":act||"restar-presupuesto",onClick:onClick},
+    React.createElement("span",null,React.createElement("span",{className:"rpt-rsv-t"},t("rpt_resta_t")),sub?React.createElement("span",{className:"rpt-rsv-s"},sub):null),
+    React.createElement("span",{className:"rpt-swt"}));
+}
+/* El interruptor dentro de una hoja de alta o edición (deuda o meta): la misma fila, con su caja. Sin presupuesto no hay de dónde
+   restar y se dice, como en la ficha. `sub` fija la línea de debajo (las metas dicen el aporte); si no, la cuota al mes. */
+function RptRestarHoja({state,on,cuota,sub,onToggle}){
+  const sin=useMemo(function(){ return planReparto(state,{}).sinPresupuesto; },RPT_DEPS_REPARTO(state));
+  if(sin) return React.createElement("div",{className:"rpt-rsv"},React.createElement("span",{className:"rpt-rsv-t"},t("rpt_resta_t")),React.createElement("span",{className:"rpt-rsv-s"},t("rpt_sin_pres")));
+  return React.createElement("div",{className:"rpt-rsv","data-testid":"hoja-restar"},
+    React.createElement(RptSwitch,{on:on,onClick:onToggle,act:"hoja-restar",sub:sub!==undefined?sub:(cuota>0?tf("rpt_resta_s",{x:rptC(Math.round(cuota*100))}):"")}));
 }
 function RptRestar({state,set,d,cuota}){
   const n=rptRestarNums(state,d), enc=d.restarPres===true;
@@ -160,12 +176,11 @@ function RptRestar({state,set,d,cuota}){
       return y; })}); });
   };
   return React.createElement("div",{className:"rpt-rsv","data-rsv":d.id},
-    React.createElement("button",{type:"button",className:"rpt-rsv-h",role:"switch","aria-checked":enc,"data-act":"restar-presupuesto",onClick:cambia},
-      React.createElement("span",null,React.createElement("span",{className:"rpt-rsv-t"},t("rpt_resta_t")),React.createElement("span",{className:"rpt-rsv-s"},tf("rpt_resta_s",{x:rptC(cuota)}))),
-      React.createElement("span",{className:"rpt-swt"})),
-    React.createElement("div",{className:"rpt-pvg"},React.createElement("span",null,t("rpt_para_gastar")),React.createElement("b",{"data-pv":"p"},n.p)),
-    React.createElement("div",{className:"rpt-pvm","data-pv":"m"},n.m),
-    n.w&&React.createElement("div",{className:"rpt-pvw","data-pv":"w"},n.w));
+    React.createElement(RptSwitch,{on:enc,onClick:cambia,sub:tf("rpt_resta_s",{x:rptC(cuota)})}),
+    React.createElement("div",{className:"rpt-pvb"},
+      n.p&&React.createElement("div",{"data-pv":"p"},n.p),
+      React.createElement("div",{"data-pv":"m"},n.m),
+      n.w&&React.createElement("div",{className:"rpt-pvw","data-pv":"w"},n.w)));
 }
 
 /* ---------------- Escalera de cuotas ---------------- */

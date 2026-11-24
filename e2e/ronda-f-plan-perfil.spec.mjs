@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock, estadoHeredado } from "./fixtures.mjs";
 
 /* RONDA F (19/11/2026): lo que se PINTA de Plan, Cartera, Perfil, Inicio, Apuntar y los diálogos.
-   · Metas: «Ahorro mensual» son las reglas que apartan para cada meta; la aportación al bróker se va a
+   · Metas: la regla de ahorro mensual de cada meta es el interruptor «Restar del presupuesto» de su hoja; la aportación al bróker se va a
      Cartera › Inversiones, y la previsión de una meta ya no sale de lo que se aporta al bróker.
    · Perfil: «Nombre del titular» y sin «@usuario».
    · Inicio: el ojo de ocultar importes también aquí, y esconde TODAS las cifras de la pantalla.
@@ -43,12 +43,13 @@ async function abreMetas(page) {
   await expect(metas(page).getByTestId("goals-summary")).toBeVisible();
 }
 
-test("Metas: «Ahorro mensual» son las reglas, sin la aportación al bróker, y la previsión sale de cada meta", async ({ page }) => {
+test("Metas: la regla de ahorro mensual es el interruptor de la hoja, sin la aportación al bróker, y la previsión sale de cada meta", async ({ page }) => {
   await abre(page);
   await abreMetas(page);
   await expect(metas(page).locator("[data-savings-plan]")).toHaveCount(0);
-  const reglas = metas(page).locator(".card, .v4-card").filter({ has: page.locator('[data-reserva-rule="r1"]') });
-  await expect(reglas).toContainText("Ahorro mensual");
+  // La tarjeta «Ahorro mensual» ya no existe: cada meta lleva su regla como «Restar del presupuesto» en su hoja.
+  await expect(metas(page).locator("[data-reserva-rule]")).toHaveCount(0);
+  await expect(metas(page)).not.toContainText("Ahorro mensual");
   await expect(metas(page).getByText("Reservar dinero de tus ingresos")).toHaveCount(0);
   // Con 200 € al bróker y sin reglas, la meta no promete fecha; la de la regla, sí y con su ritmo.
   // Plan A: la previsión y el ritmo viven en la ficha de la meta (Estado y Al mes).
