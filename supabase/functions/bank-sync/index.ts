@@ -12,7 +12,7 @@ import { decryptSessionId } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
 import { readInput } from "../_shared/request_body.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
-import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
+import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, pendingCursor, pendingResumeDay, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
    guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
@@ -293,7 +293,10 @@ Deno.serve(withCors(async (req: Request) => {
         try {
           const q = sameLinkVersion(admin.from("bank_links").update({ last_sync: acked, updated_at: new Date().toISOString() }).eq("id", link.id), link);
           // `lt` no casa con null: un enlace recién conectado necesita su propio filtro.
-          const { data, error } = await (link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null)).select("id");
+          // Un marcador de pendiente (DIN-04) está por delante de «ahora» el mismo día: se sustituye por
+          // igualdad con el valor leído, no por `lt`.
+          const { data, error } = await (pendingResumeDay(link.last_sync) ? q.eq("last_sync", link.last_sync)
+            : link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null)).select("id");
           written = !error && Array.isArray(data) && data.length > 0;
         } catch (_) { /* corte de red: igual que un error devuelto */ }
         if (written) link.last_sync = acked;
@@ -412,9 +415,27 @@ Deno.serve(withCors(async (req: Request) => {
       const legacyHold = !phaseClient && !allBalances;
       const allRead = !legacyHold && acctOut.length === acctList.length && acctOut.length > 0 && acctOut.every((a) => a.ok && !a.transactionError);
       const overflow = allRead && acctOut.some((a) => a.truncated && ((used[a.uid] || 0) >= OB_DEMAND_MAX_PAGES || a.count >= 2000));
+      /* DIN-04. Desbordar con un cliente que guarda el tramo YA NO sella a «ahora»: no se sabe qué
+         parte de la ventana llegó (depende del orden de páginas del banco, nuevo→antiguo o al
+         revés), y lo no leído no se volvería a pedir. El cursor se queda en el primer día pendiente
+         (`pendingCursor`) y la próxima pulsación lee solo los últimos días y recorre el resto por
+         trozos de fechas cerrados, que no dependen del orden. Si la ventana ya está en el mínimo, o el
+         cliente no pidió recuperar tramos, no hay a dónde estrechar y se sella como siempre. */
+      const shrink = overflow && plan.canShrink;
       const wantOld = recoverGaps && plan.gap && !overflow;
       const nowIso = new Date().toISOString();
-      const toNow = allRead && (!plan.gap || overflow);
+      const toNow = allRead && !shrink && (!plan.gap || overflow);
+      let pendingWritten = false;
+      if (shrink) {
+        const marker = pendingCursor(plan.from);
+        try {
+          const q = sameLinkVersion(admin.from("bank_links").update({ last_sync: marker, updated_at: nowIso }).eq("id", link.id), link);
+          // `lt`: el marcador nunca pisa un cursor más nuevo; un enlace sin cursor necesita su filtro.
+          const { error } = await (link.last_sync ? q.lt("last_sync", marker) : q.is("last_sync", null));
+          pendingWritten = !error;
+        } catch (_) { /* corte de red: sin marcador la próxima pulsación repite la ventana, no se pierde nada */ }
+        if (pendingWritten) link.last_sync = marker;
+      }
       /* ENLACE SIN CURSOR Y CLIENTE DE ACUSE (revisión del 12/10). Esperar al acuse dejaba el
          cursor en null, y un null no es «desde aquí»: es «solo la ventana de hoy». El punto de
          partida vivía entonces únicamente en el acuse del móvil que pulsó; si la siguiente
@@ -462,7 +483,7 @@ Deno.serve(withCors(async (req: Request) => {
            acepta desde ahí. Va unos días por debajo del primer día pedido (`demandFloor`).
            `balanceAt` es cuándo se leyó el saldo, que ya no coincide con last_sync mientras
            el tramo va a medias. `ack` es el cursor que el cliente devolverá. */
-        syncFrom: demandFloor(plan.windowStart), gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld,
+        syncFrom: demandFloor(plan.windowStart), gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld || pendingWritten,
         accountPhases: phaseClient ? 1 : undefined,
         balanceAt: allBalances ? nowIso : undefined,
         ack: acks && toNow ? ackToken(nowIso, linkKey) : undefined,

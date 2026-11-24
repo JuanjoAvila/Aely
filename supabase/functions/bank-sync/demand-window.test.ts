@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { ackCursor, ackLinkKey, ackToken, chunkCursor, currentDemandWindowStart, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
+import { ackCursor, ackLinkKey, ackToken, chunkCursor, currentDemandWindowStart, demandFloor, demandPlan, demandReadComplete, nextChunkDays, pendingCursor, pendingResumeDay, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 const now = new Date("2026-10-10T12:00:00Z");
 const windowStart = currentDemandWindowStart(now);
@@ -131,4 +131,32 @@ Deno.test("una lectura parcial o con una cuenta caída no cuenta como entera", (
   assertEquals(demandReadComplete([{ ok: true }, { ok: false }]), false);
   assertEquals(demandReadComplete([]), false);
   assertEquals(demandReadComplete(null), false);
+});
+
+// DIN-04: desborde con cursor pendiente (espejo de los casos de tests/bank-sync-progreso.test.mjs; sin Deno en el PC que lo escribió: NO ejecutado).
+Deno.test("pendingCursor: un instante válido, distinto del sellado, que solo se reconoce a sí mismo", () => {
+  assertEquals(pendingCursor("2026-10-01"), "2026-10-01T23:59:59.998Z");
+  assertEquals(pendingResumeDay(pendingCursor("2026-10-01")), "2026-10-01");
+  for (const x of [chunkCursor("2026-10-01"), "2026-10-01T12:00:00.000Z", null, "", "2026-10-01T23:59:59.997Z"]) assertEquals(pendingResumeDay(x), null);
+});
+
+Deno.test("plan con cursor pendiente: ventana mínima de 3 días y tramo por fechas hasta la víspera; el cliente viejo lo ignora", () => {
+  const viejo = demandPlan(now, pendingCursor("2026-10-01"), false);
+  assertEquals(viejo.windowStart, windowStart);
+  assertEquals(viejo.gap, false);
+  const p = demandPlan(now, pendingCursor("2026-10-01"), true);
+  assertEquals([p.windowStart, p.gap, p.from, p.to, p.canShrink], ["2026-10-08", true, "2026-10-01", "2026-10-07", false]);
+  const reciente = demandPlan(now, pendingCursor("2026-10-09"), true);
+  assertEquals([reciente.windowStart, reciente.gap], ["2026-10-09", false]);
+  const lejos = demandPlan(now, pendingCursor("2026-05-01"), true);
+  assertEquals([lejos.from, lejos.gapBeyondCap], ["2026-07-12", true]);
+  assertEquals(demandPlan(now, null, true).canShrink, true);
+  assertEquals(demandPlan(now, null, false).canShrink, false);
+});
+
+Deno.test("un acuse verdadero de ese día en adelante sustituye al marcador pendiente; uno anterior o un cursor normal no retroceden", () => {
+  const key = "L1.0", ack = (iso: string) => iso + "|" + key;
+  assertEquals(ackCursor(ack("2026-10-10T12:00:00.000Z"), key, pendingCursor("2026-10-10"), now), "2026-10-10T12:00:00.000Z");
+  assertEquals(ackCursor(ack("2026-10-09T23:59:59.999Z"), key, pendingCursor("2026-10-10"), now), null);
+  assertEquals(ackCursor(ack("2026-10-09T12:00:00.000Z"), key, "2026-10-09T13:00:00.000Z", now), null);
 });

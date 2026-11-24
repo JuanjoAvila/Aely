@@ -249,22 +249,29 @@ await t("N2 carrera entre dos móviles: un acuse más viejo que lo que el otro a
   }
 });
 
-await t("N2 ventana que no cabe en los topes, con cliente de acuse: se le entrega «ahora» y el cursor no se queda quieto para siempre", async () => {
-  // Páginas de 2 filas: la ventana más corta del mes ya pasa de las 12 llamadas.
-  const bank = banco({ page: 2 });
-  for (const inicio of [haceDias(60), null]) {
+await t("N2 ventana que no cabe en los topes, con cliente de acuse: DIN-04 deja tramo pendiente (sin acuse) y acaba acusando ahora, sin quedarse quieto", async () => {
+  // Páginas de 3 filas: la ventana del mes pasa de las 12 llamadas (y un día suelto cabe). Un día que por sí solo no
+  // cabe en 12 páginas deja el tramo quieto, como siempre (límite conocido, ver banco-sintetico). Antes se acusaba «ahora» de golpe
+  // y lo no leído se perdía; ahora la primera pulsación NO acusa y deja un marcador de pendiente. Si hasta la ventana
+  // mínima (3 días) desborda, ya no hay donde estrechar y se sella a «ahora» como último recurso.
+  const bank = banco({ page: 3 });
+  for (const inicio of [haceDias(30), null]) {
     const link = enlace(inicio);
     const state = movil();
     const r = await llama(NUEVA, link, bank, CLIENTES.nuevo(state));
     const l = r.data.links[0];
     assert.equal(l.accounts[0].truncated, true, "la ventana desborda");
-    assert.equal(r.calls.some((c) => c.to), false, "no queda sitio para el tramo, ni hoy ni mañana");
-    assert.equal(l.gapPending, false);
-    assert.equal(l.ack, NOW + "|" + K1, "sin este acuse el cursor no saldría nunca de donde está");
-    assert.notEqual(link.last_sync, NOW, "y sigue sin escribirse hasta que vuelva");
+    assert.equal(r.calls.some((c) => c.to), false, "en esta pulsación no queda sitio para el tramo");
+    assert.equal(l.gapPending, true);
+    assert.equal(l.ack, undefined, "no se acusa ahora con lo no leído por detrás");
+    assert.match(link.last_sync, /T23:59:59.998Z$/, "queda el marcador de pendiente");
     recibe(state, r.data.links, "nuevo");
-    await llama(NUEVA, link, bank, CLIENTES.nuevo(state));
-    assert.equal(link.last_sync, NOW, "cursor de partida " + inicio);
+    // Con acuse el cursor llega a «ahora» cuando el móvil devuelve el acuse; la ventana del mes vuelve a desbordar en cada
+    // pulsación (volumen fijo), así que lo que se comprueba es que el servidor acaba ACUSANDO ahora sin tramo pendiente.
+    const acusaAhora = (x) => { const e = x.data.links[0]; return !!e.ack && !e.gapPending && Date.parse(e.ack.split("|")[0]) >= Date.parse(NOW); };
+    let n = 0, ultimo = r;
+    while (!acusaAhora(ultimo) && n++ < 40) { ultimo = await llama(NUEVA, link, bank, CLIENTES.nuevo(state)); recibe(state, ultimo.data.links, "nuevo"); }
+    assert.ok(acusaAhora(ultimo), "cursor de partida " + inicio + ": sin acusar ahora tras " + n + " pulsaciones más");
   }
 });
 
