@@ -124,3 +124,26 @@ test("sin presupuesto el resultado dice «Libre hasta hoy», no «Te sobran»", 
   await page.getByTestId("plan-reparto-barra").click();
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Libre hasta hoy");
 });
+
+test("una deuda con cuota de siete cifras no desaparece de la cascada ni descuadra: su línea sale entera, sin desbordar la hoja", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const gorda = { ...prestamo, id: "d9", name: "Préstamo enorme", value: 200_000_000, original: 200_000_000, monthly: 1_234_567.89, months: 160 };
+  await abrePlan(page, { ...base(3000), debts: [gorda] });
+  const barra = page.getByTestId("plan-reparto-barra");
+  const cab = cts(await barra.locator(".rpt-lb-a").innerText());
+  await barra.click();
+  const x = await lee(page);
+  const deu = x.filas.find((f) => f.k === "deu");
+  expect(deu).toBeTruthy();
+  expect(deu.c).toBe(123456789);
+  expect(cts(deu.txt)).toBe(123456789);
+  expect(x.signo).toBe(-1);
+  expect(x.cifra).toBe(x.filas.reduce((a, f) => a + f.c, 0) - x.entra);
+  expect(x.cifra).toBe(cab);
+  // Nada se sale por el lado: ni la fila ni la cifra gigante del resultado.
+  const sobra = await page.getByTestId("plan-reparto-hoja").evaluate((h) => {
+    const w = h.getBoundingClientRect();
+    return Array.from(h.querySelectorAll(".cas-row,.cas-am,.cas-nm,.cas-res b")).filter((e) => { const r = e.getBoundingClientRect(); return r.right > w.right + 1 || r.left < w.left - 1; }).length;
+  });
+  expect(sobra).toBe(0);
+});

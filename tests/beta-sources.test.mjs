@@ -6467,6 +6467,8 @@ const sourceBeta251=sourceAt("335e3a0598e7e6790e5a3b784f894c3b8ec439c2");
 const sourceBeta252=sourceAt("dfe5b8dbf99d123c1881a61319134169ba749105");
 // La 253 servida (cabeza de beta antes de la 254): 5972c1c80. Catálogo253 pasa a histórico con la 254.
 const sourceBeta253=sourceAt("5972c1c80d0a27c2d23157581db2cd7457feed7b");
+// La 254 servida (cabeza de beta antes de la 255): bb7eec896. Catálogo254 pasa a histórico con la 255.
+const sourceBeta254=sourceAt("bb7eec89693ad914bbb23771622573cffdf6f332");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -7075,11 +7077,39 @@ test("Catálogo253 histórico abre la nota 4.26.253 sin tanda nueva, deja intact
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
 });
 
+// 4.26.255 (24/11/2026): sobre la 4.26.254 (bb7eec896), integración del arreglo de la CI de beta y la tanda de diseño de Plan (cabecera sin barra, hojas de añadir, cascada de «A dónde va tu sueldo» y fichas de deuda). Nota sin tanda nueva; las ocho vivas intactas.
+// Registro: solo el cierre de lectores del código de hogar (arreglo de la CI de beta). Sin APK nueva: sigue la 64.
+test("Catálogo255 abre la nota 4.26.255 sin tanda nueva, deja intactas las ocho vivas, no toca la APK",()=>{
+  const before=JSON.parse(sourceBeta254("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta254("scripts/beta-sources.json"));
+  const source=f=>nl(read(f));
+  assert.equal(before[0].v,"4.26.254");
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.equal(notes[0].v,"4.26.255");assert.equal(notes.length,before.length+1);
+  assert.deepEqual(notes.slice(1),before,"todo lo anterior intacto, también los pasos de las ocho tandas vivas");
+  assert.deepEqual(notes[0].tandas,[],"sin tanda nueva");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,["beta-249","beta-248","beta-247","beta-246","beta-245","beta-244","beta-243","dinero-242"],"en el panel, las ocho de antes");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|PSD2|FIN-|SES-|UX-|SEC-|DIS-|DIN-|zoom|PRO-|checksum|CSP|SHA|Flex|API|nonce|cifrad|lote|backfill|ingest|KW|regla de|d+.d+.d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,4,lang+": cuatro puntos familiares");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  // Único cambio del registro: el cierre de lectores suma el código endurecido del Hogar (hhNormalizarCodigo, hhCodigoNuevo y HH_CODIGO_MIN, que llama hhRegenerarCodigo) al final de cada alcance que ya vigila hhRegenerarCodigo.
+  const registro=JSON.parse(source("scripts/beta-sources.json")),cierre255=[{file:"src/modules/00-core.js",function:"hhNormalizarCodigo"},{file:"src/modules/00-core.js",function:"hhCodigoNuevo"},{file:"src/modules/00-core.js",data:"HH_CODIGO_MIN"}];
+  for(const [id,scope] of Object.entries(registro)){if(!integrated[id].web.some(e=>e.function==="hhRegenerarCodigo"))continue;const w=scope.web;for(const e of cierre255.slice().reverse())assert.deepEqual(w.pop(),e,id+": el cierre del código de hogar va al final");}
+  assert.deepEqual(registro,integrated,"registro intacto salvo ese cierre");
+  assert.equal(source("VERSION").trim(),"4.26.255");
+  const apk=JSON.parse(source("public/apk.json"));
+  assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
+  const built=betaNotes(notes,source,integrated);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+});
+
 // 4.26.254 (24/11/2026): sobre la 4.26.253 (5972c1c80), integración de tres ramas (hogar con código endurecido, amortizar el resto de una deuda vencida, zona de bancos D2). Nota sin tanda nueva; las ocho vivas intactas.
 // Registro: sin cambios. Sin APK nueva: sigue la 64.
-test("Catálogo254 abre la nota 4.26.254 sin tanda nueva, deja intactas las ocho vivas, no toca el registro ni la APK",()=>{
+test("Catálogo254 histórico abre la nota 4.26.254 sin tanda nueva, deja intactas las ocho vivas, no toca el registro ni la APK",()=>{
   const before=JSON.parse(sourceBeta253("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta253("scripts/beta-sources.json"));
-  const source=f=>nl(read(f));
+  const source=f=>nl(sourceBeta254(f));
   assert.equal(before[0].v,"4.26.253");
   const notes=JSON.parse(source("src/data/release-notes.json"));
   assert.equal(notes[0].v,"4.26.254");assert.equal(notes.length,before.length+1);
@@ -7092,10 +7122,7 @@ test("Catálogo254 abre la nota 4.26.254 sin tanda nueva, deja intactas las ocho
     assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
-  // Único cambio del registro: el cierre de lectores suma el código endurecido del Hogar (hhNormalizarCodigo, hhCodigoNuevo y HH_CODIGO_MIN, que llama hhRegenerarCodigo) al final de cada alcance que ya vigila hhRegenerarCodigo.
-  const registro=JSON.parse(source("scripts/beta-sources.json")),cierre254=[{file:"src/modules/00-core.js",function:"hhNormalizarCodigo"},{file:"src/modules/00-core.js",function:"hhCodigoNuevo"},{file:"src/modules/00-core.js",data:"HH_CODIGO_MIN"}];
-  for(const [id,scope] of Object.entries(registro)){if(!integrated[id].web.some(e=>e.function==="hhRegenerarCodigo"))continue;const w=scope.web;for(const e of cierre254.slice().reverse())assert.deepEqual(w.pop(),e,id+": el cierre del código de hogar va al final");}
-  assert.deepEqual(registro,integrated,"registro intacto salvo ese cierre");
+  assert.deepEqual(JSON.parse(source("scripts/beta-sources.json")),integrated,"registro intacto");
   assert.equal(source("VERSION").trim(),"4.26.254");
   const apk=JSON.parse(source("public/apk.json"));
   assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");

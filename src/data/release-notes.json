@@ -1,5 +1,35 @@
 [
   {
+    "v": "4.26.255",
+    "d": "2026-11-24",
+    "t": {
+      "es": "Plan más limpio y hojas de añadir rediseñadas",
+      "en": "A cleaner Plan and redesigned add sheets",
+      "ca": "Pla més net i fulls d'afegir redissenyats"
+    },
+    "items": {
+      "es": [
+        "La cabecera de Plan es más limpia y fácil de leer.",
+        "Las hojas para añadir una deuda, una meta o un bien están rediseñadas.",
+        "«A dónde va tu sueldo» se ve claro, euro a euro.",
+        "Las fichas de deuda tienen los botones más cuidados."
+      ],
+      "en": [
+        "The Plan header is cleaner and easier to read.",
+        "The sheets to add a debt, a goal or an asset have been redesigned.",
+        "Where your pay goes now shows clearly, euro by euro.",
+        "Debt cards have more carefully designed buttons."
+      ],
+      "ca": [
+        "La capçalera de Pla és més neta i fàcil de llegir.",
+        "Els fulls per afegir un deute, una meta o un bé s'han redissenyat.",
+        "«On va el teu sou» es veu clar, euro a euro.",
+        "Les fitxes de deute tenen els botons més cuidats."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.254",
     "d": "2026-11-24",
     "t": {
