@@ -3407,6 +3407,39 @@ function lapidasUnion(local, nube){
   return out;
 }
 
+/* DIN-07 (FIN-29/30 R4): LÁPIDAS GLOBALES DE RENOMBRES VIEJOS. Antes de la 4.26.191, renombrar un
+   movimiento del banco dejaba una lápida GLOBAL con la clave del nombre original
+   (`día|importe|nombre-del-banco`). No es un borrado: es la huella de un alias. Pero esa clave no
+   lleva cuenta, así que escondía también a la otra cuenta que tuviera el mismo cargo (Sabadell +
+   CaixaBank 3,20 € cada uno: 640 esperados, 320 vistos). La 191 dejó de escribirlas; estas ya
+   estaban en la nube y en cada móvil.
+   Se levantan UNA vez por móvil, con hora (`lapidaLevanta`), no se borran a secas: sin hora, la
+   copia de otro móvil que aún las trae las devolvería al unir (`unionPorHora`). El indicio es una
+   fila VIVA con `obName` distinto de su nombre y cuya clave con el nombre original es esa
+   lápida: el renombre explica la lápida. Sin esa fila no se toca nada. Espejo en SQL:
+   supabase/migrations/0032_lapidas_renombre_viejas.sql (la nube, para el widget y el ingest). */
+const LAP_REN_V=1;
+function lapidasRenombreViejas(s){
+  const del=(s&&s.deleted)||[],rows=(s&&s.expenses)||[];
+  if(!del.length||!rows.length)return [];
+  const globales=Object.create(null);let hay=false;
+  // Solo la forma `día|…`: las de cuenta, renombre y absorción llevan otro prefijo.
+  del.forEach(function(k){if(typeof k==="string"&&/^\d{4}-\d{2}-\d{2}\|/.test(k)){globales[k]=1;hay=true;}});
+  if(!hay)return [];
+  const out=[],vistas=Object.create(null);
+  rows.forEach(function(e){
+    if(!e||!esFilaDeBanco(e)||isManualExpenseSource(e.source)||e.obName==null||e.obName===e.merchant)return;
+    const k=keyOfExpense(Object.assign({},e,{merchant:e.obName}));
+    if(globales[k]&&!vistas[k]){vistas[k]=1;out.push(k);}
+  });
+  return out;
+}
+function lapidasRenombreMigra(s,ahora){
+  let out=s;
+  lapidasRenombreViejas(s).forEach(function(k){out=Object.assign({},out,lapidaLevanta(out,k,ahora));});
+  return Object.assign({},out,{lapRenV:LAP_REN_V});
+}
+
 /* ---------- UN AVISO EMPAREJA UNA SOLA VEZ (12/10/2026) ----------
    `state.gemelos` guarda qué fila de la puerta del aviso (noti del móvil, Wallet…) ya quedó
    reclamada por qué apunte del banco: {avisoId:<id de la noti>, aviso:<su keyOfExpense>,

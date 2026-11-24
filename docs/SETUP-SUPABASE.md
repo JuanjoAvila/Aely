@@ -59,6 +59,22 @@ dueño, y los avisos de la víspera los dan el cliente y el `AlertCheckWorker` d
 programar cualquier lectura de `bank-sync`, ver «Open Banking: lectura sola al entrar, con tope» en
 `docs/ARQUITECTURA.md`.
 
+## Migración 0032 · lápidas globales de renombres viejos (DIN-07, 24/11/2026) — en fuente, SIN aplicar
+
+Rama `claude/din-07-lapidas`. Las lápidas que dejaban los renombres hechos con versiones <= 4.26.190
+(`día|importe|nombre-del-banco`, sin cuenta) escondían a la otra cuenta con el mismo cargo, también en
+el widget (`filasComoLaApp`). La 0032 las levanta en la nube; el cliente hace lo mismo una vez por móvil
+(`lapidasRenombreMigra`, con hora, para que un móvil sin actualizar no las devuelva). Idempotente.
+
+1. Medir antes (solo lectura): `select * from public.lapidas_renombre_viejas_dryrun();` — usuario y clave.
+2. Aplicar `0032_lapidas_renombre_viejas.sql` (índice parcial, tabla `lapidas_renombre_log`, tres
+   funciones solo para `service_role`, y un `select public.lapidas_renombre_viejas();` final).
+3. Comprobar: `select count(*) from public.lapidas_renombre_log;` y que el dry-run vuelva vacío.
+   Para devolver una lápida: borrarla de `deletedAt` y añadirla a `deleted` a mano desde el log.
+
+No hay Postgres en el PC de desarrollo: el SQL NO se ha ejecutado, solo vigilado por texto
+(`tests/lapidas-renombre-viejas.test.mjs`). Probar primero con `begin … rollback`. Sin cambio de Edge.
+
 ## Brókers por conexión: IBKR Flex y Kraken (19/11/2026) — en fuente, SIN desplegar
 
 Rama `claude/brokers-api`. Plan aprobado: credenciales de **solo lectura**, cifradas en el
