@@ -80,6 +80,11 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-reparto.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-reparto.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-reparto.spec.mjs"] },
+  { file: "src/modules/17-plan-reparto.js", specs: ["e2e/plan-cascada.spec.mjs"] },
+  { file: "src/modules/18-plan-deudas-metas.js", specs: ["e2e/plan-cascada.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-cascada.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/plan-cascada.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-cascada.spec.mjs"] },
   // Informe del mes con vista previa y guardado de verdad (19/11/2026): la hoja vive en AskHost
   // (05), la imagen y el guardado en 02, la entrada en Ajustes (10) y en Inicio (03).
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/informe-vista-previa.spec.mjs", "e2e/informe-mes.spec.mjs"] },

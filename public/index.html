@@ -1108,19 +1108,11 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;white-space:nowrap;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  /* Cabecera tocable («Tu mes en cifras»): igual que antes a la vista; la flecha y el puntito de aviso van a la derecha de la cifra. */
+  /* Cabecera tocable (abre «A dónde va tu sueldo»): igual que antes a la vista; la flecha va a la derecha de la cifra. */
   button.pr6-sum-tap{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;row-gap:12px;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px;}
   button.pr6-sum-tap>*{grid-column:1;min-width:0;}
   button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:1 / span 2;position:relative;display:flex;width:28px;height:28px;align-items:center;justify-content:center;color:var(--muted);}
   .pr6-sum-tap:focus-visible{outline:2px solid var(--mint-bright);outline-offset:4px;border-radius:10px;}
-  .pm-body{padding-top:4px;}
-  .pm-big{font-size:42px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:4px;white-space:nowrap;}
-  .pm-est{font-size:15px;font-weight:700;color:var(--mint-bright);margin-top:6px;}
-  .pm-est.bad{color:var(--coral);}
-  .pm-aviso{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--coral-dim);font-size:14px;font-weight:600;line-height:1.35;}
-  .pm-sub{font-size:13px;font-weight:800;margin-bottom:2px;}
-  .pm-banco{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:14px;padding:0;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--mint-bright);font:inherit;font-weight:700;cursor:pointer;}
-  html[data-theme="light"] .pm-est:not(.bad),html[data-theme="light"] .pm-banco{color:var(--mint-ink);}
   /* Pestañas de Plan como el diseño plan-mezcla: sin caja, píldora menta suave sobre el fondo oscuro. */
   .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;margin-top:14px;}
   .v4-plan-tabs+.rpt-sec{margin-top:6px;}
@@ -3130,14 +3122,6 @@
   .rpt-lb.ok .rpt-lb-l{color:var(--mint-ink,var(--mint));font-size:15px;font-weight:800;}
   .rpt-lb.neg .rpt-lb-a,.rpt-lb.bad .rpt-lb-a,.rpt-lb.bad .rpt-lb-p{color:var(--coral);}
   .rpt-lb.wrn .rpt-lb-p{color:var(--coral);font-weight:700;}
-  .rpt-pb{position:relative;display:block;height:6px;margin-top:7px;}
-  .rpt-pb.lg{height:14px;margin-top:14px;}
-  .rpt-pb.lg.short{margin-top:30px;}
-  .rpt-pb>i{position:absolute;top:0;bottom:0;border-radius:2px;transition:left .4s var(--ease),width .4s var(--ease);}
-  .rpt-pb>.x{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,var(--coral) 0 3px,transparent 3px 6px);border-radius:2px;}
-  .rpt-pb>.cut{position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:1px;background:var(--text);}
-  .rpt-pb>.sl{position:absolute;bottom:calc(100% + 5px);margin-right:-1px;font-size:10px;font-weight:700;line-height:1.2;color:var(--text);white-space:nowrap;}
-  .rpt-pb.none{border:1.5px dashed var(--muted-2);border-radius:4px;}
   /* Cabecera y bloques de las listas */
   .rpt-hero{container-type:inline-size;padding:6px 0 2px;}
   .rpt-ht{font-size:15px;font-weight:800;line-height:1.4;}
@@ -3227,12 +3211,24 @@
   .rpt-btn.wide{flex-basis:100%;}
   .rpt-btn.del{flex:0 1 auto;background:none;color:var(--coral);font-weight:700;}
   .rpt-btn:disabled{opacity:.45;cursor:default;}
-  .rpt-rph .rpt-big{margin-top:2px;}
-  .rpt-rph.neg .rpt-big{color:var(--coral);}
-  .rpt-rp{font-size:13px;font-weight:700;margin-top:6px;}
-  .rpt-rph.ok .rpt-rp{color:var(--mint-ink,var(--mint));}
-  .rpt-rph.bad .rpt-rp,.rpt-rph.wrn .rpt-rp{color:var(--coral);}
   .rpt-own{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:12.5px;color:var(--muted);}
+  /* Cascada de «A dónde va tu sueldo»: lo que entra, menos cada destino, y el resultado en grande. */
+  .cas-entra{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:4px 0 10px;font-size:14px;font-weight:700;}
+  .cas-entra b{font-size:28px;font-weight:600;line-height:1.1;white-space:nowrap;}
+  .cas-row{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n a" "s a";column-gap:12px;align-items:center;padding:11px 0;border:0;border-top:1px solid var(--line-soft);background:none;color:inherit;text-align:left;font:inherit;cursor:pointer;}
+  .cas-row:active{background:var(--surface-2);}
+  .cas-row:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .cas-nm{grid-area:n;font-size:15px;font-weight:700;line-height:1.4;}
+  .cas-sub{grid-area:s;font-size:12.5px;color:var(--muted);line-height:1.4;}
+  .cas-am{grid-area:a;font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt,17px);font-weight:550;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .cas-res{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-top:2px;padding:14px 0 6px;border-top:2px solid var(--text);}
+  .cas-res-l{font-size:16px;font-weight:800;}
+  .cas-res b{font-size:38px;font-weight:600;line-height:1.08;white-space:nowrap;}
+  .cas-res.rojo b,.cas-res.rojo .cas-res-l{color:var(--coral);}
+  .cas-res.verde b,.cas-res.verde .cas-res-l{color:var(--mint-ink,var(--mint));}
+  .cas-pend{margin-top:26px;padding-top:6px;border-top:1px solid var(--line);}
+  .cas-pend-t{font-size:14px;font-weight:800;padding:8px 0 2px;}
+  html.hugetext .cas-row{grid-template-areas:"n" "s" "a";grid-template-columns:minmax(0,1fr);}
   /* Restar del presupuesto */
   .rpt-rsv{margin-top:14px;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft);}
   .rpt-rsv-h{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;background:none;border:0;color:inherit;text-align:left;font:inherit;cursor:pointer;}
@@ -3266,7 +3262,7 @@
   .rpt-fold.open{grid-template-rows:1fr;}
   .rpt-fold>div{overflow:hidden;min-height:0;}
   .rpt-sheet .chip{min-height:44px;}
-  @media (prefers-reduced-motion:reduce){.rpt-pb>i,.rpt-fold,.rpt-split i,.rpt-bar i,.rpt-lvl>i{transition-duration:.01ms !important;}}
+  @media (prefers-reduced-motion:reduce){.rpt-fold,.rpt-split i,.rpt-bar i,.rpt-lvl>i{transition-duration:.01ms !important;}}
   .plan-item-open:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:12px;}
   .v4-ghost-add{width:100%;margin-top:12px;min-height:52px;border-radius:18px;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;}
   .v4-goal-first{margin-top:12px;min-height:48px;font-size:15px;}
@@ -12611,22 +12607,14 @@ Object.assign(LANG.es,{
   rpt_libre:"Libre",
   rpt_libre_hasta:"Libre hasta hoy",
   rpt_todo:"Todo asignado",
-  rpt_todo_sub:"Cada euro tiene su sitio",
   rpt_faltan:"Te faltan",
   rpt_wait:"Falta tu nómina",
   rpt_de:"Entran {x}",
-  rpt_si_todo:"Si gastas todo el presupuesto · ",
-  rpt_si_todo_s:"Si gastas todo el presupuesto",
-  rpt_cubre:"tu saldo lo cubre",
-  rpt_nollega:"tu saldo no llega · faltan {x}",
-  rpt_pasas:"Te pasas {x}",
-  rpt_de_tu_pres:"de tu presupuesto",
   rpt_moved:"{x} pasan de Gastos a Libre · no entra dinero",
-  rpt_res_info:"{x} de cuotas salen de tu presupuesto",
   rpt_sheet_title:"A dónde va tu sueldo",
-  rpt_entran:"Entran",
-  rpt_sobre_entra:"Ya va dentro de lo de arriba",
-  rpt_sin_asignar:"Sin asignar",
+  rpt_entran:"Entran este mes",
+  rpt_sobran:"Te sobran",
+  rpt_pend_t:"Lo que aún queda por pagar este mes",
   rpt_rec:"Recibos",
   rpt_deu:"Deudas",
   rpt_met:"Metas",
@@ -12641,32 +12629,18 @@ Object.assign(LANG.es,{
   rpt_gastado_hasta_hoy:"Gastado hasta hoy",
   rpt_sobre_pres:"{x} sobre presupuesto",
   rpt_de_x:"{a} de {b}",
-  rpt_q_rec:"Recibos pendientes",
-  rpt_q_deu:"Cuotas pendientes",
-  rpt_q_gas:"Resto del presupuesto",
-  rpt_q_mov:"Metas y ahorro sin mover",
   rpt_q_total:"Queda por pagar",
-  rpt_q_saldo:"Tu saldo",
   rpt_gastado:"Gastado",
   rpt_presupuesto:"Presupuesto",
   rpt_de_mas:"De más",
   rpt_quedan:"Quedan",
   rpt_invertido:"Invertido este mes",
   rpt_traspaso:"Traspaso propio · no suma",
-  rpt_sueldo:"Sueldo",
   rpt_ver_reparto:"Ver reparto",
-  pm_ver:"Ver el mes en cifras",
-  pm_title:"Tu mes en cifras",
   pm_saldo:"Saldo en tus cuentas",
-  pm_total:"Todo lo que queda en {month}",
   pm_sobran:"Te quedaría",
   pm_faltan:"Te faltaría",
-  pm_donde:"Dónde va lo que queda",
-  pm_aviso:"Tus ingresos de este mes no llegan al plan completo: te faltan {x}.",
-  pm_banco:"Ver banco a banco",
   pm_nada:"Nada por pagar este mes",
-  pm_cubre:"Tu saldo lo cubre.",
-  pm_nollega:"Tu saldo no llega a cubrirlo.",
   rpt_volver:"Volver",
   rpt_resta_t:"Restar del presupuesto",
   rpt_resta_s:"{x} al mes",
@@ -33075,36 +33049,14 @@ function rptMesCorto(abs){
   const s=monthShort(abs%12);
   return (CURLANG==="en"?s:s.toLowerCase())+" "+String(Math.floor(abs/12)).slice(2);
 }
-// El estado de la barra y de la hoja: una sola función para las dos, como en el prototipo.
+// El estado de la línea de cabecera (etiqueta, cifra y color). La hoja pone su propio resultado: ver `RptRepartoHoja`.
 function rptTitular(r){
-  const pre=r.siGastasTodo&&r.presupuesto!=null;
-  const fr=function(txt){ return pre?t("rpt_si_todo")+txt:txt.charAt(0).toUpperCase()+txt.slice(1); };
-  const mv=r.movido>0?tf("rpt_moved",{x:rptC(r.movido)}):"";
-  const pasa=r.pasa;
-  const inc=pasa?tf("rpt_pasas",{x:rptC(r.pasaC)})+(mv?" · "+mv:" "+t("rpt_de_tu_pres")):(mv||(r.reservaDeudas>0?tf("rpt_res_info",{x:rptC(r.reservaDeudas)}):""));
-  const w=pasa?" wrn":"";
-  if(r.st==="wait") return {l:t("rpt_libre"),a:"—",cls:"",p:t("rpt_wait")};
-  if(r.st==="todo") return {l:t("rpt_todo"),a:"",cls:"ok"+w,p:inc||t("rpt_todo_sub")};
-  if(r.st==="cubre") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg",p:fr(t("rpt_cubre"))};
-  if(r.st==="nollega") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg bad",p:fr(tf("rpt_nollega",{x:rptC(r.hueco)}))};
-  if(r.st==="faltan") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg",p:pre?t("rpt_si_todo_s"):""};
-  return {l:r.st==="nobud"?t("rpt_libre_hasta"):t("rpt_libre"),a:rptC(r.libre),cls:w.trim(),p:inc};
-}
-// La barra apilada: cada trozo con su color, el gasto partido en lo gastado y lo que aún queda de presupuesto.
-function RptBarraTrozos({r,grande}){
-  if(r.entra==null) return React.createElement("div",{className:"rpt-pb none"+(grande?" lg":""),"aria-hidden":"true"});
-  const scale=Math.max(r.entra,r.total), parts=[];
-  let x=0;
-  const put=function(k,c,bg){ if(c<=0) return; parts.push(React.createElement("i",{key:k,"data-k":k,style:{left:(x/scale*100)+"%",width:"calc("+(c/scale*100)+"% - 2px)",background:bg}})); x+=c; };
-  r.trozos.forEach(function(p){
-    if(p.k==="gas"){ const s=Math.min(r.gastado,p.c); put("gas",s,"var(--s-gas)"); put("gasl",p.c-s,"color-mix(in srgb,var(--s-gas) 42%,var(--bg))"); }
-    else put(p.k,p.c,"var("+RPT_COLS[p.k]+")");
-  });
-  const corta=r.falta>0&&grande, cut=r.entra/scale*100;
-  return React.createElement("div",{className:"rpt-pb"+(grande?" lg":"")+(corta?" short":""),"aria-hidden":"true"},parts,
-    corta&&React.createElement("b",{className:"x",style:{left:cut+"%",right:0}}),
-    corta&&React.createElement("b",{className:"cut",style:{left:"calc("+cut+"% - 1px)"}}),
-    corta&&React.createElement("span",{className:"sl",style:{right:"calc("+(100-cut)+"% + 4px)"}},t("rpt_sueldo")));
+  const w=r.pasa?" wrn":"";
+  if(r.st==="wait") return {l:t("rpt_libre"),a:"—",cls:""};
+  if(r.st==="todo") return {l:t("rpt_todo"),a:"",cls:"ok"+w};
+  if(r.st==="cubre"||r.st==="faltan") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg"};
+  if(r.st==="nollega") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg bad"};
+  return {l:r.st==="nobud"?t("rpt_libre_hasta"):t("rpt_libre"),a:rptC(r.libre),cls:w.trim()};
 }
 const RPT_DEPS_REPARTO=function(s){
   return [s.expenses,s.fixed,s.debts,s.goals,s.reservaLog,s.aportaciones,s.budget,s.settings,s.flows,s.oneoffs,s.accounts,s.deleted,s.reciboNo,
@@ -33117,8 +33069,10 @@ function useReparto(state,totals){
 }
 /* La línea de arriba de Plan: «Te faltan/Te llega X · Entran Y». Sin barra ni frase debajo (orden del dueño 24/11): el
    reparto y su frase («Si gastas todo el presupuesto…», cubre / no llega) viven en la hoja que abre al tocarla. */
-function RptBarra({state,totals,onJump}){
+function RptBarra({state,totals,onJump,openRef}){
   const r=useReparto(state,totals), [abierta,setAbierta]=useState(false), H=rptTitular(r);
+  // La flecha de la cabecera de Recibos abre ESTA misma hoja (orden del dueño 24/11): una sola, sin copia.
+  useEffect(function(){ openRef.current=setAbierta; return function(){ openRef.current=null; }; },[openRef]);
   return React.createElement(React.Fragment,null,
     React.createElement("button",{type:"button",className:"rpt-lb "+H.cls,"data-testid":"plan-reparto-barra","data-st":r.st,
       "aria-label":H.l+(H.a?" "+H.a:"")+". "+t("rpt_ver_reparto"),onClick:function(){ setAbierta(true); }},
@@ -33131,59 +33085,13 @@ function RptBarra({state,totals,onJump}){
     abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
       onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }}));
 }
-/* «Tu mes en cifras» (diseño plan-mezcla, orden del dueño 23/11): se abre al tocar la cabecera de Recibos, que
-   no cambia de aspecto. Tres cosas distintas y cada una con su fuente: «Queda por pagar» y su reparto por tipo
-   (recibos, deudas, gastos, metas, ahorro) salen de `planReparto`; «cubre / no llega» es el saldo de hoy contra
-   eso; y «te faltan» (aviso) es que los ingresos del mes no llegan al plan completo. Lo que no se sabe va «—». */
-function PlanMesHoja({state,totals,mes,onClose,onBanco}){
-  const r=useReparto(state,totals), closer=useRef(null), rootRef=useRef(null);
-  const saldo=r.saldo, dif=saldo==null?null:saldo-r.queda;
-  // Como en el diseño: mientras la hoja está abierta, la pantalla de detrás ni se enfoca ni se lee.
-  useEffect(function(){
-    const app=document.getElementById("root"), antes=document.activeElement;
-    if(app) app.setAttribute("inert","");
-    const hoja=rootRef.current&&rootRef.current.closest(".v4-sheet"), x=hoja&&hoja.querySelector(".rpt-sx");
-    if(x) x.focus({preventScroll:true});
-    const key=function(e){ if(e.key==="Escape"&&closer.current){ e.stopPropagation(); closer.current(); } };
-    document.addEventListener("keydown",key);
-    return function(){
-      document.removeEventListener("keydown",key);
-      if(app) app.removeAttribute("inert");
-      if(antes&&antes.focus&&document.contains(antes)) antes.focus({preventScroll:true});
-    };
-  },[]);
-  const trozos=[["rec",r.qRec,"rpt_rec"],["deu",r.qDeu,"rpt_deu"],["gas",r.qGas,"rpt_gas"],["met",r.qMet,"rpt_met"],["aho",r.qAho,"rpt_aho"]].filter(function(x){ return x[1]>0; });
-  const estado=r.queda<=0?t("pm_nada"):dif==null?"":dif>=0?t("pm_cubre"):t("pm_nollega");
-  return React.createElement(RptHoja,{title:t("pm_title"),onClose:onClose,closer:closer,testid:"plan-mes-hoja"},
-    React.createElement("div",{ref:rootRef,className:"pm-body"},
-      // Otro rótulo que la cabecera a propósito: allí es lo que queda de RECIBOS; aquí, todo el plan (recibos,
-      // deudas, gastos, metas y ahorro). Con el mismo título y dos cifras distintas se leía como una contradicción (filtro 253).
-      React.createElement("div",{className:"v4-micro"},tf("pm_total",{month:mes})),
-      React.createElement("div",{className:"serif num pm-big","data-testid":"plan-mes-queda"},rptC(r.queda)),
-      estado&&React.createElement("div",{className:"pm-est"+(dif!=null&&dif<0&&r.queda>0?" bad":""),"data-testid":"plan-mes-estado"},estado),
-      React.createElement("div",{className:"rpt-sg"},
-        rptKv(t("pm_saldo"),saldo==null?"—":rptC(saldo),"saldo"),
-        rptKv(dif!=null&&dif<0?t("pm_faltan"):t("pm_sobran"),dif==null?"—":rptC(dif),"dif")),
-      r.falta>0&&React.createElement("div",{className:"pm-aviso",role:"note","data-testid":"plan-mes-aviso"},tf("pm_aviso",{x:rptC(r.falta)})),
-      trozos.length>0&&React.createElement("div",{className:"rpt-sg"},
-        React.createElement("div",{className:"pm-sub"},t("pm_donde")),
-        React.createElement("div",{className:"rpt-pb lg",style:{display:"flex"},"aria-hidden":"true"},trozos.map(function(x,i){
-          return React.createElement("i",{key:x[0],style:{position:"static",flex:x[1],background:"var("+RPT_COLS[x[0]]+")",marginRight:i<trozos.length-1?2:0}});
-        })),
-        trozos.map(function(x){
-          return React.createElement("div",{className:"rpt-kv","data-k":x[0],key:x[0]},
-            React.createElement("span",null,React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x[0]]+")"}}),t(x[2])),
-            React.createElement("b",null,rptC(x[1])));
-        })),
-      onBanco&&React.createElement("button",{type:"button",className:"pm-banco","data-testid":"plan-mes-banco",onClick:onBanco},t("pm_banco"),rptIcon("chev",16,{transform:"rotate(-90deg)"}))));
-}
 /* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y una flecha pequeña que
-   dice que se abre. El aviso «te faltan X» vive DENTRO de la hoja (orden del dueño 23/11) y, sin puntito en la flecha
-   (24/11), también en la etiqueta del botón para quien lo lee en voz alta. */
+   dice que se abre. Abre la hoja de «A dónde va tu sueldo»; si los ingresos no llegan al plan, la etiqueta del botón
+   lo dice también para quien la lee en voz alta (sin puntito en la flecha, 24/11). */
 function PlanMesTap({state,totals,onOpen,children}){
-  const r=useReparto(state,totals), aviso=r.falta>0;
+  const r=useReparto(state,totals);
   return React.createElement("button",{type:"button",className:"pr6-sum-tap","data-testid":"plan-cifras","aria-haspopup":"dialog",
-    "aria-label":t("pm_ver")+(aviso?". "+tf("pm_aviso",{x:rptC(r.falta)}):""),onClick:onOpen},
+    "aria-label":t("rpt_ver_reparto")+(r.falta>0?". "+t("rpt_faltan")+" "+rptC(r.falta):""),onClick:onOpen},
     children,
     React.createElement("span",{className:"pr6-sum-go","aria-hidden":"true"},rptIcon("chev",16)));
 }
@@ -33191,6 +33099,12 @@ function PlanMesTap({state,totals,onOpen,children}){
 function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
   const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);
   if(closer) closer.current=swipe.close;
+  // Esc cierra la hoja de arriba (lo tenía «Tu mes en cifras»; con una sola hoja lo hereda toda la pantalla).
+  useEffect(function(){
+    const key=function(e){ if(e.key==="Escape"){ e.stopPropagation(); swipe.close(); } };
+    document.addEventListener("keydown",key);
+    return function(){ document.removeEventListener("keydown",key); };
+  },[swipe.close]);
   return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
     React.createElement("div",Object.assign({className:"v4-sheet rpt-sheet",role:"dialog","aria-modal":true,"aria-label":title,"data-testid":testid||undefined,
       ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
@@ -33206,25 +33120,15 @@ function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
 }
 const rptKv=function(k,v,key){ return v==null?null:React.createElement("div",{className:"rpt-kv",key:key||k},React.createElement("span",null,k),React.createElement("b",null,v)); };
 function RptRepartoHoja({r,state,onClose,onJump}){
-  const [vista,setVista]=useState("reparto"), H=rptTitular(r);
+  const [vista,setVista]=useState("reparto");
   const subDe=function(k){
     if(k==="rec") return rptPl(r.nRec,t("rpt_n_rec_1"),tf("rpt_n_rec",{n:r.nRec}));
     if(k==="deu") return rptPl(r.nDeu,t("rpt_n_cuotas_1"),tf("rpt_n_cuotas",{n:r.nDeu}));
     if(k==="met") return tf("rpt_n_ritmo",{n:r.nMet});
     if(k==="aho") return t("rpt_plan_mensual");
-    if(k==="gas") return r.sinPresupuesto?t("rpt_gastado_hasta_hoy"):r.gastado>r.presupuesto?tf("rpt_sobre_pres",{x:rptC(r.gastado-r.presupuesto)}):tf("rpt_de_x",{a:rptC(r.gastado),b:rptC(r.presupuesto)});
-    return t("rpt_sin_asignar");
+    return r.sinPresupuesto?t("rpt_gastado_hasta_hoy"):r.gastado>r.presupuesto?tf("rpt_sobre_pres",{x:rptC(r.gastado-r.presupuesto)}):tf("rpt_de_x",{a:rptC(r.gastado),b:rptC(r.presupuesto)});
   };
-  const nombre={rec:t("rpt_rec"),deu:t("rpt_deu"),met:t("rpt_met"),aho:t("rpt_aho"),gas:t("rpt_gas"),lib:r.sinPresupuesto?t("rpt_libre_hasta"):t("rpt_libre")};
-  const fila=function(x){
-    const enlace=x.k!=="lib", p=x.p==null?"—":x.p;
-    return React.createElement(enlace?"button":"div",{key:x.k,type:enlace?"button":undefined,className:"rpt-row","data-k":x.k,"data-p":x.p==null?"":x.p,
-      onClick:enlace?function(){ if(x.k==="aho"||x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }:undefined},
-      React.createElement("span",{className:"rpt-l"},React.createElement("div",{className:"rpt-d"},p),React.createElement("div",{className:"rpt-m"},x.p==null?" ":"%")),
-      React.createElement("span",{className:"rpt-nm"},React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x.k]+")"}}),nombre[x.k]),
-      React.createElement("span",{className:"rpt-sub"},subDe(x.k)),
-      React.createElement("span",{className:"rpt-am"},rptC(x.c)));
-  };
+  const nombre={rec:t("rpt_rec"),deu:t("rpt_deu"),met:t("rpt_met"),aho:t("rpt_aho"),gas:t("rpt_gas")};
   if(vista==="gas"){
     return React.createElement(RptHoja,{title:t("rpt_gas"),onClose:onClose,back:true,onBack:function(){ setVista("reparto"); },testid:"plan-reparto-detalle"},
       React.createElement("div",{className:"rpt-sg"},rptKv(t("rpt_gastado"),rptC(r.gastado)),
@@ -33237,23 +33141,35 @@ function RptRepartoHoja({r,state,onClose,onJump}){
       React.createElement("div",{className:"rpt-sg"},aps.map(function(a){ return rptKv(a.name||t("d_saving"),rptC(Math.round(Number(a.amount)*100)),a.id); }),
         rptKv(t("rpt_invertido"),rptC(r.inversion))));
   }
+  /* La cascada (orden del dueño 24/11): lo que entra, menos cada destino con su importe de TODO el mes, y el
+     resultado. Los destinos son exactamente los de `planReparto` (`r.total` = su suma), así que la cuenta cuadra al
+     céntimo y el resultado es el mismo número que la línea de la cabecera. Nada de «Otros»: lo que no existe no sale. */
+  const pasos=r.trozos.filter(function(x){ return x.k!=="lib"&&x.c>0; });
+  const res=r.entra==null?null:r.falta>0?{l:t("rpt_faltan"),a:rptC(r.falta),c:"rojo"}:r.libre>0?{l:t("rpt_sobran"),a:rptC(r.libre),c:"verde"}:{l:t("rpt_todo"),a:"",c:"verde"};
+  const paso=function(x){
+    return React.createElement("button",{key:x.k,type:"button",className:"cas-row","data-k":x.k,"data-c":x.c,
+      onClick:function(){ if(x.k==="aho"||x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }},
+      React.createElement("span",{className:"cas-nm"},React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x.k]+")"}}),nombre[x.k]),
+      React.createElement("span",{className:"cas-sub"},subDe(x.k)),
+      React.createElement("span",{className:"cas-am"},"− "+rptC(x.c)));
+  };
+  const dif=r.saldo==null?null:r.saldo-r.queda;
   return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
-    React.createElement("div",{className:"rpt-rph "+H.cls},
-      React.createElement("div",{className:"rpt-hs",style:{fontSize:13,marginTop:8}},H.cls.indexOf("ok")===0?React.createElement("span",{style:{color:"var(--mint-ink,var(--mint))",fontWeight:800}},H.l):H.l),
-      H.a&&React.createElement("div",{className:"rpt-big","data-testid":"plan-reparto-cifra"},H.a),
-      H.p&&React.createElement("div",{className:"rpt-rp"},H.p),
-      React.createElement("div",{className:"rpt-hs"},t("rpt_entran")+" ",React.createElement("b",{"data-testid":"plan-reparto-entra"},r.entra==null?"—":rptC(r.entra))),
-      r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso)))),
-    React.createElement(RptBarraTrozos,{r:r,grande:true}),
-    React.createElement("div",{className:"rpt-list",style:{marginTop:10}},r.trozos.map(fila),
-      r.falta>0&&React.createElement("div",{className:"rpt-row","data-k":"short","data-p":r.faltaP},
-        React.createElement("span",{className:"rpt-l"},React.createElement("div",{className:"rpt-d"},r.faltaP),React.createElement("div",{className:"rpt-m"},"%")),
-        React.createElement("span",{className:"rpt-nm"},React.createElement("i",{className:"rpt-sw ov"}),t("rpt_faltan")),
-        React.createElement("span",{className:"rpt-sub"},t("rpt_sobre_entra")),
-        React.createElement("span",{className:"rpt-am",style:{color:"var(--coral)"}},rptC(r.falta)))),
-    r.falta>0&&React.createElement("div",{className:"rpt-sg","data-queda":"1"},
-      rptKv(t("rpt_q_rec"),rptC(r.qRec)),rptKv(t("rpt_q_deu"),rptC(r.qDeu)),rptKv(t("rpt_q_gas"),rptC(r.qGas)),
-      rptKv(t("rpt_q_mov"),rptC(r.qMet+r.qAho)),rptKv(t("rpt_q_total"),rptC(r.queda)),rptKv(t("rpt_q_saldo"),r.saldo==null?"—":rptC(r.saldo))));
+    React.createElement("div",{className:"cas-entra"},React.createElement("span",null,t("rpt_entran")),
+      React.createElement("b",{className:"serif num","data-testid":"plan-reparto-entra"},r.entra==null?"—":rptC(r.entra))),
+    React.createElement("div",{className:"cas-list","data-testid":"plan-cascada"},pasos.map(paso)),
+    React.createElement("div",{className:"cas-res"+(res?" "+res.c:""),"data-testid":"plan-reparto-res"},
+      React.createElement("span",{className:"cas-res-l"},res?res.l:t("rpt_wait")),
+      res&&res.a&&React.createElement("b",{className:"serif num","data-testid":"plan-reparto-cifra"},res.a)),
+    r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso))),
+    // Otra pregunta, otra sección: no lo que va el sueldo, sino si lo que AÚN no se ha pagado cabe en tu saldo de hoy.
+    React.createElement("div",{className:"rpt-sg cas-pend","data-testid":"plan-reparto-pend"},
+      React.createElement("div",{className:"cas-pend-t"},t("rpt_pend_t")),
+      r.queda>0?React.createElement(React.Fragment,null,
+        rptKv(t("rpt_q_total"),rptC(r.queda),"queda"),
+        rptKv(t("pm_saldo"),r.saldo==null?"—":rptC(r.saldo),"saldo"),
+        rptKv(dif!=null&&dif<0?t("pm_faltan"):t("pm_sobran"),dif==null?"—":rptC(dif),"dif"))
+        :React.createElement("div",{className:"rpt-kv"},t("pm_nada"))));
 }
 
 /* ---------------- Interruptor «Restar del presupuesto» (ficha de una deuda) ---------------- */
@@ -36667,7 +36583,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="713c1074ef8b72d39e385014428e3c4626bc937379479c57e07b45c1982f81d7";
+var _rnSha="5f2b07b97935954a181ddedd4edcd85d84854b6ac336ef932341ff99d3902582";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -38515,7 +38431,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   /* DESLIZAR VERTICAL PARA CAMBIAR DE SEGMENTO (petición 2026-08-03: «no depender de la otra
      mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
      `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
-  const planScreenRef=useRef(null);
+  const planScreenRef=useRef(null), repartoRef=useRef(null);
   const entradaRef=useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
     capa:function(id){ return segElRef.current[id]; },
     alPasar:function(nextId){
@@ -38628,7 +38544,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       )
     ),
     // La barra fina del reparto (prototipo aprobado): el estado de lo que entra y a dónde va, siempre a la vista.
-    !simple && React.createElement(RptBarra,{state:state,totals:totals,onJump:function(id){
+    !simple && React.createElement(RptBarra,{state:state,totals:totals,openRef:repartoRef,onJump:function(id){
       setSegMounted(function(m){ return m[id]?m:Object.assign({},m,{[id]:true}); });
       setSeg(id);
       requestAnimationFrame(function(){
@@ -38639,7 +38555,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
-          tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
+          onAbrirReparto:function(){ if(repartoRef.current) repartoRef.current(true); },tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
           foco:focoRecibo,clearFoco:function(){ setFocoRecibo(null); }})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast,tabs:seg==="deudas"?planTabs:null})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta,tabs:seg==="metas"?planTabs:null})),
@@ -39024,7 +38940,7 @@ function pr6FrescuraTxt(ms, now){
 function reponerBases(accounts, cuentas){
   return (accounts||[]).map(function(a){ const c=cuentas.find(function(x){ return x.id===a.id; }); return c?conValor(a,c.antes):a; });
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay, foco, clearFoco, tabs}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay, foco, clearFoco, tabs, onAbrirReparto}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -39056,7 +38972,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     undoFicha&&React.createElement(BillUndoToast,{onUndo:function(){ if(fichaUndo.undo(undoFicha)!==false) setUndoFicha(null); }}),
     avisoFicha&&React.createElement(BillUndoToast,{notice:avisoFicha}));
   // Las hojas de «¿Te llega?» y «Te deben» guardan su abierto/cerrado en `Pr6HojaHost`: abrirlas no repinta Recibos.
-  const llegaHost=useRef(null), debenHost=useRef(null), cifrasHost=useRef(null);
+  const llegaHost=useRef(null), debenHost=useRef(null);
   const paidRef=useRef(null), entRef=useRef(null);
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
@@ -39428,8 +39344,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         ? React.createElement(React.Fragment,null,
           React.createElement("div",{className:"serif num pr6-big"}, eur(sigPack.pendingBillsTotal)),
           sigN>0&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, tf(sigN===1?"pr6_count_one":"pr6_count",{n:sigN})))
-        // Tocar cifra y cuenta abre «Tu mes en cifras»; el desglose es del mes en curso, no del siguiente.
-        : React.createElement(PlanMesTap,{state:state,totals:totals,onOpen:function(){ if(cifrasHost.current) cifrasHost.current(true); }},
+        // Tocar cifra y cuenta abre «A dónde va tu sueldo», la misma hoja que la línea de arriba; es del mes en curso, no del siguiente.
+        : React.createElement(PlanMesTap,{state:state,totals:totals,onOpen:onAbrirReparto},
           React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
           countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine)),
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
@@ -39566,8 +39482,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(entOpen)), flowsDone.map(entRow))))),
     importar,
     React.createElement(Pr6HojaHost,{hostRef:llegaHost,render:function(cerrar){ return React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:cerrar}); }}),
-    React.createElement(Pr6HojaHost,{hostRef:cifrasHost,render:function(cerrar){ return React.createElement(PlanMesHoja,{state:state,totals:totals,mes:monthLong(month-1),onClose:cerrar,
-      onBanco:llega&&nPend>0?function(){ cerrar(); setTimeout(function(){ if(llegaHost.current) llegaHost.current(true); },380); }:null}); }}),
     React.createElement(Pr6HojaHost,{hostRef:debenHost,render:function(cerrar){ return React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:cerrar}); }}),
     // El aviso flota 5 s sobre el final de la lista (medido: cubría 32 px de «Ya pagados» sin poder subirlo con el scroll): mientras está, un hueco debajo deja subir lo último.
     deshacer&&React.createElement("div",{className:"pr6-toast-pad","aria-hidden":"true"}),

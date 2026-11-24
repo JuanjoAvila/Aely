@@ -1108,19 +1108,11 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;white-space:nowrap;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  /* Cabecera tocable («Tu mes en cifras»): igual que antes a la vista; la flecha y el puntito de aviso van a la derecha de la cifra. */
+  /* Cabecera tocable (abre «A dónde va tu sueldo»): igual que antes a la vista; la flecha va a la derecha de la cifra. */
   button.pr6-sum-tap{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;row-gap:12px;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px;}
   button.pr6-sum-tap>*{grid-column:1;min-width:0;}
   button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:1 / span 2;position:relative;display:flex;width:28px;height:28px;align-items:center;justify-content:center;color:var(--muted);}
   .pr6-sum-tap:focus-visible{outline:2px solid var(--mint-bright);outline-offset:4px;border-radius:10px;}
-  .pm-body{padding-top:4px;}
-  .pm-big{font-size:42px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:4px;white-space:nowrap;}
-  .pm-est{font-size:15px;font-weight:700;color:var(--mint-bright);margin-top:6px;}
-  .pm-est.bad{color:var(--coral);}
-  .pm-aviso{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--coral-dim);font-size:14px;font-weight:600;line-height:1.35;}
-  .pm-sub{font-size:13px;font-weight:800;margin-bottom:2px;}
-  .pm-banco{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:14px;padding:0;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--mint-bright);font:inherit;font-weight:700;cursor:pointer;}
-  html[data-theme="light"] .pm-est:not(.bad),html[data-theme="light"] .pm-banco{color:var(--mint-ink);}
   /* Pestañas de Plan como el diseño plan-mezcla: sin caja, píldora menta suave sobre el fondo oscuro. */
   .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;margin-top:14px;}
   .v4-plan-tabs+.rpt-sec{margin-top:6px;}
@@ -3130,14 +3122,6 @@
   .rpt-lb.ok .rpt-lb-l{color:var(--mint-ink,var(--mint));font-size:15px;font-weight:800;}
   .rpt-lb.neg .rpt-lb-a,.rpt-lb.bad .rpt-lb-a,.rpt-lb.bad .rpt-lb-p{color:var(--coral);}
   .rpt-lb.wrn .rpt-lb-p{color:var(--coral);font-weight:700;}
-  .rpt-pb{position:relative;display:block;height:6px;margin-top:7px;}
-  .rpt-pb.lg{height:14px;margin-top:14px;}
-  .rpt-pb.lg.short{margin-top:30px;}
-  .rpt-pb>i{position:absolute;top:0;bottom:0;border-radius:2px;transition:left .4s var(--ease),width .4s var(--ease);}
-  .rpt-pb>.x{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,var(--coral) 0 3px,transparent 3px 6px);border-radius:2px;}
-  .rpt-pb>.cut{position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:1px;background:var(--text);}
-  .rpt-pb>.sl{position:absolute;bottom:calc(100% + 5px);margin-right:-1px;font-size:10px;font-weight:700;line-height:1.2;color:var(--text);white-space:nowrap;}
-  .rpt-pb.none{border:1.5px dashed var(--muted-2);border-radius:4px;}
   /* Cabecera y bloques de las listas */
   .rpt-hero{container-type:inline-size;padding:6px 0 2px;}
   .rpt-ht{font-size:15px;font-weight:800;line-height:1.4;}
@@ -3227,12 +3211,24 @@
   .rpt-btn.wide{flex-basis:100%;}
   .rpt-btn.del{flex:0 1 auto;background:none;color:var(--coral);font-weight:700;}
   .rpt-btn:disabled{opacity:.45;cursor:default;}
-  .rpt-rph .rpt-big{margin-top:2px;}
-  .rpt-rph.neg .rpt-big{color:var(--coral);}
-  .rpt-rp{font-size:13px;font-weight:700;margin-top:6px;}
-  .rpt-rph.ok .rpt-rp{color:var(--mint-ink,var(--mint));}
-  .rpt-rph.bad .rpt-rp,.rpt-rph.wrn .rpt-rp{color:var(--coral);}
   .rpt-own{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:12.5px;color:var(--muted);}
+  /* Cascada de «A dónde va tu sueldo»: lo que entra, menos cada destino, y el resultado en grande. */
+  .cas-entra{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:4px 0 10px;font-size:14px;font-weight:700;}
+  .cas-entra b{font-size:28px;font-weight:600;line-height:1.1;white-space:nowrap;}
+  .cas-row{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n a" "s a";column-gap:12px;align-items:center;padding:11px 0;border:0;border-top:1px solid var(--line-soft);background:none;color:inherit;text-align:left;font:inherit;cursor:pointer;}
+  .cas-row:active{background:var(--surface-2);}
+  .cas-row:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
+  .cas-nm{grid-area:n;font-size:15px;font-weight:700;line-height:1.4;}
+  .cas-sub{grid-area:s;font-size:12.5px;color:var(--muted);line-height:1.4;}
+  .cas-am{grid-area:a;font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt,17px);font-weight:550;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .cas-res{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-top:2px;padding:14px 0 6px;border-top:2px solid var(--text);}
+  .cas-res-l{font-size:16px;font-weight:800;}
+  .cas-res b{font-size:38px;font-weight:600;line-height:1.08;white-space:nowrap;}
+  .cas-res.rojo b,.cas-res.rojo .cas-res-l{color:var(--coral);}
+  .cas-res.verde b,.cas-res.verde .cas-res-l{color:var(--mint-ink,var(--mint));}
+  .cas-pend{margin-top:26px;padding-top:6px;border-top:1px solid var(--line);}
+  .cas-pend-t{font-size:14px;font-weight:800;padding:8px 0 2px;}
+  html.hugetext .cas-row{grid-template-areas:"n" "s" "a";grid-template-columns:minmax(0,1fr);}
   /* Restar del presupuesto */
   .rpt-rsv{margin-top:14px;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft);}
   .rpt-rsv-h{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;background:none;border:0;color:inherit;text-align:left;font:inherit;cursor:pointer;}
@@ -3266,7 +3262,7 @@
   .rpt-fold.open{grid-template-rows:1fr;}
   .rpt-fold>div{overflow:hidden;min-height:0;}
   .rpt-sheet .chip{min-height:44px;}
-  @media (prefers-reduced-motion:reduce){.rpt-pb>i,.rpt-fold,.rpt-split i,.rpt-bar i,.rpt-lvl>i{transition-duration:.01ms !important;}}
+  @media (prefers-reduced-motion:reduce){.rpt-fold,.rpt-split i,.rpt-bar i,.rpt-lvl>i{transition-duration:.01ms !important;}}
   .plan-item-open:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:12px;}
   .v4-ghost-add{width:100%;margin-top:12px;min-height:52px;border-radius:18px;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;}
   .v4-goal-first{margin-top:12px;min-height:48px;font-size:15px;}
