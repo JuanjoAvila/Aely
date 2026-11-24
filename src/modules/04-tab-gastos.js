@@ -1358,6 +1358,9 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
   // Un ciclo pasado es como un mes cerrado: sin límite (no hay foto del límite de entonces).
   const budgetApplies=preset==="months"||preset==="cycle"&&!cicloPas;
+  /* `state.debts` va en deps: «Restar del presupuesto» (`restarPres`) baja el límite de aquí. Sin él, encender el
+     interruptor en Plan dejaba Gastos (montada en la sombra) con el límite entero: «259 € por debajo» donde el
+     Plan decía 84,79 (24/11/2026). */
   const monthSummary=useMemo(function(){
     const bs=monthBudgetStats(stateDef,null,null,null,selectedPeriod);
     /* La cifra grande sigue su modo (Balance o Gastos), pero el margen contra el límite es el de
@@ -1379,7 +1382,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[lapidasDef,state.budget,state.reservaLog,state.accounts,state.settings,state.flows,state.catOverrides,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[lapidasDef,state.budget,state.reservaLog,state.debts,state.cuotaNo,state.cuotaAlias,state.accounts,state.settings,state.flows,state.catOverrides,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   /* Sumas por día para la cifra viva. Mismas porciones del estado que la cabecera (las lee
      `expenseCountsBudget`); NO depende de la búsqueda ni de los filtros: la cifra es la del
      presupuesto, igual que antes la tarjeta («buscar no redefine el límite»). */

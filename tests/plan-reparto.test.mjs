@@ -26,13 +26,14 @@ const SUITE=[
     mov("v1",9,-30,{merchant:"Devolución pedido"}),
     mov("b1",10,-25,{category:"bizum"})]);
   const r=c.planReparto(base({expenses:e}),{});
-  assert.equal(r.entra,305000,"nómina 3000 + venta 50, nada más");
+  assert.equal(r.entra,300000,"nómina 3000: la venta de 50 del banco del día a día devuelve margen a Gastos (neto, 24/11), no cuenta además como ingreso");
   assert.equal(r.devolucion,5500,"devolución y Bizum no son ingreso");
-  assert.equal(r.gastado,18050-5500,"y devuelven margen a lo gastado");
+  assert.equal(r.neteo,5000);
+  assert.equal(r.gastado,18050-5500-5000,"y devuelven margen a lo gastado, como en Gastos");
   assert.equal(r.libre,r.entra-r.total);
 }],
 ["Sin nómina todavía: sin porcentajes ni Libre",c=>{
-  const e=[mov("g1",5,120.5,{category:"super"}),mov("i2",6,-50,{merchant:"Venta sintética"})];
+  const e=[mov("g1",5,120.5,{category:"super"}),mov("i2",6,-500,{merchant:"Venta sintética"})];
   const s=base({expenses:e,flows:[{id:"f1",kind:"income",name:"Nómina",amount:3000,day:3,to:"sabadell"}]});
   const r=c.planReparto(s,{});
   assert.equal(r.entra,null);assert.equal(r.libre,null);assert.equal(r.st,"wait");
@@ -42,7 +43,7 @@ const SUITE=[
   assert.equal(c.planReparto(previa,{}).st,"wait");
   // Quien no cobra nómina nunca no se queda en «—»: entra lo que entra.
   const libre=base({expenses:[mov("g1",5,120.5,{category:"super"}),mov("i2",6,-500,{merchant:"Factura cliente"})]});
-  assert.equal(c.planReparto(libre,{}).entra,50000);
+  assert.equal(c.planReparto(libre,{}).entra,50000-12050,"entra lo que entra, menos lo que ya devolvió margen a lo gastado (120,50)");
 }],
 ["Recibos: tu parte, sin deudas",c=>{
   const s=base({fixed:[{id:"r1",name:"Comunidad",amount:95,day:1,freq:"mes",account:"sabadell"},
