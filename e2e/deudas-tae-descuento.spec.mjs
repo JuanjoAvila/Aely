@@ -1,5 +1,5 @@
 import {test,expect} from "@playwright/test";
-import {seedLoggedInDashboard,dismissNews,esperaNubeQuieta} from "./fixtures.mjs";
+import {seedLoggedInDashboard,dismissNews,esperaNubeQuieta,ponCelda} from "./fixtures.mjs";
 const YM=2026*12+10;
 const debt={id:"fam",name:"Préstamo sintético",monthly:260,amort:300,months:20,value:6000,account:"sabadell",day:20,asOf:YM-1};
 const share={id:"pe_fam",n:"Familia",via:"debt",debtId:"fam",amt:40};
@@ -13,7 +13,7 @@ async function open(page,{lang="es",fixed=[bill]}={}){
   await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await page.locator('.v4-seg-btn').filter({hasText:lang==="en"?"Debts":lang==="ca"?"Deutes":"Deudas"}).click();
-  await page.locator('[data-debt-id="fam"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();return page.locator(".plan-edit-sheet");
+  await page.locator('[data-debt-id="fam"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();return page.getByTestId("debt-edit-form");
 }
 const snapshot=page=>page.evaluate(()=>({state:mcLoadRaw(mcStateKey()),raw:localStorage.getItem(mcStateKey())}));
 for(const [name,options] of [["activa es",{}],["pausada en",{lang:"en",fixed:[{...bill,pausedFrom:YM,pausedUntil:YM+2}]}],["futura ca",{lang:"ca",fixed:[{...bill,freq:"anual",months:[12]}]}]]){
@@ -22,16 +22,16 @@ for(const [name,options] of [["activa es",{}],["pausada en",{lang:"en",fixed:[{.
     // El ACK del arranque escribe metadatos: la foto debe tomarse cuando ya se asentó, para
     // que la igualdad completa siga detectando cualquier guardado indebido del editor.
     await esperaNubeQuieta(page);
-    const before=await snapshot(page);await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator('[data-debt-field="name"]').fill("Nombre cambiado");await sheet.locator("button.btn-primary.btn-block").click();
+    const before=await snapshot(page);await ponCelda(sheet,"data-debt-field","apr","2.5");await sheet.locator('[data-debt-field="name"]').fill("Nombre cambiado");await sheet.locator('[data-act="hoja-guardar"]').click();
     await expect(sheet).toContainText(messages[options.lang||"es"]);await expect(sheet).toBeVisible();expect(await snapshot(page)).toEqual(before);
   });
 }
 test("TAE sin relaciones se guarda en la hoja real",async({page})=>{
-  const sheet=await open(page,{fixed:[]});await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator("button.btn-primary.btn-block").click();await expect(sheet).toHaveCount(0);await expect.poll(async()=>(await snapshot(page)).state.debts[0].apr).toBe(2.5);
+  const sheet=await open(page,{fixed:[]});await ponCelda(sheet,"data-debt-field","apr","2.5");await sheet.locator('[data-act="hoja-guardar"]').click();await expect(sheet).toHaveCount(0);await expect.poll(async()=>(await snapshot(page)).state.debts[0].apr).toBe(2.5);
 });
 test("TAE tras quitar descuento desde persona conserva histórico pagado",async({page})=>{
-  const sheet=await open(page,{fixed:[{...bill,day:10,paidYm:YM,paidDay:10,soloMes:{[YM]:{amt:50,reparto:[share]}}}]});await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator("button.btn-primary.btn-block").click();await expect(sheet).toContainText(messages.es);
-  await sheet.getByRole("button",{name:"Cancelar",exact:true}).click();await expect(sheet).toHaveCount(0);
+  const sheet=await open(page,{fixed:[{...bill,day:10,paidYm:YM,paidDay:10,soloMes:{[YM]:{amt:50,reparto:[share]}}}]});await ponCelda(sheet,"data-debt-field","apr","2.5");await sheet.locator('[data-act="hoja-guardar"]').click();await expect(sheet).toContainText(messages.es);
+  await sheet.locator(".pr6-back").click();await expect(sheet).toHaveCount(0);
   await page.locator('.v4-seg-btn').filter({hasText:"Recibos"}).click();
   await page.locator('[data-seg="recibos"]').getByRole("button", { name: /^(Gestionar|Todos)\b/ }).click();
   await page.locator('[data-bills-manage] [data-persona="pe_fam"]').click();
@@ -39,6 +39,6 @@ test("TAE tras quitar descuento desde persona conserva histórico pagado",async(
   const removed=(await snapshot(page)).state;expect(removed.fixed[0].reparto[0].via).toBe("bizum");
   expect(removed.fixed[0].soloMes[YM].reparto).toEqual([share]);
   const manage=page.locator('[data-bills-manage]');await expect(manage).toHaveAttribute("data-screen","bills-home");await manage.locator('[data-act="back"]').click();await expect(manage).toHaveCount(0);
-  await page.locator('.v4-seg-btn').filter({hasText:"Deudas"}).click();await page.locator('[data-debt-id="fam"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await sheet.locator('[data-debt-field="apr"]').fill("2.5");await sheet.locator("button.btn-primary.btn-block").click();await expect(sheet).toHaveCount(0);
+  await page.locator('.v4-seg-btn').filter({hasText:"Deudas"}).click();await page.locator('[data-debt-id="fam"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await ponCelda(sheet,"data-debt-field","apr","2.5");await sheet.locator('[data-act="hoja-guardar"]').click();await expect(sheet).toHaveCount(0);
   await expect.poll(async()=>(await snapshot(page)).state.debts[0].apr).toBe(2.5);expect((await snapshot(page)).state.fixed).toEqual(removed.fixed);
 });

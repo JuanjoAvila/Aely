@@ -6,7 +6,7 @@ import {createLogicSandbox,extractPureLogicSource} from "../scripts/load-pure-lo
 let source=extractPureLogicSource(fs.readFileSync("public/index.html","utf8"));
 const mutant=process.argv.includes("--mutant")?process.argv[process.argv.indexOf("--mutant")+1]:null;
 if(mutant){
- const edits={submit:["disabled:save.pending||confirmPending,onClick:submit","disabled:save.pending||confirmPending,onClick:function(){save.save(debtEditResult(debt,form));}"],plural:['change.after===1?"db_edit_term_summary_one":"db_edit_term_summary"','"db_edit_term_summary"']};
+ const edits={submit:["onSave:submit","onSave:function(){save.save(debtEditResult(debt,form));}"],plural:['change.after===1?"db_edit_term_summary_one":"db_edit_term_summary"','"db_edit_term_summary"']};
  assert.ok(edits[mutant]);const [a,b]=edits[mutant];assert.equal(source.split(a).length,2);source=source.replace(a,b);
 }
 class Clock extends Date{constructor(...args){super(...(args.length?args:["2026-10-18T12:00:00Z"]));}static now(){return Date.parse("2026-10-18T12:00:00Z");}}
@@ -23,7 +23,8 @@ function render(lang,months,balance){
  const debt={id:"submit",name:"Deuda sintética",value:months*100,monthly:100,months,day:25,asOf:2026*12+9};
  const tree=c.DebtEditSheet({debt,state:{debts:[debt]},set:()=>{},onClose:()=>{},onDelete:()=>{}});
  const nodes=[];function visit(n){if(!n||typeof n!=="object")return;nodes.push(n);for(const child of (n.children||[]).flat(Infinity))visit(child);}visit(tree);
- const button=nodes.find(n=>n.type==="button"&&n.props.className.includes("btn-primary"));assert.ok(button,"Guardar existe");
+ // La hoja es AddHoja: «Guardar» es su `onSave` (el botón lo pinta ella).
+ assert.equal(typeof tree.props.onSave,"function","Guardar existe");const button={props:{onClick:tree.props.onSave}};
  return {button,calls,dialogs};
 }
 let failed=0,passed=0;

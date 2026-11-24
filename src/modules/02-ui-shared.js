@@ -2754,13 +2754,17 @@ function NumPad({value, onChange}){
    `vals` son los textos tal cual se teclean («1,5»): los validan y convierten quienes guardan. */
 function AddHoja(p){
   const amtKey=p.amtKey, vals=p.vals, attr=p.attr||"data-rpa";
-  const [act,setAct]=useState(amtKey), [mas,setMas]=useState(!!p.masOpen);
-  const freshRef=useRef(!!vals[amtKey]);
+  const [act,setAct]=useState(p.actKey||amtKey), [mas,setMas]=useState(!!p.masOpen);
+  const freshRef=useRef(!!vals[p.actKey||amtKey]);
   const swipe=useSheetSwipe(true,p.onClose); useBackClose(true,swipe.close);
   if(p.closer) p.closer.current=swipe.close;
   const sep=numDecSep();
   const todas=p.cells.concat(p.more?p.more.cells:[]);
-  const pick=function(k){ freshRef.current=!!vals[k]; setAct(k); };
+  const pick=function(k){
+    if(p.amtDis&&k===amtKey) return; freshRef.current=!!vals[k]; setAct(k);
+    // Las hojas de edición llevan más contenido y el teclado quedaba bajo el pliegue (revisión de diseño 24/11): se trae a la vista.
+    if(p.keysIntoView) requestAnimationFrame(function(){ const kb=document.querySelector(".rpa .v4-keys"); if(kb&&kb.scrollIntoView) kb.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"}); });
+  };
   // Como en el importe de un recibo: el primer número que tecleas al elegir un campo con valor lo sustituye.
   const teclea=function(fn){
     const c=todas.find(function(x){ return x.key===act; }), entero=c&&c.kind==="int", fr=freshRef.current;
@@ -2782,7 +2786,8 @@ function AddHoja(p){
   };
   const celdaEl=function(c){
     const numerica=!c.onTap, on=numerica?act===c.key:!!c.on, tiene=numerica?!!vals[c.key]:!!c.text;
-    return React.createElement("button",{type:"button",key:c.key,className:"rpa-cell"+(on?" on":"")+(c.wide?" wide":""),"aria-pressed":on?"true":"false",
+    // `dis`: la celda se ve pero no se teclea (una deuda terminada o recuperada solo deja corregir el nombre).
+    return React.createElement("button",{type:"button",key:c.key,className:"rpa-cell"+(on?" on":"")+(c.wide?" wide":""),"aria-pressed":on?"true":"false",disabled:!!c.dis,
       [attr]:c.key,onClick:function(){ if(numerica) pick(c.key); else { setAct(null); c.onTap(); } }},
       React.createElement("span",{className:"rpa-cell-l"}, c.label),
       React.createElement("span",{className:"rpa-cell-v num"+(tiene?"":" ph")}, numerica?(tiene?ver(vals[c.key])+(c.unit?" "+c.unit:""):(c.ph||"—")):(c.text||"—")));
@@ -2798,17 +2803,17 @@ function AddHoja(p){
         React.createElement("button",{type:"button",className:"pr6-back","aria-label":t("gl_cancel"),onClick:swipe.close},"‹"),
         React.createElement("h2",{className:"rp4-h rpa-t"}, p.title),
         // Borrar, discreto y siempre a mano (arriba, no al final del scroll bajo el teclado); pide confirmación quien lo recibe.
-        p.del&&React.createElement("button",{type:"button",className:"rpa-del","data-act":"hoja-eliminar",onClick:p.del.onClick}, p.del.label)),
+        p.del&&React.createElement("button",{type:"button",className:"rpa-del","data-act":"hoja-eliminar","aria-label":p.del.aria||undefined,onClick:p.del.onClick}, p.del.label)),
       React.createElement("div",{className:"rp4-body"},
         React.createElement("div",{className:"rpa-in"},
           React.createElement("div",{className:"rpa-name"},
             p.nameLead||null,
             React.createElement("input",{className:"pr6-search rp4-name",[attr]:"name",value:p.name,placeholder:p.namePh,"aria-label":p.namePh,
               // Con el teclado del sistema abierto el nuestro se pliega; al salir del nombre vuelve, sobre el importe.
-              onFocus:function(){ setAct(null); },onBlur:function(){ setAct(function(a){ return a||amtKey; }); },onChange:function(e){ p.setName(e.target.value); }})),
+              onFocus:function(){ setAct(null); },onBlur:function(){ if(!p.amtDis) setAct(function(a){ return a||amtKey; }); },onChange:function(e){ p.setName(e.target.value); }})),
           React.createElement("div",{className:"rp4-amt"},
             React.createElement("span",{className:"rp4-dim"}, p.amtLabel),
-            React.createElement("button",{type:"button",className:"serif num rp4-amt-v rpa-amt"+(act===amtKey?" on":""),[attr]:amtKey,"aria-label":p.amtLabel,
+            React.createElement("button",{type:"button",className:"serif num rp4-amt-v rpa-amt"+(act===amtKey?" on":""),[attr]:amtKey,"aria-label":p.amtLabel,disabled:!!p.amtDis,
               onClick:function(){ pick(amtKey); }}, raw?ver(raw)+" €":React.createElement("span",{className:"rpa-ph"},"0 €"))),
           p.cells.length>0&&grid(p.cells),
           p.children||null,
@@ -2823,7 +2828,7 @@ function AddHoja(p){
               React.createElement(NumPad,{value:act?(vals[act]||""):"",onChange:teclea}))),
           p.notes||null)),
       React.createElement("div",{className:"rp4-foot"},
-        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(p.ctaOn?"":" is-wait"),"data-act":"hoja-guardar","aria-disabled":p.ctaOn?"false":"true",
+        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(p.ctaOn?"":" is-wait"),"data-act":p.ctaAct||"hoja-guardar","aria-disabled":p.ctaOn?"false":"true",
           tabIndex:p.ctaOn?0:-1,onClick:function(){ if(p.ctaOn) p.onSave(); }}, p.ctaLabel)))),document.body);
 }
 

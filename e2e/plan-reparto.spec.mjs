@@ -113,7 +113,7 @@ test("Deudas: cabecera, filas, ficha con escalera e interruptor que mueve dinero
   const sw = ficha.locator('[data-act="restar-presupuesto"]');
   await expect(sw).toHaveAttribute("aria-checked", "false");
   await expect(ficha.locator('[data-pv="m"]')).toContainText("260,00");
-  await expect(ficha.locator('[data-pv="m"]')).toContainText("pasan de Gastos a Libre · no entra dinero");
+  await expect(ficha.locator('[data-pv="m"]')).toContainText("Libre sube");
   await sw.click();
   await expect(sw).toHaveAttribute("aria-checked", "true");
   // La barra de debajo (tapada por la hoja pero viva) ya dice Libre + 260.
@@ -138,14 +138,14 @@ test("Deudas: puertas de siempre — editar, amortizar, poner día y archivadas 
   await deudas.locator('[data-debt-id="d3"]').click();
   const ficha = page.getByTestId("plan-deuda-ficha");
   await ficha.locator('[data-act="ficha-poner-dia"]').click();
-  await expect(page.locator(".plan-edit-sheet")).toBeVisible();
-  await page.locator(".plan-edit-sheet .btn-ghost").first().click();
+  await expect(page.getByTestId("debt-edit-form")).toBeVisible();
+  await page.getByTestId("debt-edit-form").locator(".pr6-back").first().click();
   // Editar y Amortizar desde la ficha de otra deuda.
   await deudas.locator('[data-debt-id="d1"]').click();
   await expect(page.getByTestId("plan-deuda-ficha").locator('[data-act="ficha-amortizar"]')).toBeVisible();
   await page.getByTestId("plan-deuda-ficha").locator('[data-act="ficha-editar"]').click();
-  await expect(page.locator(".plan-edit-sheet")).toBeVisible();
-  await page.locator(".plan-edit-sheet .btn-ghost").first().click();
+  await expect(page.getByTestId("debt-edit-form")).toBeVisible();
+  await page.getByTestId("debt-edit-form").locator(".pr6-back").first().click();
   // Archivadas: el botón y su lista.
   await deudas.getByRole("button", { name: /Archivadas|archivadas/i }).click();
   await expect(deudas.locator('[data-archived-debt="d4"]')).toBeVisible();
