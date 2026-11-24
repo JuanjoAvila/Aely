@@ -35161,6 +35161,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -37645,6 +37657,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -48573,6 +48597,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "edge": [
@@ -53052,6 +53088,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "edge": [
@@ -56686,6 +56734,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -59169,6 +59229,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -63381,6 +63453,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "edge": [
@@ -65425,6 +65509,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -67409,6 +67505,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -69083,6 +69191,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -70546,6 +70666,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -71909,6 +72041,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -73405,6 +73549,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -74471,6 +74627,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -75871,6 +76039,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -77513,6 +77693,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -79532,6 +79724,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -80770,6 +80974,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -82248,6 +82464,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -83821,6 +84049,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -85245,6 +85485,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "native": [
@@ -86826,6 +87078,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -88972,6 +89236,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -90583,6 +90859,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -92011,6 +92299,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "native": [
@@ -93556,6 +93856,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -95618,6 +95930,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -98353,6 +98677,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "estadoSinIngestToken"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -101227,6 +101563,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "estadoSinIngestToken"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -103113,6 +103461,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -104549,6 +104909,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "native": [
@@ -105764,6 +106136,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -107193,6 +107577,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -108607,6 +109003,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -110610,6 +111018,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "edge": [
@@ -111895,6 +112315,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -113241,6 +113673,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "edge": [
@@ -114699,6 +115143,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -116665,6 +117121,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -118948,6 +119416,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -120875,6 +121355,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -122797,6 +123289,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -124715,6 +125219,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -130415,6 +130931,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -132348,6 +132876,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -134345,6 +134885,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -138123,6 +138675,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -140349,6 +140913,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -142311,6 +142887,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -144120,6 +144708,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -146015,6 +146615,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -147391,6 +148003,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "edge": [
@@ -149530,6 +150154,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -151022,6 +151658,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -152289,6 +152937,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "native": [
@@ -154954,6 +155614,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -156227,6 +156899,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -158732,6 +159416,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -160814,6 +161510,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -162860,6 +163568,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -165464,6 +166184,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -168410,6 +169142,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -171849,6 +172593,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -173815,6 +174571,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -175033,6 +175801,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -176512,6 +177292,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -180393,6 +181185,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -182427,6 +183231,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -184469,6 +185285,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -187058,6 +187886,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -189671,6 +190511,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -192263,6 +193115,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -194645,6 +195509,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -197224,6 +198100,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -199095,6 +199983,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -201523,6 +202423,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -203212,6 +204124,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -204955,6 +205879,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -206335,6 +207271,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -208041,6 +208989,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -209407,6 +210367,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -211335,6 +212307,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -212936,6 +213920,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -214401,6 +215397,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BANK_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -216975,6 +217983,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -220938,6 +221958,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
@@ -222709,6 +223741,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "bankAutoDia"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhNormalizarCodigo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "hhCodigoNuevo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "HH_CODIGO_MIN"
       }
     ],
     "unidades": true
