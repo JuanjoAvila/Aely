@@ -106,3 +106,21 @@ test("la línea de cabecera y la flecha de Recibos abren la MISMA hoja; «Ver ba
   await page.getByTestId("plan-llega").click();
   await expect(page.locator(".v4-sheet-back .v4-sheet").last()).toBeVisible();
 });
+
+test("gastado por encima del presupuesto: Gastos cuenta lo gastado y la cascada sigue cuadrando con la cabecera", async ({ page }) => {
+  await abrePlan(page, { ...base(3000), expenses: [nomina(3000), { ...gasto, amount: 1500 }] });
+  const barra = page.getByTestId("plan-reparto-barra");
+  const cab = cts(await barra.locator(".rpt-lb-a").innerText());
+  await barra.click();
+  const x = await lee(page);
+  expect(x.filas.find((f) => f.k === "gas").c).toBe(150000);
+  expect(x.cifra).toBe(x.entra - x.filas.reduce((a, f) => a + f.c, 0));
+  expect(x.cifra).toBe(cab);
+  expect(x.cifra).toBe(64500);
+});
+
+test("sin presupuesto el resultado dice «Libre hasta hoy», no «Te sobran»", async ({ page }) => {
+  await abrePlan(page, { ...base(3000), budget: 0 });
+  await page.getByTestId("plan-reparto-barra").click();
+  await expect(page.getByTestId("plan-reparto-res")).toContainText("Libre hasta hoy");
+});

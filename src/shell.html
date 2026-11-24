@@ -3228,6 +3228,10 @@
   .cas-res.verde b,.cas-res.verde .cas-res-l{color:var(--mint-ink,var(--mint));}
   .cas-pend{margin-top:26px;padding-top:6px;border-top:1px solid var(--line);}
   .cas-pend-t{font-size:14px;font-weight:800;padding:8px 0 2px;}
+  html.hugetext .cas-entra,html.hugetext .cas-res{flex-direction:column;align-items:flex-start;gap:2px;}
+  html.hugetext .cas-entra b,html.hugetext .cas-res b{font-size:clamp(24px,8vw,34px);overflow-wrap:anywhere;white-space:normal;}
+  .cas-row:focus-visible{outline-color:var(--mint-ink,var(--mint));}
+  .cas-pend .rpt-kv:last-child{font-weight:800;color:var(--text);}
   html.hugetext .cas-row{grid-template-areas:"n" "s" "a";grid-template-columns:minmax(0,1fr);}
   /* Restar del presupuesto */
   .rpt-rsv{margin-top:14px;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft);}

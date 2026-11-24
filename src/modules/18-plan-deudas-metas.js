@@ -121,7 +121,7 @@ function RptRepartoHoja({r,state,onClose,onJump}){
      resultado. Los destinos son exactamente los de `planReparto` (`r.total` = su suma), así que la cuenta cuadra al
      céntimo y el resultado es el mismo número que la línea de la cabecera. Nada de «Otros»: lo que no existe no sale. */
   const pasos=r.trozos.filter(function(x){ return x.k!=="lib"&&x.c>0; });
-  const res=r.entra==null?null:r.falta>0?{l:t("rpt_faltan"),a:rptC(r.falta),c:"rojo"}:r.libre>0?{l:t("rpt_sobran"),a:rptC(r.libre),c:"verde"}:{l:t("rpt_todo"),a:"",c:"verde"};
+  const res=r.entra==null?null:r.falta>0?{l:t("rpt_faltan"),a:rptC(r.falta),c:"rojo"}:r.libre>0?{l:r.st==="nobud"?t("rpt_libre_hasta"):t("rpt_sobran"),a:rptC(r.libre),c:"verde"}:{l:t("rpt_todo"),a:"",c:"verde"};
   const paso=function(x){
     return React.createElement("button",{key:x.k,type:"button",className:"cas-row","data-k":x.k,"data-c":x.c,
       onClick:function(){ if(x.k==="aho"||x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }},

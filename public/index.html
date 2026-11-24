@@ -3228,6 +3228,10 @@
   .cas-res.verde b,.cas-res.verde .cas-res-l{color:var(--mint-ink,var(--mint));}
   .cas-pend{margin-top:26px;padding-top:6px;border-top:1px solid var(--line);}
   .cas-pend-t{font-size:14px;font-weight:800;padding:8px 0 2px;}
+  html.hugetext .cas-entra,html.hugetext .cas-res{flex-direction:column;align-items:flex-start;gap:2px;}
+  html.hugetext .cas-entra b,html.hugetext .cas-res b{font-size:clamp(24px,8vw,34px);overflow-wrap:anywhere;white-space:normal;}
+  .cas-row:focus-visible{outline-color:var(--mint-ink,var(--mint));}
+  .cas-pend .rpt-kv:last-child{font-weight:800;color:var(--text);}
   html.hugetext .cas-row{grid-template-areas:"n" "s" "a";grid-template-columns:minmax(0,1fr);}
   /* Restar del presupuesto */
   .rpt-rsv{margin-top:14px;padding:12px;border-radius:14px;background:var(--surface);border:1px solid var(--line-soft);}
@@ -33145,7 +33149,7 @@ function RptRepartoHoja({r,state,onClose,onJump}){
      resultado. Los destinos son exactamente los de `planReparto` (`r.total` = su suma), así que la cuenta cuadra al
      céntimo y el resultado es el mismo número que la línea de la cabecera. Nada de «Otros»: lo que no existe no sale. */
   const pasos=r.trozos.filter(function(x){ return x.k!=="lib"&&x.c>0; });
-  const res=r.entra==null?null:r.falta>0?{l:t("rpt_faltan"),a:rptC(r.falta),c:"rojo"}:r.libre>0?{l:t("rpt_sobran"),a:rptC(r.libre),c:"verde"}:{l:t("rpt_todo"),a:"",c:"verde"};
+  const res=r.entra==null?null:r.falta>0?{l:t("rpt_faltan"),a:rptC(r.falta),c:"rojo"}:r.libre>0?{l:r.st==="nobud"?t("rpt_libre_hasta"):t("rpt_sobran"),a:rptC(r.libre),c:"verde"}:{l:t("rpt_todo"),a:"",c:"verde"};
   const paso=function(x){
     return React.createElement("button",{key:x.k,type:"button",className:"cas-row","data-k":x.k,"data-c":x.c,
       onClick:function(){ if(x.k==="aho"||x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }},
