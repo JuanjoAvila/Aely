@@ -65,7 +65,8 @@ function useReparto(state,totals){
   return useMemo(function(){ return planReparto(state,{saldo:totals&&typeof totals.liquid==="number"?totals.liquid:null}); },
     RPT_DEPS_REPARTO(state).concat([totals&&totals.liquid,hoy,totals&&totals.curMonth]));
 }
-/* La barra fina de arriba de Plan: el estado en una línea y el reparto en una barra. Tocarla abre la hoja. */
+/* La línea de arriba de Plan: «Te faltan/Te llega X · Entran Y». Sin barra ni frase debajo (orden del dueño 24/11): el
+   reparto y su frase («Si gastas todo el presupuesto…», cubre / no llega) viven en la hoja que abre al tocarla. */
 function RptBarra({state,totals,onJump}){
   const r=useReparto(state,totals), [abierta,setAbierta]=useState(false), H=rptTitular(r);
   return React.createElement(React.Fragment,null,
@@ -76,9 +77,7 @@ function RptBarra({state,totals,onJump}){
           React.createElement("span",{className:"rpt-lb-l"},H.cls.indexOf("ok")===0&&rptIcon("check",15),H.l),
           H.a&&React.createElement("span",{className:"rpt-lb-a"},H.a)),
         r.entra!=null&&React.createElement("span",{className:"rpt-lb-d"},tf("rpt_de",{x:rptC(r.entra)})),
-        React.createElement("span",{className:"rpt-lb-c"},rptIcon("chev",16))),
-      React.createElement(RptBarraTrozos,{r:r}),
-      H.p&&React.createElement("span",{className:"rpt-lb-p"},H.p)),
+        React.createElement("span",{className:"rpt-lb-c"},rptIcon("chev",16)))),
     abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
       onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }}));
 }
@@ -129,14 +128,14 @@ function PlanMesHoja({state,totals,mes,onClose,onBanco}){
       onBanco&&React.createElement("button",{type:"button",className:"pm-banco","data-testid":"plan-mes-banco",onClick:onBanco},t("pm_banco"),rptIcon("chev",16,{transform:"rotate(-90deg)"}))));
 }
 /* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y una flecha pequeña que
-   dice que se abre. El aviso «te faltan X» vive DENTRO de la hoja (orden del dueño 23/11): cerrada, solo un
-   puntito en la flecha para que no quede escondido. */
+   dice que se abre. El aviso «te faltan X» vive DENTRO de la hoja (orden del dueño 23/11) y, sin puntito en la flecha
+   (24/11), también en la etiqueta del botón para quien lo lee en voz alta. */
 function PlanMesTap({state,totals,onOpen,children}){
   const r=useReparto(state,totals), aviso=r.falta>0;
-  return React.createElement("button",{type:"button",className:"pr6-sum-tap","data-testid":"plan-cifras","data-aviso":aviso?"1":"0","aria-haspopup":"dialog",
+  return React.createElement("button",{type:"button",className:"pr6-sum-tap","data-testid":"plan-cifras","aria-haspopup":"dialog",
     "aria-label":t("pm_ver")+(aviso?". "+tf("pm_aviso",{x:rptC(r.falta)}):""),onClick:onOpen},
     children,
-    React.createElement("span",{className:"pr6-sum-go","aria-hidden":"true"},rptIcon("chev",16),aviso&&React.createElement("i",{className:"pr6-sum-dot","data-testid":"plan-cifras-punto"})));
+    React.createElement("span",{className:"pr6-sum-go","aria-hidden":"true"},rptIcon("chev",16)));
 }
 /* Hoja genérica de esta pantalla: asa, título con cerrar, cuerpo con scroll y pie fijo opcional. */
 function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
@@ -331,7 +330,7 @@ function RptDeudaFicha({d,state,set,r,h,onClose}){
       rptKv(t("plan_conflict_account"),entOf(d.account||"sabadell").label))));
 }
 /* La lista de Deudas: cabecera «Este mes pagas», por pagar, ya pagado, terminadas y sin cuota este mes. */
-function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShowArchive}){
+function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShowArchive,tabs,onAdd}){
   const hoy=madridYmdParts(Date.now());
   const esc=useMemo(function(){ return deudasEscalera(state); },[state.debts,state.fixed,state.expenses,state.deleted]);
   const finDe=function(id){ const p=esc.pasos.find(function(x){ return x.id===id; }); return p?p.ultimo:null; };
@@ -355,19 +354,30 @@ function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShow
     const importe=x?x.c:repCts(d.monthly);
     return React.createElement(RptFila,{key:d.id,nombre:d.name,punto:React.createElement(PlanConflictDot,{record:planSyncConflict(state,"debts",d.id)}),l:l,sub:sub,subCls:subCls,subTest:subTest,am:rptC(importe),amCls:amCls,onClick:function(){ h.abrir(d); },attrs:{"data-debt-id":d.id,"data-act":"debt-open"}});
   };
-  const seccion=function(titulo,lista,tipo,id){ return lista.length>0&&React.createElement("section",{className:"rpt-sec","data-sec":id,key:id},
-    React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,titulo)),React.createElement("div",{className:"rpt-list"},lista.map(function(d){ return fila(d,tipo); }))); };
+  // Cada lista en SU tarjeta, como «Por pagar» de Recibos: borde, fondo propio, filas con línea fina y, a la derecha de la
+  // cabecera, el total de la lista (rojo lo que falta, verde lo ya pagado). Solo las dos listas del mes llevan total.
+  const seccion=function(titulo,lista,tipo,id,suma){ return lista.length>0&&React.createElement("section",{className:"rpt-sec rpt-cs"+(tipo==="pend"?" pend":tipo==="hecha"?" hecha":""),"data-sec":id,key:id},
+    React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,titulo),suma!=null&&React.createElement("b",{className:"num rpt-sech-t","data-testid":"debts-suma-"+id},rptC(suma))),
+    React.createElement("div",{className:"rpt-list rpt-card"},lista.map(function(d){ return fila(d,tipo); }))); };
+  const plus=React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M12 5v14M5 12h14"}));
   return React.createElement("div",{className:"rpt"},
-    React.createElement("section",{className:"rpt-hero","data-testid":"debts-summary"},
-      React.createElement("div",{className:"rpt-ht"},t("rpt_d_hero")),
-      React.createElement("div",{className:"rpt-big plan-summary-amount"},rptC(tot)),
-      React.createElement("div",{className:"rpt-hs"},tf("rpt_d_sub",{a:rptC(pag),b:rptC(tot-pag)})),
-      React.createElement("div",{className:"rpt-dl"},
-        React.createElement("span",null,t("rpt_d_debes")+" ",React.createElement("b",null,eur0(total))),
-        priDeuda&&React.createElement("button",{type:"button",onClick:function(){ h.abrir(priDeuda); },"aria-label":t("rpt_d_acaba_antes")+": "+priDeuda.name},
-          t("rpt_d_acaba_antes")+" ",React.createElement("b",null,priDeuda.name),(" · "+rptMes(pri.ultimo))))),
-    seccion(t("rpt_d_por_pagar"),pend,"pend","pend"),
-    seccion(t("rpt_d_pagado"),hechas,"hecha","hechas"),
+    // Misma tarjeta que la de Recibos (etiqueta, cifra grande, subtítulo y chips con flecha), con la cifra en rojo: es lo que se debe.
+    // Las cifras son las de siempre: lo que pagas este mes, lo ya pagado y lo que falta, lo que debes en total y qué deuda acaba antes.
+    React.createElement("section",{className:"v4-card v4-card-hero pr6-sum rpt-dh","data-testid":"debts-summary"},
+      React.createElement("div",{className:"pr6-sum-h"},
+        React.createElement("div",{className:"v4-micro"},t("rpt_d_hero")),
+        onAdd&&React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":"debt-add","aria-label":t("db_add"),onClick:onAdd},plus,t("mg_anadir"))),
+      React.createElement("div",{className:"serif num pr6-big","data-testid":"debts-mes"},rptC(tot)),
+      React.createElement("div",{className:"pr6-count","data-testid":"debts-pagados"},tf("rpt_d_sub",{a:rptC(pag),b:rptC(tot-pag)})),
+      React.createElement("div",{className:"pr6-pills"},
+        React.createElement("div",{className:"pr6-pill falta","data-testid":"debts-debes"},t("rpt_d_debes")+" ",React.createElement("b",null,eur0(total))),
+        priDeuda&&React.createElement("button",{type:"button",className:"pr6-pill","data-testid":"debts-acaba",onClick:function(){ h.abrir(priDeuda); },"aria-label":t("rpt_d_acaba_antes")+": "+priDeuda.name},
+          React.createElement("span",null,t("rpt_d_acaba_antes")+" ",React.createElement("b",null,priDeuda.name),(" · "+rptMes(pri.ultimo))),
+          React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
+            React.createElement("path",{d:"M9 6l6 6-6 6"}))))),
+    tabs,
+    seccion(t("rpt_d_por_pagar"),pend,"pend","pend",tot-pag),
+    seccion(t("rpt_d_pagado"),hechas,"hecha","hechas",pag),
     seccion(t("rpt_d_sin_cuota"),otras,"otra","otras"),
     seccion(t("rpt_d_terminadas"),cero,"cero","cero"));
 }
@@ -403,7 +413,7 @@ function RptMetaFicha({g,state,h,onClose}){
       gv.aportado>0?React.createElement("div",{className:"rpt-kv",key:"gx","data-testid":"goal-from-gastos"},React.createElement("span",null,t("rpt_m_desde_gastos")),React.createElement("b",null,eur(gv.aportado))):null,
       g.fromBank?rptKv(t("rpt_m_banco"),entOf(g.fromBank).label):null));
 }
-function RptMetasVista({state,goals,h}){
+function RptMetasVista({state,goals,h,tabs}){
   const res=useMemo(function(){ return metasResumen(state); },[state.goals,state.expenses,state.deleted,state.settings,state.reservaLog]);
   const abiertas=goals.filter(function(g){ return !g.done&&goalPct(metaConAportes(g,state))<100; }), hechas=goals.filter(function(g){ return abiertas.indexOf(g)<0; });
   const fila=function(g){
@@ -422,6 +432,7 @@ function RptMetasVista({state,goals,h}){
       React.createElement("div",{className:"rpt-facts m"},
         React.createElement("div",{className:"rpt-fact"},React.createElement("span",null,t("rpt_m_apartas")),React.createElement("b",null,rptC0(res.ritmo)+t("rpt_m_mes"))),
         React.createElement("div",{className:"rpt-fact"+(res.hueco>0||res.vencidas>0?" warn":res.conFecha>0?" ok":"")},React.createElement("span",null,f2[0]),React.createElement("b",null,f2[1])))),
+    tabs,
     abiertas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_en_marcha"))),React.createElement("div",{className:"rpt-list"},abiertas.map(fila))),
     hechas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_conseguidas"))),React.createElement("div",{className:"rpt-list"},hechas.map(fila))));
 }

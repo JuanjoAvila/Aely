@@ -319,6 +319,13 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     return function(){ cancel=true; if(raf) cancelAnimationFrame(raf); };
   },[focoDeuda&&focoDeuda.ts, seg, segMounted.deudas, segMounted.metas]);
 
+  // Recibos / Deudas / Metas viven DEBAJO de la tarjeta resumen de cada segmento (orden del dueño 24/11): un solo
+  // selector que cada capa pinta tras su cabecera, solo la de la capa a la vista (si no, habría tres en el DOM).
+  const planTabs=simple?null:React.createElement("div",{className:"v4-seg v4-plan-tabs",role:"tablist"},
+    segs.map(function(s){
+      return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
+        className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
+    }));
   return React.createElement("div",{className:"v4-screen v4-plan",ref:planScreenRef,"data-edge-capture":simple?null:"1"},
     // Fondo bajo la barra de estado: al bajar, el título, los botones y la tarjeta pasaban por
     // debajo de la hora y los iconos (vídeo del dueño, 7/11). El mismo que la cabecera de Gastos.
@@ -344,19 +351,13 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
         if(sg&&sg.scrollIntoView) sg.scrollIntoView({behavior:mcReduced()?"auto":"smooth",block:"start"});
       });
     }}),
-    !simple && React.createElement("div",{className:"v4-seg v4-plan-tabs",role:"tablist"},
-      segs.map(function(s){
-        return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
-          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ if(seg!==s.id) mcTickHaptic(); setSeg(s.id); }}, s.lab);
-      })
-    ),
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
-          manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
+          tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
           foco:focoRecibo,clearFoco:function(){ setFocoRecibo(null); }})),
-    !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
-    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta})),
+    !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast,tabs:seg==="deudas"?planTabs:null})),
+    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta,tabs:seg==="metas"?planTabs:null})),
     debtDayRequest&&React.createElement(Debts,{state:state,set:set,showToast:showToast,editorOnly:true,editDayRequest:debtDayRequest,onEditDayClose:function(){setDebtDayRequest(null);}})
   );
 }
@@ -738,7 +739,7 @@ function pr6FrescuraTxt(ms, now){
 function reponerBases(accounts, cuentas){
   return (accounts||[]).map(function(a){ const c=cuentas.find(function(x){ return x.id===a.id; }); return c?conValor(a,c.antes):a; });
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay, foco, clearFoco}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay, foco, clearFoco, tabs}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -1174,6 +1175,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     };
     const bancos=Array.from(new Set(importables.map(function(d){ return entOf(d.bank).label; })));
     return React.createElement(React.Fragment,null,
+      tabs,
       React.createElement("section",{className:"v4-card rise pr6-onb","data-testid":"plan-onb"},
         // La flecha que da la vuelta es de «cargos que se repiten»; sin ninguno, el «+» de empezar uno.
         React.createElement("span",{className:"pr6-onb-ico","aria-hidden":"true"},
@@ -1217,6 +1219,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     // Toda la vista entra de lado al cambiar de mes, no solo la tarjeta (feedback 28/10).
     React.createElement("div",{className:"pr6-vistas",ref:vistasRef},
     tarjeta,
+    tabs,
     !sig&&v.review.length>0&&React.createElement("section",{className:"pr6-sec","data-testid":"plan-review","aria-label":t("pr6_revisar")},
       React.createElement("div",{className:"pr6-sec-h"},
         React.createElement("span",null, t("pr6_revisar"),React.createElement("span",{className:"pr6-n"}, v.review.length))),

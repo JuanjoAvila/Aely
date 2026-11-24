@@ -2,8 +2,8 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
 
 /* PLAN › RECIBOS: la cabecera conserva su diseño y, al tocarla, se despliega «Tu mes en cifras» (diseño
-   plan-mezcla): desglose por tipo, saldo contra lo que queda, aviso «te faltan» DENTRO de la hoja y un
-   puntito en la flecha de la cabecera solo si hay aviso. Cifras inventadas; reloj del 26/09/2026. */
+   plan-mezcla): desglose por tipo, saldo contra lo que queda y aviso «te faltan» DENTRO de la hoja
+   (la flecha de la cabecera ya no lleva puntito). Cifras inventadas; reloj del 26/09/2026. */
 const YM = 2026 * 12 + 8;
 const settings = { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell"] };
 const accounts = [{ id: "sb", ent: "sabadell", name: "Cuenta", value: 2380, role: "diario", spendFrom: true }];
@@ -38,8 +38,7 @@ test("tocar la cabecera abre la hoja con el desglose y se cierra con Esc, scrim 
   await expect(page.getByTestId("plan-summary")).toContainText(/Queda por pagar en/i);
   await expect(page.getByTestId("plan-count")).toBeVisible();
   await expect(tap.locator(".pr6-big")).toBeVisible();
-  await expect(tap).toHaveAttribute("data-aviso", "0");
-  await expect(page.getByTestId("plan-cifras-punto")).toHaveCount(0);
+  await expect(tap.locator(".pr6-sum-dot")).toHaveCount(0);
   await captura(page, "cabecera-cerrada-" + (process.env.TEMA || "oscuro"));
   await tap.click();
   const hoja = page.getByTestId("plan-mes-hoja");
@@ -65,12 +64,11 @@ test("tocar la cabecera abre la hoja con el desglose y se cierra con Esc, scrim 
   await expect(hoja).toHaveCount(0);
 });
 
-test("si los ingresos no llegan al plan, el aviso va dentro de la hoja y la flecha lleva un punto", async ({ page }) => {
+test("si los ingresos no llegan al plan, el aviso va dentro de la hoja y la flecha NO lleva punto", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await abrePlan(page, base(300), process.env.TEMA);
   const tap = page.getByTestId("plan-cifras");
-  await expect(tap).toHaveAttribute("data-aviso", "1");
-  await expect(page.getByTestId("plan-cifras-punto")).toHaveCount(1);
+  await expect(tap.locator(".pr6-sum-dot")).toHaveCount(0);
   await expect(tap).toHaveAttribute("aria-label", /te faltan/);
   // La cifra de la cabecera queda limpia: el aviso no se pinta debajo
   await expect(page.getByTestId("plan-summary").getByText(/te faltan/i)).toHaveCount(0);

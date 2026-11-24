@@ -1113,7 +1113,6 @@
   button.pr6-sum-tap>*{grid-column:1;min-width:0;}
   button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:1 / span 2;position:relative;display:flex;width:28px;height:28px;align-items:center;justify-content:center;color:var(--muted);}
   .pr6-sum-tap:focus-visible{outline:2px solid var(--mint-bright);outline-offset:4px;border-radius:10px;}
-  .pr6-sum-dot{position:absolute;top:0;right:-7px;width:9px;height:9px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 2px var(--surface);}
   .pm-body{padding-top:4px;}
   .pm-big{font-size:42px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:4px;white-space:nowrap;}
   .pm-est{font-size:15px;font-weight:700;color:var(--mint-bright);margin-top:6px;}
@@ -1123,7 +1122,8 @@
   .pm-banco{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:14px;padding:0;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--mint-bright);font:inherit;font-weight:700;cursor:pointer;}
   html[data-theme="light"] .pm-est:not(.bad),html[data-theme="light"] .pm-banco{color:var(--mint-ink);}
   /* Pestañas de Plan como el diseño plan-mezcla: sin caja, píldora menta suave sobre el fondo oscuro. */
-  .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;}
+  .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;margin-top:14px;}
+  .v4-plan-tabs+.rpt-sec{margin-top:6px;}
   .v4-plan-tabs .v4-seg-btn{flex:0 0 auto;min-height:44px;padding:0 20px;border-radius:999px;transition:background .25s var(--ease),color .25s var(--ease);}
   .v4-plan-tabs .v4-seg-btn.on{background:color-mix(in srgb,var(--mint) 16%,transparent);color:var(--mint-bright);}
   html[data-theme="light"] .v4-plan-tabs .v4-seg-btn.on{color:var(--mint-ink);}
@@ -3147,9 +3147,18 @@
   .rpt-facts.m .rpt-fact.ok b{color:var(--mint-ink,var(--mint));}
   .rpt-facts.m .rpt-fact.warn b{color:var(--tan);}
   html[data-theme="light"] .rpt-facts.m .rpt-fact.warn b{color:#82600A;}
-  .rpt-dl{display:flex;flex-direction:column;align-items:flex-start;gap:0;margin-top:6px;font-size:12.5px;line-height:1.5;color:var(--muted);}
-  .rpt-dl b{color:var(--text);font-weight:700;}
-  .rpt-dl button{display:block;padding:13px 0;margin-block:-13px;font-size:12.5px;color:var(--muted);background:none;border:0;text-align:left;cursor:pointer;}
+  /* Deudas: la cabecera es la tarjeta de Recibos (.pr6-sum) con la cifra en rojo, y cada lista del mes va en su tarjeta. */
+  .rpt-dh .pr6-big{color:var(--coral);}
+  .rpt-dh .pr6-pills{margin-top:2px;}
+  .rpt-dh div.pr6-pill{cursor:default;}
+  /* El nombre de la deuda que acaba antes puede ser largo: parte en renglones dentro del chip en vez de salirse de la tarjeta. */
+  .rpt-dh .pr6-pill{flex:1 1 100%;min-width:0;}
+  .rpt-dh .pr6-pill>span{min-width:0;overflow-wrap:anywhere;}
+  .rpt-cs .rpt-sech{padding:0 4px;}
+  .rpt-sech-t{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;}
+  .rpt-cs.pend .rpt-sech-t,.rpt-cs.pend .rpt-sech>span{color:var(--coral);}
+  .rpt-cs.hecha .rpt-sech-t{color:var(--mint-ink,var(--mint));}
+  .rpt-card{padding:0 16px;border:1px solid var(--line-soft);border-radius:20px;background:var(--surface);}
   .rpt-sec{margin-top:22px;}
   .rpt-hero+.rpt-sec{margin-top:6px;}
   .rpt-sech{display:flex;align-items:center;justify-content:space-between;min-height:44px;margin-bottom:10px;font-size:15px;font-weight:800;}
@@ -3286,7 +3295,6 @@
   .dbx-arow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;border-top:1px solid var(--line-soft);font-size:15px;font-weight:700;}
   .dbx-arow span{min-width:0;overflow-wrap:anywhere;}
   .dbx-link{flex:none;min-height:44px;padding:0 4px;background:none;border:0;color:var(--mint-ink,var(--mint));font:inherit;font-size:13px;font-weight:700;cursor:pointer;}
-  .dbx-add{margin-top:14px;min-height:52px;border-radius:18px;font-size:15px;gap:8px;}
   /* Hojas de alta y edición: grupos en tarjeta, etiqueta encima de cada campo y el primario al final. */
   .dbx-form{gap:12px;margin-top:0;}
   .plan-edit-sheet .dbx-grp{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line-soft);}

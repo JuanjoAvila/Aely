@@ -38,7 +38,8 @@ test("la barra dice Libre y la hoja reparte cada euro: los porcentajes suman 100
   await expect(barra).toContainText("Libre");
   await expect(barra).toContainText(/1\.245,00/);
   await expect(barra).toContainText(/Entran 3\.000,00/);
-  expect(await barra.locator(".rpt-pb > i").count()).toBeGreaterThanOrEqual(5);
+  // La línea ya no lleva barra segmentada: el reparto está en la hoja.
+  await expect(barra.locator(".rpt-pb")).toHaveCount(0);
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toBeVisible();
@@ -63,9 +64,10 @@ test("sin nómina: «—», sin Libre ni porcentajes", async ({ page }) => {
   const barra = page.getByTestId("plan-reparto-barra");
   await expect(barra).toHaveAttribute("data-st", "wait");
   await expect(barra).toContainText("—");
-  await expect(barra).toContainText("Falta tu nómina");
+  await expect(barra).not.toContainText("Falta tu nómina");
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
+  await expect(hoja).toContainText("Falta tu nómina");
   await expect(hoja.locator('.rpt-row[data-k="lib"]')).toHaveCount(0);
   const ps = await hoja.locator(".rpt-row[data-k]").evaluateAll((els) => els.map((e) => e.dataset.p));
   expect(ps.every((p) => p === "")).toBe(true);
@@ -78,10 +80,13 @@ test("te faltan: sin signo, y el saldo lo cubre o no llega", async ({ page }) =>
   await expect(barra).toContainText("Te faltan");
   await expect(barra).toContainText(/255,00/);
   await expect(barra).not.toContainText("−");
-  await expect(barra).toContainText("Si gastas todo el presupuesto");
-  await expect(barra).toContainText("tu saldo lo cubre");
+  // Ni barra ni frase en la línea: la frase se queda dentro de la hoja.
+  await expect(barra).not.toContainText("Si gastas todo el presupuesto");
+  await expect(barra).not.toContainText("tu saldo lo cubre");
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
+  await expect(hoja).toContainText("Si gastas todo el presupuesto");
+  await expect(hoja).toContainText("tu saldo lo cubre");
   await expect(hoja.locator("[data-queda]")).toBeVisible();
   await expect(hoja.locator('.rpt-row[data-k="short"] .rpt-am')).toContainText(/255,00/);
 });

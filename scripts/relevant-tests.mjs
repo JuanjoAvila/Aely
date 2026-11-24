@@ -71,9 +71,10 @@ export const E2E_MAP = [
   // Plan › barra de reparto, hoja «A dónde va tu sueldo», Deudas y Metas nuevas con ficha, escalera e interruptor
   // «Restar del presupuesto» (motor en 17, pantallas en 18; las listas viven en 09 y la barra en 14).
   { file: "src/modules/17-plan-reparto.js", specs: ["e2e/plan-reparto.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-cabecera-cifras.spec.mjs"] },
-  { file: "src/modules/18-plan-deudas-metas.js", specs: ["e2e/plan-cabecera-cifras.spec.mjs"] },
-  { file: "src/shell.html", specs: ["e2e/plan-cabecera-cifras.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-cabecera-cifras.spec.mjs", "e2e/plan-cabecera-limpia.spec.mjs"] },
+  { file: "src/modules/18-plan-deudas-metas.js", specs: ["e2e/plan-cabecera-cifras.spec.mjs", "e2e/plan-cabecera-limpia.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-cabecera-limpia.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-cabecera-cifras.spec.mjs", "e2e/plan-cabecera-limpia.spec.mjs"] },
   { file: "src/modules/18-plan-deudas-metas.js", specs: ["e2e/plan-reparto.spec.mjs"] },
   { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/plan-reparto.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-reparto.spec.mjs"] },
