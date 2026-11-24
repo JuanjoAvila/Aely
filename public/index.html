@@ -34525,13 +34525,15 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     );
   }
   // Recuperación: poner contraseña nueva (se llega desde el enlace del email; ya hay sesión temporal).
+  // Cancelar en «Nueva contraseña»: verifyOtp/enlace ya dejaron sesión; sin cambiarla no se queda abierta (revisión SEG-22).
+  const cancelNew=function(){ cloud.signOut().then(onClose,onClose); };
   if(mode==="newpass"){
-    return React.createElement("div",{style:overlay,onClick:onClose},
+    return React.createElement("div",{style:overlay,onClick:cancelNew},
       React.createElement("div",{style:card,onClick:stop},
         React.createElement("div",{style:{fontWeight:700,fontSize:"17px",marginBottom:"14px"}}, t("au_newpass_title")),
         React.createElement("input",{style:inp,type:"password",placeholder:t("au_pass"),value:pass,autoComplete:"new-password",onChange:function(e){ setPass(e.target.value); }}),
         React.createElement("button",{style:btn,disabled:busy,onClick:saveNewPass}, busy?"…":t("au_newpass_save")),
-        React.createElement("button",{style:link,onClick:onClose},t("au_cancel"))
+        React.createElement("button",{style:link,onClick:cancelNew},t("au_cancel"))
       )
     );
   }
