@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
 
-/* PLAN › RECIBOS: la cabecera conserva su diseño y, al tocarla, se despliega «Tu mes en cifras» (diseño
-   plan-mezcla): desglose por tipo, saldo contra lo que queda y aviso «te faltan» DENTRO de la hoja
-   (la flecha de la cabecera ya no lleva puntito). Cifras inventadas; reloj del 26/09/2026. */
+/* PLAN › RECIBOS: la cabecera conserva su diseño y, al tocarla, abre la MISMA hoja «A dónde va tu sueldo» que la
+   línea de arriba (cascada + «lo que aún queda por pagar»); la flecha no lleva puntito. Cifras inventadas; reloj del 26/09/2026. */
 const YM = 2026 * 12 + 8;
 const settings = { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell"] };
 const accounts = [{ id: "sb", ent: "sabadell", name: "Cuenta", value: 2380, role: "diario", spendFrom: true }];
@@ -30,7 +29,7 @@ const captura = async (page, nombre) => {
   if (process.env.CAPTURAS) await page.screenshot({ path: process.env.CAPTURAS + "/" + nombre + ".png" });
 };
 
-test("tocar la cabecera abre la hoja con el desglose y se cierra con Esc, scrim y asa", async ({ page }) => {
+test("tocar la cabecera abre la hoja de la cascada y se cierra con Esc, scrim y asa", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await abrePlan(page, base(3000), process.env.TEMA);
   const tap = page.getByTestId("plan-cifras");
@@ -41,22 +40,21 @@ test("tocar la cabecera abre la hoja con el desglose y se cierra con Esc, scrim 
   await expect(tap.locator(".pr6-sum-dot")).toHaveCount(0);
   await captura(page, "cabecera-cerrada-" + (process.env.TEMA || "oscuro"));
   await tap.click();
-  const hoja = page.getByTestId("plan-mes-hoja");
+  const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toBeVisible();
   await expect(hoja).toHaveAttribute("aria-modal", "true");
-  expect(await page.evaluate(() => document.getElementById("root").hasAttribute("inert"))).toBe(true);
-  await expect(page.getByTestId("plan-mes-queda")).toContainText(/\d/);
-  await expect(hoja.locator('.rpt-kv[data-k="rec"]')).toContainText("Recibos");
-  await expect(hoja.locator('.rpt-kv[data-k="deu"]')).toContainText("Deudas");
-  await expect(hoja.locator('.rpt-kv[data-k="gas"]')).toContainText("Gastos");
-  await expect(hoja.locator('.rpt-kv[data-k="aho"]')).toContainText("Ahorro");
-  await expect(page.getByTestId("plan-mes-aviso")).toHaveCount(0);
-  await expect(page.getByTestId("plan-mes-estado")).toContainText(/Tu saldo/);
+  await expect(page.getByTestId("plan-reparto-entra")).toContainText(/\d/);
+  await expect(hoja.locator('.cas-row[data-k="rec"]')).toContainText("Recibos");
+  await expect(hoja.locator('.cas-row[data-k="deu"]')).toContainText("Deudas");
+  await expect(hoja.locator('.cas-row[data-k="gas"]')).toContainText("Gastos");
+  await expect(hoja.locator('.cas-row[data-k="aho"]')).toContainText("Ahorro");
+  await expect(page.getByTestId("plan-reparto-res")).toContainText("Te sobran");
+  await expect(page.getByTestId("plan-reparto-pend")).toContainText("Lo que aún queda por pagar este mes");
+  await expect(hoja).not.toContainText("Ver banco a banco");
   await page.waitForTimeout(500);
   await captura(page, "hoja-abierta-" + (process.env.TEMA || "oscuro"));
   await page.keyboard.press("Escape");
   await expect(hoja).toHaveCount(0);
-  expect(await page.evaluate(() => document.getElementById("root").hasAttribute("inert"))).toBe(false);
   // Y el scrim también cierra
   await tap.click();
   await expect(hoja).toBeVisible();
@@ -64,17 +62,18 @@ test("tocar la cabecera abre la hoja con el desglose y se cierra con Esc, scrim 
   await expect(hoja).toHaveCount(0);
 });
 
-test("si los ingresos no llegan al plan, el aviso va dentro de la hoja y la flecha NO lleva punto", async ({ page }) => {
+test("si los ingresos no llegan al plan, el resultado de la hoja es «Te faltan» y la flecha NO lleva punto", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await abrePlan(page, base(300), process.env.TEMA);
   const tap = page.getByTestId("plan-cifras");
   await expect(tap.locator(".pr6-sum-dot")).toHaveCount(0);
-  await expect(tap).toHaveAttribute("aria-label", /te faltan/);
+  await expect(tap).toHaveAttribute("aria-label", /Te faltan/);
   // La cifra de la cabecera queda limpia: el aviso no se pinta debajo
   await expect(page.getByTestId("plan-summary").getByText(/te faltan/i)).toHaveCount(0);
   await captura(page, "cabecera-aviso-" + (process.env.TEMA || "oscuro"));
   await tap.click();
-  await expect(page.getByTestId("plan-mes-aviso")).toContainText(/te faltan .*€/);
+  await expect(page.getByTestId("plan-reparto-res")).toContainText(/Te faltan/);
+  await expect(page.getByTestId("plan-reparto-cifra")).toContainText(/€/);
   await page.waitForTimeout(500);
   await captura(page, "hoja-aviso-" + (process.env.TEMA || "oscuro"));
 });

@@ -30,7 +30,7 @@ async function abrePlan(page, estado) {
 }
 const barraTexto = (page) => page.getByTestId("plan-reparto-barra").innerText();
 
-test("la barra dice Libre y la hoja reparte cada euro: los porcentajes suman 100", async ({ page }) => {
+test("la línea dice Libre y la hoja resta cada destino de lo que entra", async ({ page }) => {
   await abrePlan(page, base());
   const barra = page.getByTestId("plan-reparto-barra");
   await expect(barra).toHaveAttribute("data-st", "normal");
@@ -43,23 +43,21 @@ test("la barra dice Libre y la hoja reparte cada euro: los porcentajes suman 100
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toBeVisible();
-  const ks = await hoja.locator(".rpt-row[data-k]").evaluateAll((els) => els.map((e) => [e.dataset.k, e.dataset.p]));
-  expect(ks.map((k) => k[0])).toEqual(["rec", "deu", "met", "aho", "gas", "lib"]);
-  expect(ks.reduce((a, k) => a + Number(k[1]), 0)).toBe(100);
-  await expect(hoja.locator('.rpt-row[data-k="rec"] .rpt-am')).toContainText(/95,00/);
-  await expect(hoja.locator('.rpt-row[data-k="deu"] .rpt-am')).toContainText(/260,00/);
-  await expect(hoja.locator('.rpt-row[data-k="met"] .rpt-am')).toContainText(/300,00/);
-  await expect(hoja.locator('.rpt-row[data-k="gas"] .rpt-sub')).toContainText(/120,50/);
-  await expect(hoja.locator('.rpt-row[data-k="lib"] .rpt-am')).toContainText(/1\.245,00/);
-  // Sin faltar dinero no hay bloque de «Queda por pagar».
-  await expect(hoja.locator("[data-queda]")).toHaveCount(0);
+  const ks = await hoja.locator(".cas-row[data-k]").evaluateAll((els) => els.map((e) => e.dataset.k));
+  expect(ks).toEqual(["rec", "deu", "met", "aho", "gas"]);
+  await expect(hoja.locator('.cas-row[data-k="rec"] .cas-am')).toContainText(/95,00/);
+  await expect(hoja.locator('.cas-row[data-k="deu"] .cas-am')).toContainText(/260,00/);
+  await expect(hoja.locator('.cas-row[data-k="met"] .cas-am')).toContainText(/300,00/);
+  await expect(hoja.locator('.cas-row[data-k="gas"] .cas-sub')).toContainText(/120,50/);
+  await expect(page.getByTestId("plan-reparto-res")).toContainText("Te sobran");
+  await expect(page.getByTestId("plan-reparto-cifra")).toContainText(/1\.245,00/);
   // Tocar Deudas lleva a su pestaña y cierra la hoja.
-  await hoja.locator('.rpt-row[data-k="deu"]').click();
+  await hoja.locator('.cas-row[data-k="deu"]').click();
   await expect(hoja).toHaveCount(0);
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
 });
 
-test("sin nómina: «—», sin Libre ni porcentajes", async ({ page }) => {
+test("sin nómina: «—» y sin resultado", async ({ page }) => {
   await abrePlan(page, base({ expenses: [gasto("g1", 5, 120.5)], flows: [{ id: "f1", kind: "income", name: "Nómina", amount: 3000, day: 3, to: "sabadell" }] }));
   const barra = page.getByTestId("plan-reparto-barra");
   await expect(barra).toHaveAttribute("data-st", "wait");
@@ -68,9 +66,8 @@ test("sin nómina: «—», sin Libre ni porcentajes", async ({ page }) => {
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toContainText("Falta tu nómina");
-  await expect(hoja.locator('.rpt-row[data-k="lib"]')).toHaveCount(0);
-  const ps = await hoja.locator(".rpt-row[data-k]").evaluateAll((els) => els.map((e) => e.dataset.p));
-  expect(ps.every((p) => p === "")).toBe(true);
+  await expect(page.getByTestId("plan-reparto-entra")).toHaveText("—");
+  await expect(page.getByTestId("plan-reparto-cifra")).toHaveCount(0);
 });
 
 test("te faltan: sin signo, y el saldo lo cubre o no llega", async ({ page }) => {
@@ -82,13 +79,14 @@ test("te faltan: sin signo, y el saldo lo cubre o no llega", async ({ page }) =>
   await expect(barra).not.toContainText("−");
   // Ni barra ni frase en la línea: la frase se queda dentro de la hoja.
   await expect(barra).not.toContainText("Si gastas todo el presupuesto");
-  await expect(barra).not.toContainText("tu saldo lo cubre");
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
-  await expect(hoja).toContainText("Si gastas todo el presupuesto");
-  await expect(hoja).toContainText("tu saldo lo cubre");
-  await expect(hoja.locator("[data-queda]")).toBeVisible();
-  await expect(hoja.locator('.rpt-row[data-k="short"] .rpt-am')).toContainText(/255,00/);
+  await expect(page.getByTestId("plan-reparto-res")).toContainText("Te faltan");
+  await expect(page.getByTestId("plan-reparto-cifra")).toContainText(/255,00/);
+  // El saldo cubre lo que queda por pagar: va en su sección aparte, no en el resultado.
+  const pend = page.getByTestId("plan-reparto-pend");
+  await expect(pend).toContainText("Lo que aún queda por pagar este mes");
+  await expect(pend).toContainText("Te quedaría");
 });
 
 test("Deudas: cabecera, filas, ficha con escalera e interruptor que mueve dinero de Gastos a Libre", async ({ page }) => {
@@ -173,12 +171,13 @@ test("Metas: cabecera, filas con su previsión de siempre y ficha con aportar, e
   await expect(page.locator(".v4-apuntar-amt")).toBeVisible();
 });
 
-test("Mi ciclo: la barra y la hoja siguen cuadrando", async ({ page }) => {
+test("Mi ciclo: la línea y la hoja siguen cuadrando", async ({ page }) => {
   await abrePlan(page, base({ settings: { ...settings, budgetCycle: true }, expenses: [{ ...nomina, date: "2026-09-14T10:00:00.000Z" }, gasto("g1", 16, 120.5)] }));
   const barra = page.getByTestId("plan-reparto-barra");
   await expect(barra).toContainText("Libre");
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
-  const ks = await hoja.locator(".rpt-row[data-k]").evaluateAll((els) => els.map((e) => Number(e.dataset.p)));
-  expect(ks.reduce((a, k) => a + k, 0)).toBe(100);
+  const cts = await hoja.locator(".cas-row[data-c]").evaluateAll((els) => els.map((e) => Number(e.dataset.c)));
+  expect(cts.length).toBeGreaterThan(0);
+  await expect(page.getByTestId("plan-reparto-res")).toContainText("Te sobran");
 });

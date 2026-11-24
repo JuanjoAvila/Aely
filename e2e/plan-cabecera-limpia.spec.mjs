@@ -35,7 +35,7 @@ const captura = async (page, nombre) => {
 const top = (loc) => loc.evaluate((e) => e.getBoundingClientRect().top);
 const bottom = (loc) => loc.evaluate((e) => e.getBoundingClientRect().bottom);
 
-test("la línea de arriba va sin barra ni frase y la hoja las conserva", async ({ page }) => {
+test("la línea de arriba va sin barra ni frase y la hoja es la cascada", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await abrePlan(page, base(300), process.env.TEMA);
   const barra = page.getByTestId("plan-reparto-barra");
@@ -49,13 +49,14 @@ test("la línea de arriba va sin barra ni frase y la hoja las conserva", async (
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toBeVisible();
-  await expect(hoja.locator(".rpt-pb")).toHaveCount(1);
-  await expect(hoja).toContainText("Si gastas todo el presupuesto");
+  await expect(hoja.locator(".cas-row")).not.toHaveCount(0);
+  await expect(page.getByTestId("plan-reparto-res")).toContainText("Te faltan");
   await hoja.locator(".rpt-sx").click();
   await expect(hoja).toHaveCount(0);
-  // El aviso del punto vive dentro de «Tu mes en cifras».
+  // La flecha de Recibos abre ESTA misma hoja (no una segunda).
   await page.getByTestId("plan-cifras").click();
-  await expect(page.getByTestId("plan-mes-aviso")).toContainText(/te faltan .*€/);
+  await expect(page.getByTestId("plan-reparto-hoja")).toBeVisible();
+  await expect(page.getByTestId("plan-mes-hoja")).toHaveCount(0);
 });
 
 test("las pestañas van debajo de la tarjeta resumen en Recibos, Deudas y Metas y siguen cambiando de vista", async ({ page }) => {
@@ -77,16 +78,15 @@ test("las pestañas van debajo de la tarjeta resumen en Recibos, Deudas y Metas 
   await expect(page.getByTestId("plan-summary")).toBeVisible();
 });
 
-test("Tu mes en cifras: Deudas va en verde (no amarillo) en la barra y su leyenda", async ({ page }) => {
+test("A dónde va tu sueldo: Deudas va en verde (no amarillo) en su leyenda", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await abrePlan(page, base(3000), process.env.TEMA);
   await page.getByTestId("plan-cifras").click();
-  const hoja = page.getByTestId("plan-mes-hoja");
+  const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toBeVisible();
   const col = (loc) => loc.evaluate((e) => getComputedStyle(e).backgroundColor);
   const verde = await page.evaluate(() => { const d = document.createElement("i"); d.style.background = "var(--mint)"; document.body.appendChild(d); const c = getComputedStyle(d).backgroundColor; d.remove(); return c; });
-  expect(await col(hoja.locator('.rpt-kv[data-k="deu"] .rpt-sw'))).toBe(verde);
-  expect(await col(hoja.locator(".rpt-pb.lg i").nth(1))).toBe(verde);
+  expect(await col(hoja.locator('.cas-row[data-k="deu"] .rpt-sw'))).toBe(verde);
   await captura(page, "hoja-cifras-" + (process.env.TEMA || "oscuro"));
 });
 

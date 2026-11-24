@@ -230,7 +230,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   /* DESLIZAR VERTICAL PARA CAMBIAR DE SEGMENTO (petición 2026-08-03: «no depender de la otra
      mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
      `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
-  const planScreenRef=useRef(null);
+  const planScreenRef=useRef(null), repartoRef=useRef(null);
   const entradaRef=useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
     capa:function(id){ return segElRef.current[id]; },
     alPasar:function(nextId){
@@ -343,7 +343,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       )
     ),
     // La barra fina del reparto (prototipo aprobado): el estado de lo que entra y a dónde va, siempre a la vista.
-    !simple && React.createElement(RptBarra,{state:state,totals:totals,onJump:function(id){
+    !simple && React.createElement(RptBarra,{state:state,totals:totals,openRef:repartoRef,onJump:function(id){
       setSegMounted(function(m){ return m[id]?m:Object.assign({},m,{[id]:true}); });
       setSeg(id);
       requestAnimationFrame(function(){
@@ -354,7 +354,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
-          tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
+          onAbrirReparto:function(){ if(repartoRef.current) repartoRef.current(true); },tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
           foco:focoRecibo,clearFoco:function(){ setFocoRecibo(null); }})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast,tabs:seg==="deudas"?planTabs:null})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta,tabs:seg==="metas"?planTabs:null})),
@@ -739,7 +739,7 @@ function pr6FrescuraTxt(ms, now){
 function reponerBases(accounts, cuentas){
   return (accounts||[]).map(function(a){ const c=cuentas.find(function(x){ return x.id===a.id; }); return c?conValor(a,c.antes):a; });
 }
-function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay, foco, clearFoco, tabs}){
+function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setManageOpen, manageEdit, setManageEdit, showToast, onGoDebts, activo, onEditDebtDay, foco, clearFoco, tabs, onAbrirReparto}){
   const [revOpen,setRevOpen]=useState(false);
   const [dueOpen,setDueOpen]=useState(false);
   const [paidOpen,setPaidOpen]=useState(false);
@@ -771,7 +771,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     undoFicha&&React.createElement(BillUndoToast,{onUndo:function(){ if(fichaUndo.undo(undoFicha)!==false) setUndoFicha(null); }}),
     avisoFicha&&React.createElement(BillUndoToast,{notice:avisoFicha}));
   // Las hojas de «¿Te llega?» y «Te deben» guardan su abierto/cerrado en `Pr6HojaHost`: abrirlas no repinta Recibos.
-  const llegaHost=useRef(null), debenHost=useRef(null), cifrasHost=useRef(null);
+  const llegaHost=useRef(null), debenHost=useRef(null);
   const paidRef=useRef(null), entRef=useRef(null);
   const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
   const [deshacer,setDeshacer]=useState(null);
@@ -1146,8 +1146,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         ? React.createElement(React.Fragment,null,
           React.createElement("div",{className:"serif num pr6-big"}, eur(sigPack.pendingBillsTotal)),
           sigN>0&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, tf(sigN===1?"pr6_count_one":"pr6_count",{n:sigN})))
-        // Tocar cifra y cuenta abre «Tu mes en cifras»; el desglose es del mes en curso, no del siguiente.
-        : React.createElement(PlanMesTap,{state:state,totals:totals,onOpen:function(){ if(cifrasHost.current) cifrasHost.current(true); }},
+        // Tocar cifra y cuenta abre «A dónde va tu sueldo», la misma hoja que la línea de arriba; es del mes en curso, no del siguiente.
+        : React.createElement(PlanMesTap,{state:state,totals:totals,onOpen:onAbrirReparto},
           React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
           countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine)),
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
@@ -1288,8 +1288,6 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
         React.createElement("div",Object.assign({className:"pr6-fold-in"},plegado(entOpen)), flowsDone.map(entRow))))),
     importar,
     React.createElement(Pr6HojaHost,{hostRef:llegaHost,render:function(cerrar){ return React.createElement(LlegaSheet,{state:state,set:set,totals:totals,pack:pack,onClose:cerrar}); }}),
-    React.createElement(Pr6HojaHost,{hostRef:cifrasHost,render:function(cerrar){ return React.createElement(PlanMesHoja,{state:state,totals:totals,mes:monthLong(month-1),onClose:cerrar,
-      onBanco:llega&&nPend>0?function(){ cerrar(); setTimeout(function(){ if(llegaHost.current) llegaHost.current(true); },380); }:null}); }}),
     React.createElement(Pr6HojaHost,{hostRef:debenHost,render:function(cerrar){ return React.createElement(TeDebenSheet,{state:state,set:set,totals:totals,deben:deben,onClose:cerrar}); }}),
     // El aviso flota 5 s sobre el final de la lista (medido: cubría 32 px de «Ya pagados» sin poder subirlo con el scroll): mientras está, un hueco debajo deja subir lo último.
     deshacer&&React.createElement("div",{className:"pr6-toast-pad","aria-hidden":"true"}),
