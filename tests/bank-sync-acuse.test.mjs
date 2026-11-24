@@ -249,6 +249,19 @@ await t("N2 carrera entre dos móviles: un acuse más viejo que lo que el otro a
   }
 });
 
+await t("DIN-04 marcador de pendiente DEL MISMO DIA que el acuse: el acuse verdadero lo sustituye (igualdad), no se queda atascado", async () => {
+  // El marcador vive al final de su dia, por delante de «ahora» si es hoy: una escritura por `lt` no entra y el
+  // enlace quedaria con tramo pendiente para siempre. Y un acuse de un dia ANTERIOR al pendiente no puede sustituirlo.
+  const bank = banco();
+  const marcador = NOW.slice(0, 10) + "T23:59:59.998Z";
+  const link = enlace(marcador);
+  await llama(NUEVA, link, bank, { recoverGaps: true, acks: { CaixaBank: NOW + "|" + K1 } });
+  assert.equal(link.last_sync, NOW, "el acuse de hoy sustituye al marcador de hoy");
+  const link2 = enlace(marcador);
+  await llama(NUEVA, link2, bank, { recoverGaps: true, acks: { CaixaBank: haceDias(3) + "|" + K1 } });
+  assert.notEqual(link2.last_sync, haceDias(3), "un acuse de antes del dia pendiente no lo pisa");
+});
+
 await t("N2 ventana que no cabe en los topes, con cliente de acuse: DIN-04 deja tramo pendiente (sin acuse) y acaba acusando ahora, sin quedarse quieto", async () => {
   // Páginas de 3 filas: la ventana del mes pasa de las 12 llamadas (y un día suelto cabe). Un día que por sí solo no
   // cabe en 12 páginas deja el tramo quieto, como siempre (límite conocido, ver banco-sintetico). Antes se acusaba «ahora» de golpe
