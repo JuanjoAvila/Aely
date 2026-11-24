@@ -5032,8 +5032,10 @@ function budgetRowSigned(e, state, period, delSet){
    banco del día a día y no es la nómina: en el mes natural, la nómina es un ingreso ≥200 € que reconoce `esNomina`
    (un Bizum no lo es nunca); en Mi ciclo, solo la que abre el ciclo (`cicloInc`). UNA regla para Gastos y Plan. */
 function esOtroIngresoDeGastos(e, state, flows, cicloInc, ciclo){
-  if(!(e.amount<0)||!expenseCountsBudget(e,state)) return false;
-  if(ciclo) return e!==cicloInc;
+  if(!(e.amount<0)) return false;
+  // Mi ciclo: como `budgetRowSigned`, cualquier ingreso real de cualquier banco (menos el que abre el ciclo).
+  if(ciclo) return e!==cicloInc&&!CAT_NEUTRAS[e.category]&&!traspasoPropioDerivado(e,state);
+  if(!expenseCountsBudget(e,state)) return false;
   return !(e.amount<=-200 && e.category!=="bizum" && esNomina(e,flows));
 }
 /* Misma cifra en Gastos e Inicio; el widget pide mes explícito (2026-09-28).

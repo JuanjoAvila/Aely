@@ -56,6 +56,20 @@ const SUITE=[
   assert.equal(Math.round(mb.remaining*100),r.presupuesto-r.gastado,"y el Plan dice lo mismo");
   const ds=c.dashboardBudgetStats(s);assert.equal(+ds.remaining.toFixed(2),84.79,"Inicio también");
 }],
+["Un ingreso en un banco que no es del día a día no netea (mes natural); en Mi ciclo sí, como Gastos",()=>{
+  const otro=mov("o1",20,-500,{merchant:"Venta de un mueble",ent:"bbva"});
+  const b=base({expenses:base().expenses.concat([otro]),accounts:base().accounts.concat([{ent:"bbva",role:"ahorro",value:10}])});
+  const r=c.planReparto(b,{});
+  assert.equal(r.neteo,0);assert.equal(r.gastado,18050);assert.equal(r.entra,300000+50000);
+  const cy=Object.assign({},b,{settings:{expenseBanks:["sabadell"],budgetCycle:true},expenses:[mov("n1",14,-3000,{merchant:"Nómina Empresa SL"}),mov("gh",16,400,{category:"super"}),mov("o1",18,-500,{merchant:"Venta",ent:"bbva"})]});
+  const rc=c.planReparto(cy,{}),mb=c.monthBudgetStats(cy);
+  assert.equal(rc.neteo,40000,"neteo hasta lo gastado");assert.equal(rc.gastado,0);
+  assert.ok(mb.against<=0,"Gastos ciclo: el ingreso de otro banco también devuelve margen");
+}],
+["Una devolución mayor que lo gastado no deja gastado negativo",()=>{
+  const r=c.planReparto(base({expenses:base().expenses.concat([mov("v1",9,-900,{merchant:"Devolución pedido"})])}),{});
+  assert.equal(r.gastado,0);
+}],
 ];
 let fallos=0;
 for(const [n,f] of SUITE){ try{ f(); console.log("✓ "+n); }catch(e){ fallos++; console.log("✗ "+n+"\n   "+e.message); } }
