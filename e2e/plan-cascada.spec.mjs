@@ -44,6 +44,7 @@ test("sobra dinero: las líneas suman el plan y entra − plan = «Te sobran», 
   const barra = page.getByTestId("plan-reparto-barra");
   const cab = cts(await barra.locator(".rpt-lb-a").innerText());
   await barra.click();
+  if (process.env.CAPTURAS) { await page.waitForTimeout(700); await page.screenshot({ path: process.env.CAPTURAS + "/cascada-sobran-" + (process.env.TEMA || "oscuro") + ".png" }); }
   const x = await lee(page);
   expect(x.filas.map((f) => f.k)).toEqual(["rec", "deu", "met", "aho", "gas"]);
   // Lo que se pinta es lo que se suma: cada importe del DOM = su céntimo, con signo menos.
@@ -63,6 +64,7 @@ test("faltan dinero: «Te faltan» = plan − entra, igual que la cabecera, y si
   await expect(barra).toContainText("Te faltan");
   const cab = cts(await barra.locator(".rpt-lb-a").innerText());
   await barra.click();
+  if (process.env.CAPTURAS) { await page.waitForTimeout(700); await page.screenshot({ path: process.env.CAPTURAS + "/cascada-faltan-" + (process.env.TEMA || "oscuro") + ".png" }); }
   const x = await lee(page);
   const plan = x.filas.reduce((a, f) => a + f.c, 0);
   expect(x.signo).toBe(-1);
