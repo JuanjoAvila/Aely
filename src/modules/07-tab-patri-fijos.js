@@ -293,8 +293,6 @@ function AssetSheet({asset,set,onClose}){
   const [name,setName]=useState(asset.name||"");
   const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
   const [kind,setKind]=useState(asset.kind||"piso");
-  const swipe=useSheetSwipe(true,onClose);
-  useBackClose(true,swipe.close);
   const amount=Number(raw.replace(",","."));
   const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
   const save=function(){
@@ -307,30 +305,28 @@ function AssetSheet({asset,set,onClose}){
       const assets=asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next);
       return Object.assign({},s,{assets:assets,assetValueHistory:recordAssetValues(s.assetValueHistory,netWorthDay(),assets,s.assets,asset.id?null:next.id)});
     });
-    onClose();
+    cerrar();
   };
+  const closer=useRef(null);
+  const cerrar=function(){ if(closer.current) closer.current(); else onClose(); };
   const remove=function(){
     askConfirm({title:tf("goods_delete_q",{name:asset.name}),sub:t("goods_delete_sub"),ok:t("goods_delete")}).then(function(ok){
       if(!ok) return;
       set(function(s){ return Object.assign({},s,{assets:(s.assets||[]).filter(function(a){ return a.id!==asset.id; })}); });
-      onClose();
+      cerrar();
     });
   };
-  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back",onClick:onClose},
-    React.createElement("div",Object.assign({className:"tabsheet",role:"dialog","aria-modal":true,"aria-label":t(asset.id?"v4_edit_goods":"goods_add"),ref:swipe.sheetRef,onClick:function(e){e.stopPropagation();}},swipe.sheetTouch),
-      React.createElement("div",{className:"v4-sheet-handle"}),
-      React.createElement("h2",{className:"serif"},t(asset.id?"v4_edit_goods":"goods_add")),
-      React.createElement("div",{className:"add-form"},
-        React.createElement("label",null,t("goods_name"),React.createElement("input",{className:"af-in",value:name,onChange:function(e){setName(e.target.value);}})),
-        React.createElement("label",null,t("goods_value"),React.createElement("input",{className:"af-in num",inputMode:"decimal",value:raw,"aria-invalid":!!raw&&!valid,onChange:function(e){setRaw(e.target.value);}})),
-        React.createElement("div",{className:"row"},["piso","coche"].map(function(k){return React.createElement("button",{type:"button",className:"chip"+(kind===k?" active":""),key:k,"aria-pressed":kind===k,onClick:function(){setKind(k);}},t(k==="piso"?"goods_home":"goods_car"));})),
-        !valid&&React.createElement("div",{className:"hint"},t("goods_invalid")),
-        React.createElement("div",{className:"row"},
-          React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:onClose},t("fj_cancel")),
-          React.createElement("button",{type:"button",className:"btn btn-primary",disabled:!valid,onClick:save},t("save"))),
-        asset.id&&React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:remove},t("goods_delete"))
-      )
-    )),document.body);
+  // Mismo cascarón que Añadir recibo (`AddHoja`): el valor es la cifra grande con su teclado; vivienda o vehículo, como los modos de un recibo.
+  return React.createElement(AddHoja,{title:t(asset.id?"v4_edit_goods":"goods_add"),onClose:onClose,closer:closer,attr:"data-asset-field",testid:"asset-sheet",
+    name:name,setName:setName,namePh:t("goods_name"),amtKey:"value",amtLabel:t("goods_value"),vals:{value:raw},
+    setVals:function(fn){ setRaw(function(r){ return fn({value:r}).value; }); },cells:[],
+    ctaOn:!!valid,ctaLabel:t("save"),onSave:save,
+    del:asset.id?{label:t("goods_delete"),onClick:remove}:null,
+    notes:!!raw&&!valid&&React.createElement("div",{className:"hint"},t("goods_invalid"))},
+    React.createElement("div",{className:"rp4-modes",role:"radiogroup"},["piso","coche"].map(function(k){
+      const on=kind===k;
+      return React.createElement("button",{type:"button",role:"radio","aria-checked":on?"true":"false",key:k,className:"rp4-mode"+(on?" on":""),"data-asset-kind":k,onClick:function(){ setKind(k); }},t(k==="piso"?"goods_home":"goods_car"));
+    })));
 }
 
 /* Trozos de una subfila («Recibos», «Sabadell», «falta su parte») separados por «·», en Plan ›

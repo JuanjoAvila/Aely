@@ -1417,6 +1417,27 @@
   .rp4-foot{flex:none;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
   .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
   .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
+  /* Hojas de alta de una pantalla (Añadir deuda, Nueva meta, Añadir bien): el cascarón de Añadir recibo con un solo
+     carril. Importe protagonista, celdas compactas que se teclean con el mismo teclado, lo opcional plegado. */
+  .rpa-in{padding:0 20px 12px;display:flex;flex-direction:column;gap:14px;}
+  .rpa-t{flex:1;min-width:0;overflow-wrap:anywhere;}
+  .rpa-name{display:flex;align-items:center;gap:8px;}
+  .rpa-name .rp4-name{flex:1;min-width:0;}
+  .rpa-amt{background:none;border:0;color:var(--text);cursor:pointer;}
+  .rpa-ph{color:var(--muted-2);}
+  .rpa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rpa-cell{display:flex;flex-direction:column;gap:2px;min-height:56px;min-width:0;padding:8px 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface);
+    color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s ease,background .2s ease;}
+  .rpa-cell.on{border-color:var(--mint);background:var(--surface-2);}
+  .rpa-cell.wide{grid-column:1/-1;}
+  .rpa-cell-l{font-size:12px;font-weight:600;color:var(--muted);}
+  .rpa-cell-v{font-size:15px;font-weight:700;overflow-wrap:anywhere;}
+  .rpa-cell-v.ph{color:var(--muted-2);font-weight:600;}
+  .rpa-more{gap:10px;}
+  .rpa-emo{flex:none;width:52px;height:52px;border-radius:16px;border:1px solid var(--line-soft);background:var(--bg);font-size:22px;line-height:1;cursor:pointer;}
+  .rpa-del{align-self:center;}
+  .rpa-cuentas .v4-chips{padding-bottom:0;margin-bottom:0;}
+  .rpa-cuentas .rpa-k{font-size:12px;margin-bottom:6px;}
   /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
   .pe-ava{width:38px;height:38px;flex:none;border-radius:19px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--text);transition:background .2s ease,color .2s ease,border-color .2s ease;}
@@ -1553,6 +1574,14 @@
   .pr6-flat .pr6-pill-v{font-size:15px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
   .pr6-flat .pr6-pill.ok .pr6-pill-v{color:var(--mint-ink,var(--mint));}
   .pr6-flat .pr6-pill.falta .pr6-pill-v{color:var(--coral);}
+  /* Recibos, Deudas y Metas llevan la misma cabecera MEDIDA igual (título, cifra, línea, tarjeta de dos celdas): las pestañas de
+     debajo no saltan al cambiar de segmento. La tarjeta guarda sitio para dos líneas de valor («Acaba antes: Préstamo… · jun 2029»). */
+  .pr6-flat .pr6-vista{gap:0;}
+  .pr6-sum.pr6-flat .pr6-big{line-height:1.15;}
+  .pr6-flat .pr6-sum-h,.rpt-hh{min-height:22px;}
+  .pr6-flat .pr6-pills,.rpt-facts.m{min-height:88px;}
+  .pr6-flat .pr6-pill{align-items:center;}
+  .pr6-flat button.pr6-sum-tap{row-gap:0;min-height:0;}
   /* A 360 px «QUEDA POR PAGAR EN NOVIE…» perdía el mes: mejor en dos renglones que cortado. */
   .pr6-sum-h .v4-micro{flex:1;min-width:0;line-height:1.45;}
   /* A 360 px «QUEDA POR PAGAR EN NOVIEMBRE» se iba a dos renglones (N7): más prieta cabe en uno;
@@ -3215,18 +3244,19 @@
   .rpt-sback{flex:none;width:44px;height:44px;margin-left:-12px;display:grid;place-items:center;background:none;border:0;color:inherit;cursor:pointer;}
   .rpt-sx{flex:none;width:44px;height:44px;margin:0 0 0 auto;display:grid;place-items:center;color:var(--muted);border-radius:12px;background:var(--surface);border:1px solid var(--line-soft);cursor:pointer;}
   .rpt-dico{flex:none;width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--muted);}
-  .rpt-sf{flex:none;display:flex;flex-wrap:wrap;gap:8px;padding:10px 18px calc(14px + var(--safe-bottom));border-top:1px solid var(--line-soft);background:var(--bg-2);}
+  .rpt-sf{flex:none;display:flex;flex-direction:column;gap:2px;padding:10px 18px calc(10px + var(--safe-bottom));border-top:1px solid var(--line-soft);background:var(--bg-2);}
   .rpt-sg{margin-top:12px;}
   .rpt-kv{display:flex;justify-content:space-between;gap:14px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line-soft);font-size:12.5px;color:var(--muted);}
   .rpt-kv b{color:var(--text);font-size:15px;font-weight:700;text-align:right;overflow-wrap:anywhere;min-width:0;}
   .rpt-bar{position:relative;height:6px;border-radius:3px;background:var(--track);margin-top:12px;}
   .rpt-bar i{display:block;height:100%;background:var(--mint);border-radius:3px;transition:width .45s var(--ease);}
-  .rpt-btn{flex:1 1 120px;min-height:48px;padding:8px 12px;border-radius:14px;text-align:center;font-size:14px;font-weight:800;background:var(--surface-2);color:var(--text);border:0;cursor:pointer;transition:transform .12s var(--ease),opacity .2s;}
+  .rpt-btn{min-height:48px;padding:8px 12px;border-radius:14px;text-align:center;font-size:15px;font-weight:800;background:var(--mint);color:var(--on-mint);border:0;cursor:pointer;transition:transform .12s var(--ease),opacity .2s;}
   .rpt-btn:active{transform:scale(.98);}
-  .rpt-btn.pri{background:var(--mint);color:var(--on-mint);}
-  .rpt-btn.wide{flex-basis:100%;}
-  .rpt-btn.del{flex:0 1 auto;background:none;color:var(--coral);font-weight:700;}
   .rpt-btn:disabled{opacity:.45;cursor:default;}
+  /* Editar y Eliminar: texto, en una línea centrada bajo la acción principal; Eliminar solo se distingue por el color. */
+  .rpt-sf-2{display:flex;justify-content:center;gap:28px;}
+  .rpt-lnk,.rpa-del{min-height:44px;padding:0 12px;border-radius:12px;border:0;background:none;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);}
+  .rpt-lnk.del,.rpa-del{color:var(--coral);}
   .rpt-rph .rpt-big{margin-top:2px;}
   .rpt-rph.neg .rpt-big{color:var(--coral);}
   .rpt-rp{font-size:13px;font-weight:700;margin-top:6px;}

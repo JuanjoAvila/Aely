@@ -2746,6 +2746,79 @@ function NumPad({value, onChange}){
   );
 }
 
+/* Hoja de alta de UNA pantalla (Añadir deuda, Nueva meta, Añadir bien): el cascarón y las piezas de
+   «Añadir recibo» (`.rp4`: cifra grande, teclado propio, chips, `Más datos` plegado y el botón de abajo)
+   con un solo campo protagonista y el resto en celdas compactas. Cada celda numérica se teclea con el
+   MISMO teclado: tocarla la elige y el teclado escribe en ella (nada de teclado del sistema, que tapaba
+   media hoja). Las celdas con `onTap` son de otro tipo (fecha) y las abre quien llama.
+   `vals` son los textos tal cual se teclean («1,5»): los validan y convierten quienes guardan. */
+function AddHoja(p){
+  const amtKey=p.amtKey, vals=p.vals, attr=p.attr||"data-rpa";
+  const [act,setAct]=useState(amtKey), [fresh,setFresh]=useState(!!vals[amtKey]), [mas,setMas]=useState(!!p.masOpen);
+  const freshRef=useRef(!!vals[amtKey]);
+  const swipe=useSheetSwipe(true,p.onClose); useBackClose(true,swipe.close);
+  if(p.closer) p.closer.current=swipe.close;
+  const sep=numDecSep();
+  const todas=p.cells.concat(p.more?p.more.cells:[]);
+  const pick=function(k){ const f=!!vals[k]; freshRef.current=f; setFresh(f); setAct(k); };
+  // Como en el importe de un recibo: el primer número que tecleas al elegir un campo con valor lo sustituye.
+  const teclea=function(fn){
+    const c=todas.find(function(x){ return x.key===act; }), entero=c&&c.kind==="int", fr=freshRef.current;
+    freshRef.current=false; setFresh(false);
+    p.setVals(function(o){
+      const nuevo=fr?fn(""):"";
+      let v=fr&&nuevo!==""?nuevo:fn(o[act]||"");
+      if(entero) v=v.replace(/[.,]/g,"");
+      return Object.assign({},o,{[act]:v});
+    });
+  };
+  const ver=function(raw){ return String(raw).replace(/[.,]/,sep); };
+  const celdaEl=function(c){
+    const numerica=!c.onTap, on=numerica?act===c.key:!!c.on, tiene=numerica?!!vals[c.key]:!!c.text;
+    return React.createElement("button",{type:"button",key:c.key,className:"rpa-cell"+(on?" on":"")+(c.wide?" wide":""),"aria-pressed":on?"true":"false",
+      [attr]:c.key,onClick:function(){ if(numerica) pick(c.key); else { setAct(null); c.onTap(); } }},
+      React.createElement("span",{className:"rpa-cell-l"}, c.label),
+      React.createElement("span",{className:"rpa-cell-v num"+(tiene?"":" ph")}, numerica?(tiene?ver(vals[c.key])+(c.unit?" "+c.unit:""):(c.ph||"—")):(c.text||"—")));
+  };
+  // Hasta tres celdas por fila: con más, a dos.
+  const grid=function(cs){ return React.createElement("div",{className:"rpa-grid",style:{gridTemplateColumns:"repeat("+(cs.length===3?3:2)+",minmax(0,1fr))"}}, cs.map(celdaEl)); };
+  const raw=vals[amtKey]||"";
+  return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({className:"v4-sheet pr6-ficha rp4 rpa",role:"dialog","aria-modal":true,"aria-label":p.title,"data-testid":p.testid||undefined,
+      ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"rp4-top"},
+        React.createElement("button",{type:"button",className:"pr6-back","aria-label":t("gl_cancel"),onClick:swipe.close},"‹"),
+        React.createElement("h2",{className:"rp4-h rpa-t"}, p.title)),
+      React.createElement("div",{className:"rp4-body"},
+        React.createElement("div",{className:"rpa-in"},
+          React.createElement("div",{className:"rpa-name"},
+            p.nameLead||null,
+            React.createElement("input",{className:"pr6-search rp4-name",[attr]:"name",value:p.name,placeholder:p.namePh,"aria-label":p.namePh,
+              // Con el teclado del sistema abierto el nuestro se pliega; al salir del nombre vuelve, sobre el importe.
+              onFocus:function(){ setAct(null); },onBlur:function(){ setAct(function(a){ return a||amtKey; }); },onChange:function(e){ p.setName(e.target.value); }})),
+          React.createElement("div",{className:"rp4-amt"},
+            React.createElement("span",{className:"rp4-dim"}, p.amtLabel),
+            React.createElement("button",{type:"button",className:"serif num rp4-amt-v rpa-amt"+(fresh&&act===amtKey&&raw?" fresh":""),[attr]:amtKey,"aria-label":p.amtLabel,
+              onClick:function(){ pick(amtKey); }}, raw?ver(raw)+" €":React.createElement("span",{className:"rpa-ph"},"0 €"))),
+          p.cells.length>0&&grid(p.cells),
+          p.children||null,
+          p.more&&React.createElement("div",{className:"rp5-mas"},
+            React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":mas?"true":"false","data-act":"mas-datos",onClick:function(){ setMas(!mas); }},
+              t("ah_mas"), pr6Chev()),
+            React.createElement("div",{className:"pr6-fold"+(mas?" open":"")},
+              React.createElement("div",Object.assign({className:"pr6-fold-in rpa-more"},mas?null:{"aria-hidden":"true",inert:""}),
+                grid(p.more.cells), p.more.children||null))),
+          React.createElement("div",{className:"pr6-fold"+(act?" open":"")},
+            React.createElement("div",Object.assign({className:"pr6-fold-in"},act?null:{"aria-hidden":"true",inert:""}),
+              React.createElement(NumPad,{value:act?(vals[act]||""):"",onChange:teclea}))),
+          p.notes||null,
+          p.del&&React.createElement("button",{type:"button",className:"rpa-del","data-act":"hoja-eliminar",onClick:p.del.onClick}, p.del.label))),
+      React.createElement("div",{className:"rp4-foot"},
+        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(p.ctaOn?"":" is-wait"),"data-act":"hoja-guardar","aria-disabled":p.ctaOn?"false":"true",
+          tabIndex:p.ctaOn?0:-1,onClick:function(){ if(p.ctaOn) p.onSave(); }}, p.ctaLabel)))),document.body);
+}
+
 /* Anatomía común de Apuntar y Modificar (rediseño v4.1). Si cada ficha compone por su cuenta
    cabecera, importe, metadatos y categorías, vuelven a separarse en cuanto se toca una de ellas;
    por eso estas piezas viven en el módulo compartido y ambos modos pasan exactamente por aquí. */

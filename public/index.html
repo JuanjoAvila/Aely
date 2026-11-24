@@ -1417,6 +1417,27 @@
   .rp4-foot{flex:none;padding:10px 20px calc(14px + var(--safe-bottom));background:var(--bg-2);}
   .rp4-cta{width:100%;height:52px;transition:background .28s var(--ease),color .28s var(--ease);}
   .rp4-cta.is-wait{background:color-mix(in srgb,var(--mint) 38%,var(--bg-2));pointer-events:none;}
+  /* Hojas de alta de una pantalla (Añadir deuda, Nueva meta, Añadir bien): el cascarón de Añadir recibo con un solo
+     carril. Importe protagonista, celdas compactas que se teclean con el mismo teclado, lo opcional plegado. */
+  .rpa-in{padding:0 20px 12px;display:flex;flex-direction:column;gap:14px;}
+  .rpa-t{flex:1;min-width:0;overflow-wrap:anywhere;}
+  .rpa-name{display:flex;align-items:center;gap:8px;}
+  .rpa-name .rp4-name{flex:1;min-width:0;}
+  .rpa-amt{background:none;border:0;color:var(--text);cursor:pointer;}
+  .rpa-ph{color:var(--muted-2);}
+  .rpa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .rpa-cell{display:flex;flex-direction:column;gap:2px;min-height:56px;min-width:0;padding:8px 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface);
+    color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s ease,background .2s ease;}
+  .rpa-cell.on{border-color:var(--mint);background:var(--surface-2);}
+  .rpa-cell.wide{grid-column:1/-1;}
+  .rpa-cell-l{font-size:12px;font-weight:600;color:var(--muted);}
+  .rpa-cell-v{font-size:15px;font-weight:700;overflow-wrap:anywhere;}
+  .rpa-cell-v.ph{color:var(--muted-2);font-weight:600;}
+  .rpa-more{gap:10px;}
+  .rpa-emo{flex:none;width:52px;height:52px;border-radius:16px;border:1px solid var(--line-soft);background:var(--bg);font-size:22px;line-height:1;cursor:pointer;}
+  .rpa-del{align-self:center;}
+  .rpa-cuentas .v4-chips{padding-bottom:0;margin-bottom:0;}
+  .rpa-cuentas .rpa-k{font-size:12px;margin-bottom:6px;}
   /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
   .pe-ava{width:38px;height:38px;flex:none;border-radius:19px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--text);transition:background .2s ease,color .2s ease,border-color .2s ease;}
@@ -1553,6 +1574,14 @@
   .pr6-flat .pr6-pill-v{font-size:15px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
   .pr6-flat .pr6-pill.ok .pr6-pill-v{color:var(--mint-ink,var(--mint));}
   .pr6-flat .pr6-pill.falta .pr6-pill-v{color:var(--coral);}
+  /* Recibos, Deudas y Metas llevan la misma cabecera MEDIDA igual (título, cifra, línea, tarjeta de dos celdas): las pestañas de
+     debajo no saltan al cambiar de segmento. La tarjeta guarda sitio para dos líneas de valor («Acaba antes: Préstamo… · jun 2029»). */
+  .pr6-flat .pr6-vista{gap:0;}
+  .pr6-sum.pr6-flat .pr6-big{line-height:1.15;}
+  .pr6-flat .pr6-sum-h,.rpt-hh{min-height:22px;}
+  .pr6-flat .pr6-pills,.rpt-facts.m{min-height:88px;}
+  .pr6-flat .pr6-pill{align-items:center;}
+  .pr6-flat button.pr6-sum-tap{row-gap:0;min-height:0;}
   /* A 360 px «QUEDA POR PAGAR EN NOVIE…» perdía el mes: mejor en dos renglones que cortado. */
   .pr6-sum-h .v4-micro{flex:1;min-width:0;line-height:1.45;}
   /* A 360 px «QUEDA POR PAGAR EN NOVIEMBRE» se iba a dos renglones (N7): más prieta cabe en uno;
@@ -3215,18 +3244,19 @@
   .rpt-sback{flex:none;width:44px;height:44px;margin-left:-12px;display:grid;place-items:center;background:none;border:0;color:inherit;cursor:pointer;}
   .rpt-sx{flex:none;width:44px;height:44px;margin:0 0 0 auto;display:grid;place-items:center;color:var(--muted);border-radius:12px;background:var(--surface);border:1px solid var(--line-soft);cursor:pointer;}
   .rpt-dico{flex:none;width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--muted);}
-  .rpt-sf{flex:none;display:flex;flex-wrap:wrap;gap:8px;padding:10px 18px calc(14px + var(--safe-bottom));border-top:1px solid var(--line-soft);background:var(--bg-2);}
+  .rpt-sf{flex:none;display:flex;flex-direction:column;gap:2px;padding:10px 18px calc(10px + var(--safe-bottom));border-top:1px solid var(--line-soft);background:var(--bg-2);}
   .rpt-sg{margin-top:12px;}
   .rpt-kv{display:flex;justify-content:space-between;gap:14px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line-soft);font-size:12.5px;color:var(--muted);}
   .rpt-kv b{color:var(--text);font-size:15px;font-weight:700;text-align:right;overflow-wrap:anywhere;min-width:0;}
   .rpt-bar{position:relative;height:6px;border-radius:3px;background:var(--track);margin-top:12px;}
   .rpt-bar i{display:block;height:100%;background:var(--mint);border-radius:3px;transition:width .45s var(--ease);}
-  .rpt-btn{flex:1 1 120px;min-height:48px;padding:8px 12px;border-radius:14px;text-align:center;font-size:14px;font-weight:800;background:var(--surface-2);color:var(--text);border:0;cursor:pointer;transition:transform .12s var(--ease),opacity .2s;}
+  .rpt-btn{min-height:48px;padding:8px 12px;border-radius:14px;text-align:center;font-size:15px;font-weight:800;background:var(--mint);color:var(--on-mint);border:0;cursor:pointer;transition:transform .12s var(--ease),opacity .2s;}
   .rpt-btn:active{transform:scale(.98);}
-  .rpt-btn.pri{background:var(--mint);color:var(--on-mint);}
-  .rpt-btn.wide{flex-basis:100%;}
-  .rpt-btn.del{flex:0 1 auto;background:none;color:var(--coral);font-weight:700;}
   .rpt-btn:disabled{opacity:.45;cursor:default;}
+  /* Editar y Eliminar: texto, en una línea centrada bajo la acción principal; Eliminar solo se distingue por el color. */
+  .rpt-sf-2{display:flex;justify-content:center;gap:28px;}
+  .rpt-lnk,.rpa-del{min-height:44px;padding:0 12px;border-radius:12px;border:0;background:none;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);}
+  .rpt-lnk.del,.rpa-del{color:var(--coral);}
   .rpt-rph .rpt-big{margin-top:2px;}
   .rpt-rph.neg .rpt-big{color:var(--coral);}
   .rpt-rp{font-size:13px;font-weight:700;margin-top:6px;}
@@ -10569,6 +10599,7 @@ Object.assign(LANG.es,{
   gl_create:"Crear meta", gl_cancel:"Cancelar",
   gl_name_ph:"Ej.: vacaciones", gl_target_ph:"Objetivo €", gl_saved_ph:"Ya ahorrado €", gl_deadline:"Fecha límite (opcional)", gl_deadline_none:"Sin fecha", gl_monthly_ph:"Aporte al mes € (opcional)",
   gl_newdefault:"Mi meta",
+  ah_mas:"Más datos", ah_debes:"Lo que debes", ah_cuota:"Cuota al mes", ah_dia_cobro:"Día de cobro", ah_plazo:"Plazo", ah_meses:"meses", ah_entrada:"Entrada", ah_pago_final:"Pago final", ah_pagadas:"Cuotas pagadas", ah_objetivo:"Objetivo", ah_ya_ahorrado:"Ya ahorrado", ah_al_mes:"Al mes", ah_fecha:"Fecha límite", ah_icono:"Elegir icono",
   gl_contribute:"Aportar",
   gl_save:"Guardar cambios", gl_delete:"Eliminar meta", gl_of:"de",
   gl_eta:"A tu ritmo ({x}/mes) la cumples en {when} 🟢",
@@ -15477,6 +15508,79 @@ function NumPad({value, onChange}){
         React.createElement("path",{d:"M21 5H9l-6 7 6 7h12zM18 9l-6 6M12 9l6 6"})):k);
     })
   );
+}
+
+/* Hoja de alta de UNA pantalla (Añadir deuda, Nueva meta, Añadir bien): el cascarón y las piezas de
+   «Añadir recibo» (`.rp4`: cifra grande, teclado propio, chips, `Más datos` plegado y el botón de abajo)
+   con un solo campo protagonista y el resto en celdas compactas. Cada celda numérica se teclea con el
+   MISMO teclado: tocarla la elige y el teclado escribe en ella (nada de teclado del sistema, que tapaba
+   media hoja). Las celdas con `onTap` son de otro tipo (fecha) y las abre quien llama.
+   `vals` son los textos tal cual se teclean («1,5»): los validan y convierten quienes guardan. */
+function AddHoja(p){
+  const amtKey=p.amtKey, vals=p.vals, attr=p.attr||"data-rpa";
+  const [act,setAct]=useState(amtKey), [fresh,setFresh]=useState(!!vals[amtKey]), [mas,setMas]=useState(!!p.masOpen);
+  const freshRef=useRef(!!vals[amtKey]);
+  const swipe=useSheetSwipe(true,p.onClose); useBackClose(true,swipe.close);
+  if(p.closer) p.closer.current=swipe.close;
+  const sep=numDecSep();
+  const todas=p.cells.concat(p.more?p.more.cells:[]);
+  const pick=function(k){ const f=!!vals[k]; freshRef.current=f; setFresh(f); setAct(k); };
+  // Como en el importe de un recibo: el primer número que tecleas al elegir un campo con valor lo sustituye.
+  const teclea=function(fn){
+    const c=todas.find(function(x){ return x.key===act; }), entero=c&&c.kind==="int", fr=freshRef.current;
+    freshRef.current=false; setFresh(false);
+    p.setVals(function(o){
+      const nuevo=fr?fn(""):"";
+      let v=fr&&nuevo!==""?nuevo:fn(o[act]||"");
+      if(entero) v=v.replace(/[.,]/g,"");
+      return Object.assign({},o,{[act]:v});
+    });
+  };
+  const ver=function(raw){ return String(raw).replace(/[.,]/,sep); };
+  const celdaEl=function(c){
+    const numerica=!c.onTap, on=numerica?act===c.key:!!c.on, tiene=numerica?!!vals[c.key]:!!c.text;
+    return React.createElement("button",{type:"button",key:c.key,className:"rpa-cell"+(on?" on":"")+(c.wide?" wide":""),"aria-pressed":on?"true":"false",
+      [attr]:c.key,onClick:function(){ if(numerica) pick(c.key); else { setAct(null); c.onTap(); } }},
+      React.createElement("span",{className:"rpa-cell-l"}, c.label),
+      React.createElement("span",{className:"rpa-cell-v num"+(tiene?"":" ph")}, numerica?(tiene?ver(vals[c.key])+(c.unit?" "+c.unit:""):(c.ph||"—")):(c.text||"—")));
+  };
+  // Hasta tres celdas por fila: con más, a dos.
+  const grid=function(cs){ return React.createElement("div",{className:"rpa-grid",style:{gridTemplateColumns:"repeat("+(cs.length===3?3:2)+",minmax(0,1fr))"}}, cs.map(celdaEl)); };
+  const raw=vals[amtKey]||"";
+  return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({className:"v4-sheet pr6-ficha rp4 rpa",role:"dialog","aria-modal":true,"aria-label":p.title,"data-testid":p.testid||undefined,
+      ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"rp4-top"},
+        React.createElement("button",{type:"button",className:"pr6-back","aria-label":t("gl_cancel"),onClick:swipe.close},"‹"),
+        React.createElement("h2",{className:"rp4-h rpa-t"}, p.title)),
+      React.createElement("div",{className:"rp4-body"},
+        React.createElement("div",{className:"rpa-in"},
+          React.createElement("div",{className:"rpa-name"},
+            p.nameLead||null,
+            React.createElement("input",{className:"pr6-search rp4-name",[attr]:"name",value:p.name,placeholder:p.namePh,"aria-label":p.namePh,
+              // Con el teclado del sistema abierto el nuestro se pliega; al salir del nombre vuelve, sobre el importe.
+              onFocus:function(){ setAct(null); },onBlur:function(){ setAct(function(a){ return a||amtKey; }); },onChange:function(e){ p.setName(e.target.value); }})),
+          React.createElement("div",{className:"rp4-amt"},
+            React.createElement("span",{className:"rp4-dim"}, p.amtLabel),
+            React.createElement("button",{type:"button",className:"serif num rp4-amt-v rpa-amt"+(fresh&&act===amtKey&&raw?" fresh":""),[attr]:amtKey,"aria-label":p.amtLabel,
+              onClick:function(){ pick(amtKey); }}, raw?ver(raw)+" €":React.createElement("span",{className:"rpa-ph"},"0 €"))),
+          p.cells.length>0&&grid(p.cells),
+          p.children||null,
+          p.more&&React.createElement("div",{className:"rp5-mas"},
+            React.createElement("button",{type:"button",className:"pr6-more","aria-expanded":mas?"true":"false","data-act":"mas-datos",onClick:function(){ setMas(!mas); }},
+              t("ah_mas"), pr6Chev()),
+            React.createElement("div",{className:"pr6-fold"+(mas?" open":"")},
+              React.createElement("div",Object.assign({className:"pr6-fold-in rpa-more"},mas?null:{"aria-hidden":"true",inert:""}),
+                grid(p.more.cells), p.more.children||null))),
+          React.createElement("div",{className:"pr6-fold"+(act?" open":"")},
+            React.createElement("div",Object.assign({className:"pr6-fold-in"},act?null:{"aria-hidden":"true",inert:""}),
+              React.createElement(NumPad,{value:act?(vals[act]||""):"",onChange:teclea}))),
+          p.notes||null,
+          p.del&&React.createElement("button",{type:"button",className:"rpa-del","data-act":"hoja-eliminar",onClick:p.del.onClick}, p.del.label))),
+      React.createElement("div",{className:"rp4-foot"},
+        React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(p.ctaOn?"":" is-wait"),"data-act":"hoja-guardar","aria-disabled":p.ctaOn?"false":"true",
+          tabIndex:p.ctaOn?0:-1,onClick:function(){ if(p.ctaOn) p.onSave(); }}, p.ctaLabel)))),document.body);
 }
 
 /* Anatomía común de Apuntar y Modificar (rediseño v4.1). Si cada ficha compone por su cuenta
@@ -23398,8 +23502,6 @@ function AssetSheet({asset,set,onClose}){
   const [name,setName]=useState(asset.name||"");
   const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
   const [kind,setKind]=useState(asset.kind||"piso");
-  const swipe=useSheetSwipe(true,onClose);
-  useBackClose(true,swipe.close);
   const amount=Number(raw.replace(",","."));
   const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
   const save=function(){
@@ -23412,30 +23514,28 @@ function AssetSheet({asset,set,onClose}){
       const assets=asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next);
       return Object.assign({},s,{assets:assets,assetValueHistory:recordAssetValues(s.assetValueHistory,netWorthDay(),assets,s.assets,asset.id?null:next.id)});
     });
-    onClose();
+    cerrar();
   };
+  const closer=useRef(null);
+  const cerrar=function(){ if(closer.current) closer.current(); else onClose(); };
   const remove=function(){
     askConfirm({title:tf("goods_delete_q",{name:asset.name}),sub:t("goods_delete_sub"),ok:t("goods_delete")}).then(function(ok){
       if(!ok) return;
       set(function(s){ return Object.assign({},s,{assets:(s.assets||[]).filter(function(a){ return a.id!==asset.id; })}); });
-      onClose();
+      cerrar();
     });
   };
-  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back",onClick:onClose},
-    React.createElement("div",Object.assign({className:"tabsheet",role:"dialog","aria-modal":true,"aria-label":t(asset.id?"v4_edit_goods":"goods_add"),ref:swipe.sheetRef,onClick:function(e){e.stopPropagation();}},swipe.sheetTouch),
-      React.createElement("div",{className:"v4-sheet-handle"}),
-      React.createElement("h2",{className:"serif"},t(asset.id?"v4_edit_goods":"goods_add")),
-      React.createElement("div",{className:"add-form"},
-        React.createElement("label",null,t("goods_name"),React.createElement("input",{className:"af-in",value:name,onChange:function(e){setName(e.target.value);}})),
-        React.createElement("label",null,t("goods_value"),React.createElement("input",{className:"af-in num",inputMode:"decimal",value:raw,"aria-invalid":!!raw&&!valid,onChange:function(e){setRaw(e.target.value);}})),
-        React.createElement("div",{className:"row"},["piso","coche"].map(function(k){return React.createElement("button",{type:"button",className:"chip"+(kind===k?" active":""),key:k,"aria-pressed":kind===k,onClick:function(){setKind(k);}},t(k==="piso"?"goods_home":"goods_car"));})),
-        !valid&&React.createElement("div",{className:"hint"},t("goods_invalid")),
-        React.createElement("div",{className:"row"},
-          React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:onClose},t("fj_cancel")),
-          React.createElement("button",{type:"button",className:"btn btn-primary",disabled:!valid,onClick:save},t("save"))),
-        asset.id&&React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:remove},t("goods_delete"))
-      )
-    )),document.body);
+  // Mismo cascarón que Añadir recibo (`AddHoja`): el valor es la cifra grande con su teclado; vivienda o vehículo, como los modos de un recibo.
+  return React.createElement(AddHoja,{title:t(asset.id?"v4_edit_goods":"goods_add"),onClose:onClose,closer:closer,attr:"data-asset-field",testid:"asset-sheet",
+    name:name,setName:setName,namePh:t("goods_name"),amtKey:"value",amtLabel:t("goods_value"),vals:{value:raw},
+    setVals:function(fn){ setRaw(function(r){ return fn({value:r}).value; }); },cells:[],
+    ctaOn:!!valid,ctaLabel:t("save"),onSave:save,
+    del:asset.id?{label:t("goods_delete"),onClick:remove}:null,
+    notes:!!raw&&!valid&&React.createElement("div",{className:"hint"},t("goods_invalid"))},
+    React.createElement("div",{className:"rp4-modes",role:"radiogroup"},["piso","coche"].map(function(k){
+      const on=kind===k;
+      return React.createElement("button",{type:"button",role:"radio","aria-checked":on?"true":"false",key:k,className:"rp4-mode"+(on?" on":""),"data-asset-kind":k,onClick:function(){ setKind(k); }},t(k==="piso"?"goods_home":"goods_car"));
+    })));
 }
 
 /* Trozos de una subfila («Recibos», «Sabadell», «falta su parte») separados por «·», en Plan ›
@@ -31962,45 +32062,40 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
         tocado&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first"))),
       !recovery&&React.createElement("button",{type:"button",className:"btn dbx-del",onClick:function(){onDelete(debt);}},t("db_delete")))));
 }
-/* Campos de meta: los comparten la hoja de alta y la de edición para que sean la misma hoja
-   (etiqueta arriba de cada campo, emoji, fecha con el calendario de la app y no el selector de
-   mes nativo, que salía sin estilo). `attr` es el data-* que ya usaban los e2e de cada una. */
-function GoalFields({form,setForm,attr}){
-  const [dlCal,setDlCal]=useState(false);
-  const set1=function(patch){ setForm(Object.assign({},form,patch)); };
-  const campo=function(key,label,ph){ return React.createElement("label",{key:key},t(label),
-    React.createElement("input",{className:"af-in"+(ph?"":" num"),inputMode:ph?undefined:"decimal",placeholder:ph?t(ph):undefined,value:form[key],[attr]:key,
-      onChange:function(e){ set1({[key]:e.target.value}); }})); };
+/* Hoja de meta: la comparten el alta y la edición para que sean la misma (objetivo grande y teclado propio como en
+   Añadir recibo; ya ahorrado y fecha en celdas; «al mes» plegado; emoji junto al nombre). La fecha usa el calendario
+   de la app y no el selector de mes nativo, que salía sin estilo (filtro 253). `attr` es el data-* que ya usaban los e2e. */
+function GoalHoja({form,setForm,attr,title,onClose,closer,ctaLabel,ctaOn,onSave,notes,del}){
+  const [dlCal,setDlCal]=useState(false), [emoOpen,setEmoOpen]=useState(false);
+  const set1=function(patch){ setForm(function(o){ return Object.assign({},o,patch); }); };
   // Un emoji que no está en la lista (el de una meta antigua) se suma al principio: si no, ninguno salía marcado (filtro 253b).
   const emojis=form.emoji&&GOAL_EMOJIS.indexOf(form.emoji)<0?[form.emoji].concat(GOAL_EMOJIS):GOAL_EMOJIS;
-  // Dos tarjetas como en Editar deuda: quién es la meta y cuánto/cuándo.
-  return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"dbx-grp"},
-    campo("name","plan_edit_name","gl_name_ph"),
-    React.createElement("div",{className:"emoji-pick"},emojis.map(function(e){
-      return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){ set1({emoji:e}); }},e);
-    }))),
-    React.createElement("div",{className:"dbx-grp"},
-    React.createElement("div",{className:"af-row"},campo("target","gl_target_ph"),campo("saved","gl_saved_ph")),
-    React.createElement("label",null,t("gl_deadline"),
-      React.createElement("button",{type:"button",className:"af-in af-pick",[attr]:"deadline","aria-expanded":dlCal,
-        onClick:function(){ setDlCal(function(v){ return !v; }); }},form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"))),
-    dlCal && React.createElement(McCal,{soloMes:true,value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ set1({deadline:String(iso).slice(0,7)}); setDlCal(false); }}),
-    dlCal && form.deadline && React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ set1({deadline:""}); setDlCal(false); }},t("gl_deadline_none")),
-    campo("monthly","gl_monthly_ph")));
+  return React.createElement(AddHoja,{title:title,onClose:onClose,closer:closer,attr:attr,testid:"goal-add-form",
+    name:form.name,setName:function(v){ set1({name:v}); },namePh:t("gl_name_ph"),
+    nameLead:React.createElement("button",{type:"button",className:"rpa-emo","aria-label":t("ah_icono"),"aria-expanded":emoOpen,[attr]:"emoji",onClick:function(){ setEmoOpen(!emoOpen); }},form.emoji||"🎯"),
+    amtKey:"target",amtLabel:t("ah_objetivo"),vals:form,setVals:setForm,
+    cells:[{key:"saved",label:t("ah_ya_ahorrado"),kind:"dec",unit:"€"},
+      {key:"deadline",label:t("ah_fecha"),text:form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"),on:dlCal,onTap:function(){ setDlCal(!dlCal); }}],
+    more:{cells:[{key:"monthly",label:t("ah_al_mes"),kind:"dec",unit:"€"}]},
+    ctaOn:ctaOn,ctaLabel:ctaLabel,onSave:onSave,notes:notes,del:del},
+    emoOpen&&React.createElement("div",{className:"emoji-pick"},emojis.map(function(e){
+      return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){ set1({emoji:e}); setEmoOpen(false); }},e);
+    })),
+    dlCal&&React.createElement(McCal,{soloMes:true,value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ set1({deadline:String(iso).slice(0,7)}); setDlCal(false); }}),
+    dlCal&&form.deadline&&React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ set1({deadline:""}); setDlCal(false); }},t("gl_deadline_none")));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){return goalEditDraft(goal);});
   const closer=useRef(null);
   const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
   const aportado=metaConAportes(goal,state).aportado;
-  return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form dbx-form"},
-    React.createElement(GoalFields,{form:form,setForm:setForm,attr:"data-goal-field"}),
-    // Lo marcado desde Gastos NO está en este campo (se suma al vuelo): se dice para que no lo apunte otra vez.
-    aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(aportado)})),
-    save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)),
-    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(goalEditResult(goal,form));}},t("gl_save")),
-    React.createElement("button",{type:"button",className:"plan-sheet-del",onClick:function(){onDelete(goal);}},t("gl_delete"))));
+  return React.createElement(GoalHoja,{title:t("gl_edit_title"),form:form,setForm:setForm,attr:"data-goal-field",onClose:onClose,closer:closer,
+    ctaOn:!save.pending,ctaLabel:t("gl_save"),onSave:function(){ save.save(goalEditResult(goal,form)); },
+    del:{label:t("gl_delete"),onClick:function(){ onDelete(goal); }},
+    notes:(aportado>0||save.error)&&React.createElement(React.Fragment,null,
+      // Lo marcado desde Gastos NO está en este campo (se suma al vuelo): se dice para que no lo apunte otra vez.
+      aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(aportado)})),
+      save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)))});
 }
 /* ASESOR DE AMORTIZACIÓN (#11) — «¿cuándo amortizar?»
    El interés (TAE) es opcional por deuda (d.apr, se edita en su hoja): con él la tarjeta
@@ -32112,10 +32207,15 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
   const [adding,setAdding]=useState(false);
   const [form,setForm]=useState(DEBT_BLANK);
   const addCloser=useRef(null), addedRef=useRef(false);
-  const campoDeuda=function(key,label,mode,ph){ return React.createElement("label",{key:key},t(label),
-    React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||undefined,placeholder:ph?t(ph):undefined,value:form[key],"data-debt-add":key,
-      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
   const banks=(function(){ const b=[]; (state.accounts||[]).forEach(a=>{ if(b.indexOf(a.ent)<0) b.push(a.ent); }); ["sabadell","trade_republic","familia"].forEach(x=>{ if(b.indexOf(x)<0) b.push(x); }); return b; })();
+  // La cuenta con la que ya pagas tus deudas (la más repetida) o, si no hay, la del gasto diario: la hoja nace con ella elegida.
+  const cuentaHabitual=function(){
+    const n={}; state.debts.forEach(function(d){ if(d.account&&banks.indexOf(d.account)>=0) n[d.account]=(n[d.account]||0)+1; });
+    const top=Object.keys(n).sort(function(a,b){ return n[b]-n[a]; })[0];
+    if(top) return top;
+    const diaria=(state.accounts||[]).find(function(a){ return accDaily(a); });
+    return diaria&&diaria.ent||DEBT_BLANK.account;
+  };
   const total=state.debts.reduce((a,d)=>a+debtBalance(d),0);
   const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d):0),0);
   const addDebt=()=>{
@@ -32265,7 +32365,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-act":"plan-orphan-discard",onClick:function(){
         askConfirm({title:t("plan_discard_draft_q"),sub:t("plan_discard_draft_sub"),ok:t("plan_conflict_discard"),danger:true}).then(function(yes){if(yes)set(function(s){return planSyncDiscard(s,record);});});
       }},t("plan_conflict_discard")));}),
-    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive,tabs:tabs,onAdd:function(){ setAdding(true); }}),
+    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive,tabs:tabs,onAdd:function(){ setForm(Object.assign({},DEBT_BLANK,{account:cuentaHabitual()})); setAdding(true); }}),
     // Asesor y archivadas en UNA tarjeta con dos filas plegables (antes: caja de borde amarillo, botón ghost suelto y
     // otro ghost para añadir; dueño 23/11/2026). `.v4-tip` se queda como nombre: los e2e lo usan de ancla.
     React.createElement("div",{className:"v4-tip dbx-tools"},
@@ -32283,20 +32383,23 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
     /* Añadir deuda va en su hoja con una etiqueta encima de cada campo (DIS-31, 15/11/2026): abierto
        dentro de la lista, el texto de ejemplo era la única pista y se cortaba («Cuota/mes € (vací…»).
        Los campos, `addDebt` y lo que guarda son los de antes; solo cambia dónde se pinta. */
-    adding && React.createElement(PlanEditSheet,{title:t("db_add"),closer:addCloser,onClose:function(){
-        setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } }},
-      React.createElement("div",{className:"add-form dbx-form","data-testid":"debt-add-form"},
-        React.createElement("div",{className:"dbx-grp"},
-          campoDeuda("name","plan_edit_name",null,"db_concept")),
-        React.createElement("div",{className:"dbx-grp"},
-          React.createElement("div",{className:"af-row"},campoDeuda("value","db_amount","decimal"),campoDeuda("monthly","plan_edit_quota","decimal")),
-          React.createElement("div",{className:"af-row"},campoDeuda("months","db_months_ph","numeric"),campoDeuda("day","db_day_ph","numeric")),
-          React.createElement("label",null,t("plan_conflict_account"),
-            React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); })))),
-        React.createElement("div",{className:"dbx-grp"},
-          React.createElement("div",{className:"af-row"},campoDeuda("down","db_down_ph","decimal"),campoDeuda("balloon","db_balloon_ph","decimal")),
-          campoDeuda("paid","db_paid_ph","numeric")),
-        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
+    adding && React.createElement(AddHoja,{title:t("db_add"),closer:addCloser,testid:"debt-add-form",attr:"data-debt-add",
+      onClose:function(){ setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } },
+      name:form.name,setName:function(v){ setForm(function(o){ return Object.assign({},o,{name:v}); }); },namePh:t("db_concept"),
+      amtKey:"value",amtLabel:t("ah_debes"),vals:form,setVals:setForm,
+      cells:[{key:"monthly",label:t("ah_cuota"),kind:"dec",unit:"€"},{key:"day",label:t("ah_dia_cobro"),kind:"int"},
+        {key:"months",label:t("ah_plazo"),kind:"int",unit:t("ah_meses")}],
+      // La cuenta nace elegida (la de tus otras deudas o la del gasto diario): cambiarla es lo raro, va plegada con lo opcional.
+      more:{cells:[{key:"down",label:t("ah_entrada"),kind:"dec",unit:"€"},{key:"balloon",label:t("ah_pago_final"),kind:"dec",unit:"€"},
+        {key:"paid",label:t("ah_pagadas"),kind:"int"}],children:
+        React.createElement("div",{className:"rpa-cuentas"},
+          React.createElement("div",{className:"rp4-dim rpa-k"},t("plan_conflict_account")),
+          React.createElement("div",{className:"v4-chips"},banks.map(function(b){
+            return React.createElement("button",{type:"button",key:b,className:"v4-chip"+(form.account===b?" on":""),"aria-pressed":form.account===b,"data-debt-add-account":b,
+              onClick:function(){ setForm(function(o){ return Object.assign({},o,{account:b}); }); }},entOf(b).label);
+          })))},
+      ctaOn:(parseFloat(String(form.value).replace(',','.'))||0)>0&&((parseFloat(String(form.monthly).replace(',','.'))||0)>0||(parseInt(form.months,10)||0)>0),
+      ctaLabel:t("db_add"),onSave:addDebt}),
     fichaDeuda&&React.createElement(RptDeudaFicha,{key:fichaDeuda.id,d:fichaDeuda,state:state,set:set,r:rep,h:hFicha,onClose:function(){ setFichaId(null); }}),
     editor
   );
@@ -32641,14 +32744,8 @@ function Goals({state, set, totals, showToast, abrir, tabs}){
 
   const hMeta={abrir:function(g){ setFichaMetaId(g.id); },aportar:contribute,eliminar:delGoal,editar:function(g){ setEditingGoal(g); }};
 
-  const emojiPicker=function(cur,onPick){
-    return React.createElement("div",{className:"emoji-pick"}, GOAL_EMOJIS.map(function(e){
-      return React.createElement("button",{key:e,type:"button",className:(cur===e?"on":""),onClick:function(){ onPick(e); }}, e);
-    }));
-  };
-
   return React.createElement("div",null,
-    goals.length>0 ? React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta,tabs:tabs}) : tabs,
+    goals.length>0 ? React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta,tabs:tabs,onAdd:function(){ setAdding(true); }}) : tabs,
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
@@ -32658,15 +32755,11 @@ function Goals({state, set, totals, showToast, abrir, tabs}){
     /* Nueva meta en su hoja, con etiquetas y el calendario de la app en vez del selector de mes
        nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
        selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
-    adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ sentRef.current=false; setAdding(false); setForm(blank); }},
-      React.createElement("div",{className:"add-form dbx-form","data-testid":"goal-add-form"},
-        React.createElement(GoalFields,{form:form,setForm:setForm,attr:"data-goal-add"}),
-        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")))),
-    goals.length===0
-      // La primera meta es LA acción de la pantalla vacía: botón principal, no el fantasma punteado.
-      ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first"))
-      // Una sola acción primaria, igual que la pantalla vacía (antes un fantasma punteado).
-      : React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-new",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
+    adding && React.createElement(GoalHoja,{title:t("gl_create"),form:form,setForm:setForm,attr:"data-goal-add",closer:addCloser,
+      onClose:function(){ sentRef.current=false; setAdding(false); setForm(blank); },
+      ctaOn:(parseFloat(String(form.target).replace(',','.'))||0)>0,ctaLabel:t("gl_create"),onSave:addGoal}),
+    // Con metas, «+ Añadir» va en la cabecera (como Recibos y Deudas). Solo la pantalla vacía conserva el botón grande: la primera meta es LA acción.
+    goals.length===0&&React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first")),
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
       onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),
@@ -33338,6 +33431,13 @@ function rptDebtIco(name){
   return React.createElement("span",{className:"rpt-dico"},React.createElement("svg",{viewBox:"0 0 24 24",width:22,height:22,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",
     strokeLinejoin:"round","aria-hidden":"true","data-ico":k},DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); })));
 }
+/* Pie de una ficha: la acción principal sola y, debajo, Editar y Eliminar como texto, alineados y sin peso (Eliminar en coral;
+   el borrado pide confirmación en quien lo recibe). Una sola jerarquía para deudas y metas. */
+function rptPie(principal,onEditar,onEliminar){
+  return [principal||null,React.createElement("div",{key:"s",className:"rpt-sf-2"},
+    React.createElement("button",{type:"button",className:"rpt-lnk","data-act":"ficha-editar",onClick:onEditar},t("fj_edit")),
+    React.createElement("button",{type:"button",className:"rpt-lnk del","data-act":"ficha-eliminar",onClick:onEliminar},t("rpt_eliminar")))];
+}
 /* Ficha de una deuda: lo que debes, el interruptor, la escalera y los datos; amortizar, editar y eliminar al pie. */
 function RptDeudaFicha({d,state,set,r,h,onClose}){
   const bal=debtBalance(d), orig=d.original||bal, paid=Math.max(0,orig-bal), pct=Math.min(100,orig>0?paid/orig*100:0);
@@ -33349,13 +33449,10 @@ function RptDeudaFicha({d,state,set,r,h,onClose}){
   const [datos,setDatos]=useState(false);
   const viva=bal>0.005;
   const cierra=useRef(null);
-  const pie=viva
-    ?[React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-amortizar",onClick:function(){ h.amortizar(d,function(){ if(cierra.current) cierra.current(); }); }},t("db_amortize")),
-      React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(d); }},t("fj_edit")),
-      React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(d); }},t("rpt_eliminar"))]
-    :[React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-cerrar-deuda",onClick:function(){ if(d.settledAt) h.archivar(d); else h.liquidada(d); onClose(); }},t(d.settledAt?"db_archive":"db_settle_ok")),
-      React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(d); }},t("fj_edit")),
-      React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(d); }},t("rpt_eliminar"))];
+  const pie=rptPie(viva
+    ?React.createElement("button",{key:"a",type:"button",className:"rpt-btn","data-act":"ficha-amortizar",onClick:function(){ h.amortizar(d,function(){ if(cierra.current) cierra.current(); }); }},t("db_amortize"))
+    :React.createElement("button",{key:"a",type:"button",className:"rpt-btn","data-act":"ficha-cerrar-deuda",onClick:function(){ if(d.settledAt) h.archivar(d); else h.liquidada(d); onClose(); }},t(d.settledAt?"db_archive":"db_settle_ok")),
+    function(){ onClose(); h.editar(d); },function(){ onClose(); h.eliminar(d); });
   return React.createElement(RptHoja,{title:d.name,icono:rptDebtIco(d.name),onClose:onClose,closer:cierra,foot:pie,testid:"plan-deuda-ficha"},
     React.createElement("div",{className:"rpt-big","data-testid":"ficha-saldo",style:{marginTop:8}},eur(bal)),
     viva&&React.createElement("div",{className:"rpt-hs"},tf("rpt_d_amortizado",{p:Math.round(pct)})),
@@ -33393,6 +33490,11 @@ function RptHero({testid,titulo,cifra,tono,sub,celdas,accion,t0}){
         React.createElement("span",null,c.l),React.createElement("b",null,c.v));
     })));
 }
+/* «+ Añadir» pequeño a un lado de la cabecera: el mismo en Recibos, Deudas y Metas (el botón verde ancho se quitó). */
+function RptAnadir({act,label,onClick}){
+  return React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":act,"aria-label":label,onClick:onClick},
+    React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M12 5v14M5 12h14"})),t("mg_anadir"));
+}
 function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShowArchive,tabs,onAdd}){
   const hoy=madridYmdParts(Date.now());
   const esc=useMemo(function(){ return deudasEscalera(state); },[state.debts,state.fixed,state.expenses,state.deleted]);
@@ -33422,13 +33524,12 @@ function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShow
   const seccion=function(titulo,lista,tipo,id,suma){ return lista.length>0&&React.createElement("section",{className:"rpt-sec rpt-cs"+(tipo==="pend"?" pend":tipo==="hecha"?" hecha":""),"data-sec":id,key:id},
     React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,titulo),suma!=null&&React.createElement("b",{className:"num rpt-sech-t","data-testid":"debts-suma-"+id},rptC(suma))),
     React.createElement("div",{className:"rpt-list rpt-card"},lista.map(function(d){ return fila(d,tipo); }))); };
-  const plus=React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M12 5v14M5 12h14"}));
   return React.createElement("div",{className:"rpt"},
     // Misma cabecera que la de Metas, con la cifra en rojo (es lo que se debe). Las cifras son las de siempre: lo que pagas este
     // mes, lo ya pagado y lo que falta, lo que debes en total y qué deuda acaba antes.
     React.createElement(RptHero,{testid:"debts-summary",titulo:t("rpt_d_hero"),cifra:rptC(tot),tono:"rojo",t0:"debts-mes",
       sub:React.createElement("span",{"data-testid":"debts-pagados"},tf("rpt_d_sub",{a:rptC(pag),b:rptC(tot-pag)})),
-      accion:onAdd&&React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":"debt-add","aria-label":t("db_add"),onClick:onAdd},plus,t("mg_anadir")),
+      accion:onAdd&&React.createElement(RptAnadir,{act:"debt-add",label:t("db_add"),onClick:onAdd}),
       celdas:[{l:t("rpt_d_debes"),v:eur0(total),testid:"debts-debes"},
         priDeuda?{l:t("rpt_d_acaba_antes"),v:priDeuda.name+" · "+rptMes(pri.ultimo),testid:"debts-acaba",onClick:function(){ h.abrir(priDeuda); },aria:t("rpt_d_acaba_antes")+": "+priDeuda.name}:{l:t("rpt_d_acaba_antes"),v:"—"}]}),
     tabs,
@@ -33454,9 +33555,8 @@ function RptMetaNivel({g,gv}){
 function RptMetaFicha({g,state,h,onClose}){
   const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoReglas(state,g), eta=goalEta(gv,metaRitmoMensual(state,g)), rem=goalRemaining(gv);
   const cierra=useRef(null);
-  const pie=[!g.done&&rem>0&&React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-aportar",onClick:function(){ onClose(); h.aportar(g); }},t("gl_contribute")),
-    React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(g); }},t("fj_edit")),
-    React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(g); }},t("rpt_eliminar"))];
+  const pie=rptPie(!g.done&&rem>0&&React.createElement("button",{key:"a",type:"button",className:"rpt-btn","data-act":"ficha-aportar",onClick:function(){ onClose(); h.aportar(g); }},t("gl_contribute")),
+    function(){ onClose(); h.editar(g); },function(){ onClose(); h.eliminar(g); });
   return React.createElement(RptHoja,{title:(g.emoji||"🎯")+" "+g.name,onClose:onClose,closer:cierra,foot:pie,testid:"plan-meta-ficha"},
     React.createElement("div",{className:"rpt-big","data-testid":"goal-saved",style:{marginTop:8}},eur0(gv.saved||0)),
     React.createElement("div",{className:"rpt-hs"},eur0(g.target||0)!==""?tf("rpt_m_de",{x:eur0(g.target||0),p:Math.round(pct)}):""),
@@ -33469,7 +33569,7 @@ function RptMetaFicha({g,state,h,onClose}){
       gv.aportado>0?React.createElement("div",{className:"rpt-kv",key:"gx","data-testid":"goal-from-gastos"},React.createElement("span",null,t("rpt_m_desde_gastos")),React.createElement("b",null,eur(gv.aportado))):null,
       g.fromBank?rptKv(t("rpt_m_banco"),entOf(g.fromBank).label):null));
 }
-function RptMetasVista({state,goals,h,tabs}){
+function RptMetasVista({state,goals,h,tabs,onAdd}){
   const res=useMemo(function(){ return metasResumen(state); },[state.goals,state.expenses,state.deleted,state.settings,state.reservaLog]);
   const abiertas=goals.filter(function(g){ return !g.done&&goalPct(metaConAportes(g,state))<100; }), hechas=goals.filter(function(g){ return abiertas.indexOf(g)<0; });
   const fila=function(g){
@@ -33482,6 +33582,7 @@ function RptMetasVista({state,goals,h,tabs}){
   const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:res.conFecha>0?[t("rpt_m_a_tiempo"),t("rpt_m_todas")]:[t("rpt_m_fecha"),t("rpt_m_sin_fecha")];
   return React.createElement("div",{className:"rpt"},
     React.createElement(RptHero,{testid:"goals-summary",titulo:t("v4_goals_hero"),cifra:rptC0(sv),tono:"verde",sub:tf("rpt_m_de_total",{x:rptC0(tg)}),
+      accion:onAdd&&React.createElement(RptAnadir,{act:"goal-new",label:t("v4_goal_new"),onClick:onAdd}),
       celdas:[{l:t("rpt_m_apartas"),v:rptC0(res.ritmo)+t("rpt_m_mes")},{l:f2[0],v:f2[1],cls:res.hueco>0||res.vencidas>0?"warn":res.conFecha>0?"ok":""}]}),
     tabs,
     abiertas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_en_marcha"))),React.createElement("div",{className:"rpt-list"},abiertas.map(fila))),
@@ -36667,7 +36768,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="713c1074ef8b72d39e385014428e3c4626bc937379479c57e07b45c1982f81d7";
+var _rnSha="1db8b55b7151af07ea08ccd93a031c373dce4302d8ebf7c91de9abc9fe2a8f90";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39417,6 +39518,9 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     return function(){ mo.disconnect(); };
   },[sig]);
   const sigN=sigPack?sigPack.pendingBills.length:0;
+  const pillPagado=React.createElement("div",{key:"pagado",className:"pr6-pill","data-testid":"plan-pagado"},
+    React.createElement("span",{className:"pr6-pill-t"},React.createElement("span",{className:"pr6-pill-l"},t("pr6_ya_pagados")),
+      React.createElement("span",{className:"pr6-pill-v"},eur(pack.paidBillsTotal))));
   // Al cambiar de mes la tarjeta no repite su `rise`: entra de lado con el resto de la vista.
   const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum pr6-flat"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
     React.createElement("div",{className:"pr6-vista"},
@@ -39433,7 +39537,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
           countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine)),
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
+      // Siempre DOS celdas con divisor, como Metas: si falta «¿Te llega?» o «Te deben», ocupa su sitio lo ya pagado este mes
+      // (cifra que ya calcula la lista de abajo; no se inventa ninguna).
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
+        !(llega&&nPend>0)&&pillPagado,
         llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
           onClick:function(){ if(llegaHost.current) llegaHost.current(true); }},
           // Dos líneas como las celdas de Metas: la pregunta y la respuesta.
@@ -39448,7 +39555,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("span",{className:"pr6-pill-t"},React.createElement("span",{className:"pr6-pill-l"},tf("pr6_te_deben",{x:""}).trim()),
             React.createElement("span",{className:"pr6-pill-v"},eur(debenTotal))),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
-            React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
+            React.createElement("path",{d:"M9 6l6 6-6 6"}))),
+        !(debenTotal>0.005)&&pillPagado)));
   const manage=React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow,onGoDebts:onGoDebts});
   /* La hoja de importar vive fuera de la rama del primer uso: al añadir, el plan deja de estar
      vacío y, dentro de esa rama, la hoja se desmontaba de golpe; el segundo toque de un doble

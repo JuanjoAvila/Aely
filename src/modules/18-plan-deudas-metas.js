@@ -288,6 +288,13 @@ function rptDebtIco(name){
   return React.createElement("span",{className:"rpt-dico"},React.createElement("svg",{viewBox:"0 0 24 24",width:22,height:22,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",
     strokeLinejoin:"round","aria-hidden":"true","data-ico":k},DEBT_ICO[k].map(function(e,i){ return React.createElement(e[0],Object.assign({key:i},e[1])); })));
 }
+/* Pie de una ficha: la acción principal sola y, debajo, Editar y Eliminar como texto, alineados y sin peso (Eliminar en coral;
+   el borrado pide confirmación en quien lo recibe). Una sola jerarquía para deudas y metas. */
+function rptPie(principal,onEditar,onEliminar){
+  return [principal||null,React.createElement("div",{key:"s",className:"rpt-sf-2"},
+    React.createElement("button",{type:"button",className:"rpt-lnk","data-act":"ficha-editar",onClick:onEditar},t("fj_edit")),
+    React.createElement("button",{type:"button",className:"rpt-lnk del","data-act":"ficha-eliminar",onClick:onEliminar},t("rpt_eliminar")))];
+}
 /* Ficha de una deuda: lo que debes, el interruptor, la escalera y los datos; amortizar, editar y eliminar al pie. */
 function RptDeudaFicha({d,state,set,r,h,onClose}){
   const bal=debtBalance(d), orig=d.original||bal, paid=Math.max(0,orig-bal), pct=Math.min(100,orig>0?paid/orig*100:0);
@@ -299,13 +306,10 @@ function RptDeudaFicha({d,state,set,r,h,onClose}){
   const [datos,setDatos]=useState(false);
   const viva=bal>0.005;
   const cierra=useRef(null);
-  const pie=viva
-    ?[React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-amortizar",onClick:function(){ h.amortizar(d,function(){ if(cierra.current) cierra.current(); }); }},t("db_amortize")),
-      React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(d); }},t("fj_edit")),
-      React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(d); }},t("rpt_eliminar"))]
-    :[React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-cerrar-deuda",onClick:function(){ if(d.settledAt) h.archivar(d); else h.liquidada(d); onClose(); }},t(d.settledAt?"db_archive":"db_settle_ok")),
-      React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(d); }},t("fj_edit")),
-      React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(d); }},t("rpt_eliminar"))];
+  const pie=rptPie(viva
+    ?React.createElement("button",{key:"a",type:"button",className:"rpt-btn","data-act":"ficha-amortizar",onClick:function(){ h.amortizar(d,function(){ if(cierra.current) cierra.current(); }); }},t("db_amortize"))
+    :React.createElement("button",{key:"a",type:"button",className:"rpt-btn","data-act":"ficha-cerrar-deuda",onClick:function(){ if(d.settledAt) h.archivar(d); else h.liquidada(d); onClose(); }},t(d.settledAt?"db_archive":"db_settle_ok")),
+    function(){ onClose(); h.editar(d); },function(){ onClose(); h.eliminar(d); });
   return React.createElement(RptHoja,{title:d.name,icono:rptDebtIco(d.name),onClose:onClose,closer:cierra,foot:pie,testid:"plan-deuda-ficha"},
     React.createElement("div",{className:"rpt-big","data-testid":"ficha-saldo",style:{marginTop:8}},eur(bal)),
     viva&&React.createElement("div",{className:"rpt-hs"},tf("rpt_d_amortizado",{p:Math.round(pct)})),
@@ -343,6 +347,11 @@ function RptHero({testid,titulo,cifra,tono,sub,celdas,accion,t0}){
         React.createElement("span",null,c.l),React.createElement("b",null,c.v));
     })));
 }
+/* «+ Añadir» pequeño a un lado de la cabecera: el mismo en Recibos, Deudas y Metas (el botón verde ancho se quitó). */
+function RptAnadir({act,label,onClick}){
+  return React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":act,"aria-label":label,onClick:onClick},
+    React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M12 5v14M5 12h14"})),t("mg_anadir"));
+}
 function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShowArchive,tabs,onAdd}){
   const hoy=madridYmdParts(Date.now());
   const esc=useMemo(function(){ return deudasEscalera(state); },[state.debts,state.fixed,state.expenses,state.deleted]);
@@ -372,13 +381,12 @@ function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShow
   const seccion=function(titulo,lista,tipo,id,suma){ return lista.length>0&&React.createElement("section",{className:"rpt-sec rpt-cs"+(tipo==="pend"?" pend":tipo==="hecha"?" hecha":""),"data-sec":id,key:id},
     React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,titulo),suma!=null&&React.createElement("b",{className:"num rpt-sech-t","data-testid":"debts-suma-"+id},rptC(suma))),
     React.createElement("div",{className:"rpt-list rpt-card"},lista.map(function(d){ return fila(d,tipo); }))); };
-  const plus=React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M12 5v14M5 12h14"}));
   return React.createElement("div",{className:"rpt"},
     // Misma cabecera que la de Metas, con la cifra en rojo (es lo que se debe). Las cifras son las de siempre: lo que pagas este
     // mes, lo ya pagado y lo que falta, lo que debes en total y qué deuda acaba antes.
     React.createElement(RptHero,{testid:"debts-summary",titulo:t("rpt_d_hero"),cifra:rptC(tot),tono:"rojo",t0:"debts-mes",
       sub:React.createElement("span",{"data-testid":"debts-pagados"},tf("rpt_d_sub",{a:rptC(pag),b:rptC(tot-pag)})),
-      accion:onAdd&&React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":"debt-add","aria-label":t("db_add"),onClick:onAdd},plus,t("mg_anadir")),
+      accion:onAdd&&React.createElement(RptAnadir,{act:"debt-add",label:t("db_add"),onClick:onAdd}),
       celdas:[{l:t("rpt_d_debes"),v:eur0(total),testid:"debts-debes"},
         priDeuda?{l:t("rpt_d_acaba_antes"),v:priDeuda.name+" · "+rptMes(pri.ultimo),testid:"debts-acaba",onClick:function(){ h.abrir(priDeuda); },aria:t("rpt_d_acaba_antes")+": "+priDeuda.name}:{l:t("rpt_d_acaba_antes"),v:"—"}]}),
     tabs,
@@ -404,9 +412,8 @@ function RptMetaNivel({g,gv}){
 function RptMetaFicha({g,state,h,onClose}){
   const gv=metaConAportes(g,state), pct=goalPct(gv), ritmo=metaRitmoReglas(state,g), eta=goalEta(gv,metaRitmoMensual(state,g)), rem=goalRemaining(gv);
   const cierra=useRef(null);
-  const pie=[!g.done&&rem>0&&React.createElement("button",{key:"a",type:"button",className:"rpt-btn pri wide","data-act":"ficha-aportar",onClick:function(){ onClose(); h.aportar(g); }},t("gl_contribute")),
-    React.createElement("button",{key:"e",type:"button",className:"rpt-btn","data-act":"ficha-editar",onClick:function(){ onClose(); h.editar(g); }},t("fj_edit")),
-    React.createElement("button",{key:"x",type:"button",className:"rpt-btn del","data-act":"ficha-eliminar",onClick:function(){ onClose(); h.eliminar(g); }},t("rpt_eliminar"))];
+  const pie=rptPie(!g.done&&rem>0&&React.createElement("button",{key:"a",type:"button",className:"rpt-btn","data-act":"ficha-aportar",onClick:function(){ onClose(); h.aportar(g); }},t("gl_contribute")),
+    function(){ onClose(); h.editar(g); },function(){ onClose(); h.eliminar(g); });
   return React.createElement(RptHoja,{title:(g.emoji||"🎯")+" "+g.name,onClose:onClose,closer:cierra,foot:pie,testid:"plan-meta-ficha"},
     React.createElement("div",{className:"rpt-big","data-testid":"goal-saved",style:{marginTop:8}},eur0(gv.saved||0)),
     React.createElement("div",{className:"rpt-hs"},eur0(g.target||0)!==""?tf("rpt_m_de",{x:eur0(g.target||0),p:Math.round(pct)}):""),
@@ -419,7 +426,7 @@ function RptMetaFicha({g,state,h,onClose}){
       gv.aportado>0?React.createElement("div",{className:"rpt-kv",key:"gx","data-testid":"goal-from-gastos"},React.createElement("span",null,t("rpt_m_desde_gastos")),React.createElement("b",null,eur(gv.aportado))):null,
       g.fromBank?rptKv(t("rpt_m_banco"),entOf(g.fromBank).label):null));
 }
-function RptMetasVista({state,goals,h,tabs}){
+function RptMetasVista({state,goals,h,tabs,onAdd}){
   const res=useMemo(function(){ return metasResumen(state); },[state.goals,state.expenses,state.deleted,state.settings,state.reservaLog]);
   const abiertas=goals.filter(function(g){ return !g.done&&goalPct(metaConAportes(g,state))<100; }), hechas=goals.filter(function(g){ return abiertas.indexOf(g)<0; });
   const fila=function(g){
@@ -432,6 +439,7 @@ function RptMetasVista({state,goals,h,tabs}){
   const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:res.conFecha>0?[t("rpt_m_a_tiempo"),t("rpt_m_todas")]:[t("rpt_m_fecha"),t("rpt_m_sin_fecha")];
   return React.createElement("div",{className:"rpt"},
     React.createElement(RptHero,{testid:"goals-summary",titulo:t("v4_goals_hero"),cifra:rptC0(sv),tono:"verde",sub:tf("rpt_m_de_total",{x:rptC0(tg)}),
+      accion:onAdd&&React.createElement(RptAnadir,{act:"goal-new",label:t("v4_goal_new"),onClick:onAdd}),
       celdas:[{l:t("rpt_m_apartas"),v:rptC0(res.ritmo)+t("rpt_m_mes")},{l:f2[0],v:f2[1],cls:res.hueco>0||res.vencidas>0?"warn":res.conFecha>0?"ok":""}]}),
     tabs,
     abiertas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_en_marcha"))),React.createElement("div",{className:"rpt-list"},abiertas.map(fila))),

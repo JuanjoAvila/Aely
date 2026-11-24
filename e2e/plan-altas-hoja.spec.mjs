@@ -3,8 +3,9 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtu
 
 test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
-/* DIS-31 (15/11/2026): «Añadir deuda» y «Nueva meta» pasan de abrirse dentro de la lista a una hoja
-   con etiquetas, y la fecha límite usa el calendario de la app. CREAN DINERO, así que lo guardado
+/* DIS-31 (15/11/2026): «Añadir deuda» y «Nueva meta» pasan de abrirse dentro de la lista a una hoja,
+   y la fecha límite usa el calendario de la app. Desde el 24/11 la hoja es la de Añadir recibo (importe grande, celdas
+   que se teclean con el teclado propio, «Más datos» plegado): se teclea con `pad`, el resultado guardado es el mismo. CREAN DINERO, así que lo guardado
    tiene que ser campo a campo lo que guardaba el formulario viejo: los objetos de abajo se volcaron
    del localStorage en la base 0184ef82c rellenando los mismos valores (solo cambian id y createdAt). */
 
@@ -19,6 +20,10 @@ const META_BASE = { name: "Viaje sintético", emoji: "🎯", target: 3000, saved
 
 const estado = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")));
 const sinId = (o) => { const c = Object.assign({}, o); delete c.id; delete c.createdAt; return c; };
+// Teclea con el teclado propio de la hoja (la coma es el separador decimal en castellano).
+const pad = async (hoja, txt) => { for (const ch of txt) await hoja.locator('.v4-keys button[aria-label="' + ch + '"]').click(); };
+const deuda = (page) => page.getByTestId("debt-add-form");
+const meta = (page) => page.getByTestId("goal-add-form");
 
 async function abrePlan(page, seg) {
   await seedLoggedInDashboard(page, { accounts, settings, debts: [], goals: [], budget: 1000 });
@@ -32,19 +37,30 @@ async function abrePlan(page, seg) {
 test("★ añadir deuda desde la hoja guarda la misma deuda que el formulario viejo", async ({ page }) => {
   await abrePlan(page, "Deudas");
   await page.getByRole("button", { name: "Añadir deuda", exact: true }).click();
-  const hoja = page.locator(".v4-sheet.plan-edit-sheet");
+  const hoja = deuda(page);
   await expect(hoja).toBeVisible();
-  const f = hoja.getByTestId("debt-add-form");
-  // Cada campo tiene su etiqueta: se rellena por ella, no por el texto de ejemplo.
-  await f.getByLabel("Nombre", { exact: true }).fill("Coche sintético");
-  await f.getByLabel("Importe €", { exact: true }).fill("12000,50");
-  await f.getByLabel("Plazo (meses)", { exact: true }).fill("48");
-  await f.getByLabel("Día", { exact: true }).fill("16");
-  await f.locator("label", { hasText: "Cuenta" }).locator("select").selectOption("trade_republic");
-  await f.getByLabel("Entrada € (opcional)", { exact: true }).fill("1500");
-  await f.getByLabel("Pago final € (coche)", { exact: true }).fill("4000");
-  await f.getByLabel("Cuotas ya pagadas", { exact: true }).fill("3");
-  await f.getByRole("button", { name: "Añadir deuda", exact: true }).click();
+  // Lo opcional (entrada, pago final, cuotas pagadas) va plegado bajo «Más datos».
+  await expect(hoja.locator('[data-act="mas-datos"]')).toHaveAttribute("aria-expanded", "false");
+  await expect(hoja.locator('.pr6-fold:not(.open) [data-debt-add="down"]')).toHaveCount(1);
+  await hoja.locator('[data-debt-add="name"]').fill("Coche sintético");
+  await hoja.locator('[data-debt-add="value"]').click();
+  await pad(hoja, "12000,50");
+  await hoja.locator('[data-debt-add="months"]').click();
+  await pad(hoja, "48");
+  await hoja.locator('[data-debt-add="day"]').click();
+  await pad(hoja, "16");
+  await hoja.locator('[data-act="mas-datos"]').click();
+  // La cuenta nace elegida (la del gasto diario) y se puede cambiar dentro de «Más datos».
+  await expect(hoja.locator('[data-debt-add-account="trade_republic"]')).toHaveAttribute("aria-pressed", "true");
+  await hoja.locator('[data-debt-add-account="sabadell"]').click();
+  await hoja.locator('[data-debt-add-account="trade_republic"]').click();
+  await hoja.locator('[data-debt-add="down"]').click();
+  await pad(hoja, "1500");
+  await hoja.locator('[data-debt-add="balloon"]').click();
+  await pad(hoja, "4000");
+  await hoja.locator('[data-debt-add="paid"]').click();
+  await pad(hoja, "3");
+  await hoja.locator('[data-act="hoja-guardar"]').click();
   await expect(hoja).toHaveCount(0);
   await expect.poll(async () => ((await estado(page)).debts || []).length).toBe(1);
   const d = (await estado(page)).debts[0];
@@ -52,13 +68,19 @@ test("★ añadir deuda desde la hoja guarda la misma deuda que el formulario vi
   expect(sinId(d)).toEqual(DEUDA_BASE);
 });
 
-test("★ la validación sigue igual: sin importe no crea nada y la hoja se queda", async ({ page }) => {
+test("★ la validación sigue igual: sin importe o sin cuota ni plazo no se puede guardar y la hoja se queda", async ({ page }) => {
   await abrePlan(page, "Deudas");
   await page.getByRole("button", { name: "Añadir deuda", exact: true }).click();
-  const hoja = page.locator(".v4-sheet.plan-edit-sheet");
-  await hoja.getByTestId("debt-add-form").getByRole("button", { name: "Añadir deuda", exact: true }).click();
-  await expect(page.getByText("Falta el importe total de la deuda").first()).toBeVisible();
+  const hoja = deuda(page);
+  const guardar = hoja.locator('[data-act="hoja-guardar"]');
+  await expect(guardar).toHaveAttribute("aria-disabled", "true");
+  await guardar.evaluate((b) => b.click());
   await expect(hoja).toBeVisible();
+  await pad(hoja, "900");
+  await expect(guardar).toHaveAttribute("aria-disabled", "true");
+  await hoja.locator('[data-debt-add="monthly"]').click();
+  await pad(hoja, "100");
+  await expect(guardar).toHaveAttribute("aria-disabled", "false");
   expect(((await estado(page)).debts || []).length).toBe(0);
 });
 
@@ -67,15 +89,17 @@ test("★ la validación sigue igual: sin importe no crea nada y la hoja se qued
 test("★ nueva meta desde la hoja, con el calendario de la app, guarda la misma meta", async ({ page }) => {
   await abrePlan(page, "Metas");
   await page.getByRole("button", { name: "Crear mi primera meta", exact: true }).click();
-  const hoja = page.locator(".v4-sheet.plan-edit-sheet");
+  const hoja = meta(page);
   await expect(hoja).toBeVisible();
-  const f = hoja.getByTestId("goal-add-form");
+  const f = hoja;
   await expect(f.locator('input[type="month"]')).toHaveCount(0);
-  await f.getByLabel("Nombre", { exact: true }).fill("Viaje sintético");
-  await f.getByLabel("Objetivo €", { exact: true }).fill("3000");
-  await f.getByLabel("Ya ahorrado €", { exact: true }).fill("250,5");
+  await f.locator('[data-goal-add="name"]').fill("Viaje sintético");
+  await f.locator('[data-goal-add="target"]').click();
+  await pad(f, "3000");
+  await f.locator('[data-goal-add="saved"]').click();
+  await pad(f, "250,5");
   const fecha = f.locator('[data-goal-add="deadline"]');
-  await expect(fecha).toHaveText("Sin fecha");
+  await expect(fecha).toContainText("Sin fecha");
   await fecha.click();
   const cal = f.getByTestId("mc-cal");
   await expect(cal).toBeVisible();
@@ -83,9 +107,11 @@ test("★ nueva meta desde la hoja, con el calendario de la app, guarda la misma
   for (let i = 0; i < 9; i++) await cal.locator(".mc-cal-nav button").last().click();
   await cal.locator(".mc-cal-day", { hasText: /^15$/ }).click();
   await expect(cal).toHaveCount(0);
-  await expect(fecha).toHaveText(/junio 2027/i);
-  await f.getByLabel("Aporte al mes € (opcional)", { exact: true }).fill("120");
-  await f.getByRole("button", { name: "Crear meta", exact: true }).click();
+  await expect(fecha).toContainText(/junio 2027/i);
+  await f.locator('[data-act="mas-datos"]').click();
+  await f.locator('[data-goal-add="monthly"]').click();
+  await pad(f, "120");
+  await f.locator('[data-act="hoja-guardar"]').click();
   await expect(hoja).toHaveCount(0);
   await expect.poll(async () => ((await estado(page)).goals || []).length).toBe(1);
   const g = (await estado(page)).goals[0];
@@ -97,13 +123,13 @@ test("★ nueva meta desde la hoja, con el calendario de la app, guarda la misma
 test("cerrar la hoja de meta descarta, como el viejo «Cancelar»", async ({ page }) => {
   await abrePlan(page, "Metas");
   await page.getByRole("button", { name: "Crear mi primera meta", exact: true }).click();
-  const hoja = page.locator(".v4-sheet.plan-edit-sheet");
-  await hoja.getByTestId("goal-add-form").getByLabel("Objetivo €", { exact: true }).fill("500");
+  const hoja = meta(page);
+  await pad(hoja, "500");
   await hoja.getByRole("button", { name: "Cancelar", exact: true }).click();
   await expect(hoja).toHaveCount(0);
   expect(((await estado(page)).goals || []).length).toBe(0);
   await page.getByRole("button", { name: "Crear mi primera meta", exact: true }).click();
-  await expect(hoja.getByTestId("goal-add-form").getByLabel("Objetivo €", { exact: true })).toHaveValue("");
+  await expect(hoja.locator('[data-goal-add="target"]')).toContainText("0 €");
 });
 
 /* Revisión de dinero 235 (M1): la hoja baja animada y el formulario sigue vivo mientras tanto, así
@@ -116,19 +142,21 @@ async function tresToques(boton) {
 test("★ triple toque en «Añadir deuda» crea UNA deuda", async ({ page }) => {
   await abrePlan(page, "Deudas");
   await page.getByRole("button", { name: "Añadir deuda", exact: true }).click();
-  const hoja = page.locator(".v4-sheet.plan-edit-sheet");
-  const f = hoja.getByTestId("debt-add-form");
-  await f.getByLabel("Importe €", { exact: true }).fill("900");
-  await f.getByLabel("Cuota al mes (€)", { exact: true }).fill("100");
-  await tresToques(f.getByRole("button", { name: "Añadir deuda", exact: true }));
+  const hoja = deuda(page);
+  await pad(hoja, "900");
+  await hoja.locator('[data-debt-add="monthly"]').click();
+  await pad(hoja, "100");
+  await tresToques(hoja.locator('[data-act="hoja-guardar"]'));
   await expect(hoja).toHaveCount(0);
   await page.waitForTimeout(400);
   expect(((await estado(page)).debts || []).length).toBe(1);
   // Y la siguiente alta, con la hoja nueva, vuelve a funcionar.
   await page.getByRole("button", { name: "Añadir deuda", exact: true }).click();
-  await f.getByLabel("Importe €", { exact: true }).fill("500");
-  await f.getByLabel("Cuota al mes (€)", { exact: true }).fill("50");
-  await f.getByRole("button", { name: "Añadir deuda", exact: true }).click();
+  await expect(hoja.locator('[data-debt-add="value"]')).toContainText("0 €");
+  await pad(hoja, "500");
+  await hoja.locator('[data-debt-add="monthly"]').click();
+  await pad(hoja, "50");
+  await hoja.locator('[data-act="hoja-guardar"]').click();
   await expect(hoja).toHaveCount(0);
   await expect.poll(async () => ((await estado(page)).debts || []).length).toBe(2);
 });
@@ -136,16 +164,17 @@ test("★ triple toque en «Añadir deuda» crea UNA deuda", async ({ page }) =>
 test("★ triple toque en «Crear meta» crea UNA meta", async ({ page }) => {
   await abrePlan(page, "Metas");
   await page.getByRole("button", { name: "Crear mi primera meta", exact: true }).click();
-  const hoja = page.locator(".v4-sheet.plan-edit-sheet");
-  const f = hoja.getByTestId("goal-add-form");
-  await f.getByLabel("Objetivo €", { exact: true }).fill("800");
-  await tresToques(f.getByRole("button", { name: "Crear meta", exact: true }));
+  const hoja = meta(page);
+  await pad(hoja, "800");
+  await tresToques(hoja.locator('[data-act="hoja-guardar"]'));
   await expect(hoja).toHaveCount(0);
   await page.waitForTimeout(400);
   expect(((await estado(page)).goals || []).length).toBe(1);
-  await page.getByRole("button", { name: /Nueva meta|Crear mi primera meta/ }).first().click();
-  await f.getByLabel("Objetivo €", { exact: true }).fill("300");
-  await f.getByRole("button", { name: "Crear meta", exact: true }).click();
+  // Con una meta ya hecha, «+ Añadir» de la cabecera abre la misma hoja.
+  await page.locator('[data-act="goal-new"]').click();
+  await expect(hoja.locator('[data-goal-add="target"]')).toContainText("0 €");
+  await pad(hoja, "300");
+  await hoja.locator('[data-act="hoja-guardar"]').click();
   await expect(hoja).toHaveCount(0);
   await expect.poll(async () => ((await estado(page)).goals || []).length).toBe(2);
 });

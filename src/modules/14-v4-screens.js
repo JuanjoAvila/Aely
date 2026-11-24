@@ -1132,6 +1132,9 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     return function(){ mo.disconnect(); };
   },[sig]);
   const sigN=sigPack?sigPack.pendingBills.length:0;
+  const pillPagado=React.createElement("div",{key:"pagado",className:"pr6-pill","data-testid":"plan-pagado"},
+    React.createElement("span",{className:"pr6-pill-t"},React.createElement("span",{className:"pr6-pill-l"},t("pr6_ya_pagados")),
+      React.createElement("span",{className:"pr6-pill-v"},eur(pack.paidBillsTotal))));
   // Al cambiar de mes la tarjeta no repite su `rise`: entra de lado con el resto de la vista.
   const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum pr6-flat"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
     React.createElement("div",{className:"pr6-vista"},
@@ -1148,7 +1151,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("div",{className:"serif num pr6-big"}, eur(pack.pendingBillsTotal)),
           countLine&&React.createElement("div",{className:"pr6-count","data-testid":"plan-count"}, countLine)),
       // «¿Te llega?» recorre el saldo de ESTE mes: en el siguiente no hay recorrido que enseñar.
+      // Siempre DOS celdas con divisor, como Metas: si falta «¿Te llega?» o «Te deben», ocupa su sitio lo ya pagado este mes
+      // (cifra que ya calcula la lista de abajo; no se inventa ninguna).
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
+        !(llega&&nPend>0)&&pillPagado,
         llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
           onClick:function(){ if(llegaHost.current) llegaHost.current(true); }},
           // Dos líneas como las celdas de Metas: la pregunta y la respuesta.
@@ -1163,7 +1169,8 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
           React.createElement("span",{className:"pr6-pill-t"},React.createElement("span",{className:"pr6-pill-l"},tf("pr6_te_deben",{x:""}).trim()),
             React.createElement("span",{className:"pr6-pill-v"},eur(debenTotal))),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
-            React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
+            React.createElement("path",{d:"M9 6l6 6-6 6"}))),
+        !(debenTotal>0.005)&&pillPagado)));
   const manage=React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow,onGoDebts:onGoDebts});
   /* La hoja de importar vive fuera de la rama del primer uso: al añadir, el plan deja de estar
      vacío y, dentro de esa rama, la hoja se desmontaba de golpe; el segundo toque de un doble

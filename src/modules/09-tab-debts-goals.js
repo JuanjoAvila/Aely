@@ -469,45 +469,40 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
         tocado&&React.createElement("div",{className:"hint rise","data-testid":"debt-amortize-save-first"},t("db_amortize_save_first"))),
       !recovery&&React.createElement("button",{type:"button",className:"btn dbx-del",onClick:function(){onDelete(debt);}},t("db_delete")))));
 }
-/* Campos de meta: los comparten la hoja de alta y la de edición para que sean la misma hoja
-   (etiqueta arriba de cada campo, emoji, fecha con el calendario de la app y no el selector de
-   mes nativo, que salía sin estilo). `attr` es el data-* que ya usaban los e2e de cada una. */
-function GoalFields({form,setForm,attr}){
-  const [dlCal,setDlCal]=useState(false);
-  const set1=function(patch){ setForm(Object.assign({},form,patch)); };
-  const campo=function(key,label,ph){ return React.createElement("label",{key:key},t(label),
-    React.createElement("input",{className:"af-in"+(ph?"":" num"),inputMode:ph?undefined:"decimal",placeholder:ph?t(ph):undefined,value:form[key],[attr]:key,
-      onChange:function(e){ set1({[key]:e.target.value}); }})); };
+/* Hoja de meta: la comparten el alta y la edición para que sean la misma (objetivo grande y teclado propio como en
+   Añadir recibo; ya ahorrado y fecha en celdas; «al mes» plegado; emoji junto al nombre). La fecha usa el calendario
+   de la app y no el selector de mes nativo, que salía sin estilo (filtro 253). `attr` es el data-* que ya usaban los e2e. */
+function GoalHoja({form,setForm,attr,title,onClose,closer,ctaLabel,ctaOn,onSave,notes,del}){
+  const [dlCal,setDlCal]=useState(false), [emoOpen,setEmoOpen]=useState(false);
+  const set1=function(patch){ setForm(function(o){ return Object.assign({},o,patch); }); };
   // Un emoji que no está en la lista (el de una meta antigua) se suma al principio: si no, ninguno salía marcado (filtro 253b).
   const emojis=form.emoji&&GOAL_EMOJIS.indexOf(form.emoji)<0?[form.emoji].concat(GOAL_EMOJIS):GOAL_EMOJIS;
-  // Dos tarjetas como en Editar deuda: quién es la meta y cuánto/cuándo.
-  return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"dbx-grp"},
-    campo("name","plan_edit_name","gl_name_ph"),
-    React.createElement("div",{className:"emoji-pick"},emojis.map(function(e){
-      return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){ set1({emoji:e}); }},e);
-    }))),
-    React.createElement("div",{className:"dbx-grp"},
-    React.createElement("div",{className:"af-row"},campo("target","gl_target_ph"),campo("saved","gl_saved_ph")),
-    React.createElement("label",null,t("gl_deadline"),
-      React.createElement("button",{type:"button",className:"af-in af-pick",[attr]:"deadline","aria-expanded":dlCal,
-        onClick:function(){ setDlCal(function(v){ return !v; }); }},form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"))),
-    dlCal && React.createElement(McCal,{soloMes:true,value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ set1({deadline:String(iso).slice(0,7)}); setDlCal(false); }}),
-    dlCal && form.deadline && React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ set1({deadline:""}); setDlCal(false); }},t("gl_deadline_none")),
-    campo("monthly","gl_monthly_ph")));
+  return React.createElement(AddHoja,{title:title,onClose:onClose,closer:closer,attr:attr,testid:"goal-add-form",
+    name:form.name,setName:function(v){ set1({name:v}); },namePh:t("gl_name_ph"),
+    nameLead:React.createElement("button",{type:"button",className:"rpa-emo","aria-label":t("ah_icono"),"aria-expanded":emoOpen,[attr]:"emoji",onClick:function(){ setEmoOpen(!emoOpen); }},form.emoji||"🎯"),
+    amtKey:"target",amtLabel:t("ah_objetivo"),vals:form,setVals:setForm,
+    cells:[{key:"saved",label:t("ah_ya_ahorrado"),kind:"dec",unit:"€"},
+      {key:"deadline",label:t("ah_fecha"),text:form.deadline?monthLong(+form.deadline.slice(5,7)-1)+" "+form.deadline.slice(0,4):t("gl_deadline_none"),on:dlCal,onTap:function(){ setDlCal(!dlCal); }}],
+    more:{cells:[{key:"monthly",label:t("ah_al_mes"),kind:"dec",unit:"€"}]},
+    ctaOn:ctaOn,ctaLabel:ctaLabel,onSave:onSave,notes:notes,del:del},
+    emoOpen&&React.createElement("div",{className:"emoji-pick"},emojis.map(function(e){
+      return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){ set1({emoji:e}); setEmoOpen(false); }},e);
+    })),
+    dlCal&&React.createElement(McCal,{soloMes:true,value:form.deadline?form.deadline+"-01":"",onPick:function(iso){ set1({deadline:String(iso).slice(0,7)}); setDlCal(false); }}),
+    dlCal&&form.deadline&&React.createElement("button",{type:"button",className:"v4-chip",style:{alignSelf:"flex-start"},onClick:function(){ set1({deadline:""}); setDlCal(false); }},t("gl_deadline_none")));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){return goalEditDraft(goal);});
   const closer=useRef(null);
   const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
   const aportado=metaConAportes(goal,state).aportado;
-  return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form dbx-form"},
-    React.createElement(GoalFields,{form:form,setForm:setForm,attr:"data-goal-field"}),
-    // Lo marcado desde Gastos NO está en este campo (se suma al vuelo): se dice para que no lo apunte otra vez.
-    aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(aportado)})),
-    save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)),
-    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(goalEditResult(goal,form));}},t("gl_save")),
-    React.createElement("button",{type:"button",className:"plan-sheet-del",onClick:function(){onDelete(goal);}},t("gl_delete"))));
+  return React.createElement(GoalHoja,{title:t("gl_edit_title"),form:form,setForm:setForm,attr:"data-goal-field",onClose:onClose,closer:closer,
+    ctaOn:!save.pending,ctaLabel:t("gl_save"),onSave:function(){ save.save(goalEditResult(goal,form)); },
+    del:{label:t("gl_delete"),onClick:function(){ onDelete(goal); }},
+    notes:(aportado>0||save.error)&&React.createElement(React.Fragment,null,
+      // Lo marcado desde Gastos NO está en este campo (se suma al vuelo): se dice para que no lo apunte otra vez.
+      aportado>0&&React.createElement("div",{className:"hint","data-testid":"goal-edit-from-gastos"},tf("gl_from_gastos",{x:eur(aportado)})),
+      save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)))});
 }
 /* ASESOR DE AMORTIZACIÓN (#11) — «¿cuándo amortizar?»
    El interés (TAE) es opcional por deuda (d.apr, se edita en su hoja): con él la tarjeta
@@ -619,10 +614,15 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
   const [adding,setAdding]=useState(false);
   const [form,setForm]=useState(DEBT_BLANK);
   const addCloser=useRef(null), addedRef=useRef(false);
-  const campoDeuda=function(key,label,mode,ph){ return React.createElement("label",{key:key},t(label),
-    React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||undefined,placeholder:ph?t(ph):undefined,value:form[key],"data-debt-add":key,
-      onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
   const banks=(function(){ const b=[]; (state.accounts||[]).forEach(a=>{ if(b.indexOf(a.ent)<0) b.push(a.ent); }); ["sabadell","trade_republic","familia"].forEach(x=>{ if(b.indexOf(x)<0) b.push(x); }); return b; })();
+  // La cuenta con la que ya pagas tus deudas (la más repetida) o, si no hay, la del gasto diario: la hoja nace con ella elegida.
+  const cuentaHabitual=function(){
+    const n={}; state.debts.forEach(function(d){ if(d.account&&banks.indexOf(d.account)>=0) n[d.account]=(n[d.account]||0)+1; });
+    const top=Object.keys(n).sort(function(a,b){ return n[b]-n[a]; })[0];
+    if(top) return top;
+    const diaria=(state.accounts||[]).find(function(a){ return accDaily(a); });
+    return diaria&&diaria.ent||DEBT_BLANK.account;
+  };
   const total=state.debts.reduce((a,d)=>a+debtBalance(d),0);
   const monthly=state.debts.reduce((a,d)=>a+(debtActive(d)?debtCuotaIn(d):0),0);
   const addDebt=()=>{
@@ -772,7 +772,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-act":"plan-orphan-discard",onClick:function(){
         askConfirm({title:t("plan_discard_draft_q"),sub:t("plan_discard_draft_sub"),ok:t("plan_conflict_discard"),danger:true}).then(function(yes){if(yes)set(function(s){return planSyncDiscard(s,record);});});
       }},t("plan_conflict_discard")));}),
-    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive,tabs:tabs,onAdd:function(){ setAdding(true); }}),
+    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive,tabs:tabs,onAdd:function(){ setForm(Object.assign({},DEBT_BLANK,{account:cuentaHabitual()})); setAdding(true); }}),
     // Asesor y archivadas en UNA tarjeta con dos filas plegables (antes: caja de borde amarillo, botón ghost suelto y
     // otro ghost para añadir; dueño 23/11/2026). `.v4-tip` se queda como nombre: los e2e lo usan de ancla.
     React.createElement("div",{className:"v4-tip dbx-tools"},
@@ -790,20 +790,23 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
     /* Añadir deuda va en su hoja con una etiqueta encima de cada campo (DIS-31, 15/11/2026): abierto
        dentro de la lista, el texto de ejemplo era la única pista y se cortaba («Cuota/mes € (vací…»).
        Los campos, `addDebt` y lo que guarda son los de antes; solo cambia dónde se pinta. */
-    adding && React.createElement(PlanEditSheet,{title:t("db_add"),closer:addCloser,onClose:function(){
-        setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } }},
-      React.createElement("div",{className:"add-form dbx-form","data-testid":"debt-add-form"},
-        React.createElement("div",{className:"dbx-grp"},
-          campoDeuda("name","plan_edit_name",null,"db_concept")),
-        React.createElement("div",{className:"dbx-grp"},
-          React.createElement("div",{className:"af-row"},campoDeuda("value","db_amount","decimal"),campoDeuda("monthly","plan_edit_quota","decimal")),
-          React.createElement("div",{className:"af-row"},campoDeuda("months","db_months_ph","numeric"),campoDeuda("day","db_day_ph","numeric")),
-          React.createElement("label",null,t("plan_conflict_account"),
-            React.createElement("select",{className:"af-in",value:form.account,onChange:function(e){ setForm(Object.assign({},form,{account:e.target.value})); }}, banks.map(function(b){ return React.createElement("option",{key:b,value:b},entOf(b).label); })))),
-        React.createElement("div",{className:"dbx-grp"},
-          React.createElement("div",{className:"af-row"},campoDeuda("down","db_down_ph","decimal"),campoDeuda("balloon","db_balloon_ph","decimal")),
-          campoDeuda("paid","db_paid_ph","numeric")),
-        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addDebt},t("db_add")))),
+    adding && React.createElement(AddHoja,{title:t("db_add"),closer:addCloser,testid:"debt-add-form",attr:"data-debt-add",
+      onClose:function(){ setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } },
+      name:form.name,setName:function(v){ setForm(function(o){ return Object.assign({},o,{name:v}); }); },namePh:t("db_concept"),
+      amtKey:"value",amtLabel:t("ah_debes"),vals:form,setVals:setForm,
+      cells:[{key:"monthly",label:t("ah_cuota"),kind:"dec",unit:"€"},{key:"day",label:t("ah_dia_cobro"),kind:"int"},
+        {key:"months",label:t("ah_plazo"),kind:"int",unit:t("ah_meses")}],
+      // La cuenta nace elegida (la de tus otras deudas o la del gasto diario): cambiarla es lo raro, va plegada con lo opcional.
+      more:{cells:[{key:"down",label:t("ah_entrada"),kind:"dec",unit:"€"},{key:"balloon",label:t("ah_pago_final"),kind:"dec",unit:"€"},
+        {key:"paid",label:t("ah_pagadas"),kind:"int"}],children:
+        React.createElement("div",{className:"rpa-cuentas"},
+          React.createElement("div",{className:"rp4-dim rpa-k"},t("plan_conflict_account")),
+          React.createElement("div",{className:"v4-chips"},banks.map(function(b){
+            return React.createElement("button",{type:"button",key:b,className:"v4-chip"+(form.account===b?" on":""),"aria-pressed":form.account===b,"data-debt-add-account":b,
+              onClick:function(){ setForm(function(o){ return Object.assign({},o,{account:b}); }); }},entOf(b).label);
+          })))},
+      ctaOn:(parseFloat(String(form.value).replace(',','.'))||0)>0&&((parseFloat(String(form.monthly).replace(',','.'))||0)>0||(parseInt(form.months,10)||0)>0),
+      ctaLabel:t("db_add"),onSave:addDebt}),
     fichaDeuda&&React.createElement(RptDeudaFicha,{key:fichaDeuda.id,d:fichaDeuda,state:state,set:set,r:rep,h:hFicha,onClose:function(){ setFichaId(null); }}),
     editor
   );
@@ -1148,14 +1151,8 @@ function Goals({state, set, totals, showToast, abrir, tabs}){
 
   const hMeta={abrir:function(g){ setFichaMetaId(g.id); },aportar:contribute,eliminar:delGoal,editar:function(g){ setEditingGoal(g); }};
 
-  const emojiPicker=function(cur,onPick){
-    return React.createElement("div",{className:"emoji-pick"}, GOAL_EMOJIS.map(function(e){
-      return React.createElement("button",{key:e,type:"button",className:(cur===e?"on":""),onClick:function(){ onPick(e); }}, e);
-    }));
-  };
-
   return React.createElement("div",null,
-    goals.length>0 ? React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta,tabs:tabs}) : tabs,
+    goals.length>0 ? React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta,tabs:tabs,onAdd:function(){ setAdding(true); }}) : tabs,
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
@@ -1165,15 +1162,11 @@ function Goals({state, set, totals, showToast, abrir, tabs}){
     /* Nueva meta en su hoja, con etiquetas y el calendario de la app en vez del selector de mes
        nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
        selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
-    adding && React.createElement(PlanEditSheet,{title:t("gl_create"),closer:addCloser,onClose:function(){ sentRef.current=false; setAdding(false); setForm(blank); }},
-      React.createElement("div",{className:"add-form dbx-form","data-testid":"goal-add-form"},
-        React.createElement(GoalFields,{form:form,setForm:setForm,attr:"data-goal-add"}),
-        React.createElement("button",{className:"btn btn-primary btn-block",onClick:addGoal},t("gl_create")))),
-    goals.length===0
-      // La primera meta es LA acción de la pantalla vacía: botón principal, no el fantasma punteado.
-      ? React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first"))
-      // Una sola acción primaria, igual que la pantalla vacía (antes un fantasma punteado).
-      : React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-new",onClick:function(){ setAdding(true); }},t("v4_goal_new")),
+    adding && React.createElement(GoalHoja,{title:t("gl_create"),form:form,setForm:setForm,attr:"data-goal-add",closer:addCloser,
+      onClose:function(){ sentRef.current=false; setAdding(false); setForm(blank); },
+      ctaOn:(parseFloat(String(form.target).replace(',','.'))||0)>0,ctaLabel:t("gl_create"),onSave:addGoal}),
+    // Con metas, «+ Añadir» va en la cabecera (como Recibos y Deudas). Solo la pantalla vacía conserva el botón grande: la primera meta es LA acción.
+    goals.length===0&&React.createElement("button",{type:"button",className:"btn btn-primary btn-block v4-goal-first","data-act":"goal-first",onClick:function(){ setAdding(true); }},t("gl_first")),
 
     React.createElement(ContributeGoalSheet,{goal:contribGoal,state:state,onClose:function(){ setContribGoal(null); },
       onContribute:function(amt,bank){ addToGoal(contribGoal,amt,bank); setContribGoal(null); }}),
