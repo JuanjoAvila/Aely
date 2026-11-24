@@ -3107,9 +3107,11 @@ function flattenBankTx(links, previous){
     else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
     txs.forEach(function(t,i){
       if(partial[ent]&&(!t||t.amount==null||String(t.amount).trim()===""||!isFinite(Number(t.amount)))) return;
+      // IBAN de la contraparte (DIN-01): dato de un tercero; solo con forma de IBAN, sin espacios y en mayúsculas.
+      const cpRaw=String(t&&t.cp_iban||"").replace(/\s+/g,"").toUpperCase(), cp=/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(cpRaw)?cpRaw:"";
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}), ...(accs[i]?{acc:String(accs[i])}:{}) });
+      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}), ...(cp?{cpIban:cp}:{}), ...(accs[i]?{acc:String(accs[i])}:{}) });
     });
   });
   if(Object.keys(partial).length||Object.keys(expired).length){

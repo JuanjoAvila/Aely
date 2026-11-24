@@ -347,6 +347,7 @@ const steps = [
   ["categorize-handler", ["node", "tests/categorize-handler.test.mjs"]],
   ["seguridad-hogar-eventos", ["node", "tests/seguridad-hogar-eventos.test.mjs"]],
   ["grants-migraciones", ["node", "tests/grants-migraciones.test.mjs"]],
+  ["iban-contraparte", ["node", "tests/iban-contraparte.test.mjs"]],
   ["entrada-edge", ["node", "tests/entrada-edge.test.mjs"]],
   ["bucket-igual-que-balance", ["node", "tests/bucket-igual-que-balance.test.mjs"]],
   ["apk-sin-token-ingest", ["node", "tests/apk-sin-token-ingest.test.mjs"]],

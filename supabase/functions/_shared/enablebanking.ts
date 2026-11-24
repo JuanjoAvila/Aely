@@ -218,6 +218,21 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
 
 // Mapea un movimiento de Enable Banking al formato de la app.
 // Convención del cliente: amount POSITIVO = gasto, NEGATIVO = ingreso.
+/**
+ * IBAN de la CONTRAPARTE (DIN-01): lo que permite saber que un cargo/abono va a otra cuenta DEL PROPIO
+ * usuario (traspaso propio, recarga a TR con su nombre) sin fiarse del texto. En un cargo la contraparte
+ * es el acreedor; en un abono, el ordenante. Es un dato personal de un TERCERO: solo se acepta con forma
+ * de IBAN (nada de texto libre del banco), se normaliza (sin espacios, mayúsculas) y nunca se escribe en
+ * un log (tests/logs-privacidad y tests/iban-contraparte lo vigilan). Si el banco no lo manda, sin campo.
+ */
+// deno-lint-ignore no-explicit-any
+export function ibanContraparte(t: any, isCredit: boolean): string {
+  const acc = isCredit ? t?.debtor_account : t?.creditor_account;
+  const raw = typeof acc?.iban === "string" ? acc.iban : "";
+  const iban = raw.replace(/\s+/g, "").toUpperCase();
+  return /^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban) ? iban : "";
+}
+
 // deno-lint-ignore no-explicit-any
 export function mapTransaction(t: any) {
   // Math.abs: la spec Berlin Group/PSD2 dice que `transaction_amount.amount` es MAGNITUD sin
@@ -236,6 +251,7 @@ export function mapTransaction(t: any) {
   const counterparty = (isCredit ? t?.debtor?.name : t?.creditor?.name) || "";
   const merchant = counterparty || remit || "Movimiento";
   const mcc = String(t?.merchant_category_code || "").trim();
+  const cpIban = ibanContraparte(t, isCredit);
   const haystack = `${remit} ${t?.creditor?.name || ""} ${t?.debtor?.name || ""} ${t?.bank_transaction_code?.description || ""}`;
   // CONCEPTO (petición 2026-07-24): hasta ahora `remittance_information` solo se usaba de comodín
   // para el título y, si el banco mandaba el nombre del ordenante, se TIRABA. Es justo el mensaje
@@ -255,6 +271,8 @@ export function mapTransaction(t: any) {
     // Se conserva el concepto separado para clasificar sin usar esa descripción genérica.
     concept: String(remit).replace(/\s+/g, " ").trim().slice(0, 160),
     ...(/^\d{4}$/.test(mcc) ? { mcc } : {}),
+    // IBAN de la contraparte: viaja en bankTx (estado local y nube), nunca a la tabla de gastos ni a logs.
+    ...(cpIban ? { cp_iban: cpIban } : {}),
     // best-effort: compra con tarjeta. Solo texto en español lo detectaba (TARJ/TARJETA); un
     // ASPSP que informa en inglés (Trade Republic, Revolut…) no lo mencionaba nunca y el cargo
     // se perdía en silencio (petición 2026-08-03). Con la cuenta de gasto diario esto ya no

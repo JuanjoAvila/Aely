@@ -1,5 +1,5 @@
 import { assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { ebApi, ebFailure, ebSessionVerdict, mapTransaction, fetchBankTransactions } from "./enablebanking.ts";
+import { ebApi, ebFailure, ebSessionVerdict, mapTransaction, ibanContraparte, fetchBankTransactions } from "./enablebanking.ts";
 
 /* Convención del cliente: amount POSITIVO = gasto, NEGATIVO = ingreso.
    Fija por escrito en tests/ob-ingresos.test.mjs — aquí se fija el otro extremo: cómo se
@@ -202,4 +202,20 @@ Deno.test("fetchBankTransactions: tiempo propio distingue el corte sin ampliar e
   }, 5);
   assertEquals(result.truncated, true);
   assertEquals(result.readReason, "time_limit");
+});
+// DIN-01 (NO ejecutado en el PC de desarrollo: sin Deno; el espejo Node es tests/iban-contraparte.test.mjs).
+// IBAN de ejemplo inválidos (ES00 + ceros): el repo es público y la contraparte es un tercero.
+Deno.test("mapTransaction: IBAN de la contraparte (cargo → acreedor, abono → ordenante), normalizado", () => {
+  const base = { transaction_amount: { amount: "12.00" }, booking_date: "2026-11-02" };
+  const cuentas = { creditor_account: { iban: "es00 0000 0000 0000 0000 0000" }, debtor_account: { iban: "ES0000000000000000000001" } };
+  assertEquals(mapTransaction({ ...base, credit_debit_indicator: "DBIT", ...cuentas }).cp_iban, "ES0000000000000000000000");
+  assertEquals(mapTransaction({ ...base, credit_debit_indicator: "CRDT", ...cuentas }).cp_iban, "ES0000000000000000000001");
+});
+
+Deno.test("mapTransaction: sin IBAN válido de la contraparte no hay campo cp_iban", () => {
+  const base = { transaction_amount: { amount: "12.00" }, booking_date: "2026-11-02", credit_debit_indicator: "DBIT" };
+  assertEquals("cp_iban" in mapTransaction(base), false);
+  assertEquals("cp_iban" in mapTransaction({ ...base, creditor_account: { iban: "texto libre" } }), false);
+  assertEquals("cp_iban" in mapTransaction({ ...base, debtor_account: { iban: "ES0000000000000000000000" } }), false);
+  assertEquals(ibanContraparte({ creditor_account: { iban: 5 } }, false), "");
 });

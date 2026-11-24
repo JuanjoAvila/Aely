@@ -1963,6 +1963,9 @@ const cloud = (function(){
     // Best-effort: si la tabla aún no existe (migración 0002 sin aplicar), simplemente falla y se ignora.
     async backupState(uid, data){
       const snapshot=Object.assign({},data); delete snapshot._goalSync; delete snapshot._planSync;
+      // DIN-01: el IBAN de la contraparte (dato de un tercero) vive solo en el móvil y en el enlace del banco;
+      // la copia diaria no lo guarda, se rehace con la siguiente lectura del banco.
+      if(Array.isArray(snapshot.bankTx)&&snapshot.bankTx.some(function(x){ return x&&x.cpIban; })) snapshot.bankTx=snapshot.bankTx.map(function(x){ if(!x||!x.cpIban) return x; const y=Object.assign({},x); delete y.cpIban; return y; });
       if(!sb || !uid) return;
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
