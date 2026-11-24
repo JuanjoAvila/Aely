@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
 
-/* PLAN (orden del dueño, 24/11): la línea de arriba va sin barra segmentada ni frase; las pestañas Recibos / Deudas /
-   Metas bajan DEBAJO de la tarjeta resumen de cada segmento; la flecha de «Tu mes en cifras» no lleva punto; Deudas
+/* PLAN (orden del dueño, 24/11): la línea «Libre · Entran» de arriba ya no existe (acceso: chip «Tu sueldo» en la tarjeta de Recibos); las pestañas Recibos / Deudas /
+   Metas bajan DEBAJO de la tarjeta resumen de cada segmento; sin flecha ⌄ en Recibos; Deudas
    tiene la tarjeta de Recibos (cifra en rojo, chips) con cada lista en su tarjeta y «Añadir» pequeño en la cabecera.
    Cifras inventadas; reloj del 26/09/2026. */
 const YM = 2026 * 12 + 8;
@@ -26,7 +26,7 @@ async function abrePlan(page, estado, tema) {
   await dismissNews(page);
   if (tema) await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), tema);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.getByTestId("plan-reparto-barra")).toBeVisible();
+  await expect(page.getByTestId("plan-reparto-chip")).toBeVisible();
 }
 const captura = async (page, nombre) => {
   await page.waitForTimeout(700);
@@ -35,25 +35,31 @@ const captura = async (page, nombre) => {
 const top = (loc) => loc.evaluate((e) => e.getBoundingClientRect().top);
 const bottom = (loc) => loc.evaluate((e) => e.getBoundingClientRect().bottom);
 
-test("la línea de arriba va sin barra ni frase y la hoja es la cascada", async ({ page }) => {
+test("Plan va sin la fila Libre/Entran ni la flecha ⌄; el chip «Tu sueldo» abre la hoja con la cascada", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await abrePlan(page, base(300), process.env.TEMA);
-  const barra = page.getByTestId("plan-reparto-barra");
-  await expect(barra).toContainText("Te faltan");
-  await expect(barra).toContainText(/Entran/);
-  await expect(barra.locator(".rpt-pb")).toHaveCount(0);
-  await expect(barra.locator(".rpt-lb-p")).toHaveCount(0);
-  await expect(barra).not.toContainText("Si gastas todo el presupuesto");
+  await expect(page.getByTestId("plan-reparto-barra")).toHaveCount(0);
+  await expect(page.locator(".rpt-lb")).toHaveCount(0);
+  await expect(page.locator(".v4-plan-screen, .page-live").first()).not.toContainText(/Entran\s/);
   await expect(page.locator(".pr6-sum-dot")).toHaveCount(0);
+  // Sin flecha «⌄» a la derecha de la cifra: lo único a la derecha es el chip de texto.
+  const chip = page.getByTestId("plan-reparto-chip");
+  await expect(chip).toContainText("Tu sueldo");
+  await expect(chip.locator("svg")).toHaveCount(1);
+  const cb = await chip.boundingBox(), big = await page.locator(".pr6-big").first().boundingBox(), cnt = await page.getByTestId("plan-count").boundingBox(), card = await page.getByTestId("plan-summary").boundingBox();
+  expect(cb.y).toBeGreaterThanOrEqual(big.y + big.height - 2);          // debajo de la cifra, no a su altura
+  expect(cb.x + cb.width).toBeLessThanOrEqual(card.x + card.width + 1);   // dentro de la tarjeta
+  expect(cb.x).toBeGreaterThan(cnt.x + cnt.width * 0.6);                  // a la derecha, no pegado a la cifra
+  expect(Math.abs((cb.y + cb.height / 2) - (cnt.y + cnt.height / 2))).toBeLessThan(10); // en la línea de «N recibos»
   await captura(page, "plan-recibos-" + (process.env.TEMA || "oscuro"));
-  await barra.click();
+  await chip.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toBeVisible();
   await expect(hoja.locator(".cas-row")).not.toHaveCount(0);
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te faltan");
   await hoja.locator(".rpt-sx").click();
   await expect(hoja).toHaveCount(0);
-  // La flecha de Recibos abre ESTA misma hoja (no una segunda).
+  // Tocar la cifra abre ESTA misma hoja (no una segunda).
   await page.getByTestId("plan-cifras").click();
   await expect(page.getByTestId("plan-reparto-hoja")).toBeVisible();
   await expect(page.getByTestId("plan-mes-hoja")).toHaveCount(0);
@@ -65,7 +71,6 @@ test("las pestañas van debajo de la tarjeta resumen en Recibos, Deudas y Metas 
   const tabs = page.locator(".v4-plan-tabs");
   await expect(tabs).toHaveCount(1);
   expect(await top(tabs)).toBeGreaterThanOrEqual(await bottom(page.getByTestId("plan-summary")) - 1);
-  expect(await top(tabs)).toBeGreaterThanOrEqual(await bottom(page.getByTestId("plan-reparto-barra")) - 1);
   await tabs.locator('[data-seg="deudas"]').click();
   await expect(page.locator('.v4-seg-btn[data-seg="deudas"]')).toHaveAttribute("aria-selected", "true");
   await expect(tabs).toHaveCount(1);

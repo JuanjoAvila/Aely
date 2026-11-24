@@ -1111,7 +1111,7 @@
   /* Cabecera tocable (abre «A dónde va tu sueldo»): igual que antes a la vista; la flecha va a la derecha de la cifra. */
   button.pr6-sum-tap{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;row-gap:12px;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px;}
   button.pr6-sum-tap>*{grid-column:1;min-width:0;}
-  button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:1 / span 2;position:relative;display:flex;width:28px;height:28px;align-items:center;justify-content:center;color:var(--muted);}
+  button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:2;align-self:end;display:inline-flex;align-items:center;gap:2px;padding:0;font-size:12.5px;font-weight:700;color:var(--mint-bright);white-space:nowrap;}
   .pr6-sum-tap:focus-visible{outline:2px solid var(--mint-bright);outline-offset:4px;border-radius:10px;}
   /* Pestañas de Plan como el diseño plan-mezcla: sin caja, píldora menta suave sobre el fondo oscuro. */
   .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;margin-top:14px;}
@@ -3140,20 +3140,6 @@
     --track:color-mix(in srgb,var(--muted-2) 62%,var(--bg));}
   html[data-theme="light"]{--s-deu:color-mix(in srgb,var(--mint) 58%,var(--bg));--s-met:color-mix(in srgb,var(--mint) 72%,var(--mint-dim));
     --s-aho:var(--text);--s-gas:var(--cream);--s-lib:var(--mint);--track:color-mix(in srgb,var(--muted-2) 78%,var(--bg));}
-  .rpt-lb{display:block;width:100%;min-height:0;margin:0 0 12px;padding:2px 0 4px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer;
-    transition:transform .14s var(--ease);}
-  .rpt-lb:active{transform:scale(.995);}
-  .rpt-lb:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:8px;}
-  .rpt-lb-h{display:flex;align-items:center;gap:8px;}
-  .rpt-lb-m{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:7px;}
-  .rpt-lb-l{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--muted);line-height:1.5;}
-  .rpt-lb-a{font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .rpt-lb-d{flex:none;font-size:12.5px;font-weight:500;color:var(--muted);white-space:nowrap;}
-  .rpt-lb-c{flex:none;color:var(--muted-2);transform:rotate(-90deg);}
-  .rpt-lb-p{display:block;margin-top:6px;font-size:12.5px;font-weight:600;line-height:1.35;color:var(--muted);}
-  .rpt-lb.ok .rpt-lb-l{color:var(--mint-ink,var(--mint));font-size:15px;font-weight:800;}
-  .rpt-lb.neg .rpt-lb-a,.rpt-lb.bad .rpt-lb-a,.rpt-lb.bad .rpt-lb-p{color:var(--coral);}
-  .rpt-lb.wrn .rpt-lb-p{color:var(--coral);font-weight:700;}
   /* Cabecera y bloques de las listas */
   .rpt-hero{container-type:inline-size;padding:6px 0 2px;}
   .rpt-ht{font-size:15px;font-weight:800;line-height:1.4;}
