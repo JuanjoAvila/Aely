@@ -213,6 +213,7 @@ const steps = [
   ["bank-download-incomplete", ["node", "tests/bank-download-incomplete.test.mjs"]],
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
   ["bank-sync-acuse", ["node", "tests/bank-sync-acuse.test.mjs"]],
+  ["bank-sync-saldo-hora", ["node", "tests/bank-sync-saldo-hora.test.mjs"]],
   ["bank-reconnect", ["node", "tests/bank-reconnect.test.mjs"]],
   ["bank-revoke-callback-race", ["node", "tests/bank-revoke-callback-race.test.mjs"]],
   ["ob-hueco-sync", ["node", "tests/ob-hueco-sync.test.mjs"]],

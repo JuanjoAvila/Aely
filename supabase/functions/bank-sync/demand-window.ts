@@ -149,3 +149,14 @@ export function demandReadComplete(accounts: Array<{ ok?: boolean; truncated?: b
   if (!accounts || !accounts.length) return false;
   return accounts.every((a) => !!a && a.ok === true && !a.truncated && !a.transactionError);
 }
+
+/** DIN-08. Tipo de saldo de «ahora» que ofrece el banco (ITAV disponible, ITBD provisional), o null.
+    CLBD (cierre), XPCD, PRCD y OTHR no cuentan: pueden ser el de ayer y presentarlo como actual
+    es optimista (PR330). El importe debe ser finito: un tipo sin cifra no es un saldo. */
+export function balanceIntradayType(balances: unknown): "ITAV" | "ITBD" | null {
+  const list = Array.isArray(balances) ? balances : [];
+  for (const want of ["ITAV", "ITBD"] as const) {
+    if (list.some((b) => String(b?.type ?? "").toUpperCase() === want && Number.isFinite(Number(b?.amount)) && String(b?.amount ?? "").trim() !== "")) return want;
+  }
+  return null;
+}

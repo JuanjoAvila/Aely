@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { ackCursor, ackLinkKey, ackToken, chunkCursor, currentDemandWindowStart, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
+import { ackCursor, ackLinkKey, ackToken, balanceIntradayType, chunkCursor, currentDemandWindowStart, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 const now = new Date("2026-10-10T12:00:00Z");
 const windowStart = currentDemandWindowStart(now);
@@ -131,4 +131,15 @@ Deno.test("una lectura parcial o con una cuenta caída no cuenta como entera", (
   assertEquals(demandReadComplete([{ ok: true }, { ok: false }]), false);
   assertEquals(demandReadComplete([]), false);
   assertEquals(demandReadComplete(null), false);
+});
+
+// DIN-08. NO EJECUTADO (no hay Deno en este PC); la misma regla la cubre tests/bank-sync-saldo-hora.test.mjs en Node.
+Deno.test("solo ITAV e ITBD son saldo de ahora; el cierre (CLBD) y compañía no", () => {
+  const b = (...tipos: string[]) => tipos.map((type) => ({ type, amount: 10 }));
+  assertEquals(balanceIntradayType(b("ITAV")), "ITAV");
+  assertEquals(balanceIntradayType(b("CLBD", "ITBD")), "ITBD");
+  assertEquals(balanceIntradayType(b("ITBD", "itav")), "ITAV");
+  for (const tipo of ["CLBD", "XPCD", "PRCD", "OTHR", ""]) assertEquals(balanceIntradayType(b(tipo)), null);
+  assertEquals(balanceIntradayType([{ type: "ITAV", amount: "" }, { type: "ITBD", amount: NaN }]), null);
+  assertEquals(balanceIntradayType(null), null);
 });
