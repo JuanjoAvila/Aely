@@ -65521,6 +65521,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
       }
     ],
     "unidades": true
@@ -209001,6 +209005,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
       }
     ],
     "unidades": true

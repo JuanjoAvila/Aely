@@ -7096,8 +7096,10 @@ test("Catálogo255 abre la nota 4.26.255 sin tanda nueva, deja intactas las ocho
   }
   // Único cambio del registro: el cierre de lectores suma el código endurecido del Hogar (hhNormalizarCodigo, hhCodigoNuevo y HH_CODIGO_MIN, que llama hhRegenerarCodigo) al final de cada alcance que ya vigila hhRegenerarCodigo.
   const registro=JSON.parse(source("scripts/beta-sources.json")),cierre255=[{file:"src/modules/00-core.js",function:"hhNormalizarCodigo"},{file:"src/modules/00-core.js",function:"hhCodigoNuevo"},{file:"src/modules/00-core.js",data:"HH_CODIGO_MIN"}];
+  // Primero se retira lo último que se añadió: las hojas de añadir de Plan llaman accDaily desde Debts (para saber la cuenta diaria) y esos dos alcances heredan la dependencia, detrás del cierre del código de hogar.
+  for(const id of ["deudas-metas-hoja-edicion","diseno-240"])assert.deepEqual(registro[id].web.pop(),{file:"src/modules/01-i18n.js",function:"accDaily"},id+": accDaily va al final");
   for(const [id,scope] of Object.entries(registro)){if(!integrated[id].web.some(e=>e.function==="hhRegenerarCodigo"))continue;const w=scope.web;for(const e of cierre255.slice().reverse())assert.deepEqual(w.pop(),e,id+": el cierre del código de hogar va al final");}
-  assert.deepEqual(registro,integrated,"registro intacto salvo ese cierre");
+  assert.deepEqual(registro,integrated,"registro intacto salvo esos cierres");
   assert.equal(source("VERSION").trim(),"4.26.255");
   const apk=JSON.parse(source("public/apk.json"));
   assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
