@@ -26,20 +26,26 @@ async function abrePlan(page, estado) {
   await page.waitForFunction(() => !document.getElementById("mc-load"));
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.getByTestId("plan-reparto-barra")).toBeVisible();
+  await expect(page.getByTestId("plan-reparto-chip")).toBeVisible();
 }
-const barraTexto = (page) => page.getByTestId("plan-reparto-barra").innerText();
+// «Libre» (o «Te faltan») ya no está en la cabecera: se lee de la hoja que abre el chip «Tu sueldo» de Recibos.
+async function libre(page) {
+  await page.locator('.v4-seg-btn[data-seg="recibos"]').click();
+  await page.getByTestId("plan-reparto-chip").click();
+  const hoja = page.getByTestId("plan-reparto-hoja");
+  await expect(hoja).toBeVisible();
+  const txt = await page.getByTestId("plan-reparto-res").innerText();
+  await hoja.locator(".rpt-sx").click();
+  await expect(hoja).toHaveCount(0);
+  return txt;
+}
 
-test("la línea dice Libre y la hoja resta cada destino de lo que entra", async ({ page }) => {
+test("la cabecera ya no lleva la fila Libre/Entran y la hoja resta cada destino de lo que entra", async ({ page }) => {
   await abrePlan(page, base());
-  const barra = page.getByTestId("plan-reparto-barra");
-  await expect(barra).toHaveAttribute("data-st", "normal");
+  const barra = page.getByTestId("plan-reparto-chip");
   // 3.000 − (95 + 260 + 300 + 200 + 900) = 1.245
-  await expect(barra).toContainText("Libre");
-  await expect(barra).toContainText(/1\.245,00/);
-  await expect(barra).toContainText(/Entran 3\.000,00/);
-  // La línea ya no lleva barra segmentada: el reparto está en la hoja.
-  await expect(barra.locator(".rpt-pb")).toHaveCount(0);
+  await expect(page.getByTestId("plan-reparto-barra")).toHaveCount(0);
+  await expect(page.locator(".rpt-lb")).toHaveCount(0);
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toBeVisible();
@@ -59,10 +65,7 @@ test("la línea dice Libre y la hoja resta cada destino de lo que entra", async 
 
 test("sin nómina: «—» y sin resultado", async ({ page }) => {
   await abrePlan(page, base({ expenses: [gasto("g1", 5, 120.5)], flows: [{ id: "f1", kind: "income", name: "Nómina", amount: 3000, day: 3, to: "sabadell" }] }));
-  const barra = page.getByTestId("plan-reparto-barra");
-  await expect(barra).toHaveAttribute("data-st", "wait");
-  await expect(barra).toContainText("—");
-  await expect(barra).not.toContainText("Falta tu nómina");
+  const barra = page.getByTestId("plan-reparto-chip");
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toContainText("Falta tu nómina");
@@ -72,13 +75,8 @@ test("sin nómina: «—» y sin resultado", async ({ page }) => {
 
 test("te faltan: sin signo, y el saldo lo cubre o no llega", async ({ page }) => {
   await abrePlan(page, base({ expenses: [{ ...nomina, amount: -1500 }, gasto("g1", 5, 120.5)] }));
-  const barra = page.getByTestId("plan-reparto-barra");
+  const barra = page.getByTestId("plan-reparto-chip");
   // 1.500 − 1.755 = 255 de menos; el saldo (2.380) cubre lo que queda por pagar
-  await expect(barra).toContainText("Te faltan");
-  await expect(barra).toContainText(/255,00/);
-  await expect(barra).not.toContainText("−");
-  // Ni barra ni frase en la línea: la frase se queda dentro de la hoja.
-  await expect(barra).not.toContainText("Si gastas todo el presupuesto");
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te faltan");
@@ -108,19 +106,27 @@ test("Deudas: cabecera, filas, ficha con escalera e interruptor que mueve dinero
   // El icono de la deuda del gimnasio no es la casa aunque el nombre diga «casa».
   await page.getByTestId("plan-deuda-ficha").locator('[data-act="ficha-editar"]').count();
   // Interruptor: apagado por defecto; la hoja de reparto no cambia hasta encenderlo.
-  const lib0 = await barraTexto(page);
-  expect(lib0).toMatch(/Libre[\s\S]*1\.195,00/);
+  await ficha.locator(".rpt-sx").click();
+  expect(await libre(page)).toMatch(/1\.195,00/);
+  await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
+  await deudas.locator('[data-debt-id="d1"]').click();
   const sw = ficha.locator('[data-act="restar-presupuesto"]');
   await expect(sw).toHaveAttribute("aria-checked", "false");
   await expect(ficha.locator('[data-pv="m"]')).toContainText("260,00");
   await expect(ficha.locator('[data-pv="m"]')).toContainText("pasan de Gastos a Libre · no entra dinero");
   await sw.click();
   await expect(sw).toHaveAttribute("aria-checked", "true");
-  // La barra de debajo (tapada por la hoja pero viva) ya dice Libre + 260.
-  await expect.poll(() => barraTexto(page)).toMatch(/1\.455,00/);
+  // La hoja del chip ya dice Libre + 260.
+  await ficha.locator(".rpt-sx").click();
+  expect(await libre(page)).toMatch(/1\.455,00/);
+  await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
+  await deudas.locator('[data-debt-id="d1"]').click();
   await sw.click();
   await expect(sw).toHaveAttribute("aria-checked", "false");
-  await expect.poll(() => barraTexto(page)).toMatch(/1\.195,00/);
+  await ficha.locator(".rpt-sx").click();
+  expect(await libre(page)).toMatch(/1\.195,00/);
+  await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
+  await deudas.locator('[data-debt-id="d1"]').click();
   // Cerrar la ficha.
   await ficha.locator(".rpt-sx").click();
   await expect(ficha).toHaveCount(0);
@@ -173,8 +179,7 @@ test("Metas: cabecera, filas con su previsión de siempre y ficha con aportar, e
 
 test("Mi ciclo: la línea y la hoja siguen cuadrando", async ({ page }) => {
   await abrePlan(page, base({ settings: { ...settings, budgetCycle: true }, expenses: [{ ...nomina, date: "2026-09-14T10:00:00.000Z" }, gasto("g1", 16, 120.5)] }));
-  const barra = page.getByTestId("plan-reparto-barra");
-  await expect(barra).toContainText("Libre");
+  const barra = page.getByTestId("plan-reparto-chip");
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   const cts = await hoja.locator(".cas-row[data-c]").evaluateAll((els) => els.map((e) => Number(e.dataset.c)));

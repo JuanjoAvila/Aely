@@ -5,7 +5,7 @@
    ============================================================ */
 const RPT_COLS={rec:"--s-rec",deu:"--s-deu",met:"--s-met",aho:"--s-aho",gas:"--s-gas",lib:"--s-lib"};
 const RPT_I={
-  chev:"M6 9.5l6 6 6-6", check:"M5 12.5l4.5 4.5L19 7.5", plus:"M12 5v14M5 12h14", x:"M6 6l12 12M18 6L6 18", back:"M15 5l-7 7 7 7"
+  chev:"M6 9.5l6 6 6-6", chevr:"M9 6l6 6-6 6", check:"M5 12.5l4.5 4.5L19 7.5", plus:"M12 5v14M5 12h14", x:"M6 6l12 12M18 6L6 18", back:"M15 5l-7 7 7 7"
 };
 function rptIcon(k,size,style){
   return React.createElement("svg",{viewBox:"0 0 24 24",width:size||16,height:size||16,fill:"none",stroke:"currentColor",strokeWidth:2.1,strokeLinecap:"round",
@@ -25,15 +25,6 @@ function rptMesCorto(abs){
   const s=monthShort(abs%12);
   return (CURLANG==="en"?s:s.toLowerCase())+" "+String(Math.floor(abs/12)).slice(2);
 }
-// El estado de la línea de cabecera (etiqueta, cifra y color). La hoja pone su propio resultado: ver `RptRepartoHoja`.
-function rptTitular(r){
-  const w=r.pasa?" wrn":"";
-  if(r.st==="wait") return {l:t("rpt_libre"),a:"—",cls:""};
-  if(r.st==="todo") return {l:t("rpt_todo"),a:"",cls:"ok"+w};
-  if(r.st==="cubre"||r.st==="faltan") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg"};
-  if(r.st==="nollega") return {l:t("rpt_faltan"),a:rptC(r.falta),cls:"neg bad"};
-  return {l:r.st==="nobud"?t("rpt_libre_hasta"):t("rpt_libre"),a:rptC(r.libre),cls:w.trim()};
-}
 const RPT_DEPS_REPARTO=function(s){
   return [s.expenses,s.fixed,s.debts,s.goals,s.reservaLog,s.aportaciones,s.budget,s.settings,s.flows,s.oneoffs,s.accounts,s.deleted,s.reciboNo,
     s.bankTx,s.obAbsorbedPending,s.obAbsorbedConfirmed,s._historyOwner,s.cuotaNo,s.cuotaAlias,s.reciboBorrado];
@@ -43,33 +34,23 @@ function useReparto(state,totals){
   return useMemo(function(){ return planReparto(state,{saldo:totals&&typeof totals.liquid==="number"?totals.liquid:null}); },
     RPT_DEPS_REPARTO(state).concat([totals&&totals.liquid,hoy,totals&&totals.curMonth]));
 }
-/* La línea de arriba de Plan: «Te faltan/Te llega X · Entran Y». Sin barra ni frase debajo (orden del dueño 24/11): el
-   reparto y su frase («Si gastas todo el presupuesto…», cubre / no llega) viven en la hoja que abre al tocarla. */
+/* Plan ya no lleva la fila «Libre · Entran» arriba (orden del dueño 24/11): el reparto y su frase viven en la hoja «A dónde va tu
+   sueldo», que se abre desde la tarjeta de Recibos (ver `PlanMesTap`). Este componente solo la monta y le da su `openRef`. */
 function RptBarra({state,totals,onJump,openRef}){
-  const r=useReparto(state,totals), [abierta,setAbierta]=useState(false), H=rptTitular(r);
-  // La flecha de la cabecera de Recibos abre ESTA misma hoja (orden del dueño 24/11): una sola, sin copia.
+  const r=useReparto(state,totals), [abierta,setAbierta]=useState(false);
   useEffect(function(){ openRef.current=setAbierta; return function(){ openRef.current=null; }; },[openRef]);
-  return React.createElement(React.Fragment,null,
-    React.createElement("button",{type:"button",className:"rpt-lb "+H.cls,"data-testid":"plan-reparto-barra","data-st":r.st,
-      "aria-label":H.l+(H.a?" "+H.a:"")+". "+t("rpt_ver_reparto"),onClick:function(){ setAbierta(true); }},
-      React.createElement("span",{className:"rpt-lb-h"},
-        React.createElement("span",{className:"rpt-lb-m"},
-          React.createElement("span",{className:"rpt-lb-l"},H.cls.indexOf("ok")===0&&rptIcon("check",15),H.l),
-          H.a&&React.createElement("span",{className:"rpt-lb-a"},H.a)),
-        r.entra!=null&&React.createElement("span",{className:"rpt-lb-d"},tf("rpt_de",{x:rptC(r.entra)})),
-        React.createElement("span",{className:"rpt-lb-c"},rptIcon("chev",16)))),
-    abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
-      onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }}));
+  return abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
+    onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }});
 }
-/* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y una flecha pequeña que
-   dice que se abre. Abre la hoja de «A dónde va tu sueldo»; si los ingresos no llegan al plan, la etiqueta del botón
+/* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y un chip «Tu sueldo ›» a la
+   derecha de la cuenta que dice que se abre. Abre la hoja de «A dónde va tu sueldo»; si los ingresos no llegan al plan, la etiqueta del botón
    lo dice también para quien la lee en voz alta (sin puntito en la flecha, 24/11). */
 function PlanMesTap({state,totals,onOpen,children}){
   const r=useReparto(state,totals);
   return React.createElement("button",{type:"button",className:"pr6-sum-tap","data-testid":"plan-cifras","aria-haspopup":"dialog",
     "aria-label":t("rpt_ver_reparto")+(r.falta>0?". "+t("rpt_faltan")+" "+rptC(r.falta):""),onClick:onOpen},
     children,
-    React.createElement("span",{className:"pr6-sum-go","aria-hidden":"true"},rptIcon("chev",16)));
+    React.createElement("span",{className:"pr6-sum-go","data-testid":"plan-reparto-chip","aria-hidden":"true"},t("rpt_chip"),rptIcon("chevr",13)));
 }
 /* Hoja genérica de esta pantalla: asa, título con cerrar, cuerpo con scroll y pie fijo opcional. */
 function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){

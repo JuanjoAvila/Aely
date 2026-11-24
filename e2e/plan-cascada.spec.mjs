@@ -25,7 +25,7 @@ async function abrePlan(page, estado) {
   await page.waitForFunction(() => !document.getElementById("mc-load"));
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.getByTestId("plan-reparto-barra")).toBeVisible();
+  await expect(page.getByTestId("plan-reparto-chip")).toBeVisible();
 }
 // «3.473,35 €» → 347335 (céntimos); con o sin signo.
 const cts = (txt) => Math.round(parseFloat(txt.replace(/[^0-9,]/g, "").replace(",", ".")) * 100);
@@ -39,10 +39,9 @@ async function lee(page) {
   return { entra, filas, signo: /rojo/.test(res) ? -1 : 1, cifra };
 }
 
-test("sobra dinero: las líneas suman el plan y entra − plan = «Te sobran», el mismo número que la cabecera", async ({ page }) => {
+test("sobra dinero: las líneas suman el plan y entra − plan = «Te sobran»", async ({ page }) => {
   await abrePlan(page, base(3000));
-  const barra = page.getByTestId("plan-reparto-barra");
-  const cab = cts(await barra.locator(".rpt-lb-a").innerText());
+  const barra = page.getByTestId("plan-reparto-chip");
   await barra.click();
   if (process.env.CAPTURAS) { await page.waitForTimeout(700); await page.screenshot({ path: process.env.CAPTURAS + "/cascada-sobran-" + (process.env.TEMA || "oscuro") + ".png" }); }
   const x = await lee(page);
@@ -54,22 +53,18 @@ test("sobra dinero: las líneas suman el plan y entra − plan = «Te sobran», 
   expect(x.entra).toBe(300000);
   expect(x.signo).toBe(1);
   expect(x.cifra).toBe(x.entra - plan);
-  expect(x.cifra).toBe(cab);
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te sobran");
 });
 
-test("faltan dinero: «Te faltan» = plan − entra, igual que la cabecera, y sin bloque de aviso aparte", async ({ page }) => {
+test("faltan dinero: «Te faltan» = plan − entra, y sin bloque de aviso aparte", async ({ page }) => {
   await abrePlan(page, base(1500));
-  const barra = page.getByTestId("plan-reparto-barra");
-  await expect(barra).toContainText("Te faltan");
-  const cab = cts(await barra.locator(".rpt-lb-a").innerText());
+  const barra = page.getByTestId("plan-reparto-chip");
   await barra.click();
   if (process.env.CAPTURAS) { await page.waitForTimeout(700); await page.screenshot({ path: process.env.CAPTURAS + "/cascada-faltan-" + (process.env.TEMA || "oscuro") + ".png" }); }
   const x = await lee(page);
   const plan = x.filas.reduce((a, f) => a + f.c, 0);
   expect(x.signo).toBe(-1);
   expect(x.cifra).toBe(plan - x.entra);
-  expect(x.cifra).toBe(cab);
   expect(x.cifra).toBe(25500);
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te faltan");
   await expect(page.getByTestId("plan-reparto-hoja").locator(".pm-aviso,[data-queda]")).toHaveCount(0);
@@ -77,15 +72,15 @@ test("faltan dinero: «Te faltan» = plan − entra, igual que la cabecera, y si
 
 test("una categoría con dinero en el plan nunca se cae de la suma: con Ahorro a 0 no sale su línea y sigue cuadrando", async ({ page }) => {
   await abrePlan(page, { ...base(3000), aportaciones: [] });
-  await page.getByTestId("plan-reparto-barra").click();
+  await page.getByTestId("plan-reparto-chip").click();
   const x = await lee(page);
   expect(x.filas.map((f) => f.k)).toEqual(["rec", "deu", "met", "gas"]);
   expect(x.cifra).toBe(x.entra - x.filas.reduce((a, f) => a + f.c, 0));
 });
 
-test("la línea de cabecera y la flecha de Recibos abren la MISMA hoja; «Ver banco a banco» ya no está y el detalle sigue en «¿Te llega?»", async ({ page }) => {
+test("el chip «Tu sueldo» de Recibos y tocar la cifra abren la MISMA hoja; «Ver banco a banco» ya no está y el detalle sigue en «¿Te llega?»", async ({ page }) => {
   await abrePlan(page, base(3000));
-  await page.getByTestId("plan-reparto-barra").click();
+  await page.getByTestId("plan-reparto-chip").click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   const desdeLinea = await hoja.innerText();
   await hoja.locator(".rpt-sx").click();
@@ -109,21 +104,19 @@ test("la línea de cabecera y la flecha de Recibos abren la MISMA hoja; «Ver ba
   await expect(page.locator(".v4-sheet-back .v4-sheet").last()).toBeVisible();
 });
 
-test("gastado por encima del presupuesto: Gastos cuenta lo gastado y la cascada sigue cuadrando con la cabecera", async ({ page }) => {
+test("gastado por encima del presupuesto: Gastos cuenta lo gastado y la cascada sigue cuadrando", async ({ page }) => {
   await abrePlan(page, { ...base(3000), expenses: [nomina(3000), { ...gasto, amount: 1500 }] });
-  const barra = page.getByTestId("plan-reparto-barra");
-  const cab = cts(await barra.locator(".rpt-lb-a").innerText());
+  const barra = page.getByTestId("plan-reparto-chip");
   await barra.click();
   const x = await lee(page);
   expect(x.filas.find((f) => f.k === "gas").c).toBe(150000);
   expect(x.cifra).toBe(x.entra - x.filas.reduce((a, f) => a + f.c, 0));
-  expect(x.cifra).toBe(cab);
   expect(x.cifra).toBe(64500);
 });
 
 test("sin presupuesto el resultado dice «Libre hasta hoy», no «Te sobran»", async ({ page }) => {
   await abrePlan(page, { ...base(3000), budget: 0 });
-  await page.getByTestId("plan-reparto-barra").click();
+  await page.getByTestId("plan-reparto-chip").click();
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Libre hasta hoy");
 });
 
@@ -131,8 +124,7 @@ test("una deuda con cuota de siete cifras no desaparece de la cascada ni descuad
   await page.setViewportSize({ width: 390, height: 844 });
   const gorda = { ...prestamo, id: "d9", name: "Préstamo enorme", value: 200_000_000, original: 200_000_000, monthly: 1_234_567.89, months: 160 };
   await abrePlan(page, { ...base(3000), debts: [gorda] });
-  const barra = page.getByTestId("plan-reparto-barra");
-  const cab = cts(await barra.locator(".rpt-lb-a").innerText());
+  const barra = page.getByTestId("plan-reparto-chip");
   await barra.click();
   const x = await lee(page);
   const deu = x.filas.find((f) => f.k === "deu");
@@ -141,7 +133,6 @@ test("una deuda con cuota de siete cifras no desaparece de la cascada ni descuad
   expect(cts(deu.txt)).toBe(123456789);
   expect(x.signo).toBe(-1);
   expect(x.cifra).toBe(x.filas.reduce((a, f) => a + f.c, 0) - x.entra);
-  expect(x.cifra).toBe(cab);
   // Nada se sale por el lado: ni la fila ni la cifra gigante del resultado.
   const sobra = await page.getByTestId("plan-reparto-hoja").evaluate((h) => {
     const w = h.getBoundingClientRect();
