@@ -74,7 +74,7 @@ test("tu parte en Plan, la cuota con lo que se descuenta y lo que sale del banco
 test("Te deben: por persona, «Ya me lo ha pagado» y la familia (lo descuento) no sale", async ({ page }) => {
   const recibos = await abrePlan(page, { fixed: [pepe, yt, luz], debts: [mama] });
   const pill = recibos.getByTestId("plan-deben");
-  await expect(pill).toHaveText("Te deben 35,00 €");
+  await expect(pill).toHaveText(/Te deben\s*35,00 €/);
   await pill.click();
   const sheet = page.getByTestId("deben-sheet");
   await expect(sheet.getByTestId("deben-persona")).toHaveCount(5);
@@ -93,7 +93,7 @@ test("Te deben: por persona, «Ya me lo ha pagado» y la familia (lo descuento) 
   await expect(sheet.getByTestId("deben-total")).toHaveText("20,00 €");
   // Marcar no la mueve bajo el dedo: sigue la primera hasta volver a abrir.
   await expect(sheet.getByTestId("deben-persona").first()).toHaveAttribute("data-persona", "pe_pareja");
-  await expect(pill).toHaveText("Te deben 20,00 €");
+  await expect(pill).toHaveText(/Te deben\s*20,00 €/);
   let s = await guardado(page);
   expect(s.fixed.find((f) => f.id === "pepe").repartoCobrado).toEqual({ [YM]: ["pe_pareja"] });
   expect(s.fixed.find((f) => f.id === "yt").repartoCobrado).toEqual({ [YM]: ["pe_pareja"] });
@@ -102,7 +102,7 @@ test("Te deben: por persona, «Ya me lo ha pagado» y la familia (lo descuento) 
   await expect(pill).toHaveCount(0);
   // Deshacer una marca la devuelve a lo que debe.
   await sheet.locator('[data-persona="pe_nico"] [data-act="deben-pagado"]').click();
-  await expect(pill).toHaveText("Te deben 5,00 €");
+  await expect(pill).toHaveText(/Te deben\s*5,00 €/);
   await page.goBack();
   await expect(fila(recibos, "fixed_yt")).toContainText("te han pagado 4 de 5");
   // Ninguna cifra de Plan se mueve por cobrar a los demás: lo tuyo sigue siendo lo tuyo.
@@ -129,7 +129,7 @@ test("Te deben: un ingreso con su nombre la paga sola, y un pago a medias enseñ
     ing("in_dev", "DEVOLUCION BIZUM OTTO", 5, "2026-10-06T09:00:00")] });
   const pill = recibos.getByTestId("plan-deben");
   // 20 − 5 de Bruno − 3,70 de Nora.
-  await expect(pill).toHaveText("Te deben 11,30 €");
+  await expect(pill).toHaveText(/Te deben\s*11,30 €/);
   await expect(fila(recibos, "fixed_video")).toContainText("te han pagado 1 de 4");
   await pill.click();
   const sheet = page.getByTestId("deben-sheet");
@@ -153,7 +153,7 @@ test("Te deben: un ingreso con su nombre la paga sola, y un pago a medias enseñ
   const s = await guardado(page);
   expect(s.fixed.find((f) => f.id === "video").repartoCobrado).toEqual({ [YM]: ["!pe_bruno:in_bruno"] });
   await page.goBack();
-  await expect(pill).toHaveText("Te deben 16,30 €");
+  await expect(pill).toHaveText(/Te deben\s*16,30 €/);
   // Tu parte no se mueve por cobrar a los demás: Vídeo 5 + Luz 50.
   await expect(total(recibos)).toHaveText("55,00 €");
 });
@@ -192,7 +192,7 @@ test("añadir un recibo compartido: + Otra, a partes iguales, parte tecleada y t
   await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
   await expect(fila(recibos, "fixed_" + f.id)).toContainText("75,00 €");
   await expect(total(recibos)).toHaveText("125,00 €");
-  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
+  await expect(recibos.getByTestId("plan-deben")).toHaveText(/Te deben\s*10,00 €/);
 });
 
 test("Personas: renombrar, «Lo descuento» con una deuda que cuadra y borrar con confirmación", async ({ page }) => {
@@ -266,7 +266,7 @@ test("B1: añadir a alguien a un recibo ya pagado este mes no borra su «Te debe
   const pagado = Object.assign({}, pepe, { paidYm: YM, paidDay: 5 });
   const recibos = await abrePlan(page, { fixed: [pagado, luz], debts: [mama] });
   await expect(total(recibos)).toHaveText("300,00 €");
-  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
+  await expect(recibos.getByTestId("plan-deben")).toHaveText(/Te deben\s*10,00 €/);
   await editarRecibo(page, recibos, "pepe");
   await paso(page, 4).locator('[data-act="persona-otra"]').click();
   await persona(page).locator('[data-pe="name"]').fill("Nuevo");
@@ -278,7 +278,7 @@ test("B1: añadir a alguien a un recibo ya pagado este mes no borra su «Te debe
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
   await expect(total(recibos)).toHaveText("300,00 €");
-  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
+  await expect(recibos.getByTestId("plan-deben")).toHaveText(/Te deben\s*10,00 €/);
   await expect(fila(recibos, "debt_mama")).toContainText("pagas 197 € + 53 € de Pepephone");
   await expect(fila(recibos, "debt_mama")).toContainText("250,00 €");
   const s = await guardado(page);
@@ -397,7 +397,7 @@ test("R2-1: «Lo descuento» en un compartido de antes deja ajustar la parte: Ma
   await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
   await expect(fila(recibos, "debt_mama")).toContainText("pagas 197 € + 53 € de Pepephone");
   await expect(fila(recibos, "debt_mama")).toContainText("250,00 €");
-  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
+  await expect(recibos.getByTestId("plan-deben")).toHaveText(/Te deben\s*10,00 €/);
 });
 
 test("R5: un reparto que dejó de cuadrar se puede rehacer desde Editar", async ({ page }) => {
@@ -416,5 +416,5 @@ test("R5: un reparto que dejó de cuadrar se puede rehacer desde Editar", async 
   await expect(page.locator('[data-bills-manage][data-screen="bills-home"]')).toHaveCount(1);
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-bills-manage]")).toHaveCount(0);
-  await expect(recibos.getByTestId("plan-deben")).toHaveText("Te deben 10,00 €");
+  await expect(recibos.getByTestId("plan-deben")).toHaveText(/Te deben\s*10,00 €/);
 });

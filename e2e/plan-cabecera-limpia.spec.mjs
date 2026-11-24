@@ -123,5 +123,5 @@ test("Deudas: cabecera como la de Metas con la cifra en rojo, listas en tarjeta 
   await expect(page.locator('[data-seg="deudas"] .btn-primary.btn-block')).toHaveCount(0);
   await captura(page, "plan-deudas-" + (process.env.TEMA || "oscuro"));
   await add.click();
-  await expect(page.locator(".plan-edit-sheet")).toBeVisible();
+  await expect(page.getByTestId("debt-add-form")).toBeVisible();
 });

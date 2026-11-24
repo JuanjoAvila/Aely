@@ -70,7 +70,7 @@ test("Metas vacía: sin el cero grande y con un botón principal que abre el alt
   expect(caja.height).toBeGreaterThanOrEqual(48);
   await crear.click();
   // Desde DIS-31 el alta va en su hoja (portal a <body>), no dentro de la lista.
-  await expect(page.locator(".v4-sheet.rpa").getByTestId("goal-add-form")).toBeVisible();
+  await expect(page.locator(".v4-sheet.rpa[data-testid=\"goal-add-form\"]")).toBeVisible();
 });
 
 test("Metas con una meta: vuelve el resumen y el botón de añadir otra", async ({ page }) => {
