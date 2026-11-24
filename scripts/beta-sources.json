@@ -98701,10 +98701,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "lapidaLevanta"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "LAP_REN_V"
       }
     ],
     "unidades": true
@@ -101603,10 +101599,6 @@
       {
         "file": "src/modules/00-core.js",
         "function": "lapidaLevanta"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "LAP_REN_V"
       }
     ],
     "unidades": true

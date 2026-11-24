@@ -64,11 +64,11 @@ programar cualquier lectura de `bank-sync`, ver «Open Banking: lectura sola al 
 Rama `claude/din-07-lapidas`. Las lápidas que dejaban los renombres hechos con versiones <= 4.26.190
 (`día|importe|nombre-del-banco`, sin cuenta) escondían a la otra cuenta con el mismo cargo, también en
 el widget (`filasComoLaApp`). La 0032 las levanta en la nube; el cliente hace lo mismo una vez por móvil
-(`lapidasRenombreMigra`, con hora, para que un móvil sin actualizar no las devuelva). Idempotente.
+(`lapidasRenombreMigra`, con hora, en cada pasada y sin marcador, así que un móvil viejo que las devuelva las ve levantadas otra vez). Solo levanta una lápida si esconde AHORA a una fila viva de otra cuenta conocida: un borrado real (misma clave que un renombre antiguo) no se resucita. Idempotente.
 
 1. Medir antes (solo lectura): `select * from public.lapidas_renombre_viejas_dryrun();` — usuario y clave.
 2. Aplicar `0032_lapidas_renombre_viejas.sql` (índice parcial, tabla `lapidas_renombre_log`, tres
-   funciones solo para `service_role`, y un `select public.lapidas_renombre_viejas();` final).
+   funciones solo para `service_role`; NO ejecuta nada). Después, a mano: `select public.lapidas_renombre_viejas();`.
 3. Comprobar: `select count(*) from public.lapidas_renombre_log;` y que el dry-run vuelva vacío.
    Para devolver una lápida: borrarla de `deletedAt` y añadirla a `deleted` a mano desde el log.
 

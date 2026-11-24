@@ -426,13 +426,14 @@ function App(){
     };
   },[flushPersist]);
   // INC-0410 guardado: límite.
-  // DIN-07: lápidas globales de renombres viejos, una vez por móvil y con el histórico ya
-  // sincronizado (sin `lastSync` faltarían los renombrados que solo están en la nube).
+  // DIN-07: lápidas globales de renombres viejos que esconden la otra cuenta. Sin marcador de «hecho»:
+  // si un móvil viejo la devuelve, la pasada siguiente la levanta otra vez (con hora, así que converge).
+  // Solo con el histórico ya sincronizado (sin `lastSync` faltarían los renombrados que solo están en la nube).
   useEffect(function(){
-    if(state.lapRenV===LAP_REN_V||!state.lastSync||!state.expenses||!state.expenses.length) return;
-    // Sin nada que levantar solo se sella el marcador, sin contar como edición (no sube el estado entero).
-    set(function(p){ return p.lapRenV===LAP_REN_V?p:lapidasRenombreMigra(p,Date.now()); },lapidasRenombreViejas(state).length>0);
-  },[state.lastSync,state.expenses,state.lapRenV,set]);
+    if(!state.lastSync||!state.expenses||!state.expenses.length||!state.deleted||!state.deleted.length) return;
+    if(!lapidasRenombreViejas(state).length) return;
+    set(function(p){ return lapidasRenombreViejas(p).length?lapidasRenombreMigra(p,Date.now()):p; });
+  },[state.lastSync,state.expenses,state.deleted,set]);
   /* ⚠ EL TEMPORIZADOR DEL TOAST ANTERIOR SE CANCELA (13/9, tanda «actualizo y no me dice nada»).
      Cada toast programaba su propio `setToast(null)` a 2,2 s sin tocar el de antes, así que dos
      avisos seguidos se pisaban: el temporizador del PRIMERO borraba el SEGUNDO a mitad. Los largos

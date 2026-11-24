@@ -37,7 +37,7 @@ test("la migración levanta la lápida que explica el renombre y las dos cuentas
   const s = c.lapidasRenombreMigra(estado(), 5000);
   assert.deepEqual(clone(s.deleted), []);
   assert.equal(s.deletedAt[LEGACY], 5000, "con hora: la copia sin hora de otro móvil no la devuelve");
-  assert.equal(s.lapRenV, 1);
+  assert.equal("lapRenV" in s, false, "sin marcador de hecho: se re-evalua en cada pasada");
   assert.deepEqual(clone(visibles(s)).sort(), [renombrada.id, otra.id].sort());
 });
 
@@ -53,6 +53,21 @@ test("solo las claves globales `día|…`; las de cuenta, renombre y absorción 
   assert.deepEqual(clone(s.deleted), otras);
 });
 
+test("P1 revision: un BORRADO real (misma clave que un renombre viejo) no se resucita", () => {
+  // Gemelo borrado: la lapida global es SUYA y la fila renombrada no esconde a nadie.
+  assert.deepEqual(clone(c.lapidasRenombreViejas(estado({ expenses: [renombrada] }))), []);
+  // El escondido no tiene cuenta conocida: no se puede probar que sea otra cuenta.
+  const sinCuenta = { ...otra, obAcc: undefined };
+  assert.deepEqual(clone(c.lapidasRenombreViejas(estado({ expenses: [renombrada, sinCuenta] }))), []);
+  // Misma cuenta: es el mismo cargo, no otra cuenta.
+  const misma = { ...otra, ent: renombrada.ent, obAcc: renombrada.obAcc, id: "33333333-3333-4333-8333-333333333333" };
+  assert.deepEqual(clone(c.lapidasRenombreViejas(estado({ expenses: [renombrada, misma] }))), []);
+  // Y la renombrada sin cuenta tampoco prueba nada.
+  assert.deepEqual(clone(c.lapidasRenombreViejas(estado({ expenses: [{ ...renombrada, obAcc: undefined }, otra] }))), []);
+  const s = c.lapidasRenombreMigra(estado({ expenses: [renombrada] }), 5000);
+  assert.deepEqual(clone(s.deleted), [LEGACY], "la lapida sigue");
+});
+
 test("manuales y filas sin renombrar no generan nada", () => {
   const manual = { ...renombrada, id: "m1", source: "manual" };
   const igual = { ...renombrada, id: "i1", merchant: renombrada.obName };
@@ -62,7 +77,8 @@ test("manuales y filas sin renombrar no generan nada", () => {
 test("el ordinal #n del source entra en la clave, como en keyOfExpense", () => {
   const ord = { ...renombrada, obOrd: 2, date: DAY + "T10:00:00.001Z" };
   const k = LEGACY + "|#2";
-  assert.deepEqual(clone(c.lapidasRenombreViejas(estado({ expenses: [ord], deleted: [k, LEGACY] }))), [k]);
+  const otraOrd = { ...otra, obOrd: 2, date: DAY + "T10:00:00.001Z" };
+  assert.deepEqual(clone(c.lapidasRenombreViejas(estado({ expenses: [ord, otraOrd], deleted: [k, LEGACY] }))), [k]);
 });
 
 test("idempotente: segunda pasada no cambia nada y no vuelve a escribir", () => {
@@ -89,12 +105,30 @@ test("el servidor (filasComoLaApp) ve las dos cuentas con la lista ya limpia, y 
 test("0032: espejo SQL de la clave y salvaguardas (no ejecutado contra Postgres)", () => {
   assert.match(sql, /to_char\(e\.fecha at time zone 'UTC', 'YYYY-MM-DD'\)/);
   assert.match(sql, /trim_scale\(e\.importe\)::text/);
-  assert.match(sql, /'\|#' \|\| o\.ord/);
-  assert.match(sql, /e\.ob_name is distinct from e\.comercio/);
+  assert.match(sql, /'\|#' \|\| r\.ord/);
+  assert.match(sql, /r.ob_name is distinct from r.comercio/);
   assert.match(sql, /source like 'ob:%' or e\.source like 'ob-hist:%'/);
+  assert.match(sql, /where e\.user_id = p_user/);
+  assert.match(sql, /\(o\.banco, o\.cuenta\) is distinct from \(r\.banco, r\.cuenta\)/);
+  assert.match(sql, /security definer/);
+  assert.match(sql, /greatest\(ahora, coalesce\(\(r\.data -> 'deletedAt' ->> k\)::bigint, 0\) \+ 1\)/);
+  assert.match(sql, /grant execute on function public\.lapidas_renombre_viejas\(uuid\) to service_role/);
+  assert.doesNotMatch(sql, /to authenticated/);
+  assert.doesNotMatch(sql, /^select public\.lapidas_renombre_viejas/m, "no se ejecuta sola");
   assert.match(sql, /create index if not exists expenses_renombradas_idx/);
   assert.match(sql, /create or replace function public\.lapidas_renombre_viejas\(/);
   assert.match(sql, /revoke all on function public\.lapidas_renombre_viejas\(uuid\) from public, anon, authenticated/);
   assert.match(sql, /'\{deletedAt\}'/);
   assert.doesNotMatch(sql, /drop table|delete from public\.(expenses|app_state)|truncate/i);
+});
+
+test("el efecto de App levanta sin marcador y con la misma comprobacion que el test", () => {
+  const app = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
+  const i = app.indexOf("lapidasRenombreMigra(p,Date.now())");
+  assert.ok(i > 0, "el efecto llama a la migracion");
+  const bloque = app.slice(app.lastIndexOf("useEffect(", i), i + 200);
+  assert.match(bloque, /!state\.lastSync/);
+  assert.match(bloque, /lapidasRenombreViejas\(state\)\.length/);
+  assert.match(bloque, /state\.deleted/);
+  assert.doesNotMatch(bloque, /lapRenV/);
 });

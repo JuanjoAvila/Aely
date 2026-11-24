@@ -9,21 +9,20 @@
 --
 -- Qué hace esta migración (idempotente, se puede lanzar las veces que haga falta):
 --   1. Índice parcial `expenses_renombradas_idx`: solo las filas de banco cuyo nombre actual difiere
---      del bancario (`ob_name <> comercio`). Es lo único que la función necesita mirar.
+--      del bancario (`ob_name <> comercio`). Ayuda a localizar las filas renombradas por usuario (el origen de cada candidata).
 --   2. Tabla `lapidas_renombre_log`: qué lápida se levantó, a quién y cuándo. Sin políticas RLS:
 --      solo service_role. Permite devolverla si algún día hiciera falta.
---   3. Función `lapidas_renombre_viejas(p_user)`: por cada usuario, una lápida global de `deleted`
---      cuya clave coincide con la de una fila VIVA renombrada (clave con `ob_name`) se LEVANTA: sale de
---      `deleted` y entra en `deletedAt` con una hora posterior (la regla de `unionPorHora` del cliente:
---      una hora gana a una copia sin hora de otro móvil guardada antes). Sin fila viva que la explique
---      no se toca nada: un borrado real de verdad no se resucita.
---   4. La ejecuta una vez (`select`) al final.
+--   3. Función `lapidas_renombre_viejas(p_user)`: por cada usuario, una lápida global de `deleted` se LEVANTA
+--      solo si esconde AHORA a una fila viva de OTRA cuenta conocida (banco+cuenta distintos de los de la
+--      fila renombrada cuyo `ob_name` produce esa clave). Sale de `deleted` y entra en `deletedAt` con una
+--      hora posterior (regla de `unionPorHora`). Sin fila escondida no se toca nada: borrar una fila sin
+--      identidad completa escribía la MISMA clave que un renombre, y un borrado real no se resucita.
+--   4. NO la ejecuta: se lanza a mano tras medir con el dry-run.
 --
--- Espejo exacto de `lapidasRenombreViejas` (src/modules/00-core.js): clave = día UTC | importe sin
--- ceros de cola | ob_name [| #ordinal si el source lleva `#nK`, K>1]. Solo filas `ob:` y `ob-hist:`
--- (las únicas que renombraba la versión vieja; los manuales llevan el id en la clave).
--- El cliente hace lo mismo una vez por móvil con el histórico sincronizado, así que una copia de un
--- móvil que no actualice no devuelve la lápida: ver `lapidasRenombreMigra`.
+-- Espejo de `lapidasRenombreViejas` (src/modules/00-core.js): clave = día UTC | importe sin ceros de cola |
+-- nombre [| #ordinal si el source lleva `#nK`, K>1]. Solo filas `ob:` y `ob-hist:`. El cliente repite la
+-- comprobación en cada pasada (sin marcador de «hecho»), así que un móvil viejo que devuelva la lápida
+-- la vuelve a ver levantada: ver `lapidasRenombreMigra`.
 --
 -- NO la aplica ningún agente: la lanza el dueño/coordinador desde el SQL Editor (docs/SETUP-SUPABASE.md,
 -- «Migración 0032»). Medir antes: `select * from public.lapidas_renombre_viejas_dryrun();`
@@ -45,28 +44,42 @@ alter table public.lapidas_renombre_log enable row level security;
 revoke all on table public.lapidas_renombre_log from public, anon, authenticated;
 grant select, insert on table public.lapidas_renombre_log to service_role;
 
--- Claves de lápida que explican las filas vivas renombradas de un usuario.
+-- Claves de lápida global que ESCONDEN ahora mismo la otra cuenta: hay una fila viva renombrada (r) y otra
+-- fila viva (o) de una cuenta conocida DISTINTA cuya clave es justo esa lápida. Sin esa prueba no se toca
+-- nada: borrar una fila sin identidad completa escribía la misma clave y no se puede distinguir de un renombre.
 create or replace function public.lapidas_renombre_claves(p_user uuid)
 returns text[]
 language sql
 stable
 set search_path = public, pg_temp
 as $fn$
-  select coalesce(array_agg(distinct k), '{}'::text[])
-  from (
-    select to_char(e.fecha at time zone 'UTC', 'YYYY-MM-DD')
-           || '|' || trim_scale(e.importe)::text
-           || '|' || e.ob_name
-           || case when o.ord > 1 then '|#' || o.ord else '' end as k
+  with filas as (
+    select e.comercio, e.ob_name,
+           to_char(e.fecha at time zone 'UTC', 'YYYY-MM-DD') as dia,
+           trim_scale(e.importe)::text as imp,
+           o.ord,
+           coalesce(substring(e.source from '^ob(?:-hist)?:([^#~]*)'), '') as banco,
+           nullif(substring(e.source from '#acc([^#]*)'), '') as cuenta
     from public.expenses e
     cross join lateral (
       select coalesce(nullif(substring(e.source from '#n([0-9]{1,6})(?:#|$)'), '')::int, 1) as ord
     ) o
     where e.user_id = p_user
-      and e.ob_name is not null
-      and e.ob_name is distinct from e.comercio
       and (e.source like 'ob:%' or e.source like 'ob-hist:%')
-  ) t;
+  )
+  select coalesce(array_agg(distinct r.dia || '|' || r.imp || '|' || r.ob_name
+                            || case when r.ord > 1 then '|#' || r.ord else '' end), '{}'::text[])
+  from filas r
+  where r.ob_name is not null
+    and r.ob_name is distinct from r.comercio
+    and r.banco <> '' and r.cuenta is not null
+    and exists (
+      select 1 from filas o
+      where o.dia = r.dia and o.imp = r.imp and o.ord = r.ord
+        and o.comercio = r.ob_name
+        and o.banco <> '' and o.cuenta is not null
+        and (o.banco, o.cuenta) is distinct from (r.banco, r.cuenta)
+    );
 $fn$;
 
 -- Solo lectura: qué se levantaría, sin tocar nada.
@@ -143,4 +156,4 @@ grant execute on function public.lapidas_renombre_claves(uuid) to service_role;
 grant execute on function public.lapidas_renombre_viejas_dryrun() to service_role;
 grant execute on function public.lapidas_renombre_viejas(uuid) to service_role;
 
-select public.lapidas_renombre_viejas();
+-- NO se ejecuta aquí: medir primero con el dry-run y lanzar `select public.lapidas_renombre_viejas();` a mano.
