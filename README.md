@@ -337,7 +337,7 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Rol de cuenta** (Recibos / Gasto diario / Todo): Cartera → Editar.
 - **Parte mía de una cuenta** (una conjunta al 50 %): Cartera → Tus cuentas → tocar la cuenta → «Parte mía» → Cambiar. Solo cambia el patrimonio (Cartera e Inicio).
 - **Hogar y gastos compartidos:** toca tu avatar en Inicio → Perfil → **«Tu gente»** (movido ahí en 4.10.0; antes al final de Cartera, donde no lo veía nadie) — [docs/HOGAR.md](docs/HOGAR.md).
-- **Bienes:** Cartera → Bienes → Añadir bien, incluso con la lista vacía. Tocar una fila abre su ficha; Guardar confirma el borrador y Borrar bien pide confirmación.
+- **Bienes:** Cartera → Bienes → Añadir bien, incluso con la lista vacía. Tocar una fila abre su ficha; Guardar confirma el borrador y Borrar bien pide confirmación. Añadir bien, Añadir deuda y Nueva meta (y su edición) usan la hoja de Añadir recibo: cifra grande con teclado propio, celdas compactas y «Más datos» plegado (`AddHoja`, `02-ui-shared.js`).
 - **Ordenar los bloques de Cartera:** Cartera → «⇅ Ordenar secciones» al pie (4.10.0).
 - **Open Banking se sincroniza a demanda** (botón en Cartera), no al abrir la app.
 - **Orden manual de movimientos:** en Gastos, arrastra el asa de una fila para colocarla dentro del mismo día; la fecha real no cambia.

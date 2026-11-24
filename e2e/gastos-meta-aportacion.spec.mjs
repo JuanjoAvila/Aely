@@ -100,7 +100,7 @@ test("★ marcar un cargo como aportación: fila gris de Metas, no suma, la meta
   await expect(fichaMeta.getByTestId("goal-from-gastos")).toHaveText("Desde Gastos250,00 €");
   // Lo apuntado a mano NO cambia: el campo de la meta sigue diciendo 100.
   await page.locator('[data-act="ficha-editar"]').click();
-  await expect(page.locator('[data-goal-field="saved"]')).toHaveValue("100");
+  await expect(page.locator('[data-goal-field="saved"]')).toContainText("100");
   await expect(page.getByTestId("goal-edit-from-gastos")).toHaveText("250,00 € desde Gastos");
   await page.keyboard.press("Escape").catch(() => {});
   await page.goBack().catch(() => {});

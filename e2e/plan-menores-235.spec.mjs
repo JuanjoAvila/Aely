@@ -70,7 +70,7 @@ test("Metas vacía: sin el cero grande y con un botón principal que abre el alt
   expect(caja.height).toBeGreaterThanOrEqual(48);
   await crear.click();
   // Desde DIS-31 el alta va en su hoja (portal a <body>), no dentro de la lista.
-  await expect(page.locator(".v4-sheet.plan-edit-sheet").getByTestId("goal-add-form")).toBeVisible();
+  await expect(page.locator(".v4-sheet.rpa").getByTestId("goal-add-form")).toBeVisible();
 });
 
 test("Metas con una meta: vuelve el resumen y el botón de añadir otra", async ({ page }) => {
@@ -78,6 +78,6 @@ test("Metas con una meta: vuelve el resumen y el botón de añadir otra", async 
   await page.locator('.v4-seg-btn[data-seg="metas"]').click();
   const metas = segmento(page, "metas");
   await expect(metas.getByText("Ahorrado en metas")).toBeVisible();
-  await expect(metas.locator('[data-act="goal-new"]')).toHaveText("Nueva meta de ahorro");
+  await expect(metas.locator('[data-act="goal-new"]')).toHaveText("Añadir");
   await expect(metas.locator('[data-act="goal-first"]')).toHaveCount(0);
 });

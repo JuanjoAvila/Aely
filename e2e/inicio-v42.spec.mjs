@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW, estadoHeredado, esperaNubeQuieta } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW, estadoHeredado, esperaNubeQuieta, ponValorBien } from "./fixtures.mjs";
 export const states=[
   {id:"over",spent:1001,text:"Te has pasado 1 €",tone:"mint"},
   {id:"start",spent:900,text:"Ciclo recién empezado",tone:"mint",day:3},
@@ -315,7 +315,7 @@ test("RONDA3 guardar el alta en Bienes acredita la fecha sin cambiar días anter
   await page.getByRole("button",{name:"Añadir bien",exact:true}).click();
   const sheet=page.getByRole("dialog",{name:"Añadir bien",exact:true});
   await sheet.getByLabel("Nombre del bien").fill("Bien nuevo sintético");
-  await sheet.getByLabel("Valor en euros").fill("15000");
+  await ponValorBien(sheet,"15000");
   await sheet.getByRole("button",{name:"Guardar",exact:true}).click();
   const saved=await ownGoodsState(page);expect(saved.assets).toHaveLength(1);
   expect(saved.history[saved.assets[0].id]).toEqual([{day:"2026-09-04",value:15000,born:true}]);
@@ -330,7 +330,7 @@ test("revalorar un bien heredado conserva la gráfica y su valor anterior",async
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   await page.locator("button.v4-mov").filter({hasText:"Coche sintético"}).click();
   const sheet=page.getByRole("dialog",{name:"Editar bienes",exact:true});
-  await sheet.getByLabel("Valor en euros").fill("12000");
+  await ponValorBien(sheet,"12000");
   await sheet.getByRole("button",{name:"Guardar",exact:true}).click();
   expect((await ownGoodsState(page)).history["legacy-car"]).toEqual([{day:"2026-09-03",value:15000,legacy:true},{day:"2026-09-04",value:12000}]);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();

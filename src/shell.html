@@ -1423,7 +1423,10 @@
   .rpa-t{flex:1;min-width:0;overflow-wrap:anywhere;}
   .rpa-name{display:flex;align-items:center;gap:8px;}
   .rpa-name .rp4-name{flex:1;min-width:0;}
-  .rpa-amt{background:none;border:0;color:var(--text);cursor:pointer;}
+  .rpa-amt{background:none;border:0;color:var(--text);cursor:pointer;padding:4px 14px;border-radius:14px;}
+  .rpa-amt.on{background:var(--surface-2);}
+  .rpa .rp4-top{min-height:54px;}
+  .rpa .rp4-name{background:var(--surface);}
   .rpa-ph{color:var(--muted-2);}
   .rpa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
   .rpa-cell{display:flex;flex-direction:column;gap:2px;min-height:56px;min-width:0;padding:8px 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface);
@@ -1435,7 +1438,7 @@
   .rpa-cell-v.ph{color:var(--muted-2);font-weight:600;}
   .rpa-more{gap:10px;}
   .rpa-emo{flex:none;width:52px;height:52px;border-radius:16px;border:1px solid var(--line-soft);background:var(--bg);font-size:22px;line-height:1;cursor:pointer;}
-  .rpa-del{align-self:center;}
+  .rpa-del{flex:none;font-size:13px;}
   .rpa-cuentas .v4-chips{padding-bottom:0;margin-bottom:0;}
   .rpa-cuentas .rpa-k{font-size:12px;margin-bottom:6px;}
   /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
@@ -3255,8 +3258,8 @@
   .rpt-btn:disabled{opacity:.45;cursor:default;}
   /* Editar y Eliminar: texto, en una línea centrada bajo la acción principal; Eliminar solo se distingue por el color. */
   .rpt-sf-2{display:flex;justify-content:center;gap:28px;}
-  .rpt-lnk,.rpa-del{min-height:44px;padding:0 12px;border-radius:12px;border:0;background:none;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);}
-  .rpt-lnk.del,.rpa-del{color:var(--coral);}
+  .rpt-lnk,.rpa-del{min-height:44px;padding:0 12px;border-radius:12px;border:0;background:none;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);opacity:.78;}
+  .rpt-lnk.del,.rpa-del{color:var(--coral);opacity:1;}
   .rpt-rph .rpt-big{margin-top:2px;}
   .rpt-rph.neg .rpt-big{color:var(--coral);}
   .rpt-rp{font-size:13px;font-weight:700;margin-top:6px;}

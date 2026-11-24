@@ -1,6 +1,6 @@
 import {test,expect} from "@playwright/test";
 import { datosDeuda } from "./plan-ficha-helpers.mjs";
-import {seedLoggedInDashboard,dismissNews,estadoHeredado} from "./fixtures.mjs";
+import {seedLoggedInDashboard,dismissNews,estadoHeredado,padTeclea} from "./fixtures.mjs";
 const texts={es:{debts:"Deudas",goals:"Metas",editDebt:"Editar deuda",editGoal:"Editar meta",saveDebt:"Guardar cambios",saveGoal:"Guardar cambios",saved:"Cambios guardados",cancel:"Cancelar",deleteDebt:"Eliminar esta deuda",deleteGoal:"Eliminar meta"},
  en:{debts:"Debts",goals:"Goals",editDebt:"Edit debt",editGoal:"Edit goal",saveDebt:"Save changes",saveGoal:"Save changes",saved:"Changes saved",cancel:"Cancel",deleteDebt:"Delete this debt",deleteGoal:"Delete goal"},
  ca:{debts:"Deutes",goals:"Metes",editDebt:"Edita el deute",editGoal:"Edita la meta",saveDebt:"Desa els canvis",saveGoal:"Desa els canvis",saved:"Canvis desats",cancel:"Cancel·la",deleteDebt:"Elimina aquest deute",deleteGoal:"Elimina la meta"}};
@@ -41,14 +41,14 @@ for(const kind of ["debt","goal"])for(const method of ["browser","native"])test(
  const before=await editFinancial(page),url=page.url();
  await page.locator('[data-'+kind+'-id="'+kind+'"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
  const sheet=kind==="debt"?debtSheet(page,"es"):goalSheet(page,"es");
- const name=sheet.locator('[data-'+kind+'-field="name"]'),decimal=sheet.locator('[data-'+kind+'-field="'+(kind==="debt"?"apr":"saved")+'"]');
- await name.fill("Borrador UX13 beta139");await decimal.fill("1,");
+ const name=sheet.locator('[data-'+kind+'-field="name"]'),decimal=kind==="debt"?sheet.locator('[data-debt-field="apr"]'):name; // la hoja de meta solo tiene el nombre como campo del teclado del sistema
+ await name.fill("Borrador UX13 beta139");if(kind==="debt")await decimal.fill("1,");
  await page.evaluate(()=>{window.__editKeyboard(300);return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
  await expect(decimal).toBeFocused();
  const back=async()=>{if(method==="browser")await page.goBack();else await page.evaluate(()=>window.__editBack());};
  await back();
  // El cierre de useSheetSwipe es diferido: esperar evita aceptar el fotograma anterior al desmontaje.
- await page.waitForTimeout(500);await expect(sheet).toBeVisible();await expect(name).toHaveValue("Borrador UX13 beta139");await expect(decimal).toHaveValue("1,");
+ await page.waitForTimeout(500);await expect(sheet).toBeVisible();await expect(name).toHaveValue("Borrador UX13 beta139");if(kind==="debt")await expect(decimal).toHaveValue("1,");
  expect(await page.evaluate(()=>window.__editBlur)).toBe(1);expect(await editFinancial(page)).toEqual(before);await expect(page).toHaveURL(url);
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await back();await expect(sheet).toHaveCount(0);await expect(page).toHaveURL(url);
@@ -90,7 +90,7 @@ for(const lang of Object.keys(texts)){
   const row=page.locator('[data-goal-id="goal"]'),sheet=goalSheet(page,lang),before=await saved(page);
   await row.click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await sheet.getByRole("button",{name:t.saveGoal,exact:true}).click();await expect(sheet).toHaveCount(0);
   expect((await saved(page)).goals).toEqual(before.goals);
-  await row.click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await sheet.locator('[data-goal-field="saved"]').fill("1600,35");await sheet.locator('[data-goal-field="target"]').fill("4200.75");
+  await row.click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();await sheet.locator('[data-goal-field="saved"]').click();await padTeclea(sheet,"1600.35");await sheet.locator('[data-goal-field="target"]').click();await padTeclea(sheet,"4200.75");
   await sheet.getByRole("button",{name:t.saveGoal,exact:true}).click();await expect(sheet).toHaveCount(0);
   await expect.poll(async()=> (await saved(page)).goals[0].saved).toBe(1600.35);
   expect((await saved(page)).goals[0]).toMatchObject({id:"goal",saved:1600.35,target:4200.75,unknown:goal.unknown});
@@ -120,7 +120,7 @@ test("una corrección encolada mientras la hoja estaba abierta no se pisa ni se 
   while(fiber&&!(fiber.memoizedProps&&fiber.memoizedProps.state&&fiber.memoizedProps.set))fiber=fiber.return;
   if(!fiber)throw Error("No se encontró el set real de Deudas");
   fiber.memoizedProps.set(s=>({...s,debts:s.debts.map(d=>({...d,value:99999.25}))}));
-  document.querySelector('.plan-edit-sheet .btn-primary').click();
+  document.querySelector(':is(.plan-edit-sheet .btn-primary,.rpa [data-act="hoja-guardar"])').click();
  });
  await expect(sheet.getByRole("alert")).toContainText("cambió o se borró");await expect(sheet.locator('[data-debt-field="apr"]')).toHaveValue("1,05");
  await expect.poll(async()=> (await saved(page)).debts[0].value).toBe(99999.25);
@@ -175,7 +175,7 @@ test("M2: edita la segunda de DOS deudas por id y conserva las DOS metas",async(
 });
 
 test("M2/M7: baja el objetivo de la segunda de DOS metas y recalcula done",async({page})=>{
- await open(page,"es",reviewRows);const before=await saved(page);await page.getByRole("tab",{name:"Metas",exact:true}).click();await page.locator('[data-goal-id="goal"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();const sheet=goalSheet(page,"es");await sheet.locator('[data-goal-field="target"]').fill("1400,15");await sheet.getByRole("button",{name:texts.es.saveGoal,exact:true}).click();await expect.poll(async()=>JSON.stringify((await saved(page)).goals)!==JSON.stringify(before.goals)).toBe(true);
+ await open(page,"es",reviewRows);const before=await saved(page);await page.getByRole("tab",{name:"Metas",exact:true}).click();await page.locator('[data-goal-id="goal"]').click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();const sheet=goalSheet(page,"es");await sheet.locator('[data-goal-field="target"]').click();await padTeclea(sheet,"1400.15");await sheet.getByRole("button",{name:texts.es.saveGoal,exact:true}).click();await expect.poll(async()=>JSON.stringify((await saved(page)).goals)!==JSON.stringify(before.goals)).toBe(true);
  const after=await saved(page);expect(after.goals).toHaveLength(2);expect(after.goals[0]).toEqual(before.goals[0]);expect(after.debts).toEqual(before.debts);expect(after.goals[1]).toMatchObject({...before.goals[1],target:1400.15,done:true});expect(after.goals[1].doneAt).toMatch(/^2026-10-14T/);
  await expect(sheet).toHaveCount(0);
  await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).goals).toEqual(after.goals);
@@ -250,23 +250,23 @@ for(const kind of ["debt","goal"])test(`apertura de la hoja de ${kind==="debt"?"
  await open(page,"es",many,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
  const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:4});
  const card=page.locator(kind==="debt"?'[data-debt-id="d2"]':'[data-goal-id="g2"]');
- await page.evaluate(()=>{const host=document.querySelector(".page-scroll-host");host.scrollTop=200;});await page.waitForTimeout(400);
+ await page.evaluate(()=>{const host=document.querySelector(".page-scroll-host");host.scrollTop=150;});await page.waitForTimeout(400);
  await page.evaluate(sel=>{
   const rec=window.__apertura={frames:[],mounts:0,unmounts:0},pg=document.querySelector(sel).closest(".page");
-  const watch=n=>n.nodeType===1&&!!(n.matches(".plan-edit-sheet")||n.querySelector&&n.querySelector(".plan-edit-sheet"));
+  const watch=n=>n.nodeType===1&&!!(n.matches(".plan-edit-sheet,.rpa")||n.querySelector&&n.querySelector(".plan-edit-sheet,.rpa"));
   new MutationObserver(ms=>{for(const m of ms){for(const n of m.addedNodes)if(watch(n))rec.mounts++;for(const n of m.removedNodes)if(watch(n))rec.unmounts++;}}).observe(document.body,{childList:true,subtree:true});
-  const t0=performance.now();(function f(){const sh=document.querySelector(".plan-edit-sheet"),c=document.querySelector(sel);
+  const t0=performance.now();(function f(){const sh=document.querySelector(".plan-edit-sheet,.rpa"),c=document.querySelector(sel);
    rec.frames.push({sheet:sh?sh.getBoundingClientRect().top:null,card:c.getBoundingClientRect().top,scroll:pg.scrollTop});
    if(performance.now()-t0<2500)requestAnimationFrame(f);})();
  },kind==="debt"?'[data-debt-id="d2"]':'[data-goal-id="g2"]');
  // Clic crudo: el de Playwright puede desplazar la página para «ver» el botón y falsear el fondo.
  await card.evaluate(b=>b.click());await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
  const sheet=kind==="debt"?debtSheet(page,"es"):goalSheet(page,"es");await expect(sheet).toBeVisible();
- await page.waitForFunction(()=>{const el=document.querySelector(".plan-edit-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
+ await page.waitForFunction(()=>{const el=document.querySelector(".plan-edit-sheet,.rpa");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
  await page.waitForTimeout(150);await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});
  const rec=await page.evaluate(()=>window.__apertura),shown=rec.frames.filter(f=>f.sheet!=null);
  expect(rec.mounts).toBe(1);expect(rec.unmounts).toBe(0);
- expect(new Set(rec.frames.map(f=>Math.round(f.card))).size).toBe(1);expect(new Set(rec.frames.map(f=>f.scroll))).toEqual(new Set([200]));
+ expect(new Set(rec.frames.map(f=>Math.round(f.card))).size).toBe(1);expect(new Set(rec.frames.map(f=>f.scroll))).toEqual(new Set([150]));
  expect(shown.length).toBeGreaterThan(3);
  for(let i=1;i<shown.length;i++)expect(shown[i].sheet,"la hoja nunca retrocede al subir").toBeLessThanOrEqual(shown[i-1].sheet+0.5);
  const look=await sheet.evaluate(el=>{const host=el.parentElement,pseudo=getComputedStyle(host,"::before"),paint=(pseudo.content!=="none"&&pseudo.content!=="normal")?pseudo.backgroundColor:getComputedStyle(host).backgroundColor,back=paint.match(/[\d.]+/g).map(Number);return {sheet:el.classList.contains("v4-sheet"),back:host.classList.contains("v4-sheet-back"),alpha:back.length>3?back[3]:1,duration:parseFloat(getComputedStyle(el).animationDuration)};});
@@ -318,7 +318,7 @@ for(const scenario of [{kind:"debt",how:"save"},{kind:"debt",how:"x"},{kind:"goa
   rec.push({sheet:sh?Math.round(sh.getBoundingClientRect().top):null,alpha});if(performance.now()-t0<1500)requestAnimationFrame(f);})();});
  // Clics crudos: el de Playwright espera sondeando el DOM y falsea el ritmo de fotogramas.
  await page.evaluate(how=>{
-  if(how==="save")document.querySelector(".plan-edit-sheet .btn-primary").click();
+  if(how==="save")document.querySelector(":is(.plan-edit-sheet .btn-primary,.rpa [data-act='hoja-guardar'])").click();
   if(how==="x")document.querySelector(".plan-edit-head button").click();
   if(how==="velo")document.querySelector(".v4-sheet-back").click();
   if(how==="back")history.back();
@@ -346,7 +346,7 @@ for(const scenario of [{kind:"debt",how:"back"},{kind:"debt",how:"x"},{kind:"deb
  await page.waitForTimeout(150);
  await page.evaluate(how=>{const sh=document.querySelector(".v4-sheet"),top0=sh.getBoundingClientRect().top,rec=window.__salida={top0,h:innerHeight,f:[]};
   const t0=performance.now();(function f(){const s=document.querySelector(".v4-sheet");rec.f.push({t:performance.now()-t0,top:s?s.getBoundingClientRect().top:null});if(performance.now()-t0<1200)requestAnimationFrame(f);})();
-  if(how==="save")document.querySelector(".plan-edit-sheet .btn-primary").click();
+  if(how==="save")document.querySelector(":is(.plan-edit-sheet .btn-primary,.rpa [data-act='hoja-guardar'])").click();
   if(how==="x")document.querySelector(".plan-edit-head button").click();
   if(how==="back")history.back();
  },how);
@@ -365,7 +365,7 @@ for(const [kind,how] of [["debt","x"],["debt","save"],["goal","save"]])test(`toq
  await page.locator(kind==="debt"?'[data-debt-id="debt"]':'[data-goal-id="goal"]').evaluate(b=>b.click());await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
  await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
  await page.waitForTimeout(150);
- const button=page.locator(how==="x"?".plan-edit-head button":".plan-edit-sheet .btn-primary"),before=await button.boundingBox();
+ const button=page.locator(how==="x"?".plan-edit-head button":":is(.plan-edit-sheet .btn-primary,.rpa [data-act='hoja-guardar'])"),before=await button.boundingBox();
  // Un toque físico necesita que el botón entre en pantalla al crecer el formulario.
  await button.scrollIntoViewIfNeeded();const box=await button.boundingBox(),viewport=page.viewportSize();
  await info.attach("tap-geometry",{body:JSON.stringify({before,after:box,viewport}),contentType:"application/json"});

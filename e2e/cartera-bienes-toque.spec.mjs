@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, esperaNubeQuieta, ponValorBien } from "./fixtures.mjs";
 
 // La fila inerte era el fallo: abrir el editor no debe escribir ni cambiar cifras.
 // Sólo datos sintéticos; se ejercita la ruta Cartera que usa la familia.
@@ -106,7 +106,7 @@ for(const lang of ["es","en","ca"]) for(const textSize of ["normal","huge"]){
     }else await row.tap();
     const sheet=page.getByRole("dialog",{name:labels[lang].edit,exact:true});
     await expect(sheet).toBeVisible();
-    await expect(sheet.getByLabel(labels[lang].value)).toHaveValue(String(goods[0].value));
+    expect((await sheet.locator('[data-asset-field="value"]').textContent()).replace(/\D/g,"")).toBe(String(goods[0].value));
     await expect(sheet.getByLabel(labels[lang].name)).toHaveValue(goods[0].name);
     await expect(row).toHaveJSProperty("tagName","BUTTON");
     await expect(row.locator("input")).toHaveCount(0);
@@ -124,7 +124,7 @@ for(const lang of ["es","en","ca"]) for(const textSize of ["normal","huge"]){
     // Un borrador de nombre y valor también se cancela sin escribir.
     await row.tap();
     await sheet.getByLabel(labels[lang].name).fill("Borrador cancelado");
-    await sheet.getByLabel(labels[lang].value).fill("99");
+    await ponValorBien(sheet,"99");
     await sheet.getByRole("button",{name:labels[lang].cancel,exact:true}).click();
     await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
     expect(await financialState(page)).toEqual(before);

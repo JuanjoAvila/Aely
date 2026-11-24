@@ -1,5 +1,5 @@
 import {test,expect} from "@playwright/test";
-import {seedLoggedInDashboard,dismissNews} from "./fixtures.mjs";
+import {seedLoggedInDashboard,dismissNews,ponValorBien} from "./fixtures.mjs";
 
 const labels={
   es:{add:"Añadir bien",edit:"Editar bienes",name:"Nombre del bien",value:"Valor en euros",save:"Guardar",cancel:"Cancelar",del:"Borrar bien",car:"Vehículo"},
@@ -23,7 +23,7 @@ test("Bienes: cero válido y edición conservan la nota y los demás bienes",asy
   await open(page,"es",assets);
   await page.locator("button.v4-mov").filter({hasText:assets[0].name}).click();
   const sheet=page.getByRole("dialog",{name:l.edit,exact:true});
-  await sheet.getByLabel(l.value).fill("0");
+  await ponValorBien(sheet,"0");
   await sheet.getByRole("button",{name:l.save,exact:true}).click();
   expect((await stored(page)).assets).toEqual([{...assets[0],value:0},assets[1]]);
   await expect.poll(async()=>Number((await page.locator(".cartera-hero-amt").textContent()).replace(/\D/g,""))).toBe(5025);
@@ -57,19 +57,21 @@ for(const lang of ["es","en","ca"]){
     let sheet=page.getByRole("dialog",{name:l.add,exact:true});
     await expect(sheet.getByRole("button",{name:l.save,exact:true})).toBeDisabled();
     await sheet.getByLabel(l.name).fill("Vehículo sintético");
-    for(const invalid of ["-1","12.345","12xyz","Infinity",""]){
-      await sheet.getByLabel(l.value).fill(invalid);
-      await expect(sheet.getByRole("button",{name:l.save,exact:true})).toBeDisabled();
-      expect(await stored(page)).toEqual(before);
-    }
-    await sheet.getByLabel(l.value).fill("1200,25");
-    await sheet.getByRole("button",{name:l.car,exact:true}).click();
+    // Con el teclado propio no hay negativos ni letras: queda el vacío y los tres decimales.
+    await ponValorBien(sheet,"12.345");
+    await expect(sheet.getByRole("button",{name:l.save,exact:true})).toBeDisabled();
+    expect(await stored(page)).toEqual(before);
+    for(let i=0;i<6;i++) await sheet.locator(".v4-keys button").nth(11).click();
+    await expect(sheet.getByRole("button",{name:l.save,exact:true})).toBeDisabled();
+    expect(await stored(page)).toEqual(before);
+    await ponValorBien(sheet,"1200.25");
+    await sheet.getByRole("radio",{name:l.car,exact:true}).click();
     await sheet.getByRole("button",{name:l.cancel,exact:true}).click();
     expect(await stored(page)).toEqual(before);
     await page.getByRole("button",{name:l.add,exact:true}).click();
     await sheet.getByLabel(l.name).fill("Vehículo sintético");
-    await sheet.getByLabel(l.value).fill("1200,25");
-    await sheet.getByRole("button",{name:l.car,exact:true}).click();
+    await ponValorBien(sheet,"1200.25");
+    await sheet.getByRole("radio",{name:l.car,exact:true}).click();
     await sheet.getByRole("button",{name:l.save,exact:true}).click();
     const after=await stored(page);
     expect(after.assets).toHaveLength(1);
@@ -84,7 +86,7 @@ for(const lang of ["es","en","ca"]){
     await row.click();
     sheet=page.getByRole("dialog",{name:l.edit,exact:true});
     await sheet.getByLabel(l.name).fill("Vehículo actualizado");
-    await sheet.getByLabel(l.value).fill("2100.75");
+    await ponValorBien(sheet,"2100.75");
     await sheet.getByRole("button",{name:l.save,exact:true}).click();
     const edited=await stored(page);
     expect(edited.assets[0]).toMatchObject({id:after.assets[0].id,name:"Vehículo actualizado",kind:"coche",value:2100.75});

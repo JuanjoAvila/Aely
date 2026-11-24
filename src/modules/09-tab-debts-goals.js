@@ -790,7 +790,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
     /* Añadir deuda va en su hoja con una etiqueta encima de cada campo (DIS-31, 15/11/2026): abierto
        dentro de la lista, el texto de ejemplo era la única pista y se cortaba («Cuota/mes € (vací…»).
        Los campos, `addDebt` y lo que guarda son los de antes; solo cambia dónde se pinta. */
-    adding && React.createElement(AddHoja,{title:t("db_add"),closer:addCloser,testid:"debt-add-form",attr:"data-debt-add",
+    adding && React.createElement(AddHoja,{title:t("db_newdebt"),closer:addCloser,testid:"debt-add-form",attr:"data-debt-add",
       onClose:function(){ setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } },
       name:form.name,setName:function(v){ setForm(function(o){ return Object.assign({},o,{name:v}); }); },namePh:t("db_concept"),
       amtKey:"value",amtLabel:t("ah_debes"),vals:form,setVals:setForm,
@@ -1162,7 +1162,7 @@ function Goals({state, set, totals, showToast, abrir, tabs}){
     /* Nueva meta en su hoja, con etiquetas y el calendario de la app en vez del selector de mes
        nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
        selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
-    adding && React.createElement(GoalHoja,{title:t("gl_create"),form:form,setForm:setForm,attr:"data-goal-add",closer:addCloser,
+    adding && React.createElement(GoalHoja,{title:t("v4_goal_new"),form:form,setForm:setForm,attr:"data-goal-add",closer:addCloser,
       onClose:function(){ sentRef.current=false; setAdding(false); setForm(blank); },
       ctaOn:(parseFloat(String(form.target).replace(',','.'))||0)>0,ctaLabel:t("gl_create"),onSave:addGoal}),
     // Con metas, «+ Añadir» va en la cabecera (como Recibos y Deudas). Solo la pantalla vacía conserva el botón grande: la primera meta es LA acción.

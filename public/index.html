@@ -1423,7 +1423,10 @@
   .rpa-t{flex:1;min-width:0;overflow-wrap:anywhere;}
   .rpa-name{display:flex;align-items:center;gap:8px;}
   .rpa-name .rp4-name{flex:1;min-width:0;}
-  .rpa-amt{background:none;border:0;color:var(--text);cursor:pointer;}
+  .rpa-amt{background:none;border:0;color:var(--text);cursor:pointer;padding:4px 14px;border-radius:14px;}
+  .rpa-amt.on{background:var(--surface-2);}
+  .rpa .rp4-top{min-height:54px;}
+  .rpa .rp4-name{background:var(--surface);}
   .rpa-ph{color:var(--muted-2);}
   .rpa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
   .rpa-cell{display:flex;flex-direction:column;gap:2px;min-height:56px;min-width:0;padding:8px 12px;border-radius:16px;border:1px solid var(--line-soft);background:var(--surface);
@@ -1435,7 +1438,7 @@
   .rpa-cell-v.ph{color:var(--muted-2);font-weight:600;}
   .rpa-more{gap:10px;}
   .rpa-emo{flex:none;width:52px;height:52px;border-radius:16px;border:1px solid var(--line-soft);background:var(--bg);font-size:22px;line-height:1;cursor:pointer;}
-  .rpa-del{align-self:center;}
+  .rpa-del{flex:none;font-size:13px;}
   .rpa-cuentas .v4-chips{padding-bottom:0;margin-bottom:0;}
   .rpa-cuentas .rpa-k{font-size:12px;margin-bottom:6px;}
   /* Personas y compartidos (tanda 5, SPEC §6-§7): rejilla de 5 columnas, no carrusel. */
@@ -3255,8 +3258,8 @@
   .rpt-btn:disabled{opacity:.45;cursor:default;}
   /* Editar y Eliminar: texto, en una línea centrada bajo la acción principal; Eliminar solo se distingue por el color. */
   .rpt-sf-2{display:flex;justify-content:center;gap:28px;}
-  .rpt-lnk,.rpa-del{min-height:44px;padding:0 12px;border-radius:12px;border:0;background:none;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);}
-  .rpt-lnk.del,.rpa-del{color:var(--coral);}
+  .rpt-lnk,.rpa-del{min-height:44px;padding:0 12px;border-radius:12px;border:0;background:none;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);opacity:.78;}
+  .rpt-lnk.del,.rpa-del{color:var(--coral);opacity:1;}
   .rpt-rph .rpt-big{margin-top:2px;}
   .rpt-rph.neg .rpt-big{color:var(--coral);}
   .rpt-rp{font-size:13px;font-weight:700;margin-top:6px;}
@@ -10561,11 +10564,10 @@ Object.assign(LANG.es,{
   pt_goods:"Bienes", 
   
   db_pending:"Pendiente", db_delete:"Eliminar esta deuda", db_savechanges:"Guardar cambios",
-  db_concept:"Ej.: financiación del móvil", db_amount:"Importe €", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
+  db_concept:"Ej.: financiación del móvil", db_add:"Añadir deuda", db_newdebt:"Nueva deuda", db_addedmanual:"Añadida manualmente",
   db_months_ph:"Plazo (meses)", db_day_ph:"Día",
-  db_down_ph:"Entrada € (opcional)", db_balloon_ph:"Pago final € (coche)", db_balloon_tag:"(pago final)", db_balloon_line:"Pago final: {x}", db_down_line:"Entrada: {x}",
+  db_balloon_tag:"(pago final)", db_balloon_line:"Pago final: {x}", db_down_line:"Entrada: {x}",
   db_err_amount:"⚠ Falta el importe total de la deuda", db_err_quota:"⚠ Pon la cuota/mes o el plazo en meses", db_err_paid:"⚠ Has pagado tantas cuotas como el plazo: esa deuda ya está liquidada", db_added:"✓ Deuda añadida",
-  db_paid_ph:"Cuotas ya pagadas",
   db_amortize:"Amortizar", db_amortize_prompt:"¿Cuánto amortizas de «{name}»?", db_amortize_sub:"Pendiente ahora: {x}. Lo que pongas baja el saldo y acorta el plazo, manteniendo la misma cuota.", db_amortized:"✓ Amortizado {x} · pendiente {y}", db_amortize_changed:"La deuda ha cambiado. Vuelve a intentarlo.", db_amortize_save_first:"Guarda antes los cambios.", db_amortize_full:"🎉 ¡Deuda liquidada!",
   db_est_zero:"Saldo estimado: 0 €. Confirma si el banco ya la ha liquidado.", db_settle_q:"¿«{name}» ya está liquidada?", db_settle_sub:"Confirma el saldo real. Esta acción no crea pagos ni cambia los movimientos guardados.", db_settle_ok:"Marcar liquidada", db_settled:"✓ Liquidada. Puedes archivarla sin perder sus pagos.",
   db_archive:"Archivar deuda", db_archived:"Deuda archivada", db_archive_title:"Deudas archivadas ({n})", db_archive_hint:"Siguen guardadas para consultar los pagos vinculados.", db_unarchive:"Volver a mostrar", db_delete_q:"¿Eliminar «{name}»?", db_delete_sub:"Solo se puede eliminar si no tiene pagos vinculados.", db_delete_linked:"Esta deuda tiene pagos vinculados y no se puede eliminar. Consérvala en la lista o archívala al liquidarla.",
@@ -10597,9 +10599,9 @@ Object.assign(LANG.es,{
   tab_metas:"Metas", tab_logros:"Logros",
   
   gl_create:"Crear meta", gl_cancel:"Cancelar",
-  gl_name_ph:"Ej.: vacaciones", gl_target_ph:"Objetivo €", gl_saved_ph:"Ya ahorrado €", gl_deadline:"Fecha límite (opcional)", gl_deadline_none:"Sin fecha", gl_monthly_ph:"Aporte al mes € (opcional)",
+  gl_name_ph:"Ej.: vacaciones", gl_deadline_none:"Sin fecha",
   gl_newdefault:"Mi meta",
-  ah_mas:"Más datos", ah_debes:"Lo que debes", ah_cuota:"Cuota al mes", ah_dia_cobro:"Día de cobro", ah_plazo:"Plazo", ah_meses:"meses", ah_entrada:"Entrada", ah_pago_final:"Pago final", ah_pagadas:"Cuotas pagadas", ah_objetivo:"Objetivo", ah_ya_ahorrado:"Ya ahorrado", ah_al_mes:"Al mes", ah_fecha:"Fecha límite", ah_icono:"Elegir icono",
+  ah_mas:"Más datos", ah_debes:"Lo que debes", ah_cuota:"Cuota al mes", ah_dia_cobro:"Día de cobro", ah_plazo:"Plazo", ah_meses:"meses", ah_entrada:"Entrada", ah_pago_final:"Pago final", ah_pagadas:"Ya pagadas", ah_objetivo:"Objetivo", ah_ya_ahorrado:"Ya ahorrado", ah_al_mes:"Al mes", ah_fecha:"Fecha límite", ah_icono:"Elegir icono",
   gl_contribute:"Aportar",
   gl_save:"Guardar cambios", gl_delete:"Eliminar meta", gl_of:"de",
   gl_eta:"A tu ritmo ({x}/mes) la cumples en {when} 🟢",
@@ -15518,17 +15520,17 @@ function NumPad({value, onChange}){
    `vals` son los textos tal cual se teclean («1,5»): los validan y convierten quienes guardan. */
 function AddHoja(p){
   const amtKey=p.amtKey, vals=p.vals, attr=p.attr||"data-rpa";
-  const [act,setAct]=useState(amtKey), [fresh,setFresh]=useState(!!vals[amtKey]), [mas,setMas]=useState(!!p.masOpen);
+  const [act,setAct]=useState(amtKey), [mas,setMas]=useState(!!p.masOpen);
   const freshRef=useRef(!!vals[amtKey]);
   const swipe=useSheetSwipe(true,p.onClose); useBackClose(true,swipe.close);
   if(p.closer) p.closer.current=swipe.close;
   const sep=numDecSep();
   const todas=p.cells.concat(p.more?p.more.cells:[]);
-  const pick=function(k){ const f=!!vals[k]; freshRef.current=f; setFresh(f); setAct(k); };
+  const pick=function(k){ freshRef.current=!!vals[k]; setAct(k); };
   // Como en el importe de un recibo: el primer número que tecleas al elegir un campo con valor lo sustituye.
   const teclea=function(fn){
     const c=todas.find(function(x){ return x.key===act; }), entero=c&&c.kind==="int", fr=freshRef.current;
-    freshRef.current=false; setFresh(false);
+    freshRef.current=false;
     p.setVals(function(o){
       const nuevo=fr?fn(""):"";
       let v=fr&&nuevo!==""?nuevo:fn(o[act]||"");
@@ -15536,7 +15538,14 @@ function AddHoja(p){
       return Object.assign({},o,{[act]:v});
     });
   };
-  const ver=function(raw){ return String(raw).replace(/[.,]/,sep); };
+  // Con separador de miles, como el resto de la app («8.500 €»); la parte decimal tal cual se teclea.
+  const miles=sep===","?".":",";
+  const ver=function(raw){
+    const m=/^(\d*)(?:[.,](\d*))?$/.exec(String(raw));
+    if(!m) return String(raw);
+    const ent=m[1].replace(/\B(?=(\d{3})+(?!\d))/g,miles);
+    return String(raw).search(/[.,]/)>=0?ent+sep+(m[2]||""):ent;
+  };
   const celdaEl=function(c){
     const numerica=!c.onTap, on=numerica?act===c.key:!!c.on, tiene=numerica?!!vals[c.key]:!!c.text;
     return React.createElement("button",{type:"button",key:c.key,className:"rpa-cell"+(on?" on":"")+(c.wide?" wide":""),"aria-pressed":on?"true":"false",
@@ -15553,7 +15562,9 @@ function AddHoja(p){
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"rp4-top"},
         React.createElement("button",{type:"button",className:"pr6-back","aria-label":t("gl_cancel"),onClick:swipe.close},"‹"),
-        React.createElement("h2",{className:"rp4-h rpa-t"}, p.title)),
+        React.createElement("h2",{className:"rp4-h rpa-t"}, p.title),
+        // Borrar, discreto y siempre a mano (arriba, no al final del scroll bajo el teclado); pide confirmación quien lo recibe.
+        p.del&&React.createElement("button",{type:"button",className:"rpa-del","data-act":"hoja-eliminar",onClick:p.del.onClick}, p.del.label)),
       React.createElement("div",{className:"rp4-body"},
         React.createElement("div",{className:"rpa-in"},
           React.createElement("div",{className:"rpa-name"},
@@ -15563,7 +15574,7 @@ function AddHoja(p){
               onFocus:function(){ setAct(null); },onBlur:function(){ setAct(function(a){ return a||amtKey; }); },onChange:function(e){ p.setName(e.target.value); }})),
           React.createElement("div",{className:"rp4-amt"},
             React.createElement("span",{className:"rp4-dim"}, p.amtLabel),
-            React.createElement("button",{type:"button",className:"serif num rp4-amt-v rpa-amt"+(fresh&&act===amtKey&&raw?" fresh":""),[attr]:amtKey,"aria-label":p.amtLabel,
+            React.createElement("button",{type:"button",className:"serif num rp4-amt-v rpa-amt"+(act===amtKey?" on":""),[attr]:amtKey,"aria-label":p.amtLabel,
               onClick:function(){ pick(amtKey); }}, raw?ver(raw)+" €":React.createElement("span",{className:"rpa-ph"},"0 €"))),
           p.cells.length>0&&grid(p.cells),
           p.children||null,
@@ -15576,8 +15587,7 @@ function AddHoja(p){
           React.createElement("div",{className:"pr6-fold"+(act?" open":"")},
             React.createElement("div",Object.assign({className:"pr6-fold-in"},act?null:{"aria-hidden":"true",inert:""}),
               React.createElement(NumPad,{value:act?(vals[act]||""):"",onChange:teclea}))),
-          p.notes||null,
-          p.del&&React.createElement("button",{type:"button",className:"rpa-del","data-act":"hoja-eliminar",onClick:p.del.onClick}, p.del.label))),
+          p.notes||null)),
       React.createElement("div",{className:"rp4-foot"},
         React.createElement("button",{type:"button",className:"pr6-cta rp4-cta"+(p.ctaOn?"":" is-wait"),"data-act":"hoja-guardar","aria-disabled":p.ctaOn?"false":"true",
           tabIndex:p.ctaOn?0:-1,onClick:function(){ if(p.ctaOn) p.onSave(); }}, p.ctaLabel)))),document.body);
@@ -32383,7 +32393,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
     /* Añadir deuda va en su hoja con una etiqueta encima de cada campo (DIS-31, 15/11/2026): abierto
        dentro de la lista, el texto de ejemplo era la única pista y se cortaba («Cuota/mes € (vací…»).
        Los campos, `addDebt` y lo que guarda son los de antes; solo cambia dónde se pinta. */
-    adding && React.createElement(AddHoja,{title:t("db_add"),closer:addCloser,testid:"debt-add-form",attr:"data-debt-add",
+    adding && React.createElement(AddHoja,{title:t("db_newdebt"),closer:addCloser,testid:"debt-add-form",attr:"data-debt-add",
       onClose:function(){ setAdding(false); if(addedRef.current){ addedRef.current=false; setForm(DEBT_BLANK); } },
       name:form.name,setName:function(v){ setForm(function(o){ return Object.assign({},o,{name:v}); }); },namePh:t("db_concept"),
       amtKey:"value",amtLabel:t("ah_debes"),vals:form,setVals:setForm,
@@ -32755,7 +32765,7 @@ function Goals({state, set, totals, showToast, abrir, tabs}){
     /* Nueva meta en su hoja, con etiquetas y el calendario de la app en vez del selector de mes
        nativo, que salía sin estilo (DIS-31, 15/11/2026). Se guarda el mismo «aaaa-mm» que daba el
        selector: del día que se toca solo cuenta el mes. Cerrar la hoja descarta, como «Cancelar». */
-    adding && React.createElement(GoalHoja,{title:t("gl_create"),form:form,setForm:setForm,attr:"data-goal-add",closer:addCloser,
+    adding && React.createElement(GoalHoja,{title:t("v4_goal_new"),form:form,setForm:setForm,attr:"data-goal-add",closer:addCloser,
       onClose:function(){ sentRef.current=false; setAdding(false); setForm(blank); },
       ctaOn:(parseFloat(String(form.target).replace(',','.'))||0)>0,ctaLabel:t("gl_create"),onSave:addGoal}),
     // Con metas, «+ Añadir» va en la cabecera (como Recibos y Deudas). Solo la pantalla vacía conserva el botón grande: la primera meta es LA acción.
@@ -36768,7 +36778,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="1db8b55b7151af07ea08ccd93a031c373dce4302d8ebf7c91de9abc9fe2a8f90";
+var _rnSha="24cf6c3fe68fbfbd97f0724f13ebf79700437dc32c5bc7e4d14a249148564c13";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

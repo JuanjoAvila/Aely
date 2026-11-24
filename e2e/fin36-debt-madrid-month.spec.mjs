@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, rellenaDeuda } from "./fixtures.mjs";
 
 test.describe.configure({retries:0});
 test.use({serviceWorkers:"block"});
@@ -23,7 +23,7 @@ for(const tz of ["UTC","Europe/Madrid","America/Los_Angeles"])test.describe(tz,(
     await page.waitForFunction(()=>!document.getElementById("mc-load")&&window.__mcBootReady);await dismissNews(page);
     const hero=page.getByTestId("inicio-net-current"),amount=hero.locator(".v4-hero-amt");await expect(amount).toContainText("5.000,00 €");
     await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole("tab",{name:"Deudas",exact:true}).click();await page.getByRole("button",{name:"Añadir deuda",exact:true}).click();
-    const form=page.locator(".add-form");await form.getByLabel("Nombre",{exact:true}).fill("Deuda FIN36 sintética");await form.getByLabel("Importe €",{exact:true}).fill("1000");await form.getByLabel("Cuota al mes (€)",{exact:true}).fill("100");await form.getByLabel("Plazo (meses)",{exact:true}).fill("10");await form.getByLabel("Día",{exact:true}).fill(String(day));await form.getByRole("button",{name:"Añadir deuda",exact:true}).click();
+    await rellenaDeuda(page,{name:"Deuda FIN36 sintética",value:"1000",monthly:"100",months:"10",day:String(day)});
     const expectedBalance=day===1?"900,00 €":"1.000,00 €",current=day===1?"4.100,00 €":"4.000,00 €";
     await page.locator("[data-debt-id]").click();
     const fichaDeuda=page.getByTestId("plan-deuda-ficha");

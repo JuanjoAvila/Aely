@@ -96,10 +96,10 @@ async function cambiarMeta(page,nombre,saved){
 async function eliminarMeta(page,t,nombre){
   const card=tarjetaEditable(page,nombre);
   await expect(card).toContainText(nombre);
-  if(await page.locator('.add-form').count()) await cambiarMeta(page,nombre);
+  if(await page.locator('.add-form,.rpa').count()) await cambiarMeta(page,nombre);
   else{
     await card.click();await page.locator('.rpt-sheet [data-act="ficha-editar"]').click();
-    await page.locator('.plan-edit-sheet').getByRole('button',{name:t.eliminar,exact:true}).click();
+    await page.locator('.rpa').getByRole('button',{name:t.eliminar,exact:true}).click();
     await page.locator('.askback').getByRole('button',{name:t.eliminar,exact:true}).click();
   }
   await expect(tarjetaEditable(page,nombre)).toHaveCount(0);

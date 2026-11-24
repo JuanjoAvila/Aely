@@ -512,6 +512,29 @@ export async function dismissNews(page) {
    periodo (Meses · Mi ciclo · Rango · Todo) se elige en Filtros. Estas ayudas existen para que
    cada spec no reinvente el camino. */
 /** La pantalla de Gastos ACTIVA (Gastos se premonta escondida; acotar evita leer la copia). */
+/* Teclea en el teclado propio de una hoja (`.v4-keys`). El separador decimal, «.» o «,», es la tecla 10 en cualquier idioma. */
+export async function padTeclea(zona, texto) {
+  for (const c of String(texto)) {
+    const k = /[.,]/.test(c) ? zona.locator(".v4-keys button").nth(9) : zona.locator('.v4-keys button[aria-label="' + c + '"]');
+    await k.click();
+  }
+}
+// Pone el valor de un bien en la hoja de Añadir/Editar bien: elige la cifra y la teclea (la primera tecla sustituye la que había).
+export async function ponValorBien(hoja, texto) {
+  await hoja.locator('[data-asset-field="value"]').click();
+  await padTeclea(hoja, texto);
+}
+// Da de alta una deuda por la hoja de «Añadir deuda» (abierta): nombre y las cifras con el teclado propio, y guarda.
+export async function rellenaDeuda(page, d) {
+  const h = page.getByTestId("debt-add-form");
+  if (d.name != null) await h.locator('[data-debt-add="name"]').fill(d.name);
+  for (const k of ["value", "monthly", "months", "day"]) {
+    if (d[k] == null) continue;
+    await h.locator('[data-debt-add="' + k + '"]').click();
+    await padTeclea(h, String(d[k]));
+  }
+  await h.locator('[data-act="hoja-guardar"]').click();
+}
 export const gastosRoot = (page) => page.locator(".page-scroll-host .gx-root");
 export const gastosCifra = (page) => gastosRoot(page).getByTestId("gastos-cifra");
 export const gastosEstado = (page) => gastosRoot(page).getByTestId("gastos-estado");
