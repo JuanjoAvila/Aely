@@ -77,20 +77,40 @@ test("las pestañas van debajo de la tarjeta resumen en Recibos, Deudas y Metas 
   await expect(page.getByTestId("plan-summary")).toBeVisible();
 });
 
-test("Deudas: tarjeta como la de Recibos con la cifra en rojo, listas en tarjeta y Añadir pequeño", async ({ page }) => {
+test("Tu mes en cifras: Deudas va en verde (no amarillo) en la barra y su leyenda", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await abrePlan(page, base(3000), process.env.TEMA);
+  await page.getByTestId("plan-cifras").click();
+  const hoja = page.getByTestId("plan-mes-hoja");
+  await expect(hoja).toBeVisible();
+  const col = (loc) => loc.evaluate((e) => getComputedStyle(e).backgroundColor);
+  const verde = await page.evaluate(() => { const d = document.createElement("i"); d.style.background = "var(--mint)"; document.body.appendChild(d); const c = getComputedStyle(d).backgroundColor; d.remove(); return c; });
+  expect(await col(hoja.locator('.rpt-kv[data-k="deu"] .rpt-sw'))).toBe(verde);
+  expect(await col(hoja.locator(".rpt-pb.lg i").nth(1))).toBe(verde);
+  await captura(page, "hoja-cifras-" + (process.env.TEMA || "oscuro"));
+});
+
+test("Deudas: cabecera como la de Metas con la cifra en rojo, listas en tarjeta y Añadir pequeño", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await abrePlan(page, base(3000), process.env.TEMA);
   await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
   const hero = page.getByTestId("debts-summary");
-  await expect(hero).toHaveClass(/pr6-sum/);
+  await expect(hero).toHaveClass(/rpt-hero/);
+  await expect(hero.locator(".rpt-facts.m .rpt-fact")).toHaveCount(2);
   await expect(hero).toContainText("Este mes pagas");
   await expect(page.getByTestId("debts-mes")).toContainText(/310,00/);
   await expect(page.getByTestId("debts-pagados")).toContainText(/pagados · faltan/);
   await expect(page.getByTestId("debts-debes")).toContainText(/Debes/);
   await expect(page.getByTestId("debts-acaba")).toContainText(/Acaba antes/);
+  await page.waitForTimeout(500);
+  if (process.env.CAPTURAS) { await page.locator('.v4-seg-btn[data-seg="metas"]').click(); await captura(page, "plan-metas-" + (process.env.TEMA || "oscuro")); await page.locator('.v4-seg-btn[data-seg="deudas"]').click(); await page.waitForTimeout(400); }
   const color = await page.getByTestId("debts-mes").evaluate((e) => getComputedStyle(e).color);
   const coral = await page.evaluate(() => { const d = document.createElement("i"); d.style.color = "var(--coral)"; document.body.appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; });
   expect(color).toBe(coral);
+  // La cifra grande de las tres cabeceras es del mismo tamaño
+  const px = (loc) => loc.evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
+  const deudaPx = await px(page.getByTestId("debts-mes"));
+  expect(deudaPx).toBeGreaterThanOrEqual(34);
   // Por pagar en su tarjeta, con el total a la derecha de la cabecera
   const pend = page.locator('[data-seg="deudas"] [data-sec="pend"]');
   await expect(pend.locator(".rpt-list.rpt-card")).toBeVisible();

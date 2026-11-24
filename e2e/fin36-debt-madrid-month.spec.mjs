@@ -29,7 +29,7 @@ for(const tz of ["UTC","Europe/Madrid","America/Los_Angeles"])test.describe(tz,(
     const fichaDeuda=page.getByTestId("plan-deuda-ficha");
     await expect(fichaDeuda.getByTestId("ficha-saldo")).toContainText(expectedBalance);
     await fichaDeuda.locator(".rpt-sx").click();await expect(fichaDeuda).toHaveCount(0);
-    await expect(page.getByTestId("debts-summary").locator(".rpt-dl b").first()).toHaveText(expectedBalance.replace(",00",""));
+    await expect(page.getByTestId("debts-debes").locator("b")).toHaveText(expectedBalance.replace(",00",""));
     const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).debts);
     await expect.poll(async()=> (await stored()).length).toBe(1);const debts=await stored();
     expect(debts[0]).toMatchObject({value:1000,monthly:100,amort:100,months:10,day,asOf:sample.month,startMonth:sample.month,startDay:sample.today});

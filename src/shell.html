@@ -1538,6 +1538,21 @@
      entera desaparecía de golpe un fotograma antes de entrar. Capa fija para que no nazca al tocar. */
   .pr6-vistas{will-change:transform,opacity;}
   .pr6-sum-h{display:flex;align-items:center;gap:2px;}
+  /* La cabecera de Recibos con el dibujo de la de Metas: sin tarjeta, título pequeño, cifra más grande y blanca, y las dos
+     respuestas («¿Te llega?» y «Te deben») como tarjeta de dos celdas con divisor. */
+  .pr6-sum.pr6-flat{background:none;border:0;box-shadow:none;border-radius:0;padding:6px 0 2px;gap:0;}
+  .pr6-sum.pr6-flat::before,.pr6-sum.pr6-flat::after{display:none;}
+  .pr6-flat .v4-micro{font-size:15px;font-weight:800;line-height:1.4;letter-spacing:0;text-transform:none;color:var(--text);}
+  .pr6-sum.pr6-flat .pr6-big{font-size:min(38px,11cqi);margin-top:4px;}
+  .pr6-flat .pr6-count{font-size:12.5px;font-weight:500;margin-top:6px;}
+  .pr6-flat .pr6-pills{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;margin-top:16px;border-radius:20px;background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);box-shadow:var(--shadow);overflow:hidden;}
+  .pr6-flat .pr6-pill{background:none;border-radius:0;min-height:0;min-width:0;padding:14px 16px;gap:8px;white-space:normal;}
+  .pr6-flat .pr6-pill+.pr6-pill{border-left:1px solid var(--line-soft);}
+  .pr6-flat .pr6-pill-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+  .pr6-flat .pr6-pill-l{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--muted);}
+  .pr6-flat .pr6-pill-v{font-size:15px;font-weight:700;line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}
+  .pr6-flat .pr6-pill.ok .pr6-pill-v{color:var(--mint-ink,var(--mint));}
+  .pr6-flat .pr6-pill.falta .pr6-pill-v{color:var(--coral);}
   /* A 360 px «QUEDA POR PAGAR EN NOVIE…» perdía el mes: mejor en dos renglones que cortado. */
   .pr6-sum-h .v4-micro{flex:1;min-width:0;line-height:1.45;}
   /* A 360 px «QUEDA POR PAGAR EN NOVIEMBRE» se iba a dos renglones (N7): más prieta cabe en uno;
@@ -3097,9 +3112,9 @@
      Prototipo aprobado (coord-notas/diseno-deudas-metas/prototipo.html): mismas medidas que «Próximos
      cargos» de Inicio (fila de 44 + texto + importe). Solo tokens de la app; los seis colores del reparto
      son los del prototipo. */
-  :root{--s-rec:var(--blue);--s-deu:var(--tan);--s-met:var(--mint-dim);--s-aho:var(--cream);--s-gas:var(--muted-2);--s-lib:var(--mint-bright);
+  :root{--s-rec:var(--blue);--s-deu:var(--mint);--s-met:var(--mint-dim);--s-aho:var(--cream);--s-gas:var(--muted-2);--s-lib:var(--mint-bright);
     --track:color-mix(in srgb,var(--muted-2) 62%,var(--bg));}
-  html[data-theme="light"]{--s-deu:color-mix(in srgb,var(--tan) 86%,var(--text));--s-met:color-mix(in srgb,var(--mint) 72%,var(--mint-dim));
+  html[data-theme="light"]{--s-deu:color-mix(in srgb,var(--mint) 58%,var(--bg));--s-met:color-mix(in srgb,var(--mint) 72%,var(--mint-dim));
     --s-aho:var(--text);--s-gas:var(--cream);--s-lib:var(--mint);--track:color-mix(in srgb,var(--muted-2) 78%,var(--bg));}
   .rpt-lb{display:block;width:100%;min-height:0;margin:0 0 12px;padding:2px 0 4px;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer;
     transition:transform .14s var(--ease);}
@@ -3126,6 +3141,10 @@
   /* Cabecera y bloques de las listas */
   .rpt-hero{container-type:inline-size;padding:6px 0 2px;}
   .rpt-ht{font-size:15px;font-weight:800;line-height:1.4;}
+  .rpt-hero .rpt-big{font-size:min(38px,11cqi);}
+  .rpt-big.verde{color:var(--mint-ink,var(--mint));}
+  .rpt-big.rojo{color:var(--coral);}
+  .rpt-hh{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .rpt-big{font-family:'Fraunces',Georgia,serif;font-size:30px;font-weight:550;line-height:1.15;letter-spacing:-.01em;font-variant-numeric:tabular-nums;margin-top:4px;white-space:nowrap;}
   .rpt-sheet .rpt-big{font-size:var(--fs-hero);line-height:1.08;}
   .rpt-hs{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:6px;}
@@ -3148,12 +3167,9 @@
   .rpt-facts.m .rpt-fact.warn b{color:var(--tan);}
   html[data-theme="light"] .rpt-facts.m .rpt-fact.warn b{color:#82600A;}
   /* Deudas: la cabecera es la tarjeta de Recibos (.pr6-sum) con la cifra en rojo, y cada lista del mes va en su tarjeta. */
-  .rpt-dh .pr6-big{color:var(--coral);}
-  .rpt-dh .pr6-pills{margin-top:2px;}
-  .rpt-dh div.pr6-pill{cursor:default;}
-  /* El nombre de la deuda que acaba antes puede ser largo: parte en renglones dentro del chip en vez de salirse de la tarjeta. */
-  .rpt-dh .pr6-pill{flex:1 1 100%;min-width:0;}
-  .rpt-dh .pr6-pill>span{min-width:0;overflow-wrap:anywhere;}
+  /* Celda que se toca (Deudas › «Acaba antes»): mismo dibujo que las de Metas, con el nombre partido en renglones si es largo. */
+  .rpt-facts.m button.rpt-fact{font:inherit;color:inherit;text-align:left;cursor:pointer;}
+  .rpt-facts.m .rpt-fact b{overflow-wrap:anywhere;}
   .rpt-cs .rpt-sech{padding:0 4px;}
   .rpt-sech-t{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt);font-weight:550;font-variant-numeric:tabular-nums;}
   .rpt-cs.pend .rpt-sech-t,.rpt-cs.pend .rpt-sech>span{color:var(--coral);}

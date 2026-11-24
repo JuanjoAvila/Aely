@@ -161,9 +161,11 @@ test("Inicio: el ojo está en la cabecera y esconde todas las cifras, también l
   await expect(ojo).toHaveAttribute("aria-pressed", "true");
   // Ninguna cifra con «€» a la vista: ni el patrimonio (con su contador), ni el ciclo, ni las filas.
   await expect.poll(() => ini.evaluate((el) => (el.innerText.match(/\d[\d.,]*\s?€/g) || []))).toEqual([]);
-  // El de Plan dice lo mismo: es un solo ajuste.
+  // Plan ya no lleva ojo (24/11) pero respeta el ajuste: sin icono y con las cifras escondidas.
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.locator('.page-scroll-host .v4-plan-cab [data-testid=ojo-importes]').first()).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('.page-live .v4-plan-cab')).toBeVisible();
+  await expect(page.locator('.page-live .v4-plan-cab [data-testid=ojo-importes]')).toHaveCount(0);
+  await expect(page.locator('.page-live [data-testid="plan-summary"] .pr6-big')).toHaveText(/••••/);
 });
 
 test("Apuntar sin ningún banco: sin «Tarjeta» ni «Bizum», y el importe con su espacio", async ({ page }) => {

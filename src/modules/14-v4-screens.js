@@ -331,8 +331,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     // debajo de la hora y los iconos (vídeo del dueño, 7/11). El mismo que la cabecera de Gastos.
     React.createElement("div",{className:"v4-plan-techo","aria-hidden":"true"}),
     React.createElement("div",{className:"v4-plan-cab"},
-      React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
-      React.createElement(OjoImportes,{state:state,set:set})),
+      // Sin el ojo de ocultar importes (orden del dueño 24/11): se cambia desde Inicio y Plan respeta el ajuste guardado.
+      React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title"))),
     simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
       React.createElement("div",{className:"v4-plan-simple-hero"},
         coverHead && React.createElement("div",{className:stCls}, coverHead),
@@ -1133,7 +1133,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   },[sig]);
   const sigN=sigPack?sigPack.pendingBills.length:0;
   // Al cambiar de mes la tarjeta no repite su `rise`: entra de lado con el resto de la vista.
-  const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
+  const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum pr6-flat"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
     React.createElement("div",{className:"pr6-vista"},
       React.createElement("div",{className:"pr6-sum-h"},
         React.createElement("div",{className:"v4-micro"}, sig?tf("pr6_se_van",{month:monthLong(sigM-1)}):tf("v4_plan_left",{month:monthLong(month-1)})),
@@ -1151,14 +1151,17 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
       !sig&&(llega&&nPend>0||debenTotal>0.005)&&React.createElement("div",{className:"pr6-pills"},
         llega&&nPend>0&&React.createElement("button",{type:"button",className:"pr6-pill "+(llega.ok?"ok":"falta"),"data-testid":"plan-llega","aria-haspopup":"dialog",
           onClick:function(){ if(llegaHost.current) llegaHost.current(true); }},
-          llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓"),
-          llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}),
+          // Dos líneas como las celdas de Metas: la pregunta y la respuesta.
+          React.createElement("span",{className:"pr6-pill-t"},React.createElement("span",{className:"pr6-pill-l"},t("pr6_llega_t")),
+            React.createElement("span",{className:"pr6-pill-v"},llega.ok&&React.createElement("span",{className:"pr6-pill-ok","aria-hidden":"true"},"✓ "),
+              llega.ok?t("pr6_llega"):tf("pr6_falta",{x:eur0(llega.falta)}))),
           // Sin la flecha no se ve que la píldora se abre.
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))),
         debenTotal>0.005&&React.createElement("button",{type:"button",className:"pr6-pill","data-testid":"plan-deben","aria-haspopup":"dialog",
           onClick:function(){ if(debenHost.current) debenHost.current(true); }},
-          tf("pr6_te_deben",{x:eur(debenTotal)}),
+          React.createElement("span",{className:"pr6-pill-t"},React.createElement("span",{className:"pr6-pill-l"},tf("pr6_te_deben",{x:""}).trim()),
+            React.createElement("span",{className:"pr6-pill-v"},eur(debenTotal))),
           React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
             React.createElement("path",{d:"M9 6l6 6-6 6"}))))));
   const manage=React.createElement(BillsManagePush,{key:"manage-bills",open:manageOpen,onClose:function(){ setManageOpen(false); setManageEdit(null); setAddNow(0); },state:state,set:set,totals:totals,simple:false,editId:manageEdit,addNow:addNow,onGoDebts:onGoDebts});

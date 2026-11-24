@@ -92,6 +92,8 @@ for (const [w, h] of ANCHOS) for (const letra of ["small", "huge"]) {
       const m = await res.evaluate((el) => {
         const r = (s) => el.querySelector(s).getBoundingClientRect();
         const probe = document.createElement("span"); probe.style.color = "var(--text)"; el.appendChild(probe);
+        // Deudas lleva la cifra en rojo (orden del dueño 24/11): el mismo que --coral.
+        probe.style.color = "var(--coral)";
         const texto = getComputedStyle(probe).color; probe.remove();
         return { align: getComputedStyle(el).textAlign, etiqueta: r(".rpt-ht").left, cifra: r(".plan-summary-amount").left,
           linea: r(".rpt-hs").left, color: getComputedStyle(el.querySelector(".plan-summary-amount")).color, texto };

@@ -118,11 +118,16 @@ test("Tus recibos: chip relleno, el banco filtra avisos y personas, cuota en una
   expect(await fam.evaluate((e) => e.scrollHeight <= e.clientHeight + 1)).toBe(true);
 });
 
+// El ojo ya no está en Plan (24/11): se alterna en Inicio y Plan respeta el ajuste guardado.
+const alternaOjo = async (page) => {
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await page.locator('.page-live .v4-inicio-head [data-testid="ojo-importes"]').click();
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+};
+
 test("el ojo: esconde todas las cifras de dinero, deja los conteos y se recuerda al volver", async ({ page }) => {
   const rec = await abrePlan(page);
-  // El de la cabecera de Plan: desde la ronda F (4.26.248) Inicio lleva su propio ojo y las dos páginas son `page-live`.
-  const ojo = page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]');
-  await expect(ojo).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]')).toHaveCount(0);
   const cifras = () => page.evaluate(() => {
     const out = []; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
     while ((n = w.nextNode())) { const el = n.parentElement; if (!el || !el.getClientRects().length || el.closest('[style*="content-visibility"],[aria-hidden="true"]')) continue;
@@ -130,8 +135,7 @@ test("el ojo: esconde todas las cifras de dinero, deja los conteos y se recuerda
     return out;
   });
   expect((await cifras()).length).toBeGreaterThan(0);
-  await ojo.click();
-  await expect(ojo).toHaveAttribute("aria-pressed", "true");
+  await alternaOjo(page);
   await expect(rec.getByTestId("plan-summary").locator(".pr6-big")).toHaveText("•••• €");
   await expect(rec.getByTestId("plan-count")).toContainText("recibos");
   expect(await cifras()).toEqual([]);
@@ -153,9 +157,9 @@ test("el ojo: esconde todas las cifras de dinero, deja los conteos y se recuerda
   await page.reload();
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]')).toHaveCount(0);
   expect(await cifras()).toEqual([]);
-  await page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]').click();
+  await alternaOjo(page);
   await expect(rec.getByTestId("plan-summary").locator(".pr6-big")).not.toHaveText("•••• €");
   expect((await cifras()).length).toBeGreaterThan(0);
 });
@@ -175,7 +179,7 @@ test("el ojo esconde también la cifra de un aviso que ya está en pantalla (aud
   const toast = page.locator(".toast").filter({ hasText: "agotado" });
   await expect(toast).toContainText("€ de");
   expect(await toast.innerText()).toMatch(/\d\s?€ de \d/);
-  await page.locator('.page-live .v4-plan-cab [data-testid="ojo-importes"]').click();
+  await alternaOjo(page);
   await expect(toast).toContainText("•••• € de •••• €");
 });
 

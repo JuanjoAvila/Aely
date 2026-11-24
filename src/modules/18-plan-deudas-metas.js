@@ -330,6 +330,19 @@ function RptDeudaFicha({d,state,set,r,h,onClose}){
       rptKv(t("plan_conflict_account"),entOf(d.account||"sabadell").label))));
 }
 /* La lista de Deudas: cabecera «Este mes pagas», por pagar, ya pagado, terminadas y sin cuota este mes. */
+/* La cabecera de Metas, Deudas (y, con su propio dibujo, Recibos): título pequeño, cifra grande en serif, subtítulo y una tarjeta de
+   dos celdas con divisor. El tono de la cifra: verde (Metas), rojo (Deudas) o el del texto (Recibos). */
+function RptHero({testid,titulo,cifra,tono,sub,celdas,accion,t0}){
+  return React.createElement("section",{className:"rpt-hero","data-testid":testid},
+    React.createElement("div",{className:"rpt-hh"},React.createElement("div",{className:"rpt-ht"},titulo),accion||null),
+    React.createElement("div",{className:"rpt-big plan-summary-amount"+(tono?" "+tono:""),"data-testid":t0||undefined},cifra),
+    React.createElement("div",{className:"rpt-hs"},sub),
+    React.createElement("div",{className:"rpt-facts m"},celdas.map(function(c,i){
+      return React.createElement(c.onClick?"button":"div",{key:i,type:c.onClick?"button":undefined,className:"rpt-fact"+(c.cls?" "+c.cls:""),"data-testid":c.testid||undefined,
+        "aria-label":c.aria||undefined,onClick:c.onClick||undefined},
+        React.createElement("span",null,c.l),React.createElement("b",null,c.v));
+    })));
+}
 function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShowArchive,tabs,onAdd}){
   const hoy=madridYmdParts(Date.now());
   const esc=useMemo(function(){ return deudasEscalera(state); },[state.debts,state.fixed,state.expenses,state.deleted]);
@@ -361,20 +374,13 @@ function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShow
     React.createElement("div",{className:"rpt-list rpt-card"},lista.map(function(d){ return fila(d,tipo); }))); };
   const plus=React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M12 5v14M5 12h14"}));
   return React.createElement("div",{className:"rpt"},
-    // Misma tarjeta que la de Recibos (etiqueta, cifra grande, subtítulo y chips con flecha), con la cifra en rojo: es lo que se debe.
-    // Las cifras son las de siempre: lo que pagas este mes, lo ya pagado y lo que falta, lo que debes en total y qué deuda acaba antes.
-    React.createElement("section",{className:"v4-card v4-card-hero pr6-sum rpt-dh","data-testid":"debts-summary"},
-      React.createElement("div",{className:"pr6-sum-h"},
-        React.createElement("div",{className:"v4-micro"},t("rpt_d_hero")),
-        onAdd&&React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":"debt-add","aria-label":t("db_add"),onClick:onAdd},plus,t("mg_anadir"))),
-      React.createElement("div",{className:"serif num pr6-big","data-testid":"debts-mes"},rptC(tot)),
-      React.createElement("div",{className:"pr6-count","data-testid":"debts-pagados"},tf("rpt_d_sub",{a:rptC(pag),b:rptC(tot-pag)})),
-      React.createElement("div",{className:"pr6-pills"},
-        React.createElement("div",{className:"pr6-pill falta","data-testid":"debts-debes"},t("rpt_d_debes")+" ",React.createElement("b",null,eur0(total))),
-        priDeuda&&React.createElement("button",{type:"button",className:"pr6-pill","data-testid":"debts-acaba",onClick:function(){ h.abrir(priDeuda); },"aria-label":t("rpt_d_acaba_antes")+": "+priDeuda.name},
-          React.createElement("span",null,t("rpt_d_acaba_antes")+" ",React.createElement("b",null,priDeuda.name),(" · "+rptMes(pri.ultimo))),
-          React.createElement("svg",{className:"pr6-pill-go",width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.4,strokeLinecap:"round","aria-hidden":"true"},
-            React.createElement("path",{d:"M9 6l6 6-6 6"}))))),
+    // Misma cabecera que la de Metas, con la cifra en rojo (es lo que se debe). Las cifras son las de siempre: lo que pagas este
+    // mes, lo ya pagado y lo que falta, lo que debes en total y qué deuda acaba antes.
+    React.createElement(RptHero,{testid:"debts-summary",titulo:t("rpt_d_hero"),cifra:rptC(tot),tono:"rojo",t0:"debts-mes",
+      sub:React.createElement("span",{"data-testid":"debts-pagados"},tf("rpt_d_sub",{a:rptC(pag),b:rptC(tot-pag)})),
+      accion:onAdd&&React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":"debt-add","aria-label":t("db_add"),onClick:onAdd},plus,t("mg_anadir")),
+      celdas:[{l:t("rpt_d_debes"),v:eur0(total),testid:"debts-debes"},
+        priDeuda?{l:t("rpt_d_acaba_antes"),v:priDeuda.name+" · "+rptMes(pri.ultimo),testid:"debts-acaba",onClick:function(){ h.abrir(priDeuda); },aria:t("rpt_d_acaba_antes")+": "+priDeuda.name}:{l:t("rpt_d_acaba_antes"),v:"—"}]}),
     tabs,
     seccion(t("rpt_d_por_pagar"),pend,"pend","pend",tot-pag),
     seccion(t("rpt_d_pagado"),hechas,"hecha","hechas",pag),
@@ -425,13 +431,8 @@ function RptMetasVista({state,goals,h,tabs}){
   const sv=res.ahorrado, tg=res.objetivo;
   const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:res.conFecha>0?[t("rpt_m_a_tiempo"),t("rpt_m_todas")]:[t("rpt_m_fecha"),t("rpt_m_sin_fecha")];
   return React.createElement("div",{className:"rpt"},
-    React.createElement("section",{className:"rpt-hero","data-testid":"goals-summary"},
-      React.createElement("div",{className:"rpt-ht"},t("v4_goals_hero")),
-      React.createElement("div",{className:"rpt-big plan-summary-amount"},rptC0(sv)),
-      React.createElement("div",{className:"rpt-hs"},tf("rpt_m_de_total",{x:rptC0(tg)})),
-      React.createElement("div",{className:"rpt-facts m"},
-        React.createElement("div",{className:"rpt-fact"},React.createElement("span",null,t("rpt_m_apartas")),React.createElement("b",null,rptC0(res.ritmo)+t("rpt_m_mes"))),
-        React.createElement("div",{className:"rpt-fact"+(res.hueco>0||res.vencidas>0?" warn":res.conFecha>0?" ok":"")},React.createElement("span",null,f2[0]),React.createElement("b",null,f2[1])))),
+    React.createElement(RptHero,{testid:"goals-summary",titulo:t("v4_goals_hero"),cifra:rptC0(sv),tono:"verde",sub:tf("rpt_m_de_total",{x:rptC0(tg)}),
+      celdas:[{l:t("rpt_m_apartas"),v:rptC0(res.ritmo)+t("rpt_m_mes")},{l:f2[0],v:f2[1],cls:res.hueco>0||res.vencidas>0?"warn":res.conFecha>0?"ok":""}]}),
     tabs,
     abiertas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_en_marcha"))),React.createElement("div",{className:"rpt-list"},abiertas.map(fila))),
     hechas.length>0&&React.createElement("section",{className:"rpt-sec"},React.createElement("div",{className:"rpt-sech"},React.createElement("span",null,t("rpt_m_conseguidas"))),React.createElement("div",{className:"rpt-list"},hechas.map(fila))));
