@@ -12,7 +12,7 @@ Candidata de entrada propia: writer singular setIncomeOwnTransfer en CLOUD_WRITE
 
 ## IBAN de la contraparte en `bankTx` (DIN-01, 24/11/2026; en fuente, SIN desplegar)
 
-`mapTransaction` (`_shared/enablebanking.ts`) manda `cp_iban`: el IBAN de la contraparte (acreedor en un cargo, ordenante en un abono), solo con forma de IBAN y normalizado. `flattenBankTx` lo deja en `bankTx[].cpIban`. Es un dato personal de un TERCERO: vive en el móvil (`bankTx` ya no sube en `slimForCloud`) y en `bank_links.transactions` (servidor); `cloud.backupState` lo quita de la copia diaria; ningún log lo escribe (`tests/iban-contraparte.test.mjs`, `logs-privacidad`). De momento solo TRANSPORTA: `esTraspasoPropio`/`expenseBucket` aún no lo leen (siguiente paso: compararlo con los `bankIban` de las cuentas conectadas del usuario, con revisión de dinero). Sin el campo, nada cambia.
+`mapTransaction` (`_shared/enablebanking.ts`) manda `cp_iban`: el IBAN de la contraparte (acreedor en un cargo, ordenante en un abono), solo con forma de IBAN y dígito de control (mod 97) válido, normalizado. `flattenBankTx` lo deja en `bankTx[].cpIban`. Es un dato personal de un TERCERO: solo viaja en la respuesta de `bank-sync` y vive en el móvil (`bankTx` no sube a `app_state`: `slimForCloud` lo quita; `bank-sync` no guarda movimientos en la BD); `cloud.backupState` lo quita de la copia diaria; ningún log lo escribe (`tests/iban-contraparte.test.mjs`, `logs-privacidad`). De momento solo TRANSPORTA: `esTraspasoPropio`/`expenseBucket` aún no lo leen (siguiente paso: compararlo con los `bankIban` de las cuentas conectadas del usuario, con revisión de dinero). Sin el campo, nada cambia.
 
 ## Confirmación de traspaso propio (candidata, 01/11/2026)
 

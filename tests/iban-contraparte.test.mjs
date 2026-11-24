@@ -13,7 +13,8 @@ import { loadPureLogic, createLogicSandbox, extractPureLogicSource } from "../sc
 import { E } from "./helpers/banco-sintetico.mjs";
 
 const html = fs.readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), c = loadPureLogic(html);
-const IBAN = "ES0000000000000000000000", IBAN2 = "ES0000000000000000000001";
+// Sintéticos con dígito de control válido (mod 97) y cuenta todo ceros: no existen.
+const IBAN = "ES8200000000000000000000", IBAN2 = "ES5500000000000000000001";
 const eb = { transaction_amount: { amount: "12.00" }, booking_date: "2026-11-02", entry_reference: "r1", status: "BOOK" };
 
 test("servidor: cargo → IBAN del acreedor; abono → IBAN del ordenante", () => {
@@ -22,8 +23,9 @@ test("servidor: cargo → IBAN del acreedor; abono → IBAN del ordenante", () =
 });
 test("servidor: se normaliza (espacios, minúsculas) y se rechaza lo que no tiene forma de IBAN", () => {
   const f = iban => E.mapTransaction({ ...eb, credit_debit_indicator: "DBIT", creditor_account: { iban } });
-  assert.equal(f("es00 0000 0000 0000 0000 0000").cp_iban, IBAN);
-  for (const mal of ["", "no es un iban", "ES00", "1234567890123456", "ES00<script>0000000000", 5, null, {}]) assert.equal("cp_iban" in f(mal), false, String(mal));
+  assert.equal(f("es82 0000 0000 0000 0000 0000").cp_iban, IBAN);
+  assert.equal("cp_iban" in f("ES0000000000000000000000"), false, "dígito de control inválido");
+  for (const mal of ["", "no es un iban", "ES00", "1234567890123456", "ES00<script>0000000000", "x" + IBAN, IBAN + "<x>", IBAN + " PAGO", "<" + IBAN, 5, null, {}]) assert.equal("cp_iban" in f(mal), false, String(mal));
 });
 test("servidor: sin cuenta de la contraparte, o la del lado equivocado, no hay campo (la salida no cambia)", () => {
   const sin = E.mapTransaction({ ...eb, credit_debit_indicator: "DBIT" });
@@ -33,12 +35,14 @@ test("servidor: sin cuenta de la contraparte, o la del lado equivocado, no hay c
 });
 test("cliente: flattenBankTx lleva cp_iban a bankTx.cpIban, normalizado; sin campo, sin clave", () => {
   const tx = (id, extra) => ({ ext_id: id, date: "2026-11-02", amount: 12, merchant: "X", note: "", card: false, status: "BOOK", ...extra });
-  const rows = c.flattenBankTx([{ aspsp: "CaixaBank", ok: true, accounts: [{ ok: true, iban: "ES1100000000000000000000", transactions: [tx("a", { cp_iban: IBAN }), tx("b", { cp_iban: " es00 0000 0000 0000 0000 0001 " }), tx("c", {}), tx("d", { cp_iban: "texto libre del banco" })] }] }], []);
+  const rows = c.flattenBankTx([{ aspsp: "CaixaBank", ok: true, accounts: [{ ok: true, iban: "ES1100000000000000000000", transactions: [tx("a", { cp_iban: IBAN }), tx("b", { cp_iban: " es55 0000 0000 0000 0000 0001 " }), tx("c", {}), tx("d", { cp_iban: "texto libre del banco" })] }] }], []);
   const por = Object.fromEntries(rows.map(r => [r.id, r]));
   assert.equal(por.a.cpIban, IBAN);
   assert.equal(por.b.cpIban, IBAN2);
   assert.equal("cpIban" in por.c, false);
   assert.equal("cpIban" in por.d, false);
+  const malos = c.flattenBankTx([{ aspsp: "CaixaBank", ok: true, accounts: [{ ok: true, iban: "ES1100000000000000000000", transactions: ["x" + IBAN, IBAN + "<x>", "<" + IBAN].map((v, i) => tx("m" + i, { cp_iban: v })) }] }], []);
+  assert.deepEqual(JSON.parse(JSON.stringify(malos.map(r => "cpIban" in r))), [false, false, false], "anclas de la regla del cliente");
 });
 test("copia diaria: el IBAN de la contraparte no sale del móvil hacia state_backups", async () => {
   const calls = [], db = { from: t => ({ upsert: async row => { calls.push([t, row]); return {}; }, delete: () => ({ eq: () => ({ lt: async () => ({}) }) }) }), auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) } };

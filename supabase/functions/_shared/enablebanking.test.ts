@@ -52,7 +52,7 @@ Deno.test("ebApi: el error conserva estado/código pero no el payload del provee
     error: "WRONG_TRANSACTIONS_PERIOD",
     message: "No se permite este periodo",
     detail: { reason: "dato privado que no debe salir" },
-    session: { id: "secreto-sesion", accounts: [{ iban: "ES0000000000000000000000" }] },
+    session: { id: "secreto-sesion", accounts: [{ iban: "ES8200000000000000000000" }] },
   }), { status: 422 }));
   try {
     const err = await assertRejects(() => ebApi("jwt", "/transactions"), Error);
@@ -110,7 +110,7 @@ Deno.test("ebFailure: bloqueos y caídas conservan su estado y nunca caducan", a
 
 Deno.test("ebFailure: el código que sale al diagnóstico es de la lista cerrada del proveedor", async () => {
   // `error` es un campo libre de la respuesta: lo que no esté en su enum se apunta como OTRO.
-  for (const libre of ["titular-privado", "ES0000000000000000000000", "JUAN_PEREZ_GARCIA", "SESSION_ABCDEF", "A_".repeat(40) + "B"]) {
+  for (const libre of ["titular-privado", "ES8200000000000000000000", "JUAN_PEREZ_GARCIA", "SESSION_ABCDEF", "A_".repeat(40) + "B"]) {
     assertEquals(await fallo(401, { code: 401, error: libre }), { status: 401, code: "OTRO", sessionEnded: false }, libre);
   }
   assertEquals(ebFailure(new Error("EB 401: unauthorized")).code, "");
@@ -158,7 +158,7 @@ Deno.test("ebSessionVerdict: sin respuesta clara no se afirma nada", async () =>
   assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new TypeError("sin red"))), { ended: null, state: "SIN_RESPUESTA" });
   assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({})), { ended: null, state: "SIN_ESTADO" });
   // Un estado que no consta en la referencia no caduca ni sale tal cual al diagnóstico.
-  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "ES0000000000000000000000" })), { ended: null, state: "OTRO" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "ES8200000000000000000000" })), { ended: null, state: "OTRO" });
 });
 
 const pagedTx = { entry_reference: "synthetic", transaction_amount: { amount: "12.50" }, status: "BOOK" };
@@ -204,18 +204,18 @@ Deno.test("fetchBankTransactions: tiempo propio distingue el corte sin ampliar e
   assertEquals(result.readReason, "time_limit");
 });
 // DIN-01 (NO ejecutado en el PC de desarrollo: sin Deno; el espejo Node es tests/iban-contraparte.test.mjs).
-// IBAN de ejemplo inválidos (ES00 + ceros): el repo es público y la contraparte es un tercero.
+// IBAN sintéticos con dígito de control válido y cuenta todo ceros: el repo es público y la contraparte es un tercero.
 Deno.test("mapTransaction: IBAN de la contraparte (cargo → acreedor, abono → ordenante), normalizado", () => {
   const base = { transaction_amount: { amount: "12.00" }, booking_date: "2026-11-02" };
-  const cuentas = { creditor_account: { iban: "es00 0000 0000 0000 0000 0000" }, debtor_account: { iban: "ES0000000000000000000001" } };
-  assertEquals(mapTransaction({ ...base, credit_debit_indicator: "DBIT", ...cuentas }).cp_iban, "ES0000000000000000000000");
-  assertEquals(mapTransaction({ ...base, credit_debit_indicator: "CRDT", ...cuentas }).cp_iban, "ES0000000000000000000001");
+  const cuentas = { creditor_account: { iban: "es82 0000 0000 0000 0000 0000" }, debtor_account: { iban: "ES5500000000000000000001" } };
+  assertEquals(mapTransaction({ ...base, credit_debit_indicator: "DBIT", ...cuentas }).cp_iban, "ES8200000000000000000000");
+  assertEquals(mapTransaction({ ...base, credit_debit_indicator: "CRDT", ...cuentas }).cp_iban, "ES5500000000000000000001");
 });
 
 Deno.test("mapTransaction: sin IBAN válido de la contraparte no hay campo cp_iban", () => {
   const base = { transaction_amount: { amount: "12.00" }, booking_date: "2026-11-02", credit_debit_indicator: "DBIT" };
   assertEquals("cp_iban" in mapTransaction(base), false);
   assertEquals("cp_iban" in mapTransaction({ ...base, creditor_account: { iban: "texto libre" } }), false);
-  assertEquals("cp_iban" in mapTransaction({ ...base, debtor_account: { iban: "ES0000000000000000000000" } }), false);
+  assertEquals("cp_iban" in mapTransaction({ ...base, debtor_account: { iban: "ES8200000000000000000000" } }), false);
   assertEquals(ibanContraparte({ creditor_account: { iban: 5 } }, false), "");
 });

@@ -3108,7 +3108,7 @@ function flattenBankTx(links, previous){
     txs.forEach(function(t,i){
       if(partial[ent]&&(!t||t.amount==null||String(t.amount).trim()===""||!isFinite(Number(t.amount)))) return;
       // IBAN de la contraparte (DIN-01): dato de un tercero; solo con forma de IBAN, sin espacios y en mayúsculas.
-      const cpRaw=String(t&&t.cp_iban||"").replace(/\s+/g,"").toUpperCase(), cp=/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(cpRaw)?cpRaw:"";
+      const cpRaw=String(t&&t.cp_iban||"").replace(/\s+/g,"").toUpperCase(), cp=/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(cpRaw)&&(function(){ let n=0; const r=cpRaw.slice(4)+cpRaw.slice(0,4); for(let i=0;i<r.length;i++){ const v=r.charCodeAt(i)>=65?r.charCodeAt(i)-55:+r[i]; n=(n*(v>9?100:10)+v)%97; } return n===1; })()?cpRaw:"";
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
       out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}), ...(cp?{cpIban:cp}:{}), ...(accs[i]?{acc:String(accs[i])}:{}) });

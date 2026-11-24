@@ -230,7 +230,11 @@ export function ibanContraparte(t: any, isCredit: boolean): string {
   const acc = isCredit ? t?.debtor_account : t?.creditor_account;
   const raw = typeof acc?.iban === "string" ? acc.iban : "";
   const iban = raw.replace(/\s+/g, "").toUpperCase();
-  return /^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban) ? iban : "";
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban)) return "";
+  // Dígito de control (mod 97): descarta texto libre con forma de IBAN («ES.. PAGO»). Igual en el cliente.
+  let n = 0;
+  for (const ch of iban.slice(4) + iban.slice(0, 4)) { const v = ch >= "A" ? ch.charCodeAt(0) - 55 : Number(ch); n = (n * (v > 9 ? 100 : 10) + v) % 97; }
+  return n === 1 ? iban : "";
 }
 
 // deno-lint-ignore no-explicit-any
@@ -271,7 +275,7 @@ export function mapTransaction(t: any) {
     // Se conserva el concepto separado para clasificar sin usar esa descripción genérica.
     concept: String(remit).replace(/\s+/g, " ").trim().slice(0, 160),
     ...(/^\d{4}$/.test(mcc) ? { mcc } : {}),
-    // IBAN de la contraparte: viaja en bankTx (estado local y nube), nunca a la tabla de gastos ni a logs.
+    // IBAN de la contraparte: solo viaja en la respuesta de bank-sync hacia el móvil (bankTx local); no se guarda en la BD, ni va a la tabla de gastos ni a logs.
     ...(cpIban ? { cp_iban: cpIban } : {}),
     // best-effort: compra con tarjeta. Solo texto en español lo detectaba (TARJ/TARJETA); un
     // ASPSP que informa en inglés (Trade Republic, Revolut…) no lo mencionaba nunca y el cargo

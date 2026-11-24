@@ -61,7 +61,7 @@ programar cualquier lectura de `bank-sync`, ver «Open Banking: lectura sola al 
 
 ## bank-sync · IBAN de la contraparte (DIN-01, 24/11/2026) — en fuente, SIN desplegar
 
-Rama `claude/din-01-iban`. `bank-sync` (vía `mapTransaction`) añade `cp_iban` a cada movimiento. Sin migración: va dentro de `bank_links.transactions` (jsonb). Desplegar `bank-sync` por Actions, una función, con el OK del dueño y DESPUÉS de que la web con `cpIban` esté en los móviles (una web sin ella ignora el campo, no rompe). Los tests Deno nuevos (`enablebanking.test.ts`) no se han ejecutado: no hay Deno en el PC de desarrollo.
+Rama `claude/din-01-iban`. `bank-sync` (vía `mapTransaction`) añade `cp_iban` a cada movimiento. Sin migración: solo va en la respuesta HTTP hacia el móvil (la BD no guarda movimientos). Desplegar `bank-sync` por Actions, una función, con el OK del dueño y DESPUÉS de que la web con `cpIban` esté en los móviles (una web sin ella ignora el campo, no rompe). Los tests Deno nuevos (`enablebanking.test.ts`) no se han ejecutado: no hay Deno en el PC de desarrollo.
 
 ## Brókers por conexión: IBKR Flex y Kraken (19/11/2026) — en fuente, SIN desplegar
 
