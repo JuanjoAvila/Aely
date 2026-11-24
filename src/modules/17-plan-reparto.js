@@ -139,7 +139,8 @@ function planReparto(state, o){
   const viva=function(e){ return e&&!e.possibleDup&&!e.autoGemelo&&!expenseIsTombstoned(e,delSet); };
   const sinEnlazar=repCuotasSinEnlazar(state);
   /* ---- Entra, y lo que se gastó ---- */
-  let entra=0, devolucion=0, traspaso=0, nominaLlego=false, gastado=0, metaGastos={}, inversion=0;
+  let entra=0, devolucion=0, traspaso=0, nominaLlego=false, gastado=0, metaGastos={}, inversion=0, otrosDia=0;
+  const cicloInc=P.cycle&&state.settings&&state.settings.budgetCycle?(budgetPaydayOf(state,now)||{}).inc:null;
   const desdePrevio=P.startMs-REP_DIAS_ENTRADA_PREVIA*864e5;
   let nominaAntes=flows.length>0;
   (state.expenses||[]).forEach(function(e){
@@ -154,6 +155,8 @@ function planReparto(state, o){
       else{
         entra+=c;
         if(e.amount<=-200&&esNomina(e,flows)) nominaLlego=true;
+        // Lo que Gastos resta de lo gastado (`esOtroIngresoDeGastos`, la misma regla): va neteado, no como ingreso.
+        if(esOtroIngresoDeGastos(e,state,flows,P.cycle?cicloInc:null,!!P.cycle)) otrosDia+=c;
       }
       return;
     }
@@ -168,6 +171,11 @@ function planReparto(state, o){
     else if(b==="neutra"&&e.category==="inversion"&&recompensaDe(e)!=="saveback") inversion+=c;
   });
   gastado=Math.max(0,gastado-devolucion);
+  /* NETO, como Gastos (`monthBudgetStats`: gasto − otros ingresos, 24/11): los ingresos de tu banco del día a día que
+     no son la nómina (Bizums de comidas compartidas…) devuelven margen a lo gastado y NO se cuentan además como
+     dinero que entra: cada euro, una vez. Nunca netea más de lo gastado; el resto queda en lo que entra. */
+  const neteo=Math.min(gastado,otrosDia);
+  gastado-=neteo; entra-=neteo;
   // Con nómina esperada y sin llegar, nada de % ni de Libre. Sin nómina de ninguna clase, lo que haya entrado.
   const esperaNomina=!nominaLlego&&nominaAntes;
   const entraC=esperaNomina||!(entra>0)?null:entra;
@@ -251,7 +259,7 @@ function planReparto(state, o){
     faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
-    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso};
+    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso,neteo:neteo,quedaPagar:recQ+deuQ};
 }
 
 /* MES DE LA ÚLTIMA CUOTA de una deuda (año*12+mes0), o null sin plazo ni saldo. UNA sola fuente: la usan la

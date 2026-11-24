@@ -129,7 +129,11 @@ function RptRepartoHoja({r,state,onClose,onJump}){
       React.createElement("span",{className:"cas-sub"},subDe(x.k)),
       React.createElement("span",{className:"cas-am"},"− "+rptC(x.c)));
   };
-  const dif=r.saldo==null?null:r.saldo-r.queda;
+  /* «Queda por pagar» = EXACTAMENTE lo que dice la tarjeta de Recibos del Plan: los recibos y cuotas aún sin pagar.
+     Antes sumaba también el ahorro y las metas que faltan por mover y el hueco del presupuesto (1.173 € frente a 247 €):
+     eso no es algo que se «pague». «Te quedaría» sale de esa misma cifra. */
+  const pend=r.quedaPagar;
+  const dif=r.saldo==null?null:r.saldo-pend;
   return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
     React.createElement("div",{className:"cas-entra"},React.createElement("span",null,t("rpt_entran")),
       React.createElement("b",{className:"serif num","data-testid":"plan-reparto-entra"},r.entra==null?"—":rptC(r.entra))),
@@ -141,8 +145,8 @@ function RptRepartoHoja({r,state,onClose,onJump}){
     // Otra pregunta, otra sección: no lo que va el sueldo, sino si lo que AÚN no se ha pagado cabe en tu saldo de hoy.
     React.createElement("div",{className:"rpt-sg cas-pend","data-testid":"plan-reparto-pend"},
       React.createElement("div",{className:"cas-pend-t"},t("rpt_pend_t")),
-      r.queda>0?React.createElement(React.Fragment,null,
-        rptKv(t("rpt_q_total"),rptC(r.queda),"queda"),
+      pend>0?React.createElement(React.Fragment,null,
+        rptKv(t("rpt_q_total"),rptC(pend),"queda"),
         rptKv(t("pm_saldo"),r.saldo==null?"—":rptC(r.saldo),"saldo"),
         rptKv(dif!=null&&dif<0?t("pm_faltan"):t("pm_sobran"),dif==null?"—":rptC(dif),"dif"))
         :React.createElement("div",{className:"rpt-kv"},t("pm_nada"))));
