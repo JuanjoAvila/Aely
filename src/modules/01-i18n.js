@@ -4999,12 +4999,10 @@ fl_t_name:"Què entra?", fl_t_name_tr:"Què mous?", fl_name_ph:"Nòmina, pensió
 });
 /* Plan › barra de reparto, hoja «A dónde va tu sueldo», Deudas y Metas nuevas (prototipo aprobado). */
 Object.assign(LANG.es,{
-  rpt_libre:"Libre",
   rpt_libre_hasta:"Libre hasta hoy",
   rpt_todo:"Todo asignado",
   rpt_faltan:"Te faltan",
   rpt_wait:"Falta tu nómina",
-  rpt_de:"Entran {x}",
   rpt_libre_sube:"Libre sube {x}",
   rpt_gas_pasa:"Tu presupuesto de Gastos pasa de {a} a {b}",
   rpt_sheet_title:"A dónde va tu sueldo",
@@ -5100,12 +5098,10 @@ Object.assign(LANG.es,{
   rpt_m_conseguidas:"Conseguidas"
 });
 Object.assign(LANG.en,{
-  rpt_libre:"Free",
   rpt_libre_hasta:"Free so far",
   rpt_todo:"All assigned",
   rpt_faltan:"You are short",
   rpt_wait:"Your paycheck is missing",
-  rpt_de:"Coming in {x}",
   rpt_libre_sube:"Free goes up {x}",
   rpt_gas_pasa:"Your Spending budget goes from {a} to {b}",
   rpt_sheet_title:"Where your pay goes",
@@ -5201,12 +5197,10 @@ Object.assign(LANG.en,{
   rpt_m_conseguidas:"Achieved"
 });
 Object.assign(LANG.ca,{
-  rpt_libre:"Lliure",
   rpt_libre_hasta:"Lliure fins avui",
   rpt_todo:"Tot assignat",
   rpt_faltan:"Et falten",
   rpt_wait:"Falta la teva nòmina",
-  rpt_de:"Entren {x}",
   rpt_libre_sube:"Lliure puja {x}",
   rpt_gas_pasa:"El teu pressupost de Despeses passa de {a} a {b}",
   rpt_sheet_title:"On va el teu sou",

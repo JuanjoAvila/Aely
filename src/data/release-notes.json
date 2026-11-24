@@ -1,5 +1,35 @@
 [
   {
+    "v": "4.26.256",
+    "d": "2026-11-24",
+    "t": {
+      "es": "Cifras del Plan que cuadran y cabecera más limpia",
+      "en": "Plan figures that add up and a cleaner header",
+      "ca": "Xifres del Pla que quadren i capçalera més neta"
+    },
+    "items": {
+      "es": [
+        "Las cifras del Plan cuadran: lo que queda por pagar y el gasto del mes salen bien.",
+        "La cabecera de Plan es más limpia y «A dónde va tu sueldo» se entiende mejor.",
+        "Editar una deuda abre ahora la hoja nueva.",
+        "Al crear una deuda o una meta puedes elegir si se resta del presupuesto."
+      ],
+      "en": [
+        "Plan figures now add up: what is left to pay and the month's spending come out right.",
+        "The Plan header is cleaner and Where your pay goes is easier to understand.",
+        "Editing a debt now opens the new sheet.",
+        "When creating a debt or a goal you can choose whether it is subtracted from the budget."
+      ],
+      "ca": [
+        "Les xifres del Pla quadren: el que queda per pagar i la despesa del mes surten bé.",
+        "La capçalera del Pla és més neta i «On va el teu sou» s'entén millor.",
+        "Editar un deute obre ara el full nou.",
+        "En crear un deute o una meta pots triar si es resta del pressupost."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.255",
     "d": "2026-11-24",
     "t": {

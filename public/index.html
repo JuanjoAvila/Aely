@@ -12627,12 +12627,10 @@ fl_t_name:"¿Qué entra?", fl_t_name_tr:"¿Qué mueves?", fl_name_ph:"Nómina, p
 
 /* Plan › barra de reparto, hoja «A dónde va tu sueldo», Deudas y Metas nuevas (prototipo aprobado). */
 Object.assign(LANG.es,{
-  rpt_libre:"Libre",
   rpt_libre_hasta:"Libre hasta hoy",
   rpt_todo:"Todo asignado",
   rpt_faltan:"Te faltan",
   rpt_wait:"Falta tu nómina",
-  rpt_de:"Entran {x}",
   rpt_libre_sube:"Libre sube {x}",
   rpt_gas_pasa:"Tu presupuesto de Gastos pasa de {a} a {b}",
   rpt_sheet_title:"A dónde va tu sueldo",
@@ -12653,7 +12651,7 @@ Object.assign(LANG.es,{
   rpt_gastado_hasta_hoy:"Gastado hasta hoy",
   rpt_sobre_pres:"{x} sobre presupuesto",
   rpt_de_x:"{a} de {b}",
-  rpt_q_total:"Queda por pagar",
+  rpt_q_total:"Recibos y cuotas por pagar",
   rpt_gastado:"Gastado",
   rpt_presupuesto:"Presupuesto",
   rpt_de_mas:"De más",
@@ -18007,6 +18005,9 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
   // Un ciclo pasado es como un mes cerrado: sin límite (no hay foto del límite de entonces).
   const budgetApplies=preset==="months"||preset==="cycle"&&!cicloPas;
+  /* `state.debts` va en deps: «Restar del presupuesto» (`restarPres`) baja el límite de aquí. Sin él, encender el
+     interruptor en Plan dejaba Gastos (montada en la sombra) con el límite entero: «259 € por debajo» donde el
+     Plan decía 84,79 (24/11/2026). */
   const monthSummary=useMemo(function(){
     const bs=monthBudgetStats(stateDef,null,null,null,selectedPeriod);
     /* La cifra grande sigue su modo (Balance o Gastos), pero el margen contra el límite es el de
@@ -18028,7 +18029,7 @@ function Expenses({state, set, showToast, stopSwipe, focusExp, clearFocus, force
       cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[lapidasDef,state.budget,state.reservaLog,state.accounts,state.settings,state.flows,state.catOverrides,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[lapidasDef,state.budget,state.reservaLog,state.debts,state.cuotaNo,state.cuotaAlias,state.accounts,state.settings,state.flows,state.catOverrides,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   /* Sumas por día para la cifra viva. Mismas porciones del estado que la cabecera (las lee
      `expenseCountsBudget`); NO depende de la búsqueda ni de los filtros: la cifra es la del
      presupuesto, igual que antes la tarjeta («buscar no redefine el límite»). */
@@ -29368,6 +29369,16 @@ function budgetRowSigned(e, state, period, delSet){
   if(!expenseCountsBudget(e, state)) return 0;
   return e.amount>0||e.amount<0 ? e.amount : 0;
 }
+/* ¿Esta entrada de dinero es de las que Gastos RESTA de lo gastado (los «otros ingresos» de su línea)? Entra en el
+   banco del día a día y no es la nómina: en el mes natural, la nómina es un ingreso ≥200 € que reconoce `esNomina`
+   (un Bizum no lo es nunca); en Mi ciclo, solo la que abre el ciclo (`cicloInc`). UNA regla para Gastos y Plan. */
+function esOtroIngresoDeGastos(e, state, flows, cicloInc, ciclo){
+  if(!(e.amount<0)) return false;
+  // Mi ciclo: como `budgetRowSigned`, cualquier ingreso real de cualquier banco (menos el que abre el ciclo).
+  if(ciclo) return e!==cicloInc&&!CAT_NEUTRAS[e.category]&&!traspasoPropioDerivado(e,state);
+  if(!expenseCountsBudget(e,state)) return false;
+  return !(e.amount<=-200 && e.category!=="bizum" && esNomina(e,flows));
+}
 /* Misma cifra en Gastos e Inicio; el widget pide mes explícito (2026-09-28).
    `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
@@ -32974,7 +32985,8 @@ function planReparto(state, o){
   const viva=function(e){ return e&&!e.possibleDup&&!e.autoGemelo&&!expenseIsTombstoned(e,delSet); };
   const sinEnlazar=repCuotasSinEnlazar(state);
   /* ---- Entra, y lo que se gastó ---- */
-  let entra=0, devolucion=0, traspaso=0, nominaLlego=false, gastado=0, metaGastos={}, inversion=0;
+  let entra=0, devolucion=0, traspaso=0, nominaLlego=false, gastado=0, metaGastos={}, inversion=0, otrosDia=0;
+  const cicloInc=P.cycle&&state.settings&&state.settings.budgetCycle?(budgetPaydayOf(state,now)||{}).inc:null;
   const desdePrevio=P.startMs-REP_DIAS_ENTRADA_PREVIA*864e5;
   let nominaAntes=flows.length>0;
   (state.expenses||[]).forEach(function(e){
@@ -32989,6 +33001,8 @@ function planReparto(state, o){
       else{
         entra+=c;
         if(e.amount<=-200&&esNomina(e,flows)) nominaLlego=true;
+        // Lo que Gastos resta de lo gastado (`esOtroIngresoDeGastos`, la misma regla): va neteado, no como ingreso.
+        if(esOtroIngresoDeGastos(e,state,flows,P.cycle?cicloInc:null,!!P.cycle)) otrosDia+=c;
       }
       return;
     }
@@ -33003,6 +33017,11 @@ function planReparto(state, o){
     else if(b==="neutra"&&e.category==="inversion"&&recompensaDe(e)!=="saveback") inversion+=c;
   });
   gastado=Math.max(0,gastado-devolucion);
+  /* NETO, como Gastos (`monthBudgetStats`: gasto − otros ingresos, 24/11): los ingresos de tu banco del día a día que
+     no son la nómina (Bizums de comidas compartidas…) devuelven margen a lo gastado y NO se cuentan además como
+     dinero que entra: cada euro, una vez. Nunca netea más de lo gastado; el resto queda en lo que entra. */
+  const neteo=Math.min(gastado,otrosDia);
+  gastado-=neteo; entra-=neteo;
   // Con nómina esperada y sin llegar, nada de % ni de Libre. Sin nómina de ninguna clase, lo que haya entrado.
   const esperaNomina=!nominaLlego&&nominaAntes;
   const entraC=esperaNomina||!(entra>0)?null:entra;
@@ -33086,7 +33105,7 @@ function planReparto(state, o){
     faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
-    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso};
+    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso,neteo:neteo,quedaPagar:recQ+deuQ};
 }
 
 /* MES DE LA ÚLTIMA CUOTA de una deuda (año*12+mes0), o null sin plazo ni saldo. UNA sola fuente: la usan la
@@ -33266,7 +33285,11 @@ function RptRepartoHoja({r,state,onClose,onJump}){
       React.createElement("span",{className:"cas-sub"},subDe(x.k)),
       React.createElement("span",{className:"cas-am"},"− "+rptC(x.c)));
   };
-  const dif=r.saldo==null?null:r.saldo-r.queda;
+  /* «Queda por pagar» = EXACTAMENTE lo que dice la tarjeta de Recibos del Plan: los recibos y cuotas aún sin pagar.
+     Antes sumaba también el ahorro y las metas que faltan por mover y el hueco del presupuesto (1.173 € frente a 247 €):
+     eso no es algo que se «pague». «Te quedaría» sale de esa misma cifra. */
+  const pend=r.quedaPagar;
+  const dif=r.saldo==null?null:r.saldo-pend;
   return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
     React.createElement("div",{className:"cas-entra"},React.createElement("span",null,t("rpt_entran")),
       React.createElement("b",{className:"serif num","data-testid":"plan-reparto-entra"},r.entra==null?"—":rptC(r.entra))),
@@ -33278,8 +33301,8 @@ function RptRepartoHoja({r,state,onClose,onJump}){
     // Otra pregunta, otra sección: no lo que va el sueldo, sino si lo que AÚN no se ha pagado cabe en tu saldo de hoy.
     React.createElement("div",{className:"rpt-sg cas-pend","data-testid":"plan-reparto-pend"},
       React.createElement("div",{className:"cas-pend-t"},t("rpt_pend_t")),
-      r.queda>0?React.createElement(React.Fragment,null,
-        rptKv(t("rpt_q_total"),rptC(r.queda),"queda"),
+      pend>0?React.createElement(React.Fragment,null,
+        rptKv(t("rpt_q_total"),rptC(pend),"queda"),
         rptKv(t("pm_saldo"),r.saldo==null?"—":rptC(r.saldo),"saldo"),
         rptKv(dif!=null&&dif<0?t("pm_faltan"):t("pm_sobran"),dif==null?"—":rptC(dif),"dif"))
         :React.createElement("div",{className:"rpt-kv"},t("pm_nada"))));
@@ -36719,7 +36742,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="75cabcebfb695183924f0fc5e438ffd4c6a7170041813aab4fa0810f87f054c9";
+var _rnSha="a0f1c1ceb83b12d95f112555c4f80485e7c368b519e7f43802c5096d3b6e5706";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -47603,7 +47626,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg()}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.onboarded,locked,state.expenses,state.deleted,state.obAbsorbedPending,state.obAbsorbedConfirmed,state._historyOwner,state.budget,state.reservaLog,state.debts,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){

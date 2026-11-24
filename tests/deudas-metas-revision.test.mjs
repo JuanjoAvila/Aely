@@ -54,7 +54,7 @@ if(!failed.length&&process.argv.includes("--mutations")){
   {id:"M10-cuota-sin-validar",find:"if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null)",replace:"if(termChanged&&next.months!=null)",cases:["R1-cuota-baja-rechazada","R1-amort-ligada-cuota-rechazada"]},
   {id:"M11-cuota-siempre-amortiza",find:"const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;",replace:"const quotaIsAmort=true;",cases:["R1-amort-distinta-cuota"]},
   {id:"M8-sin-bloqueo-terminada",find:"if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged||amortChanged))",replace:"if(false)",cases:["M8-terminada-bloquea-saldo","M8-terminada-bloquea-cuota","M8-terminada-bloquea-TAE","M8-terminada-bloquea-dia","M8-terminada-bloquea-plazo","M8-terminada-bloquea-sin-plazo"]},
-  {id:"M9-ficha-desbloquea-saldo-cuota",find:'disabled:finished&&key!=="name"',replace:'disabled:finished&&(key==="day"||key==="months"||key==="apr")',cases:["M9-ficha-bloquea-balance","M9-ficha-bloquea-monthly"]},
+  {id:"M9-ficha-desbloquea-saldo-cuota",find:"const dis=finished||!!recovery;",replace:"const dis=!!recovery;",cases:["M9-ficha-bloquea-balance","M9-ficha-bloquea-monthly"]},
   {id:"M7-done-no-recalculado",find:/  if\(next.target!==g.target\|\|next.saved!==g.saved\)\{[^\n]+\}\r?\n/,replace:"",cases:["M7-objetivo-baja-done","M7-objetivo-sube-reabre"]}
  ];
  for(const m of definitions){const mutated=source.replace(m.find,m.replace);assert.notEqual(mutated,source,"Mutación aplicada "+m.id);const witnesses=evaluate(mutated,m.cases);assert.ok(witnesses.every(x=>!x.passed),"Todos los guardianes específicos detectan "+m.id);mutations.push({id:m.id,killed:true,witnesses});}

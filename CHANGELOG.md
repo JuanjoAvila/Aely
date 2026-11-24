@@ -1,3 +1,13 @@
+## [4.26.256] — 2026-11-24 · Candidata de beta, solo web: cifras del Plan que cuadran, cabecera sin fila Libre/Entran y arreglos de las hojas de deuda y meta
+
+- **Qué lleva (sobre la 4.26.255, 14457992d).** Integración con `merge` encadenado de tres ramas en `claude/integra-256`: `claude/plan-cifras-255` (`df9ee68eb`), `claude/plan-cabecera-256` (`21165b61c`) y `claude/hojas-255-fixes` (`e35e2fd82`). Sin APK nueva; Inicio no se toca.
+- **Cifras (plan-cifras-255).** «Queda por pagar» pasa a `r.quedaPagar` = recibos + cuotas (igual que la tarjeta `pendingBillsTotal`); antes sumaba también el ahorro pendiente de mover y daba 1.173 € frente a 247 €. El gasto del Plan es NETO: los otros ingresos se restan de gastado y de entra con la regla compartida `esOtroIngresoDeGastos` (tope = gastado), como Gastos. El `useMemo` de `monthSummary` de Gastos no tenía `state.debts` en deps y «Restar del presupuesto» no recalculaba.
+- **Cabecera (plan-cabecera-256).** Fuera la fila Libre/Entran y la flecha de Recibos; el chip «Tu sueldo ›» abre la hoja del reparto.
+- **Hojas (hojas-255-fixes).** Editar deuda abre la hoja nueva, texto de «Restar del presupuesto», Metas sin «Ahorro mensual» y con interruptor en la hoja, interruptor al crear/editar deuda.
+- **Integración.** Conflicto solo en `public/i18n/*.json` (generados): se resolvieron regenerando con `npm run build`, sin `-X ours/theirs` sobre fuentes.
+- **Registro de beta (256).** Las hojas de meta con el interruptor «Restar del presupuesto» escriben con el `set` real (`metaReservaSync`, `uid`): `deudas-metas-hoja-sin-parpadeo` pasa a llevar el bloque del guardado y sus dependencias transitivas (cerradas con `scopeDependencies`/`scopeDataDependencies`, como `inc-0810-metas-editar-regla`), y `beta-sources` la saca de las tandas ajenas al guardado. `deudas-metas-revision`: la mutación M9 apunta a `const dis=finished||!!recovery` (la ficha ya no usa `disabled:` por campo). Se borran `rpt_libre` y `rpt_de`, huérfanas tras quitar la fila Libre/Entran.
+- **Tests.** Catálogo255 pasa a histórico (`sourceBeta255`) y Catálogo256 abre la nota; `revisar-beta` cuenta la 256.
+
 ## [4.26.255] — 2026-11-24 · Candidata de beta, solo web: arreglo de la CI de beta y tanda de diseño de Plan (cabecera sin barra, hojas de añadir, cascada de «A dónde va tu sueldo», fichas de deuda)
 
 - **Qué lleva (sobre la 4.26.254, bb7eec896).** Integración con `merge` encadenado de cuatro ramas: `claude/fix-beta-sources-254` (`0970c5e51`), `claude/plan-cabecera-sin-barra` (`d57ecf06b`), `claude/plan-hojas-anadir` (`de872fc5a`) y `claude/plan-cascada` (`b40d79308`), en la rama `claude/integra-255`. Sin APK nueva; Inicio no se toca. Las ramas DIN-01/04/07/08 y SEG-22 no entran: necesitan servidor o migraciones desplegados.
