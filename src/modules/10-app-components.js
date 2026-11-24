@@ -131,6 +131,7 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
   const [email,setEmail]=useState((session&&session.user&&session.user.email)||"");
   const [pass,setPass]=useState("");
   const [busy,setBusy]=useState(false);
+  const [code,setCode]=useState("");
   const [bioOn,setBioOn]=useState(bio.enabled());
   // zIndex ALTO: debe quedar por encima del onboarding (z90) para que "Ya tengo cuenta" sea visible.
   const overlay={position:"fixed",inset:0,background:"rgba(0,0,0,.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:120,padding:"20px"};
@@ -156,7 +157,7 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
     if(!email){ showToast(t("au_need_email")); return; }
     setBusy(true);
     cloud.resetPassword(email.trim())
-      .then(function(){ showToast(t("au_reset_sent")); setMode("in"); })
+      .then(function(){ showToast(t("au_reset_sent")); setCode(""); setMode("code"); })
       .catch(function(e){ showToast(errTxt(e)); })
       .then(function(){ setBusy(false); });
   };
@@ -168,6 +169,27 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
       .catch(function(e){ showToast(errTxt(e)); })
       .then(function(){ setBusy(false); });
   };
+  // Código del correo (SEG-22): valida y pasa a la contraseña nueva. Va ANTES de la rama de cuenta:
+  // verifyOtp deja sesión y, sin esto, un instante se vería «Mi cuenta» en vez de la contraseña nueva.
+  const verifyCode=function(){
+    setBusy(true);
+    cloud.verifyRecoveryCode(email,code)
+      .then(function(){ setPass(""); setMode("newpass"); })
+      .catch(function(e){ showToast(/failed to fetch|network|load failed|rate.?limit/i.test(String((e&&e.message)||e))||mcSinRed()?errTxt(e):"✕ "+t("au_code_bad")); })
+      .then(function(){ setBusy(false); });
+  };
+  if(mode==="code"){
+    return React.createElement("div",{style:overlay,onClick:onClose},
+      React.createElement("div",{style:card,onClick:stop},
+        React.createElement("div",{style:{fontWeight:700,fontSize:"17px",marginBottom:"6px"}}, t("au_code_title")),
+        React.createElement("div",{style:{color:"var(--muted)",fontSize:"13px",marginBottom:"8px"}}, t("au_code_hint")),
+        React.createElement("input",{style:inp,type:"text",inputMode:"numeric",placeholder:t("au_code_ph"),value:code,autoComplete:"one-time-code",onChange:function(e){ setCode(e.target.value); }}),
+        React.createElement("button",{style:btn,disabled:busy||!code,onClick:verifyCode}, busy?"…":t("au_code_verify")),
+        React.createElement("button",{style:link,onClick:function(){ setMode("reset"); }}, t("au_back")),
+        React.createElement("button",{style:link,onClick:onClose},t("au_cancel"))
+      )
+    );
+  }
   // Recuperación: poner contraseña nueva (se llega desde el enlace del email; ya hay sesión temporal).
   if(mode==="newpass"){
     return React.createElement("div",{style:overlay,onClick:onClose},

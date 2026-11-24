@@ -191,6 +191,7 @@ const steps = [
   // Lo que él corrige se aplica al siguiente cargo del mismo comercio sin pisar lo puesto a mano (19/11).
   ["categoria-aprendida", ["node", "tests/categoria-aprendida.test.mjs"]],
   ["security", ["node", "tests/security.test.mjs"]],
+  ["recovery-otp", ["node", "tests/recovery-otp.test.mjs"]],
   ["no-lock-icons", ["node", "tests/no-lock-icons.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
   ["gastos-active-bus", ["node", "tests/gastos-active-bus.test.mjs"]],

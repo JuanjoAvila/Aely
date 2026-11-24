@@ -1384,6 +1384,16 @@ function hhCodigoFlojo(hh, nowMs){
   return isFinite(ms)&&ms<(nowMs!=null?nowMs:Date.now());
 }
 
+/* SEG-22. La recuperación de contraseña acepta también un CÓDIGO tecleado (verifyOtp recovery), que no
+   depende del navegador: con PKCE el enlace del correo solo canjea en el MISMO navegador que lo pidió, y
+   desde la APK se abre en Chrome, no en la WebView que guarda el verificador. Funciona con el flujo
+   implícito de hoy y con PKCE; pasar a PKCE (createClient con flowType) va DESPUÉS de cambiar la plantilla. */
+/* El código del correo: solo dígitos (6 por defecto en Supabase, hasta 10 configurable). */
+function recoveryCodeClean(raw){
+  const c=String(raw==null?"":raw).replace(/[\s-]/g,"");
+  return /^\d{6,10}$/.test(c) ? c : "";
+}
+
 const cloud = (function(){
   let sb = null;
   const statePushCache=new Map();
@@ -1405,6 +1415,14 @@ const cloud = (function(){
     async signInPassword(email,password){ if(!sb) throw new Error("nube no disponible"); const {error}=await sb.auth.signInWithPassword({email:email,password:password}); if(error) throw error; },
     async signUpPassword(email,password){ if(!sb) throw new Error("nube no disponible"); const {data,error}=await sb.auth.signUp({email:email,password:password}); if(error) throw error; return data; },
     async resetPassword(email){ if(!sb) throw new Error("nube no disponible"); const {error}=await sb.auth.resetPasswordForEmail((email||"").trim(), { redirectTo: location.href.split('#')[0] }); if(error) throw error; },
+    async verifyRecoveryCode(email,code){
+      if(!sb) throw new Error("nube no disponible");
+      const token=recoveryCodeClean(code);
+      if(!token){ const er=new Error("invalid_code"); er.code="invalid_code"; throw er; }
+      const {data,error}=await sb.auth.verifyOtp({ email:(email||"").trim(), token:token, type:"recovery" });
+      if(error) throw error;
+      return data && data.session;
+    },
     async updatePassword(newPass){ if(!sb) throw new Error("nube no disponible"); const {error}=await sb.auth.updateUser({ password:newPass }); if(error) throw error; },
     async pullState(){
       if(!sb) return null;
