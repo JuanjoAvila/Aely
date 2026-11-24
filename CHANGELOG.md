@@ -6,6 +6,7 @@
 - **Registro de beta (255).** Las hojas de añadir de Plan hacen que `Debts` llame a `accDaily` (cuenta diaria); `deudas-metas-hoja-edicion` y `diseno-240` lo vigilan ahora al final de su alcance (el test de dependencias lo pedía), y `auth-disposal(-fit)` repinan la huella del registro.
 - **Cuota de siete cifras.** Test nuevo en `plan-cascada`: una deuda con cuota de 1.234.567,89 € aparece en la cascada, la suma cuadra con la cabecera y nada se sale de la hoja a 390 px. No había bug: se deja como guardián.
 - **Integración.** Único conflicto real: `src/shell.html` (CSS de Editar/Eliminar de `hojas-anadir` junto a los estilos `rpt-rph` que la cascada retira; se conservan los primeros y se descartan los segundos, que ya no usa ningún módulo). Los generados (`public/*`) se regeneraron con `npm run build`. Sin claves de i18n repetidas ni `const` duplicados tras el merge (`test:syntax`).
+- **Presupuesto de rendimiento.** La build sellada midió 2137,2 KiB minificados (tope 2137) y 587 de gzip: el paso «Ensamblar y sellar» de beta paró en la primera subida. Topes a 2140 / 590 KiB (mandato del 11/10: el tamaño no bloquea producto; al mínimo redondo con aire).
 - **Tests.** Catálogo254 pasa a histórico (`sourceBeta254`) y Catálogo255 abre la nota, con el cierre de lectores como único cambio del registro; `revisar-beta` cuenta la 255.
 
 ## [4.26.254] — 2026-11-24 · Candidata de beta, solo web: zona de bancos más legible, amortizar el resto de una deuda vencida y unirse a un hogar con código endurecido

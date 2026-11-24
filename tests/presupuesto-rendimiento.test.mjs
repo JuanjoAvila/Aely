@@ -549,7 +549,9 @@ const PRESUPUESTO = {
   // al mínimo redondo que deja >= 2 KiB de aire en gzip (la build sellada de CI pesa ~1 KiB más): 2126 / 588 KiB.
   // 4.26.253 (23/11/2026): rediseño de Plan, Deudas y Metas (herramientas, altas y ediciones nuevas, cabecera del Plan desplegable): +~11 KiB
   // minificado sobre la 252 (2134 KiB medidos, gzip 586). Mismo mandato del 11/10: al mínimo redondo con aire: 2137 KiB; el gzip sigue en 588.
-  minificado: 2137 * 1024,
+  // 4.26.255 (24/11/2026): tanda de diseño de Plan (hojas de añadir, cascada de «A dónde va tu sueldo», fichas de deuda): 2137,2 KiB minificados y 587 de gzip
+  // con la build sellada, justo por encima del tope (la CI de beta paró en «Ensamblar y sellar»). Mismo mandato del 11/10: al mínimo redondo con aire: 2140 KiB.
+  minificado: 2140 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -592,7 +594,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 588 * 1024, // 22/11 (4.26.252, E2 H1/H3/H4; antes 586 en la 251). 21/11 (CI sellada pesa ~1 KiB mas que la local): ver el comentario de minificado (Plan A y sin conexión, 21/11/2026, integración 250); antes 571 KiB en la 249.
+  gzip: 590 * 1024, // 24/11 (4.26.255: 587 KiB medidos con la build sellada, 1 KiB de aire; antes 588 sin aire). 22/11 (4.26.252, E2 H1/H3/H4; antes 586 en la 251). 21/11 (CI sellada pesa ~1 KiB mas que la local): ver el comentario de minificado (Plan A y sin conexión, 21/11/2026, integración 250); antes 571 KiB en la 249.
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
