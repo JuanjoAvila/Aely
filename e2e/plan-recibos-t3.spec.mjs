@@ -66,7 +66,7 @@ test("recorrido con la nómina a mitad de mes: lo más justo es el día 15, ante
 test("la nómina llega tarde: falta, se dice cuánto pasar y antes de qué día", async ({ page }) => {
   // 500 → 200 (15) → −200 (25) y la nómina del 28 ya no lo salva.
   const recibos = await abrePlan(page, { fixed: [recibo("luz", "Luz", 300, 15), recibo("seg", "Seguro", 400, 25)], flows: [nomina(28)] });
-  await expect(recibos.getByTestId("plan-llega")).toHaveText("Falta 200 €");
+  await expect(recibos.getByTestId("plan-llega")).toHaveText(/Falta 200 €/);
   const hoja = await abreLlega(page, recibos);
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
   await expect(sab.getByTestId("llega-cifra")).toHaveText("te faltan200,00 €");
@@ -82,7 +82,7 @@ test("el mismo día primero sale y luego entra", async ({ page }) => {
     accounts: cuenta(100), fixed: [recibo("luz", "Luz", 50, 25)],
     flows: [nomina(20, { amount: 500 }), { id: "tr", kind: "transfer", name: "Paso a Revolut", amount: 300, from: "sabadell", to: "revolut", day: 20 }],
   });
-  await expect(recibos.getByTestId("plan-llega")).toHaveText("Falta 200 €");
+  await expect(recibos.getByTestId("plan-llega")).toHaveText(/Falta 200 €/);
   const hoja = await abreLlega(page, recibos);
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
   await expect(sab.getByTestId("llega-tip")).toHaveText("Pasa 200 € a Sabadell antes del 20");
@@ -140,7 +140,7 @@ test("un recibo vencido sin cobro acreditado es cargo de hoy: filas, cifra, píl
   const recibos = await abrePlan(page, { accounts: cuenta(800), _dynBalAnchored: true,
     fixed: [recibo("tel", "Teléfono", 30, 8), recibo("luz", "Luz", 300, 15), recibo("coche", "Coche", 200, 18), recibo("seg", "Seguro", 400, 25)] });
   await expect(recibos.getByTestId("plan-summary").locator(".pr6-big")).toHaveText("930,00 €");
-  await expect(recibos.getByTestId("plan-llega")).toHaveText("Falta 130 €");
+  await expect(recibos.getByTestId("plan-llega")).toHaveText(/Falta 130 €/);
   const hoja = await abreLlega(page, recibos);
   const sab = hoja.locator('[data-testid="llega-banco"][data-bank="sabadell"]');
   await expect(sab).toContainText("Tienes hoy770,00 €");

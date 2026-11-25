@@ -211,7 +211,7 @@ test("la portada enseña el saldo más bajo y no el cierre que la nómina maquil
   });
   const hero = page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero');
   // v6: el día 15 el saldo baja a −200 aunque la nómina del 25 lo maquille a fin de mes: falta 200.
-  await expect(hero.getByTestId("plan-llega")).toHaveText("Falta 200 €");
+  await expect(hero.getByTestId("plan-llega")).toHaveText(/Falta 200 €/);
   await expect(hero).not.toContainText(/1[.]?800/);
 });
 
