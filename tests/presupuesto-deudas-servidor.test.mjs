@@ -10,6 +10,8 @@ import {cargarMotor,AHORA,base,NOV,mov,dia,escenariosApagado} from "./helpers/pl
 const src=fs.readFileSync(new URL("../supabase/functions/_shared/presupuesto.ts",import.meta.url),"utf8");
 const js=transformSync(src,{loader:"ts",format:"esm"}).code;
 const srv=await import("data:text/javascript;base64,"+Buffer.from(js).toString("base64"));
+// El servidor usa Date.now() por defecto: se fija al mismo reloj que el cliente (sin esto, el test dependía del día real: el 25/11 la cuota del día 25 ya estaba pagada y daba 0 frente a 600,03).
+Date.now=()=>AHORA;
 const c=cargarMotor();
 const deuda=extra=>Object.assign({id:"d1",name:"Préstamo sintético",value:12000,monthly:260,months:40,day:5,asOf:NOV-6,account:"sabadell",restarPres:true},extra||{});
 const reciboAna=(extra)=>Object.assign({id:"r2",name:"Fibra sintética",amount:50,bankAmount:90,day:12,freq:"mes",account:"sabadell",
