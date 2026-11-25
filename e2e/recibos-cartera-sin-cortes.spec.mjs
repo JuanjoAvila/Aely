@@ -53,7 +53,9 @@ const cortados = (page, sel) => page.evaluate((sel) => {
       if (e instanceof SVGElement || !e.textContent.trim() || !e.getClientRects().length) return;
       const cs = getComputedStyle(e), b = e.getBoundingClientRect(), recorta = cs.overflowX !== "visible";
       if (recorta && e.scrollWidth > e.clientWidth + 1) out.push("recortado " + e.className + ": " + e.textContent.trim());
-      if (b.right > rb.right + 1 || b.left < rb.left - 1) out.push("fuera " + e.className + ": " + e.textContent.trim());
+      // El botón «Dic ›» alinea su TEXTO al borde de la tarjeta con margin negativo = padding (área de toque 44 px): se mide el contenido, no la caja.
+      const pr = parseFloat(cs.paddingRight) || 0, pl = parseFloat(cs.paddingLeft) || 0;
+      if (b.right - pr > rb.right + 1 || b.left + pl < rb.left - 1) out.push("fuera " + e.className + ": " + e.textContent.trim());
     });
   });
   return out;

@@ -27,6 +27,9 @@ async function abrePlan(page, estado, tema) {
   if (tema) await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), tema);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.getByTestId("plan-reparto-chip")).toBeVisible();
+  // Como primer test del worker la pantalla aún entra deslizándose: esperar a que la tarjeta quede asentada dentro del viewport.
+  await page.waitForFunction(() => { const c = document.querySelector('[data-testid="plan-summary"]'); if (!c) return false; const r = c.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1; });
+  await page.waitForTimeout(400);
 }
 const captura = async (page, nombre) => {
   await page.waitForTimeout(700);
