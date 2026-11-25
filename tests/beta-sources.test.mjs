@@ -7098,7 +7098,7 @@ test("Catálogo257 abre la nota 4.26.257 sin tanda nueva, deja intactas las ocho
   assert.deepEqual(vivas,["beta-249","beta-248","beta-247","beta-246","beta-245","beta-244","beta-243","dinero-242"],"en el panel, las ocho de antes");
   const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|PSD2|FIN-|SES-|UX-|SEC-|DIS-|DIN-|zoom|PRO-|checksum|CSP|SHA|Flex|API|nonce|cifrad|lote|backfill|ingest|KW|regla de|d+.d+.d+/i;
   for(const lang of ["es","en","ca"]){
-    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    assert.equal(notes[0].items[lang].length,5,lang+": cinco puntos familiares");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
   assert.deepEqual(JSON.parse(source("scripts/beta-sources.json")),integrated,"registro intacto");
