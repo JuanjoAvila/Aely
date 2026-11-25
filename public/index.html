@@ -12636,7 +12636,6 @@ Object.assign(LANG.es,{
   rpt_sheet_title:"A dónde va tu sueldo",
   rpt_entran:"Entran este mes",
   rpt_sobran:"Te sobran",
-  rpt_pend_t:"Lo que aún queda por pagar este mes",
   rpt_rec:"Recibos",
   rpt_deu:"Deudas",
   rpt_met:"Metas",
@@ -12648,10 +12647,10 @@ Object.assign(LANG.es,{
   rpt_n_cuotas_1:"1 cuota",
   rpt_n_ritmo:"{n} con ritmo",
   rpt_plan_mensual:"Plan mensual",
+  bud_ahorro_mes:"Ahorro al mes",
   rpt_gastado_hasta_hoy:"Gastado hasta hoy",
   rpt_sobre_pres:"{x} sobre presupuesto",
   rpt_de_x:"{a} de {b}",
-  rpt_q_total:"Recibos y cuotas por pagar",
   rpt_gastado:"Gastado",
   rpt_presupuesto:"Presupuesto",
   rpt_de_mas:"De más",
@@ -12660,10 +12659,6 @@ Object.assign(LANG.es,{
   rpt_traspaso:"Traspaso propio · no suma",
   rpt_ver_reparto:"Ver reparto",
   rpt_chip:"Tu sueldo",
-  pm_saldo:"Saldo en tus cuentas",
-  pm_sobran:"Te quedaría",
-  pm_faltan:"Te faltaría",
-  pm_nada:"Nada por pagar este mes",
   rpt_volver:"Volver",
   rpt_resta_t:"Restar del presupuesto",
   rpt_resta_s:"{x} al mes",
@@ -16497,7 +16492,15 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         )
       )
     ),
-    React.createElement(BudgetSheet,{open:budgetOpen,budget:state.budget,onClose:function(){ setBudgetOpen(false); },onSave:function(b){
+    React.createElement(BudgetSheet,{open:budgetOpen,budget:state.budget,ahorro:(state.aportaciones||[]).reduce(function(x,p){ return x+(Number(p&&p.amount)||0); },0),
+      ahorroEditable:(state.aportaciones||[]).length<=1,onSaveAhorro:function(a){
+        // La misma lista de Inversiones (`state.aportaciones`): con una aportación se cambia su importe, sin ninguna nace una.
+        set(function(s){
+          const aps=s.aportaciones||[];
+          const next=aps.length===1?(a>0?[Object.assign({},aps[0],{amount:a})]:[]):(a>0?[{id:uid(),name:t("d_saving"),amount:a,ent:"myinvestor"}]:[]);
+          return Object.assign({},s,{aportaciones:next});
+        });
+      },onClose:function(){ setBudgetOpen(false); },onSave:function(b){
       set(function(s){
         const map=Object.assign({},s.budgetByMonth||{}); map[budgetYmKey()]=b;
         return Object.assign({},s,{budget:b,budgetByMonth:map});
@@ -20253,9 +20256,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement(ExpenseCategorySheet,{open:allCatsOpen,onClose:function(){ setAllCatsOpen(false); },items:catList,selected:exp.category,onPick:function(id){ setCat(exp,id); }}));
 }
 
-function BudgetSheet({open, budget, onClose, onSave}){
+/* `ahorro` (euros al mes) es LA MISMA cifra que el ahorro mensual planificado (`state.aportaciones`, la suma): con 0 o 1
+   aportación se edita aquí; con varias solo se enseña el total (cada una se edita en Inversiones). Sin `onSaveAhorro` no sale. */
+function BudgetSheet({open, budget, ahorro, ahorroEditable, onClose, onSave, onSaveAhorro}){
   const [b,setB]=useState(budget||700);
-  useEffect(function(){ if(open) setB(Math.max(100, Math.round(budget||700))); },[open,budget]);
+  const [a,setA]=useState(Math.round(ahorro||0));
+  useEffect(function(){ if(open){ setB(Math.max(100, Math.round(budget||700))); setA(Math.max(0,Math.round(ahorro||0))); } },[open,budget,ahorro]);
   const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,
     closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
   useBackClose(!!open, swipe.close);
@@ -20271,7 +20277,15 @@ function BudgetSheet({open, budget, onClose, onSave}){
           React.createElement("div",{className:"serif num"}, eur0(b)),
           React.createElement("button",{type:"button","aria-label":"+",onClick:function(){ setB(function(x){ return x+50; }); }},"+")
         ),
-        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); swipe.close(); }}, t("save"))
+        onSaveAhorro&&React.createElement("div",{className:"v4-bud-aho","data-testid":"budget-ahorro",style:{display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginTop:14}},
+          React.createElement("span",{style:{fontWeight:700,fontSize:14,color:"var(--muted)"}},t("bud_ahorro_mes")),
+          ahorroEditable
+            ?React.createElement("div",{className:"v4-ob-stepper",style:{margin:0}},
+              React.createElement("button",{type:"button","aria-label":"− "+t("bud_ahorro_mes"),onClick:function(){ setA(function(x){ return Math.max(0,x-50); }); }},"−"),
+              React.createElement("div",{className:"serif num","data-testid":"budget-ahorro-val"}, eur0(a)),
+              React.createElement("button",{type:"button","aria-label":"+ "+t("bud_ahorro_mes"),onClick:function(){ setA(function(x){ return x+50; }); }},"+"))
+            :React.createElement("div",{className:"serif num","data-testid":"budget-ahorro-val"}, eur0(ahorro||0))),
+        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); if(onSaveAhorro&&ahorroEditable&&a!==Math.max(0,Math.round(ahorro||0))) onSaveAhorro(a); swipe.close(); }}, t("save"))
       )
     ), document.body);
 }
@@ -32997,12 +33011,16 @@ function planReparto(state, o){
     if(neg){
       if(CAT_NEUTRAS[e.category]){ if(e.category==="traspaso") traspaso+=repCts(-e.amount); return; }
       const c=repCts(-e.amount);
-      if(repEsDevolucion(e)) devolucion+=c;
+      /* Lo que Gastos resta de lo gastado (`esOtroIngresoDeGastos`, LA MISMA regla: Bizums, devoluciones y otros ingresos del
+         banco del día a día que no son la nómina) es dinero que ha entrado: cuenta en «Entran», y su efecto sobre lo gastado se
+         descuenta de ahí más abajo (`neteoEntra`) para no contarlo dos veces. */
+      if(esOtroIngresoDeGastos(e,state,flows,P.cycle?cicloInc:null,!!P.cycle)){
+        otrosDia+=c;
+        if(e.amount<=-200&&esNomina(e,flows)) nominaLlego=true;
+      }else if(repEsDevolucion(e)) devolucion+=c;
       else{
         entra+=c;
         if(e.amount<=-200&&esNomina(e,flows)) nominaLlego=true;
-        // Lo que Gastos resta de lo gastado (`esOtroIngresoDeGastos`, la misma regla): va neteado, no como ingreso.
-        if(esOtroIngresoDeGastos(e,state,flows,P.cycle?cicloInc:null,!!P.cycle)) otrosDia+=c;
       }
       return;
     }
@@ -33017,14 +33035,16 @@ function planReparto(state, o){
     else if(b==="neutra"&&e.category==="inversion"&&recompensaDe(e)!=="saveback") inversion+=c;
   });
   gastado=Math.max(0,gastado-devolucion);
-  /* NETO, como Gastos (`monthBudgetStats`: gasto − otros ingresos, 24/11): los ingresos de tu banco del día a día que
-     no son la nómina (Bizums de comidas compartidas…) devuelven margen a lo gastado y NO se cuentan además como
-     dinero que entra: cada euro, una vez. Nunca netea más de lo gastado; el resto queda en lo que entra. */
+  const gastadoBruto=gastado;
+  /* NETO, como Gastos (`monthBudgetStats`: gasto − otros ingresos): lo gastado del Plan es el MISMO número que el de Gastos.
+     Nunca netea más de lo gastado. Los otros ingresos SÍ son dinero que entra («Entran este mes» = sueldo + ingresos reales
+     del mes, 25/11), pero para no contarlos dos veces solo se quita de «Entran» lo que el neteo ha ahorrado en la fila Gastos
+     (más abajo, `neteoEntra`): con el gasto por debajo del presupuesto la fila vale el presupuesto con o sin neteo y el ingreso
+     cuenta entero; por encima, el neteo ya bajó la fila y ese trozo no vuelve a sumar a lo que entra. */
   const neteo=Math.min(gastado,otrosDia);
-  gastado-=neteo; entra-=neteo;
+  gastado-=neteo;
   // Con nómina esperada y sin llegar, nada de % ni de Libre. Sin nómina de ninguna clase, lo que haya entrado.
   const esperaNomina=!nominaLlego&&nominaAntes;
-  const entraC=esperaNomina||!(entra>0)?null:entra;
   /* ---- Recibos (tu parte, sin deudas) ---- */
   let recC=0, recQ=0, nRec=0;
   P.meses.forEach(function(mm){
@@ -33084,6 +33104,10 @@ function planReparto(state, o){
   const gasC=lim==null?gastado:Math.max(lim,gastado), gas0=lim0==null?gastado:Math.max(lim0,gastado);
   const movido=Math.max(0,gas0-gasC);
   const gasQ=lim==null?0:Math.max(0,lim-gastado);
+  /* Lo que el neteo ha bajado la fila Gastos: la diferencia entre la fila con el gasto bruto y la de verdad. */
+  const gasBruta=lim==null?gastadoBruto:Math.max(lim,gastadoBruto), neteoEntra=Math.max(0,gasBruta-gasC);
+  const entraTotal=entra+otrosDia-neteoEntra;
+  const entraC=esperaNomina||!(entraTotal>0)?null:entraTotal;
   const total=recC+deuC+metC+ahoC+gasC;
   const libre=entraC==null?null:entraC-total, falta=libre!=null&&libre<0?-libre:0;
   const trozos=[{k:"rec",c:recC},{k:"deu",c:deuC},{k:"met",c:metC},{k:"aho",c:ahoC},{k:"gas",c:gasC}];
@@ -33105,7 +33129,7 @@ function planReparto(state, o){
     faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
-    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso,neteo:neteo,quedaPagar:recQ+deuQ};
+    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso,neteo:neteo,neteoEntra:neteoEntra,otros:otrosDia,quedaPagar:recQ+deuQ};
 }
 
 /* MES DE LA ÚLTIMA CUOTA de una deuda (año*12+mes0), o null sin plazo ni saldo. UNA sola fuente: la usan la
@@ -33211,10 +33235,10 @@ function useReparto(state,totals){
 }
 /* Plan ya no lleva la fila «Libre · Entran» arriba (orden del dueño 24/11): el reparto y su frase viven en la hoja «A dónde va tu
    sueldo», que se abre desde la tarjeta de Recibos (ver `PlanMesTap`). Este componente solo la monta y le da su `openRef`. */
-function RptBarra({state,totals,onJump,openRef}){
+function RptBarra({state,set,showToast,totals,onJump,openRef}){
   const r=useReparto(state,totals), [abierta,setAbierta]=useState(false);
   useEffect(function(){ openRef.current=setAbierta; return function(){ openRef.current=null; }; },[openRef]);
-  return abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
+  return abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,set:set,showToast:showToast,totals:totals,onClose:function(){ setAbierta(false); },
     onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }});
 }
 /* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y un chip «Tu sueldo ›» a la
@@ -33251,7 +33275,7 @@ function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
       foot&&React.createElement("div",{className:"rpt-sf"},foot))),document.body);
 }
 const rptKv=function(k,v,key){ return v==null?null:React.createElement("div",{className:"rpt-kv",key:key||k},React.createElement("span",null,k),React.createElement("b",null,v)); };
-function RptRepartoHoja({r,state,onClose,onJump}){
+function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
   const [vista,setVista]=useState("reparto");
   const subDe=function(k){
     if(k==="rec") return rptPl(r.nRec,t("rpt_n_rec_1"),tf("rpt_n_rec",{n:r.nRec}));
@@ -33268,10 +33292,12 @@ function RptRepartoHoja({r,state,onClose,onJump}){
         r.presupuesto==null?null:rptKv(r.gastado>r.presupuesto?t("rpt_de_mas"):t("rpt_quedan"),rptC(Math.abs(r.presupuesto-r.gastado)))));
   }
   if(vista==="aho"){
+    /* El ahorro mensual planificado se edita donde ya se edita (`SavingsPlanCard`, `state.aportaciones`): UNA sola fuente de verdad. */
     const aps=(state.aportaciones||[]).filter(function(a){ return a&&Number(a.amount)>0; });
     return React.createElement(RptHoja,{title:t("rpt_aho"),onClose:onClose,back:true,onBack:function(){ setVista("reparto"); },testid:"plan-reparto-detalle"},
-      React.createElement("div",{className:"rpt-sg"},aps.map(function(a){ return rptKv(a.name||t("d_saving"),rptC(Math.round(Number(a.amount)*100)),a.id); }),
-        rptKv(t("rpt_invertido"),rptC(r.inversion))));
+      set&&React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
+      React.createElement("div",{className:"rpt-sg"},rptKv(t("rpt_invertido"),rptC(r.inversion)),
+        !set&&aps.map(function(a){ return rptKv(a.name||t("d_saving"),rptC(Math.round(Number(a.amount)*100)),a.id); })));
   }
   /* La cascada (orden del dueño 24/11): lo que entra, menos cada destino con su importe de TODO el mes, y el
      resultado. Los destinos son exactamente los de `planReparto` (`r.total` = su suma), así que la cuenta cuadra al
@@ -33285,11 +33311,6 @@ function RptRepartoHoja({r,state,onClose,onJump}){
       React.createElement("span",{className:"cas-sub"},subDe(x.k)),
       React.createElement("span",{className:"cas-am"},"− "+rptC(x.c)));
   };
-  /* «Queda por pagar» = EXACTAMENTE lo que dice la tarjeta de Recibos del Plan: los recibos y cuotas aún sin pagar.
-     Antes sumaba también el ahorro y las metas que faltan por mover y el hueco del presupuesto (1.173 € frente a 247 €):
-     eso no es algo que se «pague». «Te quedaría» sale de esa misma cifra. */
-  const pend=r.quedaPagar;
-  const dif=r.saldo==null?null:r.saldo-pend;
   return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
     React.createElement("div",{className:"cas-entra"},React.createElement("span",null,t("rpt_entran")),
       React.createElement("b",{className:"serif num","data-testid":"plan-reparto-entra"},r.entra==null?"—":rptC(r.entra))),
@@ -33297,15 +33318,7 @@ function RptRepartoHoja({r,state,onClose,onJump}){
     React.createElement("div",{className:"cas-res"+(res?" "+res.c:""),"data-testid":"plan-reparto-res"},
       React.createElement("span",{className:"cas-res-l"},res?res.l:t("rpt_wait")),
       res&&res.a&&React.createElement("b",{className:"serif num","data-testid":"plan-reparto-cifra"},res.a)),
-    r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso))),
-    // Otra pregunta, otra sección: no lo que va el sueldo, sino si lo que AÚN no se ha pagado cabe en tu saldo de hoy.
-    React.createElement("div",{className:"rpt-sg cas-pend","data-testid":"plan-reparto-pend"},
-      React.createElement("div",{className:"cas-pend-t"},t("rpt_pend_t")),
-      pend>0?React.createElement(React.Fragment,null,
-        rptKv(t("rpt_q_total"),rptC(pend),"queda"),
-        rptKv(t("pm_saldo"),r.saldo==null?"—":rptC(r.saldo),"saldo"),
-        rptKv(dif!=null&&dif<0?t("pm_faltan"):t("pm_sobran"),dif==null?"—":rptC(dif),"dif"))
-        :React.createElement("div",{className:"rpt-kv"},t("pm_nada"))));
+    r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso))));
 }
 
 /* ---------------- Interruptor «Restar del presupuesto» (ficha de una deuda y hoja de alta/edición) ---------------- */
@@ -36742,7 +36755,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a0f1c1ceb83b12d95f112555c4f80485e7c368b519e7f43802c5096d3b6e5706";
+var _rnSha="373b3c78af542316024381f5b7c7b1cdd1470712803caaa82078e6a72e37d280";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -38703,7 +38716,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       )
     ),
     // La barra fina del reparto (prototipo aprobado): el estado de lo que entra y a dónde va, siempre a la vista.
-    !simple && React.createElement(RptBarra,{state:state,totals:totals,openRef:repartoRef,onJump:function(id){
+    !simple && React.createElement(RptBarra,{state:state,set:set,showToast:showToast,totals:totals,openRef:repartoRef,onJump:function(id){
       setSegMounted(function(m){ return m[id]?m:Object.assign({},m,{[id]:true}); });
       setSeg(id);
       requestAnimationFrame(function(){

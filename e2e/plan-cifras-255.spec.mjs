@@ -33,25 +33,25 @@ async function abre(page, est) {
   await expect(page.getByTestId("plan-reparto-chip")).toBeVisible();
 }
 
-test("1 · «Queda por pagar» de la hoja es la cifra de la tarjeta de Recibos y «Te quedaría» sale de ella", async ({ page }) => {
+test("1 · lo que queda por pagar es la cifra de la tarjeta de Recibos, y vive en «¿Te llega?», no en la hoja del reparto", async ({ page }) => {
   await abre(page, estado(false));
   const tarjeta = cts(await page.getByTestId("plan-summary").locator(".pr6-big").innerText());
   expect(tarjeta).toBe(24781);
   await page.getByTestId("plan-reparto-chip").click();
-  const pend = page.getByTestId("plan-reparto-pend");
-  await expect(pend).toContainText("Recibos y cuotas por pagar");
-  const v = await pend.locator(".rpt-kv b").allInnerTexts();
-  expect(cts(v[0])).toBe(tarjeta);
-  expect(cts(v[1]) - cts(v[0])).toBe(cts(v[2]));
-  expect(cts(v[2])).toBe(cts(v[1]) - 24781);
+  await expect(page.getByTestId("plan-reparto-pend")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.getByTestId("plan-llega").click();
+  const llega = page.locator(".v4-sheet-back .v4-sheet").last();
+  await expect(llega).toContainText("Recibos que faltan");
+  await expect(llega).toContainText(/247,81/);
 });
 
 test("2 · el Plan gasta el neto de Gastos: 881,08 − 140,35 = 740,73", async ({ page }) => {
   await abre(page, estado(false));
   await page.getByTestId("plan-reparto-chip").click();
   const hoja = page.getByTestId("plan-reparto-hoja");
-  // Entran la nómina (3.333), no los Bizums de las comidas: ya devolvieron margen a Gastos.
-  await expect(page.getByTestId("plan-reparto-entra")).toContainText(/3\.333,00/);
+  // Entran la nómina (3.333) y los ingresos reales del mes (140,35): con el límite por encima del gasto no se restan dos veces.
+  await expect(page.getByTestId("plan-reparto-entra")).toContainText(/3\.473,35/);
   // Sin restar: el presupuesto (1.000) manda sobre el gastado neto (740,73).
   await expect(hoja.locator('.cas-row[data-k="gas"]')).toContainText(/740,73/);
   await expect(hoja.locator('.cas-row[data-k="gas"]')).not.toContainText(/881,08/);
