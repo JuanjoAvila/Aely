@@ -231,6 +231,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
      mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
      `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
   const planScreenRef=useRef(null), repartoRef=useRef(null);
+  const abrirReparto=function(){ if(repartoRef.current) repartoRef.current(true); };
   const entradaRef=useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
     capa:function(id){ return segElRef.current[id]; },
     alPasar:function(nextId){
@@ -354,10 +355,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
-          onAbrirReparto:function(){ if(repartoRef.current) repartoRef.current(true); },tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
+          onAbrirReparto:abrirReparto,tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
           foco:focoRecibo,clearFoco:function(){ setFocoRecibo(null); }})),
-    !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast,tabs:seg==="deudas"?planTabs:null})),
-    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta,tabs:seg==="metas"?planTabs:null})),
+    !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast,tabs:seg==="deudas"?planTabs:null,onAbrirReparto:abrirReparto})),
+    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta,tabs:seg==="metas"?planTabs:null,onAbrirReparto:abrirReparto})),
     debtDayRequest&&React.createElement(Debts,{state:state,set:set,showToast:showToast,editorOnly:true,editDayRequest:debtDayRequest,onEditDayClose:function(){setDebtDayRequest(null);}})
   );
 }
