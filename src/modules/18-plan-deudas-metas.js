@@ -110,7 +110,7 @@ function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
       onClick:function(){ if(x.k==="aho"||x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }},
       React.createElement("span",{className:"cas-nm"},React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x.k]+")"}}),nombre[x.k]),
       React.createElement("span",{className:"cas-sub"},subDe(x.k)),
-      React.createElement("span",{className:"cas-am"},"− "+rptC(x.c)));
+      React.createElement("span",{className:"cas-am"},"− "+rptC(x.c),rptIcon("chevr",13,{marginLeft:6,opacity:.5,verticalAlign:"-1px"})));
   };
   return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
     React.createElement("div",{className:"cas-entra"},React.createElement("span",null,t("rpt_entran")),

@@ -156,7 +156,7 @@ function planReparto(state, o){
          descuenta de ahí más abajo (`neteoEntra`) para no contarlo dos veces. */
       if(esOtroIngresoDeGastos(e,state,flows,P.cycle?cicloInc:null,!!P.cycle)){
         otrosDia+=c;
-        if(e.amount<=-200&&esNomina(e,flows)) nominaLlego=true;
+        if(e.amount<=-200&&e.category!=="bizum"&&esNomina(e,flows)) nominaLlego=true;
       }else if(repEsDevolucion(e)) devolucion+=c;
       else{
         entra+=c;

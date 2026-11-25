@@ -499,7 +499,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         // La misma lista de Inversiones (`state.aportaciones`): con una aportación se cambia su importe, sin ninguna nace una.
         set(function(s){
           const aps=s.aportaciones||[];
-          const next=aps.length===1?(a>0?[Object.assign({},aps[0],{amount:a})]:[]):(a>0?[{id:uid(),name:t("d_saving"),amount:a,ent:"myinvestor"}]:[]);
+          const next=aps.length===1?[Object.assign({},aps[0],{amount:a})]:(a>0?[{id:uid(),name:t("d_saving"),amount:a,ent:"myinvestor"}]:[]);
           return Object.assign({},s,{aportaciones:next});
         });
       },onClose:function(){ setBudgetOpen(false); },onSave:function(b){
