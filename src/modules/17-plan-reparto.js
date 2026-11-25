@@ -151,12 +151,16 @@ function planReparto(state, o){
     if(neg){
       if(CAT_NEUTRAS[e.category]){ if(e.category==="traspaso") traspaso+=repCts(-e.amount); return; }
       const c=repCts(-e.amount);
-      if(repEsDevolucion(e)) devolucion+=c;
+      /* Lo que Gastos resta de lo gastado (`esOtroIngresoDeGastos`, LA MISMA regla: Bizums, devoluciones y otros ingresos del
+         banco del día a día que no son la nómina) es dinero que ha entrado: cuenta en «Entran», y su efecto sobre lo gastado se
+         descuenta de ahí más abajo (`neteoEntra`) para no contarlo dos veces. */
+      if(esOtroIngresoDeGastos(e,state,flows,P.cycle?cicloInc:null,!!P.cycle)){
+        otrosDia+=c;
+        if(e.amount<=-200&&e.category!=="bizum"&&esNomina(e,flows)) nominaLlego=true;
+      }else if(repEsDevolucion(e)) devolucion+=c;
       else{
         entra+=c;
         if(e.amount<=-200&&esNomina(e,flows)) nominaLlego=true;
-        // Lo que Gastos resta de lo gastado (`esOtroIngresoDeGastos`, la misma regla): va neteado, no como ingreso.
-        if(esOtroIngresoDeGastos(e,state,flows,P.cycle?cicloInc:null,!!P.cycle)) otrosDia+=c;
       }
       return;
     }
@@ -171,14 +175,16 @@ function planReparto(state, o){
     else if(b==="neutra"&&e.category==="inversion"&&recompensaDe(e)!=="saveback") inversion+=c;
   });
   gastado=Math.max(0,gastado-devolucion);
-  /* NETO, como Gastos (`monthBudgetStats`: gasto − otros ingresos, 24/11): los ingresos de tu banco del día a día que
-     no son la nómina (Bizums de comidas compartidas…) devuelven margen a lo gastado y NO se cuentan además como
-     dinero que entra: cada euro, una vez. Nunca netea más de lo gastado; el resto queda en lo que entra. */
+  const gastadoBruto=gastado;
+  /* NETO, como Gastos (`monthBudgetStats`: gasto − otros ingresos): lo gastado del Plan es el MISMO número que el de Gastos.
+     Nunca netea más de lo gastado. Los otros ingresos SÍ son dinero que entra («Entran este mes» = sueldo + ingresos reales
+     del mes, 25/11), pero para no contarlos dos veces solo se quita de «Entran» lo que el neteo ha ahorrado en la fila Gastos
+     (más abajo, `neteoEntra`): con el gasto por debajo del presupuesto la fila vale el presupuesto con o sin neteo y el ingreso
+     cuenta entero; por encima, el neteo ya bajó la fila y ese trozo no vuelve a sumar a lo que entra. */
   const neteo=Math.min(gastado,otrosDia);
-  gastado-=neteo; entra-=neteo;
+  gastado-=neteo;
   // Con nómina esperada y sin llegar, nada de % ni de Libre. Sin nómina de ninguna clase, lo que haya entrado.
   const esperaNomina=!nominaLlego&&nominaAntes;
-  const entraC=esperaNomina||!(entra>0)?null:entra;
   /* ---- Recibos (tu parte, sin deudas) ---- */
   let recC=0, recQ=0, nRec=0;
   P.meses.forEach(function(mm){
@@ -238,6 +244,10 @@ function planReparto(state, o){
   const gasC=lim==null?gastado:Math.max(lim,gastado), gas0=lim0==null?gastado:Math.max(lim0,gastado);
   const movido=Math.max(0,gas0-gasC);
   const gasQ=lim==null?0:Math.max(0,lim-gastado);
+  /* Lo que el neteo ha bajado la fila Gastos: la diferencia entre la fila con el gasto bruto y la de verdad. */
+  const gasBruta=lim==null?gastadoBruto:Math.max(lim,gastadoBruto), neteoEntra=Math.max(0,gasBruta-gasC);
+  const entraTotal=entra+otrosDia-neteoEntra;
+  const entraC=esperaNomina||!(entraTotal>0)?null:entraTotal;
   const total=recC+deuC+metC+ahoC+gasC;
   const libre=entraC==null?null:entraC-total, falta=libre!=null&&libre<0?-libre:0;
   const trozos=[{k:"rec",c:recC},{k:"deu",c:deuC},{k:"met",c:metC},{k:"aho",c:ahoC},{k:"gas",c:gasC}];
@@ -259,7 +269,7 @@ function planReparto(state, o){
     faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
-    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso,neteo:neteo,quedaPagar:recQ+deuQ};
+    nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso,neteo:neteo,neteoEntra:neteoEntra,otros:otrosDia,quedaPagar:recQ+deuQ};
 }
 
 /* MES DE LA ÚLTIMA CUOTA de una deuda (año*12+mes0), o null sin plazo ni saldo. UNA sola fuente: la usan la

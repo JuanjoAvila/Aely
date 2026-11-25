@@ -90,18 +90,17 @@ test("el chip «Tu sueldo» de Recibos y tocar la cifra abren la MISMA hoja; «V
   expect(await hoja.innerText()).toBe(desdeLinea);
   await expect(page.getByTestId("plan-mes-hoja")).toHaveCount(0);
   await expect(hoja).not.toContainText("Ver banco a banco");
-  // Sección secundaria con título inequívoco: queda por pagar, saldo y «te quedaría».
-  const pend = page.getByTestId("plan-reparto-pend");
-  await expect(pend).toContainText("Lo que aún queda por pagar este mes");
-  await expect(pend).toContainText("Saldo en tus cuentas");
-  await expect(pend).toContainText("Te quedaría");
-  const v = await pend.locator(".rpt-kv b").allInnerTexts();
-  expect(cts(v[1]) - cts(v[0])).toBe(cts(v[2]));
+  // El bloque «Lo que aún queda por pagar» ya no está en la hoja (25/11): esa información vive en «¿Te llega?».
+  await expect(page.getByTestId("plan-reparto-pend")).toHaveCount(0);
+  await expect(hoja).not.toContainText("Lo que aún queda por pagar");
   await hoja.locator(".rpt-sx").click();
   // El banco a banco se alcanza desde el chip de Recibos.
   await expect(page.getByTestId("plan-llega")).toBeVisible();
   await page.getByTestId("plan-llega").click();
-  await expect(page.locator(".v4-sheet-back .v4-sheet").last()).toBeVisible();
+  const llega = page.locator(".v4-sheet-back .v4-sheet").last();
+  await expect(llega).toBeVisible();
+  await expect(llega).toContainText("Tienes hoy");
+  await expect(llega).toContainText("Recibos que faltan");
 });
 
 test("gastado por encima del presupuesto: Gastos cuenta lo gastado y la cascada sigue cuadrando", async ({ page }) => {
@@ -139,4 +138,89 @@ test("una deuda con cuota de siete cifras no desaparece de la cascada ni descuad
     return Array.from(h.querySelectorAll(".cas-row,.cas-am,.cas-nm,.cas-res b")).filter((e) => { const r = e.getBoundingClientRect(); return r.right > w.right + 1 || r.left < w.left - 1; }).length;
   });
   expect(sobra).toBe(0);
+});
+
+test("cambiar el presupuesto desde Inicio mueve la fila Gastos y «Te faltan»/«Te sobran»", async ({ page }) => {
+  await abrePlan(page, base(1500));
+  await page.getByTestId("plan-reparto-chip").click();
+  const antes = await lee(page);
+  const gasAntes = antes.filas.find((f) => f.k === "gas").c;
+  await page.keyboard.press("Escape");
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await page.locator(".v4-budget").first().click();
+  const hoja = page.locator(".v4-budget-sheet");
+  await expect(hoja).toBeVisible();
+  await hoja.getByRole("button", { name: "+", exact: true }).click();
+  await hoja.getByRole("button", { name: "+", exact: true }).click();
+  await hoja.locator(".v4-cta").click();
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await page.getByTestId("plan-reparto-chip").click();
+  const despues = await lee(page);
+  const gasDespues = despues.filas.find((f) => f.k === "gas").c;
+  expect(gasDespues - gasAntes).toBe(10000);
+  // El resultado se mueve igual de céntimos: entra − plan.
+  const res = (x) => x.signo * x.cifra;
+  expect(res(despues)).toBe(res(antes) - 10000);
+});
+
+test("cambiar el presupuesto con Mi ciclo y deuda que resta del presupuesto mueve la fila Gastos y «Te faltan»/«Te sobran»", async ({ page }) => {
+  const e = base(1500); e.settings = { ...settings, budgetCycle: true }; e.debts = [{ ...prestamo, restarPres: true }]; e.budget = 1500;
+  await abrePlan(page, e);
+  await page.getByTestId("plan-reparto-chip").click();
+  const antes = await lee(page);
+  const gasAntes = antes.filas.find((f) => f.k === "gas").c;
+  await page.keyboard.press("Escape");
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await page.locator(".v4-budget").first().click();
+  const hoja = page.locator(".v4-budget-sheet");
+  await expect(hoja).toBeVisible();
+  await hoja.getByRole("button", { name: "+", exact: true }).click();
+  await hoja.getByRole("button", { name: "+", exact: true }).click();
+  await hoja.locator(".v4-cta").click();
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await page.getByTestId("plan-reparto-chip").click();
+  const despues = await lee(page);
+  const gasDespues = despues.filas.find((f) => f.k === "gas").c;
+  expect(gasDespues - gasAntes).toBe(10000);
+  // El resultado se mueve igual de céntimos: entra − plan.
+  const res = (x) => x.signo * x.cifra;
+  expect(res(despues)).toBe(res(antes) - 10000);
+});
+
+test("«Entran este mes» suma el sueldo y los ingresos reales del mes, sin contarlos dos veces", async ({ page }) => {
+  const otro = { id: "o1", date: "2026-09-10T10:00:00.000Z", amount: -146.85, category: "bizum", merchant: "Bizum comida", ent: "sabadell", source: "manual" };
+  // Presupuesto por encima del gasto: la fila Gastos vale el presupuesto y el ingreso cuenta entero.
+  await abrePlan(page, { ...base(3000), expenses: [nomina(3000), gasto, otro] });
+  await page.getByTestId("plan-reparto-chip").click();
+  const a = await lee(page);
+  expect(a.entra).toBe(300000 + 14685);
+  expect(a.filas.find((f) => f.k === "gas").c).toBe(90000);
+  await page.keyboard.press("Escape");
+});
+
+test("la fila Ahorro abre su edición y cambiarla mueve la cascada; Inicio edita la misma cifra", async ({ page }) => {
+  await abrePlan(page, base(3000));
+  await page.getByTestId("plan-reparto-chip").click();
+  const hoja = page.getByTestId("plan-reparto-hoja");
+  const antes = await lee(page);
+  await hoja.locator('.cas-row[data-k="aho"]').click();
+  const det = page.getByTestId("plan-reparto-detalle");
+  await expect(det.locator("[data-savings-plan]")).toBeVisible();
+  await det.locator("[data-savings-edit]").click();
+  const inp = det.locator('[data-savings-draft="a1"] input.num');
+  await inp.fill("300");
+  await det.locator("[data-savings-save]").click();
+  await det.locator(".rpt-sback").click();
+  const despues = await lee(page);
+  expect(despues.filas.find((f) => f.k === "aho").c).toBe(30000);
+  expect(despues.cifra * despues.signo).toBe(antes.cifra * antes.signo - 10000);
+  await page.keyboard.press("Escape");
+  // Inicio: la hoja del presupuesto lleva «Ahorro al mes» con la MISMA cifra (300) y al guardar cambia la lista única de aportaciones.
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await page.locator(".v4-budget").first().click();
+  const bs = page.locator(".v4-budget-sheet");
+  await expect(bs.getByTestId("budget-ahorro-val")).toContainText("300");
+  await bs.getByRole("button", { name: "+ Ahorro al mes" }).click();
+  await bs.locator(".v4-cta").click();
+  await expect.poll(() => page.evaluate(() => (JSON.parse(localStorage.getItem("micartera_v3") || "{}").aportaciones || []).reduce((a, x) => a + x.amount, 0))).toBe(350);
 });

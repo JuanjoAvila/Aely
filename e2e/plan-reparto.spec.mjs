@@ -81,10 +81,8 @@ test("te faltan: sin signo, y el saldo lo cubre o no llega", async ({ page }) =>
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te faltan");
   await expect(page.getByTestId("plan-reparto-cifra")).toContainText(/255,00/);
-  // El saldo cubre lo que queda por pagar: va en su sección aparte, no en el resultado.
-  const pend = page.getByTestId("plan-reparto-pend");
-  await expect(pend).toContainText("Lo que aún queda por pagar este mes");
-  await expect(pend).toContainText("Te quedaría");
+  // Lo que queda por pagar y el saldo ya no van en la hoja: están en «¿Te llega?».
+  await expect(page.getByTestId("plan-reparto-pend")).toHaveCount(0);
 });
 
 test("Deudas: cabecera, filas, ficha con escalera e interruptor que mueve dinero de Gastos a Libre", async ({ page }) => {

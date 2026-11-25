@@ -49,7 +49,7 @@ test("tocar la cabecera abre la hoja de la cascada y se cierra con Esc, scrim y 
   await expect(hoja.locator('.cas-row[data-k="gas"]')).toContainText("Gastos");
   await expect(hoja.locator('.cas-row[data-k="aho"]')).toContainText("Ahorro");
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te sobran");
-  await expect(page.getByTestId("plan-reparto-pend")).toContainText("Lo que aún queda por pagar este mes");
+  await expect(page.getByTestId("plan-reparto-pend")).toHaveCount(0);
   await expect(hoja).not.toContainText("Ver banco a banco");
   await page.waitForTimeout(500);
   await captura(page, "hoja-abierta-" + (process.env.TEMA || "oscuro"));

@@ -3606,9 +3606,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement(ExpenseCategorySheet,{open:allCatsOpen,onClose:function(){ setAllCatsOpen(false); },items:catList,selected:exp.category,onPick:function(id){ setCat(exp,id); }}));
 }
 
-function BudgetSheet({open, budget, onClose, onSave}){
+/* `ahorro` (euros al mes) es LA MISMA cifra que el ahorro mensual planificado (`state.aportaciones`, la suma): con 0 o 1
+   aportación se edita aquí; con varias solo se enseña el total (cada una se edita en Inversiones). Sin `onSaveAhorro` no sale. */
+function BudgetSheet({open, budget, ahorro, ahorroEditable, onClose, onSave, onSaveAhorro}){
   const [b,setB]=useState(budget||700);
-  useEffect(function(){ if(open) setB(Math.max(100, Math.round(budget||700))); },[open,budget]);
+  const [a,setA]=useState(Math.round(ahorro||0));
+  useEffect(function(){ if(open){ setB(Math.max(100, Math.round(budget||700))); setA(Math.max(0,Math.round(ahorro||0))); } },[open,budget,ahorro]);
   const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,
     closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
   useBackClose(!!open, swipe.close);
@@ -3624,7 +3627,15 @@ function BudgetSheet({open, budget, onClose, onSave}){
           React.createElement("div",{className:"serif num"}, eur0(b)),
           React.createElement("button",{type:"button","aria-label":"+",onClick:function(){ setB(function(x){ return x+50; }); }},"+")
         ),
-        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); swipe.close(); }}, t("save"))
+        onSaveAhorro&&React.createElement("div",{className:"v4-bud-aho","data-testid":"budget-ahorro",style:{display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginTop:14}},
+          React.createElement("span",{style:{fontWeight:700,fontSize:14,color:"var(--muted)"}},t("bud_ahorro_mes")),
+          ahorroEditable
+            ?React.createElement("div",{className:"v4-ob-stepper",style:{margin:0}},
+              React.createElement("button",{type:"button","aria-label":"− "+t("bud_ahorro_mes"),onClick:function(){ setA(function(x){ return Math.max(0,x-50); }); }},"−"),
+              React.createElement("div",{className:"serif num","data-testid":"budget-ahorro-val"}, eur0(a)),
+              React.createElement("button",{type:"button","aria-label":"+ "+t("bud_ahorro_mes"),onClick:function(){ setA(function(x){ return x+50; }); }},"+"))
+            :React.createElement("div",{className:"serif num","data-testid":"budget-ahorro-val"}, eur0(ahorro||0))),
+        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); if(onSaveAhorro&&ahorroEditable&&a!==Math.max(0,Math.round(ahorro||0))) onSaveAhorro(a); swipe.close(); }}, t("save"))
       )
     ), document.body);
 }

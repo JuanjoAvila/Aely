@@ -344,7 +344,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       )
     ),
     // La barra fina del reparto (prototipo aprobado): el estado de lo que entra y a dónde va, siempre a la vista.
-    !simple && React.createElement(RptBarra,{state:state,totals:totals,openRef:repartoRef,onJump:function(id){
+    !simple && React.createElement(RptBarra,{state:state,set:set,showToast:showToast,totals:totals,openRef:repartoRef,onJump:function(id){
       setSegMounted(function(m){ return m[id]?m:Object.assign({},m,{[id]:true}); });
       setSeg(id);
       requestAnimationFrame(function(){

@@ -36,10 +36,10 @@ function useReparto(state,totals){
 }
 /* Plan ya no lleva la fila «Libre · Entran» arriba (orden del dueño 24/11): el reparto y su frase viven en la hoja «A dónde va tu
    sueldo», que se abre desde la tarjeta de Recibos (ver `PlanMesTap`). Este componente solo la monta y le da su `openRef`. */
-function RptBarra({state,totals,onJump,openRef}){
+function RptBarra({state,set,showToast,totals,onJump,openRef}){
   const r=useReparto(state,totals), [abierta,setAbierta]=useState(false);
   useEffect(function(){ openRef.current=setAbierta; return function(){ openRef.current=null; }; },[openRef]);
-  return abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,onClose:function(){ setAbierta(false); },
+  return abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,set:set,showToast:showToast,totals:totals,onClose:function(){ setAbierta(false); },
     onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }});
 }
 /* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y un chip «Tu sueldo ›» a la
@@ -83,7 +83,7 @@ function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
       foot&&React.createElement("div",{className:"rpt-sf"},foot))),document.body);
 }
 const rptKv=function(k,v,key){ return v==null?null:React.createElement("div",{className:"rpt-kv",key:key||k},React.createElement("span",null,k),React.createElement("b",null,v)); };
-function RptRepartoHoja({r,state,onClose,onJump}){
+function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
   const [vista,setVista]=useState("reparto");
   const subDe=function(k){
     if(k==="rec") return rptPl(r.nRec,t("rpt_n_rec_1"),tf("rpt_n_rec",{n:r.nRec}));
@@ -100,10 +100,12 @@ function RptRepartoHoja({r,state,onClose,onJump}){
         r.presupuesto==null?null:rptKv(r.gastado>r.presupuesto?t("rpt_de_mas"):t("rpt_quedan"),rptC(Math.abs(r.presupuesto-r.gastado)))));
   }
   if(vista==="aho"){
+    /* El ahorro mensual planificado se edita donde ya se edita (`SavingsPlanCard`, `state.aportaciones`): UNA sola fuente de verdad. */
     const aps=(state.aportaciones||[]).filter(function(a){ return a&&Number(a.amount)>0; });
     return React.createElement(RptHoja,{title:t("rpt_aho"),onClose:onClose,back:true,onBack:function(){ setVista("reparto"); },testid:"plan-reparto-detalle"},
-      React.createElement("div",{className:"rpt-sg"},aps.map(function(a){ return rptKv(a.name||t("d_saving"),rptC(Math.round(Number(a.amount)*100)),a.id); }),
-        rptKv(t("rpt_invertido"),rptC(r.inversion))));
+      set&&React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
+      React.createElement("div",{className:"rpt-sg"},rptKv(t("rpt_invertido"),rptC(r.inversion)),
+        !set&&aps.map(function(a){ return rptKv(a.name||t("d_saving"),rptC(Math.round(Number(a.amount)*100)),a.id); })));
   }
   /* La cascada (orden del dueño 24/11): lo que entra, menos cada destino con su importe de TODO el mes, y el
      resultado. Los destinos son exactamente los de `planReparto` (`r.total` = su suma), así que la cuenta cuadra al
@@ -115,13 +117,8 @@ function RptRepartoHoja({r,state,onClose,onJump}){
       onClick:function(){ if(x.k==="aho"||x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }},
       React.createElement("span",{className:"cas-nm"},React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x.k]+")"}}),nombre[x.k]),
       React.createElement("span",{className:"cas-sub"},subDe(x.k)),
-      React.createElement("span",{className:"cas-am"},"− "+rptC(x.c)));
+      React.createElement("span",{className:"cas-am"},"− "+rptC(x.c),rptIcon("chevr",13,{marginLeft:6,opacity:.5,verticalAlign:"-1px"})));
   };
-  /* «Queda por pagar» = EXACTAMENTE lo que dice la tarjeta de Recibos del Plan: los recibos y cuotas aún sin pagar.
-     Antes sumaba también el ahorro y las metas que faltan por mover y el hueco del presupuesto (1.173 € frente a 247 €):
-     eso no es algo que se «pague». «Te quedaría» sale de esa misma cifra. */
-  const pend=r.quedaPagar;
-  const dif=r.saldo==null?null:r.saldo-pend;
   return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
     React.createElement("div",{className:"cas-entra"},React.createElement("span",null,t("rpt_entran")),
       React.createElement("b",{className:"serif num","data-testid":"plan-reparto-entra"},r.entra==null?"—":rptC(r.entra))),
@@ -129,15 +126,7 @@ function RptRepartoHoja({r,state,onClose,onJump}){
     React.createElement("div",{className:"cas-res"+(res?" "+res.c:""),"data-testid":"plan-reparto-res"},
       React.createElement("span",{className:"cas-res-l"},res?res.l:t("rpt_wait")),
       res&&res.a&&React.createElement("b",{className:"serif num","data-testid":"plan-reparto-cifra"},res.a)),
-    r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso))),
-    // Otra pregunta, otra sección: no lo que va el sueldo, sino si lo que AÚN no se ha pagado cabe en tu saldo de hoy.
-    React.createElement("div",{className:"rpt-sg cas-pend","data-testid":"plan-reparto-pend"},
-      React.createElement("div",{className:"cas-pend-t"},t("rpt_pend_t")),
-      pend>0?React.createElement(React.Fragment,null,
-        rptKv(t("rpt_q_total"),rptC(pend),"queda"),
-        rptKv(t("pm_saldo"),r.saldo==null?"—":rptC(r.saldo),"saldo"),
-        rptKv(dif!=null&&dif<0?t("pm_faltan"):t("pm_sobran"),dif==null?"—":rptC(dif),"dif"))
-        :React.createElement("div",{className:"rpt-kv"},t("pm_nada"))));
+    r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso))));
 }
 
 /* ---------------- Interruptor «Restar del presupuesto» (ficha de una deuda y hoja de alta/edición) ---------------- */

@@ -26,11 +26,16 @@ const SUITE=[
     mov("v1",9,-30,{merchant:"Devolución pedido"}),
     mov("b1",10,-25,{category:"bizum"})]);
   const r=c.planReparto(base({expenses:e}),{});
-  assert.equal(r.entra,300000,"nómina 3000: la venta de 50 del banco del día a día devuelve margen a Gastos (neto, 24/11), no cuenta además como ingreso");
-  assert.equal(r.devolucion,5500,"devolución y Bizum no son ingreso");
-  assert.equal(r.neteo,5000);
-  assert.equal(r.gastado,18050-5500-5000,"y devuelven margen a lo gastado, como en Gastos");
+  assert.equal(r.entra,300000+5000+3000+2500,"nómina 3000 + ventas, devoluciones y Bizums recibidos (25/11: «Entran» incluye los ingresos reales del mes); el límite (900) está por encima de lo gastado, así que el neteo no baja la fila y nada se cuenta dos veces");
+  assert.equal(r.devolucion,0,"todo lo que Gastos resta va como otro ingreso");
+  assert.equal(r.neteo,10500);assert.equal(r.neteoEntra,0);
+  assert.equal(r.gastado,18050-10500,"y devuelven margen a lo gastado, como en Gastos");
   assert.equal(r.libre,r.entra-r.total);
+}],
+["Una devolución en un banco que NO es del día a día no es ingreso (misma regla que Gastos)",c=>{
+  const b=base({expenses:base().expenses.concat([mov("dv9",12,-80,{merchant:"Devolución pedido",ent:"bbva"})]),accounts:base().accounts.concat([{ent:"bbva",role:"ahorro",value:10}])});
+  const r=c.planReparto(b,{});
+  assert.equal(r.entra,300000,"no suma a lo que entra");assert.equal(r.devolucion,8000);assert.equal(r.otros,0);
 }],
 ["Sin nómina todavía: sin porcentajes ni Libre",c=>{
   const e=[mov("g1",5,120.5,{category:"super"}),mov("i2",6,-500,{merchant:"Venta sintética"})];
@@ -43,7 +48,7 @@ const SUITE=[
   assert.equal(c.planReparto(previa,{}).st,"wait");
   // Quien no cobra nómina nunca no se queda en «—»: entra lo que entra.
   const libre=base({expenses:[mov("g1",5,120.5,{category:"super"}),mov("i2",6,-500,{merchant:"Factura cliente"})]});
-  assert.equal(c.planReparto(libre,{}).entra,50000-12050,"entra lo que entra, menos lo que ya devolvió margen a lo gastado (120,50)");
+  assert.equal(c.planReparto(libre,{}).entra,50000,"entra lo que entra; el neteo de lo gastado no lo reduce mientras el límite cubra el gasto");
 }],
 ["Recibos: tu parte, sin deudas",c=>{
   const s=base({fixed:[{id:"r1",name:"Comunidad",amount:95,day:1,freq:"mes",account:"sabadell"},
@@ -297,7 +302,7 @@ const SUITE=[
         mov("dv",8,-30,{merchant:"Devolución pedido"}),
         mov("tr",7,500,{category:"traspaso"}),mov("tr2",7,-500,{category:"traspaso"})])});
     const bs=c.monthBudgetStats(s), r=c.planReparto(s,{});
-    assert.equal(r.gastado,Math.round(bs.spent*100)-r.devolucion,"ciclo="+ciclo+": Plan = Gastos menos devoluciones (que Gastos cuenta como ingreso)");
+    assert.equal(r.gastado,Math.round(bs.spent*100)-r.devolucion-r.neteo,"ciclo="+ciclo+": Plan = Gastos menos devoluciones (que Gastos cuenta como ingreso)");
     assert.equal(r.gastado,18050-3000,"solo super+ocio, sin otro banco, cuota, recibo ni traspaso");
   }
 }],
@@ -335,7 +340,7 @@ const MUTANTES=[
   ["Gastos ignora lo gastado por encima del presupuesto","gasC=lim==null?gastado:Math.max(lim,gastado)","gasC=lim==null?gastado:lim"],
   ["Recibos cuenta también las deudas","if(x.kind===\"debt\"||x.kind===\"balloon\"||","if(x.kind===\"balloon\"||"],
   ["Deudas resta el descuento en vez de sumarlo","propia:a+desc}","propia:Math.max(0,a-desc)}"],
-  ["Una devolución cuenta como ingreso","if(repEsDevolucion(e)) devolucion+=c;","if(false) devolucion+=c;"],
+  ["Una devolución cuenta como ingreso","else if(repEsDevolucion(e)) devolucion+=c;","else if(false) devolucion+=c;"],
   ["Sin nómina no se esconde el Libre","const esperaNomina=!nominaLlego&&nominaAntes;","const esperaNomina=false;"],
   ["Metas ignora lo ya movido","metC+=Math.max(ritmo,h);","metC+=ritmo;"],
   ["Ahorro cuenta lo que va a una meta","metaGastos[id]=(metaGastos[id]||0)+c; }","metaGastos[id]=(metaGastos[id]||0)+c; if(e.category===\"inversion\") inversion+=c; }"],
