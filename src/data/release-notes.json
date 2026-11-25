@@ -3,22 +3,31 @@
     "v": "4.26.257",
     "d": "2026-11-25",
     "t": {
-      "es": "«Ya pagados» del Plan, con prueba del banco",
-      "en": "Plan's Already paid, backed by the bank",
-      "ca": "«Ja pagats» del Pla, amb prova del banc"
+      "es": "Plan más claro: «Ya pagados» con prueba del banco y ahorro editable",
+      "en": "Clearer Plan: Already paid backed by the bank and editable savings",
+      "ca": "Pla més clar: «Ja pagats» amb prova del banc i estalvi editable"
     },
     "items": {
       "es": [
-        "«Ya pagados» en la cabecera del Plan solo suma lo que el banco ha cobrado de verdad.",
-        "Esa cifra ya coincide con la de la lista «Ya pagados» de más abajo."
+        "«Ya pagados» solo suma lo que el banco ha cobrado de verdad, y coincide con la lista.",
+        "Un icono «i» te explica a dónde va tu sueldo en Recibos, Deudas y Metas.",
+        "La cascada del Plan cuenta los ingresos del mes.",
+        "Puedes cambiar el ahorro al mes dentro de la hoja del presupuesto.",
+        "Se quita el bloque de saldo de la hoja del presupuesto."
       ],
       "en": [
-        "Already paid at the top of Plan now only adds up what the bank has really charged.",
-        "That figure now matches the Already paid list further down."
+        "Already paid only adds up what the bank has really charged, and matches the list.",
+        "An \"i\" icon explains where your pay goes in Receipts, Debts and Goals.",
+        "The Plan cascade now counts the month's income.",
+        "You can change the monthly savings inside the budget sheet.",
+        "The balance block is gone from the budget sheet."
       ],
       "ca": [
-        "«Ja pagats» a la capçalera del Pla només suma el que el banc ha cobrat de debò.",
-        "Aquesta xifra ja coincideix amb la de la llista «Ja pagats» més avall."
+        "«Ja pagats» només suma el que el banc ha cobrat de debò, i coincideix amb la llista.",
+        "Una icona «i» t'explica on va el teu sou a Rebuts, Deutes i Metes.",
+        "La cascada del Pla compta els ingressos del mes.",
+        "Pots canviar l'estalvi al mes dins del full del pressupost.",
+        "Es treu el bloc de saldo del full del pressupost."
       ]
     },
     "tandas": []
