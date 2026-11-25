@@ -36742,7 +36742,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a0f1c1ceb83b12d95f112555c4f80485e7c368b519e7f43802c5096d3b6e5706";
+var _rnSha="6961da67c2b2cb4c5696fcaae25c8e3bd0e1fa5e31b93020100fcaf17e7f0188";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -39492,9 +39492,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     return function(){ mo.disconnect(); };
   },[sig]);
   const sigN=sigPack?sigPack.pendingBills.length:0;
+  // La misma cifra que la fila «Ya pagados · N» de abajo (`v.paidTotal`): solo recibos con prueba del banco
+  // (sin las marcas a mano de «Para revisar») y con lo que cobró de verdad el banco (dueño, 24/11).
   const pillPagado=React.createElement("div",{key:"pagado",className:"pr6-pill","data-testid":"plan-pagado"},
     React.createElement("span",{className:"pr6-pill-t"},React.createElement("span",{className:"pr6-pill-l"},t("pr6_ya_pagados")),
-      React.createElement("span",{className:"pr6-pill-v"},eur(pack.paidBillsTotal))));
+      React.createElement("span",{className:"pr6-pill-v"},eur(v.paidTotal))));
   // Al cambiar de mes la tarjeta no repite su `rise`: entra de lado con el resto de la vista.
   const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum pr6-flat"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
     React.createElement("div",{className:"pr6-vista"},

@@ -1132,9 +1132,11 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     return function(){ mo.disconnect(); };
   },[sig]);
   const sigN=sigPack?sigPack.pendingBills.length:0;
+  // La misma cifra que la fila «Ya pagados · N» de abajo (`v.paidTotal`): solo recibos con prueba del banco
+  // (sin las marcas a mano de «Para revisar») y con lo que cobró de verdad el banco (dueño, 24/11).
   const pillPagado=React.createElement("div",{key:"pagado",className:"pr6-pill","data-testid":"plan-pagado"},
     React.createElement("span",{className:"pr6-pill-t"},React.createElement("span",{className:"pr6-pill-l"},t("pr6_ya_pagados")),
-      React.createElement("span",{className:"pr6-pill-v"},eur(pack.paidBillsTotal))));
+      React.createElement("span",{className:"pr6-pill-v"},eur(v.paidTotal))));
   // Al cambiar de mes la tarjeta no repite su `rise`: entra de lado con el resto de la vista.
   const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum pr6-flat"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
     React.createElement("div",{className:"pr6-vista"},

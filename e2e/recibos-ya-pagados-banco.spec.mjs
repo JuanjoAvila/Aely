@@ -35,6 +35,11 @@ test("el adeudo del banco sin el nombre del recibo lo pasa a «Ya pagados»; una
   await expect(recibos.getByTestId("plan-due").locator('[data-recibo="fixed_gym"]')).toHaveCount(1);
   // Lo que queda por pagar es solo el recibo sin cargo: la transferencia de 30 € no lo paga.
   await expect(recibos.getByTestId("plan-summary").locator(".serif.num")).toHaveText("30,00 €");
+  // Con prueba del banco la celda «Ya pagados» sí suma (sin ella marcaría 0,00).
+  await expect(recibos.getByTestId("plan-pagado")).toContainText(/Ya pagados\s*54,30/);
+  // Y es la misma cifra que la fila «Ya pagados · N» de abajo (las dos con prueba del banco).
+  const cifra = (t) => (t.match(/\d[\d.]*,\d\d/) || [""])[0];
+  expect(cifra(await recibos.getByTestId("plan-pagado").innerText())).toBe(cifra(await paid.locator(".pr6-paid-amt").innerText()));
   await page.reload();
   await expect(page.locator(".botnav")).toBeVisible();
   await page.waitForFunction(() => !document.getElementById("mc-load"));

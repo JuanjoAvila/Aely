@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.257",
+    "d": "2026-11-25",
+    "t": {
+      "es": "«Ya pagados» del Plan, con prueba del banco",
+      "en": "Plan's Already paid, backed by the bank",
+      "ca": "«Ja pagats» del Pla, amb prova del banc"
+    },
+    "items": {
+      "es": [
+        "«Ya pagados» en la cabecera del Plan solo suma lo que el banco ha cobrado de verdad.",
+        "Esa cifra ya coincide con la de la lista «Ya pagados» de más abajo."
+      ],
+      "en": [
+        "Already paid at the top of Plan now only adds up what the bank has really charged.",
+        "That figure now matches the Already paid list further down."
+      ],
+      "ca": [
+        "«Ja pagats» a la capçalera del Pla només suma el que el banc ha cobrat de debò.",
+        "Aquesta xifra ja coincideix amb la de la llista «Ja pagats» més avall."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.256",
     "d": "2026-11-24",
     "t": {

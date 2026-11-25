@@ -155,8 +155,8 @@ test("marca sin prueba y pendiente se separan sin anillo ni mensaje diagnóstico
   await expect(recibos.locator(".v4-card-hero")).toContainText(/999/);
   // v6: sin cargo del banco detrás va a «Para revisar» y no suma en lo pendiente (antes «Por confirmar»).
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Mini.*Sin cargo del banco.*1,00/s);
-  // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
-  await expect(recibos).not.toContainText(/Ya pagados?/i);
+  // Sin prueba bancaria no hay pago: la celda «Ya pagados» (la segunda del Plan) marca 0,00 y no suma la marca (dueño, 24/11).
+  await expect(recibos.getByTestId('plan-pagado')).toContainText(/Ya pagados\s*0,00/);
   await expect(recibos.locator('.v4-paid')).toHaveCount(0);
   await expect(recibos).not.toContainText(/%|sin contar compras del día a día/i);
 });
@@ -360,8 +360,8 @@ test("marca sin prueba sigue visible para confirmar y no añade nómina a los re
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos.getByTestId('plan-review').locator('[data-review="unconf"]')).toContainText(/Luz.*Sin cargo del banco.*40,00/s);
-  // «Ya pagados» no sale mientras no haya ningún pago (cambio aprobado de a11y/orden de Recibos, 7/11): antes decía «Ya pagado 0,00».
-  await expect(recibos).not.toContainText(/Ya pagados?/i);
+  // Sin prueba bancaria no hay pago: la celda «Ya pagados» marca 0,00 y no suma la marca (dueño, 24/11).
+  await expect(recibos.getByTestId('plan-pagado')).toContainText(/Ya pagados\s*0,00/);
   // Ningún recibo pagado: las filas de «Ya ha entrado» se parecen, pero no son recibos (12/11/2026).
   await expect(recibos.locator('.v4-paid[data-recibo]')).toHaveCount(0);
   await expect(recibos).toContainText("Luz");
