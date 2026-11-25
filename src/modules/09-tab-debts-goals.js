@@ -618,7 +618,7 @@ const DEBT_ICO={
   card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
 };
 const DEBT_BLANK={name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:"",restarPres:false};
-function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,tabs}){
+function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,tabs,onAbrirReparto}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
   const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
@@ -800,7 +800,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-act":"plan-orphan-discard",onClick:function(){
         askConfirm({title:t("plan_discard_draft_q"),sub:t("plan_discard_draft_sub"),ok:t("plan_conflict_discard"),danger:true}).then(function(yes){if(yes)set(function(s){return planSyncDiscard(s,record);});});
       }},t("plan_conflict_discard")));}),
-    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive,tabs:tabs,onAdd:function(){ setForm(Object.assign({},DEBT_BLANK,{account:cuentaHabitual()})); setAdding(true); }}),
+    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive,tabs:tabs,onInfo:onAbrirReparto,onAdd:function(){ setForm(Object.assign({},DEBT_BLANK,{account:cuentaHabitual()})); setAdding(true); }}),
     // Asesor y archivadas en UNA tarjeta con dos filas plegables (antes: caja de borde amarillo, botón ghost suelto y
     // otro ghost para añadir; dueño 23/11/2026). `.v4-tip` se queda como nombre: los e2e lo usan de ancla.
     React.createElement("div",{className:"v4-tip dbx-tools"},
@@ -1126,7 +1126,7 @@ function SavingsPlanCard({state, set, totals, showToast}){
 }
 
 
-function Goals({state, set, totals, showToast, abrir, tabs}){
+function Goals({state, set, totals, showToast, abrir, tabs, onAbrirReparto}){
   const tt=totals||{};
   const goals=state.goals||[];
   const [adding,setAdding]=useState(false);
@@ -1187,7 +1187,7 @@ function Goals({state, set, totals, showToast, abrir, tabs}){
   const hMeta={abrir:function(g){ setFichaMetaId(g.id); },aportar:contribute,eliminar:delGoal,editar:function(g){ setEditingGoal(g); }};
 
   return React.createElement("div",null,
-    goals.length>0 ? React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta,tabs:tabs,onAdd:function(){ setAdding(true); }}) : tabs,
+    goals.length>0 ? React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta,tabs:tabs,onInfo:onAbrirReparto,onAdd:function(){ setAdding(true); }}) : tabs,
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),

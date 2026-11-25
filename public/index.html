@@ -3153,6 +3153,11 @@
   .rpt-sheet .rpt-big{font-size:var(--fs-hero);line-height:1.08;}
   .rpt-hs{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:6px;}
   .rpt-hs b{color:var(--text);font-weight:700;}
+  button.pr6-sum-tap .rpt-info{justify-content:center;}
+  .rpt-hsrow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .rpt-hsrow .rpt-hs{min-width:0;}
+  .rpt-info{display:inline-grid;place-items:center;flex:none;width:44px;height:44px;margin:-12px;padding:0;border:0;background:transparent;color:var(--mint-bright);cursor:pointer;}
+  .rpt-info:focus-visible{outline:2px solid var(--mint-bright);outline-offset:-4px;border-radius:50%;}
   .rpt-split{display:flex;gap:3px;height:6px;margin-top:14px;}
   .rpt-split i{display:block;border-radius:3px;background:var(--track);min-width:4px;transition:flex-grow .4s var(--ease);}
   .rpt-split i.on{background:var(--mint);}
@@ -12659,7 +12664,7 @@ Object.assign(LANG.es,{
   rpt_invertido:"Invertido este mes",
   rpt_traspaso:"Traspaso propio · no suma",
   rpt_ver_reparto:"Ver reparto",
-  rpt_chip:"Tu sueldo",
+  rpt_chip:"A dónde va tu sueldo",
   pm_saldo:"Saldo en tus cuentas",
   pm_sobran:"Te quedaría",
   pm_faltan:"Te faltaría",
@@ -32202,7 +32207,7 @@ const DEBT_ICO={
   card:[["rect",{x:2.5,y:5,width:19,height:14,rx:2}],["path",{d:"M2.5 10h19M6 15h4"}]]
 };
 const DEBT_BLANK={name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:"",restarPres:false};
-function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,tabs}){
+function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,tabs,onAbrirReparto}){
   // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
   const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
   const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
@@ -32384,7 +32389,7 @@ function Debts({state, set, showToast,editDayRequest,onEditDayClose,editorOnly,t
       React.createElement("button",{type:"button",className:"btn btn-ghost btn-block","data-act":"plan-orphan-discard",onClick:function(){
         askConfirm({title:t("plan_discard_draft_q"),sub:t("plan_discard_draft_sub"),ok:t("plan_conflict_discard"),danger:true}).then(function(yes){if(yes)set(function(s){return planSyncDiscard(s,record);});});
       }},t("plan_conflict_discard")));}),
-    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive,tabs:tabs,onAdd:function(){ setForm(Object.assign({},DEBT_BLANK,{account:cuentaHabitual()})); setAdding(true); }}),
+    React.createElement(RptDeudasVista,{state:state,r:rep,visibles:visibleDebts,archivadas:archivedDebts,h:hFicha,total:total,showArchive:showArchive,setShowArchive:setShowArchive,tabs:tabs,onInfo:onAbrirReparto,onAdd:function(){ setForm(Object.assign({},DEBT_BLANK,{account:cuentaHabitual()})); setAdding(true); }}),
     // Asesor y archivadas en UNA tarjeta con dos filas plegables (antes: caja de borde amarillo, botón ghost suelto y
     // otro ghost para añadir; dueño 23/11/2026). `.v4-tip` se queda como nombre: los e2e lo usan de ancla.
     React.createElement("div",{className:"v4-tip dbx-tools"},
@@ -32710,7 +32715,7 @@ function SavingsPlanCard({state, set, totals, showToast}){
 }
 
 
-function Goals({state, set, totals, showToast, abrir, tabs}){
+function Goals({state, set, totals, showToast, abrir, tabs, onAbrirReparto}){
   const tt=totals||{};
   const goals=state.goals||[];
   const [adding,setAdding]=useState(false);
@@ -32771,7 +32776,7 @@ function Goals({state, set, totals, showToast, abrir, tabs}){
   const hMeta={abrir:function(g){ setFichaMetaId(g.id); },aportar:contribute,eliminar:delGoal,editar:function(g){ setEditingGoal(g); }};
 
   return React.createElement("div",null,
-    goals.length>0 ? React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta,tabs:tabs,onAdd:function(){ setAdding(true); }}) : tabs,
+    goals.length>0 ? React.createElement(RptMetasVista,{state:state,goals:goals,h:hMeta,tabs:tabs,onInfo:onAbrirReparto,onAdd:function(){ setAdding(true); }}) : tabs,
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),
@@ -33225,7 +33230,14 @@ function PlanMesTap({state,totals,onOpen,children}){
   return React.createElement("button",{type:"button",className:"pr6-sum-tap","data-testid":"plan-cifras","aria-haspopup":"dialog",
     "aria-label":t("rpt_ver_reparto")+(r.falta>0?". "+t("rpt_faltan")+" "+rptC(r.falta):""),onClick:onOpen},
     children,
-    React.createElement("span",{className:"pr6-sum-go","data-testid":"plan-reparto-chip","aria-hidden":"true"},t("rpt_chip"),rptIcon("chevr",13)));
+    RptInfo({inner:true}));
+}
+/* Icono «i» que abre «A dónde va tu sueldo» (sin texto; zona de toque de 44 px). Dentro de la tarjeta de Recibos (ya es un botón) va como span. */
+function RptInfo({onClick,inner,testid}){
+  const dib=React.createElement("svg",{width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
+    React.createElement("circle",{cx:12,cy:12,r:9}),React.createElement("path",{d:"M12 11v5.2M12 7.7h.01"}));
+  return inner?React.createElement("span",{className:"rpt-info pr6-sum-go","data-testid":"plan-reparto-chip","aria-hidden":"true"},dib)
+    :React.createElement("button",{type:"button",className:"rpt-info","data-testid":testid||"plan-reparto-chip","aria-haspopup":"dialog","aria-label":t("rpt_chip"),title:t("rpt_chip"),onClick:onClick},dib);
 }
 /* Hoja genérica de esta pantalla: asa, título con cerrar, cuerpo con scroll y pie fijo opcional. */
 function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
@@ -33453,11 +33465,12 @@ function RptDeudaFicha({d,state,set,r,h,onClose}){
 /* La lista de Deudas: cabecera «Este mes pagas», por pagar, ya pagado, terminadas y sin cuota este mes. */
 /* La cabecera de Metas, Deudas (y, con su propio dibujo, Recibos): título pequeño, cifra grande en serif, subtítulo y una tarjeta de
    dos celdas con divisor. El tono de la cifra: verde (Metas), rojo (Deudas) o el del texto (Recibos). */
-function RptHero({testid,titulo,cifra,tono,sub,celdas,accion,t0}){
+function RptHero({testid,titulo,cifra,tono,sub,celdas,accion,t0,onInfo}){
   return React.createElement("section",{className:"rpt-hero","data-testid":testid},
     React.createElement("div",{className:"rpt-hh"},React.createElement("div",{className:"rpt-ht"},titulo),accion||null),
     React.createElement("div",{className:"rpt-big plan-summary-amount"+(tono?" "+tono:""),"data-testid":t0||undefined},cifra),
-    React.createElement("div",{className:"rpt-hs"},sub),
+    onInfo?React.createElement("div",{className:"rpt-hsrow"},React.createElement("div",{className:"rpt-hs"},sub),RptInfo({onClick:onInfo,testid:"plan-reparto-info-"+(testid==="debts-summary"?"deudas":"metas")}))
+      :React.createElement("div",{className:"rpt-hs"},sub),
     React.createElement("div",{className:"rpt-facts m"},celdas.map(function(c,i){
       return React.createElement(c.onClick?"button":"div",{key:i,type:c.onClick?"button":undefined,className:"rpt-fact"+(c.cls?" "+c.cls:""),"data-testid":c.testid||undefined,
         "aria-label":c.aria||undefined,onClick:c.onClick||undefined},
@@ -33469,7 +33482,7 @@ function RptAnadir({act,label,onClick}){
   return React.createElement("button",{type:"button",className:"link pr6-mg-add","data-act":act,"aria-label":label,onClick:onClick},
     React.createElement("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.6,strokeLinecap:"round","aria-hidden":"true"},React.createElement("path",{d:"M12 5v14M5 12h14"})),t("mg_anadir"));
 }
-function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShowArchive,tabs,onAdd}){
+function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShowArchive,tabs,onAdd,onInfo}){
   const hoy=madridYmdParts(Date.now());
   const esc=useMemo(function(){ return deudasEscalera(state); },[state.debts,state.fixed,state.expenses,state.deleted]);
   const finDe=function(id){ const p=esc.pasos.find(function(x){ return x.id===id; }); return p?p.ultimo:null; };
@@ -33501,7 +33514,7 @@ function RptDeudasVista({state,r,visibles,archivadas,h,total,showArchive,setShow
   return React.createElement("div",{className:"rpt"},
     // Misma cabecera que la de Metas, con la cifra en rojo (es lo que se debe). Las cifras son las de siempre: lo que pagas este
     // mes, lo ya pagado y lo que falta, lo que debes en total y qué deuda acaba antes.
-    React.createElement(RptHero,{testid:"debts-summary",titulo:t("rpt_d_hero"),cifra:rptC(tot),tono:"rojo",t0:"debts-mes",
+    React.createElement(RptHero,{onInfo:onInfo,testid:"debts-summary",titulo:t("rpt_d_hero"),cifra:rptC(tot),tono:"rojo",t0:"debts-mes",
       sub:React.createElement("span",{"data-testid":"debts-pagados"},tf("rpt_d_sub",{a:rptC(pag),b:rptC(tot-pag)})),
       accion:onAdd&&React.createElement(RptAnadir,{act:"debt-add",label:t("db_add"),onClick:onAdd}),
       celdas:[{l:t("rpt_d_debes"),v:eur0(total),testid:"debts-debes"},
@@ -33543,7 +33556,7 @@ function RptMetaFicha({g,state,h,onClose}){
       gv.aportado>0?React.createElement("div",{className:"rpt-kv",key:"gx","data-testid":"goal-from-gastos"},React.createElement("span",null,t("rpt_m_desde_gastos")),React.createElement("b",null,eur(gv.aportado))):null,
       g.fromBank?rptKv(t("rpt_m_banco"),entOf(g.fromBank).label):null));
 }
-function RptMetasVista({state,goals,h,tabs,onAdd}){
+function RptMetasVista({state,goals,h,tabs,onAdd,onInfo}){
   const res=useMemo(function(){ return metasResumen(state); },[state.goals,state.expenses,state.deleted,state.settings,state.reservaLog]);
   const abiertas=goals.filter(function(g){ return !g.done&&goalPct(metaConAportes(g,state))<100; }), hechas=goals.filter(function(g){ return abiertas.indexOf(g)<0; });
   const fila=function(g){
@@ -33555,7 +33568,7 @@ function RptMetasVista({state,goals,h,tabs,onAdd}){
   const sv=res.ahorrado, tg=res.objetivo;
   const f2=res.hueco>0?[t("rpt_m_a_tiempo_falta"),"+"+rptC0(res.hueco)+t("rpt_m_mes")]:res.vencidas>0?[t("rpt_m_fecha_pasada"),rptPl(res.vencidas,t("rpt_m_n_metas_1"),tf("rpt_m_n_metas",{n:res.vencidas}))]:res.conFecha>0?[t("rpt_m_a_tiempo"),t("rpt_m_todas")]:[t("rpt_m_fecha"),t("rpt_m_sin_fecha")];
   return React.createElement("div",{className:"rpt"},
-    React.createElement(RptHero,{testid:"goals-summary",titulo:t("v4_goals_hero"),cifra:rptC0(sv),tono:"verde",sub:tf("rpt_m_de_total",{x:rptC0(tg)}),
+    React.createElement(RptHero,{onInfo:onInfo,testid:"goals-summary",titulo:t("v4_goals_hero"),cifra:rptC0(sv),tono:"verde",sub:tf("rpt_m_de_total",{x:rptC0(tg)}),
       accion:onAdd&&React.createElement(RptAnadir,{act:"goal-new",label:t("v4_goal_new"),onClick:onAdd}),
       celdas:[{l:t("rpt_m_apartas"),v:rptC0(res.ritmo)+t("rpt_m_mes")},{l:f2[0],v:f2[1],cls:res.hueco>0||res.vencidas>0?"warn":res.conFecha>0?"ok":""}]}),
     tabs,
@@ -36742,7 +36755,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a0f1c1ceb83b12d95f112555c4f80485e7c368b519e7f43802c5096d3b6e5706";
+var _rnSha="dbf0d7daef57be4021b6a98017fafe76b6ea4c74b83f881c879657a4a0bcd87a";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -38591,6 +38604,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
      mano para tocar arriba»). Recibos → Deudas → Metas → Recibos. La mecánica vive en
      `useTironSeccion` (02-ui-shared.js) desde Gastos v5, que la usa igual: un solo sitio. */
   const planScreenRef=useRef(null), repartoRef=useRef(null);
+  const abrirReparto=function(){ if(repartoRef.current) repartoRef.current(true); };
   const entradaRef=useTironSeccion(planScreenRef,{activo:!simple, seg:seg, orden:PLAN_SEG_ORDEN, respaldo:true, cortaScroll:true,
     capa:function(id){ return segElRef.current[id]; },
     alPasar:function(nextId){
@@ -38714,10 +38728,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     capa("recibos", simple
       ? React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,onEditDebtDay:editDebtDay})
       : React.createElement(PlanRecibos,{state:state,set:set,totals:totals,charges:charges,evidence:evidence,manageOpen:manageOpen,setManageOpen:setManageOpen,activo:seg==="recibos",
-          onAbrirReparto:function(){ if(repartoRef.current) repartoRef.current(true); },tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
+          onAbrirReparto:abrirReparto,tabs:seg==="recibos"?planTabs:null,manageEdit:manageEdit,setManageEdit:setManageEdit,showToast:showToast,onGoDebts:irADeuda,onEditDebtDay:editDebtDay,
           foco:focoRecibo,clearFoco:function(){ setFocoRecibo(null); }})),
-    !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast,tabs:seg==="deudas"?planTabs:null})),
-    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta,tabs:seg==="metas"?planTabs:null})),
+    !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast,tabs:seg==="deudas"?planTabs:null,onAbrirReparto:abrirReparto})),
+    !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast,abrir:abrirMeta,tabs:seg==="metas"?planTabs:null,onAbrirReparto:abrirReparto})),
     debtDayRequest&&React.createElement(Debts,{state:state,set:set,showToast:showToast,editorOnly:true,editDayRequest:debtDayRequest,onEditDayClose:function(){setDebtDayRequest(null);}})
   );
 }

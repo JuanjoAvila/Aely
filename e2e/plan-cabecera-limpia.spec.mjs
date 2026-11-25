@@ -38,18 +38,19 @@ const captura = async (page, nombre) => {
 const top = (loc) => loc.evaluate((e) => e.getBoundingClientRect().top);
 const bottom = (loc) => loc.evaluate((e) => e.getBoundingClientRect().bottom);
 
-test("Plan va sin la fila Libre/Entran ni la flecha ⌄; el chip «Tu sueldo» abre la hoja con la cascada", async ({ page }) => {
+test("Plan va sin la fila Libre/Entran ni la flecha ⌄; el icono «i» abre la hoja con la cascada", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await abrePlan(page, base(300), process.env.TEMA);
   await expect(page.getByTestId("plan-reparto-barra")).toHaveCount(0);
   await expect(page.locator(".rpt-lb")).toHaveCount(0);
   await expect(page.locator(".v4-plan-screen, .page-live").first()).not.toContainText(/Entran\s/);
   await expect(page.locator(".pr6-sum-dot")).toHaveCount(0);
-  // Sin flecha «⌄» a la derecha de la cifra: lo único a la derecha es el chip de texto.
+  // Sin flecha «⌄» a la derecha de la cifra: lo único a la derecha es el icono «i» (sin texto).
   const chip = page.getByTestId("plan-reparto-chip");
-  await expect(chip).toContainText("Tu sueldo");
+  await expect(chip).toHaveText("");
+  expect((await chip.boundingBox()).width).toBeGreaterThanOrEqual(43);
   await expect(chip.locator("svg")).toHaveCount(1);
-  const cb = await chip.boundingBox(), big = await page.locator(".pr6-big").first().boundingBox(), cnt = await page.getByTestId("plan-count").boundingBox(), card = await page.getByTestId("plan-summary").boundingBox();
+  const cb = await chip.locator("svg").boundingBox(), big = await page.locator(".pr6-big").first().boundingBox(), cnt = await page.getByTestId("plan-count").boundingBox(), card = await page.getByTestId("plan-summary").boundingBox();
   expect(cb.y).toBeGreaterThanOrEqual(big.y + big.height - 2);          // debajo de la cifra, no a su altura
   expect(cb.x + cb.width).toBeLessThanOrEqual(card.x + card.width + 1);   // dentro de la tarjeta
   expect(cb.x).toBeGreaterThan(cnt.x + cnt.width * 0.6);                  // a la derecha, no pegado a la cifra
@@ -84,6 +85,26 @@ test("las pestañas van debajo de la tarjeta resumen en Recibos, Deudas y Metas 
   expect(await top(tabs)).toBeGreaterThanOrEqual(await bottom(page.getByTestId("goals-summary")) - 1);
   await tabs.locator('[data-seg="recibos"]').click();
   await expect(page.getByTestId("plan-summary")).toBeVisible();
+});
+
+test("el icono «i» también está en Deudas y Metas y abre la misma hoja (zona de toque ≥44 px, sin texto)", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await abrePlan(page, base(3000), process.env.TEMA);
+  for (const seg of ["deudas", "metas"]) {
+    await page.locator('.v4-plan-tabs [data-seg="' + seg + '"]').click();
+    const i = page.getByTestId("plan-reparto-info-" + seg);
+    await expect(i).toBeVisible();
+    await expect(i).toHaveText("");
+    await expect(i).toHaveAttribute("aria-label", "A dónde va tu sueldo");
+    const b = await i.boundingBox(), card = await page.getByTestId(seg === "deudas" ? "debts-summary" : "goals-summary").boundingBox();
+    expect(b.width).toBeGreaterThanOrEqual(43); expect(b.height).toBeGreaterThanOrEqual(43);
+    expect(b.x + b.width).toBeLessThanOrEqual(card.x + card.width + 13);
+    await captura(page, "plan-info-" + seg);
+    await i.click();
+    await expect(page.getByTestId("plan-reparto-hoja")).toBeVisible();
+    await page.getByTestId("plan-reparto-hoja").locator(".rpt-sx").click();
+    await expect(page.getByTestId("plan-reparto-hoja")).toHaveCount(0);
+  }
 });
 
 test("A dónde va tu sueldo: Deudas va en verde (no amarillo) en su leyenda", async ({ page }) => {
