@@ -87,9 +87,11 @@ function baseDatos(links) {
         eq(col, v) { filters.push((r) => r[col] === v); return q; },
         is(col, v) { filters.push((r) => (r[col] == null ? null : r[col]) === v); return q; },
         lt(col, v) { filters.push((r) => r[col] != null && Date.parse(r[col]) < Date.parse(v)); return q; },
+        select() { return q; },
         then(ok, ko) {
-          links.forEach((l) => { if (filters.every((f) => f(l))) Object.assign(l, patch); });
-          return Promise.resolve({}).then(ok, ko);
+          const hit = links.filter((l) => filters.every((f) => f(l)));
+          hit.forEach((l) => Object.assign(l, patch));
+          return Promise.resolve({ data: hit.map((l) => ({ id: l.id })) }).then(ok, ko);
         },
       };
       return q;
@@ -316,10 +318,13 @@ await t("un día que no cabe en las llamadas libres no se parte ni se da por le�
   }
 });
 
-// Lo reciente no cabe en 12 llamadas: igual que beta, que sí adelanta last_sync.
+// DIN-04. Lo reciente no cabe en 12 llamadas. El cliente viejo (sin recoverGaps) sigue como siempre:
+// last_sync a ahora. El que guarda el tramo ya NO sella: deja el cursor en el primer día PENDIENTE
+// (pendingCursor) porque no se sabe qué parte llegó (depende del orden de páginas del banco).
 const desbordado = (d) => (d >= WINDOW ? 15 : 4);
-for (const last of [null, haceDias(15)]) {
-  await t("ventana de 14 páginas " + (last ? "con último éxito dentro" : "sin último éxito") + ": parcial declarado y last_sync a ahora, como beta", async () => {
+const PEND = (ymd) => ymd + "T23:59:59.998Z";
+for (const [last, from] of [[null, WINDOW], [haceDias(15), "2026-09-25"]]) {
+  await t("ventana de 14 páginas " + (last ? "con último éxito dentro" : "sin último éxito") + ": cliente viejo a ahora; cliente de tramo, cursor en el primer día pendiente", async () => {
     const bank = banco({ perDay: desbordado });
     const link = enlace(last);
     const db = baseDatos([link]);
@@ -331,26 +336,31 @@ for (const last of [null, haceDias(15)]) {
       assert.equal(acc.ok, true);
       assert.equal(acc.truncated, true);
       assert.equal(acc.count, 240);
-      assert.equal(link.last_sync, NOW);
-      assert.equal(!!r.data.links[0].gapPending, false);
+      if (body.recoverGaps) {
+        assert.equal(link.last_sync, PEND(from), "el cursor se queda donde empieza lo no garantizado");
+        assert.equal(r.data.links[0].gapPending, true);
+      } else {
+        assert.equal(link.last_sync, NOW);
+        assert.equal(!!r.data.links[0].gapPending, false);
+      }
     }
   });
 }
 
-// Con hueco y la ventana desbordada no hay llamadas para el tramo, ni hoy ni en la siguiente
-// pulsación: esperar sería quedarse atascado para siempre. Igual que beta, cliente viejo o nuevo.
-for (const gap of [60, 120]) {
-  await t("ventana desbordada con hueco de " + gap + " días: no se lee el tramo y last_sync sube a ahora, como beta", async () => {
+// Con hueco y la ventana desbordada no hay llamadas para el tramo en ESTA pulsación. El cliente viejo
+// sigue sellando a ahora (no puede recuperar nada); el de tramo deja el marcador y converge después.
+for (const [gap, from] of [[60, "2026-08-11"], [120, FLOOR]]) {
+  await t("ventana desbordada con hueco de " + gap + " días: sin llamadas al tramo; viejo a ahora, de tramo con marcador en " + from, async () => {
     const bank = banco({ perDay: desbordado });
     for (const body of [{}, { recoverGaps: true }]) {
       const link = enlace(haceDias(gap));
       const r = await pulsa(baseDatos([link]), bank, { body });
       assert.equal(r.calls.length, CAP);
       assert.equal(r.calls.filter((c) => c.to).length, 0, "ni una llamada al tramo");
-      assert.equal(link.last_sync, NOW);
+      assert.equal(link.last_sync, body.recoverGaps ? PEND(from) : NOW);
       assert.equal(r.data.links[0].accounts[0].truncated, true, "el corte se declara");
       assert.equal(r.data.links[0].accounts[0].count, 240);
-      assert.equal(!!r.data.links[0].gapPending, false);
+      assert.equal(!!r.data.links[0].gapPending, !!body.recoverGaps);
     }
   });
 }
@@ -362,7 +372,74 @@ await t("ventana que choca con el tope de 2000 filas antes que con el de llamada
   assert.equal(r.calls.length, 4);
   assert.equal(r.data.links[0].accounts[0].truncated, true);
   assert.equal(r.data.links[0].accounts[0].count, 2000);
-  assert.equal(link.last_sync, NOW);
+  assert.equal(link.last_sync, PEND("2026-08-11"));
+});
+
+// DIN-04: converge con desborde, con el banco paginando en AMBOS órdenes. Nada depende del orden:
+// el tramo va por trozos de fechas cerrados. Sin perder ni una fila desde el último éxito.
+for (const order of ["asc", "desc"]) {
+  for (const gap of [1, 15, 60]) {
+    await t("desborde que converge sin perder filas · orden " + order + " · último éxito hace " + gap + " días", async () => {
+      const r = await converge({ gap, order, perDay: desbordado });
+      assert.equal(r.missing, 0, "faltan " + r.missing + " movimientos");
+      assert.ok(r.maxCalls <= CAP);
+      return r.presses + " pulsaciones";
+    });
+  }
+}
+await t("desborde que converge · dos cuentas, una desbordada, orden desc", async () => {
+  const r = await converge({ gap: 20, order: "desc", uids: ["cx", "cx2"], perDay: (d, uid) => (uid === "cx2" ? desbordado(d) : 4) });
+  assert.equal(r.missing, 0);
+});
+await t("desborde que converge · cliente con acuse (el cursor no se sella a ahora por el camino)", async () => {
+  for (const order of ["asc", "desc"]) {
+    const bank = banco({ order, perDay: desbordado });
+    const link = enlace(haceDias(20));
+    const db = baseDatos([link]);
+    const got = new Set(); let ack = null, presses = 0, listo = false;
+    // Con acuse el cursor llega a ahora en la pulsación SIGUIENTE (cuando el móvil devuelve el acuse); aquí basta
+    // con que el servidor haya acusado ahora sin tramo pendiente. (Con reloj fijo y volumen desbordado la ventana de
+    // siempre vuelve a desbordar cada pulsación, así que last_sync no se queda en NOW: eso es de la ventana, no del tramo.)
+    while (presses < 30 && !listo) {
+      presses++;
+      const body = { recoverGaps: true, accountPhases: 1, acks: ack ? { CaixaBank: ack } : {} };
+      const r = await pulsa(db, bank, { body });
+      const e = r.data.links[0];
+      assert.ok(!(e.ack && Date.parse(e.ack.split("|")[0]) >= MS && e.gapPending), "con tramo pendiente no se acusa ahora");
+      ack = e.ack || ack;
+      listo = !!e.ack && !e.gapPending && Date.parse(e.ack.split("|")[0]) >= MS;
+      for (const x of e.accounts[0].transactions || []) got.add(x.ext_id);
+      // El móvil guarda lo recibido y devuelve el acuse en la siguiente pulsación.
+    }
+    assert.ok(listo, "orden " + order + ": sin converger tras " + presses);
+    let missing = 0;
+    for (const row of bank.rows.cx) if (row.booking_date >= dayOf(haceDias(20)) && !got.has(row.entry_reference)) missing++;
+    assert.equal(missing, 0, "orden " + order + ": faltan " + missing);
+  }
+});
+await t("el marcador pendiente solo lo entiende un cliente de tramo; uno viejo lee la ventana de siempre", async () => {
+  const p = demand.demandPlan(new Date(MS), PEND("2026-10-01"), false);
+  assert.equal(p.windowStart, WINDOW);
+  assert.equal(p.gap, false);
+  const q = demand.demandPlan(new Date(MS), PEND("2026-10-01"), true);
+  assert.equal(q.windowStart, "2026-10-08");
+  assert.equal(q.gap, true);
+  assert.equal(q.from, "2026-10-01");
+  assert.equal(q.to, "2026-10-07");
+  assert.equal(q.canShrink, false);
+  // Pendiente reciente: la ventana mínima no se adelanta a lo pendiente.
+  const r = demand.demandPlan(new Date(MS), PEND("2026-10-09"), true);
+  assert.equal(r.windowStart, "2026-10-09");
+  assert.equal(r.gap, false);
+  // Más de 90 días: se pide desde el tope y se señala.
+  const z = demand.demandPlan(new Date(MS), PEND("2026-05-01"), true);
+  assert.equal(z.from, FLOOR);
+  assert.equal(z.gapBeyondCap, true);
+  // El acuse verdadero del mismo día o posterior sustituye al marcador (que vive al final de su día); uno anterior no.
+  const key = "L1.0", ack = (iso) => iso + "|" + key, now = new Date(MS);
+  assert.equal(demand.ackCursor(ack(NOW), key, PEND("2026-10-10"), now), NOW);
+  assert.equal(demand.ackCursor(ack("2026-10-09T23:59:59.999Z"), key, PEND("2026-10-10"), now), null);
+  assert.equal(demand.ackCursor(ack("2026-10-09T12:00:00.000Z"), key, "2026-10-09T13:00:00.000Z", now), null, "un cursor normal no retrocede");
 });
 
 await t("el banco repite el cursor de página: eso no es desbordar y el cursor del tramo espera", async () => {
@@ -374,16 +451,6 @@ await t("el banco repite el cursor de página: eso no es desbordar y el cursor d
   assert.equal(r.calls.filter((c) => c.to).length, 0);
   assert.equal(link.last_sync, haceDias(60));
   assert.equal(r.data.links[0].gapPending, true);
-});
-
-await t("dos cuentas y solo una desbordada: tampoco hay tramo posible y last_sync sube, como beta", async () => {
-  const bank = banco({ uids: ["cx", "cx2"], perDay: (d, uid) => (uid === "cx2" ? desbordado(d) : 4) });
-  const link = enlace(haceDias(60), ["cx", "cx2"]);
-  const r = await pulsa(baseDatos([link]), bank);
-  assert.ok(r.maxCalls <= CAP);
-  assert.equal(r.calls.filter((c) => c.to).length, 0);
-  assert.equal(link.last_sync, NOW);
-  assert.equal(r.data.links[0].accounts[0].count, 72, "la cuenta ligera se lee entera");
 });
 
 await t("lo reciente cortado por un error a media paginación: sin tramo y sin cursor", async () => {

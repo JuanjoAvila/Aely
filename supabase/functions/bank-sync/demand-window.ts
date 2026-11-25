@@ -20,6 +20,13 @@ export const OB_DEMAND_SKEW_DAYS = 3;
 // El tramo antiguo comparte el contador de transporte y solo usa lo que quede de
 // doce: no estrena otro cupo tras la ventana. No cambia el comportamiento previo.
 export const OB_DEMAND_MAX_PAGES = 12;
+// DIN-04. Si la ventana de siempre NO cabe en esas doce páginas (o en 2000 filas), no se sabe qué
+// parte llegó: depende del orden en que pagine cada banco (nuevo→antiguo o antiguo→nuevo), y ese
+// orden no está garantizado ni documentado. Antes se sellaba el cursor a «ahora» y lo no leído
+// no se volvía a pedir. Ahora el cursor se queda en el primer día PENDIENTE (`pendingCursor`) y la
+// siguiente pulsación lee solo los últimos días de ventana y recorre el resto por trozos de
+// fechas cerrados (date_from + date_to), que no dependen del orden de páginas.
+export const OB_PENDING_RECENT_DAYS = 3;
 
 const DAY_MS = 86400000;
 
@@ -48,6 +55,19 @@ export function currentDemandWindowStart(now: Date): string {
     por el siguiente», que es justo lo que diría un sync real hecho en ese instante. */
 export function chunkCursor(ymd: string): string {
   return ymd + "T23:59:59.999Z";
+}
+
+/** Cursor «hay tramo pendiente desde este día» (inclusive). Es un instante válido (1 ms antes
+    del sellado de `chunkCursor`), así que lo lee cualquier cosa que ya lea `last_sync`, y no
+    colisiona con `chunkCursor`: ese afirma «el día está entero», este «desde este día falta». */
+export function pendingCursor(ymd: string): string {
+  return ymd + "T23:59:59.998Z";
+}
+
+/** Día pendiente que codifica un cursor `pendingCursor`, o null si no lo es. */
+export function pendingResumeDay(lastSync: unknown): string | null {
+  const ms = typeof lastSync === "string" && /^\d{4}-\d{2}-\d{2}T23:59:59\.998Z$/.test(lastSync) ? Date.parse(lastSync) : NaN;
+  return Number.isFinite(ms) ? utcYmd(ms) : null;
 }
 
 /** Suelo que acepta el cliente cuando al banco se le pidió desde `asked`. No se pide nada
@@ -91,7 +111,15 @@ export function ackCursor(raw: unknown, linkKey: string, lastSync: unknown, now:
   // rechazarlo, y esa fecha no la emitió nadie. Solo vale lo que se reescribe idéntico.
   if (!Number.isFinite(ms) || new Date(ms).toISOString() !== m[1] || ms > now.getTime()) return null;
   const cur = typeof lastSync === "string" ? Date.parse(lastSync) : NaN;
-  return Number.isFinite(cur) && cur >= ms ? null : m[1];
+  if (Number.isFinite(cur) && cur >= ms) {
+    // Un `pendingCursor` no es una lectura sino la falta de una: marca desde qué día NO se leyó y
+    // vive al final de ese día, así que un acuse de «ahora» del mismo día quedaría por detrás. Un
+    // acuse verdadero (emitido al terminar de leer) de ese día en adelante lo sustituye; uno de
+    // antes del día pendiente, o cualquier cursor normal, sigue sin poder retroceder.
+    const pend = pendingResumeDay(lastSync);
+    if (!pend || utcYmd(ms) < pend) return null;
+  }
+  return m[1];
 }
 
 export type DemandPlan = {
@@ -104,6 +132,9 @@ export type DemandPlan = {
   /** Días anteriores a `from` que se releen por cortesía, o null. */
   overlapFrom: string | null;
   gapBeyondCap: boolean;
+  /** La ventana se puede estrechar si desborda (el cliente guarda el tramo). Falso si ya está
+      en el mínimo o el cliente no pidió recuperar tramos: ahí desbordar sella a «ahora». */
+  canShrink: boolean;
 };
 
 export function demandPlan(now: Date, lastSync: unknown, recover: boolean): DemandPlan {
@@ -111,8 +142,23 @@ export function demandPlan(now: Date, lastSync: unknown, recover: boolean): Dema
   const to = ymdAddDays(windowStart, -1);
   const ms = typeof lastSync === "string" && /^\d{4}-\d{2}-\d{2}/.test(lastSync) ? Date.parse(lastSync) : NaN;
   // Sin último éxito conocido se queda el margen: igual que siempre.
-  if (!Number.isFinite(ms)) return { windowStart, gap: false, from: windowStart, to, overlapFrom: null, gapBeyondCap: false };
+  if (!Number.isFinite(ms)) return { windowStart, gap: false, from: windowStart, to, overlapFrom: null, gapBeyondCap: false, canShrink: recover };
   const day = utcYmd(ms);
+  // Tramo pendiente por desborde (DIN-04): solo lo honra un cliente que guarda el tramo; a uno
+  // que no, `pendingCursor` le sale como un último éxito de ese día y lee la ventana de siempre.
+  const pend = recover ? pendingResumeDay(lastSync) : null;
+  if (pend) {
+    const today = utcYmd(now.getTime());
+    const pfloor = utcYmd(now.getTime() - OB_DEMAND_CAP_DAYS * DAY_MS);
+    const pbeyond = pend < pfloor;
+    const pfrom = pbeyond ? pfloor : pend;
+    const recent = ymdAddDays(today, 1 - OB_PENDING_RECENT_DAYS);
+    // Ventana mínima: nunca por delante de lo pendiente (no se lee dos veces lo mismo) ni, si el
+    // marcador viniera del futuro, más allá de hoy.
+    const pws = pfrom > recent ? (pfrom > today ? today : pfrom) : recent;
+    return { windowStart: pws, gap: pfrom < pws, from: pfrom, to: ymdAddDays(pws, -1), overlapFrom: null,
+      gapBeyondCap: pbeyond, canShrink: false };
+  }
   const sealed = ((ms % DAY_MS) + DAY_MS) % DAY_MS === DAY_MS - 1;
   // Un sync real a media tarde no vio lo que el banco apuntó ese día más tarde: su día se
   // relee. Un día sellado por `chunkCursor` ya está entero.
@@ -130,6 +176,7 @@ export function demandPlan(now: Date, lastSync: unknown, recover: boolean): Dema
     // `recover` en false es un cliente que no ha dicho que va a guardar el tramo: no se le
     // anuncia un tope que no va a pedir.
     gapBeyondCap: recover && resume < windowStart && beyond,
+    canShrink: recover,
   };
 }
 
@@ -148,4 +195,15 @@ export function nextChunkDays(prev: number, pages: number, days: number, free: n
 export function demandReadComplete(accounts: Array<{ ok?: boolean; truncated?: boolean; transactionError?: string } | null> | null): boolean {
   if (!accounts || !accounts.length) return false;
   return accounts.every((a) => !!a && a.ok === true && !a.truncated && !a.transactionError);
+}
+
+/** DIN-08. Tipo de saldo de «ahora» que ofrece el banco (ITAV disponible, ITBD provisional), o null.
+    CLBD (cierre), XPCD, PRCD y OTHR no cuentan: pueden ser el de ayer y presentarlo como actual
+    es optimista (PR330). El importe debe ser finito: un tipo sin cifra no es un saldo. */
+export function balanceIntradayType(balances: unknown): "ITAV" | "ITBD" | null {
+  const list = Array.isArray(balances) ? balances : [];
+  for (const want of ["ITAV", "ITBD"] as const) {
+    if (list.some((b) => String(b?.type ?? "").toUpperCase() === want && Number.isFinite(Number(b?.amount)) && String(b?.amount ?? "").trim() !== "")) return want;
+  }
+  return null;
 }

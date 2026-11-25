@@ -110,12 +110,12 @@ await t('controlled balance timeout leaves 10 seconds for transactions, serial c
  const reply=()=>({transactions:[]});reply.balance=(p,init)=>new Promise((resolve,reject)=>{init.signal.addEventListener('abort',()=>reject(Error('timeout')),{once:true});queueMicrotask(()=>{now+=delay;abortBalance();});});
  const timers={setTimeout:(fn,ms)=>{abortBalance=fn;delay=ms;return 1;},clearTimeout:()=>{}};
  const r=await sync([b],reply,body,Clock,timers);
- assert.equal(delay,5000);assert.equal(r.budgets[0].timeout,10000);assert.deepEqual(r.calls.map(p=>p.split('/')[3].split('?')[0]),['balances','transactions']);
+ assert.equal(delay,5000);assert.equal(r.budgets[0].timeout,10000);assert.deepEqual(r.calls.map(p=>p.split('/')[3].split('?')[0]),['transactions','balances'],'DIN-08: el saldo va DESPUES del extracto, que reserva sus 5 s');
  assert.ok(r.data.links[0].ack);assert.equal(r.data.links[0].accounts[0].balanceError,'timeout');
 });
-await t('no transaction budget remains after global deadline; no new cursor',async()=>{
- const b=bank();b.accounts=[{uid:'a'}];const reply=()=>({transactions:[]});reply.balance=()=>{now+=60000;return bal(100);};
- const r=await sync([b],reply,body,Clock);assert.equal(r.data.links[0].ack,undefined);assert.equal(r.calls.length,1);
+await t('DIN-08 el extracto agota el plazo global: no se pide el saldo con el tiempo vencido y se declara timeout',async()=>{
+ const b=bank();b.accounts=[{uid:'a'}];const reply=()=>{now+=60000;return {transactions:[]};};
+ const r=await sync([b],reply,body,Clock);assert.equal(r.calls.length,1);assert.equal(r.data.links[0].accounts[0].balanceOk,false);assert.equal(r.data.links[0].accounts[0].balanceError,'timeout');
 });
 await t('accepted ACK requires matching affected row; stale auth cannot advance plan',async()=>{
  const b=bank();const initial=await sync([b],()=>({transactions:[]}),body,Clock);const ack=initial.data.links[0].ack;

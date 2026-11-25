@@ -12,7 +12,7 @@ import { decryptSessionId } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
 import { readInput } from "../_shared/request_body.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
-import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
+import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, balanceIntradayType, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, pendingCursor, pendingResumeDay, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
    guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
@@ -293,7 +293,10 @@ Deno.serve(withCors(async (req: Request) => {
         try {
           const q = sameLinkVersion(admin.from("bank_links").update({ last_sync: acked, updated_at: new Date().toISOString() }).eq("id", link.id), link);
           // `lt` no casa con null: un enlace recién conectado necesita su propio filtro.
-          const { data, error } = await (link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null)).select("id");
+          // Un marcador de pendiente (DIN-04) está por delante de «ahora» el mismo día: se sustituye por
+          // igualdad con el valor leído, no por `lt`.
+          const { data, error } = await (pendingResumeDay(link.last_sync) ? q.eq("last_sync", link.last_sync)
+            : link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null)).select("id");
           written = !error && Array.isArray(data) && data.length > 0;
         } catch (_) { /* corte de red: igual que un error devuelto */ }
         if (written) link.last_sync = acked;
@@ -333,30 +336,47 @@ Deno.serve(withCors(async (req: Request) => {
           lastErr = obReadFailureCode(err);
           return fail;
         };
-        const balController = new AbortController();
-        const balTimer = setTimeout(() => balController.abort(), Math.min(5000, accountDeadline - Date.now()));
         let balanceFailure: ReturnType<typeof ebFailure> | null = null;
-        try {
-          const bal = await ebApi(jwt, `/accounts/${uid}/balances`, { signal: balController.signal });
-          // Ausente, vacío y mal formado nunca se convierten en un cero bancario válido.
-          if (!Array.isArray(bal?.balances) || !bal.balances.length || bal.balances.some((b: any) =>
-            !["string", "number"].includes(typeof b?.balance_amount?.amount) || String(b.balance_amount.amount).trim() === "" || !Number.isFinite(Number(b.balance_amount.amount)))) throw new Error("transactions_invalid");
-          row.balances = bal.balances.map((b: any) => ({ type: b.balance_type || b.name || "",
-            amount: Number(b.balance_amount.amount), currency: b.balance_amount.currency || "" }));
-          row.balanceOk = true;
-          row.balanceAt = new Date().toISOString();
-          anyBalanceOk = true;
-        } catch (err) {
-          balanceFailure = failed(err);
-          row.balanceError = balController.signal.aborted ? "timeout" : obReadFailureCode(err);
-        } finally { clearTimeout(balTimer); }
+        const readBalance = async () => {
+          // Sin tiempo de cuenta no hay llamada: el saldo no se pide con una señal ya vencida.
+          if (accountDeadline - Date.now() <= 0) { row.balanceError = "timeout"; lastErr = "timeout"; return; }
+          const balController = new AbortController();
+          const balTimer = setTimeout(() => balController.abort(), Math.max(0, Math.min(5000, accountDeadline - Date.now())));
+          try {
+            const bal = await ebApi(jwt, `/accounts/${uid}/balances`, { signal: balController.signal });
+            // Ausente, vacío y mal formado nunca se convierten en un cero bancario válido.
+            if (!Array.isArray(bal?.balances) || !bal.balances.length || bal.balances.some((b: any) =>
+              !["string", "number"].includes(typeof b?.balance_amount?.amount) || String(b.balance_amount.amount).trim() === "" || !Number.isFinite(Number(b.balance_amount.amount)))) throw new Error("transactions_invalid");
+            row.balances = bal.balances.map((b: any) => ({ type: b.balance_type || b.name || "",
+              amount: Number(b.balance_amount.amount), currency: b.balance_amount.currency || "" }));
+            row.balanceOk = true;
+            row.balanceAt = new Date().toISOString();
+            /* DIN-08. Solo ITAV/ITBD son saldos de «ahora»; CLBD/XPCD/PRCD/OTHR pueden ser el cierre de
+               ayer (PR330, NO-GO: Sabadell da CLBD = XPCD y no hay prueba de que incluyan lo contabilizado
+               hoy). El cliente no debe tratar como actual lo que el banco no marcó como intradía. */
+            row.balanceIntraday = balanceIntradayType(row.balances);
+            anyBalanceOk = true;
+          } catch (err) {
+            balanceFailure = failed(err);
+            row.balanceError = balController.signal.aborted ? "timeout" : obReadFailureCode(err);
+          } finally { clearTimeout(balTimer); }
+        };
+        /* DIN-08. El saldo se lee DESPUÉS del extracto en los clientes que entienden las fases: leído antes,
+           un cargo contabilizado entre las dos llamadas (hasta 15 s por cuenta) salía en los movimientos y
+           no en el saldo, y el cliente lo daba por restado (PR330, remate R1: +42,37 € optimista). Leído
+           después, lo que el extracto trae ya está en el saldo o el saldo es más nuevo que el extracto, nunca
+           al revés. El legado conserva el orden de siempre: su parada «sin saldo no hay extracto» necesita el
+           saldo primero. El extracto reserva los 5 s del saldo (H2) para que este no se quede sin intento. */
+        const balanceLast = phaseClient;
+        if (!balanceLast) await readBalance();
         // Una autorización cerrada/401 no se usa para otra llamada. Los fallos transitorios
         // del saldo dejan consultar movimientos con el tiempo restante de ESTA cuenta si
         // el cliente entiende las fases; el legado conserva su parada previa y reintenta.
+        let txSessionLost = false;
         if ((!phaseClient && !row.balanceOk) || (balanceFailure && (balanceFailure.sessionEnded || balanceFailure.status === 401))) {
           row.transactionError = row.balanceError;
         } else try {
-          const tx = await fetchBankTransactions(jwt, uid, plan.windowStart, counted(uid, false), accountDeadline - Date.now());
+          const tx = await fetchBankTransactions(jwt, uid, plan.windowStart, counted(uid, false), accountDeadline - Date.now() - (balanceLast ? 5000 : 0));
           row.transactions = (tx.transactions || []).map(mapTransaction);
           row.count = row.transactions.length;
           row.ok = true;
@@ -365,10 +385,17 @@ Deno.serve(withCors(async (req: Request) => {
           row.readReason = tx.readReason;
           row.failureCode = tx.failureCode;
           anyAcctOk = true;
+          // Hora real del último dato del extracto (no la del saldo): lo que el cliente puede enseñar
+          // cuando el banco no da saldo intradía.
+          row.txReadAt = new Date().toISOString();
         } catch (err) {
-          failed(err);
+          const fail = failed(err);
+          txSessionLost = fail.sessionEnded;
           row.transactionError = obReadFailureCode(err);
         }
+        // Tras una autorización cerrada en el extracto no se hace otra llamada con ella. Un 401 suelto sí
+        // lee el saldo, como antes (la sesión se averigua una vez por enlace más abajo).
+        if (balanceLast && !txSessionLost) await readBalance();
         if (!row.ok) row.error = row.transactionError;
         acctOut.push(row);
       }
@@ -412,9 +439,27 @@ Deno.serve(withCors(async (req: Request) => {
       const legacyHold = !phaseClient && !allBalances;
       const allRead = !legacyHold && acctOut.length === acctList.length && acctOut.length > 0 && acctOut.every((a) => a.ok && !a.transactionError);
       const overflow = allRead && acctOut.some((a) => a.truncated && ((used[a.uid] || 0) >= OB_DEMAND_MAX_PAGES || a.count >= 2000));
+      /* DIN-04. Desbordar con un cliente que guarda el tramo YA NO sella a «ahora»: no se sabe qué
+         parte de la ventana llegó (depende del orden de páginas del banco, nuevo→antiguo o al
+         revés), y lo no leído no se volvería a pedir. El cursor se queda en el primer día pendiente
+         (`pendingCursor`) y la próxima pulsación lee solo los últimos días y recorre el resto por
+         trozos de fechas cerrados, que no dependen del orden. Si la ventana ya está en el mínimo, o el
+         cliente no pidió recuperar tramos, no hay a dónde estrechar y se sella como siempre. */
+      const shrink = overflow && plan.canShrink;
       const wantOld = recoverGaps && plan.gap && !overflow;
       const nowIso = new Date().toISOString();
-      const toNow = allRead && (!plan.gap || overflow);
+      const toNow = allRead && !shrink && (!plan.gap || overflow);
+      let pendingWritten = false;
+      if (shrink) {
+        const marker = pendingCursor(plan.from);
+        try {
+          const q = sameLinkVersion(admin.from("bank_links").update({ last_sync: marker, updated_at: nowIso }).eq("id", link.id), link);
+          // `lt`: el marcador nunca pisa un cursor más nuevo; un enlace sin cursor necesita su filtro.
+          const { error } = await (link.last_sync ? q.lt("last_sync", marker) : q.is("last_sync", null));
+          pendingWritten = !error;
+        } catch (_) { /* corte de red: sin marcador la próxima pulsación repite la ventana, no se pierde nada */ }
+        if (pendingWritten) link.last_sync = marker;
+      }
       /* ENLACE SIN CURSOR Y CLIENTE DE ACUSE (revisión del 12/10). Esperar al acuse dejaba el
          cursor en null, y un null no es «desde aquí»: es «solo la ventana de hoy». El punto de
          partida vivía entonces únicamente en el acuse del móvil que pulsó; si la siguiente
@@ -462,7 +507,7 @@ Deno.serve(withCors(async (req: Request) => {
            acepta desde ahí. Va unos días por debajo del primer día pedido (`demandFloor`).
            `balanceAt` es cuándo se leyó el saldo, que ya no coincide con last_sync mientras
            el tramo va a medias. `ack` es el cursor que el cliente devolverá. */
-        syncFrom: demandFloor(plan.windowStart), gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld,
+        syncFrom: demandFloor(plan.windowStart), gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld || pendingWritten,
         accountPhases: phaseClient ? 1 : undefined,
         balanceAt: allBalances ? nowIso : undefined,
         ack: acks && toNow ? ackToken(nowIso, linkKey) : undefined,
