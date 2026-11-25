@@ -1,13 +1,13 @@
 # Backlog oficial — Aely
 
-> Estado a 25/11/2026 sobre la **4.26.257** (beta). Lista corta y verdadera. Lo antiguo (OPS/SEC/FIN…, ya casi todo hecho) está en [BACKLOG-historico.md](BACKLOG-historico.md): no lo uses como lista de trabajo.
+> Estado a 25/11/2026 sobre la **4.26.258** (beta). Lista corta y verdadera. Lo antiguo (OPS/SEC/FIN…, ya casi todo hecho) está en [BACKLOG-historico.md](BACKLOG-historico.md): no lo uses como lista de trabajo.
 > Subir a producción solo con el OK directo de Juanjo y siguiendo `docs/RELEASE.md`.
 
 ## 1. En marcha
 
 | Qué | Estado |
 |---|---|
-| 4.26.257 en beta: «Ya pagados» solo con prueba bancaria | Hecho, en beta |
+| 4.26.258 en beta: «Ya pagados» solo con prueba bancaria | Hecho, en beta |
 | Icono «i» en Recibos, Deudas y Metas | Hecho, en rama (aún no en beta) |
 | Cascada «A dónde va tu sueldo» (4 arreglos) y «ahorro al mes» dentro de la hoja del presupuesto en curso | En marcha |
 | Capturas de errores de Juanjo | Pendientes de su envío |

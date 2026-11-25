@@ -13217,6 +13217,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
       }
     ],
     "unidades": true

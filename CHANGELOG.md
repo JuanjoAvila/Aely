@@ -1,7 +1,8 @@
-## [4.26.257] — 2026-11-25 · Candidata de beta, solo web: «Ya pagados» del Plan solo con prueba del banco y con la misma cifra que su lista
+## [4.26.258] — 2026-11-25 · Candidata de beta, solo web: «Ya pagados» del Plan solo con prueba del banco y con la misma cifra que su lista
 
 - **Qué lleva (sobre la 4.26.256, fad0a6bba).** Decisión del dueño (24/11): «siempre tiene que haber prueba bancaria». La pastilla «Ya pagados» de la cabecera del Plan (`pillPagado`, `14-v4-screens.js`) sumaba `pack.paidBillsTotal`, que cuenta también marcas a mano o `paidYm` sin movimiento del banco y el importe previsto; ahora enseña `v.paidTotal` (`planRecibosVista`), la misma cifra que la fila «Ya pagados · N» de abajo: solo lo que no va a «Para revisar» y con lo que cobró de verdad el banco. Explica los 0,58 € de diferencia que vio el dueño (1.183,55 € frente a 1.182,97 €). Motor intacto.
 - **Tests.** `plan-cover` (147 y 346): la celda dice «Ya pagados 0,00» con una marca sin prueba; `recibos-ya-pagados-banco` comprueba que con cargo del banco suma y que pastilla y fila coinciden. Catálogo256 pasa a histórico (`sourceBeta256`) y Catálogo257 abre la nota; `revisar-beta` cuenta la 257. Sin APK nueva; Inicio no se toca.
+- **258 sobre la 257 sin servir.** La integración (icono i, cascada, backlog) metió código tras la 257, así que se re-numera como 258 (la 257 nunca se sirvió; Catálogo258 sigue contando desde la 256 servida). Registro de beta: solo el pin de `uid` en inc-2909-02 (el Dashboard nuevo lo llama). Tope minificado a 2143 KiB.
 
 ## [4.26.256] — 2026-11-24 · Candidata de beta, solo web: cifras del Plan que cuadran, cabecera sin fila Libre/Entran y arreglos de las hojas de deuda y meta
 

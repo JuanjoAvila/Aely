@@ -551,7 +551,8 @@ const PRESUPUESTO = {
   // minificado sobre la 252 (2134 KiB medidos, gzip 586). Mismo mandato del 11/10: al mínimo redondo con aire: 2137 KiB; el gzip sigue en 588.
   // 4.26.255 (24/11/2026): tanda de diseño de Plan (hojas de añadir, cascada de «A dónde va tu sueldo», fichas de deuda): 2137,2 KiB minificados y 587 de gzip
   // con la build sellada, justo por encima del tope (la CI de beta paró en «Ensamblar y sellar»). Mismo mandato del 11/10: al mínimo redondo con aire: 2140 KiB.
-  minificado: 2140 * 1024,
+  // 4.26.258 (25/11/2026): integración del icono «i», la cascada del Plan y el ahorro editable del presupuesto: pasa de 2140 KiB por poco; al mínimo redondo con aire: 2143 KiB.
+  minificado: 2143 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
