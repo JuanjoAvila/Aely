@@ -27,6 +27,14 @@ hecho**. Cada cierre se comprobó contra `CHANGELOG.md`, `git log origin/beta`, 
 
 ## Pendiente
 
+### Hallazgos de la integración 4.26.256 (24/11/2026, sobre la 4.26.255)
+
+- **H1 (P2, dinero, motor).** Encender, apagar y volver a encender el interruptor «Restar del presupuesto» de una META en el mismo mes acredita dos veces (ya pasaba con la tarjeta vieja «Ahorro mensual»; es del motor de reservas, no de la hoja). Depende de: Claude (código).
+- **H2-H4 (P3).** El interruptor de una meta ya cumplida se ve encendido aunque no reserve nada. Depende de: Claude (código).
+- **H5 (verificar).** `quedaPagar` frente a la tarjeta de Recibos no está probado en ciclos que cruzan de mes.
+- **H6 (verificar).** Posibles duplicados (`possibleDup`) se tratan distinto en Plan y en Gastos al netear «otros ingresos».
+- **H7 (P3, diseño).** Con letra enorme, la línea «Desde jul 2029 · Préstamo del piso · −260 €/mes» de la ficha de deuda puede partirse (espacio normal dentro de «−260 €/mes»; cambiarlo a espacio duro en `cap` de 18-plan-deudas-metas.js). Revisión de diseño 4.26.256: sin P1; en las hojas de crear deuda y meta puede verse un aviso viejo sobre el teclado; en la meta, «Necesitas X €/mes», «Apartas» y el «€ al mes» del interruptor son cifras distintas (plan, regla y ritmo) sin explicación; con el interruptor apagado la ficha de deuda redacta el efecto como si ya estuviera aplicado.
+
 ### Siguiente ronda (tras producción de la 229, pedido del dueño 11/11/2026)
 
 | ID | Qué falta y por qué | Depende de |
