@@ -1,257 +1,49 @@
-# Backlog operativo — Aely
+# Backlog oficial — Aely
 
-**Traspaso propio con confirmación (PR 341, integrada en la 4.26.210, 01/11/2026).** Pareja exacta 1 a 1 entre bancos propios, pregunta explícita en ficha, NO por UUID y SÍ limitado a categoría saliente. Revisión independiente de dinero GO con remates (R2 sobre 87e59acdb). Las cuotas recuperan literalmente el comportamiento base sin esperar ACK; banco, duplicado y recibo conservan el CAS con reintento único sólo por NO concurrente. Límites aceptados: no hay transacción con la contraparte; clientes antiguos y los dos writers de deuda restaurados pueden borrar un rechazo remoto desconocido y reofrecer la pregunta, nunca decidir por la persona. Véanse mapa de writers en arquitectura y CHANGELOG. Pendiente de su veredicto en el móvil (tanda traspaso-propio-confirmado).
+> Estado a 25/11/2026 sobre la **4.26.257** (beta). Lista corta y verdadera. Lo antiguo (OPS/SEC/FIN…, ya casi todo hecho) está en [BACKLOG-historico.md](BACKLOG-historico.md): no lo uses como lista de trabajo.
+> Subir a producción solo con el OK directo de Juanjo y siguiendo `docs/RELEASE.md`.
 
-**PR 345 (integrada en la 4.26.211, 01/11/2026): oferta estable y confirmable.** La ficha sólo muestra «¿Lo enviaste a otra cuenta tuya?» tras leer ambas identidades remotas exactas (`cloud.canConfirmOwnTransfer`, lectura sin guards de subida); mientras la comprobación está pendiente o falla, incluido un UUID divergente, la acción no se pinta. La firma completa del plan evita repetir lecturas por cambios de estado ajenos y conserva la comprobación local de elegibilidad en cada render. Revalida al pulsar y descarta respuestas de otra ficha, propietario o plan. No realinea UUID, no escribe durante la comprobación ni cambia cuotas o el CAS/ACK final. Revisión de dinero GO (R3 en `rev-341`). Cierra el R4 de la 4.26.210. Sigue pendiente su veredicto en el móvil (tanda traspaso-propio-confirmado).
+## 1. En marcha
 
-**Limpieza del 26/10/2026, sobre beta 4.26.182 (`acae53b68`), aprobada y camino de producción.**
-Antes este fichero era una pila de cortes fechados (9/9, 25/9, 27/9, 30/9, 4/10, 7/10, 15/10,
-18/10, 19/10…) que repetían los mismos IDs hasta cinco veces con estados distintos: 449
-menciones de 126 IDs. Quien llegaba no sabía qué fila mandaba, y dos IDs se usaban para dos
-cosas distintas (PRO-09, OPS-08). Ahora hay **una lista de pendientes** y **un archivo de lo
-hecho**. Cada cierre se comprobó contra `CHANGELOG.md`, `git log origin/beta`, el código de
-`src/modules` y `supabase/functions` y los veredictos del panel que recoge el CHANGELOG.
+| Qué | Estado |
+|---|---|
+| 4.26.257 en beta: «Ya pagados» solo con prueba bancaria | Hecho, en beta |
+| Icono «i» en Recibos, Deudas y Metas | Hecho, en rama (aún no en beta) |
+| Cascada «A dónde va tu sueldo» (4 arreglos) y «ahorro al mes» dentro de la hoja del presupuesto en curso | En marcha |
+| Capturas de errores de Juanjo | Pendientes de su envío |
 
-- **Regla de lectura.** «En beta» ≤ 4.26.159 = en producción (promoción del 20/10, «adelante con
-  todo»). De la 160 a la 182 = aprobado por el dueño y pendiente solo de promocionar: el panel de
-  beta ya no enseña ninguna tanda vieja (las aprobadas salen del array; las rechazadas lo dicen
-  en el CHANGELOG y volvieron con arreglo nuevo).
-- **El detalle de antes no se ha perdido**: está en los briefs enlazados y en la historia de git
-  (`git show acae53b68:docs/BACKLOG.md`). El porqué de cada arreglo vive en el `CHANGELOG.md`.
-- **Prioridad:** P0 = va con la próxima producción o toca dinero ya; P1 = dinero o uso diario;
-  P2 = mejora o riesgo acotado; P3 = idea o decisión sin prisa. **Depende de:** dueño (decisión
-  o prueba suya), Codex/Claude (código), servidor (Edge/SQL/despliegue), APK (nativo, no viaja
-  por OTA).
-- Un punto marcado **(verificar)** no está demostrado ni hecho ni roto: se deja abierto a
-  propósito hasta que alguien lo mire en la app o en el servidor.
+## 2. Para lanzar a prod (en orden)
 
-## Pendiente
-
-### Hallazgos de la integración 4.26.256 (24/11/2026, sobre la 4.26.255)
-
-- **H1 (P2, dinero, motor).** Encender, apagar y volver a encender el interruptor «Restar del presupuesto» de una META en el mismo mes acredita dos veces (ya pasaba con la tarjeta vieja «Ahorro mensual»; es del motor de reservas, no de la hoja). Depende de: Claude (código).
-- **H2-H4 (P3).** El interruptor de una meta ya cumplida se ve encendido aunque no reserve nada. Depende de: Claude (código).
-- **H5 (verificar).** `quedaPagar` frente a la tarjeta de Recibos no está probado en ciclos que cruzan de mes.
-- **H6 (verificar).** Posibles duplicados (`possibleDup`) se tratan distinto en Plan y en Gastos al netear «otros ingresos».
-- **H7 (P3, diseño).** Con letra enorme, la línea «Desde jul 2029 · Préstamo del piso · −260 €/mes» de la ficha de deuda puede partirse (espacio normal dentro de «−260 €/mes»; cambiarlo a espacio duro en `cap` de 18-plan-deudas-metas.js). Revisión de diseño 4.26.256: sin P1; en las hojas de crear deuda y meta puede verse un aviso viejo sobre el teclado; en la meta, «Necesitas X €/mes», «Apartas» y el «€ al mes» del interruptor son cifras distintas (plan, regla y ritmo) sin explicación; con el interruptor apagado la ficha de deuda redacta el efecto como si ya estuviera aplicado.
-
-### Siguiente ronda (tras producción de la 229, pedido del dueño 11/11/2026)
-
-| ID | Qué falta y por qué | Depende de |
+| # | Paso | Quién / de qué depende |
 |---|---|---|
-| Auditoría de ciberseguridad | A fondo: cliente, CSP, Supabase (RLS y grants), Edge Functions, tokens de ingest, APK, secretos y dependencias de `public/vendor/`. | producción de la 229 |
-| Auditoría de diseño | Con la skill Impeccable: toda la app contra el sistema de diseño y el prototipo de Recibos. | producción de la 229 |
-| Auditoría de rendimiento | Toda la app a CPU ×6: fotogramas >32 ms por pantalla y gesto, tamaño del bundle y escrituras. | producción de la 229 |
-| Auditoría de funciones, textos y botones | Lo redundante, huérfano, roto o con textos largos, en los tres idiomas. | producción de la 229 |
-| Te deben: remates P2 de la revisión de dinero de la 228 | Un hermano con los dos apellidos del titular no casa; una transferencia a un tercero ±2 días tapa un Bizum legítimo; dos fuentes no-banco del mismo ingreso cuentan doble (con tope en lo debido). | — |
-| Lo que entra: decisiones abiertas de la 230 | Que decida el dueño: (1) el nombre «Ya ha entrado» también para traspasos; (2) traspasos y entradas siguen en dos secciones (el prototipo las junta en Todos); (3) «Lo recibí de otra forma» antes de su día no cambia el saldo (si debe significar «fuera de esta cuenta», excluirla como `fixedPagadoFuera`); (4) enlazar no cambia la categoría del movimiento en Gastos. P2-3 de la revisión: la pata que sale de un traspaso puede coger un gasto del mismo céntimo (solo lo que se ve). | — |
-| Traspasos y gemelas: decisiones abiertas de la 231 | (1) Sin nombre completo en el perfil, una transferencia a MyInvestor no se reconoce sola como traspaso. (2) Un adelanto de nómina que cruza de mes se ve enlazado pero no ancla el saldo (anclar entre meses es otro cambio de dinero). (3) Una entrada gemela se toma por la parte de la persona. (4) Lo que «Te deben» vetó no se quita a su gemela. (5) La gemela del mes siguiente sale «sin movimiento» con el adelanto ya contado en el anterior. | — |
-| Pagos a otro banco: decisiones abiertas de la 232 | (1) Una entrada en un banco cuyo dinero llega a otro se ve enlazada pero el previsto del primero la sigue sumando por calendario: lo correcto es que él cambie su cuenta («Cambiar la cuenta» lo ofrece). (2) El nombre abreviado casa solo si el nombre largo no está en el catálogo de nombres comunes; si no, el primer mes se enlaza a mano y desde ahí casa por alias. | — |
-| Auditoría del 14/11: lo que queda tras la 233 | Edge por desplegar, una función cada vez (orden en `docs/SETUP-SUPABASE.md`), y después el cliente de la confirmación de banco (`back.html`, 00-core, 11-app-main) y `BANK_REQUIRE_CONFIRM=1`. APK: lista blanca y `sha256` en `installApk`, `setIngestUrl` acotado, firma del OTA. Rendimiento: primer deslizar Plan→Cartera (hace falta traza), panel de beta fuera de la build de `main`, carga diferida. Diseño: categorías de Apuntar bajo el teclado en móviles bajos, iconos y «Amortizar» de Deudas, colores fijos del candado y de exportar. Saldos: dos cuentas manuales con la misma clave comparten los cierres antiguos. Que decida el dueño: fusionar «Ahorro mensual» con las reglas de reservar; qué botón de amortizar se queda; dónde va el ojo de ocultar importes; Round-up y Saveback en una fila; «Información básica» del perfil; la frase de «esta cuenta no llegó». | — |
-| Desplegar `ingest` (4.26.249) | Sin él, el widget con la app cerrada no cuenta el traspaso propio (con traspasos el alcance cambia y el `ingest` actual devuelve `null`) y la lectura absoluta del servidor sigue contando la llegada como ingreso. Es lo que impide poner el widget en el panel de beta. Requiere OK del dueño. | OK del dueño |
-| Desplegar `ingest` (4.26.250) | Con el interruptor «Restar del presupuesto» encendido en alguna deuda, el widget con la app cerrada no restaría su cuota del límite (`reservadoDeudas` en `presupuesto.ts`). Sin interruptor nada cambia; con él apagado (por defecto) no urge. | Media-baja |
-| Firma del OTA: remates antes de la APK 65 | M1 (`beta.yml` no refirma si la app no cambió), M2 (`npm run salud` debe comprobar que estable, beta y puente sirven `signature` y que se abre con la pública), M3 (`release:apk` escribe `sha256` en `apk.json`), M4 (`deploy.yml` con el guardián sello = manifiesto). Con el secreto `OTA_SIGNING_KEY` y la clave pública ya en `capacitor.config.json`. | secreto + APK 65 |
-| Núcleo de seguridad: pendientes de la revisión E2 | H1 (la marca «otra cuenta» no actúa en una carga en frío), H3 (`sw.js` cachea navegaciones con token en la query), H4 (SEG-08 solo limpia `settings.ingestToken` con puente nativo), H5 (rotar el token de ingest), SEG-22 PKCE con recuperación por código. `BANK_REQUIRE_CONFIRM=1` solo con la app nueva en producción y el OK del dueño; `back.html` a `main` antes. | producción |
-| Traspaso propio: falsos negativos conocidos | Salida «Movimiento»/«otros» de Trade Republic con entrada «TRANSFERENCIA DE <titular>»; dos traspasos idénticos el mismo día; un ingreso de Plan a ±2 % en el banco destino bloquea el par. Y huecos de test: el botón «No es un traspaso» solo tiene prueba unitaria. Avisar al dueño si ve caer una racha (la regla vale para todo el histórico). | decisión del dueño |
-| Pruebas: `ob-iguales-ordinal` y `sync-memoria` | El umbral de rendimiento quedó en 2× (CI daba 1,6× con el mismo código); revisar si se puede volver a 1,5× con otra medida. Filtro estricto de `sync-memoria`. | — |
+| 1 | Prueba única de todo junto en el móvil (beta) | Juanjo |
+| 2 | Servidor DIN/SEG: rama `deploy/din-seg-0032` (migración 0032, `bank-sync` con DIN-04+08, `cp_iban` DIN-01). Pasos y vuelta atrás en `E:\coord-notas\deploy-din-seg-25-11.md` | Juanjo (o con su OK); nada ejecutado |
+| 3 | Cliente DIN-07 y DIN-01 y SEG-22: aún NO están en beta (ramas `claude/din-07-lapidas`, `din-01-iban`, `seg-22-recovery-otp`); sin cliente, 0032 y `cp_iban` son inertes | Claude: cherry-pick a beta con bump |
+| 4 | SEG-22: cambiar la plantilla de email «Reset Password» en Supabase (código `{{ .Token }}`) tras tener el cliente | Juanjo |
+| 5 | Decisiones suyas: rotar el token viejo de ingesta (H5 de la revisión E2), migraciones 0029 y 0030 (sin aplicar), APK 65 (con remates de firma OTA M1-M4) | Juanjo |
+| 6 | Subida a prod | Solo con su OK directo, `docs/RELEASE.md` |
 
+## 3. Después
 
-### P0 · con la próxima producción
+| Qué | Nota |
+|---|---|
+| Ahorro en bolsas (Fondo de emergencia, Inversión, Otros) | La suma = «Ahorro al mes»; enlazadas a meta o Cartera; versión aparte; se cruza con «Metas origen» |
+| Mockup «Modo viaje» | Sin respuesta de Juanjo |
+| Fase 2 de amortizar | |
+| Instalar Deno | Para probar los `.ts` de las Edge antes de desplegar `bank-sync` |
+| Limpieza de worktrees | Solo con su OK |
+| Play Store | Siempre al final (DEC-01) |
 
-| ID | Qué falta y por qué | Depende de |
-|---|---|---|
-| Despliegues de la promoción 160-182 | Las betas posteriores a la producción 4.26.159 cambian Edge que **no se despliegan en beta**: `ingest` (inicio-mes-futuro de la 174, aportación a meta de la 172 —hasta desplegar, el widget la cuenta como gasto—, categoría Coche de la 162), `categorize` (Coche, 162) y `bank-callback` (SEC-02 F1, 180). Desplegar con Actions, una a una, tras ver Pages servido. Sin desplegar, la app está bien pero el servidor y el widget cuentan con la regla vieja. | dueño (OK) + servidor |
+## 4. Bichos conocidos (poco riesgo)
 
-### P1 · dinero y uso diario
+| Bicho | Detalle |
+|---|---|
+| H1 (P2, dinero) | Meta con el interruptor «Restar del presupuesto» apagado y encendido en el mismo mes acredita dos veces (motor de reservas) |
+| H2-H4 (P3) | Meta ya cumplida: el interruptor parece encendido aunque no reserva nada |
+| `quedaPagar` | Sin probar frente a la tarjeta de Recibos en ciclos que cruzan de mes |
+| `possibleDup` | Se trata distinto en Plan y en Gastos al netear «otros ingresos» |
+| «−260 €/mes» | Con letra enorme se parte la línea en la hoja de deuda (usar espacio duro en `cap` de `18-plan-deudas-metas.js`) |
 
-| ID | Qué falta y por qué | Depende de |
-|---|---|---|
-| Pata de Sabadell de un traspaso propio (propuesta, 31/10/2026) | En Gastos e Inicio ya no sale (4.26.198), pero NO se reconoce como traspaso: `esTraspasoPropio` solo mira ENTRADAS (≤ −200 €) sin nombre; la salida de Sabadell lleva su nombre como comercio y `categoryOfBankTx` la deja en «Otros». Hoy no cuenta solo porque Sabadell no es banco del gasto diario; si lo fuera, esos 1.550 € contarían como gasto. Propuesta: (1) la buena, que `bank-sync` pase el IBAN de la contraparte (`creditor_account`/`debtor_account` de Enable Banking) y compararlo con los `bankIban` propios → `traspaso` en las dos patas; (2) puente con confirmación, emparejar la salida con la entrada ya marcada traspaso (mismo importe al céntimo, ±2 días, banco distinto, ambas suyas) y preguntar UNA vez en la ficha; nunca automático por nombre (puede ser un bizum a otra persona). Mientras tanto: cambiar la categoría a «Traspaso» en la ficha lleva la fila al bloque nuevo. Dinero: revisión antes de tocar `expenseBucket`. | Codex/servidor + revisión de dinero |
-| Aportación mensual a inversión · candidata con confirmación (01/11/2026) | Flujo nuevo: confirmación expresa de UNA fila; los «Movimiento» sin destino siguen preguntando por fila. Solo un destino semántico original de TR, cuenta/bróker e importe exactos en céntimos, días 1-5 y BOOK permiten recurrencia posterior a confirmar y guardar. No compra participaciones ni añade cuota. Remates de PR339: consentimiento canónico ante claves jsonb reordenadas, ISIN con formato y control válidos e importe tomado de la fila confirmada. El timeout tras un UPDATE enviado converge en la siguiente lectura sin activar permiso ni repetir el UPDATE; se protege con un caso diferido sobre los flujos reales. Se valida con sintéticos; revisión, integración y móvil pendientes. **Deuda legacy conservada por decisión de coordinación:** `importObExpenses` y `histClassifyCandidates` fuerzan `inversion` por coincidencia de `monthlyInvest` con importe, sin consentimiento ni destino ni límite de días. Una compra MCC 5411 del mismo importe sale como inversión; `tests/bank-merchant-category.test.mjs` conserva expresamente ese oráculo. La regla está en el cliente, no en `mapTransaction`. El flujo nuevo no la corrige ni convierte configuración/semilla en consentimiento. | revisión de candidata + decisión del dueño sobre legacy |
-| Nómina de cada miembro (revisión R3, 26/10/2026) · **antes de producción** | El mes natural aparta la nómina de lo que devuelve margen (`claude/neto-sin-nomina`). Si la nómina de alguien NO cumple `esNomina` (≥200 €, no Bizum ni neutra, y «nómina/salario/sueldo/salary/payroll/haberes» en comercio, nota o concepto, o un ingreso periódico de Plan que case), cuenta como ingreso y su mes dice «quedan 1.500» con todo gastado: el «0 %» de INC-2909-02 otra vez. Comprobar en SOLO LECTURA, con los datos de la nube de cada cuenta de la familia, la nómina de los últimos meses; a quien no la cumpla, darle de alta el ingreso en Plan o un paso en el panel de beta. Lo mismo para la paga extra (R7: doble importe sin la palabra). | Coordinador + dueño |
-| Despliegue de `ingest` del mes sin nómina | `ingest/widget.ts` acepta los dos alcances (web anterior: bruto; web nueva: neto sin nómina), así que puede desplegarse antes o después de promocionar la web sin dejar el widget sin foto. Sin SQL ni secretos. | Servidor |
-| Cursor bancario partial/sealed + SEC-02 (13 intentos) | La PR315 (4.26.181) solo documenta y protege el contrato actual de `bank-sync`: 12 páginas buenas + un rechazo inicial de periodo. **No resuelve** que una ventana que no cabe en 12 páginas se acuse como «ahora» y deje movimientos sin volver a pedir. El prototipo de continuación por fechas sumaba bien, pero marcarlo partial/sealed retenía un BOOK viejo de 1251 céntimos frente a su corrección a 1252 y dejaba PDNG frente a BOOK con la misma referencia (la clave real banco/ref/signo suprime un cambio de céntimos). Falta un contrato de cobertura y reconciliación: conservar prefijos, corregir filas anteriores, clientes viejos, ACK perdido/replay, multicuenta, horizonte y el día indivisible que supera los límites sin fingir completitud. | Codex + servidor |
-| FIN-29 + FIN-30 (fundidos: misma lápida) | **Entra en la 4.26.191 (PR319, revisión de dinero GO); falta el veredicto del dueño en el móvil.** Renombrar ya no escribe la lápida global: alias `expenseRenameKey` con banco/cuenta/referencia, pendientes category/noCard (`expenseEditPending`) y espejo TS con fallback Gasto. Queda R4 (fila siguiente). | Codex + coordinador |
-| FIN-29/30 · R4 (revisión de dinero PR319, 28/10/2026) | Las lápidas GLOBALES de renombrados YA hechos con la versión anterior (`keyOfExpense(orig)`) siguen escondiendo la otra cuenta: la 191 deja de escribirlas pero `expenseIsTombstoned` (`00-core.js`) y `filasComoLaApp` (`presupuesto.ts`) aún las honran (Sabadell + CaixaBank 3,20 € cada uno, renombrado con la versión vieja y leído con la nueva: 640 esperados, 320 vistos). Hace falta migración (clave legacy cuya fila viva tiene `obName` y `merchant≠obName` = alias, no borrado) o asumirlo por escrito; sin migrar todavía. | Codex + coordinador |
-| Filas ya convertidas en ingreso por renombrar un negativo sin conexión (28/10/2026) | **Cerrado como NO-OP (1/11/2026): no se reparan filas históricas.** PR320 previene el fallo desde la 4.26.192. El renombrado defectuoso sobrescribía la categoría original: `expenseEditPending` guarda el destino y desaparece tras confirmarse; el alias no guarda categoría ni intención. Una fila afectada puede quedar indistinguible de un ingreso legítimo renombrado. Repararla exigiría una fuente original acreditada o auditoría de la categoría previa y evidencia de que no hubo una decisión voluntaria posterior; signo, nombre y fechas no bastan. No se añade reparación automática ni asistida: el usuario ya puede corregir la categoría de cada fila a mano. | Codex + coordinador |
-| INC-2709-09 / UX-01 (fundidos el 15/10) · lag sostenido | Hechas la vuelta a primer plano (146), Gastos r3 (175) y el gesto entre pestañas (149). **Queda:** la tarjeta de Inicio pintada a medias (hace falta adb + CDP en su móvil buscando «Tile memory limits exceeded») y los restos de Gastos v5 medidos a CPU ×6: añadir filas en tramos pequeños en vez de +`PAGE_SIZE*5` de golpe (frames >32 ms, sigue así en `04-tab-gastos.js`), el frame de ~60 ms al cambiar de sección, el recálculo de ~2.660 nodos de Plan al deslizar y virtualizar o recortar Movimientos. Medir A/B como dice AGENTS §7 bis. | Claude + dueño (su móvil) |
-| TR-LOGIN · Conectar Trade Republic (400) | La 4.26.196 (APK 63) cae al login v2 de TR (aprobación en su app o código del autenticador) cuando v1 responde 400/404/405/410/426. La causa del 400 es HIPÓTESIS (retirada de v1 por cuenta, según pytr) hasta un login real: si falla, la fila `tr_sync` de app_events trae `api`, `http` y `trCode`. Riesgo sin verificar: que v2 deje las cookies en un path que el snapshot no lea (conecta bien y el primer sync en frío pide reconectar). | dueño (probar la APK 63) |
-| SES-01 + PRO-06 (fundidos: misma fiabilidad de brókers) | Las sesiones de Trade Republic y MyInvestor duran horas (pedido 15/10). Hay telemetría (139), guardas de keepalive (OPS-07/OPS-08 CAS) y contador (136), pero nada acredita que la sesión real dure. Medida 16/10: el refresh de 30 min deja de renovarse. | servidor |
-| SEC-02 F2 fase 2 · gemelas nativas | El cliente ya lee la marca (179); el escritor de `ingest` sigue detrás de `INGEST_NATIVE_TWINS` **apagado**. Encenderlo con un móvil sin ese lector funde gemelas y cuenta doble al sincronizar Trade Republic (9,95 → 19,90), y el doble sube a la nube y al widget. Condición: todos los móviles de la familia en 4.26.179 o posterior tras promocionar, confirmado por el dueño. Aparte, el debounce de 180 s de la APK puede tragarse la segunda compra igual. [Informe](briefs/sec02-edge-limits-replay-audit.md) | dueño + servidor (+ APK para el debounce) |
-| OPS-01 (+ validación de FIN-06) | Repo frente a servidor vivo: matriz función/migración/versión activa con pruebas de contrato. Sigue sin acreditarse con un pago real la parte Wallet-divisas de `ingest` (FIN-06, cliente cerrado en 4.26.51). | servidor + dueño (un pago real) |
-| Plan › Recibos t2 · R1 residual (revisión de dinero, 28/10/2026) | Resuelto en la 4.26.201 (PR 332) el caso con lectura manual limpia. Queda: si entre teclear el saldo y pausar hubo CUALQUIER otra edición del estado (apuntar un gasto, una sync editada), la lectura deja de ser trazable y pausar sigue dejando el saldo mostrado por debajo en el importe del recibo; y un móvil sin actualizar que reanude una pausa trazable suma el importe de más. | Aceptado por ahora; revisar si se nota |
+## 5. Histórico
 
-### P2 · mejoras y riesgos acotados
-
-| ID | Qué falta y por qué | Depende de |
-|---|---|---|
-| Mes cerrado con el límite de HOY (INC-2909-02) | **Entra en la 4.26.202 (PR 336, revisión de dinero GO con remates); falta el veredicto del dueño en el móvil** (tanda `informe-mes-limite-del-mes`). Tarjeta e imagen comparten `closedMonthBudgetStats` y la foto `budgetByMonth` del año/mes de Madrid: foto ausente → «Límite de este mes no guardado», 0 → sin límite configurado, inválido → no disponible. Nunca rellena el pasado con el límite actual. Residual: un cliente sin actualizar sigue con el límite de hoy, y los meses anteriores al 18/9/2026 no tienen foto (saldrán «no guardado»). | Veredicto del dueño |
-| Mes cerrado · R3 (revisión de dinero PR 336, 01/11/2026) | Con una foto positiva que las reservas se comen del todo, la tarjeta y la imagen no dicen nada del límite (ni porcentaje ni motivo): no miente, pero queda mudo. Opcional: un motivo propio («Reservas cubrieron el límite»); necesita visto bueno del dueño por la regla de textos mínimos. | Dueño (texto) |
-| FIN-PR337 · deuda sin día / anclas duales · **APARCADO** (01/11/2026) | PR 337 en draft por decisión de Claude: diagnóstico propio [debajo](#pr337--diagnóstico-financiero-aparcado), sin GO para P2/P3 ni regla de dinero nueva. La alternativa de solo UI entró en la beta 4.26.206 (PR 338, tanda deuda-ponle-dia). Era una PR distinta solo de UI: «Sin día de cobro · ponle día» en Plan y Deudas abre el editor existente. Solo guardar voluntariamente un día aplica la regla que ya existe; abrir o cancelar conserva las cifras y el estado de la base. | Decisión financiera de Claude; PR 337 aparcada |
-| Poner TAE a una deuda con «Lo descuento» (rev. t5, R2-2, 01/11/2026) | Candidata PR 350: rechazar la transición a TAE positiva si queda una relación de descuento, incluidas pausadas/futuras; pedir quitarla del recibo y no guardar ningún cambio. Tras retirarla se permite TAE conservando el histórico pagado. Límite: un móvil con una versión antigua puede introducir TAE por sync eludiendo la guardia; esa parte pasa a «te deben» sin cambiar la cuota. No repara deudas que ya tenían TAE positiva ni cambia el modelo de dinero. Guardianes `deudas-tae-descuento` Node y navegador; revisión del remate, integración y aceptación móvil pendientes. | Codex/Claude |
-| «Lo descuento» sin cuadrar: huecos que dejó la 4.26.209 (1/11/2026) | (1) Unitario con dos deudas «Lo descuento» descuadradas en un mismo guardado (las preguntas encadenadas, R4). (2) e2e de quitar recibo y de borrar persona con descuento y deuda descuadrada (la pregunta de salida, R2). (3) Candidata separada de Deshacer en Todos: revierte el delta propio del recibo y sus deudas solo si todas las vinculadas siguen iguales (también las que no tuvieron ajuste); ante cambio, ausencia o duplicidad no restaura nada, incluido el recibo. Empieza los cinco segundos tras preguntas y commit. Guardianes nuevos en `lo-descuento-undo`; pendiente revisión financiera e integración, sin entrega acreditada. (4) «Nuevo precio» desde Para revisar (`14-v4-screens.js`) y borrar persona/recibo siguen con `deudasTrasReparto` sin preguntar por el caso de «nuevo precio»; solo se pregunta por las deudas descuadradas de un guardado. | Codex/Claude |
-| Traspaso propio: UUID distinto en la nube (R4 de rev-341, 1/11/2026) | **Cerrado en la 4.26.211 (PR 345):** con un UUID distinto en la nube la ficha ya no ofrece la pregunta. Queda vigilar en el panel que sin conexión cambiar banco/duplicado o quitar recibo desde la ficha acaba en «Sin confirmar» hasta tener red (R2-r2). |
-| Recibo anual y velo de las hojas: a vigilar en el móvil (rev-346 y rev-347, 1/11/2026) | (1) La causa del «solo veía los días» del recibo anual no está demostrada por ningún test (la cuadrícula ya se pintaba en la base); el arreglo esconde los días hasta elegir mes. Un anual antiguo sin mes (`months:[]`) esconde el día hasta elegir mes, coherente con el motor. (2) El velo de `.v4-sheet-back` pasa a `::before` con `opacity` para no repintar una capa a pantalla completa por fotograma; afecta a TODAS las hojas (Apuntar, fichas de Gastos, Deudas/Metas): el panel pide probar Apuntar y una ficha. Si en el OnePlus a 120 Hz algo parpadea, medir fotogramas, no tareas largas. Tandas recibo-anual-mes y plan-velo-fundido. |
-| Mes cerrado de Recibos · vs. con recibos «s» (R5, revisión de dinero t6-vs, 01/11/2026) | La comparación «vs. mes anterior» de la tarjeta del mes cerrado suma solo los cargos «p» (pagados con cargo del banco); un recibo «s» (pagado con marca, sin cargo) acredita el mes pero no suma (`suma` solo cuenta «p»). Si un recibo es «s» en un mes y «p» en el otro, la diferencia del vs incluye su importe. Ya pasaba con foto del mes; con `pr6SinFotoAcreditado` también en los meses sin foto. Decidir si «s» suma su importe `a` o si el vs se limita a los cargos «p» en los dos meses. | Decisión de producto |
-| Mes cerrado con el límite de HOY (INC-2909-02) | Desde `claude/neto-sin-nomina` (26/10/2026) la tarjeta de mes cerrado, la imagen del informe y las rachas comparan lo mismo que el mes en curso (gasto − ingresos sin nómina, `limiteDeStats`). Queda: la tarjeta (`03-tab-dash.js:398-399`) y la imagen (`02-ui-shared.js`) usan el límite ACTUAL en un mes pasado; las rachas ya usan el de cada mes (`budgetByMonth`). | Decisión de producto |
-| Traspasos propios con nombre, como ingreso (revisión R4, 26/10/2026) | Desde que el mes natural resta los ingresos (salvo nómina), una recarga a TR desde otra cuenta TUYA que el banco manda con tu nombre como comercio queda como «ingreso» y devuelve margen (con tope en el límite). `esTraspasoPropio` solo reconoce filas OB sin nombre que entran en una cuenta con traspaso modelado. No hay criterio seguro para ampliarlo: el cliente no recibe el IBAN de la contraparte (`mapTransaction` solo pasa nombres y concepto), no se guarda el titular de las cuentas, y «traspaso»/«transferencia» en el concepto también lo escribe un amigo. Arreglo propuesto: que `bank-sync` pase el IBAN de la contraparte y se compare con los `bankIban` de sus cuentas conectadas. **(verificar)** con sus datos reales si ocurre. | Codex/Claude + servidor |
-| FIN-03 + FIN-18 (fundidos; FIN-09 ya cerrado por FIN-19) | Identidad de gastos de extremo a extremo (UUID/origen/ACK, carreras, índice `expenses_dedup_idx` sin banco) y cerco atómico de servidor con esquema separado. **Aparcado**: FIN-19 (160) cubrió el caso visible de dos bancos el mismo día en el cliente. No migrar datos familiares ni tocar el índice sin decisión. [Arquitectura](briefs/arquitectura-identidad-gastos.md) | dueño + servidor |
-| FIN-08 + OPS-02 + INC-0310-01 (fundidos: reparar el pasado) | Daños históricos previos a la contención de 4.18.6, recuperación compartida desde copias y reservas huérfanas de reglas de Metas borradas con la versión antigua. Las tres piden inventario privado por fila, copia restaurable y propuesta revisable; nada automático al arrancar. Dependen de FIN-03. | dueño + servidor |
-| R6-2 (revisión de dinero Recibos t3, 28/10/2026) | Guardar en cada `bankTx` la hora de la sincronización que lo trajo, para que un BOOK llegado en la misma lectura del saldo cuente como ya incluido en él. Hoy `reciboEnElSaldo` solo acepta la lectura del DÍA SIGUIENTE al pago o posterior (la hora de `obBalAt` es del servidor, la de `lastBankSync` del móvil y `bankTx` no sabe en qué sincronización entró), así que lo cobrado hoy sale en «Pagado, aún sin restar del saldo» hasta una lectura de otro día, que con Open Banking a demanda puede tardar días. | Codex |
-| R2 (revisión de dinero Recibos t4, 31/10/2026) | **Entra en la 4.26.202 (PR 333, revisión de dinero GO con remates); falta el veredicto del dueño en el móvil** (tanda `plan-recibos-guardar-pagado`). Guardar sin cambiar nada (nombre, categoría, mismo día, mismo importe) un recibo pagado ya no escribe `paidYm`. Los cambios reales de día o importe «desde ahora» siguen recalculando la marca como antes. | Veredicto del dueño |
-| Recibos · Quitar desde la ficha y acuse de Deshacer (1/11/2026) | Pendiente: la puerta «Quitar» de la ficha aún no ofrece Deshacer; los remates de PR349 solo cubren Todos. También queda la limpieza del acuse simbólico retenido en memoria: requiere revisar el ciclo de confirmación sin añadir una escritura general ni comprometer concurrencia. No implementados en esta candidata. | Codex/Claude |
-| R2-1 (revisión de dinero Recibos t4, 31/10/2026) | `e2e/inicio-cargos.spec.mjs:70` («R3 recibo creado sin categoría acredita comercio clasificado de otro banco»: Netflix no salió en «Ya pagados») cayó una vez con la máquina muy cargada y no reproduce (12 de 12 en verde con `--repeat-each=4`). Si cae otra vez en la CI de beta, no tratarlo como flaky: mirar el orden de arranque de la ficha frente al cargo de Wallet. | Claude |
-| Día 31 fuera de los recibos (revisión de dinero 9/11) | `dayIn` ya recorta el 31 al último día del mes; `debtChargeDay`/`dayOf` (deudas), `flowDay` (nómina y traspasos) y los puntuales no: una hipoteca del 31 no vence en noviembre. Unificar con `dayIn` mirando el casado de cuotas (`cuotaCargoCercano`) y el saldo de cuentas manuales. | Claude |
-| FIN-28 | Un cargo sin `extId` (Wallet/MacroDroid) se puede enlazar a mano a otro recibo del mismo importe mientras el BOOK paga el suyo: sin referencia no hay con qué comparar. Baja. | Codex |
-| SEC-02 (sesión huérfana) + SEC-04 (fundidos: carreras del callback OAuth) | El callback tardío que pierde la carrera (F1, 180) deja su sesión de Enable Banking huérfana en el proveedor, sin revocar; y el callback frente a una autorización nueva sigue en estudio con `connection_version`. [Alcance](briefs/sec03-callback-atomic-state.md) | servidor + dueño (si se revoca) |
-| SEC-03 · servidor | El cliente de privacidad de logs está cerrado (4.26.57); falta la privacidad Edge/gateway por función. La retirada de cifras viejas de la historia pública del repo (commits `6fcc3e0e`/`05a8fb4f`) exige reescribir historia: **solo con decisión expresa**, nunca force-push automático. | servidor + dueño |
-| UX-03 + UX-09 + UX-10 (fundidos: el splash; UX-03 absorbió INC-2709-01) | El splash nativo sale con el verde por defecto y luego cambia al tema; debería salir con el tema desde el primer frame (guardarlo en el lado nativo). La «respiración» del logo si tarda (UX-10) ya existe en el splash web desde la 4.26.117 (verificar si basta o la quería en el nativo). Rama aparcada `wip/splash-icono-nativo`. | APK |
-| UX-2909-04 · frescura por banco (aparcada, 01/11/2026) | Auditoría estática de la base `c4cd27db0ca29e68388770dc87f30996ea9489be`: `obBalAt` conserva una fecha por banco y participa en `saldoLeidoDelBanco`/recibos; no modificarlo ni tomarlo como éxito de cada cuenta. `last_sync` es cursor y `lastBankSync` global no acredita éxito por cuenta/fase. Faltan metadatos separados de lectura aplicada y cobertura. M1 sólo de sesión aporta poco; M2 durable necesita un contrato aún no definido. Aparcada por decisión de coordinación, sin implementación ni pruebas de runtime. PR251 (ingresos) y PR310 (diseño) permanecen cerradas; no reabrirlos. | pendiente de contrato y nueva prioridad |
-| UX-17 · restos de Gastos v5 | El botón de filtros con icono de deslizadores y globito ya está desde la 4.26.200 (PR 331). Quedan solo opcionales si él lo pide: chip del límite más corto, «Pasar a Recibos» marcando los cargos ya hechos, «deshacer» en el aviso, toque sobre la hora de Filtros para releer. | Claude (+ dueño para los opcionales) |
-| PRO-09 (round-up) | Round-up de Trade Republic desde «Round up Invertido»: diseño pendiente de emparejarlo con Open Banking. Mismo ID que Pregúntame por error histórico; es otra cosa. | Codex + dueño (diseño) |
-| PRO-01 (verificar) | Meta financiada fuera del gasto corriente ([plan](briefs/plan-tanda-5-meta-gasto-mes.md)). La «aportación a meta» de la 172 saca lo aportado de lo que cuenta; falta ver si cubre también gastar desde la meta sin tocar el presupuesto. | dueño (alcance) |
-| PRO-03 (verificar) | Los recordatorios existen (víspera y 2-3 días antes); lo pedido y no hecho es que el aviso diga si el saldo previsto llega. | Codex |
-| INC-2909-02 (verificar) | 0 % al salir de Mi ciclo en la cuenta de su pareja. Hubo arreglo (4.26.73) y contraste posterior, pero nadie confirmó que el síntoma humano se fue. | dueño (que lo mire su pareja) |
-| OPS-06 + OPS-03 (fundidos: antes de la Play Store) | La «ronda de tortura» que pidió el 12/9 (rendimiento sostenido, aporrear botones, sin red, seguridad: `localStorage`, `app_events`, permisos, RLS, Edge sin autenticar; ⚠ el `applicationId` no se toca) y la beta con varios probadores sin hacerlos administradores. Va justo antes de DEC-01. | Claude/Codex + servidor |
-| OPS-05 | Higiene de PR, ramas y worktrees. Borrar ramas o worktrees siempre con permiso: puede haber trabajo sin subir. | dueño (permiso) |
-
-### P3 · ideas y decisiones sin prisa
-
-| ID | Qué es | Depende de |
-|---|---|---|
-| Widget: magnitud «uso» en el mes (revisión R5, 26/10/2026) · próxima APK | Desde el mes sin nómina el widget v2 manda en `spent` lo comparado con el límite (gasto − ingresos sin nómina), porque el nativo pinta «quedan» como límite − `spent`. Pero el título sigue «ESTE MES · GASTO» (`WidgetPeriod.labels`; `MiCarteraWidget.java:209` solo acepta `gasto` en el mes) y puede enseñar 1.436 € con 1.922 gastados, o «0 €» si entró más de lo gastado. Propuesta: magnitud nueva `uso` con «ESTE MES · USADO DEL LÍMITE» / «THIS MONTH · LIMIT USED» / «AQUEST MES · ÚS DEL LÍMIT»; la app la manda solo si el nativo declara soportarla (contrato), y si no sigue con `gasto`. Alternativa: «te quedan» en grande y el gasto bruto en la línea pequeña. | APK |
-| D-13 · Apuntar en móvil bajo con Enorme (ronda F, 19/11/2026) | Aceptado tal cual. A 360×640 con letra Enorme, la fila de pago de Apuntar queda bajo el teclado fijo y hay que desplazar la hoja para verla (así desde la 241). Las teclas se quedan en 56 px. Si molesta, la propuesta del filtro de diseño es poner el pago como chip en la fila de atajos de categoría, solo con alto ≤680 px y Enorme. Captura: `ronda-f\antes\apuntarbajo-360-claro-enorme.png`. | — (si se nota, diseño) |
-| FIN-13 | Editar importe o día del aviso de Trade Republic separa la pareja aviso/movimiento (a propósito desde 4.26.130). ¿Seguir así o conservar el vínculo? | dueño |
-| FIN-3009-04 | Reservar las cuotas obligatorias de deudas del mes y descontarlas del disponible, como las metas. Evolutivo sin diseño. | dueño (diseño) |
-| PRO-20 | Colchón / fondo de emergencia: decisiones suyas del 18/10 tomadas (opt-in por cuenta/meta/inversión, recibos obligatorios + presupuesto de vida, «aguantas N meses», vive en Plan); falta solo el diseño visual con su OK. | dueño (diseño) |
-| PRO-21 | Categorías con subcategorías (Coche → taller, ITV…). La base «Coche» ya está (162); lo demás toca filtro, límites, palabras clave e IA: diseño antes de código. | dueño (diseño) |
-| UX-19 | Cartera v5 (Cuentas · Inversiones · Bienes con el patrón de Gastos v5). Diseño con su OK antes de código. | dueño (diseño) |
-| «Traspasos previstos» y «Lo que aún entrará» en la portada de Recibos (Recibos t3, 28/10/2026) | Siguen en la portada junto a la nueva hoja «¿Te llega?», que ya enseña las entradas y traspasos anteriores al último recibo. Quitarlos es una decisión del dueño (`planRecibosFlowRow` está en `scripts/beta-sources.json` y su retirada exige tocar el registro). | dueño (diseño) |
-| FIN-34 | El widget pinta siempre en EUR aunque la app esté en otra moneda. Necesita contrato de moneda, nativo y APK nueva. | APK |
-| FIN-26 | `semana` cuenta ×4,345 en `FREQ_M` pero no entra en el calendario mensual. Hoy la UI no ofrece `semana`. | Codex |
-| PRO-04 | Exportar el informe en PDF (hoy solo imagen; el PDF que existe es de importación). Confirmar que lo quiere. | dueño |
-| PRO-05 | Aviso push de versión nueva con la app cerrada (FCM o equivalente sin dependencias nuevas). | dueño + servidor + APK |
-| PRO-07 | Pensiones y cuentas de ahorro: sin alcance ni proveedor. | dueño |
-| PRO-08 | Hogar existe ([HOGAR](HOGAR.md)); falta la validación con dos usuarios reales. | dueño |
-| PRO-09 (Pregúntame remoto) | La ayuda local está publicada; la remota sigue apagada hasta aprobar coste y que la pregunta salga del móvil. | dueño |
-| Purga de `rate_limits` | `prune_rate_limits()` existe y es manual a propósito (`0019_rate_limit.sql`); decidir si se automatiza, midiendo antes cuántas filas hay. Antes se llamaba OPS-08, ID que luego se dio a la guarda CAS. | dueño + servidor |
-| OPS-04 (verificar) | Métricas agregadas de uso: la instrumentación existe desde 4.13; falta confirmar si hay vista SQL. | servidor |
-| UX-02 / UX-06 (verificar) | Restos del pulido v4 de septiembre: perfil con menos contenido inicial, B4 (esqueletos) y B5 (repaso en tema claro). Rediseños posteriores pueden haberlos dejado sin objeto. | Claude |
-| TEC-01 / TEC-02 | Refactor financiero por dominios y claves i18n presuntamente huérfanas: aparcados a propósito. | — |
-| DEC-01 / DEC-02 / BIZ-01 | Marca, Play Store (siempre al final), monetización (precio que baja con la permanencia) e ideas opcionales. | dueño |
-
-### PR337 · diagnóstico financiero aparcado
-
-La fuente de diagnóstico A es `89e33b206a95ef8c490d8147af80dfd1b76955e1` (PR 337); el causal separado es `656f17a69acdb59a4bfd14ea51a50196157b5807`. Ninguno es fuente de la alternativa UI, que parte de `c4cd27db0ca29e68388770dc87f30996ea9489be`. No restaurar los snapshots duales ni P1 en esa rama. El diseño creció a 93 estados: P2/P3 quedan **NO-GO**, sin una política financiera nueva aceptada.
-
-Con F cuentas fijas de la misma entidad, la base acumula el neto una vez por cuenta y vuelve a aplicar ese agregado a cada principal: multiplicidad heredada F². P es `account.value`; Q sería la alternativa `anchorContract.valueV2`. Para fijos: L=P+F·(K+D), V=Q+F·K+N; K conserva los términos existentes, D la deuda sin día de calendario y N el débito probado de la cuenta identificada. El contrato V2 propuesto protege identidad, campos propios y Q, pero no F ni las demás cuentas: añadir/promover una cuenta puede dejar marcas antiguas estructuralmente válidas y cambiar sus cifras. Las inversas P=R−GL y Q=R−GV deben evaluarse sobre la composición final; las compensaciones de P y Q pueden diferir. Nada de esto está implementado ni aprobado como solución.
-
-Casos mixtos (BF30): si cualquier cuenta primaria fija **o diaria** de una entidad no tiene marca V2 válida, toda esa entidad conserva exactamente la base. Solo una entidad enteramente válida elegiría V; no mezclar cuentas legadas/V2, inferir titulares ni compensar entre entidades.
-
-Vector **sintético**, en céntimos: F=2, K=−2003, D=−10001; A=60008 y B=40005, total 100013. Al añadir C con lectura 30007, F=3: base L=(48004,28001,30007), total 106012; propuesta V=(58005,38002,30007), total 126014. La suma anterior más C es 130020: V difiere en −4006. Es una derivación estática de sensibilidad al número de cuentas, no una ejecución aceptada ni una política de conservación elegida. Resolver contrato de ancla V2, promociones y escritores, mezcla BF30, confirmaciones parciales y revisión de dinero antes de retomar este item. No repetir las pruebas cerradas de PR 337 por la alternativa UI.
-
-## Hecho (archivo)
-
-Una línea por punto, con dónde se cerró. Si algo vuelve, se abre un ID nuevo con su caso; no se
-reabre uno de aquí por parecido.
-
-**Dinero**
-
-- FIN-01 · efectivo al cerrar mes — 4.19.15 (`96b0fe4f`).
-- FIN-02 · el histórico perdía pagos mensuales — 4.19.16 (`f0fccc70`).
-- FIN-04 · decisiones y ediciones con dos móviles — fase 1 en 151/153, A+SAVEDAT en 170, B en 173, plazo de lectura en 176; aprobadas.
-- FIN-05 / INC-2909-01 (fundidos) · widget con app cerrada, periodo y modo — 4.26.80, `widget-app-cerrada` (4/10) y 4.26.116.
-- FIN-06 · divisa sin cambio en el cliente — 4.26.51 (validación con pago real en OPS-01).
-- FIN-07 · histórico de la nube completo — 4.26.52.
-- FIN-09 → FIN-19 · misma compra en dos bancos el mismo día — 4.26.160 (PR 288; restos en FIN-29/30).
-- FIN-10 · identidad y lápidas de Open Banking — 4.26.141.
-- FIN-11 · reintento de la lápida `ob-absorbed` — 4.26.142 (PR 266), claves v2/v3 reconciliadas después.
-- FIN-12 · financiaciones antes de existir en la gráfica — mes en 139, día en 163.
-- FIN-14 · `obAcc` en la nube — se reconstruye desde `source` al bajar (`bankRefDeSource(raw,"acc")`, `00-core.js`) desde FIN-19.
-- FIN-15 · pendiente y contabilizada contaban doble — 4.26.135 y 138.
-- FIN-16 · plazo y cuota a la vez — 4.26.139.
-- FIN-17 · registro de absorciones confirmadas — 4.26.142 (PR 267).
-- FIN-20 / FIN-21 · recibos con meses a mano y vista previa del anual — 4.26.159.
-- FIN-22 · Trade Republic en € con la moneda en USD — 4.26.161.
-- FIN-23 / FIN-24 · un cargo pagaba dos recibos del mismo importe — 4.26.159.
-- FIN-25 R1/R2 · pago ya marcado con meses repetidos y cifra mensual con importes por mes — 4.26.196 en beta (PR 325, revisión de dinero GO; cambio interno, sin tanda; pendiente de promover).
-- FIN-27 · el BOOK de tarjeta pagaba el mes siguiente — 4.26.177 (PR 308).
-- FIN-31 / FIN-32 / FIN-33 · Cartera sin tipo de cambio, GBP y eje de la proyección — 4.26.161.
-- FIN-36 / FIN-37 · deudas en hora de Madrid y validar `startDay` una vez — 4.26.174.
-- INC-0210-01 · cuota ya pagada pendiente en Plan — 4.26.86.
-- INC-0210-03 · categorías por periodo en Gastos — 4.26.86.
-- INC-0310-01 · borrar regla de Meta conservaba el descuento — corrección hacia delante (lo histórico sigue en FIN-08).
-- INC-0410 · Metas: máximo tres en Inicio (96), editar regla (108), conflictos de escritura (141) y plan con dos móviles (173).
-- INC-1810-02 · renombrar recibo rompía su pago — 4.26.144 (vínculos ya rotos se rehacen a mano).
-- INC-1810-03 / INC-1810-04 (fundidos: misma regla de ✓ solo con cargo real) · cuota y YouTube — 145, rechazos en 148 y 155, `youtube-r4` en 158.
-- INC-1910-01 · bajar la cuota ofrece alargar el plazo — 4.26.147.
-- INC-2709-04 · crash de Cuotas de deuda — 4.26.59.
-- INC-2709-05 · cifras incompatibles Inicio/Gastos — superada por 66, 73, 78 y 126.
-- INC-2709-06 · cargos de CaixaBank — sin quejas de nadie de la familia a 19/10; vigilar.
-- INC-2809-01 · Inicio y Mi ciclo — 4.26.66.
-- INC-2909-03 · retirada de CaixaBank sin salida — 4.26.79 (+`withdrawalConfirmedAt` en 134).
-- INC-3009-01 · gas pagado en Próximos cargos — 4.26.71/74.
-- INC-3009-02 · nómina Sabadell anticipada — 4.26.78.
-- FEATURE-0210-01 · Gasolina y Taxi — 4.26.86.
-- Saldo de cuenta (PR 268) — 4.26.142.
-- inicio-mes-futuro · un apunte del mes que viene cuenta en su mes — 4.26.174 (el `ingest` va en P0).
-- Aportación a meta desde la ficha del gasto — 4.26.172 (el `ingest` va en P0).
-
-**Uso diario y pantallas**
-
-- INC-0710-01 · salto de scroll en Plan — 4.26.124.
-- INC-0810 · Perfil → Ajustes → cerrar sacaba de la app — ya corregido en beta `f695a299` (12/10).
-- INC-0810 · Recientes de Inicio — 4.26.106.
-- INC-1710 · separación de modos — 4.26.142 (PR 265).
-- INC-1810-01 · Guardar de Deudas no respondía — NO_REPRO, guardián e2e en 4.26.177 (PR 309); lo de bajar la cuota era INC-1910-01.
-- INC-2709-01 → UX-03 · arranque con poca red — 4.26.69 (el splash sigue en P2).
-- INC-2709-02 · deudas terminadas: confirmar y archivar — 4.26.70.
-- INC-2709-03 / UX-08 (fundidos) · ola nativa en Gestionar plan — `gestionar-plan-ola-r2`, 4.26.153.
-- INC-2709-07 · Bienes con toque y edición — 4.26.111 y 113.
-- INC-2709-08 · ordenar brókers manteniendo pulsado — 4.26.147.
-- INC-2709-10 · casillas gigantes del perfil — 4.26.77.
-- INC-2709-11 · anillo de Inicio recortado — rediseño v42 (respuesta del dueño 19/10).
-- INC-2709-12 · línea Cyberpunk sobre el + — 4.26.77.
-- INC-2709-13 / UX-06 · círculo del + e indicador — 4.26.98 y 107.
-- INC-2709-14 · botón Preguntar — 4.26.77.
-- INC-2709-15 · botones de suscripciones — obsoleto: esa zona ya no existe.
-- INC-2809-02 · ayuda de Mi ciclo plegable — 4.26.68.
-- UX-04 · mensaje de bancos y acceso superior — 9/9.
-- UX-05 · un solo filtro en el histórico de bancos — 9/9 (`bancos-historico-filtro`).
-- UX-07 · temas Primavera, Otoño y Cyberpunk — publicados.
-- UX-11 · saltito vertical tras cerrar una hoja — NO_REPRO en 48 casos (19/10); con un vídeo suyo se abre de nuevo.
-- UX-12 · Deudas y Metas al estilo v4 — 4.26.138 y 141.
-- UX-13 · Atrás con teclado cierra solo el teclado — 4.26.141.
-- UX-14 · deslizar rápido entre pestañas — 4.26.149.
-- UX-15 · «Sincronizar» de Gastos — renombrado en 138 y retirado en 169 (decisión del 20/10).
-- UX-16 · vibración — ronda 6 aprobada en 4.26.157 (el ajustador sigue solo en beta).
-- UX-17 · Gastos v5, tandas 1 a 6 — 4.26.164 a 172, más el lag r3 en 175; restos en P1/P2/P3.
-- UX-18 · idioma recibido de otro móvil — 4.26.178.
-- PRO-02 · fin de mes en paz — sustituido por 125, 126 y 134.
-- REC-GUARDADO-01 y Atrás en el alta de Recibos — 4.26.48 y 47.
-- BRAND-01 · la app se llama Aely — web, `app_name` nativo, icono A-Dot y APK `Aely-*.apk`.
-
-**Servidor, seguridad y operación**
-
-- SEC-01 · validar entradas Edge — `delete-account` explícito en `config.toml` y once funciones leen el cuerpo por `_shared/request_body.ts` (tope de tamaño); `ingest` y `help-assistant` tienen tope propio (413) y `prices` corta a 25 símbolos validados.
-- SEC-02 F1 · el callback tardío ya no pisa una reconexión — 4.26.180 (despliegue en P0).
-- SEC-02 F3 · contrato 12+1 de `bank-sync` documentado y con guardianes — 4.26.181 (lo que no resuelve está en P1).
-- SEC-03 · privacidad de logs en el cliente — 4.26.57 (lo de servidor sigue en P2).
-- OPS-07 · `myinvestor-keepalive` sin guarda — ya guarda por `refresh_token` leído (`.eq("refresh_token", …)`, código `raced`).
-- OPS-08 · guarda CAS de refresh entre keepalive y sync — lote del 18/10.
-- OPS-0410 · cola del panel beta y coste de tests — 4.26.93.
-- OPS-3009-03 · reconciliar panel tras producción — superado: el panel se reconcilia en cada bump.
-
-### Cierre del día · 27 de septiembre de 2026
-
-Este ancla la cita `docs/ROADMAP.md`. Aquel corte (las 14 incidencias INC-2709 y la tabla de
-estado de todos los objetivos) está entero en `git show acae53b68:docs/BACKLOG.md`; cada una de
-sus filas ya está arriba, en Pendiente o en este archivo.
-
-## Cierre de cada encargo
-
-Registrar **ID, base, SHA/PR, prueba que reproducía el fallo, resultado después, revisión ajena,
-CI y versión realmente publicada**, o el bloqueo concreto. Al cerrar, la línea pasa de Pendiente
-a «Hecho (archivo)» con su versión: no se escribe un corte fechado nuevo encima, que es lo que
-convirtió este fichero en una pila ilegible. Sin datos personales en el repo público.
-Implementado no significa probado en Android ni desplegado en Supabase.
+Todo lo anterior (OPS, SEC, FIN, PRO, tablas «Hecho», cierres) está en [BACKLOG-historico.md](BACKLOG-historico.md), sin tocar. Antes de reabrir un ID viejo, compruébalo contra `CHANGELOG.md` y el código.
