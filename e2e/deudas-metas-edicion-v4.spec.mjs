@@ -269,7 +269,7 @@ for(const kind of ["debt","goal"])test(`apertura de la hoja de ${kind==="debt"?"
  await page.waitForTimeout(150);await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});
  const rec=await page.evaluate(()=>window.__apertura),shown=rec.frames.filter(f=>f.sheet!=null);
  expect(rec.mounts).toBe(1);expect(rec.unmounts).toBe(0);
- expect(new Set(rec.frames.map(f=>Math.round(f.card))).size).toBe(1);expect(new Set(rec.frames.map(f=>f.scroll))).toEqual(new Set([150]));
+ expect(new Set(rec.frames.map(f=>Math.round(f.card))).size).toBe(1);{const sc=new Set(rec.frames.map(f=>f.scroll));/* El Plan sin la fila Libre/Entran es más corto: 150 puede topar con el final de la página (146 y 130 medidos), así que lo que importa es que el fondo no se mueva y que haya recorrido real. */expect(sc.size).toBe(1);expect([...sc][0]).toBeGreaterThan(100);}
  expect(shown.length).toBeGreaterThan(3);
  for(let i=1;i<shown.length;i++)expect(shown[i].sheet,"la hoja nunca retrocede al subir").toBeLessThanOrEqual(shown[i-1].sheet+0.5);
  const look=await sheet.evaluate(el=>{const host=el.parentElement,pseudo=getComputedStyle(host,"::before"),paint=(pseudo.content!=="none"&&pseudo.content!=="normal")?pseudo.backgroundColor:getComputedStyle(host).backgroundColor,back=paint.match(/[\d.]+/g).map(Number);return {sheet:el.classList.contains("v4-sheet"),back:host.classList.contains("v4-sheet-back"),alpha:back.length>3?back[3]:1,duration:parseFloat(getComputedStyle(el).animationDuration)};});

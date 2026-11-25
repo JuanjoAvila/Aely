@@ -62,7 +62,8 @@ test("Metas: la regla de ahorro mensual es el interruptor de la hoja, sin la apo
   await expect(fichaMeta).toContainText("100");
   await fichaMeta.locator(".rpt-sx").click();
   await expect(fichaMeta).toHaveCount(0);
-  await expect(metas(page).getByRole("button", { name: "Añadir ahorro" })).toBeVisible();
+  // Sin tarjeta de reglas, tampoco su botón «Añadir ahorro»: la regla se enciende en la hoja de cada meta.
+  await expect(metas(page).getByRole("button", { name: "Añadir ahorro" })).toHaveCount(0);
   // Plan A: «Aportar» vive en el pie de la ficha de la meta.
   await metas(page).locator('[data-goal-id="g-con"]').click();
   await expect(page.getByTestId("plan-meta-ficha").locator('[data-act="ficha-aportar"]')).toBeVisible();

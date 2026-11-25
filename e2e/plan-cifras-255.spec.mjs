@@ -30,14 +30,14 @@ async function abre(page, est) {
   await page.waitForFunction(() => !document.getElementById("mc-load"));
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.getByTestId("plan-reparto-barra")).toBeVisible();
+  await expect(page.getByTestId("plan-reparto-chip")).toBeVisible();
 }
 
 test("1 · «Queda por pagar» de la hoja es la cifra de la tarjeta de Recibos y «Te quedaría» sale de ella", async ({ page }) => {
   await abre(page, estado(false));
   const tarjeta = cts(await page.getByTestId("plan-summary").locator(".pr6-big").innerText());
   expect(tarjeta).toBe(24781);
-  await page.getByTestId("plan-reparto-barra").click();
+  await page.getByTestId("plan-reparto-chip").click();
   const pend = page.getByTestId("plan-reparto-pend");
   await expect(pend).toContainText("Recibos y cuotas por pagar");
   const v = await pend.locator(".rpt-kv b").allInnerTexts();
@@ -48,7 +48,7 @@ test("1 · «Queda por pagar» de la hoja es la cifra de la tarjeta de Recibos y
 
 test("2 · el Plan gasta el neto de Gastos: 881,08 − 140,35 = 740,73", async ({ page }) => {
   await abre(page, estado(false));
-  await page.getByTestId("plan-reparto-barra").click();
+  await page.getByTestId("plan-reparto-chip").click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   // Entran la nómina (3.333), no los Bizums de las comidas: ya devolvieron margen a Gastos.
   await expect(page.getByTestId("plan-reparto-entra")).toContainText(/3\.333,00/);
@@ -74,7 +74,7 @@ test("3 · «Restar del presupuesto» encendido en la ficha: Gastos baja el lím
   await expect(ficha).toHaveCount(0);
   // Plan: el límite baja 174,48 (825,52) y el gastado neto (740,73) cabe: 84,79 de margen.
   await page.locator('.v4-seg-btn[data-seg="recibos"]').click();
-  await page.getByTestId("plan-reparto-barra").click();
+  await page.getByTestId("plan-reparto-chip").click();
   await page.getByTestId("plan-reparto-hoja").locator('.cas-row[data-k="gas"]').click();
   const det = page.getByTestId("plan-reparto-detalle");
   await expect(det).toContainText(/740,73/);
