@@ -29267,6 +29267,8 @@ function applyReservaMensual(state, nowMs, onlyId){
   const clave=reservaMensualClave(now);
   const hechos=Object.create(null);
   (state.reservaLog||[]).forEach(function(x){ if(x&&typeof x.id==="string") hechos[x.id]=true; });
+  const vivas=Object.create(null);
+  ((state.settings&&state.settings.reservaRules)||[]).forEach(function(q){ if(q&&q.id) vivas[q.id]=true; });
   let goals=state.goals||[];
   const nuevos=[];
   rules.forEach(function(r){
@@ -29276,16 +29278,27 @@ function applyReservaMensual(state, nowMs, onlyId){
     const imp=reservaMensualImporte(st,r);
     if(imp.amount==null) return;
     hechos[id]=true;
+    /* Apagar y encender el interruptor de una meta el mismo mes crea una regla NUEVA (otro id) para la misma meta: sin esto
+       acreditaba otra vez lo que la anterior ya había aportado (H1). Lo que ya aportaron y reservaron las reglas ya borradas de
+       ESA meta este mes se descuenta: la meta solo recibe la diferencia y el presupuesto solo vuelve a bajar lo que quedó libre.
+       Sin asiento que escribir no se acredita nada (el asiento es lo que impide repetir el abono). */
+    let yaAportado=0, yaReservado=0;
+    (state.reservaLog||[]).forEach(function(x){
+      if(!x||x.goalId!==r.goalId||x.mensual!==clave||typeof x.amount!=="number"||!isFinite(x.amount)||vivas[x.ruleId]) return;
+      yaReservado+=x.amount; if(x.amount>0&&!x.releaseOf) yaAportado+=(typeof x.aportado==="number"&&isFinite(x.aportado)?x.aportado:x.amount);
+    });
+    const aporta=Math.max(0,+(imp.amount-yaAportado).toFixed(2)), reserva=Math.max(0,+(imp.amount-yaReservado).toFixed(2));
+    if(!(reserva>0)) return;
     goals=goals.map(function(g){
-      if(g.id!==r.goalId) return g;
-      const ns=+((g.saved||0)+imp.amount).toFixed(2);
+      if(g.id!==r.goalId||!(aporta>0)) return g;
+      const ns=+((g.saved||0)+aporta).toFixed(2);
       return Object.assign({},g,{saved:ns, done:ns>=g.target, doneAt:(ns>=g.target&&!g.doneAt)?new Date(now).toISOString():g.doneAt});
     });
     const g0=(state.goals||[]).find(function(g){ return g.id===r.goalId; });
     // `incomeKey` lleva la misma identidad: es lo que exige la reversión al borrar la regla y
     // nunca coincide con la clave de un ingreso real, que empieza por su fecha.
-    nuevos.push({ id:id, ruleId:r.id, goalId:r.goalId, name:r.name||(g0&&g0.name)||"", amount:imp.amount,
-      date:new Date(now).toISOString(), incomeKey:id, mensual:clave });
+    nuevos.push({ id:id, ruleId:r.id, goalId:r.goalId, name:r.name||(g0&&g0.name)||"", amount:reserva,
+      date:new Date(now).toISOString(), incomeKey:id, mensual:clave, aportado:aporta });
   });
   if(!nuevos.length) return state;
   return Object.assign({},state,{goals:goals, reservaLog:(state.reservaLog||[]).concat(nuevos)});
@@ -32077,6 +32090,11 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
 /* Hoja de meta: la comparten el alta y la edición para que sean la misma (objetivo grande y teclado propio como en
    Añadir recibo; ya ahorrado y fecha en celdas; «al mes» plegado; emoji junto al nombre). La fecha usa el calendario
    de la app y no el selector de mes nativo, que salía sin estilo (filtro 253). `attr` es el data-* que ya usaban los e2e. */
+// ¿El borrador de la hoja deja la meta cumplida (ahorrado >= objetivo)? Es lo que decide si hay interruptor.
+function metaFormCumplida(form){
+  const tg=parseFloat(String(form.target).replace(',','.'))||0, sv=parseFloat(String(form.saved).replace(',','.'))||0;
+  return tg>0&&sv>=tg;
+}
 function GoalHoja({form,setForm,attr,title,onClose,closer,ctaLabel,ctaOn,onSave,notes,del,state}){
   const [dlCal,setDlCal]=useState(false), [emoOpen,setEmoOpen]=useState(false);
   const set1=function(patch){ setForm(function(o){ return Object.assign({},o,patch); }); };
@@ -32092,7 +32110,8 @@ function GoalHoja({form,setForm,attr,title,onClose,closer,ctaLabel,ctaOn,onSave,
     ctaOn:ctaOn,ctaLabel:ctaLabel,onSave:onSave,notes:notes,del:del},
     // «Restar del presupuesto»: lo que antes era la tarjeta «Ahorro mensual» (una regla de reserva por meta), ahora dentro de la hoja
     // y con el mismo interruptor que las deudas. Aparta el «Al mes» de la meta de tu presupuesto.
-    state&&React.createElement(RptRestarHoja,{state:state,on:form.restarPres===true,
+    // Una meta ya cumplida no reserva nada: sin interruptor (como en las deudas liquidadas), no uno que parezca encendido (H2-H4).
+    state&&!metaFormCumplida(form)&&React.createElement(RptRestarHoja,{state:state,on:form.restarPres===true,
       sub:(function(){ const m=planEditNumber(form.monthly,true); return m>0?tf("rpt_resta_s",{x:rptC(Math.round(m*100))}):t("rpt_m_sin_ritmo"); })(),
       onToggle:function(){ set1({restarPres:!(form.restarPres===true)}); }}),
     emoOpen&&React.createElement("div",{className:"emoji-pick"},emojis.map(function(e){
@@ -32117,12 +32136,16 @@ function metaReservaSync(s,goalId,on,monthly,ruleId){
 }
 function metaTieneRegla(state,goalId){ return ((state.settings&&state.settings.reservaRules)||[]).some(function(r){ return r&&r.goalId===goalId; }); }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
-  const [form,setForm]=useState(function(){ return Object.assign(goalEditDraft(goal),{restarPres:metaTieneRegla(state,goal.id)}); });
+  const [form,setForm]=useState(function(){ return Object.assign(goalEditDraft(goal),{restarPres:metaTieneRegla(state,goal.id)&&reservaMetaActiva(state,goal.id)}); });
   const closer=useRef(null), ruleId=useRef(uid()).current, formRef=useRef(form); formRef.current=form;
+  const inactivaAlAbrir=useRef(!reservaMetaActiva(state,goal.id)).current;
   // Las reglas se ajustan cuando la meta ya se ha guardado (la regla necesita su meta viva); si el guardado se rechaza, no se toca nada.
   const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:function(){
     const f=formRef.current, m=planEditNumber(f.monthly,true);
-    set(function(s){ return metaReservaSync(s,goal.id,f.restarPres===true,m,ruleId); });
+    // Meta ya inactiva al abrir y sin tocar nada: sus reglas no se tocan (no hay interruptor que las represente). Meta activa que el borrador deja cumplida: deja de reservar.
+    if(inactivaAlAbrir&&f.restarPres!==true){ closer.current?closer.current():onClose(); return; }
+    const on=f.restarPres===true&&!metaFormCumplida(f);
+    set(function(s){ return metaReservaSync(s,goal.id,on,m,ruleId); });
     closer.current?closer.current():onClose(); },showToast:showToast});
   const aportado=metaConAportes(goal,state).aportado;
   return React.createElement(GoalHoja,{title:t("gl_edit_title"),form:form,setForm:setForm,attr:"data-goal-field",onClose:onClose,closer:closer,state:state,
@@ -36768,7 +36791,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="32235cc344d6974aa095878d6555ae752dc1580266e67dc02941c8e1f738b5e4";
+var _rnSha="4f6b30bd18111099558d8fb3aafe146a0d5c609fb858ef3ad57d1ad3ab738995";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

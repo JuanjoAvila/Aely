@@ -474,6 +474,11 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,onAmortize,showToast,rev
 /* Hoja de meta: la comparten el alta y la edición para que sean la misma (objetivo grande y teclado propio como en
    Añadir recibo; ya ahorrado y fecha en celdas; «al mes» plegado; emoji junto al nombre). La fecha usa el calendario
    de la app y no el selector de mes nativo, que salía sin estilo (filtro 253). `attr` es el data-* que ya usaban los e2e. */
+// ¿El borrador de la hoja deja la meta cumplida (ahorrado >= objetivo)? Es lo que decide si hay interruptor.
+function metaFormCumplida(form){
+  const tg=parseFloat(String(form.target).replace(',','.'))||0, sv=parseFloat(String(form.saved).replace(',','.'))||0;
+  return tg>0&&sv>=tg;
+}
 function GoalHoja({form,setForm,attr,title,onClose,closer,ctaLabel,ctaOn,onSave,notes,del,state}){
   const [dlCal,setDlCal]=useState(false), [emoOpen,setEmoOpen]=useState(false);
   const set1=function(patch){ setForm(function(o){ return Object.assign({},o,patch); }); };
@@ -489,7 +494,8 @@ function GoalHoja({form,setForm,attr,title,onClose,closer,ctaLabel,ctaOn,onSave,
     ctaOn:ctaOn,ctaLabel:ctaLabel,onSave:onSave,notes:notes,del:del},
     // «Restar del presupuesto»: lo que antes era la tarjeta «Ahorro mensual» (una regla de reserva por meta), ahora dentro de la hoja
     // y con el mismo interruptor que las deudas. Aparta el «Al mes» de la meta de tu presupuesto.
-    state&&React.createElement(RptRestarHoja,{state:state,on:form.restarPres===true,
+    // Una meta ya cumplida no reserva nada: sin interruptor (como en las deudas liquidadas), no uno que parezca encendido (H2-H4).
+    state&&!metaFormCumplida(form)&&React.createElement(RptRestarHoja,{state:state,on:form.restarPres===true,
       sub:(function(){ const m=planEditNumber(form.monthly,true); return m>0?tf("rpt_resta_s",{x:rptC(Math.round(m*100))}):t("rpt_m_sin_ritmo"); })(),
       onToggle:function(){ set1({restarPres:!(form.restarPres===true)}); }}),
     emoOpen&&React.createElement("div",{className:"emoji-pick"},emojis.map(function(e){
@@ -514,12 +520,16 @@ function metaReservaSync(s,goalId,on,monthly,ruleId){
 }
 function metaTieneRegla(state,goalId){ return ((state.settings&&state.settings.reservaRules)||[]).some(function(r){ return r&&r.goalId===goalId; }); }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
-  const [form,setForm]=useState(function(){ return Object.assign(goalEditDraft(goal),{restarPres:metaTieneRegla(state,goal.id)}); });
+  const [form,setForm]=useState(function(){ return Object.assign(goalEditDraft(goal),{restarPres:metaTieneRegla(state,goal.id)&&reservaMetaActiva(state,goal.id)}); });
   const closer=useRef(null), ruleId=useRef(uid()).current, formRef=useRef(form); formRef.current=form;
+  const inactivaAlAbrir=useRef(!reservaMetaActiva(state,goal.id)).current;
   // Las reglas se ajustan cuando la meta ya se ha guardado (la regla necesita su meta viva); si el guardado se rechaza, no se toca nada.
   const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:function(){
     const f=formRef.current, m=planEditNumber(f.monthly,true);
-    set(function(s){ return metaReservaSync(s,goal.id,f.restarPres===true,m,ruleId); });
+    // Meta ya inactiva al abrir y sin tocar nada: sus reglas no se tocan (no hay interruptor que las represente). Meta activa que el borrador deja cumplida: deja de reservar.
+    if(inactivaAlAbrir&&f.restarPres!==true){ closer.current?closer.current():onClose(); return; }
+    const on=f.restarPres===true&&!metaFormCumplida(f);
+    set(function(s){ return metaReservaSync(s,goal.id,on,m,ruleId); });
     closer.current?closer.current():onClose(); },showToast:showToast});
   const aportado=metaConAportes(goal,state).aportado;
   return React.createElement(GoalHoja,{title:t("gl_edit_title"),form:form,setForm:setForm,attr:"data-goal-field",onClose:onClose,closer:closer,state:state,

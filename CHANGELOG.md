@@ -1,3 +1,8 @@
+## [4.26.259] — 2026-11-26 · Candidata de beta, solo web: bichos H1-H4 de las metas con «Restar del presupuesto»
+
+- **Qué lleva (sobre la 4.26.258, d687f409c).** H1 (dinero): apagar y encender el interruptor de una meta el mismo mes creaba una regla nueva y `applyReservaMensual` volvía a acreditar el ahorro; ahora descuenta lo que las reglas ya borradas de esa meta aportaron y reservaron ese mes (campo `aportado` en el asiento): la meta solo recibe la diferencia y el presupuesto vuelve a bajar lo que quedó libre. H2-H4: la hoja de una meta cumplida no enseña el interruptor (`metaFormCumplida`), no arranca encendido si la meta no está activa y guardarla no toca sus reglas.
+- **Tests.** `reserva-dinero`: ciclos apagar/encender, diferencia al subir el «Al mes», mes siguiente, otra meta, y la hoja de meta cumplida. Sin APK nueva; Inicio no se toca.
+
 ## [4.26.258] — 2026-11-25 · Candidata de beta, solo web: «Ya pagados» del Plan solo con prueba del banco y con la misma cifra que su lista
 
 - **Qué lleva (sobre la 4.26.256, fad0a6bba).** Decisión del dueño (24/11): «siempre tiene que haber prueba bancaria». La pastilla «Ya pagados» de la cabecera del Plan (`pillPagado`, `14-v4-screens.js`) sumaba `pack.paidBillsTotal`, que cuenta también marcas a mano o `paidYm` sin movimiento del banco y el importe previsto; ahora enseña `v.paidTotal` (`planRecibosVista`), la misma cifra que la fila «Ya pagados · N» de abajo: solo lo que no va a «Para revisar» y con lo que cobró de verdad el banco. Explica los 0,58 € de diferencia que vio el dueño (1.183,55 € frente a 1.182,97 €). Motor intacto.

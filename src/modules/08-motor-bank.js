@@ -4907,6 +4907,8 @@ function applyReservaMensual(state, nowMs, onlyId){
   const clave=reservaMensualClave(now);
   const hechos=Object.create(null);
   (state.reservaLog||[]).forEach(function(x){ if(x&&typeof x.id==="string") hechos[x.id]=true; });
+  const vivas=Object.create(null);
+  ((state.settings&&state.settings.reservaRules)||[]).forEach(function(q){ if(q&&q.id) vivas[q.id]=true; });
   let goals=state.goals||[];
   const nuevos=[];
   rules.forEach(function(r){
@@ -4916,16 +4918,27 @@ function applyReservaMensual(state, nowMs, onlyId){
     const imp=reservaMensualImporte(st,r);
     if(imp.amount==null) return;
     hechos[id]=true;
+    /* Apagar y encender el interruptor de una meta el mismo mes crea una regla NUEVA (otro id) para la misma meta: sin esto
+       acreditaba otra vez lo que la anterior ya había aportado (H1). Lo que ya aportaron y reservaron las reglas ya borradas de
+       ESA meta este mes se descuenta: la meta solo recibe la diferencia y el presupuesto solo vuelve a bajar lo que quedó libre.
+       Sin asiento que escribir no se acredita nada (el asiento es lo que impide repetir el abono). */
+    let yaAportado=0, yaReservado=0;
+    (state.reservaLog||[]).forEach(function(x){
+      if(!x||x.goalId!==r.goalId||x.mensual!==clave||typeof x.amount!=="number"||!isFinite(x.amount)||vivas[x.ruleId]) return;
+      yaReservado+=x.amount; if(x.amount>0&&!x.releaseOf) yaAportado+=(typeof x.aportado==="number"&&isFinite(x.aportado)?x.aportado:x.amount);
+    });
+    const aporta=Math.max(0,+(imp.amount-yaAportado).toFixed(2)), reserva=Math.max(0,+(imp.amount-yaReservado).toFixed(2));
+    if(!(reserva>0)) return;
     goals=goals.map(function(g){
-      if(g.id!==r.goalId) return g;
-      const ns=+((g.saved||0)+imp.amount).toFixed(2);
+      if(g.id!==r.goalId||!(aporta>0)) return g;
+      const ns=+((g.saved||0)+aporta).toFixed(2);
       return Object.assign({},g,{saved:ns, done:ns>=g.target, doneAt:(ns>=g.target&&!g.doneAt)?new Date(now).toISOString():g.doneAt});
     });
     const g0=(state.goals||[]).find(function(g){ return g.id===r.goalId; });
     // `incomeKey` lleva la misma identidad: es lo que exige la reversión al borrar la regla y
     // nunca coincide con la clave de un ingreso real, que empieza por su fecha.
-    nuevos.push({ id:id, ruleId:r.id, goalId:r.goalId, name:r.name||(g0&&g0.name)||"", amount:imp.amount,
-      date:new Date(now).toISOString(), incomeKey:id, mensual:clave });
+    nuevos.push({ id:id, ruleId:r.id, goalId:r.goalId, name:r.name||(g0&&g0.name)||"", amount:reserva,
+      date:new Date(now).toISOString(), incomeKey:id, mensual:clave, aportado:aporta });
   });
   if(!nuevos.length) return state;
   return Object.assign({},state,{goals:goals, reservaLog:(state.reservaLog||[]).concat(nuevos)});

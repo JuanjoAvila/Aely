@@ -841,4 +841,48 @@ t("debtEditResult: el interruptor de la hoja escribe restarPres solo si cambia y
   assert.equal(ctx.debtEditResult(on, ctx.debtEditDraft(on)).item, on, "un borrador sin el campo no lo toca");
 });
 
+// H1: apagar y encender el interruptor de una meta el mismo mes crea una regla NUEVA (otro id). Antes acreditaba la meta otra vez.
+t("H1: apagar y encender el interruptor el mismo mes no acredita dos veces", () => {
+  const ahora = Date.parse("2026-11-26T10:00:00Z");
+  const base = { goals: [{ id: "g1", name: "Viaje", target: 3000, saved: 0 }], settings: { reservaRules: [] }, reservaLog: [], expenses: [], accounts: [] };
+  const suma = (s) => +s.reservaLog.reduce((a, x) => a + x.amount, 0).toFixed(2);
+  let s1 = ctx.applyReservaMensual(ctx.metaReservaSync(base, "g1", true, 80, "r1"), ahora);
+  assert.equal(s1.goals[0].saved, 80); assert.equal(suma(s1), 80);
+  const off = ctx.metaReservaSync(s1, "g1", false, 80, "x");
+  assert.equal(suma(off), 0, "apagado libera el presupuesto");
+  assert.equal(off.goals[0].saved, 80, "lo ya ahorrado se queda en la meta");
+  // Encender otra vez (regla con id nuevo): el presupuesto vuelve a bajar 80, la meta NO recibe otros 80.
+  const s2 = ctx.applyReservaMensual(ctx.metaReservaSync(off, "g1", true, 80, "r2"), ahora);
+  assert.equal(s2.goals[0].saved, 80, "la meta no se acredita dos veces");
+  assert.equal(suma(s2), 80, "el presupuesto vuelve a reservar lo apartado");
+  assert.strictEqual(ctx.applyReservaMensual(s2, ahora), s2, "idempotente");
+  const s3 = ctx.applyReservaMensual(ctx.metaReservaSync(ctx.metaReservaSync(s2, "g1", false, 80, "x"), "g1", true, 80, "r3"), ahora);
+  assert.equal(s3.goals[0].saved, 80); assert.equal(suma(s3), 80);
+  // Subir el «Al mes» en el segundo encendido: solo se acredita la diferencia.
+  const s4 = ctx.applyReservaMensual(ctx.metaReservaSync(ctx.metaReservaSync(s3, "g1", false, 80, "x"), "g1", true, 100, "r4"), ahora);
+  assert.equal(s4.goals[0].saved, 100); assert.equal(suma(s4), 100);
+  // Mes siguiente: aporta otra vez entero (la identidad es por mes).
+  const s5 = ctx.applyReservaMensual(s4, Date.parse("2026-12-02T10:00:00Z"));
+  assert.equal(s5.goals[0].saved, 200);
+  // Otra meta no se ve afectada por lo de la primera.
+  const dos = { ...base, goals: base.goals.concat([{ id: "g2", name: "Otra", target: 500, saved: 0 }]) };
+  let d = ctx.metaReservaSync(ctx.applyReservaMensual(ctx.metaReservaSync(dos, "g1", true, 80, "a"), ahora), "g1", false, 80, "x");
+  d = ctx.applyReservaMensual(ctx.metaReservaSync(d, "g2", true, 30, "b"), ahora);
+  assert.deepEqual(d.goals.map(g => g.saved), [80, 30]);
+});
+
+// H2-H4: una meta cumplida no reserva nada; su hoja no enseña el interruptor encendido y guardarla no toca sus reglas.
+t("H2-H4: la hoja de una meta cumplida no muestra el interruptor ni toca las reglas", () => {
+  const src = fs.readFileSync("src/modules/09-tab-debts-goals.js", "utf8");
+  assert.equal(typeof ctx.metaFormCumplida, "function");
+  assert.equal(ctx.metaFormCumplida({ target: "100", saved: "100" }), true);
+  assert.equal(ctx.metaFormCumplida({ target: "100", saved: "40,5" }), false);
+  assert.equal(ctx.metaFormCumplida({ target: "", saved: "0" }), false);
+  assert.ok(/state&&!metaFormCumplida\(form\)&&React\.createElement\(RptRestarHoja/.test(src), "el interruptor se oculta con la meta cumplida");
+  assert.ok(/restarPres:metaTieneRegla\(state,goal\.id\)&&reservaMetaActiva\(state,goal\.id\)/.test(src), "encendido solo si la meta sigue activa");
+  assert.ok(/if\(inactivaAlAbrir&&f\.restarPres!==true\)\{ closer\.current/.test(src) && /const on=f\.restarPres===true&&!metaFormCumplida\(f\)/.test(src), "una meta inactiva sin tocar no sincroniza reglas; una activa que queda cumplida deja de reservar");
+  const st = { goals: [{ id: "g1", target: 100, saved: 100, done: true }], settings: { reservaRules: [{ id: "m", kind: "fixed", value: 10, goalId: "g1", mensual: true }] } };
+  assert.equal(ctx.metaTieneRegla(st, "g1") && ctx.reservaMetaActiva(st, "g1"), false);
+});
+
 console.log("\nreserva-dinero: OK");

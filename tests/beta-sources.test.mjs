@@ -6474,6 +6474,8 @@ const sourceBeta254=sourceAt("bb7eec89693ad914bbb23771622573cffdf6f332");
 const sourceBeta255=sourceAt("14457992d8650670aaf38b28ccb5d4befed94197");
 // La 256 servida (cabeza de beta antes de la 257): fad0a6bba. Catálogo256 pasa a histórico con la 257.
 const sourceBeta256=sourceAt("fad0a6bbae8fb093d343d92b751c4a1a02d09a01");
+// La 258 servida (cabeza de beta antes de la 259): d687f409c. Catálogo258 pasa a histórico con la 259.
+const sourceBeta258=sourceAt("d687f409c46e04c1709a82bc095bfd6e87bd7050");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -7082,13 +7084,38 @@ test("Catálogo253 histórico abre la nota 4.26.253 sin tanda nueva, deja intact
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
 });
 
+// 4.26.259 (26/11/2026): sobre la 4.26.258 (d687f409c), bichos H1-H4 de las metas con «Restar del presupuesto». Nota sin tanda nueva; las ocho vivas intactas.
+// Registro: sin cambios de alcance (se comprueba). Sin APK nueva: sigue la 64.
+test("Catálogo259 abre la nota 4.26.259 sin tanda nueva, deja intactas las ocho vivas, no toca el registro ni la APK",()=>{
+  const before=JSON.parse(sourceBeta258("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta258("scripts/beta-sources.json"));
+  const source=f=>nl(read(f));
+  assert.equal(before[0].v,"4.26.258");
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.equal(notes[0].v,"4.26.259");assert.equal(notes.length,before.length+1);
+  assert.deepEqual(notes.slice(1),before,"todo lo anterior intacto, también los pasos de las ocho tandas vivas");
+  assert.deepEqual(notes[0].tandas,[],"sin tanda nueva");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,["beta-249","beta-248","beta-247","beta-246","beta-245","beta-244","beta-243","dinero-242"],"en el panel, las ocho de antes");
+  const jerga=/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|PSD2|FIN-|SES-|UX-|SEC-|DIS-|DIN-|zoom|PRO-|checksum|CSP|SHA|Flex|API|nonce|cifrad|lote|backfill|ingest|KW|regla de|d+.d+.d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  assert.deepEqual(JSON.parse(source("scripts/beta-sources.json")),integrated,"registro intacto");
+  assert.equal(source("VERSION").trim(),"4.26.259");
+  const apk=JSON.parse(source("public/apk.json"));
+  assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
+  const built=betaNotes(notes,source,integrated);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+});
+
 // 4.26.256 (24/11/2026): sobre la 4.26.255 (14457992d), integración de cifras del Plan, cabecera sin fila Libre/Entran y arreglos de las hojas de deuda y meta. Nota sin tanda nueva; las ocho vivas intactas.
 // Registro: sin cambios. Sin APK nueva: sigue la 64.
 // 4.26.258 (25/11/2026): sobre la 4.26.256 (fad0a6bba), la pastilla «Ya pagados» del Plan enseña la cifra de su lista (solo con prueba del banco). Nota sin tanda nueva; las ocho vivas intactas.
 // Registro: solo el pin de uid en inc-2909-02 (se comprueba). Sin APK nueva: sigue la 64.
-test("Catálogo258 abre la nota 4.26.258 sin tanda nueva, deja intactas las ocho vivas, no toca el registro ni la APK",()=>{
+test("Catálogo258 histórico abre la nota 4.26.258 sin tanda nueva, deja intactas las ocho vivas, no toca el registro ni la APK",()=>{
   const before=JSON.parse(sourceBeta256("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta256("scripts/beta-sources.json"));
-  const source=f=>nl(read(f));
+  const source=f=>nl(sourceBeta258(f));
   assert.equal(before[0].v,"4.26.256");
   const notes=JSON.parse(source("src/data/release-notes.json"));
   assert.equal(notes[0].v,"4.26.258");assert.equal(notes.length,before.length+1);

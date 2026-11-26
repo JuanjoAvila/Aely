@@ -156,3 +156,20 @@ test("meta: una regla con porcentaje no se toca mientras el interruptor siga enc
   await expect.poll(async () => (await estado(page)).goals[0].monthly).toBe(90);
   expect((await estado(page)).settings.reservaRules).toEqual([regla]);
 });
+
+// H2-H4: una meta ya cumplida no reserva nada, así que su hoja no enseña el interruptor encendido y guardarla no toca sus reglas.
+test("meta cumplida: la hoja no enseña el interruptor y guardar no toca la regla", async ({ page }) => {
+  const regla = { id: "rr3", name: "", kind: "fixed", value: 150, goalId: "g1", mensual: true };
+  const hecha = { ...meta, saved: 3000, done: true, doneAt: "2026-09-01T10:00:00.000Z" };
+  await abre(page, "metas", { goals: [hecha], settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: false, expenseBanks: ["sabadell"], reservaRules: [regla] } });
+  await page.locator('[data-goal-id="g1"]').click();
+  await page.getByTestId("plan-meta-ficha").locator('[data-act="ficha-editar"]').click();
+  const hoja = page.getByRole("dialog", { name: "Editar meta", exact: true });
+  await expect(hoja).toBeVisible();
+  await expect(hoja.locator('[data-act="hoja-restar"]')).toHaveCount(0);
+  await ponCelda(hoja, "data-goal-field", "monthly", "90");
+  await hoja.getByRole("button", { name: "Guardar cambios", exact: true }).click();
+  await expect(hoja).toHaveCount(0);
+  await expect.poll(async () => (await estado(page)).goals[0].monthly).toBe(90);
+  expect((await estado(page)).settings.reservaRules).toEqual([regla]);
+});

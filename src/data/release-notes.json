@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.259",
+    "d": "2026-11-26",
+    "t": {
+      "es": "Metas que no se pagan dos veces y sin interruptor engañoso",
+      "en": "Goals that are never credited twice and no misleading switch",
+      "ca": "Metes que no s'abonen dues vegades i sense interruptor enganyós"
+    },
+    "items": {
+      "es": [
+        "Si apagas y vuelves a encender «Restar del presupuesto» de una meta en el mismo mes, ya no se le suma el ahorro otra vez.",
+        "Una meta ya cumplida no enseña el interruptor «Restar del presupuesto» como si estuviera encendido."
+      ],
+      "en": [
+        "If you switch Subtract from budget off and on again for a goal in the same month, the savings are no longer added a second time.",
+        "A goal that is already complete no longer shows the Subtract from budget switch as if it were on."
+      ],
+      "ca": [
+        "Si apagues i tornes a encendre «Restar del pressupost» d'una meta el mateix mes, ja no se li suma l'estalvi un altre cop.",
+        "Una meta ja complerta no ensenya l'interruptor «Restar del pressupost» com si estigués encès."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.258",
     "d": "2026-11-25",
     "t": {
