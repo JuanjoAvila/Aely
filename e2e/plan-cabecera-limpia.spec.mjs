@@ -45,16 +45,10 @@ test("Plan va sin la fila Libre/Entran ni la flecha ⌄; el icono «i» abre la 
   await expect(page.locator(".rpt-lb")).toHaveCount(0);
   await expect(page.locator(".v4-plan-screen, .page-live").first()).not.toContainText(/Entran\s/);
   await expect(page.locator(".pr6-sum-dot")).toHaveCount(0);
-  // Sin flecha «⌄» a la derecha de la cifra: lo único a la derecha es el icono «i» (sin texto).
+  // Sin flecha «⌄» junto a la cifra: lo único que abre aparte es la «i», pegada al título (feedback 26/11).
   const chip = page.getByTestId("plan-reparto-chip");
-  await expect(chip).toHaveText("");
-  expect((await chip.boundingBox()).width).toBeGreaterThanOrEqual(43);
-  await expect(chip.locator("svg")).toHaveCount(1);
-  const cb = await chip.locator("svg").boundingBox(), big = await page.locator(".pr6-big").first().boundingBox(), cnt = await page.getByTestId("plan-count").boundingBox(), card = await page.getByTestId("plan-summary").boundingBox();
-  expect(cb.y).toBeGreaterThanOrEqual(big.y + big.height - 2);          // debajo de la cifra, no a su altura
-  expect(cb.x + cb.width).toBeLessThanOrEqual(card.x + card.width + 1);   // dentro de la tarjeta
-  expect(cb.x).toBeGreaterThan(cnt.x + cnt.width * 0.6);                  // a la derecha, no pegado a la cifra
-  expect(Math.abs((cb.y + cb.height / 2) - (cnt.y + cnt.height / 2))).toBeLessThan(10); // en la línea de «N recibos»
+  await expect(chip).toHaveText("i");
+  await expect(page.getByTestId("plan-cifras").locator("svg")).toHaveCount(0);
   await captura(page, "plan-recibos-" + (process.env.TEMA || "oscuro"));
   await chip.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
@@ -87,18 +81,18 @@ test("las pestañas van debajo de la tarjeta resumen en Recibos, Deudas y Metas 
   await expect(page.getByTestId("plan-summary")).toBeVisible();
 });
 
-test("el icono «i» también está en Deudas y Metas y abre la misma hoja (zona de toque ≥44 px, sin texto)", async ({ page }) => {
+test("el icono «i» también está en Deudas y Metas y abre la misma hoja (zona de toque ≥44 px)", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await abrePlan(page, base(3000), process.env.TEMA);
   for (const seg of ["deudas", "metas"]) {
     await page.locator('.v4-plan-tabs [data-seg="' + seg + '"]').click();
     const i = page.getByTestId("plan-reparto-info-" + seg);
     await expect(i).toBeVisible();
-    await expect(i).toHaveText("");
+    await expect(i).toHaveText("i");
     await expect(i).toHaveAttribute("aria-label", "A dónde va tu sueldo");
     const b = await i.boundingBox(), card = await page.getByTestId(seg === "deudas" ? "debts-summary" : "goals-summary").boundingBox();
-    expect(b.width).toBeGreaterThanOrEqual(43); expect(b.height).toBeGreaterThanOrEqual(43);
-    expect(b.x + b.width).toBeLessThanOrEqual(card.x + card.width + 13);
+    // El dibujo es de 16 px; su zona de toque (pseudo-elemento) la mide plan-i-discreta-hoja-inset.
+    expect(b.x + b.width).toBeLessThanOrEqual(card.x + card.width);
     await captura(page, "plan-info-" + seg);
     await i.click();
     await expect(page.getByTestId("plan-reparto-hoja")).toBeVisible();

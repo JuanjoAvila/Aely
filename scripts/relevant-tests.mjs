@@ -90,6 +90,14 @@ export const E2E_MAP = [
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-reparto.spec.mjs"] },
   { file: "src/modules/01-i18n.js", specs: ["e2e/plan-reparto.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-reparto.spec.mjs"] },
+  // Los importes grandes sin recuadro detrás: hojas de alta/edición (02), recibo y nómina (14) y su CSS (26/11).
+  { file: "src/modules/02-ui-shared.js", specs: ["e2e/importe-sin-recuadro.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/importe-sin-recuadro.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/importe-sin-recuadro.spec.mjs"] },
+  // La «i» de Plan junto al título y la hoja del sueldo por encima de la barra de gestos (26/11).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-i-discreta-hoja-inset.spec.mjs"] },
+  { file: "src/modules/18-plan-deudas-metas.js", specs: ["e2e/plan-i-discreta-hoja-inset.spec.mjs"] },
+  { file: "src/shell.html", specs: ["e2e/plan-i-discreta-hoja-inset.spec.mjs"] },
   { file: "src/modules/17-plan-reparto.js", specs: ["e2e/plan-cascada.spec.mjs"] },
   { file: "src/modules/18-plan-deudas-metas.js", specs: ["e2e/plan-cascada.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-cascada.spec.mjs"] },

@@ -1142,7 +1142,10 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
   const tarjeta=React.createElement("div",{className:"v4-card v4-card-hero pr6-sum pr6-flat"+(vistaAnim?"":" rise"),"data-testid":"plan-summary","data-vista":vista},
     React.createElement("div",{className:"pr6-vista"},
       React.createElement("div",{className:"pr6-sum-h"},
-        React.createElement("div",{className:"v4-micro"}, sig?tf("pr6_se_van",{month:monthLong(sigM-1)}):tf("v4_plan_left",{month:monthLong(month-1)})),
+        React.createElement("div",{className:"plan-tit"},
+          React.createElement("div",{className:"v4-micro"}, sig?tf("pr6_se_van",{month:monthLong(sigM-1)}):tf("v4_plan_left",{month:monthLong(month-1)})),
+          // La hoja es del mes en curso: en la vista del siguiente no hay «i».
+          !sig&&RptInfo({onClick:onAbrirReparto})),
         React.createElement("button",{type:"button",className:"pr6-mes-nav","data-testid":"plan-mes-nav",onClick:cambiarVista,
           "aria-label":sig?monthLong(month-1):monthLong(sigM-1)}, sig?"‹ "+monthShort(month-1):monthShort(sigM-1)+" ›")),
       sig
@@ -1937,7 +1940,6 @@ function NominaSheet({flowId, state, set, totals, onClose}){
   const [raw,setRaw]=useState(function(){ return f&&f.amount>0?String(+Number(f.amount).toFixed(2)).replace(".",numPadDecSep()):""; });
   // El primer toque del teclado sustituye la cifra en vez de añadirse detrás (SPEC §7).
   const fresh=useRef(true);
-  const [marcado,setMarcado]=useState(true);
   const [dia,setDia]=useState(dia0||1);
   const hold=useRef(null);
   const paraHold=function(){ const h=hold.current; if(h){ clearTimeout(h.t); clearInterval(h.i); } hold.current=null; };
@@ -1977,13 +1979,13 @@ function NominaSheet({flowId, state, set, totals, onClose}){
           React.createElement("span",{className:"serif pr6-ll-t"}, f.name||t("fj_income")),
           React.createElement("span",{className:"pr6-ficha-s"}, tf("pr6_entra_en",{bank:entOf(bank).label})))),
       React.createElement("div",{className:"pr6-nd-v"},
-        React.createElement("span",{className:"serif num"+(marcado&&raw?" sel":""),"data-testid":"nomina-importe"}, eur(amt))),
+        React.createElement("span",{className:"serif num","data-testid":"nomina-importe"}, eur(amt))),
       React.createElement("div",{className:"pr6-nd-d"},
         btnDia(-1,t("pr6_dia_menos"),"−"),
         React.createElement("span",{className:"num","data-testid":"nomina-dia"}, tf("pr6_dia",{d:dia})),
         btnDia(1,t("pr6_dia_mas"),"+")),
       React.createElement(NumPad,{value:raw,onChange:function(fn){
-        const desde=fresh.current; fresh.current=false; setMarcado(false);
+        const desde=fresh.current; fresh.current=false;
         setRaw(function(r){ const b=desde?"":r; return typeof fn==="function"?fn(b):fn; });
       }}),
       React.createElement("button",{type:"button",className:"pr6-cta","data-act":"guardar",disabled:!(amt>0),onClick:guardar}, t("save"))));
@@ -4243,7 +4245,7 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
   const p1=panel(1,[
     React.createElement("div",{key:"a",className:"rp4-amt"},
       React.createElement("span",{className:"rp4-dim"}, f.name||"—"),
-      React.createElement("div",{className:"serif num rp4-amt-v"+(fresh&&f.amount?" fresh":""),"data-rp4":"amount"}, f.amount?eur(amt):eur(0)),
+      React.createElement("div",{className:"serif num rp4-amt-v","data-rp4":"amount"}, f.amount?eur(amt):eur(0)),
       !esFlujo&&React.createElement("button",{type:"button",className:"rp4-var"+(f.variable?" on":""),"aria-pressed":f.variable?"true":"false","data-rp4":"variable",
         onClick:function(){ upd({variable:!f.variable}); toca("amount"); }}, t("rp4_variable"))),
     React.createElement(NumPad,{key:"k",value:f.amount,onChange:function(fn){

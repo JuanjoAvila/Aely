@@ -42,22 +42,18 @@ function RptBarra({state,set,showToast,totals,onJump,openRef}){
   return abierta&&React.createElement(RptRepartoHoja,{r:r,state:state,set:set,showToast:showToast,totals:totals,onClose:function(){ setAbierta(false); },
     onJump:function(seg){ setAbierta(false); if(onJump) onJump(seg); }});
 }
-/* La cabecera de Recibos como botón: mismo dibujo de siempre (etiqueta, cifra, cuenta) y un chip «Tu sueldo ›» a la
-   derecha de la cuenta que dice que se abre. Abre la hoja de «A dónde va tu sueldo»; si los ingresos no llegan al plan, la etiqueta del botón
-   lo dice también para quien la lee en voz alta (sin puntito en la flecha, 24/11). */
+/* La cifra y la cuenta de Recibos como botón: mismo dibujo de siempre. Abre la hoja de «A dónde va tu sueldo» (lo dice la
+   «i» del título); si los ingresos no llegan al plan, la etiqueta del botón lo dice también para quien la lee en voz alta. */
 function PlanMesTap({state,totals,onOpen,children}){
   const r=useReparto(state,totals);
   return React.createElement("button",{type:"button",className:"pr6-sum-tap","data-testid":"plan-cifras","aria-haspopup":"dialog",
     "aria-label":t("rpt_ver_reparto")+(r.falta>0?". "+t("rpt_faltan")+" "+rptC(r.falta):""),onClick:onOpen},
-    children,
-    RptInfo({inner:true}));
+    children);
 }
-/* Icono «i» que abre «A dónde va tu sueldo» (sin texto; zona de toque de 44 px). Dentro de la tarjeta de Recibos (ya es un botón) va como span. */
-function RptInfo({onClick,inner,testid}){
-  const dib=React.createElement("svg",{width:20,height:20,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round","aria-hidden":"true"},
-    React.createElement("circle",{cx:12,cy:12,r:9}),React.createElement("path",{d:"M12 11v5.2M12 7.7h.01"}));
-  return inner?React.createElement("span",{className:"rpt-info pr6-sum-go","data-testid":"plan-reparto-chip","aria-hidden":"true"},dib)
-    :React.createElement("button",{type:"button",className:"rpt-info","data-testid":testid||"plan-reparto-chip","aria-haspopup":"dialog","aria-label":t("rpt_chip"),title:t("rpt_chip"),onClick:onClick},dib);
+/* La «i» que abre «A dónde va tu sueldo», pegada al título: es LA MISMA de «Patrimonio neto» en Inicio. La propia, en
+   verde y suelta a la derecha de la cifra, se veía a media pantalla y llamaba la atención (feedback 26/11). */
+function RptInfo({onClick,testid}){
+  return React.createElement("button",{type:"button",className:"v42-net-info","data-testid":testid||"plan-reparto-chip","aria-haspopup":"dialog","aria-label":t("rpt_chip"),title:t("rpt_chip"),onClick:onClick},"i");
 }
 /* Hoja genérica de esta pantalla: asa, título con cerrar, cuerpo con scroll y pie fijo opcional. */
 function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
@@ -289,10 +285,11 @@ function RptDeudaFicha({d,state,set,r,h,onClose}){
    dos celdas con divisor. El tono de la cifra: verde (Metas), rojo (Deudas) o el del texto (Recibos). */
 function RptHero({testid,titulo,cifra,tono,sub,celdas,accion,t0,onInfo}){
   return React.createElement("section",{className:"rpt-hero","data-testid":testid},
-    React.createElement("div",{className:"rpt-hh"},React.createElement("div",{className:"rpt-ht"},titulo),accion||null),
+    React.createElement("div",{className:"rpt-hh"},
+      React.createElement("div",{className:"plan-tit"},React.createElement("div",{className:"rpt-ht"},titulo),onInfo&&RptInfo({onClick:onInfo,testid:"plan-reparto-info-"+(testid==="debts-summary"?"deudas":"metas")})),
+      accion||null),
     React.createElement("div",{className:"rpt-big plan-summary-amount"+(tono?" "+tono:""),"data-testid":t0||undefined},cifra),
-    onInfo?React.createElement("div",{className:"rpt-hsrow"},React.createElement("div",{className:"rpt-hs"},sub),RptInfo({onClick:onInfo,testid:"plan-reparto-info-"+(testid==="debts-summary"?"deudas":"metas")}))
-      :React.createElement("div",{className:"rpt-hs"},sub),
+    React.createElement("div",{className:"rpt-hs"},sub),
     React.createElement("div",{className:"rpt-facts m"},celdas.map(function(c,i){
       return React.createElement(c.onClick?"button":"div",{key:i,type:c.onClick?"button":undefined,className:"rpt-fact"+(c.cls?" "+c.cls:""),"data-testid":c.testid||undefined,
         "aria-label":c.aria||undefined,onClick:c.onClick||undefined},

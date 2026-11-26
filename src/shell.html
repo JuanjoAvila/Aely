@@ -1108,10 +1108,8 @@
   .pr6-sum{display:flex;flex-direction:column;gap:12px;}
   .pr6-sum .pr6-big{font-size:46px;font-weight:600;letter-spacing:-1px;line-height:1;white-space:nowrap;}
   .pr6-count{font-size:14px;color:var(--muted);}
-  /* Cabecera tocable (abre «A dónde va tu sueldo»): igual que antes a la vista; la flecha va a la derecha de la cifra. */
-  button.pr6-sum-tap{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;row-gap:12px;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px;}
-  button.pr6-sum-tap>*{grid-column:1;min-width:0;}
-  button.pr6-sum-tap .pr6-sum-go{grid-column:2;grid-row:2;align-self:end;display:inline-flex;align-items:center;gap:2px;padding:0;font-size:12.5px;font-weight:700;color:var(--mint-bright);white-space:nowrap;}
+  /* Cabecera tocable (abre «A dónde va tu sueldo»): igual que antes a la vista. */
+  button.pr6-sum-tap{display:grid;grid-template-columns:minmax(0,1fr);row-gap:12px;width:100%;margin:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;min-height:44px;}
   .pr6-sum-tap:focus-visible{outline:2px solid var(--mint-bright);outline-offset:4px;border-radius:10px;}
   /* Pestañas de Plan como el diseño plan-mezcla: sin caja, píldora menta suave sobre el fondo oscuro. */
   .v4-seg.v4-plan-tabs{justify-content:center;background:transparent;border:0;padding:0;gap:6px;margin-top:14px;}
@@ -1363,8 +1361,8 @@
      nombre sobra (ya va en la barra de pasos) y el bloque del importe pierde aire. */
   html.hugetext .rp4-amt{gap:4px;padding:0;}
   html.hugetext .rp4-amt > .rp4-dim{display:none;}
-  .rp4-amt-v{font-size:44px;font-weight:600;border-radius:12px;padding:0 8px;transition:background .2s ease;}
-  .rp4-amt-v.fresh{background:var(--surface-2);}
+  /* Los importes grandes van SIN recuadro detrás, ni elegidos ni a punto de sustituirse (feedback 26/11: «es horrible»). */
+  .rp4-amt-v{font-size:44px;font-weight:600;border-radius:12px;padding:0 8px;}
   .rp4-var,.rp4-mode,.rp4-mes{border:1px solid var(--line-soft);background:var(--surface);color:var(--text);font:inherit;font-weight:700;cursor:pointer;
     transition:background .2s ease,color .2s ease,border-color .2s ease;}
   .rp4-var{height:36px;padding:0 14px;border-radius:18px;font-size:13px;color:var(--muted);}
@@ -1416,7 +1414,6 @@
   .rpa-name{display:flex;align-items:center;gap:8px;}
   .rpa-name .rp4-name{flex:1;min-width:0;}
   .rpa-amt{background:none;border:0;color:var(--text);cursor:pointer;padding:4px 14px;border-radius:14px;}
-  .rpa-amt.on{background:var(--surface-2);}
   .rpa .rp4-top{min-height:54px;}
   .rpa .rp4-name{background:var(--surface);}
   .rpa-ph{color:var(--muted-2);}
@@ -1543,8 +1540,7 @@
   .pr6-ll-undo{flex:0 0 auto;height:36px;padding:0 14px;}
   .pr6-ll-col .pr6-lbl{margin-bottom:0;}
   .pr6-nd-v{display:flex;justify-content:center;}
-  .pr6-nd-v .serif{font-size:44px;font-weight:600;line-height:1;padding:6px 14px;border-radius:16px;transition:background .2s ease;}
-  .pr6-nd-v .serif.sel{background:var(--surface-2);}
+  .pr6-nd-v .serif{font-size:44px;font-weight:600;line-height:1;padding:6px 14px;}
   .pr6-nd-d{display:flex;align-items:center;gap:10px;}
   .pr6-nd-d .num{flex:1;text-align:center;font-size:15px;font-weight:700;}
   .pr6-nd-b{width:44px;height:40px;border-radius:12px;border:0;background:var(--surface-2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer;touch-action:none;user-select:none;}
@@ -3153,11 +3149,11 @@
   .rpt-sheet .rpt-big{font-size:var(--fs-hero);line-height:1.08;}
   .rpt-hs{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:6px;}
   .rpt-hs b{color:var(--text);font-weight:700;}
-  button.pr6-sum-tap .rpt-info{justify-content:center;}
-  .rpt-hsrow{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .rpt-hsrow .rpt-hs{min-width:0;}
-  .rpt-info{display:inline-grid;place-items:center;flex:none;width:44px;height:44px;margin:-12px;padding:0;border:0;background:transparent;color:var(--mint-bright);cursor:pointer;}
-  .rpt-info:focus-visible{outline:2px solid var(--mint-bright);outline-offset:-4px;border-radius:50%;}
+  /* Título + «i» (como «Patrimonio neto»): el título no se estira, así la «i» queda a su lado y no al otro extremo. El
+     z-index deja su zona de toque por encima de la cifra de debajo, que también es un botón. */
+  .plan-tit{flex:1;min-width:0;display:flex;align-items:center;gap:8px;}
+  .plan-tit>:first-child{flex:0 1 auto;min-width:0;}
+  .plan-tit .v42-net-info{flex:none;z-index:1;cursor:pointer;}
   .rpt-split{display:flex;gap:3px;height:6px;margin-top:14px;}
   .rpt-split i{display:block;border-radius:3px;background:var(--track);min-width:4px;transition:flex-grow .4s var(--ease);}
   .rpt-split i.on{background:var(--mint);}
@@ -3218,6 +3214,9 @@
   /* Hoja: asa, título, cuerpo con scroll y pie fijo */
   .v4-sheet.rpt-sheet:has(>.v4-sheet-body){padding:12px 0 0;}
   .rpt-sb{padding:2px 18px 12px;container-type:inline-size;}
+  /* La hoja anula su padding de abajo para que el pie fijo toque el borde; SIN pie, la última línea quedaba encima de
+     la barra de gestos de Android (feedback 26/11). */
+  .rpt-sb:last-child{padding-bottom:calc(24px + var(--safe-bottom));}
   .rpt-sh{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
   /* Mismo lenguaje que las hojas de alta y edición (.plan-edit-head): título en serif y cierre con caja (filtro 253). */
   .rpt-st{flex:1;min-width:0;font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:560;line-height:1.25;overflow-wrap:anywhere;padding-right:4px;}

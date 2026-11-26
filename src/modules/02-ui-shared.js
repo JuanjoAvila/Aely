@@ -2814,7 +2814,7 @@ function AddHoja(p){
               onFocus:function(){ setAct(null); },onBlur:function(){ if(!p.amtDis) setAct(function(a){ return a||amtKey; }); },onChange:function(e){ p.setName(e.target.value); }})),
           React.createElement("div",{className:"rp4-amt"},
             React.createElement("span",{className:"rp4-dim"}, p.amtLabel),
-            React.createElement("button",{type:"button",className:"serif num rp4-amt-v rpa-amt"+(act===amtKey?" on":""),[attr]:amtKey,"aria-label":p.amtLabel,disabled:!!p.amtDis,
+            React.createElement("button",{type:"button",className:"serif num rp4-amt-v rpa-amt",[attr]:amtKey,"aria-label":p.amtLabel,disabled:!!p.amtDis,
               onClick:function(){ pick(amtKey); }}, raw?ver(raw)+" €":React.createElement("span",{className:"rpa-ph"},"0 €"))),
           p.cells.length>0&&grid(p.cells),
           p.children||null,
