@@ -1070,10 +1070,15 @@ function ahorroImporteDe(raw){
   }
   const n=parseFloat(s); return isFinite(n)?Math.max(0,n):0;
 }
-// Cómo se enseña un importe en un campo SIN foco: con punto de millar y los céntimos que tenga. Se relee con
-// `ahorroImporteDe` sin perder un céntimo; con foco se escribe sin separador de millar.
+// El importe dentro de un campo: sin céntimos, entero; con céntimos, SIEMPRE los dos («30,5 €» junto a un total
+// «30,50 €» parecía otra cifra, 26/11). Solo cambia lo escrito: se relee igual con `ahorroImporteDe`.
+function ahorroEditable(v){
+  const n=+v.toFixed(2);
+  return (n%1?n.toFixed(2):String(n)).replace(".",numDecSep());
+}
+// Campo SIN foco: además, con punto de millar; con foco se escribe sin él.
 function ahorroTexto(v){
-  const dec=numDecSep(), p=String(+v.toFixed(2)).split(".");
+  const dec=numDecSep(), p=ahorroEditable(v).split(dec);
   return p[0].replace(/\B(?=(\d{3})+(?!\d))/g,dec===","?".":",")+(p[1]?dec+p[1]:"");
 }
 /* APORTACIÓN MENSUAL a bancos y brókers (`state.aportaciones`). Vivía en Metas como «Ahorro
@@ -1090,11 +1095,13 @@ function SavingsPlanCard({state, set, totals, showToast}){
   const [drafts,setDrafts]=useState(null);   // null = cerrado; array = editando
   const AP_ENTS=Object.keys(ENT).filter(function(k){ return k!=="familia"; });
   const start=function(){
-    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",numDecSep()):"",ent:a.ent!=null?a.ent:"myinvestor",bolsa:bolsaDe(a)}; }));
+    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?ahorroEditable(Number(a.amount)):"",ent:a.ent!=null?a.ent:"myinvestor",bolsa:bolsaDe(a)}; }));
   };
   const setD=function(id,k,v){ setDrafts(function(ds){ return ds.map(function(d){ return d.id===id?Object.assign({},d,{[k]:v}):d; }); }); };
   // El nombre que pone la app («Emergencia», «Inversión») no se repite junto al selector y lo sigue si se cambia.
-  const nombreDeApartado=function(d){ return (d.bolsa==="emergencia"||d.bolsa==="inversion")&&d.name===t("bolsa_"+d.bolsa); };
+  // En cualquier idioma: la fila creada en castellano sigue siendo «la de la app» al pasar a catalán.
+  const esNombreDeApp=function(bolsa,name){ return (bolsa==="emergencia"||bolsa==="inversion")&&LANGS.some(function(l){ return LANG[l[0]]["bolsa_"+bolsa]===name; }); };
+  const nombreDeApartado=function(d){ return esNombreDeApp(d.bolsa,d.name); };
   const setApartado=function(id,k){
     setDrafts(function(ds){ return ds.map(function(d){
       if(d.id!==id) return d;
@@ -1103,17 +1110,19 @@ function SavingsPlanCard({state, set, totals, showToast}){
     }); });
   };
   const add=function(){ setDrafts(function(ds){ return ds.concat([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]); }); };
-  const del=function(id){ setDrafts(function(ds){ return ds.filter(function(d){ return d.id!==id; }); }); };
+  // Quitar solo la marca: la fila se pliega suave y desde ese instante Guardar ya no la cuenta.
+  const del=function(id){ setD(id,"fuera",true); };
   const save=function(){
     const prev={}; aps.forEach(function(a){ prev[a.id]=a; });
+    const vivas=drafts.filter(function(d){ return !d.fuera; });
     // Borrar una fila o cambiarle importe, banco o apartado dice a mano dónde está el dinero: lo apuntado de un
     // reparto sobre ella (recibido o dado) deja de valer.
     const tocadas={};
     aps.forEach(function(a){
-      const d=drafts.find(function(x){ return x.id===a.id; });
+      const d=vivas.find(function(x){ return x.id===a.id; });
       if(!d||bolsaCts(ahorroImporteDe(d.amount))!==bolsaCts(a.amount)||d.ent!==a.ent||d.bolsa!==bolsaDe(a)) tocadas[a.id]=1;
     });
-    const next=drafts.map(function(d){
+    const next=vivas.map(function(d){
       const n=ahorroImporteDe(d.amount);
       const row=Object.assign({}, prev[d.id]||{}, {id:d.id, name:d.name.trim()||t("d_saving"), amount:+n.toFixed(2), ent:d.ent});
       if(d.bolsa&&d.bolsa!=="otros") row.bolsa=d.bolsa; else delete row.bolsa;
@@ -1141,16 +1150,19 @@ function SavingsPlanCard({state, set, totals, showToast}){
         onClick:function(){ editing?setDrafts(null):(vacia?setDrafts([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]):start()); }},
         editing?t("fj_cancel"):(vacia?t("sv_add_short"):t("fj_edit")))),
     !vacia && React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
-    !editing && aps.map(function(ap){
+    // Mismo orden que la hoja y la cascada: «Otros» al final.
+    !editing && bolsasDeAhorro(aps).reduce(function(r,b){ return r.concat(b.filas); },[]).map(function(ap){
       return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
         React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"},
-          [ap.ent?entOf(ap.ent).label:"", bolsaDe(ap)!=="propia"&&ap.name!==t("bolsa_"+bolsaDe(ap))?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
+          [ap.ent?entOf(ap.ent).label:"", bolsaDe(ap)!=="propia"&&!esNombreDeApp(bolsaDe(ap),ap.name)&&ap.name!==t("bolsa_"+bolsaDe(ap))?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
         React.createElement("span",{className:"num aely-savings-amt"}, tf("fj_permonth",{x:eur(Number(ap.amount)||0)})));
     }),
     editing && drafts.map(function(d){
       const auto=nombreDeApartado(d);
       // El apartado va siempre primero, también con nombre propio: todas las filas se leen igual.
-      return React.createElement("div",{className:"aely-savings-edit-row",key:d.id,"data-savings-draft":d.id},
+      return React.createElement("div",{key:d.id,className:"v4-bol-fold aely-fila-fold"+(d.fuera?"":" open")+(d.nuevo?" aely-entra":"")},
+        React.createElement("div",{inert:d.fuera?"":undefined},
+        React.createElement("div",{className:"aely-savings-edit-row","data-savings-draft":d.id},
         React.createElement("select",{className:"af-in aely-sv-apartado","aria-label":t("bolsa_sel"),value:d.bolsa||"otros",onChange:function(e){ setApartado(d.id,e.target.value); }},
           ["emergencia","inversion","propia","otros"].map(function(k){ return React.createElement("option",{key:k,value:k},t("bolsa_"+k)); })),
         !auto&&React.createElement("input",{className:"af-in","aria-label":t("sv_name_aria"),placeholder:t("sv_name_ph"),value:d.name,
@@ -1163,7 +1175,7 @@ function SavingsPlanCard({state, set, totals, showToast}){
           React.createElement("select",{className:"af-in","aria-label":t("sv_bank_aria"),value:d.ent,onChange:function(e){ setD(d.id,"ent",e.target.value); }},
             !d.ent&&React.createElement("option",{key:"",value:""},t("sv_sin_banco")),
             AP_ENTS.map(function(k){ return React.createElement("option",{key:k,value:k},entOf(k).label); })),
-          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")));
+          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")))));
     }),
     editing && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:add}, "+ "+t("sv_add")),
     editing && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:8},"data-savings-save":"1",onClick:save}, t("fj_save"))

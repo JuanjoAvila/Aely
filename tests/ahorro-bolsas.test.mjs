@@ -184,7 +184,7 @@ const sinP=c.bolsasAplica(conP.map(({viene,previo,...a})=>a),{"propia:pv":null,e
 assert.ok(c.aportacionesEnDia(sinP,"2026-11-10").some(p=>p.amount===50),"quitar una propia repartiendo no borra su pasado");
 
 // El campo sin foco enseña el punto de millar y se relee al céntimo: «1.250» son mil doscientos cincuenta, no 1,25.
-for(const [v,es] of [[1250.75,"1.250,75"],[1250,"1.250"],[1250000.5,"1.250.000,5"],[999,"999"],[30.5,"30,5"],[0,"0"]]){
+for(const [v,es] of [[1250.75,"1.250,75"],[1250,"1.250"],[1250000.5,"1.250.000,50"],[999,"999"],[30.5,"30,50"],[0,"0"]]){
   assert.equal(c.ahorroTexto(v),es);
   assert.equal(Math.round(c.ahorroImporteDe(es)*100),Math.round(v*100),es);
 }

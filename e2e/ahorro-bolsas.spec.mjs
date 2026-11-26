@@ -138,3 +138,47 @@ test("muchas bolsas, bolsa nueva sin importe y teclado", async ({ page }) => {
   await det.locator("[data-savings-save]").scrollIntoViewIfNeeded();
   await foto(page, "bolsas-cartera-editar-final");
 });
+
+/* Segunda mirada de diseño (26/11): el «€» dentro del campo se comía el último dígito con letra grande, y 30,5 salía
+   con un solo decimal. */
+for (const [ancho, letra] of [[360, "big"], [412, "huge"], [360, "huge"]]) {
+  test("importe entero y con dos decimales a " + ancho + " px, letra " + letra, async ({ page }) => {
+    await page.setViewportSize({ width: ancho, height: 800 });
+    await installFixtureClock(page);
+    await page.route("**/*", (r) => new URL(r.request().url()).hostname === "127.0.0.1" ? r.continue() : r.abort());
+    const aportaciones = [{ id: "i1", name: "Inversión", amount: 12500.75, ent: "trade_republic", bolsa: "inversion" },
+      { id: "p1", name: "Moto", amount: 30.5, ent: "", bolsa: "propia" }];
+    await seedLoggedInDashboard(page, Object.assign({}, estado, { aportaciones, settings: Object.assign({}, settings, { textSize: letra }) }));
+    await page.goto("/");
+    await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
+    await page.waitForFunction(() => !document.getElementById("mc-load"));
+    await dismissNews(page);
+    await page.locator(".v4-budget").first().click();
+    const bs = page.locator(".v4-budget-sheet");
+    await bs.getByTestId("budget-ahorro-toggle").click();
+    const moto = bs.getByRole("textbox", { name: "Moto", exact: true });
+    await expect.soft(moto).toHaveValue("30,50");
+    await moto.focus();
+    await expect.soft(moto).toHaveValue("30,50");
+    await moto.blur();
+    await bs.locator(".v4-cta").click();
+    await expect(bs).toHaveCount(0);
+    await expect.poll(() => aps(page)).toEqual([["inversion", 12500.75], ["propia", 30.5]]);
+
+    await page.locator(".page-live").evaluateAll((l) => l.forEach((e) => { e.scrollTop = 0; }));
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await page.getByTestId("plan-reparto-chip").click();
+    const hoja = page.getByTestId("plan-reparto-hoja");
+    await hoja.locator('.cas-row[data-k="aho"]').click();
+    await hoja.getByTestId("plan-bolsas-editar").click();
+    const det = page.getByTestId("plan-reparto-detalle");
+    await det.locator("[data-savings-edit]").click();
+    const campos = det.locator("[data-savings-draft] input.num");
+    await expect(campos).toHaveCount(2);
+    await expect.soft(campos.nth(1)).toHaveValue("30,50");
+    await campos.first().scrollIntoViewIfNeeded();
+    await foto(page, "bolsas-cartera-campo-" + ancho + "-" + letra);
+    const cortados = await campos.evaluateAll((l) => l.filter((e) => e.scrollWidth > e.clientWidth).map((e) => e.value + " " + e.scrollWidth + "/" + e.clientWidth));
+    expect(cortados).toEqual([]);
+  });
+}

@@ -3404,8 +3404,12 @@
   .v4-bol-tot b{font-size:24px;font-weight:550;white-space:nowrap;}
   .v4-bol-tot .chev{width:18px;height:18px;flex:0 0 auto;opacity:.6;}
   .v4-bol-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 10px;padding:7px 0;border-bottom:1px solid var(--line-soft);}
-  .v4-bol-nm small,.v4-bol-falta{display:block;font-size:12px;font-weight:500;color:var(--muted);}
-  .v4-bol-falta{flex:1 0 100%;text-align:right;color:var(--coral);}
+  .v4-bol-nm small,.v4-bol-falta small{display:block;font-size:12px;font-weight:500;color:var(--muted);}
+  .v4-bol-falta{flex:1 0 100%;text-align:right;}
+  .v4-bol-falta small{color:var(--coral);}
+  /* Sin hueco entre líneas: el aviso plegado no ocupa nada. */
+  .v4-bol-row[data-bolsa="nueva"]{row-gap:0;padding:4px 0;}
+  .v4-bol-row[data-bolsa="nueva"]>.v4-bol-nm,.v4-bol-row[data-bolsa="nueva"]>.v4-bol-step{margin-top:3px;margin-bottom:3px;}
   .v4-bol-quita{display:inline-flex;align-items:center;justify-content:center;width:30px;height:44px;margin:-12px 0;padding:0;vertical-align:middle;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;}
   .v4-bol-campo{display:flex;align-items:center;gap:3px;height:44px;padding:0 9px;border:1px solid var(--line-soft);border-radius:12px;background:var(--sur);}
   .v4-bol-campo:focus-within{border-color:var(--mint);}
@@ -3414,15 +3418,30 @@
   .v4-bol-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .3s var(--ease),opacity .2s ease,visibility 0s .3s;}
   .v4-bol-fold.open{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .3s var(--ease),opacity .2s ease,visibility 0s;}
   .v4-bol-fold>div{overflow:hidden;min-height:0;}
-  @media (prefers-reduced-motion:reduce){.v4-bol-fold,.v4-bol-fold.open{transition-duration:.01ms !important;transition-delay:0s !important;}}
+  /* Filas que entran y salen, y el aviso: la hoja crece y encoge con ellas, sin saltos. Anidadas en otro pliegue,
+     heredan su visibilidad. El margen del recorte deja ver el foco de los campos. */
+  .v4-bol-fold.aely-fila-fold{grid-template-columns:minmax(0,1fr);}
+  .v4-bol-fold.aely-fila-fold.open,.v4-bol-fold.v4-bol-falta.open{visibility:inherit;}
+  .aely-fila-fold>div{overflow:clip;overflow-clip-margin:3px;}
+  .v4-bol-fold.aely-entra{animation:aelyentra .3s var(--ease);}
+  @keyframes aelyentra{from{grid-template-rows:0fr;opacity:0;}to{grid-template-rows:1fr;opacity:1;}}
+  @media (prefers-reduced-motion:reduce){.v4-bol-fold,.v4-bol-fold.open{transition-duration:.01ms !important;transition-delay:0s !important;}.v4-bol-fold.aely-entra{animation:none;}}
   /* Título e importes se desplazan; Guardar queda siempre a la vista. */
   .v4-sheet.v4-budget-sheet:has(>.v4-sheet-body){padding-bottom:calc(36px + var(--safe-bottom));}
   /* Lo que sigue por debajo se funde en vez de quedar rebanado contra el botón. */
   .v4-budget-sheet>.v4-sheet-body{padding-bottom:40px;scroll-padding:28px 0 40px;-webkit-mask-image:linear-gradient(#000 calc(100% - 40px),transparent);mask-image:linear-gradient(#000 calc(100% - 40px),transparent);}
   .v4-budget-sheet>.v4-sheet-body.bajado{-webkit-mask-image:linear-gradient(transparent,#000 28px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(transparent,#000 28px,#000 calc(100% - 40px),transparent);}
   select.af-in.aely-sv-apartado{width:100%;min-width:0;}
-  .aely-sv-eur{position:relative;display:flex;flex:1 1 90px;min-width:0;}
-  .aely-sv-eur .af-in.num{padding-right:26px;width:100%;}
+  /* El campo nunca más estrecho que «12500,75 €»: con letra grande el «€» se comía el último dígito (26/11).
+     Si la tarjeta no da para las tres cosas en una línea, el banco baja a la suya. */
+  .aely-sv-eur{position:relative;display:flex;flex:1 1 112px;min-width:112px;}
+  .aely-sv-eur .af-in.num{padding-left:11px;padding-right:24px;width:100%;}
+  @container (max-width:300px){
+    .aely-savings-edit-line{display:grid;grid-template-columns:minmax(0,1fr) 40px;}
+    .aely-savings-edit-line .aely-sv-eur{grid-area:1/1;}
+    .aely-savings-edit-line .ex-del{grid-area:1/2;}
+    .aely-savings-edit-line select.af-in{grid-area:2/1/3/3;width:100%;}
+  }
   .aely-sv-eur i{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--muted);pointer-events:none;}
   .aely-savings-edit-line .ex-del{opacity:.9;}
   .v4-bol-nm{flex:1 1 110px;min-width:0;font-weight:700;font-size:15px;overflow-wrap:anywhere;}
@@ -20544,7 +20563,7 @@ function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}
     const tm=setTimeout(function(){
       const filas=swipe.sheetRef.current&&swipe.sheetRef.current.querySelectorAll('[data-bolsa="nueva"]');
       if(filas&&filas.length) filas[filas.length-1].scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"});
-    },60);
+    },320);
     return function(){ clearTimeout(tm); };
   },[open,nuevas.length]);
   if(!open) return null;
@@ -20553,17 +20572,16 @@ function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}
   const sinImporte=function(x){ return !!x.name.trim()&&!(ahorroImporteDe(x.amount)>0); };
   const totalAhorro=bolsas.reduce(function(n,x){ return n+Math.round(valor(x)*100); },0)+nuevas.reduce(function(n,x){ return n+Math.round(ahorroImporteDe(x.amount)*100); },0);
   const euros=function(c){ return c%100?eur(c/100):eur0(c/100); };
-  const texto=function(v){ return String(+v.toFixed(2)).replace(".",numDecSep()); };
   const paso=function(id,nombre,raw,cambia){
     const visto=foco!==id&&/\d/.test(raw)?ahorroTexto(ahorroImporteDe(raw)):raw;
     return React.createElement("span",{className:"v4-bol-step"},
-      React.createElement("button",{type:"button","aria-label":"− "+nombre,onClick:function(){ cambia(texto(Math.max(0,ahorroImporteDe(raw)-50))); }},"−"),
+      React.createElement("button",{type:"button","aria-label":"− "+nombre,onClick:function(){ cambia(ahorroEditable(Math.max(0,ahorroImporteDe(raw)-50))); }},"−"),
       React.createElement("span",{className:"v4-bol-campo"},
         React.createElement("input",{className:"num","aria-label":nombre,inputMode:"decimal",value:visto,placeholder:"0",
           // El valor sin formato se pone antes de seleccionar: si lo pintara React después, se perdería la selección.
           onFocus:function(e){ e.target.value=raw; e.target.select(); setFoco(id); },onBlur:function(){ setFoco(null); },onChange:function(e){ cambia(e.target.value); }}),
         React.createElement("i",{"aria-hidden":"true"},"€")),
-      React.createElement("button",{type:"button","aria-label":"+ "+nombre,onClick:function(){ cambia(texto(ahorroImporteDe(raw)+50)); }},"+"));
+      React.createElement("button",{type:"button","aria-label":"+ "+nombre,onClick:function(){ cambia(ahorroEditable(ahorroImporteDe(raw)+50)); }},"+"));
   };
   const ponNueva=function(i,k,v){ setNuevas(function(n){ return n.map(function(x,j){ return j===i?Object.assign({},x,{[k]:v}):x; }); }); };
   const guardaAhorro=function(){
@@ -20599,7 +20617,6 @@ function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}
           React.createElement("div",{className:"v4-bol-fold"+(abierto?" open":"")},React.createElement("div",{inert:abierto?undefined:""},
           React.createElement("div",{className:"v4-bol-list","data-testid":"budget-bolsas"},
             bolsas.map(function(x){
-              if(tocado[x.key]===null) return null;
               const nombre=bolsaNombre(x);
               const pon=function(v){ setTocado(function(o){ return Object.assign({},o,{[x.key]:v}); }); };
               // Varias aportaciones en un apartado: la fila las despliega (se editan una a una en Cartera).
@@ -20618,16 +20635,24 @@ function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}
                         React.createElement("b",{className:"num"},euros(Math.round((Number(a.amount)||0)*100))));
                     }))));
               }
-              return React.createElement("div",{key:x.key,className:"v4-bol-row","data-bolsa":x.key},
+              const fila=React.createElement("div",{key:x.key,className:"v4-bol-row","data-bolsa":x.key},
                 React.createElement("span",{className:"v4-bol-nm"},React.createElement("span",{className:"v4-bol-t"},nombre),
                   x.kind==="propia"&&valor(x)===0&&React.createElement("button",{type:"button",className:"v4-bol-quita","aria-label":t("sv_del_aria")+": "+nombre,onClick:function(){ pon(null); }},"✕")),
-                paso(x.key,nombre,tocado[x.key]!=null?tocado[x.key]:texto(x.c/100),pon));
+                paso(x.key,nombre,tocado[x.key]!=null?tocado[x.key]:ahorroEditable(x.c/100),pon));
+              if(x.kind!=="propia") return fila;
+              // Solo las propias se quitan: se pliegan en vez de desaparecer de golpe.
+              const fuera=tocado[x.key]===null;
+              return React.createElement("div",{key:x.key,className:"v4-bol-fold aely-fila-fold"+(fuera?"":" open")},
+                React.createElement("div",{inert:fuera?"":undefined},fila));
             }),
             nuevas.map(function(x,i){
-              return React.createElement("div",{key:"n"+i,className:"v4-bol-row","data-bolsa":"nueva"},
+              const sinCifra=falta&&sinImporte(x);
+              return React.createElement("div",{key:"n"+i,className:"v4-bol-fold aely-fila-fold open aely-entra"},React.createElement("div",null,
+              React.createElement("div",{className:"v4-bol-row","data-bolsa":"nueva"},
                 React.createElement("input",{className:"af-in v4-bol-nm","aria-label":t("bolsa_nombre"),placeholder:t("bolsa_nombre"),maxLength:40,value:x.name,onChange:function(e){ ponNueva(i,"name",e.target.value); }}),
                 paso("n"+i,x.name.trim()||t("sv_amount_aria"),x.amount,function(v){ ponNueva(i,"amount",v); }),
-                falta&&sinImporte(x)&&React.createElement("small",{className:"v4-bol-falta",role:"alert"},t("bolsa_falta")));
+                React.createElement("div",{className:"v4-bol-fold v4-bol-falta"+(sinCifra?" open":"")},React.createElement("div",null,
+                  React.createElement("small",{role:sinCifra?"alert":undefined},t("bolsa_falta")))))));
             }),
             React.createElement("button",{type:"button",className:"v4-bol-add","data-testid":"budget-bolsa-add",onClick:function(){ setNuevas(function(n){ return n.concat([{name:"",amount:""}]); }); }},"+ "+t("bolsa_add"))))))
         ),
@@ -33036,10 +33061,15 @@ function ahorroImporteDe(raw){
   }
   const n=parseFloat(s); return isFinite(n)?Math.max(0,n):0;
 }
-// Cómo se enseña un importe en un campo SIN foco: con punto de millar y los céntimos que tenga. Se relee con
-// `ahorroImporteDe` sin perder un céntimo; con foco se escribe sin separador de millar.
+// El importe dentro de un campo: sin céntimos, entero; con céntimos, SIEMPRE los dos («30,5 €» junto a un total
+// «30,50 €» parecía otra cifra, 26/11). Solo cambia lo escrito: se relee igual con `ahorroImporteDe`.
+function ahorroEditable(v){
+  const n=+v.toFixed(2);
+  return (n%1?n.toFixed(2):String(n)).replace(".",numDecSep());
+}
+// Campo SIN foco: además, con punto de millar; con foco se escribe sin él.
 function ahorroTexto(v){
-  const dec=numDecSep(), p=String(+v.toFixed(2)).split(".");
+  const dec=numDecSep(), p=ahorroEditable(v).split(dec);
   return p[0].replace(/\B(?=(\d{3})+(?!\d))/g,dec===","?".":",")+(p[1]?dec+p[1]:"");
 }
 /* APORTACIÓN MENSUAL a bancos y brókers (`state.aportaciones`). Vivía en Metas como «Ahorro
@@ -33056,11 +33086,13 @@ function SavingsPlanCard({state, set, totals, showToast}){
   const [drafts,setDrafts]=useState(null);   // null = cerrado; array = editando
   const AP_ENTS=Object.keys(ENT).filter(function(k){ return k!=="familia"; });
   const start=function(){
-    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",numDecSep()):"",ent:a.ent!=null?a.ent:"myinvestor",bolsa:bolsaDe(a)}; }));
+    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?ahorroEditable(Number(a.amount)):"",ent:a.ent!=null?a.ent:"myinvestor",bolsa:bolsaDe(a)}; }));
   };
   const setD=function(id,k,v){ setDrafts(function(ds){ return ds.map(function(d){ return d.id===id?Object.assign({},d,{[k]:v}):d; }); }); };
   // El nombre que pone la app («Emergencia», «Inversión») no se repite junto al selector y lo sigue si se cambia.
-  const nombreDeApartado=function(d){ return (d.bolsa==="emergencia"||d.bolsa==="inversion")&&d.name===t("bolsa_"+d.bolsa); };
+  // En cualquier idioma: la fila creada en castellano sigue siendo «la de la app» al pasar a catalán.
+  const esNombreDeApp=function(bolsa,name){ return (bolsa==="emergencia"||bolsa==="inversion")&&LANGS.some(function(l){ return LANG[l[0]]["bolsa_"+bolsa]===name; }); };
+  const nombreDeApartado=function(d){ return esNombreDeApp(d.bolsa,d.name); };
   const setApartado=function(id,k){
     setDrafts(function(ds){ return ds.map(function(d){
       if(d.id!==id) return d;
@@ -33069,17 +33101,19 @@ function SavingsPlanCard({state, set, totals, showToast}){
     }); });
   };
   const add=function(){ setDrafts(function(ds){ return ds.concat([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]); }); };
-  const del=function(id){ setDrafts(function(ds){ return ds.filter(function(d){ return d.id!==id; }); }); };
+  // Quitar solo la marca: la fila se pliega suave y desde ese instante Guardar ya no la cuenta.
+  const del=function(id){ setD(id,"fuera",true); };
   const save=function(){
     const prev={}; aps.forEach(function(a){ prev[a.id]=a; });
+    const vivas=drafts.filter(function(d){ return !d.fuera; });
     // Borrar una fila o cambiarle importe, banco o apartado dice a mano dónde está el dinero: lo apuntado de un
     // reparto sobre ella (recibido o dado) deja de valer.
     const tocadas={};
     aps.forEach(function(a){
-      const d=drafts.find(function(x){ return x.id===a.id; });
+      const d=vivas.find(function(x){ return x.id===a.id; });
       if(!d||bolsaCts(ahorroImporteDe(d.amount))!==bolsaCts(a.amount)||d.ent!==a.ent||d.bolsa!==bolsaDe(a)) tocadas[a.id]=1;
     });
-    const next=drafts.map(function(d){
+    const next=vivas.map(function(d){
       const n=ahorroImporteDe(d.amount);
       const row=Object.assign({}, prev[d.id]||{}, {id:d.id, name:d.name.trim()||t("d_saving"), amount:+n.toFixed(2), ent:d.ent});
       if(d.bolsa&&d.bolsa!=="otros") row.bolsa=d.bolsa; else delete row.bolsa;
@@ -33107,16 +33141,19 @@ function SavingsPlanCard({state, set, totals, showToast}){
         onClick:function(){ editing?setDrafts(null):(vacia?setDrafts([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]):start()); }},
         editing?t("fj_cancel"):(vacia?t("sv_add_short"):t("fj_edit")))),
     !vacia && React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
-    !editing && aps.map(function(ap){
+    // Mismo orden que la hoja y la cascada: «Otros» al final.
+    !editing && bolsasDeAhorro(aps).reduce(function(r,b){ return r.concat(b.filas); },[]).map(function(ap){
       return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
         React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"},
-          [ap.ent?entOf(ap.ent).label:"", bolsaDe(ap)!=="propia"&&ap.name!==t("bolsa_"+bolsaDe(ap))?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
+          [ap.ent?entOf(ap.ent).label:"", bolsaDe(ap)!=="propia"&&!esNombreDeApp(bolsaDe(ap),ap.name)&&ap.name!==t("bolsa_"+bolsaDe(ap))?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
         React.createElement("span",{className:"num aely-savings-amt"}, tf("fj_permonth",{x:eur(Number(ap.amount)||0)})));
     }),
     editing && drafts.map(function(d){
       const auto=nombreDeApartado(d);
       // El apartado va siempre primero, también con nombre propio: todas las filas se leen igual.
-      return React.createElement("div",{className:"aely-savings-edit-row",key:d.id,"data-savings-draft":d.id},
+      return React.createElement("div",{key:d.id,className:"v4-bol-fold aely-fila-fold"+(d.fuera?"":" open")+(d.nuevo?" aely-entra":"")},
+        React.createElement("div",{inert:d.fuera?"":undefined},
+        React.createElement("div",{className:"aely-savings-edit-row","data-savings-draft":d.id},
         React.createElement("select",{className:"af-in aely-sv-apartado","aria-label":t("bolsa_sel"),value:d.bolsa||"otros",onChange:function(e){ setApartado(d.id,e.target.value); }},
           ["emergencia","inversion","propia","otros"].map(function(k){ return React.createElement("option",{key:k,value:k},t("bolsa_"+k)); })),
         !auto&&React.createElement("input",{className:"af-in","aria-label":t("sv_name_aria"),placeholder:t("sv_name_ph"),value:d.name,
@@ -33129,7 +33166,7 @@ function SavingsPlanCard({state, set, totals, showToast}){
           React.createElement("select",{className:"af-in","aria-label":t("sv_bank_aria"),value:d.ent,onChange:function(e){ setD(d.id,"ent",e.target.value); }},
             !d.ent&&React.createElement("option",{key:"",value:""},t("sv_sin_banco")),
             AP_ENTS.map(function(k){ return React.createElement("option",{key:k,value:k},entOf(k).label); })),
-          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")));
+          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")))));
     }),
     editing && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:add}, "+ "+t("sv_add")),
     editing && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:8},"data-savings-save":"1",onClick:save}, t("fj_save"))
@@ -37203,7 +37240,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="210819e7ae7a06047c62c5878ce407ec9fad7ac50cae634b9395aab65328a471";
+var _rnSha="4d8296d5c2afd975dc05cccc666999992c18a8aa10cb0557ed132769561000d9";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

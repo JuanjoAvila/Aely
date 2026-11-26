@@ -3404,8 +3404,12 @@
   .v4-bol-tot b{font-size:24px;font-weight:550;white-space:nowrap;}
   .v4-bol-tot .chev{width:18px;height:18px;flex:0 0 auto;opacity:.6;}
   .v4-bol-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 10px;padding:7px 0;border-bottom:1px solid var(--line-soft);}
-  .v4-bol-nm small,.v4-bol-falta{display:block;font-size:12px;font-weight:500;color:var(--muted);}
-  .v4-bol-falta{flex:1 0 100%;text-align:right;color:var(--coral);}
+  .v4-bol-nm small,.v4-bol-falta small{display:block;font-size:12px;font-weight:500;color:var(--muted);}
+  .v4-bol-falta{flex:1 0 100%;text-align:right;}
+  .v4-bol-falta small{color:var(--coral);}
+  /* Sin hueco entre líneas: el aviso plegado no ocupa nada. */
+  .v4-bol-row[data-bolsa="nueva"]{row-gap:0;padding:4px 0;}
+  .v4-bol-row[data-bolsa="nueva"]>.v4-bol-nm,.v4-bol-row[data-bolsa="nueva"]>.v4-bol-step{margin-top:3px;margin-bottom:3px;}
   .v4-bol-quita{display:inline-flex;align-items:center;justify-content:center;width:30px;height:44px;margin:-12px 0;padding:0;vertical-align:middle;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;}
   .v4-bol-campo{display:flex;align-items:center;gap:3px;height:44px;padding:0 9px;border:1px solid var(--line-soft);border-radius:12px;background:var(--sur);}
   .v4-bol-campo:focus-within{border-color:var(--mint);}
@@ -3414,15 +3418,30 @@
   .v4-bol-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .3s var(--ease),opacity .2s ease,visibility 0s .3s;}
   .v4-bol-fold.open{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .3s var(--ease),opacity .2s ease,visibility 0s;}
   .v4-bol-fold>div{overflow:hidden;min-height:0;}
-  @media (prefers-reduced-motion:reduce){.v4-bol-fold,.v4-bol-fold.open{transition-duration:.01ms !important;transition-delay:0s !important;}}
+  /* Filas que entran y salen, y el aviso: la hoja crece y encoge con ellas, sin saltos. Anidadas en otro pliegue,
+     heredan su visibilidad. El margen del recorte deja ver el foco de los campos. */
+  .v4-bol-fold.aely-fila-fold{grid-template-columns:minmax(0,1fr);}
+  .v4-bol-fold.aely-fila-fold.open,.v4-bol-fold.v4-bol-falta.open{visibility:inherit;}
+  .aely-fila-fold>div{overflow:clip;overflow-clip-margin:3px;}
+  .v4-bol-fold.aely-entra{animation:aelyentra .3s var(--ease);}
+  @keyframes aelyentra{from{grid-template-rows:0fr;opacity:0;}to{grid-template-rows:1fr;opacity:1;}}
+  @media (prefers-reduced-motion:reduce){.v4-bol-fold,.v4-bol-fold.open{transition-duration:.01ms !important;transition-delay:0s !important;}.v4-bol-fold.aely-entra{animation:none;}}
   /* Título e importes se desplazan; Guardar queda siempre a la vista. */
   .v4-sheet.v4-budget-sheet:has(>.v4-sheet-body){padding-bottom:calc(36px + var(--safe-bottom));}
   /* Lo que sigue por debajo se funde en vez de quedar rebanado contra el botón. */
   .v4-budget-sheet>.v4-sheet-body{padding-bottom:40px;scroll-padding:28px 0 40px;-webkit-mask-image:linear-gradient(#000 calc(100% - 40px),transparent);mask-image:linear-gradient(#000 calc(100% - 40px),transparent);}
   .v4-budget-sheet>.v4-sheet-body.bajado{-webkit-mask-image:linear-gradient(transparent,#000 28px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(transparent,#000 28px,#000 calc(100% - 40px),transparent);}
   select.af-in.aely-sv-apartado{width:100%;min-width:0;}
-  .aely-sv-eur{position:relative;display:flex;flex:1 1 90px;min-width:0;}
-  .aely-sv-eur .af-in.num{padding-right:26px;width:100%;}
+  /* El campo nunca más estrecho que «12500,75 €»: con letra grande el «€» se comía el último dígito (26/11).
+     Si la tarjeta no da para las tres cosas en una línea, el banco baja a la suya. */
+  .aely-sv-eur{position:relative;display:flex;flex:1 1 112px;min-width:112px;}
+  .aely-sv-eur .af-in.num{padding-left:11px;padding-right:24px;width:100%;}
+  @container (max-width:300px){
+    .aely-savings-edit-line{display:grid;grid-template-columns:minmax(0,1fr) 40px;}
+    .aely-savings-edit-line .aely-sv-eur{grid-area:1/1;}
+    .aely-savings-edit-line .ex-del{grid-area:1/2;}
+    .aely-savings-edit-line select.af-in{grid-area:2/1/3/3;width:100%;}
+  }
   .aely-sv-eur i{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--muted);pointer-events:none;}
   .aely-savings-edit-line .ex-del{opacity:.9;}
   .v4-bol-nm{flex:1 1 110px;min-width:0;font-weight:700;font-size:15px;overflow-wrap:anywhere;}
