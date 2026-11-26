@@ -138,6 +138,14 @@ assert.deepEqual(enDic(v1r),[100000,50000,110000]);
 const caducado=v1r.map(a=>a.viene?{...a,viene:a.viene.map(v=>({...v,d:"2026-10-05"}))}:a);
 assert.equal(c.bolsasAplica(caducado,{emergencia:400},[{name:"V",amount:100}],nuevo).some(a=>a.viene&&a.viene.some(v=>v.id==="o")),false);
 
+// Mi ciclo con la nómina siguiente retrasada: el reparto de hoy sigue valiendo pasado el fin nominal.
+const tarde=(aps)=>{ const x=c.planReparto(base({aportaciones:aps,settings:{expenseBanks:["sabadell"],budgetCycle:true},
+  expenses:[mov("nc",18,-3000,{merchant:"Nómina Empresa SL",date:"2026-10-18T10:00:00.000Z"}),
+  mov("ic",19,500,{category:"inversion",date:"2026-10-19T10:00:00.000Z"})]}),{nowMs:Date.parse("2026-11-21T11:00:00Z")}); return [x.periodo.cycle,x.aho,x.qAho,x.libre]; };
+const hoy21=v1r.map(a=>a.viene?{...a,viene:a.viene.map(v=>({...v,d:"2026-11-21"}))}:a);
+assert.equal(tarde(v1)[0],true);
+assert.deepEqual(tarde(hoy21),tarde(v1),"nómina con retraso: repartir no cambia las cifras");
+
 /* V2: borrar o cambiar en Cartera (o desde una versión anterior, que conserva el campo) anula lo apuntado. */
 const sinViene=aps=>aps.map(({viene,...a})=>a);
 assert.notDeepEqual(cifras(v1r,500),cifras(sinViene(v1r),500),"el apunte pesa (si no, no se prueba nada)");

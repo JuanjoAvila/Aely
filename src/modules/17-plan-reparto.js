@@ -244,7 +244,8 @@ function planReparto(state, o){
   const ahoInv=(state.aportaciones||[]).filter(bolsaInvierte).reduce(function(a,x){ return a+repCts(x&&x.amount); },0);
   const ahoBroker=(state.aportaciones||[]).filter(function(x){ return x&&!bolsaInvierte(x); }).reduce(function(a,x){
     let propio=repCts(x.amount), enBroker=0;
-    vieneVigente(x,state.aportaciones,P.startMs,P.endMs).forEach(function(v){ const c=Math.min(propio,repCts(v.amount)); propio-=c; if(bolsaEnBroker(v)) enBroker+=c; });
+    // Con la nómina siguiente aún sin entrar, el ciclo en curso pasa de su fin nominal: sin tope.
+    vieneVigente(x,state.aportaciones,P.startMs,P.cycle&&now>=P.endMs?null:P.endMs).forEach(function(v){ const c=Math.min(propio,repCts(v.amount)); propio-=c; if(bolsaEnBroker(v)) enBroker+=c; });
     return a+enBroker+(bolsaEnBroker(x)?propio:0);
   },0);
   const sobra=Math.max(0,inversion-ahoInv), cubre=Math.min(sobra,ahoBroker), ahoExtra=sobra-cubre;
