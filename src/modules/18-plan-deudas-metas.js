@@ -206,7 +206,11 @@ function RptEscalera({state,d}){
   const nombreDe=function(id){ const dd=(state.debts||[]).find(function(x){ return x.id===id; }); return dd?dd.name:""; };
   const cap=function(x){
     if(x.k==="hoy") return tf("rpt_esc_hoy",{x:rptC0(x.v)});
-    return tf("rpt_esc_desde",{m:rptMes(x.desde),name:nombreDe(x.k),x:rptC0(x.c)})+(x.final>0?" · "+tf("rpt_esc_final",{x:rptC0(x.final),m:rptMes(x.ultimo)}):"");
+    // El importe «−260 €/mes» (o «/mo») no se parte; la línea sí puede saltar en los « · ».
+    const s=tf("rpt_esc_desde",{m:rptMes(x.desde),name:nombreDe(x.k),x:rptC0(x.c)})+(x.final>0?" · "+tf("rpt_esc_final",{x:rptC0(x.final),m:rptMes(x.ultimo)}):"");
+    return s.replace(/(−)([^·]*?)(\/(?:mes|mo))/g,function(_,sig,cuerpo,suf){
+      return sig+"\u2060"+cuerpo.replace(/[\u0020\u202F]/g,"\u00A0")+"\u2060"+suf.replace("/","/\u2060");
+    });
   };
   const act=sel!=null&&show[sel]?sel:show.findIndex(function(x){ return x===pasos[idx]; });
   return React.createElement("div",{className:"rpt-sg","data-stair":d.id},
