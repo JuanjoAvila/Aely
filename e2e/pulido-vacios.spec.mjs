@@ -47,7 +47,7 @@ test("★ sin presupuesto, Inicio ofrece ponerlo en vez de esconder la tarjeta",
   await expect(page.getByText(/presupuesto|budget|pressupost/i).first()).toBeVisible({ timeout: 10_000 });
   const sheet = page.locator(".v4-budget-sheet");
   await expect(sheet).toBeVisible();
-  const amount = sheet.locator(".v4-ob-stepper .serif");
+  const amount = sheet.locator(".v4-ob-stepper .serif").first();
   expect(parseFloat(await amount.evaluate((el) => getComputedStyle(el).fontSize))).toBeLessThanOrEqual(42);
   expect(parseFloat(await sheet.evaluate((el) => getComputedStyle(el).animationDuration)) * 1000).toBeGreaterThanOrEqual(350);
   await sheet.locator(".v4-cta").click();
