@@ -7104,6 +7104,8 @@ test("Catálogo259 abre la nota 4.26.259 sin tanda nueva, deja intactas las ocho
   // Único cambio del registro: GoalEditSheet (hoja de meta) llama ahora a reservaMetaActiva; se suma al final de deudas-metas-hoja-edicion.
   const registro259=JSON.parse(source("scripts/beta-sources.json")),w259=registro259["deudas-metas-hoja-edicion"].web,ult259=w259.pop();
   assert.deepEqual(ult259,{file:"src/modules/08-motor-bank.js",function:"reservaMetaActiva"},"el cierre nuevo va al final");
+  const ult259b=registro259["deudas-metas-hoja-cierre-suave"].web.pop();
+  assert.deepEqual(ult259b,{file:"src/modules/08-motor-bank.js",function:"reservaMetaActiva"},"el mismo cierre va al final de la hoja de cierre suave");
   assert.deepEqual(registro259,integrated,"registro intacto salvo ese cierre");
   assert.equal(source("VERSION").trim(),"4.26.259");
   const apk=JSON.parse(source("public/apk.json"));
