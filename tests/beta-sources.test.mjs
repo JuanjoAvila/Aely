@@ -7101,12 +7101,11 @@ test("Catálogo259 abre la nota 4.26.259 sin tanda nueva, deja intactas las ocho
     assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
-  // Único cambio del registro: GoalEditSheet (hoja de meta) llama ahora a reservaMetaActiva; se suma al final de deudas-metas-hoja-edicion.
-  const registro259=JSON.parse(source("scripts/beta-sources.json")),w259=registro259["deudas-metas-hoja-edicion"].web,ult259=w259.pop();
-  assert.deepEqual(ult259,{file:"src/modules/08-motor-bank.js",function:"reservaMetaActiva"},"el cierre nuevo va al final");
-  const ult259b=registro259["deudas-metas-hoja-cierre-suave"].web.pop();
-  assert.deepEqual(ult259b,{file:"src/modules/08-motor-bank.js",function:"reservaMetaActiva"},"el mismo cierre va al final de la hoja de cierre suave");
-  assert.deepEqual(registro259,integrated,"registro intacto salvo ese cierre");
+  // Único cambio del registro: GoalEditSheet (hoja de meta) llama ahora a reservaMetaActiva; se suma al final de los cuatro alcances que la vigilan.
+  const registro259=JSON.parse(source("scripts/beta-sources.json"));
+  for(const id of ["deudas-metas-hoja-edicion","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-v5-ciclos-metas-inversiones"])
+    assert.deepEqual(registro259[id].web.pop(),{file:"src/modules/08-motor-bank.js",function:"reservaMetaActiva"},id+": el cierre nuevo va al final");
+  assert.deepEqual(registro259,integrated,"registro intacto salvo esos cierres");
   assert.equal(source("VERSION").trim(),"4.26.259");
   const apk=JSON.parse(source("public/apk.json"));
   assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");

@@ -73190,6 +73190,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMetaActiva"
       }
     ],
     "unidades": true
@@ -130062,6 +130066,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMetaActiva"
       }
     ],
     "unidades": true
