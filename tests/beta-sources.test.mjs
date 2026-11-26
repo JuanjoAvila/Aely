@@ -7101,7 +7101,10 @@ test("Catálogo259 abre la nota 4.26.259 sin tanda nueva, deja intactas las ocho
     assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
   }
-  assert.deepEqual(JSON.parse(source("scripts/beta-sources.json")),integrated,"registro intacto");
+  // Único cambio del registro: GoalEditSheet (hoja de meta) llama ahora a reservaMetaActiva; se suma al final de deudas-metas-hoja-edicion.
+  const registro259=JSON.parse(source("scripts/beta-sources.json")),w259=registro259["deudas-metas-hoja-edicion"].web,ult259=w259.pop();
+  assert.deepEqual(ult259,{file:"src/modules/08-motor-bank.js",function:"reservaMetaActiva"},"el cierre nuevo va al final");
+  assert.deepEqual(registro259,integrated,"registro intacto salvo ese cierre");
   assert.equal(source("VERSION").trim(),"4.26.259");
   const apk=JSON.parse(source("public/apk.json"));
   assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");

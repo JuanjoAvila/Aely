@@ -65529,6 +65529,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "accDaily"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMetaActiva"
       }
     ],
     "unidades": true
