@@ -812,17 +812,61 @@ function bolsaNombre(b){ return b.kind==="propia"?(b.name||t("d_saving")):t("bol
 /* Lo cambiado en la hoja de Inicio, sobre la lista del momento de escribir. `cambios` = {clave: euros} SOLO de las bolsas
    tocadas (null = quitar una propia); `nuevas` = [{name,amount}]. Una bolsa con una fila cambia su importe (conserva id,
    banco y nombre); sin filas, nace una; con VARIAS filas no se toca (se editan una a una en Cartera): repartir un total
-   entre ellas sería inventar. Lo que se reparte desde una fila hereda su banco: es el mismo dinero (así la gráfica sigue
-   reconociendo la transferencia entera y lo invertido no cuenta dos veces). */
+   entre ellas sería inventar.
+   Lo que en un mismo guardado baja de una fila y sube en otra es el mismo dinero, euro por euro (en el orden de la hoja);
+   lo que sube de más es dinero nuevo. La fila que lo recibe lo apunta en `viene` [{id,ent,amount}] (fila y banco de
+   origen): así `planReparto` no cuenta dos veces lo invertido y la gráfica sigue casando la transferencia de siempre.
+   Solo cambia de banco la fila sin banco (o nueva) cuyo importe ENTERO viene de uno: con una parte no se le inventa. */
 function bolsasAplica(aps, cambios, nuevas, nuevoId){
   let next=(aps||[]).slice();
   const cur=bolsasDeAhorro(next);
-  const bajan={};
+  const aCts=function(v){ return Math.round(Math.max(0,Number(v)||0)*100); };
+  // De una fila: lo que le llegó de otras (nunca más que su importe, que Cartera puede haber bajado) y lo suyo.
+  const parte=function(a){
+    let propio=aCts(a.amount);
+    const ajeno=[];
+    (a.viene||[]).forEach(function(v){ const c=Math.min(propio,aCts(v.amount)); propio-=c; if(c) ajeno.push({id:v.id,ent:v.ent,c:c}); });
+    return {propio:propio,ajeno:ajeno};
+  };
+  const movidos=[], quedan=new Map();
   Object.keys(cambios||{}).forEach(function(key){
     const b=cur.find(function(x){ return x.key===key; });
-    if(b&&b.filas.length===1&&b.filas[0].ent&&cambios[key]!==null&&Math.round((Number(cambios[key])||0)*100)<b.c) bajan[b.filas[0].ent]=1;
+    if(!b||b.filas.length!==1||(cambios[key]===null&&b.kind!=="propia")) return;
+    const a=b.filas[0], p=parte(a);
+    let baja=aCts(a.amount)-aCts(cambios[key]);
+    // Primero sale lo que ya venía de otra (deshacer un reparto lo devuelve a su sitio) y luego lo propio.
+    while(baja>0&&p.ajeno.length){
+      const v=p.ajeno[p.ajeno.length-1], c=Math.min(baja,v.c);
+      movidos.push({id:v.id,ent:v.ent,c:c}); v.c-=c; baja-=c; if(!v.c) p.ajeno.pop();
+    }
+    if(baja>0) movidos.push({id:a.id,ent:a.ent||"",c:Math.min(baja,p.propio)});
+    quedan.set(a,p.ajeno);
   });
-  const de=Object.keys(bajan).length===1?Object.keys(bajan)[0]:"";
+  const origenes=Array.from(new Set(movidos.map(function(m){ return m.ent; }).filter(Boolean)));
+  const de=origenes.length===1?origenes[0]:"";
+  const recibe=function(falta){
+    const llegan=[];
+    while(falta>0&&movidos.length){
+      const m=movidos[0], c=Math.min(falta,m.c);
+      llegan.push({id:m.id,ent:m.ent,c:c}); m.c-=c; falta-=c; if(!m.c) movidos.shift();
+    }
+    return llegan;
+  };
+  const bancoDeTodo=function(llegan,total){
+    const suma=llegan.reduce(function(n,v){ return n+v.c; },0);
+    return suma===total&&llegan.every(function(v){ return v.ent===llegan[0].ent; })&&llegan.length?llegan[0].ent:"";
+  };
+  const apunta=function(row,ajeno,llegan){
+    const lista=ajeno.map(function(v){ return {id:v.id,ent:v.ent,c:v.c}; });
+    llegan.forEach(function(v){
+      if(v.id===row.id&&v.ent===(row.ent||"")) return;   // vuelve a su sitio: es suyo otra vez
+      const ya=lista.find(function(x){ return x.id===v.id&&x.ent===v.ent; });
+      if(ya) ya.c+=v.c; else lista.push({id:v.id,ent:v.ent,c:v.c});
+    });
+    delete row.viene;
+    if(lista.length) row.viene=lista.map(function(v){ return {id:v.id,ent:v.ent,amount:v.c/100}; });
+    return row;
+  };
   const suyos={};
   next.forEach(function(a){ if(a&&bolsaInvierte(a)&&bolsaEnBroker(a)) suyos[a.ent]=1; });
   const broker=bolsaEnBroker({ent:de})?de:(Object.keys(suyos).length===1?Object.keys(suyos)[0]:"myinvestor");
@@ -831,15 +875,28 @@ function bolsasAplica(aps, cambios, nuevas, nuevoId){
     const b=cur.find(function(x){ return x.key===key; });
     if(!b||b.filas.length>1) return;
     if(cambios[key]===null){ if(b.kind==="propia") next=next.filter(function(a){ return a!==b.filas[0]; }); return; }
-    if(b.filas.length===1){ next=next.map(function(a){ return a===b.filas[0]?Object.assign({},a,{amount:amount}):a; }); return; }
+    if(b.filas.length===1){
+      const a=b.filas[0], antes=aCts(a.amount), llegan=recibe(aCts(amount)-antes);
+      const row=Object.assign({},a,{amount:amount});
+      const banco=!row.ent&&!antes?bancoDeTodo(llegan,aCts(amount)):"";
+      if(banco) row.ent=banco;
+      apunta(row,quedan.get(a)||parte(a).ajeno,llegan);
+      next=next.map(function(x){ return x===a?row:x; });
+      return;
+    }
     if(!(amount>0)||b.kind==="propia") return;
-    const row={id:nuevoId(),name:b.kind==="otros"?t("d_saving"):t("bolsa_"+b.kind),amount:amount,ent:b.kind==="emergencia"?de:broker};
+    const id=nuevoId(), llegan=recibe(aCts(amount)), banco=bancoDeTodo(llegan,aCts(amount));
+    // Emergencia con dinero nuevo nace sin banco; Inversión y Otros nacen en un bróker, como siempre.
+    const row={id:id,name:b.kind==="otros"?t("d_saving"):t("bolsa_"+b.kind),amount:amount,
+      ent:b.kind==="emergencia"?banco:(bolsaEnBroker({ent:banco})?banco:broker)};
     if(b.kind!=="otros") row.bolsa=b.kind;
-    next.push(row);
+    next.push(apunta(row,[],llegan));
   });
   (nuevas||[]).forEach(function(n){
     const amount=+(Math.max(0,Number(n.amount)||0)).toFixed(2), name=String(n.name||"").trim();
-    if(amount>0) next.push({id:nuevoId(),name:name||t("d_saving"),amount:amount,ent:de,bolsa:"propia"});
+    if(!(amount>0)) return;
+    const id=nuevoId(), llegan=recibe(aCts(amount));
+    next.push(apunta({id:id,name:name||t("d_saving"),amount:amount,ent:bancoDeTodo(llegan,aCts(amount)),bolsa:"propia"},[],llegan));
   });
   return next;
 }

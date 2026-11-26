@@ -4916,17 +4916,61 @@ function bolsaNombre(b){ return b.kind==="propia"?(b.name||t("d_saving")):t("bol
 /* Lo cambiado en la hoja de Inicio, sobre la lista del momento de escribir. `cambios` = {clave: euros} SOLO de las bolsas
    tocadas (null = quitar una propia); `nuevas` = [{name,amount}]. Una bolsa con una fila cambia su importe (conserva id,
    banco y nombre); sin filas, nace una; con VARIAS filas no se toca (se editan una a una en Cartera): repartir un total
-   entre ellas sería inventar. Lo que se reparte desde una fila hereda su banco: es el mismo dinero (así la gráfica sigue
-   reconociendo la transferencia entera y lo invertido no cuenta dos veces). */
+   entre ellas sería inventar.
+   Lo que en un mismo guardado baja de una fila y sube en otra es el mismo dinero, euro por euro (en el orden de la hoja);
+   lo que sube de más es dinero nuevo. La fila que lo recibe lo apunta en `viene` [{id,ent,amount}] (fila y banco de
+   origen): así `planReparto` no cuenta dos veces lo invertido y la gráfica sigue casando la transferencia de siempre.
+   Solo cambia de banco la fila sin banco (o nueva) cuyo importe ENTERO viene de uno: con una parte no se le inventa. */
 function bolsasAplica(aps, cambios, nuevas, nuevoId){
   let next=(aps||[]).slice();
   const cur=bolsasDeAhorro(next);
-  const bajan={};
+  const aCts=function(v){ return Math.round(Math.max(0,Number(v)||0)*100); };
+  // De una fila: lo que le llegó de otras (nunca más que su importe, que Cartera puede haber bajado) y lo suyo.
+  const parte=function(a){
+    let propio=aCts(a.amount);
+    const ajeno=[];
+    (a.viene||[]).forEach(function(v){ const c=Math.min(propio,aCts(v.amount)); propio-=c; if(c) ajeno.push({id:v.id,ent:v.ent,c:c}); });
+    return {propio:propio,ajeno:ajeno};
+  };
+  const movidos=[], quedan=new Map();
   Object.keys(cambios||{}).forEach(function(key){
     const b=cur.find(function(x){ return x.key===key; });
-    if(b&&b.filas.length===1&&b.filas[0].ent&&cambios[key]!==null&&Math.round((Number(cambios[key])||0)*100)<b.c) bajan[b.filas[0].ent]=1;
+    if(!b||b.filas.length!==1||(cambios[key]===null&&b.kind!=="propia")) return;
+    const a=b.filas[0], p=parte(a);
+    let baja=aCts(a.amount)-aCts(cambios[key]);
+    // Primero sale lo que ya venía de otra (deshacer un reparto lo devuelve a su sitio) y luego lo propio.
+    while(baja>0&&p.ajeno.length){
+      const v=p.ajeno[p.ajeno.length-1], c=Math.min(baja,v.c);
+      movidos.push({id:v.id,ent:v.ent,c:c}); v.c-=c; baja-=c; if(!v.c) p.ajeno.pop();
+    }
+    if(baja>0) movidos.push({id:a.id,ent:a.ent||"",c:Math.min(baja,p.propio)});
+    quedan.set(a,p.ajeno);
   });
-  const de=Object.keys(bajan).length===1?Object.keys(bajan)[0]:"";
+  const origenes=Array.from(new Set(movidos.map(function(m){ return m.ent; }).filter(Boolean)));
+  const de=origenes.length===1?origenes[0]:"";
+  const recibe=function(falta){
+    const llegan=[];
+    while(falta>0&&movidos.length){
+      const m=movidos[0], c=Math.min(falta,m.c);
+      llegan.push({id:m.id,ent:m.ent,c:c}); m.c-=c; falta-=c; if(!m.c) movidos.shift();
+    }
+    return llegan;
+  };
+  const bancoDeTodo=function(llegan,total){
+    const suma=llegan.reduce(function(n,v){ return n+v.c; },0);
+    return suma===total&&llegan.every(function(v){ return v.ent===llegan[0].ent; })&&llegan.length?llegan[0].ent:"";
+  };
+  const apunta=function(row,ajeno,llegan){
+    const lista=ajeno.map(function(v){ return {id:v.id,ent:v.ent,c:v.c}; });
+    llegan.forEach(function(v){
+      if(v.id===row.id&&v.ent===(row.ent||"")) return;   // vuelve a su sitio: es suyo otra vez
+      const ya=lista.find(function(x){ return x.id===v.id&&x.ent===v.ent; });
+      if(ya) ya.c+=v.c; else lista.push({id:v.id,ent:v.ent,c:v.c});
+    });
+    delete row.viene;
+    if(lista.length) row.viene=lista.map(function(v){ return {id:v.id,ent:v.ent,amount:v.c/100}; });
+    return row;
+  };
   const suyos={};
   next.forEach(function(a){ if(a&&bolsaInvierte(a)&&bolsaEnBroker(a)) suyos[a.ent]=1; });
   const broker=bolsaEnBroker({ent:de})?de:(Object.keys(suyos).length===1?Object.keys(suyos)[0]:"myinvestor");
@@ -4935,15 +4979,28 @@ function bolsasAplica(aps, cambios, nuevas, nuevoId){
     const b=cur.find(function(x){ return x.key===key; });
     if(!b||b.filas.length>1) return;
     if(cambios[key]===null){ if(b.kind==="propia") next=next.filter(function(a){ return a!==b.filas[0]; }); return; }
-    if(b.filas.length===1){ next=next.map(function(a){ return a===b.filas[0]?Object.assign({},a,{amount:amount}):a; }); return; }
+    if(b.filas.length===1){
+      const a=b.filas[0], antes=aCts(a.amount), llegan=recibe(aCts(amount)-antes);
+      const row=Object.assign({},a,{amount:amount});
+      const banco=!row.ent&&!antes?bancoDeTodo(llegan,aCts(amount)):"";
+      if(banco) row.ent=banco;
+      apunta(row,quedan.get(a)||parte(a).ajeno,llegan);
+      next=next.map(function(x){ return x===a?row:x; });
+      return;
+    }
     if(!(amount>0)||b.kind==="propia") return;
-    const row={id:nuevoId(),name:b.kind==="otros"?t("d_saving"):t("bolsa_"+b.kind),amount:amount,ent:b.kind==="emergencia"?de:broker};
+    const id=nuevoId(), llegan=recibe(aCts(amount)), banco=bancoDeTodo(llegan,aCts(amount));
+    // Emergencia con dinero nuevo nace sin banco; Inversión y Otros nacen en un bróker, como siempre.
+    const row={id:id,name:b.kind==="otros"?t("d_saving"):t("bolsa_"+b.kind),amount:amount,
+      ent:b.kind==="emergencia"?banco:(bolsaEnBroker({ent:banco})?banco:broker)};
     if(b.kind!=="otros") row.bolsa=b.kind;
-    next.push(row);
+    next.push(apunta(row,[],llegan));
   });
   (nuevas||[]).forEach(function(n){
     const amount=+(Math.max(0,Number(n.amount)||0)).toFixed(2), name=String(n.name||"").trim();
-    if(amount>0) next.push({id:nuevoId(),name:name||t("d_saving"),amount:amount,ent:de,bolsa:"propia"});
+    if(!(amount>0)) return;
+    const id=nuevoId(), llegan=recibe(aCts(amount));
+    next.push(apunta({id:id,name:name||t("d_saving"),amount:amount,ent:bancoDeTodo(llegan,aCts(amount)),bolsa:"propia"},[],llegan));
   });
   return next;
 }
@@ -14409,11 +14466,21 @@ function netWorthSeries(state, options){
   // importe, a nombre del titular, es esa aportación aunque el banco la llame «traspaso» u
   // «otros» (MyInvestor, 500 € a fin de mes, revisión 14/10). Si el bróker tiene su cuenta (aunque
   // sea manual), la llegada ya la recoge ese saldo: contarla aquí también la sumaba dos veces.
-  const plans=(state.aportaciones||[]).filter(p=>p&&(state.investments||[]).some(i=>i.ent===p.ent));
-  // Repartir en bolsas no cambia el pasado: la suma de las filas de un bróker casa como una sola.
-  const porEnt={};
-  plans.forEach(function(p){ porEnt[p.ent]=(porEnt[p.ent]||0)+Math.round((Number(p.amount)||0)*100); });
-  const importes=plans.concat(Object.keys(porEnt).map(function(ent){ return {ent:ent,amount:porEnt[ent]/100}; }));
+  // Repartir en apartados no cambia el pasado: lo movido de una fila a otra (`viene`) sigue casando
+  // con la fila y el banco de los que salió. Sin repartos, la lista es la de siempre, fila a fila.
+  let casan=state.aportaciones||[];
+  if(casan.some(a=>a&&a.viene)){
+    const origen=new Map();
+    const suma=(id,ent,c)=>{ const key=(ent||"")+"|"+id,g=origen.get(key)||{ent:ent,c:0}; g.c+=c; origen.set(key,g); };
+    casan.forEach(a=>{
+      if(!a) return;
+      let propio=Math.round((Number(a.amount)||0)*100);
+      (a.viene||[]).forEach(v=>{ const c=Math.min(propio,Math.round((Number(v.amount)||0)*100)); propio-=c; suma(v.id,v.ent,c); });
+      suma(a.id,a.ent,propio);
+    });
+    casan=Array.from(origen.values(),g=>({ent:g.ent,amount:g.c/100}));
+  }
+  const plans=casan.filter(p=>p&&(state.investments||[]).some(i=>i.ent===p.ent));
   // «A nombre del titular»: el concepto lleva su nombre (dos palabras del perfil) o «yo mismo».
   // Una transferencia del mismo importe al casero no es una aportación.
   const holder=recNorm(state.settings&&state.settings.profile&&state.settings.profile.fullName).split(" ").filter(w=>w.length>=3);
@@ -14441,7 +14508,7 @@ function netWorthSeries(state, options){
     }
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank,transfer=e.category==="traspaso";
     const matches=!row.ownTransfer&&e.amount>0&&/transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&
-      importes.filter(p=>Math.abs(p.amount-e.amount)<0.005)||[];
+      plans.filter(p=>Math.abs(p.amount-e.amount)<0.005)||[];
     const plan=!!invKnown&&(transfer||e.category==="otros")&&matches.some(p=>!flowBanks[p.ent]&&!owned[p.ent]&&p.amount>0);
     // Si el plan corresponde a un bróker con cuenta propia, sus cierres ya recogen
     // ese dinero. No convertirlo en una salida ni en otra aportación (regla de 99014642).
@@ -32908,6 +32975,8 @@ function SavingsPlanCard({state, set, totals, showToast}){
       const n=ahorroImporteDe(d.amount);
       const row=Object.assign({}, prev[d.id]||{}, {id:d.id, name:d.name.trim()||t("d_saving"), amount:+n.toFixed(2), ent:d.ent});
       if(d.bolsa&&d.bolsa!=="otros") row.bolsa=d.bolsa; else delete row.bolsa;
+      // Cambiar el banco a mano dice dónde está ese dinero: lo apuntado de un reparto anterior deja de valer.
+      if(prev[d.id]&&prev[d.id].ent!==d.ent) delete row.viene;
       return row;
     }).filter(function(a){ return a.amount>0 || prev[a.id]; });   // una fila nueva vacía no se guarda
     set(function(s){ return Object.assign({},s,{aportaciones:next}); });
@@ -33335,10 +33404,15 @@ function planReparto(state, o){
   /* ---- Ahorro: aportaciones planificadas o inversión real, sin lo que ya va a una meta ---- */
   const ahoPlan=(state.aportaciones||[]).reduce(function(a,x){ return a+repCts(x&&x.amount); },0);
   /* Lo invertido este mes cubre «Inversión» y «Otros»; lo que sobre, las filas de emergencia o propias cuyo banco es un
-     bróker (es el mismo dinero: no cuenta dos veces). Las demás van aparte. Sin bolsas marcadas, la cuenta es la de
-     siempre: max(plan, invertido). `bolsas` + `ahoExtra` suman la fila al céntimo. */
+     bróker (es el mismo dinero: no cuenta dos veces), y lo que a otra fila le llegó de un bróker al repartir (`viene`).
+     Las demás van aparte. Sin bolsas marcadas, la cuenta es la de siempre: max(plan, invertido). `bolsas` + `ahoExtra`
+     suman la fila al céntimo. */
   const ahoInv=(state.aportaciones||[]).filter(bolsaInvierte).reduce(function(a,x){ return a+repCts(x&&x.amount); },0);
-  const ahoBroker=(state.aportaciones||[]).filter(function(x){ return x&&!bolsaInvierte(x)&&bolsaEnBroker(x); }).reduce(function(a,x){ return a+repCts(x.amount); },0);
+  const ahoBroker=(state.aportaciones||[]).filter(function(x){ return x&&!bolsaInvierte(x); }).reduce(function(a,x){
+    let propio=repCts(x.amount), enBroker=0;
+    (x.viene||[]).forEach(function(v){ const c=Math.min(propio,repCts(v.amount)); propio-=c; if(bolsaEnBroker(v)) enBroker+=c; });
+    return a+enBroker+(bolsaEnBroker(x)?propio:0);
+  },0);
   const sobra=Math.max(0,inversion-ahoInv), cubre=Math.min(sobra,ahoBroker), ahoExtra=sobra-cubre;
   const ahoC=ahoPlan+ahoExtra, ahoQ=ahoPlan-Math.min(ahoInv,inversion)-cubre;
   const bolsas=bolsasDeAhorro(state.aportaciones).filter(function(b){ return b.c>0; });
@@ -37021,7 +37095,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="c64e4bb5e55224656fc92ca80d3d9ae7f6b5e093b4865c36463f5a74675251de";
+var _rnSha="eaf0495278d67c0b674506564456a3d7006e9ab085ac7dc4caf3784a7612d7a5";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

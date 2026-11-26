@@ -1104,6 +1104,8 @@ function SavingsPlanCard({state, set, totals, showToast}){
       const n=ahorroImporteDe(d.amount);
       const row=Object.assign({}, prev[d.id]||{}, {id:d.id, name:d.name.trim()||t("d_saving"), amount:+n.toFixed(2), ent:d.ent});
       if(d.bolsa&&d.bolsa!=="otros") row.bolsa=d.bolsa; else delete row.bolsa;
+      // Cambiar el banco a mano dice dónde está ese dinero: lo apuntado de un reparto anterior deja de valer.
+      if(prev[d.id]&&prev[d.id].ent!==d.ent) delete row.viene;
       return row;
     }).filter(function(a){ return a.amount>0 || prev[a.id]; });   // una fila nueva vacía no se guarda
     set(function(s){ return Object.assign({},s,{aportaciones:next}); });

@@ -81,4 +81,47 @@ assert.equal(proy([{amount:200,bolsa:"emergencia"}]),0);
 assert.equal(proy([{amount:200,bolsa:"propia"}]),0);
 assert.equal(proy([{amount:200}]),200);
 assert.equal(proy([]),500);
+const cifras=(aps,invertido)=>{ const x=c.planReparto(base({aportaciones:aps,expenses:inv(invertido)}),{}); assert.equal(suma(x),x.aho); return [x.aho,x.qAho,x.libre]; };
+const nuevo=()=>"h"+(++n);
+
+/* H1: la fila sin banco que recibe dinero de otra con banco no lo cuenta dos veces, ni se le inventa banco para lo suyo. */
+for(const banco of ["","sabadell"]){
+  const h1=[{id:"o",name:"O",amount:500,ent:"myinvestor"},{id:"e",name:"E",amount:100,ent:banco,bolsa:"emergencia"}];
+  const h1r=c.bolsasAplica(h1,{emergencia:400,otros:200},[],nuevo);
+  assert.deepEqual(cifras(h1,500).slice(0,2),[60000,10000]);
+  assert.deepEqual(cifras(h1r,500),cifras(h1,500),"repartir no cambia ahorro, pendiente ni libre");
+  assert.deepEqual(cifras(h1r,600),cifras(h1,600),"los 100 que ya estaban sin invertir siguen aparte");
+  assert.equal(h1r.find(x=>x.id==="e").ent,banco,"parte del dinero no era del bróker: la fila no cambia de banco");
+  assert.deepEqual(plano(c.bolsasAplica(h1r,{emergencia:400,otros:200},[],nuevo)),plano(h1r),"repetir no duplica");
+  assert.deepEqual(plano(c.bolsasAplica(h1r,{emergencia:100,otros:500},[],nuevo)),h1,"deshacer el reparto deja lo de antes");
+}
+
+/* H3: solo hereda lo que se movió; el dinero nuevo nace sin banco. */
+const h3=[{id:"o",name:"O",amount:500,ent:"myinvestor"}];
+let h3r=c.bolsasAplica(h3,{otros:499},[{name:"Coche",amount:1000}],nuevo);
+assert.equal(h3r[1].ent,"","999 de los 1000 son dinero nuevo");
+assert.deepEqual(cifras(h3r,1500).slice(0,2),[249900,99900]);
+h3r=c.bolsasAplica(h3,{otros:499,emergencia:1000},[],nuevo);
+assert.equal(h3r[1].ent,"");
+assert.deepEqual(cifras(h3r,1500).slice(0,2),[249900,99900]);
+// Bajar más de lo que otro sube: lo recibido es todo movido y hereda el banco.
+assert.equal(c.bolsasAplica(h3,{otros:100},[{name:"Coche",amount:400}],nuevo)[1].ent,"myinvestor");
+
+/* H4: con transferencia de una parte, repartir tampoco cambia el histórico; y sin apartados, la serie de siempre. */
+const conTransfer=(aps,v)=>plano(c.netWorthSeries(base({settings:{expenseBanks:["sabadell"],profile:{fullName:"Persona Inventada"}},
+  investments:[{id:"v",ent:"trade_republic",name:"Fondo",qty:1,price:1000,value:1000,cur:"EUR"}],
+  invHistory:[{d:"2026-11-01",v:1000},{d:"2026-11-20",v:1200}],
+  expenses:base().expenses.concat([mov("t",10,v,{merchant:"Transferencia yo mismo",category:"otros"})]),aportaciones:aps})));
+assert.notDeepEqual(conTransfer(una,200),conTransfer([],200),"la entera se reconoce");
+const partida=c.bolsasAplica(una,{otros:100,inversion:100},[],nuevo);
+for(const v of [100,200]){
+  assert.deepEqual(conTransfer(partida,v),conTransfer(una,v),"100+100 con transferencia de "+v);
+  assert.deepEqual(conTransfer(c.bolsasAplica(partida,{inversion:40,emergencia:60},[],nuevo),v),conTransfer(una,v),"repartido otra vez, "+v);
+}
+const dos=[{id:"a",name:"A",amount:200,ent:"trade_republic"},{id:"b",name:"B",amount:50,ent:"trade_republic",bolsa:"inversion"}];
+const movida=c.bolsasAplica(dos,{otros:100,inversion:150},[],nuevo);
+for(const v of [50,100,150,200,250]) assert.deepEqual(conTransfer(movida,v),conTransfer(dos,v),"parte movida entre dos filas, "+v);
+const sinMarcas=[{id:"a",name:"A",amount:100,ent:"trade_republic"},{id:"b",name:"B",amount:100,ent:"trade_republic"}];
+assert.deepEqual(conTransfer(sinMarcas,200),conTransfer([],200),"sin apartados no se casa la suma por bróker");
+assert.notDeepEqual(conTransfer(sinMarcas,100),conTransfer([],100));
 console.log("ahorro-bolsas OK");
