@@ -251,15 +251,18 @@ function planReparto(state, o){
   const sobra=Math.max(0,inversion-ahoInv), cubre=Math.min(sobra,ahoBroker), ahoExtra=sobra-cubre;
   const ahoC=ahoPlan+ahoExtra, ahoQ=ahoPlan-Math.min(ahoInv,inversion)-cubre;
   const bolsas=bolsasDeAhorro(state.aportaciones).filter(function(b){ return b.c>0; });
-  /* ---- Gastos: max(presupuesto, gastado) ---- */
+  /* ---- Gastos: lo gastado DE VERDAD (26/11, lo vio el dueño en su móvil) ----
+     Antes la fila era max(presupuesto, gastado): con 808 € gastados de 1.325 restaba los 1.325 y «Te sobran» salía 517 €
+     más baja de lo que de verdad sobra. Y con una cuota en «Restar del presupuesto» la cuenta se leía doble: la cuota va
+     en Deudas y el presupuesto que restaba Gastos era el que «ya la incluye». Ahora Gastos es solo lo gastado (que nunca
+     lleva la cuota: enlazada es cajón «deuda» y sin enlazar la quita `sinEnlazar`), y lo que queda de presupuesto es una
+     previsión aparte (`previsto`): la hoja la dice en una línea, sin mezclarla con lo que ya ha pasado. */
   const bud=typeof state.budget==="number"&&state.budget>0?repCts(state.budget):null;
   const limRaw=bud==null?null:bud-reservasC-resD.total, lim=limRaw==null?null:Math.max(0,limRaw);
-  const lim0=bud==null?null:Math.max(0,bud-reservasC);
-  const gasC=lim==null?gastado:Math.max(lim,gastado), gas0=lim0==null?gastado:Math.max(lim0,gastado);
-  const movido=Math.max(0,gas0-gasC);
+  const gasC=gastado;
   const gasQ=lim==null?0:Math.max(0,lim-gastado);
-  /* Lo que el neteo ha bajado la fila Gastos: la diferencia entre la fila con el gasto bruto y la de verdad. */
-  const gasBruta=lim==null?gastadoBruto:Math.max(lim,gastadoBruto), neteoEntra=Math.max(0,gasBruta-gasC);
+  /* Lo que el neteo ha bajado la fila Gastos: con la fila = lo gastado neto, es el neteo entero. */
+  const neteoEntra=Math.max(0,gastadoBruto-gasC);
   const entraTotal=entra+otrosDia-neteoEntra;
   const entraC=esperaNomina||!(entraTotal>0)?null:entraTotal;
   const total=recC+deuC+metC+ahoC+gasC;
@@ -281,7 +284,8 @@ function planReparto(state, o){
   return {periodo:P,now:now,st:st,entra:entraC,esperaNomina:esperaNomina,trozos:trozos,total:total,libre:libre,falta:falta,
     siGastasTodo:lim!=null&&gastado<lim,sinPresupuesto:bud==null,
     faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,bolsas:bolsas,ahoExtra:ahoExtra,
-    reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
+    previsto:gasQ,libreSiGastas:libre==null?null:libre-gasQ,
+    reservaDeudas:resD.total,porDeuda:resD.porDeuda,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
     nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso,neteo:neteo,neteoEntra:neteoEntra,otros:otrosDia,quedaPagar:recQ+deuQ};
 }

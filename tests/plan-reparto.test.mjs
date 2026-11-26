@@ -26,9 +26,9 @@ const SUITE=[
     mov("v1",9,-30,{merchant:"Devolución pedido"}),
     mov("b1",10,-25,{category:"bizum"})]);
   const r=c.planReparto(base({expenses:e}),{});
-  assert.equal(r.entra,300000+5000+3000+2500,"nómina 3000 + ventas, devoluciones y Bizums recibidos (25/11: «Entran» incluye los ingresos reales del mes); el límite (900) está por encima de lo gastado, así que el neteo no baja la fila y nada se cuenta dos veces");
+  assert.equal(r.entra,300000,"nómina 3000: ventas, devoluciones y Bizums recibidos (10.500) ya bajan lo gastado, como en Gastos; con la fila = lo gastado (26/11) sumarlos también a «Entran» los contaría dos veces");
   assert.equal(r.devolucion,0,"todo lo que Gastos resta va como otro ingreso");
-  assert.equal(r.neteo,10500);assert.equal(r.neteoEntra,0);
+  assert.equal(r.neteo,10500);assert.equal(r.neteoEntra,10500);
   assert.equal(r.gastado,18050-10500,"y devuelven margen a lo gastado, como en Gastos");
   assert.equal(r.libre,r.entra-r.total);
 }],
@@ -48,7 +48,7 @@ const SUITE=[
   assert.equal(c.planReparto(previa,{}).st,"wait");
   // Quien no cobra nómina nunca no se queda en «—»: entra lo que entra.
   const libre=base({expenses:[mov("g1",5,120.5,{category:"super"}),mov("i2",6,-500,{merchant:"Factura cliente"})]});
-  assert.equal(c.planReparto(libre,{}).entra,50000,"entra lo que entra; el neteo de lo gastado no lo reduce mientras el límite cubra el gasto");
+  assert.equal(c.planReparto(libre,{}).entra,50000-12050,"entra lo que entra, menos lo que ya ha bajado lo gastado (no cuenta dos veces)");
 }],
 ["Recibos: tu parte, sin deudas",c=>{
   const s=base({fixed:[{id:"r1",name:"Comunidad",amount:95,day:1,freq:"mes",account:"sabadell"},
@@ -90,7 +90,7 @@ const SUITE=[
   // Mover 120 con una reserva de este mes: sigue siendo 300 en el trozo, quedan 180.
   const conReserva=rr(base({goals:[g],reservaLog:[{id:"x",goalId:"g1",amount:120,date:dia(4)}]}));
   r=c.planReparto(conReserva,{});assert.equal(r.met,30000);assert.equal(r.qMet,18000);
-  assert.equal(r.presupuesto,90000-12000,"lo reservado sale del presupuesto de gastos (como en Inicio)");assert.equal(r.gas,78000);assert.equal(r.reservasC,12000);
+  assert.equal(r.presupuesto,90000-12000,"lo reservado sale del presupuesto de gastos (como en Inicio)");assert.equal(r.gas,18050,"Gastos es lo gastado");assert.equal(r.previsto,78000-18050);assert.equal(r.reservasC,12000);
   // Más de lo previsto: manda lo movido (reserva 120 + gasto con meta 250).
   const mas=rr(base({goals:[g],reservaLog:[{id:"x",goalId:"g1",amount:120,date:dia(4)}],expenses:base().expenses.concat([mov("m1",9,250,{goalId:"g1"})])}));
   r=c.planReparto(mas,{});assert.equal(r.met,37000);assert.equal(r.qMet,0);
@@ -110,10 +110,11 @@ const SUITE=[
   r=c.planReparto(base({goals:[meta({monthly:null})],aportaciones:apo,expenses:base().expenses.concat([conMeta])}),{});
   assert.equal(r.aho,20000,"lo que ya va a la meta no es Ahorro");assert.equal(r.met,30000);
 }],
-["Gastos: max(presupuesto, gastado); sin presupuesto, lo gastado y «Libre hasta hoy»",c=>{
+["Gastos: lo gastado de verdad; lo que queda de presupuesto es previsión aparte; sin presupuesto, «Libre hasta hoy»",c=>{
   let r=c.planReparto(base({budget:100}),{});
-  assert.equal(r.gas,18050,"gastado pasa del presupuesto");assert.equal(r.siGastasTodo,false);
-  r=c.planReparto(base(),{});assert.equal(r.gas,90000);assert.equal(r.siGastasTodo,true);
+  assert.equal(r.gas,18050,"gastado pasa del presupuesto");assert.equal(r.siGastasTodo,false);assert.equal(r.previsto,0);
+  r=c.planReparto(base(),{});assert.equal(r.gas,18050,"no el presupuesto entero (26/11)");assert.equal(r.siGastasTodo,true);
+  assert.equal(r.previsto,90000-18050);assert.equal(r.libreSiGastas,r.libre-r.previsto);
   r=c.planReparto(base({budget:0}),{});
   assert.equal(r.gas,18050);assert.equal(r.sinPresupuesto,true);assert.equal(r.st,"nobud");assert.equal(r.qGas,0);
   const otroBanco=mov("o1",9,40,{ent:"revolut",category:"ocio"});
@@ -124,21 +125,24 @@ const SUITE=[
   const e=[mov("n1",3,-1000,{merchant:"Nómina Empresa SL"}),mov("g1",5,120.5,{category:"super"})];
   const s=base({expenses:e});
   let r=c.planReparto(s,{saldo:719.5});
-  assert.equal(r.libre,100000-90000);// presupuesto 900 entero: aún sobran 100
-  const s2=base({expenses:e,budget:1200});
-  r=c.planReparto(s2,{saldo:1079.5});
-  assert.equal(r.falta,20000);assert.ok(r.falta>0&&r.libre<0);assert.equal(r.siGastasTodo,true);
-  assert.equal(r.queda,120000-12050,"lo que queda: presupuesto − gastado");
+  assert.equal(r.libre,100000-12050,"sobra lo que no se ha gastado");assert.equal(r.libreSiGastas,100000-90000,"y gastando el presupuesto entero, 100");
+  // Más presupuesto que sueldo: hoy sobra; gastándolo todo faltaría. Eso es la previsión, no «Te faltan».
+  r=c.planReparto(base({expenses:e,budget:1200}),{});assert.equal(r.falta,0);assert.equal(r.libreSiGastas,-20000);
+  const alquiler={id:"r9",name:"Alquiler",amount:950,day:28,freq:"mes",account:"sabadell"};
+  const s2=base({expenses:e,budget:1200,fixed:[alquiler]});
+  r=c.planReparto(s2,{saldo:2029.5});
+  assert.equal(r.falta,95000+12050-100000);assert.ok(r.falta>0&&r.libre<0);assert.equal(r.siGastasTodo,true);
+  assert.equal(r.queda,95000+120000-12050,"lo que queda: el recibo y presupuesto − gastado");
   assert.equal(r.st,"cubre","saldo = lo que queda: lo cubre");
-  r=c.planReparto(s2,{saldo:1079.49});assert.equal(r.st,"nollega");assert.equal(r.hueco,1);
+  r=c.planReparto(s2,{saldo:2029.49});assert.equal(r.st,"nollega");assert.equal(r.hueco,1);
   r=c.planReparto(s2,{});assert.equal(r.st,"faltan","sin saldo no se dice nada del saldo");
   // Gastado ya por encima del presupuesto: no es «si gastas todo».
   const s3=base({expenses:[mov("n1",3,-1000,{merchant:"Nómina Empresa SL"}),mov("g9",5,1500,{category:"super"})],budget:1200});
-  r=c.planReparto(s3,{saldo:10});assert.equal(r.siGastasTodo,false);assert.equal(r.falta,50000);
+  r=c.planReparto(s3,{saldo:10});assert.equal(r.siGastasTodo,false);assert.equal(r.falta,50000);assert.equal(r.previsto,0);
 }],
 ["Todo asignado: Libre exactamente 0",c=>{
   const e=[mov("n1",3,-1000,{merchant:"Nómina Empresa SL"}),mov("g1",5,120.5,{category:"super"})];
-  const r=c.planReparto(base({expenses:e,budget:1000}),{});
+  const r=c.planReparto(base({expenses:e,budget:1000,aportaciones:[{id:"a1",amount:879.5,ent:"myinvestor"}]}),{});
   assert.equal(r.libre,0);assert.equal(r.st,"todo");assert.ok(!r.trozos.some(x=>x.k==="lib"));
   assert.equal(r.trozos.reduce((a,x)=>a+x.p,0),100);
 }],
@@ -228,7 +232,7 @@ const SUITE=[
 ["Te faltan: los porcentajes suman 100 sobre lo que hay que pagar y lo que falta es una parte de eso",c=>{
   // Entran 1.500 y el plan pide mucho más: 1.500 de base daría 236 %, que no dice nada.
   const e=base().expenses.map(x=>x.amount<0?Object.assign({},x,{amount:-1500}):x);
-  const r=c.planReparto(rr(base({expenses:e,budget:900,goals:[meta({id:"a",monthly:800})]})),{});
+  const r=c.planReparto(rr(base({expenses:e,budget:900,goals:[meta({id:"a",monthly:1500})]})),{});
   assert.ok(r.falta>0&&r.entra===150000,"el caso es de Te faltan");
   assert.equal(r.trozos.reduce((a,x)=>a+x.p,0),100,"suman 100");
   assert.ok(r.trozos.every(x=>x.p>=0&&x.p<=100),"ninguno pasa de 100");
@@ -236,6 +240,35 @@ const SUITE=[
   assert.ok(r.faltaP<=100);
   const rec=r.trozos.find(x=>x.k==="rec");
   assert.equal(rec.p,Math.round(rec.c*100/r.total),"cada trozo, su parte del total (entre redondeos)");
+}],
+["Espejo 26/11 (cifras inventadas, la forma de su hoja): «Te sobran» sale de lo gastado y la cuota que resta del presupuesto va una sola vez",c=>{
+  // Mi ciclo, tres cuotas (dos cobradas y enlazadas, una pendiente en otro banco con «Restar del presupuesto»), ahorro y un
+  // gasto real muy por debajo del presupuesto. Antes la fila Gastos restaba el presupuesto entero (1.079,60) y no lo gastado.
+  const tr={ent:"tr",role:"ahorro",value:900};
+  const coche=deuda({id:"dc",name:"Coche sintético",monthly:320,day:5}), movil=deuda({id:"dm",name:"Móvil sintético",monthly:45.5,day:10,value:500,months:12});
+  const gym=on=>deuda({id:"dg",name:"Gym sintético",monthly:120.4,day:29,value:1400,months:12,account:"tr",restarPres:on});
+  const st=on=>base({budget:1200,settings:{expenseBanks:["sabadell"],budgetCycle:true},accounts:base().accounts.concat([tr]),
+    expenses:[mov("n1",3,-3000,{merchant:"Nómina Empresa SL"}),mov("g1",6,300,{category:"super"}),mov("g2",14,150.25,{category:"ocio"}),
+      mov("b1",15,-40,{category:"bizum"}),
+      mov("c1",5,320,{category:"deudas",debtId:"dc",source:"ob:sabadell"}),mov("c2",10,45.5,{category:"deudas",debtId:"dm",source:"ob:sabadell"})],
+    fixed:[{id:"r1",name:"Luz",amount:60,day:8,freq:"mes",account:"sabadell"},{id:"r2",name:"Fibra",amount:35,day:15,freq:"mes",account:"sabadell"}],
+    debts:[coche,movil,gym(on)],aportaciones:[{id:"a1",amount:400,ent:"myinvestor"}]});
+  const r=c.planReparto(st(true),{}), off=c.planReparto(st(false),{});
+  assert.equal(r.deu,32000+4550+12040,"las tres cuotas, cada una una vez");
+  // Vía 1, el motor. Vía 2, independiente: lo que dice Gastos/Inicio (monthBudgetStats) y las sumas a mano.
+  const mb=c.monthBudgetStats(st(true));
+  const gastadoGastos=Math.round(mb.spent*100)-Math.round(mb.income*100);
+  assert.equal(gastadoGastos,45025-4000,"Gastos: lo gastado menos el Bizum recibido");
+  assert.equal(r.gas,gastadoGastos,"la fila Gastos es lo gastado de verdad, el mismo número que Gastos");
+  const aMano=300000-(6000+3500)-(32000+4550+12040)-40000-gastadoGastos;
+  assert.equal(r.libre,aMano,"Te sobran = entra − recibos − cuotas − ahorro − lo gastado");
+  assert.equal(r.libre,160885);
+  // La cuota con el interruptor no se cuenta otra vez dentro de Gastos: lo que sobra HOY es igual con o sin él.
+  assert.equal(off.libre,r.libre,"el interruptor no mueve «Te sobran»");
+  // La previsión: lo que queda del presupuesto que Inicio enseña («libres de»), que ya no incluye la cuota.
+  assert.equal(Math.round(mb.budget*100),120000-12040);
+  assert.equal(r.previsto,Math.round(mb.budget*100)-gastadoGastos);
+  assert.equal(r.libreSiGastas,aMano-r.previsto);
 }],
 ["Icono de deuda: «casa» en el nombre no fuerza la casa",c=>{
   const k=n=>c.debtIcoKind(n);
@@ -245,18 +278,20 @@ const SUITE=[
   assert.equal(k("Móvil nuevo"),"phone");assert.equal(k("Préstamo a mamá"),"person");
   assert.equal(k("Máster de la universidad"),"study");assert.equal(k("Unidad de cocina"),"card","«uni» dentro de otra palabra no es estudios");
 }],
-["Interruptor: la reserva se calcula, mueve el dinero de Gastos a Libre y no escribe nada",c=>{
+["Interruptor: la reserva se calcula, baja el presupuesto (no lo que sobra hoy) y no escribe nada",c=>{
   const off=base({debts:[deuda()],fixed:[reciboAna]}),on=base({debts:[deuda({restarPres:true})],fixed:[reciboAna]});
   const antes=JSON.stringify(on),a=c.planReparto(off,{}),b=c.planReparto(on,{});
   assert.equal(JSON.stringify(on),antes,"el estado no se toca");assert.deepEqual(on.reservaLog,[],"y no hay reserva escrita");
   assert.equal(b.reservaDeudas,30000,"tu parte de la cuota: 260 + 40");
-  assert.equal(b.presupuesto,90000-30000);assert.equal(b.gas,60000);
-  assert.equal(b.movido,30000);assert.equal(b.libre-a.libre,30000,"Libre sube lo mismo que baja Gastos");
+  assert.equal(b.presupuesto,90000-30000);assert.equal(b.gas,18050,"Gastos es lo gastado, con o sin interruptor");
+  assert.equal(b.libre,a.libre,"lo que sobra HOY no cambia: la cuota va una vez, en Deudas");
+  assert.equal(a.previsto-b.previsto,30000,"lo que queda por gastar baja lo que cuesta la cuota");
+  assert.equal(b.libreSiGastas-a.libreSiGastas,30000,"gastándolo todo sobra eso más: el presupuesto ya incluía la cuota");
   assert.equal(b.entra,a.entra,"no entra dinero");assert.equal(b.deu,a.deu,"la cuota sigue en Deudas");
   // Se pasa del presupuesto que queda: «Te pasas».
   const pasa=base({debts:[deuda({restarPres:true})],expenses:base().expenses.concat([mov("g8",9,500,{category:"super"})])});
   const p=c.planReparto(pasa,{});
-  assert.equal(p.pasa,true);assert.equal(p.pasaC,Math.round((680.5-(900-260))*100));assert.equal(p.gas,68050);
+  assert.equal(p.pasa,true);assert.equal(p.pasaC,Math.round((680.5-(900-260))*100));assert.equal(p.gas,68050);assert.equal(p.previsto,0);
   // Deuda acabada o sin cuota este mes: no resta.
   assert.equal(c.planReparto(base({debts:[deuda({restarPres:true,months:6,asOf:NOV-12})]}),{}).reservaDeudas,0);
 }],
@@ -337,7 +372,10 @@ if(fallos){ console.log("FALLOS: "+fallos); process.exit(1); }
 
 /* MUTANTES. Cada uno estropea UNA regla; la suite tiene que caer en al menos un caso. */
 const MUTANTES=[
-  ["Gastos ignora lo gastado por encima del presupuesto","gasC=lim==null?gastado:Math.max(lim,gastado)","gasC=lim==null?gastado:lim"],
+  ["Gastos resta el presupuesto entero en vez de lo gastado (26/11)","const gasC=gastado;","const gasC=lim==null?gastado:Math.max(lim,gastado);"],
+  ["Gastos ignora lo gastado por encima del presupuesto","const gasC=gastado;","const gasC=lim==null?gastado:lim;"],
+  ["La previsión no descuenta la cuota del presupuesto","const gasQ=lim==null?0:Math.max(0,lim-gastado);","const gasQ=bud==null?0:Math.max(0,bud-reservasC-gastado);"],
+  ["Los otros ingresos cuentan en Entran y en lo gastado","const neteoEntra=Math.max(0,gastadoBruto-gasC);","const neteoEntra=0;"],
   ["Recibos cuenta también las deudas","if(x.kind===\"debt\"||x.kind===\"balloon\"||","if(x.kind===\"balloon\"||"],
   ["Deudas resta el descuento en vez de sumarlo","propia:a+desc}","propia:Math.max(0,a-desc)}"],
   ["Una devolución cuenta como ingreso","else if(repEsDevolucion(e)) devolucion+=c;","else if(false) devolucion+=c;"],

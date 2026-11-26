@@ -133,7 +133,8 @@ const v1r=c.bolsasAplica(v1,{otros:100,emergencia:500},[],nuevo);
 assert.deepEqual(cifras(v1r,500),cifras(v1,500),"en el mes del reparto no cambia nada");
 const enDic=(aps)=>{ const x=c.planReparto(base({aportaciones:aps,expenses:[mov("n12",3,-3000,{merchant:"Nómina Empresa SL",date:"2026-12-03T10:00:00.000Z"}),
   mov("i12",6,500,{category:"inversion",date:"2026-12-06T10:00:00.000Z"})]}),{nowMs:Date.parse("2026-12-21T11:00:00Z")}); return [x.aho,x.qAho,x.libre]; };
-assert.deepEqual(enDic(v1r),[100000,50000,110000]);
+// Libre: 3.000 − 1.000 de ahorro; sin nada gastado en diciembre, Gastos no resta (26/11: lo gastado, no el presupuesto).
+assert.deepEqual(enDic(v1r),[100000,50000,200000]);
 // Y un guardado de otro mes no lo resucita con fecha nueva.
 const caducado=v1r.map(a=>a.viene?{...a,viene:a.viene.map(v=>({...v,d:"2026-10-05"}))}:a);
 assert.equal(c.bolsasAplica(caducado,{emergencia:400},[{name:"V",amount:100}],nuevo).some(a=>a.viene&&a.viene.some(v=>v.id==="o")),false);

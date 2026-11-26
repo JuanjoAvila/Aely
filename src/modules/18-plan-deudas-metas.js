@@ -111,7 +111,8 @@ function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
   /* La cascada (orden del dueño 24/11): lo que entra, menos cada destino con su importe de TODO el mes, y el
      resultado. Los destinos son exactamente los de `planReparto` (`r.total` = su suma), así que la cuenta cuadra al
      céntimo y el resultado es el mismo número que la línea de la cabecera. Nada de «Otros»: lo que no existe no sale. */
-  const pasos=r.trozos.filter(function(x){ return x.k!=="lib"&&x.c>0; });
+  // Gastos sale aunque aún no se haya gastado nada si hay presupuesto: su línea dice «0 de 1.200» y la previsión va debajo.
+  const pasos=r.trozos.filter(function(x){ return x.k!=="lib"&&(x.c>0||x.k==="gas"&&r.presupuesto!=null); });
   const res=r.entra==null?null:r.falta>0?{l:t("rpt_faltan"),a:rptC(r.falta),c:"rojo"}:r.libre>0?{l:r.st==="nobud"?t("rpt_libre_hasta"):t("rpt_sobran"),a:rptC(r.libre),c:"verde"}:{l:t("rpt_todo"),a:"",c:"verde"};
   // Ahorro se despliega en sus bolsas, euro por euro (suman la línea); la edición sigue a un toque.
   const bolsaFila=function(key,nombreB,c){
@@ -139,6 +140,11 @@ function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
     React.createElement("div",{className:"cas-res"+(res?" "+res.c:""),"data-testid":"plan-reparto-res"},
       React.createElement("span",{className:"cas-res-l"},res?res.l:t("rpt_wait")),
       res&&res.a&&React.createElement("b",{className:"serif num","data-testid":"plan-reparto-cifra"},res.a)),
+    /* La previsión, aparte y en una línea: lo que queda de presupuesto aún no se ha gastado, así que no entra en «Te sobran»
+       (26/11), pero se dice qué pasaría si se gasta entero. */
+    r.libre!=null&&r.previsto>0&&React.createElement("div",{className:"rpt-own","data-testid":"plan-reparto-prevision"},
+      React.createElement("span",null,tf(r.libreSiGastas<0?"rpt_si_gastas_falta":"rpt_si_gastas_sobra",{x:rptC(r.previsto)})),
+      React.createElement("b",{className:"num"},rptC(Math.abs(r.libreSiGastas)))),
     r.traspaso>0&&React.createElement("div",{className:"rpt-own"},React.createElement("span",null,t("rpt_traspaso")),React.createElement("s",null,rptC(r.traspaso))));
 }
 
@@ -151,14 +157,14 @@ function rptRestarNums(state,d){
     const y=Object.assign({},x); if(on) y.restarPres=true; else delete y.restarPres;
     return y; })}); };
   const off=planReparto(con(false),{}), on=planReparto(con(true),{}), enc=d.restarPres===true;
-  const mover=Math.max(0,off.gas-on.gas);
   const antes=off.presupuestoRaw==null?0:off.presupuestoRaw-off.gastado, despues=on.presupuestoRaw==null?0:on.presupuestoRaw-on.gastado;
   const q=on.reservaDeudas-off.reservaDeudas;
   // Tu presupuesto de Gastos, con y sin la cuota dentro; el aviso de pasarte compara lo gastado con el de después.
   const pa=off.presupuesto==null?0:off.presupuesto, pb=on.presupuesto==null?0:on.presupuesto;
   return {sinPresupuesto:off.sinPresupuesto,
     p:pa!==pb?tf("rpt_gas_pasa",{a:rptC(pa),b:rptC(pb)}):"",
-    m:mover>0?tf("rpt_libre_sube",{x:rptC(mover)}):tf("rpt_salen",{x:rptC(q)}),
+    // La fila Gastos del reparto es lo gastado de verdad (26/11): el interruptor ya no mueve nada a «Te sobran», solo baja el presupuesto.
+    m:tf("rpt_salen",{x:rptC(q)}),
     w:despues<0?tf(enc?"rpt_te_pasas":"rpt_te_pasarias",{x:rptC(-despues)}):""};
 }
 /* La fila del interruptor, una sola para la ficha de la deuda, la hoja de alta y la de edición (y la de metas). */

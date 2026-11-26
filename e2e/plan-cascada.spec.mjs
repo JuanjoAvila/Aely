@@ -36,7 +36,10 @@ async function lee(page) {
   const filas = await hoja.locator(".cas-row[data-c]").evaluateAll((els) => els.map((e) => ({ k: e.dataset.k, c: Number(e.dataset.c), txt: e.querySelector(".cas-am").innerText })));
   const res = await page.getByTestId("plan-reparto-res").getAttribute("class");
   const cifra = (await page.getByTestId("plan-reparto-cifra").count()) ? cts(await page.getByTestId("plan-reparto-cifra").innerText()) : 0;
-  return { entra, filas, signo: /rojo/.test(res) ? -1 : 1, cifra };
+  // La previsión (26/11): «Si gastas los X que quedan, sobrarían/faltarían Y» → Y con signo; 0 si no sale.
+  const pv = page.getByTestId("plan-reparto-prevision");
+  const prev = (await pv.count()) ? (/faltar/.test(await pv.innerText()) ? -1 : 1) * cts(await pv.locator("b").innerText()) : 0;
+  return { entra, filas, signo: /rojo/.test(res) ? -1 : 1, cifra, prev };
 }
 
 test("sobra dinero: las líneas suman el plan y entra − plan = «Te sobran»", async ({ page }) => {
@@ -49,15 +52,19 @@ test("sobra dinero: las líneas suman el plan y entra − plan = «Te sobran»",
   // Lo que se pinta es lo que se suma: cada importe del DOM = su céntimo, con signo menos.
   for (const f of x.filas) expect(cts(f.txt)).toBe(f.c);
   const plan = x.filas.reduce((a, f) => a + f.c, 0);
-  expect(plan).toBe(9500 + 26000 + 30000 + 20000 + 90000);
+  // Gastos es lo gastado (120,50), no el presupuesto (900): 26/11, lo vio el dueño en su móvil.
+  expect(plan).toBe(9500 + 26000 + 30000 + 20000 + 12050);
   expect(x.entra).toBe(300000);
   expect(x.signo).toBe(1);
   expect(x.cifra).toBe(x.entra - plan);
+  // Y lo que queda del presupuesto (900 − 120,50) va aparte, como previsión.
+  expect(x.prev).toBe(x.cifra - (90000 - 12050));
+  await expect(page.getByTestId("plan-reparto-prevision")).toContainText("779,50");
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te sobran");
 });
 
 test("faltan dinero: «Te faltan» = plan − entra, y sin bloque de aviso aparte", async ({ page }) => {
-  await abrePlan(page, base(1500));
+  await abrePlan(page, base(800));
   const barra = page.getByTestId("plan-reparto-chip");
   await barra.click();
   if (process.env.CAPTURAS) { await page.waitForTimeout(700); await page.screenshot({ path: process.env.CAPTURAS + "/cascada-faltan-" + (process.env.TEMA || "oscuro") + ".png" }); }
@@ -65,7 +72,7 @@ test("faltan dinero: «Te faltan» = plan − entra, y sin bloque de aviso apart
   const plan = x.filas.reduce((a, f) => a + f.c, 0);
   expect(x.signo).toBe(-1);
   expect(x.cifra).toBe(plan - x.entra);
-  expect(x.cifra).toBe(25500);
+  expect(x.cifra).toBe(97550 - 80000);
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te faltan");
   await expect(page.getByTestId("plan-reparto-hoja").locator(".pm-aviso,[data-queda]")).toHaveCount(0);
 });
@@ -140,7 +147,7 @@ test("una deuda con cuota de siete cifras no desaparece de la cascada ni descuad
   expect(sobra).toBe(0);
 });
 
-test("cambiar el presupuesto desde Inicio mueve la fila Gastos y «Te faltan»/«Te sobran»", async ({ page }) => {
+test("cambiar el presupuesto desde Inicio mueve la previsión y no lo que sobra hoy", async ({ page }) => {
   await abrePlan(page, base(1500));
   await page.getByTestId("plan-reparto-chip").click();
   const antes = await lee(page);
@@ -157,13 +164,15 @@ test("cambiar el presupuesto desde Inicio mueve la fila Gastos y «Te faltan»/�
   await page.getByTestId("plan-reparto-chip").click();
   const despues = await lee(page);
   const gasDespues = despues.filas.find((f) => f.k === "gas").c;
-  expect(gasDespues - gasAntes).toBe(10000);
-  // El resultado se mueve igual de céntimos: entra − plan.
+  // Lo gastado no cambia por subir el presupuesto (26/11): ni la fila Gastos ni lo que sobra hoy.
+  expect(gasDespues).toBe(gasAntes);
   const res = (x) => x.signo * x.cifra;
-  expect(res(despues)).toBe(res(antes) - 10000);
+  expect(res(despues)).toBe(res(antes));
+  // Lo que cambia es la previsión: 100 € más por gastar, 100 € menos al final.
+  expect(despues.prev).toBe(antes.prev - 10000);
 });
 
-test("cambiar el presupuesto con Mi ciclo y deuda que resta del presupuesto mueve la fila Gastos y «Te faltan»/«Te sobran»", async ({ page }) => {
+test("cambiar el presupuesto con Mi ciclo y deuda que resta del presupuesto mueve la previsión y no lo que sobra hoy", async ({ page }) => {
   const e = base(1500); e.settings = { ...settings, budgetCycle: true }; e.debts = [{ ...prestamo, restarPres: true }]; e.budget = 1500;
   await abrePlan(page, e);
   await page.getByTestId("plan-reparto-chip").click();
@@ -181,20 +190,23 @@ test("cambiar el presupuesto con Mi ciclo y deuda que resta del presupuesto muev
   await page.getByTestId("plan-reparto-chip").click();
   const despues = await lee(page);
   const gasDespues = despues.filas.find((f) => f.k === "gas").c;
-  expect(gasDespues - gasAntes).toBe(10000);
-  // El resultado se mueve igual de céntimos: entra − plan.
+  // Lo gastado no cambia por subir el presupuesto (26/11): ni la fila Gastos ni lo que sobra hoy.
+  expect(gasDespues).toBe(gasAntes);
   const res = (x) => x.signo * x.cifra;
-  expect(res(despues)).toBe(res(antes) - 10000);
+  expect(res(despues)).toBe(res(antes));
+  // Lo que cambia es la previsión: 100 € más por gastar, 100 € menos al final.
+  expect(despues.prev).toBe(antes.prev - 10000);
 });
 
-test("«Entran este mes» suma el sueldo y los ingresos reales del mes, sin contarlos dos veces", async ({ page }) => {
+test("«Entran este mes» suma los ingresos reales del mes que no bajan lo gastado, sin contarlos dos veces", async ({ page }) => {
   const otro = { id: "o1", date: "2026-09-10T10:00:00.000Z", amount: -146.85, category: "bizum", merchant: "Bizum comida", ent: "sabadell", source: "manual" };
-  // Presupuesto por encima del gasto: la fila Gastos vale el presupuesto y el ingreso cuenta entero.
+  // El Bizum (146,85) baja lo gastado (120,50) a 0, como en Gastos; lo que sobra (26,35) es lo que suma a lo que entra.
   await abrePlan(page, { ...base(3000), expenses: [nomina(3000), gasto, otro] });
   await page.getByTestId("plan-reparto-chip").click();
   const a = await lee(page);
-  expect(a.entra).toBe(300000 + 14685);
-  expect(a.filas.find((f) => f.k === "gas").c).toBe(90000);
+  expect(a.entra).toBe(300000 + 14685 - 12050);
+  expect(a.filas.find((f) => f.k === "gas").c).toBe(0);
+  expect(a.cifra).toBe(a.entra - a.filas.reduce((x, f) => x + f.c, 0));
   await page.keyboard.press("Escape");
 });
 
@@ -226,4 +238,33 @@ test("la fila Ahorro abre su edición y cambiarla mueve la cascada; Inicio edita
   await bs.getByRole("button", { name: "+ Otros" }).click();
   await bs.locator(".v4-cta").click();
   await expect.poll(() => page.evaluate(() => (JSON.parse(localStorage.getItem("micartera_v3") || "{}").aportaciones || []).reduce((a, x) => a + x.amount, 0))).toBe(350);
+});
+
+test("espejo 26/11: con una cuota en «Restar del presupuesto», Gastos es lo gastado y «Te sobran» no cuenta la cuota dos veces", async ({ page }) => {
+  // La forma de su hoja con cifras inventadas: Mi ciclo, dos cuotas, una que resta del presupuesto, y lo gastado muy por debajo de él.
+  await page.setViewportSize({ width: 412, height: 915 });
+  const gym = { ...prestamo, id: "d2", name: "Gym sintético", value: 1400, original: 1400, monthly: 120.4, months: 12, day: 29, account: "sabadell" };
+  const estado = (on) => ({ ...base(3000), settings: { ...settings, budgetCycle: true }, debts: [prestamo, { ...gym, restarPres: on }] });
+  await abrePlan(page, estado(true));
+  await page.getByTestId("plan-reparto-chip").click();
+  if (process.env.CAPTURAS) { await page.waitForTimeout(700); await page.screenshot({ path: process.env.CAPTURAS + "/espejo-despues.png" }); }
+  const on = await lee(page);
+  expect(on.filas.find((f) => f.k === "deu").c).toBe(26000 + 12040);
+  expect(on.filas.find((f) => f.k === "gas").c).toBe(12050);
+  expect(on.cifra).toBe(on.entra - on.filas.reduce((a, f) => a + f.c, 0));
+  await expect(page.getByTestId("plan-reparto-hoja").locator('.cas-row[data-k="gas"] .cas-sub')).toContainText("120,50");
+  // Presupuesto 1.200 − 300 de la meta − 120,40 de la cuota = 779,60; quedan 659,10 por gastar.
+  await expect(page.getByTestId("plan-reparto-prevision")).toContainText("659,10");
+  expect(on.prev).toBe(on.cifra - 65910);
+  // Sin el interruptor lo que sobra hoy es lo mismo: la cuota solo está en Deudas.
+  await page.evaluate(() => { const s = JSON.parse(localStorage.getItem("micartera_v3")); s.debts = s.debts.map((d) => d.id === "d2" ? { ...d, restarPres: false } : d); localStorage.setItem("micartera_v3", JSON.stringify(s)); });
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await page.getByTestId("plan-reparto-chip").click();
+  const off = await lee(page);
+  expect(off.cifra).toBe(on.cifra);
+  expect(off.prev).toBe(on.prev - 12040);
 });
