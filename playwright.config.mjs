@@ -43,6 +43,10 @@ export default defineConfig({
   },
   webServer: {
     command: "npx --yes serve public -l " + PUERTO,
+    /* Sin esta precarga `serve` deja un fichero abierto por cada descarga que el navegador corta, y
+       en la suite entera muere hacia el test 1285 (EMFILE, 26/11). El porqué, en el propio script.
+       La ruta es relativa para que no la rompan los espacios de «Mi cartera». */
+    env: { ...process.env, NODE_OPTIONS: ((process.env.NODE_OPTIONS || "") + " --require ./scripts/e2e-serve-cierra.cjs").trim() },
     url: BASE,
     reuseExistingServer: !process.env.CI,
     /* 60 s era justo: `npx --yes serve` resuelve el paquete la primera vez, y con la máquina

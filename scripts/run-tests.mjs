@@ -151,6 +151,7 @@ const steps = [
   ["docs-frescura", ["node", "tests/docs-frescura.test.mjs"]],
   ["docs-frescura-history", ["node", "tests/docs-frescura-history.test.mjs"]],
   ["relevant-tests", ["node", "tests/relevant-tests.test.mjs"]],
+  ["e2e-serve-cierra", ["node", "tests/e2e-serve-cierra.test.mjs"]],
   // La suite de Pages puede durar más que el antiguo tope de diez minutos del promote.
   ["wait-promote-deploy", ["node", "tests/wait-promote-deploy.test.mjs"]],
   // El espejo de la memoria en docs/memoria/ tiene que ir al día: es lo único que ve una sesión

@@ -39,6 +39,7 @@ export const CORE = [
   "src/modules/11-app-main.js",
   "src/shell.html",
   "playwright.config.mjs",
+  "scripts/e2e-serve-cierra.cjs",
   "scripts/run-tests.mjs",
   // Reparar el guardián de revisión tras un CI fallido no puede publicar la unión
   // pendiente sólo con Node y saltarse sus pantallas (publicador109, 8/10/2026).

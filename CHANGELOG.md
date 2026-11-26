@@ -3,6 +3,7 @@
 - **Por qué otra versión.** Los arreglos del 26/11 (abajo, en la 4.26.260: «Te sobran», visual e integración, más el importe entero en Cartera) entraron después del ancla de versión (cb053005e) y `docs-frescura` los daba por no publicables. La 4.26.260 no llegó a servirse (beta seguía en la 4.26.259): su nota pasa tal cual a la 261.
 - **Panel de beta.** La tanda `beta-260` suma los pasos 6 a 10, uno por arreglo: «Gastos» de la cascada, la «i» de Plan, la hoja sobre la barra de gestos, importes sin recuadro e importe entero en «Aportación mensual».
 - **Registro.** `diseno-240` no vigilaba `bolsasDeAhorro` ni `BOLSAS_FIJAS`, que ahora alcanza: se suman al final de su alcance (rojo de `beta-sources`). Catálogo260 pasa a Catálogo261 (sigue contando desde la 4.26.259) y lo declara; repin de `auth-disposal(-fit)`; `revisar-beta` cuenta la 261 y los cinco puntos de la nota.
+- **Suite e2e entera (solo herramientas).** Moría hacia el test 1285 y ~1080 caían con `ERR_CONNECTION_REFUSED`: `serve` deja un fichero abierto por cada descarga que el navegador corta y a unos 8200 revienta con `EMFILE`. `scripts/e2e-serve-cierra.cjs`, precargado por `playwright.config.mjs`, cierra el fichero con la respuesta. Test `e2e-serve-cierra`.
 
 ## [4.26.260] — 2026-11-26 · Candidata de beta, solo web: ahorro en apartados
 
