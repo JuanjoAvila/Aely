@@ -99,10 +99,14 @@ function medirImporte(el) {
   };
 }
 
-for (const [lang, sufijo] of [["es", "/mes"], ["en", "/mo"]]) {
+for (const [lang, sufijo] of [["es", "/mes"], ["en", "/mo"], ["ca", "/mes"]]) {
   test(`escalera: «−260 €${sufijo}» no se parte a 360 px con letra Enorme (${lang})`, async ({ page }) => {
     const { linea } = await abreFicha(page, lang);
-    await expect(linea).toContainText(/−\u2060?260/);
+    await expect(linea).toContainText("−260");
+    // El importe va en su propio trozo sin corte; el texto de cap() (aria-label y data-cap) no cambia.
+    await expect(linea.locator("span", { hasText: "−260" })).toHaveCSS("white-space", "nowrap");
+    const caps = await page.locator(".rpt-stp").evaluateAll((bs) => bs.map((b) => (b.getAttribute("aria-label") || "") + (b.getAttribute("data-cap") || "")));
+    for (const c of caps) expect(c).not.toMatch(/\u2060/);
     const med = await linea.evaluate(medirImporte);
     expect(med, "la línea enseña el importe de la escalera").toEqual(expect.objectContaining({ found: true }));
     expect(med.sample.replace(/\s+/g, " ")).toMatch(new RegExp("^−260 €" + sufijo.replace("/", "\\/") + "$"));
