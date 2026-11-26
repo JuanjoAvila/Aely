@@ -1,3 +1,10 @@
+## [4.26.260] — 2026-11-26 · Candidata de beta, solo web: ahorro en apartados
+
+- **Qué lleva (sobre la 4.26.259, 01f9c1e9e; rama `claude/ahorro-bolsas`).** Cada fila de `state.aportaciones` puede llevar `bolsa` (emergencia, inversión o propia; sin marca, «Otros»; sin migración). Se reparte en la hoja del presupuesto de Inicio y se ve en la cascada «A dónde va tu sueldo»; en la tarjeta de aportaciones cada fila tiene selector de apartado.
+- **Dinero.** Emergencia y propias no cuentan en la proyección de inversión ni las «cubre» una inversión del mes (salvo lo que sobra, si su banco es un bróker, o lo recibido de uno al repartir). Lo movido entre filas guarda su origen (`viene`, caduca con el periodo) y lo que valía cada fila antes (`previo`), para que repartir no cuente dos veces ni reescriba la gráfica de Inicio. Sin apartados marcados las cuentas son las de antes.
+- **Límites conocidos, sin decidir.** Una meta con «Restar del presupuesto» más un apartado de emergencia por lo mismo cuenta dos veces; un móvil con una versión anterior pone MyInvestor a las filas sin banco al guardar.
+- **Tests y registro.** `ahorro-bolsas` (unitario y e2e). Descriptor nuevo beta-260; beta-245 y beta-248 cambian de huella. Catálogo259 pasa a histórico y entra Catálogo260. Sin APK nueva; sin SQL ni Edge.
+
 ## [4.26.259] — 2026-11-26 · Candidata de beta, solo web: bichos H1-H4 de las metas con «Restar del presupuesto»
 
 - **Qué lleva (sobre la 4.26.258, d687f409c).** H1 (dinero): apagar y encender el interruptor de una meta el mismo mes creaba una regla nueva y `applyReservaMensual` volvía a acreditar el ahorro; ahora descuenta lo que las reglas ya borradas de esa meta aportaron y reservaron ese mes (campo `aportado` en el asiento): la meta solo recibe la diferencia y el presupuesto vuelve a bajar lo que quedó libre. H2-H4: la hoja de una meta cumplida no enseña el interruptor (`metaFormCumplida`), no arranca encendido si la meta no está activa y guardarla no toca sus reglas.

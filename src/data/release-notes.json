@@ -1,5 +1,67 @@
 [
   {
+    "v": "4.26.260",
+    "d": "2026-11-26",
+    "t": {
+      "es": "Apartados para tu ahorro",
+      "en": "Pots for your savings",
+      "ca": "Guardioles per al teu estalvi"
+    },
+    "items": {
+      "es": [
+        "El ahorro al mes se puede repartir en apartados: Emergencia, Inversión y los que quieras crear.",
+        "Se reparte desde Inicio, al tocar el presupuesto. Lo que ya tenías aparece en «Otros».",
+        "«A dónde va tu sueldo» enseña cuánto va a cada apartado.",
+        "Lo que apartas para emergencias o para un objetivo propio no cuenta como inversión en las previsiones."
+      ],
+      "en": [
+        "Your monthly savings can be split into pots: Emergency, Investing and any you want to create.",
+        "Split them from Home, by tapping the budget. What you already had shows up under Other.",
+        "Where your pay goes shows how much goes into each pot.",
+        "Money set aside for emergencies or for your own goal does not count as investment in forecasts."
+      ],
+      "ca": [
+        "L'estalvi al mes es pot repartir en guardioles: Emergència, Inversió i les que vulguis crear.",
+        "Es reparteix des d'Inici, tocant el pressupost. El que ja tenies apareix a «Altres».",
+        "«On va el teu sou» ensenya quant va a cada guardiola.",
+        "El que apartes per a emergències o per a un objectiu propi no compta com a inversió a les previsions."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-260",
+        "t": {
+          "es": "Ahorro en apartados",
+          "en": "Savings in pots",
+          "ca": "Estalvi en guardioles"
+        },
+        "items": {
+          "es": [
+            "1. Inicio: apunta lo que tienes ahora de ahorro al mes, toca la tarjeta del presupuesto y después «Ahorro al mes». BIEN: se despliega con Emergencia, Inversión y «Otros», lo que ya tenías sale en «Otros» (o en el apartado que le hayas puesto) y el total es el mismo de antes. MAL: el total cambia o falta dinero.",
+            "2. En esa hoja, quita 20 € de un apartado que se pueda editar (por ejemplo «Otros») y ponlos en «Emergencia». Toca «Guardar» y vuelve a abrirla. BIEN: el total de «Ahorro al mes» no cambia y los 20 € siguen en «Emergencia». MAL: el total sube o baja, o no se ha guardado. Si «Otros» pone que tiene varias aportaciones, se cambia en el paso 5.",
+            "3. En la misma hoja toca «Añadir apartado», escribe un nombre y toca «Guardar» sin importe. BIEN: avisa «Falta el importe» y la hoja sigue abierta; al escribir una cifra y guardar, el apartado aparece. Con el teclado abierto se ven el campo y «Guardar». MAL: se cierra y se pierde, o el teclado tapa algo.",
+            "4. Plan › Recibos: toca el icono «i» («A dónde va tu sueldo») y después la línea «Ahorro». BIEN: se despliega por apartados y sumados dan justo la cifra de «Ahorro». MAL: no suman o falta un apartado.",
+            "5. Ahí mismo toca «Editar» y, en la tarjeta, «Editar» otra vez. Cambia el apartado de una fila y toca «Guardar». BIEN: la fila conserva su importe y su banco, y el total no cambia. MAL: cambia el importe, el banco o el total. Al acabar, deja los apartados como quieras tenerlos y borra el de prueba."
+          ],
+          "en": [
+            "1. Home: note your current savings per month, tap the budget card and then «Savings per month». RIGHT: it opens with Emergency, Investing and «Other», what you already had is under «Other» (or the pot you gave it) and the total is the same as before. WRONG: the total changes or money is missing.",
+            "2. In that sheet, take €20 from a pot you can edit (for example «Other») and put it in «Emergency». Tap «Save» and open it again. RIGHT: the «Savings per month» total does not change and the €20 stay in «Emergency». WRONG: the total goes up or down, or it was not saved. If «Other» says it holds several contributions, change it in step 5.",
+            "3. In the same sheet tap «Add pot», type a name and tap «Save» with no amount. RIGHT: it says «Enter an amount» and the sheet stays open; once you type a figure and save, the pot shows up. With the keyboard open you can see the field and «Save». WRONG: it closes and is lost, or the keyboard covers something.",
+            "4. Plan › Bills: tap the «i» icon («Where your pay goes») and then the «Savings» line. RIGHT: it expands by pot and together they add up exactly to the «Savings» figure. WRONG: they do not add up or a pot is missing.",
+            "5. Right there tap «Edit» and, on the card, «Edit» again. Change the pot of one row and tap «Save». RIGHT: the row keeps its amount and bank, and the total does not change. WRONG: the amount, the bank or the total changes. When done, leave the pots as you want them and delete the test one."
+          ],
+          "ca": [
+            "1. Inici: apunta el que tens ara d'estalvi al mes, toca la targeta del pressupost i després «Estalvi al mes». BÉ: es desplega amb Emergència, Inversió i «Altres», el que ja tenies surt a «Altres» (o a la guardiola que li hagis posat) i el total és el mateix d'abans. MALAMENT: el total canvia o falten diners.",
+            "2. En aquesta fulla, treu 20 € d'una guardiola que es pugui editar (per exemple «Altres») i posa'ls a «Emergència». Toca «Desa» i torna a obrir-la. BÉ: el total d'«Estalvi al mes» no canvia i els 20 € continuen a «Emergència». MALAMENT: el total puja o baixa, o no s'ha desat. Si «Altres» diu que té diverses aportacions, es canvia al pas 5.",
+            "3. A la mateixa fulla toca «Afegir guardiola», escriu un nom i toca «Desa» sense import. BÉ: avisa «Falta l’import» i la fulla continua oberta; en escriure una xifra i desar, la guardiola apareix. Amb el teclat obert es veuen el camp i «Desa». MALAMENT: es tanca i es perd, o el teclat tapa alguna cosa.",
+            "4. Pla › Rebuts: toca la icona «i» («On va el teu sou») i després la línia «Estalvi». BÉ: es desplega per guardioles i sumades donen justament la xifra d'«Estalvi». MALAMENT: no sumen o en falta una.",
+            "5. Aquí mateix toca «Edita» i, a la targeta, «Edita» un altre cop. Canvia la guardiola d'una fila i toca «Desa». BÉ: la fila conserva l'import i el banc, i el total no canvia. MALAMENT: canvia l'import, el banc o el total. En acabar, deixa les guardioles com les vulguis tenir i esborra la de prova."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.259",
     "d": "2026-11-26",
     "t": {
