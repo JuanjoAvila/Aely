@@ -219,6 +219,7 @@ const steps = [
   ["ob-hueco-recuperado", ["node", "tests/ob-hueco-recuperado.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["metas-ahorro-mensual", ["node", "tests/metas-ahorro-mensual.test.mjs"]],
+  ["ahorro-bolsas", ["node", "tests/ahorro-bolsas.test.mjs"]],
   ["metas-pull-transport", ["node", "tests/metas-pull-transport.test.mjs"]],
   ["goals-three-way", ["node", "--test", "tests/goals-three-way.test.mjs"]],
   ["goals-review-remates", ["node", "--test", "tests/goals-review-remates.test.mjs"]],

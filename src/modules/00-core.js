@@ -792,37 +792,54 @@ const BOLSAS_FIJAS=["emergencia","inversion","otros"];
 function bolsaDe(a){ const b=a&&a.bolsa; return b==="emergencia"||b==="inversion"||b==="propia"?b:"otros"; }
 // Lo que una inversión del mes puede cubrir: «Inversión» y lo de siempre. Emergencia y las propias, no.
 function bolsaInvierte(a){ const b=bolsaDe(a); return b==="inversion"||b==="otros"; }
-// Las tres fijas siempre y una por cada bolsa propia. `c` en céntimos, sumando fila a fila.
+// Dónde se puede haber invertido el dinero de una bolsa (el banco de la fila es un bróker).
+const BOLSA_BROKERS=["trade_republic","myinvestor","degiro","ibkr","kraken"];
+function bolsaEnBroker(a){ return !!a&&BOLSA_BROKERS.indexOf(a.ent)>=0; }
+// Emergencia, Inversión, las propias y al final «Otros». `c` en céntimos, sumando fila a fila.
 function bolsasDeAhorro(aps){
   const rows=(aps||[]).filter(Boolean);
   const suma=function(f){ return f.reduce(function(n,a){ return n+Math.round((Number(a.amount)||0)*100); },0); };
-  return BOLSAS_FIJAS.map(function(k){
+  const fijas=BOLSAS_FIJAS.map(function(k){
     const filas=rows.filter(function(a){ return bolsaDe(a)===k; });
     return {key:k,kind:k,filas:filas,c:suma(filas)};
-  }).concat(rows.filter(function(a){ return bolsaDe(a)==="propia"; }).map(function(a){
+  });
+  const propias=rows.filter(function(a){ return bolsaDe(a)==="propia"; }).map(function(a){
     return {key:"propia:"+a.id,kind:"propia",name:a.name,filas:[a],c:suma([a])};
-  }));
+  });
+  return fijas.slice(0,2).concat(propias,fijas.slice(2));
 }
 function bolsaNombre(b){ return b.kind==="propia"?(b.name||t("d_saving")):t("bolsa_"+b.kind); }
 /* Lo cambiado en la hoja de Inicio, sobre la lista del momento de escribir. `cambios` = {clave: euros} SOLO de las bolsas
-   tocadas; `nuevas` = [{name,amount}]. Una bolsa con una fila cambia su importe (conserva id, banco y nombre); sin filas,
-   nace una; con VARIAS filas no se toca (se editan una a una en Cartera): repartir un total entre ellas sería inventar. */
+   tocadas (null = quitar una propia); `nuevas` = [{name,amount}]. Una bolsa con una fila cambia su importe (conserva id,
+   banco y nombre); sin filas, nace una; con VARIAS filas no se toca (se editan una a una en Cartera): repartir un total
+   entre ellas sería inventar. Lo que se reparte desde una fila hereda su banco: es el mismo dinero (así la gráfica sigue
+   reconociendo la transferencia entera y lo invertido no cuenta dos veces). */
 function bolsasAplica(aps, cambios, nuevas, nuevoId){
   let next=(aps||[]).slice();
   const cur=bolsasDeAhorro(next);
+  const bajan={};
+  Object.keys(cambios||{}).forEach(function(key){
+    const b=cur.find(function(x){ return x.key===key; });
+    if(b&&b.filas.length===1&&b.filas[0].ent&&cambios[key]!==null&&Math.round((Number(cambios[key])||0)*100)<b.c) bajan[b.filas[0].ent]=1;
+  });
+  const de=Object.keys(bajan).length===1?Object.keys(bajan)[0]:"";
+  const suyos={};
+  next.forEach(function(a){ if(a&&bolsaInvierte(a)&&bolsaEnBroker(a)) suyos[a.ent]=1; });
+  const broker=bolsaEnBroker({ent:de})?de:(Object.keys(suyos).length===1?Object.keys(suyos)[0]:"myinvestor");
   Object.keys(cambios||{}).forEach(function(key){
     const amount=+(Math.max(0,Number(cambios[key])||0)).toFixed(2);
     const b=cur.find(function(x){ return x.key===key; });
     if(!b||b.filas.length>1) return;
+    if(cambios[key]===null){ if(b.kind==="propia") next=next.filter(function(a){ return a!==b.filas[0]; }); return; }
     if(b.filas.length===1){ next=next.map(function(a){ return a===b.filas[0]?Object.assign({},a,{amount:amount}):a; }); return; }
     if(!(amount>0)||b.kind==="propia") return;
-    const row={id:nuevoId(),name:b.kind==="otros"?t("d_saving"):t("bolsa_"+b.kind),amount:amount,ent:b.kind==="emergencia"?"":"myinvestor"};
+    const row={id:nuevoId(),name:b.kind==="otros"?t("d_saving"):t("bolsa_"+b.kind),amount:amount,ent:b.kind==="emergencia"?de:broker};
     if(b.kind!=="otros") row.bolsa=b.kind;
     next.push(row);
   });
   (nuevas||[]).forEach(function(n){
     const amount=+(Math.max(0,Number(n.amount)||0)).toFixed(2), name=String(n.name||"").trim();
-    if(amount>0) next.push({id:nuevoId(),name:name||t("d_saving"),amount:amount,ent:"",bolsa:"propia"});
+    if(amount>0) next.push({id:nuevoId(),name:name||t("d_saving"),amount:amount,ent:de,bolsa:"propia"});
   });
   return next;
 }

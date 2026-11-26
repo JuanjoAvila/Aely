@@ -23,10 +23,10 @@ test("repartir el ahorro en bolsas desde Inicio y verlo en la cascada", async ({
   await page.locator(".v4-budget").first().click();
   const bs = page.locator(".v4-budget-sheet");
   await expect(bs.getByTestId("budget-ahorro-val")).toContainText("200");
-  await expect(bs.getByTestId("budget-bolsas")).toHaveCount(0);
+  await expect(bs.getByTestId("budget-bolsas")).toBeHidden();
   await bs.getByTestId("budget-ahorro-toggle").click();
   await expect(bs.locator('.v4-bol-row[data-bolsa="otros"] input')).toHaveValue("200");
-  await bs.getByRole("textbox", { name: "Fondo de emergencia" }).fill("80");
+  await bs.getByRole("textbox", { name: "Emergencia" }).fill("80");
   await bs.getByRole("textbox", { name: "Inversión" }).fill("100");
   await bs.getByRole("textbox", { name: "Otros" }).fill("20");
   await bs.getByTestId("budget-bolsa-add").click();
@@ -44,10 +44,74 @@ test("repartir el ahorro en bolsas desde Inicio y verlo en la cascada", async ({
   await expect(fila).toHaveAttribute("data-c", "23050");
   await fila.click();
   const lineas = await hoja.locator(".cas-bolsa").evaluateAll((els) => els.map((e) => Number(e.dataset.cts)));
-  expect(lineas).toEqual([8000, 10000, 2000, 3050]);
+  expect(lineas).toEqual([8000, 10000, 3050, 2000]);
   await foto(page, "bolsas-cascada");
   await hoja.getByTestId("plan-bolsas-editar").click();
   await expect(page.getByTestId("plan-reparto-detalle").locator("[data-savings-row]")).toHaveCount(4);
   await page.getByTestId("plan-reparto-detalle").locator("[data-savings-edit]").click();
   await foto(page, "bolsas-cartera-editar");
+});
+
+/* Muchas bolsas, una recién añadida y el teclado: nada cortado, Guardar siempre a la vista y nada se pierde sin avisar. */
+const muchas = [["e1", "Emergencia", 150, "emergencia"], ["i1", "Inversión", 1250.75, "inversion"], ["p1", "Vacaciones", 80, "propia"], ["p2", "Coche nuevo", 120, "propia"],
+  ["p3", "Regalos de Navidad y cumpleaños", 40, "propia"], ["p4", "Obra de casa", 0, "propia"], ["o1", "Fondo indexado", 20, ""], ["o2", "Plan", 30, ""]]
+  .map(([id, name, amount, bolsa]) => Object.assign({ id, name, amount, ent: bolsa === "inversion" || !bolsa ? "myinvestor" : "" }, bolsa ? { bolsa } : {}));
+const dentro = async (loc, alto) => { const r = await loc.boundingBox(); expect(r.y).toBeGreaterThanOrEqual(0); expect(r.y + r.height).toBeLessThanOrEqual(alto + 1); };
+
+test("muchas bolsas, bolsa nueva sin importe y teclado", async ({ page }) => {
+  await installFixtureClock(page);
+  await page.route("**/*", (r) => new URL(r.request().url()).hostname === "127.0.0.1" ? r.continue() : r.abort());
+  await seedLoggedInDashboard(page, Object.assign({}, estado, { aportaciones: muchas }));
+  await page.goto("/");
+  await dismissNews(page);
+  await foto(page, "bolsas-inicio-exterior");
+  await page.locator(".v4-budget").first().click();
+  const bs = page.locator(".v4-budget-sheet");
+  await foto(page, "bolsas-hoja-plegada");
+  await bs.getByTestId("budget-ahorro-toggle").click();
+  await foto(page, "bolsas-hoja-muchas");
+  await dentro(bs.locator(".v4-cta"), 760);
+  await bs.getByTestId("budget-bolsa-add").click();
+  await foto(page, "bolsas-hoja-nueva");
+  await dentro(bs.locator('[data-bolsa="nueva"]'), 760);
+  await bs.getByRole("textbox", { name: "Nombre" }).fill("Moto");
+  await bs.locator(".v4-cta").click();
+  await expect(bs.getByRole("alert")).toHaveText("Falta el importe");
+  await expect(bs).toBeVisible();
+  await foto(page, "bolsas-hoja-falta-importe");
+  // Teclado que encoge la ventana.
+  await bs.getByRole("textbox", { name: "Moto", exact: true }).focus();
+  await page.setViewportSize({ width: 375, height: 430 });
+  await bs.getByRole("textbox", { name: "Moto", exact: true }).scrollIntoViewIfNeeded();
+  await page.waitForTimeout(500);
+  await dentro(bs.locator(".v4-cta"), 430);
+  await dentro(bs.getByRole("textbox", { name: "Moto", exact: true }), 430);
+  await foto(page, "bolsas-teclado-encoge");
+  await page.setViewportSize({ width: 375, height: 760 });
+  // Teclado superpuesto: solo encoge el visualViewport.
+  await page.evaluate(() => { Object.defineProperty(window.visualViewport, "height", { configurable: true, get: () => 430 }); window.visualViewport.dispatchEvent(new Event("resize")); });
+  await page.waitForTimeout(600);
+  await dentro(bs.locator(".v4-cta"), 430);
+  await dentro(bs.getByRole("textbox", { name: "Moto", exact: true }), 430);
+  await foto(page, "bolsas-teclado-encima");
+  await page.evaluate(() => { delete window.visualViewport.height; window.visualViewport.dispatchEvent(new Event("resize")); });
+  await bs.getByRole("textbox", { name: "Moto", exact: true }).fill("45");
+  await bs.getByRole("button", { name: "Quitar esta aportación: Obra de casa" }).click();
+  await bs.locator(".v4-cta").click();
+  await expect.poll(() => page.evaluate(() => (JSON.parse(localStorage.getItem("micartera_v3") || "{}").aportaciones || []).map((a) => a.name))).toEqual(
+    ["Emergencia", "Inversión", "Vacaciones", "Coche nuevo", "Regalos de Navidad y cumpleaños", "Fondo indexado", "Plan", "Moto"]);
+
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await page.getByTestId("plan-reparto-chip").click();
+  const hoja = page.getByTestId("plan-reparto-hoja");
+  await foto(page, "bolsas-cascada-plegada");
+  await hoja.locator('.cas-row[data-k="aho"]').click();
+  await foto(page, "bolsas-cascada-muchas");
+  await hoja.getByTestId("plan-bolsas-editar").click();
+  const det = page.getByTestId("plan-reparto-detalle");
+  await foto(page, "bolsas-cartera-tarjeta");
+  await det.locator("[data-savings-edit]").click();
+  await foto(page, "bolsas-cartera-editar");
+  await det.locator("[data-savings-save]").scrollIntoViewIfNeeded();
+  await foto(page, "bolsas-cartera-editar-final");
 });

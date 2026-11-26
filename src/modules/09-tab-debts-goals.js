@@ -1087,6 +1087,15 @@ function SavingsPlanCard({state, set, totals, showToast}){
     setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",numDecSep()):"",ent:a.ent!=null?a.ent:"myinvestor",bolsa:bolsaDe(a)}; }));
   };
   const setD=function(id,k,v){ setDrafts(function(ds){ return ds.map(function(d){ return d.id===id?Object.assign({},d,{[k]:v}):d; }); }); };
+  // El nombre que pone la app («Emergencia», «Inversión») no se repite junto al selector y lo sigue si se cambia.
+  const nombreDeApartado=function(d){ return (d.bolsa==="emergencia"||d.bolsa==="inversion")&&d.name===t("bolsa_"+d.bolsa); };
+  const setApartado=function(id,k){
+    setDrafts(function(ds){ return ds.map(function(d){
+      if(d.id!==id) return d;
+      const name=nombreDeApartado(d)?(k==="emergencia"||k==="inversion"?t("bolsa_"+k):""):d.name;
+      return Object.assign({},d,{bolsa:k,name:name});
+    }); });
+  };
   const add=function(){ setDrafts(function(ds){ return ds.concat([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]); }); };
   const del=function(id){ setDrafts(function(ds){ return ds.filter(function(d){ return d.id!==id; }); }); };
   const save=function(){
@@ -1120,22 +1129,28 @@ function SavingsPlanCard({state, set, totals, showToast}){
     !editing && aps.map(function(ap){
       return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
         React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"},
-          [ap.ent?entOf(ap.ent).label:"", bolsaDe(ap)==="emergencia"||bolsaDe(ap)==="inversion"?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
+          [ap.ent?entOf(ap.ent).label:"", (bolsaDe(ap)==="emergencia"||bolsaDe(ap)==="inversion")&&ap.name!==t("bolsa_"+bolsaDe(ap))?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
         React.createElement("span",{className:"num aely-savings-amt"}, tf("fj_permonth",{x:eur(Number(ap.amount)||0)})));
     }),
     editing && drafts.map(function(d){
+      const auto=nombreDeApartado(d);
+      const apartado=React.createElement("label",{className:"aely-sv-apartado"},
+        React.createElement("span",null,t("bolsa_sel")),
+        React.createElement("select",{className:"af-in","aria-label":t("bolsa_sel"),value:d.bolsa||"otros",onChange:function(e){ setApartado(d.id,e.target.value); }},
+          ["emergencia","inversion","propia","otros"].map(function(k){ return React.createElement("option",{key:k,value:k},t("bolsa_"+k)); })));
       return React.createElement("div",{className:"aely-savings-edit-row",key:d.id,"data-savings-draft":d.id},
-        React.createElement("input",{className:"af-in","aria-label":t("sv_name_aria"),placeholder:t("sv_name_ph"),value:d.name,
+        auto?apartado:React.createElement("input",{className:"af-in","aria-label":t("sv_name_aria"),placeholder:t("sv_name_ph"),value:d.name,
           onChange:function(e){ setD(d.id,"name",e.target.value); }}),
         React.createElement("div",{className:"aely-savings-edit-line"},
-          React.createElement("input",{className:"af-in num","aria-label":t("sv_amount_aria"),placeholder:"0 €",inputMode:"decimal",value:d.amount,
-            onFocus:function(e){ e.target.select(); },onChange:function(e){ setD(d.id,"amount",e.target.value); }}),
+          React.createElement("span",{className:"aely-sv-eur"},
+            React.createElement("input",{className:"af-in num","aria-label":t("sv_amount_aria"),placeholder:"0",inputMode:"decimal",value:d.amount,
+              onFocus:function(e){ e.target.select(); },onChange:function(e){ setD(d.id,"amount",e.target.value); }}),
+            React.createElement("i",{"aria-hidden":"true"},"€")),
           React.createElement("select",{className:"af-in","aria-label":t("sv_bank_aria"),value:d.ent,onChange:function(e){ setD(d.id,"ent",e.target.value); }},
-            !d.ent&&React.createElement("option",{key:"",value:""},"—"),
+            !d.ent&&React.createElement("option",{key:"",value:""},t("sv_sin_banco")),
             AP_ENTS.map(function(k){ return React.createElement("option",{key:k,value:k},entOf(k).label); })),
           React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")),
-        React.createElement("select",{className:"af-in","aria-label":t("bolsa_sel"),value:d.bolsa||"otros",onChange:function(e){ setD(d.id,"bolsa",e.target.value); }},
-          BOLSAS_FIJAS.concat(["propia"]).map(function(k){ return React.createElement("option",{key:k,value:k},t("bolsa_"+k)); })));
+        !auto&&apartado);
     }),
     editing && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:add}, "+ "+t("sv_add")),
     editing && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:8},"data-savings-save":"1",onClick:save}, t("fj_save"))

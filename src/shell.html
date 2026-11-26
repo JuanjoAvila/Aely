@@ -3404,11 +3404,32 @@
   .v4-bol-tot b{font-size:24px;font-weight:550;white-space:nowrap;}
   .v4-bol-tot .chev{width:18px;height:18px;flex:0 0 auto;opacity:.6;}
   .v4-bol-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 10px;padding:7px 0;border-bottom:1px solid var(--line-soft);}
+  .v4-bol-nm small,.v4-bol-falta{display:block;font-size:12px;font-weight:500;color:var(--muted);}
+  .v4-bol-falta{flex:1 0 100%;text-align:right;color:var(--coral);}
+  .v4-bol-quita{display:inline-flex;align-items:center;justify-content:center;width:30px;height:44px;margin:-12px 0;padding:0;vertical-align:middle;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;}
+  .v4-bol-campo{display:flex;align-items:center;gap:3px;height:44px;padding:0 9px;border:1px solid var(--line-soft);border-radius:12px;background:var(--sur);}
+  .v4-bol-campo:focus-within{border-color:var(--mint);}
+  .v4-bol-campo i{font-style:normal;color:var(--muted);font-size:14px;}
+  .v4-bud-aho input:focus,.v4-bud-aho .v4-bol-campo input:focus-visible{outline:none;}
+  .v4-bol-fold{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .3s var(--ease),opacity .2s ease,visibility 0s .3s;}
+  .v4-bol-fold.open{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .3s var(--ease),opacity .2s ease,visibility 0s;}
+  .v4-bol-fold>div{overflow:hidden;min-height:0;}
+  @media (prefers-reduced-motion:reduce){.v4-bol-fold,.v4-bol-fold.open{transition-duration:.01ms !important;transition-delay:0s !important;}}
+  /* Título e importes se desplazan; Guardar queda siempre a la vista. */
+  .v4-sheet.v4-budget-sheet:has(>.v4-sheet-body){padding-bottom:calc(36px + var(--safe-bottom));}
+  /* Lo que sigue por debajo se funde en vez de quedar rebanado contra el botón. */
+  .v4-budget-sheet>.v4-sheet-body{padding-bottom:18px;-webkit-mask-image:linear-gradient(#000 calc(100% - 18px),transparent);mask-image:linear-gradient(#000 calc(100% - 18px),transparent);}
+  .aely-sv-apartado{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--muted);}
+  .aely-sv-apartado select.af-in{flex:1 1 0;min-width:0;width:auto;}
+  .aely-sv-eur{position:relative;display:flex;flex:1 1 90px;min-width:0;}
+  .aely-sv-eur .af-in.num{padding-right:26px;width:100%;}
+  .aely-sv-eur i{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--muted);pointer-events:none;}
+  .aely-savings-edit-line .ex-del{opacity:.9;}
   .v4-bol-nm{flex:1 1 110px;min-width:0;font-weight:650;font-size:14.5px;overflow-wrap:anywhere;}
   .v4-bol-row>b{white-space:nowrap;margin-left:auto;}
   .v4-bol-step{display:flex;align-items:center;gap:4px;margin-left:auto;}
   .v4-bol-step button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);font:inherit;font-size:22px;font-weight:700;cursor:pointer;}
-  .v4-bol-step input{width:5.5em;height:44px;border:0;background:none;color:var(--text);font:inherit;font-size:16px;font-weight:700;text-align:center;}
+  .v4-bol-step input{width:4.6em;height:40px;min-width:0;padding:0;border:0;background:none;color:var(--text);font:inherit;font-size:16px;font-weight:700;text-align:right;}
   .v4-bol-add,.cas-bolsas-edit{min-height:44px;border:0;background:none;color:var(--mint-ink,var(--mint));font:inherit;font-weight:700;font-size:14px;cursor:pointer;padding:0;}
   .cas-bolsas{padding:0 0 4px 17px;}
   .cas-bolsa{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;padding:6px 0;font-size:14px;}

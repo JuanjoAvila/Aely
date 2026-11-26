@@ -118,10 +118,11 @@ function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
     return React.createElement("div",{key:key,className:"cas-bolsa","data-bolsa":key,"data-cts":c},React.createElement("span",null,nombreB),React.createElement("b",{className:"num"},rptC(c)));
   };
   const bolsas=function(){
-    return React.createElement("div",{key:"bolsas",className:"cas-bolsas","data-testid":"plan-bolsas"},
-      r.bolsas.map(function(b){ return bolsaFila(b.key,bolsaNombre(b),b.c); }),
-      r.ahoExtra>0&&bolsaFila("extra",t("bolsa_extra"),r.ahoExtra),
-      React.createElement("button",{type:"button",className:"cas-bolsas-edit","data-testid":"plan-bolsas-editar",onClick:function(){ setVista("aho"); }},t("fj_edit")));
+    return React.createElement("div",{key:"bolsas",className:"v4-bol-fold"+(verBolsas?" open":"")},React.createElement("div",{inert:verBolsas?undefined:""},
+      React.createElement("div",{className:"cas-bolsas","data-testid":"plan-bolsas"},
+        r.bolsas.map(function(b){ return bolsaFila(b.key,bolsaNombre(b),b.c); }),
+        r.ahoExtra>0&&bolsaFila("extra",t("bolsa_extra"),r.ahoExtra),
+        React.createElement("button",{type:"button",className:"cas-bolsas-edit","data-testid":"plan-bolsas-editar",onClick:function(){ setVista("aho"); }},t("fj_edit")))));
   };
   const paso=function(x){
     const fila=React.createElement("button",{key:x.k,type:"button",className:"cas-row","data-k":x.k,"data-c":x.c,"aria-expanded":x.k==="aho"?verBolsas:undefined,
@@ -129,7 +130,7 @@ function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
       React.createElement("span",{className:"cas-nm"},React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x.k]+")"}}),nombre[x.k]),
       React.createElement("span",{className:"cas-sub"},subDe(x.k)),
       React.createElement("span",{className:"cas-am"},"− "+rptC(x.c),rptIcon("chevr",13,{marginLeft:6,opacity:.5,verticalAlign:"-1px",transform:x.k==="aho"&&verBolsas?"rotate(90deg)":undefined})));
-    return x.k==="aho"&&verBolsas?React.createElement(React.Fragment,{key:x.k},fila,bolsas()):fila;
+    return x.k==="aho"?React.createElement(React.Fragment,{key:x.k},fila,bolsas()):fila;
   };
   return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
     React.createElement("div",{className:"cas-entra"},React.createElement("span",null,t("rpt_entran")),

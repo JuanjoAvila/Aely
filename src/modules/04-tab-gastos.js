@@ -3611,63 +3611,120 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
 function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}){
   const [b,setB]=useState(budget||700);
   const [abierto,setAbierto]=useState(false);
-  const [tocado,setTocado]=useState({});    // {clave de bolsa: texto escrito}
+  const [tocado,setTocado]=useState({});    // {clave de bolsa: texto escrito; null = quitarla}
   const [nuevas,setNuevas]=useState([]);
-  useEffect(function(){ if(open){ setB(Math.max(100, Math.round(budget||700))); setAbierto(false); setTocado({}); setNuevas([]); } },[open,budget]);
+  const [falta,setFalta]=useState(false);    // «Añadir apartado» con nombre y sin importe: no se pierde en silencio
+  const [kb,setKb]=useState(null);           // teclado superpuesto: {pad,alto}
+  // Un cambio de presupuesto que llega por sync no borra lo escrito en los apartados.
+  useEffect(function(){ if(open){ setAbierto(false); setTocado({}); setNuevas([]); setFalta(false); } },[open]);
+  useEffect(function(){ if(open) setB(Math.max(100, Math.round(budget||700))); },[open,budget]);
   const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,
     closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
   useBackClose(!!open, swipe.close);
+  // Si el teclado tapa la ventana sin encogerla, la hoja sube lo que tapa; el campo escrito queda a la vista.
+  useEffect(function(){
+    const vv=window.visualViewport;
+    if(!open||!vv) return undefined;
+    let tm=0;
+    const mira=function(){
+      const zoom=parseFloat(getComputedStyle(document.body).zoom)||1;
+      const pad=Math.max(0,window.innerHeight-(vv.height+vv.offsetTop));
+      setKb(pad>80?{pad:Math.round(pad/zoom),alto:Math.round((vv.height-8)/zoom)}:null);
+      clearTimeout(tm);
+      tm=setTimeout(function(){
+        const el=document.activeElement, hoja=swipe.sheetRef.current;
+        if(el&&el.tagName==="INPUT"&&hoja&&hoja.contains(el)) el.scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"});
+      },120);
+    };
+    vv.addEventListener("resize",mira); vv.addEventListener("scroll",mira);
+    return function(){ clearTimeout(tm); setKb(null); vv.removeEventListener("resize",mira); vv.removeEventListener("scroll",mira); };
+  },[open]);
+  // La fila recién añadida, a la vista cuando ha terminado de aparecer.
+  useEffect(function(){
+    if(!open||!nuevas.length) return undefined;
+    const tm=setTimeout(function(){
+      const filas=swipe.sheetRef.current&&swipe.sheetRef.current.querySelectorAll('[data-bolsa="nueva"]');
+      if(filas&&filas.length) filas[filas.length-1].scrollIntoView({block:"nearest",behavior:mcReduced()?"auto":"smooth"});
+    },60);
+    return function(){ clearTimeout(tm); };
+  },[open,nuevas.length]);
   if(!open) return null;
   const bolsas=bolsasDeAhorro(aportaciones);
-  const valor=function(x){ return tocado[x.key]!=null?ahorroImporteDe(tocado[x.key]):x.c/100; };
+  const valor=function(x){ return tocado[x.key]===null?0:tocado[x.key]!=null?ahorroImporteDe(tocado[x.key]):x.c/100; };
+  const sinImporte=function(x){ return !!x.name.trim()&&!(ahorroImporteDe(x.amount)>0); };
   const totalAhorro=bolsas.reduce(function(n,x){ return n+Math.round(valor(x)*100); },0)+nuevas.reduce(function(n,x){ return n+Math.round(ahorroImporteDe(x.amount)*100); },0);
   const euros=function(c){ return c%100?eur(c/100):eur0(c/100); };
   const texto=function(v){ return String(+v.toFixed(2)).replace(".",numDecSep()); };
   const paso=function(nombre,raw,cambia){
     return React.createElement("span",{className:"v4-bol-step"},
       React.createElement("button",{type:"button","aria-label":"− "+nombre,onClick:function(){ cambia(texto(Math.max(0,ahorroImporteDe(raw)-50))); }},"−"),
-      React.createElement("input",{className:"num","aria-label":nombre,inputMode:"decimal",value:raw,placeholder:"0",onFocus:function(e){ e.target.select(); },onChange:function(e){ cambia(e.target.value); }}),
+      React.createElement("span",{className:"v4-bol-campo"},
+        React.createElement("input",{className:"num","aria-label":nombre,inputMode:"decimal",value:raw,placeholder:"0",onFocus:function(e){ e.target.select(); },onChange:function(e){ cambia(e.target.value); }}),
+        React.createElement("i",{"aria-hidden":"true"},"€")),
       React.createElement("button",{type:"button","aria-label":"+ "+nombre,onClick:function(){ cambia(texto(ahorroImporteDe(raw)+50)); }},"+"));
   };
   const ponNueva=function(i,k,v){ setNuevas(function(n){ return n.map(function(x,j){ return j===i?Object.assign({},x,{[k]:v}):x; }); }); };
   const guardaAhorro=function(){
     const cambios={};
-    bolsas.forEach(function(x){ if(x.filas.length<=1&&tocado[x.key]!=null&&Math.round(valor(x)*100)!==x.c) cambios[x.key]=valor(x); });
+    bolsas.forEach(function(x){
+      if(x.filas.length>1||tocado[x.key]===undefined) return;
+      if(tocado[x.key]===null) cambios[x.key]=null;
+      else if(Math.round(valor(x)*100)!==x.c) cambios[x.key]=valor(x);
+    });
     const altas=nuevas.map(function(x){ return {name:x.name,amount:ahorroImporteDe(x.amount)}; }).filter(function(x){ return x.amount>0; });
     if(Object.keys(cambios).length||altas.length) onSaveAhorro(cambios,altas);
   };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
-      React.createElement("div",Object.assign({className:"v4-sheet v4-budget-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+      React.createElement("div",Object.assign({className:"v4-sheet v4-budget-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
+          style:kb?{marginBottom:kb.pad,maxHeight:kb.alto,paddingBottom:12}:undefined}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:8}}, t("v4_budget_sheet")),
-        React.createElement("p",{style:{color:"var(--muted)",fontSize:13.5,lineHeight:1.45,margin:"0 0 18px"}}, t("v4_budget_sheet_h")),
+        React.createElement("div",{className:"v4-sheet-body"},
+        React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:14}}, t("v4_budget_sheet")),
         React.createElement("div",{className:"v4-ob-stepper"},
           React.createElement("button",{type:"button","aria-label":"−",onClick:function(){ setB(function(x){ return Math.max(100,x-50); }); }},"−"),
           React.createElement("div",{className:"serif num"}, eur0(b)),
           React.createElement("button",{type:"button","aria-label":"+",onClick:function(){ setB(function(x){ return x+50; }); }},"+")
         ),
+        // Habla del presupuesto: va pegado a él, no encima del ahorro.
+        React.createElement("p",{style:{color:"var(--muted)",fontSize:13.5,lineHeight:1.45,margin:"10px 0 0",textAlign:"center"}}, t("v4_budget_sheet_h")),
         onSaveAhorro&&React.createElement("div",{className:"v4-bud-aho","data-testid":"budget-ahorro"},
           React.createElement("button",{type:"button",className:"v4-bol-tot","data-testid":"budget-ahorro-toggle","aria-expanded":abierto,onClick:function(){ setAbierto(function(v){ return !v; }); }},
             React.createElement("span",null,t("bud_ahorro_mes")),
             React.createElement("b",{className:"serif num","data-testid":"budget-ahorro-val"}, euros(totalAhorro)),
             React.createElement(I.chev,{className:"chev"+(abierto?" open":"")})),
-          abierto&&React.createElement("div",{className:"v4-bol-list","data-testid":"budget-bolsas"},
+          React.createElement("div",{className:"v4-bol-fold"+(abierto?" open":"")},React.createElement("div",{inert:abierto?undefined:""},
+          React.createElement("div",{className:"v4-bol-list","data-testid":"budget-bolsas"},
             bolsas.map(function(x){
+              if(tocado[x.key]===null) return null;
               const nombre=bolsaNombre(x);
+              const pon=function(v){ setTocado(function(o){ return Object.assign({},o,{[x.key]:v}); }); };
               return React.createElement("div",{key:x.key,className:"v4-bol-row","data-bolsa":x.key},
-                React.createElement("span",{className:"v4-bol-nm"},nombre),
+                React.createElement("span",{className:"v4-bol-nm"},nombre,
+                  // Varias aportaciones en un apartado: se editan una a una en Cartera.
+                  x.filas.length>1&&React.createElement("small",null,tf("bolsa_varias",{n:x.filas.length})),
+                  x.kind==="propia"&&valor(x)===0&&React.createElement("button",{type:"button",className:"v4-bol-quita","aria-label":t("sv_del_aria")+": "+nombre,onClick:function(){ pon(null); }},"✕")),
                 x.filas.length<=1
-                  ?paso(nombre,tocado[x.key]!=null?tocado[x.key]:texto(x.c/100),function(v){ setTocado(function(o){ return Object.assign({},o,{[x.key]:v}); }); })
+                  ?paso(nombre,tocado[x.key]!=null?tocado[x.key]:texto(x.c/100),pon)
                   :React.createElement("b",{className:"num"},euros(x.c)));
             }),
             nuevas.map(function(x,i){
               return React.createElement("div",{key:"n"+i,className:"v4-bol-row","data-bolsa":"nueva"},
                 React.createElement("input",{className:"af-in v4-bol-nm","aria-label":t("bolsa_nombre"),placeholder:t("bolsa_nombre"),maxLength:40,value:x.name,onChange:function(e){ ponNueva(i,"name",e.target.value); }}),
-                paso(x.name.trim()||t("sv_amount_aria"),x.amount,function(v){ ponNueva(i,"amount",v); }));
+                paso(x.name.trim()||t("sv_amount_aria"),x.amount,function(v){ ponNueva(i,"amount",v); }),
+                falta&&sinImporte(x)&&React.createElement("small",{className:"v4-bol-falta",role:"alert"},t("bolsa_falta")));
             }),
-            React.createElement("button",{type:"button",className:"v4-bol-add","data-testid":"budget-bolsa-add",onClick:function(){ setNuevas(function(n){ return n.concat([{name:"",amount:""}]); }); }},"+ "+t("bolsa_add")))),
-        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); if(onSaveAhorro) guardaAhorro(); swipe.close(); }}, t("save"))
+            React.createElement("button",{type:"button",className:"v4-bol-add","data-testid":"budget-bolsa-add",onClick:function(){ setNuevas(function(n){ return n.concat([{name:"",amount:""}]); }); }},"+ "+t("bolsa_add"))))))
+        ),
+        React.createElement("button",{className:"v4-cta",style:{marginTop:0},onClick:function(){
+          const i=nuevas.findIndex(sinImporte);
+          if(i>=0){
+            setAbierto(true); setFalta(true);
+            const campo=swipe.sheetRef.current.querySelectorAll('[data-bolsa="nueva"] .v4-bol-campo input')[i];
+            setTimeout(function(){ if(campo) campo.focus(); },0);
+            return;
+          }
+          onSave(b); if(onSaveAhorro) guardaAhorro(); swipe.close(); }}, t("save"))
       )
     ), document.body);
 }

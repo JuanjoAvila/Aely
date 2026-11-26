@@ -1581,7 +1581,11 @@ function netWorthSeries(state, options){
   // importe, a nombre del titular, es esa aportación aunque el banco la llame «traspaso» u
   // «otros» (MyInvestor, 500 € a fin de mes, revisión 14/10). Si el bróker tiene su cuenta (aunque
   // sea manual), la llegada ya la recoge ese saldo: contarla aquí también la sumaba dos veces.
-  const plans=(state.aportaciones||[]).filter(p=>p&&p.bolsa!=="emergencia"&&p.bolsa!=="propia"&&(state.investments||[]).some(i=>i.ent===p.ent));
+  const plans=(state.aportaciones||[]).filter(p=>p&&(state.investments||[]).some(i=>i.ent===p.ent));
+  // Repartir en bolsas no cambia el pasado: la suma de las filas de un bróker casa como una sola.
+  const porEnt={};
+  plans.forEach(function(p){ porEnt[p.ent]=(porEnt[p.ent]||0)+Math.round((Number(p.amount)||0)*100); });
+  const importes=plans.concat(Object.keys(porEnt).map(function(ent){ return {ent:ent,amount:porEnt[ent]/100}; }));
   // «A nombre del titular»: el concepto lleva su nombre (dos palabras del perfil) o «yo mismo».
   // Una transferencia del mismo importe al casero no es una aportación.
   const holder=recNorm(state.settings&&state.settings.profile&&state.settings.profile.fullName).split(" ").filter(w=>w.length>=3);
@@ -1609,7 +1613,7 @@ function netWorthSeries(state, options){
     }
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank,transfer=e.category==="traspaso";
     const matches=!row.ownTransfer&&e.amount>0&&/transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&
-      plans.filter(p=>Math.abs(p.amount-e.amount)<0.005)||[];
+      importes.filter(p=>Math.abs(p.amount-e.amount)<0.005)||[];
     const plan=!!invKnown&&(transfer||e.category==="otros")&&matches.some(p=>!flowBanks[p.ent]&&!owned[p.ent]&&p.amount>0);
     // Si el plan corresponde a un bróker con cuenta propia, sus cierres ya recogen
     // ese dinero. No convertirlo en una salida ni en otra aportación (regla de 99014642).

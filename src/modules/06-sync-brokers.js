@@ -934,7 +934,7 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
 
 /* Calculadora de proyección estilo TR/Revolut: slider de aporte + banda de rango. */
 function Projection({invested, defMonthly, state, currency, fmt, fmt0}){
-  const [monthly,setMonthly]=useState(Math.max(0,Math.min(3000,Math.round((defMonthly||500)/50)*50)));
+  const [monthly,setMonthly]=useState(Math.max(0,Math.min(3000,Math.round((defMonthly!=null?defMonthly:500)/50)*50)));
   const [rate,setRate]=useState("7");
   const [years,setYears]=useState("20");
   const calc=useMemo(function(){
@@ -1484,7 +1484,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         projOpen && React.createElement("div",{id:"iv_projection","data-inv-projection":"1",className:"v4-inv-drop",style:{padding:"0 14px 14px"}},
           React.createElement(Projection,{
             invested:(totals&&totals.invested)||0, state:state, currency:invCur, fmt:f2, fmt0:f0,
-            defMonthly:(state.aportaciones||[]).filter(bolsaInvierte).reduce(function(a,x){ return a+(x.amount||0); },0)
+            // Sin ninguna aportación, el valor de muestra (500); con ellas, solo lo que se invierte (puede ser 0).
+            defMonthly:(state.aportaciones||[]).some(function(x){ return x&&x.amount>0; })?(state.aportaciones||[]).filter(bolsaInvierte).reduce(function(a,x){ return a+(x.amount||0); },0):null
           })))
     );
   }
