@@ -193,6 +193,15 @@ function RptEscalera({state,d}){
     if(x.k==="hoy") return tf("rpt_esc_hoy",{x:rptC0(x.v)});
     return tf("rpt_esc_desde",{m:rptMes(x.desde),name:nombreDe(x.k),x:rptC0(x.c)})+(x.final>0?" · "+tf("rpt_esc_final",{x:rptC0(x.final),m:rptMes(x.ultimo)}):"");
   };
+  // Al pintar la línea, el importe «−260 €/mes» (o «/mo») va en un trozo que no se parte; la frase sí puede saltar en los « · ».
+  const linea=function(x){
+    const s=cap(x);
+    if(x.k==="hoy") return s;
+    const a=s.lastIndexOf("−"+rptC0(x.c));
+    if(a<0) return s;
+    const f=s.indexOf(" · ",a), b=f<0?s.length:f;
+    return [s.slice(0,a),React.createElement("span",{key:"imp",style:{whiteSpace:"nowrap"}},s.slice(a,b)),s.slice(b)];
+  };
   const act=sel!=null&&show[sel]?sel:show.findIndex(function(x){ return x===pasos[idx]; });
   return React.createElement("div",{className:"rpt-sg","data-stair":d.id},
     React.createElement("div",{className:"rpt-stairs",role:"group","aria-label":t("rpt_esc_aria"),style:{gridTemplateColumns:"repeat("+show.length+",minmax(0,1fr))"}},
@@ -203,7 +212,7 @@ function RptEscalera({state,d}){
           React.createElement("i",{style:{height:Math.max(3,x.v/max*44)+"px"}}),
           React.createElement("small",null,x.k==="hoy"?t("rpt_hoy"):rptMesCorto(x.desde)));
       })),
-    React.createElement("div",{className:"rpt-stc","aria-live":"polite"},cap(show[act]||show[0])));
+    React.createElement("div",{className:"rpt-stc","aria-live":"polite"},linea(show[act]||show[0])));
 }
 
 /* ---------------- Deudas: lista y ficha ---------------- */
