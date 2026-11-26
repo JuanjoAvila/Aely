@@ -13221,6 +13221,34 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "uid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true
@@ -16681,6 +16709,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_redVivaPend"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true
@@ -102716,6 +102772,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true
@@ -139832,6 +139916,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true
@@ -142070,6 +142182,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true
@@ -194272,6 +194412,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true
@@ -199257,6 +199425,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true
@@ -210150,6 +210346,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
       }
     ],
     "unidades": true
@@ -219144,6 +219344,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true
@@ -223119,6 +223347,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasAplica"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaInvierte"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaEnBroker"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSA_BROKERS"
       }
     ],
     "unidades": true

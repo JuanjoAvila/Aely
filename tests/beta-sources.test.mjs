@@ -7103,6 +7103,12 @@ test("Catálogo259 abre la nota 4.26.259 sin tanda nueva, deja intactas las ocho
   }
   // Único cambio del registro: GoalEditSheet (hoja de meta) llama ahora a reservaMetaActiva; se suma al final de los cuatro alcances que la vigilan.
   const registro259=JSON.parse(source("scripts/beta-sources.json"));
+  // Apartados de ahorro (26/11, sin versión todavía): quien pinta Inicio o la hoja de presupuesto suma al final lo que ahora alcanza.
+  const apartados=[...["bolsasAplica","bolsasDeAhorro","bolsaInvierte","bolsaEnBroker","bolsaDe"].map(n=>({file:"src/modules/00-core.js",function:n})),
+    ...["BOLSAS_FIJAS","BOLSA_BROKERS"].map(n=>({file:"src/modules/00-core.js",data:n}))];
+  for(const id of ["inc-2909-02-inicio-natural","inc-3009-nomina-anticipada","cartera-sin-lagazo","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","auditorias-233","diseno-235","beta-245","beta-248"])
+    assert.deepEqual(registro259[id].web.splice(-apartados.length),apartados,id+": los apartados van al final");
+  assert.deepEqual(registro259["diseno-240"].web.pop(),{file:"src/modules/00-core.js",function:"bolsaDe"},"diseno-240 solo alcanza bolsaDe");
   for(const id of ["deudas-metas-hoja-edicion","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-v5-ciclos-metas-inversiones"])
     assert.deepEqual(registro259[id].web.pop(),{file:"src/modules/08-motor-bank.js",function:"reservaMetaActiva"},id+": el cierre nuevo va al final");
   assert.deepEqual(registro259,integrated,"registro intacto salvo esos cierres");

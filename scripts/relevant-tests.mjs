@@ -68,6 +68,11 @@ export const TEST_REGISTRY_SPECS = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  // Ahorro en apartados (26/11/2026): hoja de presupuesto en Inicio (03 y 04), cascada del Plan (17 y 18) y
+  // tarjeta de aportaciones en Cartera (09, con la proyección de 06 y la gráfica de 02).
+  ...["02-ui-shared", "03-tab-dash", "04-tab-gastos", "06-sync-brokers", "09-tab-debts-goals", "17-plan-reparto", "18-plan-deudas-metas", "01-i18n"]
+    .map(function (m) { return { file: "src/modules/" + m + ".js", specs: ["e2e/ahorro-bolsas.spec.mjs"] }; }),
+  { file: "src/shell.html", specs: ["e2e/ahorro-bolsas.spec.mjs"] },
   // Plan › barra de reparto, hoja «A dónde va tu sueldo», Deudas y Metas nuevas con ficha, escalera e interruptor
   // «Restar del presupuesto» (motor en 17, pantallas en 18; las listas viven en 09 y la barra en 14).
   { file: "src/modules/17-plan-reparto.js", specs: ["e2e/plan-reparto.spec.mjs"] },
