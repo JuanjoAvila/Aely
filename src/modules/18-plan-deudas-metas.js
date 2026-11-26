@@ -85,6 +85,7 @@ function RptHoja({title,icono,onClose,back,onBack,children,foot,closer,testid}){
 const rptKv=function(k,v,key){ return v==null?null:React.createElement("div",{className:"rpt-kv",key:key||k},React.createElement("span",null,k),React.createElement("b",null,v)); };
 function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
   const [vista,setVista]=useState("reparto");
+  const [verBolsas,setVerBolsas]=useState(false);
   const subDe=function(k){
     if(k==="rec") return rptPl(r.nRec,t("rpt_n_rec_1"),tf("rpt_n_rec",{n:r.nRec}));
     if(k==="deu") return rptPl(r.nDeu,t("rpt_n_cuotas_1"),tf("rpt_n_cuotas",{n:r.nDeu}));
@@ -112,12 +113,23 @@ function RptRepartoHoja({r,state,set,showToast,totals,onClose,onJump}){
      céntimo y el resultado es el mismo número que la línea de la cabecera. Nada de «Otros»: lo que no existe no sale. */
   const pasos=r.trozos.filter(function(x){ return x.k!=="lib"&&x.c>0; });
   const res=r.entra==null?null:r.falta>0?{l:t("rpt_faltan"),a:rptC(r.falta),c:"rojo"}:r.libre>0?{l:r.st==="nobud"?t("rpt_libre_hasta"):t("rpt_sobran"),a:rptC(r.libre),c:"verde"}:{l:t("rpt_todo"),a:"",c:"verde"};
+  // Ahorro se despliega en sus bolsas, euro por euro (suman la línea); la edición sigue a un toque.
+  const bolsaFila=function(key,nombreB,c){
+    return React.createElement("div",{key:key,className:"cas-bolsa","data-bolsa":key,"data-cts":c},React.createElement("span",null,nombreB),React.createElement("b",{className:"num"},rptC(c)));
+  };
+  const bolsas=function(){
+    return React.createElement("div",{key:"bolsas",className:"cas-bolsas","data-testid":"plan-bolsas"},
+      r.bolsas.map(function(b){ return bolsaFila(b.key,bolsaNombre(b),b.c); }),
+      r.ahoExtra>0&&bolsaFila("extra",t("bolsa_extra"),r.ahoExtra),
+      React.createElement("button",{type:"button",className:"cas-bolsas-edit","data-testid":"plan-bolsas-editar",onClick:function(){ setVista("aho"); }},t("fj_edit")));
+  };
   const paso=function(x){
-    return React.createElement("button",{key:x.k,type:"button",className:"cas-row","data-k":x.k,"data-c":x.c,
-      onClick:function(){ if(x.k==="aho"||x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }},
+    const fila=React.createElement("button",{key:x.k,type:"button",className:"cas-row","data-k":x.k,"data-c":x.c,"aria-expanded":x.k==="aho"?verBolsas:undefined,
+      onClick:function(){ if(x.k==="aho") setVerBolsas(function(v){ return !v; }); else if(x.k==="gas") setVista(x.k); else onJump(x.k==="rec"?"recibos":x.k==="deu"?"deudas":"metas"); }},
       React.createElement("span",{className:"cas-nm"},React.createElement("i",{className:"rpt-sw",style:{background:"var("+RPT_COLS[x.k]+")"}}),nombre[x.k]),
       React.createElement("span",{className:"cas-sub"},subDe(x.k)),
-      React.createElement("span",{className:"cas-am"},"− "+rptC(x.c),rptIcon("chevr",13,{marginLeft:6,opacity:.5,verticalAlign:"-1px"})));
+      React.createElement("span",{className:"cas-am"},"− "+rptC(x.c),rptIcon("chevr",13,{marginLeft:6,opacity:.5,verticalAlign:"-1px",transform:x.k==="aho"&&verBolsas?"rotate(90deg)":undefined})));
+    return x.k==="aho"&&verBolsas?React.createElement(React.Fragment,{key:x.k},fila,bolsas()):fila;
   };
   return React.createElement(RptHoja,{title:t("rpt_sheet_title"),onClose:onClose,testid:"plan-reparto-hoja"},
     React.createElement("div",{className:"cas-entra"},React.createElement("span",null,t("rpt_entran")),

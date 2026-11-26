@@ -3397,6 +3397,23 @@
   .v4-ob-stepper .serif{font-size:52px;font-weight:550;letter-spacing:-1.5px;min-width:4.5ch;text-align:center;font-variant-numeric:tabular-nums;}
   /* El editor mensual conserva su cifra compacta; el ritmo que estrenó aquí ya es el común. */
   .v4-budget-sheet .v4-ob-stepper .serif{font-size:clamp(36px,11vw,42px);letter-spacing:-1px;min-width:4.1ch;}
+  /* Ahorro por bolsas: una fila que se despliega; cada bolsa, nombre e importe con −/+. */
+  .v4-bud-aho{margin-top:14px;}
+  .v4-bol-tot{width:100%;min-height:48px;display:flex;align-items:center;gap:10px;padding:6px 0;border:0;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:none;color:inherit;font:inherit;cursor:pointer;text-align:left;}
+  .v4-bol-tot span{flex:1;min-width:0;font-weight:700;font-size:14px;color:var(--muted);}
+  .v4-bol-tot b{font-size:24px;font-weight:550;white-space:nowrap;}
+  .v4-bol-tot .chev{width:18px;height:18px;flex:0 0 auto;opacity:.6;}
+  .v4-bol-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 10px;padding:7px 0;border-bottom:1px solid var(--line-soft);}
+  .v4-bol-nm{flex:1 1 110px;min-width:0;font-weight:650;font-size:14.5px;overflow-wrap:anywhere;}
+  .v4-bol-row>b{white-space:nowrap;margin-left:auto;}
+  .v4-bol-step{display:flex;align-items:center;gap:4px;margin-left:auto;}
+  .v4-bol-step button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);font:inherit;font-size:22px;font-weight:700;cursor:pointer;}
+  .v4-bol-step input{width:5.5em;height:44px;border:0;background:none;color:var(--text);font:inherit;font-size:16px;font-weight:700;text-align:center;}
+  .v4-bol-add,.cas-bolsas-edit{min-height:44px;border:0;background:none;color:var(--mint-ink,var(--mint));font:inherit;font-weight:700;font-size:14px;cursor:pointer;padding:0;}
+  .cas-bolsas{padding:0 0 4px 17px;}
+  .cas-bolsa{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;padding:6px 0;font-size:14px;}
+  .cas-bolsa span{min-width:0;overflow-wrap:anywhere;}
+  .cas-bolsa b{white-space:nowrap;margin-left:auto;font-weight:600;}
   .v4-card-list{display:flex;flex-direction:column;gap:0;}
   /* En claro el chip elegido va relleno, como en oscuro, pero con `--mint-ink`: el blanco sobre el
      tinte del 12 % no se leía (banco de «¿Y si gasto…?», auditoría 216, N1) y sobre `--mint`

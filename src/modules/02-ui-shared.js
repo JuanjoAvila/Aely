@@ -1581,7 +1581,7 @@ function netWorthSeries(state, options){
   // importe, a nombre del titular, es esa aportación aunque el banco la llame «traspaso» u
   // «otros» (MyInvestor, 500 € a fin de mes, revisión 14/10). Si el bróker tiene su cuenta (aunque
   // sea manual), la llegada ya la recoge ese saldo: contarla aquí también la sumaba dos veces.
-  const plans=(state.aportaciones||[]).filter(p=>p&&(state.investments||[]).some(i=>i.ent===p.ent));
+  const plans=(state.aportaciones||[]).filter(p=>p&&p.bolsa!=="emergencia"&&p.bolsa!=="propia"&&(state.investments||[]).some(i=>i.ent===p.ent));
   // «A nombre del titular»: el concepto lleva su nombre (dos palabras del perfil) o «yo mismo».
   // Una transferencia del mismo importe al casero no es una aportación.
   const holder=recNorm(state.settings&&state.settings.profile&&state.settings.profile.fullName).split(" ").filter(w=>w.length>=3);

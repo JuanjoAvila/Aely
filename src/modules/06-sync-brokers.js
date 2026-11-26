@@ -1484,7 +1484,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMod
         projOpen && React.createElement("div",{id:"iv_projection","data-inv-projection":"1",className:"v4-inv-drop",style:{padding:"0 14px 14px"}},
           React.createElement(Projection,{
             invested:(totals&&totals.invested)||0, state:state, currency:invCur, fmt:f2, fmt0:f0,
-            defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
+            defMonthly:(state.aportaciones||[]).filter(bolsaInvierte).reduce(function(a,x){ return a+(x.amount||0); },0)
           })))
     );
   }

@@ -785,6 +785,47 @@ const ENT = {
   efectivo:       { label:"Efectivo",       mono:"€",  color:"#8FA89A" },
 };
 const entOf = (id)=> ENT[id] || { label:id, mono:"··", color:"#8FA89A" };
+/* BOLSAS DE AHORRO. `state.aportaciones` sigue siendo la ÚNICA lista (el ahorro al mes es su suma); cada fila puede llevar
+   `bolsa`: "emergencia", "inversion" o "propia" (una bolsa que añade el usuario, con su `name`). Sin marca —todo lo de antes—
+   es «otros»: no se migra ni se reescribe nada, y un móvil con la versión anterior sigue sumando lo mismo. */
+const BOLSAS_FIJAS=["emergencia","inversion","otros"];
+function bolsaDe(a){ const b=a&&a.bolsa; return b==="emergencia"||b==="inversion"||b==="propia"?b:"otros"; }
+// Lo que una inversión del mes puede cubrir: «Inversión» y lo de siempre. Emergencia y las propias, no.
+function bolsaInvierte(a){ const b=bolsaDe(a); return b==="inversion"||b==="otros"; }
+// Las tres fijas siempre y una por cada bolsa propia. `c` en céntimos, sumando fila a fila.
+function bolsasDeAhorro(aps){
+  const rows=(aps||[]).filter(Boolean);
+  const suma=function(f){ return f.reduce(function(n,a){ return n+Math.round((Number(a.amount)||0)*100); },0); };
+  return BOLSAS_FIJAS.map(function(k){
+    const filas=rows.filter(function(a){ return bolsaDe(a)===k; });
+    return {key:k,kind:k,filas:filas,c:suma(filas)};
+  }).concat(rows.filter(function(a){ return bolsaDe(a)==="propia"; }).map(function(a){
+    return {key:"propia:"+a.id,kind:"propia",name:a.name,filas:[a],c:suma([a])};
+  }));
+}
+function bolsaNombre(b){ return b.kind==="propia"?(b.name||t("d_saving")):t("bolsa_"+b.kind); }
+/* Lo cambiado en la hoja de Inicio, sobre la lista del momento de escribir. `cambios` = {clave: euros} SOLO de las bolsas
+   tocadas; `nuevas` = [{name,amount}]. Una bolsa con una fila cambia su importe (conserva id, banco y nombre); sin filas,
+   nace una; con VARIAS filas no se toca (se editan una a una en Cartera): repartir un total entre ellas sería inventar. */
+function bolsasAplica(aps, cambios, nuevas, nuevoId){
+  let next=(aps||[]).slice();
+  const cur=bolsasDeAhorro(next);
+  Object.keys(cambios||{}).forEach(function(key){
+    const amount=+(Math.max(0,Number(cambios[key])||0)).toFixed(2);
+    const b=cur.find(function(x){ return x.key===key; });
+    if(!b||b.filas.length>1) return;
+    if(b.filas.length===1){ next=next.map(function(a){ return a===b.filas[0]?Object.assign({},a,{amount:amount}):a; }); return; }
+    if(!(amount>0)||b.kind==="propia") return;
+    const row={id:nuevoId(),name:b.kind==="otros"?t("d_saving"):t("bolsa_"+b.kind),amount:amount,ent:b.kind==="emergencia"?"":"myinvestor"};
+    if(b.kind!=="otros") row.bolsa=b.kind;
+    next.push(row);
+  });
+  (nuevas||[]).forEach(function(n){
+    const amount=+(Math.max(0,Number(n.amount)||0)).toFixed(2), name=String(n.name||"").trim();
+    if(amount>0) next.push({id:nuevoId(),name:name||t("d_saving"),amount:amount,ent:"",bolsa:"propia"});
+  });
+  return next;
+}
 function isEfectivoEnt(aOrEnt){
   const e=(aOrEnt&&typeof aOrEnt==="object")?aOrEnt.ent:aOrEnt;
   return e==="efectivo";

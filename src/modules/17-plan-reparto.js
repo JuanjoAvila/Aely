@@ -236,7 +236,11 @@ function planReparto(state, o){
   Object.keys(hecho).forEach(function(id){ if(!abiertas[id]) metC+=Math.max(0,hecho[id]); });
   /* ---- Ahorro: aportaciones planificadas o inversión real, sin lo que ya va a una meta ---- */
   const ahoPlan=(state.aportaciones||[]).reduce(function(a,x){ return a+repCts(x&&x.amount); },0);
-  const ahoC=Math.max(ahoPlan,inversion), ahoQ=Math.max(0,ahoPlan-inversion);
+  /* Lo invertido este mes cubre «Inversión» y «Otros»; el fondo de emergencia y las bolsas propias van aparte (sin bolsas
+     marcadas, la cuenta es la de siempre: max(plan, invertido)). `bolsas` + `ahoExtra` suman la fila al céntimo. */
+  const ahoInv=(state.aportaciones||[]).filter(bolsaInvierte).reduce(function(a,x){ return a+repCts(x&&x.amount); },0);
+  const ahoC=ahoPlan-ahoInv+Math.max(ahoInv,inversion), ahoQ=ahoPlan-ahoInv+Math.max(0,ahoInv-inversion);
+  const bolsas=bolsasDeAhorro(state.aportaciones).filter(function(b){ return b.c>0; }), ahoExtra=Math.max(0,inversion-ahoInv);
   /* ---- Gastos: max(presupuesto, gastado) ---- */
   const bud=typeof state.budget==="number"&&state.budget>0?repCts(state.budget):null;
   const limRaw=bud==null?null:bud-reservasC-resD.total, lim=limRaw==null?null:Math.max(0,limRaw);
@@ -266,7 +270,7 @@ function planReparto(state, o){
   else if(bud==null) st="nobud";
   return {periodo:P,now:now,st:st,entra:entraC,esperaNomina:esperaNomina,trozos:trozos,total:total,libre:libre,falta:falta,
     siGastasTodo:lim!=null&&gastado<lim,sinPresupuesto:bud==null,
-    faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,
+    faltaP:faltaP,rec:recC,deu:deuC,met:metC,aho:ahoC,gas:gasC,gastado:gastado,presupuesto:lim,presupuestoRaw:limRaw,presupuestoBruto:bud,reservasC:reservasC,inversion:inversion,ahoPlan:ahoPlan,bolsas:bolsas,ahoExtra:ahoExtra,
     reservaDeudas:resD.total,porDeuda:resD.porDeuda,movido:movido,pasa:pasa,pasaC:pasa?gastado-limRaw:0,
     queda:quedaC,qRec:recQ,qDeu:deuQ,qGas:gasQ,qMet:metQ,qAho:ahoQ,saldo:saldoC,hueco:saldoC==null?0:Math.max(0,quedaC-saldoC),
     nRec:nRec,nDeu:nDeu,nMet:nMet,deudas:deudas,devolucion:devolucion,traspaso:traspaso,neteo:neteo,neteoEntra:neteoEntra,otros:otrosDia,quedaPagar:recQ+deuQ};

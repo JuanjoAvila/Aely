@@ -204,6 +204,8 @@ test("la fila Ahorro abre su edición y cambiarla mueve la cascada; Inicio edita
   const hoja = page.getByTestId("plan-reparto-hoja");
   const antes = await lee(page);
   await hoja.locator('.cas-row[data-k="aho"]').click();
+  await expect(hoja.locator('.cas-bolsa[data-bolsa="otros"]')).toContainText("200");
+  await hoja.getByTestId("plan-bolsas-editar").click();
   const det = page.getByTestId("plan-reparto-detalle");
   await expect(det.locator("[data-savings-plan]")).toBeVisible();
   await det.locator("[data-savings-edit]").click();
@@ -220,7 +222,8 @@ test("la fila Ahorro abre su edición y cambiarla mueve la cascada; Inicio edita
   await page.locator(".v4-budget").first().click();
   const bs = page.locator(".v4-budget-sheet");
   await expect(bs.getByTestId("budget-ahorro-val")).toContainText("300");
-  await bs.getByRole("button", { name: "+ Ahorro al mes" }).click();
+  await bs.getByTestId("budget-ahorro-toggle").click();
+  await bs.getByRole("button", { name: "+ Otros" }).click();
   await bs.locator(".v4-cta").click();
   await expect.poll(() => page.evaluate(() => (JSON.parse(localStorage.getItem("micartera_v3") || "{}").aportaciones || []).reduce((a, x) => a + x.amount, 0))).toBe(350);
 });

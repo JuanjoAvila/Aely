@@ -494,14 +494,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         )
       )
     ),
-    React.createElement(BudgetSheet,{open:budgetOpen,budget:state.budget,ahorro:(state.aportaciones||[]).reduce(function(x,p){ return x+(Number(p&&p.amount)||0); },0),
-      ahorroEditable:(state.aportaciones||[]).length<=1,onSaveAhorro:function(a){
-        // La misma lista de Inversiones (`state.aportaciones`): con una aportación se cambia su importe, sin ninguna nace una.
-        set(function(s){
-          const aps=s.aportaciones||[];
-          const next=aps.length===1?[Object.assign({},aps[0],{amount:a})]:(a>0?[{id:uid(),name:t("d_saving"),amount:a,ent:"myinvestor"}]:[]);
-          return Object.assign({},s,{aportaciones:next});
-        });
+    React.createElement(BudgetSheet,{open:budgetOpen,budget:state.budget,aportaciones:state.aportaciones,onSaveAhorro:function(cambios,nuevas){
+        // La misma lista de Inversiones (`state.aportaciones`), por bolsas.
+        set(function(s){ return Object.assign({},s,{aportaciones:bolsasAplica(s.aportaciones,cambios,nuevas,uid)}); });
       },onClose:function(){ setBudgetOpen(false); },onSave:function(b){
       set(function(s){
         const map=Object.assign({},s.budgetByMonth||{}); map[budgetYmKey()]=b;

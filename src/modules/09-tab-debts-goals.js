@@ -1050,6 +1050,26 @@ function ReservaDetect({state, set, showToast}){
     )
   );
 }
+// Importe escrito a mano (tarjeta de Cartera y bolsas de Inicio): euros ≥ 0.
+function ahorroImporteDe(raw){
+  /* El campo usa el teclado del sistema y puede traer «1.200,50» o «1,200.50». Interpretar
+     el separador ajeno al idioma como miles solo cuando deja tres cifras evita el fallo real
+     de guardar 1 € al escribir 1.000 €, sin convertir «1.50» en 150 (review 23/9). */
+  let s=String(raw==null?"":raw).trim().replace(/\s/g,"").replace(/[^0-9.,]/g,"");
+  if(!s) return 0;
+  if(s.indexOf(".")>=0 && s.indexOf(",")>=0){
+    s=s.lastIndexOf(",")>s.lastIndexOf(".")?s.replace(/\./g,"").replace(/,/g,"."):s.replace(/,/g,"");
+  }else{
+    const sep=s.indexOf(",")>=0?",":(s.indexOf(".")>=0?".":"");
+    if(sep){
+      const parts=s.split(sep); const decimal=numPadDecSep();
+      if(parts.length>2) s=parts.join("");
+      else if(sep!==decimal && parts[1]&&parts[1].length===3) s=parts.join("");
+      else if(sep===",") s=parts.join(".");
+    }
+  }
+  const n=parseFloat(s); return isFinite(n)?Math.max(0,n):0;
+}
 /* APORTACIÓN MENSUAL a bancos y brókers (`state.aportaciones`). Vivía en Metas como «Ahorro
    mensual», junto a las reglas que sí apartan dinero para cada meta, y se confundían (dueño,
    18/11/2026). No va a ninguna meta: alimenta la proyección de Inversiones y reconoce la salida al
@@ -1064,35 +1084,18 @@ function SavingsPlanCard({state, set, totals, showToast}){
   const [drafts,setDrafts]=useState(null);   // null = cerrado; array = editando
   const AP_ENTS=Object.keys(ENT).filter(function(k){ return k!=="familia"; });
   const start=function(){
-    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",numDecSep()):"",ent:a.ent||"myinvestor"}; }));
+    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",numDecSep()):"",ent:a.ent!=null?a.ent:"myinvestor",bolsa:bolsaDe(a)}; }));
   };
   const setD=function(id,k,v){ setDrafts(function(ds){ return ds.map(function(d){ return d.id===id?Object.assign({},d,{[k]:v}):d; }); }); };
   const add=function(){ setDrafts(function(ds){ return ds.concat([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]); }); };
   const del=function(id){ setDrafts(function(ds){ return ds.filter(function(d){ return d.id!==id; }); }); };
-  const amountOf=function(raw){
-    /* El campo usa el teclado del sistema y puede traer «1.200,50» o «1,200.50». Interpretar
-       el separador ajeno al idioma como miles solo cuando deja tres cifras evita el fallo real
-       de guardar 1 € al escribir 1.000 €, sin convertir «1.50» en 150 (review 23/9). */
-    let s=String(raw==null?"":raw).trim().replace(/\s/g,"").replace(/[^0-9.,]/g,"");
-    if(!s) return 0;
-    if(s.indexOf(".")>=0 && s.indexOf(",")>=0){
-      s=s.lastIndexOf(",")>s.lastIndexOf(".")?s.replace(/\./g,"").replace(/,/g,"."):s.replace(/,/g,"");
-    }else{
-      const sep=s.indexOf(",")>=0?",":(s.indexOf(".")>=0?".":"");
-      if(sep){
-        const parts=s.split(sep); const decimal=numPadDecSep();
-        if(parts.length>2) s=parts.join("");
-        else if(sep!==decimal && parts[1]&&parts[1].length===3) s=parts.join("");
-        else if(sep===",") s=parts.join(".");
-      }
-    }
-    const n=parseFloat(s); return isFinite(n)?Math.max(0,n):0;
-  };
   const save=function(){
     const prev={}; aps.forEach(function(a){ prev[a.id]=a; });
     const next=drafts.map(function(d){
-      const n=amountOf(d.amount);
-      return Object.assign({}, prev[d.id]||{}, {id:d.id, name:d.name.trim()||t("d_saving"), amount:+n.toFixed(2), ent:d.ent});
+      const n=ahorroImporteDe(d.amount);
+      const row=Object.assign({}, prev[d.id]||{}, {id:d.id, name:d.name.trim()||t("d_saving"), amount:+n.toFixed(2), ent:d.ent});
+      if(d.bolsa&&d.bolsa!=="otros") row.bolsa=d.bolsa; else delete row.bolsa;
+      return row;
     }).filter(function(a){ return a.amount>0 || prev[a.id]; });   // una fila nueva vacía no se guarda
     set(function(s){ return Object.assign({},s,{aportaciones:next}); });
     setDrafts(null);
@@ -1116,7 +1119,8 @@ function SavingsPlanCard({state, set, totals, showToast}){
     !vacia && React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
     !editing && aps.map(function(ap){
       return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
-        React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"}, entOf(ap.ent).label)),
+        React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"},
+          [ap.ent?entOf(ap.ent).label:"", bolsaDe(ap)==="emergencia"||bolsaDe(ap)==="inversion"?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
         React.createElement("span",{className:"num aely-savings-amt"}, tf("fj_permonth",{x:eur(Number(ap.amount)||0)})));
     }),
     editing && drafts.map(function(d){
@@ -1127,8 +1131,11 @@ function SavingsPlanCard({state, set, totals, showToast}){
           React.createElement("input",{className:"af-in num","aria-label":t("sv_amount_aria"),placeholder:"0 €",inputMode:"decimal",value:d.amount,
             onFocus:function(e){ e.target.select(); },onChange:function(e){ setD(d.id,"amount",e.target.value); }}),
           React.createElement("select",{className:"af-in","aria-label":t("sv_bank_aria"),value:d.ent,onChange:function(e){ setD(d.id,"ent",e.target.value); }},
+            !d.ent&&React.createElement("option",{key:"",value:""},"—"),
             AP_ENTS.map(function(k){ return React.createElement("option",{key:k,value:k},entOf(k).label); })),
-          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")));
+          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")),
+        React.createElement("select",{className:"af-in","aria-label":t("bolsa_sel"),value:d.bolsa||"otros",onChange:function(e){ setD(d.id,"bolsa",e.target.value); }},
+          BOLSAS_FIJAS.concat(["propia"]).map(function(k){ return React.createElement("option",{key:k,value:k},t("bolsa_"+k)); })));
     }),
     editing && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:add}, "+ "+t("sv_add")),
     editing && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:8},"data-savings-save":"1",onClick:save}, t("fj_save"))
