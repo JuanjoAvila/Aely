@@ -35,15 +35,16 @@ async function libre(page) {
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(hoja).toBeVisible();
   const txt = await page.getByTestId("plan-reparto-res").innerText();
+  const prev = (await page.getByTestId("plan-reparto-prevision").count()) ? await page.getByTestId("plan-reparto-prevision").innerText() : "";
   await hoja.locator(".rpt-sx").click();
   await expect(hoja).toHaveCount(0);
-  return txt;
+  return { txt, prev };
 }
 
 test("la cabecera ya no lleva la fila Libre/Entran y la hoja resta cada destino de lo que entra", async ({ page }) => {
   await abrePlan(page, base());
   const barra = page.getByTestId("plan-reparto-chip");
-  // 3.000 − (95 + 260 + 300 + 200 + 900) = 1.245
+  // 3.000 − (95 + 260 + 300 + 200 + 120,50 gastados) = 2.024,50; gastando los 779,50 que quedan del presupuesto (900), 1.245
   await expect(page.getByTestId("plan-reparto-barra")).toHaveCount(0);
   await expect(page.locator(".rpt-lb")).toHaveCount(0);
   await barra.click();
@@ -56,7 +57,9 @@ test("la cabecera ya no lleva la fila Libre/Entran y la hoja resta cada destino 
   await expect(hoja.locator('.cas-row[data-k="met"] .cas-am')).toContainText(/300,00/);
   await expect(hoja.locator('.cas-row[data-k="gas"] .cas-sub')).toContainText(/120,50/);
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te sobran");
-  await expect(page.getByTestId("plan-reparto-cifra")).toContainText(/1\.245,00/);
+  await expect(page.getByTestId("plan-reparto-cifra")).toContainText(/2\.024,50/);
+  await expect(hoja.locator('.cas-row[data-k="gas"] .cas-am')).toContainText(/120,50/);
+  await expect(page.getByTestId("plan-reparto-prevision")).toContainText(/779,50.*sobrarían\s*1\.245,00/s);
   // Tocar Deudas lleva a su pestaña y cierra la hoja.
   await hoja.locator('.cas-row[data-k="deu"]').click();
   await expect(hoja).toHaveCount(0);
@@ -74,18 +77,19 @@ test("sin nómina: «—» y sin resultado", async ({ page }) => {
 });
 
 test("te faltan: sin signo, y el saldo lo cubre o no llega", async ({ page }) => {
-  await abrePlan(page, base({ expenses: [{ ...nomina, amount: -1500 }, gasto("g1", 5, 120.5)] }));
+  await abrePlan(page, base({ expenses: [{ ...nomina, amount: -800 }, gasto("g1", 5, 120.5)] }));
   const barra = page.getByTestId("plan-reparto-chip");
-  // 1.500 − 1.755 = 255 de menos; el saldo (2.380) cubre lo que queda por pagar
+  // 800 − 975,50 = 175,50 de menos; gastando el resto del presupuesto faltarían 955
   await barra.click();
   const hoja = page.getByTestId("plan-reparto-hoja");
   await expect(page.getByTestId("plan-reparto-res")).toContainText("Te faltan");
-  await expect(page.getByTestId("plan-reparto-cifra")).toContainText(/255,00/);
+  await expect(page.getByTestId("plan-reparto-cifra")).toContainText(/175,50/);
+  await expect(page.getByTestId("plan-reparto-prevision")).toContainText(/faltarían\s*955,00/);
   // Lo que queda por pagar y el saldo ya no van en la hoja: están en «¿Te llega?».
   await expect(page.getByTestId("plan-reparto-pend")).toHaveCount(0);
 });
 
-test("Deudas: cabecera, filas, ficha con escalera e interruptor que mueve dinero de Gastos a Libre", async ({ page }) => {
+test("Deudas: cabecera, filas, ficha con escalera e interruptor que baja el presupuesto sin tocar lo que sobra hoy", async ({ page }) => {
   await abrePlan(page, base({ debts: [prestamo, gimnasio] }));
   await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
   const deudas = page.locator('[data-seg="deudas"]');
@@ -103,26 +107,29 @@ test("Deudas: cabecera, filas, ficha con escalera e interruptor que mueve dinero
   await expect(ficha.locator(".rpt-stc")).toContainText("−260");
   // El icono de la deuda del gimnasio no es la casa aunque el nombre diga «casa».
   await page.getByTestId("plan-deuda-ficha").locator('[data-act="ficha-editar"]').count();
-  // Interruptor: apagado por defecto; la hoja de reparto no cambia hasta encenderlo.
+  // Interruptor: apagado por defecto. «Te sobran» sale de lo gastado (26/11) y no se mueve con él; lo que cambia es la previsión.
   await ficha.locator(".rpt-sx").click();
-  expect(await libre(page)).toMatch(/1\.195,00/);
+  let l = await libre(page);
+  expect(l.txt).toMatch(/1\.974,50/);expect(l.prev).toMatch(/1\.195,00/);
   await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
   await deudas.locator('[data-debt-id="d1"]').click();
   const sw = ficha.locator('[data-act="restar-presupuesto"]');
   await expect(sw).toHaveAttribute("aria-checked", "false");
   await expect(ficha.locator('[data-pv="m"]')).toContainText("260,00");
-  await expect(ficha.locator('[data-pv="m"]')).toContainText("Libre sube");
+  await expect(ficha.locator('[data-pv="m"]')).toContainText("salen de tu presupuesto");
   await sw.click();
   await expect(sw).toHaveAttribute("aria-checked", "true");
-  // La hoja del chip ya dice Libre + 260.
+  // Lo que sobra hoy no cambia (la cuota va una vez, en Deudas); gastando todo el presupuesto, que ya la incluye, sobran 260 más.
   await ficha.locator(".rpt-sx").click();
-  expect(await libre(page)).toMatch(/1\.455,00/);
+  l = await libre(page);
+  expect(l.txt).toMatch(/1\.974,50/);expect(l.prev).toMatch(/1\.455,00/);
   await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
   await deudas.locator('[data-debt-id="d1"]').click();
   await sw.click();
   await expect(sw).toHaveAttribute("aria-checked", "false");
   await ficha.locator(".rpt-sx").click();
-  expect(await libre(page)).toMatch(/1\.195,00/);
+  l = await libre(page);
+  expect(l.txt).toMatch(/1\.974,50/);expect(l.prev).toMatch(/1\.195,00/);
   await page.locator('.v4-seg-btn[data-seg="deudas"]').click();
   await deudas.locator('[data-debt-id="d1"]').click();
   // Cerrar la ficha.

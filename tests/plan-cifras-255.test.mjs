@@ -34,8 +34,9 @@ const SUITE=[
   const s=escenario(),r=c.planReparto(s,{});
   assert.equal(r.gastado,74073);
   assert.equal(r.neteo,14035);
-  assert.equal(r.neteoEntra,0,"con el gasto por debajo del límite la fila Gastos no baja por el neteo");
-  assert.equal(r.entra,333300+14035,"entran la nómina Y los Bizums de las comidas (25/11): dinero real; no se restan dos veces porque la fila vale el límite");
+  // La fila Gastos es lo gastado neto (26/11): los Bizums de las comidas ya bajaron esa fila, así que no suman otra vez a lo que entra.
+  assert.equal(r.neteoEntra,14035,"el neteo ya está en la fila Gastos");
+  assert.equal(r.entra,333300,"entra la nómina; los Bizums cuentan una vez, restando de lo gastado");
   const mb=c.monthBudgetStats(s,null,null,"mes");
   assert.equal(mb.spent,881.08);assert.equal(mb.against,740.73,"Gastos: el mismo neto");
   assert.equal(Math.round(mb.against*100),r.gastado,"UNA cifra en las dos pantallas");
@@ -45,13 +46,13 @@ const SUITE=[
   const s=escenario({extra:[mov("i3",20,-900,{merchant:"Venta de un mueble"})]});
   const r=c.planReparto(s,{});
   assert.equal(r.gastado,0);assert.equal(r.neteo,88108,"solo hasta lo gastado");
-  assert.equal(r.entra,333300+14035+90000,"con el límite por encima de lo gastado el neteo no baja la fila: todo el ingreso cuenta");
+  assert.equal(r.entra,333300+14035+90000-88108,"lo que no cabe en lo gastado (151,27) queda en lo que entra");
 }],
 ["Ingresos del mes: por encima del límite el neteo ya bajó la fila y no vuelve a contar en lo que entra (sin doble conteo)",()=>{
   const s=Object.assign(escenario(),{budget:500});
   const r=c.planReparto(s,{});
   assert.equal(r.gastado,74073,"neto, como Gastos");
-  // fila Gastos = max(límite 500, 740,73) = 740,73; con el bruto sería 881,08 (140,35 más): esos 140,35 ya están en la fila.
+  // fila Gastos = lo gastado neto, 740,73; con el bruto sería 881,08 (140,35 más): esos 140,35 ya están en la fila.
   assert.equal(r.gas,74073);assert.equal(r.neteoEntra,14035);
   assert.equal(r.entra,333300,"sueldo + ingresos − lo que el neteo ya ahorró en Gastos");
   // la cuenta con el bruto da lo mismo: entra 3.473,35 − 881,08 en Gastos

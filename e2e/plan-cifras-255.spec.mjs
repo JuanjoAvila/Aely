@@ -50,9 +50,9 @@ test("2 · el Plan gasta el neto de Gastos: 881,08 − 140,35 = 740,73", async (
   await abre(page, estado(false));
   await page.getByTestId("plan-reparto-chip").click();
   const hoja = page.getByTestId("plan-reparto-hoja");
-  // Entran la nómina (3.333) y los ingresos reales del mes (140,35): con el límite por encima del gasto no se restan dos veces.
-  await expect(page.getByTestId("plan-reparto-entra")).toContainText(/3\.473,35/);
-  // Sin restar: el presupuesto (1.000) manda sobre el gastado neto (740,73).
+  // Los ingresos del mes (140,35) ya bajan lo gastado, como en Gastos: entra la nómina (3.333) y no se cuentan dos veces.
+  await expect(page.getByTestId("plan-reparto-entra")).toContainText(/3\.333,00/);
+  // La fila es lo gastado neto (740,73), no el presupuesto (1.000): 26/11.
   await expect(hoja.locator('.cas-row[data-k="gas"]')).toContainText(/740,73/);
   await expect(hoja.locator('.cas-row[data-k="gas"]')).not.toContainText(/881,08/);
   await expect(hoja.locator('.cas-row[data-k="gas"] .cas-sub')).not.toContainText("sobre presupuesto");
