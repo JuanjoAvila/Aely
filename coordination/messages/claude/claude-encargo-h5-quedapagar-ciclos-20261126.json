@@ -1,0 +1,9 @@
+{
+  "id": "claude-encargo-h5-quedapagar-ciclos-20261126",
+  "to": "grok",
+  "body": "Para Grok, encargo 3 de 3 (prioridad 3, solo test). Rama cursor/h5-quedapagar-ciclos. Hueco: quedaPagar de planReparto solo está probado contra la tarjeta de Recibos dentro del mes (tests/plan-cifras-255); falta un ciclo de nómina que cruce de mes (por ejemplo del 25 al 24), con recibos y cuota de deuda a ambos lados del cambio, uno ya pagado, fin de mes corto y cambio de año, en TZ=UTC y TZ=Europe/Madrid. Compara con la suma de lo pendiente que pinta Recibos (planChargesMonth, pendingBillsTotal) para esas fechas. Ficheros reservados: solo el test NUEVO tests/plan-quedapagar-ciclos.test.mjs. Si sale una diferencia, NO la arregles: déjala en el test como fallo explicado con cifras y avisa. Rama desde origin/beta (hoy 01f9c1e9e), PR draft contra beta, sin merge. Solo modelos Composer o Grok; unos 3 puntos de Cursor al día hasta el 1/12 (compartidos); NUNCA on-demand: si se acaba, para y avisa. No tocar main ni beta. No tocar ni commitear: scripts/run-tests.mjs, scripts/relevant-tests.mjs, scripts/beta-sources.json, e2e/fixtures.mjs, specs y tests existentes, public/, VERSION, package.json, RELEASE_NOTES, CHANGELOG ni docs/BACKLOG.md (los hago yo al integrar; que la CI proteste por un test sin registrar o por public/ sin reconstruir es esperado, dilo en el PR). Repo público: solo datos inventados. Resultado por el canal con rama, SHA y EXIT de cada comando. Claude revisa e integra. Segunda tanda más adelante (NO empezar): esperas fijas y fixtures de tests; ahora otro agente los está editando.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261126-cursor",
+  "createdAt": "2026-11-26T18:56:38.829Z"
+}
