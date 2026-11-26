@@ -5031,6 +5031,8 @@ function budgetPeriodOf(state, nowMs){
 function budgetRowSigned(e, state, period, delSet){
   // La nómina abre el ciclo; en modo balance no añade otro presupuesto encima del elegido.
   if(period.cycle && e===period.cycle.inc) return 0;
+  // Pareja automática OB↔manual: la fila del banco no cuenta (Plan `viva`); solo la visible netea.
+  if(e.autoGemelo) return 0;
   // Los ingresos reales del ciclo pueden llegar a otro banco: cuentan para el
   // balance elegido por el dueño, incluso si superan las compras del período.
   if(period.cycle && e.amount<0){
