@@ -3237,6 +3237,8 @@
   .rpt-lnk,.rpa-del{min-height:44px;padding:0 12px;border-radius:12px;border:0;background:none;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);opacity:.78;}
   .rpt-lnk.del,.rpa-del{color:var(--coral);opacity:1;}
   .rpt-own{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font-size:12.5px;color:var(--muted);}
+  /* La cifra no se parte: en 360 px la previsión dejaba el «€» solo en la línea de abajo (26/11). Salta el texto. */
+  .rpt-own>b,.rpt-own>s{white-space:nowrap;}
   /* Cascada de «A dónde va tu sueldo»: lo que entra, menos cada destino, y el resultado en grande. */
   .cas-entra{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:4px 0 10px;font-size:14px;font-weight:700;}
   .cas-entra b{font-size:28px;font-weight:600;line-height:1.1;white-space:nowrap;}
