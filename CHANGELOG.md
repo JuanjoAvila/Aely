@@ -1,3 +1,9 @@
+## [4.26.261] — 2026-11-26 · Candidata de beta, solo web: la 260 re-numerada con los arreglos de Plan
+
+- **Por qué otra versión.** Los arreglos del 26/11 (abajo, en la 4.26.260: «Te sobran», visual e integración, más el importe entero en Cartera) entraron después del ancla de versión (cb053005e) y `docs-frescura` los daba por no publicables. La 4.26.260 no llegó a servirse (beta seguía en la 4.26.259): su nota pasa tal cual a la 261.
+- **Panel de beta.** La tanda `beta-260` suma los pasos 6 a 10, uno por arreglo: «Gastos» de la cascada, la «i» de Plan, la hoja sobre la barra de gestos, importes sin recuadro e importe entero en «Aportación mensual».
+- **Registro.** `diseno-240` no vigilaba `bolsasDeAhorro` ni `BOLSAS_FIJAS`, que ahora alcanza: se suman al final de su alcance (rojo de `beta-sources`). Catálogo260 pasa a Catálogo261 (sigue contando desde la 4.26.259) y lo declara; repin de `auth-disposal(-fit)`; `revisar-beta` cuenta la 261 y los cinco puntos de la nota.
+
 ## [4.26.260] — 2026-11-26 · Candidata de beta, solo web: ahorro en apartados
 
 - **Qué lleva (sobre la 4.26.259, 01f9c1e9e; rama `claude/ahorro-bolsas`).** Cada fila de `state.aportaciones` puede llevar `bolsa` (emergencia, inversión o propia; sin marca, «Otros»; sin migración). Se reparte en la hoja del presupuesto de Inicio y se ve en la cascada «A dónde va tu sueldo»; en la tarjeta de aportaciones cada fila tiene selector de apartado.

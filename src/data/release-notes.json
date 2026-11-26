@@ -1,6 +1,6 @@
 [
   {
-    "v": "4.26.260",
+    "v": "4.26.261",
     "d": "2026-11-26",
     "t": {
       "es": "Apartados para tu ahorro",
@@ -44,21 +44,36 @@
             "2. En esa hoja, quita 20 € de un apartado que se pueda editar (por ejemplo «Otros») y ponlos en «Emergencia». Toca «Guardar» y vuelve a abrirla. BIEN: el total de «Ahorro al mes» no cambia y los 20 € siguen en «Emergencia». MAL: el total sube o baja, o no se ha guardado. Si «Otros» pone que tiene varias aportaciones, se cambia en el paso 5.",
             "3. En la misma hoja toca «Añadir apartado», escribe un nombre y toca «Guardar» sin importe. BIEN: avisa «Falta el importe» y la hoja sigue abierta; al escribir una cifra y guardar, el apartado aparece. Con el teclado abierto se ven el campo y «Guardar». MAL: se cierra y se pierde, o el teclado tapa algo.",
             "4. Plan › Recibos: toca el icono «i» («A dónde va tu sueldo») y después la línea «Ahorro». BIEN: se despliega por apartados y sumados dan justo la cifra de «Ahorro». MAL: no suman o falta un apartado.",
-            "5. Ahí mismo toca «Editar» y, en la tarjeta, «Editar» otra vez. Cambia el apartado de una fila y toca «Guardar». BIEN: la fila conserva su importe y su banco, y el total no cambia. MAL: cambia el importe, el banco o el total. Al acabar, deja los apartados como quieras tenerlos y borra el de prueba."
+            "5. Ahí mismo toca «Editar» y, en la tarjeta, «Editar» otra vez. Cambia el apartado de una fila y toca «Guardar». BIEN: la fila conserva su importe y su banco, y el total no cambia. MAL: cambia el importe, el banco o el total. Al acabar, deja los apartados como quieras tenerlos y borra el de prueba.",
+            "6. Plan › Recibos › icono «i» («A dónde va tu sueldo»). BIEN: «Gastos» resta lo que llevas gastado de verdad, no el presupuesto entero; si te queda presupuesto, aparte pone «Si gastas los … que quedan, sobrarían» (o «faltarían»). MAL: «Gastos» resta el presupuesto entero.",
+            "7. En Plan mira «Recibos», «Deudas» y «Metas». BIEN: la «i» va pegada al título, pequeña como la de «Patrimonio neto» en Inicio, y abre «A dónde va tu sueldo». MAL: sale verde, grande, suelta junto a la cifra o no abre.",
+            "8. Abre «A dónde va tu sueldo» y baja hasta el final. BIEN: la última línea se lee entera, por encima de la barra de gestos del móvil. MAL: queda tapada o cortada.",
+            "9. Plan › Deudas › «Añadir»: mira el importe grande. Haz lo mismo en Metas › «Añadir». Cierra sin guardar. BIEN: la cifra solo lleva el subrayado, sin recuadro detrás. MAL: sale un recuadro de color.",
+            "10. Cartera › «Tus inversiones» › «Ver todo ›» › «Aportación mensual» › «Editar». Escribe 12500,75 en una fila y toca «Cancelar». BIEN: la cifra se ve entera, con sus dos decimales y el «€». MAL: se corta, se tapa o, tras cancelar, queda cambiada."
           ],
           "en": [
             "1. Home: note your current savings per month, tap the budget card and then «Savings per month». RIGHT: it opens with Emergency, Investing and «Other», what you already had is under «Other» (or the pot you gave it) and the total is the same as before. WRONG: the total changes or money is missing.",
             "2. In that sheet, take €20 from a pot you can edit (for example «Other») and put it in «Emergency». Tap «Save» and open it again. RIGHT: the «Savings per month» total does not change and the €20 stay in «Emergency». WRONG: the total goes up or down, or it was not saved. If «Other» says it holds several contributions, change it in step 5.",
             "3. In the same sheet tap «Add pot», type a name and tap «Save» with no amount. RIGHT: it says «Enter an amount» and the sheet stays open; once you type a figure and save, the pot shows up. With the keyboard open you can see the field and «Save». WRONG: it closes and is lost, or the keyboard covers something.",
             "4. Plan › Bills: tap the «i» icon («Where your pay goes») and then the «Savings» line. RIGHT: it expands by pot and together they add up exactly to the «Savings» figure. WRONG: they do not add up or a pot is missing.",
-            "5. Right there tap «Edit» and, on the card, «Edit» again. Change the pot of one row and tap «Save». RIGHT: the row keeps its amount and bank, and the total does not change. WRONG: the amount, the bank or the total changes. When done, leave the pots as you want them and delete the test one."
+            "5. Right there tap «Edit» and, on the card, «Edit» again. Change the pot of one row and tap «Save». RIGHT: the row keeps its amount and bank, and the total does not change. WRONG: the amount, the bank or the total changes. When done, leave the pots as you want them and delete the test one.",
+            "6. Plan › Bills › «i» icon («Where your pay goes»). RIGHT: «Spending» subtracts what you have actually spent, not the whole budget; if you have budget left, a separate line says «Spend the … left and you'd keep» (or «you'd be short»). WRONG: «Spending» subtracts the whole budget.",
+            "7. In Plan look at «Bills», «Debts» and «Goals». RIGHT: the «i» sits next to the title, small like the one on «Net worth» in Home, and opens «Where your pay goes». WRONG: it is green, large, loose beside the figure or does not open.",
+            "8. Open «Where your pay goes» and scroll to the end. RIGHT: the last line is fully readable, above the phone's gesture bar. WRONG: it is covered or cut off.",
+            "9. Plan › Debts › «Add»: look at the large amount. Do the same in Goals › «Add». Close without saving. RIGHT: the figure only has the underline, with no box behind it. WRONG: a coloured box shows up.",
+            "10. Portfolio › «Your investments» › «See all ›» › «Monthly contribution» › «Edit». Type 12500.75 in a row and tap «Cancel». RIGHT: the figure is fully visible, with both decimals and the «€». WRONG: it is cut off, covered or stays changed after cancelling."
           ],
           "ca": [
             "1. Inici: apunta el que tens ara d'estalvi al mes, toca la targeta del pressupost i després «Estalvi al mes». BÉ: es desplega amb Emergència, Inversió i «Altres», el que ja tenies surt a «Altres» (o a la guardiola que li hagis posat) i el total és el mateix d'abans. MALAMENT: el total canvia o falten diners.",
             "2. En aquesta fulla, treu 20 € d'una guardiola que es pugui editar (per exemple «Altres») i posa'ls a «Emergència». Toca «Desa» i torna a obrir-la. BÉ: el total d'«Estalvi al mes» no canvia i els 20 € continuen a «Emergència». MALAMENT: el total puja o baixa, o no s'ha desat. Si «Altres» diu que té diverses aportacions, es canvia al pas 5.",
             "3. A la mateixa fulla toca «Afegir guardiola», escriu un nom i toca «Desa» sense import. BÉ: avisa «Falta l’import» i la fulla continua oberta; en escriure una xifra i desar, la guardiola apareix. Amb el teclat obert es veuen el camp i «Desa». MALAMENT: es tanca i es perd, o el teclat tapa alguna cosa.",
             "4. Pla › Rebuts: toca la icona «i» («On va el teu sou») i després la línia «Estalvi». BÉ: es desplega per guardioles i sumades donen justament la xifra d'«Estalvi». MALAMENT: no sumen o en falta una.",
-            "5. Aquí mateix toca «Edita» i, a la targeta, «Edita» un altre cop. Canvia la guardiola d'una fila i toca «Desa». BÉ: la fila conserva l'import i el banc, i el total no canvia. MALAMENT: canvia l'import, el banc o el total. En acabar, deixa les guardioles com les vulguis tenir i esborra la de prova."
+            "5. Aquí mateix toca «Edita» i, a la targeta, «Edita» un altre cop. Canvia la guardiola d'una fila i toca «Desa». BÉ: la fila conserva l'import i el banc, i el total no canvia. MALAMENT: canvia l'import, el banc o el total. En acabar, deixa les guardioles com les vulguis tenir i esborra la de prova.",
+            "6. Pla › Rebuts › icona «i» («On va el teu sou»). BÉ: «Despeses» resta el que portes gastat de veritat, no el pressupost sencer; si et queda pressupost, a part hi diu «Si gastes els … que queden, en sobrarien» (o «en faltarien»). MALAMENT: «Despeses» resta el pressupost sencer.",
+            "7. A Pla mira «Rebuts», «Deutes» i «Metes». BÉ: la «i» va enganxada al títol, petita com la de «Patrimoni net» a Inici, i obre «On va el teu sou». MALAMENT: surt verda, gran, solta al costat de la xifra o no obre.",
+            "8. Obre «On va el teu sou» i baixa fins al final. BÉ: l'última línia es llegeix sencera, per damunt de la barra de gestos del mòbil. MALAMENT: queda tapada o tallada.",
+            "9. Pla › Deutes › «Afegir»: mira l'import gran. Fes el mateix a Metes › «Afegir». Tanca sense desar. BÉ: la xifra només porta el subratllat, sense requadre darrere. MALAMENT: surt un requadre de color.",
+            "10. Cartera › «Les teves inversions» › «Veure-ho tot ›» › «Aportació mensual» › «Edita». Escriu 12500,75 en una fila i toca «Cancel·la». BÉ: la xifra es veu sencera, amb els dos decimals i el «€». MALAMENT: es talla, es tapa o, en cancel·lar, queda canviada."
           ]
         }
       }

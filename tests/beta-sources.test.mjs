@@ -7086,16 +7086,18 @@ test("Catálogo253 histórico abre la nota 4.26.253 sin tanda nueva, deja intact
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
 });
 
-// 4.26.260 (26/11/2026): sobre la 4.26.259 (01f9c1e9e), el ahorro en apartados (rama claude/ahorro-bolsas), solo web. Las ocho tandas
+// 4.26.261 (26/11/2026): sobre la 4.26.259 (01f9c1e9e), el ahorro en apartados (rama claude/ahorro-bolsas) más los arreglos de Plan del 26/11,
+// solo web. La 260 no llegó a servirse: se re-numera y su tanda suma cinco pasos (6 a 10) para esos arreglos. Las ocho tandas
 // anteriores siguen SIN veredicto; UNA tanda nueva, beta-260. Registro: nueve alcances que pintan Inicio o la hoja de presupuesto suman al final
-// el cierre de los apartados (diseno-240 solo `bolsaDe`), los de la gráfica `aportacionesEnDia`, y entra el descriptor beta-260, el último.
-test("Catálogo260 abre la nota 4.26.260 con la tanda beta-260 de los apartados, deja intactas las ocho vivas, declara lo que crece el registro y no toca la APK",()=>{
+// el cierre de los apartados (diseno-240 solo `bolsaDe`), los de la gráfica `aportacionesEnDia`, y entra el descriptor beta-260, el último. Con los arreglos, diseno-240 suma además
+// `bolsasDeAhorro` y `BOLSAS_FIJAS`.
+test("Catálogo261 abre la nota 4.26.261 con la tanda beta-260 de los apartados, deja intactas las ocho vivas, declara lo que crece el registro y no toca la APK",()=>{
   const nueva="beta-260",previas=["beta-249","beta-248","beta-247","beta-246","beta-245","beta-244","beta-243","dinero-242"];
   const before=JSON.parse(sourceBeta259("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta259("scripts/beta-sources.json"));
   const source=f=>nl(read(f));
   assert.equal(before[0].v,"4.26.259");
   const notes=JSON.parse(source("src/data/release-notes.json"));
-  assert.equal(notes[0].v,"4.26.260");assert.equal(notes.length,before.length+1);
+  assert.equal(notes[0].v,"4.26.261");assert.equal(notes.length,before.length+1);
   assert.deepEqual(notes.slice(1),before,"todo lo anterior intacto, también los pasos de las ocho tandas vivas");
   const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
   assert.deepEqual(vivas,[nueva,...previas],"en el panel, la nueva y las ocho de antes");
@@ -7106,18 +7108,20 @@ test("Catálogo260 abre la nota 4.26.260 con la tanda beta-260 de los apartados,
     assert.equal(notes[0].items[lang].length,5,lang+": cinco puntos familiares (el quinto, los arreglos de Plan del 26/11)");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
     const steps=notes[0].tandas[0].items[lang];
-    assert.equal(steps.length,5,lang+": cinco pasos, lo que se puede probar hoy en el móvil");
+    assert.equal(steps.length,10,lang+": diez pasos, lo que se puede probar hoy en el móvil");
     assert.ok(steps.every((s,i)=>s.startsWith((i+1)+". ")),lang+": pasos numerados");
     for(const step of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(step)&&/BIEN|RIGHT|BÉ/.test(step),lang+": cada paso dice qué es MAL y qué es BIEN");
   }
   const textos=source("src/modules/01-i18n.js");
   const rotulo=key=>{const all=[...textos.matchAll(new RegExp("(?<![A-Za-z0-9_])"+key+':"([^"]*)"',"g"))].map(x=>x[1]);assert.ok(all.length>=3,key+": un texto por idioma");return {es:all[0],en:all[1],ca:all[2]};};
-  for(const [key,paso] of [["bud_ahorro_mes",0],["bolsa_emergencia",0],["bolsa_inversion",0],["bolsa_otros",0],["save",1],["bolsa_emergencia",1],["bolsa_add",2],["bolsa_falta",2],["rpt_chip",3],["rpt_aho",3],["fj_edit",4]]){
+  for(const [key,paso] of [["bud_ahorro_mes",0],["bolsa_emergencia",0],["bolsa_inversion",0],["bolsa_otros",0],["save",1],["bolsa_emergencia",1],["bolsa_add",2],["bolsa_falta",2],["rpt_chip",3],["rpt_aho",3],["fj_edit",4],["rpt_gas",5],["rpt_chip",5],["v4_plan_deudas",8],["v4_plan_metas",6],["rpt_chip",7],["mg_anadir",8],["v4_all",9],["fj_cancel",9]]){
     const r=rotulo(key);for(const lang of ["es","en","ca"])assert.ok(notes[0].tandas[0].items[lang][paso].includes(r[lang]),lang+": el paso "+(paso+1)+" cita «"+r[lang]+"» ("+key+")");
   }
   const registro=JSON.parse(source("scripts/beta-sources.json"));
   assert.deepEqual(Object.keys(registro),[...Object.keys(integrated),nueva],"el descriptor nuevo, el último");
   const propio=registro[nueva];delete registro[nueva];
+  // Arreglos de Plan e importe de Cartera (26/11): diseno-240 alcanza además el reparto por apartados.
+  assert.deepEqual(registro["diseno-240"].web.splice(-2),[{file:"src/modules/00-core.js",function:"bolsasDeAhorro"},{file:"src/modules/00-core.js",data:"BOLSAS_FIJAS"}],"diseno-240: el cierre nuevo va al final");
   // Apartados de ahorro (26/11): quien pinta Inicio o la hoja de presupuesto suma al final lo que ahora alcanza.
   const apartados=[...["bolsasAplica","bolsasDeAhorro","bolsaInvierte","bolsaEnBroker","bolsaDe"].map(n=>({file:"src/modules/00-core.js",function:n})),
     ...["BOLSAS_FIJAS","BOLSA_BROKERS"].map(n=>({file:"src/modules/00-core.js",data:n}))];
@@ -7136,7 +7140,7 @@ test("Catálogo260 abre la nota 4.26.260 con la tanda beta-260 de los apartados,
   for(const d of scopeDataDependencies({web:propio.web},source,fns,dat))assert.ok(propio.web.some(u=>u.file===d.file&&u.data===d.name),"beta-260: dato vigilado: "+d.name);
   for(const name of ["bolsasAplica","bolsasDeAhorro","BudgetSheet","SavingsPlanCard","planReparto","RptRepartoHoja","netWorthSeries"])assert.ok(propio.web.some(u=>u.function===name),"beta-260 vigila "+name);
   assert.ok(propio.web.some(u=>u.from&&u.from.includes("INC-0410 guardado: de aquí al límite")),"repartir escribe estado: lleva el bloque del guardado");
-  assert.equal(source("VERSION").trim(),"4.26.260");
+  assert.equal(source("VERSION").trim(),"4.26.261");
   const apk=JSON.parse(source("public/apk.json"));
   assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
   const built=betaNotes(notes,source,JSON.parse(source("scripts/beta-sources.json")));

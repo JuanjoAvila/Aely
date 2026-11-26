@@ -210466,6 +210466,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "bolsaCts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasDeAhorro"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "BOLSAS_FIJAS"
       }
     ],
     "unidades": true
