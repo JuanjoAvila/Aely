@@ -81,7 +81,8 @@ test("«A dónde va tu sueldo» acaba por encima de la barra de gestos, con aire
   await aPlan(page);
   await page.getByTestId("plan-cifras").click();
   const hoja = page.getByTestId("plan-reparto-hoja");
-  const ultima = hoja.locator(".rpt-own");
+  // La última línea de la hoja: encima de ella puede ir la previsión, con la misma clase.
+  const ultima = hoja.locator(".rpt-own").last();
   await expect(ultima).toBeVisible();
   await page.waitForTimeout(700);
   await captura(page, "hoja-sueldo");

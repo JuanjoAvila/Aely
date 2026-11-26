@@ -555,7 +555,9 @@ const PRESUPUESTO = {
   // Apartados de ahorro (26/11/2026): hoja de presupuesto por apartados, cascada y tarjeta de Cartera en tres idiomas: 2.206.598 B
   // minificado y 606.265 B gzip sobre la 4.26.259. Es producto nuevo; mismo mandato del 11/10 (el tamaño no bloquea): 2156 / 593 KiB.
   // Caducidad del reparto y pasado de la gráfica (26/11, fallos de dinero): 2.211.613 B minificado y 607.838 B gzip: 2162 / 595 KiB.
-  minificado: 2162 * 1024,
+  // Integración de cascada-dinero y cascada-visual sobre los apartados (26/11): la previsión de «Te sobran» en tres idiomas deja
+  // el minificado en 2163 KiB; el gzip cabe en 595. Mismo mandato del 11/10: al mínimo medido.
+  minificado: 2163 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

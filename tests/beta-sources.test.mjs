@@ -7103,7 +7103,7 @@ test("Catálogo260 abre la nota 4.26.260 con la tanda beta-260 de los apartados,
   // `versión` con frontera: «Inversión» es el nombre de un apartado.
   const jerga=/beta|tanda|panel|APK|contador|sello|(?<![a-z])versión|acuse|cursor|token|Edge|servidor|Open Banking|PSD2|FIN-|SES-|UX-|SEC-|DIS-|DIN-|zoom|PRO-|checksum|CSP|SHA|Flex|API|nonce|cifrad|lote|backfill|ingest|KW|regla de|\d+\.\d+\.\d+/i;
   for(const lang of ["es","en","ca"]){
-    assert.equal(notes[0].items[lang].length,4,lang+": cuatro puntos familiares");
+    assert.equal(notes[0].items[lang].length,5,lang+": cinco puntos familiares (el quinto, los arreglos de Plan del 26/11)");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
     const steps=notes[0].tandas[0].items[lang];
     assert.equal(steps.length,5,lang+": cinco pasos, lo que se puede probar hoy en el móvil");

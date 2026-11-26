@@ -93,7 +93,8 @@ test("la ficha de la deuda dice con cifras qué cambia al restarla del presupues
   const ficha = page.getByTestId("plan-deuda-ficha");
   await expect(ficha.locator('[data-rsv="d1"]')).toContainText("Restar del presupuesto");
   await expect(ficha.locator('[data-rsv="d1"]')).toContainText("260,00 € al mes");
-  await expect(ficha.locator('[data-pv="m"]')).toContainText(/Libre sube[\s\S]*260,00/);
+  // El interruptor ya no mueve «Te sobran» (26/11): dice lo que sale del presupuesto de Gastos.
+  await expect(ficha.locator('[data-pv="m"]')).toContainText(/260,00 € salen de tu presupuesto de Gastos/);
   await expect(ficha.locator('[data-pv="m"]')).not.toContainText("no entra dinero");
 });
 

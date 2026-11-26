@@ -12,19 +12,22 @@
         "El ahorro al mes se puede repartir en apartados: Emergencia, Inversión y los que quieras crear.",
         "Se reparte desde Inicio, al tocar el presupuesto. Lo que ya tenías aparece en «Otros».",
         "«A dónde va tu sueldo» enseña cuánto va a cada apartado.",
-        "Lo que apartas para emergencias o para un objetivo propio no cuenta como inversión en las previsiones."
+        "Lo que apartas para emergencias o para un objetivo propio no cuenta como inversión en las previsiones.",
+        "En «A dónde va tu sueldo», «Gastos» resta solo lo que ya has gastado y el final ya no queda tapado; además, la «i» de Plan es más discreta y los importes grandes van sin recuadro."
       ],
       "en": [
         "Your monthly savings can be split into pots: Emergency, Investing and any you want to create.",
         "Split them from Home, by tapping the budget. What you already had shows up under Other.",
         "Where your pay goes shows how much goes into each pot.",
-        "Money set aside for emergencies or for your own goal does not count as investment in forecasts."
+        "Money set aside for emergencies or for your own goal does not count as investment in forecasts.",
+        "In Where your pay goes, Spending subtracts only what you have already spent and the bottom is no longer covered; also, the Plan «i» is more discreet and large amounts have no box behind them."
       ],
       "ca": [
         "L'estalvi al mes es pot repartir en guardioles: Emergència, Inversió i les que vulguis crear.",
         "Es reparteix des d'Inici, tocant el pressupost. El que ja tenies apareix a «Altres».",
         "«On va el teu sou» ensenya quant va a cada guardiola.",
-        "El que apartes per a emergències o per a un objectiu propi no compta com a inversió a les previsions."
+        "El que apartes per a emergències o per a un objectiu propi no compta com a inversió a les previsions.",
+        "A «On va el teu sou», «Despeses» resta només el que ja has gastat i el final ja no queda tapat; a més, la «i» de Pla és més discreta i els imports grans van sense requadre."
       ]
     },
     "tandas": [
