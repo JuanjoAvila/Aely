@@ -1581,21 +1581,8 @@ function netWorthSeries(state, options){
   // importe, a nombre del titular, es esa aportación aunque el banco la llame «traspaso» u
   // «otros» (MyInvestor, 500 € a fin de mes, revisión 14/10). Si el bróker tiene su cuenta (aunque
   // sea manual), la llegada ya la recoge ese saldo: contarla aquí también la sumaba dos veces.
-  // Repartir en apartados no cambia el pasado: lo movido de una fila a otra (`viene`) sigue casando
-  // con la fila y el banco de los que salió. Sin repartos, la lista es la de siempre, fila a fila.
-  let casan=state.aportaciones||[];
-  if(casan.some(a=>a&&a.viene)){
-    const origen=new Map();
-    const suma=(id,ent,c)=>{ const key=(ent||"")+"|"+id,g=origen.get(key)||{ent:ent,c:0}; g.c+=c; origen.set(key,g); };
-    casan.forEach(a=>{
-      if(!a) return;
-      let propio=Math.round((Number(a.amount)||0)*100);
-      (a.viene||[]).forEach(v=>{ const c=Math.min(propio,Math.round((Number(v.amount)||0)*100)); propio-=c; suma(v.id,v.ent,c); });
-      suma(a.id,a.ent,propio);
-    });
-    casan=Array.from(origen.values(),g=>({ent:g.ent,amount:g.c/100}));
-  }
-  const plans=casan.filter(p=>p&&(state.investments||[]).some(i=>i.ent===p.ent));
+  // Repartir en apartados no cambia el pasado: cada salida se casa con lo que valían las filas su día.
+  const plansDe=day=>aportacionesEnDia(state.aportaciones,day).filter(p=>(state.investments||[]).some(i=>i.ent===p.ent));
   // «A nombre del titular»: el concepto lleva su nombre (dos palabras del perfil) o «yo mismo».
   // Una transferencia del mismo importe al casero no es una aportación.
   const holder=recNorm(state.settings&&state.settings.profile&&state.settings.profile.fullName).split(" ").filter(w=>w.length>=3);
@@ -1623,7 +1610,7 @@ function netWorthSeries(state, options){
     }
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank,transfer=e.category==="traspaso";
     const matches=!row.ownTransfer&&e.amount>0&&/transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&
-      plans.filter(p=>Math.abs(p.amount-e.amount)<0.005)||[];
+      plansDe(day).filter(p=>Math.abs(p.amount-e.amount)<0.005)||[];
     const plan=!!invKnown&&(transfer||e.category==="otros")&&matches.some(p=>!flowBanks[p.ent]&&!owned[p.ent]&&p.amount>0);
     // Si el plan corresponde a un bróker con cuenta propia, sus cierres ya recogen
     // ese dinero. No convertirlo en una salida ni en otra aportación (regla de 99014642).

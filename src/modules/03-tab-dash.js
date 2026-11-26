@@ -496,7 +496,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     ),
     React.createElement(BudgetSheet,{open:budgetOpen,budget:state.budget,aportaciones:state.aportaciones,onSaveAhorro:function(cambios,nuevas){
         // La misma lista de Inversiones (`state.aportaciones`), por bolsas.
-        set(function(s){ return Object.assign({},s,{aportaciones:bolsasAplica(s.aportaciones,cambios,nuevas,uid)}); });
+        set(function(s){ return Object.assign({},s,{aportaciones:bolsasAplica(s.aportaciones,cambios,nuevas,uid,repPeriodo(s).startMs)}); });
       },onClose:function(){ setBudgetOpen(false); },onSave:function(b){
       set(function(s){
         const map=Object.assign({},s.budgetByMonth||{}); map[budgetYmKey()]=b;

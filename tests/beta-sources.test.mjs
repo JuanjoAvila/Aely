@@ -7106,6 +7106,11 @@ test("Catálogo259 abre la nota 4.26.259 sin tanda nueva, deja intactas las ocho
   // Apartados de ahorro (26/11, sin versión todavía): quien pinta Inicio o la hoja de presupuesto suma al final lo que ahora alcanza.
   const apartados=[...["bolsasAplica","bolsasDeAhorro","bolsaInvierte","bolsaEnBroker","bolsaDe"].map(n=>({file:"src/modules/00-core.js",function:n})),
     ...["BOLSAS_FIJAS","BOLSA_BROKERS"].map(n=>({file:"src/modules/00-core.js",data:n}))];
+  // Caducidad del reparto y pasado de la gráfica (26/11): lo nuevo que alcanzan, detrás de lo anterior.
+  const quita=(ids,n)=>{ for(const id of ids)assert.deepEqual(registro259[id].web.pop(),{file:"src/modules/00-core.js",function:n},id+": "+n+" va al final"); };
+  const reparten=["inc-2909-02-inicio-natural","inc-3009-nomina-anticipada","cartera-sin-lagazo","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","auditorias-233","diseno-235","beta-245","beta-248"];
+  quita(["inicio-grafica-vuelve","inicio-patrimonio-flujos","inicio-mes-pasado-mismo-dia","cuenta-parte-mia","inicio-grafica-reservas","cartera-sin-lagazo","auditorias-233"],"aportacionesEnDia");
+  quita([...reparten,"diseno-240"],"bolsaCts");quita(reparten,"bolsasPrevio");quita(reparten,"vieneVigente");
   for(const id of ["inc-2909-02-inicio-natural","inc-3009-nomina-anticipada","cartera-sin-lagazo","gastos-scroll-fluido-cifras","gastos-margen-sin-nomina","auditorias-233","diseno-235","beta-245","beta-248"])
     assert.deepEqual(registro259[id].web.splice(-apartados.length),apartados,id+": los apartados van al final");
   assert.deepEqual(registro259["diseno-240"].web.pop(),{file:"src/modules/00-core.js",function:"bolsaDe"},"diseno-240 solo alcanza bolsaDe");

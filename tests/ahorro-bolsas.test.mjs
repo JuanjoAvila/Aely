@@ -1,6 +1,7 @@
 // AHORRO POR BOLSAS: `state.aportaciones` sigue siendo la única lista; `bolsa` solo la clasifica. Ni un euro de más ni de menos.
 // Cifras inventadas (el repo es público). Se corre con TZ=UTC.
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import {cargarMotor,base,mov} from "./helpers/plan-reparto-fixture.mjs";
 
 const c=cargarMotor();
@@ -20,7 +21,8 @@ const uno=[viejo[0]];
 let n=0;
 const rep=c.bolsasAplica(uno,{otros:20,emergencia:80,inversion:100},[],()=>"n"+(++n));
 assert.equal(total(rep),20000);
-assert.deepEqual(plano(rep.find(x=>x.id==="a1")),{id:"a1",name:"Fondo",amount:20,ent:"myinvestor"},"la fila de siempre conserva id, nombre y banco");
+const {previo,...a1}=plano(rep.find(x=>x.id==="a1"));
+assert.deepEqual(a1,{id:"a1",name:"Fondo",amount:20,ent:"myinvestor"},"la fila de siempre conserva id, nombre y banco");
 assert.equal(rep.find(x=>x.bolsa==="emergencia").ent,"myinvestor","repartido desde una fila: es el mismo dinero y hereda su banco");
 assert.equal(c.bolsasAplica(uno,{emergencia:80},[],()=>"x").find(x=>x.bolsa==="emergencia").ent,"","dinero nuevo para emergencia: sin banco");
 const tr=c.bolsasAplica([{id:"t",name:"T",amount:200,ent:"trade_republic"}],{otros:100,inversion:100},[],()=>"i");
@@ -73,7 +75,7 @@ assert.deepEqual(serie([{...una[0],bolsa:"emergencia"}]),antes,"etiquetada emerg
 assert.deepEqual(serie([{...una[0],bolsa:"propia"}]),antes,"etiquetada propia");
 
 /* B2: sin nada en Inversión ni Otros la proyección es 0, no los 500 de muestra. */
-const fuente=(await import("node:fs")).readFileSync(new URL("../src/modules/06-sync-brokers.js",import.meta.url),"utf8");
+const fuente=fs.readFileSync(new URL("../src/modules/06-sync-brokers.js",import.meta.url),"utf8");
 const expr=/defMonthly:(\(state\.aportaciones.*:null)\r?\n/.exec(fuente)[1];
 const ini=/useState\((Math\.max\(0,Math\.min\(3000,.*)\);\r?\n/.exec(fuente)[1];
 const proy=aps=>{ const d=new Function("state","bolsaInvierte","return "+expr)({aportaciones:aps},c.bolsaInvierte); return new Function("defMonthly","return "+ini)(d); };
@@ -124,4 +126,52 @@ for(const v of [50,100,150,200,250]) assert.deepEqual(conTransfer(movida,v),conT
 const sinMarcas=[{id:"a",name:"A",amount:100,ent:"trade_republic"},{id:"b",name:"B",amount:100,ent:"trade_republic"}];
 assert.deepEqual(conTransfer(sinMarcas,200),conTransfer([],200),"sin apartados no se casa la suma por bróker");
 assert.notDeepEqual(conTransfer(sinMarcas,100),conTransfer([],100));
+
+/* V1: lo apuntado de un reparto vale su mes; después, lo invertido en el bróker no cubre la emergencia de otro banco. */
+const v1=[{id:"o",name:"O",amount:500,ent:"trade_republic"},{id:"e",name:"E",amount:100,ent:"sabadell",bolsa:"emergencia"}];
+const v1r=c.bolsasAplica(v1,{otros:100,emergencia:500},[],nuevo);
+assert.deepEqual(cifras(v1r,500),cifras(v1,500),"en el mes del reparto no cambia nada");
+const enDic=(aps)=>{ const x=c.planReparto(base({aportaciones:aps,expenses:[mov("n12",3,-3000,{merchant:"Nómina Empresa SL",date:"2026-12-03T10:00:00.000Z"}),
+  mov("i12",6,500,{category:"inversion",date:"2026-12-06T10:00:00.000Z"})]}),{nowMs:Date.parse("2026-12-21T11:00:00Z")}); return [x.aho,x.qAho,x.libre]; };
+assert.deepEqual(enDic(v1r),[100000,50000,110000]);
+// Y un guardado de otro mes no lo resucita con fecha nueva.
+const caducado=v1r.map(a=>a.viene?{...a,viene:a.viene.map(v=>({...v,d:"2026-10-05"}))}:a);
+assert.equal(c.bolsasAplica(caducado,{emergencia:400},[{name:"V",amount:100}],nuevo).some(a=>a.viene&&a.viene.some(v=>v.id==="o")),false);
+
+/* V2: borrar o cambiar en Cartera (o desde una versión anterior, que conserva el campo) anula lo apuntado. */
+const sinViene=aps=>aps.map(({viene,...a})=>a);
+assert.notDeepEqual(cifras(v1r,500),cifras(sinViene(v1r),500),"el apunte pesa (si no, no se prueba nada)");
+const cambia=(aps,id,x)=>aps.map(a=>a.id===id?{...a,...x}:a);
+for(const [caso,aps] of [["origen borrado",v1r.filter(a=>a.id!=="o")],["origen cambiado",cambia(v1r,"o",{amount:90})],
+  ["origen en otro banco",cambia(v1r,"o",{ent:"myinvestor"})],["destino a 0",cambia(v1r,"e",{amount:0})],["destino cambiado",cambia(v1r,"e",{amount:600})]])
+  assert.deepEqual(cifras(aps,500),cifras(sinViene(aps),500),caso);
+const guardarCartera=(aps,toca)=>{
+  const src=fs.readFileSync(new URL("../src/modules/09-tab-debts-goals.js",import.meta.url),"utf8");
+  const cuerpo=/const save=function\(\)\{\r?\n(    const prev=\{\}; aps\.forEach[\s\S]*?)\r?\n    set\(function/.exec(src)[1];
+  const drafts=toca(aps.map(a=>({id:a.id,name:a.name,amount:String(a.amount),ent:a.ent,bolsa:c.bolsaDe(a)})));
+  return new Function("aps","drafts","ahorroImporteDe","bolsaDe","bolsaCts","t",cuerpo+"\nreturn next;")(aps,drafts,Number,c.bolsaDe,c.bolsaCts,k=>k);
+};
+const lleva=aps=>aps.some(a=>a.viene);
+assert.equal(lleva(guardarCartera(v1r,d=>d)),true,"guardar sin tocar lo conserva");
+assert.equal(lleva(guardarCartera(v1r,d=>d.filter(a=>a.id!=="o"))),false,"borrar la fila origen");
+for(const [id,x] of [["o",{amount:"90"}],["e",{amount:"0"}],["e",{amount:"600"}],["o",{ent:"myinvestor"}],["e",{bolsa:"otros"}]])
+  assert.equal(lleva(guardarCartera(v1r,d=>cambia(d,id,x))),false,"editar "+id+" "+JSON.stringify(x));
+// E a 0 y subida de nuevo no resucita los 400.
+const vuelta=guardarCartera(guardarCartera(v1r,d=>cambia(d,"e",{amount:"0"})),d=>cambia(d,"e",{amount:"500"}));
+assert.deepEqual(cifras(vuelta,500),cifras(sinViene(v1r),500));
+assert.equal(c.bolsasAplica(v1r,{},[],nuevo).length,2);
+const conP=c.bolsasAplica(v1,{},[{name:"V",amount:50}],()=>"pv");
+const deP=c.bolsasAplica(c.bolsasAplica(conP,{"propia:pv":0,emergencia:150},[],nuevo),{"propia:pv":null},[],nuevo);
+assert.equal(deP.some(a=>a.viene&&a.viene.some(v=>v.id==="pv")),false,"quitar el origen desde Inicio");
+
+/* V3: la gráfica de Inicio casa los importes actuales; los de antes del reparto, solo para lo anterior a él. */
+const o500=[{id:"o",name:"O",amount:500,ent:"trade_republic"}];
+const subida=c.bolsasAplica(c.bolsasAplica(o500,{otros:300,emergencia:200},[],nuevo),{otros:500},[],nuevo);
+assert.deepEqual(conTransfer(subida,500),conTransfer(o500,500),"O vuelve a 500: la transferencia se reconoce");
+assert.notDeepEqual(conTransfer(subida,500),conTransfer([],500));
+const enDia=(aps,d)=>plano(c.aportacionesEnDia(aps,d).filter(p=>p.ent==="trade_republic").map(p=>p.amount).sort((a,b)=>a-b));
+assert.deepEqual(enDia(subida,"2026-11-10"),[500],"antes del reparto, lo de entonces");
+assert.deepEqual(enDia(subida,"2026-11-25"),[200,500],"después, los importes actuales fila a fila, sin sumar por origen");
+const sinP=c.bolsasAplica(conP.map(({viene,previo,...a})=>a),{"propia:pv":null,emergencia:150},[],nuevo);
+assert.ok(c.aportacionesEnDia(sinP,"2026-11-10").some(p=>p.amount===50),"quitar una propia repartiendo no borra su pasado");
 console.log("ahorro-bolsas OK");

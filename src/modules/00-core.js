@@ -814,18 +814,44 @@ function bolsaNombre(b){ return b.kind==="propia"?(b.name||t("d_saving")):t("bol
    banco y nombre); sin filas, nace una; con VARIAS filas no se toca (se editan una a una en Cartera): repartir un total
    entre ellas sería inventar.
    Lo que en un mismo guardado baja de una fila y sube en otra es el mismo dinero, euro por euro (en el orden de la hoja);
-   lo que sube de más es dinero nuevo. La fila que lo recibe lo apunta en `viene` [{id,ent,amount}] (fila y banco de
-   origen): así `planReparto` no cuenta dos veces lo invertido y la gráfica sigue casando la transferencia de siempre.
+   lo que sube de más es dinero nuevo. La fila que lo recibe lo apunta en `viene` [{id,ent,amount,d,con,queda}] (fila y
+   banco de origen, día, y cómo quedaron las dos filas): así `planReparto` no cuenta dos veces lo invertido ese mes.
+   Aparte, cada fila que cambia en un reparto guarda en `previo` [{d,ent,amount}] lo que valía hasta ese día, para que
+   la gráfica no reescriba el pasado (`de` = fila que desapareció en el reparto).
    Solo cambia de banco la fila sin banco (o nueva) cuyo importe ENTERO viene de uno: con una parte no se le inventa. */
-function bolsasAplica(aps, cambios, nuevas, nuevoId){
-  let next=(aps||[]).slice();
+function bolsaCts(v){ return Math.round(Math.max(0,Number(v)||0)*100); }
+/* Lo de `viene` que aún vale: del periodo en curso y con las dos filas tal como quedaron. Pasado el mes es dinero de
+   la propia fila, y una edición por fuera (también desde una versión anterior, que conserva el campo) lo anula. */
+function vieneVigente(row, aps, desdeMs, hastaMs){
+  return ((row&&row.viene)||[]).filter(function(v){
+    const ms=Date.parse(v.d+"T12:00:00Z");
+    if(!(ms>=desdeMs&&(hastaMs==null||ms<hastaMs))||bolsaCts(row.amount)!==bolsaCts(v.con)) return false;
+    if(v.id===row.id) return true;
+    const o=(aps||[]).find(function(x){ return x&&x.id===v.id; });
+    return v.queda==null?!o:!!o&&bolsaCts(o.amount)===bolsaCts(v.queda)&&(o.ent||"")===v.ent;
+  });
+}
+function bolsasAplica(aps, cambios, nuevas, nuevoId, desdeMs){
+  const desde=desdeMs!=null?desdeMs:inicioDeMesMs(Date.now()), hoy=netWorthDay();
+  const aCts=bolsaCts;
+  const quitadas={};
+  bolsasDeAhorro(aps).forEach(function(b){ if(b.kind==="propia"&&cambios&&cambios[b.key]===null) quitadas[b.filas[0].id]=1; });
+  // Antes de mover nada se descarta lo caducado y lo que apuntaba a una fila que este guardado borra.
+  const antes=(aps||[]).map(function(a){
+    if(!a||!a.viene) return a;
+    const vale=vieneVigente(a,aps,desde).filter(function(v){ return !quitadas[v.id]; });
+    if(vale.length===a.viene.length) return a;
+    const row=Object.assign({},a);
+    if(vale.length) row.viene=vale; else delete row.viene;
+    return row;
+  });
+  let next=antes.slice(), recibio=null;
   const cur=bolsasDeAhorro(next);
-  const aCts=function(v){ return Math.round(Math.max(0,Number(v)||0)*100); };
-  // De una fila: lo que le llegó de otras (nunca más que su importe, que Cartera puede haber bajado) y lo suyo.
+  // De una fila: lo que le llegó de otras (nunca más que su importe) y lo suyo.
   const parte=function(a){
     let propio=aCts(a.amount);
     const ajeno=[];
-    (a.viene||[]).forEach(function(v){ const c=Math.min(propio,aCts(v.amount)); propio-=c; if(c) ajeno.push({id:v.id,ent:v.ent,c:c}); });
+    (a.viene||[]).forEach(function(v){ const c=Math.min(propio,aCts(v.amount)); propio-=c; if(c) ajeno.push({id:v.id,ent:v.ent,c:c,d:v.d}); });
     return {propio:propio,ajeno:ajeno};
   };
   const movidos=[], quedan=new Map();
@@ -837,7 +863,7 @@ function bolsasAplica(aps, cambios, nuevas, nuevoId){
     // Primero sale lo que ya venía de otra (deshacer un reparto lo devuelve a su sitio) y luego lo propio.
     while(baja>0&&p.ajeno.length){
       const v=p.ajeno[p.ajeno.length-1], c=Math.min(baja,v.c);
-      movidos.push({id:v.id,ent:v.ent,c:c}); v.c-=c; baja-=c; if(!v.c) p.ajeno.pop();
+      movidos.push({id:v.id,ent:v.ent,c:c,d:v.d}); v.c-=c; baja-=c; if(!v.c) p.ajeno.pop();
     }
     if(baja>0) movidos.push({id:a.id,ent:a.ent||"",c:Math.min(baja,p.propio)});
     quedan.set(a,p.ajeno);
@@ -848,7 +874,7 @@ function bolsasAplica(aps, cambios, nuevas, nuevoId){
     const llegan=[];
     while(falta>0&&movidos.length){
       const m=movidos[0], c=Math.min(falta,m.c);
-      llegan.push({id:m.id,ent:m.ent,c:c}); m.c-=c; falta-=c; if(!m.c) movidos.shift();
+      llegan.push({id:m.id,ent:m.ent,c:c,d:m.d}); m.c-=c; falta-=c; if(!m.c) movidos.shift();
     }
     return llegan;
   };
@@ -857,14 +883,15 @@ function bolsasAplica(aps, cambios, nuevas, nuevoId){
     return suma===total&&llegan.every(function(v){ return v.ent===llegan[0].ent; })&&llegan.length?llegan[0].ent:"";
   };
   const apunta=function(row,ajeno,llegan){
-    const lista=ajeno.map(function(v){ return {id:v.id,ent:v.ent,c:v.c}; });
+    const lista=ajeno.map(function(v){ return {id:v.id,ent:v.ent,c:v.c,d:v.d}; });
+    if(llegan.length&&!recibio) recibio=row.id;
     llegan.forEach(function(v){
       if(v.id===row.id&&v.ent===(row.ent||"")) return;   // vuelve a su sitio: es suyo otra vez
       const ya=lista.find(function(x){ return x.id===v.id&&x.ent===v.ent; });
-      if(ya) ya.c+=v.c; else lista.push({id:v.id,ent:v.ent,c:v.c});
+      if(ya) ya.c+=v.c; else lista.push({id:v.id,ent:v.ent,c:v.c,d:v.d});
     });
     delete row.viene;
-    if(lista.length) row.viene=lista.map(function(v){ return {id:v.id,ent:v.ent,amount:v.c/100}; });
+    if(lista.length) row.viene=lista.map(function(v){ return {id:v.id,ent:v.ent,amount:v.c/100,d:v.d||hoy}; });
     return row;
   };
   const suyos={};
@@ -898,7 +925,63 @@ function bolsasAplica(aps, cambios, nuevas, nuevoId){
     const id=nuevoId(), llegan=recibe(aCts(amount));
     next.push(apunta({id:id,name:name||t("d_saving"),amount:amount,ent:bancoDeTodo(llegan,aCts(amount)),bolsa:"propia"},[],llegan));
   });
-  return next;
+  if(recibio!=null) next=bolsasPrevio(antes,next,recibio,hoy);
+  // Cada apunte se sella con cómo quedan las dos filas.
+  return next.map(function(a){
+    if(!a||!a.viene) return a;
+    return Object.assign({},a,{viene:a.viene.map(function(v){
+      const o=next.find(function(x){ return x&&x.id===v.id; });
+      return {id:v.id,ent:v.ent,amount:v.amount,d:v.d,con:a.amount,queda:o?o.amount:null};
+    })});
+  });
+}
+/* Lo que valía cada fila hasta el día del reparto. Si cambia dos veces el mismo día manda lo primero; deshacerlo el
+   mismo día no deja rastro. La historia de una fila que desaparece se la queda la primera que recibe. */
+function bolsasPrevio(antes, next, recibio, hoy){
+  const era=function(a){ return {d:hoy,ent:(a&&a.ent)||"",amount:a?Number(a.amount)||0:0}; };
+  const igual=function(p,a){ return p.ent===(a.ent||"")&&bolsaCts(p.amount)===bolsaCts(a.amount); };
+  const heredado=[];
+  antes.forEach(function(a){
+    if(!a||next.some(function(x){ return x&&x.id===a.id; })) return;
+    (a.previo||[]).concat([era(a)]).forEach(function(p){
+      const de=p.de||a.id;
+      if(!heredado.some(function(x){ return x.de===de&&x.d===p.d; })) heredado.push(Object.assign({},p,{de:de}));
+    });
+  });
+  return next.map(function(row){
+    if(!row) return row;
+    const a=antes.find(function(x){ return x&&x.id===row.id; });
+    let previo=(row.previo||[]).slice();
+    if((!a||!igual(era(a),row))&&!previo.some(function(p){ return !p.de&&p.d===hoy; })) previo.push(era(a));
+    const propios=previo.filter(function(p){ return !p.de; });
+    if(propios.length===1&&propios[0].d===hoy&&igual(propios[0],row)) previo=previo.filter(function(p){ return p.de; });
+    if(row.id===recibio) previo=previo.concat(heredado);
+    if(!previo.length&&!row.previo) return row;
+    const out=Object.assign({},row);
+    if(previo.length) out.previo=previo; else delete out.previo;
+    return out;
+  });
+}
+/* Las aportaciones tal como valían un día, para reconocer la salida de entonces. Sin repartos, la lista de siempre.
+   El mismo día del reparto valen las de antes y las de después. */
+function aportacionesEnDia(aps, day){
+  const out=[];
+  (aps||[]).forEach(function(a){
+    if(!a) return;
+    if(!a.previo){ out.push(a); return; }
+    const historias={"":[]};
+    a.previo.forEach(function(p){ (historias[p.de||""]=historias[p.de||""]||[]).push(p); });
+    Object.keys(historias).forEach(function(de){
+      const l=historias[de].slice().sort(function(x,y){ return x.d<y.d?-1:x.d>y.d?1:0; });
+      const i=l.findIndex(function(p){ return p.d>=day; });
+      if(i>=0) out.push(l[i]);
+      if(i<0||l[i].d===day){
+        const luego=i>=0&&l[i+1]?l[i+1]:(de?null:a);
+        if(luego) out.push(luego);
+      }
+    });
+  });
+  return out;
 }
 function isEfectivoEnt(aOrEnt){
   const e=(aOrEnt&&typeof aOrEnt==="object")?aOrEnt.ent:aOrEnt;

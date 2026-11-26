@@ -1100,12 +1100,19 @@ function SavingsPlanCard({state, set, totals, showToast}){
   const del=function(id){ setDrafts(function(ds){ return ds.filter(function(d){ return d.id!==id; }); }); };
   const save=function(){
     const prev={}; aps.forEach(function(a){ prev[a.id]=a; });
+    // Borrar una fila o cambiarle importe, banco o apartado dice a mano dónde está el dinero: lo apuntado de un
+    // reparto sobre ella (recibido o dado) deja de valer.
+    const tocadas={};
+    aps.forEach(function(a){
+      const d=drafts.find(function(x){ return x.id===a.id; });
+      if(!d||bolsaCts(ahorroImporteDe(d.amount))!==bolsaCts(a.amount)||d.ent!==a.ent||d.bolsa!==bolsaDe(a)) tocadas[a.id]=1;
+    });
     const next=drafts.map(function(d){
       const n=ahorroImporteDe(d.amount);
       const row=Object.assign({}, prev[d.id]||{}, {id:d.id, name:d.name.trim()||t("d_saving"), amount:+n.toFixed(2), ent:d.ent});
       if(d.bolsa&&d.bolsa!=="otros") row.bolsa=d.bolsa; else delete row.bolsa;
-      // Cambiar el banco a mano dice dónde está ese dinero: lo apuntado de un reparto anterior deja de valer.
-      if(prev[d.id]&&prev[d.id].ent!==d.ent) delete row.viene;
+      const viene=tocadas[d.id]?[]:(row.viene||[]).filter(function(v){ return !tocadas[v.id]; });
+      if(viene.length) row.viene=viene; else delete row.viene;
       return row;
     }).filter(function(a){ return a.amount>0 || prev[a.id]; });   // una fila nueva vacía no se guarda
     set(function(s){ return Object.assign({},s,{aportaciones:next}); });

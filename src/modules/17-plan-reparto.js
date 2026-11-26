@@ -237,13 +237,14 @@ function planReparto(state, o){
   /* ---- Ahorro: aportaciones planificadas o inversión real, sin lo que ya va a una meta ---- */
   const ahoPlan=(state.aportaciones||[]).reduce(function(a,x){ return a+repCts(x&&x.amount); },0);
   /* Lo invertido este mes cubre «Inversión» y «Otros»; lo que sobre, las filas de emergencia o propias cuyo banco es un
-     bróker (es el mismo dinero: no cuenta dos veces), y lo que a otra fila le llegó de un bróker al repartir (`viene`).
+     bróker (es el mismo dinero: no cuenta dos veces), y lo que a otra fila le llegó de un bróker al repartir en este
+     periodo (`vieneVigente`).
      Las demás van aparte. Sin bolsas marcadas, la cuenta es la de siempre: max(plan, invertido). `bolsas` + `ahoExtra`
      suman la fila al céntimo. */
   const ahoInv=(state.aportaciones||[]).filter(bolsaInvierte).reduce(function(a,x){ return a+repCts(x&&x.amount); },0);
   const ahoBroker=(state.aportaciones||[]).filter(function(x){ return x&&!bolsaInvierte(x); }).reduce(function(a,x){
     let propio=repCts(x.amount), enBroker=0;
-    (x.viene||[]).forEach(function(v){ const c=Math.min(propio,repCts(v.amount)); propio-=c; if(bolsaEnBroker(v)) enBroker+=c; });
+    vieneVigente(x,state.aportaciones,P.startMs,P.endMs).forEach(function(v){ const c=Math.min(propio,repCts(v.amount)); propio-=c; if(bolsaEnBroker(v)) enBroker+=c; });
     return a+enBroker+(bolsaEnBroker(x)?propio:0);
   },0);
   const sobra=Math.max(0,inversion-ahoInv), cubre=Math.min(sobra,ahoBroker), ahoExtra=sobra-cubre;

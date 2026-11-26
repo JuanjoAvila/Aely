@@ -101,6 +101,9 @@ test("muchas bolsas, bolsa nueva sin importe y teclado", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => (JSON.parse(localStorage.getItem("micartera_v3") || "{}").aportaciones || []).map((a) => a.name))).toEqual(
     ["Emergencia", "Inversión", "Vacaciones", "Coche nuevo", "Regalos de Navidad y cumpleaños", "Fondo indexado", "Plan", "Moto"]);
 
+  // Al abrir la hoja la página bajó y la barra se esconde (como al deslizar): se sube para volver a verla.
+  await page.locator(".page-live").evaluateAll((l) => l.forEach((e) => { e.scrollTop = 0; }));
+  await expect(page.locator(".botnav")).not.toHaveClass(/botnav-hidden/);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await page.getByTestId("plan-reparto-chip").click();
   const hoja = page.getByTestId("plan-reparto-hoja");

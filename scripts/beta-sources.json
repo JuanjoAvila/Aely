@@ -13249,6 +13249,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
       }
     ],
     "unidades": true
@@ -16737,6 +16749,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
       }
     ],
     "unidades": true
@@ -37729,6 +37753,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "HH_CODIGO_MIN"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aportacionesEnDia"
       }
     ],
     "unidades": true
@@ -50396,6 +50424,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aportacionesEnDia"
       }
     ],
     "unidades": true
@@ -55036,6 +55068,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "TRASPASO_COLA_RE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aportacionesEnDia"
       }
     ],
     "unidades": true
@@ -60630,6 +60666,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BASE_GENERICA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aportacionesEnDia"
       }
     ],
     "unidades": true
@@ -61399,6 +61439,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "function": "expenseSaleDelSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aportacionesEnDia"
       }
     ],
     "unidades": true
@@ -102800,6 +102844,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aportacionesEnDia"
       }
     ],
     "unidades": true
@@ -139944,6 +140004,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
       }
     ],
     "unidades": true
@@ -142210,6 +142282,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
       }
     ],
     "unidades": true
@@ -194440,6 +194524,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "aportacionesEnDia"
       }
     ],
     "unidades": true
@@ -199453,6 +199553,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
       }
     ],
     "unidades": true
@@ -210350,6 +210462,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "bolsaDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
       }
     ],
     "unidades": true
@@ -219372,6 +219488,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
       }
     ],
     "unidades": true
@@ -223375,6 +223503,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "BOLSA_BROKERS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "vieneVigente"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsasPrevio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bolsaCts"
       }
     ],
     "unidades": true
