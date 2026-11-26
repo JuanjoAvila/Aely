@@ -3615,8 +3615,10 @@ function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}
   const [nuevas,setNuevas]=useState([]);
   const [falta,setFalta]=useState(false);    // «Añadir apartado» con nombre y sin importe: no se pierde en silencio
   const [kb,setKb]=useState(null);           // teclado superpuesto: {pad,alto}
+  const [foco,setFoco]=useState(null);       // campo de importe con foco: se escribe sin punto de millar
+  const [filasDe,setFilasDe]=useState(null); // apartado con varias aportaciones, desplegado
   // Un cambio de presupuesto que llega por sync no borra lo escrito en los apartados.
-  useEffect(function(){ if(open){ setAbierto(false); setTocado({}); setNuevas([]); setFalta(false); } },[open]);
+  useEffect(function(){ if(open){ setAbierto(false); setTocado({}); setNuevas([]); setFalta(false); setFoco(null); setFilasDe(null); } },[open]);
   useEffect(function(){ if(open) setB(Math.max(100, Math.round(budget||700))); },[open,budget]);
   const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,
     closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
@@ -3655,11 +3657,14 @@ function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}
   const totalAhorro=bolsas.reduce(function(n,x){ return n+Math.round(valor(x)*100); },0)+nuevas.reduce(function(n,x){ return n+Math.round(ahorroImporteDe(x.amount)*100); },0);
   const euros=function(c){ return c%100?eur(c/100):eur0(c/100); };
   const texto=function(v){ return String(+v.toFixed(2)).replace(".",numDecSep()); };
-  const paso=function(nombre,raw,cambia){
+  const paso=function(id,nombre,raw,cambia){
+    const visto=foco!==id&&/\d/.test(raw)?ahorroTexto(ahorroImporteDe(raw)):raw;
     return React.createElement("span",{className:"v4-bol-step"},
       React.createElement("button",{type:"button","aria-label":"− "+nombre,onClick:function(){ cambia(texto(Math.max(0,ahorroImporteDe(raw)-50))); }},"−"),
       React.createElement("span",{className:"v4-bol-campo"},
-        React.createElement("input",{className:"num","aria-label":nombre,inputMode:"decimal",value:raw,placeholder:"0",onFocus:function(e){ e.target.select(); },onChange:function(e){ cambia(e.target.value); }}),
+        React.createElement("input",{className:"num","aria-label":nombre,inputMode:"decimal",value:visto,placeholder:"0",
+          // El valor sin formato se pone antes de seleccionar: si lo pintara React después, se perdería la selección.
+          onFocus:function(e){ e.target.value=raw; e.target.select(); setFoco(id); },onBlur:function(){ setFoco(null); },onChange:function(e){ cambia(e.target.value); }}),
         React.createElement("i",{"aria-hidden":"true"},"€")),
       React.createElement("button",{type:"button","aria-label":"+ "+nombre,onClick:function(){ cambia(texto(ahorroImporteDe(raw)+50)); }},"+"));
   };
@@ -3679,7 +3684,8 @@ function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}
       React.createElement("div",Object.assign({className:"v4-sheet v4-budget-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },
           style:kb?{marginBottom:kb.pad,maxHeight:kb.alto,paddingBottom:12}:undefined}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-sheet-body"},
+        // Desplazada, también se funde por arriba: el texto no se rebana bajo el asa.
+        React.createElement("div",{className:"v4-sheet-body",onScroll:function(e){ e.currentTarget.classList.toggle("bajado",e.currentTarget.scrollTop>1); }},
         React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:14}}, t("v4_budget_sheet")),
         React.createElement("div",{className:"v4-ob-stepper"},
           React.createElement("button",{type:"button","aria-label":"−",onClick:function(){ setB(function(x){ return Math.max(100,x-50); }); }},"−"),
@@ -3699,19 +3705,31 @@ function BudgetSheet({open, budget, aportaciones, onClose, onSave, onSaveAhorro}
               if(tocado[x.key]===null) return null;
               const nombre=bolsaNombre(x);
               const pon=function(v){ setTocado(function(o){ return Object.assign({},o,{[x.key]:v}); }); };
+              // Varias aportaciones en un apartado: la fila las despliega (se editan una a una en Cartera).
+              if(x.filas.length>1){
+                const ver=filasDe===x.key;
+                return React.createElement(React.Fragment,{key:x.key},
+                  React.createElement("button",{type:"button",className:"v4-bol-row v4-bol-multi","data-bolsa":x.key,"aria-expanded":ver,onClick:function(){ setFilasDe(ver?null:x.key); }},
+                    React.createElement("span",{className:"v4-bol-nm"},React.createElement("span",{className:"v4-bol-t"},nombre),
+                      React.createElement("small",null,tf("bolsa_varias",{n:x.filas.length}))),
+                    React.createElement("b",{className:"num"},euros(x.c)),
+                    React.createElement(I.chev,{className:"chev"+(ver?" open":"")})),
+                  React.createElement("div",{className:"v4-bol-fold"+(ver?" open":"")},React.createElement("div",{inert:ver?undefined:""},
+                    x.filas.map(function(a){
+                      return React.createElement("div",{key:a.id,className:"v4-bol-sub"},
+                        React.createElement("span",null,a.name||t("d_saving")),
+                        React.createElement("b",{className:"num"},euros(Math.round((Number(a.amount)||0)*100))));
+                    }))));
+              }
               return React.createElement("div",{key:x.key,className:"v4-bol-row","data-bolsa":x.key},
-                React.createElement("span",{className:"v4-bol-nm"},nombre,
-                  // Varias aportaciones en un apartado: se editan una a una en Cartera.
-                  x.filas.length>1&&React.createElement("small",null,tf("bolsa_varias",{n:x.filas.length})),
+                React.createElement("span",{className:"v4-bol-nm"},React.createElement("span",{className:"v4-bol-t"},nombre),
                   x.kind==="propia"&&valor(x)===0&&React.createElement("button",{type:"button",className:"v4-bol-quita","aria-label":t("sv_del_aria")+": "+nombre,onClick:function(){ pon(null); }},"✕")),
-                x.filas.length<=1
-                  ?paso(nombre,tocado[x.key]!=null?tocado[x.key]:texto(x.c/100),pon)
-                  :React.createElement("b",{className:"num"},euros(x.c)));
+                paso(x.key,nombre,tocado[x.key]!=null?tocado[x.key]:texto(x.c/100),pon));
             }),
             nuevas.map(function(x,i){
               return React.createElement("div",{key:"n"+i,className:"v4-bol-row","data-bolsa":"nueva"},
                 React.createElement("input",{className:"af-in v4-bol-nm","aria-label":t("bolsa_nombre"),placeholder:t("bolsa_nombre"),maxLength:40,value:x.name,onChange:function(e){ ponNueva(i,"name",e.target.value); }}),
-                paso(x.name.trim()||t("sv_amount_aria"),x.amount,function(v){ ponNueva(i,"amount",v); }),
+                paso("n"+i,x.name.trim()||t("sv_amount_aria"),x.amount,function(v){ ponNueva(i,"amount",v); }),
                 falta&&sinImporte(x)&&React.createElement("small",{className:"v4-bol-falta",role:"alert"},t("bolsa_falta")));
             }),
             React.createElement("button",{type:"button",className:"v4-bol-add","data-testid":"budget-bolsa-add",onClick:function(){ setNuevas(function(n){ return n.concat([{name:"",amount:""}]); }); }},"+ "+t("bolsa_add"))))))

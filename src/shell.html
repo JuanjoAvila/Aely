@@ -3418,23 +3418,30 @@
   /* Título e importes se desplazan; Guardar queda siempre a la vista. */
   .v4-sheet.v4-budget-sheet:has(>.v4-sheet-body){padding-bottom:calc(36px + var(--safe-bottom));}
   /* Lo que sigue por debajo se funde en vez de quedar rebanado contra el botón. */
-  .v4-budget-sheet>.v4-sheet-body{padding-bottom:18px;-webkit-mask-image:linear-gradient(#000 calc(100% - 18px),transparent);mask-image:linear-gradient(#000 calc(100% - 18px),transparent);}
-  .aely-sv-apartado{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--muted);}
-  .aely-sv-apartado select.af-in{flex:1 1 0;min-width:0;width:auto;}
+  .v4-budget-sheet>.v4-sheet-body{padding-bottom:40px;scroll-padding:28px 0 40px;-webkit-mask-image:linear-gradient(#000 calc(100% - 40px),transparent);mask-image:linear-gradient(#000 calc(100% - 40px),transparent);}
+  .v4-budget-sheet>.v4-sheet-body.bajado{-webkit-mask-image:linear-gradient(transparent,#000 28px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(transparent,#000 28px,#000 calc(100% - 40px),transparent);}
+  select.af-in.aely-sv-apartado{width:100%;min-width:0;}
   .aely-sv-eur{position:relative;display:flex;flex:1 1 90px;min-width:0;}
   .aely-sv-eur .af-in.num{padding-right:26px;width:100%;}
   .aely-sv-eur i{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--muted);pointer-events:none;}
   .aely-savings-edit-line .ex-del{opacity:.9;}
-  .v4-bol-nm{flex:1 1 110px;min-width:0;font-weight:650;font-size:14.5px;overflow-wrap:anywhere;}
-  .v4-bol-row>b{white-space:nowrap;margin-left:auto;}
+  .v4-bol-nm{flex:1 1 110px;min-width:0;font-weight:700;font-size:15px;overflow-wrap:anywhere;}
+  .v4-bol-t{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.35;}
+  .v4-bol-nm:has(>.v4-bol-quita){display:flex;align-items:center;gap:2px;}
+  .v4-bol-nm:has(>.v4-bol-quita) .v4-bol-t{min-width:0;}
+  .v4-bol-row>b,.v4-bol-sub b,.cas-bolsa b{font-family:'Fraunces',Georgia,serif;font-size:var(--fs-row-amt,17px);font-weight:550;font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:auto;}
+  .v4-bol-multi{width:100%;flex-wrap:nowrap;min-height:52px;border-width:0 0 1px;background:none;color:inherit;font-family:inherit;text-align:left;cursor:pointer;}
+  .v4-bol-multi .chev{width:18px;height:18px;flex:0 0 auto;opacity:.6;}
+  .v4-bol-sub{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 28px 8px 14px;border-bottom:1px solid var(--line-soft);font-size:15px;font-weight:700;}
+  .v4-bol-sub span{min-width:0;overflow-wrap:anywhere;}
   .v4-bol-step{display:flex;align-items:center;gap:4px;margin-left:auto;}
   .v4-bol-step button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);font:inherit;font-size:22px;font-weight:700;cursor:pointer;}
   .v4-bol-step input{width:4.6em;height:40px;min-width:0;padding:0;border:0;background:none;color:var(--text);font:inherit;font-size:16px;font-weight:700;text-align:right;}
   .v4-bol-add,.cas-bolsas-edit{min-height:44px;border:0;background:none;color:var(--mint-ink,var(--mint));font:inherit;font-weight:700;font-size:14px;cursor:pointer;padding:0;}
   .cas-bolsas{padding:0 0 4px 17px;}
-  .cas-bolsa{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;padding:6px 0;font-size:14px;}
+  .cas-bolsa{display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;padding:6px 0;font-size:15px;font-weight:700;}
   .cas-bolsa span{min-width:0;overflow-wrap:anywhere;}
-  .cas-bolsa b{white-space:nowrap;margin-left:auto;font-weight:600;}
+  html.hugetext .cas-bolsa{flex-wrap:wrap;}
   .v4-card-list{display:flex;flex-direction:column;gap:0;}
   /* En claro el chip elegido va relleno, como en oscuro, pero con `--mint-ink`: el blanco sobre el
      tinte del 12 % no se leía (banco de «¿Y si gasto…?», auditoría 216, N1) y sobre `--mint`

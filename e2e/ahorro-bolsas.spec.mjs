@@ -63,7 +63,11 @@ test("muchas bolsas, bolsa nueva sin importe y teclado", async ({ page }) => {
   await page.route("**/*", (r) => new URL(r.request().url()).hostname === "127.0.0.1" ? r.continue() : r.abort());
   await seedLoggedInDashboard(page, Object.assign({}, estado, { aportaciones: muchas }));
   await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
   await dismissNews(page);
+  // Sin media transición en la captura: se espera a que acaben las animaciones de entrada.
+  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== "running" || a.effect.getComputedTiming().iterations === Infinity));
   await foto(page, "bolsas-inicio-exterior");
   await page.locator(".v4-budget").first().click();
   const bs = page.locator(".v4-budget-sheet");
@@ -71,6 +75,22 @@ test("muchas bolsas, bolsa nueva sin importe y teclado", async ({ page }) => {
   await bs.getByTestId("budget-ahorro-toggle").click();
   await foto(page, "bolsas-hoja-muchas");
   await dentro(bs.locator(".v4-cta"), 760);
+  // Sin foco, con punto de millar; con foco, sin él; al salir, vuelve.
+  const inv = bs.getByRole("textbox", { name: "Inversión" });
+  await expect(inv).toHaveValue("1.250,75");
+  await inv.focus();
+  await expect(inv).toHaveValue("1250,75");
+  await inv.blur();
+  await expect(inv).toHaveValue("1.250,75");
+  // «Otros» con dos aportaciones se despliega.
+  const otros = bs.locator('button[data-bolsa="otros"]');
+  await otros.click();
+  await expect(otros).toHaveAttribute("aria-expanded", "true");
+  await expect(bs.locator(".v4-bol-sub")).toHaveText([/Fondo indexado\s*20/, /Plan\s*30/]);
+  await bs.locator(".v4-sheet-body").evaluate((e) => { e.scrollTop = e.scrollHeight; });
+  await expect(bs.locator(".v4-sheet-body")).toHaveClass(/bajado/);
+  await foto(page, "bolsas-hoja-otros");
+  await otros.click();
   await bs.getByTestId("budget-bolsa-add").click();
   await foto(page, "bolsas-hoja-nueva");
   await dentro(bs.locator('[data-bolsa="nueva"]'), 760);

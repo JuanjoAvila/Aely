@@ -1070,6 +1070,12 @@ function ahorroImporteDe(raw){
   }
   const n=parseFloat(s); return isFinite(n)?Math.max(0,n):0;
 }
+// Cómo se enseña un importe en un campo SIN foco: con punto de millar y los céntimos que tenga. Se relee con
+// `ahorroImporteDe` sin perder un céntimo; con foco se escribe sin separador de millar.
+function ahorroTexto(v){
+  const dec=numDecSep(), p=String(+v.toFixed(2)).split(".");
+  return p[0].replace(/\B(?=(\d{3})+(?!\d))/g,dec===","?".":",")+(p[1]?dec+p[1]:"");
+}
 /* APORTACIÓN MENSUAL a bancos y brókers (`state.aportaciones`). Vivía en Metas como «Ahorro
    mensual», junto a las reglas que sí apartan dinero para cada meta, y se confundían (dueño,
    18/11/2026). No va a ninguna meta: alimenta la proyección de Inversiones y reconoce la salida al
@@ -1138,17 +1144,16 @@ function SavingsPlanCard({state, set, totals, showToast}){
     !editing && aps.map(function(ap){
       return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
         React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"},
-          [ap.ent?entOf(ap.ent).label:"", (bolsaDe(ap)==="emergencia"||bolsaDe(ap)==="inversion")&&ap.name!==t("bolsa_"+bolsaDe(ap))?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
+          [ap.ent?entOf(ap.ent).label:"", bolsaDe(ap)!=="propia"&&ap.name!==t("bolsa_"+bolsaDe(ap))?t("bolsa_"+bolsaDe(ap)):""].filter(Boolean).join(" · "))),
         React.createElement("span",{className:"num aely-savings-amt"}, tf("fj_permonth",{x:eur(Number(ap.amount)||0)})));
     }),
     editing && drafts.map(function(d){
       const auto=nombreDeApartado(d);
-      const apartado=React.createElement("label",{className:"aely-sv-apartado"},
-        React.createElement("span",null,t("bolsa_sel")),
-        React.createElement("select",{className:"af-in","aria-label":t("bolsa_sel"),value:d.bolsa||"otros",onChange:function(e){ setApartado(d.id,e.target.value); }},
-          ["emergencia","inversion","propia","otros"].map(function(k){ return React.createElement("option",{key:k,value:k},t("bolsa_"+k)); })));
+      // El apartado va siempre primero, también con nombre propio: todas las filas se leen igual.
       return React.createElement("div",{className:"aely-savings-edit-row",key:d.id,"data-savings-draft":d.id},
-        auto?apartado:React.createElement("input",{className:"af-in","aria-label":t("sv_name_aria"),placeholder:t("sv_name_ph"),value:d.name,
+        React.createElement("select",{className:"af-in aely-sv-apartado","aria-label":t("bolsa_sel"),value:d.bolsa||"otros",onChange:function(e){ setApartado(d.id,e.target.value); }},
+          ["emergencia","inversion","propia","otros"].map(function(k){ return React.createElement("option",{key:k,value:k},t("bolsa_"+k)); })),
+        !auto&&React.createElement("input",{className:"af-in","aria-label":t("sv_name_aria"),placeholder:t("sv_name_ph"),value:d.name,
           onChange:function(e){ setD(d.id,"name",e.target.value); }}),
         React.createElement("div",{className:"aely-savings-edit-line"},
           React.createElement("span",{className:"aely-sv-eur"},
@@ -1158,8 +1163,7 @@ function SavingsPlanCard({state, set, totals, showToast}){
           React.createElement("select",{className:"af-in","aria-label":t("sv_bank_aria"),value:d.ent,onChange:function(e){ setD(d.id,"ent",e.target.value); }},
             !d.ent&&React.createElement("option",{key:"",value:""},t("sv_sin_banco")),
             AP_ENTS.map(function(k){ return React.createElement("option",{key:k,value:k},entOf(k).label); })),
-          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")),
-        !auto&&apartado);
+          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")));
     }),
     editing && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:add}, "+ "+t("sv_add")),
     editing && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:8},"data-savings-save":"1",onClick:save}, t("fj_save"))
