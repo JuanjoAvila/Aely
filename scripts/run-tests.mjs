@@ -261,6 +261,7 @@ const steps = [
   ["expense-transfer-rename", ["node", "--test", "--test-concurrency=1", "tests/expense-transfer-rename.test.mjs"]],
   ["divisa-original", ["node", "tests/divisa-original.test.mjs"]],
   ["wallet-notis", ["node", "tests/wallet-notis.test.mjs"]],
+  ["ingest-comercio-numerico", ["node", "tests/ingest-comercio-numerico.test.mjs"]],
   ["invest-category", ["node", "tests/invest-category.test.mjs"]],
   ["recompensas-tr", ["node", "tests/recompensas-tr.test.mjs"]],
   ["tr-monthly-invest-confirm", ["node", "tests/tr-monthly-invest-confirm.test.mjs"]],
