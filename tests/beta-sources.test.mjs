@@ -7108,7 +7108,7 @@ test("Catálogo261 abre la nota 4.26.261 con la tanda beta-260 de los apartados,
     assert.equal(notes[0].items[lang].length,6,lang+": seis puntos familiares (el quinto, los arreglos de Plan del 26/11; el sexto, el importe de la escalera de H7)");
     for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
     const steps=notes[0].tandas[0].items[lang];
-    assert.equal(steps.length,10,lang+": diez pasos, lo que se puede probar hoy en el móvil");
+    assert.equal(steps.length,11,lang+": once pasos, lo que se puede probar hoy en el móvil (el undécimo, el importe de la escalera de H7)");
     assert.ok(steps.every((s,i)=>s.startsWith((i+1)+". ")),lang+": pasos numerados");
     for(const step of steps)assert.ok(/MAL|WRONG|MALAMENT/.test(step)&&/BIEN|RIGHT|BÉ/.test(step),lang+": cada paso dice qué es MAL y qué es BIEN");
   }
