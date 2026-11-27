@@ -13,21 +13,24 @@
         "Se reparte desde Inicio, al tocar el presupuesto. Lo que ya tenías aparece en «Otros».",
         "«A dónde va tu sueldo» enseña cuánto va a cada apartado.",
         "Lo que apartas para emergencias o para un objetivo propio no cuenta como inversión en las previsiones.",
-        "En «A dónde va tu sueldo», «Gastos» resta solo lo que ya has gastado y el final ya no queda tapado; además, la «i» de Plan es más discreta y los importes grandes van sin recuadro."
+        "En «A dónde va tu sueldo», «Gastos» resta solo lo que ya has gastado y el final ya no queda tapado; además, la «i» de Plan es más discreta y los importes grandes van sin recuadro.",
+        "En la escalera de una deuda, el importe al mes ya no se parte en dos líneas con la letra más grande."
       ],
       "en": [
         "Your monthly savings can be split into pots: Emergency, Investing and any you want to create.",
         "Split them from Home, by tapping the budget. What you already had shows up under Other.",
         "Where your pay goes shows how much goes into each pot.",
         "Money set aside for emergencies or for your own goal does not count as investment in forecasts.",
-        "In Where your pay goes, Spending subtracts only what you have already spent and the bottom is no longer covered; also, the Plan «i» is more discreet and large amounts have no box behind them."
+        "In Where your pay goes, Spending subtracts only what you have already spent and the bottom is no longer covered; also, the Plan «i» is more discreet and large amounts have no box behind them.",
+        "On a debt's payment steps, the monthly amount no longer splits across two lines with the largest text size."
       ],
       "ca": [
         "L'estalvi al mes es pot repartir en guardioles: Emergència, Inversió i les que vulguis crear.",
         "Es reparteix des d'Inici, tocant el pressupost. El que ja tenies apareix a «Altres».",
         "«On va el teu sou» ensenya quant va a cada guardiola.",
         "El que apartes per a emergències o per a un objectiu propi no compta com a inversió a les previsions.",
-        "A «On va el teu sou», «Despeses» resta només el que ja has gastat i el final ja no queda tapat; a més, la «i» de Pla és més discreta i els imports grans van sense requadre."
+        "A «On va el teu sou», «Despeses» resta només el que ja has gastat i el final ja no queda tapat; a més, la «i» de Pla és més discreta i els imports grans van sense requadre.",
+        "A l'escala d'un deute, l'import al mes ja no es parteix en dues línies amb la lletra més gran."
       ]
     },
     "tandas": [
@@ -49,7 +52,8 @@
             "7. En Plan mira «Recibos», «Deudas» y «Metas». BIEN: la «i» va pegada al título, pequeña como la de «Patrimonio neto» en Inicio, y abre «A dónde va tu sueldo». MAL: sale verde, grande, suelta junto a la cifra o no abre.",
             "8. Abre «A dónde va tu sueldo» y baja hasta el final. BIEN: la última línea se lee entera, por encima de la barra de gestos del móvil. MAL: queda tapada o cortada.",
             "9. Plan › Deudas › «Añadir»: mira el importe grande. Haz lo mismo en Metas › «Añadir». Cierra sin guardar. BIEN: la cifra solo lleva el subrayado, sin recuadro detrás. MAL: sale un recuadro de color.",
-            "10. Cartera › «Tus inversiones» › «Ver todo ›» › «Aportación mensual» › «Editar». Escribe 12500,75 en una fila y toca «Cancelar». BIEN: la cifra se ve entera, con sus dos decimales y el «€». MAL: se corta, se tapa o, tras cancelar, queda cambiada."
+            "10. Cartera › «Tus inversiones» › «Ver todo ›» › «Aportación mensual» › «Editar». Escribe 12500,75 en una fila y toca «Cancelar». BIEN: la cifra se ve entera, con sus dos decimales y el «€». MAL: se corta, se tapa o, tras cancelar, queda cambiada.",
+            "11. Pon la letra de la app en Enorme. Plan › Deudas: abre una deuda con escalera de cuotas y toca sus escalones. BIEN: el importe al mes («−… €/mes») se lee entero en una sola línea. MAL: el importe se parte en dos líneas."
           ],
           "en": [
             "1. Home: note your current savings per month, tap the budget card and then «Savings per month». RIGHT: it opens with Emergency, Investing and «Other», what you already had is under «Other» (or the pot you gave it) and the total is the same as before. WRONG: the total changes or money is missing.",
@@ -61,7 +65,8 @@
             "7. In Plan look at «Bills», «Debts» and «Goals». RIGHT: the «i» sits next to the title, small like the one on «Net worth» in Home, and opens «Where your pay goes». WRONG: it is green, large, loose beside the figure or does not open.",
             "8. Open «Where your pay goes» and scroll to the end. RIGHT: the last line is fully readable, above the phone's gesture bar. WRONG: it is covered or cut off.",
             "9. Plan › Debts › «Add»: look at the large amount. Do the same in Goals › «Add». Close without saving. RIGHT: the figure only has the underline, with no box behind it. WRONG: a coloured box shows up.",
-            "10. Portfolio › «Your investments» › «See all ›» › «Monthly contribution» › «Edit». Type 12500.75 in a row and tap «Cancel». RIGHT: the figure is fully visible, with both decimals and the «€». WRONG: it is cut off, covered or stays changed after cancelling."
+            "10. Portfolio › «Your investments» › «See all ›» › «Monthly contribution» › «Edit». Type 12500.75 in a row and tap «Cancel». RIGHT: the figure is fully visible, with both decimals and the «€». WRONG: it is cut off, covered or stays changed after cancelling.",
+            "11. Set the app text size to Huge. Plan › Debts: open a debt with payment steps and tap its steps. RIGHT: the monthly amount («−… €/mo») reads whole on one line. WRONG: the amount splits across two lines."
           ],
           "ca": [
             "1. Inici: apunta el que tens ara d'estalvi al mes, toca la targeta del pressupost i després «Estalvi al mes». BÉ: es desplega amb Emergència, Inversió i «Altres», el que ja tenies surt a «Altres» (o a la guardiola que li hagis posat) i el total és el mateix d'abans. MALAMENT: el total canvia o falten diners.",
@@ -73,7 +78,8 @@
             "7. A Pla mira «Rebuts», «Deutes» i «Metes». BÉ: la «i» va enganxada al títol, petita com la de «Patrimoni net» a Inici, i obre «On va el teu sou». MALAMENT: surt verda, gran, solta al costat de la xifra o no obre.",
             "8. Obre «On va el teu sou» i baixa fins al final. BÉ: l'última línia es llegeix sencera, per damunt de la barra de gestos del mòbil. MALAMENT: queda tapada o tallada.",
             "9. Pla › Deutes › «Afegir»: mira l'import gran. Fes el mateix a Metes › «Afegir». Tanca sense desar. BÉ: la xifra només porta el subratllat, sense requadre darrere. MALAMENT: surt un requadre de color.",
-            "10. Cartera › «Les teves inversions» › «Veure-ho tot ›» › «Aportació mensual» › «Edita». Escriu 12500,75 en una fila i toca «Cancel·la». BÉ: la xifra es veu sencera, amb els dos decimals i el «€». MALAMENT: es talla, es tapa o, en cancel·lar, queda canviada."
+            "10. Cartera › «Les teves inversions» › «Veure-ho tot ›» › «Aportació mensual» › «Edita». Escriu 12500,75 en una fila i toca «Cancel·la». BÉ: la xifra es veu sencera, amb els dos decimals i el «€». MALAMENT: es talla, es tapa o, en cancel·lar, queda canviada.",
+            "11. Posa la lletra de l'app a Enorme. Pla › Deutes: obre un deute amb escala de quotes i toca'n els graons. BÉ: l'import al mes («−… €/mes») es llegeix sencer en una sola línia. MALAMENT: l'import es parteix en dues línies."
           ]
         }
       }
