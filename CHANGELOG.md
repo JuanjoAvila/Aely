@@ -1,3 +1,7 @@
+## [4.26.262] — 2026-11-28 · Candidata de beta, solo web: la 261 re-numerada con H7
+
+- **Por qué otra versión.** H7 (el importe de la escalera de una deuda no se parte a 360 px con letra Enorme, PR #365) entró después del commit que subió a la 4.26.261 y `docs-frescura` lo daba por no publicable. La 4.26.261 no llegó a servirse: su nota pasa tal cual a la 262, sin duplicarla, y la tanda `beta-260` sigue igual (once pasos, el undécimo el de H7).
+
 ## [4.26.261] — 2026-11-26 · Candidata de beta, solo web: la 260 re-numerada con los arreglos de Plan
 
 - **Por qué otra versión.** Los arreglos del 26/11 (abajo, en la 4.26.260: «Te sobran», visual e integración, más el importe entero en Cartera) entraron después del ancla de versión (cb053005e) y `docs-frescura` los daba por no publicables. La 4.26.260 no llegó a servirse (beta seguía en la 4.26.259): su nota pasa tal cual a la 261.

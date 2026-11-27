@@ -77,7 +77,7 @@
 | H2-H4 (P3) | **Arreglado en la 4.26.259**, en beta: la meta cumplida ya no enseña el interruptor. Falta su prueba |
 | `quedaPagar` | Sin probar frente a la tarjeta de Recibos en ciclos que cruzan de mes |
 | `possibleDup` | Se trata distinto en Plan y en Gastos al netear «otros ingresos» |
-| «−260 €/mes» | **Arreglado en la 4.26.261 (H7, PR #365)**: el importe va en un trozo que no se parte. Falta su prueba (paso 11 de `beta-260`) |
+| «−260 €/mes» | **Arreglado en la 4.26.262 (H7, PR #365)**: el importe va en un trozo que no se parte. Falta su prueba (paso 11 de `beta-260`) |
 
 ## 5. Histórico
 
