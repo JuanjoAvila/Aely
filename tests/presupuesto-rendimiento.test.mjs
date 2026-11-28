@@ -557,7 +557,10 @@ const PRESUPUESTO = {
   // Caducidad del reparto y pasado de la gráfica (26/11, fallos de dinero): 2.211.613 B minificado y 607.838 B gzip: 2162 / 595 KiB.
   // Integración de cascada-dinero y cascada-visual sobre los apartados (26/11): la previsión de «Te sobran» en tres idiomas deja
   // el minificado en 2163 KiB; el gzip cabe en 595. Mismo mandato del 11/10: al mínimo medido.
-  minificado: 2163 * 1024,
+  // 4.26.262 (28/11/2026): H7 y las bolsas dejan la build sellada en 2.215.119 B minificado y 608.911 B gzip (2163,2 / 594,6 KiB),
+  // rozando los dos topes: la CI de beta paró en «Ensamblar y sellar». Es producto pedido, sin nada que recortar; el mandato del
+  // 11/10 dice que el tamaño no bloquea. Se deja aire de verdad (~9 KiB / ~5 KiB) para que la próxima nota no vuelva a parar la beta.
+  minificado: 2172 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -600,7 +603,7 @@ const PRESUPUESTO = {
   // Ronda 238 (17/11): el neto de un banco con dos cuentas de recibos lo carga una sola, y reordenar, borrar o
   // cambiar de rol conserva el saldo de la hermana. 541.541 → 542.097 B gzip (+556), 401 por encima. Es lógica
   // de dinero (un recibo restado varias veces del «Tienes hoy»); SUBE (mandato 11/10) a 530 KiB, 623 B de aire.
-  gzip: 595 * 1024, // 24/11 (4.26.255: 587 KiB medidos con la build sellada, 1 KiB de aire; antes 588 sin aire). 22/11 (4.26.252, E2 H1/H3/H4; antes 586 en la 251). 21/11 (CI sellada pesa ~1 KiB mas que la local): ver el comentario de minificado (Plan A y sin conexión, 21/11/2026, integración 250); antes 571 KiB en la 249.
+  gzip: 600 * 1024, // 28/11 (4.26.262, H7 y bolsas: 594,6 KiB sellados, al 100 %; ver el comentario de minificado). 24/11 (4.26.255: 587 KiB medidos con la build sellada, 1 KiB de aire; antes 588 sin aire). 22/11 (4.26.252, E2 H1/H3/H4; antes 586 en la 251). 21/11 (CI sellada pesa ~1 KiB mas que la local): ver el comentario de minificado (Plan A y sin conexión, 21/11/2026, integración 250); antes 571 KiB en la 249.
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

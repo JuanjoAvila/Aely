@@ -1,6 +1,7 @@
 ## [4.26.262] — 2026-11-28 · Candidata de beta, solo web: la 261 re-numerada con H7
 
 - **Por qué otra versión.** H7 (el importe de la escalera de una deuda no se parte a 360 px con letra Enorme, PR #365) entró después del commit que subió a la 4.26.261 y `docs-frescura` lo daba por no publicable. La 4.26.261 no llegó a servirse: su nota pasa tal cual a la 262, sin duplicarla, y la tanda `beta-260` sigue igual (once pasos, el undécimo el de H7).
+- **CI de beta en rojo el 28/11 (solo tests, run 46096210769).** La build sellada pesa 2.215.119 B minificado y 608.911 B gzip, justo en los topes de `presupuesto-rendimiento` (2163 / 595 KiB): suben a 2172 / 600 KiB con aire, sin recortar producto (mandato 11/10: el tamaño no bloquea). Y `revisar-beta` «beta200» esperaba 5 puntos en la nota de la 262, que tiene 6 en los tres idiomas desde que entró H7: el ancla pasa a 6.
 - **`plan-fin-deuda` en rojo el 28/11 (solo tests).** El oráculo del test leía el reloj REAL de Node (`Date.now()`) mientras el motor va clavado en el 21/11: el día 28 la cuota del día 28 ya no estaba «pendiente» para el oráculo y sí para el motor, y salía 24327 frente a 24328. `debtUltimoMes` estaba bien (mismo mes de última cuota mirado cualquier día de nov.–mar., en UTC y en Madrid); el oráculo pasa a usar `AHORA` del banco de pruebas.
 
 ## [4.26.261] — 2026-11-26 · Candidata de beta, solo web: la 260 re-numerada con los arreglos de Plan

@@ -1857,7 +1857,8 @@ for(const lang of ["es","en","ca"])test(`beta200: la nota nueva del botón de fi
   expect(pack).toEqual({tandas:8,items:50});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(5);
+  // 6 desde la 4.26.262 (28/11): la nota suma la línea de H7 en los tres idiomas; antes 5.
+  expect(items.length).toBe(6);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
