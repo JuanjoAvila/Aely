@@ -151,7 +151,7 @@ function makeHandler(db, classifier=logic, code=handlerJs) {
     "extraerConcepto", "extraerImporte", "extraerPersona", "limpiarTexto", "aEuros", "parseWallet",
     "claveEvento", "esGemeloIngest", "tieneGemeloAnterior", "ordinalIngest", "fechaEventoOrdinal", "sourceIngestOrdinal", "ordinalEvento", "bucketKey", "callerIp", "rateLimit",
     "bancosDeGastoDiario", "cuentaParaPresupuesto", "filasComoLaApp", "inicioDeMesMs", "statsDelMes",
-    "widgetSnapshot", "widgetStart", "readWidgetRows",
+    "widgetSnapshot", "widgetStart", "readWidgetRows", "snapshotConMotivo", "sinBloquear",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
     "NOMBRE_RECOMPENSA", "recompensaTR",
   ];
@@ -163,7 +163,7 @@ function makeHandler(db, classifier=logic, code=handlerJs) {
     async () => "bucket", () => "127.0.0.1", async () => ({ ok: true }),
     budget.bancosDeGastoDiario, budget.cuentaParaPresupuesto, budget.filasComoLaApp,
     budget.inicioDeMesMs, budget.statsDelMes,
-    widgetBudget.widgetSnapshot, widgetBudget.widgetStart, widgetBudget.readWidgetRows,
+    widgetBudget.widgetSnapshot, widgetBudget.widgetStart, widgetBudget.readWidgetRows, widgetBudget.snapshotConMotivo, widgetBudget.sinBloquear,
     entrada.INGEST_MAX_BODY, entrada.INGEST_MAX_COMERCIO, entrada.INGEST_MAX_NOTA,
     entrada.INGEST_MAX_TEXTO, entrada.recortar, entrada.timingSafeEqual,
     logic.NOMBRE_RECOMPENSA, logic.recompensaTR,
