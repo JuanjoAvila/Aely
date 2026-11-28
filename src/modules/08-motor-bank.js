@@ -1279,7 +1279,11 @@ function debtPaymentState(s,d,y,m,today){
     var identity=fixedPaymentIdentity(bank,x);
     // Vincular un apunte manual o una notificación no prueba que el saldo ya incluya el
     // pago: sin origen bancario hace falta un BOOK único (NO-GO de revisión, 3/10/2026).
-    if(x.source!=="ob"&&(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; }).length!==1) return false;
+    // Salvo la NOTIFICACIÓN del banco que él/ella confirmó como cuota (`debtManual`): la financiación
+    // cobrada a 158,60 con cuota de 158,53 llegaba así y ni confirmándola dejaba de salir pendiente
+    // (feedback 2026-11-28). El cobro lo avisó el banco y la persona dijo que es la cuota. Un apunte
+    // tecleado a mano sigue sin probar nada: ahí no hay banco detrás.
+    if(x.source!=="ob"&&!(x.debtManual&&x.source==="macrodroid")&&(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; }).length!==1) return false;
     return fixedPaymentFeedClear(s,identity)&&(s.expenses||[]).filter(function(other){
       return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
     }).length===1;
@@ -4621,6 +4625,33 @@ function marcarCuotaAMano(s, expenseId, debtId){
   const ak=cuotaAliasKey(orig);
   if(ak){ out.cuotaAlias=Object.assign({}, s.cuotaAlias||{}); out.cuotaAlias[ak]=d.id; }
   return { state:Object.assign({}, s, out), e:e };
+}
+/* «Sí, es la cuota» desde la ficha de la deuda en Recibos (feedback 2026-11-28): cuota de 158,53 y el
+   banco cobra 158,60 cada mes. Confirmar un mes y que el anterior siga dudando obligaba a ir mes a mes
+   por Gastos, así que se confirman a la vez todos los cargos ya enlazados a ESA deuda con ESE importe.
+   Va por `marcarCuotaAMano`, la misma puerta que la chapa de Gastos. → {state, subir:[filas]}. */
+function confirmarCobrosDeuda(s, debtId, importe){
+  const c=Math.round(Number(importe)*100), borrados=expenseDeletedSet(s);
+  const ids=((s&&s.expenses)||[]).filter(function(x){
+    return x&&x.debtId===debtId&&x.category==="deudas"&&!x.debtManual&&!x.possibleDup&&Math.round(Number(x.amount)*100)===c&&!expenseIsTombstoned(x,borrados);
+  }).map(function(x){ return x.id; });
+  let st=s; const subir=[];
+  ids.forEach(function(id){ const r=marcarCuotaAMano(st,id,debtId); if(r){ st=r.state; subir.push(r.e); } });
+  return {state:st, subir:subir};
+}
+/* «Cambiar la cuota a X»: lo que cobra el banco pasa a ser la cuota. Va por `debtEditResult`, la misma
+   puerta que Editar deuda (re-ancla el saldo y valida el plazo; con la cuota que amortiza, `amort` la
+   sigue). Si esa puerta lo rechaza no se toca nada y vuelve el error para decirlo. Los cargos con ese
+   importe quedan además confirmados: ella ya dijo que eso es la cuota, y una notificación sin
+   movimiento del banco no la daría por pagada solo por casar los céntimos. → {state, subir} o {error}. */
+function cambiarCuotaAlCobro(s, debtId, importe){
+  const d=((s&&s.debts)||[]).find(function(x){ return x&&x.id===debtId; });
+  if(!d||!(Number(importe)>0)) return {error:"plan_edit_invalid"};
+  const r=debtEditResult(d,Object.assign(debtEditDraft(d),{monthly:String(Math.round(Number(importe)*100)/100)}));
+  if(!r.item) return {error:r.error||"plan_edit_invalid"};
+  const st=planEditCommit(s,"debts",d,r.item);
+  if(st===s) return {error:"plan_edit_changed"};
+  return confirmarCobrosDeuda(st,debtId,importe);
 }
 /* «ES APORTACIÓN A LA META X» (decisión suya del 24/10/2026). Qué cargo admite la marca:
    · del banco (`ob`/`ob-hist`): es lo único que sabe llevarla en `source` y que viaja a la nube y

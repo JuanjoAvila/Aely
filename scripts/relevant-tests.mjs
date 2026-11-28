@@ -447,6 +447,12 @@ export const E2E_MAP = [
   { file: "src/modules/04-tab-gastos.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
   { file: "src/modules/00-core.js", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
   { file: "src/shell.html", specs: ["e2e/plan-recibos-qa.spec.mjs"] },
+  // Cuota cobrada con unos céntimos de más: la ficha de Recibos (14) la confirma o cambia la cuota con
+  // `confirmarCobrosDeuda`/`cambiarCuotaAlCobro` (08), que pasan por `debtEditResult` (09), en es/en/ca (01).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/deuda-cuota-centimos.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/deuda-cuota-centimos.spec.mjs"] },
+  { file: "src/modules/09-tab-debts-goals.js", specs: ["e2e/deuda-cuota-centimos.spec.mjs"] },
+  { file: "src/modules/01-i18n.js", specs: ["e2e/deuda-cuota-centimos.spec.mjs"] },
   // Tanda 5: personas y compartidos. El reparto, «Te deben» y «Lo descuento» viven en 08 (y mueven
   // el recorrido de «¿Te llega?»), la mezcla de dos móviles en 00, la cuota con su descuento en
   // Deudas (09) e Inicio (03), y las hojas en 14.

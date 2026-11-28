@@ -252,7 +252,7 @@ test("cuota enlazada por el motor con otro importe: se abre su ficha con el carg
   await expect(ficha).toBeVisible();
   await expect(ficha.getByTestId("deuda-cargo")).toContainText("641,27 €");
   await expect(ficha.getByTestId("deuda-cargo")).toHaveAttribute("data-acredita", "0");
-  await expect(ficha.getByTestId("deuda-nota")).toHaveText("Se cobró 641,27 € y la cuota es 640,00 €.");
+  await expect(ficha.getByTestId("deuda-nota")).toHaveText("El banco cobró 1,27 € más que la cuota.");
   // Sin pagar, el cargo no lleva un aro vacío que parezca algo que marcar.
   await expect(ficha.getByTestId("deuda-cargo").locator(".pr6-ring")).toHaveCount(0);
   await expect(page.locator('.v4-seg-btn[data-seg="recibos"]')).toHaveAttribute("aria-selected", "true");

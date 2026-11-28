@@ -83,6 +83,12 @@ for(const [label,patch] of [["59 EUR",{amount:59}],["641,27 EUR",{amount:641.27}
 test("a mano también pasa los demás filtros: sin BOOK, otra deuda o futuro no acreditan",()=>{
   for(const patch of [{status:"PDNG"},{debtId:"loan-b"},{date:date(4)},{source:"manual"}]) assert.equal(pending(state({expenses:[{...expense,amount:59,debtManual:true,...patch}]})).length,1,JSON.stringify(patch));
 });
+/* La notificación del banco confirmada como cuota («Sí, es la cuota», feedback 2026-11-28) acredita sin
+   movimiento del banco; sin confirmar, no. El apunte tecleado (arriba, source "manual") sigue sin acreditar. */
+test("notificación del banco confirmada a mano acredita con otro importe; sin confirmar, no",()=>{
+  assert.equal(pending(state({expenses:[{...expense,amount:59,source:"macrodroid",debtManual:true}]})).length,0);
+  assert.equal(pending(state({expenses:[{...expense,source:"macrodroid"}]})).length,1);
+});
 test("la exacta manda: otra marcada a mano con otro importe no deshace el pago",()=>{
   const s=state({expenses:[expense,{...expense,id:"charge-b",merchant:"Otro",obName:"Otro",amount:15,debtManual:true}]});
   assert.equal(pending(s).length,0);assert.equal(c.debtPaymentState(s,debt,y,m,2).expense.id,expense.id);

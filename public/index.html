@@ -10122,7 +10122,7 @@ const LANG = {
     pr6_llega_t:"¿Te llega?", pr6_te_faltan:"te faltan", pr6_justo:"lo más justo, el {d}", pr6_justo_hoy:"lo más justo, hoy", pr6_justo_sin:"lo más justo",
     pr6_tienes_hoy:"Tienes hoy", pr6_faltan_recibos:"Recibos que faltan", pr6_dia_n:"{name} · día {d}",
     pr6_pasa:"Pasa {x} a {bank} antes del {d}", pr6_pasa_hoy:"Pasa {x} a {bank} hoy", pr6_pasa_sin:"Pasa {x} a {bank}",
-    pr6_enlazado_x:"Enlazado · {x}", pr6_enlazado:"Enlazado", pr6_enlazado_d:"Enlazado al cargo del {d}", pr6_ver_deuda:"Ver en Deudas", pr6_deuda_importe:"Se cobró {x} y la cuota es {y}.", pr6_deuda_sin_dia:"La cuota no tiene día de cobro.", pr6_deuda_sin_banco:"Aún no está en el extracto del banco.",
+    pr6_enlazado_x:"Enlazado · {x}", pr6_enlazado:"Enlazado", pr6_enlazado_d:"Enlazado al cargo del {d}", pr6_ver_deuda:"Ver en Deudas", pr6_deuda_mas:"El banco cobró {x} más que la cuota.", pr6_deuda_menos:"El banco cobró {x} menos que la cuota.", pr6_es_cuota:"Sí, es la cuota", pr6_cuota_a:"Cambiar la cuota a {x}", pr6_cuota_a_t:"¿Cambiar la cuota a {x}?", pr6_cuota_a_s:"Cambia el total o el plazo de la deuda.", pr6_cuota_a_ok:"Cambiar", pr6_deuda_sin_dia:"La cuota no tiene día de cobro.", pr6_deuda_sin_banco:"Aún no está en el extracto del banco.",
     pr6_de_una_vez:"De una vez", pr6_a_plazos:"A plazos", pr6_meses_n:"{n} meses", pr6_meses:"Meses", pr6_meses_min:"De 2 a 120 meses", pr6_entrada:"Entrada", pr6_entrada_x:"Entrada {x}", pr6_cuota_hasta:"Sin intereses, hasta {d}", pr6_al_mes:"{x}/mes", pr6_plazos_que:"¿Qué compras?", pr6_crear_deuda:"Crear la deuda", pr6_colchon:"Colchón tras el gasto", pr6_colchon_de:"{bank} · mín. {x}",
     pr6_si_gasto:"¿Y si gasto…?", pr6_importe:"Importe", pr6_si_llega:"Llega · te quedan {x}", pr6_no_llega:"No llega · faltan {x}",
     pr6_entra_en:"entra en {bank}", pr6_dia:"día {d}", pr6_dia_menos:"Un día antes", pr6_dia_mas:"Un día después",
@@ -26016,7 +26016,11 @@ function debtPaymentState(s,d,y,m,today){
     var identity=fixedPaymentIdentity(bank,x);
     // Vincular un apunte manual o una notificación no prueba que el saldo ya incluya el
     // pago: sin origen bancario hace falta un BOOK único (NO-GO de revisión, 3/10/2026).
-    if(x.source!=="ob"&&(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; }).length!==1) return false;
+    // Salvo la NOTIFICACIÓN del banco que él/ella confirmó como cuota (`debtManual`): la financiación
+    // cobrada a 158,60 con cuota de 158,53 llegaba así y ni confirmándola dejaba de salir pendiente
+    // (feedback 2026-11-28). El cobro lo avisó el banco y la persona dijo que es la cuota. Un apunte
+    // tecleado a mano sigue sin probar nada: ahí no hay banco detrás.
+    if(x.source!=="ob"&&!(x.debtManual&&x.source==="macrodroid")&&(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; }).length!==1) return false;
     return fixedPaymentFeedClear(s,identity)&&(s.expenses||[]).filter(function(other){
       return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
     }).length===1;
@@ -29358,6 +29362,33 @@ function marcarCuotaAMano(s, expenseId, debtId){
   const ak=cuotaAliasKey(orig);
   if(ak){ out.cuotaAlias=Object.assign({}, s.cuotaAlias||{}); out.cuotaAlias[ak]=d.id; }
   return { state:Object.assign({}, s, out), e:e };
+}
+/* «Sí, es la cuota» desde la ficha de la deuda en Recibos (feedback 2026-11-28): cuota de 158,53 y el
+   banco cobra 158,60 cada mes. Confirmar un mes y que el anterior siga dudando obligaba a ir mes a mes
+   por Gastos, así que se confirman a la vez todos los cargos ya enlazados a ESA deuda con ESE importe.
+   Va por `marcarCuotaAMano`, la misma puerta que la chapa de Gastos. → {state, subir:[filas]}. */
+function confirmarCobrosDeuda(s, debtId, importe){
+  const c=Math.round(Number(importe)*100), borrados=expenseDeletedSet(s);
+  const ids=((s&&s.expenses)||[]).filter(function(x){
+    return x&&x.debtId===debtId&&x.category==="deudas"&&!x.debtManual&&!x.possibleDup&&Math.round(Number(x.amount)*100)===c&&!expenseIsTombstoned(x,borrados);
+  }).map(function(x){ return x.id; });
+  let st=s; const subir=[];
+  ids.forEach(function(id){ const r=marcarCuotaAMano(st,id,debtId); if(r){ st=r.state; subir.push(r.e); } });
+  return {state:st, subir:subir};
+}
+/* «Cambiar la cuota a X»: lo que cobra el banco pasa a ser la cuota. Va por `debtEditResult`, la misma
+   puerta que Editar deuda (re-ancla el saldo y valida el plazo; con la cuota que amortiza, `amort` la
+   sigue). Si esa puerta lo rechaza no se toca nada y vuelve el error para decirlo. Los cargos con ese
+   importe quedan además confirmados: ella ya dijo que eso es la cuota, y una notificación sin
+   movimiento del banco no la daría por pagada solo por casar los céntimos. → {state, subir} o {error}. */
+function cambiarCuotaAlCobro(s, debtId, importe){
+  const d=((s&&s.debts)||[]).find(function(x){ return x&&x.id===debtId; });
+  if(!d||!(Number(importe)>0)) return {error:"plan_edit_invalid"};
+  const r=debtEditResult(d,Object.assign(debtEditDraft(d),{monthly:String(Math.round(Number(importe)*100)/100)}));
+  if(!r.item) return {error:r.error||"plan_edit_invalid"};
+  const st=planEditCommit(s,"debts",d,r.item);
+  if(st===s) return {error:"plan_edit_changed"};
+  return confirmarCobrosDeuda(st,debtId,importe);
 }
 /* «ES APORTACIÓN A LA META X» (decisión suya del 24/10/2026). Qué cargo admite la marca:
    · del banco (`ob`/`ob-hist`): es lo único que sabe llevarla en `source` y que viaja a la nube y
@@ -37258,7 +37289,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="c3c40928e8f125f436c3cfd435c0056121d5fb3b3a3ca3854c558418a0632077";
+var _rnSha="679cb7f567bace0749f3b5cbf225b286e2e6023798ea0cd76db7f12f3e5cd95a";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -40176,7 +40207,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, deshacer.msg),
       React.createElement("button",{type:"button",onClick:deshacerYa}, t("f_undo"))),
-    ficha&&fichaRow&&(fichaRow.kind==="debt"||fichaRow.kind==="balloon")&&React.createElement(DeudaFicha,{key:ficha.id,row:fichaRow,state:state,totals:totals,
+    ficha&&fichaRow&&(fichaRow.kind==="debt"||fichaRow.kind==="balloon")&&React.createElement(DeudaFicha,{key:ficha.id,row:fichaRow,state:state,set:set,showToast:showToast,totals:totals,
       onClose:function(){ setFicha(null); },onGoDebts:onGoDebts}),
     ficha&&fichaRow&&(fichaRow.kind==="income"||fichaRow.kind==="transfer")&&React.createElement(FlujoFicha,{key:ficha.id,row:fichaRow,state:state,set:set,totals:totals,showToast:showToast,
       onDeshacer:avisarDeshacer,onClose:function(){ setFicha(null); },
@@ -40973,7 +41004,7 @@ function useEstadoEstable(state){
   if(ref.current!==state&&!(state&&ref.current&&estadoMismasPorciones(ref.current,state))) ref.current=state;
   return ref.current;
 }
-function DeudaFicha({row, state, totals, onClose, onGoDebts}){
+function DeudaFicha({row, state, set, showToast, totals, onClose, onGoDebts}){
   const swipe=useSheetSwipe(true,onClose);
   useBackClose(true,swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
@@ -40985,10 +41016,32 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
   const ce=useMemo(function(){ return deudaCargoEnlazado(sE,d,y,m,today); },[sE,d,y,m,today]);
   const x=ce&&ce.x, b=x?expenseBankOf(x)||row.bank:row.bank;
   // Pagada con otro importe: se dice lo previsto, como en los recibos («Esperabas X»).
-  const nota=!ce?"":ce.acredita?(Math.round(ce.cuota*100)!==Math.round(Number(x.amount)*100)?tf("pr6_esperabas",{x:eur(ce.cuota)}):""):ce.motivo==="importe"?tf("pr6_deuda_importe",{x:eur(Number(x.amount)),y:eur(ce.cuota)})
+  const nota=!ce?"":ce.acredita?(Math.round(ce.cuota*100)!==Math.round(Number(x.amount)*100)?tf("pr6_esperabas",{x:eur(ce.cuota)}):""):ce.motivo==="importe"?tf(Number(x.amount)>ce.cuota?"pr6_deuda_mas":"pr6_deuda_menos",{x:eur(Math.abs(Math.round(Number(x.amount)*100)-Math.round(ce.cuota*100))/100)})
     :ce.motivo==="sin_dia"?t("pr6_deuda_sin_dia"):t("pr6_deuda_sin_banco");
   // Se cierra la hoja y, al terminar de bajar, Deudas se abre con la deuda a la vista.
   const verDeuda=function(){ swipe.close(); setTimeout(function(){ if(onGoDebts) onGoDebts(id); },320); };
+  /* Cobrada con otro importe (158,60 con cuota de 158,53): solo había «Ver en Deudas» y la nota, y se
+     quedaba dudando; confirmarla vivía escondido en la chapa de Gastos (feedback 2026-11-28). Las dos
+     respuestas valen para todos los meses con ese cargo, no solo el que está a la vista. */
+  const dudaImporte=!!(ce&&!ce.acredita&&ce.motivo==="importe"&&d&&set);
+  const sube=function(filas){ if(cloud.enabled()) (filas||[]).forEach(function(e){ cloud.setExpenseDeuda(e).catch(function(){}); }); };
+  const esCuota=function(){
+    let r=null;
+    set(function(s){ r=confirmarCobrosDeuda(s,d.id,Number(x.amount)); return r.state; });
+    if(r) sube(r.subir);
+    if(showToast) showToast(tf("v4_cuota_confirmada",{name:String(d.name||"").trim()||catName("deudas")}));
+  };
+  const cambiaCuota=function(){
+    const importe=Number(x.amount);
+    askConfirm({title:tf("pr6_cuota_a_t",{x:eur(importe)}),sub:t("pr6_cuota_a_s"),ok:t("pr6_cuota_a_ok")}).then(function(yes){
+      if(!yes) return;
+      let r=null;
+      set(function(s){ r=cambiarCuotaAlCobro(s,d.id,importe); return r.state||s; });
+      if(r&&r.error){ if(showToast) showToast(t(r.error)); return; }
+      if(r) sube(r.subir);
+      if(showToast) showToast(t("plan_edit_saved"));
+    });
+  };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet pr6-ficha","data-sheet":"deuda",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
@@ -41011,6 +41064,9 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
             // El aro vacío parecía algo que marcar: solo sale, lleno, cuando el cargo paga la cuota.
             ce.acredita&&React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
           nota&&React.createElement("div",{className:"pr6-nota","data-testid":"deuda-nota"}, nota),
+          dudaImporte&&React.createElement("div",{className:"pr6-btns pr6-acts"},
+            React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-main","data-act":"es-cuota",onClick:esCuota}, t("pr6_es_cuota")),
+            React.createElement("button",{type:"button",className:"pr6-btn","data-act":"cambiar-cuota",onClick:cambiaCuota}, tf("pr6_cuota_a",{x:eur(Number(x.amount))}))),
           React.createElement("div",{className:"pr6-btns"},
             React.createElement("button",{type:"button",className:"pr6-btn","data-act":"ver-deuda",onClick:verDeuda}, t("pr6_ver_deuda")))))),
     document.body);

@@ -1300,7 +1300,7 @@ function PlanRecibos({state, set, totals, charges, evidence, manageOpen, setMana
     deshacer&&React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"plan-deshacer"},
       React.createElement("span",null, deshacer.msg),
       React.createElement("button",{type:"button",onClick:deshacerYa}, t("f_undo"))),
-    ficha&&fichaRow&&(fichaRow.kind==="debt"||fichaRow.kind==="balloon")&&React.createElement(DeudaFicha,{key:ficha.id,row:fichaRow,state:state,totals:totals,
+    ficha&&fichaRow&&(fichaRow.kind==="debt"||fichaRow.kind==="balloon")&&React.createElement(DeudaFicha,{key:ficha.id,row:fichaRow,state:state,set:set,showToast:showToast,totals:totals,
       onClose:function(){ setFicha(null); },onGoDebts:onGoDebts}),
     ficha&&fichaRow&&(fichaRow.kind==="income"||fichaRow.kind==="transfer")&&React.createElement(FlujoFicha,{key:ficha.id,row:fichaRow,state:state,set:set,totals:totals,showToast:showToast,
       onDeshacer:avisarDeshacer,onClose:function(){ setFicha(null); },
@@ -2097,7 +2097,7 @@ function useEstadoEstable(state){
   if(ref.current!==state&&!(state&&ref.current&&estadoMismasPorciones(ref.current,state))) ref.current=state;
   return ref.current;
 }
-function DeudaFicha({row, state, totals, onClose, onGoDebts}){
+function DeudaFicha({row, state, set, showToast, totals, onClose, onGoDebts}){
   const swipe=useSheetSwipe(true,onClose);
   useBackClose(true,swipe.close);
   const titleRef=useRef(null), titleId=React.useId();
@@ -2109,10 +2109,32 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
   const ce=useMemo(function(){ return deudaCargoEnlazado(sE,d,y,m,today); },[sE,d,y,m,today]);
   const x=ce&&ce.x, b=x?expenseBankOf(x)||row.bank:row.bank;
   // Pagada con otro importe: se dice lo previsto, como en los recibos («Esperabas X»).
-  const nota=!ce?"":ce.acredita?(Math.round(ce.cuota*100)!==Math.round(Number(x.amount)*100)?tf("pr6_esperabas",{x:eur(ce.cuota)}):""):ce.motivo==="importe"?tf("pr6_deuda_importe",{x:eur(Number(x.amount)),y:eur(ce.cuota)})
+  const nota=!ce?"":ce.acredita?(Math.round(ce.cuota*100)!==Math.round(Number(x.amount)*100)?tf("pr6_esperabas",{x:eur(ce.cuota)}):""):ce.motivo==="importe"?tf(Number(x.amount)>ce.cuota?"pr6_deuda_mas":"pr6_deuda_menos",{x:eur(Math.abs(Math.round(Number(x.amount)*100)-Math.round(ce.cuota*100))/100)})
     :ce.motivo==="sin_dia"?t("pr6_deuda_sin_dia"):t("pr6_deuda_sin_banco");
   // Se cierra la hoja y, al terminar de bajar, Deudas se abre con la deuda a la vista.
   const verDeuda=function(){ swipe.close(); setTimeout(function(){ if(onGoDebts) onGoDebts(id); },320); };
+  /* Cobrada con otro importe (158,60 con cuota de 158,53): solo había «Ver en Deudas» y la nota, y se
+     quedaba dudando; confirmarla vivía escondido en la chapa de Gastos (feedback 2026-11-28). Las dos
+     respuestas valen para todos los meses con ese cargo, no solo el que está a la vista. */
+  const dudaImporte=!!(ce&&!ce.acredita&&ce.motivo==="importe"&&d&&set);
+  const sube=function(filas){ if(cloud.enabled()) (filas||[]).forEach(function(e){ cloud.setExpenseDeuda(e).catch(function(){}); }); };
+  const esCuota=function(){
+    let r=null;
+    set(function(s){ r=confirmarCobrosDeuda(s,d.id,Number(x.amount)); return r.state; });
+    if(r) sube(r.subir);
+    if(showToast) showToast(tf("v4_cuota_confirmada",{name:String(d.name||"").trim()||catName("deudas")}));
+  };
+  const cambiaCuota=function(){
+    const importe=Number(x.amount);
+    askConfirm({title:tf("pr6_cuota_a_t",{x:eur(importe)}),sub:t("pr6_cuota_a_s"),ok:t("pr6_cuota_a_ok")}).then(function(yes){
+      if(!yes) return;
+      let r=null;
+      set(function(s){ r=cambiarCuotaAlCobro(s,d.id,importe); return r.state||s; });
+      if(r&&r.error){ if(showToast) showToast(t(r.error)); return; }
+      if(r) sube(r.subir);
+      if(showToast) showToast(t("plan_edit_saved"));
+    });
+  };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet pr6-ficha","data-sheet":"deuda",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
@@ -2135,6 +2157,9 @@ function DeudaFicha({row, state, totals, onClose, onGoDebts}){
             // El aro vacío parecía algo que marcar: solo sale, lleno, cuando el cargo paga la cuota.
             ce.acredita&&React.createElement("span",{className:"pr6-ring on","aria-hidden":"true"},"✓")),
           nota&&React.createElement("div",{className:"pr6-nota","data-testid":"deuda-nota"}, nota),
+          dudaImporte&&React.createElement("div",{className:"pr6-btns pr6-acts"},
+            React.createElement("button",{type:"button",className:"pr6-btn pr6-btn-main","data-act":"es-cuota",onClick:esCuota}, t("pr6_es_cuota")),
+            React.createElement("button",{type:"button",className:"pr6-btn","data-act":"cambiar-cuota",onClick:cambiaCuota}, tf("pr6_cuota_a",{x:eur(Number(x.amount))}))),
           React.createElement("div",{className:"pr6-btns"},
             React.createElement("button",{type:"button",className:"pr6-btn","data-act":"ver-deuda",onClick:verDeuda}, t("pr6_ver_deuda")))))),
     document.body);
