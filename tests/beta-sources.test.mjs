@@ -6478,6 +6478,7 @@ const sourceBeta256=sourceAt("fad0a6bbae8fb093d343d92b751c4a1a02d09a01");
 const sourceBeta258=sourceAt("d687f409c46e04c1709a82bc095bfd6e87bd7050");
 // La 259 servida (cabeza de beta antes de la 260): 01f9c1e9e. Catálogo259 pasa a histórico con la 260.
 const sourceBeta259=sourceAt("01f9c1e9e3cc0d3451e3070e94850e0d5ffd4255");
+const sourceBeta262=sourceAt("e74df84afef39cd70f05218c2a116029c5d9bfe6");
 // 4.26.229 (11/11/2026): tres ramas sobre la beta 4.26.228 aprobada (c4d6b7b9d): el cierre de «Tus recibos» con un desliz rápido
 // (claude/tus-recibos-cierre), «Más opciones» de un solo movimiento (claude/mas-opciones-suave) y tres por sección, sin «¿Me lo
 // puedo permitir?», aviso de duplicado y filas compactas (claude/recibos-tres-y-duplicado). Las diez tandas aprobadas se retiran con
@@ -7086,15 +7087,40 @@ test("Catálogo253 histórico abre la nota 4.26.253 sin tanda nueva, deja intact
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
 });
 
+// 4.26.263 (28/11/2026): sobre la 4.26.262 (e74df84af), tres arreglos que no son web: cobros del widget (claude/fix-widget-cobro),
+// comercio numérico y lector nativo (claude/fix-noti-numerica, el lector requiere APK) y la negación de gasto (claude/fix-gasto-negado).
+// Nota sin tanda nueva; las nueve vivas intactas. Registro: sin cambios (se comprueba). Sin APK nueva: sigue la 64.
+test("Catálogo263 abre la nota 4.26.263 sin tanda nueva, deja intactas las nueve vivas, no toca el registro ni la APK",()=>{
+  const before=JSON.parse(sourceBeta262("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta262("scripts/beta-sources.json"));
+  const source=f=>nl(read(f));
+  assert.equal(before[0].v,"4.26.262");
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.equal(notes.length,before.length+1);assert.equal(notes[0].v,source("VERSION").trim(),"la nota nueva es la de VERSION");
+  assert.deepEqual(notes.slice(1),before,"todo lo anterior intacto, también los pasos de las tandas vivas");
+  assert.deepEqual(notes[0].tandas,[],"sin tanda nueva");
+  const vivas=notes.flatMap(n=>(n.tandas||[]).map(g=>g.id));
+  assert.deepEqual(vivas,["beta-260","beta-249","beta-248","beta-247","beta-246","beta-245","beta-244","beta-243","dinero-242"],"en el panel, las nueve de antes");
+  const jerga=/beta|tanda|panel|APK|contador|sello|(?<![a-z])versión|acuse|cursor|token|Edge|servidor|Open Banking|PSD2|FIN-|SES-|UX-|SEC-|DIS-|DIN-|zoom|PRO-|checksum|CSP|SHA|Flex|API|nonce|cifrad|lote|backfill|ingest|KW|regla de|d+.d+.d+/i;
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,4,lang+": cuatro puntos familiares");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(jerga.test(text),false,lang+": sin jerga: "+text);
+  }
+  assert.deepEqual(JSON.parse(source("scripts/beta-sources.json")),integrated,"registro intacto");
+  const apk=JSON.parse(source("public/apk.json"));
+  assert.equal(apk.versionCode,64);assert.equal(apk.versionName,"4.26.206","sin APK nueva: sigue la 64");
+  const built=betaNotes(notes,source,integrated);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),vivas,"lo que el build entrega al panel");
+});
+
 // 4.26.262 (28/11/2026, la 261 re-numerada con H7; antes 4.26.261 del 26/11): sobre la 4.26.259 (01f9c1e9e), el ahorro en apartados (rama claude/ahorro-bolsas) más los arreglos de Plan del 26/11,
 // solo web. La 260 no llegó a servirse: se re-numera y su tanda suma cinco pasos (6 a 10) para esos arreglos. Las ocho tandas
 // anteriores siguen SIN veredicto; UNA tanda nueva, beta-260. Registro: nueve alcances que pintan Inicio o la hoja de presupuesto suman al final
 // el cierre de los apartados (diseno-240 solo `bolsaDe`), los de la gráfica `aportacionesEnDia`, y entra el descriptor beta-260, el último. Con los arreglos, diseno-240 suma además
 // `bolsasDeAhorro` y `BOLSAS_FIJAS`.
-test("Catálogo261 abre la nota 4.26.262 con la tanda beta-260 de los apartados, deja intactas las ocho vivas, declara lo que crece el registro y no toca la APK",()=>{
+test("Catálogo261 histórico abre la nota 4.26.262 con la tanda beta-260 de los apartados, deja intactas las ocho vivas, declara lo que crece el registro y no toca la APK",()=>{
   const nueva="beta-260",previas=["beta-249","beta-248","beta-247","beta-246","beta-245","beta-244","beta-243","dinero-242"];
   const before=JSON.parse(sourceBeta259("src/data/release-notes.json")),integrated=JSON.parse(sourceBeta259("scripts/beta-sources.json"));
-  const source=f=>nl(read(f));
+  const source=f=>nl(sourceBeta262(f));
   assert.equal(before[0].v,"4.26.259");
   const notes=JSON.parse(source("src/data/release-notes.json"));
   assert.equal(notes[0].v,"4.26.262");assert.equal(notes.length,before.length+1);

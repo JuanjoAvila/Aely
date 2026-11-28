@@ -575,7 +575,7 @@ async function logIngestWidget(supabase: any, userId: string, widget: Record<str
   try {
     const motivo = widget ? "ok" : String(d.motivo || "error").slice(0, 40);
     const detail: Record<string, string | number | string[]> = { motivo };
-    if (d.kind) detail.kind = d.kind;
+    if (d.kind === "mes" || d.kind === "ciclo") detail.kind = d.kind; // lista cerrada: el valor llega del estado del cliente
     if (Number.isSafeInteger(d.start)) detail.desde = new Date(d.start!).toISOString();
     if (Number.isSafeInteger(d.end)) detail.hasta = new Date(d.end!).toISOString();
     const scope = widget ? String(widget.scope) : d.edgeScope;

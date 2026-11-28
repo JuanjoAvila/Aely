@@ -1,5 +1,35 @@
 [
   {
+    "v": "4.26.263",
+    "d": "2026-11-28",
+    "t": {
+      "es": "Gastos que se te escapaban",
+      "en": "Expenses that slipped through",
+      "ca": "Despeses que se t’escapaven"
+    },
+    "items": {
+      "es": [
+        "Los cobros que llegan por el widget ya no se quedan por el camino.",
+        "Un pago en una tienda cuyo nombre es solo un número ya se apunta como gasto.",
+        "Un bizum ya no se toma por un gasto anulado.",
+        "Algunos avisos del banco con el importe en otro sitio se leerán bien con la próxima app que instales."
+      ],
+      "en": [
+        "Payments received through the widget no longer get lost.",
+        "A payment at a shop whose name is just a number is now recorded as an expense.",
+        "A Bizum is no longer mistaken for a cancelled expense.",
+        "Some bank alerts with the amount in a different place will be read correctly with the next app you install."
+      ],
+      "ca": [
+        "Els cobraments que arriben pel widget ja no es queden pel camí.",
+        "Un pagament en una botiga el nom de la qual és només un número ja s’apunta com a despesa.",
+        "Un bizum ja no es pren per una despesa anul·lada.",
+        "Alguns avisos del banc amb l’import en un altre lloc es llegiran bé amb la propera app que instal·lis."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.262",
     "d": "2026-11-26",
     "t": {
