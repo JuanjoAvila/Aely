@@ -3216,7 +3216,14 @@ function BillsManagePush({open, onClose, state, set, totals, simple, editId, add
   const proximo=function(e){
     for(let i=0;i<12;i++){
       const m=(cm-1+i)%12+1, y=cy+Math.floor((cm-1+i)/12);
-      if(occursIn(e,m,y)) return {m:m,y:y,day:cleanDay(dayIn(e,m,y)),amt:occAmountIn(e,m,y)};
+      if(!occursIn(e,m,y)) continue;
+      /* Un compartido cuyo mes ya pagado se pagó ENTERO antes de repartirlo queda congelado en `soloMes`
+         con el cargo del banco y sin reparto (`fixedEditarRecibo`, «Desde ahora»). Ese 20,99 es real para
+         ese mes, pero en la lista de recibos se leía como si tu parte fuera esa con «compartido» al lado:
+         la fila dice lo que te toca del recibo de ahora (feedback 2026-11-28). */
+      const o=repartoVigente(e)&&fixedSoloMes(e,y,m);
+      const congelado=o&&o.amt!=null&&!o.reparto;
+      return {m:m,y:y,day:cleanDay(dayIn(e,m,y)),amt:occAmountIn(congelado?Object.assign({},e,{soloMes:null}):e,m,y)};
     }
     return {m:cm,y:cy,day:cleanDay(e.day),amt:Number(e.amount)||0};
   };
@@ -4501,7 +4508,9 @@ function ReciboPasos({mode, row, once, flujo, nombre, conPersona, state, set, to
       React.createElement("span",{className:"pr6-ficha-t"},
         React.createElement("span",{className:"pr6-ficha-n"}, f.name||"—"),
         React.createElement("span",{className:"pr6-ficha-s"}, subTxt)),
-      React.createElement("span",{className:"serif num pr6-ficha-a","data-rp4":"sum-amt"}, amtTxt)),
+      // Compartido: arriba tu parte, como en la lista. El cargo del banco sigue en la fila «Importe», que
+      // es lo que se teclea; con los dos a 20,99 la cabecera contradecía al «Tu parte» de debajo (feedback 2026-11-28).
+      React.createElement("span",{className:"serif num pr6-ficha-a","data-rp4":"sum-amt"}, rr&&rr.ok&&rr.mia>0?(f.variable?"≈ ":"")+eur(rr.mia):amtTxt)),
     dupEl("dup"),
     React.createElement("div",{key:"r",className:"rp4-rows"},
       filas.map(function(r){

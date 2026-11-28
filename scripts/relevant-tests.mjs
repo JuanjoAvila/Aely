@@ -242,6 +242,11 @@ export const E2E_MAP = [
   { file: "src/shell.html", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/plan-velo-fundido.spec.mjs"] },
+  // Un compartido enseña tu parte en «Tus recibos» y arriba de Editar, también con el mes pagado entero
+  // antes de compartirlo congelado en `soloMes` (feedback 2026-11-28).
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibo-dividido.spec.mjs"] },
+  { file: "src/modules/07-tab-patri-fijos.js", specs: ["e2e/recibo-dividido.spec.mjs"] },
+  { file: "src/modules/08-motor-bank.js", specs: ["e2e/recibo-dividido.spec.mjs"] },
   // Recibos sin fotogramas en blanco: capas que nacen/mueren al tocar y carril de pasos (vídeo 7/11).
   { file: "src/shell.html", specs: ["e2e/recibos-sin-parpadeo.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: ["e2e/recibos-sin-parpadeo.spec.mjs"] },
