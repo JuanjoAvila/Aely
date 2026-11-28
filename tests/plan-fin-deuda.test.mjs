@@ -2,13 +2,15 @@
 // El oráculo es la fórmula de `endsLabel` de la beta 4.26.249, copiada tal cual (mes absoluto): si
 // alguien vuelve a separar las dos cuentas, este test cae. Reloj clavado en el 21/11/2026 (Madrid).
 import assert from "node:assert/strict";
-import {cargarMotor,base,NOV} from "./helpers/plan-reparto-fixture.mjs";
+import {cargarMotor,base,NOV,AHORA} from "./helpers/plan-reparto-fixture.mjs";
 
 const c=cargarMotor();
 const oraculo249=d=>{
   const li=c.debtLeftInfo(d);
   if(!li) return null;
-  const p=c.madridYmdParts(Date.now());
+  // El reloj del MOTOR, no el de Node: con `Date.now()` el oráculo leía el día real y el 28/11 la cuota
+  // del día 28 ya no estaba «pendiente» para él pero sí para el motor (clavado en el 21) → rojo falso.
+  const p=c.madridYmdParts(AHORA);
   const futura=d.months!=null&&li.n>0&&typeof d.asOf==="number"&&d.asOf>(p.y*12+p.m-1);
   const pendiente=d.months!=null&&li.n>0&&!futura&&c.debtChargeDay(d,p.y,p.m)>p.d;
   return futura?d.asOf+li.n-1:p.y*12+p.m-1+li.n-(pendiente?1:0);
