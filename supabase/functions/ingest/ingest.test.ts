@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
-  categorizar, clasificar, extraerComercio, extraerConcepto, extraerImporte, extraerPersona, limpiarTexto,
+  categorizar, clasificar, clasificarConMotivo, extraerComercio, extraerConcepto, extraerImporte, extraerPersona, limpiarTexto,
   recompensaTR,
 } from "../_shared/ingest_logic.ts";
 
@@ -36,6 +36,29 @@ Deno.test("comercio sucio del datáfono: se limpia, no tumba el INSERT", () => {
 Deno.test("extraerComercio: «en» de otra palabra no parte el nombre", () => {
   // Sin el \b, «Orden ejecutada en Apple» daba comercio = «ejecutada en Apple».
   assertEquals(extraerComercio("Orden ejecutada en Apple", ""), "Apple");
+});
+
+Deno.test("clasificar: gasto negado (rechazado, devuelto, acciones, resumen) no es gasto", () => {
+  const casos: Array<[string, string]> = [
+    ["Compra con tarjeta rechazada: 12,00 EUR en Tienda Inventada", "Trade Republic"],
+    ["Pago con tarjeta denegado 12,00 EUR", "Fondos insuficientes"],
+    ["Has comprado 0,5 acciones de Acme por 50,00 EUR", "Trade Republic"],
+    ["This week you spent 120,00 EUR in total", "Trade Republic"],
+    ["Te devolvemos 12,00 EUR que has pagado en Tienda Inventada", "Trade Republic"],
+    ["Your card payment was declined: 12,00 € at Shop Inventado", "Trade Republic"],
+  ];
+  for (const [tx, ti] of casos) {
+    const r = clasificarConMotivo(tx, ti);
+    assertEquals(r.tipo, "ignorado", tx);
+    assertEquals(r.motivo?.startsWith("gasto-negado:"), true, tx);
+  }
+  // Sigue siendo gasto: la palabra va en el COMERCIO, detrás del « en »/« at », o es Wallet.
+  assertEquals(clasificar("Has gastado 12,00 € en Tienda Inventada", "Trade Republic"), "gasto");
+  assertEquals(clasificar("Gastaste 5,00 € en DEVOLUCIONES SL", "Trade Republic"), "gasto");
+  assertEquals(clasificar("Has pagado 7,00 € en BAR LAS ACCIONES", "Trade Republic"), "gasto");
+  assertEquals(clasificar("You spent 9,90 € at BAR STOP", "Trade Republic"), "gasto");
+  assertEquals(clasificar("76,08 € con Trade Republic Visa Card ••9116", "TIENDA INVENTADA", "wallet"), "gasto");
+  assertEquals(extraerComercio("You spent 9,90 € at BAR STOP", "Trade Republic"), "BAR STOP");
 });
 
 Deno.test("clasificar: bizum enviado vs recibido", () => {

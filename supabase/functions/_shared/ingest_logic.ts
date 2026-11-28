@@ -80,7 +80,9 @@ export function norm(s: string): string {
  * OTRA palabra — sin él, «Orden ejecutada en Apple» partía por el «en» de «ordEN» y el comercio
  * salía siendo «ejecutada en Apple».
  */
-const TRAS_EN = /\ben\s+(.+)$/i;
+// «at» es el « en » de las notis en inglés («You spent 9,90 € at BAR STOP»): sin él el comercio
+// se escaneaba como frase y «BAR STOP» se tiraba por «stop» (28/11/2026).
+const TRAS_EN = /\b(?:en|at)\s+(.+)$/i;
 
 /**
  * Deja el texto de la noti en condiciones de guardarse (2026-08-06).
@@ -232,7 +234,14 @@ export function clasificar(texto: string, titulo: string, fuente: Fuente = "tr")
    ahí el « en » puede ir en medio de la frase y quitarlo cambiaría un ingreso por ruido.
    Devuelve también el MOTIVO de un descarte: `ingest` lo apunta para que un gasto que no entra deje
    rastro (el «1331 BAR» del padre, 13/9, no dejó ninguno). */
-const COMPRA_TARJETA = /\b(has gastado|has pagado|pago con tarjeta|compra con tarjeta|you spent|you paid|has gastat|has pagat)\b/;
+const COMPRA_TARJETA = /\b(has gastado|has pagado|gastaste|pagaste|vas a pagar|vas a gastar|pago con tarjeta|compra con tarjeta|you spent|you paid|spent|has gastat|has pagat)\b/;
+/* UN GASTO QUE NO LO ES (R2 de Grok, 28/11/2026). Hasta hoy lo que no era ruido ni bizum salía
+   «gasto» por defecto, y la negación (RE_NEGADO) solo protegía las recompensas: una compra
+   RECHAZADA o DENEGADA, unos fondos insuficientes, una devolución, una compra de ACCIONES o un
+   RESUMEN semanal («you spent … in total») se apuntaban como gasto de verdad. Se mira en la
+   `frase` (sin el comercio de detrás del « en »/« at »), así que una tienda «DEVOLUCIONES SL» no
+   se pierde. «devolución» suelta NO está: es palabra de comercio y de concepto; solo los verbos. */
+const RE_GASTO_NEGADO = /\b(rechazad[oa]s?|denegad[oa]s?|insuficientes?|declined|devuelt[oa]s?|devolvemos|te hemos devuelto|reembolsos?|reembolsad[oa]s?|refund(?:ed|s)?|acciones|shares|in total|resumen)\b/;
 export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuente = "tr"): { tipo: Tipo; motivo: string | null } {
   /* EN WALLET EL TÍTULO NO SE ESCANEA (2026-08-06).
      El 6/8 se arregló que el ruido de TR no se buscara en el nombre del comercio, porque «BAR STOP»
@@ -269,7 +278,9 @@ export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuent
   const frase = norm(escaneable + " " + limpiarTexto(texto).replace(TRAS_EN, "en"));
   const ruido = IGNORAR.find((k) => frase.includes(k));
   if (ruido) return { tipo: "ignorado", motivo: "ruido:" + ruido };
-  const d = COMPRA_TARJETA.test(frase) ? frase : t;
+  const negado = frase.match(RE_GASTO_NEGADO);
+  if (negado) return { tipo: "ignorado", motivo: "gasto-negado:" + negado[1] };
+  const d =COMPRA_TARJETA.test(frase) ? frase : t;
   const esBizum  = d.includes("bizum");
   const recibido = /(has recibido|recibido|recibiste|te ha enviado|te envio|te ha hecho|has rebut|t'ha enviat|received|sent you)/.test(d);
   const enviado  = /(has enviado|enviaste|le has enviado|has hecho un bizum|has fet un bizum|you sent|enviado a)/.test(d);
