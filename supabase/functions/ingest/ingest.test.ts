@@ -61,6 +61,19 @@ Deno.test("clasificar: gasto negado (rechazado, devuelto, acciones, resumen) no 
   assertEquals(extraerComercio("You spent 9,90 € at BAR STOP", "Trade Republic"), "BAR STOP");
 });
 
+Deno.test("clasificar: la negación de gasto no pisa bizums ni mira el título de TR (NO-GO Grok 28/11)", () => {
+  // A) El concepto libre de un bizum puede llevar la palabra: sigue siendo bizum.
+  assertEquals(clasificar("Has enviado un Bizum de 30,00 EUR a Pedro: entradas devueltas", ""), "gasto_nocard");
+  assertEquals(clasificar("Has recibido 15,00 EUR de Ana por Bizum: resumen cena", ""), "ingreso");
+  assertEquals(clasificar("Has recibido un Bizum de 20,00 EUR de Luis: acciones del club", ""), "ingreso");
+  // B) TR pone el comercio en el TÍTULO: la palabra ahí no niega el gasto.
+  assertEquals(clasificar("Gastaste 4,20 EUR en ACCIONES SOLIDARIAS", "ACCIONES SOLIDARIAS"), "gasto");
+  assertEquals(clasificar("Gastaste 4,20 EUR en RESUMEN BAR", "RESUMEN BAR"), "gasto");
+  assertEquals(clasificar("You spent 4,20 EUR at Refund Shop", "Refund Shop"), "gasto");
+  // C) Catalán: «vas pagar» / «vas gastar» es compra con tarjeta (el comercio no se mira).
+  assertEquals(clasificar("Vas pagar 4,20 EUR en BAR EL RECIBIDOR", ""), "gasto");
+});
+
 Deno.test("clasificar: bizum enviado vs recibido", () => {
   assertEquals(clasificar("Has enviado 12,50 € a María por bizum", ""), "gasto_nocard");
   assertEquals(clasificar("Has recibido 12,50 € de María por bizum", ""), "ingreso");

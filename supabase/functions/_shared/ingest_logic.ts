@@ -234,7 +234,7 @@ export function clasificar(texto: string, titulo: string, fuente: Fuente = "tr")
    ahí el « en » puede ir en medio de la frase y quitarlo cambiaría un ingreso por ruido.
    Devuelve también el MOTIVO de un descarte: `ingest` lo apunta para que un gasto que no entra deje
    rastro (el «1331 BAR» del padre, 13/9, no dejó ninguno). */
-const COMPRA_TARJETA = /\b(has gastado|has pagado|gastaste|pagaste|vas a pagar|vas a gastar|pago con tarjeta|compra con tarjeta|you spent|you paid|spent|has gastat|has pagat)\b/;
+const COMPRA_TARJETA = /\b(has gastado|has pagado|gastaste|pagaste|vas a pagar|vas a gastar|pago con tarjeta|compra con tarjeta|you spent|you paid|spent|has gastat|has pagat|vas pagar|vas gastar)\b/;
 /* UN GASTO QUE NO LO ES (R2 de Grok, 28/11/2026). Hasta hoy lo que no era ruido ni bizum salía
    «gasto» por defecto, y la negación (RE_NEGADO) solo protegía las recompensas: una compra
    RECHAZADA o DENEGADA, unos fondos insuficientes, una devolución, una compra de ACCIONES o un
@@ -278,8 +278,6 @@ export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuent
   const frase = norm(escaneable + " " + limpiarTexto(texto).replace(TRAS_EN, "en"));
   const ruido = IGNORAR.find((k) => frase.includes(k));
   if (ruido) return { tipo: "ignorado", motivo: "ruido:" + ruido };
-  const negado = frase.match(RE_GASTO_NEGADO);
-  if (negado) return { tipo: "ignorado", motivo: "gasto-negado:" + negado[1] };
   const d =COMPRA_TARJETA.test(frase) ? frase : t;
   const esBizum  = d.includes("bizum");
   const recibido = /(has recibido|recibido|recibiste|te ha enviado|te envio|te ha hecho|has rebut|t'ha enviat|received|sent you)/.test(d);
@@ -291,6 +289,12 @@ export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuent
   }
   if (recibido) return { tipo: "ignorado", motivo: "recibido sin bizum" };
   if (d.includes("transferencia")) return { tipo: "ignorado", motivo: "transferencia" };
+  /* Solo aquí, sobre lo que iba a ser gasto por defecto (NO-GO de Grok, 28/11): antes del bloque
+     bizum se perdía un bizum con «entradas devueltas» o «acciones del club» en el concepto. Y solo
+     en el TEXTO sin lo de tras « en »/« at », nunca en el título: TR pone ahí el comercio
+     («ACCIONES SOLIDARIAS», «Refund Shop»). */
+  const negado = norm(limpiarTexto(texto).replace(TRAS_EN, "en")).match(RE_GASTO_NEGADO);
+  if (negado) return { tipo: "ignorado", motivo: "gasto-negado:" + negado[1] };
   return { tipo: "gasto", motivo: null };
 }
 
