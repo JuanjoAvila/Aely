@@ -97,11 +97,15 @@ public class TrExpenseListenerTextoTest {
     public void verbosNuevosEnBigTextSeMandan() {
         seManda("Pago con tarjeta de 7,10 € en COMERCIO SINTETICO");
         seManda("COMPRA CON TARJETA 7,10 € COMERCIO SINTETICO");
-        seManda("Has comprado por 7,10 € en COMERCIO SINTETICO");
         seManda("Vas pagar 7,10 € a COMERCIO SINTETIC");
         seManda("Vas gastar 7,10 € a COMERCIO SINTETIC");
         seManda("Spent 7,10 € at SYNTHETIC SHOP");
         seManda("Has  gastado 7,10 € en COMERCIO SINTETICO");
+    }
+
+    @Test
+    public void ordenDeCompraDeAccionesConImporteSoloEnBigTextSeDescarta() {
+        assertEquals("", TrExpenseListener.textoConImporte("", "Has comprado 0,5 acciones de Acme por 50,00 EUR", "Trade Republic"));
     }
 
     @Test

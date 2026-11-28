@@ -236,14 +236,14 @@ public class TrExpenseListener extends NotificationListenerService {
      * supabase/functions/_shared/ingest_logic.ts, más catalán «vas pagar/gastar» y «spent» suelto.
      */
     private static final Pattern VERBO_COMPRA = Pattern.compile(
-            "(?iu)\\b(gastaste|pagaste|spent|has\\s+gastado|has\\s+pagado|has\\s+comprado"
+            "(?iu)\\b(gastaste|pagaste|spent|has\\s+gastado|has\\s+pagado"
             + "|pago\\s+con\\s+tarjeta|compra\\s+con\\s+tarjeta|you\\s+paid"
             + "|has\\s+gastat|has\\s+pagat|vas\\s+pagar|vas\\s+gastar)\\b");
 
     /** Con verbo de compra; el espacio duro (U+00A0) y el estrecho (U+202F) cuentan como espacio. */
     static boolean conVerboCompra(String s) {
         if (s == null || s.isEmpty()) return false;
-        return VERBO_COMPRA.matcher(s.replace(' ', ' ').replace(' ', ' ')).find();
+        return VERBO_COMPRA.matcher(s.replace('\u00A0', ' ').replace('\u202F', ' ')).find();
     }
 
     private static boolean conImporte(String s) {
