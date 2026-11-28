@@ -40,7 +40,7 @@ import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { claveEvento, esGemeloIngest, tieneGemeloAnterior, ordinalIngest, fechaEventoOrdinal, sourceIngestOrdinal, ordinalEvento } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
-import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
+import { readWidgetRows, type WidgetDiag, snapshotConMotivo, widgetSnapshot, widgetStart, sinBloquear } from "./widget.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
 import {
   INGEST_MAX_BODY, INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
@@ -408,6 +408,7 @@ Deno.serve(async (req) => {
   let alert: Record<string, unknown> | null = null;
   let month: Record<string, number | string> | null = null;
   let widget: Record<string, number | string> | null = null;
+  const widgetDiag: WidgetDiag = { motivo: "sin-estado" };
   try {
     const { data: st } = await supabase.from("app_state").select("data").eq("user_id", userId).maybeSingle();
     const now = new Date(fecha);
@@ -494,15 +495,18 @@ Deno.serve(async (req) => {
     // El widget es opcional: un fallo de su lectura no puede retirar los avisos de
     // presupuesto que las APK anteriores ya reciben con el contrato mensual.
     try {
-      const start = widgetStart(st?.data, readAt);
+      widgetDiag.motivo = "error";
+      const start = widgetStart(st?.data, readAt, widgetDiag);
       if (start != null) {
+        widgetDiag.motivo = "lectura-incompleta";
         const widgetRows = await readWidgetRows(supabase, userId, start);
-        if (widgetRows != null) widget = widgetSnapshot(st?.data, widgetRows, readAt, {
+        if (widgetRows != null) widget = snapshotConMotivo(widgetDiag, () => widgetSnapshot(st?.data, widgetRows, readAt, {
             id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
-          }, userId);
+          }, userId, widgetDiag));
       }
-    } catch (_) { /* month y alert siguen disponibles */ }
+    } catch (_) { widgetDiag.motivo = "error"; /* month y alert siguen disponibles */ }
   } catch (_) { /* opcional; el movimiento ya está guardado */ }
+  await sinBloquear(logIngestWidget(supabase, userId, widget, widgetDiag));
 
   return json({ ok: true, tipo, fecha, importe, comercio, cat, nota: nota || null,
     ack: ackId, alert, month, widget });
@@ -552,6 +556,42 @@ async function logIngestSkip(supabase: any, userId: string | null, motivo: strin
       user_id: userId, email: null, kind: "ingest_skip",
       message: ("INGEST skip: " + motivo).slice(0, 200),
       detail: JSON.stringify({ source: fuente, textLength, titleLength }),
+      app_version: "edge", platform: "android",
+    });
+  } catch (_) { /* opcional */ }
+}
+
+/* Rastro de la foto del widget (28/11). El «Abre la app» tras un cobro no se podía atribuir: no
+   quedaba qué alcance devolvió ingest ni por qué salió sin foto. El alcance lleva el límite y las
+   claves de nómina (fecha+importe+comercio), así que solo sale su huella SHA-256 (comparable con la
+   que guarda el widget) y QUÉ piezas difieren, nunca su contenido. */
+const SCOPE_PARTES = ["version", "inicio", "tipo", "modo", "listas", "limite", "bancos", "bancoWidget"];
+async function huella(texto: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
+  return Array.from(new Uint8Array(buf).slice(0, 8), b => b.toString(16).padStart(2, "0")).join("");
+}
+// deno-lint-ignore no-explicit-any
+async function logIngestWidget(supabase: any, userId: string, widget: Record<string, number | string> | null, d: WidgetDiag) {
+  try {
+    const motivo = widget ? "ok" : String(d.motivo || "error").slice(0, 40);
+    const detail: Record<string, string | number | string[]> = { motivo };
+    if (d.kind) detail.kind = d.kind;
+    if (Number.isSafeInteger(d.start)) detail.desde = new Date(d.start!).toISOString();
+    if (Number.isSafeInteger(d.end)) detail.hasta = new Date(d.end!).toISOString();
+    const scope = widget ? String(widget.scope) : d.edgeScope;
+    if (scope) detail.scope = await huella(scope);
+    if (d.appScope != null && d.appScope !== scope) {
+      detail.appScope = d.appScope ? await huella(d.appScope) : "";
+      let a: unknown[] = [], b: unknown[] = [];
+      try { a = JSON.parse(d.appScope); b = JSON.parse(String(scope)); } catch (_) { /* huella basta */ }
+      if (Array.isArray(a) && Array.isArray(b)) detail.difiere = SCOPE_PARTES
+        .filter((_, i) => JSON.stringify(a[i]) !== JSON.stringify(b[i]))
+        .concat(a.length !== b.length ? ["longitud"] : []);
+    }
+    await supabase.from("app_events").insert({
+      user_id: userId, email: null, kind: "ingest_widget",
+      message: ("INGEST widget: " + motivo).slice(0, 200),
+      detail: JSON.stringify(detail).slice(0, 1000),
       app_version: "edge", platform: "android",
     });
   } catch (_) { /* opcional */ }

@@ -48,12 +48,24 @@ function tomorrow(now: number): number {
   return lo;
 }
 
+/* Por qué una respuesta salió sin foto, y qué alcance/ventana se comparó. El «Abre la app» del
+   cobro del 27/11 no se pudo atribuir porque ingest no dejaba rastro de ello (diagnóstico 28/11).
+   Solo etiquetas y los alcances crudos: `index.ts` los reduce a huella antes de apuntarlos. */
+export type WidgetDiag = { motivo?: string; kind?: string; start?: number; end?: number; appScope?: string; edgeScope?: string };
+
 // deno-lint-ignore no-explicit-any
-export function widgetStart(data: any, now: number): number | null {
-  const w = data?.widgetPeriod;
-  if (w?.v !== 2 || !Number.isSafeInteger(w.start) || w.start <= 0 || w.start > now) return null;
-  if (w.kind === "mes") return w.start === inicioDeMesMs(now) ? w.start : null;
-  if (w.kind !== "ciclo" || !data?.settings?.budgetCycle || !w.anchor || now - w.start > 45 * 86400000) return null;
+export function widgetStart(data: any, now: number, diag?: WidgetDiag): number | null {
+  const w = data?.widgetPeriod, d = diag || {};
+  if (w?.v !== 2) { d.motivo = "sin-periodo"; return null; }
+  d.kind = typeof w.kind === "string" ? w.kind.slice(0, 10) : undefined;
+  if (!Number.isSafeInteger(w.start) || w.start <= 0) { d.motivo = "inicio-invalido"; return null; }
+  d.start = w.start;
+  if (w.start > now) { d.motivo = "inicio-futuro"; return null; }
+  if (w.kind === "mes") { if (w.start === inicioDeMesMs(now)) return w.start; d.motivo = "mes-caducado"; return null; }
+  if (w.kind !== "ciclo") { d.motivo = "tipo-desconocido"; return null; }
+  if (!data?.settings?.budgetCycle) { d.motivo = "ciclo-apagado"; return null; }
+  if (!w.anchor) { d.motivo = "ciclo-sin-ancla"; return null; }
+  if (now - w.start > 45 * 86400000) { d.motivo = "ciclo-caducado"; return null; }
   return w.start;
 }
 
@@ -61,25 +73,27 @@ export function widgetStart(data: any, now: number): number | null {
 // deno-lint-ignore no-explicit-any
 export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, payment: {
   id: string; event: string; key: string;
-}, owner?: string): Record<string, number | string> | null {
-  const candidateStart = widgetStart(data, now);
+}, owner?: string, diag?: WidgetDiag): Record<string, number | string> | null {
+  const d = diag || {};
+  const candidateStart = widgetStart(data, now, d);
   if (candidateStart == null) return null;
   const start: number = candidateStart;
   // El mes de Madrid incluye sus días futuros, pero ni movimientos ni reservas del siguiente.
   const w = data.widgetPeriod, cycle = w.kind === "ciclo", end = cycle ? tomorrow(now) : inicioDeMesMs(start + 35 * 864e5);
+  d.end = end;
   // La app dice qué filas son un traspaso entre cuentas propias: aquí valen como neutras, sin tocarlas.
   const traspasos = new Set<string>(Array.isArray(data.widgetPeriod?.traspasos) ? data.widgetPeriod.traspasos.filter((k: unknown) => typeof k === "string") : []);
   const visible = filasComoLaApp(rows, data.deleted, data.obAbsorbedPending, owner, data.obAbsorbedConfirmed).filter(f => {
     const ms = Date.parse(String(f.fecha)); return ms >= start && ms < end;
   }).map(f => traspasos.has(claveComoLaApp(f)) ? { ...f, cat: "traspaso" } : f);
   // Una lectura vacía/parcial o una fila retirada no prueba el delta de este pago.
-  if (!visible.some(f => String(f.id) === payment.id)) return null;
+  if (!visible.some(f => String(f.id) === payment.id)) { d.motivo = "pago-no-visible"; return null; }
   if (cycle) {
     const anchor = visible.find(f => claveComoLaApp(f) === w.anchor && Number(f.importe) <= -200 && !neutral(f) && f.cat !== "bizum");
-    if (!anchor) return null;
+    if (!anchor) { d.motivo = "ancla-no-visible"; return null; }
     // Un cobro grande posterior podría ser la nueva ancla aún no leída por la app.
     if (visible.some(f => f !== anchor && Number(f.importe) <= -200 && !neutral(f)
-      && f.cat !== "bizum" && Date.parse(String(f.fecha)) > Date.parse(String(anchor.fecha)))) return null;
+      && f.cat !== "bizum" && Date.parse(String(f.fecha)) > Date.parse(String(anchor.fecha)))) { d.motivo = "ancla-posterior"; return null; }
   }
   const ents = bancosDeGastoDiario(data);
   const daily = (f: FilaGasto) => { const bank = bancoDeSource(f.source); return !bank || ents.includes(bank); };
@@ -103,7 +117,7 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
       if (nominas.has(k)) esNomina.set(f, true);
       else if (noNominas.has(k)) esNomina.set(f, false);
       else if (comercioDeNomina(f.comercio)) esNomina.set(f, true);
-      else return null;
+      else { d.motivo = "nomina-sin-decidir"; return null; }
     }
   }
   const rawBudget = typeof data.budget === "number" && Number.isFinite(data.budget) ? data.budget : 0;
@@ -143,7 +157,9 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
     budgetKnown ? after.budget : null, ents.slice().sort(), bank?.ent || ""];
   const scope = JSON.stringify(parts);
   // No repetir un scope de la app si reservas/bancos/ancla ya han cambiado en la nube.
-  if (w.scope !== scope) return null;
+  d.appScope = typeof w.scope === "string" ? w.scope : ""; d.edgeScope = scope;
+  if (w.scope !== scope) { d.motivo = "alcance-distinto"; return null; }
+  d.motivo = "ok";
   const amount = visible.find(f => String(f.id) === payment.id);
   // El nativo pinta «quedan / de más» como límite − `spent`: va lo que se compara con el límite.
   const shown = after.against, oldShown = before.against;
@@ -154,4 +170,24 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
     counts: amount && !fueraDelPresupuesto(amount, cycle) && ((cycle && Number(amount.importe) < 0) || daily(amount)) ? 1 : 0,
     // El Saveback no sale del efectivo: lo pone TR y va directo al fondo (igual que `ingest`).
     cashCounts: amount && amount.cat === "inversion" && amount.comercio === "Saveback" ? 0 : 1 };
+}
+
+/* Fija el motivo por defecto ANTES de la foto: un `return null` futuro sin motivo no debe
+   salir como «lectura-incompleta» (que es solo el fallo de readWidgetRows). */
+export function snapshotConMotivo<T>(diag: WidgetDiag, foto: () => T | null): T | null {
+  diag.motivo = "sin-motivo";
+  return foto();
+}
+
+/* El log del widget NUNCA retrasa la respuesta al móvil: con EdgeRuntime.waitUntil sigue en
+   segundo plano; sin él, se espera como mucho `ms` y se suelta (el fallo/timeout se traga). */
+export function sinBloquear(tarea: Promise<unknown>, ms = 1500,
+    rt: { waitUntil?: (p: Promise<unknown>) => void } | undefined = (globalThis as any).EdgeRuntime): Promise<void> {
+  const segura = tarea.catch(() => {});
+  if (rt && typeof rt.waitUntil === "function") {
+    try { rt.waitUntil(segura); return Promise.resolve(); } catch (_) { /* cae al plazo */ }
+  }
+  let t: ReturnType<typeof setTimeout>;
+  const plazo = new Promise<void>(r => { t = setTimeout(r, ms); });
+  return Promise.race([segura, plazo]).then(() => clearTimeout(t));
 }
