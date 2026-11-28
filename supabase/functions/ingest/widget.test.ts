@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { readWidgetRows, type WidgetDiag, widgetSnapshot, widgetStart } from "./widget.ts";
+import { readWidgetRows, type WidgetDiag, snapshotConMotivo, widgetSnapshot, widgetStart, sinBloquear } from "./widget.ts";
 import { bancoDeSource, claveComoLaApp, cuentaParaPresupuesto, esCargoDeRecibo, filasComoLaApp, inicioDeMesMs, ordinalDeSource, statsDelMes } from "../_shared/presupuesto.ts";
 
 const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
@@ -254,4 +254,26 @@ Deno.test("widget v2 explica por qué no hay foto: alcance distinto con las dos 
   const bien: WidgetDiag = {};
   assertEquals(widgetSnapshot(s, rows, now, payment, undefined, bien)?.scope, s.widgetPeriod.scope);
   assertEquals(bien.motivo, "ok");
+});
+
+Deno.test("un null sin motivo sale como sin-motivo, no como lectura-incompleta; si hay motivo, se respeta", () => {
+  const d: WidgetDiag = { motivo: "lectura-incompleta" };
+  assertEquals(snapshotConMotivo(d, () => null), null);
+  assertEquals(d.motivo, "sin-motivo");
+  const e: WidgetDiag = { motivo: "lectura-incompleta" };
+  assertEquals(snapshotConMotivo(e, () => { e.motivo = "sin-periodo"; return null; }), null);
+  assertEquals(e.motivo, "sin-periodo");
+});
+
+Deno.test("el log del widget no retrasa la respuesta: waitUntil, plazo y fallo tragado", async () => {
+  const colgada = new Promise<void>(() => {});
+  let enSegundoPlano = 0;
+  await sinBloquear(colgada, 50, { waitUntil: () => { enSegundoPlano++; } });
+  assertEquals(enSegundoPlano, 1);
+  const t0 = Date.now();
+  await sinBloquear(colgada, 60, undefined);
+  const dt = Date.now() - t0;
+  assertEquals(dt >= 50 && dt < 1000, true);
+  await sinBloquear(Promise.reject(new Error("postgrest")), 60, undefined);
+  await sinBloquear(Promise.reject(new Error("x")), 60, { waitUntil: () => { throw new Error("nope"); } });
 });

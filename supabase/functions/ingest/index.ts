@@ -40,7 +40,7 @@ import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { claveEvento, esGemeloIngest, tieneGemeloAnterior, ordinalIngest, fechaEventoOrdinal, sourceIngestOrdinal, ordinalEvento } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
-import { readWidgetRows, type WidgetDiag, widgetSnapshot, widgetStart } from "./widget.ts";
+import { readWidgetRows, type WidgetDiag, snapshotConMotivo, widgetSnapshot, widgetStart, sinBloquear } from "./widget.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
 import {
   INGEST_MAX_BODY, INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
@@ -500,13 +500,13 @@ Deno.serve(async (req) => {
       if (start != null) {
         widgetDiag.motivo = "lectura-incompleta";
         const widgetRows = await readWidgetRows(supabase, userId, start);
-        if (widgetRows != null) widget = widgetSnapshot(st?.data, widgetRows, readAt, {
+        if (widgetRows != null) widget = snapshotConMotivo(widgetDiag, () => widgetSnapshot(st?.data, widgetRows, readAt, {
             id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
-          }, userId, widgetDiag);
+          }, userId, widgetDiag));
       }
     } catch (_) { widgetDiag.motivo = "error"; /* month y alert siguen disponibles */ }
   } catch (_) { /* opcional; el movimiento ya está guardado */ }
-  await logIngestWidget(supabase, userId, widget, widgetDiag);
+  await sinBloquear(logIngestWidget(supabase, userId, widget, widgetDiag));
 
   return json({ ok: true, tipo, fecha, importe, comercio, cat, nota: nota || null,
     ack: ackId, alert, month, widget });

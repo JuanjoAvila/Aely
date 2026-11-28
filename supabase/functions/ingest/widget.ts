@@ -171,3 +171,23 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
     // El Saveback no sale del efectivo: lo pone TR y va directo al fondo (igual que `ingest`).
     cashCounts: amount && amount.cat === "inversion" && amount.comercio === "Saveback" ? 0 : 1 };
 }
+
+/* Fija el motivo por defecto ANTES de la foto: un `return null` futuro sin motivo no debe
+   salir como «lectura-incompleta» (que es solo el fallo de readWidgetRows). */
+export function snapshotConMotivo<T>(diag: WidgetDiag, foto: () => T | null): T | null {
+  diag.motivo = "sin-motivo";
+  return foto();
+}
+
+/* El log del widget NUNCA retrasa la respuesta al móvil: con EdgeRuntime.waitUntil sigue en
+   segundo plano; sin él, se espera como mucho `ms` y se suelta (el fallo/timeout se traga). */
+export function sinBloquear(tarea: Promise<unknown>, ms = 1500,
+    rt: { waitUntil?: (p: Promise<unknown>) => void } | undefined = (globalThis as any).EdgeRuntime): Promise<void> {
+  const segura = tarea.catch(() => {});
+  if (rt && typeof rt.waitUntil === "function") {
+    try { rt.waitUntil(segura); return Promise.resolve(); } catch (_) { /* cae al plazo */ }
+  }
+  let t: ReturnType<typeof setTimeout>;
+  const plazo = new Promise<void>(r => { t = setTimeout(r, ms); });
+  return Promise.race([segura, plazo]).then(() => clearTimeout(t));
+}
