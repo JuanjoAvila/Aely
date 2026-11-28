@@ -156,12 +156,14 @@ public class TrExpenseListener extends NotificationListenerService {
 
         CharSequence titleCs = sbn.getNotification().extras.getCharSequence("android.title");
         CharSequence textCs = sbn.getNotification().extras.getCharSequence("android.text");
+        CharSequence bigCs = sbn.getNotification().extras.getCharSequence("android.bigText");
         final String title = titleCs != null ? titleCs.toString() : "";
-        final String text = textCs != null ? textCs.toString() : "";
-
-        // Solo notificaciones con pinta de movimiento (mencionan un importe).
+        // Solo notificaciones con pinta de movimiento (mencionan un importe). El gasto de 1801086
+        // del 27/11 no llegó ni a salir del móvil: lo más probable es que el importe no viniera en
+        // `android.text` y este filtro la tirase sin rastro. Por eso se mira también bigText y título.
+        final String text = textoConImporte(textCs != null ? textCs.toString() : "",
+                bigCs != null ? bigCs.toString() : "", title);
         if (text.isEmpty()) return;
-        if (!text.contains("€") && !HAS_AMOUNT.matcher(text).find()) return;
 
         long now = System.currentTimeMillis();
 
@@ -227,6 +229,17 @@ public class TrExpenseListener extends NotificationListenerService {
             if (postIngest(INGEST_URL, body) == REINTENTAR) encolar(INGEST_URL, body);
             vaciarCola();
         }).start();
+    }
+
+    /**
+     * El primer campo que trae importe, en este orden: text, bigText, título. `text` va primero
+     * para que lo que ya entraba siga mandándose igual; "" = ninguno parece un movimiento.
+     */
+    static String textoConImporte(String text, String bigText, String title) {
+        for (String s : new String[]{text, bigText, title}) {
+            if (s != null && !s.isEmpty() && (s.contains("€") || HAS_AMOUNT.matcher(s).find())) return s;
+        }
+        return "";
     }
 
     /** Huella estable y opaca. Si SHA-256 no existiera, se omite: nunca se usa un hash débil. */
