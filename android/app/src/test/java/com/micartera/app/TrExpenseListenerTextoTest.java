@@ -65,8 +65,50 @@ public class TrExpenseListenerTextoTest {
 
     @Test
     public void ruidoDelTextoSigueViajandoSiElImporteVaEnBigText() {
-        assertEquals("alerta de precio Acme Corp 182,40 EUR",
-                TrExpenseListener.textoConImporte("alerta de precio", "Acme Corp 182,40 EUR", "Trade Republic"));
+        assertEquals("alerta de precio Gastaste 3,00 € en COMERCIO SINTETICO",
+                TrExpenseListener.textoConImporte("alerta de precio", "Gastaste 3,00 € en COMERCIO SINTETICO", "Trade Republic"));
+    }
+
+    // ---- Negativos: importe solo en bigText, sin verbo de compra → no se manda (NO-GO de Grok, 28/11) ----
+
+    @Test
+    public void devolucionConImporteSoloEnBigTextSeDescarta() {
+        assertEquals("", TrExpenseListener.textoConImporte("Toca para ver",
+                "Te hemos devuelto 12,00 EUR de tu compra en Tienda Inventada", "Trade Republic"));
+    }
+
+    @Test
+    public void cotizacionConImporteSoloEnBigTextSeDescarta() {
+        assertEquals("", TrExpenseListener.textoConImporte("", "Acme Corp cotiza a 182,40 EUR", "Trade Republic"));
+    }
+
+    @Test
+    public void saldoConImporteSoloEnBigTextSeDescarta() {
+        assertEquals("", TrExpenseListener.textoConImporte("", "Tu saldo es de 4,20 EUR", "Trade Republic"));
+    }
+
+    // ---- Verbos de compra ampliados (alineados con COMPRA_TARJETA de ingest) ----
+
+    private static void seManda(String big) {
+        assertEquals(big, TrExpenseListener.textoConImporte("", big, "Trade Republic"));
+    }
+
+    @Test
+    public void verbosNuevosEnBigTextSeMandan() {
+        seManda("Pago con tarjeta de 7,10 € en COMERCIO SINTETICO");
+        seManda("COMPRA CON TARJETA 7,10 € COMERCIO SINTETICO");
+        seManda("Has comprado por 7,10 € en COMERCIO SINTETICO");
+        seManda("Vas pagar 7,10 € a COMERCIO SINTETIC");
+        seManda("Vas gastar 7,10 € a COMERCIO SINTETIC");
+        seManda("Spent 7,10 € at SYNTHETIC SHOP");
+        seManda("Has  gastado 7,10 € en COMERCIO SINTETICO");
+    }
+
+    @Test
+    public void espacioDuroEntreLasPalabrasDelVerboNoLoRompe() {
+        seManda("Has\u00a0pagado 7,10\u00a0€ en COMERCIO SINTETICO");
+        assertEquals("Toca para ver Pago\u00a0con\u00a0tarjeta 7,10 €",
+                TrExpenseListener.textoConImporte("Toca para ver", "", "Pago\u00a0con\u00a0tarjeta 7,10 €"));
     }
 
     // ---- Wallet: sin cambios ----

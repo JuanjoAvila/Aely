@@ -230,9 +230,21 @@ public class TrExpenseListener extends NotificationListenerService {
         }).start();
     }
 
-    /** Verbo de compra con tarjeta: sin él, un importe solo en el título no basta (alertas, órdenes…). */
+    /**
+     * Verbo de compra con tarjeta: sin él, un importe fuera de text (bigText o título) no basta
+     * (devoluciones, cotizaciones, saldos, alertas, órdenes…). Alineado con COMPRA_TARJETA de
+     * supabase/functions/_shared/ingest_logic.ts, más catalán «vas pagar/gastar» y «spent» suelto.
+     */
     private static final Pattern VERBO_COMPRA = Pattern.compile(
-            "(?iu)\\b(gastaste|has gastado|has pagado|pagaste|you spent|you paid|has gastat|has pagat)\\b");
+            "(?iu)\\b(gastaste|pagaste|spent|has\\s+gastado|has\\s+pagado|has\\s+comprado"
+            + "|pago\\s+con\\s+tarjeta|compra\\s+con\\s+tarjeta|you\\s+paid"
+            + "|has\\s+gastat|has\\s+pagat|vas\\s+pagar|vas\\s+gastar)\\b");
+
+    /** Con verbo de compra; el espacio duro (U+00A0) y el estrecho (U+202F) cuentan como espacio. */
+    static boolean conVerboCompra(String s) {
+        if (s == null || s.isEmpty()) return false;
+        return VERBO_COMPRA.matcher(s.replace(' ', ' ').replace(' ', ' ')).find();
+    }
 
     private static boolean conImporte(String s) {
         return s != null && !s.isEmpty() && (s.contains("€") || HAS_AMOUNT.matcher(s).find());
@@ -249,6 +261,8 @@ public class TrExpenseListener extends NotificationListenerService {
      *  · Wallet sin importe en text → "" (sin cambios: su título es el comercio).
      *  · TR: NUNCA se sustituye text. Se le suma bigText (solo bigText si ya contiene a text), para
      *    que el servidor siga viendo el ruido de text («alerta de precio», «orden ejecutada»…).
+     *  · TR con el importe solo en bigText: únicamente si text+bigText trae verbo de compra; si no,
+     *    devoluciones, cotizaciones o saldos saldrían como gasto por defecto en el servidor.
      *  · TR con el importe solo en el título: únicamente si el título trae verbo de compra; entonces
      *    se añade AL FINAL (el servidor saca importe y comercio del texto) y el título sigue igual.
      */
@@ -259,8 +273,8 @@ public class TrExpenseListener extends NotificationListenerService {
         if (!"tr".equals(fuente)) return "";
         String cuerpo = bigText.isEmpty() ? text
                 : (text.isEmpty() || bigText.contains(text)) ? bigText : (text + " " + bigText);
-        if (conImporte(bigText)) return cuerpo.trim();
-        if (conImporte(title) && VERBO_COMPRA.matcher(title).find()) return (cuerpo + " " + title).trim();
+        if (conImporte(bigText)) return conVerboCompra(cuerpo) ? cuerpo.trim() : "";
+        if (conImporte(title) && conVerboCompra(title)) return (cuerpo + " " + title).trim();
         return "";
     }
 
