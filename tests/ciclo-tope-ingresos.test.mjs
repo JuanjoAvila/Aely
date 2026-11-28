@@ -63,4 +63,12 @@ caso("el Balance de un mes natural conserva su neto (la regla es solo del ciclo)
   const b=c.budgetStatsFromAmounts(100,300,650,0,"net",0);
   assert.equal(b.against,-200);
 });
+caso("el Plan netea lo mismo que Gastos: una entrada grande que no es la nómina no baja su gastado",()=>{
+  const s=estado([NOMINA,...COMPRAS,LLEGA]);
+  const p=c.planReparto(s,{});
+  assert.equal(p.gastado,83300,"el Plan gasta lo mismo que Gastos (833 €), no 0");
+  assert.equal(p.neteo,0);
+  const biz=estado([NOMINA,...COMPRAS,fila("z1","bancob","2026-11-26",-100,"Bizum recibido","bizum",{source:"macrodroid"})]);
+  assert.equal(c.planReparto(biz,{}).gastado,73300,"un Bizum sí netea, en el Plan igual que en Gastos");
+});
 console.log(`ciclo-tope-ingresos: ${n} casos OK`);

@@ -77,9 +77,9 @@ t("Inicio mensual: gasto menos ingresos sin la nómina, sin alterar Balance ni f
     assert.equal(helpCtx.helpSnap(over,{}).remaining,-20);
     assert.equal(ctx.gamifOf(over,{}).budgetReto.done,false,"la nómina no da por cumplido un reto mensual excedido");
     s.settings.budgetCycle=true;
-    s.expenses.push({date:"2026-09-27T18:00:00Z",amount:-200,category:"ingreso",ent:"sabadell"});
+    s.expenses.push({date:"2026-09-27T18:00:00Z",amount:-150,category:"ingreso",ent:"sabadell"});
     const credit=ctx.dashboardBudgetStats(s);
-    assert.equal(credit.against,-180); assert.equal(credit.remaining,1180,"un neto legítimo sigue ampliando margen en ciclo");
+    assert.equal(credit.against,0); assert.equal(credit.remaining,1000,"un reembolso devuelve margen pero no más que el límite entero en ciclo");
   }finally{ctx.Date=RealDate;}
 });
 
@@ -214,8 +214,8 @@ t("el ciclo descuenta Bizums recibidos del balance sin sumar la nómina", () => 
     const capped=ctx.monthBudgetStats(over);
     assert.equal(capped.income,180);
     assert.equal(capped.balance,80);
-    assert.equal(capped.against,-80);
-    assert.equal(capped.remaining,1080,"los ingresos netos pueden aumentar el margen por decisión del dueño");
+    assert.equal(capped.against,0);
+    assert.equal(capped.remaining,1000,"los ingresos netos devuelven margen, pero no más que el límite entero");
     const extras={...s,expenses:s.expenses.concat([
       {id:"alquiler",date:"2026-09-27T15:00:00Z",amount:-700,merchant:"Alquiler cobrado",category:"ingreso",ent:"sabadell"},
       {id:"trabajoExtra",date:"2026-09-27T15:30:00Z",amount:-1500,merchant:"Trabajo extra",category:"ingreso",ent:"sabadell"},
@@ -227,7 +227,7 @@ t("el ciclo descuenta Bizums recibidos del balance sin sumar la nómina", () => 
     assert.equal(all.spent,100,"la cuenta de fijos no carga gasto diario");
     assert.equal(all.income,2340,"todos los ingresos reales suman, de cualquier banco");
     assert.equal(all.balance,2240);
-    assert.equal(all.remaining,3240);
+    assert.equal(all.remaining,1000,"con tanto ingreso el margen es el límite entero, no más");
   }finally{ ctx.Date=RealDate; }
 });
 
@@ -476,13 +476,13 @@ t("bordes: nómina anticipada, dos nóminas, sin nómina, ingresos mayores, devo
     assert.equal(b.spent,350); assert.equal(b.income,250); assert.equal(b.against,100); assert.equal(b.remaining,1400);
     assert.equal(JSON.stringify(b.noNominas),JSON.stringify([ctx.keyOfExpense(devol)]),"una devolución grande viaja como no-nómina al widget");
   });
-  // Mi ciclo no cambia: neto sin tope, la nómina que lo abre fuera.
+  // Mi ciclo: neto con tope en 0 (feedback 2026-11-28), la nómina que lo abre fuera.
   aLas("2026-10-30T10:00:00Z",()=>{
     const s={...OCT,settings:{...OCT.settings,budgetCycle:true},expenses:filasOct().concat([NOMINA,
       {id:"g4",date:"2026-10-30T09:00:00Z",amount:20,category:"super",ent:"sabadell"},
       {id:"b4",date:"2026-10-30T09:30:00Z",amount:-50,merchant:"Bizum",category:"bizum",ent:"sabadell"}])};
     const c=ctx.dashboardBudgetStats(s);
-    assert.equal(c.cycle,true); assert.equal(c.mode,"net"); assert.equal(c.against,-30); assert.equal(c.remaining,1530);
+    assert.equal(c.cycle,true); assert.equal(c.mode,"net"); assert.equal(c.against,0); assert.equal(c.remaining,1500);
   });
   // Meses cerrados (oráculo cambiado en la R2 de la revisión, 26/10/2026): la cifra grande de la
   // tarjeta sigue la preferencia (Gastos: 1.922,19 bruto), pero lo que compara con el límite es lo

@@ -65,7 +65,7 @@ Deno.test("widget v2 mes natural y delta exacto; el contrato no copia Balance le
 Deno.test("widget v2 ciclo: excluye ancla, incluye ingreso de otro banco y conserva signo", () => {
   const s = state(true), w = widgetSnapshot(s, rows, now, payment)!;
   assertEquals(w.periodStart, s.widgetPeriod.start); assertEquals(w.periodKind, "ciclo");
-  assertEquals(w.spent, -14.55); assertEquals(w.shownDelta, 5.45); assertEquals(w.scope, s.widgetPeriod.scope);
+  assertEquals(w.spent, 0); assertEquals(w.shownDelta, 0); assertEquals(w.scope, s.widgetPeriod.scope);
 });
 Deno.test("widget v2 no afirma scope cambiado, ancla ausente, futuro ni ciclo caducado", () => {
   const s = state(true);
@@ -78,9 +78,9 @@ Deno.test("widget v2 no afirma scope cambiado, ancla ausente, futuro ni ciclo ca
   assertEquals(widgetStart({ ...s, settings: { budgetCycle: false } }, now), null);
   assertEquals(widgetSnapshot(s, rows.concat([{ ...rows[1], id: "new-anchor", fecha: "2026-10-09T10:00:00Z" }]), now, payment), null);
   assertEquals(widgetSnapshot(s, rows.concat([{ ...rows[1], id: "same-day-anchor", importe: -900, fecha: "2026-10-05T11:00:00Z" }]), now, payment), null);
-  assertEquals(widgetSnapshot(s, rows.concat([{ ...rows[3], id: "large-bizum", importe: -300, cat: "bizum" }]), now, payment)?.spent, -314.55);
+  assertEquals(widgetSnapshot(s, rows.concat([{ ...rows[3], id: "large-bizum", importe: -300, cat: "bizum" }]), now, payment)?.spent, 0);
   const w = widgetSnapshot(s, rows.concat([{ ...rows[2], id: "future", fecha: "2026-10-11T10:00:00Z", importe: 500 }]), now, payment)!;
-  assertEquals(w.spent, -14.55);
+  assertEquals(w.spent, 0);
 });
 
 Deno.test("widget v2 exige conteo exacto y todas las páginas con identidades únicas", async () => {
@@ -124,7 +124,7 @@ Deno.test("widget v2 distingue presupuesto ausente de todo reservado, como el sc
   const c = state(true), reservedScope = JSON.parse(c.widgetPeriod.scope); reservedScope[5] = 0;
   const reserved = { ...c, reservaLog: [{ date: "2026-10-07", amount: 100 }],
     widgetPeriod: { ...c.widgetPeriod, scope: JSON.stringify(reservedScope) } };
-  assertEquals(widgetSnapshot(reserved, rows, now, payment)?.budgetLeft, 14.55);
+  assertEquals(widgetSnapshot(reserved, rows, now, payment)?.budgetLeft, 0);
 });
 
 Deno.test("apuntes iguales con ordinal: filas separadas, mismo banco limpio también en el histórico", () => {
@@ -236,9 +236,9 @@ Deno.test("recibo del Plan y aportación a meta no mueven el widget, ni como gas
   // Un pago que es aportación a meta no cuenta.
   const aMeta = { ...rows[2], source: "ob:trade_republic~meta.g1" };
   assertEquals(widgetSnapshot(state(), [rows[0], rows[1], aMeta, rows[3]], now, payment)?.counts, 0);
-  // En el ciclo el gasto marcado sigue fuera; el ingreso marcado cuenta, como en el cliente.
+  // En el ciclo el gasto marcado sigue fuera; el ingreso marcado cuenta, como en el cliente, sin bajar de 0.
   const c = widgetSnapshot(state(true), [...rows, ...extra], now, payment)!;
-  assertEquals(c.spent, -14.55 - 30);
+  assertEquals(c.spent, 0);
 });
 
 Deno.test("widget v2 explica por qué no hay foto: alcance distinto con las dos versiones del alcance", () => {

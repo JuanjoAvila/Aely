@@ -5052,10 +5052,16 @@ function budgetRowSigned(e, state, period, delSet){
 /* ¿Esta entrada de dinero es de las que Gastos RESTA de lo gastado (los «otros ingresos» de su línea)? Entra en el
    banco del día a día y no es la nómina: en el mes natural, la nómina es un ingreso ≥200 € que reconoce `esNomina`
    (un Bizum no lo es nunca); en Mi ciclo, solo la que abre el ciclo (`cicloInc`). UNA regla para Gastos y Plan. */
+/* Ingreso grande de categoría genérica dentro de Mi ciclo que no es el que lo abre: otra nómina o un
+   traspaso propio sin reconocer, no el reembolso de un gasto. UNA sola regla para Gastos
+   (`monthBudgetStats`) y el Plan: si cada uno decide por su cuenta, el Plan netea lo que Gastos ya no
+   devuelve y los dos «gastado» dejan de coincidir (feedback 2026-11-28). */
+function esIngresoGrandeDeCiclo(e){ return e.amount<=-200&&e.category==="ingreso"&&!e.possibleDup; }
 function esOtroIngresoDeGastos(e, state, flows, cicloInc, ciclo){
   if(!(e.amount<0)) return false;
-  // Mi ciclo: como `budgetRowSigned`, cualquier ingreso real de cualquier banco (menos el que abre el ciclo).
-  if(ciclo) return e!==cicloInc&&!CAT_NEUTRAS[e.category]&&!traspasoPropioDerivado(e,state);
+  // Mi ciclo: como `budgetRowSigned`, cualquier ingreso real de cualquier banco (menos el que abre el ciclo
+  // y los grandes genéricos, que no devuelven margen).
+  if(ciclo) return e!==cicloInc&&!CAT_NEUTRAS[e.category]&&!traspasoPropioDerivado(e,state)&&!esIngresoGrandeDeCiclo(e);
   if(!expenseCountsBudget(e,state)) return false;
   return !(e.amount<=-200 && e.category!=="bizum" && esNomina(e,flows));
 }
@@ -5103,7 +5109,7 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
          2026-11-28). Va con la nómina y no devuelve margen. Una devolución que queda en la
          categoría del gasto («super», «ropa»…) sí lo devuelve aunque pase de 200 €. Sus claves
          viajan al widget para que ingest decida lo mismo sin adivinar. */
-      else if(period.cycle && v<=-200 && e.category==="ingreso" && !e.possibleDup){ nomina-=v; grandes.push(keyOfExpense(e)); }
+      else if(period.cycle && esIngresoGrandeDeCiclo(e)){ nomina-=v; grandes.push(keyOfExpense(e)); }
     }
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs)+resDeu.euros;

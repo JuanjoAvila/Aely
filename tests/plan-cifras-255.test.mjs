@@ -73,10 +73,13 @@ const SUITE=[
   const b=base({expenses:base().expenses.concat([otro]),accounts:base().accounts.concat([{ent:"bbva",role:"ahorro",value:10}])});
   const r=c.planReparto(b,{});
   assert.equal(r.neteo,0);assert.equal(r.gastado,18050);assert.equal(r.entra,300000+50000);
-  const cy=Object.assign({},b,{settings:{expenseBanks:["sabadell"],budgetCycle:true},expenses:[mov("n1",14,-3000,{merchant:"Nómina Empresa SL"}),mov("gh",16,400,{category:"super"}),mov("o1",18,-500,{merchant:"Venta",ent:"bbva"})]});
+  const cy=Object.assign({},b,{settings:{expenseBanks:["sabadell"],budgetCycle:true},expenses:[mov("n1",14,-3000,{merchant:"Nómina Empresa SL"}),mov("gh",16,400,{category:"super"}),mov("o1",18,-150,{merchant:"Venta",ent:"bbva"})]});
   const rc=c.planReparto(cy,{}),mb=c.monthBudgetStats(cy);
-  assert.equal(rc.neteo,40000,"neteo hasta lo gastado");assert.equal(rc.gastado,0);
-  assert.ok(mb.against<=0,"Gastos ciclo: el ingreso de otro banco también devuelve margen");
+  assert.equal(rc.neteo,15000,"neteo hasta lo gastado");assert.equal(rc.gastado,25000);
+  assert.equal(mb.against,250,"Gastos ciclo: el ingreso de otro banco también devuelve margen, y es el mismo gastado que el Plan");
+  // Un ingreso grande genérico no devuelve margen ni en Gastos ni en el Plan (feedback 2026-11-28): mismo gastado.
+  const gr=Object.assign({},cy,{expenses:cy.expenses.slice(0,2).concat([mov("o1",18,-500,{merchant:"Venta",ent:"bbva"})])});
+  assert.equal(c.planReparto(gr,{}).gastado,40000);assert.equal(c.monthBudgetStats(gr).against,400);
 }],
 ["Una devolución mayor que lo gastado no deja gastado negativo",()=>{
   const r=c.planReparto(base({expenses:base().expenses.concat([mov("v1",9,-900,{merchant:"Devolución pedido"})])}),{});

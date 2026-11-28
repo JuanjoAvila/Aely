@@ -21,3 +21,9 @@ la reconoce; beta sí (`traspasoPropioDerivado`, f0258b5e9) y con beta da `again
 
 **Despliegue:** web (beta) + **Edge `ingest`** a la vez al promocionar. APK no hace falta.
 No probado: Plan › Libre (`17-plan-reparto`) por si calcula su propio neto; tests de widget Deno sin correr.
+
+## Remate (28/11)
+- e2e inicio-ciclo-tope: ANTES (src de fad97db56) ROJO, 1 failed; DESPUES verde, 1 passed.
+- Plan: su `gastado` neteaba una entrada grande que Gastos ya no devuelve. Regla compartida `esIngresoGrandeDeCiclo` (08-motor-bank) usada por `monthBudgetStats` y `esOtroIngresoDeGastos`; caso nuevo en tests/ciclo-tope-ingresos (6 casos).
+- Tests viejos que fijaban el «neto sin tope» actualizados al nuevo contrato: month-budget-stats, plan-cifras-255, widget-puente-ciclo, ingest-handler, widget.test.ts (Deno).
+- unit: 2591 ✓, EXIT 1: memoria-espejo (aceptado) y docs-frescura «no hay código publicable sin subir VERSION» (falta bump + notas, pendiente).

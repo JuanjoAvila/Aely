@@ -144,7 +144,7 @@ for(const cafe of [false,true]) for(const cycle of [false,true]){
   const scope=cli.widgetScopeOf(st,bud,anchor,'trade_republic');
   const data=WEB.nueva(bud,st,{current:cafe?[cafeFila]:[]},W[54],'es',scope,cli.widgetCoveredEvents,cli.Date,MARCA,5932-(cafe?2:0),
     {ent:'trade_republic'},()=>({label:'Trade Republic'}),Math.round(Math.max(0,bud.remaining)*100)/100,5932-(cafe?2:0));
-  assert.equal(data.spent,(cycle?1536.47:1436.47)+(cafe?2:0));
+  assert.equal(data.spent,(cycle?1822.19:1436.47)+(cafe?2:0));
   datos.fotos['alternar'+(cafe?'Cafe':'')+'/'+(cycle?'ciclo':'mes')]=puente(data);
   // La web 4.26.185 mandaba el mes con las listas de noveno elemento (el ciclo no cambia).
   if(!cafe){ const q=JSON.parse(scope); datos.fotos['alternar185/'+(cycle?'ciclo':'mes')]=puente(cycle?data:Object.assign({},data,{scope:JSON.stringify([...q.slice(0,4),'',...q.slice(5),q[4]])})); }
@@ -506,7 +506,7 @@ public class Driver {
         if(lectura.equals("cada"))mark=a.beginRead();
         empujar(a,"alternar"+(cafe?"Cafe":"")+"/"+paso,mark);
         boolean c=paso.equals("ciclo");
-        String esperado=c?(cafe?"1.538 €":"1.536 €"):(cafe?"1.438 €":"1.436 €");
+        String esperado=c?(cafe?"1.824 €":"1.822 €"):(cafe?"1.438 €":"1.436 €");
         ok(a.text(R.id.w_title).equals(c?"AELY · MI CICLO · GASTO NETO":"AELY · ESTE MES · GASTO")&&cifra(a).equals(esperado)&&!pie(a).equals(AVISO),
           "APK 62 + web 186, alternar a "+paso+" "+donde+": "+a.text(R.id.w_title)+" | "+cifra(a)+" | "+pie(a));
       }
@@ -515,9 +515,9 @@ public class Driver {
     // paso a mes se descartaba en mudo y el widget se quedaba en el ciclo. El de ciclo sí entraba.
     Apk v185=apk(54); v185.updateWidget(Fx.bridge(fotos.optString("suMes/vieja",null)));
     String[] m=v185.beginRead(); empujar(v185,"alternar185/ciclo",m);
-    ok(cifra(v185).equals("1.536 €"),"web 185: el paso a ciclo entraba: "+cifra(v185));
+    ok(cifra(v185).equals("1.822 €"),"web 185: el paso a ciclo entraba: "+cifra(v185));
     m=v185.beginRead(); empujar(v185,"alternar185/mes",m);
-    ok(cifra(v185).equals("1.536 €")&&v185.text(R.id.w_title).contains("MI CICLO"),"web 185: el paso a mes con lectura nueva se descartaba: "+cifra(v185));
+    ok(cifra(v185).equals("1.822 €")&&v185.text(R.id.w_title).contains("MI CICLO"),"web 185: el paso a mes con lectura nueva se descartaba: "+cifra(v185));
     System.out.println("PASS alternar Mi ciclo ↔ mes en la APK 62 con la web 186: misma lectura, lectura nueva o sin marca, con y sin pago cerrado (con la 185 el mes se perdía)");
   }
   public static void main(String[] args) throws Exception {

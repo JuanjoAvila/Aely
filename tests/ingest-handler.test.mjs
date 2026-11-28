@@ -83,8 +83,8 @@ await t("ciclo que cruza el mes relee el ancla anterior sin cambiar month legado
     widgetPeriod:{v:2,kind:'ciclo',start,anchor,scope:JSON.stringify([2,start,'ciclo','neto',anchor,100,['trade_republic'],'trade_republic'])}};
   const env=fakeDb({state,rows:[payday,{id:'return',user_id:'user',fecha:new Date(now-1000).toISOString(),importe:-20,cat:'ingreso',source:'ob:sabadell',comercio:'Abono'}]});
   const r=await post(env,{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra sintetica',fecha:String(now),evento:'cycle-dual'});
-  assert.equal(r.data.month.spent,5.45); assert.equal(r.data.widget.spent,-14.55);
-  assert.equal(r.data.widget.periodStart,start); assert.equal(r.data.widget.shownDelta,5.45);
+  assert.equal(r.data.month.spent,5.45); assert.equal(r.data.widget.spent,0);
+  assert.equal(r.data.widget.periodStart,start); assert.equal(r.data.widget.shownDelta,0);
 });
 
 await t("mismas filas: servidor v2 y Inicio comparten Mes bruto / Mi ciclo neto", () => {
