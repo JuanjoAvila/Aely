@@ -83,6 +83,8 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   d.end = end;
   // La app dice qué filas son un traspaso entre cuentas propias: aquí valen como neutras, sin tocarlas.
   const traspasos = new Set<string>(Array.isArray(data.widgetPeriod?.traspasos) ? data.widgetPeriod.traspasos.filter((k: unknown) => typeof k === "string") : []);
+  // Y en Mi ciclo, qué ingresos grandes no devuelven margen (espejo de `grandes` en `monthBudgetStats`).
+  const grandes = new Set<string>(cycle && Array.isArray(w.grandes) ? w.grandes.filter((k: unknown) => typeof k === "string") : []);
   const visible = filasComoLaApp(rows, data.deleted, data.obAbsorbedPending, owner, data.obAbsorbedConfirmed).filter(f => {
     const ms = Date.parse(String(f.fecha)); return ms >= start && ms < end;
   }).map(f => traspasos.has(claveComoLaApp(f)) ? { ...f, cat: "traspaso" } : f);
@@ -134,13 +136,14 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
     for (const f of eligible) {
       if (fueraDelPresupuesto(f, cycle)) continue;
       const amount = Number(f.importe);
-      if (amount < 0 && (cycle || daily(f))) { income -= amount; if (esNomina.get(f)) nomina -= amount; }
+      if (amount < 0 && (cycle || daily(f))) { income -= amount; if (esNomina.get(f) || grandes.has(claveComoLaApp(f))) nomina -= amount; }
       else if (amount > 0 && daily(f)) spent += amount;
     }
     result.spent = +spent.toFixed(2); result.income = +income.toFixed(2);
-    // Sin tope en el ciclo (contrato de la 4.26.73); en el mes, unos ingresos mayores que el gasto
-    // dejan lo usado a 0 y no estiran el límite. Una web anterior compara el bruto.
-    result.against = cycle ? +(spent - income).toFixed(2)
+    // Con tope también en el ciclo (feedback 2026-11-28, espejo de `budgetStatsFromAmounts`): sin él,
+    // la llegada de una nómina traspasada dejaba lo usado en negativo y el widget decía «Pots gastar»
+    // más que el límite entero. En el mes, sin la nómina; una web anterior compara el bruto.
+    result.against = cycle ? Math.max(0, +(spent - (income - nomina)).toFixed(2))
       : conListas ? Math.max(0, +(spent - (income - nomina)).toFixed(2)) : result.spent;
     result.shown = cycle ? +Math.abs(income - spent).toFixed(2) : result.spent;
     return result;
@@ -153,6 +156,7 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   // hueco del ancla (vacío en el mes): el nativo exige 8 elementos y un noveno lo descartaba (26/10/2026).
   const parts: unknown[] = [2, start, w.kind, cycle ? "neto" : "gasto",
     conListas ? [[...nominas].sort(), [...noNominas].sort(), ...(traspasos.size ? [[...traspasos].sort()] : [])]
+      : cycle && grandes.size ? [w.anchor || "", [...traspasos].sort(), [...grandes].sort()]
       : cycle && traspasos.size ? [w.anchor || "", [...traspasos].sort()] : (w.anchor || ""),
     budgetKnown ? after.budget : null, ents.slice().sort(), bank?.ent || ""];
   const scope = JSON.stringify(parts);

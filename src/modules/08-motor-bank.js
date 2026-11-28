@@ -4993,12 +4993,20 @@ function reservedSince(state, fromMs, hastaMs){
    devolvían nada («gastos 422 € por encima» con 486 € recibidos).
    En "mes" el margen NO pasa del límite: unos ingresos mayores que el gasto dejan lo gastado a 0,
    no convierten 1.500 € de límite en 1.900 € «para gastar». El límite es un tope de gasto que él
-   eligió; Mi ciclo conserva su neto sin tope (contrato de la 4.26.73). */
-function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina){
+   eligió.
+   MI CICLO TAMBIÉN TIENE TOPE (feedback 2026-11-28, pareja del dueño en producción): el «neto sin
+   tope» de la 4.26.73 dejaba que una entrada grande que no era la nómina —la llegada a otro banco
+   de la nómina que se pasaba ella misma— bajara lo gastado a −567 €: el widget decía «Pots gastar
+   1.217 €» de un límite de 650 € e Inicio «0 %» cuando en realidad se había pasado. En el ciclo
+   devuelve margen lo que reembolsa un gasto del ciclo (Bizums de una cena, devoluciones), y eso
+   nunca deja más margen que el límite entero; un ingreso grande genérico (`nomina`, ver
+   `monthBudgetStats`) no devuelve nada, como la nómina en el mes. Lo pide `ciclo`: el Balance de
+   un informe mensual ("net" sin ciclo) conserva su neto. */
+function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina,ciclo){
   const budget=budgetRaw>0?Math.max(0,+(budgetRaw-reserved).toFixed(2)):null;
   const balance=income-spent;
-  const against=mode==="net"?(spent-income)
-    :mode==="mes"?Math.max(0,+(spent-(income-(nomina||0))).toFixed(2)):spent;
+  const against=mode==="net"&&!ciclo?(spent-income)
+    :mode==="mes"||mode==="net"?Math.max(0,+(spent-(income-(nomina||0))).toFixed(2)):spent;
   const shown=mode==="net"?Math.abs(balance):spent;
   const remaining=budget==null?null:budget-against;
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
@@ -5010,7 +5018,7 @@ function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina){
    mes cerrado. Con su propia regla cada una, el 1/11 diría «128 % del presupuesto» de un octubre que
    se vio entero «64 € por debajo» (revisión 26/10/2026). */
 function limiteDeStats(bs, state){
-  return budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"mes",bs.nomina);
+  return budgetStatsFromAmounts(bs.spent,bs.income,typeof state.budget==="number"?state.budget:0,bs.reserved,bs.cycle?"net":"mes",bs.nomina,bs.cycle);
 }
 // El presupuesto cambia de ventana solo con la preferencia activada y un cobro real.
 // Los informes con fecha explícita conservan sus meses naturales ya cerrados.
@@ -5069,7 +5077,7 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // ya la aparta `budgetRowSigned`: es la que lo abre. `nominas`/`noNominas` son las claves de los
   // ingresos grandes que se decidieron aquí, para que ingest no tenga que adivinarlos (widget).
   const flows=period.cycle?null:nominaFlowsOf(state);
-  const nominas=[], noNominas=[], traspasos=[];
+  const nominas=[], noNominas=[], traspasos=[], grandes=[];
   // «Restar del presupuesto» (Plan › Deudas): la cuota de cada deuda con el interruptor puesto baja el límite
   // y su cargo sin enlazar no cuenta además como gastado. Sin ningún interruptor, nada cambia.
   const resDeu=reservaDeudasParaPresupuesto(state,startMs,period.cycle?period.cycle.start:null,nowMs);
@@ -5090,6 +5098,12 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
         if(esNomina(e,flows)){ nomina-=v; nominas.push(keyOfExpense(e)); }
         else noNominas.push(keyOfExpense(e));
       }
+      /* En el ciclo, un ingreso grande de categoría genérica que no es el que lo abre no reembolsa
+         ningún gasto del ciclo: es otra nómina o un traspaso propio sin reconocer (feedback
+         2026-11-28). Va con la nómina y no devuelve margen. Una devolución que queda en la
+         categoría del gasto («super», «ropa»…) sí lo devuelve aunque pase de 200 €. Sus claves
+         viajan al widget para que ingest decida lo mismo sin adivinar. */
+      else if(period.cycle && v<=-200 && e.category==="ingreso" && !e.possibleDup){ nomina-=v; grandes.push(keyOfExpense(e)); }
     }
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs)+resDeu.euros;
@@ -5097,8 +5111,8 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
   // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
   const mode=period.cycle?"net":(budgetMode||(state.settings&&state.settings.gTotalMode)||"split");
-  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina),
-    {periodStart:startMs,cycle:!!period.cycle,nomina:+nomina.toFixed(2),nominas:nominas,noNominas:noNominas,traspasos:traspasos});
+  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode,nomina,!!period.cycle),
+    {periodStart:startMs,cycle:!!period.cycle,nomina:+nomina.toFixed(2),nominas:nominas,noNominas:noNominas,traspasos:traspasos,grandes:grandes});
 }
 
 // V2 confirma recepción también fuera del ciclo: una fila anterior puede mover el saldo.
@@ -5120,7 +5134,11 @@ function widgetScopeOf(state,stats,anchor,bank){
   const tras=(stats.traspasos||[]).slice().sort();
   /* Con traspasos derivados el hueco cambia de forma A PROPÓSITO: un ingest sin esta regla calcula otro
      alcance y no responde, en vez de contar esa llegada como ingreso. Sin ellos, el alcance de siempre. */
-  const lists=stats.cycle?(tras.length?[anchor||"",tras]:(anchor||"")):[(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()].concat(tras.length?[tras]:[]);
+  /* Con ingresos grandes que no devuelven margen el ciclo lleva tres huecos (ancla, traspasos,
+     grandes): un ingest anterior a la regla calcula otro alcance y no responde, en vez de dar por
+     buena la cifra que los restaba (feedback 2026-11-28). */
+  const gr=(stats.grandes||[]).slice().sort();
+  const lists=stats.cycle?(gr.length?[anchor||"",tras,gr]:tras.length?[anchor||"",tras]:(anchor||"")):[(stats.nominas||[]).slice().sort(),(stats.noNominas||[]).slice().sort()].concat(tras.length?[tras]:[]);
   return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
     lists,stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
 }
@@ -5129,6 +5147,7 @@ function widgetPeriodOf(stats,anchor,scope){
   const w={v:2,kind:stats.cycle?"ciclo":"mes",start:stats.periodStart,anchor:anchor||"",scope:scope};
   if(!stats.cycle){ w.nominas=(stats.nominas||[]).slice(); w.noNominas=(stats.noNominas||[]).slice(); }
   if(stats.traspasos&&stats.traspasos.length) w.traspasos=stats.traspasos.slice();
+  if(stats.cycle&&stats.grandes&&stats.grandes.length) w.grandes=stats.grandes.slice();
   return w;
 }
 // Inicio, Gastos (margen) y el widget v2 comparan con el límite lo mismo: en el mes natural, gasto
