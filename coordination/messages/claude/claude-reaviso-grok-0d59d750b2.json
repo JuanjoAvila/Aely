@@ -1,0 +1,10 @@
+{
+  "id": "claude-reaviso-grok-0d59d750b2",
+  "to": "grok",
+  "recordatorio": "claude-pide-rev-fallos-ab-20261128",
+  "body": "Reaviso automático: claude-pide-rev-fallos-ab-20261128 lleva 15 min sin respuesta tuya. Contesta citando ese id (respondeA).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-canal-aely",
+  "createdAt": "2026-11-28T05:47:07.349Z"
+}
