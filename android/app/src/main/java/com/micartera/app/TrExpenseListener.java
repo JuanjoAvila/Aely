@@ -158,10 +158,9 @@ public class TrExpenseListener extends NotificationListenerService {
         CharSequence textCs = sbn.getNotification().extras.getCharSequence("android.text");
         CharSequence bigCs = sbn.getNotification().extras.getCharSequence("android.bigText");
         final String title = titleCs != null ? titleCs.toString() : "";
-        // Solo notificaciones con pinta de movimiento (mencionan un importe). El gasto de 1801086
-        // del 27/11 no llegó ni a salir del móvil: lo más probable es que el importe no viniera en
-        // `android.text` y este filtro la tirase sin rastro. Por eso se mira también bigText y título.
-        final String text = textoConImporte(textCs != null ? textCs.toString() : "",
+        // Solo notificaciones con pinta de movimiento (mencionan un importe). Si el importe no viene
+        // en `android.text`, en TR se mira bigText y, con verbo de compra, el título (ver textoConImporte).
+        final String text = textoConImporte(fuente, textCs != null ? textCs.toString() : "",
                 bigCs != null ? bigCs.toString() : "", title);
         if (text.isEmpty()) return;
 
@@ -231,14 +230,37 @@ public class TrExpenseListener extends NotificationListenerService {
         }).start();
     }
 
-    /**
-     * El primer campo que trae importe, en este orden: text, bigText, título. `text` va primero
-     * para que lo que ya entraba siga mandándose igual; "" = ninguno parece un movimiento.
-     */
+    /** Verbo de compra con tarjeta: sin él, un importe solo en el título no basta (alertas, órdenes…). */
+    private static final Pattern VERBO_COMPRA = Pattern.compile(
+            "(?iu)\\b(gastaste|has gastado|has pagado|pagaste|you spent|you paid|has gastat|has pagat)\\b");
+
+    private static boolean conImporte(String s) {
+        return s != null && !s.isEmpty() && (s.contains("€") || HAS_AMOUNT.matcher(s).find());
+    }
+
+    /** Compat: el camino de Trade Republic. */
     static String textoConImporte(String text, String bigText, String title) {
-        for (String s : new String[]{text, bigText, title}) {
-            if (s != null && !s.isEmpty() && (s.contains("€") || HAS_AMOUNT.matcher(s).find())) return s;
-        }
+        return textoConImporte("tr", text, bigText, title);
+    }
+
+    /**
+     * El `texto` que se manda a `ingest`, o "" si la noti no parece un movimiento.
+     *  · text con importe → text, igual que siempre (TR y Wallet).
+     *  · Wallet sin importe en text → "" (sin cambios: su título es el comercio).
+     *  · TR: NUNCA se sustituye text. Se le suma bigText (solo bigText si ya contiene a text), para
+     *    que el servidor siga viendo el ruido de text («alerta de precio», «orden ejecutada»…).
+     *  · TR con el importe solo en el título: únicamente si el título trae verbo de compra; entonces
+     *    se añade AL FINAL (el servidor saca importe y comercio del texto) y el título sigue igual.
+     */
+    static String textoConImporte(String fuente, String text, String bigText, String title) {
+        text = text != null ? text : "";
+        bigText = bigText != null ? bigText : "";
+        if (conImporte(text)) return text;
+        if (!"tr".equals(fuente)) return "";
+        String cuerpo = bigText.isEmpty() ? text
+                : (text.isEmpty() || bigText.contains(text)) ? bigText : (text + " " + bigText);
+        if (conImporte(bigText)) return cuerpo.trim();
+        if (conImporte(title) && VERBO_COMPRA.matcher(title).find()) return (cuerpo + " " + title).trim();
         return "";
     }
 
