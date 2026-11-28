@@ -156,12 +156,13 @@ public class TrExpenseListener extends NotificationListenerService {
 
         CharSequence titleCs = sbn.getNotification().extras.getCharSequence("android.title");
         CharSequence textCs = sbn.getNotification().extras.getCharSequence("android.text");
+        CharSequence bigCs = sbn.getNotification().extras.getCharSequence("android.bigText");
         final String title = titleCs != null ? titleCs.toString() : "";
-        final String text = textCs != null ? textCs.toString() : "";
-
-        // Solo notificaciones con pinta de movimiento (mencionan un importe).
+        // Solo notificaciones con pinta de movimiento (mencionan un importe). Si el importe no viene
+        // en `android.text`, en TR se mira bigText y, con verbo de compra, el título (ver textoConImporte).
+        final String text = textoConImporte(fuente, textCs != null ? textCs.toString() : "",
+                bigCs != null ? bigCs.toString() : "", title);
         if (text.isEmpty()) return;
-        if (!text.contains("€") && !HAS_AMOUNT.matcher(text).find()) return;
 
         long now = System.currentTimeMillis();
 
@@ -227,6 +228,54 @@ public class TrExpenseListener extends NotificationListenerService {
             if (postIngest(INGEST_URL, body) == REINTENTAR) encolar(INGEST_URL, body);
             vaciarCola();
         }).start();
+    }
+
+    /**
+     * Verbo de compra con tarjeta: sin él, un importe fuera de text (bigText o título) no basta
+     * (devoluciones, cotizaciones, saldos, alertas, órdenes…). Alineado con COMPRA_TARJETA de
+     * supabase/functions/_shared/ingest_logic.ts, más catalán «vas pagar/gastar» y «spent» suelto.
+     */
+    private static final Pattern VERBO_COMPRA = Pattern.compile(
+            "(?iu)\\b(gastaste|pagaste|spent|has\\s+gastado|has\\s+pagado"
+            + "|pago\\s+con\\s+tarjeta|compra\\s+con\\s+tarjeta|you\\s+paid"
+            + "|has\\s+gastat|has\\s+pagat|vas\\s+pagar|vas\\s+gastar)\\b");
+
+    /** Con verbo de compra; el espacio duro (U+00A0) y el estrecho (U+202F) cuentan como espacio. */
+    static boolean conVerboCompra(String s) {
+        if (s == null || s.isEmpty()) return false;
+        return VERBO_COMPRA.matcher(s.replace('\u00A0', ' ').replace('\u202F', ' ')).find();
+    }
+
+    private static boolean conImporte(String s) {
+        return s != null && !s.isEmpty() && (s.contains("€") || HAS_AMOUNT.matcher(s).find());
+    }
+
+    /** Compat: el camino de Trade Republic. */
+    static String textoConImporte(String text, String bigText, String title) {
+        return textoConImporte("tr", text, bigText, title);
+    }
+
+    /**
+     * El `texto` que se manda a `ingest`, o "" si la noti no parece un movimiento.
+     *  · text con importe → text, igual que siempre (TR y Wallet).
+     *  · Wallet sin importe en text → "" (sin cambios: su título es el comercio).
+     *  · TR: NUNCA se sustituye text. Se le suma bigText (solo bigText si ya contiene a text), para
+     *    que el servidor siga viendo el ruido de text («alerta de precio», «orden ejecutada»…).
+     *  · TR con el importe solo en bigText: únicamente si text+bigText trae verbo de compra; si no,
+     *    devoluciones, cotizaciones o saldos saldrían como gasto por defecto en el servidor.
+     *  · TR con el importe solo en el título: únicamente si el título trae verbo de compra; entonces
+     *    se añade AL FINAL (el servidor saca importe y comercio del texto) y el título sigue igual.
+     */
+    static String textoConImporte(String fuente, String text, String bigText, String title) {
+        text = text != null ? text : "";
+        bigText = bigText != null ? bigText : "";
+        if (conImporte(text)) return text;
+        if (!"tr".equals(fuente)) return "";
+        String cuerpo = bigText.isEmpty() ? text
+                : (text.isEmpty() || bigText.contains(text)) ? bigText : (text + " " + bigText);
+        if (conImporte(bigText)) return conVerboCompra(cuerpo) ? cuerpo.trim() : "";
+        if (conImporte(title) && conVerboCompra(title)) return (cuerpo + " " + title).trim();
+        return "";
     }
 
     /** Huella estable y opaca. Si SHA-256 no existiera, se omite: nunca se usa un hash débil. */
