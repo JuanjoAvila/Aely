@@ -212,3 +212,10 @@ Deno.test('R2 absent or disabled switch never writes the new native format',asyn
  equal(s.rows.length,1,'OFF preserves baseline content conflict');equal(s.rows[0].source,'macrodroid','OFF native marker absent');equal(r.data.dup,true,'OFF legacy dedup');}}
  finally{Deno.env.set('INGEST_NATIVE_TWINS','1');}
 });
+// Diagnóstico 28/11: cada respuesta deja por qué el widget salió sin foto, sin importe ni comercio.
+Deno.test('ingest apunta en app_events el motivo de widget:null sin datos del gasto',async()=>{
+ const s=storage();const r=await post(s,body('v1_widget_diag'));equal(r.data.widget,null,'synthetic state has no widgetPeriod');
+ const ev=s.events.filter((e:any)=>e.kind==='ingest_widget');equal(ev.length,1,'one widget trace per response');
+ equal(ev[0].message,'INGEST widget: sin-periodo','reason in message');equal(JSON.parse(ev[0].detail).motivo,'sin-periodo','reason in detail');
+ equal(/9[.,]95|SINTETICO/i.test(JSON.stringify(ev[0])),false,'no amount or merchant');
+});

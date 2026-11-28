@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
+import { readWidgetRows, type WidgetDiag, widgetSnapshot, widgetStart } from "./widget.ts";
 import { bancoDeSource, claveComoLaApp, cuentaParaPresupuesto, esCargoDeRecibo, filasComoLaApp, inicioDeMesMs, ordinalDeSource, statsDelMes } from "../_shared/presupuesto.ts";
 
 const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
@@ -239,4 +239,19 @@ Deno.test("recibo del Plan y aportación a meta no mueven el widget, ni como gas
   // En el ciclo el gasto marcado sigue fuera; el ingreso marcado cuenta, como en el cliente.
   const c = widgetSnapshot(state(true), [...rows, ...extra], now, payment)!;
   assertEquals(c.spent, -14.55 - 30);
+});
+
+Deno.test("widget v2 explica por qué no hay foto: alcance distinto con las dos versiones del alcance", () => {
+  const s = state(), scope = JSON.parse(s.widgetPeriod.scope); scope[7] = "otro_banco";
+  const diag: WidgetDiag = {};
+  const cambiado = { ...s, widgetPeriod: { ...s.widgetPeriod, scope: JSON.stringify(scope) } };
+  assertEquals(widgetSnapshot(cambiado, rows, now, payment, undefined, diag), null);
+  assertEquals(diag.motivo, "alcance-distinto"); assertEquals(diag.appScope, JSON.stringify(scope));
+  assertEquals(diag.edgeScope, s.widgetPeriod.scope); assertEquals(diag.start, s.widgetPeriod.start);
+  const sinPeriodo: WidgetDiag = {};
+  assertEquals(widgetSnapshot({ ...s, widgetPeriod: undefined }, rows, now, payment, undefined, sinPeriodo), null);
+  assertEquals(sinPeriodo.motivo, "sin-periodo");
+  const bien: WidgetDiag = {};
+  assertEquals(widgetSnapshot(s, rows, now, payment, undefined, bien)?.scope, s.widgetPeriod.scope);
+  assertEquals(bien.motivo, "ok");
 });
