@@ -1860,8 +1860,9 @@ for(const lang of ["es","en","ca"])test(`beta200: la nota nueva del botón de fi
   expect(pack).toEqual({tandas:8,items:50});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  // 6 desde la 4.26.262 (28/11): la nota suma la línea de H7 en los tres idiomas; antes 5.
-  expect(items.length).toBe(6);
+  // Sin número clavado: cada bump cambia la nota de cabeza (5, 6, 4 líneas…) y el 6 de la 4.26.262
+  // rompió la 4.26.263. Basta con que haya líneas; abajo se comprueba que el panel las enseña todas.
+  expect(items.length).toBeGreaterThan(0);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
@@ -1873,7 +1874,8 @@ for(const lang of ["es","en","ca"])test(`beta200: la nota nueva del botón de fi
   const versions=news.locator('button').filter({hasText:/^v\d+\./});
   await expect(versions).toHaveCount(20);
   await news.locator('.btn-ghost.btn-block').click();
-  await expect(versions).toHaveCount(356);
+  // El catálogo entero, no un 356 que cada versión nueva dejaba atrasado.
+  await expect(versions).toHaveCount(catalog.length);
   const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
   expect(shown).toEqual(["4.26.263","4.26.262","4.26.259","4.26.258","4.26.256","4.26.255","4.26.254","4.26.253","4.26.252","4.26.251","4.26.250","4.26.249","4.26.248","4.26.247","4.26.246","4.26.245","4.26.244","4.26.243","4.26.242","4.26.241","4.26.240","4.26.239","4.26.238","4.26.237","4.26.236","4.26.235","4.26.234","4.26.233","4.26.232","4.26.231","4.26.230","4.26.229","4.26.228","4.26.227","4.26.226","4.26.225","4.26.224","4.26.223","4.26.222","4.26.221","4.26.220","4.26.219","4.26.218","4.26.217","4.26.216","4.26.215","4.26.214","4.26.213","4.26.212","4.26.211","4.26.210","4.26.209","4.26.208","4.26.207","4.26.206","4.26.205","4.26.204","4.26.203","4.26.202","4.26.201","4.26.200","4.26.199","4.26.198","4.26.197","4.26.196","4.26.195","4.26.194","4.26.193","4.26.192","4.26.191","4.26.190","4.26.189","4.26.188","4.26.187","4.26.186","4.26.185","4.26.184","4.26.183","4.26.182","4.26.181","4.26.180","4.26.179","4.26.178","4.26.177","4.26.176","4.26.175","4.26.174","4.26.173","4.26.172","4.26.171","4.26.170","4.26.169","4.26.168","4.26.167","4.26.166","4.26.165","4.26.164","4.26.163","4.26.162","4.26.161","4.26.160","4.26.159","4.26.158","4.26.157","4.26.156","4.26.155","4.26.154","4.26.153","4.26.152","4.26.151","4.26.150","4.26.149","4.26.148","4.26.147","4.26.146","4.26.145","4.26.144","4.26.143","4.26.142","4.26.141","4.26.140","4.26.139","4.26.138",...production.map(n=>n.v)]);
   for(const v of ["4.26.131","4.26.130","4.26.129","4.26.127"])expect(shown).not.toContain(v);
