@@ -288,6 +288,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
     [netWorthHistoryKey(state.accountBalanceHistory,seriesToday),tt,seriesToday].concat(stateDeps(state,NET_WORTH_STATE),settingsDeps(state.settings,NET_WORTH_SETTINGS)));
 
+  // Lo pospuesto en Recibos vive en el almacén local; Plan avisa al guardarlo (feedback 28/11).
+  const [pospuesto,setPospuesto]=useState(pr6PospuestoLeer);
+  useEffect(function(){
+    const relee=function(){ setPospuesto(pr6PospuestoLeer()); };
+    window.addEventListener("mc-pr6-pospuesto",relee);
+    return function(){ window.removeEventListener("mc-pr6-pospuesto",relee); };
+  },[]);
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
   // vencidos aparte y retira el gas confirmado aunque arrastre `wait` (feedback 30/9).
@@ -302,7 +309,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       const status=fixedEstadoMes(state,f,tt.curYear,cm,today);
       if(status.paid||fixedSinCobroIn(f,tt.curYear,cm)) return;
       const row={rid:"fixed_"+f.id, day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
-      (status.overdue?overdue:rows).push(row);
+      (pr6RevisarVencido({id:row.rid,day:status.day,overdue:status.overdue},today,pospuesto)?overdue:rows).push(row);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d) || !(d.monthly>0)) return;

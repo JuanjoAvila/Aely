@@ -131,6 +131,8 @@ export const E2E_MAP = [
   // Ronda D (18/11/2026): «Para revisar» tocable, deslizar desde el buscador de Gastos, nombres de
   // «Últimos movimientos» sin cortar, dianas de 44 px de pantalla y cifras de Categorías.
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-revisar-pospuesto.spec.mjs"] },
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/inicio-revisar-pospuesto.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: ["e2e/inicio-gastos-ronda-d.spec.mjs"] },
   // La pareja de traspaso se decide en el motor y se ve en la cabecera; el destino, en el alta de Plan.
   { file: "src/modules/04-tab-gastos.js", specs: ["e2e/gastos-traspaso-propio.spec.mjs"] },

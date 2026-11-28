@@ -599,7 +599,14 @@ function pr6PospuestoLeer(){
     Object.keys(o||{}).forEach(function(k){ if(o[k]===hoy) out[k]=hoy; }); return out;
   }catch(e){ return {}; }
 }
-function pr6PospuestoGuardar(o){ try{ localStorage.setItem(PR6_POSPUESTO_KEY,JSON.stringify(o)); }catch(e){} }
+// Avisa a Inicio, que está premontado y no se entera de un cambio del almacén (feedback 28/11).
+function pr6PospuestoGuardar(o){ try{ localStorage.setItem(PR6_POSPUESTO_KEY,JSON.stringify(o)); }catch(e){}
+  try{ window.dispatchEvent(new CustomEvent("mc-pr6-pospuesto")); }catch(e){} }
+/* «No ha llegado»: la MISMA regla en Plan › Recibos y en Inicio. Inicio tenía la suya, sin el
+   margen ni lo pospuesto, y seguía enseñando un recibo que Plan ya había apartado (feedback 28/11). */
+function pr6RevisarVencido(x, today, pospuesto){
+  return !!x.overdue&&x.day!=null&&today-x.day>PR6_MARGEN_DIAS&&!(pospuesto||{})[x.id];
+}
 /* Enlaces de baja (SPEC §2.6.2): solo páginas oficiales de ayuda comprobadas a mano el
    28/10/2026 (cargan y explican cómo cancelar). Sin URL comprobada no sale el enlace. */
 const PR6_BAJA=[
@@ -624,7 +631,7 @@ function planRecibosVista(pack, proof, today, avisos, pospuesto){
     else if(a&&a.rv==="trial") review.push(Object.assign({},x,{rv:"trial",dias:a.dias}));
     else if(a&&a.rv==="ghost") review.push(Object.assign({},x,{rv:"ghost",meses:a.meses}));
     else if(a&&a.rv==="cand") review.push(Object.assign({},x,{rv:"cand",cobrado:a.cobrado,previsto:a.previsto,cargo:a.cargo}));
-    else if(x.overdue&&x.day!=null&&today-x.day>PR6_MARGEN_DIAS) review.push(Object.assign({},x,{rv:"late"}));
+    else if(pr6RevisarVencido(x,today,pospuesto)) review.push(Object.assign({},x,{rv:"late"}));
     else if(a&&a.rv==="perm") review.push(Object.assign({},x,{rv:"perm",permYm:a.ym}));
     else due.push(x);
   });
